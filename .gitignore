@@ -41,3 +41,5 @@ scripts/**/assets
 *.env
 *.env.build
 deploy/
+
+files/

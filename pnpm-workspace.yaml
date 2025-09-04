@@ -1,6 +1,7 @@
 packages:
   - "apps/**/*"
   - "libs/**/*"
+  - "lab/**/*"
   - "!**/legacy/**"
   - "!**/build"
   - "!**/dist*"
