@@ -15,6 +15,7 @@
     "shared": "pnpm --filter \"@openathlete/shared\"",
     "database": "pnpm --filter \"@openathlete/database\"",
     "slope-speed-chart": "pnpm --filter \"@openathlete/slope-speed-chart\"",
+    "fit-to-gpx": "pnpm --filter \"@openathlete/fit-to-gpx\"",
     "reinstall": "rm -rf ./**/node_modules && pnpm i",
     "format:write": "pnpm --parallel --aggregate-output format:write",
     "lint:fix": "pnpm --parallel --aggregate-output lint:fix",
