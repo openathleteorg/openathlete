@@ -18,8 +18,8 @@ export interface GapModel {
 
 // Finer uniform binning (1% increments) to reduce aggregation bias at steep grades
 // Range chosen symmetrical for running grades typically encountered.
-const BIN_MIN = -30;
-const BIN_MAX = 30;
+const BIN_MIN = -50;
+const BIN_MAX = 50;
 const BIN_STEP = 0.5; // change for finer granularity
 const BIN_EDGES: number[] = [];
 for (let g = BIN_MIN; g <= BIN_MAX; g += BIN_STEP) BIN_EDGES.push(g);

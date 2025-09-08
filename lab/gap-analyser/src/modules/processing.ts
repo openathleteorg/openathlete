@@ -22,7 +22,7 @@ export interface ActivityBaselineResult {
 const WINDOW_SECONDS = 60;
 const MAX_SPEED_MS = 7.5; // ~4:00 min/km pace threshold to exclude sprints? adjust
 const MIN_SPEED_MS = 1.2; // walking lower bound
-const MAX_GRADIENT_ABS = 35; // sanity cap
+const MAX_GRADIENT_ABS = 40; // sanity cap
 
 function computeDistanceMeters(a: TrackPoint, b: TrackPoint): number {
   const R = 6371000;
