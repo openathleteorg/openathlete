@@ -1,0 +1,20 @@
+{
+  "name": "@openathlete/race-plan-generator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.7.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.7"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
