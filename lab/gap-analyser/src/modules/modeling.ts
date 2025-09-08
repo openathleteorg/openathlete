@@ -20,7 +20,7 @@ export interface GapModel {
 // Range chosen symmetrical for running grades typically encountered.
 const BIN_MIN = -30;
 const BIN_MAX = 30;
-const BIN_STEP = 1; // can tighten later to 0.5 if needed
+const BIN_STEP = 0.5; // change for finer granularity
 const BIN_EDGES: number[] = [];
 for (let g = BIN_MIN; g <= BIN_MAX; g += BIN_STEP) BIN_EDGES.push(g);
 if (BIN_EDGES[BIN_EDGES.length - 1] !== BIN_MAX) BIN_EDGES.push(BIN_MAX);
