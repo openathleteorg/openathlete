@@ -6,29 +6,36 @@ import path from "path";
 import { SportsLib } from "@sports-alliance/sports-lib";
 import { EventExporterGPX } from "@sports-alliance/sports-lib/lib/events/adapters/exporters/exporter.gpx.js";
 
-async function convertFitToGpx(inputFilePath: string, outputGpxFilePath: string): Promise<boolean> {
+async function convertFitToGpx(
+  inputFilePath: string,
+  outputGpxFilePath: string
+): Promise<boolean> {
   try {
     const inputFile = fs.readFileSync(inputFilePath, null);
     if (!inputFile || !inputFile.buffer) {
-      console.error(`❌ Could not read the input file: ${inputFilePath}`);
+      console.error(`Could not read the input file: ${inputFilePath}`);
       return false;
     }
 
     const inputFileBuffer = inputFile.buffer;
-    
+
     // Use lib to read the FIT file
     const event = await SportsLib.importFromFit(inputFileBuffer as ArrayBuffer);
-    
+
     // Convert to GPX
     const gpxString = await new EventExporterGPX().getAsString(event);
-    
+
     // Write GPX file
     fs.writeFileSync(outputGpxFilePath, gpxString);
-    console.log(`✅ Converted: ${path.basename(inputFilePath)} → ${path.basename(outputGpxFilePath)}`);
+    console.log(
+      `Converted: ${path.basename(inputFilePath)} → ${path.basename(outputGpxFilePath)}`
+    );
     return true;
-    
   } catch (error) {
-    console.error(`❌ Error converting ${path.basename(inputFilePath)}:`, error instanceof Error ? error.message : error);
+    console.error(
+      `Error converting ${path.basename(inputFilePath)}:`,
+      error instanceof Error ? error.message : error
+    );
     return false;
   }
 }
@@ -38,24 +45,26 @@ async function processDirectory(directoryPath: string): Promise<void> {
     // Check if directory exists
     const stats = await fsPromises.stat(directoryPath);
     if (!stats.isDirectory()) {
-      console.error(`❌ Error: ${directoryPath} is not a directory`);
+      console.error(`Error: ${directoryPath} is not a directory`);
       process.exitCode = 1;
       return;
     }
 
     // Read directory contents
     const files = await fsPromises.readdir(directoryPath);
-    
+
     // Filter .fit files
-    const fitFiles = files.filter(file => file.toLowerCase().endsWith('.fit'));
-    
+    const fitFiles = files.filter((file) =>
+      file.toLowerCase().endsWith(".fit")
+    );
+
     if (fitFiles.length === 0) {
-      console.log(`ℹ️  No .fit files found in ${directoryPath}`);
+      console.log(`No .fit files found in ${directoryPath}`);
       return;
     }
 
-    console.log(`📁 Found ${fitFiles.length} .fit file(s) in ${directoryPath}`);
-    console.log('🔄 Starting conversion...\n');
+    console.log(`Found ${fitFiles.length} .fit file(s) in ${directoryPath}`);
+    console.log("Starting conversion...\n");
 
     let successCount = 0;
     let errorCount = 0;
@@ -63,8 +72,11 @@ async function processDirectory(directoryPath: string): Promise<void> {
     // Process each .fit file
     for (const fitFile of fitFiles) {
       const inputPath = path.join(directoryPath, fitFile);
-      const outputPath = path.join(directoryPath, fitFile.replace(/\.fit$/i, '.gpx'));
-      
+      const outputPath = path.join(
+        directoryPath,
+        fitFile.replace(/\.fit$/i, ".gpx")
+      );
+
       const success = await convertFitToGpx(inputPath, outputPath);
       if (success) {
         successCount++;
@@ -73,16 +85,18 @@ async function processDirectory(directoryPath: string): Promise<void> {
       }
     }
 
-    console.log(`\n📊 Conversion completed:`);
-    console.log(`   ✅ Success: ${successCount} file(s)`);
-    console.log(`   ❌ Errors: ${errorCount} file(s)`);
+    console.log(`\nConversion completed:`);
+    console.log(`   Success: ${successCount} file(s)`);
+    console.log(`   Errors: ${errorCount} file(s)`);
 
     if (errorCount > 0) {
       process.exitCode = 1;
     }
-
   } catch (error) {
-    console.error(`❌ Error accessing directory ${directoryPath}:`, error instanceof Error ? error.message : error);
+    console.error(
+      `Error accessing directory ${directoryPath}:`,
+      error instanceof Error ? error.message : error
+    );
     process.exitCode = 1;
   }
 }
@@ -107,9 +121,11 @@ async function main(): Promise<void> {
     const projectRoot = process.env.INIT_CWD || process.cwd();
     resolvedPath = path.resolve(projectRoot, directoryPath);
   }
-  
-  console.log(`🚀 Starting FIT to GPX conversion for directory: ${resolvedPath}\n`);
-  
+
+  console.log(
+    `Starting FIT to GPX conversion for directory: ${resolvedPath}\n`
+  );
+
   await processDirectory(resolvedPath);
 }
 
