@@ -17,15 +17,14 @@ export default function MarketingHomePage() {
         kicker="mkt_hero_kicker"
         title="mkt_hero_title"
         subtitle="mkt_hero_subtitle"
-        ctas={[
-          { label: 'mkt_hero_cta_primary', href: '/auth/create-account' },
-          {
-            label: 'mkt_hero_cta_secondary',
-            href: '/contact',
-            variant: 'secondary',
-          },
-        ]}
+        ctas={[{ label: 'mkt_hero_cta_primary', href: '/contact' }]}
       />
+      <Section id="value" title="mkt_home_value_title" center subdued>
+        <div className="mx-auto max-w-3xl text-[var(--oa-fg)]/90 text-base leading-relaxed">
+          <p className="mb-4">{m.mkt_home_value_p1?.()}</p>
+          <p className="">{m.mkt_home_value_p2?.()}</p>
+        </div>
+      </Section>
       <Section id="why" title="mkt_home_why_title" center>
         <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4">
           {[

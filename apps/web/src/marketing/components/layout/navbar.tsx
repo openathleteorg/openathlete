@@ -50,12 +50,12 @@ export function Navbar() {
         </div>
         <div className="flex items-center gap-4">
           <LanguageSwitcher />
-          <a
+          {/* <a
             href="/auth/login"
             className="hidden sm:inline-block rounded-md bg-[var(--oa-accent)] px-4 py-2 text-sm font-medium text-[var(--oa-bg)] shadow hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--oa-accent)] ring-offset-[var(--oa-bg)] transition"
           >
             {m.login() || 'Login'}
-          </a>
+          </a> */}
         </div>
       </div>
     </header>
