@@ -9,6 +9,7 @@ interface P {
   features?: Feature[];
   cta?: { label: string; href: string };
   accent?: 'primary' | 'secondary';
+  className?: string;
 }
 
 export function ServiceCard({
@@ -17,9 +18,12 @@ export function ServiceCard({
   features = [],
   cta,
   accent = 'primary',
+  className,
 }: P) {
   return (
-    <div className="group relative rounded-[var(--oa-radius-card)] border border-white/5 bg-white/2.5 p-6 backdrop-blur-sm transition hover:border-[var(--oa-accent)]/60 hover:bg-white/5">
+    <div
+      className={`group relative rounded-[var(--oa-radius-card)] border border-white/5 bg-white/2.5 p-6 backdrop-blur-sm transition hover:border-[var(--oa-accent)]/60 hover:bg-white/5 h-full flex flex-col ${className || ''}`.trim()}
+    >
       <div className="absolute inset-0 rounded-[var(--oa-radius-card)] opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-[var(--oa-accent)]/5 to-[var(--oa-accent-2)]/5 pointer-events-none" />
       <h3 className="text-lg font-semibold text-[var(--oa-fg)] mb-2">
         {(m as any)[title]?.() || title}
@@ -39,14 +43,16 @@ export function ServiceCard({
           ))}
         </ul>
       )}
-      {cta && (
-        <a
-          href={cta.href}
-          className="inline-flex rounded-md bg-[var(--oa-accent)] px-4 py-2 text-xs font-medium text-[var(--oa-bg)] shadow hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--oa-accent)] ring-offset-[var(--oa-bg)]"
-        >
-          {(m as any)[cta.label]?.() || cta.label}
-        </a>
-      )}
+      <div className="mt-auto pt-2">
+        {cta && (
+          <a
+            href={cta.href}
+            className="inline-flex rounded-md bg-[var(--oa-accent)] px-4 py-2 text-xs font-medium text-[var(--oa-bg)] shadow hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--oa-accent)] ring-offset-[var(--oa-bg)]"
+          >
+            {(m as any)[cta.label]?.() || cta.label}
+          </a>
+        )}
+      </div>
     </div>
   );
 }
