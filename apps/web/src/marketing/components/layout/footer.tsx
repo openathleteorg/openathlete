@@ -24,7 +24,7 @@ export function Footer() {
             {m.mkt_nav_contact()}
           </a>
           <a
-            href="mailto:contact@openathlete.fr"
+            href="mailto:tristan@tblt.fr"
             className="text-[var(--oa-muted)] hover:text-[var(--oa-accent)]"
           >
             {m.mkt_footer_email()}
