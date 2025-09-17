@@ -20,26 +20,34 @@ export function getEnrichedSegments(
   normalizedPace: number,
   fatigue?: { startSpeedPct?: number; endSpeedPct?: number }
 ) {
-  const totalDistance = segments.reduce((s, x) => s + x.length, 0) || 1;
+  // First pass: compute base durations without fatigue (grade effect only)
+  const baseDurations = segments.map((seg) => {
+    const paceFactor = stravaPolynomial(seg.averageGrade);
+    const adjustedPace = normalizedPace * paceFactor; // min/km
+    return (seg.length / 1000) * adjustedPace * 60; // seconds
+  });
+  const totalBaseTime = baseDurations.reduce((s, t) => s + t, 0) || 1;
+
   const startPct = (fatigue?.startSpeedPct ?? 0) / 100;
   const endPct = (fatigue?.endSpeedPct ?? 0) / 100;
-  let accDist = 0;
-  return segments.map((seg) => {
-    const segCenterDist = accDist + seg.length / 2;
-    const progress = Math.min(1, Math.max(0, segCenterDist / totalDistance));
+
+  let accBase = 0;
+  const enriched = segments.map((seg, i) => {
+    const baseDuration = baseDurations[i];
+    const centerTime = accBase + baseDuration / 2;
+    const progress = Math.min(1, Math.max(0, centerTime / totalBaseTime));
     const speedMultiplier = 1 + startPct + (endPct - startPct) * progress;
 
-    const paceFactor = stravaPolynomial(seg.averageGrade);
-    const adjustedPace = normalizedPace * paceFactor; // in min/km
-    const baseDuration = (seg.length / 1000) * adjustedPace * 60; // in seconds
-    const duration = baseDuration / (speedMultiplier || 1); // protect div by 0
+    const duration = baseDuration / (speedMultiplier || 1);
     const avgPaceMinPerKm = duration / 60 / (seg.length / 1000 || 1);
 
-    accDist += seg.length;
+    accBase += baseDuration;
     return {
       ...seg,
       duration,
       averagePace: avgPaceMinPerKm,
     };
   });
+
+  return enriched;
 }
