@@ -16,3 +16,23 @@ export function haversineDistance(p1: GpxPoint, p2: GpxPoint): number {
 
   return R * c;
 }
+
+export function formatHms(sec: number): string {
+  sec = Math.round(sec);
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  const hh = h.toString().padStart(2, "0");
+  const mm = m.toString().padStart(2, "0");
+  const ss = s.toString().padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+export function formatMPerKm(minPerKm: number): string {
+  const totalSeconds = Math.round(minPerKm * 60);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const mm = minutes.toString();
+  const ss = seconds.toString().padStart(2, "0");
+  return `${mm}:${ss}`;
+}

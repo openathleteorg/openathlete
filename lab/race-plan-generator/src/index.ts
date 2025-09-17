@@ -5,11 +5,12 @@ import {
   computeOfficialRatios,
 } from "./modules/adjust";
 import { parseCli } from "./modules/cli";
-import { computePlan, formatHms } from "./modules/compute-plan";
+import { computePlan } from "./modules/compute-plan";
 import { loadConfig } from "./modules/config";
 import { parseGpx } from "./modules/gpx";
 import { getEnrichedSegments } from "./modules/segments";
 import { splitGpxIntoSegments } from "./modules/splitter";
+import { formatHms, formatMPerKm } from "./modules/utils";
 import { renderElevationProfile } from "./modules/visual";
 
 async function main(): Promise<void> {
@@ -78,10 +79,15 @@ async function main(): Promise<void> {
 
   const plan = computePlan(segments, originalPoints, config);
   console.log("\nRace plan per leg:");
+
+  let cumulativeKm = 0;
+  let cumulativeTimeSec = 0;
   for (const leg of plan.legs) {
+    cumulativeKm += leg.distance / 1000;
+    cumulativeTimeSec += leg.totalTimeSec;
     const avgPace = leg.movingTimeSec / 60 / (leg.distance / 1000); // in min/km
     console.log(
-      `- ${leg.name}: ${(leg.distance / 1000).toFixed(2)} km, +${leg.elevationGain.toFixed(0)} m / -${leg.elevationLoss.toFixed(0)} m, moving ${formatHms(leg.movingTimeSec)} + stop ${formatHms(leg.stopTimeSec)} = ${formatHms(leg.totalTimeSec)} - avg pace ${avgPace.toFixed(2)} min/km`
+      `- ${leg.name}: ${(leg.distance / 1000).toFixed(2)} km, +${leg.elevationGain.toFixed(0)} m / -${leg.elevationLoss.toFixed(0)} m, moving ${formatHms(leg.movingTimeSec)} + stop ${formatHms(leg.stopTimeSec)} = ${formatHms(leg.totalTimeSec)} - avg pace ${formatMPerKm(avgPace)} min/km | cumulative: ${cumulativeKm.toFixed(2)} km, ${formatHms(cumulativeTimeSec)}`
     );
   }
   console.log(
