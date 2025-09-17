@@ -11,6 +11,12 @@ export interface RacePlanConfig {
     distanceMeters?: number; // official distance of the course
     elevationGainMeters?: number; // official positive elevation gain
   };
+  fatigue?: {
+    // Speed modifiers applied linearly from start to finish.
+    // Positive = faster, Negative = slower. Example: +5 at start, -5 at finish.
+    startSpeedPct?: number; // default 0 (% of speed)
+    endSpeedPct?: number; // default 0 (% of speed)
+  };
   stops: {
     name: string;
     coords: { lat: number; lon: number };

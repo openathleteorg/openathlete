@@ -41,7 +41,11 @@ async function main(): Promise<void> {
   console.log(`(segments sum: ${segmentsGain.toFixed(1)})`);
 
   if (config.goal.type === "normalized_pace") {
-    const enrichedSegments = getEnrichedSegments(segments, config.goal.value);
+    const enrichedSegments = getEnrichedSegments(
+      segments,
+      config.goal.value,
+      config.fatigue
+    );
     const totalStopDuration = config.stops.reduce(
       (acc, stop) => acc + (stop.duration || 0),
       0
@@ -58,6 +62,8 @@ async function main(): Promise<void> {
 
     const averagePace = totalDuration / 60 / (segmentsLength / 1000); // in min/km
     console.log(`Average pace (min/km): ${averagePace.toFixed(2)}`);
+    // Reassign segments to enriched for downstream computePlan to use durations
+    segments = enrichedSegments;
   }
 
   const firstTrack = gpx.tracks[0];

@@ -2,7 +2,7 @@ import { GpxPoint } from "./gpx";
 import { haversineDistance } from "./utils";
 import { RacePlanConfig } from "./config";
 import { GpxSegment } from "./splitter";
-import { stravaPolynomial } from "./segments";
+import { GpxEnrichedSegment, stravaPolynomial } from "./segments";
 
 export interface LegSummary {
   name: string;
@@ -47,7 +47,7 @@ function nearestPointIndex(
 }
 
 export function computePlan(
-  segments: GpxSegment[],
+  segments: Array<GpxSegment | GpxEnrichedSegment>,
   points: GpxPoint[],
   config: RacePlanConfig
 ): ComputePlanResult {
@@ -80,11 +80,16 @@ export function computePlan(
   let segMovingTimes: number[] = new Array(segments.length).fill(0);
   const totalDistance = segments.reduce((s, x) => s + x.length, 0);
   if (config.goal.type === "normalized_pace") {
-    const basePaceMinPerKm = config.goal.value; // min/km
+    // If segments are enriched, prefer their precomputed durations (includes fatigue).
     for (let i = 0; i < segments.length; i++) {
-      const paceFactor = stravaPolynomial(segments[i].averageGrade);
-      const adjPace = basePaceMinPerKm * paceFactor; // min/km
-      segMovingTimes[i] = (segments[i].length / 1000) * adjPace * 60; // seconds
+      const seg = segments[i] as GpxEnrichedSegment;
+      if (typeof seg.duration === "number" && !Number.isNaN(seg.duration)) {
+        segMovingTimes[i] = seg.duration;
+      } else {
+        const paceFactor = stravaPolynomial(segments[i].averageGrade);
+        const adjPace = config.goal.value * paceFactor; // min/km
+        segMovingTimes[i] = (segments[i].length / 1000) * adjPace * 60; // seconds
+      }
     }
   } else {
     const totalStopsCfg = (config.stops || []).reduce(
