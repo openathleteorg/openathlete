@@ -1,5 +1,8 @@
 import { m } from '@/paraglide/messages';
+import { useContactSubmitMutation } from '@/services/marketing/contact.hook';
 import { FormEvent, useState } from 'react';
+
+import type { ContactSubmissionDto } from '@openathlete/shared';
 
 interface FieldState {
   value: string;
@@ -15,6 +18,17 @@ export function ContactForm() {
     message: { value: '' },
   });
   const [sent, setSent] = useState(false);
+  const [snackbar, setSnackbar] = useState<string | null>(null);
+
+  const mutation = useContactSubmitMutation({
+    onSuccess: () => {
+      setSent(true);
+      setSnackbar(m.mkt_contact_sent?.() || 'Message sent');
+    },
+    onError: () => {
+      setSnackbar(m.mkt_contact_error?.() || 'Something went wrong');
+    },
+  });
 
   const update = (key: string, value: string) =>
     setFields((prev) => ({
@@ -48,10 +62,17 @@ export function ContactForm() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    // Placeholder: integration endpoint to be implemented
-    await new Promise((r) => setTimeout(r, 700));
-    setSubmitting(false);
-    setSent(true);
+    const payload: ContactSubmissionDto = {
+      name: fields.name.value,
+      email: fields.email.value,
+      goal: fields.goal.value || undefined,
+      message: fields.message.value,
+    };
+    try {
+      await mutation.mutateAsync(payload);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (sent) {
@@ -103,6 +124,16 @@ export function ContactForm() {
           ? m.mkt_form_sending?.() || 'Sending'
           : m.mkt_form_send?.() || 'Send'}
       </button>
+      {snackbar && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-[var(--oa-fg)] text-[var(--oa-bg)] px-4 py-2 rounded-md shadow-lg border border-white/10"
+          onAnimationEnd={() => setTimeout(() => setSnackbar(null), 2500)}
+        >
+          {snackbar}
+        </div>
+      )}
     </form>
   );
 }

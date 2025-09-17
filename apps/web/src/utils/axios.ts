@@ -72,6 +72,9 @@ export const routes = {
       endDate: string,
     ) => `/statistics?athleteId=${athleteId}&start=${startDate}&end=${endDate}`,
   },
+  marketing: {
+    contact: '/contact',
+  },
 } as const;
 
 const client = axios.create({

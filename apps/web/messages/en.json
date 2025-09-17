@@ -190,6 +190,7 @@
   "mkt_contact_title": "Contact",
   "mkt_contact_intro": "Tell us about your goals – we'll reply quickly.",
   "mkt_contact_sent": "Message sent. We'll get back soon.",
+  "mkt_contact_error": "Error sending message. Please try again later.",
   "mkt_footer_rights": "All rights reserved.",
   "mkt_footer_instagram": "Instagram",
   "mkt_footer_email": "Email",

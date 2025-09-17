@@ -188,6 +188,7 @@
   "mkt_contact_title": "Contact",
   "mkt_contact_intro": "Parle-nous de tes objectifs – réponse rapide.",
   "mkt_contact_sent": "Message envoyé. Réponse prochaine.",
+  "mkt_contact_error": "Erreur lors de l'envoi du message. Veuillez réessayer plus tard.",
   "mkt_footer_rights": "Tous droits réservés.",
   "mkt_footer_instagram": "Instagram",
   "mkt_footer_email": "Email",
