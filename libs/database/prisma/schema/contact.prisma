@@ -1,0 +1,16 @@
+model contact_submission {
+  // primary key
+  contact_submission_id Int @id @default(autoincrement())
+
+  // fields
+  name       String
+  email      String
+  goal       String?
+  message    String
+  ip         String?
+  user_agent String?
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}

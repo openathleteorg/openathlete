@@ -14,12 +14,13 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
-  "prisma": "6.15.0",
+    "prisma": "6.15.0",
     "tsx": "^4.19.3",
     "typescript": "5.1.6"
   },
   "keywords": [],
   "dependencies": {
-  "@prisma/client": "6.15.0"
+    "@prisma/client": "6.15.0",
+    "dotenv": "^16.4.7"
   }
 }
