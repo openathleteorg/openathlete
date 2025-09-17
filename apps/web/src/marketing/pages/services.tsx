@@ -57,21 +57,23 @@ export default function ServicesPage() {
 
       {/* 5. Methodology steps */}
       <Section title="mkt_method_title" center subdued>
-        <ol className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 text-sm">
-          {[
-            m.mkt_method_step1(),
-            m.mkt_method_step2(),
-            m.mkt_method_step3(),
-            m.mkt_method_step4(),
-          ].map((step, i) => (
+        <ol className="grid gap-4 sm:grid-cols-2 md:grid-cols-4 text-sm">
+          {[1, 2, 3, 4].map((i) => (
             <li
               key={i}
-              className="rounded-lg border border-white/5 bg-white/2.5 px-4 py-3 text-[var(--oa-fg)]"
+              className="rounded-lg border border-white/5 bg-white/2.5 p-4 text-left text-[var(--oa-fg)]"
             >
-              <span className="mr-2 inline-flex size-6 items-center justify-center rounded-full bg-[var(--oa-accent)] text-[var(--oa-bg)] text-xs font-semibold">
-                {i + 1}
-              </span>
-              {step}
+              <div className="flex items-center gap-2 mb-4">
+                <span className="inline-flex size-6 items-center justify-center rounded-full bg-[var(--oa-accent)] text-[var(--oa-bg)] text-xs font-semibold">
+                  {i}
+                </span>
+                <span className="font-semibold">
+                  {(m as any)[`mkt_method_step${i}`]?.()}
+                </span>
+              </div>
+              <p className="text-[var(--oa-muted)]">
+                {(m as any)[`mkt_method_step${i}_desc`]?.()}
+              </p>
             </li>
           ))}
         </ol>
