@@ -8,7 +8,6 @@ interface P {
   description: string;
   features?: Feature[];
   cta?: { label: string; href: string };
-  accent?: 'primary' | 'secondary';
   className?: string;
 }
 
@@ -17,7 +16,6 @@ export function ServiceCard({
   description,
   features = [],
   cta,
-  accent = 'primary',
   className,
 }: P) {
   return (
@@ -33,10 +31,20 @@ export function ServiceCard({
       </p>
       {features.length > 0 && (
         <ul className="mb-4 space-y-1.5 text-sm text-[var(--oa-fg)]/80">
-          {features.map((f) => (
+          {features.map((f, idx) => (
             <li key={f.label} className="flex gap-2">
               <span
-                className={`mt-1 block size-1.5 rounded-full ${accent === 'primary' ? 'bg-[var(--oa-accent)]' : 'bg-[var(--oa-accent-2)]'}`}
+                className="mt-1 block size-1.5 rounded-full"
+                style={{
+                  backgroundColor:
+                    idx % 4 === 0
+                      ? 'var(--oa-brand-1a)'
+                      : idx % 4 === 1
+                        ? 'var(--oa-brand-2a)'
+                        : idx % 4 === 2
+                          ? 'var(--oa-brand-3a)'
+                          : 'var(--oa-brand-4a)',
+                }}
               />
               <span>{(m as any)[f.label]?.() || f.label}</span>
             </li>

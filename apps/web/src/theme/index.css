@@ -47,6 +47,16 @@
   --oa-accent-2: #7C4DFF; /* Secondary purple */
   --oa-warning: #FFB020; /* Warning / highlight */
   --oa-radius-card: 1.25rem; /* ~20px (2xl) */
+
+  /* Brand accent stack (logo shadows) */
+  --oa-brand-1: #6EC1FC; /* 90% */
+  --oa-brand-2: #D078F7; /* 80% */
+  --oa-brand-3: #FF8C5C; /* 70% */
+  --oa-brand-4: #4CFFA9; /* 60% */
+  --oa-brand-1a: color-mix(in oklab, var(--oa-brand-1) 90%, transparent);
+  --oa-brand-2a: color-mix(in oklab, var(--oa-brand-2) 80%, transparent);
+  --oa-brand-3a: color-mix(in oklab, var(--oa-brand-3) 70%, transparent);
+  --oa-brand-4a: color-mix(in oklab, var(--oa-brand-4) 60%, transparent);
 }
 
 .dark {
@@ -91,6 +101,14 @@
   --oa-accent-2: #7C4DFF;
   --oa-warning: #FFB020;
   --oa-radius-card: 1.25rem;
+  --oa-brand-1: #6EC1FC;
+  --oa-brand-2: #D078F7;
+  --oa-brand-3: #FF8C5C;
+  --oa-brand-4: #4CFFA9;
+  --oa-brand-1a: color-mix(in oklab, var(--oa-brand-1) 90%, transparent);
+  --oa-brand-2a: color-mix(in oklab, var(--oa-brand-2) 80%, transparent);
+  --oa-brand-3a: color-mix(in oklab, var(--oa-brand-3) 70%, transparent);
+  --oa-brand-4a: color-mix(in oklab, var(--oa-brand-4) 60%, transparent);
 }
 
 @theme inline {
@@ -138,6 +156,10 @@
   --color-oa-accent: var(--oa-accent);
   --color-oa-accent-2: var(--oa-accent-2);
   --color-oa-warning: var(--oa-warning);
+  --color-oa-brand-1: var(--oa-brand-1);
+  --color-oa-brand-2: var(--oa-brand-2);
+  --color-oa-brand-3: var(--oa-brand-3);
+  --color-oa-brand-4: var(--oa-brand-4);
   --radius-card: var(--oa-radius-card);
 }
 

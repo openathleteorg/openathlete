@@ -40,7 +40,6 @@ export default function ServicesPage() {
               { label: 'mkt_service_nutrition_benefit2' },
               { label: 'mkt_service_nutrition_example' },
             ]}
-            accent="secondary"
             cta={{ label: 'mkt_service_nutrition_cta', href: '/contact' }}
           />
           <ServiceCard
@@ -82,15 +81,29 @@ export default function ServicesPage() {
       {/* 6. Why unique */}
       <Section title="mkt_unique_title">
         <ul className="grid gap-3 sm:grid-cols-2 text-[var(--oa-fg)]/90">
-          {['mkt_unique_point1', 'mkt_unique_point2'].map((k) => (
-            <li
-              key={k}
-              className="flex gap-2 items-start rounded-lg border border-white/5 bg-white/2.5 p-4"
-            >
-              <span className="mt-1.5 block size-2 rounded-full bg-[var(--oa-accent)]" />
-              <span>{(m as any)[k]?.() || k}</span>
-            </li>
-          ))}
+          {['mkt_unique_point1', 'mkt_unique_point2', 'mkt_unique_point3'].map(
+            (k, idx) => (
+              <li
+                key={k}
+                className="flex gap-2 items-start rounded-lg border border-white/5 bg-white/2.5 p-4"
+              >
+                <span
+                  className="mt-1.5 block size-2 rounded-full"
+                  style={{
+                    backgroundColor:
+                      idx % 4 === 0
+                        ? 'var(--oa-brand-1a)'
+                        : idx % 4 === 1
+                          ? 'var(--oa-brand-2a)'
+                          : idx % 4 === 2
+                            ? 'var(--oa-brand-3a)'
+                            : 'var(--oa-brand-4a)',
+                  }}
+                />
+                <span>{(m as any)[k]?.() || k}</span>
+              </li>
+            ),
+          )}
         </ul>
       </Section>
 
