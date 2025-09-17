@@ -19,6 +19,9 @@ export const ApiEnvSchema = z.object({
 
   SENDGRID_API_KEY: z.string().nonempty(),
   SENDGRID_FROM_EMAIL: z.string().email().nonempty(),
+
+  NOTION_TOKEN: z.string().nonempty(),
+  NOTION_DATABASE_ID: z.string().nonempty(),
 });
 
 export type ApiEnvSchemaType = z.infer<typeof ApiEnvSchema>;
