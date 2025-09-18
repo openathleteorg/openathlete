@@ -41,7 +41,7 @@ export function SpeedChart({ latLngStream, timeStream }: P) {
       };
     });
 
-    return rawData.map((data, i) => {
+    const deSpiked = rawData.map((data, i) => {
       if (
         i > 0 &&
         i < rawData.length - 1 &&
@@ -57,6 +57,18 @@ export function SpeedChart({ latLngStream, timeStream }: P) {
       }
       return data;
     });
+
+    const ALPHA = 0.2;
+    if (deSpiked.length === 0) return deSpiked;
+
+    let prev = deSpiked[0].speed;
+    const ema = deSpiked.map((d, i) => {
+      const current = i === 0 ? d.speed : ALPHA * d.speed + (1 - ALPHA) * prev;
+      prev = current;
+      return { ...d, speed: current };
+    });
+
+    return ema;
   }, [latLngStream, timeStream]);
 
   const minSpeed = useMemo(
