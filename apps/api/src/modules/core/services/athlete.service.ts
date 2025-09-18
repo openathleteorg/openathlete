@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { athlete } from '@openathlete/database';
+import { athlete, sport_type } from '@openathlete/database';
 import { keysToCamel } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -18,6 +18,7 @@ const ATHLETE_INCLUDES = {
     include: {
       values: true,
     },
+    orderBy: { index: 'asc' as const },
   },
   user: {
     select: {
@@ -36,8 +37,78 @@ export class AthleteService {
     private readonly abilities: CaslAbilityFactory,
   ) {}
 
+  private async seedDefaultHeartrateZonesIfEmpty(athleteId: number) {
+    const count = await this.prisma.training_zone.count({
+      where: { athlete_id: athleteId },
+    });
+    if (count > 0) return;
+
+    const DEFAULT_HR_ZONES = [
+      {
+        name: 'Zone 1',
+        description: 'Recovery',
+        min: 0,
+        max: 131,
+        color: '#9CA3AF', // gray-400
+      },
+      {
+        name: 'Zone 2',
+        description: 'Endurance',
+        min: 132,
+        max: 142,
+        color: '#22C55E', // green-500
+      },
+      {
+        name: 'Zone 3',
+        description: 'Tempo',
+        min: 143,
+        max: 152,
+        color: '#EAB308', // yellow-500
+      },
+      {
+        name: 'Zone 4',
+        description: 'Threshold',
+        min: 153,
+        max: 163,
+        color: '#F97316', // orange-500
+      },
+      {
+        name: 'Zone 5',
+        description: 'VO2 Max',
+        min: 164,
+        max: 220,
+        color: '#EF4444', // red-500
+      },
+    ];
+
+    const allSports = Object.values(sport_type) as sport_type[];
+    for (let i = 0; i < DEFAULT_HR_ZONES.length; i++) {
+      const z = DEFAULT_HR_ZONES[i];
+      // eslint-disable-next-line no-await-in-loop
+      await this.prisma.training_zone.create({
+        data: {
+          name: z.name,
+          description: z.description,
+          index: i,
+          type: 'HEARTRATE',
+          color: z.color,
+          athlete_id: athleteId,
+          values: {
+            create: [
+              {
+                min: z.min,
+                max: z.max,
+                sports: allSports,
+              },
+            ],
+          },
+        },
+      });
+    }
+  }
+
   async getAthleteById(id: athlete['athlete_id'], user: AuthUser) {
-    const athlete = await this.prisma.athlete.findUnique({
+    let athlete = await this.prisma.athlete.findUnique({
       where: { athlete_id: id },
       include: ATHLETE_INCLUDES,
     });
@@ -51,11 +122,19 @@ export class AthleteService {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
+    if (athlete.training_zones.length === 0) {
+      await this.seedDefaultHeartrateZonesIfEmpty(athlete.athlete_id);
+      athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: id },
+        include: ATHLETE_INCLUDES,
+      });
+    }
+
     return keysToCamel(athlete);
   }
 
   async getAthleteByUserId(user: AuthUser) {
-    const athlete = await this.prisma.athlete.findFirst({
+    let athlete = await this.prisma.athlete.findFirst({
       where: { user_id: user.user_id },
       include: ATHLETE_INCLUDES,
     });
@@ -67,6 +146,14 @@ export class AthleteService {
     const ability = await this.abilities.getFor({ user });
     if (!ability.can('read', subject('athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
+    }
+
+    if (athlete.training_zones.length === 0) {
+      await this.seedDefaultHeartrateZonesIfEmpty(athlete.athlete_id);
+      athlete = await this.prisma.athlete.findFirst({
+        where: { user_id: user.user_id },
+        include: ATHLETE_INCLUDES,
+      });
     }
 
     return keysToCamel(athlete);

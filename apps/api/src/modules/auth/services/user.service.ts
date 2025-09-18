@@ -10,7 +10,13 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { Prisma, token_type, user, user_role } from '@openathlete/database';
+import {
+  Prisma,
+  sport_type,
+  token_type,
+  user,
+  user_role,
+} from '@openathlete/database';
 import {
   ApiEnvSchemaType,
   CreateAccountDto,
@@ -92,6 +98,48 @@ export class UserService {
       throw new ConflictException('User already exists');
     }
 
+    // Default 5-zone heart rate system for new athletes
+    // Colors chosen to be coherent and compatible with color inputs (hex)
+    const DEFAULT_HR_ZONES = [
+      {
+        name: 'Zone 1',
+        description: 'Recovery',
+        min: 0,
+        max: 131,
+        color: '#9CA3AF', // gray-400
+      },
+      {
+        name: 'Zone 2',
+        description: 'Endurance',
+        min: 132,
+        max: 142,
+        color: '#22C55E', // green-500
+      },
+      {
+        name: 'Zone 3',
+        description: 'Tempo',
+        min: 143,
+        max: 152,
+        color: '#EAB308', // yellow-500
+      },
+      {
+        name: 'Zone 4',
+        description: 'Threshold',
+        min: 153,
+        max: 163,
+        color: '#F97316', // orange-500
+      },
+      {
+        name: 'Zone 5',
+        description: 'VO2 Max',
+        min: 164,
+        max: 220,
+        color: '#EF4444', // red-500
+      },
+    ];
+
+    const allSports = Object.values(sport_type) as sport_type[];
+
     return keysToCamel(
       await this.prisma.user.create({
         data: {
@@ -101,7 +149,26 @@ export class UserService {
           last_name: lastName,
           roles: [user_role.ATHLETE, user_role.COACH],
           athlete: {
-            create: {},
+            create: {
+              training_zones: {
+                create: DEFAULT_HR_ZONES.map((z, idx) => ({
+                  name: z.name,
+                  description: z.description,
+                  index: idx,
+                  type: 'HEARTRATE',
+                  color: z.color,
+                  values: {
+                    create: [
+                      {
+                        min: z.min,
+                        max: z.max,
+                        sports: allSports,
+                      },
+                    ],
+                  },
+                })),
+              },
+            },
           },
         },
         select: {
