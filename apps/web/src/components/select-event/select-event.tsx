@@ -1,5 +1,4 @@
 import { m } from '@/paraglide/messages';
-import { useGetMyEventsQuery } from '@/services/event';
 import { cn } from '@/utils/shadcn';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { ReactNode, useState } from 'react';
@@ -18,6 +17,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 
 interface P {
+  data: Event[] | undefined;
   className?: string;
   onChange: (eventId: number) => void;
   value?: number;
@@ -26,13 +26,13 @@ interface P {
 }
 
 export function SelectEvent({
+  data,
   className,
   value,
   onChange,
   filter,
   displayRow,
 }: P) {
-  const { data } = useGetMyEventsQuery();
   const [open, setOpen] = useState(false);
 
   const events = (filter ? data?.filter((e) => filter(e, data)) : data) || [];

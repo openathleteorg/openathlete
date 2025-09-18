@@ -11,6 +11,7 @@ import {
   formatDistance,
 } from '@openathlete/shared';
 
+import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
 import { DistanceStat, DurationStat, ElevationStat } from '../numeric-stats';
 import { SelectEvent } from '../select-event';
 import { Button } from '../ui/button';
@@ -23,6 +24,7 @@ interface P {
 export function TrainingCompetitionDetails({ event }: P) {
   const setRelatedActivityMutation = useSetRelatedActivityMutation();
   const unsetRelatedActivityMutation = useUnsetRelatedActivityMutation();
+  const { events } = useCalendarContext();
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -60,6 +62,7 @@ export function TrainingCompetitionDetails({ event }: P) {
         <CardContent>
           <div className="flex gap-2">
             <SelectEvent
+              data={events}
               value={event.relatedActivity?.eventId}
               onChange={(activityId) => {
                 setRelatedActivityMutation.mutate({
