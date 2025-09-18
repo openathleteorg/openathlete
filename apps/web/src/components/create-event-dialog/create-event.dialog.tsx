@@ -29,7 +29,6 @@ import {
 import { RHFElevation } from '../hook-form/rhf-elevation';
 import { RHFRpe } from '../hook-form/rhf-rpe';
 import { RHFTextarea } from '../hook-form/rhf-textarea';
-import { RHFTimePicker } from '../hook-form/rhf-time-picker';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { SelectItem } from '../ui/select';
@@ -168,7 +167,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           ) : (
             <div />
           )}
-          {type !== EVENT_TYPE.ACTIVITY && (
+          {/* {type !== EVENT_TYPE.ACTIVITY && (
             <>
               <RHFTimePicker
                 name="startDate"
@@ -201,7 +200,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                 }}
               />
             </>
-          )}
+          )} */}
           <div className="col-span-2">
             <RHFTextarea
               name="description"
