@@ -2,7 +2,7 @@ import { GpxPoint } from "./gpx";
 import { haversineDistance } from "./utils";
 import { RacePlanConfig } from "./config";
 import { GpxSegment } from "./splitter";
-import { GpxEnrichedSegment, stravaPolynomial } from "./segments";
+import { GpxEnrichedSegment } from "./segments";
 
 export interface LegSummary {
   name: string;
@@ -47,7 +47,7 @@ function nearestPointIndex(
 }
 
 export function computePlan(
-  segments: Array<GpxSegment | GpxEnrichedSegment>,
+  segments: Array<GpxEnrichedSegment>,
   points: GpxPoint[],
   config: RacePlanConfig
 ): ComputePlanResult {
@@ -74,33 +74,11 @@ export function computePlan(
     return { seg, start: a, end: b };
   });
   const boundaryIndices = segmentRanges.map((r) => r.end);
-  const boundarySet = new Set<number>(boundaryIndices);
 
-  // Compute per-segment moving times according to goal
   let segMovingTimes: number[] = new Array(segments.length).fill(0);
   const totalDistance = segments.reduce((s, x) => s + x.length, 0);
-  if (config.goal.type === "normalized_pace") {
-    // If segments are enriched, prefer their precomputed durations (includes fatigue).
-    for (let i = 0; i < segments.length; i++) {
-      const seg = segments[i] as GpxEnrichedSegment;
-      if (typeof seg.duration === "number" && !Number.isNaN(seg.duration)) {
-        segMovingTimes[i] = seg.duration;
-      } else {
-        const paceFactor = stravaPolynomial(segments[i].averageGrade);
-        const adjPace = config.goal.value * paceFactor; // min/km
-        segMovingTimes[i] = (segments[i].length / 1000) * adjPace * 60; // seconds
-      }
-    }
-  } else {
-    const totalStopsCfg = (config.stops || []).reduce(
-      (s, st) => s + (st.duration || 0),
-      0
-    );
-    const movingBudget = Math.max(0, config.goal.value - totalStopsCfg);
-    for (let i = 0; i < segments.length; i++) {
-      const share = totalDistance > 0 ? segments[i].length / totalDistance : 0;
-      segMovingTimes[i] = movingBudget * share;
-    }
+  for (let i = 0; i < segments.length; i++) {
+    segMovingTimes[i] = segments[i].duration;
   }
 
   // Choose boundaries nearest to each stop, but align to segment boundaries and keep order

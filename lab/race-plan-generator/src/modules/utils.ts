@@ -1,5 +1,15 @@
 import { GpxPoint } from "./gpx";
 
+export function stravaPolynomial(x: number): number {
+  return (
+    0.990554879163107 +
+    0.032844586542411 * x +
+    0.002148347700774 * Math.pow(x, 2) -
+    0.000004498739573 * Math.pow(x, 3) -
+    0.000000598866801 * Math.pow(x, 4)
+  );
+}
+
 export function haversineDistance(p1: GpxPoint, p2: GpxPoint): number {
   const R = 6371000; // radius of Earth in meters
   const toRad = (deg: number) => (deg * Math.PI) / 180;

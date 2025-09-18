@@ -3,6 +3,7 @@ import path from "path";
 
 export interface RacePlanConfig {
   raceName: string;
+  weightKg: number; // athlete weight in kg
   goal: {
     type: "time" | "normalized_pace";
     value: number; // in seconds for "time", in min/km for "normalized_pace"

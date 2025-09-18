@@ -5,6 +5,7 @@ import {
   computeOfficialRatios,
 } from "./modules/adjust";
 import { parseCli } from "./modules/cli";
+import { computeNutritionPlan } from "./modules/compute-nutrition-plan";
 import { computePlan } from "./modules/compute-plan";
 import { loadConfig } from "./modules/config";
 import { parseGpx } from "./modules/gpx";
@@ -64,7 +65,58 @@ async function main(): Promise<void> {
     const averagePace = totalDuration / 60 / (segmentsLength / 1000); // in min/km
     console.log(`Average pace (min/km): ${averagePace.toFixed(2)}`);
     // Reassign segments to enriched for downstream computePlan to use durations
-    segments = enrichedSegments;
+
+    const plan = computePlan(enrichedSegments, originalPoints, config);
+    const nutritionPlan = computeNutritionPlan(enrichedSegments, config);
+    console.log("\nRace plan per leg:");
+
+    let cumulativeKm = 0;
+    let cumulativeTimeSec = 0;
+    for (const leg of plan.legs) {
+      cumulativeKm += leg.distance / 1000;
+      cumulativeTimeSec += leg.totalTimeSec;
+      const avgPace = leg.movingTimeSec / 60 / (leg.distance / 1000); // in min/km
+      console.log(
+        `- ${leg.name}: ${(leg.distance / 1000).toFixed(2)} km, +${leg.elevationGain.toFixed(0)} m / -${leg.elevationLoss.toFixed(0)} m, moving ${formatHms(leg.movingTimeSec)} + stop ${formatHms(leg.stopTimeSec)} = ${formatHms(leg.totalTimeSec)} - avg pace ${formatMPerKm(avgPace)} min/km | cumulative: ${cumulativeKm.toFixed(2)} km, ${formatHms(cumulativeTimeSec)}`
+      );
+    }
+    console.log(
+      `Totals: ${(plan.totals.distance / 1000).toFixed(2)} km, +${plan.totals.elevationGain.toFixed(0)} m / -${plan.totals.elevationLoss.toFixed(0)} m, moving ${formatHms(plan.totals.movingTimeSec)} + stop ${formatHms(plan.totals.stopTimeSec)} = ${formatHms(plan.totals.totalTimeSec)}`
+    );
+
+    console.log("\nNutrition plan per leg:");
+    let nutCumulativeKm = 0;
+    let nutCumulativeCho = 0;
+    for (let i = 0; i < plan.legs.length; i++) {
+      const leg = plan.legs[i];
+      const nutSegments = nutritionPlan.segments.filter(
+        (s) =>
+          s.cumulativeKmCenter >= (nutCumulativeKm || 0) && // start at previous cumulative
+          s.cumulativeKmCenter <= nutCumulativeKm + leg.distance / 1000 // end at current cumulative
+      );
+      const legCho = nutSegments.reduce((acc, s) => acc + s.choGrams, 0);
+      nutCumulativeKm += leg.distance / 1000;
+      nutCumulativeCho += legCho;
+      console.log(
+        `- ${leg.name}: ${(leg.distance / 1000).toFixed(2)} km, +${leg.elevationGain.toFixed(0)} m / -${leg.elevationLoss.toFixed(0)} m -> ${legCho.toFixed(0)} g CHO for time: ${formatHms(leg.totalTimeSec)} (${(legCho / (leg.totalTimeSec / 3600)).toFixed(0)} g/h)`
+      );
+    }
+    console.log(
+      `Totals: ${nutritionPlan.totals.distanceKm.toFixed(2)} km -> ${nutritionPlan.totals.choGrams.toFixed(0)} g CHO`
+    );
+    console.log(
+      `Average cars/hour: ${(nutritionPlan.totals.choGrams / (totalDuration / 3600)).toFixed(0)} g/h over ${formatHms(totalDuration)}`
+    );
+
+    const flatSegments = segments.filter(
+      (s) => s.averageGrade >= -1 && s.averageGrade <= 1
+    );
+    console.log(
+      `Flat segments (<=1%): ${flatSegments.length} / ${segments.length} (${((flatSegments.length / segments.length) * 100).toFixed(1)}%)`
+    );
+    console.log(
+      `Total flat distance (km): ${(flatSegments.reduce((a, s) => a + s.length, 0) / 1000).toFixed(2)} km`
+    );
   }
 
   const firstTrack = gpx.tracks[0];
@@ -76,38 +128,6 @@ async function main(): Promise<void> {
       height: 420,
     });
   }
-
-  const plan = computePlan(segments, originalPoints, config);
-  console.log("\nRace plan per leg:");
-
-  let cumulativeKm = 0;
-  let cumulativeTimeSec = 0;
-  for (const leg of plan.legs) {
-    cumulativeKm += leg.distance / 1000;
-    cumulativeTimeSec += leg.totalTimeSec;
-    const avgPace = leg.movingTimeSec / 60 / (leg.distance / 1000); // in min/km
-    console.log(
-      `- ${leg.name}: ${(leg.distance / 1000).toFixed(2)} km, +${leg.elevationGain.toFixed(0)} m / -${leg.elevationLoss.toFixed(0)} m, moving ${formatHms(leg.movingTimeSec)} + stop ${formatHms(leg.stopTimeSec)} = ${formatHms(leg.totalTimeSec)} - avg pace ${formatMPerKm(avgPace)} min/km | cumulative: ${cumulativeKm.toFixed(2)} km, ${formatHms(cumulativeTimeSec)}`
-    );
-  }
-  console.log(
-    `Totals: ${(plan.totals.distance / 1000).toFixed(2)} km, +${plan.totals.elevationGain.toFixed(0)} m / -${plan.totals.elevationLoss.toFixed(0)} m, moving ${formatHms(plan.totals.movingTimeSec)} + stop ${formatHms(plan.totals.stopTimeSec)} = ${formatHms(plan.totals.totalTimeSec)}`
-  );
-
-  // const flatSegments = segments.filter(
-  //   (s) => s.averageGrade >= -2 && s.averageGrade <= 2
-  // );
-  // console.log(
-  //   `Flat segments (<=1%): ${flatSegments.length} / ${segments.length} (${((flatSegments.length / segments.length) * 100).toFixed(1)}%)`
-  // );
-  // console.log(
-  //   (flatSegments as GpxEnrichedSegment[])
-  //     .map(
-  //       (s) =>
-  //         `- ${(s.length / 1000).toFixed(2)} km, +${s.elevationGain.toFixed(0)} m / -${s.elevationLoss.toFixed(0)} m, avg grade ${s.averageGrade.toFixed(2)}%, pace ${formatMPerKm(s.duration! / 60 / (s.length / 1000))} min/km`
-  //     )
-  //     .join("\n")
-  // );
 }
 
 main();
