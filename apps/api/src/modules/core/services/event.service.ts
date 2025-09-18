@@ -1,6 +1,10 @@
 import { subject } from '@casl/ability';
 import * as argon2 from 'argon2';
-import ical, { ICalCalendarMethod } from 'ical-generator';
+import ical, {
+  ICalCalendarMethod,
+  ICalEvent,
+  ICalEventData,
+} from 'ical-generator';
 
 import {
   BadRequestException,
@@ -453,10 +457,11 @@ export class EventService {
       const eventData = {
         start: start_date,
         end: end_date,
+        allDay: true,
         summary: name,
         description: `Type: ${eventType}`,
         uid: event.event_id,
-      };
+      } as ICalEvent | ICalEventData;
       calendar.createEvent(eventData);
     });
 
