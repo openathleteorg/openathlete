@@ -1,5 +1,5 @@
 import authBackground from '@/assets/images/auth/background.webp';
-import { Medal } from 'lucide-react';
+import whiteLogoSrc from '@/assets/logos/logo_white.svg';
 
 interface P {
   children: React.ReactNode;
@@ -11,8 +11,8 @@ export function AuthLayout({ children }: P) {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <a href="#" className="flex items-center gap-2 font-medium">
-            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <Medal className="size-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--oa-bg)] text-primary-foreground">
+              <img src={whiteLogoSrc} alt="Logo" className="h-6 w-6" />
             </div>
             OpenAthlete
           </a>
