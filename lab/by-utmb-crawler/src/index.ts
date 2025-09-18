@@ -66,11 +66,6 @@ async function fetchData(race: string, year: string): Promise<void> {
         break;
       }
     }
-
-    if (bibNumber > 3) {
-      console.log("Stopping after 3 requests for demonstration purposes.");
-      break;
-    }
   }
 }
 

@@ -8,7 +8,7 @@ import { parseCli } from "./modules/cli";
 import { computePlan } from "./modules/compute-plan";
 import { loadConfig } from "./modules/config";
 import { parseGpx } from "./modules/gpx";
-import { getEnrichedSegments } from "./modules/segments";
+import { getEnrichedSegments, GpxEnrichedSegment } from "./modules/segments";
 import { splitGpxIntoSegments } from "./modules/splitter";
 import { formatHms, formatMPerKm } from "./modules/utils";
 import { renderElevationProfile } from "./modules/visual";
@@ -93,6 +93,21 @@ async function main(): Promise<void> {
   console.log(
     `Totals: ${(plan.totals.distance / 1000).toFixed(2)} km, +${plan.totals.elevationGain.toFixed(0)} m / -${plan.totals.elevationLoss.toFixed(0)} m, moving ${formatHms(plan.totals.movingTimeSec)} + stop ${formatHms(plan.totals.stopTimeSec)} = ${formatHms(plan.totals.totalTimeSec)}`
   );
+
+  // const flatSegments = segments.filter(
+  //   (s) => s.averageGrade >= -2 && s.averageGrade <= 2
+  // );
+  // console.log(
+  //   `Flat segments (<=1%): ${flatSegments.length} / ${segments.length} (${((flatSegments.length / segments.length) * 100).toFixed(1)}%)`
+  // );
+  // console.log(
+  //   (flatSegments as GpxEnrichedSegment[])
+  //     .map(
+  //       (s) =>
+  //         `- ${(s.length / 1000).toFixed(2)} km, +${s.elevationGain.toFixed(0)} m / -${s.elevationLoss.toFixed(0)} m, avg grade ${s.averageGrade.toFixed(2)}%, pace ${formatMPerKm(s.duration! / 60 / (s.length / 1000))} min/km`
+  //     )
+  //     .join("\n")
+  // );
 }
 
 main();
