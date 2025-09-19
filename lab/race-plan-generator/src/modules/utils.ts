@@ -46,3 +46,17 @@ export function formatMPerKm(minPerKm: number): string {
   const ss = seconds.toString().padStart(2, "0");
   return `${mm}:${ss}`;
 }
+
+export function averageAltitudeM(segment: {
+  points: Array<{ ele: number | null }>;
+}): number {
+  let sum = 0;
+  let n = 0;
+  for (const p of segment.points) {
+    if (p.ele !== null && Number.isFinite(p.ele)) {
+      sum += p.ele;
+      n += 1;
+    }
+  }
+  return n ? sum / n : 0;
+}

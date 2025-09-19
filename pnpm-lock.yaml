@@ -436,6 +436,9 @@ importers:
       sharp:
         specifier: ^0.33.4
         version: 0.33.5
+      suncalc:
+        specifier: ^1.9.0
+        version: 1.9.0
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@swc/core@1.11.8)(@types/node@22.13.10)(typescript@5.1.6)
@@ -458,6 +461,9 @@ importers:
       '@types/sharp':
         specifier: ^0.32.0
         version: 0.32.0
+      '@types/suncalc':
+        specifier: ^1.9.2
+        version: 1.9.2
 
   lab/slope-speed-chart:
     dependencies:
@@ -2835,6 +2841,9 @@ packages:
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
+
+  '@types/suncalc@1.9.2':
+    resolution: {integrity: sha512-ATAGBHHfA1TlE2tjfidLyTcysjoT2JHHEAmWRULh73SU9UTn++j5fqHEW16X6Y/2Li87jEQXzgu4R/OOdlDqzw==}
 
   '@types/superagent@8.1.9':
     resolution: {integrity: sha512-pTVjI73witn+9ILmoJdajHGW2jkSaOzhiFYF1Rd3EQ94kymLqB9PjD9ISg7WaALC7+dCHT0FGe9T2LktLq/3GQ==}
@@ -5974,6 +5983,9 @@ packages:
     resolution: {integrity: sha512-FhwotcEqjr241ZbjFzjlIYg6c5/L/s4yBGWSMvJ9UoExiSqL+FnFA/CaeZx17WGaZMS/4SOZp8wH18jSS4R4lw==}
     engines: {node: '>=16'}
 
+  suncalc@1.9.0:
+    resolution: {integrity: sha512-vMJ8Byp1uIPoj+wb9c1AdK4jpkSKVAywgHX0lqY7zt6+EWRRC3Z+0Ucfjy/0yxTVO1hwwchZe4uoFNqrIC24+A==}
+
   superagent@9.0.2:
     resolution: {integrity: sha512-xuW7dzkUpcJq7QnhOsnNUgtYp3xRwpt2F7abdRYIpCsAt0hhUqia0EdxyXZQQpNmGtsCzYHryaKSV3q3GJnq7w==}
     engines: {node: '>=14.18.0'}
@@ -8780,6 +8792,8 @@ snapshots:
       sharp: 0.33.5
 
   '@types/stack-utils@2.0.3': {}
+
+  '@types/suncalc@1.9.2': {}
 
   '@types/superagent@8.1.9':
     dependencies:
@@ -12323,6 +12337,8 @@ snapshots:
     dependencies:
       '@tokenizer/token': 0.3.0
       peek-readable: 5.4.2
+
+  suncalc@1.9.0: {}
 
   superagent@9.0.2:
     dependencies:

@@ -4,6 +4,10 @@ import path from "path";
 export interface RacePlanConfig {
   raceName: string;
   weightKg: number; // athlete weight in kg
+  // ISO 8601 start datetime (with timezone) of the race. Used for time-of-day effects (night)
+  startTime?: string;
+  // Night underperformance percentage (e.g. 10 means +10% time at night). Default 10.
+  nightUnderperfPct?: number;
   goal: {
     type: "time" | "normalized_pace";
     value: number; // in seconds for "time", in min/km for "normalized_pace"
@@ -17,6 +21,17 @@ export interface RacePlanConfig {
     // Positive = faster, Negative = slower. Example: +5 at start, -5 at finish.
     startSpeedPct?: number; // default 0 (% of speed)
     endSpeedPct?: number; // default 0 (% of speed)
+  };
+  // Altitude acclimation model controlling altitude penalty on moving times
+  altitudeAcclimation?: {
+    // Athlete's living/sleep altitude (meters)
+    liveAltitudeM?: number; // h_live
+    // Recent days spent at altitude in the last 3–4 weeks
+    daysAtAltitude?: number; // d_alt
+    // Effort intensity factor (≈1.0 5–10k, 0.8 marathon, 0.6 ultra). Default 0.6
+    intensityFactor?: number; // intensity
+    // Base penalty per 1000 m as fraction (default 0.07 = 7%)
+    basePenaltyPerKmAlt?: number; // p0
   };
   stops: {
     name: string;

@@ -12,7 +12,8 @@ import { parseGpx } from "./modules/gpx";
 import { getEnrichedSegments, GpxEnrichedSegment } from "./modules/segments";
 import { splitGpxIntoSegments } from "./modules/splitter";
 import { formatHms, formatMPerKm } from "./modules/utils";
-import { renderElevationProfile } from "./modules/visual";
+import { renderElevationProfile, renderSegmentMetrics } from "./modules/visual";
+import { applyNightUnderperformance } from "./modules/night";
 
 async function main(): Promise<void> {
   const args = parseCli(process.argv.slice(2));
@@ -46,7 +47,8 @@ async function main(): Promise<void> {
     const enrichedSegments = getEnrichedSegments(
       segments,
       config.goal.value,
-      config.fatigue
+      config.fatigue,
+      config.altitudeAcclimation
     );
     const totalStopDuration = config.stops.reduce(
       (acc, stop) => acc + (stop.duration || 0),
@@ -58,6 +60,25 @@ async function main(): Promise<void> {
     );
     const totalDuration = totalRunDuration + totalStopDuration;
 
+    if (config.altitudeAcclimation) {
+      const totalMove =
+        enrichedSegments.reduce((a, s) => a + (s.duration || 0), 0) || 1;
+      const weightedAvgMult =
+        enrichedSegments.reduce(
+          (a, s) => a + (s.altitudeSlowdownMultiplier ?? 1) * (s.duration || 0),
+          0
+        ) / totalMove;
+      const maxMult = Math.max(
+        ...enrichedSegments.map((s) => s.altitudeSlowdownMultiplier ?? 1)
+      );
+      const avgPct = (weightedAvgMult - 1) * 100;
+      const maxPct = (maxMult - 1) * 100;
+      if (avgPct > 0.05) {
+        console.log(
+          `Altitude impact (with acclimation): avg +${avgPct.toFixed(1)}% time, max +${maxPct.toFixed(1)}% on highest segments`
+        );
+      }
+    }
     console.log(
       `Total duration (min): ${(totalDuration / 60).toFixed(2)} / in hours ${(totalDuration / 3600).toFixed(2)}`
     );
@@ -66,8 +87,20 @@ async function main(): Promise<void> {
     console.log(`Average pace (min/km): ${averagePace.toFixed(2)}`);
     // Reassign segments to enriched for downstream computePlan to use durations
 
-    const plan = computePlan(enrichedSegments, originalPoints, config);
-    const nutritionPlan = computeNutritionPlan(enrichedSegments, config);
+    // Apply night underperformance based on start time and stops
+    const enrichedWithNight = applyNightUnderperformance(
+      enrichedSegments,
+      originalPoints,
+      config
+    );
+
+    const plan = computePlan(enrichedWithNight, originalPoints, config);
+    await renderSegmentMetrics(enrichedWithNight, {
+      outDir: "dist",
+      width: 1000,
+      height: 360,
+    });
+    const nutritionPlan = computeNutritionPlan(enrichedWithNight, config);
     console.log("\nRace plan per leg:");
 
     let cumulativeKm = 0;

@@ -1,9 +1,9 @@
 import { RacePlanConfig } from "./config";
 import { GpxEnrichedSegment } from "./segments";
-import { stravaPolynomial } from "./utils";
+import { averageAltitudeM, stravaPolynomial } from "./utils";
 
 const CR_FLAT_KCAL = 1.0; // kcal per kg per km
-const INTENSITY_FACTOR = 0.54; // average intensity factor for ultras
+const INTENSITY_FACTOR = 0.51; // average intensity factor for ultras
 const AVERAGE_TEMPERATURE_C = 15; // average temperature in Celsius
 
 // Parameters for CHO fraction model
@@ -19,18 +19,6 @@ function clip(x: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, x));
 }
 
-function averageAltitudeM(segment: GpxEnrichedSegment): number {
-  let sum = 0;
-  let n = 0;
-  for (const p of segment.points) {
-    if (p.ele !== null && Number.isFinite(p.ele)) {
-      sum += p.ele;
-      n += 1;
-    }
-  }
-  return n ? sum / n : 0;
-}
-
 function computeChoFraction(params: {
   intensity: number; // 0..1 fraction of VO2max proxy
   temperatureC: number;
@@ -43,7 +31,8 @@ function computeChoFraction(params: {
   // Corrections
   const dT = KT * ((temperatureC - 10) / 10);
   const dAlt = KALT * (altitudeM / 1000);
-  const dProg = -KPROG * clip(progress01, 0, 1);
+  // const dProg = -KPROG * clip(progress01, 0, 1);
+  const dProg = 0;
   // Total fraction
   return clip(fBase + dT + dAlt + dProg, CHO_MIN, CHO_MAX);
 }
