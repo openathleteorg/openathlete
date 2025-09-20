@@ -9,11 +9,16 @@ import { computeNutritionPlan } from "./modules/compute-nutrition-plan";
 import { computePlan } from "./modules/compute-plan";
 import { loadConfig } from "./modules/config";
 import { parseGpx } from "./modules/gpx";
-import { getEnrichedSegments, GpxEnrichedSegment } from "./modules/segments";
+import { applyNightUnderperformance } from "./modules/night";
+import { getEnrichedSegments } from "./modules/segments";
+import { groupSlopeSegments } from "./modules/slope-segmentation";
 import { splitGpxIntoSegments } from "./modules/splitter";
 import { formatHms, formatMPerKm } from "./modules/utils";
-import { renderElevationProfile, renderSegmentMetrics } from "./modules/visual";
-import { applyNightUnderperformance } from "./modules/night";
+import {
+  renderElevationProfile,
+  renderElevationWithSegmentation,
+  renderSegmentMetrics,
+} from "./modules/visual";
 
 async function main(): Promise<void> {
   const args = parseCli(process.argv.slice(2));
@@ -54,11 +59,6 @@ async function main(): Promise<void> {
       (acc, stop) => acc + (stop.duration || 0),
       0
     );
-    const totalRunDuration = enrichedSegments.reduce(
-      (acc, seg) => acc + (seg.duration || 0),
-      0
-    );
-    const totalDuration = totalRunDuration + totalStopDuration;
 
     if (config.altitudeAcclimation) {
       const totalMove =
@@ -79,12 +79,6 @@ async function main(): Promise<void> {
         );
       }
     }
-    console.log(
-      `Total duration (min): ${(totalDuration / 60).toFixed(2)} / in hours ${(totalDuration / 3600).toFixed(2)}`
-    );
-
-    const averagePace = totalDuration / 60 / (segmentsLength / 1000); // in min/km
-    console.log(`Average pace (min/km): ${averagePace.toFixed(2)}`);
     // Reassign segments to enriched for downstream computePlan to use durations
 
     // Apply night underperformance based on start time and stops
@@ -94,11 +88,35 @@ async function main(): Promise<void> {
       config
     );
 
+    const totalRunDuration = enrichedWithNight.reduce(
+      (acc, seg) => acc + (seg.duration || 0),
+      0
+    );
+    const totalDuration = totalRunDuration + totalStopDuration;
+
+    console.log(
+      `Total duration (min): ${(totalDuration / 60).toFixed(2)} / in hours ${(totalDuration / 3600).toFixed(2)}`
+    );
+
+    const averagePace = totalDuration / 60 / (segmentsLength / 1000); // in min/km
+    console.log(
+      `Average pace (min/km): ${averagePace.toFixed(2)}, while moving ${(totalRunDuration / 60 / (segmentsLength / 1000)).toFixed(2)}`
+    );
+
     const plan = computePlan(enrichedWithNight, originalPoints, config);
     await renderSegmentMetrics(enrichedWithNight, {
       outDir: "dist",
       width: 1000,
       height: 360,
+    });
+    // Compute slope-based segmentation similar to Suunto Climb Pro
+    const groups = groupSlopeSegments(enrichedWithNight, {});
+    // Render elevation with colored segmentation overlay
+    await renderElevationWithSegmentation(originalPoints, groups, {
+      name: (config.raceName || "Elevation") + " + segmentation",
+      outDir: "dist",
+      width: 1200,
+      height: 420,
     });
     const nutritionPlan = computeNutritionPlan(enrichedWithNight, config);
     console.log("\nRace plan per leg:");
@@ -150,6 +168,23 @@ async function main(): Promise<void> {
     console.log(
       `Total flat distance (km): ${(flatSegments.reduce((a, s) => a + s.length, 0) / 1000).toFixed(2)} km`
     );
+
+    // Print big climbs/descents summary with metrics
+    const bigClimbs = groups.filter((g) => g.type === "big_climb");
+    const bigDescents = groups.filter((g) => g.type === "big_descent");
+    if (bigClimbs.length || bigDescents.length) {
+      console.log("\nMajor climbs/descents:");
+      for (const [i, g] of bigClimbs.entries()) {
+        console.log(
+          `Climb #${i + 1}: ${(g.distance / 1000).toFixed(2)} km, +${g.elevationGain.toFixed(0)} m, avg grade ${g.averageGrade.toFixed(1)}%, time ${formatHms(g.duration)}, pace ${formatMPerKm(g.averagePace)} min/km`
+        );
+      }
+      for (const [i, g] of bigDescents.entries()) {
+        console.log(
+          `Descent #${i + 1}: ${(g.distance / 1000).toFixed(2)} km, -${g.elevationLoss.toFixed(0)} m, avg grade ${g.averageGrade.toFixed(1)}%, time ${formatHms(g.duration)}, pace ${formatMPerKm(g.averagePace)} min/km`
+        );
+      }
+    }
   }
 
   const firstTrack = gpx.tracks[0];
