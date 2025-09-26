@@ -3,6 +3,8 @@ import path from "path";
 export interface CliArgs {
   gpx: string;
   config: string;
+  markdown?: string; // optional path to write markdown export
+  json?: string; // optional path to write structured visualization JSON export
 }
 
 function normalizeValue(v: string | undefined): string | undefined {
@@ -16,6 +18,8 @@ function normalizeValue(v: string | undefined): string | undefined {
 export function parseCli(argv: string[]): CliArgs {
   let gpx: string | undefined;
   let config: string | undefined;
+  let markdown: string | undefined;
+  let json: string | undefined;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -33,6 +37,12 @@ export function parseCli(argv: string[]): CliArgs {
         break;
       case "config":
         config = normalizeValue(val);
+        break;
+      case "markdown":
+        markdown = normalizeValue(val);
+        break;
+      case "json":
+        json = normalizeValue(val);
         break;
       case "help":
       case "h":
@@ -52,7 +62,7 @@ export function parseCli(argv: string[]): CliArgs {
     printHelpAndExit(1);
   }
 
-  return { gpx, config } as CliArgs;
+  return { gpx, config, markdown, json } as CliArgs;
 }
 
 export function printHelpAndExit(code = 0): never {
@@ -61,9 +71,11 @@ export function printHelpAndExit(code = 0): never {
     "  pnpm race-plan-generator start --gpx <file.gpx|http(s)://...> --config <file.json>",
     "",
     "Flags:",
-    "  --gpx     Path or URL to a GPX file (required)",
-    "  --config  Path to configuration JSON (required)",
-    "  --help    Show this help",
+    "  --gpx        Path or URL to a GPX file (required)",
+    "  --config     Path to configuration JSON (required)",
+    "  --markdown   Optional path to write a markdown export for aid stations (e.g. dist/plan.md)",
+    "  --json       Optional path to write a structured JSON export for web viewer (e.g. dist/plan.json)",
+    "  --help       Show this help",
   ].join("\n");
   console.log(base);
   // eslint-disable-next-line no-process-exit
