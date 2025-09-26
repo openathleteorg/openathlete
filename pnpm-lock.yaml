@@ -424,6 +424,9 @@ importers:
 
   lab/race-plan-generator:
     dependencies:
+      '@openathlete/shared':
+        specifier: workspace:*
+        version: link:../../libs/shared
       '@we-gold/gpxjs':
         specifier: ^1.1.0
         version: 1.1.0
