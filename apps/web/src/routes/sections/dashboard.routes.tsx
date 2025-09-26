@@ -27,6 +27,12 @@ const AthleteCalendarPage = lazy(() =>
   })),
 );
 
+const RacePlanViewerPage = lazy(() =>
+  import('@/pages/dashboard/race-plan/viewer').then((module) => ({
+    default: module.RacePlanViewerPage,
+  })),
+);
+
 export const dashboardRoutes: RouteObject[] = [
   {
     path: getPath(['dashboard']),
@@ -60,6 +66,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'settings']),
         element: <SettingsPage />,
+      },
+      {
+        path: getPath(['dashboard', 'racePlan', 'viewer']),
+        element: <RacePlanViewerPage />,
       },
     ],
   },
