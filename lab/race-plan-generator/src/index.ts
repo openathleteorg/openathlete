@@ -14,11 +14,17 @@ import { getEnrichedSegments } from "./modules/segments";
 import { groupSlopeSegments } from "./modules/slope-segmentation";
 import { splitGpxIntoSegments } from "./modules/splitter";
 import { formatHms, formatMPerKm } from "./modules/utils";
+import { planNutritionPerLeg } from "./modules/nutrition-planner";
+import { promises as fs } from "fs";
+import path from "path";
+import { applyTemperatureSlowdown } from "./modules/temperature-slowdown";
 import {
   renderElevationProfile,
   renderElevationWithSegmentation,
   renderSegmentMetrics,
+  renderTemperatureChart,
 } from "./modules/visual";
+import { RacePlanVisualizationExportV1 } from "@openathlete/shared";
 
 async function main(): Promise<void> {
   const args = parseCli(process.argv.slice(2));
@@ -47,6 +53,8 @@ async function main(): Promise<void> {
   console.log(`Total distance (km): ${(segmentsLength / 1000).toFixed(2)}`);
   console.log(`Total elevation gain (m): ${segmentsGain.toFixed(1)}`);
   console.log(`(segments sum: ${segmentsGain.toFixed(1)})`);
+
+  let exportObj: RacePlanVisualizationExportV1 | undefined;
 
   if (config.goal.type === "normalized_pace") {
     const enrichedSegments = getEnrichedSegments(
@@ -79,16 +87,21 @@ async function main(): Promise<void> {
         );
       }
     }
-    // Reassign segments to enriched for downstream computePlan to use durations
-
-    // Apply night underperformance based on start time and stops
+    // Apply night & temperature slowdowns
     const enrichedWithNight = applyNightUnderperformance(
       enrichedSegments,
       originalPoints,
       config
     );
+    const enrichedWithTemp = applyTemperatureSlowdown(
+      enrichedWithNight,
+      originalPoints,
+      config
+    );
 
-    const totalRunDuration = enrichedWithNight.reduce(
+    const finalSegments = enrichedWithTemp;
+
+    const totalRunDuration = finalSegments.reduce(
       (acc, seg) => acc + (seg.duration || 0),
       0
     );
@@ -103,22 +116,328 @@ async function main(): Promise<void> {
       `Average pace (min/km): ${averagePace.toFixed(2)}, while moving ${(totalRunDuration / 60 / (segmentsLength / 1000)).toFixed(2)}`
     );
 
-    const plan = computePlan(enrichedWithNight, originalPoints, config);
-    await renderSegmentMetrics(enrichedWithNight, {
+    const plan = computePlan(finalSegments, originalPoints, config);
+    await renderSegmentMetrics(finalSegments, {
       outDir: "dist",
       width: 1000,
       height: 360,
     });
-    // Compute slope-based segmentation similar to Suunto Climb Pro
-    const groups = groupSlopeSegments(enrichedWithNight, {});
-    // Render elevation with colored segmentation overlay
+    // Slope-based segmentation (climbs/descentes)
+    const groups = groupSlopeSegments(finalSegments, {});
     await renderElevationWithSegmentation(originalPoints, groups, {
       name: (config.raceName || "Elevation") + " + segmentation",
       outDir: "dist",
       width: 1200,
       height: 420,
     });
-    const nutritionPlan = computeNutritionPlan(enrichedWithNight, config);
+    await renderTemperatureChart(finalSegments, config, {
+      name: (config.raceName || "Course") + " · Température",
+      outDir: "dist",
+      width: 1200,
+      height: 420,
+    });
+    const nutritionPlan = computeNutritionPlan(finalSegments, config);
+
+    const perLeg = planNutritionPerLeg({
+      plan,
+      nutritionSegments: nutritionPlan,
+      config,
+    });
+
+    // Build export object if requested
+    if (args.json) {
+      // Reconstruct points array with cumulative distance/time
+      let cumDist = 0;
+      let cumGain = 0;
+      let cumTime = 0;
+      const pointsExport = originalPoints.map((p, i) => {
+        if (i > 0) {
+          const prev = originalPoints[i - 1];
+          const d = Math.sqrt(
+            (p.lat - prev.lat) * (p.lat - prev.lat) +
+              (p.lon - prev.lon) * (p.lon - prev.lon)
+          ); // rough; precise not needed for cumulative again (already in segments)
+          cumDist += d; // note: approximate; we will override with segment boundaries for distanceFromStartM where needed
+          const elevDelta = (p.ele || 0) - (prev.ele || 0);
+          if (elevDelta > 0) cumGain += elevDelta;
+        }
+        return {
+          lat: p.lat,
+          lon: p.lon,
+          ele: p.ele || undefined,
+          distanceFromStartM: 0, // patch later
+          cumulativeElevationGainM: cumGain,
+          timeFromStartSec: undefined,
+        };
+      });
+      // Use segment cumulative distances for accuracy
+      let segCumDist = 0;
+      for (const seg of finalSegments) {
+        const startPt = seg.points[0];
+        const endPt = seg.points[seg.points.length - 1];
+        const startIdx = originalPoints.indexOf(startPt);
+        const endIdx = originalPoints.indexOf(endPt);
+        if (startIdx >= 0) {
+          pointsExport[startIdx].distanceFromStartM = segCumDist;
+        }
+        segCumDist += seg.length;
+        if (endIdx >= 0) {
+          pointsExport[endIdx].distanceFromStartM = segCumDist;
+        }
+      }
+      // Interpolate missing distanceFromStartM if zeros remain
+      let lastKnown = 0;
+      for (let i = 0; i < pointsExport.length; i++) {
+        if (pointsExport[i].distanceFromStartM === 0 && i !== 0) {
+          pointsExport[i].distanceFromStartM = lastKnown;
+        } else {
+          lastKnown = pointsExport[i].distanceFromStartM;
+        }
+      }
+
+      // Map segments for export
+      let cumulativeTime = 0;
+      // Build quick lookup of nutrition per segment center distance to annotate segments
+      const nutritionBySegmentIndex = new Map<
+        number,
+        { kcal: number; choFraction: number; choGrams: number }
+      >();
+      // We approximate mapping by choosing nutrition segment whose center falls inside segment distance span
+      for (const n of nutritionPlan.segments) {
+        nutritionBySegmentIndex.set(n.index, {
+          kcal: n.kcal,
+          choFraction: n.choFraction,
+          choGrams: n.choGrams,
+        });
+      }
+
+      const segmentsExport = finalSegments.map((s, idx) => {
+        const startPoint = s.points[0];
+        const endPoint = s.points[s.points.length - 1];
+        const startIdx = originalPoints.indexOf(startPoint);
+        const endIdx = originalPoints.indexOf(endPoint);
+        const startDistanceKm =
+          pointsExport[startIdx]?.distanceFromStartM / 1000 || 0;
+        const endDistanceKm =
+          pointsExport[endIdx]?.distanceFromStartM / 1000 || startDistanceKm;
+        const durationSec = s.duration || 0;
+        const nut = nutritionBySegmentIndex.get(idx) || {
+          kcal: 0,
+          choFraction: 0,
+          choGrams: 0,
+        };
+        const segObj = {
+          index: idx,
+          startPointIndex: startIdx,
+          endPointIndex: endIdx,
+          lengthM: s.length,
+          elevationGainM: s.elevationGain,
+          elevationLossM: s.elevationLoss,
+          averageGradePct: s.averageGrade,
+          avgAltitudeM:
+            s.points.reduce((a, p) => a + (p.ele || 0), 0) / s.points.length ||
+            0,
+          durationSec,
+          movingPaceSecPerKm: durationSec / (s.length / 1000),
+          temperatureC: s.temperatureC,
+          altitudeSlowdownMultiplier: s.altitudeSlowdownMultiplier,
+          nightSlowdownMultiplier: (s as any).nightMultiplier,
+          temperatureSlowdownMultiplier: s.temperatureMultiplier,
+          startDistanceKm,
+          endDistanceKm,
+          startTimeSec: cumulativeTime,
+          endTimeSec: cumulativeTime + durationSec,
+          nutrition: {
+            kcal: nut.kcal,
+            choFraction: nut.choFraction,
+            choGrams: nut.choGrams,
+          },
+        };
+        cumulativeTime += durationSec;
+        return segObj;
+      });
+
+      const nutritionSegmentsExport = nutritionPlan.segments.map((n) => ({
+        index: n.index,
+        cumulativeKmCenter: n.cumulativeKmCenter,
+        distanceKm: n.distanceKm,
+        durationSec: n.durationSec,
+        kcal: n.kcal,
+        choFraction: n.choFraction,
+        choGrams: n.choGrams,
+        avgAltitudeM: n.avgAltitudeM,
+        avgGradePct: n.avgGradePct,
+        elevationGain: n.elevationGain,
+        elevationLoss: n.elevationLoss,
+        midLat: n.midLat,
+        midLon: n.midLon,
+      }));
+
+      const slopeGroupsExport = groups.map((g, i) => {
+        // We only have start/end segment indices, map to point indices via those segments
+        const startSeg = finalSegments[g.startIndex];
+        const endSeg = finalSegments[g.endIndex];
+        const startPtIdx = startSeg
+          ? originalPoints.indexOf(startSeg.points[0])
+          : 0;
+        const endPtIdx = endSeg
+          ? originalPoints.indexOf(endSeg.points[endSeg.points.length - 1])
+          : startPtIdx;
+        return {
+          id: `g${i}`,
+          type: g.type,
+          startPointIndex: startPtIdx,
+          endPointIndex: endPtIdx,
+          distanceM: g.distance,
+          elevationGainM: g.elevationGain,
+          elevationLossM: g.elevationLoss,
+          averageGradePct: g.averageGrade,
+          durationSec: g.duration,
+          averagePaceSecPerKm: g.averagePace,
+        };
+      });
+
+      // Legs export with times reconstruction
+      let legCumTime = 0;
+      let legCumDist = 0;
+      const legsExport = plan.legs.map((l, i) => {
+        const startDistanceKm = legCumDist;
+        legCumDist += l.distance / 1000;
+        const startTimeSec = legCumTime;
+        legCumTime += l.totalTimeSec;
+        return {
+          index: i,
+          name: l.name,
+          distanceM: l.distance,
+          elevationGainM: l.elevationGain,
+          elevationLossM: l.elevationLoss,
+          movingTimeSec: l.movingTimeSec,
+          stopTimeSec: l.stopTimeSec,
+          totalTimeSec: l.totalTimeSec,
+          averageTemperatureC: l.averageTemperatureC,
+          startDistanceKm,
+          endDistanceKm: legCumDist,
+          startTimeSec,
+          endTimeSec: legCumTime,
+          associatedStopIndex: i < plan.legs.length - 1 ? i : undefined,
+        };
+      });
+
+      const stopsExport = (config.stops || []).map((s, i) => {
+        // Find nearest point index for cumulative distance/time
+        let nearestIdx = 0;
+        let bestDist = Infinity;
+        for (let p = 0; p < pointsExport.length; p++) {
+          const dLat = pointsExport[p].lat - s.coords.lat;
+          const dLon = pointsExport[p].lon - s.coords.lon;
+          const d2 = dLat * dLat + dLon * dLon;
+          if (d2 < bestDist) {
+            bestDist = d2;
+            nearestIdx = p;
+          }
+        }
+        const cumulativeDistanceKm =
+          pointsExport[nearestIdx].distanceFromStartM / 1000;
+        // approximate arrival time by finding segment containing this distance
+        const segForStop = segmentsExport.find(
+          (sg) =>
+            cumulativeDistanceKm >= sg.startDistanceKm &&
+            cumulativeDistanceKm <= sg.endDistanceKm
+        );
+        const arrivalTimeSec = segForStop?.startTimeSec;
+        return {
+          index: i,
+          name: s.name,
+          lat: s.coords.lat,
+          lon: s.coords.lon,
+          plannedStopDurationSec: s.duration,
+          cumulativeDistanceKm,
+          arrivalTimeSec,
+        };
+      });
+
+      const averageCarbsPerHour =
+        nutritionPlan.totals.choGrams / (totalDuration / 3600);
+
+      const altitudes = originalPoints.map((p) => p.ele || 0);
+      const altitudeMin = Math.min(...altitudes);
+      const altitudeMax = Math.max(...altitudes);
+      const temps = finalSegments
+        .map((s) => s.temperatureC)
+        .filter((t): t is number => typeof t === "number" && !isNaN(t));
+      const tempMin = temps.length ? Math.min(...temps) : undefined;
+      const tempMax = temps.length ? Math.max(...temps) : undefined;
+
+      exportObj = {
+        meta: {
+          version: 1,
+          generatedAt: new Date().toISOString(),
+          raceName: config.raceName,
+          source: {
+            gpxFileName: path.basename(args.gpx),
+            configFileName: path.basename(args.config),
+          },
+          configSnapshot: config,
+        },
+        points: pointsExport,
+        segments: segmentsExport,
+        slopeGroups: slopeGroupsExport,
+        legs: legsExport,
+        stops: stopsExport,
+        nutrition: {
+          perLeg: perLeg.legs.map((l) => ({
+            legIndex: l.legIndex,
+            legName: l.legName,
+            carbsTargetG: l.carbsTargetG,
+            carbsViaFlasksG: l.carbsViaFlasksG,
+            carbsViaFoodsG: l.carbsViaFoodsG,
+            hydrationLitres: l.hydrationLitres,
+            carryLitres: l.carryLitres,
+            flasksCount: l.flasksCount,
+            pickupAtStart: l.pickupAtStart,
+            selectedFoods: l.selectedFoods.map((f) => ({
+              label: f.label,
+              carbsG: f.carbsG,
+              units: f.units,
+              carbsPerUnitG:
+                (f as any).carbsPerUnitG ??
+                f.carbsG / Math.max(1, f.units || 1),
+            })),
+          })),
+          totals: {
+            carbsTargetG: perLeg.totals.carbsTargetG,
+            carbsViaFlasksG: perLeg.totals.carbsViaFlasksG,
+            carbsViaFoodsG: perLeg.totals.carbsViaFoodsG,
+            hydrationLitres: perLeg.totals.hydrationLitres,
+          },
+          segments: nutritionSegmentsExport,
+        },
+        derived: {
+          distanceKm: segmentsLength / 1000,
+          elevationGainM: segmentsGain,
+          elevationLossM: finalSegments.reduce(
+            (a, s) => a + s.elevationLoss,
+            0
+          ),
+          totalDurationSec: totalDuration,
+          movingTimeSec: totalRunDuration,
+          stopTimeSec: totalStopDuration,
+          averageCarbsPerHour,
+          altitude: { min: altitudeMin, max: altitudeMax },
+          temperature:
+            tempMin !== undefined && tempMax !== undefined
+              ? { min: tempMin, max: tempMax }
+              : undefined,
+        },
+        uiHints: {
+          recommendedColorScale: {
+            temperature: "viridis",
+            carbs: "inferno",
+          },
+        },
+      };
+    }
+
     console.log("\nRace plan per leg:");
 
     let cumulativeKm = 0;
@@ -156,33 +475,42 @@ async function main(): Promise<void> {
       `Totals: ${nutritionPlan.totals.distanceKm.toFixed(2)} km -> ${nutritionPlan.totals.choGrams.toFixed(0)} g CHO`
     );
     console.log(
-      `Average cars/hour: ${(nutritionPlan.totals.choGrams / (totalDuration / 3600)).toFixed(0)} g/h over ${formatHms(totalDuration)}`
+      `Average carbs/hour: ${(nutritionPlan.totals.choGrams / (totalDuration / 3600)).toFixed(0)} g/h over ${formatHms(totalDuration)}`
     );
 
-    const flatSegments = segments.filter(
-      (s) => s.averageGrade >= -1 && s.averageGrade <= 1
-    );
     console.log(
-      `Flat segments (<=1%): ${flatSegments.length} / ${segments.length} (${((flatSegments.length / segments.length) * 100).toFixed(1)}%)`
-    );
-    console.log(
-      `Total flat distance (km): ${(flatSegments.reduce((a, s) => a + s.length, 0) / 1000).toFixed(2)} km`
+      `Totals (detailed): CHO ${perLeg.totals.carbsTargetG.toFixed(0)}g = drink ${perLeg.totals.carbsViaFlasksG.toFixed(0)}g + foods ${perLeg.totals.carbsViaFoodsG.toFixed(0)}g; hydration ${perLeg.totals.hydrationLitres.toFixed(1)} L`
     );
 
-    // Print big climbs/descents summary with metrics
-    const bigClimbs = groups.filter((g) => g.type === "big_climb");
-    const bigDescents = groups.filter((g) => g.type === "big_descent");
-    if (bigClimbs.length || bigDescents.length) {
-      console.log("\nMajor climbs/descents:");
-      for (const [i, g] of bigClimbs.entries()) {
-        console.log(
-          `Climb #${i + 1}: ${(g.distance / 1000).toFixed(2)} km, +${g.elevationGain.toFixed(0)} m, avg grade ${g.averageGrade.toFixed(1)}%, time ${formatHms(g.duration)}, pace ${formatMPerKm(g.averagePace)} min/km`
-        );
+    if (args.json && exportObj) {
+      try {
+        const target = path.isAbsolute(args.json)
+          ? args.json
+          : path.resolve(process.env.INIT_CWD || process.cwd(), args.json);
+        await fs.mkdir(path.dirname(target), { recursive: true });
+        await fs.writeFile(target, JSON.stringify(exportObj, null, 2), "utf8");
+        console.log(`\nJSON export written to: ${target}`);
+      } catch (e: any) {
+        console.error(`Failed to write JSON export: ${e?.message || e}`);
       }
-      for (const [i, g] of bigDescents.entries()) {
-        console.log(
-          `Descent #${i + 1}: ${(g.distance / 1000).toFixed(2)} km, -${g.elevationLoss.toFixed(0)} m, avg grade ${g.averageGrade.toFixed(1)}%, time ${formatHms(g.duration)}, pace ${formatMPerKm(g.averagePace)} min/km`
-        );
+    }
+
+    if (args.markdown) {
+      const md = buildMarkdownAidStations({
+        raceName: config.raceName,
+        plan,
+        perLeg,
+        startTimeIso: config.startTime,
+      });
+      try {
+        const target = path.isAbsolute(args.markdown)
+          ? args.markdown
+          : path.resolve(process.env.INIT_CWD || process.cwd(), args.markdown);
+        await fs.mkdir(path.dirname(target), { recursive: true });
+        await fs.writeFile(target, md, "utf8");
+        console.log(`\nMarkdown aid stations export written to: ${target}`);
+      } catch (e: any) {
+        console.error(`Failed to write markdown export: ${e?.message || e}`);
       }
     }
   }
@@ -199,3 +527,100 @@ async function main(): Promise<void> {
 }
 
 main();
+
+interface BuildMarkdownArgs {
+  raceName?: string;
+  plan: ReturnType<typeof computePlan>;
+  perLeg: ReturnType<typeof planNutritionPerLeg>;
+  startTimeIso?: string;
+}
+
+function buildMarkdownAidStations(args: BuildMarkdownArgs): string {
+  const { raceName, plan, perLeg, startTimeIso } = args;
+  const startDate = startTimeIso ? new Date(startTimeIso) : null;
+  // Table headers
+  const headers = [
+    "#", // leg index
+    "Section", // leg name
+    "Km cum.",
+    "+m / -m", // elevation
+    "Durée (moving+stop)",
+    "Heure passage", // arrival time at end of leg
+    "Flasques", // number flasks to (re)fill for next leg
+    "Remplir (L)", // litres to fill
+    "Hydrat. besoin (L)",
+    "CHO cible (g)",
+    "CHO boisson (g)",
+    "CHO solides (g)",
+    "Aliments à donner",
+    "Temp Ø (°C)",
+  ];
+  let lines: string[] = [];
+  lines.push(`# Plan assistance – ${raceName || "Course"}`);
+  lines.push("");
+  lines.push(
+    `Généré le ${new Date().toISOString()} – Hypothèses: rythme normalisé ${(
+      plan.totals.distance / 1000
+    ).toFixed(1)} km / +${plan.totals.elevationGain.toFixed(0)} m.`
+  );
+  lines.push("");
+  lines.push(headers.join(" | "));
+  lines.push(headers.map(() => "---").join(" | "));
+
+  let cumulativeKm = 0;
+  let cumulativeTimeSec = 0;
+  for (let i = 0; i < plan.legs.length; i++) {
+    const leg = plan.legs[i];
+    const nut = perLeg.legs[i];
+    cumulativeKm += leg.distance / 1000;
+    cumulativeTimeSec += leg.totalTimeSec;
+    const arrivalTime = startDate
+      ? new Date(startDate.getTime() + cumulativeTimeSec * 1000)
+      : null;
+    const foodsStr =
+      nut.selectedFoods.map((f) => `${f.units}x ${f.label}`).join(", ") || "—";
+    const line = [
+      (i + 1).toString(),
+      leg.name.replace(/\|/g, "/"),
+      cumulativeKm.toFixed(1),
+      `+${leg.elevationGain.toFixed(0)} / -${leg.elevationLoss.toFixed(0)}`,
+      `${formatHms(leg.movingTimeSec)}+${formatHms(leg.stopTimeSec)}`,
+      arrivalTime
+        ? arrivalTime.toLocaleTimeString("fr-FR", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "—",
+      nut.pickupAtStart.flasksToFill.toString(),
+      nut.pickupAtStart.fillVolumeMl
+        ? (nut.pickupAtStart.fillVolumeMl / 1000).toFixed(2)
+        : "0",
+      nut.hydrationLitres.toFixed(2),
+      nut.carbsTargetG.toFixed(0),
+      nut.carbsViaFlasksG.toFixed(0),
+      nut.carbsViaFoodsG.toFixed(0),
+      foodsStr,
+      typeof leg.averageTemperatureC === "number"
+        ? leg.averageTemperatureC.toFixed(1)
+        : "",
+    ];
+    lines.push(line.join(" | "));
+  }
+
+  // Totals row
+  const totals = perLeg.totals;
+  lines.push("");
+  lines.push(
+    `**Totaux**: CHO ${totals.carbsTargetG.toFixed(0)} g = boisson ${totals.carbsViaFlasksG.toFixed(
+      0
+    )} g + solides ${totals.carbsViaFoodsG.toFixed(0)} g · Hydratation ${totals.hydrationLitres.toFixed(
+      1
+    )} L`
+  );
+
+  lines.push("");
+  lines.push(
+    `Légende: Flasques = nombre à (re)remplir pour la section suivante ; CHO = glucides ; Hydrat. besoin = estimation physiologique pour le segment.`
+  );
+  return lines.join("\n");
+}
