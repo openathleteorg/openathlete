@@ -1,6 +1,7 @@
 import { ComputePlanResult } from "./compute-plan";
 import { NutritionForm, NutritionItem, RacePlanConfig } from "./config";
-import { createTemperatureModel, sweatTempFactor } from "./temperature";
+import { sweatTempFactor } from "./temperature";
+import { KmTemperatureSample, getNearestKmSampleByTime } from "./weather";
 import { NutritionPlanResult } from "./compute-nutrition-plan";
 
 export interface LegNutritionPlan {
@@ -170,21 +171,22 @@ function computeSweatRateLph(
   return base * (1 + ef * effort01);
 }
 
-export function planNutritionPerLeg(args: {
+export async function planNutritionPerLeg(args: {
   plan: ComputePlanResult;
   nutritionSegments: NutritionPlanResult;
   config: RacePlanConfig;
   // Effort proxy per leg (0..1). If not provided, use carbs/hour back-calculated.
   effort01PerLeg?: number[];
-}): FullNutritionPlanPerLeg {
+  kmSamples: KmTemperatureSample[];
+}): Promise<FullNutritionPlanPerLeg> {
   const { plan, nutritionSegments, config } = args;
+  const kmSamples = args.kmSamples || [];
   const nutCfg = config.nutrition || {};
   const flaskSizeMl = nutCfg.flaskSizeMl ?? 500;
   const carbsPerL = nutCfg.carbsPerLitre ?? 60;
   const enableChoDrink = nutCfg.enableCarbsInFlasks ?? false;
   const items = nutCfg.items || [];
   const startDate = config.startTime ? new Date(config.startTime) : new Date(0);
-  const tempAt = createTemperatureModel();
 
   const legs: LegNutritionPlan[] = [];
   let totalCarbsTarget = 0;
@@ -216,12 +218,9 @@ export function planNutritionPerLeg(args: {
       const sDate = new Date(
         startDate.getTime() + (legTimeAcc + s.durationSec / 2) * 1000
       );
-      const t = tempAt({
-        date: sDate,
-        lat: s.midLat,
-        lon: s.midLon,
-        altitudeM: s.avgAltitudeM,
-      });
+      const t =
+        getNearestKmSampleByTime(kmSamples, legTimeAcc + s.durationSec / 2)
+          ?.tempC ?? 10;
       tempWeighted += t * s.durationSec;
       durWeighted += s.durationSec;
       legTimeAcc += s.durationSec;

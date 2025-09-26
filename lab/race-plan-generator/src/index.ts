@@ -15,9 +15,11 @@ import { groupSlopeSegments } from "./modules/slope-segmentation";
 import { splitGpxIntoSegments } from "./modules/splitter";
 import { formatHms, formatMPerKm } from "./modules/utils";
 import { planNutritionPerLeg } from "./modules/nutrition-planner";
+import type { FullNutritionPlanPerLeg } from "./modules/nutrition-planner";
 import { promises as fs } from "fs";
 import path from "path";
 import { applyTemperatureSlowdown } from "./modules/temperature-slowdown";
+import { sampleTemperatureEveryKm } from "./modules/weather";
 import {
   renderElevationProfile,
   renderElevationWithSegmentation,
@@ -93,10 +95,19 @@ async function main(): Promise<void> {
       originalPoints,
       config
     );
-    const enrichedWithTemp = applyTemperatureSlowdown(
+    // Precompute Open‑Meteo samples once at 1 km resolution to reuse everywhere
+    const startDate = new Date(config.startTime as string);
+    const kmSamples = await sampleTemperatureEveryKm(
+      originalPoints,
+      enrichedWithNight,
+      startDate
+    );
+
+    const enrichedWithTemp = await applyTemperatureSlowdown(
       enrichedWithNight,
       originalPoints,
-      config
+      config,
+      kmSamples
     );
 
     const finalSegments = enrichedWithTemp;
@@ -135,13 +146,19 @@ async function main(): Promise<void> {
       outDir: "dist",
       width: 1200,
       height: 420,
+      kmSamples,
     });
-    const nutritionPlan = computeNutritionPlan(finalSegments, config);
+    const nutritionPlan = await computeNutritionPlan(
+      finalSegments,
+      config,
+      kmSamples
+    );
 
-    const perLeg = planNutritionPerLeg({
+    const perLeg = await planNutritionPerLeg({
       plan,
       nutritionSegments: nutritionPlan,
       config,
+      kmSamples,
     });
 
     // Build export object if requested
@@ -531,7 +548,7 @@ main();
 interface BuildMarkdownArgs {
   raceName?: string;
   plan: ReturnType<typeof computePlan>;
-  perLeg: ReturnType<typeof planNutritionPerLeg>;
+  perLeg: FullNutritionPlanPerLeg;
   startTimeIso?: string;
 }
 

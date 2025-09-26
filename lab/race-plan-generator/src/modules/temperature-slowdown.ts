@@ -2,18 +2,20 @@ import { GpxPoint } from "./gpx";
 import { GpxEnrichedSegment } from "./segments";
 import { RacePlanConfig } from "./config";
 import { averageAltitudeM } from "./utils";
-import { createTemperatureModel, tempSlowMultiplier } from "./temperature";
+import { tempSlowMultiplier } from "./temperature";
+import { KmTemperatureSample, getNearestKmSampleByTime } from "./weather";
+import { getOpenMeteoTemperatureC } from "./open-meteo";
 
-export function applyTemperatureSlowdown(
+export async function applyTemperatureSlowdown(
   segments: GpxEnrichedSegment[],
   points: GpxPoint[],
-  config: RacePlanConfig
-): GpxEnrichedSegment[] {
+  config: RacePlanConfig,
+  kmSamples?: KmTemperatureSample[]
+): Promise<GpxEnrichedSegment[]> {
   if (!segments.length || !points.length) return segments;
   const startIso = config.startTime;
   if (!startIso) return segments;
   const startDate = new Date(startIso);
-  const tempAt = createTemperatureModel();
 
   // Iterate segments accumulating time and apply temperature multiplier when center instant occurs
   let cumulativeSec = 0;
@@ -27,12 +29,20 @@ export function applyTemperatureSlowdown(
     );
     const midIdx = Math.floor(s.points.length / 2);
     const mid = s.points[Math.max(0, Math.min(s.points.length - 1, midIdx))];
-    const tempC = tempAt({
-      date: segCenterDate,
-      lat: mid?.lat ?? 0,
-      lon: mid?.lon ?? 0,
-      altitudeM: averageAltitudeM(s),
-    });
+    // Use nearest precomputed sample by absolute time from start
+    let tempC =
+      getNearestKmSampleByTime(kmSamples || [], segCenterOffset)?.tempC ?? NaN;
+    if (!Number.isFinite(tempC)) {
+      try {
+        tempC = await getOpenMeteoTemperatureC({
+          date: segCenterDate,
+          lat: mid?.lat ?? 0,
+          lon: mid?.lon ?? 0,
+        });
+      } catch {
+        tempC = 10;
+      }
+    }
     const tempMult = tempSlowMultiplier(tempC);
     const newDuration = move * tempMult;
     out.push({

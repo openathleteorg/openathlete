@@ -8,7 +8,8 @@ import { GpxEnrichedSegment } from "./segments";
 import { TrendGroup, colorForTrend } from "./slope-segmentation";
 import { averageAltitudeM, haversineDistance } from "./utils";
 import { RacePlanConfig } from "./config";
-import { createTemperatureModel } from "./temperature";
+import { getOpenMeteoTemperatureC } from "./open-meteo";
+import type { KmTemperatureSample } from "./weather";
 
 export interface ElevationSample {
   dist: number; // meters from start
@@ -606,7 +607,13 @@ export async function renderSegmentMetrics(
 export async function renderTemperatureChart(
   segments: GpxEnrichedSegment[],
   config: RacePlanConfig,
-  options?: { width?: number; height?: number; outDir?: string; name?: string }
+  options?: {
+    width?: number;
+    height?: number;
+    outDir?: string;
+    name?: string;
+    kmSamples?: KmTemperatureSample[]; // if provided, reuse and do not fetch again
+  }
 ): Promise<void> {
   if (!segments?.length) return;
   const width = options?.width ?? 1200;
@@ -620,8 +627,6 @@ export async function renderTemperatureChart(
   const startDate = hasStart
     ? new Date(config.startTime as string)
     : new Date();
-  const tempAt = createTemperatureModel();
-
   const centerData: {
     centerDist: number;
     centerTime: number;
@@ -638,16 +643,11 @@ export async function renderTemperatureChart(
     // center
     const centerDist = cumDist + segLen / 2;
     const centerTime = cumTime + segDur / 2; // seconds from start
-    // compute temperature at center (fallback to recompute even if present)
+    // compute temperature at center via Open-Meteo
     const midIdx = Math.max(0, Math.floor((s.points?.length || 1) / 2));
     const mid = s.points?.[Math.min(midIdx, (s.points?.length || 1) - 1)];
     const date = new Date(startDate.getTime() + centerTime * 1000);
-    const tempC = tempAt({
-      date,
-      lat: mid?.lat ?? 0,
-      lon: mid?.lon ?? 0,
-      altitudeM: averageAltitudeM(s) || 0,
-    });
+    let tempC: number = 10;
     centerData.push({ centerDist, centerTime, tempC });
 
     // edges for piecewise mapping
@@ -655,6 +655,69 @@ export async function renderTemperatureChart(
     distBreaks.push(cumDist + segLen);
     cumDist += segLen;
     cumTime += segDur;
+  }
+
+  // Additionally, sample temperature every 1 km using Open-Meteo to provide a smoother curve
+  // Prefer provided samples to avoid re-fetching
+  let kmSamples: { centerDist: number; centerTime: number; tempC: number }[] =
+    [];
+  const totalDist = cumDist;
+  if (options?.kmSamples && options.kmSamples.length) {
+    // Map provided samples (distM, timeSec, tempC) to local structure
+    kmSamples = options.kmSamples.map((s) => ({
+      centerDist: s.distM,
+      centerTime: s.timeSec,
+      tempC: s.tempC,
+    }));
+  } else if (totalDist > 0 && hasStart) {
+    const expectedCalls = Math.floor(totalDist / 1000);
+    console.log(
+      `[temperature] Open-Meteo km samples to fetch (approx): ${expectedCalls}`
+    );
+    let targetM = 1000; // start sampling at 1 km
+    let segCumDist = 0;
+    let segCumTime = 0;
+    for (const s of segments) {
+      const segLen = s.length || 0;
+      const segDur = s.duration || 0;
+      const segStartDist = segCumDist;
+      const segEndDist = segCumDist + segLen;
+      while (
+        targetM <= totalDist &&
+        targetM >= segStartDist &&
+        targetM <= segEndDist &&
+        segLen > 0
+      ) {
+        const t = (targetM - segStartDist) / segLen; // 0..1 within segment
+        const sampleTime = segCumTime + t * segDur; // seconds from start
+        const date = new Date(startDate.getTime() + sampleTime * 1000);
+        // linear interpolate lat/lon inside the segment based on nearest points
+        const count = s.points?.length || 1;
+        const idx = Math.floor(t * Math.max(1, count - 1));
+        const p0: GpxPoint | undefined =
+          s.points?.[Math.max(0, Math.min(idx, count - 1))];
+        const p1: GpxPoint | undefined =
+          s.points?.[Math.max(0, Math.min(idx + 1, count - 1))] || p0;
+        const segFrac = count > 1 ? t * (count - 1) - idx : 0;
+        const lat =
+          p0 && p1 ? p0.lat + (p1.lat - p0.lat) * segFrac : (p0?.lat ?? 0);
+        const lon =
+          p0 && p1 ? p0.lon + (p1.lon - p0.lon) * segFrac : (p0?.lon ?? 0);
+        let tempC = 10;
+        try {
+          tempC = await getOpenMeteoTemperatureC({
+            date,
+            lat: lat ?? 0,
+            lon: lon ?? 0,
+          });
+        } catch {}
+        kmSamples.push({ centerDist: targetM, centerTime: sampleTime, tempC });
+        targetM += 1000; // next kilometer
+      }
+      segCumDist += segLen;
+      segCumTime += segDur;
+      if (targetM > totalDist) break;
+    }
   }
 
   if (!centerData.length) return;
@@ -672,12 +735,17 @@ export async function renderTemperatureChart(
     .domain(timeBreaks)
     .range(distBreaks.map((d) => xDist(d)));
 
+  const mins: number[] = [];
+  const maxs: number[] = [];
+  if (kmSamples.length) {
+    mins.push(d3.min(kmSamples, (d) => d.tempC) as number);
+    maxs.push(d3.max(kmSamples, (d) => d.tempC) as number);
+  }
+  const minV = mins.length ? (d3.min(mins) as number) : 0;
+  const maxV = maxs.length ? (d3.max(maxs) as number) : 1;
   const y = d3
     .scaleLinear()
-    .domain([
-      (d3.min(centerData, (d) => d.tempC) ?? 0) - 2,
-      (d3.max(centerData, (d) => d.tempC) ?? 1) + 2,
-    ])
+    .domain([minV - 2, maxV + 2])
     .range([height - margin.bottom, margin.top]);
 
   const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
@@ -760,13 +828,21 @@ export async function renderTemperatureChart(
     .y((d) => y(d.tempC))
     .curve(d3.curveMonotoneX);
 
-  svg
-    .append("path")
-    .datum(centerData)
-    .attr("fill", "none")
-    .attr("stroke", "#f59e0b")
-    .attr("stroke-width", 2)
-    .attr("d", line as any);
+  if (kmSamples.length) {
+    const lineKm = d3
+      .line<{ centerDist: number; tempC: number }>()
+      .x((d) => xDist(d.centerDist))
+      .y((d) => y(d.tempC))
+      .curve(d3.curveMonotoneX);
+    svg
+      .append("path")
+      .datum(kmSamples)
+      .attr("fill", "none")
+      .attr("stroke", "#2563eb")
+      .attr("stroke-width", 2)
+      .attr("stroke-opacity", 0.9)
+      .attr("d", lineKm as any);
+  }
 
   const title = options?.name ?? "Température (course)";
   svg
@@ -777,6 +853,28 @@ export async function renderTemperatureChart(
     .attr("font-size", 16)
     .attr("font-weight", 600)
     .text(title);
+
+  // Legend for lines
+  const legendX = width - margin.right - 200;
+  const legendY = margin.top + 6;
+  const legend = svg
+    .append("g")
+    .attr("transform", `translate(${legendX}, ${legendY})`);
+  legend
+    .append("line")
+    .attr("x1", 0)
+    .attr("y1", 0)
+    .attr("x2", 24)
+    .attr("y2", 0)
+    .attr("stroke", "#2563eb")
+    .attr("stroke-width", 2)
+    .attr("stroke-opacity", 0.9);
+  legend
+    .append("text")
+    .attr("x", 30)
+    .attr("y", 2)
+    .text("Température (Open‑Meteo, 1 km)")
+    .attr("alignment-baseline", "middle");
 
   const svgContent = svg.node()?.outerHTML || "";
   const svgPath = path.join(outDir, "temperature-distance-time.svg");

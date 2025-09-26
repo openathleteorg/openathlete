@@ -1,7 +1,7 @@
 import { RacePlanConfig } from "./config";
 import { GpxEnrichedSegment } from "./segments";
 import { averageAltitudeM, stravaPolynomial } from "./utils";
-import { createTemperatureModel } from "./temperature";
+import { KmTemperatureSample, getNearestKmSampleByTime } from "./weather";
 
 const CR_FLAT_KCAL = 1.0; // kcal per kg per km
 const INTENSITY_FACTOR = 0.55; // average intensity factor for ultras
@@ -79,14 +79,14 @@ export interface NutritionPlanResult {
   };
 }
 
-export function computeNutritionPlan(
+export async function computeNutritionPlan(
   segments: GpxEnrichedSegment[],
-  config: RacePlanConfig
-): NutritionPlanResult {
+  config: RacePlanConfig,
+  kmSamples: KmTemperatureSample[]
+): Promise<NutritionPlanResult> {
   const weightKg = config.weightKg;
   const startIso = config.startTime;
   const startDate = startIso ? new Date(startIso) : new Date(0);
-  const tempAt = createTemperatureModel();
   const totalDistance = segments.reduce((sum, seg) => sum + seg.length, 0) || 1;
 
   // Precompute cumulative distances to segment centers and absolute time
@@ -96,23 +96,20 @@ export function computeNutritionPlan(
   let totalCho = 0;
   const out: NutritionSegment[] = [];
 
-  segments.forEach((seg, idx) => {
+  for (let idx = 0; idx < segments.length; idx++) {
+    const seg = segments[idx];
     const segKm = (seg.length || 0) / 1000;
     const centerCumKm = (cumDist + seg.length / 2) / 1000;
     const progress01 = (cumDist + seg.length / 2) / totalDistance;
     const altitudeM = averageAltitudeM(seg);
 
     const kcal = computeSegmentCalories(seg, weightKg);
+    const tempC =
+      getNearestKmSampleByTime(kmSamples, cumTimeSec + (seg.duration || 0) / 2)
+        ?.tempC ?? 10;
     const choFraction = computeChoFraction({
       intensity: INTENSITY_FACTOR,
-      temperatureC: tempAt({
-        date: new Date(
-          startDate.getTime() + (cumTimeSec + (seg.duration || 0) / 2) * 1000
-        ),
-        lat: seg.points[Math.floor(seg.points.length / 2)]?.lat ?? 0,
-        lon: seg.points[Math.floor(seg.points.length / 2)]?.lon ?? 0,
-        altitudeM: altitudeM,
-      }),
+      temperatureC: tempC,
       altitudeM,
       progress01,
     });
@@ -142,7 +139,7 @@ export function computeNutritionPlan(
 
     cumDist += seg.length;
     cumTimeSec += seg.duration || 0;
-  });
+  }
 
   return {
     segments: out,
