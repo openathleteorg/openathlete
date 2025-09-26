@@ -1,10 +1,10 @@
 import { RacePlanConfig } from "./config";
 import { GpxEnrichedSegment } from "./segments";
 import { averageAltitudeM, stravaPolynomial } from "./utils";
+import { createTemperatureModel } from "./temperature";
 
 const CR_FLAT_KCAL = 1.0; // kcal per kg per km
-const INTENSITY_FACTOR = 0.51; // average intensity factor for ultras
-const AVERAGE_TEMPERATURE_C = 15; // average temperature in Celsius
+const INTENSITY_FACTOR = 0.55; // average intensity factor for ultras
 
 // Parameters for CHO fraction model
 const CHO_A = 1.3; // slope for intensity-base
@@ -62,6 +62,8 @@ export interface NutritionSegment {
   elevationLoss: number;
   avgGradePct: number;
   avgAltitudeM: number;
+  midLat: number;
+  midLon: number;
   durationSec: number;
   kcal: number;
   choFraction: number; // 0..1
@@ -82,12 +84,14 @@ export function computeNutritionPlan(
   config: RacePlanConfig
 ): NutritionPlanResult {
   const weightKg = config.weightKg;
-
+  const startIso = config.startTime;
+  const startDate = startIso ? new Date(startIso) : new Date(0);
+  const tempAt = createTemperatureModel();
   const totalDistance = segments.reduce((sum, seg) => sum + seg.length, 0) || 1;
-  const temperatureC = AVERAGE_TEMPERATURE_C; // placeholder until env/sensor integration
 
-  // Precompute cumulative distances to segment centers
+  // Precompute cumulative distances to segment centers and absolute time
   let cumDist = 0;
+  let cumTimeSec = 0;
   let totalCalories = 0;
   let totalCho = 0;
   const out: NutritionSegment[] = [];
@@ -101,7 +105,14 @@ export function computeNutritionPlan(
     const kcal = computeSegmentCalories(seg, weightKg);
     const choFraction = computeChoFraction({
       intensity: INTENSITY_FACTOR,
-      temperatureC,
+      temperatureC: tempAt({
+        date: new Date(
+          startDate.getTime() + (cumTimeSec + (seg.duration || 0) / 2) * 1000
+        ),
+        lat: seg.points[Math.floor(seg.points.length / 2)]?.lat ?? 0,
+        lon: seg.points[Math.floor(seg.points.length / 2)]?.lon ?? 0,
+        altitudeM: altitudeM,
+      }),
       altitudeM,
       progress01,
     });
@@ -110,6 +121,9 @@ export function computeNutritionPlan(
     totalCalories += kcal;
     totalCho += choGrams;
 
+    const midIdx = Math.floor(seg.points.length / 2);
+    const mid =
+      seg.points[Math.max(0, Math.min(seg.points.length - 1, midIdx))];
     out.push({
       index: idx,
       distanceKm: segKm,
@@ -118,6 +132,8 @@ export function computeNutritionPlan(
       elevationLoss: seg.elevationLoss,
       avgGradePct: seg.averageGrade,
       avgAltitudeM: altitudeM,
+      midLat: mid?.lat ?? 0,
+      midLon: mid?.lon ?? 0,
       durationSec: seg.duration,
       kcal,
       choFraction,
@@ -125,6 +141,7 @@ export function computeNutritionPlan(
     });
 
     cumDist += seg.length;
+    cumTimeSec += seg.duration || 0;
   });
 
   return {
