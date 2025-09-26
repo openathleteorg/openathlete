@@ -6,7 +6,9 @@ import { promises as fs } from "fs";
 import { GpxPoint } from "./gpx";
 import { GpxEnrichedSegment } from "./segments";
 import { TrendGroup, colorForTrend } from "./slope-segmentation";
-import { haversineDistance } from "./utils";
+import { averageAltitudeM, haversineDistance } from "./utils";
+import { RacePlanConfig } from "./config";
+import { createTemperatureModel } from "./temperature";
 
 export interface ElevationSample {
   dist: number; // meters from start
@@ -598,5 +600,198 @@ export async function renderSegmentMetrics(
     const svgContent = svg.node()?.outerHTML || "";
     const svgPath = path.join(outDir, "segments-night-multiplier.svg");
     await fs.writeFile(svgPath, svgContent, "utf8");
+  }
+}
+
+export async function renderTemperatureChart(
+  segments: GpxEnrichedSegment[],
+  config: RacePlanConfig,
+  options?: { width?: number; height?: number; outDir?: string; name?: string }
+): Promise<void> {
+  if (!segments?.length) return;
+  const width = options?.width ?? 1200;
+  const height = options?.height ?? 420;
+  const margin = { top: 36, right: 30, bottom: 50, left: 60 };
+  const outDir =
+    options?.outDir ?? path.join("lab", "race-plan-generator", "dist");
+
+  // Build cumulative distance/time arrays and temperature samples at segment centers
+  const hasStart = !!config.startTime;
+  const startDate = hasStart
+    ? new Date(config.startTime as string)
+    : new Date();
+  const tempAt = createTemperatureModel();
+
+  const centerData: {
+    centerDist: number;
+    centerTime: number;
+    tempC: number;
+  }[] = [];
+  const timeBreaks: number[] = [0]; // seconds at segment starts (0 at start)
+  const distBreaks: number[] = [0]; // meters at segment starts
+
+  let cumDist = 0;
+  let cumTime = 0;
+  for (const s of segments) {
+    const segLen = s.length || 0;
+    const segDur = s.duration || 0;
+    // center
+    const centerDist = cumDist + segLen / 2;
+    const centerTime = cumTime + segDur / 2; // seconds from start
+    // compute temperature at center (fallback to recompute even if present)
+    const midIdx = Math.max(0, Math.floor((s.points?.length || 1) / 2));
+    const mid = s.points?.[Math.min(midIdx, (s.points?.length || 1) - 1)];
+    const date = new Date(startDate.getTime() + centerTime * 1000);
+    const tempC = tempAt({
+      date,
+      lat: mid?.lat ?? 0,
+      lon: mid?.lon ?? 0,
+      altitudeM: averageAltitudeM(s) || 0,
+    });
+    centerData.push({ centerDist, centerTime, tempC });
+
+    // edges for piecewise mapping
+    timeBreaks.push(cumTime + segDur);
+    distBreaks.push(cumDist + segLen);
+    cumDist += segLen;
+    cumTime += segDur;
+  }
+
+  if (!centerData.length) return;
+  await fs.mkdir(outDir, { recursive: true });
+
+  // Scales
+  const xDist = d3
+    .scaleLinear()
+    .domain([0, cumDist || 1])
+    .range([margin.left, width - margin.right]);
+
+  // Piecewise linear scale mapping elapsed time (s) to the same pixel range, following distance-time mapping
+  const xTime = d3
+    .scaleLinear()
+    .domain(timeBreaks)
+    .range(distBreaks.map((d) => xDist(d)));
+
+  const y = d3
+    .scaleLinear()
+    .domain([
+      (d3.min(centerData, (d) => d.tempC) ?? 0) - 2,
+      (d3.max(centerData, (d) => d.tempC) ?? 1) + 2,
+    ])
+    .range([height - margin.bottom, margin.top]);
+
+  const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
+  const document = dom.window.document;
+  const svg = d3
+    .select(document.body)
+    .append("svg")
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", `0 0 ${width} ${height}`)
+    .attr("font-family", "system-ui, sans-serif")
+    .attr("font-size", 12);
+
+  svg
+    .append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", width)
+    .attr("height", height)
+    .attr("fill", "#ffffff");
+
+  // Axes
+  const xAxisDist = d3
+    .axisBottom<number>(xDist)
+    .ticks(12)
+    .tickFormat((d: number) => `${(d / 1000).toFixed(1)} km`);
+
+  const timeFmt = (sec: number) => {
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  };
+  const xAxisTime = d3
+    .axisTop<number>(xTime)
+    .ticks(12)
+    .tickFormat((s: number) => timeFmt(s));
+
+  const yAxis = d3
+    .axisLeft<number>(y)
+    .ticks(8)
+    .tickFormat((v: number) => `${v.toFixed(1)} °C`);
+
+  // Draw axes
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(xAxisDist);
+  svg.append("g").attr("transform", `translate(${margin.left},0)`).call(yAxis);
+  svg
+    .append("g")
+    .attr("transform", `translate(0,${margin.top})`)
+    .call(xAxisTime);
+
+  // Labels
+  svg
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", height - 12)
+    .attr("text-anchor", "middle")
+    .text("Distance (km)");
+  svg
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", 18)
+    .attr("text-anchor", "middle")
+    .text("Temps écoulé (hh:mm)");
+  svg
+    .append("text")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", 18)
+    .attr("text-anchor", "middle")
+    .text("Température (°C)");
+
+  // Line
+  const line = d3
+    .line<{ centerDist: number; tempC: number }>()
+    .x((d) => xDist(d.centerDist))
+    .y((d) => y(d.tempC))
+    .curve(d3.curveMonotoneX);
+
+  svg
+    .append("path")
+    .datum(centerData)
+    .attr("fill", "none")
+    .attr("stroke", "#f59e0b")
+    .attr("stroke-width", 2)
+    .attr("d", line as any);
+
+  const title = options?.name ?? "Température (course)";
+  svg
+    .append("text")
+    .attr("x", width / 2)
+    .attr("y", 28)
+    .attr("text-anchor", "middle")
+    .attr("font-size", 16)
+    .attr("font-weight", 600)
+    .text(title);
+
+  const svgContent = svg.node()?.outerHTML || "";
+  const svgPath = path.join(outDir, "temperature-distance-time.svg");
+  await fs.writeFile(svgPath, svgContent, "utf8");
+
+  // Export PNG
+  const pngPath = path.join(outDir, "temperature-distance-time.png");
+  try {
+    const img = sharp(Buffer.from(svgContent), { density: 220 });
+    await img
+      .resize(width * 2, height * 2)
+      .png({ compressionLevel: 9 })
+      .toFile(pngPath);
+    console.log(`Temperature chart saved: ${svgPath} & ${pngPath}`);
+  } catch (e) {
+    console.warn("Could not render PNG:", (e as any)?.message || e);
   }
 }

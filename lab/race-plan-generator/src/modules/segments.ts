@@ -9,6 +9,8 @@ export interface GpxEnrichedSegment extends GpxSegment {
   altitudeAvgM?: number; // average altitude used for computation
   speedMultiplier?: number; // fatigue speed multiplier applied (for debugging)
   nightMultiplier?: number; // multiplier (>1 means slower) applied during night
+  temperatureC?: number; // temperature at segment center (if available)
+  temperatureMultiplier?: number; // multiplier (>1 means slower) applied due to temperature
 }
 
 export function getEnrichedSegments(

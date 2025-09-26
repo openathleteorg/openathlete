@@ -18,7 +18,6 @@ export function splitGpxIntoSegments(
   const segments: GpxSegment[] = [];
   if (points.length === 0) return segments;
 
-  // Precompute forced cut indices: for each stop, find nearest point index
   const forcedCuts = new Set<number>();
   if (stops && stops.length) {
     for (const s of stops) {
@@ -70,7 +69,9 @@ export function splitGpxIntoSegments(
     const shouldSplitByStop = forcedCuts.has(i);
 
     if (shouldSplitByGrade || shouldSplitByStop) {
-      // start a new segment (the triggering step is included in the previous segment)
+      if (shouldSplitByStop) {
+        currentSegmentPoints.push(curr);
+      }
       segments.push({
         points: currentSegmentPoints,
         length: totalLength,

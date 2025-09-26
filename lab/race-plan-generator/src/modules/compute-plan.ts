@@ -14,6 +14,7 @@ export interface LegSummary {
   movingTimeSec: number; // seconds (without stop)
   stopTimeSec: number; // seconds (stop at end of leg)
   totalTimeSec: number; // moving + stop
+  averageTemperatureC?: number;
 }
 
 export interface ComputePlanResult {
@@ -135,6 +136,8 @@ export function computePlan(
     let gain = 0;
     let loss = 0;
     let move = 0;
+    let tempSum = 0;
+    let tempCount = 0;
     for (let s = 0; s < segmentRanges.length; s++) {
       const r = segmentRanges[s];
       if (r.end <= endIdx && r.start >= startIdx) {
@@ -142,11 +145,19 @@ export function computePlan(
         gain += r.seg.elevationGain;
         loss += r.seg.elevationLoss;
         move += segMovingTimes[s];
+        if (
+          typeof r.seg.temperatureC === "number" &&
+          Number.isFinite(r.seg.temperatureC)
+        ) {
+          tempSum += r.seg.temperatureC;
+          tempCount++;
+        }
       }
     }
     const stop = boundaryToStopSec.get(endIdx) || 0;
     const nameStart = i === 0 ? "Start" : stops[i - 1]?.name || `B${i}`;
     const nameEnd = i < normalizedBoundaries.length ? stops[i]?.name : "Finish";
+    const averageTemperatureC = tempCount ? tempSum / tempCount : undefined;
     legs.push({
       name: `${nameStart} → ${nameEnd}`,
       startBoundaryIndex: startIdx,
@@ -157,6 +168,7 @@ export function computePlan(
       movingTimeSec: move,
       stopTimeSec: stop,
       totalTimeSec: move + stop,
+      averageTemperatureC,
     });
   }
 

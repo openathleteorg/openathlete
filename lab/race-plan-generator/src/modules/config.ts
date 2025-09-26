@@ -38,6 +38,46 @@ export interface RacePlanConfig {
     coords: { lat: number; lon: number };
     duration: number; // in seconds
   }[];
+
+  // Nutrition & hydration configuration
+  nutrition?: {
+    // Size of a soft flask in milliliters (default 500 ml)
+    flaskSizeMl?: number;
+    // If true, carbs dissolved in drink count toward carb target
+    enableCarbsInFlasks?: boolean;
+    // Carbs concentration in grams per litre of water (e.g., 60 g/L)
+    carbsPerLitre?: number;
+    hydration?: {
+      // Base sweat rate in L/h at moderate effort
+      sweatRateBaseLPerH?: number; // default 0.6
+      // Multiplier applied with effort in 0..1 (effective: base*(1+effortFactor*effort))
+      effortFactor?: number; // default 0.6
+      // Allow underfilling up to this amount per leg (ml) to reduce flask count
+      underfillToleranceMl?: number; // default 0
+    };
+    // Catalog of available nutrition items
+    items?: NutritionItem[];
+  };
+}
+
+export type NutritionForm = "liquid" | "gel" | "puree" | "solid";
+
+export interface NutritionItem {
+  id: string; // unique identifier
+  label: string; // display name
+  carbsPerUnit: number; // grams of carbs per unit (gel, bar, pouch)
+  unitLabel?: string; // e.g., "gel", "pâte", "pouch"
+  form: NutritionForm; // texture/form
+  hardness?: number; // 0=liquid, 1=hard solid (optional finer scale)
+  volumePerUnitMl?: number; // if liquid, volume per unit
+  caffeineMg?: number;
+  sodiumMg?: number;
+  energyKcal?: number;
+  digestibility?: number; // 0..1 subjective ease
+  preferredContexts?: string[]; // e.g., ["climb","descent","night"]
+  minIntervalMin?: number; // recommended min time between same item
+  maxConsecutive?: number; // avoid too many in a row
+  notes?: string;
 }
 
 export async function loadConfig(filePath: string): Promise<RacePlanConfig> {
