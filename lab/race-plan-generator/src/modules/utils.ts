@@ -11,7 +11,7 @@ export function stravaPolynomial(x: number): number {
 }
 
 export function haversineDistance(p1: GpxPoint, p2: GpxPoint): number {
-  const R = 6371000; // radius of Earth in meters
+  const R = 6378100; // radius of Earth in meters
   const toRad = (deg: number) => (deg * Math.PI) / 180;
 
   const dLat = toRad(p2.lat - p1.lat);
