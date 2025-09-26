@@ -2,7 +2,10 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useCallback, useState } from 'react';
 
-import type { RacePlanVisualizationExport } from '@openathlete/shared';
+import {
+  type RacePlanVisualizationExport,
+  formatDuration,
+} from '@openathlete/shared';
 
 import { AltitudeProfile } from './components/altitude-profile';
 import { PlanMap } from './components/plan-map';
@@ -56,6 +59,7 @@ export default function RacePlanViewerView() {
           <SummaryPanel plan={loaded.data} />
           <PlanMap plan={loaded.data} focusLegIndex={0} />
           <AltitudeProfile plan={loaded.data} />
+          <CrewNutritionPanel plan={loaded.data} />
         </div>
       )}
     </div>
@@ -104,4 +108,108 @@ function validate(obj: any): asserts obj is RacePlanVisualizationExport {
     throw new Error('Unsupported version');
   if (!Array.isArray(obj.points) || !Array.isArray(obj.segments))
     throw new Error('Missing arrays');
+}
+
+function CrewNutritionPanel({ plan }: { plan: RacePlanVisualizationExport }) {
+  const legs = plan.nutrition?.perLeg ?? [];
+  const raceLegs = plan.legs;
+  if (!legs.length) return null;
+
+  const formatL = (litres?: number) =>
+    litres == null ? '—' : `${litres.toFixed(1)} L`;
+  const formatG = (g?: number) => (g == null ? '—' : `${g.toFixed(0)} g`);
+  const formatMl = (ml?: number) => (ml == null ? '—' : `${ml} ml`);
+
+  return (
+    <Card className="p-4 space-y-4">
+      <h3 className="font-medium">Nutrition par section (ravitailleur)</h3>
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
+        {legs.map((leg) => {
+          const foods = leg.selectedFoods || [];
+          const raceLeg = raceLegs.find((l, index) => index === leg.legIndex);
+          return (
+            <div
+              key={leg.legIndex}
+              className="rounded-md border bg-card text-card-foreground shadow-sm p-3 space-y-2"
+            >
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="font-semibold">
+                  {leg.legIndex + 1}. {leg.legName} (
+                  {((raceLeg?.distanceM ?? 0) / 1000).toFixed(1)} km,{' '}
+                  {formatDuration(raceLeg?.totalTimeSec || 0)})
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Objectif CHO: {formatG(leg.carbsTargetG)}
+                </div>
+              </div>
+
+              <div className="text-sm space-y-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Au départ</span>
+                  <span>
+                    {leg.pickupAtStart?.flasksToFill
+                      ? `Remplir ${leg.pickupAtStart.flasksToFill} flasque(s) (${formatMl(
+                          leg.pickupAtStart.fillVolumeMl,
+                        )})`
+                      : '—'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">
+                    Hydratation portée
+                  </span>
+                  <span>
+                    {formatL(leg.carryLitres)} · {leg.flasksCount} flasque(s)
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">
+                    CHO via flasques
+                  </span>
+                  <span>{formatG(leg.carbsViaFlasksG)}</span>
+                </div>
+
+                <div>
+                  <div className="text-muted-foreground">Solides à donner</div>
+                  {foods.length ? (
+                    <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                      {foods.map((f, i) => (
+                        <li key={i} className="text-sm">
+                          {f.units}× {f.label} ({formatG(f.carbsG)})
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-sm">—</div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">
+                    Temps au ravitaillement
+                  </span>
+                  <span>{formatDuration(raceLeg?.stopTimeSec || 0)}</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-1 border-t mt-2">
+                  <span className="text-muted-foreground">
+                    Total CHO section
+                  </span>
+                  <span>
+                    {formatG(leg.carbsTargetG)}{' '}
+                    <span className="text-xs text-muted-foreground">
+                      (flasques {formatG(leg.carbsViaFlasksG)} + solides{' '}
+                      {formatG(leg.carbsViaFoodsG)})
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
 }
