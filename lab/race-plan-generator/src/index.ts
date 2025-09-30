@@ -19,7 +19,7 @@ import type { FullNutritionPlanPerLeg } from "./modules/nutrition-planner";
 import { promises as fs } from "fs";
 import path from "path";
 import { applyTemperatureSlowdown } from "./modules/temperature-slowdown";
-import { sampleTemperatureEveryKm } from "./modules/weather";
+import { sampleWeatherEveryKm } from "./modules/weather";
 import {
   renderElevationProfile,
   renderElevationWithSegmentation,
@@ -97,11 +97,19 @@ async function main(): Promise<void> {
     );
     // Precompute Open‑Meteo samples once at 1 km resolution to reuse everywhere
     const startDate = new Date(config.startTime as string);
-    const kmSamples = await sampleTemperatureEveryKm(
+    const kmWeather = await sampleWeatherEveryKm(
       originalPoints,
       enrichedWithNight,
       startDate
     );
+    // Reuse single-call weather samples as temperature inputs for subsequent steps
+    const kmSamples = kmWeather.map((w) => ({
+      distM: w.distM,
+      timeSec: w.timeSec,
+      lat: w.lat,
+      lon: w.lon,
+      tempC: w.tempC,
+    }));
 
     const enrichedWithTemp = await applyTemperatureSlowdown(
       enrichedWithNight,
@@ -445,6 +453,26 @@ async function main(): Promise<void> {
             tempMin !== undefined && tempMax !== undefined
               ? { min: tempMin, max: tempMax }
               : undefined,
+        },
+        weather: {
+          perKm: kmWeather.map((w) => ({
+            km: w.distM / 1000,
+            timeSec: w.timeSec,
+            lat: w.lat,
+            lon: w.lon,
+            temperatureC: w.tempC,
+            apparentTemperatureC: w.apparentC,
+            humidityPct: w.humidityPct,
+            precipitationMm: w.precipitationMm,
+            rainMm: w.rainMm,
+            snowfallCm: w.snowfallCm,
+            cloudCoverPct: w.cloudCoverPct,
+            windSpeed10mKmh: w.windSpeed10mKmh,
+            windGusts10mKmh: w.windGusts10mKmh,
+            shortwaveRadiationWm2: w.shortwaveRadiationWm2,
+            sunshineDurationSec: w.sunshineDurationSec,
+            isDay: w.isDay,
+          })),
         },
         uiHints: {
           recommendedColorScale: {

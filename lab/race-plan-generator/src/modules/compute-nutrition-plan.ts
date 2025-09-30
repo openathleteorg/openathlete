@@ -4,7 +4,7 @@ import { averageAltitudeM, stravaPolynomial } from "./utils";
 import { KmTemperatureSample, getNearestKmSampleByTime } from "./weather";
 
 const CR_FLAT_KCAL = 1.0; // kcal per kg per km
-const INTENSITY_FACTOR = 0.55; // average intensity factor for ultras
+const INTENSITY_FACTOR = 0.57; // average intensity factor for ultras
 
 // Parameters for CHO fraction model
 const CHO_A = 1.3; // slope for intensity-base

@@ -25,7 +25,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((res) => setTimeout(res, ms));
 }
 
-function isoHourUtc(d: Date): string {
+export function isoHourUtc(d: Date): string {
   const dt = new Date(d.getTime());
   dt.setUTCMinutes(0, 0, 0);
   // 2025-09-26T14:00:00Z
@@ -217,6 +217,206 @@ export function floorToHour(d: Date): Date {
   const t = new Date(d.getTime());
   t.setMinutes(0, 0, 0);
   return t;
+}
+
+// -------- Extended hourly bundle (multiple variables) --------
+export interface HourlyWeatherSample {
+  timeIso: string; // ISO hour UTC
+  temperatureC?: number;
+  apparentTemperatureC?: number;
+  humidityPct?: number;
+  precipitationMm?: number;
+  rainMm?: number;
+  snowfallCm?: number;
+  cloudCoverPct?: number;
+  windSpeed10mKmh?: number;
+  windGusts10mKmh?: number;
+  shortwaveRadiationWm2?: number;
+  sunshineDurationSec?: number;
+  isDay?: boolean; // true if day
+}
+
+export interface WeatherHourlyBundle {
+  byHour: Map<string, HourlyWeatherSample>; // key is hour ISO (UTC) "YYYY-MM-DDTHH:00:00Z"
+}
+
+const bundleMemCache = new Map<string, Promise<WeatherHourlyBundle>>();
+
+function bundleKey(lat: number, lon: number, day: string): string {
+  return `${lat.toFixed(6)},${lon.toFixed(6)}@${day}`;
+}
+
+export async function getOpenMeteoHourlyBundle(args: {
+  date: Date; // any date within the UTC day desired
+  lat: number;
+  lon: number;
+}): Promise<WeatherHourlyBundle> {
+  const day = dayUtc(args.date);
+  const key = bundleKey(args.lat, args.lon, day);
+  const existing = bundleMemCache.get(key);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.searchParams.set("latitude", args.lat.toString());
+    url.searchParams.set("longitude", args.lon.toString());
+    url.searchParams.set(
+      "hourly",
+      [
+        "temperature_2m",
+        "apparent_temperature",
+        "relative_humidity_2m",
+        "precipitation",
+        "rain",
+        "snowfall",
+        "cloudcover",
+        "windspeed_10m",
+        "windgusts_10m",
+        "shortwave_radiation",
+        "sunshine_duration",
+        "is_day",
+      ].join(",")
+    );
+    url.searchParams.set("timezone", "UTC");
+    url.searchParams.set("start_date", day);
+    url.searchParams.set("end_date", day);
+
+    let res: Response | undefined;
+    let attempt = 0;
+    while (attempt < 2) {
+      fetchCount++;
+      res = await fetch(url.toString());
+      if (res.ok) break;
+      if (res.status === 429) {
+        await sleep(2000);
+        attempt++;
+        continue;
+      }
+      throw new Error(`HTTP ${res.status}`);
+    }
+    if (!res || !res.ok) throw new Error(`HTTP ${res?.status}`);
+    const data: any = await res.json();
+    const times: string[] = data?.hourly?.time || [];
+    const out = new Map<string, HourlyWeatherSample>();
+    const pick = (arr?: any[], i?: number) =>
+      i != null && arr && i >= 0 && i < arr.length ? arr[i] : undefined;
+    for (let i = 0; i < times.length; i++) {
+      const t = times[i];
+      const raw = t.endsWith("Z") ? t : `${t}Z`;
+      const normIso = isoHourUtc(new Date(raw));
+      out.set(normIso, {
+        timeIso: normIso,
+        temperatureC: pick(data?.hourly?.temperature_2m, i),
+        apparentTemperatureC: pick(data?.hourly?.apparent_temperature, i),
+        humidityPct: pick(data?.hourly?.relative_humidity_2m, i),
+        precipitationMm: pick(data?.hourly?.precipitation, i),
+        rainMm: pick(data?.hourly?.rain, i),
+        snowfallCm: pick(data?.hourly?.snowfall, i),
+        cloudCoverPct: pick(data?.hourly?.cloudcover, i),
+        windSpeed10mKmh: pick(data?.hourly?.windspeed_10m, i),
+        windGusts10mKmh: pick(data?.hourly?.windgusts_10m, i),
+        shortwaveRadiationWm2: pick(data?.hourly?.shortwave_radiation, i),
+        sunshineDurationSec: pick(data?.hourly?.sunshine_duration, i),
+        isDay: pick(data?.hourly?.is_day, i) ? true : false,
+      });
+    }
+    return { byHour: out };
+  })();
+
+  bundleMemCache.set(key, promise);
+  return promise;
+}
+
+export async function getOpenMeteoHourlyBundleRange(args: {
+  startDate: Date; // inclusive
+  endDate: Date; // inclusive (rounded to day by API)
+  lat: number;
+  lon: number;
+}): Promise<WeatherHourlyBundle> {
+  // Normalize to UTC day strings
+  const startDay = dayUtc(args.startDate);
+  const endDay = dayUtc(args.endDate);
+  const key = `range:${args.lat.toFixed(6)},${args.lon.toFixed(6)}@${startDay}..${endDay}`;
+  const existing = bundleMemCache.get(key);
+  if (existing) return existing;
+
+  const promise = (async () => {
+    const url = new URL("https://api.open-meteo.com/v1/forecast");
+    url.searchParams.set("latitude", args.lat.toString());
+    url.searchParams.set("longitude", args.lon.toString());
+    url.searchParams.set(
+      "hourly",
+      [
+        "temperature_2m",
+        "apparent_temperature",
+        "relative_humidity_2m",
+        "precipitation",
+        "rain",
+        "snowfall",
+        "cloudcover",
+        "windspeed_10m",
+        "windgusts_10m",
+        "shortwave_radiation",
+        "sunshine_duration",
+        "is_day",
+      ].join(",")
+    );
+    url.searchParams.set("timezone", "UTC");
+    url.searchParams.set("start_date", startDay);
+    url.searchParams.set("end_date", endDay);
+
+    // Log single-call fetch for observability
+    console.log(
+      `[open-meteo] fetching hourly bundle range: lat=${args.lat.toFixed(6)} lon=${args.lon.toFixed(6)} days=${startDay}..${endDay} url=${url.toString()}`
+    );
+
+    let res: Response | undefined;
+    let attempt = 0;
+    while (attempt < 2) {
+      fetchCount++;
+      res = await fetch(url.toString());
+      if (res.ok) break;
+      if (res.status === 429) {
+        await sleep(2000);
+        attempt++;
+        continue;
+      }
+      throw new Error(`HTTP ${res.status}`);
+    }
+    if (!res || !res.ok) throw new Error(`HTTP ${res?.status}`);
+    const data: any = await res.json();
+    const times: string[] = data?.hourly?.time || [];
+    const out = new Map<string, HourlyWeatherSample>();
+    const pick = (arr?: any[], i?: number) =>
+      i != null && arr && i >= 0 && i < arr.length ? arr[i] : undefined;
+    for (let i = 0; i < times.length; i++) {
+      const t = times[i];
+      const raw = t.endsWith("Z") ? t : `${t}Z`;
+      const normIso = isoHourUtc(new Date(raw));
+      out.set(normIso, {
+        timeIso: normIso,
+        temperatureC: pick(data?.hourly?.temperature_2m, i),
+        apparentTemperatureC: pick(data?.hourly?.apparent_temperature, i),
+        humidityPct: pick(data?.hourly?.relative_humidity_2m, i),
+        precipitationMm: pick(data?.hourly?.precipitation, i),
+        rainMm: pick(data?.hourly?.rain, i),
+        snowfallCm: pick(data?.hourly?.snowfall, i),
+        cloudCoverPct: pick(data?.hourly?.cloudcover, i),
+        windSpeed10mKmh: pick(data?.hourly?.windspeed_10m, i),
+        windGusts10mKmh: pick(data?.hourly?.windgusts_10m, i),
+        shortwaveRadiationWm2: pick(data?.hourly?.shortwave_radiation, i),
+        sunshineDurationSec: pick(data?.hourly?.sunshine_duration, i),
+        isDay: pick(data?.hourly?.is_day, i) ? true : false,
+      });
+    }
+    console.log(
+      `[open-meteo] bundle ready: hours=${out.size} (range ${startDay}..${endDay})`
+    );
+    return { byHour: out };
+  })();
+
+  bundleMemCache.set(key, promise);
+  return promise;
 }
 
 // Print a compact summary at the end of the process

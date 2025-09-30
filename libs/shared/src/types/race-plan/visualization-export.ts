@@ -21,6 +21,27 @@ export interface RacePlanPoint {
   timeFromStartSec?: number; // optional if computed
 }
 
+// Weather samples exported at approximately every kilometer along the course
+export interface RacePlanWeatherPerKmSample {
+  km: number; // distance from start in kilometers
+  timeSec: number; // elapsed seconds from race start
+  lat: number;
+  lon: number;
+  // Core meteorological variables (Open‑Meteo hourly)
+  temperatureC?: number; // temperature_2m
+  apparentTemperatureC?: number; // apparent_temperature
+  humidityPct?: number; // relative_humidity_2m (0..100)
+  precipitationMm?: number; // precipitation (mm)
+  rainMm?: number; // rain (mm)
+  snowfallCm?: number; // snowfall (cm)
+  cloudCoverPct?: number; // cloudcover (0..100)
+  windSpeed10mKmh?: number; // windspeed_10m (km/h)
+  windGusts10mKmh?: number; // windgusts_10m (km/h)
+  shortwaveRadiationWm2?: number; // shortwave_radiation (W/m2)
+  sunshineDurationSec?: number; // sunshine_duration (s) within the hour
+  isDay?: boolean; // 1 for day, 0 for night (if available) or computed
+}
+
 export interface RacePlanSegmentNutrition {
   kcal: number;
   choFraction: number; // 0..1
@@ -160,6 +181,9 @@ export interface RacePlanVisualizationExportV1 {
     segments: RacePlanNutritionSegmentsEntry[];
   };
   derived: RacePlanDerivedTotals;
+  weather?: {
+    perKm?: RacePlanWeatherPerKmSample[];
+  };
   uiHints?: {
     recommendedColorScale?: {
       temperature?: string;
