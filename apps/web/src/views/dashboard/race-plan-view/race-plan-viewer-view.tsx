@@ -8,7 +8,10 @@ import {
 } from '@openathlete/shared';
 
 import { AltitudeProfile } from './components/altitude-profile';
+import { DayNightTimeline } from './components/day-night-timeline';
 import { PlanMap } from './components/plan-map';
+import { TemperatureProfile } from './components/temperature-profile';
+import { WeatherCharts } from './components/weather-charts';
 
 interface LoadedPlan {
   data: RacePlanVisualizationExport;
@@ -59,7 +62,11 @@ export default function RacePlanViewerView() {
           <SummaryPanel plan={loaded.data} />
           <PlanMap plan={loaded.data} focusLegIndex={0} />
           <AltitudeProfile plan={loaded.data} />
+          <TemperatureProfile plan={loaded.data} />
+          <DayNightTimeline plan={loaded.data} />
+          <WeatherCharts plan={loaded.data} />
           <CrewNutritionPanel plan={loaded.data} />
+          <ShoppingNutritionPanel plan={loaded.data} />
         </div>
       )}
     </div>
@@ -126,7 +133,7 @@ function CrewNutritionPanel({ plan }: { plan: RacePlanVisualizationExport }) {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
         {legs.map((leg) => {
           const foods = leg.selectedFoods || [];
-          const raceLeg = raceLegs.find((l, index) => index === leg.legIndex);
+          const raceLeg = raceLegs.find((_, index) => index === leg.legIndex);
           return (
             <div
               key={leg.legIndex}
@@ -201,7 +208,11 @@ function CrewNutritionPanel({ plan }: { plan: RacePlanVisualizationExport }) {
                     {formatG(leg.carbsTargetG)}{' '}
                     <span className="text-xs text-muted-foreground">
                       (flasques {formatG(leg.carbsViaFlasksG)} + solides{' '}
-                      {formatG(leg.carbsViaFoodsG)})
+                      {formatG(leg.carbsViaFoodsG)}) {' -> '}
+                      {formatG(
+                        leg.carbsTargetG / (raceLeg?.totalTimeSec! / (60 * 60)),
+                      )}
+                      /h
                     </span>
                   </span>
                 </div>
@@ -209,6 +220,122 @@ function CrewNutritionPanel({ plan }: { plan: RacePlanVisualizationExport }) {
             </div>
           );
         })}
+      </div>
+    </Card>
+  );
+}
+
+function ShoppingNutritionPanel({
+  plan,
+}: {
+  plan: RacePlanVisualizationExport;
+}) {
+  const legs = plan.nutrition?.perLeg ?? [];
+  if (!legs.length) return null;
+
+  // Aggregate solids by label across all legs
+  const solidsMap = new Map<string, { units: number; carbsG: number }>();
+  let totalSolidsCarbsG = 0;
+  for (const leg of legs) {
+    totalSolidsCarbsG += leg.carbsViaFoodsG || 0;
+    for (const f of leg.selectedFoods || []) {
+      const prev = solidsMap.get(f.label) || { units: 0, carbsG: 0 };
+      solidsMap.set(f.label, {
+        units: prev.units + (f.units || 0),
+        carbsG: prev.carbsG + (f.carbsG || 0),
+      });
+    }
+  }
+
+  const solids = Array.from(solidsMap.entries())
+    .map(([label, v]) => ({ label, ...v }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  const totalLiquidCarbsG = plan.nutrition.totals.carbsViaFlasksG || 0;
+  const totalHydrationL = plan.nutrition.totals.hydrationLitres || 0;
+
+  // Simple calculator: estimate number of drink mix sachets (by CHO per sachet)
+  const [carbsPerSachetG, setCarbsPerSachetG] = useState<number>(44);
+  const estimatedSachets =
+    carbsPerSachetG > 0 ? Math.ceil(totalLiquidCarbsG / carbsPerSachetG) : 0;
+
+  const fmtG = (g: number) => `${g.toFixed(0)} g`;
+  const fmtL = (l: number) => `${l.toFixed(1)} L`;
+
+  const totalTime =
+    plan.legs.reduce((sum, leg) => sum + (leg.totalTimeSec || 0), 0) / 3600;
+  return (
+    <Card className="p-4 space-y-4">
+      <h3 className="font-medium">Liste d'achats nutrition</h3>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="space-y-3">
+          <div className="text-sm text-muted-foreground">
+            Boisson énergétique (liquide)
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-xs uppercase tracking-wide">
+                Glucides à prévoir
+              </span>
+              <span className="font-medium">{fmtG(totalLiquidCarbsG)}</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-muted-foreground text-xs uppercase tracking-wide">
+                Hydratation totale
+              </span>
+              <span className="font-medium">
+                {fmtL(totalHydrationL)} ({fmtL(totalHydrationL / totalTime)}/h)
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 text-sm">
+            <label className="text-muted-foreground">g CHO par sachet</label>
+            <Input
+              type="number"
+              value={carbsPerSachetG}
+              onChange={(e) => setCarbsPerSachetG(Number(e.target.value) || 0)}
+              className="w-24 h-8"
+            />
+            <div className="ml-auto">
+              ≈ <span className="font-medium">{estimatedSachets}</span>{' '}
+              sachet(s)
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="text-sm text-muted-foreground">
+            Solides (gels, barres, purées, etc.)
+          </div>
+          {solids.length ? (
+            <ul className="text-sm divide-y rounded-md border">
+              {solids.map((s) => (
+                <li
+                  key={s.label}
+                  className="flex items-center justify-between px-3 py-2"
+                >
+                  <div className="truncate">
+                    <span className="font-medium">{s.label}</span>
+                  </div>
+                  <div className="flex items-center gap-3 whitespace-nowrap">
+                    <span className="text-muted-foreground">{s.units}×</span>
+                    <span className="text-muted-foreground">
+                      {fmtG(s.carbsG)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="text-sm">Aucun solide sélectionné</div>
+          )}
+          <div className="text-sm flex items-center justify-between pt-2">
+            <span className="text-muted-foreground">
+              Total glucides solides
+            </span>
+            <span className="font-medium">{fmtG(totalSolidsCarbsG)}</span>
+          </div>
+        </div>
       </div>
     </Card>
   );
