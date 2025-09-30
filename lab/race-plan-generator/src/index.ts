@@ -623,7 +623,15 @@ function buildMarkdownAidStations(args: BuildMarkdownArgs): string {
       ? new Date(startDate.getTime() + cumulativeTimeSec * 1000)
       : null;
     const foodsStr =
-      nut.selectedFoods.map((f) => `${f.units}x ${f.label}`).join(", ") || "—";
+      nut.selectedFoods
+        .map((f) => {
+          const caf =
+            f.caffeineMgPerUnit && f.caffeineMgPerUnit > 0
+              ? ` (${f.caffeineMgPerUnit}mg caf)`
+              : "";
+          return `${f.units}x ${f.label}${caf}`;
+        })
+        .join(", ") || "—";
     const line = [
       (i + 1).toString(),
       leg.name.replace(/\|/g, "/"),

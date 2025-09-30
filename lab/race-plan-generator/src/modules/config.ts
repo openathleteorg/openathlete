@@ -77,6 +77,7 @@ export interface NutritionItem {
   preferredContexts?: string[]; // e.g., ["climb","descent","night"]
   minIntervalMin?: number; // recommended min time between same item
   maxConsecutive?: number; // avoid too many in a row
+  maxUnitsAvailable?: number;
   notes?: string;
 }
 
