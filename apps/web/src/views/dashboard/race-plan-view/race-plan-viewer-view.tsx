@@ -9,6 +9,8 @@ import {
 
 import { AltitudeProfile } from './components/altitude-profile';
 import { DayNightTimeline } from './components/day-night-timeline';
+import { LegsTable } from './components/legs-table';
+import { NotesPanel } from './components/notes-panel';
 import { PlanMap } from './components/plan-map';
 import { TemperatureProfile } from './components/temperature-profile';
 import { WeatherCharts } from './components/weather-charts';
@@ -59,12 +61,14 @@ export default function RacePlanViewerView() {
       </Card>
       {loaded && (
         <div className="space-y-6">
+          <NotesPanel plan={loaded.data} />
           <SummaryPanel plan={loaded.data} />
           <PlanMap plan={loaded.data} focusLegIndex={0} />
           <AltitudeProfile plan={loaded.data} />
           <TemperatureProfile plan={loaded.data} />
           <DayNightTimeline plan={loaded.data} />
           <WeatherCharts plan={loaded.data} />
+          <LegsTable plan={loaded.data} />
           <CrewNutritionPanel plan={loaded.data} />
           <ShoppingNutritionPanel plan={loaded.data} />
         </div>
@@ -91,7 +95,7 @@ function SummaryPanel({ plan }: { plan: RacePlanVisualizationExport }) {
         <Stat label="Sections (legs)" value={legs.toString()} />
         <Stat
           label="CHO totaux"
-          value={`${plan.nutrition.totals.carbsTargetG.toFixed(0)} g`}
+          value={`${plan.nutrition.totals.carbsTargetG.toFixed(0)} g (${(plan.nutrition.totals.carbsTargetG / (plan.derived.totalDurationSec / 3600)).toFixed(0)} g/h)`}
         />
       </div>
     </Card>

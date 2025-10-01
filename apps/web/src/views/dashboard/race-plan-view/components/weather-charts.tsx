@@ -79,7 +79,10 @@ export function WeatherCharts({ plan }: P) {
               tick={{ fontSize: 10 }}
               unit="mm"
             />
-            <Tooltip labelFormatter={(l) => `${Number(l).toFixed(1)} h`} />
+            <Tooltip
+              labelFormatter={(l) => `${Number(l).toFixed(1)} h`}
+              formatter={(v) => (v != null ? Number(v).toFixed(1) : v)}
+            />
             <Area
               type="monotone"
               dataKey="precip"
@@ -114,7 +117,10 @@ export function WeatherCharts({ plan }: P) {
               tick={{ fontSize: 10 }}
               unit="%"
             />
-            <Tooltip labelFormatter={(l) => `${Number(l).toFixed(1)} h`} />
+            <Tooltip
+              labelFormatter={(l) => `${Number(l).toFixed(1)} h`}
+              formatter={(v) => (v != null ? Number(v).toFixed(1) : v)}
+            />
             <Area
               type="monotone"
               dataKey="humidity"
@@ -148,7 +154,10 @@ export function WeatherCharts({ plan }: P) {
               tick={{ fontSize: 10 }}
               unit="km/h"
             />
-            <Tooltip labelFormatter={(l) => `${Number(l).toFixed(1)} h`} />
+            <Tooltip
+              labelFormatter={(l) => `${Number(l).toFixed(1)} h`}
+              formatter={(v) => (v != null ? Number(v).toFixed(1) : v)}
+            />
             <Area
               type="monotone"
               dataKey="wind"
@@ -182,7 +191,10 @@ export function WeatherCharts({ plan }: P) {
               tick={{ fontSize: 10 }}
               unit="°C"
             />
-            <Tooltip labelFormatter={(l) => `${Number(l).toFixed(1)} h`} />
+            <Tooltip
+              labelFormatter={(l) => `${Number(l).toFixed(1)} h`}
+              formatter={(v) => (v != null ? Number(v).toFixed(1) : v)}
+            />
             <Area
               type="monotone"
               dataKey="app"
