@@ -152,7 +152,6 @@ export function WeatherCharts({ plan }: P) {
               tickLine={false}
               axisLine={false}
               tick={{ fontSize: 10 }}
-              unit="km/h"
             />
             <Tooltip
               labelFormatter={(l) => `${Number(l).toFixed(1)} h`}

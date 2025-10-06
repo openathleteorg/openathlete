@@ -175,3 +175,36 @@
     color: var(--oa-fg);
   }
 }
+
+/* Print styles for dashboards and reports */
+@media print {
+  @page {
+    margin: 12mm;
+    /* size: A4;  Avoid forcing size; let browser choose */
+  }
+
+  /* Force light backgrounds for better readability on paper */
+  :root { color-scheme: light; }
+  html, body { background: white !important; color: black !important; }
+
+  /* Utility helpers */
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  /* Prevent page breaks inside components/cards */
+  .print-section {
+    break-inside: avoid; /* modern */
+    page-break-inside: avoid; /* legacy */
+  }
+  .print-color-exact {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Tone down UI chrome */
+  .shadow, .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl { box-shadow: none !important; }
+  .bg-card, .bg-background, .bg-popover { background: white !important; }
+  .border { border-color: #aaa !important; }
+
+  /* Avoid breaking tables/rows when possible */
+  table, thead, tbody, tr, td, th { page-break-inside: avoid; break-inside: avoid; }
+}

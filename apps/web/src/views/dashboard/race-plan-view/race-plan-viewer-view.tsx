@@ -1,6 +1,8 @@
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { useCallback, useState } from 'react';
+import * as htmlToImage from 'html-to-image';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import {
   type RacePlanVisualizationExport,
@@ -43,8 +45,21 @@ export default function RacePlanViewerView() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Race Plan Viewer</h1>
-      <Card className="p-4 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Race Plan Viewer</h1>
+        {loaded && (
+          <div className="no-print">
+            <Button
+              variant="outline"
+              onClick={() => window.print()}
+              title="Imprimer le plan"
+            >
+              Imprimer
+            </Button>
+          </div>
+        )}
+      </div>
+      <Card className="p-4 space-y-4 no-print">
         <h2 className="text-lg font-medium">Importer un export JSON</h2>
         <div className="flex flex-col gap-2">
           <Input
@@ -61,16 +76,42 @@ export default function RacePlanViewerView() {
       </Card>
       {loaded && (
         <div className="space-y-6">
-          <NotesPanel plan={loaded.data} />
-          <SummaryPanel plan={loaded.data} />
-          <PlanMap plan={loaded.data} focusLegIndex={0} />
-          <AltitudeProfile plan={loaded.data} />
-          <TemperatureProfile plan={loaded.data} />
-          <DayNightTimeline plan={loaded.data} />
-          <WeatherCharts plan={loaded.data} />
-          <LegsTable plan={loaded.data} />
-          <CrewNutritionPanel plan={loaded.data} />
-          <ShoppingNutritionPanel plan={loaded.data} />
+          <div className="print-section">
+            <NotesPanel plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <SummaryPanel plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <PlanMap plan={loaded.data} focusLegIndex={0} />
+          </div>
+          <div className="print-section">
+            <AltitudeProfile plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <TemperatureProfile plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <DayNightTimeline plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <WeatherCharts plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <LegsTable plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <CrewNutritionPanel plan={loaded.data} />
+          </div>
+          <div className="print-section">
+            <ShoppingNutritionPanel plan={loaded.data} />
+          </div>
+          {/* <div className="print-section">
+            <PhoneWallpaperPanel plan={loaded.data} />
+          </div> */}
+          <div className="print-section">
+            <FullScheduleWallpaperPanel plan={loaded.data} />
+          </div>
         </div>
       )}
     </div>
@@ -82,7 +123,7 @@ function SummaryPanel({ plan }: { plan: RacePlanVisualizationExport }) {
   return (
     <Card className="p-4 space-y-2">
       <h3 className="font-medium">Résumé</h3>
-      <div className="grid gap-2 text-sm md:grid-cols-3 lg:grid-cols-5">
+      <div className="grid gap-2 text-sm md:grid-cols-3 lg:grid-cols-7">
         <Stat
           label="Distance"
           value={`${plan.derived.distanceKm.toFixed(1)} km`}
@@ -97,6 +138,143 @@ function SummaryPanel({ plan }: { plan: RacePlanVisualizationExport }) {
           label="CHO totaux"
           value={`${plan.nutrition.totals.carbsTargetG.toFixed(0)} g (${(plan.nutrition.totals.carbsTargetG / (plan.derived.totalDurationSec / 3600)).toFixed(0)} g/h)`}
         />
+        <Stat
+          label="Hydratation totale"
+          value={`${plan.nutrition.totals.hydrationLitres.toFixed(1)} L (${(plan.nutrition.totals.hydrationLitres / (plan.derived.totalDurationSec / 3600)).toFixed(2)} L/h)`}
+        />
+        <Stat
+          label="Durée totale"
+          value={formatDuration(plan.derived.totalDurationSec)}
+        />
+      </div>
+    </Card>
+  );
+}
+
+function FullScheduleWallpaperPanel({
+  plan,
+}: {
+  plan: RacePlanVisualizationExport;
+}) {
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+  const raceName = plan.meta.raceName ?? 'Plan Course';
+  const stops = plan.stops;
+
+  const columns = stops.length > 18 ? 3 : stops.length > 10 ? 2 : 1;
+
+  const legByStop = useMemo(() => {
+    const map = new Map<number, (typeof plan.legs)[number]>();
+    // First, map by explicit associatedStopIndex when available
+    for (const leg of plan.legs) {
+      if (typeof leg.associatedStopIndex === 'number') {
+        map.set(leg.associatedStopIndex, leg);
+      }
+    }
+    // Fallback: for any stop not mapped, find closest by endDistanceKm
+    for (const s of stops) {
+      if (map.has(s.index)) continue;
+      let best: (typeof plan.legs)[number] | undefined;
+      let bestDelta = Number.POSITIVE_INFINITY;
+      for (const leg of plan.legs) {
+        const d = Math.abs(leg.endDistanceKm - (s.cumulativeDistanceKm || 0));
+        if (d < bestDelta) {
+          best = leg;
+          bestDelta = d;
+        }
+      }
+      if (best) map.set(s.index, best);
+    }
+    return map;
+  }, [plan.legs, stops]);
+
+  const fmtM = (m?: number) => (m == null ? '—' : `${Math.round(m)} m`);
+
+  const downloadPng = async () => {
+    const node = nodeRef.current;
+    if (!node) return;
+    const scale = 3; // high-res
+    const dataUrl = await htmlToImage.toPng(node, {
+      pixelRatio: scale,
+      cacheBust: true,
+      backgroundColor: '#000000',
+    });
+    const link = document.createElement('a');
+    link.download = `${raceName.replace(/\s+/g, '_').toLowerCase()}_horaires.png`;
+    link.href = dataUrl;
+    link.click();
+  };
+
+  return (
+    <Card className="p-4 space-y-4">
+      <div className="flex items-center justify-between no-print">
+        <h3 className="font-medium">Fond d'écran – Tous les horaires</h3>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => window.print()}>
+            Imprimer
+          </Button>
+          <Button size="sm" onClick={downloadPng}>
+            Télécharger PNG
+          </Button>
+        </div>
+      </div>
+      <div className="w-full mx-auto max-w-sm">
+        <div
+          className="relative mx-auto rounded-[2rem] border bg-gradient-to-b from-black to-neutral-800 text-white overflow-hidden print-color-exact"
+          style={{ aspectRatio: '9 / 19.5', borderWidth: 10 }}
+          ref={nodeRef}
+        >
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 h-5 w-28 rounded-b-2xl bg-black/70" />
+          <div
+            className="absolute inset-0 p-4 flex flex-col"
+            style={{ paddingTop: '42%' }}
+          >
+            <div className="mt-3 flex-1 overflow-hidden">
+              <div
+                className={
+                  columns === 3
+                    ? 'grid grid-cols-3 gap-2'
+                    : columns === 2
+                      ? 'grid grid-cols-2 gap-2'
+                      : 'grid grid-cols-1 gap-2'
+                }
+              >
+                {stops.map((s, idx) => {
+                  const leg = legByStop.get(s.index);
+                  return (
+                    <div
+                      key={s.index}
+                      className="bg-white/10 rounded-md px-2 py-1.5 min-w-0"
+                    >
+                      <div className="text-[10px] text-white/60 flex items-center gap-1 min-w-0">
+                        <span className="shrink-0">{idx + 1}.</span>
+                        <span className="flex-1 truncate">{s.name}</span>
+                        <span className="shrink-0">
+                          {((leg?.distanceM || 0) / 1000).toFixed(1)} km
+                        </span>
+                      </div>
+                      <div className="text-lg font-semibold tabular-nums leading-tight">
+                        {formatDuration(
+                          (leg?.endTimeSec || 0) - (leg?.stopTimeSec || 0),
+                        )}
+                        <span className="text-xs font-normal text-white/60 ml-1">
+                          (+{formatDuration(leg?.stopTimeSec || 0)})
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-white/80 mt-0.5 tabular-nums">
+                        D+ {fmtM(leg?.elevationGainM)} · D-{' '}
+                        {fmtM(leg?.elevationLossM)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-1 text-center text-[10px] text-white/50">
+              openathlete.org
+            </div>
+          </div>
+        </div>
       </div>
     </Card>
   );
@@ -264,7 +442,7 @@ function ShoppingNutritionPanel({
     carbsPerSachetG > 0 ? Math.ceil(totalLiquidCarbsG / carbsPerSachetG) : 0;
 
   const fmtG = (g: number) => `${g.toFixed(0)} g`;
-  const fmtL = (l: number) => `${l.toFixed(1)} L`;
+  const fmtL = (l: number) => `${l.toFixed(2)} L`;
 
   const totalTime =
     plan.legs.reduce((sum, leg) => sum + (leg.totalTimeSec || 0), 0) / 3600;
