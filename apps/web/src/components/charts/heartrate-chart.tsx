@@ -14,17 +14,24 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 interface P {
   heartrateStream: Exclude<ActivityStream['heartrate'], undefined>;
   sport?: SPORT_TYPE;
+  timeStream?: Exclude<ActivityStream['time'], undefined>;
+  onHover?: (hover?: { index: number; time: number }) => void;
 }
 
-export function HeartrateChart({ heartrateStream, sport }: P) {
+export function HeartrateChart({
+  heartrateStream,
+  sport,
+  timeStream,
+  onHover,
+}: P) {
   const trainingZones = useTrainingZones(TRAINING_ZONE_TYPE.HEARTRATE, sport);
 
   const chartData = useMemo(() => {
     return heartrateStream.map((heartrate, i) => ({
       heartrate,
-      time: i,
+      time: timeStream ? timeStream[i] : i,
     }));
-  }, [heartrateStream]);
+  }, [heartrateStream, timeStream]);
 
   const minHeartrate = useMemo(
     () => Math.min(...heartrateStream),
@@ -58,7 +65,22 @@ export function HeartrateChart({ heartrateStream, sport }: P) {
       }}
       className="h-[100px] w-full"
     >
-      <LineChart data={chartData} syncId="event">
+      <LineChart
+        data={chartData}
+        syncId="event"
+        onMouseMove={(s: any) => {
+          const index = s?.activeTooltipIndex;
+          if (
+            typeof index === 'number' &&
+            index >= 0 &&
+            index < chartData.length
+          ) {
+            const t = chartData[index].time as number;
+            onHover?.({ index, time: t });
+          }
+        }}
+        onMouseLeave={() => onHover?.(undefined)}
+      >
         <YAxis type="number" domain={[minHeartrate, maxHeartrate]} hide />
         <defs>
           <linearGradient id="colorUv" y1="0%" x1="0" y2="100%" x2="0">

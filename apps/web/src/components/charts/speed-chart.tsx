@@ -9,9 +9,10 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 interface P {
   latLngStream: Exclude<ActivityStream['latlng'], undefined>;
   timeStream?: Exclude<ActivityStream['time'], undefined>;
+  onHover?: (hover?: { index: number; time: number }) => void;
 }
 
-export function SpeedChart({ latLngStream, timeStream }: P) {
+export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
   const chartData = useMemo(() => {
     const rawData = latLngStream.map(([lat, lng], i) => {
       const prevPoint = latLngStream[i - 1];
@@ -89,7 +90,22 @@ export function SpeedChart({ latLngStream, timeStream }: P) {
       }}
       className="h-[100px] w-full"
     >
-      <LineChart data={chartData} syncId="event">
+      <LineChart
+        data={chartData}
+        syncId="event"
+        onMouseMove={(s: any) => {
+          const index = s?.activeTooltipIndex;
+          if (
+            typeof index === 'number' &&
+            index >= 0 &&
+            index < chartData.length
+          ) {
+            const t = chartData[index].time as number;
+            onHover?.({ index, time: t });
+          }
+        }}
+        onMouseLeave={() => onHover?.(undefined)}
+      >
         <YAxis type="number" domain={[minSpeed, maxSpeed]} hide />
         <Line
           type="monotone"

@@ -9,9 +9,10 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 interface P {
   wattsStream: Exclude<ActivityStream['watts'], undefined>;
   timeStream?: Exclude<ActivityStream['time'], undefined>;
+  onHover?: (hover?: { index: number; time: number }) => void;
 }
 
-export function PowerChart({ wattsStream, timeStream }: P) {
+export function PowerChart({ wattsStream, timeStream, onHover }: P) {
   const chartData = useMemo(() => {
     return wattsStream.map((watts, i) => {
       const time = timeStream ? timeStream[i] : i;
@@ -40,7 +41,22 @@ export function PowerChart({ wattsStream, timeStream }: P) {
       }}
       className="h-[100px] w-full"
     >
-      <LineChart data={chartData} syncId="event">
+      <LineChart
+        data={chartData}
+        syncId="event"
+        onMouseMove={(s: any) => {
+          const index = s?.activeTooltipIndex;
+          if (
+            typeof index === 'number' &&
+            index >= 0 &&
+            index < chartData.length
+          ) {
+            const t = chartData[index].time as number;
+            onHover?.({ index, time: t });
+          }
+        }}
+        onMouseLeave={() => onHover?.(undefined)}
+      >
         <YAxis type="number" domain={[minPower, maxPower]} hide />
         <Line
           type="monotone"
