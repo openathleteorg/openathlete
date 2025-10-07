@@ -9,6 +9,7 @@ interface P {
   features?: Feature[];
   cta?: { label: string; href: string };
   className?: string;
+  accent?: 'primary' | 'secondary';
 }
 
 export function ServiceCard({
@@ -17,12 +18,22 @@ export function ServiceCard({
   features = [],
   cta,
   className,
+  accent,
 }: P) {
   return (
     <div
       className={`group relative rounded-[var(--oa-radius-card)] border border-white/5 bg-white/2.5 p-6 backdrop-blur-sm transition hover:border-[var(--oa-accent)]/60 hover:bg-white/5 h-full flex flex-col ${className || ''}`.trim()}
     >
-      <div className="absolute inset-0 rounded-[var(--oa-radius-card)] opacity-0 group-hover:opacity-100 transition bg-gradient-to-br from-[var(--oa-accent)]/5 to-[var(--oa-accent-2)]/5 pointer-events-none" />
+      <div
+        className="absolute inset-0 rounded-[var(--oa-radius-card)] opacity-0 group-hover:opacity-100 transition bg-gradient-to-br pointer-events-none"
+        style={{
+          // allow accent to influence the gradient subtly
+          backgroundImage:
+            accent === 'secondary'
+              ? 'linear-gradient(to bottom right, color-mix(in oklab, var(--oa-accent-2) 10%, transparent), color-mix(in oklab, var(--oa-accent) 6%, transparent))'
+              : 'linear-gradient(to bottom right, color-mix(in oklab, var(--oa-accent) 10%, transparent), color-mix(in oklab, var(--oa-accent-2) 6%, transparent))',
+        }}
+      />
       <h3 className="text-lg font-semibold text-[var(--oa-fg)] mb-2">
         {(m as any)[title]?.() || title}
       </h3>
