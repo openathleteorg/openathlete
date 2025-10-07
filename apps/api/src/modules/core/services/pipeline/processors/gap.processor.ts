@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { sport_type } from '@openathlete/database';
+
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
@@ -26,14 +28,22 @@ export class GapProcessor implements ActivityProcessor {
   constructor(private readonly prisma: PrismaService) {}
 
   async run(ctx: ActivityPipelineContext) {
-    this.logger.log(
-      `GAP processor running for activity ${ctx.eventActivityId}`,
-    );
     const activity = await this.prisma.event_activity.findUnique({
       where: { event_activity_id: ctx.eventActivityId },
       include: { event: true },
     });
     if (!activity || !activity.stream) return;
+
+    if (
+      activity.sport !== sport_type.RUNNING &&
+      activity.sport !== sport_type.TRAIL_RUNNING
+    ) {
+      return;
+    }
+
+    this.logger.log(
+      `GAP processor running for activity ${ctx.eventActivityId}`,
+    );
 
     const stream = uncompressActivityStream(activity.stream as any);
     const time = stream['time'] as number[] | undefined;
