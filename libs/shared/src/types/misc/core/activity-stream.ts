@@ -7,6 +7,7 @@ export interface ActivityStream {
   cadence?: number[];
   watts?: number[];
   temp?: number[];
+  gap?: number[]; // grade-adjusted speed (m/s)
 }
 
 export type CompressedActivityStreamUnit =
@@ -23,4 +24,5 @@ export interface CompressedActivityStream {
   cadence?: CompressedActivityStreamUnit[];
   watts?: CompressedActivityStreamUnit[];
   temp?: CompressedActivityStreamUnit[];
+  gap?: CompressedActivityStreamUnit[]; // grade-adjusted speed (m/s)
 }

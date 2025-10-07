@@ -28,6 +28,9 @@ export function ActivityStatistics({ event, stream }: P) {
       <>
         <DistanceStat label={m.distance()} distance={event.distance} />
         <SpeedStat label={m.average_speed()} speed={event.averageSpeed} />
+        {typeof (event as any).averageGapSpeed === 'number' && (
+          <SpeedStat label="GAP" speed={(event as any).averageGapSpeed} />
+        )}
         <DurationStat
           label={m.duration()}
           duration={event.movingTime}

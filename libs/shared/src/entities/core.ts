@@ -69,6 +69,7 @@ export interface ActivityEvent
   sport: SPORT_TYPE;
   records?: Record[];
   equipment?: Equipment;
+  averageGapSpeed: number | null;
 }
 
 export type Event =

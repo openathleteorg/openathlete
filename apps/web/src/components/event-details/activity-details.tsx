@@ -7,6 +7,7 @@ import { useMemo, useState } from 'react';
 import { ActivityEvent } from '@openathlete/shared';
 
 import { AltitudeChart } from '../charts/altitude-chart';
+import { GapChart } from '../charts/gap-chart';
 import { HeartrateChart } from '../charts/heartrate-chart';
 import { HeartrateDistributionChart } from '../charts/heartrate-distribution-chart';
 import { PowerChart } from '../charts/power-chart';
@@ -33,6 +34,7 @@ export function ActivityDetails({ event }: P) {
     'distance',
     'time',
     'watts',
+    'gap',
   ]);
   const [hover, setHover] = useState<
     undefined | { index: number; time: number }
@@ -108,6 +110,24 @@ export function ActivityDetails({ event }: P) {
                       />
                     </CardContent>
                   </Card>
+                  {stream && (stream as any).gap && (
+                    <Card className="col-span-2">
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>GAP</CardTitle>
+                        <div className="absolute right-10">
+                          <ZoomResetButton />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <GapChart
+                          gapStream={(stream as any).gap as number[]}
+                          timeStream={stream.time}
+                          distanceStream={stream.distance}
+                          onHover={setHover}
+                        />
+                      </CardContent>
+                    </Card>
+                  )}
                   {stream?.altitude && (
                     <Card className="col-span-2">
                       <CardHeader className="flex flex-row items-center justify-between">

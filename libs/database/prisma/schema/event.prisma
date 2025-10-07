@@ -95,6 +95,7 @@ model event_activity {
   sport                  sport_type
   stream                 Json?
   description            String              @default("")
+  average_gap_speed      Float? // in m/s
 
   // relationships
   event               event                   @relation(fields: [event_id], references: [event_id])
