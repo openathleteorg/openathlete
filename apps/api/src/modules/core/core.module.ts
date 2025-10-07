@@ -18,6 +18,9 @@ import { StravaConnectorService } from './services/connector/strava.service';
 import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateService } from './services/event-template.service';
+import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
+import { VapProcessor } from './services/pipeline/processors/vap.processor';
+import { WeatherProcessor } from './services/pipeline/processors/weather.processor';
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
 import { TrainingZoneService } from './services/training-zone.service';
@@ -46,6 +49,18 @@ import { TrainingZoneService } from './services/training-zone.service';
     EquipmentService,
     TrainingZoneService,
     ContactService,
+    // Pipeline and processors
+    VapProcessor,
+    WeatherProcessor,
+    {
+      provide: ActivityPipelineService,
+      useFactory: (
+        prisma: PrismaService,
+        vap: VapProcessor,
+        weather: WeatherProcessor,
+      ) => new ActivityPipelineService(prisma, [vap, weather]),
+      inject: [PrismaService, VapProcessor, WeatherProcessor],
+    },
   ],
   exports: [EventService],
 })

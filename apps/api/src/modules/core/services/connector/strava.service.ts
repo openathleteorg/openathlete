@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
   connector,
@@ -14,6 +15,7 @@ import {
 } from '@openathlete/database';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
+import { ActivityImportedEvent } from 'src/events';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -27,6 +29,7 @@ export class StravaConnectorService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService<ApiEnvSchemaType, true>,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   getStravaUri(): string {
@@ -210,6 +213,15 @@ export class StravaConnectorService {
           : undefined,
       },
     });
+
+    // Emit post-import event to trigger processing pipeline
+    this.eventEmitter.emit(
+      ActivityImportedEvent.SLUG,
+      new ActivityImportedEvent({
+        eventActivityId: savedActivity.event_activity_id,
+        eventId: event.event_id,
+      }),
+    );
 
     if (defaultEquipment) {
       await this.prisma.equipment.update({
