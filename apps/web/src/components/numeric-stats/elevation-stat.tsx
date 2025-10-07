@@ -23,7 +23,7 @@ export function ElevationStat({
       <PopoverTrigger className="text-left">
         {label && <div className="text-sm font-semibold">{label}</div>}
         <div>
-          {elevation}{' '}
+          {elevation.toFixed(0)}{' '}
           <span className="text-gray-500 text-sm">{m.meters()}</span>
         </div>
       </PopoverTrigger>
