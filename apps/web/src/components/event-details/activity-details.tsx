@@ -113,7 +113,7 @@ export function ActivityDetails({ event }: P) {
                   {stream && (stream as any).gap && (
                     <Card className="col-span-2">
                       <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>GAP</CardTitle>
+                        <CardTitle>{m.gap()}</CardTitle>
                         <div className="absolute right-10">
                           <ZoomResetButton />
                         </div>
