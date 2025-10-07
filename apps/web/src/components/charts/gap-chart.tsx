@@ -1,3 +1,4 @@
+import { m } from '@/paraglide/messages';
 import { despikeAndEma } from '@/utils/despike';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
@@ -61,7 +62,7 @@ export function GapChart({
     <ChartContainer
       config={{
         gap: {
-          label: 'GAP',
+          label: m.gap(),
         },
       }}
       className="h-[100px] w-full"
@@ -143,9 +144,9 @@ export function GapChart({
         <ChartTooltip
           content={
             <ChartTooltipContent
-              formatter={(value, name) => (
+              formatter={(value) => (
                 <div className="flex min-w-[130px] items-center text-xs text-muted-foreground gap-2">
-                  {name}
+                  {m.gap()}
                   <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
                     {formatSpeed(Number(value), 'min/km')}
                     <span className="font-normal text-muted-foreground">

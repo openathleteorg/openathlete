@@ -36,7 +36,6 @@ export function ActivityStatistics({ event, stream }: P) {
           duration={event.movingTime}
           movingDuration={event.movingTime}
         />
-        <SpeedStat label={m.max_speed()} speed={event.maxSpeed} />
         <ElevationStat
           label={m.elevation_gain()}
           elevation={event.elevationGain}
