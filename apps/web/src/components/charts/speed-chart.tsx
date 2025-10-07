@@ -1,18 +1,28 @@
 import { m } from '@/paraglide/messages';
-import { useMemo } from 'react';
-import { Line, LineChart, YAxis } from 'recharts';
+import { useMemo, useState } from 'react';
+import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 
 import { ActivityStream, formatSpeed } from '@openathlete/shared';
 
+import { useChartsZoom } from '../event-details/charts-zoom-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
 interface P {
   latLngStream: Exclude<ActivityStream['latlng'], undefined>;
   timeStream?: Exclude<ActivityStream['time'], undefined>;
+  distanceStream?: Exclude<ActivityStream['distance'], undefined>;
   onHover?: (hover?: { index: number; time: number }) => void;
 }
 
-export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
+export function SpeedChart({
+  latLngStream,
+  timeStream,
+  distanceStream,
+  onHover,
+}: P) {
+  const { domain, setDomain, reset, fullDomain } = useChartsZoom();
+  const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
+  const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const chartData = useMemo(() => {
     const rawData = latLngStream.map(([lat, lng], i) => {
       const prevPoint = latLngStream[i - 1];
@@ -34,11 +44,13 @@ export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       const distance = earthRadius * c;
       const time = timeStream ? timeStream[i] : i;
+      const x = distanceStream ? distanceStream[i] : time;
       const timeDiff = timeStream ? timeStream[i] - timeStream[i - 1] : 1;
       const speed = distance / (timeDiff || 1);
       return {
         speed,
-        time: time,
+        time,
+        x,
       };
     });
 
@@ -70,7 +82,7 @@ export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
     });
 
     return ema;
-  }, [latLngStream, timeStream]);
+  }, [latLngStream, timeStream, distanceStream]);
 
   const minSpeed = useMemo(
     () => Math.min(...chartData.map((data) => data.speed)),
@@ -81,6 +93,19 @@ export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
     [chartData],
   );
 
+  const xDomain: [number, number] = useMemo(() => {
+    return (domain as [number, number]) ?? fullDomain;
+  }, [domain, fullDomain]);
+
+  const displayData = useMemo(() => {
+    const [from, to] = xDomain;
+    if (from === undefined || to === undefined) return chartData;
+    const filtered = chartData.filter(
+      (d) => (d as any).x >= from && (d as any).x <= to,
+    );
+    return filtered.length > 1 ? filtered : chartData;
+  }, [chartData, xDomain]);
+
   return (
     <ChartContainer
       config={{
@@ -89,12 +114,27 @@ export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
         },
       }}
       className="h-[100px] w-full"
+      onDoubleClick={() => reset()}
     >
       <LineChart
         data={chartData}
         syncId="event"
-        onMouseMove={(s: any) => {
-          const index = s?.activeTooltipIndex;
+        syncMethod="value"
+        onMouseDown={(e: any) => {
+          if (e && typeof e.activeLabel === 'number') {
+            setRefAreaStart(e.activeLabel);
+            setRefAreaEnd(undefined);
+          }
+        }}
+        onMouseMove={(e: any) => {
+          if (
+            refAreaStart !== undefined &&
+            e &&
+            typeof e.activeLabel === 'number'
+          ) {
+            setRefAreaEnd(e.activeLabel);
+          }
+          const index = e?.activeTooltipIndex;
           if (
             typeof index === 'number' &&
             index >= 0 &&
@@ -104,16 +144,51 @@ export function SpeedChart({ latLngStream, timeStream, onHover }: P) {
             onHover?.({ index, time: t });
           }
         }}
+        onMouseUp={() => {
+          if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+            const [from, to] =
+              refAreaStart < refAreaEnd
+                ? [refAreaStart, refAreaEnd]
+                : [refAreaEnd, refAreaStart];
+            if (to - from > 0) {
+              setDomain([from, to]);
+            }
+          }
+          setRefAreaStart(undefined);
+          setRefAreaEnd(undefined);
+        }}
         onMouseLeave={() => onHover?.(undefined)}
       >
-        <YAxis type="number" domain={[minSpeed, maxSpeed]} hide />
+        <XAxis
+          type="number"
+          dataKey="x"
+          domain={xDomain}
+          allowDataOverflow
+          hide
+        />
+        <YAxis
+          type="number"
+          domain={[
+            Math.min(...displayData.map((d) => d.speed), minSpeed),
+            Math.max(...displayData.map((d) => d.speed), maxSpeed),
+          ]}
+          hide
+        />
         <Line
           type="monotone"
           dataKey="speed"
           stroke="var(--chart-1)"
           dot={false}
           strokeWidth={1}
+          isAnimationActive={false}
         />
+        {refAreaStart !== undefined && refAreaEnd !== undefined && (
+          <ReferenceArea
+            x1={refAreaStart}
+            x2={refAreaEnd}
+            strokeOpacity={0.3}
+          />
+        )}
         <ChartTooltip
           content={
             <ChartTooltipContent

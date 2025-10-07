@@ -1,27 +1,39 @@
 import { m } from '@/paraglide/messages';
-import { useMemo } from 'react';
-import { Line, LineChart, YAxis } from 'recharts';
+import { useMemo, useState } from 'react';
+import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 
 import { ActivityStream } from '@openathlete/shared';
 
+import { useChartsZoom } from '../event-details/charts-zoom-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
 interface P {
   wattsStream: Exclude<ActivityStream['watts'], undefined>;
   timeStream?: Exclude<ActivityStream['time'], undefined>;
+  distanceStream?: Exclude<ActivityStream['distance'], undefined>;
   onHover?: (hover?: { index: number; time: number }) => void;
 }
 
-export function PowerChart({ wattsStream, timeStream, onHover }: P) {
+export function PowerChart({
+  wattsStream,
+  timeStream,
+  distanceStream,
+  onHover,
+}: P) {
+  const { domain, setDomain, reset, fullDomain } = useChartsZoom();
+  const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
+  const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const chartData = useMemo(() => {
     return wattsStream.map((watts, i) => {
       const time = timeStream ? timeStream[i] : i;
+      const x = distanceStream ? distanceStream[i] : time;
       return {
         watts,
-        time: time,
+        time,
+        x,
       };
     });
-  }, [wattsStream, timeStream]);
+  }, [wattsStream, timeStream, distanceStream]);
 
   const minPower = useMemo(
     () => Math.min(...chartData.map((data) => data.watts)),
@@ -32,6 +44,10 @@ export function PowerChart({ wattsStream, timeStream, onHover }: P) {
     [chartData],
   );
 
+  const xDomain: [number, number] = useMemo(() => {
+    return (domain as [number, number]) ?? fullDomain;
+  }, [domain, fullDomain]);
+
   return (
     <ChartContainer
       config={{
@@ -40,12 +56,27 @@ export function PowerChart({ wattsStream, timeStream, onHover }: P) {
         },
       }}
       className="h-[100px] w-full"
+      onDoubleClick={() => reset()}
     >
       <LineChart
         data={chartData}
         syncId="event"
-        onMouseMove={(s: any) => {
-          const index = s?.activeTooltipIndex;
+        syncMethod="value"
+        onMouseDown={(e: any) => {
+          if (e && typeof e.activeLabel === 'number') {
+            setRefAreaStart(e.activeLabel);
+            setRefAreaEnd(undefined);
+          }
+        }}
+        onMouseMove={(e: any) => {
+          if (
+            refAreaStart !== undefined &&
+            e &&
+            typeof e.activeLabel === 'number'
+          ) {
+            setRefAreaEnd(e.activeLabel);
+          }
+          const index = e?.activeTooltipIndex;
           if (
             typeof index === 'number' &&
             index >= 0 &&
@@ -55,8 +86,28 @@ export function PowerChart({ wattsStream, timeStream, onHover }: P) {
             onHover?.({ index, time: t });
           }
         }}
+        onMouseUp={() => {
+          if (refAreaStart !== undefined && refAreaEnd !== undefined) {
+            const [from, to] =
+              refAreaStart < refAreaEnd
+                ? [refAreaStart, refAreaEnd]
+                : [refAreaEnd, refAreaStart];
+            if (to - from > 0) {
+              setDomain([from, to]);
+            }
+          }
+          setRefAreaStart(undefined);
+          setRefAreaEnd(undefined);
+        }}
         onMouseLeave={() => onHover?.(undefined)}
       >
+        <XAxis
+          type="number"
+          dataKey="x"
+          domain={xDomain}
+          allowDataOverflow
+          hide
+        />
         <YAxis type="number" domain={[minPower, maxPower]} hide />
         <Line
           type="monotone"
@@ -64,7 +115,15 @@ export function PowerChart({ wattsStream, timeStream, onHover }: P) {
           stroke="var(--chart-2)"
           dot={false}
           strokeWidth={1}
+          isAnimationActive={false}
         />
+        {refAreaStart !== undefined && refAreaEnd !== undefined && (
+          <ReferenceArea
+            x1={refAreaStart}
+            x2={refAreaEnd}
+            strokeOpacity={0.3}
+          />
+        )}
         <ChartTooltip
           content={
             <ChartTooltipContent

@@ -1,28 +1,21 @@
-import { useTrainingZones } from '@/hooks/use-training-zones';
 import { m } from '@/paraglide/messages';
-import { Fragment, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 
-import {
-  ActivityStream,
-  SPORT_TYPE,
-  TRAINING_ZONE_TYPE,
-} from '@openathlete/shared';
+import { ActivityStream } from '@openathlete/shared';
 
 import { useChartsZoom } from '../event-details/charts-zoom-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
 interface P {
-  heartrateStream: Exclude<ActivityStream['heartrate'], undefined>;
-  sport?: SPORT_TYPE;
+  altitudeStream: Exclude<ActivityStream['altitude'], undefined>;
   timeStream?: Exclude<ActivityStream['time'], undefined>;
   distanceStream?: Exclude<ActivityStream['distance'], undefined>;
   onHover?: (hover?: { index: number; time: number }) => void;
 }
 
-export function HeartrateChart({
-  heartrateStream,
-  sport,
+export function AltitudeChart({
+  altitudeStream,
   timeStream,
   distanceStream,
   onHover,
@@ -30,44 +23,33 @@ export function HeartrateChart({
   const { domain, setDomain, reset, fullDomain } = useChartsZoom();
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
-  const trainingZones = useTrainingZones(TRAINING_ZONE_TYPE.HEARTRATE, sport);
 
   const chartData = useMemo(() => {
-    return heartrateStream.map((heartrate, i) => ({
-      heartrate,
+    return altitudeStream.map((altitude, i) => ({
+      altitude,
       time: timeStream ? timeStream[i] : i,
       x: distanceStream ? distanceStream[i] : timeStream ? timeStream[i] : i,
     }));
-  }, [heartrateStream, timeStream, distanceStream]);
+  }, [altitudeStream, timeStream, distanceStream]);
 
-  const minHeartrate = useMemo(
-    () => Math.min(...heartrateStream),
-    [heartrateStream],
+  const minAlt = useMemo(
+    () => Math.min(...chartData.map((d) => d.altitude)),
+    [chartData],
   );
-  const maxHeartrate = useMemo(
-    () => Math.max(...heartrateStream),
-    [heartrateStream],
+  const maxAlt = useMemo(
+    () => Math.max(...chartData.map((d) => d.altitude)),
+    [chartData],
   );
-  const heartrateRange = maxHeartrate - minHeartrate;
-  const percentagesHeartrate = trainingZones
-    ?.map((zone) => ({
-      min: (zone.min - minHeartrate) / heartrateRange,
-      max: (zone.max - minHeartrate) / heartrateRange,
-      color: zone.color,
-    }))
-    .filter((zone) => zone.min < 1 && zone.max > 0)
-    .map((zone) => ({
-      ...zone,
-      min: 1 - (zone.min < 0 ? 0 : zone.min),
-      max: 1 - (zone.max > 1 ? 1 : zone.max),
-    }))
-    .reverse();
+
+  const xDomain: [number, number] = useMemo(() => {
+    return (domain as [number, number]) ?? fullDomain;
+  }, [domain, fullDomain]);
 
   return (
     <ChartContainer
       config={{
-        heartrate: {
-          label: m.heart_rate(),
+        altitude: {
+          label: m.altitude(),
         },
       }}
       className="h-[100px] w-full"
@@ -119,25 +101,15 @@ export function HeartrateChart({
         <XAxis
           type="number"
           dataKey="x"
-          domain={(domain as [number, number]) ?? fullDomain}
+          domain={xDomain}
           allowDataOverflow
           hide
         />
-        <YAxis type="number" domain={[minHeartrate, maxHeartrate]} hide />
-        <defs>
-          <linearGradient id="colorUv" y1="0%" x1="0" y2="100%" x2="0">
-            {percentagesHeartrate.map((zone, i) => (
-              <Fragment key={i}>
-                <stop offset={zone.max} stopColor={zone.color} />
-                <stop offset={zone.min} stopColor={zone.color} />
-              </Fragment>
-            ))}
-          </linearGradient>
-        </defs>
+        <YAxis type="number" domain={[minAlt, maxAlt]} hide />
         <Line
           type="monotone"
-          dataKey="heartrate"
-          stroke="url(#colorUv)"
+          dataKey="altitude"
+          stroke="var(--chart-3)"
           dot={false}
           strokeWidth={1}
           isAnimationActive={false}
