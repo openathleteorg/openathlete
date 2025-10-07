@@ -1,6 +1,13 @@
-import { LatLng, LatLngExpression } from 'leaflet';
+import { LatLng, LatLngBounds, LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { CircleMarker, MapContainer, Polyline, TileLayer } from 'react-leaflet';
+import { useEffect, useMemo } from 'react';
+import {
+  CircleMarker,
+  MapContainer,
+  Polyline,
+  TileLayer,
+  useMap,
+} from 'react-leaflet';
 
 import { findPathCenter, findPathZoomLevel } from '@openathlete/shared';
 
@@ -27,6 +34,10 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
       className={className}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <FitToSelection
+        polyline={convertedPolyline}
+        focusPolyline={convertedFocusPolyline}
+      />
       {polyline && (
         <Polyline
           positions={convertedPolyline}
@@ -36,7 +47,7 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
       {convertedFocusPolyline && (
         <Polyline
           positions={convertedFocusPolyline}
-          pathOptions={{ color: 'red' }}
+          pathOptions={{ color: 'blue' }}
         />
       )}
       {pins &&
@@ -55,4 +66,41 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
         ))}
     </MapContainer>
   );
+}
+
+function FitToSelection({
+  polyline,
+  focusPolyline,
+}: {
+  polyline: LatLng[];
+  focusPolyline?: LatLng[];
+}) {
+  const map = useMap();
+  const polylineBounds = useMemo(() => {
+    const b = new LatLngBounds([]);
+    polyline.forEach((p) => b.extend(p));
+    return b;
+  }, [polyline]);
+
+  useEffect(() => {
+    if (focusPolyline && focusPolyline.length > 1) {
+      const fb = new LatLngBounds([]);
+      focusPolyline.forEach((p) => fb.extend(p));
+      map.fitBounds(fb, { padding: [16, 16] });
+    } else if (focusPolyline && focusPolyline.length === 1) {
+      map.setView(focusPolyline[0], Math.max(map.getZoom(), 15));
+    } else {
+      // No selection: fit to full track
+      map.fitBounds(polylineBounds, { padding: [16, 16] });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    map,
+    polylineBounds,
+    focusPolyline && focusPolyline.length,
+    focusPolyline && focusPolyline[0]?.lat,
+    focusPolyline && focusPolyline[0]?.lng,
+  ]);
+
+  return null;
 }

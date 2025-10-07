@@ -12,11 +12,14 @@ import { HeartrateDistributionChart } from '../charts/heartrate-distribution-cha
 import { PowerChart } from '../charts/power-chart';
 import { RecordsChart } from '../charts/records-chart';
 import { SpeedChart } from '../charts/speed-chart';
-import { Map } from '../map/map';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { ActivityDetailsMap } from './activity-details-map';
+import {
+  ActivityDetailsSelectionProvider,
+  useActivityDetailsSelection,
+} from './activity-details-selection-context';
 import { ActivityStatistics } from './activity-statistics';
-import { ChartsZoomProvider, useChartsZoom } from './charts-zoom-context';
 
 interface P {
   event: ActivityEvent;
@@ -59,20 +62,22 @@ export function ActivityDetails({ event }: P) {
           </div>
         </CardContent>
       </Card>
-      {stream?.latlng && (
-        <Map
-          className="col-span-1 rounded-xl shadow-sm border"
-          polyline={stream.latlng}
-          pins={hoverPin}
-        />
-      )}
       {stream?.latlng && stream.time && fullDomain && (
         <>
-          <ChartsZoomProvider fullDomain={fullDomain}>
+          <ActivityDetailsSelectionProvider fullDomain={fullDomain}>
+            {stream?.latlng && (
+              <ActivityDetailsMap
+                className="col-span-1 rounded-xl shadow-sm border"
+                polyline={stream.latlng}
+                pins={hoverPin}
+                distance={stream.distance}
+                time={stream.time}
+              />
+            )}
             {/* Local consumer to expose a reset button inside provider */}
             {(() => {
               function ZoomResetButton() {
-                const { reset, domain } = useChartsZoom();
+                const { reset, domain } = useActivityDetailsSelection();
                 if (!domain) return null;
                 return (
                   <Button
@@ -187,7 +192,7 @@ export function ActivityDetails({ event }: P) {
                 </>
               );
             })()}
-          </ChartsZoomProvider>
+          </ActivityDetailsSelectionProvider>
         </>
       )}
     </div>

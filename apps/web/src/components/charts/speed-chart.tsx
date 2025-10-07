@@ -4,7 +4,7 @@ import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 
 import { ActivityStream, formatSpeed } from '@openathlete/shared';
 
-import { useChartsZoom } from '../event-details/charts-zoom-context';
+import { useActivityDetailsSelection } from '../event-details/activity-details-selection-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
 interface P {
@@ -20,7 +20,8 @@ export function SpeedChart({
   distanceStream,
   onHover,
 }: P) {
-  const { domain, setDomain, reset, fullDomain } = useChartsZoom();
+  const { domain, setDomain, reset, fullDomain } =
+    useActivityDetailsSelection();
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const chartData = useMemo(() => {

@@ -9,7 +9,7 @@ import {
   TRAINING_ZONE_TYPE,
 } from '@openathlete/shared';
 
-import { useChartsZoom } from '../event-details/charts-zoom-context';
+import { useActivityDetailsSelection } from '../event-details/activity-details-selection-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 
 interface P {
@@ -27,7 +27,8 @@ export function HeartrateChart({
   distanceStream,
   onHover,
 }: P) {
-  const { domain, setDomain, reset, fullDomain } = useChartsZoom();
+  const { domain, setDomain, reset, fullDomain } =
+    useActivityDetailsSelection();
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const trainingZones = useTrainingZones(TRAINING_ZONE_TYPE.HEARTRATE, sport);
