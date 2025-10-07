@@ -24,6 +24,8 @@ import { WeatherProcessor } from './services/pipeline/processors/weather.process
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
 import { TrainingZoneService } from './services/training-zone.service';
+import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
+import { WeatherService } from './services/weather/weather.service';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
@@ -49,6 +51,8 @@ import { TrainingZoneService } from './services/training-zone.service';
     EquipmentService,
     TrainingZoneService,
     ContactService,
+    WeatherService,
+    OpenMeteoWeatherProvider,
     // Pipeline and processors
     VapProcessor,
     WeatherProcessor,

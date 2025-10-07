@@ -97,13 +97,32 @@ model event_activity {
   description            String              @default("")
 
   // relationships
-  event               event              @relation(fields: [event_id], references: [event_id])
-  event_id            Int                @unique
+  event               event                   @relation(fields: [event_id], references: [event_id])
+  event_id            Int                     @unique
   related_training    event_training?
   related_competition event_competition?
   records             record[]
-  equipment           equipment?         @relation(fields: [equipment_id], references: [equipment_id])
+  equipment           equipment?              @relation(fields: [equipment_id], references: [equipment_id])
   equipment_id        Int?
+  weather             event_activity_weather?
+}
+
+model event_activity_weather {
+  // primary key
+  event_activity_weather_id Int @id @default(autoincrement())
+
+  // fields
+  resolution_m Int     @default(500)
+  provider     String?
+  samples      Json // JSON array of samples with per-distance weather
+
+  // relationships
+  event_activity    event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
+  event_activity_id Int            @unique
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }
 
 model event_template {
