@@ -62,6 +62,6 @@ import { TrainingZoneService } from './services/training-zone.service';
       inject: [PrismaService, VapProcessor, WeatherProcessor],
     },
   ],
-  exports: [EventService],
+  exports: [EventService, ActivityPipelineService],
 })
 export class CoreModule {}
