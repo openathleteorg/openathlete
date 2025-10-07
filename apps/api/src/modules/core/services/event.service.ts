@@ -79,6 +79,7 @@ export const EVENT_INCLUDES = {
       average_heartrate: true,
       max_heartrate: true,
       kilojoules: true,
+      average_gap_speed: true,
       rpe: true,
       external_id: true,
       sport: true,
@@ -277,6 +278,10 @@ export class EventService {
     });
     await this.prisma.event_note.deleteMany({
       where: { event_id: eventId },
+    });
+    // Delete dependent weather rows first to satisfy FK constraints
+    await this.prisma.event_activity_weather.deleteMany({
+      where: { event_activity: { event_id: eventId } },
     });
     await this.prisma.event_activity.deleteMany({
       where: { event_id: eventId },

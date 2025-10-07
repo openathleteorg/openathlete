@@ -4,10 +4,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { uncompressActivityStream } from '../../../helpers/activity-stream';
 import { WeatherService } from '../../weather/weather.service';
-import {
-  ActivityPipelineContext,
-  ActivityProcessor,
-} from '../activity-pipeline.service';
+import { ActivityPipelineContext, ActivityProcessor } from '../types';
 
 @Injectable()
 export class WeatherProcessor implements ActivityProcessor {

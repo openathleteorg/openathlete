@@ -2,15 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
-export type ActivityPipelineContext = {
-  eventActivityId: number;
-  eventId: number;
-};
-
-export interface ActivityProcessor {
-  name: string;
-  run(ctx: ActivityPipelineContext): Promise<void>;
-}
+import { ActivityPipelineContext, ActivityProcessor } from './types';
 
 @Injectable()
 export class ActivityPipelineService {

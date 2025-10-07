@@ -19,7 +19,7 @@ import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateService } from './services/event-template.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
-import { VapProcessor } from './services/pipeline/processors/vap.processor';
+import { GapProcessor } from './services/pipeline/processors/gap.processor';
 import { WeatherProcessor } from './services/pipeline/processors/weather.processor';
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
@@ -54,16 +54,16 @@ import { WeatherService } from './services/weather/weather.service';
     WeatherService,
     OpenMeteoWeatherProvider,
     // Pipeline and processors
-    VapProcessor,
+    GapProcessor,
     WeatherProcessor,
     {
       provide: ActivityPipelineService,
       useFactory: (
         prisma: PrismaService,
-        vap: VapProcessor,
+        gap: GapProcessor,
         weather: WeatherProcessor,
-      ) => new ActivityPipelineService(prisma, [vap, weather]),
-      inject: [PrismaService, VapProcessor, WeatherProcessor],
+      ) => new ActivityPipelineService(prisma, [gap, weather]),
+      inject: [PrismaService, GapProcessor, WeatherProcessor],
     },
   ],
   exports: [EventService, ActivityPipelineService],
