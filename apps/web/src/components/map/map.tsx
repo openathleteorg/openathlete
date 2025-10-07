@@ -1,6 +1,6 @@
 import { LatLng, LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapContainer, Marker, Polyline, TileLayer } from 'react-leaflet';
+import { CircleMarker, MapContainer, Polyline, TileLayer } from 'react-leaflet';
 
 import { findPathCenter, findPathZoomLevel } from '@openathlete/shared';
 
@@ -41,7 +41,17 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
       )}
       {pins &&
         pins.map((p, idx) => (
-          <Marker key={idx} position={new LatLng(p[0], p[1])} />
+          <CircleMarker
+            key={idx}
+            center={new LatLng(p[0], p[1])}
+            radius={4}
+            pathOptions={{
+              color: 'red',
+              fillColor: 'red',
+              fillOpacity: 1,
+              weight: 0,
+            }}
+          />
         ))}
     </MapContainer>
   );
