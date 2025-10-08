@@ -31,9 +31,16 @@ export function ConfirmAction({
   cancelText = m.cancel(),
   isLoading = false,
 }: P) {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isLoading) {
+      e.preventDefault();
+      onConfirm();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
+      <DialogContent onKeyDown={handleKeyDown}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
