@@ -229,7 +229,7 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
           </ActivityDetailsSelectionProvider>
         </>
       )}
-      {normalization && (
+      {normalization && !!normalization.factors.length && (
         <Card className="col-span-2">
           <CardHeader>
             <CardTitle>{m.normalized()}</CardTitle>

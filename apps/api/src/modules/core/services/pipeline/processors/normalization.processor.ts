@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 
 import { normalization_factor, sport_type } from '@openathlete/database';
 import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
@@ -26,8 +26,8 @@ type FilterContext = {
 
 type NormFilter = {
   name: normalization_factor;
-  // Returns multiplicative factor to convert observed flat-equivalent speed
-  // Example: 0.98 means speed should be 2% slower due to factor
+  // Returns multiplicative factor to convert observed speed into flat-equivalent
+  // Example: 1.02 means +2% speed when removing the factor penalty
   factorAt: (i: number, ctx: FilterContext) => number;
 };
 
@@ -59,7 +59,9 @@ const altitudeFilter: NormFilter = {
   },
 };
 
-// Slope filter: use GAP ratio if available; otherwise neutral
+// Slope filter: conceptual multiplier from GAP vs base. We won't apply it when
+// computing the normalized speed if GAP exists (we'll start from GAP instead),
+// but we keep it to allocate cost shares accurately.
 const slopeFilter: NormFilter = {
   name: normalization_factor.SLOPE,
   factorAt: (i, ctx) => {
@@ -71,9 +73,10 @@ const slopeFilter: NormFilter = {
       Number.isFinite(vGap) &&
       (vGap as number) > 0
     ) {
-      const m = (vGap as number) / (v0 as number);
-      // clamp to avoid exploding ratios from near-zero speed
-      return Number.isFinite(m) && m > 0 ? Math.max(0.2, Math.min(5, m)) : 1;
+      // Do NOT clamp: GAP already accounts for realistic grades. Use epsilon to avoid div-by-zero.
+      const eps = 1e-6;
+      const m = (vGap as number) / Math.max(v0 as number, eps);
+      return Number.isFinite(m) && m > 0 ? m : 1;
     }
     // No GAP => no slope impact
     return 1;
@@ -83,13 +86,8 @@ const slopeFilter: NormFilter = {
 @Injectable()
 export class NormalizationProcessor implements ActivityProcessor {
   name = 'normalization';
-  private readonly logger = new Logger(NormalizationProcessor.name);
 
   constructor(private readonly prisma: PrismaService) {}
-
-  private buildFilters(): NormFilter[] {
-    return [slopeFilter, temperatureFilter, altitudeFilter];
-  }
 
   async run(ctx: ActivityPipelineContext) {
     const activity = await this.prisma.event_activity.findUnique({
@@ -109,9 +107,13 @@ export class NormalizationProcessor implements ActivityProcessor {
       return;
     }
 
-    this.logger.log(
-      `Normalization processor running for activity ${ctx.eventActivityId}`,
-    );
+    // Thresholds to prevent pathological deltas when paused/very slow
+    const MIN_MOVING_SPEED_MS = Number.parseFloat(
+      process.env.NORMALIZATION_MIN_MOVING_SPEED_MS ?? '0.3',
+    ); // ~1.08 km/h
+    const MIN_SPEED_DEN_MS = Number.parseFloat(
+      process.env.NORMALIZATION_MIN_SPEED_DEN_MS ?? '0.3',
+    ); // denominator clamp
 
     const stream = uncompressActivityStream(activity.stream as ActivityStream);
     const time = stream['time'] as number[] | undefined;
@@ -146,7 +148,7 @@ export class NormalizationProcessor implements ActivityProcessor {
       }
     }
 
-    // Build raw base speed from distance/time (used for slope ratio even if GAP exists)
+    // Raw per-step observed speed (simple dd/dt)
     const base: number[] = new Array(n).fill(0);
     for (let i = 1; i < n; i++) {
       const dd = (dist[i] ?? dist[i - 1]) - (dist[i - 1] ?? dist[i]);
@@ -158,7 +160,30 @@ export class NormalizationProcessor implements ActivityProcessor {
     }
     base[0] = base[1] ?? base[0];
 
-    const filters = this.buildFilters();
+    // Build a windowed observed speed matching the GAP window (10m half-window)
+    const obsWin: number[] = new Array(n).fill(0);
+    {
+      const windowM = 10;
+      const halfW = windowM / 2;
+      let left = 0;
+      let right = 0;
+      for (let i = 0; i < n; i++) {
+        while (left < i && dist[i] - dist[left] > halfW) left++;
+        if (right < i) right = i;
+        while (right < n - 1 && dist[right] - dist[i] < halfW) right++;
+        let k0 = left;
+        let k1 = right;
+        if (k1 <= k0) {
+          k0 = Math.max(0, i - 1);
+          k1 = Math.min(n - 1, i + 1);
+        }
+        const dd = Math.max(0, (dist[k1] ?? 0) - (dist[k0] ?? 0));
+        const dt = Math.max(1e-6, (time[k1] ?? 0) - (time[k0] ?? 0));
+        obsWin[i] = dd / dt;
+      }
+      if (!Number.isFinite(obsWin[0]) && n > 1) obsWin[0] = obsWin[1];
+    }
+
     const ctxF: FilterContext = {
       time,
       dist,
@@ -169,51 +194,99 @@ export class NormalizationProcessor implements ActivityProcessor {
       movingTimeSec: activity.moving_time,
     };
 
-    // Use raw base speed; slope filter will convert to flat-equivalent (like GAP)
-    const baseSpeed = base;
+    // Start from GAP if available (already slope-normalized), otherwise windowed observed speed
+    const baseSpeed = gap ?? obsWin;
 
     const norm: number[] = new Array(n);
 
-    // Per-factor cumulative time deltas
-    const accumSeconds = new Map<normalization_factor, number>();
-    for (const f of filters) accumSeconds.set(f.name, 0);
+    // Deterministic per-factor cumulative time deltas
+    let slopeSeconds = 0;
+    let tempSeconds = 0;
+    let altSeconds = 0;
+
+    // Counter for skipped slow segments (not persisted; guard against pauses)
+    let skippedSlow = 0;
+
+    const safe = (v: number | undefined) =>
+      Number.isFinite(v as number) && (v as number) > 0 ? (v as number) : 0;
 
     for (let i = 1; i < n; i++) {
       const dt = Math.max(
         0,
         (time[i] ?? time[i - 1]) - (time[i - 1] ?? time[i]),
       );
-      // multiplicative stack of penalties
-      let mult = 1;
-      for (const f of filters) {
-        const m = f.factorAt(i, ctxF);
-        if (Number.isFinite(m) && m > 0) {
-          mult *= m;
-        }
-      }
-      // Apply multiplier on base speed
-      const v0 = baseSpeed[i] ?? baseSpeed[i - 1] ?? 0;
-      const vN = v0 * mult;
-      norm[i] = vN;
+      const ds = Math.max(
+        0,
+        (dist[i] ?? dist[i - 1]) - (dist[i - 1] ?? dist[i]),
+      );
 
-      // Convert speed multiplier to time cost at this small segment
-      const baselineTime = dt; // observed
-      const adjustedTime = mult > 0 ? dt / mult : dt; // normalized (ideal)
-      const delta = baselineTime - adjustedTime; // >0 cost, <0 bonus
-      // Distribute delta proportionally across filters by log contribution
-      // approximate share by each filter's (1-m) magnitude
-      const shares = filters.map((f) => {
-        const m = f.factorAt(i, ctxF);
-        return 1 - (Number.isFinite(m) && m > 0 ? m : 1);
-      });
-      const sumAbs = shares.reduce((s, x) => s + Math.abs(x), 0) || 1;
-      for (let k = 0; k < filters.length; k++) {
-        const frac = Math.abs(shares[k]) / sumAbs;
-        accumSeconds.set(
-          filters[k].name,
-          (accumSeconds.get(filters[k].name) || 0) + delta * frac,
-        );
+      // Window-aligned speeds
+      const vObs = safe(obsWin[i] ?? obsWin[i - 1] ?? base[i] ?? 0);
+      const vGap = gap ? safe(gap[i] ?? gap[i - 1] ?? vObs) : vObs;
+
+      // Skip delta allocation on paused/very-slow segments
+      if (!(ds > 0) || vObs < MIN_MOVING_SPEED_MS) {
+        skippedSlow++;
+        // Still compute normalized stream below but with no delta accumulation
+        const mTemp = temperatureFilter.factorAt(i, ctxF);
+        const mAlt = altitudeFilter.factorAt(i, ctxF);
+        const v0 = baseSpeed[i] ?? baseSpeed[i - 1] ?? 0;
+        const vN =
+          safe(v0) *
+          (Number.isFinite(mTemp) && mTemp > 0 ? mTemp : 1) *
+          (Number.isFinite(mAlt) && mAlt > 0 ? mAlt : 1);
+        norm[i] = vN;
+        continue;
       }
+
+      // Multipliers (>=1 means penalty exists and normalization removes it)
+      const mTemp = temperatureFilter.factorAt(i, ctxF);
+      const mAlt = altitudeFilter.factorAt(i, ctxF);
+      const vAfterSlope = vGap; // slope removed by GAP if present
+      const vAfterTemp =
+        vAfterSlope * (Number.isFinite(mTemp) && mTemp > 0 ? mTemp : 1);
+      const vNorm = vAfterTemp * (Number.isFinite(mAlt) && mAlt > 0 ? mAlt : 1);
+
+      // Segment time deltas (clamped >= 0 to reflect "perdu")
+      const slopeDelta =
+        ds > 0
+          ? Math.max(
+              0,
+              ds *
+                (1 / Math.max(vObs, MIN_SPEED_DEN_MS) -
+                  1 / Math.max(vGap, MIN_SPEED_DEN_MS)),
+            )
+          : 0;
+      const tempDelta =
+        ds > 0
+          ? Math.max(
+              0,
+              ds *
+                (1 / Math.max(vAfterSlope, MIN_SPEED_DEN_MS) -
+                  1 / Math.max(vAfterTemp, MIN_SPEED_DEN_MS)),
+            )
+          : 0;
+      const altDelta =
+        ds > 0
+          ? Math.max(
+              0,
+              ds *
+                (1 / Math.max(vAfterTemp, MIN_SPEED_DEN_MS) -
+                  1 / Math.max(vNorm, MIN_SPEED_DEN_MS)),
+            )
+          : 0;
+
+      slopeSeconds += slopeDelta;
+      tempSeconds += tempDelta;
+      altSeconds += altDelta;
+
+      // Normalized speed stream for visualization/averaging
+      const v0 = baseSpeed[i] ?? baseSpeed[i - 1] ?? 0;
+      const vN =
+        safe(v0) *
+        (Number.isFinite(mTemp) && mTemp > 0 ? mTemp : 1) *
+        (Number.isFinite(mAlt) && mAlt > 0 ? mAlt : 1);
+      norm[i] = vN;
     }
     norm[0] = norm[1] ?? baseSpeed[0] ?? 0;
 
@@ -232,20 +305,19 @@ export class NormalizationProcessor implements ActivityProcessor {
     const compressed = compressActivityStream(newStream);
 
     // Upsert normalization with factors breakdown
-    const factorsData = Array.from(accumSeconds.entries()).map(
-      ([factor, seconds]) => {
-        const raw =
-          activity.moving_time > 0 ? seconds / activity.moving_time : 0;
-        const percent = Math.max(0, Math.min(1, raw));
-        return {
-          factor,
-          time_seconds: seconds,
-          percent,
-        };
-      },
-    );
+    const factorsData = (
+      [
+        [normalization_factor.SLOPE, slopeSeconds],
+        [normalization_factor.TEMPERATURE, tempSeconds],
+        [normalization_factor.ALTITUDE, altSeconds],
+      ] as Array<[normalization_factor, number]>
+    ).map(([factor, seconds]) => {
+      const raw = activity.moving_time > 0 ? seconds / activity.moving_time : 0;
+      const percent = Math.max(0, Math.min(1, raw));
+      return { factor, time_seconds: seconds, percent };
+    });
 
-    const normRow = await this.prisma.event_activity_normalization.upsert({
+    await this.prisma.event_activity_normalization.upsert({
       where: { event_activity_id: ctx.eventActivityId },
       update: {
         average_normalized_speed: avgNorm ?? undefined,
