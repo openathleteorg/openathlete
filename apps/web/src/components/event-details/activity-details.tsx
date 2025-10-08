@@ -1,5 +1,8 @@
 import { m } from '@/paraglide/messages';
-import { useGetEventStreamQuery } from '@/services/event';
+import {
+  useGetEventStreamQuery,
+  useGetEventWeatherQuery,
+} from '@/services/event';
 import { useMemo } from 'react';
 
 import { ActivityEvent } from '@openathlete/shared';
@@ -7,6 +10,7 @@ import { ActivityEvent } from '@openathlete/shared';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ActivityDetailsOverviewTab } from './tabs/activity-details-overview-tab';
 import { ActivityDetailsSplitsTab } from './tabs/activity-details-splits-tab';
+import { ActivityDetailsWeatherTab } from './tabs/activity-details-weather-tab';
 
 interface P {
   event: ActivityEvent;
@@ -21,6 +25,7 @@ export function ActivityDetails({ event }: P) {
     'time',
     'watts',
     'gap',
+    'temp',
   ]);
   const hasSplits = useMemo(() => {
     const d = stream?.distance;
@@ -29,11 +34,14 @@ export function ActivityDetails({ event }: P) {
     return Math.floor(lastDistance / 1000) > 0;
   }, [stream?.distance]);
 
+  const { data: weather } = useGetEventWeatherQuery(event.eventId);
+
   return (
     <Tabs defaultValue="overview" className="flex flex-col gap-4">
       <TabsList>
         <TabsTrigger value="overview">{m.overview()}</TabsTrigger>
         {hasSplits && <TabsTrigger value="splits">{m.splits()}</TabsTrigger>}
+        {weather && <TabsTrigger value="weather">{m.weather()}</TabsTrigger>}
       </TabsList>
       <TabsContent value="overview">
         <ActivityDetailsOverviewTab event={event} stream={stream} />
@@ -41,6 +49,11 @@ export function ActivityDetails({ event }: P) {
       {hasSplits && (
         <TabsContent value="splits">
           <ActivityDetailsSplitsTab stream={stream} />
+        </TabsContent>
+      )}
+      {weather && (
+        <TabsContent value="weather">
+          <ActivityDetailsWeatherTab data={weather} stream={stream} />
         </TabsContent>
       )}
     </Tabs>

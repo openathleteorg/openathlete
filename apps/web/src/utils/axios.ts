@@ -26,6 +26,7 @@ export const routes = {
     getMyEvents: '/event',
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,
+    getEventWeather: (eventId: Event['eventId']) => `/event/${eventId}/weather`,
     deleteEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     setRelatedActivity: (
       eventId: Event['eventId'],

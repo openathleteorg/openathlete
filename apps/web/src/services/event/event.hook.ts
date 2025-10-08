@@ -101,6 +101,16 @@ export const useGetEventStreamQuery = (
     queryKey: ['EventService.getEventStream', eventId, resolution, keys],
   });
 
+export const useGetEventWeatherQuery = (
+  eventId: number,
+  opt?: QueryOptions<Awaited<ReturnType<typeof EventService.getEventWeather>>>,
+) =>
+  useQuery({
+    ...opt,
+    queryFn: () => EventService.getEventWeather(eventId),
+    queryKey: ['EventService.getEventWeather', eventId],
+  });
+
 export const useDeleteEventMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof EventService.deleteEvent>>,

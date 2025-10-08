@@ -1,6 +1,11 @@
 import client, { routes } from '@/utils/axios';
 
-import { ActivityStream, CreateEventDto, Event } from '@openathlete/shared';
+import {
+  ActivityStream,
+  CreateEventDto,
+  Event,
+  GetEventWeatherResponseDto,
+} from '@openathlete/shared';
 
 const mapEvent = (event: Event): Event => {
   return {
@@ -51,6 +56,13 @@ export class EventService {
     const res = await client.get(routes.event.getEventStream(eventId), {
       params: { resolution, keys: keys?.join(',') },
     });
+    return res.data;
+  }
+
+  static async getEventWeather(
+    eventId: Event['eventId'],
+  ): Promise<GetEventWeatherResponseDto> {
+    const res = await client.get(routes.event.getEventWeather(eventId));
     return res.data;
   }
 
