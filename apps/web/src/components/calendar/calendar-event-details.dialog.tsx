@@ -4,6 +4,7 @@ import {
   connectorProviderLabelMap,
   eventTypeLabelMap,
 } from '@/utils/label-map/core';
+import { cn } from '@/utils/shadcn';
 
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 
@@ -28,7 +29,12 @@ export function CalendarEventDetailsDialog({
 }: P) {
   return (
     <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent
+        className={cn(
+          'sm:max-w-4xl',
+          event?.type === EVENT_TYPE.ACTIVITY && 'sm:max-w-6xl',
+        )}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-start justify-center gap-2">
             <div className="flex items-center gap-2 grow">
