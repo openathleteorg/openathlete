@@ -181,3 +181,23 @@ model event_template {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 }
+
+model cycle {
+  // primary key
+  cycle_id Int @id @default(autoincrement())
+
+  // fields
+  name        String
+  description String   @default("")
+  start_date  DateTime
+  end_date    DateTime
+  color       String? // hex color code (e.g., "#FF5733")
+
+  // relationships
+  athlete    athlete? @relation(fields: [athlete_id], references: [athlete_id])
+  athlete_id Int?
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
