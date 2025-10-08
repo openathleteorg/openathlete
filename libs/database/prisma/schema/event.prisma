@@ -152,9 +152,9 @@ model event_activity_normalization_factor {
   // fields
   factor       normalization_factor
   // Signed contribution to time vs flat/no-condition baseline over activity
-  // Store both absolute seconds and percent for flexible analytics
+  // Store both absolute seconds and fraction for flexible analytics
   time_seconds Float // >0 cost, <0 benefit
-  percent      Float // percent of baseline moving time
+  percent      Float // fraction of baseline moving time [0,1]
 
   // relationships
   normalization                   event_activity_normalization @relation(fields: [event_activity_normalization_id], references: [event_activity_normalization_id])

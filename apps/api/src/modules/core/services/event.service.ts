@@ -280,15 +280,20 @@ export class EventService {
     await this.prisma.event_note.deleteMany({
       where: { event_id: eventId },
     });
-    // Delete dependent weather rows first to satisfy FK constraints
     await this.prisma.event_activity_weather.deleteMany({
       where: { event_activity: { event_id: eventId } },
     });
-    await this.prisma.event_activity.deleteMany({
-      where: { event_id: eventId },
+    await this.prisma.event_activity_normalization_factor.deleteMany({
+      where: { normalization: { event_activity: { event_id: eventId } } },
+    });
+    await this.prisma.event_activity_normalization.deleteMany({
+      where: { event_activity: { event_id: eventId } },
     });
     await this.prisma.record.deleteMany({
       where: { event_activity: { event: { event_id: eventId } } },
+    });
+    await this.prisma.event_activity.deleteMany({
+      where: { event_id: eventId },
     });
 
     return this.prisma.event.delete({
