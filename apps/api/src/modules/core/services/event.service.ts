@@ -394,6 +394,46 @@ export class EventService {
     });
   }
 
+  async getEventNormalization(user: AuthUser, eventId: event['event_id']) {
+    const ability = await this.abilities.getFor({ user });
+
+    const evt = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+      },
+      include: { activity: true },
+    });
+
+    if (!evt) {
+      throw new NotFoundException('Event not found');
+    }
+
+    const activity = await this.prisma.event_activity.findUnique({
+      where: { event_id: eventId },
+      select: { event_activity_id: true, average_normalized_speed: true },
+    });
+
+    if (!activity) {
+      throw new NotFoundException('Activity not found');
+    }
+
+    const normalization =
+      await this.prisma.event_activity_normalization.findUnique({
+        where: { event_activity_id: activity.event_activity_id },
+        include: { factors: true },
+      });
+
+    return {
+      averageNormalizedSpeed: activity.average_normalized_speed,
+      factors:
+        normalization?.factors.map((f) => ({
+          factor: f.factor,
+          timeSeconds: f.time_seconds,
+          percent: f.percent,
+        })) ?? [],
+    };
+  }
+
   async setRelatedActivity(
     user: AuthUser,
     eventId: event['event_id'],
