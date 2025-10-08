@@ -101,6 +101,15 @@ export class EventController {
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get(':eventId/weather')
+  getEventWeather(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+  ) {
+    return this.eventService.getEventWeather(user, eventId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Delete(':eventId')
   deleteEvent(
     @JwtUser() user: AuthUser,
