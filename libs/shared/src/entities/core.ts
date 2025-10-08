@@ -2,6 +2,7 @@ import {
   athlete,
   connector,
   connector_provider,
+  cycle,
   equipment,
   event,
   event_activity,
@@ -81,4 +82,8 @@ export type Event =
 
 export interface EventTemplate extends ConvertKeysToCamelCase<event_template> {
   event?: Event;
+}
+
+export interface Cycle extends ConvertKeysToCamelCase<cycle> {
+  athlete?: Athlete;
 }
