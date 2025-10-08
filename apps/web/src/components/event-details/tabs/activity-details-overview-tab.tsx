@@ -101,7 +101,7 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
                       />
                     </CardContent>
                   </Card>
-                  {stream && (stream as any).gap && (
+                  {stream && stream.gap && (
                     <Card className="col-span-2">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>{m.gap()}</CardTitle>
@@ -111,7 +111,7 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
                       </CardHeader>
                       <CardContent className="p-0">
                         <GapChart
-                          gapStream={(stream as any).gap as number[]}
+                          gapStream={stream.gap as number[]}
                           timeStream={stream.time}
                           distanceStream={stream.distance}
                           onHover={setHover}

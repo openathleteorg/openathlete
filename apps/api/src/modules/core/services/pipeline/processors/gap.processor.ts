@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 import { sport_type } from '@openathlete/database';
+import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
+import { ActivityStream } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -45,7 +47,7 @@ export class GapProcessor implements ActivityProcessor {
       `GAP processor running for activity ${ctx.eventActivityId}`,
     );
 
-    const stream = uncompressActivityStream(activity.stream as any);
+    const stream = uncompressActivityStream(activity.stream as ActivityStream);
     const time = stream['time'] as number[] | undefined;
     const dist = stream['distance'] as number[] | undefined;
     const alt = stream['altitude'] as number[] | undefined;
@@ -103,13 +105,13 @@ export class GapProcessor implements ActivityProcessor {
 
     const avgGap = count > 0 ? sumGapSpeed / count : null;
 
-    const newStream = { ...stream, gap: gapStream } as any;
+    const newStream = { ...stream, gap: gapStream } as ActivityStream;
     const compressed = compressActivityStream(newStream);
 
     await this.prisma.event_activity.update({
       where: { event_activity_id: ctx.eventActivityId },
       data: {
-        stream: compressed as any,
+        stream: compressed as InputJsonValue,
         average_gap_speed: avgGap ?? undefined,
       },
     });

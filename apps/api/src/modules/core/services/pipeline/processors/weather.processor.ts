@@ -1,5 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { ActivityStream } from '@openathlete/shared';
+
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { uncompressActivityStream } from '../../../helpers/activity-stream';
@@ -32,7 +34,7 @@ export class WeatherProcessor implements ActivityProcessor {
     const resolutionM = 500; // could be read from config later
 
     // Decode the activity stream
-    const stream = uncompressActivityStream(activity.stream as any);
+    const stream = uncompressActivityStream(activity.stream as ActivityStream);
     const latlng = (stream['latlng'] as Array<[number, number]>) || [];
     const dist = stream['distance'] as number[] | undefined;
     const time = stream['time'] as number[] | undefined;
@@ -71,7 +73,7 @@ export class WeatherProcessor implements ActivityProcessor {
       update: {
         resolution_m: resolutionM,
         provider: this.weather.providerName,
-        samples: samples as any,
+        samples: samples,
       },
       create: {
         event_activity: {
@@ -79,7 +81,7 @@ export class WeatherProcessor implements ActivityProcessor {
         },
         resolution_m: resolutionM,
         provider: this.weather.providerName,
-        samples: samples as any,
+        samples: samples,
       },
     });
   }
