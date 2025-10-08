@@ -14,12 +14,31 @@ import {
 import { CalendarDay } from './calendar-day';
 import { CalendarWeekSummary } from './calendar-week-summary';
 import { useCalendarContext } from './hooks/use-calendar-context';
+import { calculateCyclesForDay } from './utils/cycle-day-layout';
 
 interface P {}
 
 export function CalendarBody({}: P) {
-  const { displayedWeeks, events, summaryType, setSummaryType } =
-    useCalendarContext();
+  const {
+    displayedWeeks,
+    events,
+    cycles,
+    summaryType,
+    setSummaryType,
+    cycleResize,
+  } = useCalendarContext();
+
+  // Create a modified cycles array with resize preview
+  const displayedCycles = cycles.map((cycle) => {
+    if (cycleResize && cycle.cycleId === cycleResize.cycleId) {
+      return {
+        ...cycle,
+        startDate: cycleResize.currentStart,
+        endDate: cycleResize.currentEnd,
+      };
+    }
+    return cycle;
+  });
 
   return (
     <div className="w-full border-1 rounded-lg">
@@ -50,9 +69,9 @@ export function CalendarBody({}: P) {
           </Select>
         </div>
       </div>
-      {displayedWeeks.map((week, i) => (
+      {displayedWeeks.map((week, weekIndex) => (
         <div
-          key={i}
+          key={weekIndex}
           className="grid grid-cols-8 [&:not(:last-child)]:border-b-1"
         >
           {week.map((day, i) => (
@@ -68,6 +87,7 @@ export function CalendarBody({}: P) {
                     event.relatedActivity
                   ),
               )}
+              cycleSegments={calculateCyclesForDay(displayedCycles, day)}
             />
           ))}
           <CalendarWeekSummary

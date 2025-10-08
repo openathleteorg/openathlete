@@ -78,6 +78,13 @@ export const routes = {
   marketing: {
     contact: '/contact',
   },
+  cycle: {
+    create: '/cycle',
+    update: (cycleId: number) => `/cycle/${cycleId}`,
+    getMyCycles: '/cycle',
+    getCycle: (cycleId: number) => `/cycle/${cycleId}`,
+    deleteCycle: (cycleId: number) => `/cycle/${cycleId}`,
+  },
 } as const;
 
 const client = axios.create({

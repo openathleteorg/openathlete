@@ -40,7 +40,7 @@ export function DoneSummary({ events }: P) {
   );
 
   return (
-    <div className="min-h-32 flex flex-col [&:not(:last-child)]:border-r-1 p-2">
+    <div className="min-h-32 flex flex-col [&:not(:last-child)]:border-r-1 p-2 select-none">
       {!!trainingCompetitions.length && (
         <div className="flex gap-1 items-center">
           <span>
@@ -79,7 +79,7 @@ export function PlannedSummary({ events }: P) {
   }, 0);
 
   return (
-    <div className="min-h-32 flex flex-col [&:not(:last-child)]:border-r-1 p-2">
+    <div className="min-h-32 flex flex-col [&:not(:last-child)]:border-r-1 p-2 select-none">
       <DurationStat duration={totalDuration} />
       <DistanceStat distance={totalDistance} />
       <ElevationStat elevation={totalElevation} />
@@ -121,7 +121,7 @@ export function PlannedDoneSummary({ events }: P) {
   }, 0);
 
   return (
-    <div className="min-h-32 flex flex-col [&:not(:last-child)]:border-r-1 p-2">
+    <div className="min-h-32 flex flex-col [&:not(:last-child)]:border-r-1 p-2 select-none">
       <DurationStat
         duration={totalActivitiesDuration + totalTrainingDuration}
       />

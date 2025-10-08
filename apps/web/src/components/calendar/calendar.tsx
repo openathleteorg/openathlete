@@ -1,4 +1,5 @@
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
+import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/services/cycle';
 import {
   useDuplicateEventMutation,
   useUpdateEventMutation,
@@ -11,16 +12,19 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
-import { EVENT_TYPE, Event } from '@openathlete/shared';
+import { Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
 
+import { CreateCycleDialog } from '../create-cycle-dialog/create-cycle.dialog';
 import { CreateEventDialog } from '../create-event-dialog/create-event.dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
 import { CalendarBody } from './calendar-body';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
 import { CalendarHeader } from './calendar-header';
 import { CalendarContext } from './contexts/calendar-context';
+import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType, SummaryType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
 
@@ -32,6 +36,7 @@ interface P {
 
 export function Calendar({ events, athleteId, allowCreate = true }: P) {
   const calendarData = useCalendarData({ events });
+  const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
   const [eventDetailsOpened, setEventDetailsOpened] = useState<
     Event['eventId'] | null
   >(null);
@@ -44,6 +49,28 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
   const [editEventDialog, setEditEventDialog] = useState<
     Event['eventId'] | null
   >(null);
+  const [createCycleDialog, setCreateCycleDialog] = useState<{
+    startDate: Date;
+    endDate: Date;
+  } | null>(null);
+  const [editCycleDialog, setEditCycleDialog] = useState<
+    Cycle['cycleId'] | null
+  >(null);
+  const [viewCycleDialog, setViewCycleDialog] = useState<
+    Cycle['cycleId'] | null
+  >(null);
+  const [dragSelection, setDragSelection] = useState<{
+    startDate: Date;
+    endDate: Date;
+  } | null>(null);
+  const [cycleResize, setCycleResize] = useState<{
+    cycleId: number;
+    edge: 'start' | 'end';
+    originalStart: Date;
+    originalEnd: Date;
+    currentStart: Date;
+    currentEnd: Date;
+  } | null>(null);
   const [summaryType, setSummaryType] = useState<SummaryType>('planned-done');
   const [filter, setFilter] = useState<(event: Event) => boolean>(
     () => () => true,
@@ -51,11 +78,34 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
   const [coloredBy, setColoredBy] = useState<COLORED_BY | null>(null);
   const updateEventMutation = useUpdateEventMutation();
   const duplicateEventMutation = useDuplicateEventMutation();
+  const updateCycleMutation = useUpdateCycleMutation();
+
+  const updateCycleDates = (
+    cycleId: number,
+    startDate: Date,
+    endDate: Date,
+  ) => {
+    updateCycleMutation.mutate(
+      {
+        cycleId,
+        body: { startDate, endDate },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Cycle updated successfully');
+        },
+        onError: () => {
+          toast.error('Failed to update cycle');
+        },
+      },
+    );
+  };
 
   const memoizedValue = useMemo<CalendarContextType>(
     () => ({
       ...calendarData,
       events: calendarData.events.filter(filter),
+      cycles: cycles || [],
       createEvent: (date, type) => {
         setCreateEventDialog({ date, type });
       },
@@ -63,6 +113,16 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
       openEventDetails: setEventDetailsOpened,
       eventDetailsOpened,
       editEvent: (eventId) => setEditEventDialog(eventId),
+      createCycle: (startDate, endDate) => {
+        setCreateCycleDialog({ startDate, endDate });
+      },
+      editCycle: (cycleId) => setEditCycleDialog(cycleId),
+      viewCycle: (cycleId) => setViewCycleDialog(cycleId),
+      updateCycleDates,
+      dragSelection,
+      setDragSelection,
+      cycleResize,
+      setCycleResize,
       summaryType,
       setSummaryType,
       athleteId,
@@ -72,7 +132,14 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
       coloredBy,
       setColoredBy,
     }),
-    [calendarData.displayedMonth, calendarData.events, filter],
+    [
+      calendarData.displayedMonth,
+      calendarData.events,
+      cycles,
+      dragSelection,
+      cycleResize,
+      filter,
+    ],
   );
 
   const dndOnDragEnd = async (e: DragEndEvent) => {
@@ -123,6 +190,50 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
     useSensor(KeyboardSensor),
   );
 
+  // Handle global mouse up to end drag selection and cycle resize
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      if (dragSelection) {
+        setDragSelection(null);
+      }
+      if (cycleResize) {
+        // Save the cycle resize changes to the database
+        if (
+          cycleResize.currentStart.getTime() !==
+            cycleResize.originalStart.getTime() ||
+          cycleResize.currentEnd.getTime() !== cycleResize.originalEnd.getTime()
+        ) {
+          updateCycleDates(
+            cycleResize.cycleId,
+            cycleResize.currentStart,
+            cycleResize.currentEnd,
+          );
+        }
+        setCycleResize(null);
+      }
+    };
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (dragSelection) {
+          setDragSelection(null);
+        }
+        if (cycleResize) {
+          // Cancel resize without saving
+          setCycleResize(null);
+        }
+      }
+    };
+
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [dragSelection, cycleResize, updateCycleDates]);
+
   return (
     <div className="flex flex-col gap-3">
       <CalendarContext.Provider value={memoizedValue}>
@@ -156,6 +267,32 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
           open={createEventFromTemplateDialog !== null}
           onClose={() => setCreateEventFromTemplateDialog(null)}
           date={createEventFromTemplateDialog || undefined}
+        />
+        <CreateCycleDialog
+          key={createCycleDialog?.startDate?.toDateString()}
+          open={createCycleDialog !== null}
+          onClose={() => setCreateCycleDialog(null)}
+          startDate={createCycleDialog?.startDate}
+          endDate={createCycleDialog?.endDate}
+        />
+        <CreateCycleDialog
+          key={editCycleDialog}
+          open={editCycleDialog !== null}
+          onClose={() => setEditCycleDialog(null)}
+          cycle={(cycles || []).find(
+            (cycle) => cycle.cycleId === editCycleDialog,
+          )}
+        />
+        <CycleDetailsDialog
+          open={viewCycleDialog !== null}
+          onClose={() => setViewCycleDialog(null)}
+          cycle={(cycles || []).find(
+            (cycle) => cycle.cycleId === viewCycleDialog,
+          )}
+          onEditCycle={(cycleId) => {
+            setViewCycleDialog(null);
+            setEditCycleDialog(cycleId);
+          }}
         />
       </CalendarContext.Provider>
     </div>

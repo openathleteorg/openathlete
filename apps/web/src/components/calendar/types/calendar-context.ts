@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction } from 'react';
 
-import { EVENT_TYPE, Event } from '@openathlete/shared';
+import { Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
 
 import { COLORED_BY } from './filter';
 
@@ -25,4 +25,34 @@ export type CalendarContextType = {
   allowCreate: boolean;
   coloredBy: COLORED_BY | null;
   setColoredBy: (coloredBy: COLORED_BY | null) => void;
+  // Cycle management
+  cycles: Cycle[];
+  createCycle: (startDate: Date, endDate: Date) => void;
+  editCycle: (cycleId: Cycle['cycleId']) => void;
+  viewCycle: (cycleId: Cycle['cycleId']) => void;
+  updateCycleDates: (cycleId: number, startDate: Date, endDate: Date) => void;
+  // Drag selection state
+  dragSelection: { startDate: Date; endDate: Date } | null;
+  setDragSelection: (
+    selection: { startDate: Date; endDate: Date } | null,
+  ) => void;
+  // Cycle resize state
+  cycleResize: {
+    cycleId: number;
+    edge: 'start' | 'end';
+    originalStart: Date;
+    originalEnd: Date;
+    currentStart: Date;
+    currentEnd: Date;
+  } | null;
+  setCycleResize: (
+    resize: {
+      cycleId: number;
+      edge: 'start' | 'end';
+      originalStart: Date;
+      originalEnd: Date;
+      currentStart: Date;
+      currentEnd: Date;
+    } | null,
+  ) => void;
 };
