@@ -93,6 +93,7 @@ export function WeatherTemperatureChart({
           <Line
             type="monotone"
             dataKey="provider"
+            name="Open‑Meteo"
             stroke="var(--chart-1)"
             dot={false}
             isAnimationActive={false}
@@ -100,18 +101,29 @@ export function WeatherTemperatureChart({
           <Line
             type="monotone"
             dataKey="device"
+            name={m.device()}
             stroke="var(--chart-5)"
+            strokeDasharray={'4 2'}
             dot={false}
             isAnimationActive={false}
           />
           <ChartTooltip
             content={
               <ChartTooltipContent
-                formatter={(value) => (
-                  <span className="text-foreground font-mono tabular-nums">
-                    {Number(value).toFixed(1)} °C
-                  </span>
-                )}
+                hideLabel
+                formatter={(value, name) => {
+                  if (value == null || !Number.isFinite(Number(value)))
+                    return null;
+                  const label = String(name);
+                  return (
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span className="text-muted-foreground">{label}</span>
+                      <span className="text-foreground font-mono tabular-nums">
+                        {Number(value).toFixed(1)} °C
+                      </span>
+                    </div>
+                  );
+                }}
               />
             }
           />
