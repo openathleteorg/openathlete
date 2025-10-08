@@ -7,6 +7,11 @@ import {
   GetEventWeatherResponseDto,
 } from '@openathlete/shared';
 
+export type GetEventNormalizationResponseDto = {
+  averageNormalizedSpeed: number | null;
+  factors: { factor: string; timeSeconds: number; percent: number }[];
+};
+
 const mapEvent = (event: Event): Event => {
   return {
     ...event,
@@ -63,6 +68,13 @@ export class EventService {
     eventId: Event['eventId'],
   ): Promise<GetEventWeatherResponseDto> {
     const res = await client.get(routes.event.getEventWeather(eventId));
+    return res.data;
+  }
+
+  static async getEventNormalization(
+    eventId: Event['eventId'],
+  ): Promise<GetEventNormalizationResponseDto> {
+    const res = await client.get(routes.event.getEventNormalization(eventId));
     return res.data;
   }
 

@@ -1,9 +1,16 @@
 import { m } from '@/paraglide/messages';
+import { useGetEventNormalizationQuery } from '@/services/event';
+import type { GetEventNormalizationResponseDto } from '@/services/event/event.service';
 import { computeHoverPin } from '@/utils/map-hover';
 import { ZoomOut } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
-import { ActivityEvent, ActivityStream } from '@openathlete/shared';
+import {
+  ActivityEvent,
+  ActivityStream,
+  formatDuration,
+  formatSpeed,
+} from '@openathlete/shared';
 
 import { AltitudeChart } from '../../charts/altitude-chart';
 import { GapChart } from '../../charts/gap-chart';
@@ -14,6 +21,14 @@ import { RecordsChart } from '../../charts/records-chart';
 import { SpeedChart } from '../../charts/speed-chart';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../../ui/table';
 import { ActivityDetailsMap } from '../activity-details-map';
 import {
   ActivityDetailsSelectionProvider,
@@ -43,6 +58,14 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
     if (t?.length) return [t[0], t[t.length - 1]];
     return undefined;
   }, [stream?.distance, stream?.time]);
+
+  const { data: normalization } = useGetEventNormalizationQuery(event.eventId);
+
+  const normLabel = (factor: string) => {
+    const key = `normalization_${factor.toLowerCase()}` as keyof typeof m;
+    const fn = (m as any)[key];
+    return typeof fn === 'function' ? fn() : factor;
+  };
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -205,6 +228,63 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
             })()}
           </ActivityDetailsSelectionProvider>
         </>
+      )}
+      {normalization && (
+        <Card className="col-span-2">
+          <CardHeader>
+            <CardTitle>{m.normalized()}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {typeof normalization.averageNormalizedSpeed === 'number' && (
+              <div className="text-sm">
+                <span className="font-medium">{m.normalized_speed()}:</span>{' '}
+                {formatSpeed(normalization.averageNormalizedSpeed)} {m.per_km()}
+              </div>
+            )}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{m.factor()}</TableHead>
+                  <TableHead className="text-right">{m.time_lost()}</TableHead>
+                  <TableHead className="text-right">{m.share()}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(
+                  normalization.factors as GetEventNormalizationResponseDto['factors']
+                )
+                  .filter(
+                    (f: GetEventNormalizationResponseDto['factors'][number]) =>
+                      (f.timeSeconds ?? 0) > 0,
+                  )
+                  .sort(
+                    (
+                      a: GetEventNormalizationResponseDto['factors'][number],
+                      b: GetEventNormalizationResponseDto['factors'][number],
+                    ) => (b.timeSeconds ?? 0) - (a.timeSeconds ?? 0),
+                  )
+                  .map(
+                    (
+                      f: GetEventNormalizationResponseDto['factors'][number],
+                    ) => (
+                      <TableRow key={f.factor}>
+                        <TableCell>{normLabel(String(f.factor))}</TableCell>
+                        <TableCell className="text-right">
+                          {formatDuration(
+                            Math.max(0, Math.round(f.timeSeconds)),
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {Math.round(Math.max(0, f.percent) * 100)}
+                          {m.percent_symbol()}
+                        </TableCell>
+                      </TableRow>
+                    ),
+                  )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
