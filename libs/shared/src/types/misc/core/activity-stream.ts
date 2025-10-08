@@ -8,6 +8,7 @@ export interface ActivityStream {
   watts?: number[];
   temp?: number[];
   gap?: number[]; // grade-adjusted speed (m/s)
+  norm?: number[]; // normalized speed (m/s) accounting for slope, weather, altitude, etc.
 }
 
 export type CompressedActivityStreamUnit =
@@ -25,4 +26,5 @@ export interface CompressedActivityStream {
   watts?: CompressedActivityStreamUnit[];
   temp?: CompressedActivityStreamUnit[];
   gap?: CompressedActivityStreamUnit[]; // grade-adjusted speed (m/s)
+  norm?: CompressedActivityStreamUnit[]; // normalized speed (m/s)
 }

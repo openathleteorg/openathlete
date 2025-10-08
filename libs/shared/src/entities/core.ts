@@ -70,6 +70,7 @@ export interface ActivityEvent
   records?: Record[];
   equipment?: Equipment;
   averageGapSpeed: number | null;
+  averageNormalizedSpeed: number | null;
 }
 
 export type Event =
