@@ -22,7 +22,10 @@ export function HeartrateStat({ label, heartrate, sport }: P) {
       <PopoverTrigger className="text-left">
         <div className="text-sm font-semibold">{label}</div>
         <div>
-          {heartrate} <span className="text-gray-500 dark:text-gray-400 text-sm">{m.bpm()}</span>
+          {heartrate}{' '}
+          <span className="text-gray-500 dark:text-gray-400 text-sm">
+            {m.bpm()}
+          </span>
         </div>
       </PopoverTrigger>
       <PopoverContent>{zone?.name}</PopoverContent>

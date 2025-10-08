@@ -25,7 +25,9 @@ export function SpeedStat({ label, speed, unit }: P) {
       <PopoverContent>
         <div>
           {formatSpeed(speed, 'm/s')}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">{m.meters_per_second()}</span>
+          <span className="text-gray-500 dark:text-gray-400 text-sm">
+            {m.meters_per_second()}
+          </span>
         </div>
         <div>
           {formatSpeed(speed, 'km/h')}{' '}
@@ -35,7 +37,9 @@ export function SpeedStat({ label, speed, unit }: P) {
         </div>
         <div>
           {formatSpeed(speed, 'mph')}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">{m.miles_per_hour()}</span>
+          <span className="text-gray-500 dark:text-gray-400 text-sm">
+            {m.miles_per_hour()}
+          </span>
         </div>
       </PopoverContent>
     </Popover>

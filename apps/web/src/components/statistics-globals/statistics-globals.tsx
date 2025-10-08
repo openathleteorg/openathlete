@@ -25,7 +25,9 @@ export function StatisticsGlobals({
         <div className="text-2xl font-bold">{formatDuration(duration)}</div>
         <div className="text-2xl font-bold">
           {formatDistance(distance)}{' '}
-          <span className="text-xl text-gray-500 dark:text-gray-400">{m.kilometers()}</span>
+          <span className="text-xl text-gray-500 dark:text-gray-400">
+            {m.kilometers()}
+          </span>
         </div>
         <div className="text-2xl font-bold">
           {elevationGain}{' '}
