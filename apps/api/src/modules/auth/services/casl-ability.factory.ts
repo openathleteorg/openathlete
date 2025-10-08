@@ -3,7 +3,7 @@ import { Subjects as CASLSubjects } from '@casl/prisma';
 
 import { Injectable } from '@nestjs/common';
 
-import { athlete, event, user } from '@openathlete/database';
+import { athlete, cycle, event, user } from '@openathlete/database';
 
 import { AuthUser } from '../decorators/user.decorator';
 import { PrismaQuery, createPrismaAbility } from './casl-prisma';
@@ -15,6 +15,7 @@ export type Subjects = CASLSubjects<{
   user: user;
   athlete: athlete;
   event: event;
+  cycle: cycle;
 }>;
 
 export type AppAbility = PureAbility<[CRUD, Subjects | 'all'], PrismaQuery>;
@@ -40,11 +41,13 @@ export class CaslAbilityFactory {
 
     if (user.athlete) {
       can('manage', 'event', { athlete_id: user.athlete.athlete_id });
+      can('manage', 'cycle', { athlete_id: user.athlete.athlete_id });
     }
 
     if (user.coach_athletes) {
       user.coach_athletes.forEach((coachAthlete) => {
         can('manage', 'event', { athlete_id: coachAthlete.athlete_id });
+        can('manage', 'cycle', { athlete_id: coachAthlete.athlete_id });
       });
     }
   }

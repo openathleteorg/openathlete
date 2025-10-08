@@ -7,12 +7,13 @@ import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
 import { ConnectorController } from './controllers/connector.controller';
 import { ContactController } from './controllers/contact.controller';
+import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
 import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
-import { EventService } from './services';
+import { CycleService, EventService } from './services';
 import { AthleteService } from './services/athlete.service';
 import { StravaConnectorService } from './services/connector/strava.service';
 import { ContactService } from './services/contact.service';
@@ -40,6 +41,7 @@ import { WeatherService } from './services/weather/weather.service';
     EquipmentController,
     TrainingZoneController,
     ContactController,
+    CycleController,
   ],
   providers: [
     EventService,
@@ -52,6 +54,7 @@ import { WeatherService } from './services/weather/weather.service';
     EquipmentService,
     TrainingZoneService,
     ContactService,
+    CycleService,
     WeatherService,
     OpenMeteoWeatherProvider,
     // Pipeline and processors
