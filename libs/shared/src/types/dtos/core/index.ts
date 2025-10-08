@@ -5,3 +5,4 @@ export * from './get-statistics-for-period.response.dto';
 export * from './equipment.dto';
 export * from './create-training-zone.dto';
 export * from './contact.dto';
+export * from './get-event-weather.response.dto';
