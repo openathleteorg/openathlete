@@ -35,7 +35,7 @@ Packages managed with `pnpm` (see root `package.json`). Main areas:
 ### 5. Environment & Secrets
 
 - Local setup: copy `apps/web/.env.example` & `apps/api/.env.example` to real `.env` files.
-- Required backend vars include STRAVA*\* and SENDGRID*\* (see `ApiEnvSchema`). If adding integration require: update schema + docs + example file.
+- Required backend vars include STRAVA*\* and BREVO*\* (see `ApiEnvSchema`). If adding integration require: update schema + docs + example file.
 
 ### 6. OAuth / Connector Integrations
 
@@ -73,7 +73,7 @@ Packages managed with `pnpm` (see root `package.json`). Main areas:
 ### 11. Error & Exception Handling
 
 - Backend throws Nest exceptions (`NotFoundException`, `ForbiddenException`) early; do not return `null` for missing entities—match existing services.
-- Wrap external API failures (Strava, SendGrid) with meaningful Nest HTTP exceptions to propagate consistent error shapes.
+- Wrap external API failures (Strava, Brevo) with meaningful Nest HTTP exceptions to propagate consistent error shapes.
 
 ### 12. Adding New Domain Features (Backend Checklist)
 

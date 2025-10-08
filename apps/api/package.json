@@ -29,7 +29,7 @@
     "@openathlete/database": "workspace:*",
     "@openathlete/shared": "workspace:*",
     "@prisma/client": "6.4.1",
-    "@sendgrid/mail": "^8.1.5",
+    "@getbrevo/brevo": "^2.2.0",
     "argon2": "^0.41.1",
     "axios": "^1.8.2",
     "class-transformer": "^0.5.1",

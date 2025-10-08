@@ -17,8 +17,8 @@ export const ApiEnvSchema = z.object({
   STRAVA_REDIRECT_URI: z.string().nonempty(),
   STRAVA_WEBHOOK_TOKEN: z.string().nonempty(),
 
-  SENDGRID_API_KEY: z.string().nonempty(),
-  SENDGRID_FROM_EMAIL: z.string().email().nonempty(),
+  BREVO_API_KEY: z.string().nonempty(),
+  BREVO_FROM_EMAIL: z.string().email().nonempty(),
 
   NOTION_TOKEN: z.string().nonempty(),
   NOTION_DATABASE_ID: z.string().nonempty(),
