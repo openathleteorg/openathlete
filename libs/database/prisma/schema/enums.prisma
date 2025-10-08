@@ -50,3 +50,12 @@ enum equipment_type {
   SHOE
   BIKE
 }
+
+enum normalization_factor {
+  SLOPE
+  TEMPERATURE
+  ALTITUDE
+  WIND
+  HUMIDITY
+  RADIATION
+}

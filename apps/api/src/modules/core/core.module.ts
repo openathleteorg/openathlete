@@ -20,6 +20,7 @@ import { EquipmentService } from './services/equipment.service';
 import { EventTemplateService } from './services/event-template.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import { GapProcessor } from './services/pipeline/processors/gap.processor';
+import { NormalizationProcessor } from './services/pipeline/processors/normalization.processor';
 import { WeatherProcessor } from './services/pipeline/processors/weather.processor';
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
@@ -56,14 +57,21 @@ import { WeatherService } from './services/weather/weather.service';
     // Pipeline and processors
     GapProcessor,
     WeatherProcessor,
+    NormalizationProcessor,
     {
       provide: ActivityPipelineService,
       useFactory: (
         prisma: PrismaService,
         gap: GapProcessor,
         weather: WeatherProcessor,
-      ) => new ActivityPipelineService(prisma, [gap, weather]),
-      inject: [PrismaService, GapProcessor, WeatherProcessor],
+        normalization: NormalizationProcessor,
+      ) => new ActivityPipelineService(prisma, [gap, weather, normalization]),
+      inject: [
+        PrismaService,
+        GapProcessor,
+        WeatherProcessor,
+        NormalizationProcessor,
+      ],
     },
   ],
   exports: [EventService, ActivityPipelineService],

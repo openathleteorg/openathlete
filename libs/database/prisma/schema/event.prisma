@@ -77,35 +77,37 @@ model event_activity {
   event_activity_id Int @id @default(autoincrement())
 
   // fields
-  provider               connector_provider?
-  distance               Float // in meters
-  elevation_gain         Float // in meters
-  moving_time            Int // in seconds
-  average_speed          Float // in m/s
-  max_speed              Float // in m/s
-  average_cadence        Float? // in rpm
-  average_watts          Float? // in watts
-  max_watts              Float? // in watts
-  weighted_average_watts Float? // in watts
-  average_heartrate      Float? // in bpm
-  max_heartrate          Float? // in bpm
-  kilojoules             Float? // in kJ
-  rpe                    Float? // in RPE (0-1)
-  external_id            String
-  sport                  sport_type
-  stream                 Json?
-  description            String              @default("")
-  average_gap_speed      Float? // in m/s
+  provider                 connector_provider?
+  distance                 Float // in meters
+  elevation_gain           Float // in meters
+  moving_time              Int // in seconds
+  average_speed            Float // in m/s
+  max_speed                Float // in m/s
+  average_cadence          Float? // in rpm
+  average_watts            Float? // in watts
+  max_watts                Float? // in watts
+  weighted_average_watts   Float? // in watts
+  average_heartrate        Float? // in bpm
+  max_heartrate            Float? // in bpm
+  kilojoules               Float? // in kJ
+  rpe                      Float? // in RPE (0-1)
+  external_id              String
+  sport                    sport_type
+  stream                   Json?
+  description              String              @default("")
+  average_gap_speed        Float? // in m/s
+  average_normalized_speed Float? // in m/s
 
   // relationships
-  event               event                   @relation(fields: [event_id], references: [event_id])
-  event_id            Int                     @unique
+  event               event                         @relation(fields: [event_id], references: [event_id])
+  event_id            Int                           @unique
   related_training    event_training?
   related_competition event_competition?
   records             record[]
-  equipment           equipment?              @relation(fields: [equipment_id], references: [equipment_id])
+  equipment           equipment?                    @relation(fields: [equipment_id], references: [equipment_id])
   equipment_id        Int?
   weather             event_activity_weather?
+  normalization       event_activity_normalization?
 }
 
 model event_activity_weather {
@@ -120,6 +122,43 @@ model event_activity_weather {
   // relationships
   event_activity    event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
   event_activity_id Int            @unique
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model event_activity_normalization {
+  // primary key
+  event_activity_normalization_id Int @id @default(autoincrement())
+
+  // fields
+  average_normalized_speed Float? // in m/s, duplicate for quick access; also stored on event_activity
+
+  // relationships
+  event_activity    event_activity                        @relation(fields: [event_activity_id], references: [event_activity_id])
+  event_activity_id Int                                   @unique
+  factors           event_activity_normalization_factor[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model event_activity_normalization_factor {
+  // primary key
+  event_activity_normalization_factor_id Int @id @default(autoincrement())
+
+  // fields
+  factor       normalization_factor
+  // Signed contribution to time vs flat/no-condition baseline over activity
+  // Store both absolute seconds and percent for flexible analytics
+  time_seconds Float // >0 cost, <0 benefit
+  percent      Float // percent of baseline moving time
+
+  // relationships
+  normalization                   event_activity_normalization @relation(fields: [event_activity_normalization_id], references: [event_activity_normalization_id])
+  event_activity_normalization_id Int
 
   // timestamps
   created_at DateTime @default(now())

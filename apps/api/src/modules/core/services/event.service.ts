@@ -80,6 +80,7 @@ export const EVENT_INCLUDES = {
       max_heartrate: true,
       kilojoules: true,
       average_gap_speed: true,
+      average_normalized_speed: true,
       rpe: true,
       external_id: true,
       sport: true,
