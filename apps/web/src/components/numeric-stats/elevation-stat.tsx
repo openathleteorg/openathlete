@@ -24,7 +24,7 @@ export function ElevationStat({
         {label && <div className="text-sm font-semibold">{label}</div>}
         <div>
           {elevation.toFixed(0)}{' '}
-          <span className="text-gray-500 text-sm">{m.meters()}</span>
+          <span className="text-gray-500 dark:text-gray-400 text-sm">{m.meters()}</span>
         </div>
       </PopoverTrigger>
       {altitudeStream && distanceStream && (

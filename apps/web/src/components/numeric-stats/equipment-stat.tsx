@@ -23,7 +23,7 @@ export function EquipmentStat({ equipmentId }: P) {
         <div className="space-y-2">
           <div>
             {m.total_distance()}:{' '}
-            <span className="text-gray-500 text-sm">
+            <span className="text-gray-500 dark:text-gray-400 text-sm">
               {(equipmentItem.totalDistance / 1000).toFixed(1)} km
             </span>
           </div>

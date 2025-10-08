@@ -146,9 +146,9 @@ export function CalendarDay({ day, events, cycleSegments = [] }: P) {
   return (
     <div
       className={cn(
-        'min-h-32 flex-1 [&:not(:last-child)]:border-r-1 cursor-pointer hover:bg-gray-50 select-none',
-        isOver ? 'bg-gray-100' : '',
-        isInDragSelection ? 'bg-blue-50' : '',
+        'min-h-32 flex-1 [&:not(:last-child)]:border-r-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30 select-none',
+        isOver ? 'bg-gray-100 dark:bg-gray-800/50' : '',
+        isInDragSelection ? 'bg-blue-50 dark:bg-blue-950/30' : '',
       )}
       onClick={() => console.log(day)}
       onMouseDown={handleMouseDown}

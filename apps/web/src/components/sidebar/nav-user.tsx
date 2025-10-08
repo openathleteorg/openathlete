@@ -26,12 +26,14 @@ import { getLocale, setLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { getLocaleName } from '@/utils/locales';
 import { ChevronsUpDown, CogIcon, LogOut } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useNavigate } from 'react-router-dom';
 
 export function NavUser() {
   const { logout, user } = useAuthContext();
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
+  const { theme, setTheme } = useTheme();
 
   if (!user) {
     return null;
@@ -105,6 +107,30 @@ export function NavUser() {
                         }}
                       >
                         {getLocaleName(lang)}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuSubContent>
+                </DropdownMenuPortal>
+              </DropdownMenuSub>
+            </DropdownMenuGroup>
+            <DropdownMenuGroup>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger>{m.theme()}</DropdownMenuSubTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuSubContent>
+                    {['light', 'dark', 'system'].map((themeOption) => (
+                      <DropdownMenuItem
+                        key={themeOption}
+                        className={theme === themeOption ? 'font-bold' : ''}
+                        onClick={() => {
+                          setTheme(themeOption);
+                        }}
+                      >
+                        {themeOption === 'light'
+                          ? m.theme_light()
+                          : themeOption === 'dark'
+                            ? m.theme_dark()
+                            : m.theme_system()}
                       </DropdownMenuItem>
                     ))}
                   </DropdownMenuSubContent>

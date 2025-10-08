@@ -50,10 +50,10 @@ function EventSecondLine({ event }: { event: Event }) {
     ) {
       return (
         <div className="flex justify-between w-full">
-          <div className="text-xs font-medium text-gray-500">
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {formatDuration(event.movingTime)}
           </div>
-          <div className="text-xs font-medium text-gray-500">
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {formatDistance(event.distance, 'km')} km
           </div>
         </div>
@@ -61,7 +61,7 @@ function EventSecondLine({ event }: { event: Event }) {
     } else {
       return (
         <div className="flex justify-between w-full">
-          <div className="text-xs font-medium text-gray-500">
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {formatDuration(event.movingTime)}
           </div>
         </div>
@@ -72,12 +72,12 @@ function EventSecondLine({ event }: { event: Event }) {
     return (
       <div className="flex justify-between w-full">
         {event.goalDuration && (
-          <div className="text-xs font-medium text-gray-500">
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {formatDuration(event.goalDuration)}
           </div>
         )}
         {event.goalDistance && (
-          <div className="text-xs font-medium text-gray-500">
+          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {formatDistance(event.goalDistance, 'km')} km
           </div>
         )}
@@ -111,7 +111,7 @@ export function CalendarEvent({ event, wrapped }: P) {
       case COLORED_BY.SPORT:
         const sport = event.type !== EVENT_TYPE.NOTE ? event.sport : null;
         if (sport === null)
-          return 'bg-gray-50 hover:bg-gray-100 border-gray-200';
+          return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
         return getSportColor(sport);
       case COLORED_BY.RPE:
         const rpe =
@@ -121,7 +121,7 @@ export function CalendarEvent({ event, wrapped }: P) {
                 event.type === EVENT_TYPE.COMPETITION
               ? event.goalRpe
               : null;
-        if (rpe === null) return 'bg-gray-50 hover:bg-gray-100 border-gray-200';
+        if (rpe === null) return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
         return getLowSaturatedRpeColor(rpe);
     }
   }, [event, coloredBy]);

@@ -93,10 +93,10 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
           {cycle.description && (
             <>
               <div className="flex flex-col gap-2">
-                <h3 className="text-sm font-semibold text-gray-700">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   {m.description()}
                 </h3>
-                <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
                   {cycle.description}
                 </p>
               </div>

@@ -41,7 +41,7 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
       {polyline && (
         <Polyline
           positions={convertedPolyline}
-          pathOptions={{ color: 'var(--primary)' }}
+          pathOptions={{ color: 'black' }}
         />
       )}
       {convertedFocusPolyline && (

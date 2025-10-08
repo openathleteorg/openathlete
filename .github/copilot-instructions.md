@@ -99,7 +99,12 @@ Packages managed with `pnpm` (see root `package.json`). Main areas:
 ### 15. When Unsure
 
 Look for an analogue service/controller and mirror structure; consistency > novelty.
-All the comments in the codebase should be written in English.
+
+### Miscellaneous
+
+- All the comments in the codebase should be written in English.
+- Use `// TODO:` comments to indicate areas needing future work.
+- Always add text in multiple languages using the i18n system and paraglide.
 
 ---
 
