@@ -1,3 +1,4 @@
+import { RootLayout } from '@/components/layouts';
 import { LoadingScreen } from '@/components/loading-screen';
 import { PATH_AFTER_LOGIN } from '@/config';
 import { useAuthContext } from '@/contexts/auth';
@@ -34,28 +35,33 @@ function RootRedirect() {
 }
 
 const router = createBrowserRouter([
-  { path: '/', element: <RootRedirect /> },
   {
-    element: (
-      <MarketingLayout>
-        <Suspense fallback={<LoadingScreen />}>
-          <Outlet />
-        </Suspense>
-      </MarketingLayout>
-    ),
+    element: <RootLayout />,
     children: [
-      { path: '/services', element: <MarketingServices /> },
-      { path: '/about', element: <MarketingAbout /> },
-      { path: '/contact', element: <MarketingContact /> },
+      { path: '/', element: <RootRedirect /> },
+      {
+        element: (
+          <MarketingLayout>
+            <Suspense fallback={<LoadingScreen />}>
+              <Outlet />
+            </Suspense>
+          </MarketingLayout>
+        ),
+        children: [
+          { path: '/services', element: <MarketingServices /> },
+          { path: '/about', element: <MarketingAbout /> },
+          { path: '/contact', element: <MarketingContact /> },
+        ],
+      },
+
+      ...authRoutes,
+      ...dashboardRoutes,
+      ...mainRoutes,
+
+      // No match 404
+      { path: '*', element: <Navigate to="/404" replace /> },
     ],
   },
-
-  ...authRoutes,
-  ...dashboardRoutes,
-  ...mainRoutes,
-
-  // No match 404
-  { path: '*', element: <Navigate to="/404" replace /> },
 ]);
 
 export default router;

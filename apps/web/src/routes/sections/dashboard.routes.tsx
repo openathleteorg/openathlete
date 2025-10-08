@@ -33,6 +33,12 @@ const RacePlanViewerPage = lazy(() =>
   })),
 );
 
+const ChatbotPage = lazy(() =>
+  import('@/pages/dashboard/chatbot').then((module) => ({
+    default: module.ChatbotPage,
+  })),
+);
+
 export const dashboardRoutes: RouteObject[] = [
   {
     path: getPath(['dashboard']),
@@ -70,6 +76,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'racePlan', 'viewer']),
         element: <RacePlanViewerPage />,
+      },
+      {
+        path: getPath(['dashboard', 'chatbot']),
+        element: <ChatbotPage />,
       },
     ],
   },

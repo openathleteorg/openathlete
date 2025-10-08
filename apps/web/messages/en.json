@@ -319,5 +319,21 @@
   "total_distance": "Total distance",
   "settings_description": "Manage your account settings and preferences",
   "equipment_name": "Equipment name",
-  "required": "This field is required"
+  "required": "This field is required",
+  "chatbot_assistant": "Assistant",
+  "chatbot_new_conversation": "New conversation",
+  "chatbot_fullscreen": "Fullscreen",
+  "chatbot_close": "Close",
+  "chatbot_select_conversation": "Select a conversation",
+  "chatbot_no_messages": "No messages yet",
+  "chatbot_start_conversation": "Start a conversation by sending a message below",
+  "chatbot_write_message": "Write your message...",
+  "chatbot_conversations": "conversations",
+  "chatbot_conversation": "conversation",
+  "chatbot_messages": "messages",
+  "chatbot_message": "message",
+  "chatbot_created_on": "Created on",
+  "chatbot_select_or_create": "Select or create a conversation",
+  "chatbot_default_response": "I'm a virtual assistant under development. Soon, I'll be able to help you with your training and sports goals!",
+  "chatbot_open": "Open chatbot"
 }

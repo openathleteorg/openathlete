@@ -99,6 +99,7 @@ Packages managed with `pnpm` (see root `package.json`). Main areas:
 ### 15. When Unsure
 
 Look for an analogue service/controller and mirror structure; consistency > novelty.
+All the comments in the codebase should be written in English.
 
 ---
 
