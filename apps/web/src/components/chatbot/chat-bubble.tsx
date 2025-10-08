@@ -137,7 +137,7 @@ export function ChatBubble() {
 
   return (
     <motion.button
-      initial={{ 
+      initial={{
         scale: 0,
         left: position.left,
         top: position.top,
