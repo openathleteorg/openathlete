@@ -52,16 +52,15 @@ export class TrainingZoneService {
     if (!ability.can('update', subject('athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
-    // Determine next index for HEARTRATE zones
     const existingCount = await this.prisma.training_zone.count({
-      where: { athlete_id: dto.athleteId, type: 'HEARTRATE' },
+      where: { athlete_id: dto.athleteId, type: dto.type },
     });
     const zone = await this.prisma.training_zone.create({
       data: {
         name: dto.name,
         description: dto.description ?? '',
         index: existingCount,
-        type: 'HEARTRATE',
+        type: dto.type,
         color: dto.color,
         athlete_id: dto.athleteId,
         values: {
@@ -98,6 +97,7 @@ export class TrainingZoneService {
         name: dto.name,
         description: dto.description ?? '',
         color: dto.color,
+        ...(dto.type && { type: dto.type }),
         values: {
           update: zone.values[0]
             ? [
