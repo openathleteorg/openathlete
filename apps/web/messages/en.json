@@ -339,5 +339,21 @@
   "chatbot_created_on": "Created on",
   "chatbot_select_or_create": "Select or create a conversation",
   "chatbot_default_response": "I'm a virtual assistant under development. Soon, I'll be able to help you with your training and sports goals!",
-  "chatbot_open": "Open chatbot"
+  "chatbot_open": "Open chatbot",
+  "no_training_zones_defined": "No training zones defined yet",
+  "create_zones": "Create zones",
+  "edit_zones": "Edit zones",
+  "zone": "Zone",
+  "min": "Min",
+  "max": "Max",
+  "zone_name": "Zone name",
+  "optional": "Optional",
+  "minimum": "Minimum",
+  "maximum": "Maximum",
+  "add_zone": "Add zone",
+  "select_sports": "Select sports",
+  "search_sports": "Search sports...",
+  "no_sport_found": "No sport found",
+  "or_more": "or more",
+  "maximum_or_more": "Maximum (or unlimited)"
 }

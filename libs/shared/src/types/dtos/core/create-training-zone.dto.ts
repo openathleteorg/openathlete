@@ -1,10 +1,11 @@
 import { z } from 'zod';
 
-import { SPORT_TYPE } from '../../misc';
+import { SPORT_TYPE, TRAINING_ZONE_TYPE } from '../../misc';
 
 export const createTrainingZoneDtoSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
+  type: z.nativeEnum(TRAINING_ZONE_TYPE),
   min: z.number(),
   max: z.number(),
   color: z.string(),
@@ -15,6 +16,7 @@ export const createTrainingZoneDtoSchema = z.object({
 export const updateTrainingZoneDtoSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
+  type: z.nativeEnum(TRAINING_ZONE_TYPE).optional(),
   min: z.number(),
   max: z.number(),
   color: z.string(),
