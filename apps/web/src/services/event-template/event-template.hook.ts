@@ -19,8 +19,9 @@ export const useCreateEventTemplateMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventTemplateService.createEventTemplate,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['EventTemplateService.getMyEventTemplates'],
       });
@@ -50,8 +51,9 @@ export const useDeleteEventTemplateMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventTemplateService.deleteEventTemplate,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['EventTemplateService.getMyEventTemplates'],
       });
