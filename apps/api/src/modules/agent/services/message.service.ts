@@ -1,0 +1,125 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+
+import { agent_message } from '@openathlete/database';
+import { CreateMessageDto } from '@openathlete/shared';
+
+import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+
+import { ThreadService } from './thread.service';
+
+const MESSAGE_INCLUDES = {
+  blocks: {
+    orderBy: { order: 'asc' as const },
+  },
+};
+
+@Injectable()
+export class MessageService {
+  constructor(
+    private prisma: PrismaService,
+    private threadService: ThreadService,
+  ) {}
+
+  async createMessage(
+    user: AuthUser,
+    dto: CreateMessageDto,
+  ): Promise<agent_message> {
+    // Verify thread access
+    await this.threadService.getThreadById(user, dto.threadId);
+
+    const message = await this.prisma.agent_message.create({
+      data: {
+        thread_id: dto.threadId,
+        role: dto.role || 'USER',
+        metadata: dto.metadata as any,
+        blocks: dto.blocks
+          ? {
+              create: dto.blocks.map((block) => ({
+                type: block.type,
+                order: block.order,
+                content: block.content,
+                metadata: block.metadata as any,
+                status: block.status || 'completed',
+                error: block.error,
+                tool_name: block.toolName,
+                tool_input: block.toolInput as any,
+                tool_output: block.toolOutput as any,
+                chart_type: block.chartType,
+                chart_data: block.chartData as any,
+              })),
+            }
+          : undefined,
+      },
+      include: MESSAGE_INCLUDES,
+    });
+
+    // Don't convert to camelCase - keep snake_case for internal usage
+    return message;
+  }
+
+  async getMessageById(
+    user: AuthUser,
+    messageId: number,
+  ): Promise<agent_message> {
+    const message = await this.prisma.agent_message.findUnique({
+      where: { message_id: messageId },
+      include: {
+        ...MESSAGE_INCLUDES,
+        thread: true,
+      },
+    });
+
+    if (!message) {
+      throw new NotFoundException(`Message with ID ${messageId} not found`);
+    }
+
+    // Verify thread access
+    await this.threadService.getThreadById(user, message.thread_id);
+
+    // Keep snake_case for internal usage
+    return message;
+  }
+
+  async getThreadMessages(
+    user: AuthUser,
+    threadId: number,
+  ): Promise<agent_message[]> {
+    // Verify thread access
+    await this.threadService.getThreadById(user, threadId);
+
+    const messages = await this.prisma.agent_message.findMany({
+      where: { thread_id: threadId },
+      include: MESSAGE_INCLUDES,
+      orderBy: { created_at: 'asc' },
+    });
+
+    // Keep snake_case for internal usage
+    return messages;
+  }
+
+  async updateMessageStatus(
+    user: AuthUser,
+    messageId: number,
+    status: 'pending' | 'processing' | 'completed' | 'error',
+  ): Promise<agent_message> {
+    const message = await this.getMessageById(user, messageId);
+
+    const updated = await this.prisma.agent_message.update({
+      where: { message_id: messageId },
+      data: { status },
+      include: MESSAGE_INCLUDES,
+    });
+
+    // Keep snake_case for internal usage
+    return updated;
+  }
+
+  async deleteMessage(user: AuthUser, messageId: number): Promise<void> {
+    await this.getMessageById(user, messageId); // Check authorization
+
+    await this.prisma.agent_message.delete({
+      where: { message_id: messageId },
+    });
+  }
+}

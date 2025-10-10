@@ -6,6 +6,7 @@ import {
   NotificationListener,
 } from 'src/listeners';
 
+import { AgentModule } from './agent/agent.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
 import { CoreModule } from './core';
@@ -16,6 +17,7 @@ import { PrismaService } from './prisma/services/prisma.service';
   imports: [
     AuthModule,
     CoreModule,
+    AgentModule,
     EventEmitterModule.forRoot(),
     NotificationModule,
   ],
