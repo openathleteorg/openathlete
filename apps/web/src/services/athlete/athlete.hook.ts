@@ -48,8 +48,9 @@ export const useInviteCoachMutation = (
   return useMutation({
     ...opt,
     mutationFn: AthleteService.inviteCoach,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['AthleteService.getMyCoaches'],
       });
@@ -68,8 +69,9 @@ export const useInviteAthleteMutation = (
   return useMutation({
     ...opt,
     mutationFn: AthleteService.inviteAthlete,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['AthleteService.getCoachedAthletes'],
       });
@@ -88,8 +90,9 @@ export const useRemoveAthleteMutation = (
   return useMutation({
     ...opt,
     mutationFn: AthleteService.removeAthlete,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['AthleteService.getCoachedAthletes'],
       });
@@ -108,8 +111,9 @@ export const useRemoveCoachMutation = (
   return useMutation({
     ...opt,
     mutationFn: AthleteService.removeCoach,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['AthleteService.getMyCoaches'],
       });

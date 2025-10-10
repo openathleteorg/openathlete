@@ -19,8 +19,9 @@ export const useCreateCycleMutation = (
   return useMutation({
     ...opt,
     mutationFn: CycleService.createCycle,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: ['CycleService.getMyCycles'] });
     },
   });
@@ -37,8 +38,9 @@ export const useUpdateCycleMutation = (
   return useMutation({
     ...opt,
     mutationFn: CycleService.updateCycle,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['CycleService.getCycle', variables.cycleId],
       });
@@ -60,8 +62,9 @@ export const useDeleteCycleMutation = (
   return useMutation({
     ...opt,
     mutationFn: CycleService.deleteCycle,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: ['CycleService.getMyCycles'] });
     },
   });

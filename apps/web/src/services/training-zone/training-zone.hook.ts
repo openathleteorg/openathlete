@@ -31,8 +31,9 @@ export const useCreateTrainingZone = (
   return useMutation({
     ...opt,
     mutationFn: TrainingZoneService.create,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['TrainingZoneService.getAllForAthlete'],
       });
@@ -55,8 +56,9 @@ export const useUpdateTrainingZone = (
     ...opt,
     mutationFn: ({ trainingZoneId, body }) =>
       TrainingZoneService.update(trainingZoneId, body),
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['TrainingZoneService.getAllForAthlete'],
       });
@@ -78,8 +80,9 @@ export const useDeleteTrainingZone = (
   return useMutation({
     ...opt,
     mutationFn: TrainingZoneService.delete,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['TrainingZoneService.getAllForAthlete'],
       });

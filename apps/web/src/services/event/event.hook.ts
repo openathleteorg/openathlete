@@ -21,8 +21,9 @@ export const useCreateEventMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventService.createEvent,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: ['EventService.getMyEvents'] });
     },
   });
@@ -39,8 +40,9 @@ export const useUpdateEventMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventService.updateEvent,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['EventService.getEvent', variables.eventId],
       });
@@ -134,8 +136,9 @@ export const useDeleteEventMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventService.deleteEvent,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: ['EventService.getMyEvents'] });
     },
   });
@@ -152,8 +155,9 @@ export const useSetRelatedActivityMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventService.setRelatedActivity,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['EventService.getEvent', variables.eventId],
       });
@@ -175,8 +179,9 @@ export const useUnsetRelatedActivityMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventService.unsetRelatedActivity,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['EventService.getEvent', variables],
       });
@@ -212,8 +217,9 @@ export const useDuplicateEventMutation = (
       const event = await EventService.getEvent(variables);
       return EventService.createEvent(event);
     },
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: ['EventService.getMyEvents'],
       });

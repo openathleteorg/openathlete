@@ -12,8 +12,9 @@ export const useGetOAuthUriMutation = (
   return useMutation({
     ...opt,
     mutationFn: ConnectorService.getOAuthUri,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
     },
   });
 };
@@ -28,8 +29,9 @@ export const useSetOAuthTokenMutation = (
   return useMutation({
     ...opt,
     mutationFn: ConnectorService.setOAuthToken,
-    onSuccess: (data, variables, context) => {
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
     },
   });
 };

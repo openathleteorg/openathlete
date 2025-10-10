@@ -13,10 +13,11 @@ export const useLoginMutation = (
   return useMutation({
     ...opt,
     mutationFn: AuthService.login,
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, onMutateResult, context) => {
       setItem(REFRESH_TOKEN, data.refreshToken);
       setItem(ACCESS_TOKEN, data.accessToken);
-      if (opt?.onSuccess) opt.onSuccess(data, variables, context);
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
     },
   });
 };
