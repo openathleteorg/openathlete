@@ -1,0 +1,69 @@
+model agent_thread {
+  // primary key
+  thread_id Int @id @default(autoincrement())
+
+  // fields
+  title    String?
+  metadata Json?
+
+  // relationships
+  user     user            @relation(fields: [user_id], references: [user_id])
+  user_id  Int
+  messages agent_message[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model agent_message {
+  // primary key
+  message_id Int @id @default(autoincrement())
+
+  // fields
+  role     agent_message_role
+  metadata Json?
+  status   agent_message_status @default(pending)
+
+  // relationships
+  thread            agent_thread          @relation(fields: [thread_id], references: [thread_id], onDelete: Cascade)
+  thread_id         Int
+  parent_message    agent_message?        @relation("MessageThread", fields: [parent_message_id], references: [message_id])
+  parent_message_id Int?
+  child_messages    agent_message[]       @relation("MessageThread")
+  blocks            agent_message_block[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model agent_message_block {
+  // primary key
+  block_id Int @id @default(autoincrement())
+
+  // fields
+  type     agent_block_type
+  order    Int
+  content  String
+  metadata Json?
+  status   agent_block_status @default(completed)
+  error    String?
+
+  tool_name   String?
+  tool_input  Json?
+  tool_output Json?
+
+  chart_type String?
+  chart_data Json?
+
+  // relationships
+  message    agent_message @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
+  message_id Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([message_id, order])
+}

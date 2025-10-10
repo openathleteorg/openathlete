@@ -14,6 +14,7 @@ model user {
   coach_athletes coach_athlete[]
   tokens         token[]
   templates      event_template[]
+  agent_threads  agent_thread[]
 
   // timestamps
   created_at DateTime @default(now())

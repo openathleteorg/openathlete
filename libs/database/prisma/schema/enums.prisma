@@ -46,6 +46,48 @@ enum record_type {
   CADENCE
 }
 
+enum agent_message_role {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+enum agent_message_status {
+  pending
+  processing
+  completed
+  error
+}
+
+enum agent_block_type {
+  TEXT
+  THINKING
+  TOOL_CALL
+  TOOL_RESULT
+  CODE
+  CHART_LINE
+  CHART_BAR
+  CHART_PIE
+  CHART_SCATTER
+  CHART_AREA
+  TABLE
+  MAP
+  ACTIVITY_SUMMARY
+  TRAINING_PLAN
+  ERROR
+  IMAGE
+  FILE
+}
+
+enum agent_block_status {
+  pending
+  processing
+  completed
+  error
+  cancelled
+}
+
 enum equipment_type {
   SHOE
   BIKE
