@@ -1,9 +1,23 @@
 import { API_BASE_URL } from '@/config';
 import axios from 'axios';
-import { decode } from 'jsonwebtoken';
 
 import { routes } from './axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN, getItem } from './local-storage';
+
+function decodeJWT(token: string): { exp?: number } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const payload = parts[1];
+    const decoded = JSON.parse(
+      atob(payload.replace(/-/g, '+').replace(/_/g, '/')),
+    );
+    return decoded;
+  } catch {
+    return null;
+  }
+}
 
 type TokenInfo = {
   accessToken: string;
@@ -46,8 +60,8 @@ export async function refreshToken(): Promise<TokenInfo | null> {
 
 export function isValidToken(token: string): boolean {
   try {
-    const decoded = decode(token);
-    if (!decoded || typeof decoded === 'string' || !decoded.exp) return false;
+    const decoded = decodeJWT(token);
+    if (!decoded || !decoded.exp) return false;
     return decoded.exp > Date.now() / 1000;
   } catch {
     return false;
