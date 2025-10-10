@@ -19,6 +19,8 @@
   "dependencies": {
     "@casl/ability": "^6.7.3",
     "@casl/prisma": "^1.5.1",
+    "@getbrevo/brevo": "^2.2.0",
+    "@mastra/core": "^0.20.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.1",
     "@nestjs/core": "^11.0.1",
@@ -26,10 +28,11 @@
     "@nestjs/jwt": "^11.0.0",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/platform-socket.io": "^11.1.6",
+    "@nestjs/websockets": "^11.1.6",
     "@openathlete/database": "workspace:*",
     "@openathlete/shared": "workspace:*",
     "@prisma/client": "6.4.1",
-    "@getbrevo/brevo": "^2.2.0",
     "argon2": "^0.41.1",
     "axios": "^1.8.2",
     "class-transformer": "^0.5.1",
@@ -38,9 +41,11 @@
     "ical-generator": "^8.1.1",
     "jsonwebtoken": "^9.0.2",
     "nestjs-zod": "^4.3.1",
+    "openai": "^6.3.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
