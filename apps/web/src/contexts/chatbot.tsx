@@ -45,7 +45,11 @@ interface ChatbotContextType {
   chatSide: 'left' | 'right';
   setChatSide: (side: 'left' | 'right') => void;
 
-  // Conversations
+  // Active thread (API-based)
+  activeThreadId: number | null;
+  setActiveThreadId: (id: number | null) => void;
+
+  // Legacy: Conversations (for backward compatibility with old components)
   conversations: ChatConversation[];
   activeConversationId: string | null;
   setActiveConversationId: (id: string | null) => void;
@@ -64,6 +68,8 @@ const STORAGE_KEYS = {
   BUBBLE_POSITION: 'chatbot-bubble-position',
   CHAT_WIDTH: 'chatbot-chat-width',
   CHAT_SIDE: 'chatbot-chat-side',
+  ACTIVE_THREAD_ID: 'chatbot-active-thread-id',
+  // Legacy keys for backward compatibility
   CONVERSATIONS: 'chatbot-conversations',
   ACTIVE_CONVERSATION_ID: 'chatbot-active-conversation-id',
 };
@@ -102,6 +108,14 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEYS.CHAT_SIDE);
     return stored === 'right' ? 'right' : DEFAULT_CHAT_SIDE;
   });
+
+  // Active thread ID (for real API)
+  const [activeThreadId, setActiveThreadIdState] = useState<number | null>(
+    () => {
+      const stored = localStorage.getItem(STORAGE_KEYS.ACTIVE_THREAD_ID);
+      return stored ? parseInt(stored, 10) : null;
+    },
+  );
 
   const [conversations, setConversations] = useState<ChatConversation[]>(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.CONVERSATIONS);
@@ -155,6 +169,15 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_KEYS.ACTIVE_CONVERSATION_ID, id);
     } else {
       localStorage.removeItem(STORAGE_KEYS.ACTIVE_CONVERSATION_ID);
+    }
+  }, []);
+
+  const setActiveThreadId = useCallback((id: number | null) => {
+    setActiveThreadIdState(id);
+    if (id !== null) {
+      localStorage.setItem(STORAGE_KEYS.ACTIVE_THREAD_ID, id.toString());
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.ACTIVE_THREAD_ID);
     }
   }, []);
 
@@ -242,6 +265,9 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
     setChatWidth,
     chatSide,
     setChatSide,
+    activeThreadId,
+    setActiveThreadId,
+    // Legacy support
     conversations,
     activeConversationId,
     setActiveConversationId,

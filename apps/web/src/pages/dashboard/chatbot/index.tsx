@@ -5,47 +5,104 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
+import {
+  MessageChunk,
+  useAgentWebSocket,
+  useCreateThreadMutation,
+  useDeleteThreadMutation,
+  useGetUserThreadsQuery,
+} from '@/services/agent';
 import { cn } from '@/utils/shadcn';
 import { motion } from 'framer-motion';
 import { MessageCircle, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function ChatbotPage() {
-  const {
-    conversations,
-    activeConversationId,
-    setActiveConversationId,
-    createConversation,
-    deleteConversation,
-    getActiveConversation,
-  } = useChatbot();
+  const { activeThreadId, setActiveThreadId } = useChatbot();
+  const [streamingBlocks, setStreamingBlocks] = useState<
+    Map<number, MessageChunk>
+  >(new Map());
 
-  const activeConversation = getActiveConversation();
+  // Fetch threads
+  const { data: threads, isLoading } = useGetUserThreadsQuery();
+  const createThreadMutation = useCreateThreadMutation();
+  const deleteThreadMutation = useDeleteThreadMutation();
 
-  // Create default conversation if none exists
+  // WebSocket for streaming
+  const { isStreaming, sendMessage } = useAgentWebSocket({
+    threadId: activeThreadId || undefined,
+    onMessageChunk: (chunk) => {
+      setStreamingBlocks((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(chunk.blockId, chunk);
+        return newMap;
+      });
+    },
+    onMessageComplete: () => {
+      setStreamingBlocks(new Map());
+    },
+    onMessageError: (error) => {
+      console.error('WebSocket error:', error);
+      setStreamingBlocks(new Map());
+    },
+  });
+
+  // Create default thread if none exists
   useEffect(() => {
-    if (conversations.length === 0) {
-      createConversation(m.chatbot_new_conversation());
+    if (threads && threads.length === 0 && !isLoading) {
+      createThreadMutation.mutate(
+        { title: m.chatbot_new_conversation() },
+        {
+          onSuccess: (thread) => {
+            setActiveThreadId(thread.threadId);
+          },
+        },
+      );
     }
-  }, [conversations.length, createConversation]);
+  }, [threads, isLoading, createThreadMutation, setActiveThreadId]);
+
+  // Auto-select first thread if none selected
+  useEffect(() => {
+    if (threads && threads.length > 0 && !activeThreadId) {
+      setActiveThreadId(threads[0].threadId);
+    }
+  }, [threads, activeThreadId, setActiveThreadId]);
 
   const handleNewConversation = useCallback(() => {
-    createConversation();
-  }, [createConversation]);
+    createThreadMutation.mutate(
+      { title: m.chatbot_new_conversation() },
+      {
+        onSuccess: (thread) => {
+          setActiveThreadId(thread.threadId);
+        },
+      },
+    );
+  }, [createThreadMutation, setActiveThreadId]);
 
   const handleDeleteConversation = useCallback(
-    (id: string, e: React.MouseEvent) => {
+    (threadId: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      if (conversations.length > 1) {
-        deleteConversation(id);
+      if (threads && threads.length > 1) {
+        deleteThreadMutation.mutate(threadId);
       }
     },
-    [deleteConversation, conversations.length],
+    [deleteThreadMutation, threads],
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-background">
-      {/* Conversations sidebar */}
+      {/* Threads sidebar */}
       <div className="w-80 border-r border-border flex flex-col min-h-0">
         <div className="flex-shrink-0 p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
@@ -54,13 +111,14 @@ export function ChatbotPage() {
               onClick={handleNewConversation}
               size="icon"
               variant="default"
+              disabled={createThreadMutation.isPending}
             >
               <Plus className="h-5 w-5" />
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            {conversations.length}{' '}
-            {conversations.length > 1
+            {threads?.length || 0}{' '}
+            {(threads?.length || 0) > 1
               ? m.chatbot_conversations()
               : m.chatbot_conversation()}
           </p>
@@ -68,43 +126,38 @@ export function ChatbotPage() {
 
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-2 space-y-1">
-            {conversations.map((conversation) => (
+            {threads?.map((thread) => (
               <motion.button
-                key={conversation.id}
+                key={thread.threadId}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
-                onClick={() => setActiveConversationId(conversation.id)}
+                onClick={() => setActiveThreadId(thread.threadId)}
                 className={cn(
-                  'w-full flex items-start gap-3 p-3 rounded-lg text-left',
+                  'group w-full flex items-start gap-3 p-3 rounded-lg text-left',
                   'transition-colors',
                   'hover:bg-accent',
-                  activeConversationId === conversation.id && 'bg-accent',
+                  activeThreadId === thread.threadId && 'bg-accent',
                 )}
               >
                 <MessageCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h3 className="font-medium text-sm truncate">
-                    {conversation.title}
+                    {thread.title || `Thread ${thread.threadId}`}
                   </h3>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {conversation.messages.length}{' '}
-                    {conversation.messages.length > 1
-                      ? m.chatbot_messages()
-                      : m.chatbot_message()}
-                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {conversation.updatedAt.toLocaleDateString()}
+                    {new Date(thread.createdAt).toLocaleDateString()}
                   </p>
                 </div>
-                {conversations.length > 1 && (
+                {(threads?.length || 0) > 1 && (
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
                     onClick={(e) =>
-                      handleDeleteConversation(conversation.id, e)
+                      handleDeleteConversation(thread.threadId, e)
                     }
+                    disabled={deleteThreadMutation.isPending}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -117,25 +170,29 @@ export function ChatbotPage() {
 
       {/* Main chat area */}
       <div className="flex-1 flex flex-col min-h-0">
-        {activeConversation ? (
+        {activeThreadId ? (
           <>
             <div className="flex-shrink-0 border-b border-border p-4">
               <h2 className="text-lg font-semibold">
-                {activeConversation.title}
+                {threads?.find((t) => t.threadId === activeThreadId)?.title ||
+                  `Thread ${activeThreadId}`}
               </h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {m.chatbot_created_on()}{' '}
-                {activeConversation.createdAt.toLocaleDateString()}
-              </p>
             </div>
 
             <div className="flex-1 min-h-0 overflow-hidden">
-              <ChatMessages conversation={activeConversation} />
+              <ChatMessages
+                threadId={activeThreadId}
+                streamingBlocks={streamingBlocks}
+              />
             </div>
 
             <Separator className="flex-shrink-0" />
             <div className="flex-shrink-0 p-4 bg-background">
-              <ChatInput conversationId={activeConversation.id} />
+              <ChatInput
+                threadId={activeThreadId}
+                onSendMessage={sendMessage}
+                isStreaming={isStreaming}
+              />
             </div>
           </>
         ) : (

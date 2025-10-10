@@ -9,9 +9,15 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
+import {
+  MessageChunk,
+  useAgentWebSocket,
+  useCreateThreadMutation,
+  useGetUserThreadsQuery,
+} from '@/services/agent';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Maximize2, Plus, X } from 'lucide-react';
+import { Loader2, Maximize2, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,16 +35,17 @@ export function ChatWindow() {
     setChatWidth,
     chatSide,
     setChatSide,
-    conversations,
-    activeConversationId,
-    setActiveConversationId,
-    createConversation,
-    getActiveConversation,
+    activeThreadId,
+    setActiveThreadId,
   } = useChatbot();
 
   const navigate = useNavigate();
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [streamingBlocks, setStreamingBlocks] = useState<
+    Map<number, MessageChunk>
+  >(new Map());
+
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const dragRef = useRef<{
     startX: number;
@@ -46,6 +53,31 @@ export function ChatWindow() {
     hasSwapped: boolean;
   } | null>(null);
 
+  // Fetch threads
+  const { data: threads, isLoading } = useGetUserThreadsQuery();
+  const createThreadMutation = useCreateThreadMutation();
+
+  // WebSocket for streaming
+  const { isStreaming, sendMessage } = useAgentWebSocket({
+    threadId: activeThreadId || undefined,
+    onMessageChunk: (chunk) => {
+      setStreamingBlocks((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(chunk.blockId, chunk);
+        return newMap;
+      });
+    },
+    onMessageComplete: () => {
+      // Clear streaming blocks when message is complete
+      setStreamingBlocks(new Map());
+    },
+    onMessageError: (error) => {
+      console.error('WebSocket error:', error);
+      setStreamingBlocks(new Map());
+    },
+  });
+
+  // Resize handlers
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -90,6 +122,7 @@ export function ChatWindow() {
     }
   }, [isResizing, handleResizeMove, handleResizeEnd]);
 
+  // Drag handlers
   const handleDragStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -110,7 +143,6 @@ export function ChatWindow() {
       const deltaX = e.clientX - dragRef.current.startX;
       const threshold = 100;
 
-      // Only allow one swap per drag operation
       if (dragRef.current.hasSwapped) return;
 
       if (dragRef.current.startSide === 'left' && deltaX > threshold) {
@@ -146,20 +178,31 @@ export function ChatWindow() {
     navigate('/dashboard/chatbot');
   }, [closeChat, navigate]);
 
-  const handleNewConversation = useCallback(() => {
-    createConversation();
-  }, [createConversation]);
+  const handleNewThread = useCallback(() => {
+    createThreadMutation.mutate(
+      { title: m.chatbot_new_conversation() },
+      {
+        onSuccess: (thread) => {
+          setActiveThreadId(thread.threadId);
+        },
+      },
+    );
+  }, [createThreadMutation, setActiveThreadId]);
 
-  // Create default conversation if none exists
+  // Create default thread if none exists
   useEffect(() => {
-    if (isOpen && conversations.length === 0) {
-      createConversation(m.chatbot_new_conversation());
+    if (isOpen && threads && threads.length === 0 && !isLoading) {
+      handleNewThread();
     }
-  }, [isOpen, conversations.length, createConversation]);
+  }, [isOpen, threads, isLoading, handleNewThread]);
 
-  const activeConversation = getActiveConversation();
+  // Auto-select first thread if none selected
+  useEffect(() => {
+    if (threads && threads.length > 0 && !activeThreadId) {
+      setActiveThreadId(threads[0].threadId);
+    }
+  }, [threads, activeThreadId, setActiveThreadId]);
 
-  // Position de la fenêtre (décalée du bord avec marge)
   const windowMargin = 24;
   const windowHeight = `calc(100vh - ${windowMargin * 2}px)`;
 
@@ -167,7 +210,7 @@ export function ChatWindow() {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay invisible pour fermer en cliquant à l'extérieur */}
+          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -177,7 +220,7 @@ export function ChatWindow() {
             onClick={closeChat}
           />
 
-          {/* Fenêtre de chat - bulle flottante */}
+          {/* Chat window */}
           <motion.div
             initial={{
               opacity: 0,
@@ -202,33 +245,26 @@ export function ChatWindow() {
             }}
             style={{
               position: 'fixed',
-              top: windowMargin,
-              left: windowMargin,
-              width: chatWidth,
+              left: `${windowMargin}px`,
+              top: `${windowMargin}px`,
+              width: `${chatWidth}px`,
               height: windowHeight,
               zIndex: 9999,
             }}
-            className={cn(
-              'bg-background border border-border',
-              'rounded-3xl',
-              'shadow-2xl',
-              'flex flex-col',
-              'overflow-hidden',
-            )}
+            className="bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Resize handle */}
             <div
               onMouseDown={handleResizeStart}
               className={cn(
-                'absolute top-6 right-0 bottom-6 w-1.5 rounded-full',
-                'cursor-ew-resize hover:bg-primary/30',
-                'transition-colors',
-                isResizing && 'bg-primary/50',
+                'absolute top-0 w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors',
+                chatSide === 'left' ? 'right-0' : 'left-0',
+                isResizing && 'bg-primary/30',
               )}
             />
 
             {/* Header */}
-            <div className="flex-shrink-0 border-b border-border">
+            <div className="flex-shrink-0">
               <div className="flex items-center justify-between p-4 pb-3">
                 <div
                   onMouseDown={handleDragStart}
@@ -247,10 +283,15 @@ export function ChatWindow() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={handleNewConversation}
+                    onClick={handleNewThread}
                     title={m.chatbot_new_conversation()}
+                    disabled={createThreadMutation.isPending}
                   >
-                    <Plus className="h-4 w-4" />
+                    {createThreadMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                   </Button>
                   <Button
                     variant="ghost"
@@ -271,22 +312,27 @@ export function ChatWindow() {
                 </div>
               </div>
 
-              {/* Conversation selector */}
-              {conversations.length > 0 && (
+              {/* Thread selector */}
+              {threads && threads.length > 0 && (
                 <div className="px-4 pb-3">
                   <Select
-                    value={activeConversationId || undefined}
-                    onValueChange={setActiveConversationId}
+                    value={activeThreadId?.toString() || undefined}
+                    onValueChange={(value) =>
+                      setActiveThreadId(parseInt(value, 10))
+                    }
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue
                         placeholder={m.chatbot_select_conversation()}
                       />
                     </SelectTrigger>
-                    <SelectContent>
-                      {conversations.map((conv) => (
-                        <SelectItem key={conv.id} value={conv.id}>
-                          {conv.title}
+                    <SelectContent className="z-[10000]">
+                      {threads.map((thread) => (
+                        <SelectItem
+                          key={thread.threadId}
+                          value={thread.threadId.toString()}
+                        >
+                          {thread.title || `Thread ${thread.threadId}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -296,9 +342,13 @@ export function ChatWindow() {
             </div>
 
             {/* Messages */}
+            <Separator />
             <div className="flex-1 overflow-hidden">
-              {activeConversation ? (
-                <ChatMessages conversation={activeConversation} />
+              {activeThreadId ? (
+                <ChatMessages
+                  threadId={activeThreadId}
+                  streamingBlocks={streamingBlocks}
+                />
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   <p>{m.chatbot_select_or_create()}</p>
@@ -309,8 +359,12 @@ export function ChatWindow() {
             {/* Input */}
             <Separator />
             <div className="flex-shrink-0 p-4">
-              {activeConversation && (
-                <ChatInput conversationId={activeConversation.id} />
+              {activeThreadId && (
+                <ChatInput
+                  threadId={activeThreadId}
+                  onSendMessage={sendMessage}
+                  isStreaming={isStreaming}
+                />
               )}
             </div>
           </motion.div>

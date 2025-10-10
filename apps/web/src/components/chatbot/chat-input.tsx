@@ -1,41 +1,28 @@
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
-import { Send } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { KeyboardEvent, useCallback, useState } from 'react';
 
 interface ChatInputProps {
-  conversationId: string;
+  threadId: number;
+  onSendMessage: (content: string) => void;
+  isStreaming: boolean;
 }
 
-export function ChatInput({ conversationId }: ChatInputProps) {
+export function ChatInput({ onSendMessage, isStreaming }: ChatInputProps) {
   const [message, setMessage] = useState('');
-  const { addMessage } = useChatbot();
-  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleSubmit = useCallback(async () => {
     const trimmedMessage = message.trim();
-    if (!trimmedMessage || isProcessing) return;
+    if (!trimmedMessage || isStreaming) return;
 
-    setIsProcessing(true);
-
-    addMessage(conversationId, {
-      content: trimmedMessage,
-      role: 'user',
-    });
-
+    // Clear input immediately
     setMessage('');
 
-    // TODO: Replace with actual API call
-    setTimeout(() => {
-      addMessage(conversationId, {
-        content: m.chatbot_default_response(),
-        role: 'assistant',
-      });
-      setIsProcessing(false);
-    }, 1000);
-  }, [message, conversationId, addMessage, isProcessing]);
+    // Send via WebSocket
+    onSendMessage(trimmedMessage);
+  }, [message, isStreaming, onSendMessage]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -57,15 +44,19 @@ export function ChatInput({ conversationId }: ChatInputProps) {
         onKeyDown={handleKeyDown}
         placeholder={m.chatbot_write_message()}
         className="min-h-[60px] max-h-[120px] resize-none"
-        disabled={isProcessing}
+        disabled={isStreaming}
       />
       <Button
         onClick={handleSubmit}
-        disabled={!message.trim() || isProcessing}
+        disabled={!message.trim() || isStreaming}
         size="icon"
         className="h-[60px] w-[60px] flex-shrink-0"
       >
-        <Send className="h-5 w-5" />
+        {isStreaming ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : (
+          <Send className="h-5 w-5" />
+        )}
       </Button>
     </div>
   );
