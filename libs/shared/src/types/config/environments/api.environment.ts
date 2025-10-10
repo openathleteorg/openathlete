@@ -22,6 +22,8 @@ export const ApiEnvSchema = z.object({
 
   NOTION_TOKEN: z.string().nonempty(),
   NOTION_DATABASE_ID: z.string().nonempty(),
+
+  OPENAI_API_KEY: z.string().nonempty(),
 });
 
 export type ApiEnvSchemaType = z.infer<typeof ApiEnvSchema>;

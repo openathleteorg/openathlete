@@ -85,6 +85,21 @@ export const routes = {
     getCycle: (cycleId: number) => `/cycle/${cycleId}`,
     deleteCycle: (cycleId: number) => `/cycle/${cycleId}`,
   },
+  agent: {
+    createThread: '/agent/threads',
+    getUserThreads: '/agent/threads',
+    getThread: (threadId: number) => `/agent/threads/${threadId}`,
+    updateThread: (threadId: number) => `/agent/threads/${threadId}`,
+    deleteThread: (threadId: number) => `/agent/threads/${threadId}`,
+    createMessage: '/agent/messages',
+    getThreadMessages: (threadId: number) =>
+      `/agent/threads/${threadId}/messages`,
+    deleteMessage: (messageId: number) => `/agent/messages/${messageId}`,
+    createBlock: '/agent/blocks',
+    updateBlock: (blockId: number) => `/agent/blocks/${blockId}`,
+    deleteBlock: (blockId: number) => `/agent/blocks/${blockId}`,
+    chat: (threadId: number) => `/agent/threads/${threadId}/chat`,
+  },
 } as const;
 
 const client = axios.create({
