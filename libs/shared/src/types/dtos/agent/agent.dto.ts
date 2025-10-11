@@ -15,6 +15,8 @@ export const AgentBlockType = z.enum([
   'TABLE',
   'MAP',
   'ACTIVITY_SUMMARY',
+  'ACTIVITY_LIST',
+  'ACTIVITY_CREATED',
   'TRAINING_PLAN',
   'ERROR',
   'IMAGE',
