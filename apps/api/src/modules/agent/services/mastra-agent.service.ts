@@ -275,104 +275,123 @@ export class MastraAgentService {
 
       const stream = await this.agent.stream(agentMessages as any);
 
-      let textBlock: BlockData | null = null;
-      let fullContent = '';
+      const state = {
+        textBlock: null as BlockData | null,
+        fullContent: '',
+        currentOrder: 0,
+      };
+      const toolCallBlocks = new Map<string, BlockData>();
+      const processedToolCalls = new Set<string>();
 
-      for await (const textChunk of stream.textStream) {
-        fullContent += textChunk;
+      // Process text stream and tool events concurrently
+      const textStreamPromise = (async () => {
+        for await (const textChunk of stream.textStream) {
+          state.fullContent += textChunk;
 
-        if (!textBlock) {
-          const createdBlock = await this.blockService.createBlock(
-            user,
-            assistantMessage.message_id,
-            {
-              type: 'TEXT',
-              order: 0,
-              content: textChunk,
-              status: 'processing',
-            },
-          );
-          textBlock = createdBlock as BlockData;
+          if (!state.textBlock) {
+            const createdBlock = await this.blockService.createBlock(
+              user,
+              assistantMessage.message_id,
+              {
+                type: 'TEXT',
+                order: state.currentOrder++,
+                content: textChunk,
+                status: 'processing',
+              },
+            );
+            state.textBlock = createdBlock as BlockData;
 
-          onChunk({
-            type: 'block_created',
-            data: createdBlock as Record<string, unknown>,
-          });
-        } else {
-          const updatedBlock = await this.blockService.updateBlock(
-            user,
-            textBlock.block_id!,
-            {
-              content: fullContent,
-              status: 'processing',
-            },
-          );
-          textBlock = updatedBlock as BlockData;
+            onChunk({
+              type: 'block_created',
+              data: createdBlock as Record<string, unknown>,
+            });
+          } else {
+            const updatedBlock = await this.blockService.updateBlock(
+              user,
+              state.textBlock.block_id!,
+              {
+                content: state.fullContent,
+                status: 'processing',
+              },
+            );
+            state.textBlock = updatedBlock as BlockData;
 
-          onChunk({
-            type: 'block_delta',
-            data: {
-              blockId: textBlock.block_id,
-              messageId: textBlock.message_id,
-              delta: textChunk,
-              content: fullContent,
-            },
-          });
+            onChunk({
+              type: 'block_delta',
+              data: {
+                blockId: state.textBlock.block_id,
+                messageId: state.textBlock.message_id,
+                delta: textChunk,
+                content: state.fullContent,
+              },
+            });
+          }
         }
-      }
+      })();
 
-      const fullOutput = await stream.text;
-      const steps = await stream.steps;
-      const toolCalls = (await stream.toolCalls) as ToolCall[] | undefined;
+      // Process tool calls as they happen
+      const toolCallsPromise = (async () => {
+        const toolCalls = (await stream.toolCalls) as ToolCall[] | undefined;
+        if (toolCalls && toolCalls.length > 0) {
+          for (const toolCall of toolCalls) {
+            const payload = toolCall.payload;
+            const toolCallId = `${payload.toolName}-${Date.now()}`;
+
+            if (!processedToolCalls.has(toolCallId)) {
+              processedToolCalls.add(toolCallId);
+
+              const toolBlock = await this.blockService.createBlock(
+                user,
+                assistantMessage.message_id,
+                {
+                  type: 'TOOL_CALL',
+                  order: state.currentOrder++,
+                  content: `Calling tool: ${payload.toolName}`,
+                  toolName: payload.toolName,
+                  toolInput: payload.args,
+                  status: 'processing',
+                },
+              );
+
+              toolCallBlocks.set(payload.toolName, toolBlock as BlockData);
+
+              onChunk({
+                type: 'block_created',
+                data: toolBlock as Record<string, unknown>,
+              });
+            }
+          }
+        }
+      })();
+
+      // Wait for both text stream and tool calls to process
+      await Promise.all([textStreamPromise, toolCallsPromise]);
+
+      // Process tool results
       const toolResults = (await stream.toolResults) as
         | ToolResult[]
         | undefined;
 
-      if (toolCalls && toolCalls.length > 0) {
-        for (const toolCall of toolCalls) {
-          const payload = toolCall.payload;
-          const toolBlock = await this.blockService.createBlock(
-            user,
-            assistantMessage.message_id,
-            {
-              type: 'TOOL_CALL',
-              order: 0,
-              content: `Calling tool: ${payload.toolName}`,
-              toolName: payload.toolName,
-              toolInput: payload.args,
-              status: 'completed',
-            },
-          );
-
-          onChunk({
-            type: 'block_created',
-            data: toolBlock as Record<string, unknown>,
-          });
-        }
-      }
-
       if (toolResults && toolResults.length > 0) {
         for (const toolResult of toolResults) {
           const payload = toolResult.payload;
-          const resultBlock = await this.blockService.createBlock(
-            user,
-            assistantMessage.message_id,
-            {
-              type: 'TOOL_RESULT',
-              order: 1,
-              content: `Tool result from ${payload.toolName}`,
-              toolName: payload.toolName,
-              toolOutput: payload.result,
+
+          // Update the tool call block to completed
+          const toolCallBlock = toolCallBlocks.get(payload.toolName);
+          if (toolCallBlock && toolCallBlock.block_id) {
+            await this.blockService.updateBlock(user, toolCallBlock.block_id, {
               status: 'completed',
-            },
-          );
+            });
 
-          onChunk({
-            type: 'block_created',
-            data: resultBlock as Record<string, unknown>,
-          });
+            onChunk({
+              type: 'block_completed',
+              data: {
+                blockId: toolCallBlock.block_id,
+              },
+            });
+          }
 
-          // Create enriched block based on tool result
+          // Create enriched block based on tool result (no TOOL_RESULT block)
           await this.createEnrichedBlock(
             user,
             assistantMessage.message_id,
@@ -384,14 +403,14 @@ export class MastraAgentService {
       }
 
       // Finalize text block
-      if (textBlock && textBlock.block_id) {
-        await this.blockService.updateBlock(user, textBlock.block_id, {
+      if (state.textBlock?.block_id) {
+        await this.blockService.updateBlock(user, state.textBlock.block_id, {
           status: 'completed',
         });
 
         onChunk({
           type: 'block_completed',
-          data: { blockId: textBlock.block_id },
+          data: { blockId: state.textBlock.block_id },
         });
       }
 
