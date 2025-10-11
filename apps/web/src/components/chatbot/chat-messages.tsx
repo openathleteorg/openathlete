@@ -25,6 +25,10 @@ function MessageBubble({
   const isUser = message.role === 'USER';
   const sortedBlocks = [...message.blocks].sort((a, b) => a.order - b.order);
 
+  // Check if this is an assistant message with no blocks yet (waiting for first chunk)
+  const isWaitingForContent =
+    !isUser && sortedBlocks.length === 0 && !streamingBlock;
+
   return (
     <div
       className={cn(
@@ -40,6 +44,16 @@ function MessageBubble({
             : 'bg-muted text-foreground rounded-bl-sm',
         )}
       >
+        {/* Show loading indicator if assistant message has no blocks yet */}
+        {isWaitingForContent && (
+          <div className="flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <span className="text-sm text-muted-foreground italic">
+              {m.chatbot_thinking()}
+            </span>
+          </div>
+        )}
+
         {/* Render all blocks */}
         {sortedBlocks.map((block) => {
           const isStreaming =
@@ -148,6 +162,7 @@ export function ChatMessages({ threadId, streamingBlocks }: ChatMessagesProps) {
             />
           );
         })}
+
         <div ref={messagesEndRef} />
       </div>
     </ScrollArea>

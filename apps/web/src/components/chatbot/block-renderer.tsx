@@ -1,3 +1,4 @@
+import { getToolMessage } from '@/utils/tool-messages';
 import {
   Activity,
   AlertCircle,
@@ -7,14 +8,13 @@ import {
   Calendar,
   Code,
   FileIcon,
-  FileText,
   Image as ImageIcon,
   LineChart,
+  Loader2,
   Map as MapIcon,
   PieChart,
   ScatterChart,
   Table as TableIcon,
-  Wrench,
 } from 'lucide-react';
 
 import { AgentMessageBlock } from '@openathlete/shared';
@@ -33,7 +33,7 @@ export function BlockRenderer({ block, isStreaming }: BlockRendererProps) {
     case 'TOOL_CALL':
       return <ToolCallBlock block={block} />;
     case 'TOOL_RESULT':
-      return <ToolResultBlock block={block} />;
+      return <ToolResultBlock />;
     case 'CODE':
       return <CodeBlock block={block} />;
     case 'ERROR':
@@ -103,40 +103,25 @@ function ThinkingBlock({
 
 // ==================== Tool Call Block ====================
 function ToolCallBlock({ block }: { block: AgentMessageBlock }) {
+  const isProcessing = block.status === 'processing';
+  const message = getToolMessage(
+    block.toolName || 'unknown',
+    isProcessing ? 'processing' : 'completed',
+  );
+
   return (
-    <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-      <Wrench className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-      <div className="flex-1 space-y-2">
-        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-          Using tool: {block.toolName}
-        </p>
-        {block.toolInput && (
-          <pre className="text-xs bg-white/50 dark:bg-black/20 p-2 rounded overflow-auto">
-            {JSON.stringify(block.toolInput, null, 2)}
-          </pre>
-        )}
-      </div>
+    <div className="flex items-center gap-2 text-sm text-muted-foreground italic py-1">
+      {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
+      <span>{message}</span>
     </div>
   );
 }
 
 // ==================== Tool Result Block ====================
-function ToolResultBlock({ block }: { block: AgentMessageBlock }) {
-  return (
-    <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-      <FileText className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-      <div className="flex-1 space-y-2">
-        <p className="text-sm font-medium text-green-900 dark:text-green-100">
-          Tool result: {block.toolName}
-        </p>
-        {block.toolOutput && (
-          <pre className="text-xs bg-white/50 dark:bg-black/20 p-2 rounded overflow-auto max-h-48">
-            {JSON.stringify(block.toolOutput, null, 2)}
-          </pre>
-        )}
-      </div>
-    </div>
-  );
+// Tool results are now shown via enriched blocks (ACTIVITY_LIST, etc.)
+// This block type is kept for backwards compatibility but hidden
+function ToolResultBlock() {
+  return null; // Don't display raw tool results
 }
 
 // ==================== Code Block ====================
