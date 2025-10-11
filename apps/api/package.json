@@ -17,6 +17,7 @@
     "tsc:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.47",
     "@casl/ability": "^6.7.3",
     "@casl/prisma": "^1.5.1",
     "@getbrevo/brevo": "^2.2.0",
@@ -45,7 +46,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "zod": "3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
