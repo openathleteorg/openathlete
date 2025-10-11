@@ -2,6 +2,7 @@ import { createTool } from '@mastra/core';
 import { z } from 'zod';
 
 import { event, event_activity, event_type } from '@openathlete/database';
+import { SPORT_TYPE } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -39,7 +40,7 @@ export function getRecentActivitiesToolFactory(
         .default(10)
         .describe('Maximum number of activities to retrieve (default: 10)'),
       sport: z
-        .enum(['RUNNING', 'CYCLING', 'SWIMMING', 'OTHER'])
+        .nativeEnum(SPORT_TYPE)
         .optional()
         .describe('Filter activities by sport type'),
     }),
@@ -56,7 +57,7 @@ export function getRecentActivitiesToolFactory(
           duration: z.number().optional(),
           elevationGain: z.number().optional(),
           averageHeartRate: z.number().optional(),
-          averageSpeed: z.number().optional(),
+          averageSpeed: z.number().optional().describe('In meters per second'),
         }),
       ),
       totalCount: z.number(),
