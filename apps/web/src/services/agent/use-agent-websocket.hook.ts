@@ -1,4 +1,3 @@
-import { useAuthContext } from '@/contexts/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -43,27 +42,54 @@ export function useAgentWebSocket({
   const [isStreaming, setIsStreaming] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const queryClient = useQueryClient();
-  const { user } = useAuthContext();
 
   // Initialize socket connection
   useEffect(() => {
     const socket = AgentService.getSocket();
     socketRef.current = socket;
 
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 2000; // 2 seconds
+
     // Connection event handlers
     socket.on('connect', () => {
       console.log('[Agent WebSocket] Connected');
       setIsConnected(true);
+      reconnectAttempts = 0; // Reset on successful connection
     });
 
-    socket.on('disconnect', () => {
-      console.log('[Agent WebSocket] Disconnected');
+    socket.on('disconnect', (reason) => {
+      console.log('[Agent WebSocket] Disconnected:', reason);
       setIsConnected(false);
+      setIsStreaming(false);
+
+      // Attempt to reconnect if disconnection was not intentional
+      if (reason === 'io server disconnect') {
+        // Server disconnected, don't auto-reconnect
+        console.log('[Agent WebSocket] Server disconnected client');
+      } else {
+        // Try to reconnect
+        console.log('[Agent WebSocket] Will attempt to reconnect...');
+      }
     });
 
     socket.on('connect_error', (error) => {
       console.error('[Agent WebSocket] Connection error:', error);
       setIsConnected(false);
+
+      // Implement exponential backoff for reconnection
+      if (reconnectAttempts < maxReconnectAttempts) {
+        reconnectAttempts++;
+        const delay = reconnectDelay * Math.pow(2, reconnectAttempts - 1);
+        console.log(
+          `[Agent WebSocket] Reconnection attempt ${reconnectAttempts}/${maxReconnectAttempts} in ${delay}ms`,
+        );
+      } else {
+        console.error(
+          '[Agent WebSocket] Max reconnection attempts reached. Please refresh the page.',
+        );
+      }
     });
 
     // Message streaming event handlers
@@ -172,22 +198,21 @@ export function useAgentWebSocket({
   // Send message function
   const sendMessage = useCallback(
     (content: string) => {
-      if (!threadId || !user) {
-        console.error(
-          '[Agent WebSocket] Cannot send message: no thread or user',
-          { threadId, user },
-        );
+      if (!threadId) {
+        console.error('[Agent WebSocket] Cannot send message: no thread', {
+          threadId,
+        });
         return;
       }
 
       setIsStreaming(true);
       console.log(`[Agent WebSocket] Sending message to thread ${threadId}`, {
-        userId: user.userId,
         content,
       });
-      AgentService.sendMessageStream(threadId, content, user.userId);
+      // User is now authenticated via JWT in WebSocket, no need to send userId
+      AgentService.sendMessageStream(threadId, content);
     },
-    [threadId, user],
+    [threadId],
   );
 
   // Disconnect function

@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '@/config';
 import client, { routes } from '@/utils/axios';
+import { ACCESS_TOKEN, getItem } from '@/utils/local-storage';
 import { Socket, io } from 'socket.io-client';
 
 import {
@@ -102,10 +103,22 @@ export class AgentService {
 
   static getSocket(): Socket {
     if (!this.socket) {
+      // Get JWT token from localStorage using project's auth utils
+      const token = getItem(ACCESS_TOKEN);
+
       this.socket = io(`${API_BASE_URL}/agent`, {
         transports: ['websocket'],
         withCredentials: true,
         autoConnect: false,
+        auth: {
+          token: token || '',
+        },
+        // Also send token in headers as fallback
+        extraHeaders: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : {},
       });
     }
     return this.socket;
@@ -114,6 +127,11 @@ export class AgentService {
   static connectSocket(): void {
     const socket = this.getSocket();
     if (!socket.connected) {
+      // Update token before connecting (in case it was refreshed)
+      const token = getItem(ACCESS_TOKEN);
+      socket.auth = {
+        token: token || '',
+      };
       socket.connect();
     }
   }
@@ -135,17 +153,12 @@ export class AgentService {
     socket.emit('leave_thread', { threadId });
   }
 
-  static sendMessageStream(
-    threadId: number,
-    content: string,
-    userId: number,
-  ): void {
+  static sendMessageStream(threadId: number, content: string): void {
     const socket = this.getSocket();
     console.log('[AgentService] Emitting send_message:', {
       threadId,
       content,
-      userId,
     });
-    socket.emit('send_message', { threadId, content, userId });
+    socket.emit('send_message', { threadId, content });
   }
 }

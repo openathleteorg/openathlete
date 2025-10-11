@@ -50,6 +50,10 @@ export function BlockRenderer({ block, isStreaming }: BlockRendererProps) {
       return <MapBlock block={block} />;
     case 'ACTIVITY_SUMMARY':
       return <ActivitySummaryBlock block={block} />;
+    case 'ACTIVITY_LIST':
+      return <ActivityListBlock block={block} />;
+    case 'ACTIVITY_CREATED':
+      return <ActivityCreatedBlock block={block} />;
     case 'TRAINING_PLAN':
       return <TrainingPlanBlock block={block} />;
     case 'IMAGE':
@@ -335,6 +339,163 @@ function FileBlock({ block }: { block: AgentMessageBlock }) {
         <p className="text-sm font-medium truncate">{block.content}</p>
         {size !== null && (
           <p className="text-xs text-muted-foreground">{formatBytes(size)}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==================== Activity List Block ====================
+function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
+  const activities = (block.metadata?.activities as any[]) || [];
+  const totalCount =
+    (block.metadata?.totalCount as number) || activities.length;
+
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2 bg-muted border-b">
+        <div className="flex items-center gap-2">
+          <Activity className="h-5 w-5" />
+          <span className="text-sm font-medium">Recent Activities</span>
+        </div>
+        <span className="text-xs text-muted-foreground">
+          {totalCount} total
+        </span>
+      </div>
+      <div className="divide-y">
+        {activities.length === 0 ? (
+          <div className="p-6 text-center text-sm text-muted-foreground">
+            No activities found
+          </div>
+        ) : (
+          activities.map((activity: any, index: number) => (
+            <div
+              key={activity.eventId || index}
+              className="p-4 hover:bg-muted/50 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-medium text-sm truncate">
+                    {activity.name}
+                  </h4>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    {activity.sport && (
+                      <span className="inline-flex items-center gap-1">
+                        <Activity className="h-3 w-3" />
+                        {activity.sport}
+                      </span>
+                    )}
+                    {activity.distance && (
+                      <span>{(activity.distance / 1000).toFixed(2)} km</span>
+                    )}
+                    {activity.duration && (
+                      <span>
+                        {Math.floor(activity.duration / 60)}h
+                        {activity.duration % 60}min
+                      </span>
+                    )}
+                    {activity.elevationGain && (
+                      <span>{activity.elevationGain}m D+</span>
+                    )}
+                    {activity.startDate && (
+                      <span className="text-xs">
+                        {new Date(activity.startDate).toLocaleDateString(
+                          'fr-FR',
+                        )}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {activity.eventId && (
+                  <a
+                    href={`/dashboard/calendar?eventId=${activity.eventId}`}
+                    className="text-xs text-primary hover:underline flex items-center gap-1"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.location.href = `/dashboard/calendar?eventId=${activity.eventId}`;
+                    }}
+                  >
+                    <Calendar className="h-3 w-3" />
+                    View
+                  </a>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ==================== Activity Created Block ====================
+function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
+  const activity = block.metadata?.activity as any;
+
+  if (!activity) {
+    return (
+      <div className="flex items-start gap-3 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+        <Activity className="h-5 w-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm font-medium text-green-900 dark:text-green-100">
+            {block.content}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border rounded-lg overflow-hidden border-green-200 dark:border-green-800">
+      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/20 border-b border-green-200 dark:border-green-800">
+        <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
+        <span className="text-sm font-medium text-green-900 dark:text-green-100">
+          Activity Created Successfully
+        </span>
+      </div>
+      <div className="p-4 bg-background space-y-3">
+        <div>
+          <h4 className="font-semibold text-base mb-1">{activity.name}</h4>
+          <p className="text-sm text-muted-foreground">
+            {activity.sport && (
+              <span className="capitalize">{activity.sport.toLowerCase()}</span>
+            )}
+            {activity.sport &&
+              (activity.distance || activity.duration) &&
+              ' • '}
+            {activity.distance && (
+              <span>{(activity.distance / 1000).toFixed(2)} km</span>
+            )}
+            {activity.distance && activity.duration && ' • '}
+            {activity.duration && (
+              <span>
+                {Math.floor(activity.duration / 60)}h{activity.duration % 60}min
+              </span>
+            )}
+          </p>
+        </div>
+
+        {activity.startDate && (
+          <div className="text-sm">
+            <span className="text-muted-foreground">Date: </span>
+            <span>{new Date(activity.startDate).toLocaleString('fr-FR')}</span>
+          </div>
+        )}
+
+        {activity.eventId && (
+          <div className="flex gap-2 pt-2">
+            <a
+              href={`/dashboard/calendar?eventId=${activity.eventId}`}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = `/dashboard/calendar?eventId=${activity.eventId}`;
+              }}
+            >
+              <Calendar className="h-4 w-4" />
+              View in Calendar
+            </a>
+          </div>
         )}
       </div>
     </div>
