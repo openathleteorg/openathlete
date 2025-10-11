@@ -14,6 +14,7 @@ import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
 import { CycleService, EventService } from './services';
+import { ActivityDetailService } from './services/activity-detail.service';
 import { AthleteService } from './services/athlete.service';
 import { StravaConnectorService } from './services/connector/strava.service';
 import { ContactService } from './services/contact.service';
@@ -57,6 +58,7 @@ import { WeatherService } from './services/weather/weather.service';
     CycleService,
     WeatherService,
     OpenMeteoWeatherProvider,
+    ActivityDetailService,
     // Pipeline and processors
     GapProcessor,
     WeatherProcessor,
@@ -77,6 +79,6 @@ import { WeatherService } from './services/weather/weather.service';
       ],
     },
   ],
-  exports: [EventService, ActivityPipelineService],
+  exports: [EventService, ActivityPipelineService, ActivityDetailService],
 })
 export class CoreModule {}

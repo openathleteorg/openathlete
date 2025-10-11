@@ -3,10 +3,12 @@ import { Agent } from '@mastra/core/agent';
 import { User } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { ActivityDetailService } from 'src/modules/core/services/activity-detail.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
   createTrainingToolFactory,
+  getActivityDetailToolFactory,
   getRecentActivitiesToolFactory,
 } from '../tools';
 
@@ -17,6 +19,7 @@ export type ToolContext = {
 
 export function createOpenAthleteAgent(
   prismaService: PrismaService,
+  activityDetailService: ActivityDetailService,
   toolContext: ToolContext,
 ) {
   const getRecentActivitiesTool = getRecentActivitiesToolFactory(
@@ -26,6 +29,10 @@ export function createOpenAthleteAgent(
   const createTrainingTool = createTrainingToolFactory(
     prismaService,
     toolContext,
+  );
+  const getActivityDetailTool = getActivityDetailToolFactory(
+    activityDetailService,
+    toolContext, // Use shared context that gets updated dynamically
   );
 
   return new Agent({
@@ -38,6 +45,7 @@ Your role is to help users manage their training activities, analyze their perfo
 
 You have access to tools to:
 - Retrieve recent activities (runs, rides, swims, etc.)
+- Get detailed information about a specific activity with advanced stream analysis
 - Create new training sessions
 
 When a user wants to create a training session:
@@ -63,6 +71,7 @@ Remember: You're here to help athletes train smarter and achieve their goals!`,
     model: 'openai/gpt-4o',
     tools: {
       getRecentActivities: getRecentActivitiesTool,
+      getActivityDetail: getActivityDetailTool,
       createTraining: createTrainingTool,
     },
   });
