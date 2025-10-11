@@ -30,7 +30,7 @@ interface StreamChunkData {
   data: Record<string, unknown>;
 }
 
-interface ProcessMessageResponse {
+export interface ProcessMessageResponse {
   userMessage: Record<string, unknown>;
   assistantMessage: Record<string, unknown>;
 }
