@@ -95,14 +95,17 @@ export function ChatWindow() {
       if (!isResizing || !resizeRef.current) return;
 
       const delta = e.clientX - resizeRef.current.startX;
+      // When on left side, dragging right increases width
+      // When on right side, dragging left increases width
+      const direction = chatSide === 'left' ? 1 : -1;
       const newWidth = Math.max(
         MIN_WIDTH,
-        Math.min(MAX_WIDTH, resizeRef.current.startWidth - delta),
+        Math.min(MAX_WIDTH, resizeRef.current.startWidth + delta * direction),
       );
 
       setChatWidth(newWidth);
     },
-    [isResizing, setChatWidth],
+    [isResizing, setChatWidth, chatSide],
   );
 
   const handleResizeEnd = useCallback(() => {
@@ -253,11 +256,11 @@ export function ChatWindow() {
             }}
             className="bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Resize handle */}
+            {/* Resize handle - on the inner edge (opposite to scrollbar) */}
             <div
               onMouseDown={handleResizeStart}
               className={cn(
-                'absolute top-0 w-1 h-full cursor-ew-resize hover:bg-primary/20 transition-colors',
+                'absolute top-0 w-2 h-full cursor-ew-resize hover:bg-primary/20 transition-colors z-10',
                 chatSide === 'left' ? 'right-0' : 'left-0',
                 isResizing && 'bg-primary/30',
               )}
