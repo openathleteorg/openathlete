@@ -9,6 +9,8 @@ import { m } from '@/paraglide/messages';
 const TOOL_NAME_MAP: Record<string, string> = {
   'get-recent-activities': 'get_recent_activities',
   getRecentActivities: 'get_recent_activities',
+  'get-activity-detail': 'get_activity_detail',
+  getActivityDetail: 'get_activity_detail',
   'create-training': 'create_training',
   createTraining: 'create_training',
 };
@@ -38,6 +40,12 @@ export function getToolMessage(
     return status === 'processing'
       ? m.tool_get_recent_activities_processing()
       : m.tool_get_recent_activities_completed();
+  }
+
+  if (normalizedTool === 'get_activity_detail') {
+    return status === 'processing'
+      ? m.tool_get_activity_detail_processing()
+      : m.tool_get_activity_detail_completed();
   }
 
   if (normalizedTool === 'create_training') {

@@ -345,6 +345,8 @@
   "chatbot_thinking": "Réflexion en cours...",
   "tool_get_recent_activities_processing": "Récupération de vos activités...",
   "tool_get_recent_activities_completed": "Activités récupérées",
+  "tool_get_activity_detail_processing": "Analyse des détails de l'activité...",
+  "tool_get_activity_detail_completed": "Analyse de l'activité terminée",
   "tool_create_training_processing": "Création de votre séance d'entraînement...",
   "tool_create_training_completed": "Séance créée",
   "tool_unknown_processing": "Exécution de {toolName}...",

@@ -343,6 +343,8 @@
   "chatbot_thinking": "Thinking...",
   "tool_get_recent_activities_processing": "Fetching your activities...",
   "tool_get_recent_activities_completed": "Activities retrieved",
+  "tool_get_activity_detail_processing": "Analyzing activity details...",
+  "tool_get_activity_detail_completed": "Activity analysis complete",
   "tool_create_training_processing": "Creating your training session...",
   "tool_create_training_completed": "Session created",
   "tool_unknown_processing": "Executing {toolName}...",
