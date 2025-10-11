@@ -3,7 +3,15 @@ import { Subjects as CASLSubjects } from '@casl/prisma';
 
 import { Injectable } from '@nestjs/common';
 
-import { athlete, cycle, event, user } from '@openathlete/database';
+import {
+  agent_message,
+  agent_message_block,
+  agent_thread,
+  athlete,
+  cycle,
+  event,
+  user,
+} from '@openathlete/database';
 
 import { AuthUser } from '../decorators/user.decorator';
 import { PrismaQuery, createPrismaAbility } from './casl-prisma';
@@ -16,6 +24,9 @@ export type Subjects = CASLSubjects<{
   athlete: athlete;
   event: event;
   cycle: cycle;
+  agent_thread: agent_thread;
+  agent_message: agent_message;
+  agent_message_block: agent_message_block;
 }>;
 
 export type AppAbility = PureAbility<[CRUD, Subjects | 'all'], PrismaQuery>;
@@ -50,6 +61,15 @@ export class CaslAbilityFactory {
         can('manage', 'cycle', { athlete_id: coachAthlete.athlete_id });
       });
     }
+
+    // Agent permissions: users can manage their own threads, messages, and blocks
+    can('manage', 'agent_thread', { user_id: user.user_id });
+    can('manage', 'agent_message', {
+      thread: { user_id: user.user_id },
+    });
+    can('manage', 'agent_message_block', {
+      message: { thread: { user_id: user.user_id } },
+    });
   }
 
   async getFor(params: { user: AuthUser }): Promise<AppAbility> {

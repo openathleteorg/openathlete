@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { agent_thread } from '@openathlete/database';
+import { Prisma, agent_thread } from '@openathlete/database';
 import { CreateThreadDto, UpdateThreadDto } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -39,7 +39,8 @@ export class ThreadService {
       data: {
         user_id: user.user_id,
         title: dto.title,
-        metadata: dto.metadata as any,
+        // Cast to Prisma.JsonValue for JSON fields
+        metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
       },
       include: THREAD_INCLUDES,
     });
@@ -60,8 +61,8 @@ export class ThreadService {
       throw new NotFoundException(`Thread with ID ${threadId} not found`);
     }
 
-    // TODO: Add proper CASL authorization rules for agent_thread
-    if (thread.user_id !== user.user_id) {
+    // Use CASL authorization
+    if (!ability.can('read', subject('agent_thread', thread))) {
       throw new ForbiddenException('You cannot access this thread');
     }
 
@@ -91,7 +92,9 @@ export class ThreadService {
       where: { thread_id: threadId },
       data: {
         title: dto.title,
-        metadata: dto.metadata as any,
+        metadata: dto.metadata
+          ? (dto.metadata as Prisma.InputJsonValue)
+          : undefined,
       },
       include: THREAD_INCLUDES,
     });

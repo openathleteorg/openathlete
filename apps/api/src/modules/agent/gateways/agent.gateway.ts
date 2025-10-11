@@ -12,8 +12,8 @@ import {
 } from '@nestjs/websockets';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
-import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { MastraAgentService } from '../services/mastra-agent.service';
 
 @WebSocketGateway({
@@ -27,10 +27,7 @@ export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  constructor(
-    private mastraAgentService: MastraAgentService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private mastraAgentService: MastraAgentService) {}
 
   handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
@@ -40,30 +37,26 @@ export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`Client disconnected: ${client.id}`);
   }
 
+  @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('send_message')
   async handleSendMessage(
-    @MessageBody() data: { threadId: number; content: string; userId: number },
+    @MessageBody() data: { threadId: number; content: string },
     @ConnectedSocket() client: Socket,
   ) {
-    const { threadId, content, userId } = data;
+    const { threadId, content } = data;
 
     try {
-      // Fetch user from database
-      const dbUser = await this.prisma.user.findUnique({
-        where: { user_id: userId },
-        select: { user_id: true, email: true },
-      });
+      // Extract authenticated user from socket (set by WsJwtAuthGuard)
+      const user = client.data.user as AuthUser;
 
-      if (!dbUser) {
-        console.error('[AgentGateway] User not found:', userId);
+      if (!user) {
+        console.error('[AgentGateway] User not authenticated');
         client.emit('message_error', {
-          error: 'User not found',
+          error: 'Unauthorized: User not authenticated',
           threadId,
         });
         return;
       }
-
-      const user = dbUser as AuthUser;
 
       await this.mastraAgentService.processMessageStream(
         user,
@@ -86,6 +79,7 @@ export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('join_thread')
   handleJoinThread(
     @MessageBody() data: { threadId: number },
@@ -95,6 +89,7 @@ export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
     client.emit('joined_thread', { threadId: data.threadId });
   }
 
+  @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('leave_thread')
   handleLeaveThread(
     @MessageBody() data: { threadId: number },

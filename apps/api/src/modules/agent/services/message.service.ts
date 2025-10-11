@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { agent_message } from '@openathlete/database';
+import { Prisma, agent_message } from '@openathlete/database';
 import { CreateMessageDto } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -32,21 +32,27 @@ export class MessageService {
       data: {
         thread_id: dto.threadId,
         role: dto.role || 'USER',
-        metadata: dto.metadata as any,
+        metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
         blocks: dto.blocks
           ? {
               create: dto.blocks.map((block) => ({
                 type: block.type,
                 order: block.order,
                 content: block.content,
-                metadata: block.metadata as any,
+                metadata: (block.metadata || {}) as Prisma.InputJsonValue,
                 status: block.status || 'completed',
                 error: block.error,
                 tool_name: block.toolName,
-                tool_input: block.toolInput as any,
-                tool_output: block.toolOutput as any,
+                tool_input: block.toolInput
+                  ? (block.toolInput as Prisma.InputJsonValue)
+                  : undefined,
+                tool_output: block.toolOutput
+                  ? (block.toolOutput as Prisma.InputJsonValue)
+                  : undefined,
                 chart_type: block.chartType,
-                chart_data: block.chartData as any,
+                chart_data: block.chartData
+                  ? (block.chartData as Prisma.InputJsonValue)
+                  : undefined,
               })),
             }
           : undefined,
@@ -103,7 +109,7 @@ export class MessageService {
     messageId: number,
     status: 'pending' | 'processing' | 'completed' | 'error',
   ): Promise<agent_message> {
-    const message = await this.getMessageById(user, messageId);
+    await this.getMessageById(user, messageId);
 
     const updated = await this.prisma.agent_message.update({
       where: { message_id: messageId },

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { agent_message_block } from '@openathlete/database';
+import { Prisma, agent_message_block } from '@openathlete/database';
 import { CreateBlockDto, UpdateBlockDto } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -20,7 +20,6 @@ export class BlockService {
     messageId: number,
     dto: CreateBlockDto,
   ): Promise<agent_message_block> {
-    // Verify message access
     await this.messageService.getMessageById(user, messageId);
 
     const block = await this.prisma.agent_message_block.create({
@@ -29,18 +28,23 @@ export class BlockService {
         type: dto.type,
         order: dto.order,
         content: dto.content,
-        metadata: dto.metadata as any,
+        metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
         status: dto.status || 'completed',
         error: dto.error,
         tool_name: dto.toolName,
-        tool_input: dto.toolInput as any,
-        tool_output: dto.toolOutput as any,
+        tool_input: dto.toolInput
+          ? (dto.toolInput as Prisma.InputJsonValue)
+          : undefined,
+        tool_output: dto.toolOutput
+          ? (dto.toolOutput as Prisma.InputJsonValue)
+          : undefined,
         chart_type: dto.chartType,
-        chart_data: dto.chartData as any,
+        chart_data: dto.chartData
+          ? (dto.chartData as Prisma.InputJsonValue)
+          : undefined,
       },
     });
 
-    // Keep snake_case for internal usage
     return block;
   }
 
@@ -82,14 +86,22 @@ export class BlockService {
       data: {
         type: dto.type,
         content: dto.content,
-        metadata: dto.metadata as any,
+        metadata: dto.metadata
+          ? (dto.metadata as Prisma.InputJsonValue)
+          : undefined,
         status: dto.status,
         error: dto.error,
         tool_name: dto.toolName,
-        tool_input: dto.toolInput as any,
-        tool_output: dto.toolOutput as any,
+        tool_input: dto.toolInput
+          ? (dto.toolInput as Prisma.InputJsonValue)
+          : undefined,
+        tool_output: dto.toolOutput
+          ? (dto.toolOutput as Prisma.InputJsonValue)
+          : undefined,
         chart_type: dto.chartType,
-        chart_data: dto.chartData as any,
+        chart_data: dto.chartData
+          ? (dto.chartData as Prisma.InputJsonValue)
+          : undefined,
       },
     });
 

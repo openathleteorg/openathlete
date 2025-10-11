@@ -26,6 +26,6 @@ import { JwtStrategy } from './strategies';
     CaslAbilityFactory,
     PrismaService,
   ],
-  exports: [CaslAbilityFactory, UserService],
+  exports: [CaslAbilityFactory, UserService, JwtModule],
 })
 export class AuthModule {}
