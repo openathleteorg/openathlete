@@ -1,6 +1,7 @@
 export { FormProvider } from './form-provider';
 export { RHFTextField } from './rhf-text-field';
 export { RHFDateTimePicker } from './rhf-datetime-picker';
+export { RHFDatePicker } from './rhf-date-picker';
 export { RHFSelect } from './rhf-select';
 export { RHFTextarea } from './rhf-textarea';
 export { RHFDuration } from './rhf-duration';

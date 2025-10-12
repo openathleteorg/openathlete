@@ -53,6 +53,15 @@ export const routes = {
     updateEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
     deleteEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
   },
+  metric: {
+    getMyMetrics: '/metric',
+    getLatestMetrics: '/metric/latest',
+    getMetricHistory: (type: string) => `/metric/history/${type}`,
+    calculateMetric: (type: string) => `/metric/calculate/${type}`,
+    createMetric: '/metric',
+    updateMetric: (metricId: number) => `/metric/${metricId}`,
+    deleteMetric: (metricId: number) => `/metric/${metricId}`,
+  },
   connector: {
     getOAuthUri: (provider: ConnectorProvider) =>
       `/connector/${provider.toLowerCase()}/uri`,

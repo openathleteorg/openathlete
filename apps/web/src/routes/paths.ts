@@ -36,6 +36,7 @@ export const paths: Paths = {
     },
     statistics: `${ROOTS.DASHBOARD}/statistics`,
     records: `${ROOTS.DASHBOARD}/records`,
+    metrics: `${ROOTS.DASHBOARD}/metrics`,
     settings: `${ROOTS.DASHBOARD}/settings`,
     racePlan: {
       root: `${ROOTS.DASHBOARD}/race-plan`,

@@ -17,11 +17,10 @@ import {
   DEFAULT_CYCLE_COLOR,
 } from '../calendar/constants/cycle-colors';
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
-import { FormProvider, RHFTextField } from '../hook-form';
+import { FormProvider, RHFDatePicker, RHFTextField } from '../hook-form';
 import { RHFTextarea } from '../hook-form/rhf-textarea';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 
 // Form schema with string dates for date inputs
@@ -123,7 +122,7 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
           },
   });
 
-  const { handleSubmit, register, watch } = methods;
+  const { handleSubmit, watch } = methods;
 
   const onSubmit = handleSubmit(async (data) => {
     // Convert string dates back to Date objects for submission
@@ -179,15 +178,8 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="startDate">{m.start_date()}</Label>
-              <Input id="startDate" type="date" {...register('startDate')} />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="endDate">{m.end_date()}</Label>
-              <Input id="endDate" type="date" {...register('endDate')} />
-            </div>
+            <RHFDatePicker name="startDate" label={m.start_date()} required />
+            <RHFDatePicker name="endDate" label={m.end_date()} required />
           </div>
 
           <div className="flex flex-col gap-2">

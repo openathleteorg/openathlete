@@ -12,7 +12,7 @@ import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { useGetMyCoachedAthletesQuery } from '@/services/athlete';
-import { Calendar, MedalIcon, PieChart } from 'lucide-react';
+import { Activity, Calendar, MedalIcon, PieChart } from 'lucide-react';
 import { ComponentProps, useMemo } from 'react';
 
 import { UserRole } from '@openathlete/shared';
@@ -56,6 +56,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         title: m.records(),
         url: getPath(['dashboard', 'records']),
         icon: MedalIcon,
+        spaces: ['ATHLETE'] as UserRole[],
+      },
+      {
+        title: m.metrics(),
+        url: getPath(['dashboard', 'metrics']),
+        icon: Activity,
         spaces: ['ATHLETE'] as UserRole[],
       },
     ],

@@ -29,11 +29,11 @@ export const RHFTextField = ({ name, type, label, ...other }: Props) => {
             type={type}
             value={
               type === 'number'
-                ? field.value === 0
-                  ? 0
-                  : field.value === undefined || field.value === null
-                    ? ''
-                    : field.value
+                ? field.value === undefined ||
+                  field.value === null ||
+                  field.value === ''
+                  ? ''
+                  : field.value
                 : field.value === undefined || field.value === null
                   ? ''
                   : field.value
@@ -43,10 +43,11 @@ export const RHFTextField = ({ name, type, label, ...other }: Props) => {
               let inserted;
 
               if (type === 'number') {
-                if (value === '') {
-                  inserted = undefined;
+                if (value === '' || value === null || value === undefined) {
+                  inserted = '';
                 } else {
-                  inserted = Number(value);
+                  const numValue = Number(value);
+                  inserted = isNaN(numValue) ? '' : numValue;
                 }
               } else {
                 inserted = value;
