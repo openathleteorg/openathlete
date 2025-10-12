@@ -5,8 +5,8 @@ model athlete {
   // fields
 
   // relationships
-  user           user            @relation(fields: [user_id], references: [user_id])
-  user_id        Int             @unique
+  user           user             @relation(fields: [user_id], references: [user_id])
+  user_id        Int              @unique
   coach_athletes coach_athlete[]
   events         event[]
   connectors     connector[]
@@ -14,6 +14,7 @@ model athlete {
   records        record[]
   equipment      equipment[]
   cycles         cycle[]
+  metrics        athlete_metric[]
 
   // timestamps
   created_at DateTime @default(now())

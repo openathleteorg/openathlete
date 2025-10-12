@@ -103,3 +103,34 @@ enum normalization_factor {
   HUMIDITY
   RADIATION
 }
+
+enum metric_type {
+  // Santé & composition corporelle
+  WEIGHT
+  HEIGHT
+  BMI
+  BODY_FAT
+  MUSCLE_MASS
+  DAILY_CALORIES
+  DAILY_STEPS
+  SLEEP_DURATION
+  SLEEP_SCORE
+  HOOPER_INDEX
+
+  // Cardiaque
+  HR_MAX
+  HR_REST
+  HR_RESERVE
+  RMSSD
+
+  // Performance & physiologie
+  VMA
+  CRITICAL_POWER_RUNNING
+  CRITICAL_POWER_CYCLING
+  VO2MAX
+  FTP_RUNNING
+  FTP_CYCLING
+  VERTICAL_SPEED_AVG
+  VERTICAL_SPEED_MAX
+  FITNESS_INDEX
+}
