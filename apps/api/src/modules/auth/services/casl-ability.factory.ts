@@ -8,6 +8,7 @@ import {
   agent_message_block,
   agent_thread,
   athlete,
+  athlete_metric,
   cycle,
   event,
   user,
@@ -22,6 +23,7 @@ export type CRUD = 'manage' | 'create' | 'read' | 'update' | 'delete';
 export type Subjects = CASLSubjects<{
   user: user;
   athlete: athlete;
+  athlete_metric: athlete_metric;
   event: event;
   cycle: cycle;
   agent_thread: agent_thread;
@@ -53,6 +55,7 @@ export class CaslAbilityFactory {
     if (user.athlete) {
       can('manage', 'event', { athlete_id: user.athlete.athlete_id });
       can('manage', 'cycle', { athlete_id: user.athlete.athlete_id });
+      can('manage', 'athlete_metric', { athlete_id: user.athlete.athlete_id });
     }
 
     if (user.coach_athletes) {

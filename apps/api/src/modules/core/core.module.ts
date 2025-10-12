@@ -10,6 +10,7 @@ import { ContactController } from './controllers/contact.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
+import { MetricController } from './controllers/metric.controller';
 import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
@@ -20,6 +21,7 @@ import { StravaConnectorService } from './services/connector/strava.service';
 import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateService } from './services/event-template.service';
+import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import { GapProcessor } from './services/pipeline/processors/gap.processor';
 import { NormalizationProcessor } from './services/pipeline/processors/normalization.processor';
@@ -40,6 +42,7 @@ import { WeatherService } from './services/weather/weather.service';
     StatisticsController,
     RecordController,
     EquipmentController,
+    MetricController,
     TrainingZoneController,
     ContactController,
     CycleController,
@@ -53,6 +56,7 @@ import { WeatherService } from './services/weather/weather.service';
     PrismaService,
     RecordService,
     EquipmentService,
+    MetricService,
     TrainingZoneService,
     ContactService,
     CycleService,
