@@ -6,3 +6,4 @@ export * from './metrics';
 export * from './metric-type.enum';
 export * from './record-type.enum';
 export * from './equipment-type.enum';
+export * from './training-load-calculation-type.enum';

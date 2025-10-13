@@ -10,3 +10,4 @@ export * from './get-event-weather.response.dto';
 export * from './get-event-normalization.response.dto';
 export * from './create-cycle.dto';
 export * from './update-cycle.dto';
+export * from './training-load.dto';
