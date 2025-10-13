@@ -14,6 +14,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
   event,
@@ -23,6 +24,7 @@ import {
   event_training,
   event_type,
 } from '@openathlete/database';
+import { ActivityImportedEvent } from 'src/events';
 import {
   ActivityStream,
   ApiEnvSchemaType,
@@ -106,6 +108,7 @@ export class EventService {
     private prisma: PrismaService,
     private configService: ConfigService<ApiEnvSchemaType, true>,
     private readonly abilities: CaslAbilityFactory,
+    private eventEmitter: EventEmitter2,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -239,7 +242,14 @@ export class EventService {
     const { type, end_date, start_date, name, athlete_id, ...rest } =
       keysToSnake(data);
 
-    return this.prisma.event.update({
+    // Check if RPE is being updated on an activity
+    const isRpeUpdate =
+      event.type === 'ACTIVITY' &&
+      'rpe' in rest &&
+      rest.rpe !== undefined &&
+      rest.rpe !== null;
+
+    const updatedEvent = await this.prisma.event.update({
       where: { event_id: eventId },
       data: {
         start_date,
@@ -255,6 +265,19 @@ export class EventService {
           : {}),
       },
     });
+
+    // If RPE was updated on an activity, trigger training load recalculation
+    if (isRpeUpdate && event.activity) {
+      this.eventEmitter.emit(
+        ActivityImportedEvent.SLUG,
+        new ActivityImportedEvent({
+          eventActivityId: event.activity.event_activity_id,
+          eventId: eventId,
+        }),
+      );
+    }
+
+    return updatedEvent;
   }
 
   async deleteEvent(user: AuthUser, eventId: event['event_id']) {

@@ -13,6 +13,7 @@ export class ActivityProcessingListener {
     await this.pipeline.run({
       eventActivityId: event.payload.eventActivityId,
       eventId: event.payload.eventId,
+      skipWeather: event.payload.skipWeather,
     });
   }
 }

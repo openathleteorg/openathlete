@@ -131,6 +131,7 @@ export class StravaConnectorService {
     event: event,
     activity: StravaSummaryActivity,
     user_id: user['user_id'],
+    options?: { skipWeather?: boolean },
   ): Promise<event_activity> {
     const { data } = await axios.get(
       `https://www.strava.com/api/v3/activities/${activity.id}/streams`,
@@ -220,6 +221,7 @@ export class StravaConnectorService {
       new ActivityImportedEvent({
         eventActivityId: savedActivity.event_activity_id,
         eventId: event.event_id,
+        skipWeather: options?.skipWeather,
       }),
     );
 
@@ -300,11 +302,13 @@ export class StravaConnectorService {
           },
         });
 
+        // Skip weather enrichment for bulk initial import to save API calls
         await this.fetchStravaActivityData(
           accessToken,
           event,
           activity,
           connector.athlete.user_id,
+          { skipWeather: true },
         );
 
         // break; // TODO: Remove this break
@@ -312,7 +316,7 @@ export class StravaConnectorService {
 
       page++;
 
-      break; // TODO: Remove this break
+      // break; // TODO: Remove this break
     }
   }
 
@@ -347,7 +351,54 @@ export class StravaConnectorService {
         },
       });
 
-      if (connector) await this.fetchInitialStravaData(connector);
+      if (!connector) return;
+
+      // Fetch only the specific activity from webhook (with weather enrichment)
+      const accessToken = await this.getStravaAccessToken(connector.token);
+      
+      // Check if activity already exists
+      const existingActivity = await this.prisma.event_activity.findFirst({
+        where: {
+          external_id: body.object_id.toString(),
+        },
+      });
+
+      if (existingActivity) return;
+
+      // Fetch activity details from Strava
+      const { data: activity } = await axios.get<StravaSummaryActivity>(
+        `https://www.strava.com/api/v3/activities/${body.object_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      const endDate = new Date(activity.start_date);
+      endDate.setSeconds(endDate.getSeconds() + activity.elapsed_time);
+
+      const event = await this.prisma.event.create({
+        data: {
+          athlete: {
+            connect: {
+              user_id: connector.athlete.user_id,
+            },
+          },
+          name: activity.name,
+          type: event_type.ACTIVITY,
+          start_date: new Date(activity.start_date),
+          end_date: endDate,
+        },
+      });
+
+      // Import single activity WITH weather enrichment (no skipWeather flag)
+      await this.fetchStravaActivityData(
+        accessToken,
+        event,
+        activity,
+        connector.athlete.user_id,
+      );
     }
   }
 }

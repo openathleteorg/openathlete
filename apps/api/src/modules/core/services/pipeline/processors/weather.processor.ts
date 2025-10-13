@@ -19,6 +19,14 @@ export class WeatherProcessor implements ActivityProcessor {
   ) {}
 
   async run(ctx: ActivityPipelineContext) {
+    // Skip weather enrichment if requested (bulk imports)
+    if (ctx.skipWeather) {
+      this.logger.debug(
+        `Weather processor skipped for activity ${ctx.eventActivityId} (bulk import)`,
+      );
+      return;
+    }
+
     this.logger.log(
       `Weather processor running for activity ${ctx.eventActivityId}`,
     );

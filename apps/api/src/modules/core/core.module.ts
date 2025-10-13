@@ -13,6 +13,7 @@ import { EventTemplateController } from './controllers/event-template.controller
 import { MetricController } from './controllers/metric.controller';
 import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
+import { TrainingLoadController } from './controllers/training-load.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
@@ -28,6 +29,7 @@ import { NormalizationProcessor } from './services/pipeline/processors/normaliza
 import { WeatherProcessor } from './services/pipeline/processors/weather.processor';
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
+import { TrainingLoadService } from './services/training-load.service';
 import { TrainingZoneService } from './services/training-zone.service';
 import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
 import { WeatherService } from './services/weather/weather.service';
@@ -44,6 +46,7 @@ import { WeatherService } from './services/weather/weather.service';
     EquipmentController,
     MetricController,
     TrainingZoneController,
+    TrainingLoadController,
     ContactController,
     CycleController,
   ],
@@ -58,6 +61,7 @@ import { WeatherService } from './services/weather/weather.service';
     EquipmentService,
     MetricService,
     TrainingZoneService,
+    TrainingLoadService,
     ContactService,
     CycleService,
     WeatherService,
@@ -83,6 +87,11 @@ import { WeatherService } from './services/weather/weather.service';
       ],
     },
   ],
-  exports: [EventService, ActivityPipelineService, ActivityDetailService],
+  exports: [
+    EventService,
+    ActivityPipelineService,
+    ActivityDetailService,
+    TrainingLoadService,
+  ],
 })
 export class CoreModule {}

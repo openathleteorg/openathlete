@@ -4,6 +4,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   ActivityProcessingListener,
   NotificationListener,
+  TrainingLoadListener,
 } from 'src/listeners';
 
 import { AgentModule } from './agent/agent.module';
@@ -22,6 +23,11 @@ import { PrismaService } from './prisma/services/prisma.service';
     NotificationModule,
   ],
   controllers: [AppController],
-  providers: [PrismaService, NotificationListener, ActivityProcessingListener],
+  providers: [
+    PrismaService,
+    NotificationListener,
+    ActivityProcessingListener,
+    TrainingLoadListener,
+  ],
 })
 export class AppModule {}

@@ -1,6 +1,7 @@
 export type ActivityImportedPayload = {
   eventActivityId: number;
   eventId: number;
+  skipWeather?: boolean; // Skip weather enrichment for bulk imports
 };
 
 export class ActivityImportedEvent {
