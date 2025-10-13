@@ -103,7 +103,7 @@ export function TrainingLoadChart({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base font-medium">
-          Historique de charge - ATL/CTL/TSB
+          {m.training_load_history()}
         </CardTitle>
         <Select
           value={calculationType}
@@ -150,19 +150,19 @@ export function TrainingLoadChart({
             <ChartContainer
               config={{
                 load: {
-                  label: 'Charge',
+                  label: m.load(),
                   color: 'hsl(var(--chart-5))',
                 },
                 ctl: {
-                  label: 'CTL',
+                  label: m.fitness_ctl(),
                   color: 'hsl(var(--chart-1))',
                 },
                 atl: {
-                  label: 'ATL',
+                  label: m.fatigue_atl(),
                   color: 'hsl(var(--chart-2))',
                 },
                 tsb: {
-                  label: 'TSB',
+                  label: m.tsb_balance(),
                   color: 'hsl(var(--chart-3))',
                 },
               }}
@@ -283,7 +283,7 @@ export function TrainingLoadChart({
           </div>
         ) : (
           <div className="py-8 text-center text-sm text-muted-foreground">
-            Aucune donnée disponible pour cette période
+            {m.no_data_for_period()}
           </div>
         )}
       </CardContent>

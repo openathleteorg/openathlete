@@ -1,6 +1,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { TrainingLoadCalculationType, useActivityTrainingLoads } from '@/services/training-load';
 import { ActivityIcon } from 'lucide-react';
+import * as m from '@/paraglide/messages.js';
 
 interface ActivityTrainingLoadStatsProps {
   activityId: number;
@@ -30,7 +31,7 @@ export function ActivityTrainingLoadStats({
   return (
     <Popover>
       <PopoverTrigger className="text-left">
-        <div className="text-sm font-semibold">Charge d'entraînement</div>
+        <div className="text-sm font-semibold">{m.training_load()}</div>
         <div className="flex items-center gap-1.5">
           <ActivityIcon className="h-4 w-4 text-muted-foreground" />
           <span>{loadsText}</span>

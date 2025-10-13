@@ -120,6 +120,8 @@
   "optimal_zone": "Zone optimale",
   "detraining": "Désentraînement",
   "load": "Charge",
+  "training_load": "Charge d'entraînement",
+  "training_load_history": "Historique de charge - ATL/CTL/TSB",
   "normalized": "Normalisé",
   "normalized_speed": "Vitesse normalisée",
   "factor": "Facteur",
@@ -412,5 +414,6 @@
   "metric_vertical_speed_max": "Vitesse Ascensionnelle Max",
   "metric_fitness_index": "Indice de Forme",
   "calculate_automatically": "Calculer Automatiquement",
-  "calculating": "Calcul en cours..."
+  "calculating": "Calcul en cours...",
+  "no_data_for_period": "Aucune donnée disponible pour cette période"
 }

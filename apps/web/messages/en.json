@@ -123,6 +123,8 @@
   "optimal_zone": "Optimal zone",
   "detraining": "Detraining",
   "load": "Load",
+  "training_load": "Training Load",
+  "training_load_history": "Training Load History - ATL/CTL/TSB",
   "normalized": "Normalized",
   "normalized_speed": "Normalized speed",
   "factor": "Factor",
@@ -410,5 +412,6 @@
   "metric_vertical_speed_max": "Max Vertical Speed",
   "metric_fitness_index": "Fitness Index",
   "calculate_automatically": "Calculate Automatically",
-  "calculating": "Calculating..."
+  "calculating": "Calculating...",
+  "no_data_for_period": "No data available for this period"
 }
