@@ -1,6 +1,7 @@
 import { SportDistributionChart } from '@/components/charts/sport-distribution-chart';
 import { StatisticsGlobals } from '@/components/statistics-globals/statistics-globals';
 import { StatisticsPeriodSelect } from '@/components/statistics-period-select/statistics-period-select';
+import { TrainingLoadChart } from '@/components/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { m } from '@/paraglide/messages';
 import { useGetStatisticsForPeriodQuery } from '@/services/statistics';
@@ -96,6 +97,12 @@ export function StatisticsView({ athleteId }: P) {
               </Card>
             </>
           )}
+          <div className="col-span-2">
+            <TrainingLoadChart
+              startDate={period.start}
+              endDate={period.end}
+            />
+          </div>
         </>
       )}
       {/* {statistics && (

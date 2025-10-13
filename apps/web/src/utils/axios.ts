@@ -109,6 +109,15 @@ export const routes = {
     deleteBlock: (blockId: number) => `/agent/blocks/${blockId}`,
     chat: (threadId: number) => `/agent/threads/${threadId}/chat`,
   },
+  trainingLoad: {
+    calculate: (activityId: number) =>
+      `/training-load/calculate/${activityId}`,
+    activity: (activityId: number) => `/training-load/activity/${activityId}`,
+    period: '/training-load/period',
+    metrics: '/training-load/metrics',
+    history: '/training-load/history',
+    recalculate: '/training-load/recalculate',
+  },
 } as const;
 
 const client = axios.create({

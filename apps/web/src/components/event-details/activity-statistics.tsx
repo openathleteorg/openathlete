@@ -10,6 +10,7 @@ import {
   HeartrateStat,
   SpeedStat,
 } from '../numeric-stats';
+import { ActivityTrainingLoadStats } from './activity-training-load-stats';
 
 interface P {
   event: ActivityEvent;
@@ -57,6 +58,7 @@ export function ActivityStatistics({ event, stream }: P) {
           />
         )}
         {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
+        <ActivityTrainingLoadStats activityId={event.eventId} />
       </>
     );
   } else if (event.sport === SPORT_TYPE.CYCLING) {
@@ -95,6 +97,7 @@ export function ActivityStatistics({ event, stream }: P) {
           />
         )}
         {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
+        <ActivityTrainingLoadStats activityId={event.eventId} />
       </>
     );
   } else if (event.sport === SPORT_TYPE.HIKING) {
@@ -128,6 +131,7 @@ export function ActivityStatistics({ event, stream }: P) {
           />
         )}
         {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
+        <ActivityTrainingLoadStats activityId={event.eventId} />
       </>
     );
   } else {
@@ -139,6 +143,7 @@ export function ActivityStatistics({ event, stream }: P) {
           movingDuration={event.movingTime}
         />
         {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
+        <ActivityTrainingLoadStats activityId={event.eventId} />
       </>
     );
   }
