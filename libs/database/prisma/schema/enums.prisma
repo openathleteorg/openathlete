@@ -134,3 +134,9 @@ enum metric_type {
   VERTICAL_SPEED_MAX
   FITNESS_INDEX
 }
+
+enum training_load_calculation_type {
+  FOSTER_RPE // Foster method using RPE x duration
+  TRIMP_EDWARDS // Edwards TRIMP using HR zones
+  TRIMP_BANISTER // Banister TRIMP using exponential HR weighting
+}

@@ -108,6 +108,7 @@ model event_activity {
   equipment_id        Int?
   weather             event_activity_weather?
   normalization       event_activity_normalization?
+  training_load_entries training_load_entry[]
 }
 
 model event_activity_weather {
