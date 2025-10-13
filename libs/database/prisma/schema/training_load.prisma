@@ -1,0 +1,64 @@
+// ============================================================================
+// Training Load Models
+// ============================================================================
+// Manages training load calculations for athletes using various methods:
+// - Foster (RPE-based)
+// - TRIMP Edwards (HR-based with zones)
+// - TRIMP Banister (HR-based exponential)
+//
+// Each activity can have multiple training load entries (one per calculation type).
+// Training load accumulates over time to calculate:
+// - ATL (Acute Training Load): 7-day exponentially weighted average
+// - CTL (Chronic Training Load): 42-day exponentially weighted average
+// - TSB (Training Stress Balance): CTL - ATL (fatigue vs fitness)
+// ============================================================================
+
+model training_load_calculation {
+  // primary key
+  training_load_calculation_id Int @id @default(autoincrement())
+
+  // fields
+  type        training_load_calculation_type
+  description String?
+  is_active   Boolean                         @default(true)
+
+  // relationships
+  athlete    athlete              @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
+  athlete_id Int
+  entries    training_load_entry[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // indexes
+  @@unique([athlete_id, type])
+  @@index([athlete_id, type])
+}
+
+model training_load_entry {
+  // primary key
+  training_load_entry_id Int @id @default(autoincrement())
+
+  // fields
+  date  DateTime @db.Date // Date of the training session
+  value Float // Training load value (TSS, TRIMP, etc.)
+
+  // Metadata for calculation traceability
+  metadata Json? // Stores calculation details: { rpe, duration, avg_hr, hr_max, hr_rest, zones, etc. }
+
+  // relationships
+  calculation    training_load_calculation @relation(fields: [calculation_id], references: [training_load_calculation_id], onDelete: Cascade)
+  calculation_id Int
+  activity       event_activity            @relation(fields: [activity_id], references: [event_activity_id], onDelete: Cascade)
+  activity_id    Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // indexes
+  @@unique([calculation_id, activity_id]) // One entry per calculation per activity
+  @@index([calculation_id, date])
+  @@index([activity_id])
+}
