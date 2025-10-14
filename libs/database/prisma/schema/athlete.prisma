@@ -5,16 +5,16 @@ model athlete {
   // fields
 
   // relationships
-  user                     user                        @relation(fields: [user_id], references: [user_id])
-  user_id                  Int                         @unique
-  coach_athletes           coach_athlete[]
-  events                   event[]
-  connectors               connector[]
-  training_zones           training_zone[]
-  records                  record[]
-  equipment                equipment[]
-  cycles                   cycle[]
-  metrics                  athlete_metric[]
+  user                       user                        @relation(fields: [user_id], references: [user_id])
+  user_id                    Int                         @unique
+  coach_athletes             coach_athlete[]
+  events                     event[]
+  connectors                 connector[]
+  training_zones             training_zone[]
+  records                    record[]
+  equipment                  equipment[]
+  cycles                     cycle[]
+  metrics                    athlete_metric[]
   training_load_calculations training_load_calculation[]
 
   // timestamps

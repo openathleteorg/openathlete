@@ -1,0 +1,116 @@
+// ============================================================================
+// Workout Builder Models
+// ============================================================================
+// Structured workout builder allowing complex training sessions with blocks
+// Compatible with FIT file format, Garmin, Suunto, Apple Watch exports
+//
+// Architecture:
+// - workout: Main workout definition (linked to event_training)
+// - workout_step: Individual steps (warmup, intervals, cooldown, etc.)
+// - workout_step_target: Goals for each step (pace, HR, power, RPE)
+// - workout_repeat: Repetition blocks containing multiple steps
+//
+// Compatible target types match industry standards:
+// - OPEN: No specific target
+// - PACE: Target pace/speed (min/km or m/s)
+// - HEARTRATE: Target HR (bpm or % of max)
+// - POWER: Target power (watts)
+// - CADENCE: Target cadence (rpm/spm)
+// - RPE: Rate of Perceived Exertion (1-10)
+// ============================================================================
+
+model workout {
+  // primary key
+  workout_id Int @id @default(autoincrement())
+
+  // fields
+  estimated_duration Int? // in seconds, calculated from steps
+  total_distance     Float? // in meters, if applicable
+
+  // relationships
+  event_training    event_training @relation(fields: [event_training_id], references: [event_training_id], onDelete: Cascade)
+  event_training_id Int            @unique
+  steps             workout_step[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model workout_step {
+  // primary key
+  workout_step_id Int @id @default(autoincrement())
+
+  // fields
+  order_index   Int // position in the workout sequence
+  step_type     workout_step_type
+  name          String? // optional label (e.g., "Warmup", "Tempo intervals")
+  exercise_name String? // exercise name for strength training (e.g., "Bench Press", "Squat")
+  notes         String? @default("") // additional instructions/comments
+
+  // Duration can be defined in multiple ways (only one should be set)
+  duration_type   workout_duration_type
+  duration_value  Float? // value depends on duration_type
+  duration_target Float? // optional target for LAP_BUTTON type
+
+  // relationships
+  workout          workout?              @relation(fields: [workout_id], references: [workout_id], onDelete: Cascade)
+  workout_id       Int?
+  repeat_parent    workout_repeat?       @relation("ParentRepeat", fields: [repeat_parent_id], references: [workout_repeat_id], onDelete: Cascade)
+  repeat_parent_id Int?
+  repeat_block     workout_repeat?       @relation("RepeatBlock")
+  targets          workout_step_target[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([workout_id, order_index])
+}
+
+model workout_repeat {
+  // primary key
+  workout_repeat_id Int @id @default(autoincrement())
+
+  // fields
+  repetitions Int // number of times to repeat
+
+  // relationships
+  step        workout_step   @relation("RepeatBlock", fields: [step_id], references: [workout_step_id], onDelete: Cascade)
+  step_id     Int            @unique
+  child_steps workout_step[] @relation("ParentRepeat")
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
+model workout_step_target {
+  // primary key
+  workout_step_target_id Int @id @default(autoincrement())
+
+  // fields
+  target_type  workout_target_type
+  target_zone  Int? // zone number (1-5 typically) for HR/power zones
+  target_min   Float? // minimum value for range targets
+  target_max   Float? // maximum value for range targets
+  target_value Float? // single value target
+
+  // Unit depends on target_type:
+  // PACE: min/km or m/s (stored as m/s)
+  // HEARTRATE: bpm or % max HR
+  // POWER: watts or % FTP
+  // CADENCE: rpm/spm
+  // RPE: 1-10 scale
+  unit workout_target_unit?
+
+  // relationships
+  step    workout_step @relation(fields: [step_id], references: [workout_step_id], onDelete: Cascade)
+  step_id Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([step_id])
+}

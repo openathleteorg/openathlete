@@ -24,6 +24,9 @@ enum sport_type {
   SWIMMING
   ROCK_CLIMBING
   HIKING
+  STRENGTH
+  CROSSFIT
+  YOGA
   OTHER
 }
 
@@ -139,4 +142,53 @@ enum training_load_calculation_type {
   FOSTER_RPE // Foster method using RPE x duration
   TRIMP_EDWARDS // Edwards TRIMP using HR zones
   TRIMP_BANISTER // Banister TRIMP using exponential HR weighting
+}
+
+enum workout_step_type {
+  WARMUP
+  COOLDOWN
+  INTERVAL_ACTIVE // work interval
+  INTERVAL_REST // recovery interval
+  STEADY // steady pace/effort
+  REPEAT // container for repeated steps
+  FREE // open/unstructured
+}
+
+enum workout_duration_type {
+  TIME // duration in seconds
+  DISTANCE // distance in meters
+  CALORIES // calories to burn
+  HR_BELOW // until HR drops below value
+  HR_ABOVE // until HR rises above value
+  LAP_BUTTON // manual lap press
+  OPEN // no defined duration
+  REPS // number of repetitions (for strength training)
+}
+
+enum workout_target_type {
+  OPEN // no specific target
+  PACE // pace/speed target
+  SPEED // speed target (m/s)
+  HEARTRATE // heart rate target
+  POWER // power target
+  CADENCE // cadence target
+  RPE // rate of perceived exertion
+  WEIGHT // weight/load target (for strength training)
+  REPS_TARGET // target number of reps (alternative to duration)
+}
+
+enum workout_target_unit {
+  MIN_PER_KM // pace in min/km
+  M_PER_S // speed in m/s
+  KM_PER_H // speed in km/h
+  BPM // heart rate in beats per minute
+  PERCENT_MAX_HR // percentage of max heart rate
+  WATTS // power in watts
+  PERCENT_FTP // percentage of functional threshold power
+  RPM // cadence in revolutions per minute
+  SPM // cadence in steps per minute
+  RPE_SCALE // RPE on 1-10 scale
+  KG // weight in kilograms
+  LBS // weight in pounds
+  REPS // number of repetitions
 }

@@ -39,6 +39,7 @@ model event_training {
   event_id            Int             @unique
   related_activity    event_activity? @relation(fields: [related_activity_id], references: [event_activity_id])
   related_activity_id Int?            @unique
+  workout             workout? // structured workout definition
 }
 
 model event_competition {
@@ -99,15 +100,15 @@ model event_activity {
   average_normalized_speed Float? // in m/s
 
   // relationships
-  event               event                         @relation(fields: [event_id], references: [event_id])
-  event_id            Int                           @unique
-  related_training    event_training?
-  related_competition event_competition?
-  records             record[]
-  equipment           equipment?                    @relation(fields: [equipment_id], references: [equipment_id])
-  equipment_id        Int?
-  weather             event_activity_weather?
-  normalization       event_activity_normalization?
+  event                 event                         @relation(fields: [event_id], references: [event_id])
+  event_id              Int                           @unique
+  related_training      event_training?
+  related_competition   event_competition?
+  records               record[]
+  equipment             equipment?                    @relation(fields: [equipment_id], references: [equipment_id])
+  equipment_id          Int?
+  weather               event_activity_weather?
+  normalization         event_activity_normalization?
   training_load_entries training_load_entry[]
 }
 
