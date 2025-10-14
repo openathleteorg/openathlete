@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { EVENT_TYPE, SPORT_TYPE } from '../../misc';
+import { createWorkoutStepDtoSchema } from './workout.dto';
 
 const baseEventSchema = z.object({
   startDate: z.coerce.date(),
@@ -17,6 +18,10 @@ const trainingEventSchema = baseEventSchema.extend({
   goalDuration: z.number().optional().nullable(),
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
+  // Workout data for structured training sessions
+  workout: z.object({
+    steps: z.array(createWorkoutStepDtoSchema).default([]),
+  }).optional().nullable(),
 });
 
 const competitionEventSchema = baseEventSchema.extend({

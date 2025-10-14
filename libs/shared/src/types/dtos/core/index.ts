@@ -1,4 +1,5 @@
 export * from './create-event.dto';
+export * from './update-event.dto';
 export * from './invite-coach.dto';
 export * from './invite-athlete.dto';
 export * from './get-statistics-for-period.response.dto';
@@ -11,3 +12,4 @@ export * from './get-event-normalization.response.dto';
 export * from './create-cycle.dto';
 export * from './update-cycle.dto';
 export * from './training-load.dto';
+export * from './workout.dto';

@@ -15,6 +15,8 @@ import {
   training_zone_value,
   user,
   user_role,
+  workout,
+  workout_step,
 } from '@openathlete/database';
 
 import { EQUIPMENT_TYPE, EVENT_TYPE, SPORT_TYPE } from '../types/misc';
@@ -46,11 +48,19 @@ export interface Athlete extends ConvertKeysToCamelCase<athlete> {
   user?: User;
 }
 
+export interface WorkoutStepEntity extends ConvertKeysToCamelCase<workout_step> {
+}
+
+export interface WorkoutEntity extends ConvertKeysToCamelCase<workout> {
+  steps: WorkoutStepEntity[];
+}
+
 export interface TrainingEvent
   extends ConvertKeysToCamelCase<event_training & event> {
   type: EVENT_TYPE.TRAINING;
   sport: SPORT_TYPE;
   relatedActivity?: ActivityEvent;
+  workout?: WorkoutEntity;
 }
 
 export interface CompetitionEvent
