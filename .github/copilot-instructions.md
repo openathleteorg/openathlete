@@ -400,6 +400,7 @@ function MyCustomBlock({ block }: { block: AgentMessageBlock }) {
 - All the comments in the codebase should be written in English.
 - Use `// TODO:` comments to indicate areas needing future work.
 - Always add text in multiple languages using the i18n system and paraglide.
+- Never user `any` type unless absolutely necessary
 
 ---
 
