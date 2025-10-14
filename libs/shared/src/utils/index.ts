@@ -7,3 +7,18 @@ export * from './date';
 export * from './metric-unit.map';
 export * from './metric-calculation.map';
 export * from './metric-category.map';
+export {
+  calculateWorkoutDuration,
+  calculateWorkoutDistance,
+  countWorkoutSteps,
+  validateWorkoutStructure,
+  paceToSpeed,
+  speedToPace,
+  speedMsToKmh,
+  kmhToSpeedMs,
+  formatPace,
+} from './workout.utils';
+export type {
+  WorkoutValidationError,
+  WorkoutValidationResult,
+} from './workout.utils';
