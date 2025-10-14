@@ -3,8 +3,11 @@ import client, { routes } from '@/utils/axios';
 import {
   ActivityStream,
   CreateEventDto,
+  UpdateEventDto,
   Event,
   GetEventWeatherResponseDto,
+  ReorderWorkoutStepsDto,
+  DuplicateWorkoutDto,
 } from '@openathlete/shared';
 
 export type GetEventNormalizationResponseDto = {
@@ -31,7 +34,7 @@ export class EventService {
     body,
   }: {
     eventId: Event['eventId'];
-    body: Partial<CreateEventDto>;
+    body: UpdateEventDto;
   }): Promise<Event> {
     const res = await client.patch(routes.event.update(eventId), body);
     return mapEvent(res.data);
@@ -99,5 +102,43 @@ export class EventService {
   static async getMyIcalCalendarSecret(): Promise<string> {
     const res = await client.get(routes.event.getMyIcalCalendarSecret);
     return res.data;
+  }
+
+  // ============================================================================
+  // Workout-related methods (now integrated with events)
+  // ============================================================================
+
+  /**
+   * Reorder workout steps for a training event
+   * @param eventId - The ID of the training event
+   * @param body - The reorder data with step IDs and their new order
+   * @returns The updated event with reordered workout steps
+   */
+  static async reorderWorkoutSteps({
+    eventId,
+    body,
+  }: {
+    eventId: Event['eventId'];
+    body: ReorderWorkoutStepsDto;
+  }): Promise<Event> {
+    const res = await client.patch(routes.workout.reorder(eventId), body);
+    return mapEvent(res.data);
+  }
+
+  /**
+   * Duplicate a workout from one training event to another
+   * @param sourceEventId - The ID of the source training event with the workout to copy
+   * @param body - The target training event ID
+   * @returns The updated target event with the duplicated workout
+   */
+  static async duplicateWorkout({
+    sourceEventId,
+    body,
+  }: {
+    sourceEventId: Event['eventId'];
+    body: DuplicateWorkoutDto;
+  }): Promise<Event> {
+    const res = await client.post(routes.workout.duplicate(sourceEventId), body);
+    return mapEvent(res.data);
   }
 }

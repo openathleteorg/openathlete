@@ -32,7 +32,7 @@ export class AgentService {
   }
 
   static async getUserThreads(): Promise<AgentThread[]> {
-    const res = await client.get(routes.agent.getUserThreads);
+    const res = await client.get(routes.agent.getThreads);
     return res.data;
   }
 
