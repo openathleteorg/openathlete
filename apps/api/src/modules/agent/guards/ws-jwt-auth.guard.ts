@@ -18,8 +18,6 @@ export class WsJwtAuthGuard implements CanActivate {
       const client: Socket = context.switchToWs().getClient();
       const token = this.extractTokenFromHandshake(client);
 
-      console.log('[WsJwtAuthGuard] Token extracted:', token ? 'yes' : 'no');
-
       if (!token) {
         console.error('[WsJwtAuthGuard] No token provided');
         throw new WsException('Unauthorized: No token provided');
@@ -30,9 +28,6 @@ export class WsJwtAuthGuard implements CanActivate {
         userId: number;
         email: string;
       }>(token);
-      console.log('[WsJwtAuthGuard] Token verified, payload:', payload);
-
-      // Fetch user from database
       const user = await this.prisma.user.findUnique({
         where: { user_id: payload.userId },
         select: { user_id: true, email: true },
@@ -43,9 +38,6 @@ export class WsJwtAuthGuard implements CanActivate {
         throw new WsException('Unauthorized: User not found');
       }
 
-      console.log('[WsJwtAuthGuard] User authenticated:', user.email);
-
-      // Attach user to socket for later use
       client.data.user = user;
 
       return true;

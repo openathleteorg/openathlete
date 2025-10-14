@@ -29,13 +29,9 @@ export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private mastraAgentService: MastraAgentService) {}
 
-  handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
-  }
+  handleConnection(client: Socket) {}
 
-  handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
-  }
+  handleDisconnect(client: Socket) {}
 
   @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('send_message')
