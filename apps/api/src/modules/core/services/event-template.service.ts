@@ -48,6 +48,104 @@ export class EventTemplateService {
       },
     });
 
+    // Retrieve the duplicated event with includes to check for training
+    const eventWithIncludes = await this.prisma.event.findUnique({
+      where: { event_id: event.event_id },
+      include: EVENT_INCLUDES,
+    });
+
+    // If training event, check and duplicate associated workout as template
+    if (event.type === 'TRAINING' && eventWithIncludes?.training) {
+      const originalWorkout = await this.prisma.workout.findUnique({
+        where: {
+          event_training_id: (
+            await this.prisma.event_training.findUnique({
+              where: { event_id: body.eventId },
+            })
+          )?.event_training_id,
+        },
+        include: {
+          steps: {
+            include: {
+              targets: true,
+              repeat_block: {
+                include: {
+                  child_steps: {
+                    include: { targets: true },
+                  },
+                },
+              },
+            },
+            orderBy: { order_index: 'asc' },
+          },
+        },
+      });
+
+      if (originalWorkout) {
+        // Duplicate workout to the template training
+        await this.prisma.workout.create({
+          data: {
+            estimated_duration: originalWorkout.estimated_duration,
+            total_distance: originalWorkout.total_distance,
+            event_training_id: eventWithIncludes.training.event_training_id,
+            steps: {
+              create: originalWorkout.steps.map((step) => ({
+                order_index: step.order_index,
+                step_type: step.step_type,
+                name: step.name,
+                exercise_name: step.exercise_name,
+                notes: step.notes,
+                duration_type: step.duration_type,
+                duration_value: step.duration_value,
+                duration_target: step.duration_target,
+                targets: {
+                  create: step.targets.map((t) => ({
+                    target_type: t.target_type,
+                    target_zone: t.target_zone,
+                    target_min: t.target_min,
+                    target_max: t.target_max,
+                    target_value: t.target_value,
+                    unit: t.unit,
+                  })),
+                },
+                repeat_block: step.repeat_block
+                  ? {
+                      create: {
+                        repetitions: step.repeat_block.repetitions,
+                        child_steps: {
+                          create: step.repeat_block.child_steps.map(
+                            (childStep) => ({
+                              order_index: childStep.order_index,
+                              step_type: childStep.step_type,
+                              name: childStep.name,
+                              exercise_name: childStep.exercise_name,
+                              notes: childStep.notes,
+                              duration_type: childStep.duration_type,
+                              duration_value: childStep.duration_value,
+                              duration_target: childStep.duration_target,
+                              targets: {
+                                create: childStep.targets.map((t) => ({
+                                  target_type: t.target_type,
+                                  target_zone: t.target_zone,
+                                  target_min: t.target_min,
+                                  target_max: t.target_max,
+                                  target_value: t.target_value,
+                                  unit: t.unit,
+                                })),
+                              },
+                            }),
+                          ),
+                        },
+                      },
+                    }
+                  : undefined,
+              })),
+            },
+          },
+        });
+      }
+    }
+
     const eventTemplate = await this.prisma.event_template.create({
       data: {
         user_id: user.user_id,

@@ -24,16 +24,21 @@ import {
   event_training,
   event_type,
 } from '@openathlete/database';
-import { ActivityImportedEvent } from 'src/events';
 import {
   ActivityStream,
   ApiEnvSchemaType,
   CompressedActivityStream,
   CreateEventDto,
+  DuplicateWorkoutDto,
+  ReorderWorkoutStepsDto,
+  UpdateEventDto,
+  calculateWorkoutDistance,
+  calculateWorkoutDuration,
   keysToCamel,
   keysToSnake,
 } from '@openathlete/shared';
 
+import { ActivityImportedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
@@ -50,6 +55,30 @@ export const EVENT_INCLUDES = {
       related_activity: {
         select: {
           event_id: true,
+        },
+      },
+      workout: {
+        include: {
+          steps: {
+            include: {
+              targets: true,
+              repeat_block: {
+                include: {
+                  child_steps: {
+                    include: {
+                      targets: true,
+                    },
+                    orderBy: {
+                      order_index: 'asc' as const,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              order_index: 'asc' as const,
+            },
+          },
         },
       },
     },
@@ -187,8 +216,16 @@ export class EventService {
   async createEvent(user: AuthUser, data: CreateEventDto) {
     const ability = await this.abilities.getFor({ user });
 
+    const workout = (data as any).workout;
+
+    const snakeCaseData = keysToSnake(data);
     const { type, end_date, start_date, name, athlete_id, ...rest } =
-      keysToSnake(data);
+      snakeCaseData;
+
+    // Remove workout from rest if it exists (it shouldn't be passed to Prisma create)
+    if ('workout' in rest) {
+      delete (rest as any).workout;
+    }
 
     const finalAthleteId = athlete_id || user?.athlete?.athlete_id;
 
@@ -205,26 +242,69 @@ export class EventService {
       throw new ForbiddenException('You are not allowed to create this event');
     }
 
-    return keysToCamel(
-      await this.prisma.event.create({
+    const created = await this.prisma.event.create({
+      data: {
+        athlete_id: finalAthleteId,
+        start_date,
+        end_date,
+        name,
+        type,
+        [type.toLocaleLowerCase()]: {
+          create: rest,
+        },
+      },
+      include: EVENT_INCLUDES,
+    });
+
+    if (type === 'TRAINING' && workout && created.training) {
+      const workoutData = await this.prisma.workout.create({
         data: {
-          athlete_id: finalAthleteId,
-          start_date,
-          end_date,
-          name,
-          type,
-          [type.toLocaleLowerCase()]: {
-            create: rest,
+          event_training_id: created.training.event_training_id,
+          steps: {
+            create: (workout.steps || []).map((step) =>
+              this.buildStepCreateData(step),
+            ),
           },
         },
-      }),
-    );
+        include: {
+          steps: {
+            include: {
+              targets: true,
+              repeat_block: {
+                include: {
+                  child_steps: {
+                    include: { targets: true },
+                    orderBy: { order_index: 'asc' },
+                  },
+                },
+              },
+            },
+            orderBy: { order_index: 'asc' },
+          },
+        },
+      });
+
+      // Calculate and update estimated metrics
+      const workoutDto = this.mapWorkoutToDto(workoutData);
+      const estimatedDuration = calculateWorkoutDuration(workoutDto);
+      const totalDistance = calculateWorkoutDistance(workoutDto);
+
+      await this.prisma.workout.update({
+        where: { workout_id: workoutData.workout_id },
+        data: {
+          estimated_duration: estimatedDuration,
+          total_distance: totalDistance,
+        },
+      });
+    }
+
+    return this.getEventById(user, created.event_id);
   }
 
   async updateEvent(
     user: AuthUser,
     eventId: event['event_id'],
-    data: Partial<CreateEventDto>,
+    data: UpdateEventDto,
   ) {
     const ability = await this.abilities.getFor({ user });
 
@@ -239,8 +319,15 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
+    const workout = (data as any).workout;
+
+    const snakeCaseData = keysToSnake(data);
     const { type, end_date, start_date, name, athlete_id, ...rest } =
-      keysToSnake(data);
+      snakeCaseData;
+
+    if ('workout' in rest) {
+      delete (rest as any).workout;
+    }
 
     // Check if RPE is being updated on an activity
     const isRpeUpdate =
@@ -266,6 +353,102 @@ export class EventService {
       },
     });
 
+    // Handle workout updates for training events
+    if (event.type === 'TRAINING' && event.training && workout) {
+      const existingWorkout = await this.prisma.workout.findUnique({
+        where: { event_training_id: event.training.event_training_id },
+      });
+
+      if (existingWorkout) {
+        // Update existing workout
+        if (workout.steps) {
+          // Delete existing steps and create new ones
+          await this.prisma.workout_step.deleteMany({
+            where: { workout_id: existingWorkout.workout_id },
+          });
+
+          const updatedWorkout = await this.prisma.workout.update({
+            where: { workout_id: existingWorkout.workout_id },
+            data: {
+              steps: {
+                create: workout.steps.map((step) =>
+                  this.buildStepCreateData(step),
+                ),
+              },
+            },
+            include: {
+              steps: {
+                include: {
+                  targets: true,
+                  repeat_block: {
+                    include: {
+                      child_steps: {
+                        include: { targets: true },
+                        orderBy: { order_index: 'asc' },
+                      },
+                    },
+                  },
+                },
+                orderBy: { order_index: 'asc' },
+              },
+            },
+          });
+
+          // Recalculate metrics
+          const workoutDto = this.mapWorkoutToDto(updatedWorkout);
+          const estimatedDuration = calculateWorkoutDuration(workoutDto);
+          const totalDistance = calculateWorkoutDistance(workoutDto);
+
+          await this.prisma.workout.update({
+            where: { workout_id: existingWorkout.workout_id },
+            data: {
+              estimated_duration: estimatedDuration,
+              total_distance: totalDistance,
+            },
+          });
+        }
+      } else if (workout && workout.steps && workout.steps.length > 0) {
+        const newWorkout = await this.prisma.workout.create({
+          data: {
+            event_training_id: event.training.event_training_id,
+            steps: {
+              create: workout.steps.map((step) =>
+                this.buildStepCreateData(step),
+              ),
+            },
+          },
+          include: {
+            steps: {
+              include: {
+                targets: true,
+                repeat_block: {
+                  include: {
+                    child_steps: {
+                      include: { targets: true },
+                      orderBy: { order_index: 'asc' },
+                    },
+                  },
+                },
+              },
+              orderBy: { order_index: 'asc' },
+            },
+          },
+        });
+
+        const workoutDto = this.mapWorkoutToDto(newWorkout);
+        const estimatedDuration = calculateWorkoutDuration(workoutDto);
+        const totalDistance = calculateWorkoutDistance(workoutDto);
+
+        await this.prisma.workout.update({
+          where: { workout_id: newWorkout.workout_id },
+          data: {
+            estimated_duration: estimatedDuration,
+            total_distance: totalDistance,
+          },
+        });
+      }
+    }
+
     // If RPE was updated on an activity, trigger training load recalculation
     if (isRpeUpdate && event.activity) {
       this.eventEmitter.emit(
@@ -277,7 +460,8 @@ export class EventService {
       );
     }
 
-    return updatedEvent;
+    // Return the full updated event with all includes
+    return this.getEventById(user, eventId);
   }
 
   async deleteEvent(user: AuthUser, eventId: event['event_id']) {
@@ -642,6 +826,271 @@ export class EventService {
           },
         },
       },
+      include: EVENT_INCLUDES,
+    });
+    // Note: Workout duplication is handled separately via WorkoutController
+  }
+
+  // ============================================================================
+  // Workout-specific methods
+  // ============================================================================
+
+  /**
+   * Reorder workout steps for a training event
+   */
+  async reorderWorkoutSteps(
+    user: AuthUser,
+    eventId: event['event_id'],
+    data: ReorderWorkoutStepsDto,
+  ) {
+    const ability = await this.abilities.getFor({ user });
+
+    const event = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ event_id: eventId }, accessibleBy(ability, 'update').event],
+      },
+      include: {
+        training: {
+          include: {
+            workout: true,
+          },
+        },
+      },
+    });
+
+    if (!event || !event.training?.workout) {
+      throw new NotFoundException('Training event with workout not found');
+    }
+
+    // Reorder steps based on the provided order
+    const updatePromises = data.stepOrders.map(({ stepId, order }) =>
+      this.prisma.workout_step.update({
+        where: { workout_step_id: stepId },
+        data: { order_index: order },
+      }),
+    );
+
+    await Promise.all(updatePromises);
+
+    // Return updated event with workout
+    return this.getEventById(user, eventId);
+  }
+
+  /**
+   * Duplicate workout from one training to another
+   */
+  async duplicateWorkout(
+    user: AuthUser,
+    sourceEventId: event['event_id'],
+    data: DuplicateWorkoutDto,
+  ) {
+    const ability = await this.abilities.getFor({ user });
+
+    // Get source event with workout
+    const sourceEvent = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ event_id: sourceEventId }, accessibleBy(ability, 'read').event],
+      },
+      include: {
+        training: {
+          include: {
+            workout: {
+              include: {
+                steps: {
+                  include: {
+                    targets: true,
+                    repeat_block: {
+                      include: {
+                        child_steps: {
+                          include: { targets: true },
+                          orderBy: { order_index: 'asc' },
+                        },
+                      },
+                    },
+                  },
+                  orderBy: { order_index: 'asc' },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!sourceEvent || !sourceEvent.training?.workout) {
+      throw new NotFoundException(
+        'Source training event with workout not found',
+      );
+    }
+
+    // Get target event
+    const targetEvent = await this.prisma.event.findFirst({
+      where: {
+        AND: [
+          { event_id: data.targetTrainingId },
+          accessibleBy(ability, 'update').event,
+        ],
+      },
+      include: {
+        training: {
+          include: { workout: true },
+        },
+      },
+    });
+
+    if (!targetEvent || !targetEvent.training) {
+      throw new NotFoundException('Target training event not found');
+    }
+
+    if (targetEvent.training.workout) {
+      throw new BadRequestException('Target training already has a workout');
+    }
+
+    const sourceWorkout = sourceEvent.training.workout;
+
+    // Create workout for target training
+    const duplicatedWorkout = await this.prisma.workout.create({
+      data: {
+        event_training_id: targetEvent.training.event_training_id,
+        steps: {
+          create: sourceWorkout.steps.map((step) =>
+            this.buildStepCreateData(step),
+          ),
+        },
+      },
+      include: {
+        steps: {
+          include: {
+            targets: true,
+            repeat_block: {
+              include: {
+                child_steps: {
+                  include: { targets: true },
+                  orderBy: { order_index: 'asc' },
+                },
+              },
+            },
+          },
+          orderBy: { order_index: 'asc' },
+        },
+      },
+    });
+
+    // Calculate and update metrics
+    const workoutDto = this.mapWorkoutToDto(duplicatedWorkout);
+    const estimatedDuration = calculateWorkoutDuration(workoutDto);
+    const totalDistance = calculateWorkoutDistance(workoutDto);
+
+    await this.prisma.workout.update({
+      where: { workout_id: duplicatedWorkout.workout_id },
+      data: {
+        estimated_duration: estimatedDuration,
+        total_distance: totalDistance,
+      },
+    });
+
+    // Return updated target event
+    return this.getEventById(user, data.targetTrainingId);
+  }
+
+  /**
+   * Helper method to build step create data for Prisma
+   */
+  private buildStepCreateData(step: any): any {
+    console.log('[buildStepCreateData] Processing step:', {
+      stepType: step.stepType || step.step_type,
+      hasChildSteps: !!(step.childSteps && step.childSteps.length > 0),
+      childStepsLength: step.childSteps?.length,
+      hasRepeatBlock: !!(step.repeat_block || step.repeatBlock),
+      repeatTimes: step.repeatTimes || step.repeat_times,
+      repeatBlock: step.repeatBlock,
+      step: JSON.stringify(step, null, 2),
+    });
+
+    const baseStep: any = {
+      order_index: step.orderIndex || step.order_index || 0,
+      step_type: step.stepType || step.step_type,
+      name: step.name,
+      duration_type: step.durationType || step.duration_type,
+      duration_value: step.durationValue || step.duration_value,
+      repeat_times: step.repeatTimes || step.repeat_times,
+      rest_time: step.restTime || step.rest_time,
+      notes: step.notes,
+      targets: {
+        create: (step.targets || []).map((target: any) => ({
+          target_type: target.targetType || target.target_type,
+          target_unit: target.targetUnit || target.target_unit,
+          target_min_value: target.targetMinValue || target.target_min_value,
+          target_max_value: target.targetMaxValue || target.target_max_value,
+          target_value: target.targetValue || target.target_value,
+        })),
+      },
+    };
+
+    // Handle repeat blocks with child steps - support both camelCase and snake_case
+    const repeatBlockData = step.repeatBlock || step.repeat_block;
+
+    if (step.childSteps && step.childSteps.length > 0) {
+      console.log(
+        '[buildStepCreateData] Creating repeat block with',
+        step.childSteps.length,
+        'child steps',
+      );
+      baseStep.repeat_block = {
+        create: {
+          repetitions: step.repeatTimes || step.repeat_times || 1,
+          child_steps: {
+            create: step.childSteps.map((childStep: any, index: number) => ({
+              ...this.buildStepCreateData(childStep),
+              order_index: index,
+            })),
+          },
+        },
+      };
+    } else if (repeatBlockData?.childSteps || repeatBlockData?.child_steps) {
+      const childSteps =
+        repeatBlockData.childSteps || repeatBlockData.child_steps;
+      console.log(
+        '[buildStepCreateData] Creating repeat block from repeatBlock object with',
+        childSteps.length,
+        'child steps',
+      );
+      baseStep.repeat_block = {
+        create: {
+          repetitions:
+            repeatBlockData.repetitions ||
+            step.repeatTimes ||
+            step.repeat_times ||
+            1,
+          child_steps: {
+            create: childSteps.map((childStep: any, index: number) => ({
+              ...this.buildStepCreateData(childStep),
+              order_index: index,
+            })),
+          },
+        },
+      };
+    }
+
+    return baseStep;
+  }
+
+  /**
+   * Helper method to map Prisma workout to DTO
+   */
+  private mapWorkoutToDto(workout: any): any {
+    return keysToCamel({
+      ...workout,
+      steps: workout.steps.map((step: any) => ({
+        ...step,
+        targets: step.targets || [],
+        repeat_block: step.repeat_block
+          ? {
+              ...step.repeat_block,
+              child_steps: step.repeat_block.child_steps || [],
+            }
+          : null,
+      })),
     });
   }
 }

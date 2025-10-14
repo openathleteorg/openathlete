@@ -12,6 +12,7 @@ import {
   cycle,
   event,
   user,
+  workout,
 } from '@openathlete/database';
 
 import { AuthUser } from '../decorators/user.decorator';
@@ -26,6 +27,7 @@ export type Subjects = CASLSubjects<{
   athlete_metric: athlete_metric;
   event: event;
   cycle: cycle;
+  workout: workout;
   agent_thread: agent_thread;
   agent_message: agent_message;
   agent_message_block: agent_message_block;
@@ -56,12 +58,18 @@ export class CaslAbilityFactory {
       can('manage', 'event', { athlete_id: user.athlete.athlete_id });
       can('manage', 'cycle', { athlete_id: user.athlete.athlete_id });
       can('manage', 'athlete_metric', { athlete_id: user.athlete.athlete_id });
+      can('manage', 'workout', {
+        event_training: { event: { athlete_id: user.athlete.athlete_id } },
+      });
     }
 
     if (user.coach_athletes) {
       user.coach_athletes.forEach((coachAthlete) => {
         can('manage', 'event', { athlete_id: coachAthlete.athlete_id });
         can('manage', 'cycle', { athlete_id: coachAthlete.athlete_id });
+        can('manage', 'workout', {
+          event_training: { event: { athlete_id: coachAthlete.athlete_id } },
+        });
       });
     }
 

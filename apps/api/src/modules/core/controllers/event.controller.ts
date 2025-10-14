@@ -21,6 +21,12 @@ import {
   ActivityStream,
   CreateEventDto,
   createEventDtoSchema,
+  UpdateEventDto,
+  updateEventDtoSchema,
+  ReorderWorkoutStepsDto,
+  reorderWorkoutStepsSchema,
+  DuplicateWorkoutDto,
+  duplicateWorkoutSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
@@ -83,8 +89,7 @@ export class EventController {
   updateEvent(
     @JwtUser() user: AuthUser,
     @Param('eventId', ParseIntPipe) eventId: event['event_id'],
-    // @Body(new ZodValidationPipe(createEventDtoSchema)) body: CreateEventDto,
-    @Body() body: Partial<CreateEventDto>,
+    @Body(new ZodValidationPipe(updateEventDtoSchema)) body: UpdateEventDto,
   ) {
     return this.eventService.updateEvent(user, eventId, body);
   }
@@ -144,5 +149,37 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: event['event_id'],
   ) {
     return this.eventService.unsetRelatedActivity(user, eventId);
+  }
+
+  // ============================================================================
+  // Workout-related routes
+  // ============================================================================
+
+  /**
+   * Reorder workout steps for a training event
+   * PATCH /api/event/:eventId/workout/reorder
+   */
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch(':eventId/workout/reorder')
+  reorderWorkoutSteps(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Body(new ZodValidationPipe(reorderWorkoutStepsSchema)) dto: ReorderWorkoutStepsDto,
+  ) {
+    return this.eventService.reorderWorkoutSteps(user, eventId, dto);
+  }
+
+  /**
+   * Duplicate workout from one training to another
+   * POST /api/event/:eventId/workout/duplicate
+   */
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post(':eventId/workout/duplicate')
+  duplicateWorkout(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Body(new ZodValidationPipe(duplicateWorkoutSchema)) dto: DuplicateWorkoutDto,
+  ) {
+    return this.eventService.duplicateWorkout(user, eventId, dto);
   }
 }
