@@ -84,9 +84,6 @@ export const routes = {
       endDate: string,
     ) => `/statistics?athleteId=${athleteId}&start=${startDate}&end=${endDate}`,
   },
-  marketing: {
-    contact: '/contact',
-  },
   cycle: {
     create: '/cycle',
     update: (cycleId: number) => `/cycle/${cycleId}`,
@@ -115,8 +112,7 @@ export const routes = {
     duplicate: (eventId: number) => `/event/${eventId}/workout/duplicate`,
   },
   trainingLoad: {
-    calculate: (activityId: number) =>
-      `/training-load/calculate/${activityId}`,
+    calculate: (activityId: number) => `/training-load/calculate/${activityId}`,
     activity: (activityId: number) => `/training-load/activity/${activityId}`,
     period: '/training-load/period',
     metrics: '/training-load/metrics',

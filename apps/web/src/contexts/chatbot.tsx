@@ -6,14 +6,14 @@ import React, {
   useState,
 } from 'react';
 
-export interface ChatMessage {
+interface ChatMessage {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
 }
 
-export interface ChatConversation {
+interface ChatConversation {
   id: string;
   title: string;
   messages: ChatMessage[];

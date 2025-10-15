@@ -32,7 +32,6 @@ export function WorkoutSummary({
         className={`${isChild ? 'ml-6 border-l-2 border-muted pl-4' : ''}`}
       >
         <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-          {/* Step Number & Type Icon */}
           <div className="flex items-center gap-2 min-w-[80px]">
             <span className="text-sm font-medium text-muted-foreground">
               {isChild ? `${index + 1}` : `Step ${index + 1}`}
@@ -40,7 +39,6 @@ export function WorkoutSummary({
             <TypeIcon stepType={step.stepType} className="h-4 w-4" />
           </div>
 
-          {/* Step Info */}
           <div className="flex-1 space-y-2">
             {/* Name & Exercise */}
             <div className="flex items-center gap-2">

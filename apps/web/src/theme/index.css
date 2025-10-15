@@ -42,7 +42,6 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
-  /* OpenAthlete Marketing (Vitrine) Tokens */
   --oa-bg: #050C34; /* Deep navy */
   --oa-fg: #EAF0FF; /* Soft near-white */
   --oa-muted: #9AA4D6; /* Muted slate */
@@ -96,7 +95,6 @@
   --sidebar-border: oklch(0.28 0.01 265);
   --sidebar-ring: oklch(0.45 0.01 265);
 
-  /* Map marketing palette explicitly in dark mode for consistency */
   --oa-bg: #050C34;
   --oa-fg: #EAF0FF;
   --oa-muted: #9AA4D6;
@@ -152,7 +150,6 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  /* Expose marketing tokens to Tailwind via custom properties */
   --color-oa-bg: var(--oa-bg);
   --color-oa-fg: var(--oa-fg);
   --color-oa-muted: var(--oa-muted);
@@ -172,10 +169,6 @@
   }
   body {
     @apply bg-background text-foreground;
-  }
-  body[data-site='marketing'] {
-    background: var(--oa-bg);
-    color: var(--oa-fg);
   }
 }
 
