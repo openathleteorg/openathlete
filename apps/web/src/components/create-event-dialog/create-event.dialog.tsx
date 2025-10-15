@@ -120,13 +120,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   console.log('[CreateEventDialog] errors:', errors);
 
   const onSubmit = handleSubmit(async (data: any) => {
-    console.log('[CreateEventDialog] onSubmit - workoutSteps:', workoutSteps);
-    console.log(
-      '[CreateEventDialog] onSubmit - workoutSteps JSON:',
-      JSON.stringify(workoutSteps, null, 2),
-    );
-
-    // For training events, include workout data if there are steps
     if (data.type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
       const eventWithWorkout = {
         ...data,
@@ -138,11 +131,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         },
       };
 
-      console.log(
-        '[CreateEventDialog] Sending eventWithWorkout:',
-        JSON.stringify(eventWithWorkout, null, 2),
-      );
-
       if (create) {
         createEventMutation.mutate(eventWithWorkout as any);
       } else if (edit && rest.event) {
@@ -152,7 +140,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         });
       }
     } else {
-      // For non-training events or training without workouts
       if (create) {
         createEventMutation.mutate({ ...data, athleteId } as any);
       } else if (edit && rest.event) {
@@ -164,20 +151,16 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     }
   });
 
-  // Callback to receive workout steps from WorkoutBuilder
   const handleStepsChange = useCallback((steps: any[]) => {
     console.log(
       '[CreateEventDialog] handleStepsChange RAW steps:',
       JSON.stringify(steps, null, 2),
     );
 
-    // Clean workout steps: remove ALL DB-only fields for validation
     const cleanedSteps = steps.map((step) => {
-      // Remove step DB fields
       const { workoutStepId, workoutId, createdAt, updatedAt, ...stepData } =
         step;
 
-      // Clean targets
       const cleanedTargets = step.targets?.map((target: any) => {
         const {
           workoutStepTargetId,
@@ -189,7 +172,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         return targetData;
       });
 
-      // Clean repeat block child steps if they exist
       let cleanedRepeatBlock = stepData.repeatBlock;
       if (stepData.repeatBlock?.childSteps) {
         cleanedRepeatBlock = {
@@ -228,11 +210,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         repeatBlock: cleanedRepeatBlock,
       };
     });
-
-    console.log(
-      '[CreateEventDialog] CLEANED steps:',
-      JSON.stringify(cleanedSteps, null, 2),
-    );
     setWorkoutSteps(cleanedSteps);
   }, []);
 
@@ -249,7 +226,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       ? rest.event?.type || EVENT_TYPE.TRAINING
       : EVENT_TYPE.TRAINING;
 
-  // Check if there's an existing workout when editing
   const existingWorkout =
     edit && type === EVENT_TYPE.TRAINING && 'event' in rest
       ? (rest.event as any)?.workout
@@ -257,9 +233,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   const isTraining = type === EVENT_TYPE.TRAINING;
   const sportValue = watch('sport');
-  const nameValue = watch('name');
-  const descriptionValue = watch('description');
-
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -360,11 +333,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                 hideMetadataForm={true}
                 hideActions={true}
                 onStepsChange={handleStepsChange}
-                workoutMetadata={{
-                  name: nameValue || '',
-                  description: descriptionValue || '',
-                  sport: sportValue as SPORT_TYPE,
-                }}
+                sport={sportValue}
               />
             </div>
           )}

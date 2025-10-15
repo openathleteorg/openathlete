@@ -25,7 +25,6 @@ export function PlanMap({ plan, focusLegIndex }: P) {
     ) {
       return undefined;
     }
-    console.log('focusLegIndex', plan);
   }, [focusLegIndex, plan.legs, plan.points]);
 
   return (

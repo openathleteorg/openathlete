@@ -155,10 +155,6 @@ export class AgentService {
 
   static sendMessageStream(threadId: number, content: string): void {
     const socket = this.getSocket();
-    console.log('[AgentService] Emitting send_message:', {
-      threadId,
-      content,
-    });
     socket.emit('send_message', { threadId, content });
   }
 }

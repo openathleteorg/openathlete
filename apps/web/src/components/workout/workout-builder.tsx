@@ -6,134 +6,51 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-// import {
-//   useUpdateEventMutation,
-// } from '@/services/event';
-
-import {
-  SPORT_TYPE,
-  // type CreateanyDto,
-  // type UpdateanyDto,
-  // type anyEntity,
-  // type anyEntity,
-} from '@openathlete/shared';
+import { SPORT_TYPE } from '@openathlete/shared';
 
 import { StepForm } from './step-form';
 import { StepList } from './step-list';
-import { WorkoutForm } from './workout-form';
 
-interface anyBuilderProps {
-  /**
-   * ID of the training event this workout belongs to
-   */
+interface WorkoutBuilderProps {
   trainingId: number;
-
-  /**
-   * Existing workout to edit (if any)
-   */
   workout?: any | null;
-
-  /**
-   * any metadata from parent (training event)
-   * If provided, anyForm is hidden and metadata is inherited
-   */
-  workoutMetadata?: {
-    name: string;
-    description?: string | null;
-    sport: SPORT_TYPE;
-  };
-
-  /**
-   * Loading state for initial data fetch
-   */
+  sport: SPORT_TYPE;
   isLoading?: boolean;
-
-  /**
-   * Callback when workout is successfully created or updated
-   */
   onSuccess?: (workout: any) => void;
-
-  /**
-   * Callback when user cancels
-   */
   onCancel?: () => void;
-
-  /**
-   * Hide the metadata form (name, sport, description)
-   * Used when metadata comes from parent training
-   */
   hideMetadataForm?: boolean;
-
-  /**
-   * Hide action buttons (Save/Cancel)
-   * Used when workout is managed by parent form
-   */
   hideActions?: boolean;
-
-  /**
-   * Callback to expose workout steps to parent
-   * Used in controlled mode when hideActions is true
-   */
   onStepsChange?: (steps: any[]) => void;
 }
 
 type DialogState = { type: 'none' } | { type: 'step'; editing?: any };
 
-/**
- * anyBuilder - Main container for workout creation/editing
- *
- * Orchestrates all workout forms and manages global state.
- * Handles creation, editing, and deletion of steps and repeat blocks.
- */
 export function WorkoutBuilder({
   trainingId: _trainingId,
   workout,
-  workoutMetadata,
   isLoading = false,
-  onSuccess,
-  onCancel,
-  hideMetadataForm = false,
-  hideActions = false,
+  sport,
   onStepsChange,
-}: anyBuilderProps) {
-  // Local state for workout metadata
-  // Use provided metadata or workout data or defaults
-  const [workoutData, setanyData] = useState<{
-    name: string;
-    description: string | null;
-    sport: SPORT_TYPE;
-  }>({
-    name: workoutMetadata?.name || workout?.name || '',
-    description: workoutMetadata?.description || workout?.description || null,
-    sport: workoutMetadata?.sport || workout?.sport || SPORT_TYPE.RUNNING,
-  });
-
-  // Local state for steps
+}: WorkoutBuilderProps) {
   const [steps, setSteps] = useState<any[]>(workout?.steps || []);
 
-  // Dialog state management
   const [dialogState, setDialogState] = useState<DialogState>({ type: 'none' });
 
-  // Counter for generating unique temporary IDs
   const [idCounter, setIdCounter] = useState<number>(0);
 
-  // Generate unique temporary ID
   const generateTempId = () => {
-    const newId = -(Date.now() + idCounter); // Negative to distinguish from real DB IDs
+    const newId = -(Date.now() + idCounter);
     setIdCounter((prev) => prev + 1);
     return newId;
   };
 
-  // Helper function to prepare steps for saving (clean IDs and metadata)
   const prepareStepsForSave = useCallback((stepsToClean: any[]) => {
     return stepsToClean.map((step, index) => {
-      // Clean a single step by removing DB-specific fields
       const cleanedStep: any = {
         orderIndex: index,
         stepType: step.stepType,
@@ -155,7 +72,6 @@ export function WorkoutBuilder({
           })) || [],
       };
 
-      // Handle repeat block if present
       if (step.repeatBlock) {
         cleanedStep.repeatBlock = {
           repetitions: step.repeatBlock.repetitions,
@@ -188,7 +104,6 @@ export function WorkoutBuilder({
     });
   }, []);
 
-  // Notify parent when steps change (controlled mode)
   useEffect(() => {
     if (onStepsChange) {
       const cleanedSteps = prepareStepsForSave(steps);
@@ -200,46 +115,16 @@ export function WorkoutBuilder({
     }
   }, [steps, onStepsChange, prepareStepsForSave]);
 
-  // Mutations (temporarily disabled for new system)
-  // const createanyMutation = useCreateanyMutation({
-  //   onSuccess: (data) => {
-  //     onSuccess?.(data);
-  //   },
-  // });
-
-  // const updateanyMutation = useUpdateanyMutation({
-  //   onSuccess: (data) => {
-  //     onSuccess?.(data);
-  //   },
-  // });
-
-  const isSaving = false; // createanyMutation.isPending || updateanyMutation.isPending;
-
-  // === Handlers ===
-
-  const handleanyMetadataChange = (data: {
-    name: string;
-    description?: string | null;
-    sport: SPORT_TYPE;
-  }) => {
-    setanyData({
-      name: data.name,
-      description: data.description || null,
-      sport: data.sport,
-    });
-  };
-
   const handleAddStep = () => {
     setDialogState({ type: 'step' });
   };
 
   const handleAddRepeatBlock = () => {
-    // Add empty repeat block inline (no dialog)
     const newRepeatStep: any = {
       orderIndex: steps.length,
       stepType: 'REPEAT',
       durationType: 'OPEN',
-      workoutStepId: generateTempId(), // Unique temporary ID
+      workoutStepId: generateTempId(),
       repeatBlock: {
         repetitions: 1,
         childSteps: [],
@@ -254,7 +139,6 @@ export function WorkoutBuilder({
 
   const handleStepSubmit = (step: Omit<any, 'workoutStepId'>) => {
     if (dialogState.type === 'step' && dialogState.editing) {
-      // Edit existing step
       setSteps((prev) =>
         prev.map((s) => {
           if (
@@ -267,10 +151,9 @@ export function WorkoutBuilder({
         }),
       );
     } else {
-      // Add new step with temporary ID
       const newStep: any = {
         ...step,
-        workoutStepId: generateTempId(), // Unique temporary ID
+        workoutStepId: generateTempId(),
         orderIndex: steps.length,
       };
       setSteps((prev) => [...prev, newStep]);
@@ -289,7 +172,6 @@ export function WorkoutBuilder({
     );
   };
 
-  // Repeat block handlers (inline, no dialog)
   const handleUpdateRepeatBlock = (updatedStep: any) => {
     setSteps((prev) =>
       prev.map((s) =>
@@ -297,11 +179,6 @@ export function WorkoutBuilder({
       ),
     );
   };
-
-  // TODO: Implement repeat block deletion
-  // const handleDeleteRepeatBlock = (_stepId: number) => {
-  //   setSteps((prev) => prev.filter((s) => s.workoutStepId !== stepId));
-  // };
 
   const handleAddChildStep = (
     parentStepId: number,
@@ -312,7 +189,7 @@ export function WorkoutBuilder({
         if (s.workoutStepId === parentStepId && s.repeatBlock) {
           const newChildStep: any = {
             ...childStep,
-            workoutStepId: generateTempId(), // Unique temporary ID
+            workoutStepId: generateTempId(),
             orderIndex: s.repeatBlock.childSteps.length,
           };
           return {
@@ -368,20 +245,6 @@ export function WorkoutBuilder({
     );
   };
 
-  const handleSave = () => {
-    const stepsPayload = prepareStepsForSave(steps);
-
-    // Temporarily disabled - workouts are now managed via events
-    console.log('Would save workout:', { workoutData, stepsPayload });
-    onSuccess?.(workout);
-  };
-
-  const handleCancel = () => {
-    onCancel?.();
-  };
-
-  // === Render ===
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -395,22 +258,6 @@ export function WorkoutBuilder({
 
   return (
     <div className="space-y-6">
-      {/* any Metadata Form - Only shown if not hidden */}
-      {!hideMetadataForm && (
-        <>
-          <WorkoutForm
-            initialValues={workoutData}
-            onSubmit={handleanyMetadataChange}
-            onCancel={handleCancel}
-            submitLabel="" // Hidden submit button (handled by save button below)
-            cancelLabel=""
-          />
-
-          <Separator />
-        </>
-      )}
-
-      {/* Steps List */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">
@@ -436,7 +283,6 @@ export function WorkoutBuilder({
             {m.workout_add_repeat_block()}
           </Button>
         </div>
-
         {steps.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
             <p className="text-sm text-muted-foreground">
@@ -456,33 +302,6 @@ export function WorkoutBuilder({
           />
         )}
       </div>
-
-      {!hideActions && (
-        <>
-          <Separator />
-
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isSaving}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving || !workoutData.name || steps.length === 0}
-            >
-              {isSaving ? 'Saving...' : workout ? 'Update any' : 'Create any'}
-            </Button>
-          </div>
-        </>
-      )}
-
-      {/* Step Dialog */}
       <Dialog
         open={dialogState.type === 'step'}
         onOpenChange={(open) => {
@@ -508,7 +327,7 @@ export function WorkoutBuilder({
                 ? dialogState.editing
                 : undefined
             }
-            sport={workoutData.sport}
+            sport={sport}
             onSubmit={handleStepSubmit}
             onCancel={() => setDialogState({ type: 'none' })}
             submitLabel={

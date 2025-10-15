@@ -53,9 +53,6 @@ interface SortableChildStepProps {
   onDelete: () => void;
 }
 
-/**
- * SortableChildStep - A draggable child step within a repeat block
- */
 function SortableChildStep({
   step,
   index,
@@ -81,7 +78,6 @@ function SortableChildStep({
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-start gap-2">
-      {/* Drag Handle */}
       <button
         type="button"
         className="mt-3 cursor-grab active:cursor-grabbing touch-none"
@@ -90,8 +86,6 @@ function SortableChildStep({
       >
         <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
       </button>
-
-      {/* Step Content */}
       <div className="flex-1">
         <StepCard
           step={step}
@@ -104,17 +98,6 @@ function SortableChildStep({
   );
 }
 
-/**
- * RepeatBlockInline - Inline repeat block component
- *
- * Displays a repeat block with:
- * - Editable repetition count
- * - List of child steps with drag & drop reordering
- * - Button to add new child steps
- * - Delete button
- *
- * No nested dialogs - everything inline except for step editing
- */
 export function RepeatBlockInline({
   step,
   onUpdate,
@@ -184,13 +167,11 @@ export function RepeatBlockInline({
 
   const handleStepSubmit = (childStep: Omit<WorkoutStep, 'workoutStepId'>) => {
     if (editingChildStep) {
-      // Edit existing child step
       onEditChildStep(step.workoutStepId!, {
         ...childStep,
         workoutStepId: editingChildStep.workoutStepId,
       } as WorkoutStep);
     } else {
-      // Add new child step
       onAddChildStep(step.workoutStepId!, childStep);
     }
     setIsStepDialogOpen(false);
@@ -199,9 +180,8 @@ export function RepeatBlockInline({
 
   return (
     <>
-      <Card className="border-l-4 border-primary/40">
+      <Card className="border-l-4 border-primary/40 p-2">
         <div className="p-2 space-y-1.5">
-          {/* Header with repetitions input and delete button */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-primary">
@@ -230,8 +210,7 @@ export function RepeatBlockInline({
             </Button>
           </div>
 
-          {/* Child steps with drag & drop */}
-          <div className="ml-6 space-y-1.5 border-l-2 border-border pl-3">
+          <div className="ml-2 space-y-1.5 border-l-2 border-border pl-3">
             {step.repeatBlock.childSteps.length === 0 ? (
               <div className="text-sm text-muted-foreground py-2 text-center italic">
                 {m.repeat_form_no_steps_description()}
@@ -268,8 +247,6 @@ export function RepeatBlockInline({
               </DndContext>
             )}
           </div>
-
-          {/* Add step button */}
           <div className="ml-6 pl-3">
             <Button
               type="button"
@@ -285,7 +262,6 @@ export function RepeatBlockInline({
         </div>
       </Card>
 
-      {/* Step Dialog */}
       <Dialog open={isStepDialogOpen} onOpenChange={setIsStepDialogOpen}>
         <DialogContent>
           <DialogHeader>

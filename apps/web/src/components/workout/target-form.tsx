@@ -22,7 +22,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-// Available target types - labels will be translated dynamically
 const TARGET_TYPES = [
   { value: 'PACE', getLabelFn: () => m.target_form_type_pace() },
   { value: 'HEARTRATE', getLabelFn: () => m.target_form_type_heartrate() },
@@ -33,7 +32,6 @@ const TARGET_TYPES = [
   { value: 'REPS_TARGET', getLabelFn: () => m.target_form_type_reps() },
 ] as const;
 
-// Zod schema matching backend structure
 const targetFormSchema = z.object({
   targetType: z.string(),
   targetMin: z.number().nullable().optional(),
@@ -170,10 +168,8 @@ export function TargetForm({
           </label>
         </div>
 
-        {/* Conditional Fields Based on Range Toggle */}
         {useRange ? (
           <div className="grid grid-cols-2 gap-4">
-            {/* Min Value */}
             <FormField
               control={form.control}
               name="targetMin"
@@ -205,7 +201,6 @@ export function TargetForm({
               )}
             />
 
-            {/* Max Value */}
             <FormField
               control={form.control}
               name="targetMax"
@@ -238,7 +233,6 @@ export function TargetForm({
             />
           </div>
         ) : (
-          /* Single Value */
           <FormField
             control={form.control}
             name="targetValue"
@@ -271,7 +265,6 @@ export function TargetForm({
           />
         )}
 
-        {/* Training Zone (optional) */}
         <FormField
           control={form.control}
           name="targetZone"
@@ -298,7 +291,6 @@ export function TargetForm({
           )}
         />
 
-        {/* Actions */}
         <div className="flex justify-end gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
