@@ -380,6 +380,7 @@
   "step_form_type_description": "The type of workout step",
   "step_form_type_warmup": "Warm Up",
   "step_form_type_cooldown": "Cool Down",
+  "step_form_type_repeat": "Repeat",
   "step_form_type_interval_active": "Interval (Active)",
   "step_form_type_interval_rest": "Interval (Rest)",
   "step_form_type_steady": "Steady",

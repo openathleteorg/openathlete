@@ -10,6 +10,4 @@ export { TargetBadge } from './target-badge';
 export { TargetForm } from './target-form';
 export { TypeIcon } from './type-icon';
 export { WorkoutBuilder } from './workout-builder';
-export { WorkoutBuilderWrapper } from './workout-builder-wrapper';
-export { WorkoutForm } from './workout-form';
 export { WorkoutSummary } from './workout-summary';

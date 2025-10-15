@@ -382,6 +382,7 @@
   "step_form_type_description": "Le type d'étape de la séance",
   "step_form_type_warmup": "Échauffement",
   "step_form_type_cooldown": "Récupération",
+  "step_form_type_repeat": "Répétition",
   "step_form_type_interval_active": "Intervalle (Actif)",
   "step_form_type_interval_rest": "Intervalle (Repos)",
   "step_form_type_steady": "Continu",

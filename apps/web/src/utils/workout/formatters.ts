@@ -1,3 +1,5 @@
+import { m } from '@/paraglide/messages';
+
 import type {
   WorkoutDto,
   WorkoutDurationType,
@@ -187,13 +189,13 @@ export function formatTarget(target: WorkoutStepTarget): string {
  */
 export function getStepTypeLabel(stepType: WorkoutStepType): string {
   const labels: Record<WorkoutStepType, string> = {
-    WARMUP: 'Warm up',
-    COOLDOWN: 'Cool down',
-    INTERVAL_ACTIVE: 'Active',
-    INTERVAL_REST: 'Rest',
-    STEADY: 'Steady',
-    REPEAT: 'Repeat',
-    FREE: 'Free',
+    WARMUP: m.step_form_type_warmup(),
+    COOLDOWN: m.step_form_type_cooldown(),
+    INTERVAL_ACTIVE: m.step_form_type_interval_active(),
+    INTERVAL_REST: m.step_form_type_interval_rest(),
+    STEADY: m.step_form_type_steady(),
+    REPEAT: m.step_form_type_repeat(),
+    FREE: m.step_form_type_free(),
   };
   return labels[stepType] || stepType;
 }

@@ -1,14 +1,13 @@
-import { formatTarget, getTargetTypeLabel } from '@/utils/workout/formatters';
-import { cn } from '@/utils/shadcn';
-
-import type { WorkoutStepTarget } from '@openathlete/shared';
-
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { cn } from '@/utils/shadcn';
+import { formatTarget, getTargetTypeLabel } from '@/utils/workout/formatters';
+
+import type { WorkoutStepTarget } from '@openathlete/shared';
 
 interface TargetBadgeProps {
   target: WorkoutStepTarget;
@@ -16,9 +15,6 @@ interface TargetBadgeProps {
   showTooltip?: boolean;
 }
 
-/**
- * Component that displays a formatted target as a badge
- */
 export function TargetBadge({
   target,
   className,
@@ -52,7 +48,9 @@ export function TargetBadge({
             <span className="font-medium">{label}:</span> {formatted}
           </p>
           {target.targetZone && (
-            <p className="text-xs text-muted-foreground">Training Zone {target.targetZone}</p>
+            <p className="text-xs text-muted-foreground">
+              Training Zone {target.targetZone}
+            </p>
           )}
         </TooltipContent>
       </Tooltip>
