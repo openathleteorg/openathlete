@@ -73,15 +73,14 @@ export class TrainingLoadService {
     athleteId: number,
     type: training_load_calculation_type,
   ) {
-    let calculation =
-      await this.prisma.training_load_calculation.findUnique({
-        where: {
-          athlete_id_type: {
-            athlete_id: athleteId,
-            type,
-          },
+    let calculation = await this.prisma.training_load_calculation.findUnique({
+      where: {
+        athlete_id_type: {
+          athlete_id: athleteId,
+          type,
         },
-      });
+      },
+    });
 
     if (!calculation) {
       calculation = await this.prisma.training_load_calculation.create({
@@ -465,15 +464,14 @@ export class TrainingLoadService {
       throw new NotFoundException('Athlete not found');
     }
 
-    const calculation =
-      await this.prisma.training_load_calculation.findUnique({
-        where: {
-          athlete_id_type: {
-            athlete_id: athlete.athlete_id,
-            type: calculationType,
-          },
+    const calculation = await this.prisma.training_load_calculation.findUnique({
+      where: {
+        athlete_id_type: {
+          athlete_id: athlete.athlete_id,
+          type: calculationType,
         },
-      });
+      },
+    });
 
     if (!calculation) {
       return [];
@@ -545,22 +543,43 @@ export class TrainingLoadService {
       targetDate,
     );
 
-    // Calculate exponentially weighted moving averages
-    const calculateEWMA = (days: number): number => {
-      if (dailyLoads.length === 0) return 0;
+    // Create a map of dates with loads for quick lookup
+    const loadMap = new Map<string, number>();
+    dailyLoads.forEach((day) => {
+      const dateKey = day.date.toISOString().split('T')[0];
+      loadMap.set(dateKey, day.load);
+    });
 
-      const alpha = 2 / (days + 1);
-      let ewma = dailyLoads[0].load;
+    // Generate ALL days from startDate to targetDate (including days without activity)
+    const allDays: Array<{ date: Date; load: number }> = [];
+    const currentDate = new Date(startDate);
+    currentDate.setHours(0, 0, 0, 0);
 
-      for (let i = 1; i < dailyLoads.length; i++) {
-        ewma = alpha * dailyLoads[i].load + (1 - alpha) * ewma;
-      }
+    while (currentDate <= targetDate) {
+      const dateKey = currentDate.toISOString().split('T')[0];
+      const load = loadMap.get(dateKey) || 0; // 0 load for rest days
 
-      return ewma;
-    };
+      allDays.push({
+        date: new Date(currentDate),
+        load,
+      });
 
-    const atl = calculateEWMA(7);
-    const ctl = calculateEWMA(42);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Calculate exponentially weighted moving averages using ALL days (including rest days)
+    let atl = 0;
+    let ctl = 0;
+
+    const alphaATL = 2 / 8; // 7-day EWMA
+    const alphaCTL = 2 / 43; // 42-day EWMA
+
+    for (const day of allDays) {
+      // Update EWMA (even for days with 0 load - this causes fitness decay)
+      atl = alphaATL * day.load + (1 - alphaATL) * atl;
+      ctl = alphaCTL * day.load + (1 - alphaCTL) * ctl;
+    }
+
     const tsb = ctl - atl;
 
     // Calculate total load for the period
@@ -581,7 +600,7 @@ export class TrainingLoadService {
     const avgWeeklyLoad = totalLoad / (trainingDays / 7 || 1);
     const recommendedLoadRange = {
       min: avgWeeklyLoad * 0.95,
-      max: avgWeeklyLoad * 1.10,
+      max: avgWeeklyLoad * 1.1,
     };
 
     return {
@@ -737,11 +756,7 @@ export class TrainingLoadService {
       if (!event.activity) continue;
 
       try {
-        await this.calculateActivityLoad(
-          user,
-          event.event_id,
-          calculationType,
-        );
+        await this.calculateActivityLoad(user, event.event_id, calculationType);
         processed++;
       } catch (error) {
         console.error(

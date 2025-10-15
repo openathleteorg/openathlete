@@ -17,7 +17,6 @@ import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
-
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { AthleteService } from './services/athlete.service';
@@ -36,7 +35,6 @@ import { TrainingLoadService } from './services/training-load.service';
 import { TrainingZoneService } from './services/training-zone.service';
 import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
 import { WeatherService } from './services/weather/weather.service';
-
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
@@ -96,6 +94,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityPipelineService,
     ActivityDetailService,
     TrainingLoadService,
+    CycleService,
   ],
 })
 export class CoreModule {}

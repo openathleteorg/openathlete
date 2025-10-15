@@ -7,6 +7,7 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { ActivityDetailService } from 'src/modules/core/services/activity-detail.service';
+import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { createOpenAthleteAgent } from '../agents';
@@ -94,6 +95,7 @@ export class MastraAgentService {
     private blockService: BlockService,
     private prismaService: PrismaService,
     private activityDetailService: ActivityDetailService,
+    private trainingLoadService: TrainingLoadService,
   ) {
     // Set OpenAI API key for Mastra
     process.env.OPENAI_API_KEY = this.configService.get('OPENAI_API_KEY');
@@ -102,6 +104,7 @@ export class MastraAgentService {
     this.agent = createOpenAthleteAgent(
       this.prismaService,
       this.activityDetailService,
+      this.trainingLoadService,
       this.toolContext,
     );
   }
