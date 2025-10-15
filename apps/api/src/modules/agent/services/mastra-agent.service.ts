@@ -287,12 +287,14 @@ export class MastraAgentService {
       const state = {
         textBlock: null as BlockData | null,
         fullContent: '',
-        currentOrder: 0,
+        toolBlocksOrder: 0, // Order for tool blocks (starts at 0)
+        textBlockOrder: 1000, // Order for text block (starts high to come after tools)
       };
       const toolCallBlocks = new Map<string, BlockData>();
       const processedToolCalls = new Set<string>();
+      const processedToolResults = new Set<string>();
 
-      // Process text stream and tool events concurrently
+      // Process text stream
       const textStreamPromise = (async () => {
         for await (const textChunk of stream.textStream) {
           state.fullContent += textChunk;
@@ -303,7 +305,7 @@ export class MastraAgentService {
               assistantMessage.message_id,
               {
                 type: 'TEXT',
-                order: state.currentOrder++,
+                order: state.textBlockOrder,
                 content: textChunk,
                 status: 'processing',
               },
@@ -338,78 +340,89 @@ export class MastraAgentService {
         }
       })();
 
-      // Process tool calls as they happen
-      const toolCallsPromise = (async () => {
-        const toolCalls = (await stream.toolCalls) as ToolCall[] | undefined;
-        if (toolCalls && toolCalls.length > 0) {
-          for (const toolCall of toolCalls) {
-            const payload = toolCall.payload;
-            const toolCallId = `${payload.toolName}-${Date.now()}`;
+      // Process tool calls and results
+      const toolsPromise = (async () => {
+        try {
+          const toolCalls = (await stream.toolCalls) as ToolCall[] | undefined;
+          if (toolCalls && toolCalls.length > 0) {
+            for (const toolCall of toolCalls) {
+              const payload = toolCall.payload;
+              const toolCallId = `${payload.toolName}-${Date.now()}`;
 
-            if (!processedToolCalls.has(toolCallId)) {
-              processedToolCalls.add(toolCallId);
+              if (!processedToolCalls.has(toolCallId)) {
+                processedToolCalls.add(toolCallId);
 
-              const toolBlock = await this.blockService.createBlock(
-                user,
-                assistantMessage.message_id,
-                {
-                  type: 'TOOL_CALL',
-                  order: state.currentOrder++,
-                  content: `Calling tool: ${payload.toolName}`,
-                  toolName: payload.toolName,
-                  toolInput: payload.args,
-                  status: 'processing',
-                },
-              );
+                const toolBlock = await this.blockService.createBlock(
+                  user,
+                  assistantMessage.message_id,
+                  {
+                    type: 'TOOL_CALL',
+                    order: state.toolBlocksOrder++,
+                    content: `Calling tool: ${payload.toolName}`,
+                    toolName: payload.toolName,
+                    toolInput: payload.args,
+                    status: 'processing',
+                  },
+                );
 
-              toolCallBlocks.set(payload.toolName, toolBlock as BlockData);
+                toolCallBlocks.set(payload.toolName, toolBlock as BlockData);
 
-              onChunk({
-                type: 'block_created',
-                data: toolBlock as Record<string, unknown>,
-              });
+                onChunk({
+                  type: 'block_created',
+                  data: toolBlock as Record<string, unknown>,
+                });
+              }
             }
           }
+
+          const toolResults = (await stream.toolResults) as
+            | ToolResult[]
+            | undefined;
+
+          if (toolResults && toolResults.length > 0) {
+            for (const toolResult of toolResults) {
+              const payload = toolResult.payload;
+              const resultId = `${payload.toolName}-result`;
+
+              if (!processedToolResults.has(resultId)) {
+                processedToolResults.add(resultId);
+
+                const toolCallBlock = toolCallBlocks.get(payload.toolName);
+                if (toolCallBlock && toolCallBlock.block_id) {
+                  await this.blockService.updateBlock(
+                    user,
+                    toolCallBlock.block_id,
+                    {
+                      status: 'completed',
+                    },
+                  );
+
+                  onChunk({
+                    type: 'block_completed',
+                    data: {
+                      blockId: toolCallBlock.block_id,
+                    },
+                  });
+                }
+
+                await this.createEnrichedBlock(
+                  user,
+                  assistantMessage.message_id,
+                  payload.toolName,
+                  payload.result,
+                  state.toolBlocksOrder++,
+                  onChunk,
+                );
+              }
+            }
+          }
+        } catch (error) {
+          console.error('[MastraAgentService] Error processing tools:', error);
         }
       })();
 
-      // Wait for both text stream and tool calls to process
-      await Promise.all([textStreamPromise, toolCallsPromise]);
-
-      // Process tool results
-      const toolResults = (await stream.toolResults) as
-        | ToolResult[]
-        | undefined;
-
-      if (toolResults && toolResults.length > 0) {
-        for (const toolResult of toolResults) {
-          const payload = toolResult.payload;
-
-          // Update the tool call block to completed
-          const toolCallBlock = toolCallBlocks.get(payload.toolName);
-          if (toolCallBlock && toolCallBlock.block_id) {
-            await this.blockService.updateBlock(user, toolCallBlock.block_id, {
-              status: 'completed',
-            });
-
-            onChunk({
-              type: 'block_completed',
-              data: {
-                blockId: toolCallBlock.block_id,
-              },
-            });
-          }
-
-          // Create enriched block based on tool result (no TOOL_RESULT block)
-          await this.createEnrichedBlock(
-            user,
-            assistantMessage.message_id,
-            payload.toolName,
-            payload.result,
-            onChunk,
-          );
-        }
-      }
+      // Wait for text and tools to complete
+      await Promise.all([textStreamPromise, toolsPromise]);
 
       // Finalize text block
       if (state.textBlock?.block_id) {
@@ -473,6 +486,7 @@ export class MastraAgentService {
     messageId: number,
     toolName: string,
     toolResult: Record<string, unknown>,
+    order: number,
     onChunk: (data: StreamChunkData) => void,
   ): Promise<void> {
     let enrichedBlock: Record<string, unknown> | null = null;
@@ -487,7 +501,7 @@ export class MastraAgentService {
 
       enrichedBlock = await this.blockService.createBlock(user, messageId, {
         type: 'ACTIVITY_LIST' as any,
-        order: 2,
+        order: order,
         content: `Found ${activities.length} activities`,
         metadata: {
           activities: toolResult.activities,
@@ -508,7 +522,7 @@ export class MastraAgentService {
 
       enrichedBlock = await this.blockService.createBlock(user, messageId, {
         type: 'ACTIVITY_CREATED' as any,
-        order: 2,
+        order: order,
         content: message,
         metadata: {
           activity: {
