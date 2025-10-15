@@ -269,14 +269,14 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
           date={createEventFromTemplateDialog || undefined}
         />
         <CreateCycleDialog
-          key={createCycleDialog?.startDate?.toDateString()}
+          key={`create-cycle-${createCycleDialog?.startDate?.toDateString()}`}
           open={createCycleDialog !== null}
           onClose={() => setCreateCycleDialog(null)}
           startDate={createCycleDialog?.startDate}
           endDate={createCycleDialog?.endDate}
         />
         <CreateCycleDialog
-          key={editCycleDialog}
+          key={`edit-cycle-${editCycleDialog}`}
           open={editCycleDialog !== null}
           onClose={() => setEditCycleDialog(null)}
           cycle={(cycles || []).find(

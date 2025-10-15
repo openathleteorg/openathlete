@@ -13,6 +13,10 @@ const TOOL_NAME_MAP: Record<string, string> = {
   getActivityDetail: 'get_activity_detail',
   'create-training': 'create_training',
   createTraining: 'create_training',
+  'get-training-period-overview': 'get_training_period_overview',
+  getTrainingPeriodOverview: 'get_training_period_overview',
+  'estimate-training-load': 'estimate_training_load',
+  estimateTrainingLoad: 'estimate_training_load',
 };
 
 /**
@@ -52,6 +56,18 @@ export function getToolMessage(
     return status === 'processing'
       ? m.tool_create_training_processing()
       : m.tool_create_training_completed();
+  }
+
+  if (normalizedTool === 'get_training_period_overview') {
+    return status === 'processing'
+      ? m.tool_get_training_period_overview_processing()
+      : m.tool_get_training_period_overview_completed();
+  }
+
+  if (normalizedTool === 'estimate_training_load') {
+    return status === 'processing'
+      ? m.tool_estimate_training_load_processing()
+      : m.tool_estimate_training_load_completed();
   }
 
   // Fallback for any other tools

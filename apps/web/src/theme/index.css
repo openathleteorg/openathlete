@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+@plugin "@tailwindcss/typography";
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
@@ -176,6 +177,30 @@
     background: var(--oa-bg);
     color: var(--oa-fg);
   }
+}
+
+/* Fix prose colors in user message bubbles (dark background) */
+.prose-user {
+  color: var(--primary-foreground) !important;
+}
+
+.prose-user * {
+  color: var(--primary-foreground) !important;
+}
+
+.prose-user strong {
+  color: var(--primary-foreground) !important;
+  font-weight: 700;
+}
+
+.prose-user a {
+  color: var(--primary-foreground) !important;
+  text-decoration: underline;
+}
+
+.prose-user code {
+  color: var(--primary-foreground) !important;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Print styles for dashboards and reports */

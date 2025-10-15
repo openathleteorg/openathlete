@@ -1,3 +1,4 @@
+import { cn } from '@/utils/shadcn';
 import { getToolMessage } from '@/utils/tool-messages';
 import {
   Activity,
@@ -16,18 +17,32 @@ import {
   ScatterChart,
   Table as TableIcon,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
 
 import { AgentMessageBlock } from '@openathlete/shared';
 
 interface BlockRendererProps {
   block: AgentMessageBlock;
   isStreaming?: boolean;
+  isUserMessage?: boolean;
 }
 
-export function BlockRenderer({ block, isStreaming }: BlockRendererProps) {
+export function BlockRenderer({
+  block,
+  isStreaming,
+  isUserMessage,
+}: BlockRendererProps) {
   switch (block.type) {
     case 'TEXT':
-      return <TextBlock block={block} isStreaming={isStreaming} />;
+      return (
+        <TextBlock
+          block={block}
+          isStreaming={isStreaming}
+          isUserMessage={isUserMessage}
+        />
+      );
     case 'THINKING':
       return <ThinkingBlock block={block} isStreaming={isStreaming} />;
     case 'TOOL_CALL':
@@ -69,13 +84,22 @@ export function BlockRenderer({ block, isStreaming }: BlockRendererProps) {
 function TextBlock({
   block,
   isStreaming,
+  isUserMessage,
 }: {
   block: AgentMessageBlock;
   isStreaming?: boolean;
+  isUserMessage?: boolean;
 }) {
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none">
-      <p className="whitespace-pre-wrap">{block.content}</p>
+    <div
+      className={cn(
+        'prose prose-sm dark:prose-invert max-w-none',
+        isUserMessage && 'prose-user',
+      )}
+    >
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+        {block.content}
+      </ReactMarkdown>
       {isStreaming && <span className="animate-pulse">▊</span>}
     </div>
   );
@@ -94,7 +118,11 @@ function ThinkingBlock({
       <Brain className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
       <div className="flex-1 space-y-1">
         <p className="text-sm font-medium text-muted-foreground">Thinking...</p>
-        <p className="text-sm whitespace-pre-wrap">{block.content}</p>
+        <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+          <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+            {block.content}
+          </ReactMarkdown>
+        </div>
         {isStreaming && <span className="animate-pulse">▊</span>}
       </div>
     </div>

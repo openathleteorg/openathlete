@@ -38,7 +38,7 @@ function MessageBubble({
     >
       <div
         className={cn(
-          'max-w-[80%] rounded-2xl px-4 py-3 space-y-3',
+          'max-w-[80%] w-full sm:max-w-[600px] rounded-2xl px-4 py-3 space-y-3',
           isUser
             ? 'bg-primary text-primary-foreground rounded-br-sm'
             : 'bg-muted text-foreground rounded-bl-sm',
@@ -67,6 +67,7 @@ function MessageBubble({
                     : block
                 }
                 isStreaming={isStreaming}
+                isUserMessage={isUser}
               />
             </div>
           );
@@ -95,6 +96,7 @@ function MessageBubble({
                   updatedAt: new Date().toISOString(),
                 }}
                 isStreaming={true}
+                isUserMessage={isUser}
               />
             </div>
           )}
