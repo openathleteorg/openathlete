@@ -8,9 +8,6 @@ interface DurationDisplayProps {
   className?: string;
 }
 
-/**
- * Component that displays a formatted duration
- */
 export function DurationDisplay({
   durationType,
   durationValue,
@@ -18,9 +15,5 @@ export function DurationDisplay({
 }: DurationDisplayProps) {
   const formatted = formatDuration(durationType, durationValue);
 
-  return (
-    <span className={className}>
-      {formatted}
-    </span>
-  );
+  return <span className={className}>{formatted}</span>;
 }

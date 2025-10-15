@@ -16,7 +16,8 @@ export const WORKOUT_STEP_TYPE = {
   FREE: 'FREE',
 } as const;
 
-export type WorkoutStepType = (typeof WORKOUT_STEP_TYPE)[keyof typeof WORKOUT_STEP_TYPE];
+export type WorkoutStepType =
+  (typeof WORKOUT_STEP_TYPE)[keyof typeof WORKOUT_STEP_TYPE];
 
 export const WORKOUT_DURATION_TYPE = {
   TIME: 'TIME',
@@ -85,7 +86,6 @@ export const workoutStepTargetSchema = z.object({
 
 export type WorkoutStepTarget = z.infer<typeof workoutStepTargetSchema>;
 
-// Recursive schema for workout steps (to support nested repeat blocks)
 export const workoutStepSchema: z.ZodSchema = z.lazy(() =>
   z.object({
     workoutStepId: z.number().optional(),
@@ -154,7 +154,9 @@ export const createWorkoutStepTargetSchema = workoutStepTargetSchema
   })
   .strict();
 
-export type CreateWorkoutStepTarget = z.infer<typeof createWorkoutStepTargetSchema>;
+export type CreateWorkoutStepTarget = z.infer<
+  typeof createWorkoutStepTargetSchema
+>;
 
 export const createWorkoutStepDtoSchema = z.object({
   stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
@@ -173,10 +175,13 @@ export const createWorkoutStepDtoSchema = z.object({
     ])
     .optional(),
   // Alternative format: repeatBlock with repetitions and childSteps
-  repeatBlock: z.object({
-    repetitions: z.number().min(1).max(99),
-    childSteps: z.lazy(() => z.array(createWorkoutStepDtoSchema)).default([]),
-  }).nullable().optional(),
+  repeatBlock: z
+    .object({
+      repetitions: z.number().min(1).max(99),
+      childSteps: z.lazy(() => z.array(createWorkoutStepDtoSchema)).default([]),
+    })
+    .nullable()
+    .optional(),
 }) as z.ZodSchema<CreateWorkoutStepDto>;
 
 export type CreateWorkoutStepDto = {

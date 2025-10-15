@@ -138,7 +138,7 @@ export function TrainingCompetitionDetails({ event }: P) {
               <CardTitle>{m.workout()}</CardTitle>
             </CardHeader>
             <CardContent>
-              <WorkoutSummary workout={event.workout} showCard={false} />
+              <WorkoutSummary workout={event.workout} />
             </CardContent>
           </Card>
         )}
