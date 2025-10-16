@@ -1,75 +1,202 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
-import { Mastra } from '@mastra/core/mastra';
-import { Memory } from '@mastra/memory';
 
-import { PrismaService } from 'src/modules/prisma/services/prisma.service';
-
-import { actionAgent, researchAgent, synthesisAgent } from './agents';
-import { createMastraMemory } from './config/memory.config';
 import {
-  reportGenerationWorkflow,
-  trainingAnalysisWorkflow,
-} from './workflows';
+  adaptationAgent,
+  athleteProfileAgent,
+  macroPlanAgent,
+  mesoPlanAgent,
+  microPlanAgent,
+  qaAgent,
+  qnaAgent,
+  schedulingAgent,
+} from './agents';
+import { createLoggedAgents } from './config/logged-agent';
+import { MastraLogger } from './config/logger';
+import { createMastraMemory } from './config/memory.config';
+import { planAdaptationWorkflow, planGenerationWorkflow } from './workflows';
 
-export function createOpenAthleteNetworkAgent(): Agent {
+// TODO: Create the main OpenAthlete Coach Assistant using .network()
+//
+// PURPOSE:
+// This is the main entry point for the OpenAthlete AI coaching system.
+// It uses Mastra's .network() feature to dynamically route user requests
+// to the appropriate specialized agents or workflows.
+//
+// NETWORK CAPABILITIES:
+// - Dynamic routing based on user intent (plan generation, Q&A, adaptation, etc.)
+// - Access to 8 specialized agents for different coaching tasks
+// - Access to 2 main workflows (plan generation, plan adaptation)
+// - Persistent memory to maintain conversation context
+// - Non-deterministic orchestration (LLM decides which primitive to call)
+//
+// USAGE:
+// const assistant = createOpenAthleteCoachAssistant();
+// const response = await assistant.generate(userMessage, {
+//   threadId: conversationId,
+//   resourceId: athleteId.toString()
+// });
+
+export function createOpenAthleteCoachAssistant(): Agent {
   const memory = createMastraMemory();
 
-  const routingAgent = new Agent({
-    id: 'openathlete-network',
-    name: 'OpenAthlete Assistant',
-    instructions: `You are the OpenAthlete AI Assistant, a sophisticated multi-agent system designed to help athletes manage and optimize their training.
+  // Create logged versions of all agents for debugging
+  const loggedAgents = createLoggedAgents({
+    athleteProfileAgent,
+    macroPlanAgent,
+    mesoPlanAgent,
+    microPlanAgent,
+    schedulingAgent,
+    qaAgent,
+    adaptationAgent,
+    qnaAgent,
+  });
 
-Your capabilities include:
-- Analyzing training data and performance metrics
-- Creating comprehensive training reports
-- Managing training plans and equipment
-- Answering questions about athletic training
-- Providing personalized recommendations
+  const coachAssistant = new Agent({
+    id: 'openathlete-coach',
+    name: 'OpenAthlete Coach Assistant',
+    description:
+      'Expert endurance training coach assistant that helps athletes create personalized training plans, answer training questions, and adapt plans to real-world circumstances.',
+    instructions: `You are an expert endurance training coach assistant for the OpenAthlete platform.
 
-You have access to specialized agents and workflows:
+Your role is to help athletes:
+- Create personalized training plans for races (marathons, ultras, trail races)
+- Answer questions about their training data, activities, and progress
+- Adapt plans when injuries, illness, or schedule changes occur
+- Provide coaching insights and education about training principles
 
-**Agents:**
-1. Research Agent: Use for data analysis, pattern recognition, and information gathering
-2. Synthesis Agent: Use for creating detailed reports and summaries with full paragraphs
-3. Action Agent: Use for creating, updating, or deleting data (training plans, equipment, etc.)
+You have access to specialized agents and workflows to accomplish these tasks:
 
-**Workflows:**
-1. Training Analysis Workflow: Complete analysis of training data over a period
-2. Report Generation Workflow: Generate comprehensive reports from analyzed data
+**SPECIALIZED AGENTS:**
 
-**When to use what:**
-- For simple questions or information requests: Answer directly
-- For data analysis or research: Use the Research Agent or Training Analysis Workflow
-- For creating final reports: Use the Synthesis Agent or Report Generation Workflow  
-- For modifying data: Use the Action Agent
-- For complex multi-step tasks: Combine multiple agents/workflows as needed
+1. athlete-profile: Analyzes athlete data and creates comprehensive profiles
+   - Use when: Need to understand athlete's fitness level, availability, or constraints
+   
+2. macro-plan: Designs high-level training phase structures
+   - Use when: Creating the overall periodization strategy for a training plan
+   
+3. meso-plan: Creates week-by-week training blocks with progression
+   - Use when: Breaking down phases into detailed weekly structure
+   
+4. micro-plan: Generates specific session plans (workouts)
+   - Use when: Need to design actual training sessions for a week
+   
+5. scheduling: Places sessions into weekly calendar slots
+   - Use when: Need to assign days/times to training sessions
+   
+6. qa: Validates training plans against best practices
+   - Use when: Need to review a plan for safety and effectiveness
+   
+7. adaptation: Modifies plans based on athlete events
+   - Use when: Athlete reports injury, illness, missed session, or needs changes
+   
+8. qna: Answers questions about training data and plans
+   - Use when: Athlete asks informational questions or wants insights
 
-**Important rules:**
-- Always confirm before performing destructive actions
-- Use the most specific tool/agent for the task
-- Provide clear, actionable responses
-- Be concise but thorough
+**WORKFLOWS:**
 
-TODO: Once tools are implemented, this agent will have access to all training data and capabilities.`,
+1. plan-generation: Complete end-to-end plan creation process
+   - Use when: Athlete wants to create a new training plan for a goal race
+   - Executes: profile → macro → meso → micro → scheduling → QA → save
+   
+2. plan-adaptation: Modify existing plan based on events
+   - Use when: Need to apply approved modifications to a plan
+   - Executes: analysis → modification → re-scheduling → validation → save
+
+**ROUTING GUIDELINES:**
+
+For "Create a plan for [race]":
+→ Use plan-generation workflow (most efficient for full plan creation)
+
+For injury/illness reports or schedule changes:
+→ Use adaptation agent to analyze and propose options
+→ Then use plan-adaptation workflow to apply chosen option
+
+For questions about activities, progress or athlete data:
+→ Use qna agent directly
+
+For plan review or validation requests:
+→ Use qa agent
+
+For simple coaching questions or education:
+→ Answer directly using your coaching knowledge
+
+**CONVERSATION STYLE:**
+- Professional yet friendly and encouraging
+- Use athlete's name when you know it
+- Ask clarifying questions when needed (race date, goal, constraints)
+- Confirm before making changes to plans or data
+- Explain the "why" behind recommendations (educate the athlete)
+- Celebrate progress and achievements
+- Be honest about challenges and realistic about goals
+
+**IMPORTANT RULES:**
+1. Always use memory (threadId + resourceId) to maintain conversation context
+2. For plan generation, ensure you have: goal race, date, athlete availability
+3. For adaptations, present options and get user confirmation before applying
+4. When using agents/workflows, explain what you're doing
+5. If unsure which agent to use, explain your reasoning and ask for confirmation
+
+Remember: You're not just creating plans, you're coaching athletes. Build trust, educate, and keep them motivated!`,
     model: openai('gpt-4o'),
-    agents: {
-      researchAgent,
-      synthesisAgent,
-      actionAgent,
-    },
+    agents: loggedAgents, // Use logged versions
     workflows: {
-      trainingAnalysisWorkflow,
-      reportGenerationWorkflow,
+      planGenerationWorkflow,
+      planAdaptationWorkflow,
     },
     memory,
   });
 
-  return routingAgent;
+  // Wrap the coach assistant's generate method with logging
+  const originalGenerate = coachAssistant.generate.bind(coachAssistant);
+  coachAssistant.generate = async function (
+    input: any,
+    options?: any,
+    context?: any,
+  ) {
+    MastraLogger.reset(); // Reset logger for each conversation
+    MastraLogger.logAgentCall('OpenAthlete Coach Assistant', {
+      input,
+      options,
+    });
+
+    try {
+      const result = await originalGenerate(input, options, context);
+      MastraLogger.logAgentComplete(
+        'OpenAthlete Coach Assistant',
+        result?.text || result,
+      );
+      MastraLogger.logStack(); // Show final execution stack
+      return result;
+    } catch (error) {
+      MastraLogger.logAgentError('OpenAthlete Coach Assistant', error);
+      MastraLogger.logStack();
+      throw error;
+    }
+  };
+
+  return coachAssistant;
 }
 
 /**
- * Export for convenience
+ * Export agents and workflows for direct use if needed
  */
-export { researchAgent, synthesisAgent, actionAgent };
-export { trainingAnalysisWorkflow, reportGenerationWorkflow };
+export {
+  athleteProfileAgent,
+  macroPlanAgent,
+  mesoPlanAgent,
+  microPlanAgent,
+  schedulingAgent,
+  qaAgent,
+  adaptationAgent,
+  qnaAgent,
+};
+export { planGenerationWorkflow, planAdaptationWorkflow };
+
+/**
+ * Export logger for external use
+ */
+export { MastraLogger } from './config/logger';
+
+// TODO: Once tools are implemented and assigned to agents, the network will be fully functional
+// TODO: Integrate with NestJS module to inject services (PrismaService, TrainingLoadService, etc.) into tool context

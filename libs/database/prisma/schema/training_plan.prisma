@@ -1,0 +1,81 @@
+// ============================================================================
+// Training Plan Models
+// ============================================================================
+// Hierarchical structure for training plan management:
+// - training_plan: Overall training program for a goal/race
+// - cycle: Meso-blocks within a plan (base, specific, taper phases)
+// - training_week: Individual weeks within a cycle
+// - event_training: Training sessions scheduled in weeks
+//
+// This allows the AI coach to generate and manage structured training plans
+// with proper periodization and progression
+// ============================================================================
+
+model training_plan {
+  // primary key
+  training_plan_id Int @id @default(autoincrement())
+
+  // fields
+  name        String
+  description String?
+  goal        String // ex: "Finish UTMB 2025", "Sub-3:30 marathon"
+  start_date  DateTime
+  end_date    DateTime
+  status      plan_status @default(DRAFT)
+
+  // relationships
+  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
+  athlete_id Int
+  cycles     cycle[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([athlete_id, status])
+}
+
+model training_week {
+  // primary key
+  training_week_id Int @id @default(autoincrement())
+
+  // fields
+  week_number   Int // position in the cycle (1, 2, 3, ...)
+  start_date    DateTime
+  end_date      DateTime
+  theme         String? // ex: "VO2 intervals", "Base building", "Taper week"
+  target_volume Int? // target volume in seconds
+  target_load   Float? // target training load (TRIMP)
+
+  // relationships
+  cycle    cycle   @relation(fields: [cycle_id], references: [cycle_id], onDelete: Cascade)
+  cycle_id Int
+  sessions event[] // training sessions scheduled in this week
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([cycle_id, week_number])
+}
+
+model athlete_availability {
+  // primary key
+  athlete_availability_id Int @id @default(autoincrement())
+
+  // fields
+  day_of_week Int // 0=Sunday, 1=Monday, ..., 6=Saturday
+  start_time  String // format "HH:mm" (24h format), ex: "08:00"
+  end_time    String // format "HH:mm" (24h format), ex: "12:00"
+  priority    availability_priority @default(MEDIUM)
+
+  // relationships
+  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
+  athlete_id Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([athlete_id, day_of_week])
+}

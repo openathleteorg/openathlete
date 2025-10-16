@@ -1,3 +1,8 @@
-export { researchAgent } from './research.agent';
-export { synthesisAgent } from './synthesis.agent';
-export { actionAgent } from './action.agent';
+export { athleteProfileAgent } from './athlete-profile.agent';
+export { macroPlanAgent } from './macro-plan.agent';
+export { mesoPlanAgent } from './meso-plan.agent';
+export { microPlanAgent } from './micro-plan.agent';
+export { schedulingAgent } from './scheduling.agent';
+export { qaAgent } from './qa.agent';
+export { adaptationAgent } from './adaptation.agent';
+export { qnaAgent } from './qna.agent';

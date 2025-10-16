@@ -1,2 +1,2 @@
-export { trainingAnalysisWorkflow } from './training-analysis.workflow';
-export { reportGenerationWorkflow } from './report-generation.workflow';
+export { planGenerationWorkflow } from './plan-generation.workflow';
+export { planAdaptationWorkflow } from './plan-adaptation.workflow';

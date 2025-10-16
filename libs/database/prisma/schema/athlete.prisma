@@ -16,6 +16,8 @@ model athlete {
   cycles                     cycle[]
   metrics                    athlete_metric[]
   training_load_calculations training_load_calculation[]
+  training_plans             training_plan[]
+  availability               athlete_availability[]
 
   // timestamps
   created_at DateTime @default(now())

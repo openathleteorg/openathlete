@@ -6,7 +6,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { createOpenAthleteNetworkAgent } from 'src/mastra';
+import { createOpenAthleteCoachAssistant } from 'src/mastra';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { ActivityDetailService } from 'src/modules/core/services/activity-detail.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
@@ -98,12 +98,8 @@ export class MastraAgentService {
     private activityDetailService: ActivityDetailService,
     private trainingLoadService: TrainingLoadService,
   ) {
-    // Set OpenAI API key for Mastra
     process.env.OPENAI_API_KEY = this.configService.get('OPENAI_API_KEY');
-
-    // Create the Mastra network agent (multi-agent orchestration)
-    // TODO: Pass prismaService once tools are re-implemented
-    this.networkAgent = createOpenAthleteNetworkAgent();
+    this.networkAgent = createOpenAthleteCoachAssistant();
   }
 
   /**

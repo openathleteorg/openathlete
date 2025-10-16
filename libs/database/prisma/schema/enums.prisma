@@ -192,3 +192,24 @@ enum workout_target_unit {
   LBS // weight in pounds
   REPS // number of repetitions
 }
+
+enum plan_status {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  ARCHIVED
+}
+
+enum cycle_phase {
+  BASE
+  SPECIFIC
+  TAPER
+  RECOVERY
+  COMPETITION
+}
+
+enum availability_priority {
+  LOW
+  MEDIUM
+  HIGH
+}

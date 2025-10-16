@@ -9,17 +9,21 @@ model event {
   type       event_type
 
   // relationships
-  training    event_training?
-  competition event_competition?
-  note        event_note?
-  activity    event_activity?
-  athlete     athlete?           @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id  Int?
-  templates   event_template[]
+  training         event_training?
+  competition      event_competition?
+  note             event_note?
+  activity         event_activity?
+  athlete          athlete?           @relation(fields: [athlete_id], references: [athlete_id])
+  athlete_id       Int?
+  templates        event_template[]
+  training_week    training_week?     @relation(fields: [training_week_id], references: [training_week_id])
+  training_week_id Int?
 
   // timestamps
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([training_week_id])
 }
 
 model event_training {
@@ -190,16 +194,22 @@ model cycle {
 
   // fields
   name        String
-  description String   @default("")
+  description String       @default("")
   start_date  DateTime
   end_date    DateTime
   color       String? // hex color code (e.g., "#FF5733")
+  phase       cycle_phase? // training phase type (BASE, SPECIFIC, TAPER, etc.)
 
   // relationships
-  athlete    athlete? @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int?
+  athlete          athlete?        @relation(fields: [athlete_id], references: [athlete_id])
+  athlete_id       Int?
+  training_plan    training_plan?  @relation(fields: [training_plan_id], references: [training_plan_id])
+  training_plan_id Int?
+  weeks            training_week[]
 
   // timestamps
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([training_plan_id])
 }
