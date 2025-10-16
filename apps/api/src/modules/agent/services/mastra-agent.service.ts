@@ -1,16 +1,17 @@
 import { Agent } from '@mastra/core/agent';
+import { RuntimeContext } from '@mastra/core/runtime-context';
 
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { createOpenAthleteNetworkAgent } from 'src/mastra';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { ActivityDetailService } from 'src/modules/core/services/activity-detail.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
-import { createOpenAthleteAgent } from '../agents';
 import { BlockService } from './block.service';
 import { MessageService } from './message.service';
 import { ThreadService } from './thread.service';
@@ -83,7 +84,7 @@ interface BlockData {
 
 @Injectable()
 export class MastraAgentService {
-  private agent: ReturnType<typeof createOpenAthleteAgent>;
+  private networkAgent: Agent;
   private currentUser: AuthUser | null = null;
   // Shared context object that tools can access via closure
   private readonly toolContext: ToolContext = { user: null };
@@ -100,13 +101,9 @@ export class MastraAgentService {
     // Set OpenAI API key for Mastra
     process.env.OPENAI_API_KEY = this.configService.get('OPENAI_API_KEY');
 
-    // Create the Mastra agent with access to prisma service and tool context
-    this.agent = createOpenAthleteAgent(
-      this.prismaService,
-      this.activityDetailService,
-      this.trainingLoadService,
-      this.toolContext,
-    );
+    // Create the Mastra network agent (multi-agent orchestration)
+    // TODO: Pass prismaService once tools are re-implemented
+    this.networkAgent = createOpenAthleteNetworkAgent();
   }
 
   /**
@@ -165,16 +162,37 @@ export class MastraAgentService {
         threadId,
       );
 
-      // Build agent messages
-      const agentMessages = this.buildAgentMessages(messages);
+      // Build conversation context from message history
+      const conversationContext = this.buildConversationContext(messages);
 
-      // Set user context for tools via agent property
+      // Set user context for tools
       this.setUserContext(user);
 
-      // Generate response (non-streaming)
-      const result = await this.agent.generate(agentMessages as any);
+      // Create runtime context for memory
+      const runtimeContext = new RuntimeContext();
 
-      const responseContent = result.text || 'No response';
+      // Use network orchestration to handle the request
+      // The network agent will route to appropriate sub-agents/workflows
+      const resultStream = await this.networkAgent.network(
+        `${conversationContext}\n\nUser: ${content}`,
+        {
+          runtimeContext,
+          memory: {
+            resource: `athlete-${user.athlete?.athlete_id || user.user_id}`,
+            thread: `thread-${threadId}`,
+          },
+        },
+      );
+
+      // Network returns a stream, collect the text
+      let responseContent = '';
+      for await (const chunk of (resultStream as any).textStream || []) {
+        responseContent += chunk;
+      }
+
+      if (!responseContent) {
+        responseContent = 'No response';
+      }
 
       // Create response block
       await this.blockService.createBlock(user, assistantMessage.message_id, {
@@ -278,162 +296,108 @@ export class MastraAgentService {
         user,
         threadId,
       );
-      const agentMessages = this.buildAgentMessages(messages);
+
+      // Build conversation context
+      const conversationContext = this.buildConversationContext(messages);
 
       this.setUserContext(user);
 
-      const stream = await this.agent.stream(agentMessages as any);
+      // Create runtime context for memory
+      const runtimeContext = new RuntimeContext();
 
-      const state = {
-        textBlock: null as BlockData | null,
-        fullContent: '',
-        toolBlocksOrder: 0, // Order for tool blocks (starts at 0)
-        textBlockOrder: 1000, // Order for text block (starts high to come after tools)
-      };
-      const toolCallBlocks = new Map<string, BlockData>();
-      const processedToolCalls = new Set<string>();
-      const processedToolResults = new Set<string>();
+      // Use agent.stream() for real text streaming instead of network()
+      // network() is better for multi-agent orchestration but doesn't stream text progressively
+      const agentMessages = this.buildAgentMessages(messages);
+      agentMessages.push({ role: 'user', content });
 
-      // Process text stream
-      const textStreamPromise = (async () => {
+      const stream = await this.networkAgent.stream(agentMessages as any, {
+        runtimeContext,
+        memory: {
+          resource: `athlete-${user.athlete?.athlete_id || user.user_id}`,
+          thread: `thread-${threadId}`,
+        },
+      });
+
+      let responseContent = '';
+      let textBlock: BlockData | null = null;
+
+      // Process the text stream - this gives us real word-by-word streaming
+      try {
+        // Stream text chunks progressively
         for await (const textChunk of stream.textStream) {
-          state.fullContent += textChunk;
+          responseContent += textChunk;
 
-          if (!state.textBlock) {
-            const createdBlock = await this.blockService.createBlock(
+          // Create text block on first chunk
+          if (!textBlock) {
+            textBlock = (await this.blockService.createBlock(
               user,
               assistantMessage.message_id,
               {
                 type: 'TEXT',
-                order: state.textBlockOrder,
+                order: 0,
                 content: textChunk,
                 status: 'processing',
               },
-            );
-            state.textBlock = createdBlock as BlockData;
+            )) as BlockData;
 
             onChunk({
               type: 'block_created',
-              data: createdBlock as Record<string, unknown>,
+              data: textBlock as unknown as Record<string, unknown>,
             });
           } else {
-            const updatedBlock = await this.blockService.updateBlock(
-              user,
-              state.textBlock.block_id!,
-              {
-                content: state.fullContent,
-                status: 'processing',
-              },
-            );
-            state.textBlock = updatedBlock as BlockData;
+            // Update block with accumulated content
+            await this.blockService.updateBlock(user, textBlock.block_id!, {
+              content: responseContent,
+              status: 'processing',
+            });
 
             onChunk({
               type: 'block_delta',
               data: {
-                blockId: state.textBlock.block_id,
-                messageId: state.textBlock.message_id,
+                blockId: textBlock.block_id,
+                messageId: textBlock.message_id,
                 delta: textChunk,
-                content: state.fullContent,
+                content: responseContent,
               },
             });
           }
         }
-      })();
 
-      // Process tool calls and results
-      const toolsPromise = (async () => {
-        try {
-          const toolCalls = (await stream.toolCalls) as ToolCall[] | undefined;
-          if (toolCalls && toolCalls.length > 0) {
-            for (const toolCall of toolCalls) {
-              const payload = toolCall.payload;
-              const toolCallId = `${payload.toolName}-${Date.now()}`;
+        // Mark as completed
+        if (textBlock) {
+          await this.blockService.updateBlock(user, textBlock.block_id!, {
+            status: 'completed',
+          });
 
-              if (!processedToolCalls.has(toolCallId)) {
-                processedToolCalls.add(toolCallId);
-
-                const toolBlock = await this.blockService.createBlock(
-                  user,
-                  assistantMessage.message_id,
-                  {
-                    type: 'TOOL_CALL',
-                    order: state.toolBlocksOrder++,
-                    content: `Calling tool: ${payload.toolName}`,
-                    toolName: payload.toolName,
-                    toolInput: payload.args,
-                    status: 'processing',
-                  },
-                );
-
-                toolCallBlocks.set(payload.toolName, toolBlock as BlockData);
-
-                onChunk({
-                  type: 'block_created',
-                  data: toolBlock as Record<string, unknown>,
-                });
-              }
-            }
-          }
-
-          const toolResults = (await stream.toolResults) as
-            | ToolResult[]
-            | undefined;
-
-          if (toolResults && toolResults.length > 0) {
-            for (const toolResult of toolResults) {
-              const payload = toolResult.payload;
-              const resultId = `${payload.toolName}-result`;
-
-              if (!processedToolResults.has(resultId)) {
-                processedToolResults.add(resultId);
-
-                const toolCallBlock = toolCallBlocks.get(payload.toolName);
-                if (toolCallBlock && toolCallBlock.block_id) {
-                  await this.blockService.updateBlock(
-                    user,
-                    toolCallBlock.block_id,
-                    {
-                      status: 'completed',
-                    },
-                  );
-
-                  onChunk({
-                    type: 'block_completed',
-                    data: {
-                      blockId: toolCallBlock.block_id,
-                    },
-                  });
-                }
-
-                await this.createEnrichedBlock(
-                  user,
-                  assistantMessage.message_id,
-                  payload.toolName,
-                  payload.result,
-                  state.toolBlocksOrder++,
-                  onChunk,
-                );
-              }
-            }
-          }
-        } catch (error) {
-          console.error('[MastraAgentService] Error processing tools:', error);
+          onChunk({
+            type: 'block_completed',
+            data: { blockId: textBlock.block_id },
+          });
         }
-      })();
+      } catch (streamError) {
+        console.error(
+          '[MastraAgentService] Error reading stream:',
+          streamError,
+        );
 
-      // Wait for text and tools to complete
-      await Promise.all([textStreamPromise, toolsPromise]);
+        // Fallback: create error block
+        if (!textBlock) {
+          textBlock = (await this.blockService.createBlock(
+            user,
+            assistantMessage.message_id,
+            {
+              type: 'TEXT',
+              order: 0,
+              content: 'Error processing response',
+              status: 'error',
+            },
+          )) as BlockData;
 
-      // Finalize text block
-      if (state.textBlock?.block_id) {
-        await this.blockService.updateBlock(user, state.textBlock.block_id, {
-          status: 'completed',
-        });
-
-        onChunk({
-          type: 'block_completed',
-          data: { blockId: state.textBlock.block_id },
-        });
+          onChunk({
+            type: 'block_created',
+            data: textBlock as unknown as Record<string, unknown>,
+          });
+        }
       }
 
       // Update message status
@@ -546,8 +510,46 @@ export class MastraAgentService {
   }
 
   /**
-   * Build message history for the Mastra agent
-   * Converts our database message format to Mastra's expected format
+   * Build conversation context string from message history
+   * Converts database messages into a context string for network agent
+   */
+  private buildConversationContext(messages: MessageWithBlocks[]): string {
+    const contextParts: string[] = [];
+
+    for (const message of messages) {
+      // Skip assistant messages that are still processing
+      if (
+        message.role === 'ASSISTANT' &&
+        (message.status === 'processing' || message.status === 'pending')
+      ) {
+        continue;
+      }
+
+      // Concatenate all text blocks for content
+      const textBlocks = message.blocks?.filter(
+        (block) => block.type === 'TEXT' && block.status === 'completed',
+      );
+      const content = textBlocks?.map((block) => block.content).join('\n\n');
+
+      if (content) {
+        const roleLower = message.role.toLowerCase();
+        const roleLabel =
+          roleLower === 'user'
+            ? 'User'
+            : roleLower === 'assistant'
+              ? 'Assistant'
+              : 'System';
+
+        contextParts.push(`${roleLabel}: ${content}`);
+      }
+    }
+
+    return contextParts.join('\n\n');
+  }
+
+  /**
+   * Build message history for the Mastra agent (legacy - kept for reference)
+   * @deprecated Use buildConversationContext instead for network agent
    */
   private buildAgentMessages(messages: MessageWithBlocks[]): AgentMessage[] {
     const agentMessages: AgentMessage[] = [];
