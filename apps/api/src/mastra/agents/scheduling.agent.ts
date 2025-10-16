@@ -1,6 +1,8 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
+import { fetchAthleteAvailabilityTool } from '../tools';
+
 // TODO: Agent that places sessions into weekly calendar slots
 //
 // RESPONSIBILITIES:
@@ -164,5 +166,7 @@ Always explain your scheduling decisions and reasoning.
 
 Output your schedule as a ScheduledWeek object with all sessions assigned to specific days and times.`,
   model: openai('gpt-4o'),
-  // tools: [] // TODO: Add fetch-athlete-availability, validate-schedule tools
+  tools: {
+    fetchAthleteAvailabilityTool,
+  }, // TODO: Add validate-schedule tools
 });

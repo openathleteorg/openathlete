@@ -3,7 +3,6 @@ import { z } from 'zod';
 
 import { keysToCamel } from '@openathlete/shared';
 
-import { MastraLogger } from '../config/logger';
 import { MastraToolContext } from '../config/tool-context';
 
 /**
@@ -69,11 +68,6 @@ export const fetchAthleteAvailabilityTool = createTool({
     console.log('[DEBUG] Tool execute called: fetch-athlete-availability');
     console.log('[DEBUG] Input:', executionContext.input);
 
-    MastraLogger.logToolCall(
-      'fetch-athlete-availability',
-      executionContext.input,
-    );
-
     try {
       const { prisma } = executionContext.context as MastraToolContext;
       const { athleteId } = executionContext.input;
@@ -113,10 +107,8 @@ export const fetchAthleteAvailabilityTool = createTool({
         totalWeeklyHours: Math.round(totalWeeklyHours * 100) / 100, // Round to 2 decimals
       };
 
-      MastraLogger.logToolComplete('fetch-athlete-availability', result);
       return result;
     } catch (error) {
-      MastraLogger.logToolError('fetch-athlete-availability', error);
       throw error;
     }
   },

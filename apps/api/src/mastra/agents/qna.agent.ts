@@ -185,6 +185,11 @@ Response Structure:
 
 When Handling Different Question Types:
 
+AVAILABILITY/SCHEDULE QUERIES:
+- Fetch athlete's weekly availability slots
+- Show available time windows for training
+- Example: "When can I train this week?" or "What are my availability slots?"
+
 DATA QUERIES:
 - Fetch the specific data requested
 - Present it in an organized, easy-to-read format

@@ -11,8 +11,6 @@ import {
   qnaAgent,
   schedulingAgent,
 } from './agents';
-import { createLoggedAgents } from './config/logged-agent';
-import { MastraLogger } from './config/logger';
 import { createMastraMemory } from './config/memory.config';
 import { planAdaptationWorkflow, planGenerationWorkflow } from './workflows';
 
@@ -39,18 +37,6 @@ import { planAdaptationWorkflow, planGenerationWorkflow } from './workflows';
 
 export function createOpenAthleteCoachAssistant(): Agent {
   const memory = createMastraMemory();
-
-  // Create logged versions of all agents for debugging
-  const loggedAgents = createLoggedAgents({
-    athleteProfileAgent,
-    macroPlanAgent,
-    mesoPlanAgent,
-    microPlanAgent,
-    schedulingAgent,
-    qaAgent,
-    adaptationAgent,
-    qnaAgent,
-  });
 
   const coachAssistant = new Agent({
     id: 'openathlete-coach',
@@ -139,7 +125,16 @@ For simple coaching questions or education:
 
 Remember: You're not just creating plans, you're coaching athletes. Build trust, educate, and keep them motivated!`,
     model: openai('gpt-4o'),
-    agents: loggedAgents, // Use logged versions
+    agents: {
+      athleteProfileAgent,
+      macroPlanAgent,
+      mesoPlanAgent,
+      microPlanAgent,
+      schedulingAgent,
+      qaAgent,
+      adaptationAgent,
+      qnaAgent,
+    }, // Use logged versions
     workflows: {
       planGenerationWorkflow,
       planAdaptationWorkflow,
@@ -154,23 +149,9 @@ Remember: You're not just creating plans, you're coaching athletes. Build trust,
     options?: any,
     context?: any,
   ) {
-    MastraLogger.reset(); // Reset logger for each conversation
-    MastraLogger.logAgentCall('OpenAthlete Coach Assistant', {
-      input,
-      options,
-    });
-
     try {
-      const result = await originalGenerate(input, options, context);
-      MastraLogger.logAgentComplete(
-        'OpenAthlete Coach Assistant',
-        result?.text || result,
-      );
-      MastraLogger.logStack(); // Show final execution stack
-      return result;
+      return originalGenerate(input, options, context);
     } catch (error) {
-      MastraLogger.logAgentError('OpenAthlete Coach Assistant', error);
-      MastraLogger.logStack();
       throw error;
     }
   };
@@ -182,21 +163,17 @@ Remember: You're not just creating plans, you're coaching athletes. Build trust,
  * Export agents and workflows for direct use if needed
  */
 export {
+  adaptationAgent,
   athleteProfileAgent,
   macroPlanAgent,
   mesoPlanAgent,
   microPlanAgent,
-  schedulingAgent,
+  planAdaptationWorkflow,
+  planGenerationWorkflow,
   qaAgent,
-  adaptationAgent,
   qnaAgent,
+  schedulingAgent,
 };
-export { planGenerationWorkflow, planAdaptationWorkflow };
-
-/**
- * Export logger for external use
- */
-export { MastraLogger } from './config/logger';
 
 // TODO: Once tools are implemented and assigned to agents, the network will be fully functional
 // TODO: Integrate with NestJS module to inject services (PrismaService, TrainingLoadService, etc.) into tool context
