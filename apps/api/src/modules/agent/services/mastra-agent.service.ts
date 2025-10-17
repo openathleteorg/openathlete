@@ -152,14 +152,20 @@ export class MastraAgentService implements OnModuleInit {
       const runtimeContext = new RuntimeContext();
       runtimeContext.set('prisma', this.prismaService);
       runtimeContext.set('athleteId', athleteId);
+      runtimeContext.set('userId', user.user_id);
+      runtimeContext.set('trainingLoadService', this.trainingLoadService);
+      runtimeContext.set('currentDate', new Date().toISOString());
 
       // Use the singleton agent with memory configuration
       // Memory automatically handles conversation history - no need to build it manually
-      const resultStream = await this.coachAgent.generate(content, {
-        runtimeContext,
-        threadId: `thread-${threadId}`,
-        resourceId: `athlete-${athleteId}`,
-      });
+      const resultStream = await this.coachAgent.generate(
+        `[CURRENT DATE: ${new Date().toISOString().split('T')[0]} (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})]\n\n${content}`,
+        {
+          runtimeContext,
+          threadId: `thread-${threadId}`,
+          resourceId: `athlete-${athleteId}`,
+        },
+      );
 
       const responseContent = resultStream.text || 'No response';
 
@@ -268,14 +274,20 @@ export class MastraAgentService implements OnModuleInit {
       const runtimeContext = new RuntimeContext();
       runtimeContext.set('prisma', this.prismaService);
       runtimeContext.set('athleteId', athleteId);
+      runtimeContext.set('userId', user.user_id);
+      runtimeContext.set('trainingLoadService', this.trainingLoadService);
+      runtimeContext.set('currentDate', new Date().toISOString());
 
       // Use the singleton agent with streaming
       // Memory automatically handles conversation history
-      const stream = await this.coachAgent.stream(content, {
-        runtimeContext,
-        threadId: `thread-${threadId}`,
-        resourceId: `athlete-${athleteId}`,
-      });
+      const stream = await this.coachAgent.stream(
+        `[CURRENT DATE: ${new Date().toISOString().split('T')[0]} (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})]\n\n${content}`,
+        {
+          runtimeContext,
+          threadId: `thread-${threadId}`,
+          resourceId: `athlete-${athleteId}`,
+        },
+      );
 
       let responseContent = '';
       let textBlock: BlockData | null = null;

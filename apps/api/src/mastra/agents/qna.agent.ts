@@ -1,7 +1,11 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import { fetchActivitiesTool, fetchAthleteAvailabilityTool } from '../tools';
+import {
+  calculateTrainingLoadTool,
+  fetchActivitiesTool,
+  fetchAthleteAvailabilityTool,
+} from '../tools';
 
 // TODO: Agent that answers athlete questions about training data and plans
 //
@@ -165,6 +169,14 @@ export const qnaAgent = new Agent({
     'PRIMARY AGENT for ALL questions and data requests. Use for: availability/schedule questions, activity queries ("show me", "what are", "how many"), progress analysis, training insights, comparisons. This is the DEFAULT agent for any informational request.',
   instructions: `You are a knowledgeable training coach who loves helping athletes understand their training.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 CRITICAL RULES - READ CAREFULLY:
 
 1. NEVER INVENT DATA - You MUST use tools to fetch real data from the database
@@ -265,5 +277,6 @@ Remember: Your goal is to help the athlete feel informed, motivated, and confide
   tools: {
     fetchActivitiesTool,
     fetchAthleteAvailabilityTool,
-  }, // TODO: Add fetch-current-plan, compare-sessions, calculate-training-load tools
+    calculateTrainingLoadTool,
+  }, // TODO: Add fetch-current-plan, compare-sessions tools
 });

@@ -1,7 +1,10 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import { fetchAthleteAvailabilityTool } from '../tools';
+import {
+  calculateTrainingLoadTool,
+  fetchAthleteAvailabilityTool,
+} from '../tools';
 
 // TODO: Agent that aggregates athlete data to create a comprehensive profile
 //
@@ -90,5 +93,6 @@ Output your analysis as a structured AthleteFacts object that other agents can u
   model: openai('gpt-4o'),
   tools: {
     fetchAthleteAvailabilityTool,
+    calculateTrainingLoadTool,
   },
 });

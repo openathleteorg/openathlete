@@ -412,8 +412,18 @@ export class TrainingLoadService {
       },
     });
 
-    const activityDate = new Date(event.start_date);
-    activityDate.setHours(0, 0, 0, 0);
+    const startDate = new Date(event.start_date);
+    const activityDate = new Date(
+      Date.UTC(
+        startDate.getUTCFullYear(),
+        startDate.getUTCMonth(),
+        startDate.getUTCDate(),
+        0,
+        0,
+        0,
+        0,
+      ),
+    );
 
     if (existingEntry) {
       return keysToCamel(
