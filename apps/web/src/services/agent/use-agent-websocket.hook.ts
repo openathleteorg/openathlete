@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 
-import { AgentMessage } from '@openathlete/shared';
+import { AgentMessage, ToolExecutionState } from '@openathlete/shared';
 
 import { AgentService } from './agent.service';
 
@@ -30,6 +30,10 @@ interface UseAgentWebSocketOptions {
   onMessageChunk?: (chunk: MessageChunk) => void;
   onMessageComplete?: (message: AgentMessage) => void;
   onMessageError?: (error: string) => void;
+  onToolCallStart?: (tool: ToolExecutionState) => void;
+  onToolCallComplete?: (tool: ToolExecutionState) => void;
+  onToolCallError?: (tool: ToolExecutionState) => void;
+  onAgentThinking?: (message: string) => void;
 }
 
 export function useAgentWebSocket({
@@ -37,9 +41,17 @@ export function useAgentWebSocket({
   onMessageChunk,
   onMessageComplete,
   onMessageError,
+  onToolCallStart,
+  onToolCallComplete,
+  onToolCallError,
+  onAgentThinking,
 }: UseAgentWebSocketOptions = {}) {
   const [isConnected, setIsConnected] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [activeTools, setActiveTools] = useState<
+    Map<string, ToolExecutionState>
+  >(new Map());
+  const [currentAgent, setCurrentAgent] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const queryClient = useQueryClient();
 
@@ -103,11 +115,82 @@ export function useAgentWebSocket({
           type: chunk.data.type,
         };
         onMessageChunk(messageChunk);
+      } else if (chunk.type === 'tool_call_start' && chunk.data) {
+        // Tool execution started
+        const toolState: ToolExecutionState = {
+          toolCallId: chunk.data.toolCallId,
+          toolName: chunk.data.toolName,
+          status: 'executing',
+          args: chunk.data.args,
+          startTime: chunk.data.timestamp || Date.now(),
+        };
+
+        setActiveTools((prev) =>
+          new Map(prev).set(chunk.data.toolCallId, toolState),
+        );
+
+        if (onToolCallStart) {
+          onToolCallStart(toolState);
+        }
+      } else if (chunk.type === 'tool_call_complete' && chunk.data) {
+        // Tool execution completed successfully
+        const toolState: ToolExecutionState = {
+          toolCallId: chunk.data.toolCallId,
+          toolName: chunk.data.toolName,
+          status: 'completed',
+          result: chunk.data.result,
+          startTime:
+            activeTools.get(chunk.data.toolCallId)?.startTime || Date.now(),
+          endTime: chunk.data.timestamp || Date.now(),
+        };
+
+        setActiveTools((prev) => {
+          const updated = new Map(prev);
+          updated.delete(chunk.data.toolCallId);
+          return updated;
+        });
+
+        if (onToolCallComplete) {
+          onToolCallComplete(toolState);
+        }
+      } else if (chunk.type === 'tool_call_error' && chunk.data) {
+        // Tool execution failed
+        const toolState: ToolExecutionState = {
+          toolCallId: chunk.data.toolCallId,
+          toolName: chunk.data.toolName,
+          status: 'error',
+          error: chunk.data.error || 'Tool execution failed',
+          startTime:
+            activeTools.get(chunk.data.toolCallId)?.startTime || Date.now(),
+          endTime: chunk.data.timestamp || Date.now(),
+        };
+
+        setActiveTools((prev) => {
+          const updated = new Map(prev);
+          updated.delete(chunk.data.toolCallId);
+          return updated;
+        });
+
+        if (onToolCallError) {
+          onToolCallError(toolState);
+        }
+      } else if (chunk.type === 'agent_thinking' && chunk.data) {
+        // Agent execution started - track which agent is active
+        if (chunk.data.agentName) {
+          setCurrentAgent(chunk.data.agentName);
+        }
+        if (onAgentThinking) {
+          onAgentThinking(
+            chunk.data.agentName || chunk.data.message || 'Processing...',
+          );
+        }
       }
     });
 
     socket.on('message_complete', (data: AgentMessage) => {
       setIsStreaming(false);
+      setActiveTools(new Map()); // Clear all active tools
+      setCurrentAgent(null); // Clear current agent
       if (onMessageComplete) {
         onMessageComplete(data);
       }
@@ -177,6 +260,8 @@ export function useAgentWebSocket({
   return {
     isConnected,
     isStreaming,
+    activeTools: Array.from(activeTools.values()),
+    currentAgent,
     sendMessage,
     disconnect,
   };

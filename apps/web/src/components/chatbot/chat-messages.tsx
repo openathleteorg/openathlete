@@ -6,21 +6,41 @@ import { cn } from '@/utils/shadcn';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
-import { AgentMessage } from '@openathlete/shared';
+import { AgentMessage, ToolExecutionState } from '@openathlete/shared';
 
 import { BlockRenderer } from './block-renderer';
 
 interface ChatMessagesProps {
   threadId: number;
   streamingBlocks?: Map<number, MessageChunk>;
+  activeTools?: ToolExecutionState[];
+}
+
+/**
+ * Get translated agent name
+ */
+function getAgentTranslation(agentName: string): string {
+  // Convert agent name to translation key format
+  const agentKey = `agent_${agentName}_active`;
+
+  // Try to get specific translation, fallback to generic
+  const translationFn = (m as any)[agentKey];
+  if (translationFn && typeof translationFn === 'function') {
+    return translationFn();
+  }
+
+  // Fallback to generic thinking message
+  return m.agent_thinking();
 }
 
 function MessageBubble({
   message,
   streamingBlock,
+  activeTools,
 }: {
   message: AgentMessage;
   streamingBlock?: MessageChunk;
+  activeTools?: ToolExecutionState[];
 }) {
   const isUser = message.role === 'USER';
   const sortedBlocks = [...message.blocks].sort((a, b) => a.order - b.order);
@@ -29,6 +49,7 @@ function MessageBubble({
   const isWaitingForContent =
     !isUser && sortedBlocks.length === 0 && !streamingBlock;
 
+  console.log('Active tools in MessageBubble:', activeTools);
   return (
     <div
       className={cn(
@@ -49,7 +70,11 @@ function MessageBubble({
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
             <span className="text-sm text-muted-foreground italic">
-              {m.chatbot_thinking()}
+              {activeTools && activeTools.length > 0
+                ? activeTools[0].toolName
+                  ? getAgentTranslation(activeTools[0].toolName)
+                  : m.agent_thinking()
+                : m.agent_thinking()}
             </span>
           </div>
         )}
@@ -113,7 +138,11 @@ function MessageBubble({
   );
 }
 
-export function ChatMessages({ threadId, streamingBlocks }: ChatMessagesProps) {
+export function ChatMessages({
+  threadId,
+  streamingBlocks,
+  activeTools,
+}: ChatMessagesProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -161,6 +190,7 @@ export function ChatMessages({ threadId, streamingBlocks }: ChatMessagesProps) {
               key={message.messageId}
               message={message}
               streamingBlock={streamingBlock}
+              activeTools={activeTools}
             />
           );
         })}

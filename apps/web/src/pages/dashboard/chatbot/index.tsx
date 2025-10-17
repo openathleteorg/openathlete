@@ -1,5 +1,6 @@
 import { ChatInput } from '@/components/chatbot/chat-input';
 import { ChatMessages } from '@/components/chatbot/chat-messages';
+import { ToolExecutionIndicator } from '@/components/chatbot/tool-execution-indicator';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -17,11 +18,16 @@ import { motion } from 'framer-motion';
 import { MessageCircle, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
+import { ToolExecutionState } from '@openathlete/shared';
+
 export function ChatbotPage() {
   const { activeThreadId, setActiveThreadId } = useChatbot();
   const [streamingBlocks, setStreamingBlocks] = useState<
     Map<number, MessageChunk>
   >(new Map());
+  const [activeToolExecutions, setActiveToolExecutions] = useState<
+    ToolExecutionState[]
+  >([]);
 
   // Fetch threads
   const { data: threads, isLoading } = useGetUserThreadsQuery();
@@ -29,7 +35,7 @@ export function ChatbotPage() {
   const deleteThreadMutation = useDeleteThreadMutation();
 
   // WebSocket for streaming
-  const { isStreaming, sendMessage } = useAgentWebSocket({
+  const { isStreaming, activeTools, sendMessage } = useAgentWebSocket({
     threadId: activeThreadId || undefined,
     onMessageChunk: (chunk) => {
       setStreamingBlocks((prev) => {
@@ -45,28 +51,48 @@ export function ChatbotPage() {
       console.error('WebSocket error:', error);
       setStreamingBlocks(new Map());
     },
+    onToolCallStart: (tool) => {
+      console.log('[ChatbotPage] Tool started:', tool.toolName);
+      setActiveToolExecutions((prev) => [...prev, tool]);
+    },
+    onToolCallComplete: (tool) => {
+      console.log('[ChatbotPage] Tool completed:', tool.toolName);
+      setActiveToolExecutions((prev) =>
+        prev.filter((t) => t.toolCallId !== tool.toolCallId),
+      );
+    },
+    onToolCallError: (tool) => {
+      console.error('[ChatbotPage] Tool error:', tool.toolName, tool.error);
+    },
   });
 
-  // Create default thread if none exists
+  // Auto-create first thread if none exist
   useEffect(() => {
-    if (threads && threads.length === 0 && !isLoading) {
+    if (
+      threads &&
+      threads.length === 0 &&
+      !isLoading &&
+      !createThreadMutation.isPending
+    ) {
       createThreadMutation.mutate(
-        { title: m.chatbot_new_conversation() },
+        { title: 'New Conversation' },
         {
-          onSuccess: (thread) => {
-            setActiveThreadId(thread.threadId);
+          onSuccess: (newThread) => {
+            setActiveThreadId(newThread.threadId);
           },
         },
       );
     }
-  }, [threads, isLoading, createThreadMutation, setActiveThreadId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, isLoading]);
 
-  // Auto-select first thread if none selected
+  // Auto-select first thread if available and no active thread
   useEffect(() => {
     if (threads && threads.length > 0 && !activeThreadId) {
       setActiveThreadId(threads[0].threadId);
     }
-  }, [threads, activeThreadId, setActiveThreadId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, activeThreadId]);
 
   const handleNewConversation = useCallback(() => {
     createThreadMutation.mutate(
@@ -179,10 +205,11 @@ export function ChatbotPage() {
               </h2>
             </div>
 
-            <div className="flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
               <ChatMessages
                 threadId={activeThreadId}
                 streamingBlocks={streamingBlocks}
+                activeTools={activeToolExecutions}
               />
             </div>
 

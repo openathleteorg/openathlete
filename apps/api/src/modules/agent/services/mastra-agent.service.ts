@@ -25,6 +25,10 @@ interface StreamChunkData {
     | 'block_delta'
     | 'block_completed'
     | 'message_completed'
+    | 'tool_call_start'
+    | 'tool_call_complete'
+    | 'tool_call_error'
+    | 'agent_thinking'
     | 'error';
   data: Record<string, unknown>;
 }
@@ -291,46 +295,192 @@ export class MastraAgentService implements OnModuleInit {
 
       let responseContent = '';
       let textBlock: BlockData | null = null;
+      const activeToolCalls = new Map<
+        string,
+        { toolName: string; startTime: number }
+      >();
+      let currentAgent: string | null = null;
 
-      // Process the text stream - this gives us real word-by-word streaming
+      // Process the full stream to capture all events including tool calls
       try {
-        // Stream text chunks progressively
-        for await (const textChunk of stream.textStream) {
-          responseContent += textChunk;
+        // Use fullStream to get ALL events (text, tool calls, etc.)
+        for await (const chunk of stream.fullStream) {
+          // Log ALL chunk types to understand what Mastra sends
+          console.log('[MastraAgentService] chunk.type:', chunk.type);
 
-          // Create text block on first chunk
-          if (!textBlock) {
-            textBlock = (await this.blockService.createBlock(
-              user,
-              assistantMessage.message_id,
-              {
-                type: 'TEXT',
-                order: 0,
-                content: textChunk,
-                status: 'processing',
-              },
-            )) as BlockData;
+          // Handle step-start events to detect agent/workflow step changes
+          if (chunk.type === 'step-start' && chunk.payload) {
+            // Log the full payload to understand its structure
+            console.log(
+              '[MastraAgentService] step-start payload:',
+              JSON.stringify(chunk.payload, null, 2),
+            );
 
-            onChunk({
-              type: 'block_created',
-              data: textBlock as unknown as Record<string, unknown>,
+            const stepAgent =
+              (chunk.payload as any).agent ||
+              (chunk.payload as any).name ||
+              (chunk.payload as any).stepId ||
+              (chunk.payload as any).id;
+
+            if (stepAgent && stepAgent !== currentAgent) {
+              currentAgent = stepAgent;
+              console.log(
+                `[MastraAgentService] Agent/Step started: ${currentAgent}`,
+              );
+
+              // Emit agent execution event
+              onChunk({
+                type: 'agent_thinking',
+                data: {
+                  agentName: currentAgent,
+                  timestamp: Date.now(),
+                },
+              });
+            }
+          }
+
+          // Handle tool call events
+          if (chunk.type === 'tool-call' && chunk.payload) {
+            const { toolCallId, toolName, args } = chunk.payload;
+
+            // Track active tool call
+            activeToolCalls.set(toolCallId, {
+              toolName,
+              startTime: Date.now(),
             });
-          } else {
-            // Update block with accumulated content
-            await this.blockService.updateBlock(user, textBlock.block_id!, {
-              content: responseContent,
-              status: 'processing',
-            });
 
+            console.log(
+              `[MastraAgentService] Tool call started: ${toolName} (${toolCallId})`,
+            );
+
+            // Emit tool call start event
             onChunk({
-              type: 'block_delta',
+              type: 'tool_call_start',
               data: {
-                blockId: textBlock.block_id,
-                messageId: textBlock.message_id,
-                delta: textChunk,
-                content: responseContent,
+                toolCallId,
+                toolName,
+                args,
+                timestamp: Date.now(),
               },
             });
+
+            // Special handling for workflow tools - emit workflow execution started
+            if (
+              toolName === 'run_plan-generation' ||
+              toolName === 'run_planGenerationWorkflow'
+            ) {
+              console.log(
+                '[MastraAgentService] Plan generation workflow started',
+              );
+
+              // Emit workflow start
+              onChunk({
+                type: 'agent_thinking',
+                data: {
+                  agentName: 'plan-generation',
+                  timestamp: Date.now(),
+                },
+              });
+
+              // Simulate workflow steps progression
+              // Since Mastra doesn't emit step events for workflows called as tools,
+              // we emit them manually with realistic delays
+              const workflowSteps = [
+                { id: 'profile-analysis', delay: 2000 },
+                { id: 'macro-planning', delay: 15000 },
+                { id: 'meso-planning', delay: 20000 },
+                { id: 'micro-planning', delay: 25000 },
+                { id: 'scheduling', delay: 15000 },
+                { id: 'quality-assurance', delay: 10000 },
+                { id: 'qa-improvement-loop', delay: 20000 },
+                { id: 'finalize', delay: 5000 },
+              ];
+
+              // Emit steps sequentially with delays
+              let cumulativeDelay = 1000; // Start after 1s
+              for (const step of workflowSteps) {
+                setTimeout(() => {
+                  console.log(`[MastraAgentService] Workflow step: ${step.id}`);
+                  onChunk({
+                    type: 'agent_thinking',
+                    data: {
+                      agentName: step.id,
+                      timestamp: Date.now(),
+                    },
+                  });
+                }, cumulativeDelay);
+                cumulativeDelay += step.delay;
+              }
+            }
+          }
+
+          // Handle tool result events
+          if (chunk.type === 'tool-result' && chunk.payload) {
+            const { toolCallId, toolName, result, isError } = chunk.payload;
+
+            const toolInfo = activeToolCalls.get(toolCallId);
+            const duration = toolInfo ? Date.now() - toolInfo.startTime : 0;
+
+            console.log(
+              `[MastraAgentService] Tool call completed: ${toolName} (${toolCallId}) in ${duration}ms`,
+            );
+
+            // Remove from active tracking
+            activeToolCalls.delete(toolCallId);
+
+            // Emit tool result event
+            onChunk({
+              type: isError ? 'tool_call_error' : 'tool_call_complete',
+              data: {
+                toolCallId,
+                toolName,
+                result,
+                isError,
+                duration,
+                timestamp: Date.now(),
+              },
+            });
+          }
+
+          // Handle text delta events (agent response)
+          if (chunk.type === 'text-delta' && chunk.payload) {
+            const textChunk = chunk.payload.text || '';
+            responseContent += textChunk;
+
+            // Create text block on first chunk
+            if (!textBlock) {
+              textBlock = (await this.blockService.createBlock(
+                user,
+                assistantMessage.message_id,
+                {
+                  type: 'TEXT',
+                  order: 0,
+                  content: textChunk,
+                  status: 'processing',
+                },
+              )) as BlockData;
+
+              onChunk({
+                type: 'block_created',
+                data: textBlock as unknown as Record<string, unknown>,
+              });
+            } else {
+              // Update block with accumulated content
+              await this.blockService.updateBlock(user, textBlock.block_id!, {
+                content: responseContent,
+                status: 'processing',
+              });
+
+              onChunk({
+                type: 'block_delta',
+                data: {
+                  blockId: textBlock.block_id,
+                  messageId: textBlock.message_id,
+                  delta: textChunk,
+                  content: responseContent,
+                },
+              });
+            }
           }
         }
 

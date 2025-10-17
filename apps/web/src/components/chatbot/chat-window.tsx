@@ -21,8 +21,11 @@ import { Loader2, Maximize2, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ToolExecutionState } from '@openathlete/shared';
+
 import { ChatInput } from './chat-input';
 import { ChatMessages } from './chat-messages';
+import { ToolExecutionIndicator } from './tool-execution-indicator';
 
 const MIN_WIDTH = 320;
 const MAX_WIDTH = 800;
@@ -45,6 +48,9 @@ export function ChatWindow() {
   const [streamingBlocks, setStreamingBlocks] = useState<
     Map<number, MessageChunk>
   >(new Map());
+  const [activeToolExecutions, setActiveToolExecutions] = useState<
+    ToolExecutionState[]
+  >([]);
 
   const resizeRef = useRef<{ startX: number; startWidth: number } | null>(null);
   const dragRef = useRef<{
@@ -58,24 +64,39 @@ export function ChatWindow() {
   const createThreadMutation = useCreateThreadMutation();
 
   // WebSocket for streaming
-  const { isStreaming, sendMessage } = useAgentWebSocket({
-    threadId: activeThreadId || undefined,
-    onMessageChunk: (chunk) => {
-      setStreamingBlocks((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(chunk.blockId, chunk);
-        return newMap;
-      });
-    },
-    onMessageComplete: () => {
-      // Clear streaming blocks when message is complete
-      setStreamingBlocks(new Map());
-    },
-    onMessageError: (error) => {
-      console.error('WebSocket error:', error);
-      setStreamingBlocks(new Map());
-    },
-  });
+  const { isStreaming, activeTools, currentAgent, sendMessage } =
+    useAgentWebSocket({
+      threadId: activeThreadId || undefined,
+      onMessageChunk: (chunk) => {
+        setStreamingBlocks((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(chunk.blockId, chunk);
+          return newMap;
+        });
+      },
+      onMessageComplete: () => {
+        // Clear streaming blocks when message is complete
+        setStreamingBlocks(new Map());
+      },
+      onMessageError: (error) => {
+        console.error('WebSocket error:', error);
+        setStreamingBlocks(new Map());
+      },
+      onToolCallStart: (tool) => {
+        console.log('[ChatWindow] Tool started:', tool.toolName);
+      },
+      onToolCallComplete: (tool) => {
+        console.log('[ChatWindow] Tool completed:', tool.toolName);
+      },
+      onToolCallError: (tool) => {
+        console.error('[ChatWindow] Tool error:', tool.toolName, tool.error);
+      },
+    });
+
+  // Update active tool executions from WebSocket hook
+  useEffect(() => {
+    setActiveToolExecutions(activeTools);
+  }, [activeTools]);
 
   // Resize handlers
   const handleResizeStart = useCallback(
@@ -346,12 +367,17 @@ export function ChatWindow() {
 
             {/* Messages */}
             <Separator />
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden flex flex-col">
               {activeThreadId ? (
-                <ChatMessages
-                  threadId={activeThreadId}
-                  streamingBlocks={streamingBlocks}
-                />
+                <>
+                  <ChatMessages
+                    threadId={activeThreadId}
+                    streamingBlocks={streamingBlocks}
+                    currentAgent={currentAgent}
+                  />
+                  {/* Tool execution indicator - shows active tools */}
+                  <ToolExecutionIndicator activeTools={activeToolExecutions} />
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   <p>{m.chatbot_select_or_create()}</p>
