@@ -209,7 +209,7 @@ You MUST return a WeekIntentions object containing:
 - targetVolume: target weekly volume in seconds
 - sessions: array of session objects with:
   * sessionId: optional unique identifier
-  * type: INTERVAL, LONG_RUN, TEMPO, EASY, RECOVERY, STRENGTH, or RACE
+  * type: INTERVAL, LONG_RUN, TEMPO, EASY, RECOVERY, STRENGTH, RACE, or REST
   * sport: RUNNING, CYCLING, SWIMMING, STRENGTH, or OTHER
   * targetDuration: session duration in seconds
   * targetDistance: optional distance in meters
