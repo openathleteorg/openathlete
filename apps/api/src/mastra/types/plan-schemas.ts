@@ -206,10 +206,7 @@ export const sessionIntentionSchema = z.object({
     .describe('Target elevation gain in meters'),
   targetIntensity: z
     .object({
-      zone: z
-        .string()
-        .nullish()
-        .describe('Training zone (Z1, Z2, Z3, Z4, Z5)'),
+      zone: z.string().nullish().describe('Training zone (Z1, Z2, Z3, Z4, Z5)'),
       rpe: z.number().min(0).max(1).describe('RPE on 0-1 scale'),
     })
     .describe('Target intensity metrics'),
@@ -264,6 +261,18 @@ export const scheduledWeekSchema = z.object({
   theme: z.string(),
   targetVolume: z.number(),
   sessions: z.array(scheduledSessionSchema),
+  schedulingWarnings: z
+    .array(z.string())
+    .nullish()
+    .describe('Warnings about scheduling compromises or near-violations'),
+  unscheduledSessions: z
+    .array(sessionIntentionSchema)
+    .nullish()
+    .describe('Sessions that could not be placed'),
+  schedulingNotes: z
+    .string()
+    .nullish()
+    .describe('Overall explanation of scheduling strategy'),
 });
 
 export type ScheduledWeek = z.infer<typeof scheduledWeekSchema>;

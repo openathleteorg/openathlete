@@ -11,10 +11,15 @@ import {
   microPlanAgent,
   weekIntentionsOutputSchema,
 } from '../agents/micro-plan.agent';
+import { qaAgent } from '../agents/qa.agent';
+import { schedulingAgent } from '../agents/scheduling.agent';
 import {
   athleteFactsSchema,
   macroPlanSchema as macroPlanSchemaType,
   mesoBlockSchema,
+  scheduledWeekSchema,
+  validationErrorSchema,
+  validationReportSchema,
   weekIntentionsSchema,
 } from '../types';
 
@@ -484,34 +489,367 @@ const schedulingStep = createStep({
   id: 'scheduling',
   description: 'Assign sessions to specific days and times',
   inputSchema: z.object({
-    weekIntentions: z.array(z.any()),
-    athleteFacts: z.any(),
+    weekIntentions: z.array(weekIntentionsSchema),
+    mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
   }),
   outputSchema: z.object({
-    scheduledWeeks: z.array(z.any()), // TODO: Define ScheduledWeek schema
+    scheduledWeeks: z.array(scheduledWeekSchema),
+    schedulingMetadata: z.object({
+      totalScheduled: z.number().describe('Total sessions successfully placed'),
+      totalUnscheduled: z
+        .number()
+        .describe('Total sessions that could not be placed'),
+      overallWarnings: z
+        .array(z.string())
+        .describe('Global warnings across all weeks'),
+      conflictResolutions: z
+        .array(z.string())
+        .describe('How conflicts were resolved'),
+    }),
+    mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
   }),
-  execute: async ({ inputData }) => {
-    // TODO: Call scheduling agent for each week
-    throw new Error('Not implemented - schedulingStep');
+  execute: async ({ inputData, runtimeContext }) => {
+    try {
+      const scheduledWeeks: z.infer<typeof scheduledWeekSchema>[] = [];
+      const overallWarnings: string[] = [];
+      let totalScheduled = 0;
+      let totalUnscheduled = 0;
+
+      console.log(
+        `[schedulingStep] Scheduling ${inputData.weekIntentions.length} weeks...`,
+      );
+
+      // Process each week sequentially
+      for (const weekIntentions of inputData.weekIntentions) {
+        const currentDate = new Date().toISOString();
+
+        const prompt = `[CURRENT DATE: ${new Date(
+          currentDate,
+        ).toLocaleDateString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}]
+
+Schedule the following week's training sessions into the athlete's calendar.
+
+=== WEEK TO SCHEDULE ===
+Week Number: ${weekIntentions.weekNumber}
+Dates: ${new Date(weekIntentions.startDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })} - ${new Date(weekIntentions.endDate).toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        })}
+Theme: ${weekIntentions.theme}
+Target Volume: ${(weekIntentions.targetVolume / 3600).toFixed(1)} hours (${weekIntentions.targetVolume} seconds)
+
+Sessions to Schedule (${weekIntentions.sessions.length} total):
+${weekIntentions.sessions
+  .map((s, i) => {
+    const dayNames = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
+    const preferredDayText =
+      s.dayOfWeek !== null && s.dayOfWeek !== undefined
+        ? `- Preferred Day: ${dayNames[s.dayOfWeek]}`
+        : '';
+
+    return `
+${i + 1}. ${s.type} - ${s.sport}
+   - Duration: ${(s.targetDuration / 60).toFixed(0)} minutes
+   - Intensity: RPE ${s.targetIntensity.rpe.toFixed(2)} (Zone ${s.targetIntensity.zone || 'N/A'})
+   - Priority: ${s.priority}
+   - Description: ${s.description}
+   ${preferredDayText}`;
+  })
+  .join('\n')}
+
+=== ATHLETE CONTEXT ===
+Experience Level: ${inputData.athleteFacts.experienceLevel || 'INTERMEDIATE'}
+Constraints: ${JSON.stringify(inputData.athleteFacts.constraints, null, 2)}
+
+=== YOUR TASK ===
+1. Use the fetchAthleteAvailabilityTool to get the athlete's weekly availability
+2. Analyze the availability pattern (longest windows, high-priority slots)
+3. Place each session strategically:
+   - Respect CRITICAL rules (24h hard session spacing, availability fit)
+   - Follow HIGH PRIORITY rules when possible (rest days, smart long run placement)
+   - Adapt to athlete's unique schedule (not rigid weekly patterns)
+4. For each scheduled session, provide:
+   - scheduledDate: ISO date string (e.g., "${weekIntentions.startDate}")
+   - scheduledTime: HH:mm format (e.g., "08:00")
+   - availabilitySlotId: ID of the slot used (from fetchAthleteAvailabilityTool)
+   - schedulingNotes: Brief explanation of placement rationale
+5. If unable to place a session:
+   - Add to unscheduledSessions array
+   - Explain WHY in schedulingWarnings
+   - Suggest solutions
+
+=== CRITICAL REMINDERS ===
+- Check cross-week boundaries for hard session spacing (if previous week ended with hard session on Sunday, don't place hard session on Monday)
+- Long runs are NOT required to be on weekends - adapt to availability
+- Be flexible and athlete-centered in your placement strategy
+- Provide clear reasoning for your scheduling decisions
+
+Output a ScheduledWeek object with all fields populated according to the schema.`;
+
+        console.log(
+          `[schedulingStep] Calling scheduling agent for week ${weekIntentions.weekNumber}`,
+        );
+
+        // Call scheduling agent with structured output
+        const response = await schedulingAgent.generate(prompt, {
+          runtimeContext,
+          structuredOutput: {
+            schema: scheduledWeekSchema,
+          },
+        });
+
+        const scheduledWeek = response.object;
+
+        // Aggregate statistics
+        totalScheduled += scheduledWeek.sessions.length;
+        totalUnscheduled += scheduledWeek.unscheduledSessions?.length || 0;
+
+        if (scheduledWeek.schedulingWarnings?.length) {
+          overallWarnings.push(
+            `Week ${weekIntentions.weekNumber}: ${scheduledWeek.schedulingWarnings.join('; ')}`,
+          );
+        }
+
+        scheduledWeeks.push(scheduledWeek);
+
+        console.log(
+          `[schedulingStep] Week ${weekIntentions.weekNumber}: ${scheduledWeek.sessions.length} scheduled, ${scheduledWeek.unscheduledSessions?.length || 0} unscheduled`,
+        );
+      }
+
+      console.log(
+        `[schedulingStep] Scheduling complete: ${totalScheduled} sessions scheduled, ${totalUnscheduled} unscheduled`,
+      );
+
+      return {
+        scheduledWeeks,
+        schedulingMetadata: {
+          totalScheduled,
+          totalUnscheduled,
+          overallWarnings,
+          conflictResolutions:
+            totalUnscheduled > 0
+              ? [
+                  `${totalUnscheduled} sessions could not be placed due to availability or constraint conflicts. Review unscheduledSessions in affected weeks for details.`,
+                ]
+              : ['All sessions successfully scheduled with no conflicts.'],
+        },
+        mesoBlocks: inputData.mesoBlocks,
+        athleteFacts: inputData.athleteFacts,
+      };
+    } catch (error) {
+      console.error('[schedulingStep] Failed to schedule sessions:', error);
+      throw new Error(
+        `Scheduling failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   },
 });
 
 // Step 6: Quality Assurance
 const qaStep = createStep({
   id: 'quality-assurance',
-  description: 'Validate complete plan against constraints',
+  description:
+    'Validate complete training plan against evidence-based constraints and best practices',
   inputSchema: z.object({
-    scheduledWeeks: z.array(z.any()),
-    athleteFacts: z.any(),
-    macroPlan: z.any(),
+    scheduledWeeks: z.array(scheduledWeekSchema),
+    schedulingMetadata: z.object({
+      totalScheduled: z.number(),
+      totalUnscheduled: z.number(),
+      overallWarnings: z.array(z.string()),
+      conflictResolutions: z.array(z.string()),
+    }),
+    mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
   }),
   outputSchema: z.object({
-    validationReport: z.any(), // TODO: Define ValidationReport schema
-    planValid: z.boolean(),
+    validationReport: z.any(),
+    scheduledWeeks: z.array(z.any()),
+    mesoBlocks: z.array(z.any()),
+    athleteFacts: z.any(),
+    schedulingMetadata: z.any(),
   }),
-  execute: async ({ inputData }) => {
-    // TODO: Call qa agent with complete plan structure
-    throw new Error('Not implemented - qaStep');
+  execute: async ({ inputData, runtimeContext }) => {
+    console.log(
+      `[qaStep] Starting validation for ${inputData.scheduledWeeks.length} weeks`,
+    );
+
+    try {
+      // Transform scheduledWeeks into the format expected by validatePlanTool
+      // The tool expects TrainingPlan with proper Session format:
+      // - startDate/endDate (ISO strings)
+      // - goalDuration (seconds)
+      // - goalRpe (0-1 scale)
+      // - goalDistance (meters)
+      // - sport (string)
+
+      const cycles = inputData.mesoBlocks.map((block, idx) => {
+        // Find the first week number in this block
+        const firstWeek = block.weeks[0]?.weekNumber || 1;
+        const lastWeek =
+          block.weeks[block.weeks.length - 1]?.weekNumber || firstWeek;
+
+        const cycleWeeks = inputData.scheduledWeeks.filter(
+          (week) => week.weekNumber >= firstWeek && week.weekNumber <= lastWeek,
+        );
+
+        return {
+          name: block.phaseName || `Cycle ${idx + 1}`,
+          phase: block.phaseName.includes('Base')
+            ? 'BASE'
+            : block.phaseName.includes('Taper')
+              ? 'TAPER'
+              : block.phaseName.includes('Specific')
+                ? 'SPECIFIC'
+                : block.phaseName.includes('Recovery')
+                  ? 'RECOVERY'
+                  : 'COMPETITION',
+          startDate: block.weeks[0]?.startDate || '',
+          endDate: block.weeks[block.weeks.length - 1]?.endDate || '',
+          weeks: cycleWeeks.map((week) => ({
+            weekNumber: week.weekNumber,
+            startDate: week.startDate,
+            endDate: week.endDate,
+            theme: week.theme,
+            targetVolume: week.targetVolume,
+            sessions: week.sessions.map((session) => ({
+              startDate: session.scheduledDate || week.startDate,
+              endDate: session.scheduledDate || week.startDate,
+              sport: session.sport || 'RUNNING',
+              goalDuration: session.targetDuration || 0, // seconds
+              goalDistance: session.targetDistance || undefined, // meters
+              goalRpe: session.targetIntensity?.rpe || 0, // 0-1 scale
+              description: session.description,
+            })),
+          })),
+        };
+      });
+
+      // Build the plan object with all required fields
+      const trainingPlan = {
+        name: `Training Plan for ${inputData.athleteFacts.name || 'Athlete'}`,
+        goal: 'Complete training plan', // Simple goal for now
+        startDate:
+          inputData.scheduledWeeks[0]?.startDate || new Date().toISOString(),
+        endDate:
+          inputData.scheduledWeeks[inputData.scheduledWeeks.length - 1]
+            ?.endDate || new Date().toISOString(),
+        cycles,
+      };
+
+      // Build the prompt for QA agent
+      const prompt = `You are validating a complete training plan for an athlete.
+
+=== ATHLETE PROFILE ===
+${JSON.stringify(inputData.athleteFacts, null, 2)}
+
+=== PLAN STRUCTURE ===
+Total Cycles: ${cycles.length}
+Total Weeks: ${inputData.scheduledWeeks.length}
+Total Scheduled Sessions: ${inputData.schedulingMetadata.totalScheduled}
+Unscheduled Sessions: ${inputData.schedulingMetadata.totalUnscheduled}
+
+=== SCHEDULING METADATA ===
+${inputData.schedulingMetadata.overallWarnings.length > 0 ? `Warnings:\n${inputData.schedulingMetadata.overallWarnings.join('\n')}` : 'No scheduling warnings'}
+
+${inputData.schedulingMetadata.conflictResolutions.join('\n')}
+
+=== COMPLETE PLAN DATA ===
+${JSON.stringify(trainingPlan, null, 2)}
+
+=== YOUR TASK ===
+Using the validatePlanTool, perform a comprehensive validation of this training plan. The tool will check:
+
+1. **LOAD_PROGRESSION**: Weekly volume increases should not exceed ${15}% (except recovery weeks)
+2. **RECOVERY_ADEQUACY**: At least ${1} rest day per week, recovery weeks every ${3 - 4} weeks
+3. **HARD_SESSION_SPACING**: Minimum ${24}h between hard sessions (RPE ≥ ${0.7})
+4. **INTENSITY_DISTRIBUTION**: ${80}% of volume should be easy/aerobic
+5. **SESSION_DURATION**: Weekly totals should respect target volume ±10%
+6. **RACE_SPECIFIC_PREPARATION**: Adequate preparation for race distance and terrain
+7. **TAPER_VALIDATION**: Proper taper in final ${2 - 3} weeks before race
+
+Call the tool with the cycles data structure provided above. The tool will return a ValidationReport with:
+- valid: boolean (true if no CRITICAL errors)
+- overallScore: 0-100 (quality score)
+- errors: ValidationError[] (categorized by severity)
+- metrics: ValidationMetrics (statistics about the plan)
+
+After receiving the validation results, provide a brief natural language interpretation highlighting:
+- Overall plan quality
+- Most important issues (if any)
+- Strengths of the plan
+- Actionable recommendations (if errors exist)`;
+
+      console.log('[qaStep] Calling QA agent with plan data');
+
+      // Call QA agent - it will use validatePlanTool internally
+      const response = await qaAgent.generate(prompt, {
+        runtimeContext,
+        structuredOutput: {
+          schema: validationReportSchema,
+        },
+      });
+
+      const validationReport = response.object;
+
+      console.log(
+        `[qaStep] Validation complete - Valid: ${validationReport.valid}, Score: ${validationReport.overallScore}`,
+      );
+
+      if (validationReport.errors && validationReport.errors.length > 0) {
+        const criticalErrors = validationReport.errors.filter(
+          (e) => e.severity === 'CRITICAL',
+        );
+        const warningErrors = validationReport.errors.filter(
+          (e) => e.severity === 'WARNING',
+        );
+        const infoErrors = validationReport.errors.filter(
+          (e) => e.severity === 'INFO',
+        );
+
+        console.log(
+          `[qaStep] Errors found: ${criticalErrors.length} critical, ${warningErrors.length} warnings, ${infoErrors.length} info`,
+        );
+      } else {
+        console.log('[qaStep] No validation errors - plan is excellent!');
+      }
+
+      // Return validation report with passthrough data for finalizeStep
+      return {
+        validationReport,
+        scheduledWeeks: inputData.scheduledWeeks,
+        mesoBlocks: inputData.mesoBlocks,
+        athleteFacts: inputData.athleteFacts,
+        schedulingMetadata: inputData.schedulingMetadata,
+      };
+    } catch (error) {
+      console.error('[qaStep] Validation failed:', error);
+      throw new Error(
+        `QA validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   },
 });
 
@@ -553,37 +891,92 @@ const persistenceStep = createStep({
 // Final step: Convert generated plan to workflow output format
 const finalizeStep = createStep({
   id: 'finalize',
-  description: 'Convert generated plan to final output format',
+  description:
+    'Convert generated plan to final output format with validation results',
   inputSchema: z.object({
-    mesoBlocks: z.array(mesoBlockSchema),
-    athleteFacts: athleteFactsSchema,
-    weekIntentions: z.array(weekIntentionsSchema),
+    validationReport: z.any(), // Using z.any() for compatibility with qaStep output
+    scheduledWeeks: z.array(z.any()),
+    mesoBlocks: z.array(z.any()),
+    athleteFacts: z.any(),
+    schedulingMetadata: z.any(),
   }),
   outputSchema: z.object({
     success: z.boolean(),
     trainingPlanId: z.number().optional(),
-    validationReport: z.any(),
+    validationReport: z.any(), // Using z.any() to avoid type conflicts with complex nested structures
     error: z.string().optional(),
   }),
   execute: async ({ inputData }) => {
-    // TODO: Implement scheduling, QA, and persistence
-    // For now, return success with generated data summary
+    console.log(
+      '[finalizeStep] Preparing final output with validation results',
+    );
+
+    const hasUnscheduledSessions =
+      inputData.schedulingMetadata.totalUnscheduled > 0;
+    const hasCriticalErrors = inputData.validationReport.errors
+      ? inputData.validationReport.errors.some((e) => e.severity === 'CRITICAL')
+      : false;
+
+    const criticalErrorsCount = inputData.validationReport.errors
+      ? inputData.validationReport.errors.filter(
+          (e) => e.severity === 'CRITICAL',
+        ).length
+      : 0;
+
+    const warningsCount = inputData.validationReport.errors
+      ? inputData.validationReport.errors.filter(
+          (e) => e.severity === 'WARNING',
+        ).length
+      : 0;
+
+    // Determine overall success: plan is valid AND all sessions scheduled
+    const overallSuccess =
+      inputData.validationReport.valid && !hasUnscheduledSessions;
+
+    // Build recommendation message
+    let recommendation = '';
+    if (!overallSuccess) {
+      if (hasCriticalErrors) {
+        recommendation = `Plan has ${criticalErrorsCount} CRITICAL validation errors that must be addressed before finalizing. `;
+      }
+      if (hasUnscheduledSessions) {
+        recommendation += `${inputData.schedulingMetadata.totalUnscheduled} sessions could not be scheduled - review athlete availability. `;
+      }
+      if (warningsCount > 0) {
+        recommendation += `${warningsCount} warnings should be reviewed for optimal plan quality.`;
+      }
+    } else {
+      recommendation = `Plan is valid and ready for persistence. Quality score: ${inputData.validationReport.overallScore}/100. All sessions successfully scheduled with no critical issues.`;
+    }
+
+    // Build comprehensive message
+    let message = '';
+    if (overallSuccess) {
+      message = `Training plan generated successfully! ${inputData.scheduledWeeks.length} weeks, ${inputData.schedulingMetadata.totalScheduled} sessions, validation score: ${inputData.validationReport.overallScore}/100.`;
+    } else {
+      message = `Training plan generated with issues: ${criticalErrorsCount} critical errors, ${warningsCount} warnings, ${inputData.schedulingMetadata.totalUnscheduled} unscheduled sessions.`;
+    }
+
+    console.log(
+      `[finalizeStep] Complete - Success: ${overallSuccess}, Score: ${inputData.validationReport.overallScore}`,
+    );
+
     return {
-      success: true,
+      success: overallSuccess,
       validationReport: {
-        message:
-          'Plan generated successfully (scheduling and persistence not yet implemented)',
-        totalWeeks: inputData.mesoBlocks.reduce(
-          (sum, block) => sum + block.weeks.length,
-          0,
-        ),
-        totalSessions: inputData.weekIntentions.reduce(
-          (sum, week) => sum + week.sessions.length,
-          0,
-        ),
-        recommendation:
-          'Review generated plan structure. Next steps: scheduling → QA → persistence',
+        valid: inputData.validationReport.valid,
+        overallScore: inputData.validationReport.overallScore,
+        message,
+        totalWeeks: inputData.scheduledWeeks.length,
+        totalSessionsScheduled: inputData.schedulingMetadata.totalScheduled,
+        totalSessionsUnscheduled: inputData.schedulingMetadata.totalUnscheduled,
+        criticalErrorsCount,
+        warningsCount,
+        errors: inputData.validationReport.errors || [],
+        metrics: inputData.validationReport.metrics,
+        recommendation,
       },
+      // trainingPlanId will be set by persistenceStep in the future
     };
   },
 });
@@ -620,5 +1013,7 @@ export const planGenerationWorkflow = createWorkflow({
   .then(macroStep)
   .then(mesoStep)
   .then(microStep)
+  .then(schedulingStep)
+  .then(qaStep)
   .then(finalizeStep)
   .commit();
