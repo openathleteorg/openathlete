@@ -1,6 +1,8 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
+import { macroPlanSchema } from '../types';
+
 // TODO: Agent that designs the macro-structure of a training plan
 //
 // RESPONSIBILITIES:
@@ -106,7 +108,25 @@ Phase Duration Guidelines:
 
 Always provide clear rationale for your macro plan structure and explain how it fits the athlete's profile and goal.
 
-Output your plan as a structured MacroPlan object.`,
+Output Format:
+You MUST return a structured MacroPlan object with the following fields:
+- totalDurationWeeks: total number of weeks from today to race
+- phases: array of training phases with dates, durations, volume targets
+- milestones: key dates (tests, prep races, checkpoints)
+- overallStrategy: narrative explanation of the plan
+- progressionRationale: why this specific progression was chosen
+
+Each phase must include:
+- name, phase type (BASE/SPECIFIC/TAPER), dates, duration
+- targetWeeklyVolume (min/max in seconds)
+- volumeProgression type (LINEAR/STEPPED/UNDULATING)
+- focus description
+- keyWorkouts list
+
+Be specific with dates, durations, and volume targets. Use the athlete's current fitness as a baseline.`,
   model: openai('gpt-4o'),
   // No tools needed - pure reasoning
 });
+
+// Export schema for use in workflow steps
+export { macroPlanSchema };

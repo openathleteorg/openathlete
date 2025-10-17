@@ -1,5 +1,8 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+import { z } from 'zod';
+
+import { mesoBlockSchema } from '../types';
 
 // TODO: Agent that breaks macro phases into meso-cycles (training blocks)
 //
@@ -120,7 +123,29 @@ Block Theme Guidelines:
 
 Always explain your progression rationale and flag any concerns about the athlete's ability to handle the prescribed load.
 
-Output your meso plan as a structured MesoBlocks array.`,
+Output Format:
+You MUST return an array of MesoBlock objects, each containing:
+- blockNumber: sequential number starting from 1
+- phaseName: which macro phase this block belongs to
+- weeks: array of weekly plans with:
+  * weekNumber: global week number in entire plan
+  * startDate, endDate: ISO date strings
+  * theme: specific theme for that week
+  * targetVolume: target weekly volume in seconds
+  * targetLoad: optional TRIMP estimate
+  * intensityFocus: EASY, MODERATE, HARD, or MIXED
+  * isRecoveryWeek: boolean
+- blockTheme: overall theme for the 3-4 week block
+- progressionPattern: description of how the block progresses
+
+Be specific with dates, volumes (in seconds), and provide clear rationale for progression choices.`,
   model: openai('gpt-4o'),
   // No tools needed - logical breakdown
 });
+
+// Export schema for use in workflow steps
+export const mesoBlocksOutputSchema = z.object({
+  mesoBlocks: z.array(mesoBlockSchema),
+});
+
+export { mesoBlockSchema };
