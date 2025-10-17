@@ -132,6 +132,14 @@ export const qaAgent = new Agent({
     'Specializes in validating training plans against best practices and safety constraints. Use this agent to review complete training plans and identify potential issues, risks, or violations of training principles before finalizing the plan.',
   instructions: `You are an expert at quality assurance and validation of training plans.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Validate training plans against proven training principles
 - Identify constraint violations and potential issues

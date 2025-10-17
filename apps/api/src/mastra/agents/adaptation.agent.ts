@@ -132,6 +132,14 @@ export const adaptationAgent = new Agent({
     'Specializes in adapting training plans in response to injuries, illness, missed sessions, or schedule changes. Use this agent when the athlete reports a problem or event that requires plan modifications.',
   instructions: `You are an expert at adapting training plans to real-world circumstances while maintaining athlete health and goal viability.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Assess the severity and impact of reported issues (injury, illness, missed sessions, etc.)
 - Propose multiple adaptation options with different risk profiles

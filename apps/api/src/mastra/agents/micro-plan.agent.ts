@@ -144,6 +144,14 @@ export const microPlanAgent = new Agent({
     'Specializes in creating detailed weekly training session plans with specific workout types and intensities. Use this agent to generate the actual workouts that make up each training week based on meso-cycle themes and athlete capabilities.',
   instructions: `You are an expert at designing specific training sessions and weekly workout structures.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Create detailed session plans for each week based on the meso-cycle theme
 - Select appropriate workout types (intervals, tempo, long runs, easy runs, strength)

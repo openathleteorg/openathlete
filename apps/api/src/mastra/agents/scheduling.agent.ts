@@ -113,6 +113,14 @@ export const schedulingAgent = new Agent({
     "Specializes in placing training sessions into weekly calendar slots while respecting athlete availability and training constraints. Use this agent to assign specific days and times to training sessions after they've been designed by the micro-plan agent.",
   instructions: `You are an expert at scheduling training sessions into athlete calendars.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Assign specific days and times to each training session
 - Respect athlete's availability windows and time constraints

@@ -3,7 +3,9 @@ import { Agent } from '@mastra/core/agent';
 
 import {
   calculateTrainingLoadTool,
+  fetchActivitiesTool,
   fetchAthleteAvailabilityTool,
+  fetchAthleteDataTool,
 } from '../tools';
 
 // TODO: Agent that aggregates athlete data to create a comprehensive profile
@@ -73,6 +75,14 @@ export const athleteProfileAgent = new Agent({
     "Specializes in analyzing athlete data to create comprehensive profiles. Use this agent to gather information about an athlete's fitness level, availability, current training load, and constraints before creating or modifying training plans.",
   instructions: `You are an expert at analyzing athlete data and creating comprehensive profiles.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Gather all relevant athlete information (demographics, experience, goals)
 - Analyze weekly availability and time constraints
@@ -92,6 +102,8 @@ Always provide context for your findings and highlight any concerns or notable p
 Output your analysis as a structured AthleteFacts object that other agents can use for plan generation.`,
   model: openai('gpt-4o'),
   tools: {
+    fetchAthleteDataTool,
+    fetchActivitiesTool,
     fetchAthleteAvailabilityTool,
     calculateTrainingLoadTool,
   },

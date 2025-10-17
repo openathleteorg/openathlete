@@ -82,6 +82,14 @@ export const mesoPlanAgent = new Agent({
     'Specializes in breaking training phases into structured meso-cycles with progressive loading patterns. Use this agent to create detailed week-by-week volume and theme progression within each training phase.',
   instructions: `You are an expert at creating meso-cycle training blocks with proper progression patterns.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Divide macro phases into 3-4 week training blocks
 - Apply proven load:recovery patterns (typically 3:1 or 2:1)

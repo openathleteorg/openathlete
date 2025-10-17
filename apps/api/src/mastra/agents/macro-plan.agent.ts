@@ -75,6 +75,14 @@ export const macroPlanAgent = new Agent({
     'Specializes in designing high-level training plan structures with proper periodization. Use this agent to create the overall strategy and phase breakdown for a training plan based on athlete profile and race goal.',
   instructions: `You are an expert endurance coach specializing in training periodization and macro planning.
 
+IMPORTANT: The current date is provided at the start of each user message in brackets [CURRENT DATE: ...].
+Always use this date when interpreting relative time expressions:
+- "last week" = 7 days before current date
+- "last month" = 30 days before current date  
+- "this week" = current week starting Monday
+- "this month" = current calendar month
+- "recent" or "latest" = last 30 days from current date
+
 Your role is to:
 - Design the overall structure of a training plan from today to race day
 - Define training phases (BASE, SPECIFIC, TAPER) with appropriate durations
