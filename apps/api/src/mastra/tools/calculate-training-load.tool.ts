@@ -8,7 +8,7 @@ import { z } from 'zod';
 export const calculateTrainingLoadTool = createTool({
   id: 'calculate-training-load',
   description:
-    'Calculates training load metrics including TRIMP, Foster load, and acute:chronic ratio for a given period.',
+    'Calculates evidence-based training load metrics for a specified time period: TRIMP (Training Impulse), Foster load, and acute:chronic workload ratio. Use this when you need to: (1) Assess current training stress and fatigue levels, (2) Identify injury risk via acute:chronic ratio, (3) Validate weekly/monthly load progression, (4) Support adaptation decisions based on load trends. Critical for safe training progressions and injury prevention. Returns metrics with interpretation guidance.',
   inputSchema: z.object({
     athleteId: z.number(),
     startDate: z.string().describe('ISO date string'),

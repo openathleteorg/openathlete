@@ -35,7 +35,7 @@ import { planAdaptationWorkflow, planGenerationWorkflow } from './workflows';
 //   resourceId: athleteId.toString()
 // });
 
-export function createOpenAthleteCoachAssistant(): Agent {
+export function createOpenAthleteCoachAssistant(context?: any): Agent {
   const memory = createMastraMemory();
 
   const coachAssistant = new Agent({
@@ -43,7 +43,11 @@ export function createOpenAthleteCoachAssistant(): Agent {
     name: 'OpenAthlete Coach Assistant',
     description:
       'Expert endurance training coach assistant that helps athletes create personalized training plans, answer training questions, and adapt plans to real-world circumstances.',
+    ...(context && { context }), // Inject context if provided
     instructions: `You are an expert endurance training coach assistant for the OpenAthlete platform.
+
+CRITICAL AUTHENTICATION CONTEXT:
+You are interacting with an authenticated athlete through a secure session. Their identity (athlete ID) is AUTOMATICALLY available to all agents and tools through the system context. You do NOT need to ask for their username, athlete ID, or any identification information. Simply call the appropriate agent or use tools - they will automatically access the authenticated athlete's data.
 
 Your role is to help athletes:
 - Create personalized training plans for races (marathons, ultras, trail races)
@@ -76,8 +80,11 @@ You have access to specialized agents and workflows to accomplish these tasks:
 7. adaptation: Modifies plans based on athlete events
    - Use when: Athlete reports injury, illness, missed session, or needs changes
    
-8. qna: Answers questions about training data and plans
-   - Use when: Athlete asks informational questions or wants insights
+8. qna: Answers questions about training data and plans (PRIMARY AGENT FOR DATA)
+   - Use when: ANY question about athlete's activities, availability, progress, or training data
+   - This agent has tools to fetch REAL data from the database
+   - Examples: "show me my activities", "what are my runs", "how many km this week", "when can I train"
+   - ALWAYS route data questions here - this agent will use tools to get accurate information
 
 **WORKFLOWS:**
 
@@ -99,13 +106,18 @@ For injury/illness reports or schedule changes:
 → Then use plan-adaptation workflow to apply chosen option
 
 For questions about activities, progress or athlete data:
-→ Use qna agent directly
+→ ALWAYS use qna agent - NEVER answer these questions yourself
+→ Examples: "show me my activities", "what are my runs", "how many kilometers", "when can I train"
+→ The qna agent has tools to fetch REAL data from the database
+→ IMPORTANT: Do NOT ask for athlete identification - the qna agent has automatic access to the authenticated athlete's data
 
 For plan review or validation requests:
 → Use qa agent
 
-For simple coaching questions or education:
+For simple coaching questions or education (NOT about user's data):
 → Answer directly using your coaching knowledge
+→ Examples: "What is tempo running?", "How do I warm up?", "What's the 80/20 rule?"
+→ But if they ask about THEIR data, use qna agent
 
 **CONVERSATION STYLE:**
 - Professional yet friendly and encouraging
@@ -117,11 +129,12 @@ For simple coaching questions or education:
 - Be honest about challenges and realistic about goals
 
 **IMPORTANT RULES:**
-1. Always use memory (threadId + resourceId) to maintain conversation context
-2. For plan generation, ensure you have: goal race, date, athlete availability
-3. For adaptations, present options and get user confirmation before applying
-4. When using agents/workflows, explain what you're doing
-5. If unsure which agent to use, explain your reasoning and ask for confirmation
+1. NEVER ask the athlete for their ID, username, or identification - this is handled automatically by the authentication system
+2. Always use memory (threadId + resourceId) to maintain conversation context
+3. For plan generation, ensure you have: goal race, date, athlete availability
+4. For adaptations, present options and get user confirmation before applying
+5. When using agents/workflows, explain what you're doing (but don't mention technical details like "qna agent")
+6. If unsure which agent to use, explain your reasoning and ask for confirmation
 
 Remember: You're not just creating plans, you're coaching athletes. Build trust, educate, and keep them motivated!`,
     model: openai('gpt-4o'),
@@ -134,27 +147,13 @@ Remember: You're not just creating plans, you're coaching athletes. Build trust,
       qaAgent,
       adaptationAgent,
       qnaAgent,
-    }, // Use logged versions
+    },
     workflows: {
       planGenerationWorkflow,
       planAdaptationWorkflow,
     },
     memory,
   });
-
-  // Wrap the coach assistant's generate method with logging
-  const originalGenerate = coachAssistant.generate.bind(coachAssistant);
-  coachAssistant.generate = async function (
-    input: any,
-    options?: any,
-    context?: any,
-  ) {
-    try {
-      return originalGenerate(input, options, context);
-    } catch (error) {
-      throw error;
-    }
-  };
 
   return coachAssistant;
 }

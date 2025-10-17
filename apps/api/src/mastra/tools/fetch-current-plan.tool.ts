@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const fetchCurrentPlanTool = createTool({
   id: 'fetch-current-plan',
   description:
-    "Retrieves the athlete's currently active training plan with all cycles, weeks, and sessions. Use this to see the complete plan structure.",
+    "Retrieves the athlete's currently active training plan with complete hierarchical structure (plan → cycles → weeks → sessions). Use this when you need to: (1) Review the full plan structure for modifications or adaptations, (2) Answer questions about what's planned in upcoming weeks, (3) Check session details before making changes, (4) Validate plan completeness. Returns null if no active plan exists. Includes optional filters to control detail level (weeks/sessions inclusion).",
   inputSchema: z.object({
     athleteId: z.number(),
     includeWeeks: z.boolean().optional().default(true),

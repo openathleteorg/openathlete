@@ -31,7 +31,7 @@ import { z } from 'zod';
 export const fetchAthleteDataTool = createTool({
   id: 'fetch-athlete-data',
   description:
-    'Fetches comprehensive athlete data including profile, availability windows, and training statistics. Use this to get all relevant athlete information for plan generation or analysis.',
+    'Fetches comprehensive athlete profile data including demographics, training experience, goals, weekly availability windows, and training statistics. Use this when you need to: (1) Build athlete profile before plan generation, (2) Understand athlete constraints and preferences, (3) Get availability for scheduling decisions, (4) Access athlete metadata for personalized coaching. Returns complete athlete object with optional related data (availability, stats). Essential for plan creation and personalization.',
   inputSchema: z.object({
     athleteId: z.number().describe('The ID of the athlete to fetch data for'),
     includeAvailability: z

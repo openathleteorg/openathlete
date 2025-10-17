@@ -8,7 +8,7 @@ import { z } from 'zod';
 export const savePlanTool = createTool({
   id: 'save-plan',
   description:
-    'Persists a complete training plan with all cycles, weeks, and sessions to the database in a single transaction.',
+    "Persists a complete training plan to database in a single atomic transaction, creating plan → cycles → weeks → sessions hierarchy. Use this when: (1) Finalizing newly generated training plan after QA validation, (2) Saving adapted plan after modifications, (3) Committing approved plan structure to make it the athlete's active plan. Creates all related entities with proper foreign key relationships. Transaction ensures data integrity - either full save succeeds or nothing is saved. This is the FINAL step in plan creation workflows.",
   inputSchema: z.object({
     athleteId: z.number(),
     plan: z.object({

@@ -1,12 +1,12 @@
 import { Agent } from '@mastra/core/agent';
 import { RuntimeContext } from '@mastra/core/runtime-context';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { createOpenAthleteCoachAssistant } from 'src/mastra';
+import { mastra } from 'src/mastra/mastra.instance';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { ActivityDetailService } from 'src/modules/core/services/activity-detail.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
@@ -17,10 +17,6 @@ import { MessageService } from './message.service';
 import { ThreadService } from './thread.service';
 
 // Types for better type safety
-interface ToolContext {
-  user: AuthUser | null;
-}
-
 interface StreamChunkData {
   type:
     | 'user_message'
@@ -83,11 +79,9 @@ interface BlockData {
 }
 
 @Injectable()
-export class MastraAgentService {
-  private networkAgent: Agent;
-  private currentUser: AuthUser | null = null;
-  // Shared context object that tools can access via closure
-  private readonly toolContext: ToolContext = { user: null };
+export class MastraAgentService implements OnModuleInit {
+  // Singleton agent instance - created once and reused
+  private coachAgent!: Agent;
 
   constructor(
     private configService: ConfigService<ApiEnvSchemaType, true>,
@@ -99,16 +93,16 @@ export class MastraAgentService {
     private trainingLoadService: TrainingLoadService,
   ) {
     process.env.OPENAI_API_KEY = this.configService.get('OPENAI_API_KEY');
-    this.networkAgent = createOpenAthleteCoachAssistant();
   }
 
   /**
-   * Set the current user context for tool execution
-   * Updates the shared toolContext object
+   * Initialize the agent singleton on module startup
+   * Best Practice: Create agent once and reuse for all requests
    */
-  private setUserContext(user: AuthUser) {
-    this.currentUser = user;
-    this.toolContext.user = user;
+  async onModuleInit() {
+    console.log('[MastraAgentService] Initializing singleton coach agent...');
+    this.coachAgent = mastra.getAgent('openathlete-coach');
+    console.log('[MastraAgentService] Coach agent initialized successfully');
   }
 
   /**
@@ -120,7 +114,6 @@ export class MastraAgentService {
     threadId: number,
     content: string,
   ): Promise<ProcessMessageResponse> {
-    // Verify thread access
     await this.threadService.getThreadById(user, threadId);
 
     // Create user message with a text block
@@ -152,43 +145,23 @@ export class MastraAgentService {
         'processing',
       );
 
-      // Get conversation history
-      const messages = await this.messageService.getThreadMessages(
-        user,
-        threadId,
-      );
+      // Get athleteId for runtime context and memory
+      const athleteId = user.athlete?.athlete_id || user.user_id;
 
-      // Build conversation context from message history
-      const conversationContext = this.buildConversationContext(messages);
-
-      // Set user context for tools
-      this.setUserContext(user);
-
-      // Create runtime context for memory
+      // Create runtime context with tool dependencies
       const runtimeContext = new RuntimeContext();
+      runtimeContext.set('prisma', this.prismaService);
+      runtimeContext.set('athleteId', athleteId);
 
-      // Use network orchestration to handle the request
-      // The network agent will route to appropriate sub-agents/workflows
-      const resultStream = await this.networkAgent.network(
-        `${conversationContext}\n\nUser: ${content}`,
-        {
-          runtimeContext,
-          memory: {
-            resource: `athlete-${user.athlete?.athlete_id || user.user_id}`,
-            thread: `thread-${threadId}`,
-          },
-        },
-      );
+      // Use the singleton agent with memory configuration
+      // Memory automatically handles conversation history - no need to build it manually
+      const resultStream = await this.coachAgent.generate(content, {
+        runtimeContext,
+        threadId: `thread-${threadId}`,
+        resourceId: `athlete-${athleteId}`,
+      });
 
-      // Network returns a stream, collect the text
-      let responseContent = '';
-      for await (const chunk of (resultStream as any).textStream || []) {
-        responseContent += chunk;
-      }
-
-      if (!responseContent) {
-        responseContent = 'No response';
-      }
+      const responseContent = resultStream.text || 'No response';
 
       // Create response block
       await this.blockService.createBlock(user, assistantMessage.message_id, {
@@ -288,30 +261,20 @@ export class MastraAgentService {
         'processing',
       );
 
-      const messages = await this.messageService.getThreadMessages(
-        user,
-        threadId,
-      );
+      // Get athleteId for runtime context and memory
+      const athleteId = user.athlete?.athlete_id || user.user_id;
 
-      // Build conversation context
-      const conversationContext = this.buildConversationContext(messages);
-
-      this.setUserContext(user);
-
-      // Create runtime context for memory
+      // Create runtime context with tool dependencies
       const runtimeContext = new RuntimeContext();
+      runtimeContext.set('prisma', this.prismaService);
+      runtimeContext.set('athleteId', athleteId);
 
-      // Use agent.stream() for real text streaming instead of network()
-      // network() is better for multi-agent orchestration but doesn't stream text progressively
-      const agentMessages = this.buildAgentMessages(messages);
-      agentMessages.push({ role: 'user', content });
-
-      const stream = await this.networkAgent.stream(agentMessages as any, {
+      // Use the singleton agent with streaming
+      // Memory automatically handles conversation history
+      const stream = await this.coachAgent.stream(content, {
         runtimeContext,
-        memory: {
-          resource: `athlete-${user.athlete?.athlete_id || user.user_id}`,
-          thread: `thread-${threadId}`,
-        },
+        threadId: `thread-${threadId}`,
+        resourceId: `athlete-${athleteId}`,
       });
 
       let responseContent = '';
@@ -441,6 +404,10 @@ export class MastraAgentService {
     }
   }
 
+  /**
+   * Create enriched blocks for specific tool results (e.g., activity lists)
+   * This is used for rendering rich UI components on the frontend
+   */
   private async createEnrichedBlock(
     user: AuthUser,
     messageId: number,
@@ -503,80 +470,5 @@ export class MastraAgentService {
         data: enrichedBlock,
       });
     }
-  }
-
-  /**
-   * Build conversation context string from message history
-   * Converts database messages into a context string for network agent
-   */
-  private buildConversationContext(messages: MessageWithBlocks[]): string {
-    const contextParts: string[] = [];
-
-    for (const message of messages) {
-      // Skip assistant messages that are still processing
-      if (
-        message.role === 'ASSISTANT' &&
-        (message.status === 'processing' || message.status === 'pending')
-      ) {
-        continue;
-      }
-
-      // Concatenate all text blocks for content
-      const textBlocks = message.blocks?.filter(
-        (block) => block.type === 'TEXT' && block.status === 'completed',
-      );
-      const content = textBlocks?.map((block) => block.content).join('\n\n');
-
-      if (content) {
-        const roleLower = message.role.toLowerCase();
-        const roleLabel =
-          roleLower === 'user'
-            ? 'User'
-            : roleLower === 'assistant'
-              ? 'Assistant'
-              : 'System';
-
-        contextParts.push(`${roleLabel}: ${content}`);
-      }
-    }
-
-    return contextParts.join('\n\n');
-  }
-
-  /**
-   * Build message history for the Mastra agent (legacy - kept for reference)
-   * @deprecated Use buildConversationContext instead for network agent
-   */
-  private buildAgentMessages(messages: MessageWithBlocks[]): AgentMessage[] {
-    const agentMessages: AgentMessage[] = [];
-
-    for (const message of messages) {
-      // Skip assistant messages that are still processing
-      if (
-        message.role === 'ASSISTANT' &&
-        (message.status === 'processing' || message.status === 'pending')
-      ) {
-        continue;
-      }
-
-      // Concatenate all text blocks for content
-      const textBlocks = message.blocks?.filter(
-        (block) => block.type === 'TEXT' && block.status === 'completed',
-      );
-      const content = textBlocks?.map((block) => block.content).join('\n\n');
-
-      if (content) {
-        const roleLower = message.role.toLowerCase();
-        // Map roles to valid message roles
-        const role = roleLower === 'tool' ? 'assistant' : roleLower;
-
-        agentMessages.push({
-          role,
-          content,
-        });
-      }
-    }
-
-    return agentMessages;
   }
 }

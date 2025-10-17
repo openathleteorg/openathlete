@@ -32,14 +32,17 @@ importers:
         specifier: ^2.2.0
         version: 2.5.0
       '@mastra/core':
-        specifier: ^0.20.2
-        version: 0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
+        specifier: ^0.21.1
+        version: 0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
+      '@mastra/loggers':
+        specifier: ^0.10.16
+        version: 0.10.16(@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))
       '@mastra/memory':
         specifier: ^0.15.7
-        version: 0.15.7(@mastra/core@0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(react@19.2.0)(zod@3.25.76)
+        version: 0.15.7(@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(react@19.2.0)(zod@3.25.76)
       '@mastra/pg':
         specifier: ^0.17.4
-        version: 0.17.4(@mastra/core@0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(pg-query-stream@4.10.3(pg@8.16.3))
+        version: 0.17.4(@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(pg-query-stream@4.10.3(pg@8.16.3))
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.1.6(class-transformer@0.5.1)(class-validator@0.14.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -173,6 +176,9 @@ importers:
       jest:
         specifier: ^29.7.0
         version: 29.7.0(@types/node@22.13.10)(ts-node@10.9.2(@swc/core@1.13.5)(@types/node@22.13.10)(typescript@5.1.6))
+      pino-pretty:
+        specifier: ^13.1.2
+        version: 13.1.2
       prettier:
         specifier: ^3.4.2
         version: 3.6.2
@@ -1661,11 +1667,16 @@ packages:
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
     engines: {node: '>=8'}
 
-  '@mastra/core@0.20.2':
-    resolution: {integrity: sha512-RbwuLwOVrcLbbjLFEBSlGTBA3mzGAy4bXp4JeXg2miJWDR/7WbXtxKIU+sTZGw5LpzlvvEFtj7JtHI1l+gKMVg==}
+  '@mastra/core@0.21.1':
+    resolution: {integrity: sha512-lyASrQCLiW+tleVRL16pBN5YfBg14IBEXYl2uGmrOsJ0QiPX/pHzcmYe0n7Oh48dYzu9YB/MgbQuY5PLzks8uQ==}
     engines: {node: '>=20'}
     peerDependencies:
       zod: 3.25.76
+
+  '@mastra/loggers@0.10.16':
+    resolution: {integrity: sha512-zZiaz/kfChdA9L8ks0F73pn/kh6gU8FkS8VMigKH5uc7Ez8gvWsaC9Orgg5k7Og4bkXrZ3j2fN5RewtjI8appA==}
+    peerDependencies:
+      '@mastra/core': '>=0.18.1-0 <0.22.0-0'
 
   '@mastra/memory@0.15.7':
     resolution: {integrity: sha512-7UzIQBM0RePgAfKK7IuhE6UEy6TWy3CTrKSEpybGfI3JtuifCpSbu4VfvWK0iW3B3KLd/6Lq+mWlm13P6k8ZrQ==}
@@ -5631,6 +5642,10 @@ packages:
     resolution: {integrity: sha512-2HvIEKRoqS62guEC+qBjpvRubdX910WCMuJTZ+I9yvqKU2/12eSL549HMwtabb4oupdj2sMP50k+XJfB/8JE6w==}
     engines: {node: '>=8'}
 
+  is-network-error@1.3.0:
+    resolution: {integrity: sha512-6oIwpsgRfnDiyEDLMay/GqCl3HoAtH5+RUKW29gYkL0QA+ipzpDLA16yQs7/RHCSu+BwgbJaOUqa4A99qNVQVw==}
+    engines: {node: '>=16'}
+
   is-number@7.0.0:
     resolution: {integrity: sha512-41Cifkg6e8TylSpdtTpeLVMqvSBEVzTttHvERD741+pnZ8ANv0004MRL43QKPDlK9cGvNp6NZWZUBlbGXYxxng==}
     engines: {node: '>=0.12.0'}
@@ -6576,6 +6591,10 @@ packages:
   p-map@7.0.3:
     resolution: {integrity: sha512-VkndIv2fIB99swvQoA65bm+fsmt6UNdGeIB0oxBs+WhAhdh08QA04JXpI7rbB9r08/nkbysKoya9rtDERYOYMA==}
     engines: {node: '>=18'}
+
+  p-retry@7.1.0:
+    resolution: {integrity: sha512-xL4PiFRQa/f9L9ZvR4/gUCRNus4N8YX80ku8kv9Jqz+ZokkiZLM0bcvX0gm1F3PDi9SPRsww1BDsTWgE6Y1GLQ==}
+    engines: {node: '>=20'}
 
   p-try@2.2.0:
     resolution: {integrity: sha512-R4nPAVTAU0B9D35/Gk3uJf/7XYbQcyohSKdvAxIRSNghFl4e71hVoGnBNQz9cWaXxO2I10KTC+3jMdvvoKw6dQ==}
@@ -9230,7 +9249,7 @@ snapshots:
 
   '@lukeed/csprng@1.1.0': {}
 
-  '@mastra/core@0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)':
+  '@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)':
     dependencies:
       '@a2a-js/sdk': 0.2.5
       '@ai-sdk/anthropic-v5': '@ai-sdk/anthropic@2.0.23(zod@3.25.76)'
@@ -9270,6 +9289,7 @@ snapshots:
       json-schema: 0.4.0
       json-schema-to-zod: 2.6.1
       p-map: 7.0.3
+      p-retry: 7.1.0
       pino: 9.13.1
       pino-pretty: 13.1.2
       radash: 12.1.1
@@ -9294,9 +9314,15 @@ snapshots:
       - valibot
       - zod-openapi
 
-  '@mastra/memory@0.15.7(@mastra/core@0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(react@19.2.0)(zod@3.25.76)':
+  '@mastra/loggers@0.10.16(@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))':
     dependencies:
-      '@mastra/core': 0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
+      '@mastra/core': 0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
+      pino: 9.13.1
+      pino-pretty: 13.1.2
+
+  '@mastra/memory@0.15.7(@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(react@19.2.0)(zod@3.25.76)':
+    dependencies:
+      '@mastra/core': 0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
       '@mastra/schema-compat': 0.11.4(ai@4.3.19(react@19.2.0)(zod@3.25.76))(zod@3.25.76)
       '@upstash/redis': 1.35.6
       ai: 4.3.19(react@19.2.0)(zod@3.25.76)
@@ -9315,9 +9341,9 @@ snapshots:
       - pg-native
       - react
 
-  '@mastra/pg@0.17.4(@mastra/core@0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(pg-query-stream@4.10.3(pg@8.16.3))':
+  '@mastra/pg@0.17.4(@mastra/core@0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76))(pg-query-stream@4.10.3(pg@8.16.3))':
     dependencies:
-      '@mastra/core': 0.20.2(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
+      '@mastra/core': 0.21.1(effect@3.16.12)(openapi-types@12.1.3)(react@19.2.0)(zod@3.25.76)
       async-mutex: 0.5.0
       pg: 8.16.3
       pg-promise: 11.15.0(pg-query-stream@4.10.3(pg@8.16.3))
@@ -13649,6 +13675,8 @@ snapshots:
 
   is-interactive@1.0.0: {}
 
+  is-network-error@1.3.0: {}
+
   is-number@7.0.0: {}
 
   is-path-inside@3.0.3: {}
@@ -14892,6 +14920,10 @@ snapshots:
       p-limit: 3.1.0
 
   p-map@7.0.3: {}
+
+  p-retry@7.1.0:
+    dependencies:
+      is-network-error: 1.3.0
 
   p-try@2.2.0: {}
 

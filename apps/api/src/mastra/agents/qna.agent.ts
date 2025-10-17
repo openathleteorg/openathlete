@@ -1,6 +1,8 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
+import { fetchActivitiesTool, fetchAthleteAvailabilityTool } from '../tools';
+
 // TODO: Agent that answers athlete questions about training data and plans
 //
 // RESPONSIBILITIES:
@@ -13,11 +15,14 @@ import { Agent } from '@mastra/core/agent';
 //
 // INPUT:
 //   - question: string (natural language question from athlete)
-//   - athleteId: number
+//   - context: MastraToolContext (includes athleteId automatically from authenticated session)
 //   - threadId: string (for conversation context)
-//   - context?: any (additional context from previous messages)
 //
 // OUTPUT: Natural language answer with relevant data
+//
+// IMPORTANT: The athlete's ID is AUTOMATICALLY available through the tool context.
+// You do NOT need to ask the user for their athlete ID or any identification.
+// Simply call the tools and they will use the authenticated user's ID automatically.
 //
 // QUESTION TYPES:
 //
@@ -160,6 +165,20 @@ export const qnaAgent = new Agent({
     'PRIMARY AGENT for ALL questions and data requests. Use for: availability/schedule questions, activity queries ("show me", "what are", "how many"), progress analysis, training insights, comparisons. This is the DEFAULT agent for any informational request.',
   instructions: `You are a knowledgeable training coach who loves helping athletes understand their training.
 
+CRITICAL RULES - READ CAREFULLY:
+
+1. NEVER INVENT DATA - You MUST use tools to fetch real data from the database
+2. You have automatic access to the athlete's data through authenticated session
+3. You do NOT need to ask the athlete for their ID, username, or any identification
+4. When asked about activities, availability, or any athlete data: ALWAYS call the appropriate tool FIRST
+5. DO NOT make assumptions about what data exists - fetch it using tools
+6. If a tool returns no data, say so honestly - don't make up placeholder data
+
+MANDATORY WORKFLOW:
+- User asks about activities → CALL fetch-activities tool → Present the actual results
+- User asks about availability → CALL fetch-athlete-availability tool → Present the actual results
+- User asks about plans → CALL fetch-current-plan tool → Present the actual results
+
 Your role is to:
 - Answer questions about training activities and data
 - Provide insights on progress and trends
@@ -229,13 +248,22 @@ UPCOMING WORKOUTS:
 Important Guidelines:
 - If you need more context, ask clarifying questions
 - If data is insufficient, explain what's missing
-- Never make up data - only use what's retrieved from tools
+- NEVER EVER make up data - ONLY use what's retrieved from tools
+- If you don't have a tool for something, admit it honestly
 - Admit uncertainty when appropriate ("I'd need to check...")
 - Offer to help with related tasks ("Would you like me to...")
 
-Remember: Your goal is to help the athlete feel informed, motivated, and confident about their training. Be their knowledgeable, supportive coach!
+CRITICAL REMINDER:
+- When user asks "show me", "what are", "how many", "get my" → YOU MUST CALL THE TOOL FIRST
+- Example: "Show me my activities" → CALL fetch-activities immediately
+- Example: "When can I train" → CALL fetch-athlete-availability immediately
+- DO NOT fabricate example data like "Course à pied - 10 km" without calling tools
+- If the tool returns empty results, say "You don't have any activities yet" - don't invent fake ones
 
-Always use tools to fetch actual data rather than making assumptions.`,
+Remember: Your goal is to help the athlete feel informed, motivated, and confident about their training using REAL DATA from tools. Be their knowledgeable, supportive coach!`,
   model: openai('gpt-4o'),
-  // tools: [] // TODO: Add fetch-activities, fetch-current-plan, compare-sessions, calculate-training-load tools
+  tools: {
+    fetchActivitiesTool,
+    fetchAthleteAvailabilityTool,
+  }, // TODO: Add fetch-current-plan, compare-sessions, calculate-training-load tools
 });

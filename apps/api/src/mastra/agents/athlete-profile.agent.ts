@@ -1,6 +1,8 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
+import { fetchAthleteAvailabilityTool } from '../tools';
+
 // TODO: Agent that aggregates athlete data to create a comprehensive profile
 //
 // RESPONSIBILITIES:
@@ -86,5 +88,7 @@ Always provide context for your findings and highlight any concerns or notable p
 
 Output your analysis as a structured AthleteFacts object that other agents can use for plan generation.`,
   model: openai('gpt-4o'),
-  // tools: [] // TODO: Add tools once implemented
+  tools: {
+    fetchAthleteAvailabilityTool,
+  },
 });

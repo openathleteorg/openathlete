@@ -3,8 +3,6 @@ import { z } from 'zod';
 
 import { keysToCamel } from '@openathlete/shared';
 
-import { MastraToolContext } from '../config/tool-context';
-
 /**
  * Fetch Athlete Availability Tool
  *
@@ -18,8 +16,7 @@ import { MastraToolContext } from '../config/tool-context';
  * - scheduling.agent: To place sessions in appropriate time slots
  * - athlete-profile.agent: To understand athlete constraints
  *
- * Input:
- * - athleteId: The athlete's ID
+ * Note: athleteId is automatically provided from the authenticated user context - no need to specify it!
  *
  * Output:
  * - availability: Array of availability slots with day, time, and priority
@@ -37,9 +34,9 @@ import { MastraToolContext } from '../config/tool-context';
 export const fetchAthleteAvailabilityTool = createTool({
   id: 'fetch-athlete-availability',
   description:
-    "Retrieves athlete's weekly availability slots for training session scheduling. Returns time windows when athlete can train, including day of week, start/end times, and priority levels. Also calculates total available hours per week.",
+    "Retrieves athlete's weekly availability slots for training session scheduling. Returns time windows when athlete can train, including day of week, start/end times, and priority levels. Also calculates total available hours per week. Use this when: (1) Creating or updating training plans (2) Scheduling sessions (3) Checking if athlete has time for additional workouts (4) Answering questions about training schedule flexibility.",
   inputSchema: z.object({
-    athleteId: z.number().describe('The ID of the athlete'),
+    // No athleteId needed - comes from authenticated context
   }),
   outputSchema: z.object({
     availability: z
@@ -64,18 +61,23 @@ export const fetchAthleteAvailabilityTool = createTool({
       .number()
       .describe('Total hours available per week across all slots'),
   }),
-  execute: async (executionContext) => {
-    console.log('[DEBUG] Tool execute called: fetch-athlete-availability');
-    console.log('[DEBUG] Input:', executionContext.input);
-
+  execute: async ({ context: input, runtimeContext }) => {
     try {
-      const { prisma } = executionContext.context as MastraToolContext;
-      const { athleteId } = executionContext.input;
+      // Get athleteId and prisma from RuntimeContext
+      const athleteId = runtimeContext?.get('athleteId');
+      const prisma = runtimeContext?.get('prisma');
 
-      console.log(
-        '[DEBUG] Querying athlete_availability for athleteId:',
-        athleteId,
-      );
+      if (!athleteId) {
+        console.error('[ERROR] athleteId not found in RuntimeContext');
+        throw new Error(
+          'athleteId not found in context - authentication issue',
+        );
+      }
+
+      if (!prisma) {
+        console.error('[ERROR] prisma not found in RuntimeContext');
+        throw new Error('Database service not available in context');
+      }
 
       // Query all availability slots for the athlete
       const availabilityRecords = await prisma.athlete_availability.findMany({

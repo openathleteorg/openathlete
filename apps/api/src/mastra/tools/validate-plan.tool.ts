@@ -1,3 +1,4 @@
+import { Tool } from '@mastra/core';
 import { createTool } from '@mastra/core';
 import { z } from 'zod';
 
@@ -8,7 +9,7 @@ import { z } from 'zod';
 export const validatePlanTool = createTool({
   id: 'validate-plan',
   description:
-    'Validates a training plan structure against best practices and safety constraints. Returns detailed validation report with errors, warnings, and suggestions.',
+    'Validates a complete training plan structure against evidence-based training principles, safety constraints, and athlete-specific limitations. Use this when you need to: (1) Perform final QA check before plan approval, (2) Identify potential risks or violations, (3) Get actionable suggestions for improvements, (4) Ensure plan follows periodization best practices. Returns detailed validation report with categorized findings (errors, warnings, suggestions) and severity levels. Critical for plan safety and effectiveness.',
   inputSchema: z.object({
     plan: z.any().describe('Full plan structure to validate'),
     athleteId: z.number(),

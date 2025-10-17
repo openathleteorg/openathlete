@@ -7,7 +7,7 @@ import { z } from 'zod';
 export const updateSessionTool = createTool({
   id: 'update-session',
   description:
-    'Modifies parameters of an existing training session (duration, intensity, description, dates).',
+    "Modifies an existing training session's parameters while preserving session identity and plan structure. Use this when you need to: (1) Adjust session distance, duration, or intensity due to athlete feedback, (2) Reschedule a session to different date/time, (3) Update session description or notes, (4) Fine-tune workout details as part of plan adaptation. Accepts partial updates (only changed fields). Essential for responsive plan adjustments without full regeneration.",
   inputSchema: z.object({
     eventTrainingId: z.number(),
     updates: z.object({
