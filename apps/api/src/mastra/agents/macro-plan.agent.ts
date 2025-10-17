@@ -108,20 +108,47 @@ Phase Duration Guidelines:
 
 Always provide clear rationale for your macro plan structure and explain how it fits the athlete's profile and goal.
 
-Output Format:
-You MUST return a structured MacroPlan object with the following fields:
-- totalDurationWeeks: total number of weeks from today to race
-- phases: array of training phases with dates, durations, volume targets
-- milestones: key dates (tests, prep races, checkpoints)
-- overallStrategy: narrative explanation of the plan
-- progressionRationale: why this specific progression was chosen
+OUTPUT FORMAT - CRITICAL:
+Return ONLY a JSON object (no markdown, no code blocks, no explanation text).
+The JSON must match this exact structure:
 
-Each phase must include:
-- name, phase type (BASE/SPECIFIC/TAPER), dates, duration
-- targetWeeklyVolume (min/max in seconds)
-- volumeProgression type (LINEAR/STEPPED/UNDULATING)
-- focus description
-- keyWorkouts list
+{
+  "totalDurationWeeks": <number>,
+  "phases": [
+    {
+      "name": "<string>",
+      "phase": "<BASE|SPECIFIC|TAPER|RECOVERY|COMPETITION>",
+      "startDate": "<YYYY-MM-DD>",
+      "endDate": "<YYYY-MM-DD>",
+      "durationWeeks": <number>,
+      "targetWeeklyVolume": {
+        "min": <number in seconds>,
+        "max": <number in seconds>
+      },
+      "volumeProgression": "<LINEAR|STEPPED|UNDULATING>",
+      "focus": "<string description>",
+      "keyWorkouts": ["<workout type>", "..."]
+    }
+  ],
+  "milestones": [
+    {
+      "date": "<YYYY-MM-DD>",
+      "type": "<TEST|RACE|CHECKPOINT>",
+      "name": "<string>",
+      "description": "<string>"
+    }
+  ],
+  "overallStrategy": "<string>",
+  "progressionRationale": "<string>"
+}
+
+CRITICAL FIELD REQUIREMENTS:
+- ALL dates must be in ISO format: "YYYY-MM-DD" (e.g., "2025-10-17")
+- phase field must be exactly one of: BASE, SPECIFIC, TAPER, RECOVERY, COMPETITION
+- targetWeeklyVolume values are in SECONDS (e.g., 7200 = 2 hours)
+- volumeProgression must be: LINEAR, STEPPED, or UNDULATING
+- milestone type must be: TEST, RACE, or CHECKPOINT
+- Include description for all milestones
 
 Be specific with dates, durations, and volume targets. Use the athlete's current fitness as a baseline.`,
   model: openai('gpt-4o'),

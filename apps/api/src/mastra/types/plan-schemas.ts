@@ -21,8 +21,8 @@ import { z } from 'zod';
 export const athleteFactsSchema = z.object({
   // Basic profile
   athleteId: z.number(),
-  name: z.string().optional(),
-  email: z.string().optional(),
+  name: z.string().nullish(),
+  email: z.string().nullish(),
 
   // Current fitness baseline
   currentFitness: z.object({
@@ -55,29 +55,29 @@ export const athleteFactsSchema = z.object({
   constraints: z.object({
     maxWeeklyVolume: z
       .number()
-      .optional()
+      .nullish()
       .describe('Maximum weekly volume in seconds'),
     preferredRestDays: z
       .array(z.number())
-      .optional()
+      .nullish()
       .describe('Preferred rest days (0-6)'),
     avoidDays: z
       .array(z.number())
-      .optional()
+      .nullish()
       .describe('Days to avoid training (0-6)'),
     injuries: z
       .array(z.string())
-      .optional()
+      .nullish()
       .describe('Current or recent injuries'),
   }),
 
   // Experience & preferences
   experienceLevel: z
     .enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'ELITE'])
-    .optional(),
+    .nullish(),
   trainingHistory: z
     .string()
-    .optional()
+    .nullish()
     .describe('Narrative summary of training background'),
 });
 
@@ -155,7 +155,7 @@ export const mesoWeekSchema = z.object({
     .string()
     .describe('Week theme, e.g., "VO2max intervals", "Base building"'),
   targetVolume: z.number().describe('Target weekly volume in seconds'),
-  targetLoad: z.number().optional().describe('Target training load (TRIMP)'),
+  targetLoad: z.number().nullish().describe('Target training load (TRIMP)'),
   intensityFocus: z
     .enum(['EASY', 'MODERATE', 'HARD', 'MIXED'])
     .describe('Primary intensity focus for the week'),
@@ -185,7 +185,7 @@ export type MesoWeek = z.infer<typeof mesoWeekSchema>;
  * Used by: scheduling.agent
  */
 export const sessionIntentionSchema = z.object({
-  sessionId: z.string().optional().describe('Unique identifier for tracking'),
+  sessionId: z.string().nullish().describe('Unique identifier for tracking'),
   type: z
     .enum([
       'INTERVAL',
@@ -199,16 +199,16 @@ export const sessionIntentionSchema = z.object({
     .describe('Session type'),
   sport: z.enum(['RUNNING', 'CYCLING', 'SWIMMING', 'STRENGTH', 'OTHER']),
   targetDuration: z.number().describe('Target duration in seconds'),
-  targetDistance: z.number().optional().describe('Target distance in meters'),
+  targetDistance: z.number().nullish().describe('Target distance in meters'),
   targetElevationGain: z
     .number()
-    .optional()
+    .nullish()
     .describe('Target elevation gain in meters'),
   targetIntensity: z
     .object({
       zone: z
         .string()
-        .optional()
+        .nullish()
         .describe('Training zone (Z1, Z2, Z3, Z4, Z5)'),
       rpe: z.number().min(0).max(1).describe('RPE on 0-1 scale'),
     })
@@ -216,11 +216,11 @@ export const sessionIntentionSchema = z.object({
   description: z.string().describe('Detailed session description'),
   structure: z
     .any()
-    .optional()
+    .nullish()
     .describe('Structured workout definition (if applicable)'),
   dayOfWeek: z
     .number()
-    .optional()
+    .nullish()
     .describe('Preferred day (0-6), null if not yet scheduled'),
   priority: z
     .enum(['HIGH', 'MEDIUM', 'LOW'])
@@ -250,10 +250,10 @@ export type SessionIntention = z.infer<typeof sessionIntentionSchema>;
  */
 export const scheduledSessionSchema = sessionIntentionSchema.extend({
   scheduledDate: z.string().describe('ISO datetime when session is scheduled'),
-  scheduledTime: z.string().optional().describe('Start time in HH:mm format'),
+  scheduledTime: z.string().nullish().describe('Start time in HH:mm format'),
   availabilitySlotId: z
     .number()
-    .optional()
+    .nullish()
     .describe('ID of the availability slot used'),
 });
 
@@ -291,10 +291,10 @@ export const validationErrorSchema = z.object({
   ]),
   severity: z.enum(['CRITICAL', 'WARNING', 'INFO']),
   description: z.string(),
-  affectedWeeks: z.array(z.number()).optional(),
-  affectedSessions: z.array(z.number()).optional(),
-  currentValue: z.number().optional(),
-  expectedValue: z.number().optional(),
+  affectedWeeks: z.array(z.number()).nullish(),
+  affectedSessions: z.array(z.number()).nullish(),
+  currentValue: z.number().nullish(),
+  expectedValue: z.number().nullish(),
   suggestion: z.string(),
 });
 
@@ -339,7 +339,7 @@ export type ValidationMetrics = z.infer<typeof validationMetricsSchema>;
 export const completePlanSchema = z.object({
   // Plan metadata
   name: z.string(),
-  description: z.string().optional(),
+  description: z.string().nullish(),
   goal: z.string(),
   startDate: z.string(),
   endDate: z.string(),

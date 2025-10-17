@@ -8,66 +8,59 @@ import {
   fetchAthleteDataTool,
 } from '../tools';
 
-// TODO: Agent that aggregates athlete data to create a comprehensive profile
-//
-// RESPONSIBILITIES:
-// - Fetch athlete's basic info (age, weight, experience level, goals)
-// - Retrieve weekly availability windows from athlete_availability table
-// - Calculate current training load using TrainingLoadService (Foster TRIMP)
-// - Analyze recent activity history (last 4-8 weeks) to determine baseline fitness
-// - Extract constraints and preferences from athlete profile
-// - Identify training history patterns (volume trends, intensity distribution)
-//
-// INPUT:
-//   - athleteId: number
-//   - analysisPeriod?: { startDate: Date, endDate: Date } (default: last 8 weeks)
-//
-// OUTPUT: AthleteFacts object with:
-//   {
-//     profile: {
-//       athleteId: number,
-//       age?: number,
-//       weight?: number,
-//       experienceLevel?: string,
-//       goals: string[]
-//     },
-//     availability: {
-//       totalWeeklyHours: number,
-//       slots: [{dayOfWeek: number, startTime: string, endTime: string, priority: string}]
-//     },
-//     currentLoad: {
-//       weeklyTrimp: number,
-//       acuteLoad: number,
-//       chronicLoad: number,
-//       acuteChronicRatio: number
-//     },
-//     fitnessBaseline: {
-//       recentVolume: number, // average weekly volume in seconds
-//       longestRun: number, // longest run in last 8 weeks (meters)
-//       averagePace: number, // average pace across runs (m/s)
-//       volumeTrend: 'INCREASING' | 'STABLE' | 'DECREASING'
-//     },
-//     constraints: {
-//       restDaysPreferred: number[],
-//       maxSessionDuration?: number,
-//       injuries?: string[],
-//       otherLimitations?: string[]
-//     }
-//   }
-//
-// TOOLS NEEDED:
-// - fetch-athlete-data: Query Prisma for athlete + related data
-// - calculate-training-load: Call TrainingLoadService for load calculations
-// - fetch-activities: Get recent event_activity records
-// - fetch-athlete-availability: Get weekly availability slots
-//
-// IMPLEMENTATION NOTES:
-// - Should run at the start of plan generation workflow
-// - Can also be called standalone for profile analysis
-// - Results should be cached in memory/context for subsequent steps
-// - Consider edge cases: new athletes with no history, injured athletes
-//
-// MODEL: GPT-4o (needs reasoning for pattern analysis)
+/**
+ * Athlete Profile Agent
+ *
+ * RESPONSIBILITIES:
+ * - Fetch athlete's basic info and training history
+ * - Retrieve weekly availability windows from athlete_availability table
+ * - Calculate current training load using TrainingLoadService (Foster TRIMP)
+ * - Analyze recent activity history (last 4-8 weeks) to determine baseline fitness
+ * - Extract constraints and preferences from athlete profile
+ * - Identify training history patterns (volume trends, intensity distribution)
+ *
+ * INPUT (via prompt):
+ *   - athleteId: number
+ *   - analysisPeriod: { startDate: string, endDate: string } (default: last 8 weeks)
+ *
+ * OUTPUT: AthleteFacts object matching athleteFactsSchema:
+ *   {
+ *     athleteId: number,
+ *     name?: string,
+ *     email?: string,
+ *     currentFitness: {
+ *       recentWeeklyVolume: number,        // avg weekly volume in seconds (last 4 weeks)
+ *       recentWeeklyDistance: number,      // avg weekly distance in meters
+ *       longestRecentRun: number,          // longest run in last 8 weeks (meters)
+ *       currentLoad: {
+ *         weeklyTrimp: number,             // current weekly TRIMP
+ *         acuteChronicRatio: number        // ACR for injury risk
+ *       }
+ *     },
+ *     availability: [{
+ *       dayOfWeek: number,                 // 0=Sunday, 6=Saturday
+ *       startTime: string,                 // HH:mm format
+ *       endTime: string,                   // HH:mm format
+ *       priority: 'LOW' | 'MEDIUM' | 'HIGH'
+ *     }],
+ *     constraints: {
+ *       maxWeeklyVolume?: number,          // in seconds
+ *       preferredRestDays?: number[],      // days 0-6
+ *       avoidDays?: number[],              // days 0-6
+ *       injuries?: string[]
+ *     },
+ *     experienceLevel?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED' | 'ELITE',
+ *     trainingHistory?: string             // narrative summary
+ *   }
+ *
+ * TOOLS AVAILABLE:
+ * - fetchAthleteDataTool: Query Prisma for athlete + related data
+ * - calculateTrainingLoadTool: Call TrainingLoadService for load calculations
+ * - fetchActivitiesTool: Get recent event_activity records
+ * - fetchAthleteAvailabilityTool: Get weekly availability slots
+ *
+ * MODEL: GPT-4o (needs reasoning for pattern analysis)
+ */
 
 export const athleteProfileAgent = new Agent({
   name: 'athlete-profile',
@@ -83,23 +76,58 @@ Always use this date when interpreting relative time expressions:
 - "this month" = current calendar month
 - "recent" or "latest" = last 30 days from current date
 
-Your role is to:
-- Gather all relevant athlete information (demographics, experience, goals)
-- Analyze weekly availability and time constraints
-- Calculate current training load and fitness metrics
-- Review recent training history to establish baseline fitness
-- Identify any constraints or limitations (injuries, preferences, rest days)
-- Present findings in a structured, data-driven format
+YOUR WORKFLOW:
 
-When analyzing training history:
-- Look for trends in volume (increasing, stable, decreasing)
-- Identify intensity distribution patterns
-- Note any gaps or inconsistencies in training
-- Flag potential overtraining or undertraining signs
+1. USE TOOLS to gather data:
+   - Call fetchAthleteDataTool to get basic athlete information
+   - Call fetchAthleteAvailabilityTool to get weekly availability slots
+   - Call fetchActivitiesTool to get recent training activities
+   - Call calculateTrainingLoadTool to compute TRIMP and load metrics
 
-Always provide context for your findings and highlight any concerns or notable patterns.
+2. ANALYZE the data:
+   - Calculate average weekly volume and distance (last 4 weeks)
+   - Identify longest run in the analysis period
+   - Determine volume trend (increasing/stable/decreasing)
+   - Check for overtraining signals (ACR > 1.5)
+   - Note any training gaps or inconsistencies
+   - Identify constraints from athlete data
 
-Output your analysis as a structured AthleteFacts object that other agents can use for plan generation.`,
+3. OUTPUT FORMAT:
+   Return your analysis as a JSON object ONLY (no additional text before or after).
+   The JSON must match this exact structure:
+
+{
+  "athleteId": <number>,
+  "name": "<string or null>",
+  "email": "<string or null>",
+  "currentFitness": {
+    "recentWeeklyVolume": <number in seconds>,
+    "recentWeeklyDistance": <number in meters>,
+    "longestRecentRun": <number in meters>,
+    "currentLoad": {
+      "weeklyTrimp": <number>,
+      "acuteChronicRatio": <number>
+    }
+  },
+  "availability": [
+    {
+      "dayOfWeek": <0-6>,
+      "startTime": "<HH:mm>",
+      "endTime": "<HH:mm>",
+      "priority": "<LOW|MEDIUM|HIGH>"
+    }
+  ],
+  "constraints": {
+    "maxWeeklyVolume": <number in seconds or null>,
+    "preferredRestDays": [<0-6>] or null,
+    "avoidDays": [<0-6>] or null,
+    "injuries": ["<string>"] or null
+  },
+  "experienceLevel": "<BEGINNER|INTERMEDIATE|ADVANCED|ELITE or null>",
+  "trainingHistory": "<narrative summary or null>"
+}
+
+CRITICAL: Your response must be ONLY the JSON object, nothing else. Do not include explanations before or after the JSON.`,
   model: openai('gpt-4o'),
   tools: {
     fetchAthleteDataTool,

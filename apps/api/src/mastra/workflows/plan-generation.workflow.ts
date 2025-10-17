@@ -1,15 +1,21 @@
 import { createStep, createWorkflow } from '@mastra/core/workflows';
 import { z } from 'zod';
 
+import { athleteProfileAgent } from '../agents/athlete-profile.agent';
 import { macroPlanAgent, macroPlanSchema } from '../agents/macro-plan.agent';
 import {
   mesoBlocksOutputSchema,
   mesoPlanAgent,
 } from '../agents/meso-plan.agent';
 import {
+  microPlanAgent,
+  weekIntentionsOutputSchema,
+} from '../agents/micro-plan.agent';
+import {
   athleteFactsSchema,
   macroPlanSchema as macroPlanSchemaType,
   mesoBlockSchema,
+  weekIntentionsSchema,
 } from '../types';
 
 // TODO: Workflow for complete training plan generation from athlete profile to saved plan
@@ -38,20 +44,154 @@ const profileStep = createStep({
   description: 'Analyze athlete profile and gather baseline data',
   inputSchema: z.object({
     athleteId: z.number(),
-    analysisPeriod: z
+    goal: z.object({
+      raceName: z.string(),
+      raceDate: z.string(),
+      distance: z.number(),
+      elevationGain: z.number(),
+      terrain: z.enum(['ROAD', 'TRAIL', 'MIXED']).optional(),
+    }),
+    preferences: z
       .object({
-        startDate: z.string().optional(),
-        endDate: z.string().optional(),
+        preferredTrainingDays: z.array(z.number()).optional(),
+        avoidDays: z.array(z.number()).optional(),
+        maxWeeklyVolume: z.number().optional(),
       })
       .optional(),
   }),
   outputSchema: z.object({
-    athleteFacts: z.any(), // TODO: Define proper AthleteFacts schema
+    athleteFacts: athleteFactsSchema,
+    goal: z.object({
+      raceName: z.string(),
+      raceDate: z.string(),
+      distance: z.number(),
+      elevationGain: z.number(),
+      terrain: z.enum(['ROAD', 'TRAIL', 'MIXED']).optional(),
+    }),
   }),
-  execute: async ({ inputData }) => {
-    // TODO: Call athlete-profile agent
-    // const response = await athleteProfileAgent.generate(...);
-    throw new Error('Not implemented - profileStep');
+  execute: async ({ inputData, runtimeContext }) => {
+    try {
+      const currentDate = new Date().toISOString();
+      const { athleteId } = inputData;
+
+      // Default analysis period: last 8 weeks
+      const defaultEndDate = new Date();
+      const defaultStartDate = new Date();
+      defaultStartDate.setDate(defaultStartDate.getDate() - 56); // 8 weeks
+
+      const startDate = defaultStartDate.toISOString();
+      const endDate = defaultEndDate.toISOString();
+
+      const prompt = `[CURRENT DATE: ${new Date(currentDate).toLocaleDateString(
+        'en-US',
+        {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        },
+      )}]
+
+Create a comprehensive athlete profile by analyzing all available data for athlete ID ${athleteId}.
+
+ANALYSIS PERIOD:
+- Start Date: ${new Date(startDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })}
+- End Date: ${new Date(endDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })}
+
+YOUR TASKS:
+
+1. Fetch athlete basic data (age, weight, experience level, goals)
+2. Retrieve weekly availability windows 
+3. Calculate current training load metrics (acute load, chronic load, ACR)
+4. Analyze recent training history to determine:
+   - Average weekly volume and trend (increasing/stable/decreasing)
+   - Longest run in the analysis period
+   - Average pace across all runs
+   - Intensity distribution patterns
+5. Identify any constraints or limitations
+
+Use the available tools to gather this information, then synthesize it into a structured AthleteFacts object.
+
+Pay special attention to:
+- Signs of overtraining (high acute:chronic ratio > 1.5)
+- Significant volume changes (>15% week-to-week)
+- Training consistency (gaps in training)
+- Available training time vs. current volume
+
+OUTPUT FORMAT:
+Provide your analysis as a JSON object matching the AthleteFacts schema with these fields:
+{
+  "athleteId": number,
+  "name": string (optional),
+  "email": string (optional),
+  "currentFitness": {
+    "recentWeeklyVolume": number (average weekly volume in seconds over last 4 weeks),
+    "recentWeeklyDistance": number (average weekly distance in meters),
+    "longestRecentRun": number (longest run in last 8 weeks in meters),
+    "currentLoad": {
+      "weeklyTrimp": number,
+      "acuteChronicRatio": number
+    }
+  },
+  "availability": [{
+    "dayOfWeek": number (0=Sunday, 1=Monday, ..., 6=Saturday),
+    "startTime": "HH:mm",
+    "endTime": "HH:mm",
+    "priority": "LOW" | "MEDIUM" | "HIGH"
+  }],
+  "constraints": {
+    "maxWeeklyVolume": number (optional, in seconds),
+    "preferredRestDays": number[] (optional, days 0-6),
+    "avoidDays": number[] (optional, days 0-6),
+    "injuries": string[] (optional)
+  },
+  "experienceLevel": "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "ELITE" (optional),
+  "trainingHistory": string (optional, narrative summary of training background)
+}
+
+Be thorough in your analysis and provide context for your findings.`;
+
+      console.log(
+        `[profileStep] Calling athlete-profile agent for athlete ${athleteId}`,
+      );
+
+      const response = await athleteProfileAgent.generate(prompt, {
+        runtimeContext,
+        structuredOutput: {
+          schema: athleteFactsSchema,
+        },
+      });
+
+      console.log('[profileStep] Received structured response from agent');
+
+      const athleteFacts = response.object;
+
+      console.log('[profileStep] Successfully validated AthleteFacts');
+      console.log(
+        '[profileStep] Weekly volume:',
+        athleteFacts.currentFitness.recentWeeklyVolume,
+        'seconds',
+      );
+      console.log(
+        '[profileStep] Availability slots:',
+        athleteFacts.availability.length,
+      );
+
+      return { athleteFacts, goal: inputData.goal };
+    } catch (error) {
+      console.error('[profileStep] Error:', error);
+      throw new Error(
+        `Failed to analyze athlete profile: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   },
 });
 
@@ -68,15 +208,15 @@ const macroStep = createStep({
       elevationGain: z.number(),
       terrain: z.enum(['ROAD', 'TRAIL', 'MIXED']).optional(),
     }),
-    currentDate: z.string(),
   }),
   outputSchema: z.object({
     macroPlan: macroPlanSchemaType,
+    athleteFacts: athleteFactsSchema,
   }),
   execute: async ({ inputData, runtimeContext }) => {
     try {
       // Build prompt for macro-plan agent
-      const currentDate = inputData.currentDate || new Date().toISOString();
+      const currentDate = new Date().toISOString();
 
       const prompt = `[CURRENT DATE: ${new Date(currentDate).toLocaleDateString(
         'en-US',
@@ -117,30 +257,21 @@ Consider:
 - Race distance and demands
 - Need for adequate base, specific work, and taper`;
 
-      // Call macro-plan agent
+      // Call macro-plan agent with structured output
       const response = await macroPlanAgent.generate(prompt, {
         runtimeContext,
+        structuredOutput: {
+          schema: macroPlanSchemaType,
+        },
       });
 
-      // Parse the response text as JSON (agent should return structured data)
-      let macroPlan;
-      try {
-        macroPlan = JSON.parse(response.text);
-      } catch (parseError) {
-        console.error(
-          '[macroStep] Failed to parse agent response as JSON:',
-          response.text,
-        );
-        throw new Error('Agent did not return valid JSON structure');
-      }
-
-      // Validate against schema
-      const validatedPlan = macroPlanSchemaType.parse(macroPlan);
+      const macroPlan = response.object;
 
       console.log('[macroStep] Macro plan generated successfully');
 
       return {
-        macroPlan: validatedPlan,
+        macroPlan,
+        athleteFacts: inputData.athleteFacts,
       };
     } catch (error) {
       console.error('[macroStep] Failed to generate macro plan:', error);
@@ -161,6 +292,7 @@ const mesoStep = createStep({
   }),
   outputSchema: z.object({
     mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
   }),
   execute: async ({ inputData, runtimeContext }) => {
     try {
@@ -204,32 +336,23 @@ For each phase in the macro plan, create meso-cycles with:
 
 Please create detailed meso-blocks for the entire plan duration.`;
 
-      // Call meso-plan agent
+      // Call meso-plan agent with structured output
       const response = await mesoPlanAgent.generate(prompt, {
         runtimeContext,
+        structuredOutput: {
+          schema: mesoBlocksOutputSchema,
+        },
       });
 
-      // Parse the response text as JSON
-      let mesoData;
-      try {
-        mesoData = JSON.parse(response.text);
-      } catch (parseError) {
-        console.error(
-          '[mesoStep] Failed to parse agent response as JSON:',
-          response.text,
-        );
-        throw new Error('Agent did not return valid JSON structure');
-      }
-
-      // Validate against schema
-      const validatedData = mesoBlocksOutputSchema.parse(mesoData);
+      const mesoBlocks = response.object.mesoBlocks;
 
       console.log(
-        `[mesoStep] Generated ${validatedData.mesoBlocks.length} meso-blocks successfully`,
+        `[mesoStep] Generated ${mesoBlocks.length} meso-blocks successfully`,
       );
 
       return {
-        mesoBlocks: validatedData.mesoBlocks,
+        mesoBlocks,
+        athleteFacts: inputData.athleteFacts,
       };
     } catch (error) {
       console.error('[mesoStep] Failed to generate meso plan:', error);
@@ -243,18 +366,116 @@ Please create detailed meso-blocks for the entire plan duration.`;
 // Step 4: Micro Planning
 const microStep = createStep({
   id: 'micro-planning',
-  description: 'Generate specific session plans for each week',
+  description: 'Generate specific training sessions for each week',
   inputSchema: z.object({
-    mesoBlocks: z.array(z.any()),
-    athleteFacts: z.any(),
+    mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
   }),
   outputSchema: z.object({
-    weekIntentions: z.array(z.any()), // TODO: Define WeekIntentions schema
+    weekIntentions: z.array(weekIntentionsSchema),
+    mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
   }),
-  execute: async ({ inputData }) => {
-    // TODO: Call micro-plan agent for each week
-    // May need to parallelize or loop through weeks
-    throw new Error('Not implemented - microStep');
+  execute: async ({ inputData, runtimeContext }) => {
+    try {
+      const allWeekIntentions: z.infer<typeof weekIntentionsSchema>[] = [];
+
+      // Extract all weeks from all meso blocks
+      const allWeeks = inputData.mesoBlocks.flatMap((block) =>
+        block.weeks.map((week) => ({
+          ...week,
+          blockTheme: block.blockTheme,
+          phaseName: block.phaseName,
+        })),
+      );
+
+      console.log(
+        `[microStep] Generating sessions for ${allWeeks.length} weeks...`,
+      );
+
+      // Process each week sequentially (could be parallelized in future)
+      for (const week of allWeeks) {
+        const prompt = `Create detailed training sessions for this specific week:
+
+WEEK DETAILS:
+- Week Number: ${week.weekNumber}
+- Dates: ${new Date(week.startDate).toLocaleDateString()} - ${new Date(week.endDate).toLocaleDateString()}
+- Theme: ${week.theme}
+- Target Volume: ${(week.targetVolume / 3600).toFixed(1)}h (${week.targetVolume} seconds)
+- Intensity Focus: ${week.intensityFocus}
+- Is Recovery Week: ${week.isRecoveryWeek}
+- Block Theme: ${week.blockTheme}
+- Phase: ${week.phaseName}
+
+ATHLETE PROFILE:
+- Experience Level: ${inputData.athleteFacts.experienceLevel || 'INTERMEDIATE'}
+- Current Weekly Volume: ${(inputData.athleteFacts.currentFitness.recentWeeklyVolume / 3600).toFixed(1)}h
+- Longest Recent Run: ${(inputData.athleteFacts.currentFitness.longestRecentRun / 1000).toFixed(1)}km
+- Constraints: ${JSON.stringify(inputData.athleteFacts.constraints, null, 2)}
+
+REQUIREMENTS:
+1. Create 4-7 training sessions for this week
+2. Total session durations should equal target volume (${week.targetVolume}s)
+3. Apply 80/20 rule: ~80% of volume at easy intensity (RPE ≤ 0.5), ~20% hard
+4. Match intensity focus: ${week.intensityFocus}
+5. Include appropriate session variety:
+   - At least one long run (if not recovery week)
+   - 1-2 key workouts based on block theme and intensity focus
+   - Multiple easy runs to fill volume
+   - Optional: strength training
+   - At least 1 rest day
+
+6. Session Types Based on Phase:
+   ${week.phaseName === 'BASE' ? '- Focus on easy runs and long runs\n   - Max 1 key workout (tempo or hills, keep moderate)\n   - Include strength training' : ''}
+   ${week.phaseName === 'SPECIFIC' ? '- Include 2 key workouts (VO2, threshold, or race pace)\n   - Long run with race-specific segments\n   - Reduce strength work' : ''}
+   ${week.phaseName === 'TAPER' ? '- Reduce all durations significantly\n   - Keep intensity but reduce volume\n   - More rest days' : ''}
+
+7. For each session provide:
+   - type: INTERVAL, LONG_RUN, TEMPO, EASY, RECOVERY, STRENGTH, or RACE
+   - sport: RUNNING, CYCLING, SWIMMING, STRENGTH, or OTHER
+   - targetDuration: in seconds
+   - targetDistance: in meters (optional, estimate based on duration and pace)
+   - targetElevationGain: in meters (optional)
+   - targetIntensity: {zone: "Z1", "Z2", etc., rpe: 0.0-1.0}
+   - description: detailed description of the workout
+   - priority: HIGH (key workouts), MEDIUM (long run), LOW (easy runs)
+
+8. DO NOT assign days or times - leave dayOfWeek as null
+
+Create a comprehensive week of training that matches the theme and volume target.`;
+
+        // Call micro-plan agent with structured output
+        const response = await microPlanAgent.generate(prompt, {
+          runtimeContext,
+          structuredOutput: {
+            schema: weekIntentionsOutputSchema,
+          },
+        });
+
+        const weekIntentions = response.object;
+
+        allWeekIntentions.push(weekIntentions);
+
+        console.log(
+          `[microStep] Generated ${weekIntentions.sessions.length} sessions for week ${week.weekNumber}`,
+        );
+      }
+
+      console.log(
+        `[microStep] Successfully generated sessions for all ${allWeeks.length} weeks`,
+      );
+
+      return {
+        weekIntentions: allWeekIntentions,
+        mesoBlocks: inputData.mesoBlocks,
+        athleteFacts: inputData.athleteFacts,
+      };
+    } catch (error) {
+      console.error('[microStep] Failed to generate micro plan:', error);
+      throw new Error(
+        `Micro planning failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
   },
 });
 
@@ -329,26 +550,14 @@ const persistenceStep = createStep({
 //   .then(qaStep) → validationReport (needs scheduledWeeks + athleteFacts + macroPlan)
 //   .then(persistenceStep) → success (needs all data)
 
-// Temporary placeholder step until full implementation
-const notImplementedStep = createStep({
-  id: 'not-implemented',
-  description: 'Placeholder step - workflow not yet implemented',
+// Final step: Convert generated plan to workflow output format
+const finalizeStep = createStep({
+  id: 'finalize',
+  description: 'Convert generated plan to final output format',
   inputSchema: z.object({
-    athleteId: z.number(),
-    goal: z.object({
-      raceName: z.string(),
-      raceDate: z.string(),
-      distance: z.number(),
-      elevationGain: z.number(),
-      terrain: z.enum(['ROAD', 'TRAIL', 'MIXED']).optional(),
-    }),
-    preferences: z
-      .object({
-        preferredTrainingDays: z.array(z.number()).optional(),
-        avoidDays: z.array(z.number()).optional(),
-        maxWeeklyVolume: z.number().optional(),
-      })
-      .optional(),
+    mesoBlocks: z.array(mesoBlockSchema),
+    athleteFacts: athleteFactsSchema,
+    weekIntentions: z.array(weekIntentionsSchema),
   }),
   outputSchema: z.object({
     success: z.boolean(),
@@ -357,13 +566,23 @@ const notImplementedStep = createStep({
     error: z.string().optional(),
   }),
   execute: async ({ inputData }) => {
+    // TODO: Implement scheduling, QA, and persistence
+    // For now, return success with generated data summary
     return {
-      success: false,
-      error: `Plan generation workflow is not yet implemented. The athlete wants to create a plan for "${inputData.goal.raceName}" on ${inputData.goal.raceDate}. Please inform them this feature is under development.`,
+      success: true,
       validationReport: {
-        message: 'Workflow under construction',
+        message:
+          'Plan generated successfully (scheduling and persistence not yet implemented)',
+        totalWeeks: inputData.mesoBlocks.reduce(
+          (sum, block) => sum + block.weeks.length,
+          0,
+        ),
+        totalSessions: inputData.weekIntentions.reduce(
+          (sum, week) => sum + week.sessions.length,
+          0,
+        ),
         recommendation:
-          'Use qna agent for questions, or contact support for manual plan creation.',
+          'Review generated plan structure. Next steps: scheduling → QA → persistence',
       },
     };
   },
@@ -397,5 +616,9 @@ export const planGenerationWorkflow = createWorkflow({
     error: z.string().optional(),
   }),
 })
-  .then(notImplementedStep)
+  .then(profileStep)
+  .then(macroStep)
+  .then(mesoStep)
+  .then(microStep)
+  .then(finalizeStep)
   .commit();

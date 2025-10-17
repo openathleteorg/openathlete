@@ -1,5 +1,8 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+import { z } from 'zod';
+
+import { weekIntentionsSchema } from '../types';
 
 // TODO: Agent that generates weekly session intentions (types and targets)
 //
@@ -198,7 +201,36 @@ Hard Session Rules:
 
 Always provide clear rationale for each session and explain how it fits the week's objectives.
 
-Output your micro plan as a WeekIntentions object with detailed session specifications.`,
+Output Format:
+You MUST return a WeekIntentions object containing:
+- weekNumber: the week number in the plan
+- startDate, endDate: ISO date strings
+- theme: the week's training theme
+- targetVolume: target weekly volume in seconds
+- sessions: array of session objects with:
+  * sessionId: optional unique identifier
+  * type: INTERVAL, LONG_RUN, TEMPO, EASY, RECOVERY, STRENGTH, or RACE
+  * sport: RUNNING, CYCLING, SWIMMING, STRENGTH, or OTHER
+  * targetDuration: session duration in seconds
+  * targetDistance: optional distance in meters
+  * targetElevationGain: optional elevation in meters
+  * targetIntensity: {zone, rpe} where rpe is 0-1 scale
+  * description: detailed session description
+  * structure: optional structured workout definition
+  * dayOfWeek: leave null (scheduling agent will assign)
+  * priority: HIGH, MEDIUM, or LOW for scheduling
+
+CRITICAL:
+- Total of all session durations should approximately equal targetVolume
+- Apply 80/20 rule: ~80% of volume at easy intensity (RPE ≤ 0.5)
+- Include variety: long run, key workouts, easy runs, rest
+- Provide specific durations in seconds (e.g., 3600 = 1 hour)
+- Use RPE scale: 0.0-0.3 = very easy, 0.4-0.5 = easy, 0.6-0.7 = moderate, 0.8+ = hard`,
   model: openai('gpt-4o'),
   // tools: [] // TODO: Add fetch-session-templates tool when available
 });
+
+// Export schema for use in workflow steps
+export const weekIntentionsOutputSchema = weekIntentionsSchema;
+
+export { weekIntentionsSchema };
