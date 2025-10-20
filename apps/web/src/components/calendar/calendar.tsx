@@ -4,6 +4,7 @@ import {
   useDuplicateEventMutation,
   useUpdateEventMutation,
 } from '@/services/event';
+import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import {
   DndContext,
   DragEndEvent,
@@ -75,7 +76,10 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
   const [filter, setFilter] = useState<(event: Event) => boolean>(
     () => () => true,
   );
-  const [coloredBy, setColoredBy] = useState<COLORED_BY | null>(null);
+  const [coloredBy, setColoredBy] = useState<COLORED_BY | null>(() => {
+    const savedValue = getItem(CALENDAR_COLORED_BY);
+    return savedValue ? (savedValue as COLORED_BY) : null;
+  });
   const updateEventMutation = useUpdateEventMutation();
   const duplicateEventMutation = useDuplicateEventMutation();
   const updateCycleMutation = useUpdateCycleMutation();
@@ -100,6 +104,15 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
       },
     );
   };
+
+  // Persist coloredBy to localStorage
+  useEffect(() => {
+    if (coloredBy) {
+      setItem(CALENDAR_COLORED_BY, coloredBy);
+    } else {
+      setItem(CALENDAR_COLORED_BY, '');
+    }
+  }, [coloredBy]);
 
   const memoizedValue = useMemo<CalendarContextType>(
     () => ({

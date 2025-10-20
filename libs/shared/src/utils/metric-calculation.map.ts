@@ -22,7 +22,7 @@ export const metricCalculationMap: Record<METRIC_TYPE, MetricCalculation> = {
     calculate: (values) => {
       const weight = values[METRIC_TYPE.WEIGHT];
       const height = values[METRIC_TYPE.HEIGHT] / 100; // Convert cm to m
-      return weight / (height * height);
+      return Math.round((weight / (height * height)) * 100) / 100;
     },
   },
   [METRIC_TYPE.BODY_FAT]: { canAutoCalculate: false },
