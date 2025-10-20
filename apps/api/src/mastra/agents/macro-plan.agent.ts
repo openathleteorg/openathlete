@@ -152,8 +152,6 @@ CRITICAL FIELD REQUIREMENTS:
 
 Be specific with dates, durations, and volume targets. Use the athlete's current fitness as a baseline.`,
   model: openai('gpt-4o'),
-  // No tools needed - pure reasoning
 });
 
-// Export schema for use in workflow steps
 export { macroPlanSchema };

@@ -92,7 +92,7 @@ Available Training Days: ${inputData.athleteFacts.availability.length} slots
 Constraints: ${JSON.stringify(inputData.athleteFacts.constraints, null, 2)}
 
 YOUR TASK:
-Generate 4-6 training sessions for this week that:
+Generate ${inputData.athleteFacts.availability.length} training sessions for this week that:
 1. Match the week's theme and intensity focus
 2. Total approximately ${(week.targetVolume / 3600).toFixed(1)} hours of training
 3. Follow 80/20 principle (80% easy, 20% hard) unless it's a recovery week

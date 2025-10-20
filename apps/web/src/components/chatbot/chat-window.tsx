@@ -64,34 +64,33 @@ export function ChatWindow() {
   const createThreadMutation = useCreateThreadMutation();
 
   // WebSocket for streaming
-  const { isStreaming, activeTools, currentAgent, sendMessage } =
-    useAgentWebSocket({
-      threadId: activeThreadId || undefined,
-      onMessageChunk: (chunk) => {
-        setStreamingBlocks((prev) => {
-          const newMap = new Map(prev);
-          newMap.set(chunk.blockId, chunk);
-          return newMap;
-        });
-      },
-      onMessageComplete: () => {
-        // Clear streaming blocks when message is complete
-        setStreamingBlocks(new Map());
-      },
-      onMessageError: (error) => {
-        console.error('WebSocket error:', error);
-        setStreamingBlocks(new Map());
-      },
-      onToolCallStart: (tool) => {
-        console.log('[ChatWindow] Tool started:', tool.toolName);
-      },
-      onToolCallComplete: (tool) => {
-        console.log('[ChatWindow] Tool completed:', tool.toolName);
-      },
-      onToolCallError: (tool) => {
-        console.error('[ChatWindow] Tool error:', tool.toolName, tool.error);
-      },
-    });
+  const { isStreaming, activeTools, sendMessage } = useAgentWebSocket({
+    threadId: activeThreadId || undefined,
+    onMessageChunk: (chunk) => {
+      setStreamingBlocks((prev) => {
+        const newMap = new Map(prev);
+        newMap.set(chunk.blockId, chunk);
+        return newMap;
+      });
+    },
+    onMessageComplete: () => {
+      // Clear streaming blocks when message is complete
+      setStreamingBlocks(new Map());
+    },
+    onMessageError: (error) => {
+      console.error('WebSocket error:', error);
+      setStreamingBlocks(new Map());
+    },
+    onToolCallStart: (tool) => {
+      console.log('[ChatWindow] Tool started:', tool.toolName);
+    },
+    onToolCallComplete: (tool) => {
+      console.log('[ChatWindow] Tool completed:', tool.toolName);
+    },
+    onToolCallError: (tool) => {
+      console.error('[ChatWindow] Tool error:', tool.toolName, tool.error);
+    },
+  });
 
   // Update active tool executions from WebSocket hook
   useEffect(() => {
@@ -373,7 +372,7 @@ export function ChatWindow() {
                   <ChatMessages
                     threadId={activeThreadId}
                     streamingBlocks={streamingBlocks}
-                    currentAgent={currentAgent}
+                    activeTools={activeTools}
                   />
                   {/* Tool execution indicator - shows active tools */}
                   <ToolExecutionIndicator activeTools={activeToolExecutions} />
