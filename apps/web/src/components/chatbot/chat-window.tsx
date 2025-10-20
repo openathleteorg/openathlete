@@ -25,7 +25,6 @@ import { ToolExecutionState } from '@openathlete/shared';
 
 import { ChatInput } from './chat-input';
 import { ChatMessages } from './chat-messages';
-import { ToolExecutionIndicator } from './tool-execution-indicator';
 
 const MIN_WIDTH = 320;
 const MAX_WIDTH = 800;
@@ -64,7 +63,7 @@ export function ChatWindow() {
   const createThreadMutation = useCreateThreadMutation();
 
   // WebSocket for streaming
-  const { isStreaming, activeTools, sendMessage } = useAgentWebSocket({
+  const { isStreaming, sendMessage } = useAgentWebSocket({
     threadId: activeThreadId || undefined,
     onMessageChunk: (chunk) => {
       setStreamingBlocks((prev) => {
@@ -74,7 +73,6 @@ export function ChatWindow() {
       });
     },
     onMessageComplete: () => {
-      // Clear streaming blocks when message is complete
       setStreamingBlocks(new Map());
     },
     onMessageError: (error) => {
@@ -83,19 +81,18 @@ export function ChatWindow() {
     },
     onToolCallStart: (tool) => {
       console.log('[ChatWindow] Tool started:', tool.toolName);
+      setActiveToolExecutions((prev) => [...prev, tool]);
     },
     onToolCallComplete: (tool) => {
       console.log('[ChatWindow] Tool completed:', tool.toolName);
+      setActiveToolExecutions((prev) =>
+        prev.filter((t) => t.toolCallId !== tool.toolCallId),
+      );
     },
     onToolCallError: (tool) => {
       console.error('[ChatWindow] Tool error:', tool.toolName, tool.error);
     },
   });
-
-  // Update active tool executions from WebSocket hook
-  useEffect(() => {
-    setActiveToolExecutions(activeTools);
-  }, [activeTools]);
 
   // Resize handlers
   const handleResizeStart = useCallback(
@@ -368,15 +365,11 @@ export function ChatWindow() {
             <Separator />
             <div className="flex-1 overflow-hidden flex flex-col">
               {activeThreadId ? (
-                <>
-                  <ChatMessages
-                    threadId={activeThreadId}
-                    streamingBlocks={streamingBlocks}
-                    activeTools={activeTools}
-                  />
-                  {/* Tool execution indicator - shows active tools */}
-                  <ToolExecutionIndicator activeTools={activeToolExecutions} />
-                </>
+                <ChatMessages
+                  threadId={activeThreadId}
+                  streamingBlocks={streamingBlocks}
+                  activeTools={activeToolExecutions}
+                />
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   <p>{m.chatbot_select_or_create()}</p>

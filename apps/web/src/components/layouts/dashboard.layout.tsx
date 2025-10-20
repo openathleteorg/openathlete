@@ -1,6 +1,7 @@
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { SpaceConsumer, SpaceProvider } from '@/contexts/space';
 
+import { ChatBubble, ChatWindow } from '../chatbot';
 import { AppSidebar } from '../sidebar/app-sidebar';
 
 interface P {
@@ -14,6 +15,8 @@ export function DashboardLayout({ children }: P) {
         <AppSidebar />
         <SpaceConsumer>
           <SidebarInset>{children}</SidebarInset>
+          <ChatBubble />
+          <ChatWindow />
         </SpaceConsumer>
       </SidebarProvider>
     </SpaceProvider>
