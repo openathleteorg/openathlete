@@ -16,7 +16,7 @@ interface P {
   events: Event[];
 }
 
-export function DoneSummary({ events }: P) {
+function DoneSummary({ events }: P) {
   const activities = events.filter(
     (event) => event.type === EVENT_TYPE.ACTIVITY,
   ) as ActivityEvent[];
@@ -61,7 +61,7 @@ export function DoneSummary({ events }: P) {
   );
 }
 
-export function PlannedSummary({ events }: P) {
+function PlannedSummary({ events }: P) {
   const trainings = events.filter(
     (event) =>
       event.type === EVENT_TYPE.TRAINING ||
@@ -87,7 +87,7 @@ export function PlannedSummary({ events }: P) {
   );
 }
 
-export function PlannedDoneSummary({ events }: P) {
+function PlannedDoneSummary({ events }: P) {
   const todoTrainings = events.filter(
     (event) =>
       (event.type === EVENT_TYPE.TRAINING ||
