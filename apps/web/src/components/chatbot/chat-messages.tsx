@@ -20,16 +20,11 @@ interface ChatMessagesProps {
  * Get translated agent name
  */
 function getAgentTranslation(agentName: string): string {
-  // Convert agent name to translation key format
-  const agentKey = `agent_${agentName}_active`;
-
-  // Try to get specific translation, fallback to generic
+  const agentKey = `agent_${agentName.toLocaleLowerCase()}_active`;
   const translationFn = (m as any)[agentKey];
   if (translationFn && typeof translationFn === 'function') {
     return translationFn();
   }
-
-  // Fallback to generic thinking message
   return m.agent_thinking();
 }
 

@@ -1,6 +1,5 @@
 import { ChatInput } from '@/components/chatbot/chat-input';
 import { ChatMessages } from '@/components/chatbot/chat-messages';
-import { ToolExecutionIndicator } from '@/components/chatbot/tool-execution-indicator';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -35,7 +34,7 @@ export function ChatbotPage() {
   const deleteThreadMutation = useDeleteThreadMutation();
 
   // WebSocket for streaming
-  const { isStreaming, activeTools, sendMessage } = useAgentWebSocket({
+  const { isStreaming, sendMessage } = useAgentWebSocket({
     threadId: activeThreadId || undefined,
     onMessageChunk: (chunk) => {
       setStreamingBlocks((prev) => {

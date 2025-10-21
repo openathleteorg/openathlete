@@ -38,38 +38,6 @@ export function getToolMessage(
       : m.tool_unknown_completed({ toolName });
   }
 
-  // Build the message key and call the corresponding function
-  // Use direct access for known tools
-  if (normalizedTool === 'get_recent_activities') {
-    return status === 'processing'
-      ? m.tool_get_recent_activities_processing()
-      : m.tool_get_recent_activities_completed();
-  }
-
-  if (normalizedTool === 'get_activity_detail') {
-    return status === 'processing'
-      ? m.tool_get_activity_detail_processing()
-      : m.tool_get_activity_detail_completed();
-  }
-
-  if (normalizedTool === 'create_training') {
-    return status === 'processing'
-      ? m.tool_create_training_processing()
-      : m.tool_create_training_completed();
-  }
-
-  if (normalizedTool === 'get_training_period_overview') {
-    return status === 'processing'
-      ? m.tool_get_training_period_overview_processing()
-      : m.tool_get_training_period_overview_completed();
-  }
-
-  if (normalizedTool === 'estimate_training_load') {
-    return status === 'processing'
-      ? m.tool_estimate_training_load_processing()
-      : m.tool_estimate_training_load_completed();
-  }
-
   // Fallback for any other tools
   return status === 'processing'
     ? m.tool_unknown_processing({ toolName })
