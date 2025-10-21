@@ -40,7 +40,7 @@ type P = {
   date?: Date;
 };
 
-export function TemplateRow({
+function TemplateRow({
   template,
   onCreate,
   refetchTemplates,

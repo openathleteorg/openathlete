@@ -18,8 +18,8 @@ import { toast } from 'sonner';
 
 import { Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
 
-import { CreateCycleDialog } from '../create-cycle-dialog/create-cycle.dialog';
-import { CreateEventDialog } from '../create-event-dialog/create-event.dialog';
+import { CreateCycleDialog } from '../create-cycle-dialog';
+import { CreateEventDialog } from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
 import { CalendarBody } from './calendar-body';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
