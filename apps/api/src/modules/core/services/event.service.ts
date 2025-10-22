@@ -163,7 +163,13 @@ export class EventService {
     };
   }
 
-  async getMyEvents(user: AuthUser, isCoach: boolean, athleteId?: number) {
+  async getMyEvents(
+    user: AuthUser,
+    isCoach: boolean,
+    athleteId?: number,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
     if (isCoach) {
       user.athlete = null;
 
@@ -176,7 +182,7 @@ export class EventService {
       user.coach_athletes = undefined;
     }
 
-    return this.getEventsOfAthlete(user).then((events) =>
+    return this.getEventsOfAthlete(user, startDate, endDate).then((events) =>
       events.map((e) => keysToCamel(this.prismaEventToEvent(e))),
     );
   }
@@ -198,8 +204,39 @@ export class EventService {
     return keysToCamel(this.prismaEventToEvent(event));
   }
 
-  async getEventsOfAthlete(user: AuthUser) {
+  async getEventsOfAthlete(user: AuthUser, startDate?: Date, endDate?: Date) {
     const ability = await this.abilities.getFor({ user });
+
+    // Build date filter if dates are provided
+    const dateFilter =
+      startDate && endDate
+        ? {
+            OR: [
+              // Event starts within the range
+              {
+                start_date: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              // Event ends within the range
+              {
+                end_date: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              // Event spans across the range
+              {
+                AND: [
+                  { start_date: { lte: startDate } },
+                  { end_date: { gte: endDate } },
+                ],
+              },
+            ],
+          }
+        : {};
+
     return this.prisma.event.findMany({
       where: {
         AND: [
@@ -207,6 +244,7 @@ export class EventService {
           {
             athlete_id: { not: null },
           },
+          dateFilter,
         ],
       },
       include: EVENT_INCLUDES,

@@ -60,11 +60,15 @@ export class EventController {
     @JwtUser() user: AuthUser,
     @Query('coach') coach: string,
     @Query('athleteId') athleteId: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
   ) {
     return this.eventService.getMyEvents(
       user,
       coach === 'true',
       athleteId ? Number(athleteId) : undefined,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
   }
 
