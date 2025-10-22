@@ -45,10 +45,9 @@ export class TrainingLoadService {
     activityId: number,
     calculationType: TrainingLoadCalculationType,
   ): Promise<TrainingLoadEntry> {
-    const res = await client.post(
-      routes.trainingLoad.calculate(activityId),
-      { calculationType },
-    );
+    const res = await client.post(routes.trainingLoad.calculate(activityId), {
+      calculationType,
+    });
     return mapTrainingLoadEntry(res.data);
   }
 
@@ -69,12 +68,14 @@ export class TrainingLoadService {
     calculationType: TrainingLoadCalculationType,
     startDate: Date,
     endDate: Date,
+    athleteId?: number,
   ): Promise<DailyTrainingLoad[]> {
     const res = await client.get(routes.trainingLoad.period, {
       params: {
         calculationType,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
+        ...(athleteId && { athleteId }),
       },
     });
     return res.data.map(mapDailyTrainingLoad);
@@ -86,11 +87,13 @@ export class TrainingLoadService {
   static async getTrainingLoadMetrics(
     calculationType: TrainingLoadCalculationType,
     targetDate?: Date,
+    athleteId?: number,
   ): Promise<TrainingLoadMetrics> {
     const res = await client.get(routes.trainingLoad.metrics, {
       params: {
         calculationType,
         ...(targetDate && { targetDate: targetDate.toISOString() }),
+        ...(athleteId && { athleteId }),
       },
     });
     return res.data;
@@ -103,12 +106,14 @@ export class TrainingLoadService {
     calculationType: TrainingLoadCalculationType,
     startDate: Date,
     endDate: Date,
+    athleteId?: number,
   ): Promise<TrainingLoadHistory[]> {
     const res = await client.get(routes.trainingLoad.history, {
       params: {
         calculationType,
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
+        ...(athleteId && { athleteId }),
       },
     });
     return res.data.map(mapTrainingLoadHistory);

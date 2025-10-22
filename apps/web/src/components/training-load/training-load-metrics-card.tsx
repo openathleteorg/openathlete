@@ -7,8 +7,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  useTrainingLoadMetrics,
   TrainingLoadCalculationType,
+  useTrainingLoadMetrics,
 } from '@/services/training-load';
 import { ActivityIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -19,11 +19,17 @@ const CALCULATION_TYPE_LABELS: Record<TrainingLoadCalculationType, string> = {
   [TrainingLoadCalculationType.TRIMP_BANISTER]: 'TRIMP Banister',
 };
 
-export function TrainingLoadMetricsCard() {
+export function TrainingLoadMetricsCard({ athleteId }: { athleteId?: number }) {
   const [calculationType, setCalculationType] =
-    useState<TrainingLoadCalculationType>(TrainingLoadCalculationType.FOSTER_RPE);
+    useState<TrainingLoadCalculationType>(
+      TrainingLoadCalculationType.FOSTER_RPE,
+    );
 
-  const { data: metrics, isLoading } = useTrainingLoadMetrics(calculationType);
+  const { data: metrics, isLoading } = useTrainingLoadMetrics(
+    calculationType,
+    undefined,
+    athleteId,
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {

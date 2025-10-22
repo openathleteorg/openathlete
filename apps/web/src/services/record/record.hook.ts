@@ -4,12 +4,13 @@ import { SPORT_TYPE } from '@openathlete/shared';
 
 import { RecordService } from './record.service';
 
-export const useGetMyRecordsQuery = (
+export const useGetRecordsQuery = (
   sport?: SPORT_TYPE,
-  opt?: QueryOptions<Awaited<ReturnType<typeof RecordService.getMyRecords>>>,
+  athleteId?: number,
+  opt?: QueryOptions<Awaited<ReturnType<typeof RecordService.getRecords>>>,
 ) =>
   useQuery({
     ...opt,
-    queryFn: () => RecordService.getMyRecords(sport),
-    queryKey: ['RecordService.getMyRecords'],
+    queryFn: () => RecordService.getRecords(sport, athleteId),
+    queryKey: ['RecordService.getRecords', sport, athleteId],
   });

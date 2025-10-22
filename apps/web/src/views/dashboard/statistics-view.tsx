@@ -98,10 +98,14 @@ export function StatisticsView({ athleteId }: P) {
             </>
           )}
           <div className="col-span-2">
-            <TrainingLoadChart startDate={period.start} endDate={period.end} />
+            <TrainingLoadChart
+              startDate={period.start}
+              endDate={period.end}
+              athleteId={athleteId}
+            />
           </div>
           {/* <div className="col-span-2">
-            <TrainingLoadMetricsCard />
+            <TrainingLoadMetricsCard athleteId={athleteId} />
           </div> */}
         </>
       )}

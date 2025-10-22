@@ -2,17 +2,20 @@ import { RecordsChart } from '@/components/charts/records-chart';
 import { SportSelect } from '@/components/sport-select/sport-select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { m } from '@/paraglide/messages';
-import { useGetMyRecordsQuery } from '@/services/record';
+import { useGetRecordsQuery } from '@/services/record';
 import { useState } from 'react';
 
 import { SPORT_TYPE } from '@openathlete/shared';
 
-interface P {}
+interface P {
+  athleteId?: number;
+}
 
-export function RecordsView({}: P) {
+export function RecordsView({ athleteId }: P) {
   const [sport, setSport] = useState<SPORT_TYPE | null>(null);
-  const { data: records, refetch } = useGetMyRecordsQuery(
+  const { data: records, refetch } = useGetRecordsQuery(
     sport || (undefined as SPORT_TYPE | undefined),
+    athleteId,
   );
 
   const handleChangeSportFilter = (value: string | null) => {

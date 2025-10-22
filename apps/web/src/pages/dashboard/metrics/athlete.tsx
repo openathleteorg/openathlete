@@ -1,14 +1,16 @@
 import { m } from '@/paraglide/messages';
 import { MetricsView } from '@/views/dashboard';
+import { useParams } from 'react-router-dom';
 
 export function AthleteMetricsPage() {
-  // TODO: Get athleteId from params and pass to MetricsView when the service supports it
-  // const { athleteId } = useParams<{ athleteId: string }>();
+  const { athleteId } = useParams<{ athleteId: string }>();
 
   return (
     <>
       <title>{m.metrics()}</title>
-      <MetricsView />
+      <MetricsView
+        athleteId={athleteId ? parseInt(athleteId, 10) : undefined}
+      />
     </>
   );
 }

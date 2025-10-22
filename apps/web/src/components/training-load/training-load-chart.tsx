@@ -26,7 +26,7 @@ import {
   ReferenceArea,
   ResponsiveContainer,
   XAxis,
-  YAxis
+  YAxis,
 } from 'recharts';
 
 const CALCULATION_TYPE_LABELS: Record<TrainingLoadCalculationType, string> = {
@@ -41,23 +41,30 @@ interface TrainingLoadChartProps {
   startDate?: Date;
   endDate?: Date;
   defaultCalculationType?: TrainingLoadCalculationType;
+  athleteId?: number;
 }
 
 export function TrainingLoadChart({
   startDate,
   endDate,
   defaultCalculationType = TrainingLoadCalculationType.FOSTER_RPE,
+  athleteId,
 }: TrainingLoadChartProps) {
-  // Load from localStorage or use default
-  const [calculationType, setCalculationType] = useState<TrainingLoadCalculationType>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored && Object.values(TrainingLoadCalculationType).includes(stored as TrainingLoadCalculationType)) {
-        return stored as TrainingLoadCalculationType;
+  const [calculationType, setCalculationType] =
+    useState<TrainingLoadCalculationType>(() => {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (
+          stored &&
+          Object.values(TrainingLoadCalculationType).includes(
+            stored as TrainingLoadCalculationType,
+          )
+        ) {
+          return stored as TrainingLoadCalculationType;
+        }
       }
-    }
-    return defaultCalculationType;
-  });
+      return defaultCalculationType;
+    });
 
   // Save to localStorage when changed
   useEffect(() => {
@@ -80,6 +87,7 @@ export function TrainingLoadChart({
     calculationType,
     finalStartDate,
     finalEndDate,
+    athleteId,
   );
 
   const chartData = useMemo(() => {
@@ -133,15 +141,24 @@ export function TrainingLoadChart({
             {/* Legend */}
             <div className="flex items-center gap-4 text-sm flex-wrap">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(var(--chart-5))' }} />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: 'hsl(var(--chart-5))' }}
+                />
                 <span className="text-muted-foreground">{m.weekly_load()}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(var(--chart-1))' }} />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: 'hsl(var(--chart-1))' }}
+                />
                 <span className="text-muted-foreground">{m.fitness_ctl()}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: 'hsl(var(--chart-2))' }} />
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: 'hsl(var(--chart-2))' }}
+                />
                 <span className="text-muted-foreground">{m.fatigue_atl()}</span>
               </div>
             </div>
@@ -169,17 +186,22 @@ export function TrainingLoadChart({
               className="h-[450px] w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
-
+                <ComposedChart
+                  data={chartData}
+                  margin={{ top: 20, right: 20, left: 0, bottom: 0 }}
+                >
                   <XAxis
                     dataKey="date"
                     type="number"
                     domain={['dataMin', 'dataMax']}
                     tickFormatter={(value) => {
                       try {
-                        const timestamp = typeof value === 'number' ? value : Number(value);
+                        const timestamp =
+                          typeof value === 'number' ? value : Number(value);
                         if (isNaN(timestamp)) return '';
-                        return format(new Date(timestamp), 'dd MMM', { locale: fr });
+                        return format(new Date(timestamp), 'dd MMM', {
+                          locale: fr,
+                        });
                       } catch (error) {
                         console.error('Error formatting tick:', value, error);
                         return '';
@@ -221,11 +243,18 @@ export function TrainingLoadChart({
                       <ChartTooltipContent
                         labelFormatter={(value) => {
                           try {
-                            const timestamp = typeof value === 'number' ? value : Number(value);
+                            const timestamp =
+                              typeof value === 'number' ? value : Number(value);
                             if (isNaN(timestamp)) return String(value);
-                            return format(new Date(timestamp), 'dd MMMM yyyy', { locale: fr });
+                            return format(new Date(timestamp), 'dd MMMM yyyy', {
+                              locale: fr,
+                            });
                           } catch (error) {
-                            console.error('Error formatting date:', value, error);
+                            console.error(
+                              'Error formatting date:',
+                              value,
+                              error,
+                            );
                             return String(value);
                           }
                         }}

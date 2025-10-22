@@ -47,7 +47,7 @@ export const routes = {
       `/event-template/${eventTemplateId}`,
   },
   record: {
-    getMyRecords: '/record',
+    getRecords: '/record',
   },
   equipment: {
     getMyEquipment: '/equipment',
@@ -56,7 +56,7 @@ export const routes = {
     deleteEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
   },
   metric: {
-    getMyMetrics: '/metric',
+    getMetrics: '/metric',
     getLatestMetrics: '/metric/latest',
     getMetricHistory: (type: string) => `/metric/history/${type}`,
     calculateMetric: (type: string) => `/metric/calculate/${type}`,

@@ -31,7 +31,7 @@ import { UserRole } from '@openathlete/shared';
 export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const { space } = useSpaceContext();
   const { data: athletes } = useGetMyCoachedAthletesQuery();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
 
   const sidebarNavigation = useMemo(() => {
     if (space === 'COACH') {
@@ -114,7 +114,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             className="flex items-center justify-center gap-2 w-full"
           >
             <img
-              src={theme === 'dark' ? logoWhiteSrc : logoDarkSrc}
+              src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}
               alt="OpenAthlete Logo"
               className="h-10 w-10"
             />

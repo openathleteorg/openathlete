@@ -10,50 +10,54 @@ import { METRIC_TYPE } from '@openathlete/shared';
 
 import { MetricService } from './metric.service';
 
-export const useGetMyMetricsQuery = (
+export const useGetMetricsQuery = (
   type?: METRIC_TYPE,
-  opt?: QueryOptions<Awaited<ReturnType<typeof MetricService.getMyMetrics>>>,
+  athleteId?: number,
+  opt?: QueryOptions<Awaited<ReturnType<typeof MetricService.getMetrics>>>,
 ) => {
   return useQuery({
     ...opt,
-    queryKey: ['getMyMetrics', type],
-    queryFn: () => MetricService.getMyMetrics(type),
+    queryKey: ['getMetrics', type, athleteId],
+    queryFn: () => MetricService.getMetrics(type, athleteId),
   });
 };
 
 export const useGetLatestMetricsQuery = (
+  athleteId?: number,
   opt?: QueryOptions<
     Awaited<ReturnType<typeof MetricService.getLatestMetrics>>
   >,
 ) => {
   return useQuery({
     ...opt,
-    queryKey: ['getLatestMetrics'],
-    queryFn: MetricService.getLatestMetrics,
+    queryKey: ['getLatestMetrics', athleteId],
+    queryFn: () => MetricService.getLatestMetrics(athleteId),
   });
 };
 
 export const useGetMetricHistoryQuery = (
   type: METRIC_TYPE,
+  athleteId?: number,
   opt?: QueryOptions<
     Awaited<ReturnType<typeof MetricService.getMetricHistory>>
   >,
 ) => {
   return useQuery({
     ...opt,
-    queryKey: ['getMetricHistory', type],
-    queryFn: () => MetricService.getMetricHistory(type),
+    queryKey: ['getMetricHistory', type, athleteId],
+    queryFn: () => MetricService.getMetricHistory(type, athleteId),
   });
 };
 
 export const useCalculateMetricQuery = (
   type: METRIC_TYPE,
+  athleteId?: number,
   opt?: QueryOptions<Awaited<ReturnType<typeof MetricService.calculateMetric>>>,
 ) => {
   return useQuery({
     ...opt,
-    queryKey: ['calculateMetric', type],
-    queryFn: () => MetricService.calculateMetric(type),
+    queryKey: ['calculateMetric', type, athleteId],
+    queryFn: () => MetricService.calculateMetric(type, athleteId),
   });
 };
 
@@ -61,15 +65,19 @@ export const useCreateMetricMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof MetricService.createMetric>>,
     Error,
-    Parameters<typeof MetricService.createMetric>[0]
+    {
+      body: Parameters<typeof MetricService.createMetric>[0];
+      athleteId?: number;
+    }
   >,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     ...opt,
-    mutationFn: MetricService.createMetric,
+    mutationFn: ({ body, athleteId }) =>
+      MetricService.createMetric(body, athleteId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getMyMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['getMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['getLatestMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['getMetricHistory'] });
     },
@@ -88,7 +96,7 @@ export const useUpdateMetricMutation = (
     ...opt,
     mutationFn: MetricService.updateMetric,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getMyMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['getMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['getLatestMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['getMetricHistory'] });
     },
@@ -99,15 +107,19 @@ export const useDeleteMetricMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof MetricService.deleteMetric>>,
     Error,
-    Parameters<typeof MetricService.deleteMetric>[0]
+    {
+      id: number;
+      athleteId?: number;
+    }
   >,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     ...opt,
-    mutationFn: MetricService.deleteMetric,
+    mutationFn: ({ id, athleteId }) =>
+      MetricService.deleteMetric(id, athleteId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['getMyMetrics'] });
+      queryClient.invalidateQueries({ queryKey: ['getMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['getLatestMetrics'] });
       queryClient.invalidateQueries({ queryKey: ['getMetricHistory'] });
     },

@@ -28,14 +28,22 @@ import {
 interface MetricChartProps {
   className?: string;
   initialType?: METRIC_TYPE;
+  athleteId?: number;
 }
 
-export function MetricChart({ className, initialType }: MetricChartProps) {
+export function MetricChart({
+  className,
+  initialType,
+  athleteId,
+}: MetricChartProps) {
   const [selectedType, setSelectedType] = useState<METRIC_TYPE>(
     initialType || METRIC_TYPE.WEIGHT,
   );
 
-  const { data: history = [] } = useGetMetricHistoryQuery(selectedType);
+  const { data: history = [] } = useGetMetricHistoryQuery(
+    selectedType,
+    athleteId,
+  );
 
   const chartData = useMemo(() => {
     return history.map((metric: AthleteMetric) => ({

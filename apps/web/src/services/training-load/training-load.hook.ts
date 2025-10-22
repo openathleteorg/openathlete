@@ -41,6 +41,7 @@ export const useTrainingLoadByPeriod = (
   calculationType: TrainingLoadCalculationType,
   startDate: Date,
   endDate: Date,
+  athleteId?: number,
   opt?: QueryOptions<
     Awaited<ReturnType<typeof TrainingLoadService.getTrainingLoadByPeriod>>
   >,
@@ -52,18 +53,21 @@ export const useTrainingLoadByPeriod = (
         calculationType,
         startDate,
         endDate,
+        athleteId,
       ),
     queryKey: [
       'TrainingLoadService.getTrainingLoadByPeriod',
       calculationType,
       startDate.toISOString(),
       endDate.toISOString(),
+      athleteId,
     ],
   });
 
 export const useTrainingLoadMetrics = (
   calculationType: TrainingLoadCalculationType,
   targetDate?: Date,
+  athleteId?: number,
   opt?: QueryOptions<
     Awaited<ReturnType<typeof TrainingLoadService.getTrainingLoadMetrics>>
   >,
@@ -71,11 +75,16 @@ export const useTrainingLoadMetrics = (
   useQuery({
     ...opt,
     queryFn: () =>
-      TrainingLoadService.getTrainingLoadMetrics(calculationType, targetDate),
+      TrainingLoadService.getTrainingLoadMetrics(
+        calculationType,
+        targetDate,
+        athleteId,
+      ),
     queryKey: [
       'TrainingLoadService.getTrainingLoadMetrics',
       calculationType,
       targetDate?.toISOString(),
+      athleteId,
     ],
   });
 
@@ -83,6 +92,7 @@ export const useTrainingLoadHistory = (
   calculationType: TrainingLoadCalculationType,
   startDate: Date,
   endDate: Date,
+  athleteId?: number,
   opt?: QueryOptions<
     Awaited<ReturnType<typeof TrainingLoadService.getTrainingLoadHistory>>
   >,
@@ -94,12 +104,14 @@ export const useTrainingLoadHistory = (
         calculationType,
         startDate,
         endDate,
+        athleteId,
       ),
     queryKey: [
       'TrainingLoadService.getTrainingLoadHistory',
       calculationType,
       startDate.toISOString(),
       endDate.toISOString(),
+      athleteId,
     ],
   });
 

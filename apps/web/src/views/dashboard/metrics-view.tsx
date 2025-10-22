@@ -24,14 +24,18 @@ import {
   metricsByCategory,
 } from '@openathlete/shared';
 
-export function MetricsView() {
+interface P {
+  athleteId?: number;
+}
+
+export function MetricsView({ athleteId }: P) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<{
     type: METRIC_TYPE;
     data: AthleteMetric | null;
   } | null>(null);
 
-  const { data: latestMetrics = {} } = useGetLatestMetricsQuery();
+  const { data: latestMetrics = {} } = useGetLatestMetricsQuery(athleteId);
   const createMetric = useCreateMetricMutation();
 
   const handleMetricCardClick = (type: METRIC_TYPE) => {
@@ -48,7 +52,7 @@ export function MetricsView() {
   };
 
   const handleSubmit = async (values: CreateMetricDto) => {
-    await createMetric.mutateAsync(values);
+    await createMetric.mutateAsync({ body: values, athleteId });
     setIsDialogOpen(false);
     setSelectedMetric(null);
   };
@@ -125,7 +129,7 @@ export function MetricsView() {
           <CardTitle>{m.metrics()} - Evolution</CardTitle>
         </CardHeader>
         <CardContent>
-          <MetricChart />
+          <MetricChart athleteId={athleteId} />
         </CardContent>
       </Card>
 
