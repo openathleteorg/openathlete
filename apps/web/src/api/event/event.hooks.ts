@@ -8,6 +8,7 @@ import {
 
 import { Event } from '@openathlete/shared';
 
+import { trainingLoadKeys } from '../training-load/training-load.keys';
 import { EventAPI } from './event.api';
 import { eventKeys } from './event.keys';
 
@@ -49,6 +50,17 @@ export const useUpdateEventMutation = (
       });
       queryClient.invalidateQueries({
         queryKey: [eventKeys.getMyEvents],
+      });
+      // Invalidate training load queries when RPE is updated (affects Foster RPE calculation)
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.root],
+      });
+      // Also invalidate the specific activity training loads query
+      queryClient.invalidateQueries({
+        queryKey: [
+          trainingLoadKeys.getActivityTrainingLoads,
+          variables.eventId,
+        ],
       });
     },
     onMutate: (variables) => {
