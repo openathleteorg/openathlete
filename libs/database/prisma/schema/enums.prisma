@@ -3,6 +3,12 @@ enum user_role {
   COACH
 }
 
+enum gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 enum event_type {
   TRAINING
   COMPETITION

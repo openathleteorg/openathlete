@@ -8,6 +8,7 @@ model user {
   roles      user_role[]
   first_name String
   last_name  String
+  gender     gender?
 
   // relationships
   athlete        athlete?
