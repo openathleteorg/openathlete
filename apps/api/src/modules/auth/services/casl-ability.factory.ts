@@ -65,6 +65,10 @@ export class CaslAbilityFactory {
 
     if (user.coach_athletes) {
       user.coach_athletes.forEach((coachAthlete) => {
+        can('read', 'athlete', { athlete_id: coachAthlete.athlete_id });
+        can('manage', 'athlete_metric', {
+          athlete_id: coachAthlete.athlete_id,
+        });
         can('manage', 'event', { athlete_id: coachAthlete.athlete_id });
         can('manage', 'cycle', { athlete_id: coachAthlete.athlete_id });
         can('manage', 'workout', {

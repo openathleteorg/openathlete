@@ -1,23 +1,61 @@
-import { Injectable } from '@nestjs/common';
+import { subject } from '@casl/ability';
 
-import { record, sport_type } from '@openathlete/database';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { athlete, record, sport_type } from '@openathlete/database';
 import { keysToCamel } from '@openathlete/shared';
 
+import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class RecordService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly abilities: CaslAbilityFactory,
+  ) {}
 
-  async getMyRecords(user: AuthUser, sport?: sport_type): Promise<record[]> {
+  async getRecords(
+    user: AuthUser,
+    sport?: sport_type,
+    athleteId?: athlete['athlete_id'],
+  ): Promise<record[]> {
+    const ability = await this.abilities.getFor({ user });
+
+    // Determine which athlete's records to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      if (!user.athlete?.athlete_id) {
+        throw new NotFoundException('Athlete not found');
+      }
+      targetAthleteId = user.athlete.athlete_id;
+    }
+
     const records = await this.prisma.record.findMany({
       where: {
-        athlete: {
-          user: {
-            user_id: user.user_id,
-          },
-        },
+        athlete_id: targetAthleteId,
         ...(sport && {
           event_activity: {
             sport,

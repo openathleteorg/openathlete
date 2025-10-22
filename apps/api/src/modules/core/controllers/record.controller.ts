@@ -1,7 +1,13 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  ParseIntPipe,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { sport_type } from '@openathlete/database';
+import { athlete, sport_type } from '@openathlete/database';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -14,10 +20,11 @@ export class RecordController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get()
-  getMyEventTemplates(
+  getRecords(
     @JwtUser() user: AuthUser,
     @Query('sport') sport?: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
-    return this.recordService.getMyRecords(user, sport as sport_type);
+    return this.recordService.getRecords(user, sport as sport_type, athleteId);
   }
 }

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { training_load_calculation_type } from '@openathlete/database';
+import { athlete, training_load_calculation_type } from '@openathlete/database';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -48,12 +48,14 @@ export class TrainingLoadController {
     @Query('calculationType') calculationType: training_load_calculation_type,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
     return this.trainingLoadService.getTrainingLoadByPeriod(
       user,
       calculationType,
       new Date(startDate),
       new Date(endDate),
+      athleteId,
     );
   }
 
@@ -66,12 +68,14 @@ export class TrainingLoadController {
     @JwtUser() user: AuthUser,
     @Query('calculationType') calculationType: training_load_calculation_type,
     @Query('targetDate') targetDate?: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
     const date = targetDate ? new Date(targetDate) : new Date();
     return this.trainingLoadService.getTrainingLoadMetrics(
       user,
       calculationType,
       date,
+      athleteId,
     );
   }
 
@@ -85,14 +89,16 @@ export class TrainingLoadController {
     @Query('calculationType') calculationType: training_load_calculation_type,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
     const history = await this.trainingLoadService.getTrainingLoadHistory(
       user,
       calculationType,
       new Date(startDate),
       new Date(endDate),
+      athleteId,
     );
-    
+
     // Debug log
     if (history.length > 0) {
       console.log('📊 Training Load History Sample:', {
@@ -100,7 +106,7 @@ export class TrainingLoadController {
         sample: history[Math.floor(history.length / 2)],
       });
     }
-    
+
     return history;
   }
 

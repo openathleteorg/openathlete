@@ -1,12 +1,20 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { subject } from '@casl/ability';
 
 import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import {
+  athlete,
   event_activity,
   metric_type,
   training_load_calculation_type,
 } from '@openathlete/database';
 import { ActivityStream, keysToCamel } from '@openathlete/shared';
 
+import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -64,7 +72,10 @@ export interface DailyTrainingLoad {
 
 @Injectable()
 export class TrainingLoadService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly abilities: CaslAbilityFactory,
+  ) {}
 
   /**
    * Get or create a training load calculation for an athlete
@@ -471,23 +482,49 @@ export class TrainingLoadService {
     calculationType: training_load_calculation_type,
     startDate: Date,
     endDate: Date,
+    athleteId?: athlete['athlete_id'],
   ): Promise<DailyTrainingLoad[]> {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
+    // Determine which athlete's training load to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
+          user: {
+            user_id: user.user_id,
+          },
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
     }
 
     const calculation = await this.prisma.training_load_calculation.findUnique({
       where: {
         athlete_id_type: {
-          athlete_id: athlete.athlete_id,
+          athlete_id: targetAthleteId,
           type: calculationType,
         },
       },
@@ -539,17 +576,43 @@ export class TrainingLoadService {
     user: AuthUser,
     calculationType: training_load_calculation_type,
     targetDate: Date = new Date(),
+    athleteId?: athlete['athlete_id'],
   ): Promise<TrainingLoadMetrics> {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
+    // Determine which athlete's training load to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
+          user: {
+            user_id: user.user_id,
+          },
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
     }
 
     // Get last 42 days of data for CTL calculation
@@ -561,6 +624,7 @@ export class TrainingLoadService {
       calculationType,
       startDate,
       targetDate,
+      targetAthleteId,
     );
 
     // Create a map of dates with loads for quick lookup
@@ -642,6 +706,7 @@ export class TrainingLoadService {
     calculationType: training_load_calculation_type,
     startDate: Date,
     endDate: Date,
+    athleteId?: athlete['athlete_id'],
   ): Promise<
     Array<{
       date: Date;
@@ -651,16 +716,41 @@ export class TrainingLoadService {
       tsb: number;
     }>
   > {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
+    // Determine which athlete's training load to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
+          user: {
+            user_id: user.user_id,
+          },
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
     }
 
     // Get data starting 42 days before startDate for proper CTL calculation
@@ -672,6 +762,7 @@ export class TrainingLoadService {
       calculationType,
       extendedStartDate,
       endDate,
+      targetAthleteId,
     );
 
     // Create a map of dates with loads for quick lookup

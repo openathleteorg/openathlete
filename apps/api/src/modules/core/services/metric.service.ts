@@ -1,6 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { subject } from '@casl/ability';
 
-import { athlete_metric, metric_type } from '@openathlete/database';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { athlete, athlete_metric, metric_type } from '@openathlete/database';
 import {
   CreateMetricDto,
   UpdateMetricDto,
@@ -8,33 +14,70 @@ import {
   metricCalculationMap,
 } from '@openathlete/shared';
 
+import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class MetricService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly abilities: CaslAbilityFactory,
+  ) {}
 
   /**
-   * Create a new metric for the authenticated user
+   * Create a new metric for the authenticated user or a specific athlete (if coach)
    */
   async createMetric(
     user: AuthUser,
     dto: CreateMetricDto,
+    athleteId?: athlete['athlete_id'],
   ): Promise<athlete_metric> {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-      select: {
-        athlete_id: true,
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
+    // Determine which athlete's metric to create
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can manage this athlete's metrics
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (
+        !ability.can(
+          'manage',
+          subject('athlete_metric', { athlete_id: athleteId } as any),
+        )
+      ) {
+        throw new ForbiddenException(
+          'Not allowed to create metrics for this athlete',
+        );
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
+          user: {
+            user_id: user.user_id,
+          },
+        },
+        select: {
+          athlete_id: true,
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
     }
 
     // Convert date to Date object if it's a string
@@ -44,7 +87,7 @@ export class MetricService {
     const existingMetric = await this.prisma.athlete_metric.findUnique({
       where: {
         athlete_id_type_date: {
-          athlete_id: athlete.athlete_id,
+          athlete_id: targetAthleteId,
           type: dto.type as metric_type,
           date,
         },
@@ -75,7 +118,7 @@ export class MetricService {
           notes: dto.notes,
           athlete: {
             connect: {
-              athlete_id: athlete.athlete_id,
+              athlete_id: targetAthleteId,
             },
           },
         },
@@ -90,31 +133,34 @@ export class MetricService {
     user: AuthUser,
     metricId: number,
     dto: UpdateMetricDto,
+    athleteId?: athlete['athlete_id'],
   ): Promise<athlete_metric> {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-      select: {
-        athlete_id: true,
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
-    }
-
-    const metric = await this.prisma.athlete_metric.findFirst({
+    // Get the metric first to check ownership
+    const metric = await this.prisma.athlete_metric.findUnique({
       where: {
         athlete_metric_id: metricId,
-        athlete_id: athlete.athlete_id,
       },
     });
 
     if (!metric) {
       throw new NotFoundException('Metric not found');
+    }
+
+    // If athleteId is provided, verify it matches the metric's athlete
+    if (athleteId && metric.athlete_id !== athleteId) {
+      throw new ForbiddenException('Metric does not belong to this athlete');
+    }
+
+    // Check if user can manage this athlete's metrics
+    if (
+      !ability.can(
+        'manage',
+        subject('athlete_metric', { athlete_id: metric.athlete_id } as any),
+      )
+    ) {
+      throw new ForbiddenException('Not allowed to update this metric');
     }
 
     return keysToCamel(
@@ -133,31 +179,37 @@ export class MetricService {
   /**
    * Delete a metric
    */
-  async deleteMetric(user: AuthUser, metricId: number): Promise<void> {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-      select: {
-        athlete_id: true,
-      },
-    });
+  async deleteMetric(
+    user: AuthUser,
+    metricId: number,
+    athleteId?: athlete['athlete_id'],
+  ): Promise<void> {
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
-    }
-
-    const metric = await this.prisma.athlete_metric.findFirst({
+    // Get the metric first to check ownership
+    const metric = await this.prisma.athlete_metric.findUnique({
       where: {
         athlete_metric_id: metricId,
-        athlete_id: athlete.athlete_id,
       },
     });
 
     if (!metric) {
       throw new NotFoundException('Metric not found');
+    }
+
+    // If athleteId is provided, verify it matches the metric's athlete
+    if (athleteId && metric.athlete_id !== athleteId) {
+      throw new ForbiddenException('Metric does not belong to this athlete');
+    }
+
+    // Check if user can manage this athlete's metrics
+    if (
+      !ability.can(
+        'manage',
+        subject('athlete_metric', { athlete_id: metric.athlete_id } as any),
+      )
+    ) {
+      throw new ForbiddenException('Not allowed to delete this metric');
     }
 
     await this.prisma.athlete_metric.delete({
@@ -168,20 +220,57 @@ export class MetricService {
   }
 
   /**
-   * Get all metrics for the authenticated user
+   * Get all metrics for the authenticated user or specific athlete
    * Optionally filter by type
    */
-  async getMyMetrics(
+  async getMetrics(
     user: AuthUser,
     type?: metric_type,
+    athleteId?: athlete['athlete_id'],
   ): Promise<athlete_metric[]> {
-    const metrics = await this.prisma.athlete_metric.findMany({
-      where: {
-        athlete: {
+    const ability = await this.abilities.getFor({ user });
+
+    // Determine which athlete's metrics to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
           user: {
             user_id: user.user_id,
           },
         },
+        select: {
+          athlete_id: true,
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
+    }
+
+    const metrics = await this.prisma.athlete_metric.findMany({
+      where: {
+        athlete_id: targetAthleteId,
         ...(type && { type }),
       },
       orderBy: [{ type: 'asc' }, { date: 'desc' }],
@@ -195,25 +284,51 @@ export class MetricService {
    */
   async getLatestMetrics(
     user: AuthUser,
+    athleteId?: athlete['athlete_id'],
   ): Promise<Record<string, athlete_metric>> {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          user_id: user.user_id,
-        },
-      },
-      select: {
-        athlete_id: true,
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
+    // Determine which athlete's metrics to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
+          user: {
+            user_id: user.user_id,
+          },
+        },
+        select: {
+          athlete_id: true,
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
     }
 
     const metrics = await this.prisma.athlete_metric.findMany({
       where: {
-        athlete_id: athlete.athlete_id,
+        athlete_id: targetAthleteId,
       },
       orderBy: {
         date: 'desc',
@@ -246,14 +361,51 @@ export class MetricService {
   async getMetricHistory(
     user: AuthUser,
     type: metric_type,
+    athleteId?: athlete['athlete_id'],
   ): Promise<athlete_metric[]> {
-    const metrics = await this.prisma.athlete_metric.findMany({
-      where: {
-        athlete: {
+    const ability = await this.abilities.getFor({ user });
+
+    // Determine which athlete's metrics to fetch
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      // Check if user can access this athlete's data
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      // Use current user's athlete ID
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
           user: {
             user_id: user.user_id,
           },
         },
+        select: {
+          athlete_id: true,
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
+    }
+
+    const metrics = await this.prisma.athlete_metric.findMany({
+      where: {
+        athlete_id: targetAthleteId,
         type,
       },
       orderBy: {
@@ -271,6 +423,7 @@ export class MetricService {
   async calculateMetric(
     user: AuthUser,
     type: metric_type,
+    athleteId?: athlete['athlete_id'],
   ): Promise<number | null> {
     const config = metricCalculationMap[type];
 
@@ -279,7 +432,7 @@ export class MetricService {
     }
 
     // Get latest values for dependencies
-    const latestMetrics = await this.getLatestMetrics(user);
+    const latestMetrics = await this.getLatestMetrics(user, athleteId);
     const values: Record<metric_type, number> = {} as Record<
       metric_type,
       number

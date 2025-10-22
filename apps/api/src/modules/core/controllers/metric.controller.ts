@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { metric_type } from '@openathlete/database';
+import { athlete, metric_type } from '@openathlete/database';
 import {
   CreateMetricDto,
   UpdateMetricDto,
@@ -37,8 +37,9 @@ export class MetricController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(createMetricDtoSchema))
     dto: CreateMetricDto,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
-    return this.metricService.createMetric(user, dto);
+    return this.metricService.createMetric(user, dto, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -48,8 +49,9 @@ export class MetricController {
     @Param('id', ParseIntPipe) id: number,
     @Body(new ZodValidationPipe(updateMetricDtoSchema))
     dto: UpdateMetricDto,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
-    return this.metricService.updateMetric(user, id, dto);
+    return this.metricService.updateMetric(user, id, dto, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -57,31 +59,55 @@ export class MetricController {
   deleteMetric(
     @JwtUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
   ) {
-    return this.metricService.deleteMetric(user, id);
+    return this.metricService.deleteMetric(user, id, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get()
-  getMyMetrics(@JwtUser() user: AuthUser, @Query('type') type?: string) {
-    return this.metricService.getMyMetrics(user, type as metric_type);
+  getMetrics(
+    @JwtUser() user: AuthUser,
+    @Query('type') type?: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+  ) {
+    return this.metricService.getMetrics(user, type as metric_type, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get('latest')
-  getLatestMetrics(@JwtUser() user: AuthUser) {
-    return this.metricService.getLatestMetrics(user);
+  getLatestMetrics(
+    @JwtUser() user: AuthUser,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+  ) {
+    return this.metricService.getLatestMetrics(user, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get('history/:type')
-  getMetricHistory(@JwtUser() user: AuthUser, @Param('type') type: string) {
-    return this.metricService.getMetricHistory(user, type as metric_type);
+  getMetricHistory(
+    @JwtUser() user: AuthUser,
+    @Param('type') type: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+  ) {
+    return this.metricService.getMetricHistory(
+      user,
+      type as metric_type,
+      athleteId,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get('calculate/:type')
-  calculateMetric(@JwtUser() user: AuthUser, @Param('type') type: string) {
-    return this.metricService.calculateMetric(user, type as metric_type);
+  calculateMetric(
+    @JwtUser() user: AuthUser,
+    @Param('type') type: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+  ) {
+    return this.metricService.calculateMetric(
+      user,
+      type as metric_type,
+      athleteId,
+    );
   }
 }
