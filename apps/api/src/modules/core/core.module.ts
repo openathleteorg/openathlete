@@ -26,9 +26,12 @@ import { EquipmentService } from './services/equipment.service';
 import { EventTemplateService } from './services/event-template.service';
 import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
-import { GapProcessor } from './services/pipeline/processors/gap.processor';
-import { NormalizationProcessor } from './services/pipeline/processors/normalization.processor';
-import { WeatherProcessor } from './services/pipeline/processors/weather.processor';
+import {
+  GapProcessor,
+  NormalizationProcessor,
+  TrainingMatchProcessor,
+  WeatherProcessor,
+} from './services/pipeline/processors';
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
 import { TrainingLoadService } from './services/training-load.service';
@@ -73,6 +76,7 @@ import { WeatherService } from './services/weather/weather.service';
     GapProcessor,
     WeatherProcessor,
     NormalizationProcessor,
+    TrainingMatchProcessor,
     {
       provide: ActivityPipelineService,
       useFactory: (
@@ -80,12 +84,20 @@ import { WeatherService } from './services/weather/weather.service';
         gap: GapProcessor,
         weather: WeatherProcessor,
         normalization: NormalizationProcessor,
-      ) => new ActivityPipelineService(prisma, [gap, weather, normalization]),
+        trainingMatch: TrainingMatchProcessor,
+      ) =>
+        new ActivityPipelineService(prisma, [
+          gap,
+          weather,
+          normalization,
+          trainingMatch,
+        ]),
       inject: [
         PrismaService,
         GapProcessor,
         WeatherProcessor,
         NormalizationProcessor,
+        TrainingMatchProcessor,
       ],
     },
   ],
