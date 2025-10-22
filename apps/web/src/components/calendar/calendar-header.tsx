@@ -1,3 +1,4 @@
+import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
@@ -28,8 +29,10 @@ export function CalendarHeader({}: P) {
     setFilter,
     coloredBy,
     setColoredBy,
+    athleteId,
   } = useCalendarContext();
   const [sportFilter, setSportFilter] = useState<SPORT_TYPE | null>(null);
+  const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
 
   const handleChangeSportFilter = (value: string | null) => {
     setSportFilter(value as SPORT_TYPE);
@@ -51,11 +54,18 @@ export function CalendarHeader({}: P) {
       year: 'numeric',
     },
   );
+
+  const calendarTitle = isCurrentUser
+    ? m.calendar_of({ month: displayedMonthString })
+    : m.calendar_of_athlete({
+        firstName: athlete?.user?.firstName || '',
+        lastName: athlete?.user?.lastName || '',
+        month: displayedMonthString,
+      });
+
   return (
     <div className="flex justify-between">
-      <h1 className="text-2xl font-semibold">
-        {m.calendar_of({ month: displayedMonthString })}
-      </h1>
+      <h1 className="text-2xl font-semibold">{calendarTitle}</h1>
       <div className="flex gap-2">
         <Select
           value={coloredBy || ''}

@@ -3,6 +3,7 @@ import { StatisticsGlobals } from '@/components/statistics-globals/statistics-gl
 import { StatisticsPeriodSelect } from '@/components/statistics-period-select/statistics-period-select';
 import { TrainingLoadChart } from '@/components/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { useGetStatisticsForPeriodQuery } from '@/services/statistics';
 import { useState } from 'react';
@@ -26,9 +27,18 @@ export function StatisticsView({ athleteId }: P) {
     period.start,
     period.end,
   );
+  const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
+
+  const pageTitle = isCurrentUser
+    ? m.my_statistics()
+    : m.statistics_of({
+        firstName: athlete?.user?.firstName || '',
+        lastName: athlete?.user?.lastName || '',
+      });
 
   return (
     <div className="p-8 grid grid-cols-2 gap-4">
+      <h1 className="text-2xl font-semibold col-span-2">{pageTitle}</h1>
       <StatisticsPeriodSelect
         onChange={(start, end) => setPeriod({ start, end })}
         period={period}

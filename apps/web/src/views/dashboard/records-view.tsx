@@ -1,6 +1,7 @@
 import { RecordsChart } from '@/components/charts/records-chart';
 import { SportSelect } from '@/components/sport-select/sport-select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { useGetRecordsQuery } from '@/services/record';
 import { useState } from 'react';
@@ -17,6 +18,7 @@ export function RecordsView({ athleteId }: P) {
     sport || (undefined as SPORT_TYPE | undefined),
     athleteId,
   );
+  const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
 
   const handleChangeSportFilter = (value: string | null) => {
     setSport(value as SPORT_TYPE);
@@ -25,12 +27,17 @@ export function RecordsView({ athleteId }: P) {
     }, 100);
   };
 
+  const pageTitle = isCurrentUser
+    ? m.my_records()
+    : m.records_of({
+        firstName: athlete?.user?.firstName || '',
+        lastName: athlete?.user?.lastName || '',
+      });
+
   return (
     <div className="p-8 grid grid-cols-2 gap-4">
+      <h1 className="text-2xl font-semibold col-span-2">{pageTitle}</h1>
       <Card className="col-span-2">
-        <CardHeader>
-          <CardTitle>{m.my_records()}</CardTitle>
-        </CardHeader>
         <CardContent>
           <SportSelect selected={sport} onChange={handleChangeSportFilter} />
         </CardContent>

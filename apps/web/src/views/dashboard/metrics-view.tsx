@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import {
   AthleteMetric,
@@ -37,6 +38,7 @@ export function MetricsView({ athleteId }: P) {
 
   const { data: latestMetrics = {} } = useGetLatestMetricsQuery(athleteId);
   const createMetric = useCreateMetricMutation();
+  const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
 
   const handleMetricCardClick = (type: METRIC_TYPE) => {
     setSelectedMetric({
@@ -65,11 +67,18 @@ export function MetricsView({ athleteId }: P) {
     4,
   );
 
+  const pageTitle = isCurrentUser
+    ? m.my_metrics()
+    : m.metrics_of({
+        firstName: athlete?.user?.firstName || '',
+        lastName: athlete?.user?.lastName || '',
+      });
+
   return (
     <div className="p-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{m.my_metrics()}</h1>
+        <h1 className="text-2xl font-semibold">{pageTitle}</h1>
         <Button onClick={handleAddNewMetric}>
           <Plus className="h-4 w-4 mr-2" />
           {m.add_metric()}
