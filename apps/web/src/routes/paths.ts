@@ -34,10 +34,26 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/calendar`,
       athleteId: `${ROOTS.DASHBOARD}/calendar/:athleteId`,
     },
-    statistics: `${ROOTS.DASHBOARD}/statistics`,
-    records: `${ROOTS.DASHBOARD}/records`,
-    metrics: `${ROOTS.DASHBOARD}/metrics`,
-    settings: `${ROOTS.DASHBOARD}/settings`,
+    summary: {
+      root: `${ROOTS.DASHBOARD}/summary`,
+      athleteId: `${ROOTS.DASHBOARD}/summary/:athleteId`,
+    },
+    statistics: {
+      root: `${ROOTS.DASHBOARD}/statistics`,
+      athleteId: `${ROOTS.DASHBOARD}/statistics/:athleteId`,
+    },
+    records: {
+      root: `${ROOTS.DASHBOARD}/records`,
+      athleteId: `${ROOTS.DASHBOARD}/records/:athleteId`,
+    },
+    metrics: {
+      root: `${ROOTS.DASHBOARD}/metrics`,
+      athleteId: `${ROOTS.DASHBOARD}/metrics/:athleteId`,
+    },
+    settings: {
+      root: `${ROOTS.DASHBOARD}/settings`,
+      athleteId: `${ROOTS.DASHBOARD}/settings/:athleteId`,
+    },
     racePlan: {
       root: `${ROOTS.DASHBOARD}/race-plan`,
       viewer: `${ROOTS.DASHBOARD}/race-plan/viewer`,

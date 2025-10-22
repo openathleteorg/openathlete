@@ -7,7 +7,6 @@ import {
 } from '@/components/ui/collapsible';
 import {
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -16,8 +15,9 @@ import {
   SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
 import { useSpaceContext } from '@/contexts/space';
-import { userRoleLabelMap } from '@/utils/label-map/core';
+import { SIDEBAR_OPEN_STATES, getItem, setItem } from '@/utils/local-storage';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import { UserRole } from '@openathlete/shared';
@@ -40,9 +40,19 @@ export function NavMain({
   const { space } = useSpaceContext();
   const { pathname } = useLocation();
 
+  const [openStates, setOpenStates] = useState<Record<string, boolean>>(() => {
+    const stored = getItem(SIDEBAR_OPEN_STATES);
+    return stored ? JSON.parse(stored) : {};
+  });
+
+  const handleOpenChange = (itemTitle: string, isOpen: boolean) => {
+    const newStates = { ...openStates, [itemTitle]: isOpen };
+    setOpenStates(newStates);
+    setItem(SIDEBAR_OPEN_STATES, JSON.stringify(newStates));
+  };
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{userRoleLabelMap[space]}</SidebarGroupLabel>
       <SidebarMenu>
         {items
           .filter((item) => !item.spaces || item.spaces.includes(space))
@@ -51,7 +61,8 @@ export function NavMain({
               <Collapsible
                 key={item.title}
                 asChild
-                defaultOpen={item.isActive}
+                open={openStates[item.title] ?? true}
+                onOpenChange={(isOpen) => handleOpenChange(item.title, isOpen)}
                 className="group/collapsible"
               >
                 <SidebarMenuItem>

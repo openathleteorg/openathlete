@@ -15,6 +15,7 @@ import {
 import { useUserRoles } from '@/contexts/auth';
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
+import { useGetMyCoachedAthletesQuery } from '@/services/athlete';
 import { ChevronsUpDown, Medal, Users } from 'lucide-react';
 import * as React from 'react';
 
@@ -24,6 +25,7 @@ export function SpaceSwitcher() {
   const roles = useUserRoles();
   const { isMobile } = useSidebar();
   const { space, setSpace } = useSpaceContext();
+  const { data: coachedAthletes } = useGetMyCoachedAthletesQuery();
 
   const spaces = React.useMemo<
     { role: UserRole; name: string; logo: React.ElementType }[]
@@ -50,7 +52,8 @@ export function SpaceSwitcher() {
 
   const activeSpace = spaces.find((s) => s.role === space);
 
-  if (!activeSpace) {
+  const hasNoAthletes = !coachedAthletes || coachedAthletes.length === 0;
+  if (!activeSpace || spaces.length <= 1 || hasNoAthletes) {
     return null;
   }
   return (

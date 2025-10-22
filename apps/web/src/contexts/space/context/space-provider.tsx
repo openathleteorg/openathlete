@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import { getPath } from '@/routes/paths';
+import { CURRENT_SPACE, getItem, setItem } from '@/utils/local-storage';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -14,14 +15,14 @@ type Props = {
 
 export function SpaceProvider({ children }: Props) {
   const [currentSpace, setCurrentSpace] = useState<UserRole>(() => {
-    const storedSpace = localStorage.getItem('currentSpace');
+    const storedSpace = getItem(CURRENT_SPACE);
     return storedSpace ? (storedSpace as UserRole) : 'ATHLETE';
   });
   const nav = useNavigate();
 
   const handleSpaceChange = (space: UserRole) => {
     setCurrentSpace(space);
-    localStorage.setItem('currentSpace', space);
+    setItem(CURRENT_SPACE, space);
     nav(getPath(['dashboard', 'calendar']));
   };
 

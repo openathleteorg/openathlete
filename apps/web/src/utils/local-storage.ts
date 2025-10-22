@@ -1,6 +1,8 @@
 export const ACCESS_TOKEN = 'access_token';
 export const REFRESH_TOKEN = 'refresh_token';
 export const CALENDAR_COLORED_BY = 'calendar_colored_by';
+export const SIDEBAR_OPEN_STATES = 'sidebar_open_states';
+export const CURRENT_SPACE = 'current_space';
 
 export const getItem = (key: string) => localStorage.getItem(key);
 export const setItem = (key: string, value: string) =>
