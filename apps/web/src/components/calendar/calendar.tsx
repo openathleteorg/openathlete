@@ -1,9 +1,6 @@
-import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
-import {
-  useDuplicateEventMutation,
-  useUpdateEventMutation,
-} from '@/api/event';
+import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
+import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import {
   DndContext,
@@ -33,11 +30,23 @@ interface P {
   events?: Event[];
   athleteId?: number;
   allowCreate?: boolean;
+  onMonthChange?: (month: Date) => void;
 }
 
-export function Calendar({ events, athleteId, allowCreate = true }: P) {
+export function Calendar({
+  events,
+  athleteId,
+  allowCreate = true,
+  onMonthChange,
+}: P) {
   const calendarData = useCalendarData({ events });
   const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
+
+  useEffect(() => {
+    if (onMonthChange) {
+      onMonthChange(calendarData.displayedMonth);
+    }
+  }, [calendarData.displayedMonth, onMonthChange]);
   const [eventDetailsOpened, setEventDetailsOpened] = useState<
     Event['eventId'] | null
   >(null);

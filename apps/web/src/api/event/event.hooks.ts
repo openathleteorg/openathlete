@@ -86,12 +86,14 @@ export const useUpdateEventMutation = (
 export const useGetMyEventsQuery = (
   isCoach?: boolean,
   athleteId?: number,
+  startDate?: Date,
+  endDate?: Date,
   opt?: QueryOptions<Awaited<ReturnType<typeof EventAPI.getMyEvents>>>,
 ) =>
   useQuery({
     ...opt,
-    queryFn: () => EventAPI.getMyEvents(isCoach, athleteId),
-    queryKey: [eventKeys.getMyEvents, isCoach, athleteId],
+    queryFn: () => EventAPI.getMyEvents(isCoach, athleteId, startDate, endDate),
+    queryKey: [eventKeys.getMyEvents, isCoach, athleteId, startDate, endDate],
   });
 
 export const useGetEventQuery = (

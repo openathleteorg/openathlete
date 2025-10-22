@@ -1,19 +1,43 @@
-import { Calendar } from '@/components/calendar/calendar';
-import { useSpaceContext } from '@/contexts/space';
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetMyEventsQuery } from '@/api/event';
-import { useEffect } from 'react';
+import { Calendar } from '@/components/calendar/calendar';
+import { useSpaceContext } from '@/contexts/space';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export function CalendarView() {
   const { data: athlete } = useGetMyAthleteQuery();
   const { space } = useSpaceContext();
+  const [displayedMonth, setDisplayedMonth] = useState(new Date());
+
+  const { startDate, endDate } = useMemo(() => {
+    const start = new Date(
+      displayedMonth.getFullYear(),
+      displayedMonth.getMonth() - 1,
+      1,
+    );
+    const end = new Date(
+      displayedMonth.getFullYear(),
+      displayedMonth.getMonth() + 2,
+      0,
+    );
+    end.setHours(23, 59, 59, 999);
+    return { startDate: start, endDate: end };
+  }, [displayedMonth]);
+
   const { data, refetch } = useGetMyEventsQuery(
     space === 'COACH' ? true : undefined,
+    undefined,
+    startDate,
+    endDate,
   );
 
   useEffect(() => {
     refetch();
-  }, [space, refetch]);
+  }, [space, startDate, endDate, refetch]);
+
+  const handleMonthChange = useCallback((month: Date) => {
+    setDisplayedMonth(month);
+  }, []);
 
   return (
     <div className="p-8">
@@ -21,6 +45,7 @@ export function CalendarView() {
         events={data}
         athleteId={space === 'ATHLETE' ? athlete?.athleteId : undefined}
         allowCreate={space === 'ATHLETE'}
+        onMonthChange={handleMonthChange}
       />
     </div>
   );
