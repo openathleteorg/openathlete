@@ -403,8 +403,7 @@ export class TrainingLoadService {
         } else {
           // Convert gender to 'male' | 'female' for TRIMP calculation
           // Default to 'male' if not set or 'OTHER'
-          const gender =
-            athlete.user.gender === 'FEMALE' ? 'female' : 'male';
+          const gender = athlete.user.gender === 'FEMALE' ? 'female' : 'male';
           result = this.calculateBanisterTRIMP(stream, hrMax, hrRest, gender);
         }
         break;

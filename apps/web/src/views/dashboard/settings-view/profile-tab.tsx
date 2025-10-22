@@ -1,5 +1,7 @@
 import { FormProvider, RHFTextField } from '@/components/hook-form';
+import { RHFSelect } from '@/components/hook-form/rhf-select';
 import { Button } from '@/components/ui/button';
+import { SelectItem } from '@/components/ui/select';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { useUpdateAccountMutation } from '@/services/user';
@@ -24,6 +26,7 @@ export function ProfileTab({}: P) {
     defaultValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
+      gender: user?.gender || undefined,
     },
   });
 
@@ -52,6 +55,15 @@ export function ProfileTab({}: P) {
           label={m.last_name()}
           required
         />
+        <RHFSelect
+          name="gender"
+          label={m.gender()}
+          placeholder={m.gender_placeholder()}
+        >
+          <SelectItem value="MALE">{m.gender_male()}</SelectItem>
+          <SelectItem value="FEMALE">{m.gender_female()}</SelectItem>
+          <SelectItem value="OTHER">{m.gender_other()}</SelectItem>
+        </RHFSelect>
         <Button
           type="submit"
           className="w-fit"
