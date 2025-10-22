@@ -180,4 +180,162 @@ export class EventTemplateService {
       },
     });
   }
+
+  /**
+   * Create an event from a template with specific dates and athlete
+   * POST /api/event-template/:templateId/use
+   */
+  async useEventTemplate(
+    user: AuthUser,
+    eventTemplateId: event_template['event_template_id'],
+    dto: { startDate: Date; endDate: Date; athleteId?: number | null },
+  ) {
+    // Get the template
+    const template = await this.prisma.event_template.findUnique({
+      where: {
+        event_template_id: eventTemplateId,
+      },
+      include: {
+        event: {
+          include: EVENT_INCLUDES,
+        },
+      },
+    });
+
+    if (!template) {
+      throw new Error('Event template not found');
+    }
+
+    if (template.user_id !== user.user_id) {
+      throw new Error('Unauthorized');
+    }
+
+    if (!template.event) {
+      throw new Error('Template event not found');
+    }
+
+    const templateEvent = template.event;
+
+    // Prepare the event data from template
+    const subEntityData = {
+      ...templateEvent[templateEvent.type.toLocaleLowerCase()],
+    };
+
+    // Remove IDs and relations
+    delete subEntityData.event_training_id;
+    delete subEntityData.event_competition_id;
+    delete subEntityData.event_note_id;
+    delete subEntityData.event_activity_id;
+    delete subEntityData.event_id;
+    delete subEntityData.related_activity_id;
+    delete subEntityData.related_activity;
+
+    // Remove workout - will be duplicated separately
+    if (templateEvent.type === 'TRAINING') {
+      delete subEntityData.workout;
+    }
+
+    // Create the new event from template
+    const newEvent = await this.prisma.event.create({
+      data: {
+        start_date: dto.startDate,
+        end_date: dto.endDate,
+        name: templateEvent.name,
+        type: templateEvent.type,
+        athlete_id: dto.athleteId,
+        [templateEvent.type.toLocaleLowerCase()]: {
+          create: subEntityData,
+        },
+      },
+      include: EVENT_INCLUDES,
+    });
+
+    // If training event with workout, duplicate the workout
+    if (templateEvent.type === 'TRAINING' && templateEvent.training?.workout) {
+      const templateWorkout = await this.prisma.workout.findUnique({
+        where: { event_training_id: templateEvent.training.event_training_id },
+        include: {
+          steps: {
+            include: {
+              targets: true,
+              repeat_block: {
+                include: {
+                  child_steps: {
+                    include: { targets: true },
+                  },
+                },
+              },
+            },
+            orderBy: { order_index: 'asc' },
+          },
+        },
+      });
+
+      if (templateWorkout && newEvent.training) {
+        await this.prisma.workout.create({
+          data: {
+            estimated_duration: templateWorkout.estimated_duration,
+            total_distance: templateWorkout.total_distance,
+            event_training_id: newEvent.training.event_training_id,
+            steps: {
+              create: templateWorkout.steps.map((step) => ({
+                order_index: step.order_index,
+                step_type: step.step_type,
+                name: step.name,
+                exercise_name: step.exercise_name,
+                notes: step.notes,
+                duration_type: step.duration_type,
+                duration_value: step.duration_value,
+                duration_target: step.duration_target,
+                targets: {
+                  create: step.targets.map((t) => ({
+                    target_type: t.target_type,
+                    target_zone: t.target_zone,
+                    target_min: t.target_min,
+                    target_max: t.target_max,
+                    target_value: t.target_value,
+                    unit: t.unit,
+                  })),
+                },
+                repeat_block: step.repeat_block
+                  ? {
+                      create: {
+                        repetitions: step.repeat_block.repetitions,
+                        child_steps: {
+                          create: step.repeat_block.child_steps.map(
+                            (childStep) => ({
+                              order_index: childStep.order_index,
+                              step_type: childStep.step_type,
+                              name: childStep.name,
+                              exercise_name: childStep.exercise_name,
+                              notes: childStep.notes,
+                              duration_type: childStep.duration_type,
+                              duration_value: childStep.duration_value,
+                              duration_target: childStep.duration_target,
+                              targets: {
+                                create: childStep.targets.map((t) => ({
+                                  target_type: t.target_type,
+                                  target_zone: t.target_zone,
+                                  target_min: t.target_min,
+                                  target_max: t.target_max,
+                                  target_value: t.target_value,
+                                  unit: t.unit,
+                                })),
+                              },
+                            }),
+                          ),
+                        },
+                      },
+                    }
+                  : undefined,
+              })),
+            },
+          },
+        });
+      }
+    }
+
+    // Return the complete event
+    return this.eventService.getEventById(user, newEvent.event_id);
+  }
 }

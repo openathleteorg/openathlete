@@ -806,6 +806,20 @@ export class EventService {
 
     const { start_date, end_date, name, type, athlete_id } = event;
 
+    const subEntityData = { ...event[type.toLocaleLowerCase()] };
+
+    delete subEntityData.event_training_id;
+    delete subEntityData.event_competition_id;
+    delete subEntityData.event_note_id;
+    delete subEntityData.event_activity_id;
+    delete subEntityData.event_id;
+    delete subEntityData.related_activity_id;
+    delete subEntityData.related_activity;
+
+    if (type === 'TRAINING') {
+      delete subEntityData.workout;
+    }
+
     return this.prisma.event.create({
       data: {
         start_date,
@@ -814,21 +828,92 @@ export class EventService {
         type,
         athlete_id,
         [type.toLocaleLowerCase()]: {
-          create: {
-            ...event[type.toLocaleLowerCase()],
-            event_training_id: undefined,
-            event_competition_id: undefined,
-            event_note_id: undefined,
-            event_activity_id: undefined,
-            event_id: undefined,
-            related_activity_id: undefined,
-            related_activity: undefined,
-          },
+          create: subEntityData,
         },
       },
       include: EVENT_INCLUDES,
     });
-    // Note: Workout duplication is handled separately via WorkoutController
+  }
+
+  async duplicateEventComplete(
+    user: AuthUser,
+    eventId: event['event_id'],
+    dto?: { startDate?: Date; endDate?: Date },
+  ) {
+    const ability = await this.abilities.getFor({ user });
+
+    // Get original event
+    const originalEvent = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+      },
+      include: EVENT_INCLUDES,
+    });
+
+    if (!originalEvent) {
+      throw new NotFoundException('Event not found');
+    }
+
+    // Duplicate the event
+    const duplicatedEvent = await this.duplicateEvent(user, eventId);
+
+    // Override dates if provided
+    if (dto?.startDate || dto?.endDate) {
+      const updateData: any = {};
+      if (dto.startDate) updateData.start_date = dto.startDate;
+      if (dto.endDate) updateData.end_date = dto.endDate;
+
+      await this.prisma.event.update({
+        where: { event_id: duplicatedEvent.event_id },
+        data: updateData,
+      });
+    }
+
+    if (originalEvent.type === 'TRAINING' && originalEvent.training?.workout) {
+      const originalWorkout = await this.prisma.workout.findUnique({
+        where: { event_training_id: originalEvent.training.event_training_id },
+        include: {
+          steps: {
+            include: {
+              targets: true,
+              repeat_block: {
+                include: {
+                  child_steps: {
+                    include: { targets: true },
+                  },
+                },
+              },
+            },
+            orderBy: { order_index: 'asc' },
+          },
+        },
+      });
+
+      if (originalWorkout) {
+        const duplicatedEventWithIncludes = await this.prisma.event.findUnique({
+          where: { event_id: duplicatedEvent.event_id },
+          include: EVENT_INCLUDES,
+        });
+
+        if (duplicatedEventWithIncludes?.training) {
+          await this.prisma.workout.create({
+            data: {
+              estimated_duration: originalWorkout.estimated_duration,
+              total_distance: originalWorkout.total_distance,
+              event_training_id:
+                duplicatedEventWithIncludes.training.event_training_id,
+              steps: {
+                create: originalWorkout.steps.map((step) =>
+                  this.buildStepCreateData(step),
+                ),
+              },
+            },
+          });
+        }
+      }
+    }
+
+    return this.getEventById(user, duplicatedEvent.event_id);
   }
 
   // ============================================================================

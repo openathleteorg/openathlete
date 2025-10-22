@@ -20,13 +20,15 @@ import { event } from '@openathlete/database';
 import {
   ActivityStream,
   CreateEventDto,
-  createEventDtoSchema,
-  UpdateEventDto,
-  updateEventDtoSchema,
-  ReorderWorkoutStepsDto,
-  reorderWorkoutStepsSchema,
+  DuplicateEventDto,
   DuplicateWorkoutDto,
+  ReorderWorkoutStepsDto,
+  UpdateEventDto,
+  createEventDtoSchema,
+  duplicateEventDtoSchema,
   duplicateWorkoutSchema,
+  reorderWorkoutStepsSchema,
+  updateEventDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
@@ -133,6 +135,17 @@ export class EventController {
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post(':eventId/duplicate')
+  duplicateEventComplete(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Body(new ZodValidationPipe(duplicateEventDtoSchema))
+    dto: DuplicateEventDto,
+  ) {
+    return this.eventService.duplicateEventComplete(user, eventId, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Post(':eventId/related-activity/:activityId')
   setRelatedActivity(
     @JwtUser() user: AuthUser,
@@ -164,7 +177,8 @@ export class EventController {
   reorderWorkoutSteps(
     @JwtUser() user: AuthUser,
     @Param('eventId', ParseIntPipe) eventId: event['event_id'],
-    @Body(new ZodValidationPipe(reorderWorkoutStepsSchema)) dto: ReorderWorkoutStepsDto,
+    @Body(new ZodValidationPipe(reorderWorkoutStepsSchema))
+    dto: ReorderWorkoutStepsDto,
   ) {
     return this.eventService.reorderWorkoutSteps(user, eventId, dto);
   }
@@ -178,7 +192,8 @@ export class EventController {
   duplicateWorkout(
     @JwtUser() user: AuthUser,
     @Param('eventId', ParseIntPipe) eventId: event['event_id'],
-    @Body(new ZodValidationPipe(duplicateWorkoutSchema)) dto: DuplicateWorkoutDto,
+    @Body(new ZodValidationPipe(duplicateWorkoutSchema))
+    dto: DuplicateWorkoutDto,
   ) {
     return this.eventService.duplicateWorkout(user, eventId, dto);
   }

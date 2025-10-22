@@ -14,7 +14,9 @@ import { AuthGuard } from '@nestjs/passport';
 
 import {
   CreateEventTemplateDto,
+  UseEventTemplateDto,
   createEventTemplateSchema,
+  useEventTemplateDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
@@ -49,5 +51,20 @@ export class EventTemplateController {
     @Param('eventTemplateId', ParseIntPipe) eventTemplateId: number,
   ) {
     return this.eventTemplateService.deleteEventTemplate(user, eventTemplateId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post(':eventTemplateId/use')
+  useEventTemplate(
+    @JwtUser() user: AuthUser,
+    @Param('eventTemplateId', ParseIntPipe) eventTemplateId: number,
+    @Body(new ZodValidationPipe(useEventTemplateDtoSchema))
+    body: UseEventTemplateDto,
+  ) {
+    return this.eventTemplateService.useEventTemplate(
+      user,
+      eventTemplateId,
+      body,
+    );
   }
 }
