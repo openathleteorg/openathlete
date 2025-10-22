@@ -56,7 +56,7 @@ export const RHFRpe = ({ name, label, ...other }: Props) => {
                       }
                     }}
                     className={cn(
-                      'flex-1 rounded-none border border-gray-200 text-white',
+                      'flex-1 rounded-none border border-gray-200 text-white dark:border-gray-700',
                       // First button has left border radius
                       index === 0 ? 'rounded-l-md' : '',
                       // Last button has right border radius
