@@ -5,7 +5,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/utils/shadcn';
-import { formatTarget, getTargetTypeLabel } from '@/utils/workout/formatters';
+import { formatTarget, getTargetTypeLabel } from '@/utils/workout';
 
 import type { WorkoutStepTarget } from '@openathlete/shared';
 

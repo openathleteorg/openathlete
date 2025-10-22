@@ -1,18 +1,16 @@
+import { cn } from '@/utils/shadcn';
+import { getStepTypeColor } from '@/utils/workout';
 import {
   Activity,
   Flame,
+  type LucideIcon,
   Repeat,
   Snowflake,
   Timer,
   Zap,
-  type LucideIcon,
 } from 'lucide-react';
 
-import { getStepTypeColor } from '@/utils/workout/formatters';
-
 import type { WorkoutStepType } from '@openathlete/shared';
-
-import { cn } from '@/utils/shadcn';
 
 interface TypeIconProps {
   stepType: WorkoutStepType;

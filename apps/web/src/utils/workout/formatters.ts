@@ -20,8 +20,8 @@ export function formatDuration(
   durationValue?: number | null,
 ): string {
   if (!durationValue) {
-    if (durationType === 'OPEN') return 'Open';
-    if (durationType === 'LAP_BUTTON') return 'Lap button';
+    if (durationType === 'OPEN') return m.workout_duration_open();
+    if (durationType === 'LAP_BUTTON') return m.workout_duration_lap_button();
     return '-';
   }
 
@@ -83,7 +83,7 @@ export function formatDuration(
  * @param seconds - Pace in seconds per km
  * @returns Formatted pace (e.g., "4:30")
  */
-export function formatPace(seconds: number): string {
+function formatPace(seconds: number): string {
   const minutes = Math.floor(seconds / 60);
   const secs = Math.round(seconds % 60);
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
@@ -282,90 +282,21 @@ export function calculateWorkoutDuration(workout: WorkoutDto): number {
 }
 
 /**
- * Calculate total distance for a workout
- * Only counts DISTANCE-based durations
- * @param workout - Workout object
- * @returns Total distance in meters
- */
-export function calculateWorkoutDistance(workout: WorkoutDto): number {
-  let totalMeters = 0;
-
-  const processStep = (step: WorkoutStepDto, repetitions = 1) => {
-    if (step.durationType === 'DISTANCE' && step.durationValue) {
-      totalMeters += step.durationValue * repetitions;
-    }
-
-    // Process repeat block child steps
-    if (step.repeatBlock && step.repeatBlock.childSteps) {
-      const reps = step.repeatBlock.repetitions;
-      step.repeatBlock.childSteps.forEach((childStep: WorkoutStepDto) => {
-        processStep(childStep, reps);
-      });
-    }
-  };
-
-  workout.steps.forEach((step: WorkoutStepDto) => processStep(step));
-
-  return totalMeters;
-}
-
-/**
- * Get a summary string for a workout
- * @param workout - Workout object
- * @returns Summary string (e.g., "5 steps, ~45 min, 12 km")
- */
-export function getWorkoutSummary(workout: WorkoutDto): string {
-  const stepCount = workout.steps.length;
-  const repeatCount = workout.steps.filter(
-    (s: WorkoutStepDto) => s.stepType === 'REPEAT',
-  ).length;
-
-  const duration = calculateWorkoutDuration(workout);
-  const distance = calculateWorkoutDistance(workout);
-
-  const parts: string[] = [];
-
-  // Steps
-  if (stepCount > 0) {
-    parts.push(`${stepCount} step${stepCount > 1 ? 's' : ''}`);
-  }
-
-  // Repeats
-  if (repeatCount > 0) {
-    parts.push(`${repeatCount} repeat${repeatCount > 1 ? 's' : ''}`);
-  }
-
-  // Duration
-  if (duration > 0) {
-    const minutes = Math.round(duration / 60);
-    parts.push(`~${minutes} min`);
-  }
-
-  // Distance
-  if (distance > 0) {
-    const km = distance / 1000;
-    parts.push(km % 1 === 0 ? `${km} km` : `${km.toFixed(1)} km`);
-  }
-
-  return parts.join(', ') || 'Empty workout';
-}
-
-/**
  * Get target type label
  * @param targetType - Target type
  * @returns Human-readable label
  */
 export function getTargetTypeLabel(targetType: WorkoutTargetType): string {
   const labels: Record<WorkoutTargetType, string> = {
-    OPEN: 'Open',
-    PACE: 'Pace',
-    SPEED: 'Speed',
-    HEARTRATE: 'Heart Rate',
-    POWER: 'Power',
-    CADENCE: 'Cadence',
-    RPE: 'RPE',
-    WEIGHT: 'Weight',
-    REPS_TARGET: 'Reps Target',
+    OPEN: m.workout_target_open(),
+    PACE: m.workout_target_pace(),
+    SPEED: m.workout_target_speed(),
+    HEARTRATE: m.workout_target_heartrate(),
+    POWER: m.workout_target_power(),
+    CADENCE: m.workout_target_cadence(),
+    RPE: m.workout_target_rpe(),
+    WEIGHT: m.workout_target_weight(),
+    REPS_TARGET: m.workout_target_reps(),
   };
   return labels[targetType] || targetType;
 }

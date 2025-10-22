@@ -16,7 +16,6 @@ export {
   speedToPace,
   speedMsToKmh,
   kmhToSpeedMs,
-  formatPace,
 } from './workout.utils';
 export type {
   WorkoutValidationError,

@@ -1,6 +1,6 @@
 import { ActivityStream } from '@openathlete/shared';
 
-export type HoverPoint = { index: number; time: number } | undefined;
+type HoverPoint = { index: number; time: number } | undefined;
 
 /**
  * Given activity latlng + time streams and the current chart hover (index/time),

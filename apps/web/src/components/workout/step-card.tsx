@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import * as m from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
-import { getStepTypeColor, getStepTypeLabel } from '@/utils/workout/formatters';
+import { getStepTypeColor, getStepTypeLabel } from '@/utils/workout';
 import { Edit2, MoreVertical, Trash2 } from 'lucide-react';
 
 import type {

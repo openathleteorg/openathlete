@@ -1,8 +1,8 @@
 import {
-  WorkoutDto,
-  WorkoutStepDto,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
+  WorkoutDto,
+  WorkoutStepDto,
 } from '../types/dtos/core/workout.dto';
 
 // ============================================================================
@@ -22,7 +22,10 @@ export function calculateWorkoutDuration(workout: WorkoutDto): number | null {
   let hasTimeDuration = false;
 
   const calculateStepDuration = (step: WorkoutStepDto): number => {
-    if (step.durationType === WORKOUT_DURATION_TYPE.TIME && step.durationValue) {
+    if (
+      step.durationType === WORKOUT_DURATION_TYPE.TIME &&
+      step.durationValue
+    ) {
       hasTimeDuration = true;
       return step.durationValue;
     }
@@ -58,7 +61,10 @@ export function calculateWorkoutDistance(workout: WorkoutDto): number | null {
   let hasDistanceDuration = false;
 
   const calculateStepDistance = (step: WorkoutStepDto): number => {
-    if (step.durationType === WORKOUT_DURATION_TYPE.DISTANCE && step.durationValue) {
+    if (
+      step.durationType === WORKOUT_DURATION_TYPE.DISTANCE &&
+      step.durationValue
+    ) {
       hasDistanceDuration = true;
       return step.durationValue;
     }
@@ -126,7 +132,9 @@ export interface WorkoutValidationResult {
 /**
  * Validate workout structure and data consistency
  */
-export function validateWorkoutStructure(workout: WorkoutDto): WorkoutValidationResult {
+export function validateWorkoutStructure(
+  workout: WorkoutDto,
+): WorkoutValidationResult {
   const errors: WorkoutValidationError[] = [];
 
   // Check basic fields (name and description removed)
@@ -173,7 +181,10 @@ export function validateWorkoutStructure(workout: WorkoutDto): WorkoutValidation
           stepIndex: index,
         });
       } else {
-        if (step.repeatBlock.repetitions < 1 || step.repeatBlock.repetitions > 99) {
+        if (
+          step.repeatBlock.repetitions < 1 ||
+          step.repeatBlock.repetitions > 99
+        ) {
           errors.push({
             field: 'repetitions',
             message: 'Repetitions must be between 1 and 99',
@@ -181,7 +192,10 @@ export function validateWorkoutStructure(workout: WorkoutDto): WorkoutValidation
           });
         }
 
-        if (!step.repeatBlock.childSteps || step.repeatBlock.childSteps.length === 0) {
+        if (
+          !step.repeatBlock.childSteps ||
+          step.repeatBlock.childSteps.length === 0
+        ) {
           errors.push({
             field: 'childSteps',
             message: 'Repeat block must contain at least one child step',
@@ -195,8 +209,12 @@ export function validateWorkoutStructure(workout: WorkoutDto): WorkoutValidation
     if (step.targets && step.targets.length > 0) {
       step.targets.forEach((target: any, targetIndex: number) => {
         // Check range targets
-        if (target.targetMin !== null && target.targetMin !== undefined &&
-            target.targetMax !== null && target.targetMax !== undefined) {
+        if (
+          target.targetMin !== null &&
+          target.targetMin !== undefined &&
+          target.targetMax !== null &&
+          target.targetMax !== undefined
+        ) {
           if (target.targetMin >= target.targetMax) {
             errors.push({
               field: 'targetRange',
@@ -260,15 +278,6 @@ export function formatDuration(seconds: number): string {
     return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   }
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
-}
-
-/**
- * Format pace (min/km) to MM:SS
- */
-export function formatPace(paceMinPerKm: number): string {
-  const minutes = Math.floor(paceMinPerKm);
-  const seconds = Math.round((paceMinPerKm - minutes) * 60);
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 /**

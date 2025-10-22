@@ -6,10 +6,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/utils/shadcn';
-import {
-  calculateWorkoutDuration,
-  formatDuration,
-} from '@/utils/workout/formatters';
+import { calculateWorkoutDuration, formatDuration } from '@/utils/workout';
 import { Edit2, MoreVertical, Repeat, Trash2 } from 'lucide-react';
 
 import type { WorkoutRepeat, WorkoutStepDto } from '@openathlete/shared';

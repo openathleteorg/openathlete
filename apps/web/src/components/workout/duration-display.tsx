@@ -1,4 +1,4 @@
-import { formatDuration } from '@/utils/workout/formatters';
+import { formatDuration } from '@/utils/workout';
 
 import type { WorkoutDurationType } from '@openathlete/shared';
 
