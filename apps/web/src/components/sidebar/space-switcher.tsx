@@ -27,6 +27,13 @@ export function SpaceSwitcher() {
   const { space, setSpace } = useSpaceContext();
   const { data: coachedAthletes } = useGetMyCoachedAthletesQuery();
 
+  const isMac = React.useMemo(
+    () =>
+      typeof navigator !== 'undefined' &&
+      navigator.platform.toUpperCase().indexOf('MAC') >= 0,
+    [],
+  );
+
   const spaces = React.useMemo<
     { role: UserRole; name: string; logo: React.ElementType }[]
   >(
@@ -53,6 +60,33 @@ export function SpaceSwitcher() {
   const activeSpace = spaces.find((s) => s.role === space);
 
   const hasNoAthletes = !coachedAthletes || coachedAthletes.length === 0;
+
+  React.useEffect(() => {
+    if (!activeSpace || spaces.length <= 1 || hasNoAthletes) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isModifierPressed =
+        (event.metaKey || event.ctrlKey) && event.shiftKey;
+      if (!isModifierPressed) return;
+      const key = event.key;
+      const numberMatch = key.match(/^[1-9]$/);
+
+      if (numberMatch) {
+        const index = parseInt(numberMatch[0], 10) - 1;
+        if (index < spaces.length) {
+          event.preventDefault();
+          event.stopPropagation();
+          setSpace(spaces[index].role);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [spaces, setSpace, activeSpace, hasNoAthletes]);
   if (!activeSpace || spaces.length <= 1 || hasNoAthletes) {
     return null;
   }
@@ -70,7 +104,6 @@ export function SpaceSwitcher() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{activeSpace.name}</span>
-                {/* <span className="truncate text-xs">{activeSpace.plan}</span> */}
               </div>
               <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
@@ -94,16 +127,12 @@ export function SpaceSwitcher() {
                   <space.logo className="size-4 shrink-0" />
                 </div>
                 {space.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                <DropdownMenuShortcut>
+                  {isMac ? '⌘⇧' : 'Ctrl+Shift+'}
+                  {index + 1}
+                </DropdownMenuShortcut>
               </DropdownMenuItem>
             ))}
-            {/* <DropdownMenuSeparator /> */}
-            {/* <DropdownMenuItem className="gap-2 p-2">
-              <div className="bg-background flex size-6 items-center justify-center rounded-md border">
-                <Plus className="size-4" />
-              </div>
-              <div className="text-muted-foreground font-medium">Add team</div>
-            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
