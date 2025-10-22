@@ -205,18 +205,15 @@ export const useGetMyIcalCalendarSecretQuery = (
 
 export const useDuplicateEventMutation = (
   opt?: MutationOptions<
-    Awaited<ReturnType<typeof EventService.createEvent>>,
+    Awaited<ReturnType<typeof EventService.duplicateEvent>>,
     Error,
-    Parameters<typeof EventService.getEvent>[0]
+    Parameters<typeof EventService.duplicateEvent>[0]
   >,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     ...opt,
-    mutationFn: async (variables) => {
-      const event = await EventService.getEvent(variables);
-      return EventService.createEvent(event);
-    },
+    mutationFn: EventService.duplicateEvent,
     onSuccess: (data, variables, onMutateResult, context) => {
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);

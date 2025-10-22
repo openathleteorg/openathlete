@@ -3,11 +3,12 @@ import client, { routes } from '@/utils/axios';
 import {
   ActivityStream,
   CreateEventDto,
-  UpdateEventDto,
+  DuplicateEventDto,
+  DuplicateWorkoutDto,
   Event,
   GetEventWeatherResponseDto,
   ReorderWorkoutStepsDto,
-  DuplicateWorkoutDto,
+  UpdateEventDto,
 } from '@openathlete/shared';
 
 export type GetEventNormalizationResponseDto = {
@@ -104,6 +105,23 @@ export class EventService {
     return res.data;
   }
 
+  /**
+   * Duplicate an event with optional date override
+   * @param eventId - The ID of the event to duplicate
+   * @param body - Optional dates for the duplicated event
+   * @returns The duplicated event
+   */
+  static async duplicateEvent({
+    eventId,
+    body,
+  }: {
+    eventId: Event['eventId'];
+    body?: DuplicateEventDto;
+  }): Promise<Event> {
+    const res = await client.post(routes.event.duplicate(eventId), body || {});
+    return mapEvent(res.data);
+  }
+
   // ============================================================================
   // Workout-related methods (now integrated with events)
   // ============================================================================
@@ -138,7 +156,10 @@ export class EventService {
     sourceEventId: Event['eventId'];
     body: DuplicateWorkoutDto;
   }): Promise<Event> {
-    const res = await client.post(routes.workout.duplicate(sourceEventId), body);
+    const res = await client.post(
+      routes.workout.duplicate(sourceEventId),
+      body,
+    );
     return mapEvent(res.data);
   }
 }

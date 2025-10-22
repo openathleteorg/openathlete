@@ -221,7 +221,7 @@ export function CalendarEvent({ event, wrapped }: P) {
           {event.type !== EVENT_TYPE.ACTIVITY && (
             <ContextMenuItem
               onClick={(e) => {
-                duplicateEventMutation.mutate(event.eventId);
+                duplicateEventMutation.mutate({ eventId: event.eventId });
                 e.stopPropagation();
               }}
             >

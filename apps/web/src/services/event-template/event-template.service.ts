@@ -4,7 +4,16 @@ import {
   CreateEventTemplateDto,
   Event,
   EventTemplate,
+  UseEventTemplateDto,
 } from '@openathlete/shared';
+
+const mapEvent = (event: Event): Event => {
+  return {
+    ...event,
+    startDate: new Date(event.startDate),
+    endDate: new Date(event.endDate),
+  };
+};
 
 export class EventTemplateService {
   static async createEventTemplate(
@@ -23,5 +32,19 @@ export class EventTemplateService {
     eventTemplateId: EventTemplate['eventTemplateId'],
   ): Promise<void> {
     await client.delete(routes.eventTemplate.delete(eventTemplateId));
+  }
+
+  static async useEventTemplate({
+    eventTemplateId,
+    body,
+  }: {
+    eventTemplateId: EventTemplate['eventTemplateId'];
+    body: UseEventTemplateDto;
+  }): Promise<Event> {
+    const res = await client.post(
+      routes.eventTemplate.use(eventTemplateId),
+      body,
+    );
+    return mapEvent(res.data);
   }
 }

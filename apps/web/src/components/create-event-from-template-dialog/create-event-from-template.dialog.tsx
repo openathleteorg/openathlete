@@ -1,12 +1,9 @@
 import { m } from '@/paraglide/messages';
-import {
-  EventService,
-  useCreateEventMutation,
-  useUpdateEventMutation,
-} from '@/services/event';
+import { useUpdateEventMutation } from '@/services/event';
 import {
   useDeleteEventTemplateMutation,
   useGetMyEventTemplatesQuery,
+  useUseEventTemplateMutation,
 } from '@/services/event-template';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Edit, Trash } from 'lucide-react';
@@ -149,7 +146,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
     return d;
   }, [rest]);
 
-  const createEventMutation = useCreateEventMutation({
+  const useTemplateMutation = useUseEventTemplateMutation({
     onSuccess: () => {
       onClose();
       toast.success(m.event_created_successfully());
@@ -183,14 +180,15 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
               <TemplateRow
                 template={template}
                 refetchTemplates={refetch}
-                onCreate={async () => {
+                onCreate={() => {
                   if (!startDate || !endDate) return;
-                  const event = await EventService.getEvent(template.eventId);
-                  createEventMutation.mutate({
-                    ...event,
-                    startDate,
-                    endDate,
-                    athleteId,
+                  useTemplateMutation.mutate({
+                    eventTemplateId: template.eventTemplateId,
+                    body: {
+                      startDate,
+                      endDate,
+                      athleteId,
+                    },
                   });
                 }}
               />

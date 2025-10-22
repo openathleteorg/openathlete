@@ -23,6 +23,7 @@ export const routes = {
   event: {
     create: '/event',
     update: (eventId: Event['eventId']) => `/event/${eventId}`,
+    duplicate: (eventId: Event['eventId']) => `/event/${eventId}/duplicate`,
     getMyEvents: '/event',
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,
@@ -41,6 +42,7 @@ export const routes = {
   eventTemplate: {
     getMyTemplates: '/event-template',
     create: '/event-template',
+    use: (eventTemplateId: number) => `/event-template/${eventTemplateId}/use`,
     delete: (eventTemplateId: Event['eventId']) =>
       `/event-template/${eventTemplateId}`,
   },

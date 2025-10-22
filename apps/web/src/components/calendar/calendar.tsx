@@ -163,8 +163,8 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
     const event = events?.find((evt) => evt.eventId === eventId);
     if (!event) return;
 
-    const startDate = event.startDate;
-    const endDate = event.endDate;
+    const startDate = new Date(event.startDate);
+    const endDate = new Date(event.endDate);
     startDate.setDate(day.getDate());
     startDate.setMonth(day.getMonth());
     startDate.setFullYear(day.getFullYear());
@@ -181,16 +181,13 @@ export function Calendar({ events, athleteId, allowCreate = true }: P) {
         },
       });
     } else {
-      const newEvent = await duplicateEventMutation.mutateAsync(event.eventId);
-      if (newEvent) {
-        updateEventMutation.mutate({
-          eventId: newEvent.eventId,
-          body: {
-            startDate,
-            endDate,
-          },
-        });
-      }
+      duplicateEventMutation.mutate({
+        eventId: event.eventId,
+        body: {
+          startDate,
+          endDate,
+        },
+      });
     }
   };
 
