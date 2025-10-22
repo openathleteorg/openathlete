@@ -34,6 +34,7 @@ import {
   ActivityDetailsSelectionProvider,
   useActivityDetailsSelection,
 } from '../activity-details-selection-context';
+import { ActivityQuickEditCard } from '../activity-quick-edit-card';
 import { ActivityStatistics } from '../activity-statistics';
 
 interface P {
@@ -79,6 +80,9 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
           </div>
         </CardContent>
       </Card>
+      {!(stream?.latlng && stream.time && fullDomain) && (
+        <ActivityQuickEditCard event={event} />
+      )}
       {stream?.latlng && stream.time && fullDomain && (
         <>
           <ActivityDetailsSelectionProvider fullDomain={fullDomain}>
@@ -90,6 +94,21 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
                 distance={stream.distance}
                 time={stream.time}
               />
+            )}
+            <ActivityQuickEditCard event={event} />
+            {stream?.heartrate && (
+              <Card className="col-span-1">
+                <CardHeader>
+                  <CardTitle>{m.heart_rate_distribution()}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <HeartrateDistributionChart
+                    heartrateStream={stream.heartrate}
+                    sport={event.sport}
+                    duration={event.movingTime}
+                  />
+                </CardContent>
+              </Card>
             )}
             {(() => {
               function ZoomResetButton() {
@@ -179,37 +198,23 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
                     </Card>
                   )}
                   {stream?.heartrate && (
-                    <>
-                      <Card className="col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between">
-                          <CardTitle>{m.heart_rate()}</CardTitle>
-                          <div className="absolute right-10">
-                            <ZoomResetButton />
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <HeartrateChart
-                            heartrateStream={stream.heartrate}
-                            sport={event.sport}
-                            timeStream={stream.time}
-                            distanceStream={stream.distance}
-                            onHover={setHover}
-                          />
-                        </CardContent>
-                      </Card>
-                      <Card className="col-span-1">
-                        <CardHeader>
-                          <CardTitle>{m.heart_rate_distribution()}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <HeartrateDistributionChart
-                            heartrateStream={stream.heartrate}
-                            sport={event.sport}
-                            duration={event.movingTime}
-                          />
-                        </CardContent>
-                      </Card>
-                    </>
+                    <Card className="col-span-2">
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>{m.heart_rate()}</CardTitle>
+                        <div className="absolute right-10">
+                          <ZoomResetButton />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <HeartrateChart
+                          heartrateStream={stream.heartrate}
+                          sport={event.sport}
+                          timeStream={stream.time}
+                          distanceStream={stream.distance}
+                          onHover={setHover}
+                        />
+                      </CardContent>
+                    </Card>
                   )}
                   {event.records && !!event.records.length && (
                     <>

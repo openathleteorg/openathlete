@@ -7,3 +7,5 @@ export { RHFTextarea } from './rhf-textarea';
 export { RHFDuration } from './rhf-duration';
 export { RHFDistance } from './rhf-distance';
 export { RHFCheckbox } from './rhf-checkbox';
+export { RHFRpe } from './rhf-rpe';
+export { RHFElevation } from './rhf-elevation';
