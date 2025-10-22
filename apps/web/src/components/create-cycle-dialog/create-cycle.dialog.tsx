@@ -2,7 +2,7 @@ import { m } from '@/paraglide/messages';
 import {
   useCreateCycleMutation,
   useUpdateCycleMutation,
-} from '@/services/cycle';
+} from '@/api/cycle';
 import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo } from 'react';

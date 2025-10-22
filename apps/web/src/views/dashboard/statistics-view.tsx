@@ -5,7 +5,7 @@ import { TrainingLoadChart } from '@/components/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
-import { useGetStatisticsForPeriodQuery } from '@/services/statistics';
+import { useGetStatisticsForPeriodQuery } from '@/api/statistics';
 import { useState } from 'react';
 
 import {

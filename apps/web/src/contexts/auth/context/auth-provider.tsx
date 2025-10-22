@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
+import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
-import { UserService } from '@/services/user';
 import { isValidToken } from '@/utils/auth';
 import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
@@ -10,10 +10,12 @@ import { User } from '@openathlete/shared';
 import { ActionMapType, AuthContextType, AuthStateType } from '../types';
 import { AuthContext } from './auth-context';
 
-enum Types {
-  INITIAL = 'INITIAL',
-  LOGOUT = 'LOGOUT',
-}
+const Types = {
+  INITIAL: 'INITIAL',
+  LOGOUT: 'LOGOUT',
+} as const;
+
+type Types = (typeof Types)[keyof typeof Types];
 
 const reducer = (state: AuthStateType, action: ActionsType) => {
   if (action.type === Types.INITIAL) {
@@ -59,7 +61,7 @@ export function AuthProvider({ children }: Props) {
       if (accessToken && isValidToken(accessToken)) {
         setItem(ACCESS_TOKEN, accessToken);
 
-        const user = await UserService.getMe();
+        const user = await UserAPI.getMe();
 
         dispatch({
           type: Types.INITIAL,
@@ -69,7 +71,7 @@ export function AuthProvider({ children }: Props) {
         });
       } else {
         try {
-          const user = await UserService.getMe();
+          const user = await UserAPI.getMe();
 
           dispatch({
             type: Types.INITIAL,

@@ -8,8 +8,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { m } from '@/paraglide/messages';
-import { useGetMyAthleteQuery } from '@/services/athlete';
-import { useDeleteTrainingZone } from '@/services/training-zone';
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useDeleteTrainingZone } from '@/api/training-zone';
 import { useMemo, useState } from 'react';
 
 import { TRAINING_ZONE_TYPE } from '@openathlete/shared';

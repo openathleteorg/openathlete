@@ -1,10 +1,10 @@
 import { m } from '@/paraglide/messages';
-import { useUpdateEventMutation } from '@/services/event';
+import { useUpdateEventMutation } from '@/api/event';
 import {
   useDeleteEventTemplateMutation,
   useGetMyEventTemplatesQuery,
   useUseEventTemplateMutation,
-} from '@/services/event-template';
+} from '@/api/event-template';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Edit, Trash } from 'lucide-react';
 import { useMemo, useState } from 'react';

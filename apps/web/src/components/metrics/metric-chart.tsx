@@ -4,7 +4,7 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { m } from '@/paraglide/messages';
-import { AthleteMetric, useGetMetricHistoryQuery } from '@/services/metric';
+import { AthleteMetric, useGetMetricHistoryQuery } from '@/api/metric';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
 import { format } from 'date-fns';

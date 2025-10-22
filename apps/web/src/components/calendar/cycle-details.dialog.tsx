@@ -1,5 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { useDeleteCycleMutation } from '@/services/cycle';
+import { useDeleteCycleMutation } from '@/api/cycle';
 import { format } from 'date-fns';
 import { Calendar, Trash2 } from 'lucide-react';
 import { useState } from 'react';

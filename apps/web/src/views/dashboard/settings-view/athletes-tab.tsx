@@ -13,7 +13,7 @@ import { getPath } from '@/routes/paths';
 import {
   useGetMyCoachedAthletesQuery,
   useRemoveAthleteMutation,
-} from '@/services/athlete';
+} from '@/api/athlete';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

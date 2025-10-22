@@ -2,7 +2,7 @@ import { m } from '@/paraglide/messages';
 import {
   useGetEventStreamQuery,
   useGetEventWeatherQuery,
-} from '@/services/event';
+} from '@/api/event';
 import { useMemo } from 'react';
 
 import { ActivityEvent } from '@openathlete/shared';

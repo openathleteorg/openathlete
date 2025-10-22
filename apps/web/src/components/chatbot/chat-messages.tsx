@@ -1,7 +1,7 @@
+import { useGetThreadMessagesQuery } from '@/api/agent';
+import { MessageChunk } from '@/api/agent/use-agent-websocket.hooks';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { m } from '@/paraglide/messages';
-import { useGetThreadMessagesQuery } from '@/services/agent';
-import { MessageChunk } from '@/services/agent/use-agent-websocket.hook';
 import { cn } from '@/utils/shadcn';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';

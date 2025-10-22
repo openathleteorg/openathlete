@@ -1,6 +1,6 @@
 import { LoadingScreen } from '@/components/loading-screen';
 import { TrainingZoneEditor } from '@/components/training-zone-editor';
-import { useGetMyAthleteQuery } from '@/services/athlete';
+import { useGetMyAthleteQuery } from '@/api/athlete';
 
 export function TrainingZonesTab() {
   const { data: athlete, isLoading: athleteLoading } = useGetMyAthleteQuery();

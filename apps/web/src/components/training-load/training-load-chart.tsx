@@ -15,7 +15,7 @@ import * as m from '@/paraglide/messages.js';
 import {
   TrainingLoadCalculationType,
   useTrainingLoadHistory,
-} from '@/services/training-load';
+} from '@/api/training-load';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useMemo, useState } from 'react';

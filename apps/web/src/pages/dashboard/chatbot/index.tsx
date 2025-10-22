@@ -11,7 +11,7 @@ import {
   useCreateThreadMutation,
   useDeleteThreadMutation,
   useGetUserThreadsQuery,
-} from '@/services/agent';
+} from '@/api/agent';
 import { cn } from '@/utils/shadcn';
 import { motion } from 'framer-motion';
 import { MessageCircle, Plus, Trash2 } from 'lucide-react';

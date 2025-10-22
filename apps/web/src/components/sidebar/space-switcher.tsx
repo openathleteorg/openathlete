@@ -15,7 +15,7 @@ import {
 import { useUserRoles } from '@/contexts/auth';
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
-import { useGetMyCoachedAthletesQuery } from '@/services/athlete';
+import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import { ChevronsUpDown, Medal, Users } from 'lucide-react';
 import * as React from 'react';
 

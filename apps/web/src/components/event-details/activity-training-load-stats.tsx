@@ -1,5 +1,5 @@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrainingLoadCalculationType, useActivityTrainingLoads } from '@/services/training-load';
+import { TrainingLoadCalculationType, useActivityTrainingLoads } from '@/api/training-load';
 import { ActivityIcon } from 'lucide-react';
 import * as m from '@/paraglide/messages.js';
 

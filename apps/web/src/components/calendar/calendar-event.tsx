@@ -2,8 +2,8 @@ import { m } from '@/paraglide/messages';
 import {
   useDeleteEventMutation,
   useDuplicateEventMutation,
-} from '@/services/event';
-import { useCreateEventTemplateMutation } from '@/services/event-template';
+} from '@/api/event';
+import { useCreateEventTemplateMutation } from '@/api/event-template';
 import {
   getEventTypeColor,
   getHighSaturatedRpeColor,

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { m } from '@/paraglide/messages';
-import { AthleteMetric } from '@/services/metric';
+import { AthleteMetric } from '@/api/metric';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
 import { format } from 'date-fns';

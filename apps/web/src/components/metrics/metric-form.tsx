@@ -1,5 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { AthleteMetric, MetricService } from '@/services/metric';
+import { AthleteMetric, MetricAPI } from '@/api/metric';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Calculator } from 'lucide-react';
@@ -60,7 +60,7 @@ export function MetricForm({
   const handleAutoCalculate = async () => {
     setIsCalculating(true);
     try {
-      const calculatedValue = await MetricService.calculateMetric(selectedType);
+      const calculatedValue = await MetricAPI.calculateMetric(selectedType);
       if (calculatedValue !== null && calculatedValue !== undefined) {
         setValue('value', calculatedValue);
       }

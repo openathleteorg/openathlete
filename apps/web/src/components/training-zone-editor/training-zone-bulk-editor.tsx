@@ -7,7 +7,7 @@ import {
   useCreateTrainingZone,
   useDeleteTrainingZone,
   useUpdateTrainingZone,
-} from '@/services/training-zone';
+} from '@/api/training-zone';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 

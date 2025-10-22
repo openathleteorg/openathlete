@@ -1,4 +1,4 @@
-import { useGetEventQuery } from '@/services/event';
+import { useGetEventQuery } from '@/api/event';
 
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 

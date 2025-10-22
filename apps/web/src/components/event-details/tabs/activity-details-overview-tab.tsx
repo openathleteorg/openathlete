@@ -1,6 +1,6 @@
+import { useGetEventNormalizationQuery } from '@/api/event';
+import type { GetEventNormalizationResponseDto } from '@/api/event/event.api';
 import { m } from '@/paraglide/messages';
-import { useGetEventNormalizationQuery } from '@/services/event';
-import type { GetEventNormalizationResponseDto } from '@/services/event/event.service';
 import { computeHoverPin } from '@/utils/map-hover';
 import { ZoomOut } from 'lucide-react';
 import { useMemo, useState } from 'react';

@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { useLoginMutation } from '@/services/auth';
+import { useLoginMutation } from '@/api/auth';
 import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

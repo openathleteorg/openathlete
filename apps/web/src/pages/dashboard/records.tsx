@@ -1,6 +1,6 @@
 import { LoadingScreen } from '@/components/loading-screen';
 import { m } from '@/paraglide/messages';
-import { useGetMyAthleteQuery } from '@/services/athlete';
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import { RecordsView } from '@/views/dashboard/records-view';
 
 export function RecordsPage() {

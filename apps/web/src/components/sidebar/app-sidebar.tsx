@@ -13,7 +13,7 @@ import {
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { useGetMyCoachedAthletesQuery } from '@/services/athlete';
+import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import {
   Activity,
   Calendar,

@@ -1,7 +1,7 @@
 import { Calendar } from '@/components/calendar/calendar';
 import { useSpaceContext } from '@/contexts/space';
-import { useGetMyAthleteQuery } from '@/services/athlete';
-import { useGetMyEventsQuery } from '@/services/event';
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetMyEventsQuery } from '@/api/event';
 import { useEffect } from 'react';
 
 export function CalendarView() {

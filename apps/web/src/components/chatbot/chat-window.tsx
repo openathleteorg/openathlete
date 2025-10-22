@@ -14,7 +14,7 @@ import {
   useAgentWebSocket,
   useCreateThreadMutation,
   useGetUserThreadsQuery,
-} from '@/services/agent';
+} from '@/api/agent';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Maximize2, Plus, X } from 'lucide-react';

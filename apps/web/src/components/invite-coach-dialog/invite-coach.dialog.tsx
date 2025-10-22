@@ -1,5 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { useInviteCoachMutation } from '@/services/athlete';
+import { useInviteCoachMutation } from '@/api/athlete';
 import { useState } from 'react';
 import { toast } from 'sonner';
 

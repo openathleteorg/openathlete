@@ -9,7 +9,7 @@ import {
 import {
   TrainingLoadCalculationType,
   useTrainingLoadMetrics,
-} from '@/services/training-load';
+} from '@/api/training-load';
 import { ActivityIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
 import { useState } from 'react';
 

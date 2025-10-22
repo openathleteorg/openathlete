@@ -13,7 +13,7 @@ import { m } from '@/paraglide/messages';
 import {
   useGetMyCoachesQuery,
   useRemoveCoachMutation,
-} from '@/services/athlete';
+} from '@/api/athlete';
 import { useState } from 'react';
 
 interface P {}

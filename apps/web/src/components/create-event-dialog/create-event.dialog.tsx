@@ -2,7 +2,7 @@ import { m } from '@/paraglide/messages';
 import {
   useCreateEventMutation,
   useUpdateEventMutation,
-} from '@/services/event';
+} from '@/api/event';
 import { eventTypeLabelMap, sportTypeLabelMap } from '@/utils/label-map/core';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';

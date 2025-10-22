@@ -1,0 +1,17 @@
+export const eventKeys = {
+  root: 'EventAPI',
+  createEvent: 'EventAPI.createEvent',
+  updateEvent: 'EventAPI.updateEvent',
+  getMyEvents: 'EventAPI.getMyEvents',
+  getEvent: 'EventAPI.getEvent',
+  getEventStream: 'EventAPI.getEventStream',
+  getEventWeather: 'EventAPI.getEventWeather',
+  getEventNormalization: 'EventAPI.getEventNormalization',
+  deleteEvent: 'EventAPI.deleteEvent',
+  setRelatedActivity: 'EventAPI.setRelatedActivity',
+  unsetRelatedActivity: 'EventAPI.unsetRelatedActivity',
+  getMyIcalCalendarSecret: 'EventAPI.getMyIcalCalendarSecret',
+  duplicateEvent: 'EventAPI.duplicateEvent',
+  reorderWorkoutSteps: 'EventAPI.reorderWorkoutSteps',
+  duplicateWorkout: 'EventAPI.duplicateWorkout',
+} as const;

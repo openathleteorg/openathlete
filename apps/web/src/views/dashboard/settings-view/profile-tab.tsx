@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { SelectItem } from '@/components/ui/select';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
-import { useUpdateAccountMutation } from '@/services/user';
+import { useUpdateAccountMutation } from '@/api/user';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';

@@ -1,5 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { useGetMyEquipmentQuery } from '@/services/equipment';
+import { useGetMyEquipmentQuery } from '@/api/equipment';
 
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 

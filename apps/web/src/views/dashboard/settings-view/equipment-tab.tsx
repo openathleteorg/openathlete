@@ -14,7 +14,7 @@ import {
   useDeleteEquipmentMutation,
   useGetMyEquipmentQuery,
   useUpdateEquipmentMutation,
-} from '@/services/equipment';
+} from '@/api/equipment';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';

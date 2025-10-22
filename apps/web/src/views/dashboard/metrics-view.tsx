@@ -15,7 +15,7 @@ import {
   AthleteMetric,
   useCreateMetricMutation,
   useGetLatestMetricsQuery,
-} from '@/services/metric';
+} from '@/api/metric';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 

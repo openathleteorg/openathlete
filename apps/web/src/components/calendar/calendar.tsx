@@ -1,9 +1,9 @@
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
-import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/services/cycle';
+import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import {
   useDuplicateEventMutation,
   useUpdateEventMutation,
-} from '@/services/event';
+} from '@/api/event';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import {
   DndContext,

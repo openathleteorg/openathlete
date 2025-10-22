@@ -1,7 +1,7 @@
 import {
   useGetMyAthleteQuery,
   useGetMyCoachedAthletesQuery,
-} from '@/services/athlete';
+} from '@/api/athlete';
 
 interface UseAthleteInfoParams {
   athleteId?: number;

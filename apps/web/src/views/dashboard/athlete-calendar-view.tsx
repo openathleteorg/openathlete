@@ -1,5 +1,5 @@
 import { Calendar } from '@/components/calendar/calendar';
-import { useGetMyEventsQuery } from '@/services/event';
+import { useGetMyEventsQuery } from '@/api/event';
 import { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 

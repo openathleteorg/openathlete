@@ -3,7 +3,7 @@ import { SportSelect } from '@/components/sport-select/sport-select';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
-import { useGetRecordsQuery } from '@/services/record';
+import { useGetRecordsQuery } from '@/api/record';
 import { useState } from 'react';
 
 import { SPORT_TYPE } from '@openathlete/shared';

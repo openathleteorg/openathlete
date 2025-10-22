@@ -2,7 +2,7 @@ import { m } from '@/paraglide/messages';
 import {
   useSetRelatedActivityMutation,
   useUnsetRelatedActivityMutation,
-} from '@/services/event';
+} from '@/api/event';
 
 import {
   CompetitionEvent,
