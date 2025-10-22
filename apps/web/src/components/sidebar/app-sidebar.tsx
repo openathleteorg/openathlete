@@ -14,7 +14,15 @@ import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { useGetMyCoachedAthletesQuery } from '@/services/athlete';
-import { Activity, Calendar, MedalIcon, PieChart, User } from 'lucide-react';
+import {
+  Activity,
+  Calendar,
+  CogIcon,
+  FileText,
+  MedalIcon,
+  PieChart,
+  User,
+} from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { ComponentProps, useMemo } from 'react';
 
@@ -36,27 +44,33 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             {
               title: m.summary(),
               url: getPath(['dashboard', 'summary']) + `/${athlete.athleteId}`,
+              icon: FileText,
             },
             {
               title: m.calendar(),
               url: getPath(['dashboard', 'calendar']) + `/${athlete.athleteId}`,
+              icon: Calendar,
             },
             {
               title: m.statistics(),
               url:
                 getPath(['dashboard', 'statistics']) + `/${athlete.athleteId}`,
+              icon: PieChart,
             },
             {
               title: m.records(),
               url: getPath(['dashboard', 'records']) + `/${athlete.athleteId}`,
+              icon: MedalIcon,
             },
             {
               title: m.metrics(),
               url: getPath(['dashboard', 'metrics']) + `/${athlete.athleteId}`,
+              icon: Activity,
             },
             {
               title: m.settings(),
               url: getPath(['dashboard', 'settings']) + `/${athlete.athleteId}`,
+              icon: CogIcon,
             },
           ],
         })) || []
