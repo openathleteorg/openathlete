@@ -319,11 +319,18 @@ export class TrainingLoadService {
     activityId: number,
     calculationType: training_load_calculation_type,
   ): Promise<any> {
-    // Get athlete
+    // Get athlete with user info
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
           user_id: user.user_id,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            gender: true,
+          },
         },
       },
     });
@@ -394,7 +401,11 @@ export class TrainingLoadService {
         if (calculationType === 'TRIMP_EDWARDS') {
           result = this.calculateEdwardsTRIMP(stream, hrMax, hrRest);
         } else {
-          result = this.calculateBanisterTRIMP(stream, hrMax, hrRest);
+          // Convert gender to 'male' | 'female' for TRIMP calculation
+          // Default to 'male' if not set or 'OTHER'
+          const gender =
+            athlete.user.gender === 'FEMALE' ? 'female' : 'male';
+          result = this.calculateBanisterTRIMP(stream, hrMax, hrRest, gender);
         }
         break;
 

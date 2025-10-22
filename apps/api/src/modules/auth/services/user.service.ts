@@ -74,6 +74,7 @@ export class UserService {
           email: true,
           first_name: true,
           last_name: true,
+          gender: true,
           roles: true,
         },
       }),
@@ -185,10 +186,12 @@ export class UserService {
         data: {
           first_name: data.firstName,
           last_name: data.lastName,
+          gender: data.gender,
         },
         select: {
           first_name: true,
           last_name: true,
+          gender: true,
         },
       }),
     );
