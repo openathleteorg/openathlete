@@ -42,9 +42,16 @@ export const routes = {
   eventTemplate: {
     getMyTemplates: '/event-template',
     create: '/event-template',
+    update: (eventTemplateId: number) => `/event-template/${eventTemplateId}`,
     use: (eventTemplateId: number) => `/event-template/${eventTemplateId}/use`,
     delete: (eventTemplateId: Event['eventId']) =>
       `/event-template/${eventTemplateId}`,
+  },
+  eventTemplateFolder: {
+    getMyFolders: '/event-template-folder',
+    create: '/event-template-folder',
+    update: (folderId: number) => `/event-template-folder/${folderId}`,
+    delete: (folderId: number) => `/event-template-folder/${folderId}`,
   },
   record: {
     getRecords: '/record',
