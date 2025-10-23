@@ -116,7 +116,7 @@ export function DraggableTemplate({
       </div>
 
       <div className="flex gap-1 flex-shrink-0">
-        <Button variant="outline" size="sm" onClick={onCreate}>
+        <Button variant="outline" onClick={onCreate}>
           {m.use()}
         </Button>
         <Button variant="outline" size="icon" onClick={onEdit}>
