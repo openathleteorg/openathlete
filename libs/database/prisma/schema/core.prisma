@@ -11,11 +11,12 @@ model user {
   gender     gender?
 
   // relationships
-  athlete        athlete?
-  coach_athletes coach_athlete[]
-  tokens         token[]
-  templates      event_template[]
-  agent_threads  agent_thread[]
+  athlete               athlete?
+  coach_athletes        coach_athlete[]
+  tokens                token[]
+  templates             event_template[]
+  agent_threads         agent_thread[]
+  event_template_folder event_template_folder[]
 
   // timestamps
   created_at DateTime @default(now())

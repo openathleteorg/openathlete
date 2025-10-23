@@ -1,0 +1,24 @@
+model event_template_folder {
+  // primary key
+  event_template_folder_id Int @id @default(autoincrement())
+
+  // fields
+  name        String
+  color       String? @default("#6366f1")
+  description String  @default("")
+
+  // relationships
+  user             user                    @relation(fields: [user_id], references: [user_id])
+  user_id          Int
+  parent_folder    event_template_folder?  @relation("FolderHierarchy", fields: [parent_folder_id], references: [event_template_folder_id])
+  parent_folder_id Int?
+  child_folders    event_template_folder[] @relation("FolderHierarchy")
+  event_templates  event_template[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([parent_folder_id])
+}
