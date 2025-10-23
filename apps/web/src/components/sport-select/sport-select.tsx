@@ -1,3 +1,4 @@
+import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 
 import { SPORT_TYPE } from '@openathlete/shared';
@@ -23,10 +24,10 @@ export function SportSelect({ selected, onChange }: P) {
       onValueChange={(sport) => onChange(sport as SPORT_TYPE)}
     >
       <SelectTrigger>
-        <SelectValue placeholder="All Sports" />
+        <SelectValue placeholder={m.all_sports()} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value={null!}>All Sports</SelectItem>
+        <SelectItem value={null!}>{m.all_sports()}</SelectItem>
         {Object.values(SPORT_TYPE).map((sportType) => (
           <SelectItem key={sportType} value={sportType}>
             <SportIcon sport={sportType} /> {sportTypeLabelMap[sportType]}
