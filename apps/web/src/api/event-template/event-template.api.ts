@@ -4,6 +4,7 @@ import {
   CreateEventTemplateDto,
   Event,
   EventTemplate,
+  UpdateEventTemplateDto,
   UseEventTemplateDto,
 } from '@openathlete/shared';
 
@@ -23,8 +24,24 @@ export class EventTemplateAPI {
     return res.data;
   }
 
-  static async getMyEventTemplates(): Promise<EventTemplate[]> {
-    const res = await client.get(routes.eventTemplate.getMyTemplates);
+  static async getMyEventTemplates(search?: string): Promise<EventTemplate[]> {
+    const res = await client.get(routes.eventTemplate.getMyTemplates, {
+      params: { search },
+    });
+    return res.data;
+  }
+
+  static async updateEventTemplate({
+    eventTemplateId,
+    body,
+  }: {
+    eventTemplateId: EventTemplate['eventTemplateId'];
+    body: UpdateEventTemplateDto;
+  }): Promise<EventTemplate> {
+    const res = await client.patch(
+      routes.eventTemplate.update(eventTemplateId),
+      body,
+    );
     return res.data;
   }
 

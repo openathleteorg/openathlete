@@ -6,6 +6,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
+import { eventTemplateFolderKeys } from '../event-template-folder/event-template-folder.keys';
 import { eventKeys } from '../event/event.keys';
 import { EventTemplateAPI } from './event-template.api';
 import { eventTemplateKeys } from './event-template.keys';
@@ -32,15 +33,37 @@ export const useCreateEventTemplateMutation = (
 };
 
 export const useGetMyEventTemplatesQuery = (
+  search?: string,
   opt?: QueryOptions<
     Awaited<ReturnType<typeof EventTemplateAPI.getMyEventTemplates>>
   >,
 ) =>
   useQuery({
     ...opt,
-    queryFn: EventTemplateAPI.getMyEventTemplates,
-    queryKey: [eventTemplateKeys.getMyEventTemplates],
+    queryFn: () => EventTemplateAPI.getMyEventTemplates(search),
+    queryKey: [eventTemplateKeys.getMyEventTemplates, search],
   });
+
+export const useUpdateEventTemplateMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventTemplateAPI.updateEventTemplate>>,
+    Error,
+    Parameters<typeof EventTemplateAPI.updateEventTemplate>[0]
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: EventTemplateAPI.updateEventTemplate,
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
+      queryClient.invalidateQueries({
+        queryKey: [eventTemplateKeys.getMyEventTemplates],
+      });
+    },
+  });
+};
 
 export const useDeleteEventTemplateMutation = (
   opt?: MutationOptions<
@@ -58,6 +81,9 @@ export const useDeleteEventTemplateMutation = (
         opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: [eventTemplateKeys.getMyEventTemplates],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [eventTemplateFolderKeys.getMyFolders],
       });
     },
   });
