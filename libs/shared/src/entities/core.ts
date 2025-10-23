@@ -9,6 +9,7 @@ import {
   event_competition,
   event_note,
   event_template,
+  event_template_folder,
   event_training,
   record,
   training_zone,
@@ -48,8 +49,8 @@ export interface Athlete extends ConvertKeysToCamelCase<athlete> {
   user?: User;
 }
 
-export interface WorkoutStepEntity extends ConvertKeysToCamelCase<workout_step> {
-}
+export interface WorkoutStepEntity
+  extends ConvertKeysToCamelCase<workout_step> {}
 
 export interface WorkoutEntity extends ConvertKeysToCamelCase<workout> {
   steps: WorkoutStepEntity[];
@@ -92,6 +93,15 @@ export type Event =
 
 export interface EventTemplate extends ConvertKeysToCamelCase<event_template> {
   event?: Event;
+  folder?: EventTemplateFolder;
+}
+
+export interface EventTemplateFolder
+  extends ConvertKeysToCamelCase<event_template_folder> {
+  _count?: {
+    eventTemplates: number;
+    childFolders: number;
+  };
 }
 
 export interface Cycle extends ConvertKeysToCamelCase<cycle> {
