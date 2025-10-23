@@ -1,8 +1,6 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetEventStreamQuery, useGetEventWeatherQuery } from '@/api/event';
 import { m } from '@/paraglide/messages';
-import {
-  useGetEventStreamQuery,
-  useGetEventWeatherQuery,
-} from '@/api/event';
 import { useMemo } from 'react';
 
 import { ActivityEvent } from '@openathlete/shared';
@@ -17,6 +15,7 @@ interface P {
 }
 
 export function ActivityDetails({ event }: P) {
+  const { data: athlete } = useGetMyAthleteQuery();
   const { data: stream } = useGetEventStreamQuery(event.eventId, 3000, [
     'altitude',
     'latlng',
@@ -44,7 +43,11 @@ export function ActivityDetails({ event }: P) {
         {weather && <TabsTrigger value="weather">{m.weather()}</TabsTrigger>}
       </TabsList>
       <TabsContent value="overview">
-        <ActivityDetailsOverviewTab event={event} stream={stream} />
+        <ActivityDetailsOverviewTab
+          event={event}
+          stream={stream}
+          isMyActivity={athlete?.athleteId === event.athleteId}
+        />
       </TabsContent>
       {hasSplits && (
         <TabsContent value="splits">

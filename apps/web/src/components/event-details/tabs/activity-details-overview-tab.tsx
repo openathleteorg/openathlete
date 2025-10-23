@@ -40,9 +40,10 @@ import { ActivityStatistics } from '../activity-statistics';
 interface P {
   event: ActivityEvent;
   stream: ActivityStream | undefined;
+  isMyActivity: boolean;
 }
 
-export function ActivityDetailsOverviewTab({ event, stream }: P) {
+export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
   const [hover, setHover] = useState<
     undefined | { index: number; time: number }
   >();
@@ -95,9 +96,9 @@ export function ActivityDetailsOverviewTab({ event, stream }: P) {
                 time={stream.time}
               />
             )}
-            <ActivityQuickEditCard event={event} />
+            {isMyActivity && <ActivityQuickEditCard event={event} />}
             {stream?.heartrate && (
-              <Card className="col-span-1">
+              <Card className={isMyActivity ? 'col-span-1' : 'col-span-2'}>
                 <CardHeader>
                   <CardTitle>{m.heart_rate_distribution()}</CardTitle>
                 </CardHeader>
