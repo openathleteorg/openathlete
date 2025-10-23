@@ -15,15 +15,24 @@ export class EventTemplateService {
     private eventService: EventService,
   ) {}
 
-  async getMyEventTemplates(user: AuthUser) {
+  async getMyEventTemplates(user: AuthUser, search?: string) {
     const templates = await this.prisma.event_template.findMany({
       where: {
         user_id: user.user_id,
+        ...(search && {
+          event: {
+            name: {
+              contains: search,
+              mode: 'insensitive',
+            },
+          },
+        }),
       },
       include: {
         event: {
           include: EVENT_INCLUDES,
         },
+        folder: true,
       },
     });
     return templates.map((t) =>
@@ -150,6 +159,7 @@ export class EventTemplateService {
       data: {
         user_id: user.user_id,
         event_id: event.event_id,
+        folder_id: body.folderId,
       },
     });
 
@@ -178,6 +188,46 @@ export class EventTemplateService {
       where: {
         event_template_id: eventTemplateId,
       },
+    });
+  }
+
+  async updateEventTemplate(
+    user: AuthUser,
+    eventTemplateId: event_template['event_template_id'],
+    data: { folderId?: number | null },
+  ) {
+    const eventTemplate = await this.prisma.event_template.findUnique({
+      where: {
+        event_template_id: eventTemplateId,
+      },
+    });
+
+    if (!eventTemplate) {
+      throw new Error('Event template not found');
+    }
+
+    if (eventTemplate.user_id !== user.user_id) {
+      throw new Error('Unauthorized');
+    }
+
+    const updated = await this.prisma.event_template.update({
+      where: {
+        event_template_id: eventTemplateId,
+      },
+      data: {
+        folder_id: data.folderId,
+      },
+      include: {
+        event: {
+          include: EVENT_INCLUDES,
+        },
+        folder: true,
+      },
+    });
+
+    return keysToCamel({
+      ...updated,
+      event: this.eventService.prismaEventToEvent(updated.event),
     });
   }
 

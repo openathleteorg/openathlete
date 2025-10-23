@@ -11,6 +11,7 @@ import { ConnectorController } from './controllers/connector.controller';
 import { ContactController } from './controllers/contact.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
+import { EventTemplateFolderController } from './controllers/event-template-folder.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
 import { MetricController } from './controllers/metric.controller';
 import { RecordController } from './controllers/record.controller';
@@ -23,6 +24,7 @@ import { AthleteService } from './services/athlete.service';
 import { StravaConnectorService } from './services/connector/strava.service';
 import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
+import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
 import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
@@ -44,6 +46,7 @@ import { WeatherService } from './services/weather/weather.service';
   controllers: [
     EventController,
     EventTemplateController,
+    EventTemplateFolderController,
     ConnectorController,
     AthleteController,
     StatisticsController,
@@ -58,6 +61,7 @@ import { WeatherService } from './services/weather/weather.service';
   providers: [
     EventService,
     EventTemplateService,
+    EventTemplateFolderService,
     StravaConnectorService,
     AthleteService,
     StatisticsService,

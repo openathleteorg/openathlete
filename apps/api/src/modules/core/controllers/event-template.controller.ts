@@ -7,15 +7,19 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import {
   CreateEventTemplateDto,
+  UpdateEventTemplateDto,
   UseEventTemplateDto,
   createEventTemplateSchema,
+  updateEventTemplateSchema,
   useEventTemplateDtoSchema,
 } from '@openathlete/shared';
 
@@ -30,8 +34,11 @@ export class EventTemplateController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get()
-  getMyEventTemplates(@JwtUser() user: AuthUser) {
-    return this.eventTemplateService.getMyEventTemplates(user);
+  getMyEventTemplates(
+    @JwtUser() user: AuthUser,
+    @Query('search') search?: string,
+  ) {
+    return this.eventTemplateService.getMyEventTemplates(user, search);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -42,6 +49,21 @@ export class EventTemplateController {
     body: CreateEventTemplateDto,
   ) {
     return this.eventTemplateService.createEventTemplate(user, body);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch(':eventTemplateId')
+  updateEventTemplate(
+    @JwtUser() user: AuthUser,
+    @Param('eventTemplateId', ParseIntPipe) eventTemplateId: number,
+    @Body(new ZodValidationPipe(updateEventTemplateSchema))
+    body: UpdateEventTemplateDto,
+  ) {
+    return this.eventTemplateService.updateEventTemplate(
+      user,
+      eventTemplateId,
+      body,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
