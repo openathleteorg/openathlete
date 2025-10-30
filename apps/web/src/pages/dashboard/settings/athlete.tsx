@@ -29,15 +29,6 @@ export function AthleteSettingsPage() {
             {/* TODO: Add athlete-specific settings content */}
             Paramètres de l'athlète coaché (ID: {athleteId})
           </p>
-          <p className="text-muted-foreground mt-4">
-            Fonctionnalités à implémenter :
-          </p>
-          <ul className="list-disc list-inside text-muted-foreground mt-2 space-y-1">
-            <li>Gestion des équipements de l'athlète</li>
-            <li>Zones d'entraînement personnalisées</li>
-            <li>Préférences d'affichage</li>
-            <li>Permissions et accès</li>
-          </ul>
         </CardContent>
       </Card>
     </div>
