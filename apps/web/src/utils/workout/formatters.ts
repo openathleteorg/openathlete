@@ -3,11 +3,11 @@ import { m } from '@/paraglide/messages';
 import type {
   WorkoutDto,
   WorkoutDurationType,
-  WorkoutStepDto,
   WorkoutStepTarget,
   WorkoutStepType,
   WorkoutTargetType,
 } from '@openathlete/shared';
+import { calculateWorkoutDuration as sharedCalculateWorkoutDuration } from '@openathlete/shared';
 
 /**
  * Format duration value based on duration type
@@ -259,27 +259,8 @@ export function getStepTypeColor(stepType: WorkoutStepType): {
  * @param workout - Workout object
  * @returns Total duration in seconds
  */
-export function calculateWorkoutDuration(workout: WorkoutDto): number {
-  let totalSeconds = 0;
-
-  const processStep = (step: WorkoutStepDto, repetitions = 1) => {
-    if (step.durationType === 'TIME' && step.durationValue) {
-      totalSeconds += step.durationValue * repetitions;
-    }
-
-    // Process repeat block child steps
-    if (step.repeatBlock && step.repeatBlock.childSteps) {
-      const reps = step.repeatBlock.repetitions;
-      step.repeatBlock.childSteps.forEach((childStep: WorkoutStepDto) => {
-        processStep(childStep, reps);
-      });
-    }
-  };
-
-  workout.steps.forEach((step: WorkoutStepDto) => processStep(step));
-
-  return totalSeconds;
-}
+export const calculateWorkoutDuration = (workout: WorkoutDto): number =>
+  sharedCalculateWorkoutDuration(workout) ?? 0;
 
 /**
  * Get target type label

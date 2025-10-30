@@ -11,24 +11,37 @@ import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-import { SPORT_TYPE } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_STEP_TYPE,
+} from '@openathlete/shared';
+import type {
+  WorkoutDto,
+  WorkoutDurationType,
+  WorkoutStepDto,
+  WorkoutStepType,
+} from '@openathlete/shared';
+import { normalizeWorkoutForCreate } from '@openathlete/shared';
 
 import { StepForm } from './step-form';
 import { StepList } from './step-list';
 
 interface WorkoutBuilderProps {
   trainingId: number;
-  workout?: any | null;
+  workout?: WorkoutDto | null;
   sport: SPORT_TYPE;
   isLoading?: boolean;
-  onSuccess?: (workout: any) => void;
+  onSuccess?: (workout: WorkoutDto) => void;
   onCancel?: () => void;
   hideMetadataForm?: boolean;
   hideActions?: boolean;
-  onStepsChange?: (steps: any[]) => void;
+  onStepsChange?: (steps: WorkoutStepDto[]) => void;
 }
 
-type DialogState = { type: 'none' } | { type: 'step'; editing?: any };
+type DialogState =
+  | { type: 'none' }
+  | { type: 'step'; editing?: Partial<WorkoutStepDto> };
 
 export function WorkoutBuilder({
   trainingId: _trainingId,
@@ -37,7 +50,7 @@ export function WorkoutBuilder({
   sport,
   onStepsChange,
 }: WorkoutBuilderProps) {
-  const [steps, setSteps] = useState<any[]>(workout?.steps || []);
+  const [steps, setSteps] = useState<WorkoutStepDto[]>(workout?.steps || []);
 
   const [dialogState, setDialogState] = useState<DialogState>({ type: 'none' });
 
@@ -49,68 +62,14 @@ export function WorkoutBuilder({
     return newId;
   };
 
-  const prepareStepsForSave = useCallback((stepsToClean: any[]) => {
-    return stepsToClean.map((step, index) => {
-      const cleanedStep: any = {
-        orderIndex: index,
-        stepType: step.stepType,
-        name: step.name || null,
-        exerciseName: step.exerciseName || null,
-        notes: step.notes || null,
-        durationType: step.durationType,
-        durationValue: step.durationValue ?? null,
-        durationTarget: step.durationTarget ?? null,
-        repeatParentId: step.repeatParentId ?? null,
-        targets:
-          step.targets?.map((t: any['targets'][0]) => ({
-            targetType: t.targetType,
-            targetZone: t.targetZone ?? null,
-            targetMin: t.targetMin ?? null,
-            targetMax: t.targetMax ?? null,
-            targetValue: t.targetValue ?? null,
-            unit: t.unit ?? null,
-          })) || [],
-      };
-
-      if (step.repeatBlock) {
-        cleanedStep.repeatBlock = {
-          repetitions: step.repeatBlock.repetitions,
-          childSteps: step.repeatBlock.childSteps.map(
-            (child: any, childIndex: number) => ({
-              orderIndex: childIndex,
-              stepType: child.stepType,
-              name: child.name || null,
-              exerciseName: child.exerciseName || null,
-              notes: child.notes || null,
-              durationType: child.durationType,
-              durationValue: child.durationValue ?? null,
-              durationTarget: child.durationTarget ?? null,
-              repeatParentId: child.repeatParentId ?? null,
-              targets:
-                child.targets?.map((t: any['targets'][0]) => ({
-                  targetType: t.targetType,
-                  targetZone: t.targetZone ?? null,
-                  targetMin: t.targetMin ?? null,
-                  targetMax: t.targetMax ?? null,
-                  targetValue: t.targetValue ?? null,
-                  unit: t.unit ?? null,
-                })) || [],
-            }),
-          ),
-        };
-      }
-
-      return cleanedStep;
-    });
+  const prepareStepsForSave = useCallback((stepsToClean: WorkoutStepDto[]) => {
+    const normalized = normalizeWorkoutForCreate({ steps: stepsToClean });
+    return normalized.steps as unknown as WorkoutStepDto[];
   }, []);
 
   useEffect(() => {
     if (onStepsChange) {
       const cleanedSteps = prepareStepsForSave(steps);
-      console.log(
-        '[anyBuilder] Steps changed, notifying parent:',
-        cleanedSteps,
-      );
       onStepsChange(cleanedSteps);
     }
   }, [steps, onStepsChange, prepareStepsForSave]);
@@ -120,10 +79,10 @@ export function WorkoutBuilder({
   };
 
   const handleAddRepeatBlock = () => {
-    const newRepeatStep: any = {
+    const newRepeatStep: WorkoutStepDto = {
       orderIndex: steps.length,
-      stepType: 'REPEAT',
-      durationType: 'OPEN',
+      stepType: WORKOUT_STEP_TYPE.REPEAT as WorkoutStepType,
+      durationType: WORKOUT_DURATION_TYPE.OPEN as WorkoutDurationType,
       workoutStepId: generateTempId(),
       repeatBlock: {
         repetitions: 1,
@@ -133,11 +92,11 @@ export function WorkoutBuilder({
     setSteps((prev) => [...prev, newRepeatStep]);
   };
 
-  const handleEditStep = (step: any) => {
+  const handleEditStep = (step: WorkoutStepDto) => {
     setDialogState({ type: 'step', editing: step });
   };
 
-  const handleStepSubmit = (step: Omit<any, 'workoutStepId'>) => {
+  const handleStepSubmit = (step: Omit<WorkoutStepDto, 'workoutStepId'>) => {
     if (dialogState.type === 'step' && dialogState.editing) {
       setSteps((prev) =>
         prev.map((s) => {
@@ -145,17 +104,20 @@ export function WorkoutBuilder({
             'workoutStepId' in s &&
             s.workoutStepId === dialogState.editing?.workoutStepId
           ) {
-            return { ...step, workoutStepId: s.workoutStepId };
+            return {
+              ...step,
+              workoutStepId: s.workoutStepId,
+            } as WorkoutStepDto;
           }
-          return s;
+          return s as WorkoutStepDto;
         }),
       );
     } else {
-      const newStep: any = {
+      const newStep: WorkoutStepDto = {
         ...step,
         workoutStepId: generateTempId(),
         orderIndex: steps.length,
-      };
+      } as WorkoutStepDto;
       setSteps((prev) => [...prev, newStep]);
     }
     setDialogState({ type: 'none' });
@@ -172,7 +134,7 @@ export function WorkoutBuilder({
     );
   };
 
-  const handleUpdateRepeatBlock = (updatedStep: any) => {
+  const handleUpdateRepeatBlock = (updatedStep: WorkoutStepDto) => {
     setSteps((prev) =>
       prev.map((s) =>
         s.workoutStepId === updatedStep.workoutStepId ? updatedStep : s,
@@ -182,16 +144,16 @@ export function WorkoutBuilder({
 
   const handleAddChildStep = (
     parentStepId: number,
-    childStep: Omit<any, 'workoutStepId'>,
+    childStep: Omit<WorkoutStepDto, 'workoutStepId'>,
   ) => {
     setSteps((prev) =>
       prev.map((s) => {
         if (s.workoutStepId === parentStepId && s.repeatBlock) {
-          const newChildStep: any = {
+          const newChildStep: WorkoutStepDto = {
             ...childStep,
             workoutStepId: generateTempId(),
             orderIndex: s.repeatBlock.childSteps.length,
-          };
+          } as WorkoutStepDto;
           return {
             ...s,
             repeatBlock: {
@@ -205,7 +167,10 @@ export function WorkoutBuilder({
     );
   };
 
-  const handleEditChildStep = (parentStepId: number, updatedChildStep: any) => {
+  const handleEditChildStep = (
+    parentStepId: number,
+    updatedChildStep: WorkoutStepDto,
+  ) => {
     setSteps((prev) =>
       prev.map((s) => {
         if (s.workoutStepId === parentStepId && s.repeatBlock) {
@@ -213,10 +178,11 @@ export function WorkoutBuilder({
             ...s,
             repeatBlock: {
               ...s.repeatBlock,
-              childSteps: s.repeatBlock.childSteps.map((child: any) =>
-                child.workoutStepId === updatedChildStep.workoutStepId
-                  ? updatedChildStep
-                  : child,
+              childSteps: s.repeatBlock.childSteps.map(
+                (child: WorkoutStepDto) =>
+                  child.workoutStepId === updatedChildStep.workoutStepId
+                    ? updatedChildStep
+                    : child,
               ),
             },
           };
@@ -235,7 +201,7 @@ export function WorkoutBuilder({
             repeatBlock: {
               ...s.repeatBlock,
               childSteps: s.repeatBlock.childSteps.filter(
-                (child: any) => child.workoutStepId !== childStepId,
+                (child: WorkoutStepDto) => child.workoutStepId !== childStepId,
               ),
             },
           };

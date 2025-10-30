@@ -22,18 +22,42 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-const TARGET_TYPES = [
-  { value: 'PACE', getLabelFn: () => m.target_form_type_pace() },
-  { value: 'HEARTRATE', getLabelFn: () => m.target_form_type_heartrate() },
-  { value: 'POWER', getLabelFn: () => m.target_form_type_power() },
-  { value: 'CADENCE', getLabelFn: () => m.target_form_type_cadence() },
-  { value: 'SPEED', getLabelFn: () => m.target_form_type_speed() },
-  { value: 'WEIGHT', getLabelFn: () => m.target_form_type_weight() },
-  { value: 'REPS_TARGET', getLabelFn: () => m.target_form_type_reps() },
-] as const;
+import type { WorkoutStepTarget, WorkoutTargetType } from '@openathlete/shared';
+import { WORKOUT_TARGET_TYPE } from '@openathlete/shared';
+
+const TARGET_TYPES: { value: WorkoutTargetType; getLabelFn: () => string }[] = [
+  {
+    value: WORKOUT_TARGET_TYPE.PACE,
+    getLabelFn: () => m.target_form_type_pace(),
+  },
+  {
+    value: WORKOUT_TARGET_TYPE.HEARTRATE,
+    getLabelFn: () => m.target_form_type_heartrate(),
+  },
+  {
+    value: WORKOUT_TARGET_TYPE.POWER,
+    getLabelFn: () => m.target_form_type_power(),
+  },
+  {
+    value: WORKOUT_TARGET_TYPE.CADENCE,
+    getLabelFn: () => m.target_form_type_cadence(),
+  },
+  {
+    value: WORKOUT_TARGET_TYPE.SPEED,
+    getLabelFn: () => m.target_form_type_speed(),
+  },
+  {
+    value: WORKOUT_TARGET_TYPE.WEIGHT,
+    getLabelFn: () => m.target_form_type_weight(),
+  },
+  {
+    value: WORKOUT_TARGET_TYPE.REPS_TARGET,
+    getLabelFn: () => m.target_form_type_reps(),
+  },
+];
 
 const targetFormSchema = z.object({
-  targetType: z.string(),
+  targetType: z.nativeEnum(WORKOUT_TARGET_TYPE),
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),
@@ -43,7 +67,7 @@ const targetFormSchema = z.object({
 type TargetFormValues = z.infer<typeof targetFormSchema>;
 
 interface TargetFormProps {
-  initialValues?: Partial<TargetFormValues>;
+  initialValues?: Partial<WorkoutStepTarget>;
   onSubmit: (values: TargetFormValues) => void;
   onCancel?: () => void;
   submitLabel?: string;
@@ -180,7 +204,7 @@ export function TargetForm({
                     <div className="relative">
                       <Input
                         type="number"
-                        step="any"
+                        step="0.01"
                         placeholder="0"
                         {...field}
                         value={field.value ?? ''}
@@ -211,7 +235,7 @@ export function TargetForm({
                     <div className="relative">
                       <Input
                         type="number"
-                        step="any"
+                        step="0.01"
                         placeholder="0"
                         {...field}
                         value={field.value ?? ''}
@@ -243,7 +267,7 @@ export function TargetForm({
                   <div className="relative">
                     <Input
                       type="number"
-                      step="any"
+                      step="0.01"
                       placeholder="0"
                       {...field}
                       value={field.value ?? ''}

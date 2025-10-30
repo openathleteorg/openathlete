@@ -2,7 +2,7 @@ import { Separator } from '@/components/ui/separator';
 import * as m from '@/paraglide/messages';
 import { getStepTypeLabel } from '@/utils/workout';
 
-import type { WorkoutDto, WorkoutStepDto } from '@openathlete/shared';
+import type { WorkoutDto, WorkoutStepDto, WorkoutStepTarget } from '@openathlete/shared';
 
 import { DurationDisplay } from './duration-display';
 import { TargetBadge } from './target-badge';
@@ -52,7 +52,7 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
 
             {step.targets && step.targets.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {step.targets.map((target: any, idx: number) => (
+                {step.targets.map((target: WorkoutStepTarget, idx: number) => (
                   <TargetBadge key={idx} target={target} />
                 ))}
               </div>
@@ -75,7 +75,7 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
                 </div>
                 <div className="space-y-2">
                   {step.repeatBlock.childSteps.map(
-                    (childStep: any, childIdx: number) =>
+                    (childStep: WorkoutStepDto, childIdx: number) =>
                       renderStep(childStep, childIdx, true),
                   )}
                 </div>

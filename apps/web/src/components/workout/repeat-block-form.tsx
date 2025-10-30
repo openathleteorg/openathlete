@@ -77,7 +77,7 @@ export function RepeatBlockForm({
   });
 
   // Add new step
-  const handleAddStep = (stepValues: any) => {
+  const handleAddStep = (stepValues: Partial<WorkoutStepDto>) => {
     const newStep: StepWithId = {
       ...stepValues,
       tempId: `temp-${Date.now()}`,
@@ -92,7 +92,7 @@ export function RepeatBlockForm({
   };
 
   // Update existing step
-  const handleUpdateStep = (stepValues: any) => {
+  const handleUpdateStep = (stepValues: Partial<WorkoutStepDto>) => {
     if (!editingStep) return;
 
     setChildSteps(

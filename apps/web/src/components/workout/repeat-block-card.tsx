@@ -9,8 +9,11 @@ import { cn } from '@/utils/shadcn';
 import { calculateWorkoutDuration, formatDuration } from '@/utils/workout';
 import { Edit2, MoreVertical, Repeat, Trash2 } from 'lucide-react';
 
-import type { WorkoutRepeat, WorkoutStepDto } from '@openathlete/shared';
-import { SPORT_TYPE } from '@openathlete/shared';
+import type {
+  WorkoutDto,
+  WorkoutRepeat,
+  WorkoutStepDto,
+} from '@openathlete/shared';
 
 import { StepCard } from './step-card';
 
@@ -43,18 +46,10 @@ export function RepeatBlockCard({
   const hasSteps = childSteps.length > 0;
 
   // Calculate total duration for one iteration
-  const mockWorkout = {
-    workoutId: 0,
+  const mockWorkout: WorkoutDto = {
     eventTrainingId: 0,
-    name: '',
-    description: null,
-    notes: null,
-    sport: SPORT_TYPE.RUNNING,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    steps: childSteps,
-    repeats: [],
-  };
+    steps: childSteps as WorkoutStepDto[],
+  } as WorkoutDto;
 
   const singleIterationDuration = calculateWorkoutDuration(mockWorkout);
   const totalDuration = singleIterationDuration
@@ -130,11 +125,17 @@ export function RepeatBlockCard({
         {hasSteps ? (
           childSteps.map((step: WorkoutStepDto, idx: number) => (
             <StepCard
-              key={step.id || idx}
+              key={step.workoutStepId || idx}
               step={step}
               index={baseIndex + idx + 1}
-              onEdit={onEditStep ? () => onEditStep(step.id) : undefined}
-              onDelete={onDeleteStep ? () => onDeleteStep(step.id) : undefined}
+              onEdit={
+                onEditStep ? () => onEditStep(step.workoutStepId!) : undefined
+              }
+              onDelete={
+                onDeleteStep
+                  ? () => onDeleteStep(step.workoutStepId!)
+                  : undefined
+              }
               isReadOnly={isReadOnly}
               variant="inRepeat"
             />

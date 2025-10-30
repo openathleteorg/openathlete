@@ -33,8 +33,16 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import { SPORT_TYPE } from '@openathlete/shared';
-import type { WorkoutStepDto } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_STEP_TYPE,
+} from '@openathlete/shared';
+import type {
+  WorkoutDurationType,
+  WorkoutStepDto,
+  WorkoutStepTarget,
+} from '@openathlete/shared';
 
 import { ExercisePicker } from './exercise-picker';
 import { TargetBadge } from './target-badge';
@@ -43,22 +51,27 @@ import { TypeIcon } from './type-icon';
 
 // Step types and duration types will use i18n functions
 const STEP_TYPE_VALUES = [
-  'WARMUP',
-  'COOLDOWN',
-  'INTERVAL_ACTIVE',
-  'INTERVAL_REST',
-  'STEADY',
-  'FREE',
+  WORKOUT_STEP_TYPE.WARMUP,
+  WORKOUT_STEP_TYPE.COOLDOWN,
+  WORKOUT_STEP_TYPE.INTERVAL_ACTIVE,
+  WORKOUT_STEP_TYPE.INTERVAL_REST,
+  WORKOUT_STEP_TYPE.STEADY,
+  WORKOUT_STEP_TYPE.FREE,
 ] as const;
 
-const DURATION_TYPE_VALUES = ['TIME', 'DISTANCE', 'REPS', 'OPEN'] as const;
+const DURATION_TYPE_VALUES = [
+  WORKOUT_DURATION_TYPE.TIME,
+  WORKOUT_DURATION_TYPE.DISTANCE,
+  WORKOUT_DURATION_TYPE.REPS,
+  WORKOUT_DURATION_TYPE.OPEN,
+] as const;
 
 // Zod schema for step form
 const stepFormSchema = z.object({
-  stepType: z.string(),
+  stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
   name: z.string().nullable().optional(),
   exerciseName: z.string().nullable().optional(),
-  durationType: z.string(),
+  durationType: z.nativeEnum(WORKOUT_DURATION_TYPE),
   durationValue: z.number().nullable().optional(),
   durationTime: z.date().optional(), // Temporary field for time picker
   notes: z.string().nullable().optional(),
@@ -69,11 +82,11 @@ type StepFormValues = z.infer<typeof stepFormSchema>;
 // Target with temp ID for UI
 type TargetWithId = {
   id: string;
-  targetType: string;
-  targetMin: number | null | undefined;
-  targetMax: number | null | undefined;
-  targetValue: number | null | undefined;
-  targetZone: number | null | undefined;
+  targetType: WorkoutStepTarget['targetType'];
+  targetMin: WorkoutStepTarget['targetMin'];
+  targetMax: WorkoutStepTarget['targetMax'];
+  targetValue: WorkoutStepTarget['targetValue'];
+  targetZone: WorkoutStepTarget['targetZone'];
 };
 
 interface StepFormProps {
@@ -116,7 +129,7 @@ export function StepForm({
   sport = 'RUNNING',
 }: StepFormProps) {
   const [targets, setTargets] = useState<TargetWithId[]>(
-    initialValues?.targets?.map((t: any, idx: number) => ({
+    initialValues?.targets?.map((t: WorkoutStepTarget, idx: number) => ({
       id: `existing-${idx}`,
       targetType: t.targetType,
       targetMin: t.targetMin,
@@ -147,7 +160,7 @@ export function StepForm({
     sport === 'STRENGTH' || sport === 'CROSSFIT' || sport === 'YOGA';
 
   // Get duration unit label
-  const getDurationUnit = (type: string) => {
+  const getDurationUnit = (type: WorkoutDurationType) => {
     switch (type) {
       case 'TIME':
         return 'seconds';
@@ -161,12 +174,16 @@ export function StepForm({
   };
 
   // Add target
-  const handleAddTarget = (targetValues: any) => {
+  const handleAddTarget = (targetValues: Partial<Omit<TargetWithId, 'id'>>) => {
     setTargets([
       ...targets,
       {
         id: `temp-${Date.now()}`,
-        ...targetValues,
+        targetType: targetValues.targetType!,
+        targetMin: targetValues.targetMin ?? null,
+        targetMax: targetValues.targetMax ?? null,
+        targetValue: targetValues.targetValue ?? null,
+        targetZone: targetValues.targetZone ?? null,
       },
     ]);
     setIsTargetDialogOpen(false);
@@ -212,7 +229,7 @@ export function StepForm({
                   {STEP_TYPE_VALUES.map((type) => (
                     <SelectItem key={type} value={type}>
                       <div className="flex items-center gap-2">
-                        <TypeIcon stepType={type as any} size="sm" />
+                        <TypeIcon stepType={type} size="sm" />
                         <span>
                           {type === 'WARMUP' && m.step_form_type_warmup()}
                           {type === 'COOLDOWN' && m.step_form_type_cooldown()}
@@ -338,7 +355,7 @@ export function StepForm({
                       <div className="relative">
                         <Input
                           type="number"
-                          step="any"
+                          step="0.01"
                           placeholder="0"
                           {...field}
                           value={field.value ?? ''}
@@ -400,7 +417,17 @@ export function StepForm({
             <div className="flex flex-wrap gap-2">
               {targets.map((target) => (
                 <div key={target.id} className="relative group">
-                  <TargetBadge target={target as any} />
+                  <TargetBadge
+                    target={
+                      {
+                        targetType: target.targetType,
+                        targetMin: target.targetMin,
+                        targetMax: target.targetMax,
+                        targetValue: target.targetValue,
+                        targetZone: target.targetZone ?? undefined,
+                      } as unknown as WorkoutStepTarget
+                    }
+                  />
                   <button
                     type="button"
                     onClick={() => handleRemoveTarget(target.id)}

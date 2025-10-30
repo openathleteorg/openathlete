@@ -1,10 +1,13 @@
+import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { m } from '@/paraglide/messages';
-import {
-  useCreateEventMutation,
-  useUpdateEventMutation,
-} from '@/api/event';
 import { eventTypeLabelMap, sportTypeLabelMap } from '@/utils/label-map/core';
 import { useCallback, useMemo, useState } from 'react';
+import type {
+  CreateWorkoutStepDto,
+  WorkoutDto,
+  WorkoutStepDto,
+  WorkoutStepTarget,
+} from '@openathlete/shared';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -48,7 +51,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const { athleteId } = useCalendarContext();
   const edit = 'event' in rest;
   const create = 'type' in rest && 'date' in rest;
-  const [workoutSteps, setWorkoutSteps] = useState<any[]>([]);
+  const [workoutSteps, setWorkoutSteps] = useState<CreateWorkoutStepDto[]>([]);
 
   const startDate = useMemo(() => {
     if (create) {
@@ -95,7 +98,13 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     },
   });
 
-  const methods = useForm<any>({
+  type EventFormValues = {
+    type: string;
+    name?: string;
+    description?: string | null;
+  };
+
+  const methods = useForm<EventFormValues>({
     // Skip validation for workout field - we handle it separately
     resolver: undefined,
     defaultValues: edit
@@ -119,7 +128,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   } = methods;
   console.log('[CreateEventDialog] errors:', errors);
 
-  const onSubmit = handleSubmit(async (data: any) => {
+  const onSubmit = handleSubmit(async (data: EventFormValues) => {
     if (data.type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
       const eventWithWorkout = {
         ...data,
@@ -132,36 +141,31 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       };
 
       if (create) {
-        createEventMutation.mutate(eventWithWorkout as any);
+        createEventMutation.mutate(eventWithWorkout);
       } else if (edit && rest.event) {
         updateEventMutation.mutate({
           eventId: rest.event.eventId,
-          body: eventWithWorkout as any,
+          body: eventWithWorkout,
         });
       }
     } else {
       if (create) {
-        createEventMutation.mutate({ ...data, athleteId } as any);
+        createEventMutation.mutate({ ...data, athleteId });
       } else if (edit && rest.event) {
         updateEventMutation.mutate({
           eventId: rest.event.eventId,
-          body: data as any,
+          body: data,
         });
       }
     }
   });
 
-  const handleStepsChange = useCallback((steps: any[]) => {
-    console.log(
-      '[CreateEventDialog] handleStepsChange RAW steps:',
-      JSON.stringify(steps, null, 2),
-    );
-
-    const cleanedSteps = steps.map((step) => {
+  const handleStepsChange = useCallback((steps: WorkoutStepDto[]) => {
+    const cleanedSteps: CreateWorkoutStepDto[] = steps.map((step) => {
       const { workoutStepId, workoutId, createdAt, updatedAt, ...stepData } =
         step;
 
-      const cleanedTargets = step.targets?.map((target: any) => {
+      const cleanedTargets = step.targets?.map((target: WorkoutStepTarget) => {
         const {
           workoutStepTargetId,
           stepId,
@@ -176,7 +180,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       if (stepData.repeatBlock?.childSteps) {
         cleanedRepeatBlock = {
           ...stepData.repeatBlock,
-          childSteps: stepData.repeatBlock.childSteps.map((childStep: any) => {
+          childSteps: stepData.repeatBlock.childSteps.map((childStep: WorkoutStepDto) => {
             const {
               workoutStepId,
               workoutId,
@@ -185,7 +189,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
               ...childStepData
             } = childStep;
             const cleanedChildTargets = childStep.targets?.map(
-              (target: any) => {
+              (target: WorkoutStepTarget) => {
                 const {
                   workoutStepTargetId,
                   stepId,
@@ -228,7 +232,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   const existingWorkout =
     edit && type === EVENT_TYPE.TRAINING && 'event' in rest
-      ? (rest.event as any)?.workout
+      ? (rest.event as { workout?: WorkoutDto })?.workout ?? null
       : null;
 
   const isTraining = type === EVENT_TYPE.TRAINING;
