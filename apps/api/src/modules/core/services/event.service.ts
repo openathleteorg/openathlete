@@ -34,8 +34,12 @@ import {
   UpdateEventDto,
   calculateWorkoutDistance,
   calculateWorkoutDuration,
+  createWorkoutSchema,
   keysToCamel,
   keysToSnake,
+  mapPrismaWorkoutToDto,
+  mapWorkoutDtoToPrisma,
+  updateWorkoutSchema,
 } from '@openathlete/shared';
 
 import { ActivityImportedEvent } from 'src/events';
@@ -295,14 +299,17 @@ export class EventService {
     });
 
     if (type === 'TRAINING' && workout && created.training) {
+      const parsed = createWorkoutSchema.safeParse({
+        steps: workout.steps || [],
+      });
+      if (!parsed.success) {
+        throw new BadRequestException(parsed.error.format());
+      }
+      const stepsForCreate = parsed.data.steps;
       const workoutData = await this.prisma.workout.create({
         data: {
           event_training_id: created.training.event_training_id,
-          steps: {
-            create: (workout.steps || []).map((step) =>
-              this.buildStepCreateData(step),
-            ),
-          },
+          ...mapWorkoutDtoToPrisma({ steps: stepsForCreate }),
         },
         include: {
           steps: {
@@ -323,7 +330,7 @@ export class EventService {
       });
 
       // Calculate and update estimated metrics
-      const workoutDto = this.mapWorkoutToDto(workoutData);
+      const workoutDto = mapPrismaWorkoutToDto(workoutData);
       const estimatedDuration = calculateWorkoutDuration(workoutDto);
       const totalDistance = calculateWorkoutDistance(workoutDto);
 
@@ -408,11 +415,7 @@ export class EventService {
           const updatedWorkout = await this.prisma.workout.update({
             where: { workout_id: existingWorkout.workout_id },
             data: {
-              steps: {
-                create: workout.steps.map((step) =>
-                  this.buildStepCreateData(step),
-                ),
-              },
+              ...mapWorkoutDtoToPrisma({ steps: workout.steps }),
             },
             include: {
               steps: {
@@ -433,7 +436,7 @@ export class EventService {
           });
 
           // Recalculate metrics
-          const workoutDto = this.mapWorkoutToDto(updatedWorkout);
+          const workoutDto = mapPrismaWorkoutToDto(updatedWorkout);
           const estimatedDuration = calculateWorkoutDuration(workoutDto);
           const totalDistance = calculateWorkoutDistance(workoutDto);
 
@@ -446,14 +449,14 @@ export class EventService {
           });
         }
       } else if (workout && workout.steps && workout.steps.length > 0) {
+        const parsedUpdate = updateWorkoutSchema.safeParse(workout);
+        if (!parsedUpdate.success) {
+          throw new BadRequestException(parsedUpdate.error.format());
+        }
         const newWorkout = await this.prisma.workout.create({
           data: {
             event_training_id: event.training.event_training_id,
-            steps: {
-              create: workout.steps.map((step) =>
-                this.buildStepCreateData(step),
-              ),
-            },
+            ...mapWorkoutDtoToPrisma({ steps: parsedUpdate.data.steps }),
           },
           include: {
             steps: {
@@ -473,7 +476,7 @@ export class EventService {
           },
         });
 
-        const workoutDto = this.mapWorkoutToDto(newWorkout);
+        const workoutDto = mapPrismaWorkoutToDto(newWorkout);
         const estimatedDuration = calculateWorkoutDuration(workoutDto);
         const totalDistance = calculateWorkoutDistance(workoutDto);
 
@@ -934,17 +937,14 @@ export class EventService {
         });
 
         if (duplicatedEventWithIncludes?.training) {
+          const originalDto = mapPrismaWorkoutToDto(originalWorkout);
           await this.prisma.workout.create({
             data: {
               estimated_duration: originalWorkout.estimated_duration,
               total_distance: originalWorkout.total_distance,
               event_training_id:
                 duplicatedEventWithIncludes.training.event_training_id,
-              steps: {
-                create: originalWorkout.steps.map((step) =>
-                  this.buildStepCreateData(step),
-                ),
-              },
+              ...mapWorkoutDtoToPrisma({ steps: originalDto.steps }),
             },
           });
         }
@@ -1070,16 +1070,13 @@ export class EventService {
     }
 
     const sourceWorkout = sourceEvent.training.workout;
+    const sourceDto = mapPrismaWorkoutToDto(sourceWorkout);
 
     // Create workout for target training
     const duplicatedWorkout = await this.prisma.workout.create({
       data: {
         event_training_id: targetEvent.training.event_training_id,
-        steps: {
-          create: sourceWorkout.steps.map((step) =>
-            this.buildStepCreateData(step),
-          ),
-        },
+        ...mapWorkoutDtoToPrisma({ steps: sourceDto.steps }),
       },
       include: {
         steps: {
@@ -1100,7 +1097,7 @@ export class EventService {
     });
 
     // Calculate and update metrics
-    const workoutDto = this.mapWorkoutToDto(duplicatedWorkout);
+    const workoutDto = mapPrismaWorkoutToDto(duplicatedWorkout);
     const estimatedDuration = calculateWorkoutDuration(workoutDto);
     const totalDistance = calculateWorkoutDistance(workoutDto);
 
@@ -1116,104 +1113,5 @@ export class EventService {
     return this.getEventById(user, data.targetTrainingId);
   }
 
-  /**
-   * Helper method to build step create data for Prisma
-   */
-  private buildStepCreateData(step: any): any {
-    console.log('[buildStepCreateData] Processing step:', {
-      stepType: step.stepType || step.step_type,
-      hasChildSteps: !!(step.childSteps && step.childSteps.length > 0),
-      childStepsLength: step.childSteps?.length,
-      hasRepeatBlock: !!(step.repeat_block || step.repeatBlock),
-      repeatTimes: step.repeatTimes || step.repeat_times,
-      repeatBlock: step.repeatBlock,
-      step: JSON.stringify(step, null, 2),
-    });
-
-    const baseStep: any = {
-      order_index: step.orderIndex || step.order_index || 0,
-      step_type: step.stepType || step.step_type,
-      name: step.name,
-      duration_type: step.durationType || step.duration_type,
-      duration_value: step.durationValue || step.duration_value,
-      repeat_times: step.repeatTimes || step.repeat_times,
-      rest_time: step.restTime || step.rest_time,
-      notes: step.notes,
-      targets: {
-        create: (step.targets || []).map((target: any) => ({
-          target_type: target.targetType || target.target_type,
-          target_unit: target.targetUnit || target.target_unit,
-          target_min_value: target.targetMinValue || target.target_min_value,
-          target_max_value: target.targetMaxValue || target.target_max_value,
-          target_value: target.targetValue || target.target_value,
-        })),
-      },
-    };
-
-    // Handle repeat blocks with child steps - support both camelCase and snake_case
-    const repeatBlockData = step.repeatBlock || step.repeat_block;
-
-    if (step.childSteps && step.childSteps.length > 0) {
-      console.log(
-        '[buildStepCreateData] Creating repeat block with',
-        step.childSteps.length,
-        'child steps',
-      );
-      baseStep.repeat_block = {
-        create: {
-          repetitions: step.repeatTimes || step.repeat_times || 1,
-          child_steps: {
-            create: step.childSteps.map((childStep: any, index: number) => ({
-              ...this.buildStepCreateData(childStep),
-              order_index: index,
-            })),
-          },
-        },
-      };
-    } else if (repeatBlockData?.childSteps || repeatBlockData?.child_steps) {
-      const childSteps =
-        repeatBlockData.childSteps || repeatBlockData.child_steps;
-      console.log(
-        '[buildStepCreateData] Creating repeat block from repeatBlock object with',
-        childSteps.length,
-        'child steps',
-      );
-      baseStep.repeat_block = {
-        create: {
-          repetitions:
-            repeatBlockData.repetitions ||
-            step.repeatTimes ||
-            step.repeat_times ||
-            1,
-          child_steps: {
-            create: childSteps.map((childStep: any, index: number) => ({
-              ...this.buildStepCreateData(childStep),
-              order_index: index,
-            })),
-          },
-        },
-      };
-    }
-
-    return baseStep;
-  }
-
-  /**
-   * Helper method to map Prisma workout to DTO
-   */
-  private mapWorkoutToDto(workout: any): any {
-    return keysToCamel({
-      ...workout,
-      steps: workout.steps.map((step: any) => ({
-        ...step,
-        targets: step.targets || [],
-        repeat_block: step.repeat_block
-          ? {
-              ...step.repeat_block,
-              child_steps: step.repeat_block.child_steps || [],
-            }
-          : null,
-      })),
-    });
-  }
+  // Legacy builder/mapper removed; mapping is handled in @openathlete/shared utils.
 }
