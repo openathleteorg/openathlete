@@ -21,3 +21,8 @@ export type {
   WorkoutValidationError,
   WorkoutValidationResult,
 } from './workout.utils';
+export {
+  normalizeWorkoutForCreate,
+  mapWorkoutDtoToPrisma,
+  mapPrismaWorkoutToDto,
+} from './workout.mappers';
