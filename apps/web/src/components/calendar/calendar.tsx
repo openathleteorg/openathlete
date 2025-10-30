@@ -161,6 +161,11 @@ export function Calendar({
       dragSelection,
       cycleResize,
       filter,
+      summaryType,
+      coloredBy,
+      eventDetailsOpened,
+      allowCreate,
+      athleteId,
     ],
   );
 

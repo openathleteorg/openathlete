@@ -69,15 +69,18 @@ export function CalendarHeader({}: P) {
       <div className="flex gap-2">
         <Select
           value={coloredBy || ''}
-          onValueChange={(c) =>
-            setColoredBy(c === '' ? null : (c as COLORED_BY))
-          }
+          onValueChange={(c) => {
+            if (c === '') {
+              setColoredBy(null);
+            } else {
+              setColoredBy(c as COLORED_BY);
+            }
+          }}
         >
           <SelectTrigger>
             <SelectValue placeholder={m.colored_by()} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={null!}>{m.colored_by()}</SelectItem>
             {Object.values(COLORED_BY).map((colorProfile) => (
               <SelectItem key={colorProfile} value={colorProfile}>
                 {coloredByLabelMap[colorProfile]}
