@@ -2,15 +2,17 @@ import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { eventTypeLabelMap, sportTypeLabelMap } from '@/utils/label-map/core';
 import { useCallback, useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
+
 import type {
+  CreateEventDto,
   CreateWorkoutStepDto,
+  UpdateEventDto,
   WorkoutDto,
   WorkoutStepDto,
   WorkoutStepTarget,
 } from '@openathlete/shared';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-
 import {
   EVENT_TYPE,
   Event,
@@ -99,25 +101,72 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   });
 
   type EventFormValues = {
-    type: string;
-    name?: string;
-    description?: string | null;
+    type: EVENT_TYPE;
+    name: string;
+    description?: string;
+    sport?: SPORT_TYPE;
+    startDate: Date;
+    endDate: Date;
+    goalDistance?: number | null;
+    goalDuration?: number | null;
+    goalElevationGain?: number | null;
+    goalRpe?: number | null;
+    rpe?: number | null;
   };
 
   const methods = useForm<EventFormValues>({
     // Skip validation for workout field - we handle it separately
     resolver: undefined,
-    defaultValues: edit
-      ? rest.event
-      : create
-        ? {
-            type: rest.type,
-            name: '',
-            description: '',
-            startDate,
-            endDate,
-          }
-        : {},
+    defaultValues:
+      edit && rest.event
+        ? (() => {
+            const base = {
+              type: rest.event!.type,
+              name: rest.event!.name,
+              description: (rest.event as any).description ?? '',
+              startDate: rest.event!.startDate,
+              endDate: rest.event!.endDate,
+            } as EventFormValues;
+            if (rest.event!.type === EVENT_TYPE.TRAINING) {
+              return {
+                ...base,
+                sport: (rest.event as any).sport,
+                goalDistance: (rest.event as any).goalDistance ?? null,
+                goalDuration: (rest.event as any).goalDuration ?? null,
+                goalElevationGain:
+                  (rest.event as any).goalElevationGain ?? null,
+                goalRpe: (rest.event as any).goalRpe ?? null,
+              } as EventFormValues;
+            }
+            if (rest.event!.type === EVENT_TYPE.COMPETITION) {
+              return {
+                ...base,
+                sport: (rest.event as any).sport,
+                goalDistance: (rest.event as any).goalDistance ?? null,
+                goalDuration: (rest.event as any).goalDuration ?? null,
+                goalElevationGain:
+                  (rest.event as any).goalElevationGain ?? null,
+                goalRpe: (rest.event as any).goalRpe ?? null,
+              } as EventFormValues;
+            }
+            if (rest.event!.type === EVENT_TYPE.ACTIVITY) {
+              return {
+                ...base,
+                sport: (rest.event as any).sport,
+                rpe: (rest.event as any).rpe ?? null,
+              } as EventFormValues;
+            }
+            return base;
+          })()
+        : create
+          ? {
+              type: rest.type!,
+              name: '',
+              description: '',
+              startDate: startDate!,
+              endDate: endDate!,
+            }
+          : undefined,
   });
 
   const {
@@ -134,27 +183,25 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         ...data,
         athleteId,
         workout: {
-          name: data.name || 'Workout',
-          description: data.description || null,
           steps: workoutSteps,
         },
       };
 
       if (create) {
-        createEventMutation.mutate(eventWithWorkout);
+        createEventMutation.mutate(eventWithWorkout as CreateEventDto);
       } else if (edit && rest.event) {
         updateEventMutation.mutate({
           eventId: rest.event.eventId,
-          body: eventWithWorkout,
+          body: eventWithWorkout as UpdateEventDto,
         });
       }
     } else {
       if (create) {
-        createEventMutation.mutate({ ...data, athleteId });
+        createEventMutation.mutate({ ...(data as CreateEventDto), athleteId });
       } else if (edit && rest.event) {
         updateEventMutation.mutate({
           eventId: rest.event.eventId,
-          body: data,
+          body: data as UpdateEventDto,
         });
       }
     }
@@ -180,31 +227,33 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       if (stepData.repeatBlock?.childSteps) {
         cleanedRepeatBlock = {
           ...stepData.repeatBlock,
-          childSteps: stepData.repeatBlock.childSteps.map((childStep: WorkoutStepDto) => {
-            const {
-              workoutStepId,
-              workoutId,
-              createdAt,
-              updatedAt,
-              ...childStepData
-            } = childStep;
-            const cleanedChildTargets = childStep.targets?.map(
-              (target: WorkoutStepTarget) => {
-                const {
-                  workoutStepTargetId,
-                  stepId,
-                  createdAt,
-                  updatedAt,
-                  ...targetData
-                } = target;
-                return targetData;
-              },
-            );
-            return {
-              ...childStepData,
-              targets: cleanedChildTargets,
-            };
-          }),
+          childSteps: stepData.repeatBlock.childSteps.map(
+            (childStep: WorkoutStepDto) => {
+              const {
+                workoutStepId,
+                workoutId,
+                createdAt,
+                updatedAt,
+                ...childStepData
+              } = childStep;
+              const cleanedChildTargets = childStep.targets?.map(
+                (target: WorkoutStepTarget) => {
+                  const {
+                    workoutStepTargetId,
+                    stepId,
+                    createdAt,
+                    updatedAt,
+                    ...targetData
+                  } = target;
+                  return targetData;
+                },
+              );
+              return {
+                ...childStepData,
+                targets: cleanedChildTargets,
+              };
+            },
+          ),
         };
       }
 
@@ -232,7 +281,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   const existingWorkout =
     edit && type === EVENT_TYPE.TRAINING && 'event' in rest
-      ? (rest.event as { workout?: WorkoutDto })?.workout ?? null
+      ? ((rest.event as { workout?: WorkoutDto })?.workout ?? null)
       : null;
 
   const isTraining = type === EVENT_TYPE.TRAINING;
@@ -304,11 +353,14 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                   <div className="text-sm text-gray-500 flex items-center col-span-2">
                     {m.pace()}:{' '}
                     {formatSpeed(
-                      goalDistanceValue / goalDurationValue,
+                      Number(goalDistanceValue) / Number(goalDurationValue),
                       'min/km',
                     )}{' '}
                     {m.per_km()} -{' '}
-                    {formatSpeed(goalDistanceValue / goalDurationValue, 'km/h')}{' '}
+                    {formatSpeed(
+                      Number(goalDistanceValue) / Number(goalDurationValue),
+                      'km/h',
+                    )}{' '}
                     {m.kilometers_per_hour()}
                   </div>
                 )}
@@ -337,7 +389,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                 hideMetadataForm={true}
                 hideActions={true}
                 onStepsChange={handleStepsChange}
-                sport={sportValue}
+                sport={sportValue ?? SPORT_TYPE.RUNNING}
               />
             </div>
           )}
