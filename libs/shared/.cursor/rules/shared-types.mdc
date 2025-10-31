@@ -1,0 +1,15 @@
+---
+description: OpenAthlete – Shared Types & Validation Source of Truth
+globs:
+  - "libs/shared/**"
+alwaysApply: false
+---
+
+- Add DTO schemas with Zod and export both schema and inferred type:
+  - `export const myDtoSchema = z.object({...})`
+  - `export type MyDto = z.infer<typeof myDtoSchema>`
+  - Re-export from `libs/shared/src/index.ts` via `./types`.
+
+- Do not redefine domain types in apps. Import from `@openathlete/shared`.
+
+- Prefer discriminated unions and exact shapes. Keep schemas narrow; no `any`.

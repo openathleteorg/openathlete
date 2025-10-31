@@ -1,0 +1,28 @@
+---
+description: OpenAthlete – Backend (NestJS) Architecture & Controllers/Services
+globs:
+  - "apps/api/**"
+alwaysApply: false
+---
+
+- Stack: NestJS 11, `nestjs-zod`, CASL, Socket.IO.
+
+- Modules & layering:
+  - Domain modules under `src/modules`. Core HTTP surface in `core/controllers`, logic in `core/services`.
+  - Import `AuthModule`, inject `PrismaService` where needed. Map DB to camelCase for frontend.
+
+- Controllers:
+  - Validate input with `ZodValidationPipe` using DTO schemas from `@openathlete/shared`.
+  - Guard authenticated routes with `@UseGuards(AuthGuard('jwt'), UserTypeGuard)`; get user via `@JwtUser()`.
+
+- Services:
+  - Encapsulate Prisma access. Keep business rules and CASL ability checks here.
+  - Use shared mappers (`keysToCamel`, etc.) where relevant. Strong typing end-to-end; avoid partials without proper types.
+
+- Realtime & agents:
+  - Socket.IO interactions under `src/modules/agent`. Keep event payloads typed.
+
+- When adding endpoints (backend steps):
+  1) Add route in controller; validate using shared Zod schema.
+  2) Implement service method; perform CASL checks; return mapped data.
+  3) Ensure DTOs/types are from `@openathlete/shared`.

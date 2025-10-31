@@ -1,0 +1,29 @@
+---
+description: OpenAthlete – Frontend Architecture and API Layer Patterns
+globs:
+  - "apps/web/**"
+alwaysApply: false
+---
+
+- Stack: React 19, Vite, TS, React Router 7, TanStack Query 5, Tailwind 4, Radix UI.
+
+- API layer pattern:
+  - Central axios client and `routes` in `src/utils/axios.ts` (uses `API_BASE_URL`, attaches JWT in interceptor). Reuse `routes` entries.
+  - Per-domain API classes in `src/api/<domain>/<domain>.api.ts`; return domain models from `@openathlete/shared`.
+  - Matching hooks in `src/api/<domain>/<domain>.hooks.ts` with typed `QueryOptions`/`MutationOptions` and stable `queryKey`s (see `*.keys.ts`).
+
+- Components:
+  - Build primitives in `src/components/ui` using `cva` and `cn` from `src/utils/shadcn.ts`.
+  - Props fully typed; use `React.ComponentProps<'button'>` and `VariantProps<typeof variants>`.
+  - Prefer `asChild` for slotting. Avoid inline anonymous style objects—prefer `cva` variants.
+  - Keep components controlled or document behavior clearly.
+
+- State/data:
+  - Use React Query for server state. Invalidate/refetch via the corresponding `...keys` module.
+  - Import all domain data types from `@openathlete/shared`.
+
+- When adding endpoints (frontend steps):
+  1) Extend `routes` in `src/utils/axios.ts` if needed.
+  2) Add typed method to the relevant `*.api.ts`.
+  3) Add a typed hook with stable key in `*.hooks.ts`.
+  4) Implement UI with `cva` primitives and typed props.
