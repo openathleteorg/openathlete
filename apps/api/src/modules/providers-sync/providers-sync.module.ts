@@ -9,7 +9,12 @@ import { GarminAdapter } from './adapters/garmin.adapter';
 import { SuuntoAdapter } from './adapters/suunto.adapter';
 import { ProviderOAuthController } from './controllers/provider-oauth.controller';
 import { ProviderExportService } from './export.service';
-import { StravaProviderService } from './providers/strava.provider.service';
+import {
+  CorosProviderService,
+  GarminProviderService,
+  StravaProviderService,
+  SuuntoProviderService,
+} from './providers';
 import { ProviderExportScheduler } from './scheduler.service';
 
 @Module({
@@ -23,7 +28,16 @@ import { ProviderExportScheduler } from './scheduler.service';
     ProviderExportService,
     ProviderExportScheduler,
     StravaProviderService,
+    GarminProviderService,
+    SuuntoProviderService,
+    CorosProviderService,
   ],
-  exports: [ProviderExportService, StravaProviderService],
+  exports: [
+    ProviderExportService,
+    StravaProviderService,
+    GarminProviderService,
+    SuuntoProviderService,
+    CorosProviderService,
+  ],
 })
 export class ProvidersSyncModule {}

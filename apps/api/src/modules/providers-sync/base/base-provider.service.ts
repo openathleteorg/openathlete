@@ -1,4 +1,5 @@
 import axios, { isAxiosError } from 'axios';
+
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -39,13 +40,15 @@ export abstract class BaseProviderService {
 
   /**
    * Generate OAuth authorization URL
+   * Can be overridden for providers with special requirements (e.g., PKCE)
    */
-  getAuthorizationUri(): string {
+  getAuthorizationUri(state?: string): string {
     const params = new URLSearchParams({
       client_id: this.oauthConfig.clientId,
       redirect_uri: this.oauthConfig.redirectUri,
       response_type: 'code',
       scope: this.oauthConfig.scopes.join(','),
+      ...(state && { state }),
     });
 
     return `${this.oauthConfig.authorizationUrl}?${params.toString()}`;
@@ -53,8 +56,12 @@ export abstract class BaseProviderService {
 
   /**
    * Exchange authorization code for tokens
+   * Can be overridden for providers with special requirements (e.g., PKCE)
    */
-  async exchangeCodeForTokens(code: string): Promise<OAuthTokenResponse> {
+  async exchangeCodeForTokens(
+    code: string,
+    codeVerifier?: string,
+  ): Promise<OAuthTokenResponse> {
     try {
       const { data } = await axios.post<OAuthTokenResponse>(
         this.oauthConfig.tokenUrl,
@@ -86,9 +93,7 @@ export abstract class BaseProviderService {
   /**
    * Refresh access token using refresh token
    */
-  async refreshAccessToken(
-    refreshToken: string,
-  ): Promise<OAuthTokenResponse> {
+  async refreshAccessToken(refreshToken: string): Promise<OAuthTokenResponse> {
     try {
       const { data } = await axios.post<OAuthTokenResponse>(
         this.oauthConfig.tokenUrl,
@@ -119,9 +124,7 @@ export abstract class BaseProviderService {
   /**
    * Get valid access token (refresh if needed)
    */
-  async getValidAccessToken(
-    account: provider_account,
-  ): Promise<string> {
+  async getValidAccessToken(account: provider_account): Promise<string> {
     // If access token exists and not expired, return it
     if (
       account.access_token &&
@@ -154,8 +157,7 @@ export abstract class BaseProviderService {
       },
       data: {
         access_token: tokenResponse.access_token,
-        refresh_token:
-          tokenResponse.refresh_token ?? account.refresh_token,
+        refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
         expires_at: expiresAt,
       },
     });
@@ -174,7 +176,14 @@ export abstract class BaseProviderService {
     scopes?: string;
     externalUserId?: string;
   }): Promise<provider_account> {
-    const { athleteId, accessToken, refreshToken, expiresIn, scopes, externalUserId } = params;
+    const {
+      athleteId,
+      accessToken,
+      refreshToken,
+      expiresIn,
+      scopes,
+      externalUserId,
+    } = params;
 
     const expiresAt = expiresIn
       ? new Date(Date.now() + expiresIn * 1000)
@@ -215,4 +224,3 @@ export abstract class BaseProviderService {
     });
   }
 }
-
