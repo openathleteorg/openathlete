@@ -5,6 +5,7 @@ import {
   ActivityProcessingListener,
   NotificationListener,
   TrainingLoadListener,
+  WorkoutSyncListener,
 } from 'src/listeners';
 
 import { AgentModule } from './agent/agent.module';
@@ -12,6 +13,7 @@ import { AppController } from './app.controller';
 import { AuthModule } from './auth';
 import { CoreModule } from './core';
 import { NotificationModule } from './notification';
+import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { PrismaService } from './prisma/services/prisma.service';
 
 @Module({
@@ -21,6 +23,7 @@ import { PrismaService } from './prisma/services/prisma.service';
     AgentModule,
     EventEmitterModule.forRoot(),
     NotificationModule,
+    ProvidersSyncModule,
   ],
   controllers: [AppController],
   providers: [
@@ -28,6 +31,7 @@ import { PrismaService } from './prisma/services/prisma.service';
     NotificationListener,
     ActivityProcessingListener,
     TrainingLoadListener,
+    WorkoutSyncListener,
   ],
 })
 export class AppModule {}

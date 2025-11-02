@@ -42,7 +42,10 @@ import {
   updateWorkoutSchema,
 } from '@openathlete/shared';
 
-import { ActivityImportedEvent } from 'src/events';
+import {
+  ActivityImportedEvent,
+  WorkoutPlannedChangedEvent,
+} from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
@@ -341,9 +344,48 @@ export class EventService {
           total_distance: totalDistance,
         },
       });
+
+      // Emit event for workout export sync if within 7 days
+      this.emitWorkoutPlannedChanged(
+        created.event_id,
+        finalAthleteId,
+        workoutData.workout_id,
+        created.start_date,
+        created.training.sport,
+      );
     }
 
     return this.getEventById(user, created.event_id);
+  }
+
+  private emitWorkoutPlannedChanged(
+    eventId: number,
+    athleteId: number,
+    workoutId: number | null,
+    startDate: Date,
+    sport: string,
+  ) {
+    // Check if date is within next 7 days (UTC)
+    const now = new Date();
+    const endDate = new Date(now);
+    endDate.setUTCDate(endDate.getUTCDate() + 7);
+    endDate.setUTCHours(23, 59, 59, 999);
+
+    const eventDate = new Date(startDate);
+    eventDate.setUTCHours(0, 0, 0, 0);
+
+    if (eventDate <= endDate && eventDate >= now) {
+      this.eventEmitter.emit(
+        WorkoutPlannedChangedEvent.SLUG,
+        new WorkoutPlannedChangedEvent({
+          eventId,
+          athleteId,
+          workoutId: workoutId ?? null,
+          startDate: eventDate,
+          sport,
+        }),
+      );
+    }
   }
 
   async updateEvent(
@@ -447,6 +489,15 @@ export class EventService {
               total_distance: totalDistance,
             },
           });
+
+          // Emit event for workout export sync if within 7 days
+          this.emitWorkoutPlannedChanged(
+            eventId,
+            event.athlete_id!,
+            existingWorkout.workout_id,
+            updatedEvent.start_date,
+            event.training.sport,
+          );
         }
       } else if (workout && workout.steps && workout.steps.length > 0) {
         const parsedUpdate = updateWorkoutSchema.safeParse(workout);
@@ -487,7 +538,33 @@ export class EventService {
             total_distance: totalDistance,
           },
         });
+
+        // Emit event for workout export sync if within 7 days
+        this.emitWorkoutPlannedChanged(
+          eventId,
+          event.athlete_id!,
+          newWorkout.workout_id,
+          updatedEvent.start_date,
+          event.training.sport,
+        );
       }
+    }
+
+    // If date changed and there's a workout, emit event for new date too
+    if (
+      event.type === 'TRAINING' &&
+      event.training?.workout &&
+      (start_date || end_date) &&
+      event.athlete_id
+    ) {
+      const finalStartDate = start_date ?? event.start_date;
+      this.emitWorkoutPlannedChanged(
+        eventId,
+        event.athlete_id,
+        event.training.workout.workout_id,
+        finalStartDate,
+        event.training.sport,
+      );
     }
 
     // If RPE was updated on an activity, trigger training load recalculation
@@ -512,11 +589,31 @@ export class EventService {
       where: {
         AND: [{ event_id: eventId }, accessibleBy(ability, 'delete').event],
       },
-      include: { activity: true },
+      include: {
+        activity: true,
+        training: {
+          include: { workout: true },
+        },
+      },
     });
 
     if (!event) {
       throw new NotFoundException('Event not found');
+    }
+
+    // Emit event for workout deletion if within 7 days (but listener will skip deletion on provider)
+    if (
+      event.type === 'TRAINING' &&
+      event.training?.workout &&
+      event.athlete_id
+    ) {
+      this.emitWorkoutPlannedChanged(
+        eventId,
+        event.athlete_id,
+        null, // workout deleted
+        event.start_date,
+        event.training.sport,
+      );
     }
 
     await this.prisma.event_training.deleteMany({

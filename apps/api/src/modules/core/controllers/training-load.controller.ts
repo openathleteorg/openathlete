@@ -99,14 +99,6 @@ export class TrainingLoadController {
       athleteId,
     );
 
-    // Debug log
-    if (history.length > 0) {
-      console.log('📊 Training Load History Sample:', {
-        totalPoints: history.length,
-        sample: history[Math.floor(history.length / 2)],
-      });
-    }
-
     return history;
   }
 
