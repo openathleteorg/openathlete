@@ -31,7 +31,7 @@ export function OAuthCallbackPage() {
 
     const code = searchParams.get('code');
     const finalProvider = (provider || '').toUpperCase();
-    const validProviders = ['STRAVA'];
+    const validProviders = ['STRAVA', 'GARMIN', 'SUUNTO', 'COROS'];
     if (code && provider && validProviders.includes(finalProvider)) {
       setOAuthTokenMutation.mutate({
         provider: finalProvider as ConnectorProvider,

@@ -1,6 +1,15 @@
-import { MutationOptions, useMutation } from '@tanstack/react-query';
+import {
+  MutationOptions,
+  QueryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
-import { ProviderAPI } from './provider.api';
+import { ConnectorProvider } from '@openathlete/shared';
+
+import { ConnectedProvider, ProviderAPI } from './provider.api';
+import { providerKeys } from './provider.keys';
 
 export const useGetOAuthUriMutation = (
   opt?: MutationOptions<
@@ -12,10 +21,6 @@ export const useGetOAuthUriMutation = (
   return useMutation({
     ...opt,
     mutationFn: ProviderAPI.getOAuthUri,
-    onSuccess: (data, variables, onMutateResult, context) => {
-      if (opt?.onSuccess)
-        opt.onSuccess(data, variables, onMutateResult, context);
-    },
   });
 };
 
@@ -26,13 +31,40 @@ export const useSetOAuthTokenMutation = (
     Parameters<typeof ProviderAPI.setOAuthToken>[0]
   >,
 ) => {
+  const queryClient = useQueryClient();
   return useMutation({
     ...opt,
     mutationFn: ProviderAPI.setOAuthToken,
-    onSuccess: (data, variables, onMutateResult, context) => {
-      if (opt?.onSuccess)
-        opt.onSuccess(data, variables, onMutateResult, context);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [providerKeys.getConnected] });
     },
   });
 };
 
+export const useDisconnectProviderMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof ProviderAPI.disconnect>>,
+    Error,
+    ConnectorProvider
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: (provider: ConnectorProvider) =>
+      ProviderAPI.disconnect(provider),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [providerKeys.getConnected] });
+    },
+  });
+};
+
+export const useGetConnectedProvidersQuery = (
+  opt?: QueryOptions<ConnectedProvider[]>,
+) => {
+  return useQuery({
+    ...opt,
+    queryKey: [providerKeys.getConnected],
+    queryFn: ProviderAPI.getConnectedProviders,
+  });
+};

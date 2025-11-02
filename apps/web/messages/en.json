@@ -545,5 +545,21 @@
   "empty_folder_drag_items": "Empty folder - drag items here",
   "no_templates_yet": "No templates yet",
   "drop_here_to_add_to_root": "Drop here to add to root level",
-  "create_folder_or_add_templates": "Create a folder or add templates to get started"
+  "create_folder_or_add_templates": "Create a folder or add templates to get started",
+  "activity_providers": "Activity Providers",
+  "connect_activity_tracking_services": "Connect your activity tracking services to import activities and export workouts",
+  "connected_and_syncing": "Connected and syncing",
+  "not_connected": "Not connected",
+  "connected": "Connected",
+  "provider_account_connected": "Your {provider} account is connected. Activities will be automatically imported and workouts will be exported.",
+  "connect_provider_account": "Connect your {provider} account to sync activities and export workouts.",
+  "connect": "Connect",
+  "disconnect": "Disconnect",
+  "confirm_disconnect_provider": "Are you sure you want to disconnect from {provider}?",
+  "disconnected_from_provider": "Disconnected from {provider}",
+  "failed_to_initiate_connection": "Failed to initiate connection",
+  "failed_to_disconnect": "Failed to disconnect",
+  "providers": "Providers",
+  "icalendar_feed": "iCalendar Feed",
+  "subscribe_calendar_feed": "Subscribe to your calendar feed in external calendar applications"
 }

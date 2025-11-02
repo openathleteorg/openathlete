@@ -76,6 +76,9 @@ export const routes = {
       `/provider/${provider.toLowerCase()}/uri`,
     setOAuthToken: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/token`,
+    disconnect: (provider: ConnectorProvider) =>
+      `/provider/${provider.toLowerCase()}/disconnect`,
+    getConnected: '/provider/connected',
   },
   athlete: {
     getMyAthlete: '/athlete/me',

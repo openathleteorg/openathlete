@@ -547,5 +547,21 @@
   "empty_folder_drag_items": "Dossier vide - déposer des éléments ici",
   "no_templates_yet": "Aucun modèle pour le moment",
   "drop_here_to_add_to_root": "Déposer ici pour ajouter au niveau racine",
-  "create_folder_or_add_templates": "Créer un dossier ou ajouter des modèles pour commencer"
+  "create_folder_or_add_templates": "Créer un dossier ou ajouter des modèles pour commencer",
+  "activity_providers": "Fournisseurs d'activités",
+  "connect_activity_tracking_services": "Connectez vos services de suivi d'activités pour importer des activités et exporter des entraînements",
+  "connected_and_syncing": "Connecté et synchronisation",
+  "not_connected": "Non connecté",
+  "connected": "Connecté",
+  "provider_account_connected": "Votre compte {provider} est connecté. Les activités seront automatiquement importées et les entraînements seront exportés.",
+  "connect_provider_account": "Connectez votre compte {provider} pour synchroniser les activités et exporter les entraînements.",
+  "connect": "Connecter",
+  "disconnect": "Déconnecter",
+  "confirm_disconnect_provider": "Êtes-vous sûr de vouloir vous déconnecter de {provider} ?",
+  "disconnected_from_provider": "Déconnecté de {provider}",
+  "failed_to_initiate_connection": "Échec de l'initiation de la connexion",
+  "failed_to_disconnect": "Échec de la déconnexion",
+  "providers": "Fournisseurs",
+  "icalendar_feed": "Flux iCalendar",
+  "subscribe_calendar_feed": "Abonnez-vous à votre flux calendrier dans des applications calendrier externes"
 }
