@@ -21,6 +21,8 @@ enum connector_provider {
   GARMIN
   FITBIT
   APPLE_HEALTH
+  SUUNTO
+  COROS
 }
 
 enum sport_type {
@@ -197,6 +199,18 @@ enum workout_target_unit {
   KG // weight in kilograms
   LBS // weight in pounds
   REPS // number of repetitions
+}
+
+enum provider_account_status {
+  active
+  revoked
+}
+
+enum provider_workout_export_status {
+  pending
+  success
+  failed
+  skipped
 }
 
 enum plan_status {

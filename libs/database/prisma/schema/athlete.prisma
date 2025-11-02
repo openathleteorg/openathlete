@@ -18,6 +18,8 @@ model athlete {
   training_load_calculations training_load_calculation[]
   training_plans             training_plan[]
   availability               athlete_availability[]
+  provider_accounts          provider_account[]
+  provider_workout_exports   provider_workout_export[]
 
   // timestamps
   created_at DateTime @default(now())

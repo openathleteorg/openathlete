@@ -28,9 +28,10 @@ model workout {
   total_distance     Float? // in meters, if applicable
 
   // relationships
-  event_training    event_training @relation(fields: [event_training_id], references: [event_training_id], onDelete: Cascade)
-  event_training_id Int            @unique
-  steps             workout_step[]
+  event_training           event_training            @relation(fields: [event_training_id], references: [event_training_id], onDelete: Cascade)
+  event_training_id        Int                       @unique
+  steps                    workout_step[]
+  provider_workout_exports provider_workout_export[]
 
   // timestamps
   created_at DateTime @default(now())
@@ -46,7 +47,7 @@ model workout_step {
   step_type     workout_step_type
   name          String? // optional label (e.g., "Warmup", "Tempo intervals")
   exercise_name String? // exercise name for strength training (e.g., "Bench Press", "Squat")
-  notes         String? @default("") // additional instructions/comments
+  notes         String?           @default("") // additional instructions/comments
 
   // Duration can be defined in multiple ways (only one should be set)
   duration_type   workout_duration_type
