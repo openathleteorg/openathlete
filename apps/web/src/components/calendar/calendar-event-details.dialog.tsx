@@ -59,7 +59,6 @@ export function CalendarEventDetailsDialog({
                         event.provider!,
                         event.externalId,
                       );
-                      console.log(link);
                       if (!link) return;
                       window.open(link, '_blank');
                     }}

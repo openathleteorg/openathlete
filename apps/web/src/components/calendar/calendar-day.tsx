@@ -150,7 +150,6 @@ export function CalendarDay({ day, events, cycleSegments = [] }: P) {
         isOver ? 'bg-gray-100 dark:bg-gray-800/50' : '',
         isInDragSelection ? 'bg-blue-50 dark:bg-blue-950/30' : '',
       )}
-      onClick={() => console.log(day)}
       onMouseDown={handleMouseDown}
       onMouseEnter={handleMouseEnter}
       onMouseUp={handleMouseUp}

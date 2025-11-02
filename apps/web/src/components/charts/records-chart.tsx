@@ -51,7 +51,6 @@ export function RecordsChart({ records, className }: P) {
         ) {
           const duration =
             (record.endDuration || 1) - (record.startDuration || 0);
-          console.log(record);
           acc[distance][record.type] = record.value / (duration / 3600);
         }
 

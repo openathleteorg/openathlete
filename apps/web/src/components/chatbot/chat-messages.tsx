@@ -44,7 +44,6 @@ function MessageBubble({
   const isWaitingForContent =
     !isUser && sortedBlocks.length === 0 && !streamingBlock;
 
-  console.log('Active tools in MessageBubble:', activeTools);
   return (
     <div
       className={cn(
