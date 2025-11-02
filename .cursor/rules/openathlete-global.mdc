@@ -9,6 +9,12 @@ alwaysApply: true
 - Zero any policy: do not introduce `any`. Prefer precise shared types, Zod-inferred types, discriminated unions, and exhaustive switches.
 - Lint/format: keep code passing shared configs.
 
+- Frontend i18n (Paraglide):
+  - **ALWAYS use Paraglide for translations**: In the frontend (`apps/web`), all user-facing strings MUST use Paraglide messages via `import { m } from '@/paraglide/messages'` and `m.messageKey()`.
+  - **Never use hardcoded strings**: Do not write English text directly in components. All text visible to users must come from Paraglide messages defined in `apps/web/messages/{locale}.json`.
+  - Message keys: Use snake_case for message keys. When adding new messages, add them to both `en.json` and `fr.json` (and any other locales if added).
+  - Pattern: Import messages at the top: `import { m } from '@/paraglide/messages';` and use throughout the component: `{m.my_message()}`, `{m.message_with_params({ param: value })}`.
+
 - Prisma (libs/database):
   - Schema under `libs/database/prisma/schema` (split by domain).
   - After schema changes, propose: `pnpm database run db:generate`, then `pnpm database run db:migrate` (or `db:deploy`).
