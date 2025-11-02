@@ -9,7 +9,6 @@ model athlete {
   user_id                    Int                         @unique
   coach_athletes             coach_athlete[]
   events                     event[]
-  connectors                 connector[]
   training_zones             training_zone[]
   records                    record[]
   equipment                  equipment[]
