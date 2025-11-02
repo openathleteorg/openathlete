@@ -9,6 +9,12 @@ import {
   type WorkoutStepDto,
   type WorkoutStepTarget,
 } from '../types/dtos/core/workout.dto';
+import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
+import type {
+  NormalizedWorkout,
+  NormalizedWorkoutStep,
+  NormalizedWorkoutStepTarget,
+} from '../types/workout-normalized';
 
 // ----------------------------------------------------------------------------
 // Normalization helpers (camelCase DTOs → clean Create DTOs)
@@ -238,4 +244,72 @@ export function mapPrismaWorkoutToDto(prismaWorkout: any): WorkoutDto {
       ? new Date(prismaWorkout.updated_at)
       : undefined,
   } as WorkoutDto;
+}
+
+// ----------------------------------------------------------------------------
+// Normalization for provider export (flatten repeats)
+// ----------------------------------------------------------------------------
+
+function flattenStep(
+  step: WorkoutStepDto,
+  accumulator: NormalizedWorkoutStep[],
+): void {
+  if (step.stepType === WORKOUT_STEP_TYPE.REPEAT && step.repeatBlock) {
+    const reps = step.repeatBlock.repetitions || 1;
+    for (let i = 0; i < reps; i += 1) {
+      for (const child of step.repeatBlock.childSteps || []) {
+        flattenStep(child as WorkoutStepDto, accumulator);
+      }
+    }
+    return;
+  }
+
+  const targets: NormalizedWorkoutStepTarget[] = (step.targets || []).map(
+    (t: WorkoutStepTarget) => ({
+      targetType: t.targetType,
+      targetZone: t.targetZone ?? null,
+      targetMin: t.targetMin ?? null,
+      targetMax: t.targetMax ?? null,
+      targetValue: t.targetValue ?? null,
+      unit: t.unit ?? null,
+    }),
+  );
+
+  const normalized: NormalizedWorkoutStep = {
+    orderIndex: step.orderIndex,
+    stepType: step.stepType,
+    name: step.name ?? null,
+    notes: step.notes ?? null,
+    durationType: step.durationType,
+    durationValue: step.durationValue ?? null,
+    durationTarget: step.durationTarget ?? null,
+    targets,
+  };
+
+  accumulator.push(normalized);
+}
+
+export function normalizeWorkoutForExport(input: {
+  sport: SPORT_TYPE;
+  title?: string | null;
+  description?: string | null;
+  workout: WorkoutDto;
+}): NormalizedWorkout {
+  const flatSteps: NormalizedWorkoutStep[] = [];
+  for (const step of input.workout.steps || []) {
+    flattenStep(step as WorkoutStepDto, flatSteps);
+  }
+
+  // Recompute orderIndex after flatten to ensure monotonic order
+  flatSteps.sort((a, b) => a.orderIndex - b.orderIndex);
+  flatSteps.forEach((s, idx) => {
+    s.orderIndex = idx;
+  });
+
+  return {
+    sport: input.sport,
+    title: input.title ?? null,
+    description: input.description ?? null,
+    steps: flatSteps,
+  };
 }

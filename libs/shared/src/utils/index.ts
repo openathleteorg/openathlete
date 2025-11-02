@@ -23,6 +23,7 @@ export type {
 } from './workout.utils';
 export {
   normalizeWorkoutForCreate,
+  normalizeWorkoutForExport,
   mapWorkoutDtoToPrisma,
   mapPrismaWorkoutToDto,
 } from './workout.mappers';
