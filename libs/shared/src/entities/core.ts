@@ -1,6 +1,5 @@
 import {
   athlete,
-  connector,
   connector_provider,
   cycle,
   equipment,
@@ -35,8 +34,6 @@ export interface User extends ConvertKeysToCamelCase<user> {
   roles: UserRole[];
   athlete?: Athlete;
 }
-
-export interface Connector extends ConvertKeysToCamelCase<connector> {}
 
 export interface Record extends ConvertKeysToCamelCase<record> {}
 
