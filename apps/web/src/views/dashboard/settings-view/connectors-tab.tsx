@@ -2,7 +2,7 @@ import { StravaIcon } from '@/assets/icons';
 import { Button } from '@/components/ui/button';
 import { API_BASE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
-import { useGetOAuthUriMutation } from '@/api/connector';
+import { useGetOAuthUriMutation } from '@/api/provider';
 import { useGetMyIcalCalendarSecretQuery } from '@/api/event';
 
 interface P {}

@@ -71,11 +71,11 @@ export const routes = {
     updateMetric: (metricId: number) => `/metric/${metricId}`,
     deleteMetric: (metricId: number) => `/metric/${metricId}`,
   },
-  connector: {
+  provider: {
     getOAuthUri: (provider: ConnectorProvider) =>
-      `/connector/${provider.toLowerCase()}/uri`,
+      `/provider/${provider.toLowerCase()}/uri`,
     setOAuthToken: (provider: ConnectorProvider) =>
-      `/connector/${provider.toLowerCase()}/token`,
+      `/provider/${provider.toLowerCase()}/token`,
   },
   athlete: {
     getMyAthlete: '/athlete/me',

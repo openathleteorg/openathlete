@@ -1,7 +1,7 @@
+import { useSetOAuthTokenMutation } from '@/api/provider';
 import { LoadingScreen } from '@/components/loading-screen';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { useSetOAuthTokenMutation } from '@/api/connector';
 import { useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
