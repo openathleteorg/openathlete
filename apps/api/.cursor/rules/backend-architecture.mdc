@@ -16,7 +16,8 @@ alwaysApply: false
   - Guard authenticated routes with `@UseGuards(AuthGuard('jwt'), UserTypeGuard)`; get user via `@JwtUser()`.
 
 - Services:
-  - Encapsulate Prisma access. Keep business rules and CASL ability checks here.
+  - Use PrismaService directly (no repository pattern). Inject PrismaService and call Prisma methods directly (e.g., `this.prisma.model.create()`, `this.prisma.model.findMany()`, etc.).
+  - Keep business rules and CASL ability checks here.
   - Use shared mappers (`keysToCamel`, etc.) where relevant. Strong typing end-to-end; avoid partials without proper types.
 
 - Realtime & agents:
