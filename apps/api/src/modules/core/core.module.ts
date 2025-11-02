@@ -7,7 +7,6 @@ import { CaslAbilityFactory } from '../auth/services/casl-ability.factory';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
-import { ConnectorController } from './controllers/connector.controller';
 import { ContactController } from './controllers/contact.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
@@ -21,7 +20,6 @@ import { TrainingZoneController } from './controllers/training-zone.controller';
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { AthleteService } from './services/athlete.service';
-import { StravaConnectorService } from './services/connector/strava.service';
 import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
@@ -47,7 +45,6 @@ import { WeatherService } from './services/weather/weather.service';
     EventController,
     EventTemplateController,
     EventTemplateFolderController,
-    ConnectorController,
     AthleteController,
     StatisticsController,
     RecordController,
@@ -62,7 +59,6 @@ import { WeatherService } from './services/weather/weather.service';
     EventService,
     EventTemplateService,
     EventTemplateFolderService,
-    StravaConnectorService,
     AthleteService,
     StatisticsService,
     PrismaService,
