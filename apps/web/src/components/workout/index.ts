@@ -1,7 +1,5 @@
 export { DurationDisplay } from './duration-display';
 export { ExercisePicker } from './exercise-picker';
-export { RepeatBlockCard } from './repeat-block-card';
-export { RepeatBlockForm } from './repeat-block-form';
 export { RepeatBlockInline } from './repeat-block-inline';
 export { StepCard } from './step-card';
 export { StepForm } from './step-form';

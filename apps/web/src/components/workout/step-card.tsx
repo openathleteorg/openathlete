@@ -36,10 +36,6 @@ interface StepCardProps {
   className?: string;
 }
 
-/**
- * Card component that displays a workout step
- * Shows step type, duration, targets, and actions
- */
 export function StepCard({
   step,
   index,
@@ -71,15 +67,12 @@ export function StepCard({
       )}
     >
       <div className="flex items-center gap-3 p-3">
-        {/* Order Index */}
         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
           {index}
         </div>
 
-        {/* Type Icon */}
         <TypeIcon stepType={step.stepType} />
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground">
@@ -99,7 +92,6 @@ export function StepCard({
 
           {!isCompact && (
             <div className="mt-1 flex items-center gap-2 flex-wrap">
-              {/* Duration */}
               <span className="text-xs text-muted-foreground">
                 <DurationDisplay
                   durationType={step.durationType}
@@ -107,7 +99,6 @@ export function StepCard({
                 />
               </span>
 
-              {/* Targets */}
               {hasTargets && (
                 <>
                   <span className="text-xs text-muted-foreground">·</span>
@@ -124,7 +115,6 @@ export function StepCard({
           )}
         </div>
 
-        {/* Actions */}
         {!isReadOnly && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -160,7 +150,6 @@ export function StepCard({
         )}
       </div>
 
-      {/* Notes (collapsible) */}
       {!isCompact && hasNotes && (
         <Collapsible>
           <div className="border-t px-3 py-2">

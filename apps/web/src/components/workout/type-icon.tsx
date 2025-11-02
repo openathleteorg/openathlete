@@ -18,9 +18,6 @@ interface TypeIconProps {
   className?: string;
 }
 
-/**
- * Get the appropriate icon for a step type
- */
 function getStepTypeIcon(stepType: WorkoutStepType): LucideIcon {
   const icons: Record<WorkoutStepType, LucideIcon> = {
     WARMUP: Flame,
@@ -34,9 +31,6 @@ function getStepTypeIcon(stepType: WorkoutStepType): LucideIcon {
   return icons[stepType] || Activity;
 }
 
-/**
- * Component that displays an icon for a workout step type with appropriate color
- */
 export function TypeIcon({ stepType, size = 'md', className }: TypeIconProps) {
   const Icon = getStepTypeIcon(stepType);
   const colors = getStepTypeColor(stepType);

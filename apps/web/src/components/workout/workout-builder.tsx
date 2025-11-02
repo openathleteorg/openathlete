@@ -6,23 +6,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-import {
-  SPORT_TYPE,
-  WORKOUT_DURATION_TYPE,
-  WORKOUT_STEP_TYPE,
-} from '@openathlete/shared';
 import type {
   WorkoutDto,
   WorkoutDurationType,
   WorkoutStepDto,
   WorkoutStepType,
 } from '@openathlete/shared';
-import { normalizeWorkoutForCreate } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_STEP_TYPE,
+  normalizeWorkoutForCreate,
+} from '@openathlete/shared';
 
 import { StepForm } from './step-form';
 import { StepList } from './step-list';
@@ -31,9 +30,6 @@ interface WorkoutBuilderProps {
   trainingId: number;
   workout?: WorkoutDto | null;
   sport: SPORT_TYPE;
-  isLoading?: boolean;
-  onSuccess?: (workout: WorkoutDto) => void;
-  onCancel?: () => void;
   hideMetadataForm?: boolean;
   hideActions?: boolean;
   onStepsChange?: (steps: WorkoutStepDto[]) => void;
@@ -46,14 +42,11 @@ type DialogState =
 export function WorkoutBuilder({
   trainingId: _trainingId,
   workout,
-  isLoading = false,
   sport,
   onStepsChange,
 }: WorkoutBuilderProps) {
   const [steps, setSteps] = useState<WorkoutStepDto[]>(workout?.steps || []);
-
   const [dialogState, setDialogState] = useState<DialogState>({ type: 'none' });
-
   const [idCounter, setIdCounter] = useState<number>(0);
 
   const generateTempId = () => {
@@ -210,17 +203,6 @@ export function WorkoutBuilder({
       }),
     );
   };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-20 w-full" />
-        <Skeleton className="h-32 w-full" />
-        <Skeleton className="h-32 w-full" />
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

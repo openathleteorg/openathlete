@@ -49,7 +49,6 @@ import { TargetBadge } from './target-badge';
 import { TargetForm } from './target-form';
 import { TypeIcon } from './type-icon';
 
-// Step types and duration types will use i18n functions
 const STEP_TYPE_VALUES = [
   WORKOUT_STEP_TYPE.WARMUP,
   WORKOUT_STEP_TYPE.COOLDOWN,
@@ -66,20 +65,18 @@ const DURATION_TYPE_VALUES = [
   WORKOUT_DURATION_TYPE.OPEN,
 ] as const;
 
-// Zod schema for step form
 const stepFormSchema = z.object({
   stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
   name: z.string().nullable().optional(),
   exerciseName: z.string().nullable().optional(),
   durationType: z.nativeEnum(WORKOUT_DURATION_TYPE),
   durationValue: z.number().nullable().optional(),
-  durationTime: z.date().optional(), // Temporary field for time picker
+  durationTime: z.date().optional(),
   notes: z.string().nullable().optional(),
 });
 
 type StepFormValues = z.infer<typeof stepFormSchema>;
 
-// Target with temp ID for UI
 type TargetWithId = {
   id: string;
   targetType: WorkoutStepTarget['targetType'];
@@ -95,15 +92,14 @@ interface StepFormProps {
   onCancel?: () => void;
   submitLabel?: string;
   cancelLabel?: string;
-  sport?: keyof typeof SPORT_TYPE; // Sport type to determine if exercise name should be shown
+  sport?: keyof typeof SPORT_TYPE;
 }
 
-// Utility functions for time conversion
 const secondsToDate = (
   seconds: number | null | undefined,
 ): Date | undefined => {
   if (seconds == null) return undefined;
-  const date = new Date(0); // Start from epoch
+  const date = new Date(0);
   date.setHours(Math.floor(seconds / 3600));
   date.setMinutes(Math.floor((seconds % 3600) / 60));
   date.setSeconds(seconds % 60);
@@ -115,11 +111,6 @@ const dateToSeconds = (date: Date | undefined): number | null => {
   return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
 };
 
-/**
- * Form for creating or editing a workout step
- * Supports conditional fields based on step type and sport
- * Manages targets list with add/remove functionality
- */
 export function StepForm({
   initialValues,
   onSubmit,
@@ -155,11 +146,9 @@ export function StepForm({
 
   const selectedDurationType = form.watch('durationType');
 
-  // Check if sport is strength-based
   const isStrength =
     sport === 'STRENGTH' || sport === 'CROSSFIT' || sport === 'YOGA';
 
-  // Get duration unit label
   const getDurationUnit = (type: WorkoutDurationType) => {
     switch (type) {
       case 'TIME':
@@ -173,7 +162,6 @@ export function StepForm({
     }
   };
 
-  // Add target
   const handleAddTarget = (targetValues: Partial<Omit<TargetWithId, 'id'>>) => {
     setTargets([
       ...targets,
@@ -189,12 +177,10 @@ export function StepForm({
     setIsTargetDialogOpen(false);
   };
 
-  // Remove target
   const handleRemoveTarget = (id: string) => {
     setTargets(targets.filter((t) => t.id !== id));
   };
 
-  // Submit form with targets
   const handleSubmit = (values: StepFormValues) => {
     onSubmit({
       ...values,
@@ -212,7 +198,6 @@ export function StepForm({
         }}
         className="space-y-4"
       >
-        {/* Step Type */}
         <FormField
           control={form.control}
           name="stepType"
@@ -253,7 +238,6 @@ export function StepForm({
           )}
         />
 
-        {/* Name (optional) */}
         <FormField
           control={form.control}
           name="name"
@@ -275,7 +259,6 @@ export function StepForm({
           )}
         />
 
-        {/* Exercise Name (for strength sports) */}
         {isStrength && (
           <FormField
             control={form.control}
@@ -297,7 +280,6 @@ export function StepForm({
           />
         )}
 
-        {/* Duration Type */}
         <FormField
           control={form.control}
           name="durationType"
@@ -332,7 +314,6 @@ export function StepForm({
           )}
         />
 
-        {/* Duration Value (conditional) */}
         {selectedDurationType !== 'OPEN' && (
           <>
             {selectedDurationType === 'TIME' ? (
@@ -340,7 +321,6 @@ export function StepForm({
                 name="durationTime"
                 label={m.step_form_duration_value()}
                 onChange={(date) => {
-                  // Sync durationTime to durationValue
                   form.setValue('durationValue', dateToSeconds(date));
                 }}
               />
@@ -383,7 +363,6 @@ export function StepForm({
           </>
         )}
 
-        {/* Targets Section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <FormLabel>{m.step_form_targets()}</FormLabel>
@@ -446,7 +425,6 @@ export function StepForm({
           )}
         </div>
 
-        {/* Notes (optional) */}
         <FormField
           control={form.control}
           name="notes"
@@ -470,7 +448,6 @@ export function StepForm({
           )}
         />
 
-        {/* Actions */}
         <div className="flex justify-end gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>

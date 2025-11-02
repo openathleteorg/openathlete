@@ -1,8 +1,4 @@
-import { useState } from 'react';
-import { Search } from 'lucide-react';
-
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -11,12 +7,15 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { useState } from 'react';
 
 interface ExercisePickerProps {
   value?: string;
@@ -25,9 +24,7 @@ interface ExercisePickerProps {
   label?: string;
 }
 
-// TODO: Replace with API call to fetch exercises from database
 const PLACEHOLDER_EXERCISES = [
-  // Upper Body
   'Push-ups',
   'Pull-ups',
   'Bench Press',
@@ -35,35 +32,27 @@ const PLACEHOLDER_EXERCISES = [
   'Dumbbell Rows',
   'Bicep Curls',
   'Tricep Dips',
-  // Lower Body
   'Squats',
   'Lunges',
   'Deadlifts',
   'Leg Press',
   'Calf Raises',
   'Bulgarian Split Squats',
-  // Core
   'Plank',
   'Crunches',
   'Russian Twists',
   'Mountain Climbers',
   'Bicycle Crunches',
-  // Full Body
   'Burpees',
   'Jumping Jacks',
   'Box Jumps',
   'Kettlebell Swings',
-  // Yoga
   'Downward Dog',
   'Warrior Pose',
   'Tree Pose',
   'Child Pose',
 ].sort();
 
-/**
- * Exercise picker with autocomplete functionality
- * Currently uses a placeholder list - will be replaced with API call
- */
 export function ExercisePicker({
   value = '',
   onChange,
@@ -73,7 +62,6 @@ export function ExercisePicker({
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState(value);
 
-  // Filter exercises based on search
   const filteredExercises = PLACEHOLDER_EXERCISES.filter((exercise) =>
     exercise.toLowerCase().includes(searchValue.toLowerCase()),
   );

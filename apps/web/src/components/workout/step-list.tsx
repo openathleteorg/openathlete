@@ -23,53 +23,17 @@ import { RepeatBlockInline } from './repeat-block-inline';
 import { StepCard } from './step-card';
 
 interface StepListProps {
-  /**
-   * Array of workout steps (including repeat blocks)
-   */
   steps: WorkoutStep[];
-
-  /**
-   * Callback when steps are reordered
-   */
   onReorder: (reorderedSteps: WorkoutStep[]) => void;
-
-  /**
-   * Callback to edit a step
-   */
   onEditStep: (step: WorkoutStep) => void;
-
-  /**
-   * Callback to delete a step
-   */
   onDeleteStep: (stepId: number) => void;
-
-  /**
-   * Callback to update a repeat block (e.g., change repetitions)
-   */
   onUpdateRepeatBlock?: (step: WorkoutStep) => void;
-
-  /**
-   * Callback to add a child step to a repeat block
-   */
   onAddChildStep?: (
     parentStepId: number,
     childStep: Omit<WorkoutStep, 'workoutStepId'>,
   ) => void;
-
-  /**
-   * Callback to edit a child step in a repeat block
-   */
   onEditChildStep?: (parentStepId: number, childStep: WorkoutStep) => void;
-
-  /**
-   * Callback to delete a child step from a repeat block
-   */
   onDeleteChildStep?: (parentStepId: number, childStepId: number) => void;
-
-  /**
-   * Whether the list is in a loading state
-   */
-  isLoading?: boolean;
 }
 
 interface SortableStepItemProps {
@@ -86,9 +50,6 @@ interface SortableStepItemProps {
   onDeleteChildStep?: (parentStepId: number, childStepId: number) => void;
 }
 
-/**
- * Individual sortable step item with drag handle
- */
 function SortableStepItem({
   step,
   index,
@@ -118,7 +79,6 @@ function SortableStepItem({
 
   return (
     <div ref={setNodeRef} style={style} className="flex items-start gap-2">
-      {/* Drag Handle */}
       <button
         type="button"
         className="mt-3 cursor-grab active:cursor-grabbing touch-none"
@@ -128,10 +88,8 @@ function SortableStepItem({
         <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
       </button>
 
-      {/* Step Content */}
       <div className="flex-1">
         {step.stepType === 'REPEAT' && step.repeatBlock ? (
-          // Repeat block - use RepeatBlockInline component
           <RepeatBlockInline
             step={
               step as WorkoutStep & {
@@ -145,7 +103,6 @@ function SortableStepItem({
             onDeleteChildStep={onDeleteChildStep || (() => {})}
           />
         ) : (
-          // Regular step
           <StepCard
             step={step}
             index={index}
@@ -158,12 +115,6 @@ function SortableStepItem({
   );
 }
 
-/**
- * StepList - Sortable list of workout steps with drag & drop
- *
- * Displays workout steps with drag handles for reordering.
- * Supports both regular steps and repeat blocks with nested child steps.
- */
 export function StepList({
   steps,
   onReorder,
@@ -173,7 +124,6 @@ export function StepList({
   onAddChildStep,
   onEditChildStep,
   onDeleteChildStep,
-  isLoading = false,
 }: StepListProps) {
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -199,26 +149,6 @@ export function StepList({
       onReorder(reorderedSteps);
     }
   };
-
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-muted animate-pulse rounded-lg"></div>
-        ))}
-      </div>
-    );
-  }
-
-  if (steps.length === 0) {
-    return (
-      <div className="text-center py-12 border-2 border-dashed rounded-lg">
-        <p className="text-sm text-muted-foreground">
-          No steps added yet. Add your first step to get started.
-        </p>
-      </div>
-    );
-  }
 
   return (
     <DndContext
