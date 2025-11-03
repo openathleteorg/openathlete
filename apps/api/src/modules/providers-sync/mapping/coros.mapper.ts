@@ -22,7 +22,7 @@ function simplifyStep(step: NormalizedWorkout['steps'][number]): ProviderPlanned
       min: t.targetMin ?? null,
       max: t.targetMax ?? null,
       value: t.targetValue ?? null,
-      zone: t.targetZone ?? null,
+      zone: t.targetType === 'ZONE' ? t.targetValue ?? null : null,
       unit: t.unit ?? null,
     },
   };
