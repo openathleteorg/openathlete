@@ -110,7 +110,6 @@ export class EventTemplateService {
                 targets: {
                   create: step.targets.map((t) => ({
                     target_type: t.target_type,
-                    target_zone: t.target_zone,
                     target_min: t.target_min,
                     target_max: t.target_max,
                     target_value: t.target_value,
@@ -135,7 +134,6 @@ export class EventTemplateService {
                               targets: {
                                 create: childStep.targets.map((t) => ({
                                   target_type: t.target_type,
-                                  target_zone: t.target_zone,
                                   target_min: t.target_min,
                                   target_max: t.target_max,
                                   target_value: t.target_value,
@@ -340,7 +338,6 @@ export class EventTemplateService {
                 targets: {
                   create: step.targets.map((t) => ({
                     target_type: t.target_type,
-                    target_zone: t.target_zone,
                     target_min: t.target_min,
                     target_max: t.target_max,
                     target_value: t.target_value,
@@ -365,7 +362,6 @@ export class EventTemplateService {
                               targets: {
                                 create: childStep.targets.map((t) => ({
                                   target_type: t.target_type,
-                                  target_zone: t.target_zone,
                                   target_min: t.target_min,
                                   target_max: t.target_max,
                                   target_value: t.target_value,

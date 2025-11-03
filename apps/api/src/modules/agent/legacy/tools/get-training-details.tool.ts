@@ -215,7 +215,6 @@ This tool provides:
                   targets: step.targets.map((target) => ({
                     target_id: target.workout_step_target_id,
                     target_type: target.target_type,
-                    target_zone: target.target_zone || undefined,
                     target_min: target.target_min || undefined,
                     target_max: target.target_max || undefined,
                     target_value: target.target_value || undefined,
