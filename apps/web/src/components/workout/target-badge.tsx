@@ -47,11 +47,6 @@ export function TargetBadge({
           <p className="text-sm">
             <span className="font-medium">{label}:</span> {formatted}
           </p>
-          {target.targetZone && (
-            <p className="text-xs text-muted-foreground">
-              Training Zone {target.targetZone}
-            </p>
-          )}
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

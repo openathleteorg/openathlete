@@ -84,8 +84,10 @@ export function formatDuration(
  * @returns Formatted pace (e.g., "4:30")
  */
 function formatPace(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const secs = Math.round(seconds % 60);
+  if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
+  const totalSeconds = Math.round(seconds);
+  const minutes = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60; // avoids cases like 5:60
   return `${minutes}:${secs.toString().padStart(2, '0')}`;
 }
 
@@ -95,17 +97,20 @@ function formatPace(seconds: number): string {
  * @returns Human-readable formatted target
  */
 export function formatTarget(target: WorkoutStepTarget): string {
-  const { targetType, unit, targetMin, targetMax, targetValue, targetZone } =
-    target;
-
-  // Zone-based target
-  if (targetZone !== null && targetZone !== undefined) {
-    return `Zone ${targetZone}`;
-  }
+  const { targetType, unit, targetMin, targetMax, targetValue } = target;
 
   // Open target (no specific goal)
   if (targetType === 'OPEN') {
     return 'Open';
+  }
+
+  // ZONE target (single value)
+  if (
+    targetType === 'ZONE' &&
+    targetValue !== null &&
+    targetValue !== undefined
+  ) {
+    return `Zone ${targetValue}`;
   }
 
   // Range target (min-max)
@@ -116,8 +121,11 @@ export function formatTarget(target: WorkoutStepTarget): string {
     targetMax !== undefined
   ) {
     switch (targetType) {
-      case 'PACE':
-        return `${formatPace(targetMin)} - ${formatPace(targetMax)} /km`;
+      case 'PACE': {
+        const minSecPerKm = targetMin > 0 ? 1000 / targetMin : 0;
+        const maxSecPerKm = targetMax > 0 ? 1000 / targetMax : 0;
+        return `${formatPace(minSecPerKm)} - ${formatPace(maxSecPerKm)} /km`;
+      }
 
       case 'HEARTRATE':
         return unit === 'PERCENT_MAX_HR'
@@ -135,8 +143,8 @@ export function formatTarget(target: WorkoutStepTarget): string {
       case 'RPE':
         return `RPE ${targetMin} - ${targetMax}`;
 
-      case 'SPEED':
-        return `${targetMin} - ${targetMax} ${unit === 'KM_PER_H' ? 'km/h' : 'm/s'}`;
+      case 'WEIGHT':
+        return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || 'kg'}`;
 
       default:
         return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || ''}`;
@@ -149,11 +157,10 @@ export function formatTarget(target: WorkoutStepTarget): string {
       case 'WEIGHT':
         return `${targetValue} ${unit?.toLowerCase() || 'kg'}`;
 
-      case 'REPS_TARGET':
-        return `${targetValue} reps`;
-
-      case 'PACE':
-        return `${formatPace(targetValue)} /km`;
+      case 'PACE': {
+        const secPerKm = targetValue > 0 ? 1000 / targetValue : 0;
+        return `${formatPace(secPerKm)} /km`;
+      }
 
       case 'HEARTRATE':
         return unit === 'PERCENT_MAX_HR'
@@ -170,9 +177,6 @@ export function formatTarget(target: WorkoutStepTarget): string {
 
       case 'RPE':
         return `RPE ${targetValue}`;
-
-      case 'SPEED':
-        return `${targetValue} ${unit === 'KM_PER_H' ? 'km/h' : 'm/s'}`;
 
       default:
         return `${targetValue} ${unit?.toLowerCase() || ''}`;
@@ -271,13 +275,12 @@ export function getTargetTypeLabel(targetType: WorkoutTargetType): string {
   const labels: Record<WorkoutTargetType, string> = {
     OPEN: m.workout_target_open(),
     PACE: m.workout_target_pace(),
-    SPEED: m.workout_target_speed(),
     HEARTRATE: m.workout_target_heartrate(),
     POWER: m.workout_target_power(),
     CADENCE: m.workout_target_cadence(),
     RPE: m.workout_target_rpe(),
     WEIGHT: m.workout_target_weight(),
-    REPS_TARGET: m.workout_target_reps(),
+    ZONE: m.workout_target_zone(),
   };
   return labels[targetType] || targetType;
 }

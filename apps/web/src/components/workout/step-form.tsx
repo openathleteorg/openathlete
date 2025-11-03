@@ -1,4 +1,6 @@
-import { RHFTimePicker } from '@/components/hook-form/rhf-time-picker';
+import { RHFDistance } from '@/components/hook-form/rhf-distance';
+import { RHFDuration } from '@/components/hook-form/rhf-duration';
+import { RHFNumberWithUnit } from '@/components/hook-form/rhf-number-with-unit';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -38,11 +40,7 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
 } from '@openathlete/shared';
-import type {
-  WorkoutDurationType,
-  WorkoutStepDto,
-  WorkoutStepTarget,
-} from '@openathlete/shared';
+import type { WorkoutStepDto, WorkoutStepTarget } from '@openathlete/shared';
 
 import { ExercisePicker } from './exercise-picker';
 import { TargetBadge } from './target-badge';
@@ -71,7 +69,6 @@ const stepFormSchema = z.object({
   exerciseName: z.string().nullable().optional(),
   durationType: z.nativeEnum(WORKOUT_DURATION_TYPE),
   durationValue: z.number().nullable().optional(),
-  durationTime: z.date().optional(),
   notes: z.string().nullable().optional(),
 });
 
@@ -83,7 +80,6 @@ type TargetWithId = {
   targetMin: WorkoutStepTarget['targetMin'];
   targetMax: WorkoutStepTarget['targetMax'];
   targetValue: WorkoutStepTarget['targetValue'];
-  targetZone: WorkoutStepTarget['targetZone'];
 };
 
 interface StepFormProps {
@@ -94,22 +90,6 @@ interface StepFormProps {
   cancelLabel?: string;
   sport?: keyof typeof SPORT_TYPE;
 }
-
-const secondsToDate = (
-  seconds: number | null | undefined,
-): Date | undefined => {
-  if (seconds == null) return undefined;
-  const date = new Date(0);
-  date.setHours(Math.floor(seconds / 3600));
-  date.setMinutes(Math.floor((seconds % 3600) / 60));
-  date.setSeconds(seconds % 60);
-  return date;
-};
-
-const dateToSeconds = (date: Date | undefined): number | null => {
-  if (!date) return null;
-  return date.getHours() * 3600 + date.getMinutes() * 60 + date.getSeconds();
-};
 
 export function StepForm({
   initialValues,
@@ -126,7 +106,6 @@ export function StepForm({
       targetMin: t.targetMin,
       targetMax: t.targetMax,
       targetValue: t.targetValue,
-      targetZone: t.targetZone,
     })) || [],
   );
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
@@ -139,7 +118,6 @@ export function StepForm({
       exerciseName: initialValues?.exerciseName || null,
       durationType: initialValues?.durationType || 'TIME',
       durationValue: initialValues?.durationValue || null,
-      durationTime: secondsToDate(initialValues?.durationValue),
       notes: initialValues?.notes || null,
     },
   });
@@ -148,19 +126,6 @@ export function StepForm({
 
   const isStrength =
     sport === 'STRENGTH' || sport === 'CROSSFIT' || sport === 'YOGA';
-
-  const getDurationUnit = (type: WorkoutDurationType) => {
-    switch (type) {
-      case 'TIME':
-        return 'seconds';
-      case 'DISTANCE':
-        return 'meters';
-      case 'REPS':
-        return 'repetitions';
-      default:
-        return '';
-    }
-  };
 
   const handleAddTarget = (targetValues: Partial<Omit<TargetWithId, 'id'>>) => {
     setTargets([
@@ -171,7 +136,6 @@ export function StepForm({
         targetMin: targetValues.targetMin ?? null,
         targetMax: targetValues.targetMax ?? null,
         targetValue: targetValues.targetValue ?? null,
-        targetZone: targetValues.targetZone ?? null,
       },
     ]);
     setIsTargetDialogOpen(false);
@@ -198,66 +162,84 @@ export function StepForm({
         }}
         className="space-y-4"
       >
-        <FormField
-          control={form.control}
-          name="stepType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{m.step_form_type()}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder={m.step_form_type_placeholder()} />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {STEP_TYPE_VALUES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      <div className="flex items-center gap-2">
-                        <TypeIcon stepType={type} size="sm" />
-                        <span>
-                          {type === 'WARMUP' && m.step_form_type_warmup()}
-                          {type === 'COOLDOWN' && m.step_form_type_cooldown()}
-                          {type === 'INTERVAL_ACTIVE' &&
-                            m.step_form_type_interval_active()}
-                          {type === 'INTERVAL_REST' &&
-                            m.step_form_type_interval_rest()}
-                          {type === 'STEADY' && m.step_form_type_steady()}
-                          {type === 'FREE' && m.step_form_type_free()}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                {m.step_form_type_description()}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="flex items-center gap-4 w-full">
+          <FormField
+            control={form.control}
+            name="stepType"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>{m.step_form_type()}</FormLabel>
 
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{m.step_form_name()}</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder={m.step_form_name_placeholder()}
-                  {...field}
-                  value={field.value ?? ''}
-                />
-              </FormControl>
-              <FormDescription>
-                {m.step_form_name_description()}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl className="w-full">
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={m.step_form_type_placeholder()}
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {STEP_TYPE_VALUES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        <div className="flex items-center gap-2">
+                          <TypeIcon stepType={type} size="sm" />
+                          <span>
+                            {type === 'WARMUP' && m.step_form_type_warmup()}
+                            {type === 'COOLDOWN' && m.step_form_type_cooldown()}
+                            {type === 'INTERVAL_ACTIVE' &&
+                              m.step_form_type_interval_active()}
+                            {type === 'INTERVAL_REST' &&
+                              m.step_form_type_interval_rest()}
+                            {type === 'STEADY' && m.step_form_type_steady()}
+                            {type === 'FREE' && m.step_form_type_free()}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="durationType"
+            render={({ field }) => (
+              <FormItem className="flex-1">
+                <FormLabel>{m.step_form_duration_type()}</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl className="w-full">
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={m.step_form_duration_type_placeholder()}
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {DURATION_TYPE_VALUES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type === 'TIME' && m.step_form_duration_type_time()}
+                        {type === 'DISTANCE' &&
+                          m.step_form_duration_type_distance()}
+                        {type === 'REPS' && m.step_form_duration_type_reps()}
+                        {type === 'OPEN' && m.step_form_duration_type_open()}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {isStrength && (
           <FormField
@@ -280,90 +262,36 @@ export function StepForm({
           />
         )}
 
-        <FormField
-          control={form.control}
-          name="durationType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{m.step_form_duration_type()}</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={m.step_form_duration_type_placeholder()}
-                    />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {DURATION_TYPE_VALUES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type === 'TIME' && m.step_form_duration_type_time()}
-                      {type === 'DISTANCE' &&
-                        m.step_form_duration_type_distance()}
-                      {type === 'REPS' && m.step_form_duration_type_reps()}
-                      {type === 'OPEN' && m.step_form_duration_type_open()}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormDescription>
-                {m.step_form_duration_type_description()}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {selectedDurationType !== 'OPEN' && (
           <>
             {selectedDurationType === 'TIME' ? (
-              <RHFTimePicker
-                name="durationTime"
-                label={m.step_form_duration_value()}
-                onChange={(date) => {
-                  form.setValue('durationValue', dateToSeconds(date));
-                }}
-              />
-            ) : (
-              <FormField
-                control={form.control}
+              <RHFDuration
                 name="durationValue"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{m.step_form_duration_value()}</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0"
-                          {...field}
-                          value={field.value ?? ''}
-                          onChange={(e) => {
-                            const value = e.target.value;
-                            field.onChange(value === '' ? null : Number(value));
-                          }}
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
-                          {getDurationUnit(selectedDurationType)}
-                        </span>
-                      </div>
-                    </FormControl>
-                    <FormDescription>
-                      {selectedDurationType === 'DISTANCE' &&
-                        m.step_form_duration_distance_description()}
-                      {selectedDurationType === 'REPS' &&
-                        m.step_form_duration_reps_description()}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={m.step_form_duration_value()}
+                showSeconds={true}
               />
-            )}
+            ) : selectedDurationType === 'DISTANCE' ? (
+              <RHFDistance
+                name="durationValue"
+                label={m.step_form_duration_value()}
+              />
+            ) : selectedDurationType === 'REPS' ? (
+              <>
+                <RHFNumberWithUnit
+                  name="durationValue"
+                  label={m.step_form_duration_value()}
+                  unit={m.unit_repetitions()}
+                  min={0}
+                />
+                <FormDescription>
+                  {m.step_form_duration_reps_description()}
+                </FormDescription>
+              </>
+            ) : null}
           </>
         )}
 
-        <div className="space-y-2">
+        <div className="space-y-2 my-5">
           <div className="flex items-center justify-between">
             <FormLabel>{m.step_form_targets()}</FormLabel>
             <Dialog
@@ -387,6 +315,7 @@ export function StepForm({
                   onSubmit={handleAddTarget}
                   onCancel={() => setIsTargetDialogOpen(false)}
                   submitLabel={m.step_form_add_target()}
+                  sport={sport}
                 />
               </DialogContent>
             </Dialog>
@@ -403,7 +332,6 @@ export function StepForm({
                         targetMin: target.targetMin,
                         targetMax: target.targetMax,
                         targetValue: target.targetValue,
-                        targetZone: target.targetZone ?? undefined,
                       } as unknown as WorkoutStepTarget
                     }
                   />
@@ -427,6 +355,24 @@ export function StepForm({
 
         <FormField
           control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{m.step_form_name()}</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={m.step_form_name_placeholder()}
+                  {...field}
+                  value={field.value ?? ''}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="notes"
           render={({ field }) => (
             <FormItem>
@@ -440,9 +386,6 @@ export function StepForm({
                   value={field.value ?? ''}
                 />
               </FormControl>
-              <FormDescription>
-                {m.step_form_notes_description()}
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
