@@ -175,14 +175,13 @@ enum workout_duration_type {
 
 enum workout_target_type {
   OPEN // no specific target
-  PACE // pace/speed target
-  SPEED // speed target (m/s)
+  PACE // pace/speed target (stored as m/s, can display in min/km)
   HEARTRATE // heart rate target
   POWER // power target
   CADENCE // cadence target
   RPE // rate of perceived exertion
   WEIGHT // weight/load target (for strength training)
-  REPS_TARGET // target number of reps (alternative to duration)
+  ZONE // training zone (1-5 typically for HR/power zones)
 }
 
 enum workout_target_unit {

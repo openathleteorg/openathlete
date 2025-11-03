@@ -92,10 +92,9 @@ model workout_step_target {
 
   // fields
   target_type  workout_target_type
-  target_zone  Int? // zone number (1-5 typically) for HR/power zones
   target_min   Float? // minimum value for range targets
   target_max   Float? // maximum value for range targets
-  target_value Float? // single value target
+  target_value Float? // single value target (for ZONE, this is the zone number 1-5)
 
   // Unit depends on target_type:
   // PACE: min/km or m/s (stored as m/s)
@@ -103,6 +102,7 @@ model workout_step_target {
   // POWER: watts or % FTP
   // CADENCE: rpm/spm
   // RPE: 1-10 scale
+  // ZONE: not used (zone number is in target_value)
   unit workout_target_unit?
 
   // relationships
