@@ -12,7 +12,6 @@ import { SPORT_TYPE } from './misc/core/sport-type.enum';
 
 export const normalizedWorkoutStepTargetSchema = z.object({
   targetType: z.nativeEnum(WORKOUT_TARGET_TYPE),
-  targetZone: z.number().nullable().optional(),
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),

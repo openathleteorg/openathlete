@@ -36,13 +36,12 @@ export type WorkoutDurationType =
 export const WORKOUT_TARGET_TYPE = {
   OPEN: 'OPEN',
   PACE: 'PACE',
-  SPEED: 'SPEED',
   HEARTRATE: 'HEARTRATE',
   POWER: 'POWER',
   CADENCE: 'CADENCE',
   RPE: 'RPE',
   WEIGHT: 'WEIGHT',
-  REPS_TARGET: 'REPS_TARGET',
+  ZONE: 'ZONE',
 } as const;
 
 export type WorkoutTargetType =
@@ -74,7 +73,6 @@ export type WorkoutTargetUnit =
 export const workoutStepTargetSchema = z.object({
   workoutStepTargetId: z.number().optional(),
   targetType: z.nativeEnum(WORKOUT_TARGET_TYPE),
-  targetZone: z.number().nullable().optional(),
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),

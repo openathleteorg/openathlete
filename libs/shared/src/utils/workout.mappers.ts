@@ -26,7 +26,6 @@ function normalizeTarget(
   return {
     workoutStepTargetId: target.workoutStepTargetId,
     targetType: target.targetType!,
-    targetZone: target.targetZone ?? null,
     targetMin: target.targetMin ?? null,
     targetMax: target.targetMax ?? null,
     targetValue: target.targetValue ?? null,
@@ -91,15 +90,16 @@ export function normalizeWorkoutForCreate(dto: {
 // Note: We use the current keys expected by the API service to avoid breaking changes.
 // ----------------------------------------------------------------------------
 
-// DB-supported enums (mirror prisma enums). Strength extras are not supported in DB yet.
+// DB-supported enums (mirror prisma enums)
 const SUPPORTED_TARGET_TYPES = new Set([
   'OPEN',
   'PACE',
-  'SPEED',
   'HEARTRATE',
   'POWER',
   'CADENCE',
   'RPE',
+  'WEIGHT',
+  'ZONE',
 ]);
 const SUPPORTED_UNITS = new Set([
   'MIN_PER_KM',
@@ -112,20 +112,29 @@ const SUPPORTED_UNITS = new Set([
   'RPM',
   'SPM',
   'RPE_SCALE',
+  'KG',
+  'LBS',
 ]);
 
 function mapTargetToPrismaCreate(target: any) {
-  // Skip unsupported target types (e.g., WEIGHT, REPS_TARGET) until DB supports them
   if (!SUPPORTED_TARGET_TYPES.has(target.targetType)) {
     return null;
   }
-  const unit = SUPPORTED_UNITS.has(target.unit) ? target.unit : null;
+  // ZONE type doesn't use unit field
+  const unit =
+    target.targetType === 'ZONE' || !SUPPORTED_UNITS.has(target.unit)
+      ? null
+      : target.unit;
+  const toNum = (v: any): number | null =>
+    v === null || v === undefined || v === '' || Number.isNaN(Number(v))
+      ? null
+      : Number(v);
   return {
     target_type: target.targetType,
-    target_unit: unit,
-    target_min_value: target.targetMin ?? null,
-    target_max_value: target.targetMax ?? null,
-    target_value: target.targetValue ?? null,
+    unit: unit,
+    target_min: toNum(target.targetMin),
+    target_max: toNum(target.targetMax),
+    target_value: toNum(target.targetValue),
   };
 }
 
@@ -182,7 +191,6 @@ function mapPrismaTargetToDto(target: any): WorkoutStepTarget {
   return {
     workoutStepTargetId: target.workout_step_target_id,
     targetType: target.target_type,
-    targetZone: target.target_zone ?? null,
     targetMin: target.target_min ?? target.target_min_value ?? null,
     targetMax: target.target_max ?? target.target_max_value ?? null,
     targetValue: target.target_value ?? null,
@@ -267,7 +275,6 @@ function flattenStep(
   const targets: NormalizedWorkoutStepTarget[] = (step.targets || []).map(
     (t: WorkoutStepTarget) => ({
       targetType: t.targetType,
-      targetZone: t.targetZone ?? null,
       targetMin: t.targetMin ?? null,
       targetMax: t.targetMax ?? null,
       targetValue: t.targetValue ?? null,
