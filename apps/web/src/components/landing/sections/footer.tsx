@@ -14,11 +14,11 @@ export function Footer() {
               <span className="text-lg font-semibold tracking-tight">OpenAthlete</span>
             </Link>
             <nav className="flex gap-4 text-sm text-muted-foreground">
-              <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
-                {m.landing_footer_legal().split(' · ')[1]}
+              <Link to="/legal-notice" className="hover:text-foreground transition-colors">
+                {m.landing_footer_legal().split(' · ')[0]}
               </Link>
               <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
-                {m.landing_footer_legal().split(' · ')[0]}
+                {m.landing_footer_legal().split(' · ')[1]}
               </Link>
               <a
                 href="mailto:contact@openathlete.org"

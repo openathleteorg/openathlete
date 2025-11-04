@@ -7,6 +7,7 @@ const Page500 = lazy(() => import('@/pages/500'));
 const Page403 = lazy(() => import('@/pages/403'));
 const Page404 = lazy(() => import('@/pages/404'));
 const PrivacyPolicyPage = lazy(() => import('@/pages/privacy-policy'));
+const LegalNoticePage = lazy(() => import('@/pages/legal-notice'));
 
 export const mainRoutes: RouteObject[] = [
   {
@@ -22,6 +23,7 @@ export const mainRoutes: RouteObject[] = [
       { path: '404', element: <Page404 /> },
       { path: '403', element: <Page403 /> },
       { path: 'privacy-policy', element: <PrivacyPolicyPage /> },
+      { path: 'legal-notice', element: <LegalNoticePage /> },
     ],
   },
 ];
