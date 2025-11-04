@@ -11,6 +11,7 @@ export * from './get-statistics-for-period.response.dto';
 export * from './equipment.dto';
 export * from './metric.dto';
 export * from './create-training-zone.dto';
+export * from './beta-access.dto';
 export * from './contact.dto';
 export * from './get-event-weather.response.dto';
 export * from './get-event-normalization.response.dto';

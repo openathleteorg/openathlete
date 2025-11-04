@@ -131,6 +131,9 @@ export const routes = {
     history: '/training-load/history',
     recalculate: '/training-load/recalculate',
   },
+  betaAccess: {
+    request: '/beta-access',
+  },
 } as const;
 
 const client = axios.create({
