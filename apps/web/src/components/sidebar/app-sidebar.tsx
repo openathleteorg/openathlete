@@ -1,3 +1,4 @@
+import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
 import { NavMain } from '@/components/sidebar/nav-main';
@@ -13,7 +14,6 @@ import {
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import {
   Activity,
   Calendar,
@@ -41,11 +41,11 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           icon: User,
           spaces: ['COACH'] as UserRole[],
           items: [
-            {
-              title: m.summary(),
-              url: getPath(['dashboard', 'summary']) + `/${athlete.athleteId}`,
-              icon: FileText,
-            },
+            // {
+            //   title: m.summary(),
+            //   url: getPath(['dashboard', 'summary']) + `/${athlete.athleteId}`,
+            //   icon: FileText,
+            // },
             {
               title: m.calendar(),
               url: getPath(['dashboard', 'calendar']) + `/${athlete.athleteId}`,
