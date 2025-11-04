@@ -1,5 +1,9 @@
-import { PATH_AFTER_LOGIN } from '@/config';
-import { Navigate, createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { CompactLayout } from '@/components/layouts';
+import { LoadingScreen } from '@/components/loading-screen';
+
+const LandingPage = lazy(() => import('@/pages/landing'));
 
 import { authRoutes } from './auth.routes';
 import { dashboardRoutes } from './dashboard.routes';
@@ -8,7 +12,13 @@ import { mainRoutes } from './main.routes';
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to={PATH_AFTER_LOGIN} replace />,
+    element: (
+      <CompactLayout>
+        <Suspense fallback={<LoadingScreen />}>
+          <LandingPage />
+        </Suspense>
+      </CompactLayout>
+    ),
   },
 
   ...authRoutes,
