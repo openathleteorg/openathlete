@@ -7,6 +7,7 @@ import { CaslAbilityFactory } from '../auth/services/casl-ability.factory';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
+import { BetaAccessController } from './controllers/beta-access.controller';
 import { ContactController } from './controllers/contact.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
@@ -20,6 +21,7 @@ import { TrainingZoneController } from './controllers/training-zone.controller';
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { AthleteService } from './services/athlete.service';
+import { BetaAccessService } from './services/beta-access.service';
 import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
@@ -53,6 +55,7 @@ import { WeatherService } from './services/weather/weather.service';
     TrainingZoneController,
     TrainingLoadController,
     ContactController,
+    BetaAccessController,
     CycleController,
   ],
   providers: [
@@ -68,6 +71,7 @@ import { WeatherService } from './services/weather/weather.service';
     TrainingZoneService,
     TrainingLoadService,
     ContactService,
+    BetaAccessService,
     CycleService,
     WeatherService,
     OpenMeteoWeatherProvider,
