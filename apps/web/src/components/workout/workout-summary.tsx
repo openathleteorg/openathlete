@@ -21,7 +21,7 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
         key={step.workoutStepId || index}
         className={`${isChild ? 'border-l-2 border-muted' : ''}`}
       >
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50">
+        <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/40">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-muted-foreground">
               {isChild ? `${index + 1}` : `${m.step()} ${index + 1}`}
