@@ -32,6 +32,3 @@ export class CorosProviderService extends BaseProviderService {
     super(prisma, configService);
   }
 }
-
-
-
