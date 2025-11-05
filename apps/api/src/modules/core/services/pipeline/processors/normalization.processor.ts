@@ -10,6 +10,7 @@ import {
   compressActivityStream,
   uncompressActivityStream,
 } from '../../../helpers/activity-stream';
+import { roundSpeed } from '../../../helpers/round-activity-values';
 import { ActivityPipelineContext, ActivityProcessor } from '../types';
 
 type FilterContext = {
@@ -320,7 +321,7 @@ export class NormalizationProcessor implements ActivityProcessor {
     await this.prisma.event_activity_normalization.upsert({
       where: { event_activity_id: ctx.eventActivityId },
       update: {
-        average_normalized_speed: avgNorm ?? undefined,
+        average_normalized_speed: roundSpeed(avgNorm) ?? undefined,
         factors: {
           deleteMany: {},
           create: factorsData,
@@ -328,7 +329,7 @@ export class NormalizationProcessor implements ActivityProcessor {
       },
       create: {
         event_activity: { connect: { event_activity_id: ctx.eventActivityId } },
-        average_normalized_speed: avgNorm ?? undefined,
+        average_normalized_speed: roundSpeed(avgNorm) ?? undefined,
         factors: { create: factorsData },
       },
       include: { factors: true },
@@ -338,7 +339,7 @@ export class NormalizationProcessor implements ActivityProcessor {
       where: { event_activity_id: ctx.eventActivityId },
       data: {
         stream: compressed as InputJsonValue,
-        average_normalized_speed: avgNorm ?? undefined,
+        average_normalized_speed: roundSpeed(avgNorm) ?? undefined,
       },
     });
   }

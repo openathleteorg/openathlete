@@ -10,6 +10,7 @@ import {
   compressActivityStream,
   uncompressActivityStream,
 } from '../../../helpers/activity-stream';
+import { roundSpeed } from '../../../helpers/round-activity-values';
 import { ActivityPipelineContext, ActivityProcessor } from '../types';
 
 function stravaPolynomial(gradePct: number): number {
@@ -112,7 +113,7 @@ export class GapProcessor implements ActivityProcessor {
       where: { event_activity_id: ctx.eventActivityId },
       data: {
         stream: compressed as InputJsonValue,
-        average_gap_speed: avgGap ?? undefined,
+        average_gap_speed: roundSpeed(avgGap) ?? undefined,
       },
     });
   }

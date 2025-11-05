@@ -17,6 +17,15 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { compressActivityStream } from '../../core/helpers/activity-stream';
 import { computeRecords } from '../../core/helpers/record';
+import {
+  roundCadence,
+  roundDistance,
+  roundElevation,
+  roundEnergy,
+  roundHeartrate,
+  roundPower,
+  roundSpeed,
+} from '../../core/helpers/round-activity-values';
 import { mapStravaSportType } from '../../core/helpers/strava';
 import { StravaSummaryActivity } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -325,18 +334,18 @@ export class StravaProviderService
     const savedActivity = await this.prisma.event_activity.create({
       data: {
         provider: connector_provider.STRAVA,
-        distance: activity.distance,
-        elevation_gain: activity.total_elevation_gain,
+        distance: roundDistance(activity.distance),
+        elevation_gain: roundElevation(activity.total_elevation_gain),
         moving_time: activity.moving_time,
-        average_speed: activity.average_speed,
-        max_speed: activity.max_speed,
-        average_cadence: activity.average_cadence,
-        average_watts: activity.average_watts,
-        max_watts: activity.max_watts,
-        weighted_average_watts: activity.weighted_average_watts,
-        average_heartrate: activity.average_heartrate,
-        max_heartrate: activity.max_heartrate,
-        kilojoules: activity.kilojoules,
+        average_speed: roundSpeed(activity.average_speed) ?? 0,
+        max_speed: roundSpeed(activity.max_speed) ?? 0,
+        average_cadence: roundCadence(activity.average_cadence),
+        average_watts: roundPower(activity.average_watts),
+        max_watts: roundPower(activity.max_watts),
+        weighted_average_watts: roundPower(activity.weighted_average_watts),
+        average_heartrate: roundHeartrate(activity.average_heartrate),
+        max_heartrate: roundHeartrate(activity.max_heartrate),
+        kilojoules: roundEnergy(activity.kilojoules),
         sport,
         stream: compressedActivityStream as object,
         external_id: activity.id.toString(),
@@ -372,7 +381,7 @@ export class StravaProviderService
         },
         data: {
           total_distance: {
-            increment: activity.distance,
+            increment: roundDistance(activity.distance),
           },
         },
       });
