@@ -10,7 +10,8 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset",
-    "db:revert": "prisma migrate resolve"
+    "db:revert": "prisma migrate resolve",
+    "db:seed:demo-month": "tsx scripts/seed-demo-month.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

@@ -1,6 +1,5 @@
 import { Container } from '@/components/landing/container';
 import { Section } from '@/components/landing/section';
-import { ImagePlaceholder } from '@/components/landing/image-placeholder';
 import { m } from '@/paraglide/messages';
 
 export function Science() {
@@ -16,16 +15,14 @@ export function Science() {
           </p>
         </div>
 
-        {/* Science visualization - Data/metrics illustration */}
-        <div className="mt-16">
+        {/* <div className="mt-16">
           <ImagePlaceholder
             description="Visualisation scientifique : graphiques de métriques (charge, HRV, sommeil, dérive cardiaque) avec annotations montrant comment l'IA détecte les patterns. Style data-viz moderne et professionnel, avec des couleurs sobres."
             aspectRatio="16/9"
             className="max-w-4xl mx-auto"
           />
-        </div>
+        </div> */}
       </Container>
     </Section>
   );
 }
-

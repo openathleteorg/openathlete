@@ -1,5 +1,4 @@
 import { Container } from '@/components/landing/container';
-import { ImagePlaceholder } from '@/components/landing/image-placeholder';
 import { Section } from '@/components/landing/section';
 import { StepItem } from '@/components/landing/step-item';
 import { m } from '@/paraglide/messages';
@@ -35,14 +34,13 @@ export function HowItWorks() {
           </div>
         </div>
 
-        {/* How it works - Workflow visualization */}
-        <div className="mt-16">
+        {/* <div className="mt-16">
           <ImagePlaceholder
             description="Infographie ou diagramme montrant le workflow OpenAthlete : de la connexion des données à l'analyse IA, jusqu'aux recommandations. Flux visuel clair avec flèches/étapes, style moderne et épuré."
             aspectRatio="16/9"
             className="max-w-4xl mx-auto"
           />
-        </div>
+        </div> */}
       </Container>
     </Section>
   );

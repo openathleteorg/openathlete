@@ -1,25 +1,19 @@
+import featuresImage from '@/assets/images/landing/stats.png';
 import { Container } from '@/components/landing/container';
-import { Section } from '@/components/landing/section';
 import { FeatureCard } from '@/components/landing/feature-card';
 import { ImagePlaceholder } from '@/components/landing/image-placeholder';
+import { Section } from '@/components/landing/section';
 import { m } from '@/paraglide/messages';
 import {
   Activity,
   Bell,
-  Lightbulb,
   BookOpen,
-  Target,
+  Lightbulb,
   Link as LinkIcon,
+  Target,
 } from 'lucide-react';
 
-const icons = [
-  Activity,
-  Bell,
-  Lightbulb,
-  BookOpen,
-  Target,
-  LinkIcon,
-];
+const icons = [Activity, Bell, Lightbulb, BookOpen, Target, LinkIcon];
 
 export function Features() {
   const features = [
@@ -64,6 +58,7 @@ export function Features() {
             description="Screenshot composite ou split-screen montrant plusieurs fonctionnalités clés : création de plan IA, tableau de bord fatigue avec graphiques, alertes de surcharge. Montage visuel attrayant montrant la richesse de la plateforme."
             aspectRatio="16/9"
             className="max-w-5xl mx-auto"
+            imageSrc={featuresImage}
           />
         </div>
 

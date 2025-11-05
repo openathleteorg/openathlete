@@ -18,7 +18,6 @@ import {
   Activity,
   Calendar,
   CogIcon,
-  FileText,
   MedalIcon,
   PieChart,
   User,

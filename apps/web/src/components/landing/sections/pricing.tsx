@@ -1,5 +1,4 @@
 import { Container } from '@/components/landing/container';
-import { ImagePlaceholder } from '@/components/landing/image-placeholder';
 import { PricingCard } from '@/components/landing/pricing-card';
 import { RequestAccessModal } from '@/components/landing/request-access-modal';
 import { Section } from '@/components/landing/section';
@@ -53,14 +52,13 @@ export function Pricing() {
             </p>
           </div>
 
-          {/* Pricing context image - Value proposition */}
-          <div className="mt-12">
+          {/* <div className="mt-12">
             <ImagePlaceholder
               description="Screenshot ou illustration montrant la valeur apportée : comparaison avant/après, ou vue d'ensemble de ce que l'utilisateur obtient avec chaque plan. Style clean, mettant en avant les bénéfices concrets."
               aspectRatio="16/9"
               className="max-w-4xl mx-auto"
             />
-          </div>
+          </div> */}
 
           <div className="mx-auto mt-16 max-w-6xl">
             <div className="grid gap-6 md:grid-cols-3">

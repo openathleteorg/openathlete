@@ -1,8 +1,9 @@
-import { Button } from '@/components/ui/button';
+import heroImage from '@/assets/images/landing/hero.png';
 import { Container } from '@/components/landing/container';
-import { Stat } from '@/components/landing/stat';
-import { RequestAccessModal } from '@/components/landing/request-access-modal';
 import { ImagePlaceholder } from '@/components/landing/image-placeholder';
+import { RequestAccessModal } from '@/components/landing/request-access-modal';
+import { Stat } from '@/components/landing/stat';
+import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 import { ArrowRight } from 'lucide-react';
 import { useState } from 'react';
@@ -32,11 +33,7 @@ export function Hero() {
                 {m.landing_hero_cta_primary()}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                asChild
-              >
+              <Button variant="outline" size="lg" asChild>
                 <a href="#how-it-works">{m.landing_hero_cta_secondary()}</a>
               </Button>
             </div>
@@ -59,16 +56,13 @@ export function Hero() {
             <ImagePlaceholder
               description="Screenshot du tableau de bord principal OpenAthlete montrant un aperçu de la plateforme : calendrier d'entraînement, métriques de charge, alertes de fatigue. Vue d'ensemble moderne et claire, ton professionnel."
               aspectRatio="16/9"
+              imageSrc={heroImage}
             />
           </div>
         </Container>
       </section>
 
-      <RequestAccessModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-      />
+      <RequestAccessModal open={modalOpen} onOpenChange={setModalOpen} />
     </>
   );
 }
-
