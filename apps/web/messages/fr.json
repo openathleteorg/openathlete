@@ -145,6 +145,7 @@
   "normalization_altitude": "Altitude",
   "details": "Détails",
   "related_activity": "Activité associée",
+  "view_activity": "Voir l'activité",
   "remove": "Supprimer",
   "failed_to_invite_coach": "Échec de l'invitation du coach. Assurez-vous que l'email appartient à un utilisateur existant.",
   "invite_a_coach": "Inviter un coach",

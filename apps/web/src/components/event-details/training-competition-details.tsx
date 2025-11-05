@@ -25,7 +25,7 @@ interface P {
 export function TrainingCompetitionDetails({ event }: P) {
   const setRelatedActivityMutation = useSetRelatedActivityMutation();
   const unsetRelatedActivityMutation = useUnsetRelatedActivityMutation();
-  const { events } = useCalendarContext();
+  const { events, openEventDetails } = useCalendarContext();
 
   const isTraining = event.type === EVENT_TYPE.TRAINING;
   return (
@@ -63,55 +63,68 @@ export function TrainingCompetitionDetails({ event }: P) {
             <CardTitle>{m.related_activity()}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex gap-2">
-              <SelectEvent
-                data={events}
-                value={event.relatedActivity?.eventId}
-                onChange={(activityId) => {
-                  setRelatedActivityMutation.mutate({
-                    eventId: event.eventId,
-                    activityId,
-                  });
-                }}
-                className="flex-1"
-                filter={(e, events) => {
-                  if (e.type !== EVENT_TYPE.ACTIVITY) return false;
-                  const startFilter = new Date(event.startDate);
-                  startFilter.setDate(startFilter.getDate() - 3);
-                  const endFilter = new Date(event.endDate);
-                  endFilter.setDate(endFilter.getDate() + 3);
-                  const isInRelatedActivity = events.some(
-                    (relatedEvent) =>
-                      (relatedEvent.type === EVENT_TYPE.TRAINING ||
-                        relatedEvent.type === EVENT_TYPE.COMPETITION) &&
-                      relatedEvent.relatedActivity?.eventId === e.eventId,
-                  );
-                  return (
-                    startFilter.getTime() < e.startDate.getTime() &&
-                    endFilter.getTime() > e.endDate.getTime() &&
-                    !isInRelatedActivity
-                  );
-                }}
-                displayRow={(e) => (
-                  <div>
-                    {e.name}{' '}
-                    {e.type === EVENT_TYPE.ACTIVITY
-                      ? `(${formatDistance(e.distance)} km)`
-                      : ''}
-                  </div>
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2">
+                <SelectEvent
+                  data={events}
+                  value={event.relatedActivity?.eventId}
+                  onChange={(activityId) => {
+                    setRelatedActivityMutation.mutate({
+                      eventId: event.eventId,
+                      activityId,
+                    });
+                  }}
+                  className="flex-1 min-w-0"
+                  filter={(e, events) => {
+                    if (e.type !== EVENT_TYPE.ACTIVITY) return false;
+                    const startFilter = new Date(event.startDate);
+                    startFilter.setDate(startFilter.getDate() - 3);
+                    const endFilter = new Date(event.endDate);
+                    endFilter.setDate(endFilter.getDate() + 3);
+                    const isInRelatedActivity = events.some(
+                      (relatedEvent) =>
+                        (relatedEvent.type === EVENT_TYPE.TRAINING ||
+                          relatedEvent.type === EVENT_TYPE.COMPETITION) &&
+                        relatedEvent.relatedActivity?.eventId === e.eventId,
+                    );
+                    return (
+                      startFilter.getTime() < e.startDate.getTime() &&
+                      endFilter.getTime() > e.endDate.getTime() &&
+                      !isInRelatedActivity
+                    );
+                  }}
+                  displayRow={(e) => (
+                    <div>
+                      {e.name}{' '}
+                      {e.type === EVENT_TYPE.ACTIVITY
+                        ? `(${formatDistance(e.distance)} km)`
+                        : ''}
+                    </div>
+                  )}
+                />
+                {!!event.relatedActivity?.eventId && (
+                  <Button
+                    onClick={() => {
+                      unsetRelatedActivityMutation.mutate(event.eventId);
+                    }}
+                    isLoading={
+                      unsetRelatedActivityMutation.isPending ||
+                      setRelatedActivityMutation.isPending
+                    }
+                  >
+                    {m.remove()}
+                  </Button>
                 )}
-              />
+              </div>
               {!!event.relatedActivity?.eventId && (
                 <Button
                   onClick={() => {
-                    unsetRelatedActivityMutation.mutate(event.eventId);
+                    openEventDetails(event.relatedActivity!.eventId);
                   }}
-                  isLoading={
-                    unsetRelatedActivityMutation.isPending ||
-                    setRelatedActivityMutation.isPending
-                  }
+                  variant="outline"
+                  className="w-full"
                 >
-                  {m.remove()}
+                  {m.view_activity()}
                 </Button>
               )}
             </div>
