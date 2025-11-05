@@ -1,7 +1,7 @@
 import { Container } from '@/components/landing/container';
 import { Section } from '@/components/landing/section';
 import { m } from '@/paraglide/messages';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, ArrowRight } from 'lucide-react';
 
 export function Problem() {
   const points = [
@@ -20,15 +20,20 @@ export function Problem() {
         </div>
 
         <div className="mx-auto mt-16 max-w-3xl">
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center md:justify-center">
             {points.map((point, index) => (
-              <div
-                key={index}
-                className="flex gap-4 rounded-lg border bg-card p-6"
-              >
-                <AlertTriangle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
-                <p className="text-sm leading-relaxed">{point}</p>
-              </div>
+              <>
+                <div
+                  key={index}
+                  className="flex gap-3 rounded-lg border bg-card p-6"
+                >
+                  <AlertTriangle className="h-5 w-5 shrink-0 text-destructive mt-0.5" />
+                  <p className="text-sm leading-relaxed">{point}</p>
+                </div>
+                {index < points.length - 1 && (
+                  <ArrowRight className="hidden md:block h-5 w-5 text-muted-foreground flex-shrink-0" />
+                )}
+              </>
             ))}
           </div>
         </div>
@@ -36,4 +41,3 @@ export function Problem() {
     </Section>
   );
 }
-
