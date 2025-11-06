@@ -1,5 +1,6 @@
 import {
   athlete,
+  athlete_settings,
   connector_provider,
   cycle,
   equipment,
@@ -44,7 +45,11 @@ export interface Equipment extends ConvertKeysToCamelCase<equipment> {
 
 export interface Athlete extends ConvertKeysToCamelCase<athlete> {
   user?: User;
+  settings?: AthleteSettings;
 }
+
+export interface AthleteSettings
+  extends ConvertKeysToCamelCase<athlete_settings> {}
 
 export interface WorkoutStepEntity
   extends ConvertKeysToCamelCase<workout_step> {}

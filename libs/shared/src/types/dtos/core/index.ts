@@ -20,3 +20,4 @@ export * from './create-cycle.dto';
 export * from './update-cycle.dto';
 export * from './training-load.dto';
 export * from './workout.dto';
+export * from './athlete-settings.dto';
