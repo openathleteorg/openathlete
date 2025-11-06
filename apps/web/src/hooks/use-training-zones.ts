@@ -1,5 +1,5 @@
-import { m } from '@/paraglide/messages';
 import { useGetMyAthleteQuery } from '@/api/athlete';
+import { m } from '@/paraglide/messages';
 import { useMemo } from 'react';
 
 import { SPORT_TYPE, TRAINING_ZONE_TYPE } from '@openathlete/shared';
