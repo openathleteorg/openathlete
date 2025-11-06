@@ -19,6 +19,7 @@ model athlete {
   availability               athlete_availability[]
   provider_accounts          provider_account[]
   provider_workout_exports   provider_workout_export[]
+  settings                   athlete_settings?
 
   // timestamps
   created_at DateTime @default(now())

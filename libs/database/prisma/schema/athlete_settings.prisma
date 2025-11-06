@@ -1,0 +1,17 @@
+model athlete_settings {
+  // primary key
+  athlete_settings_id Int @id @default(autoincrement())
+
+  // fields
+  // Validation requirements for sessions
+  require_rpe     Boolean @default(false) // Require RPE to be set for session validation
+  require_comment Boolean @default(false) // Require comment/description to be set for session validation
+
+  // relationships
+  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
+  athlete_id Int     @unique
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
