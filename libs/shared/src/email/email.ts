@@ -7,6 +7,10 @@ export const emailLibrary = {
     defaultSubject: 'Bienvenue sur OpenAthlete',
     props: {} as { name?: string; dashboard_url?: string },
   },
+  'athlete-invitation': {
+    defaultSubject: 'Invitation à rejoindre OpenAthlete',
+    props: {} as { coachName: string; url: string },
+  },
 } as const;
 
 export type EmailId = keyof typeof emailLibrary;

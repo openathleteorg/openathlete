@@ -5,6 +5,7 @@ export const createAccountDtoSchema = z.object({
   password: z.string(),
   firstName: z.string(),
   lastName: z.string(),
+  invitationToken: z.string().optional(),
 });
 
 export type CreateAccountDto = z.infer<typeof createAccountDtoSchema>;
