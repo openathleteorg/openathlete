@@ -18,6 +18,8 @@ export class TokenService {
     switch (type) {
       case token_type.PASSWORD_RESET:
         return 60 * 15 * 1000; // 15 minutes;
+      case token_type.ATHLETE_INVITATION:
+        return 60 * 60 * 24 * 7 * 1000; // 7 days;
     }
   }
 

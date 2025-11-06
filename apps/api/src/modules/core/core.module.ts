@@ -1,20 +1,18 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from '../auth';
-import { CaslAbilityFactory } from '../auth/services/casl-ability.factory';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
 import { BetaAccessController } from './controllers/beta-access.controller';
+import { CoachController } from './controllers/coach.controller';
 import { ContactController } from './controllers/contact.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateFolderController } from './controllers/event-template-folder.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
 import { MetricController } from './controllers/metric.controller';
-import { CoachController } from './controllers/coach.controller';
 import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
@@ -23,12 +21,12 @@ import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { AthleteService } from './services/athlete.service';
 import { BetaAccessService } from './services/beta-access.service';
+import { CoachService } from './services/coach.service';
 import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
 import { MetricService } from './services/metric.service';
-import { CoachService } from './services/coach.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import {
   GapProcessor,

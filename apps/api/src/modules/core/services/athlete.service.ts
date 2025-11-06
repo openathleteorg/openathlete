@@ -11,6 +11,7 @@ import { keysToCamel } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { AthleteInvitationService } from 'src/modules/auth/services/athlete-invitation.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 const ATHLETE_INCLUDES = {
@@ -35,6 +36,7 @@ export class AthleteService {
   constructor(
     private prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
+    private athleteInvitationService: AthleteInvitationService,
   ) {}
 
   private async seedDefaultHeartrateZonesIfEmpty(athleteId: number) {
@@ -201,7 +203,7 @@ export class AthleteService {
   }
 
   async inviteAthlete(userId: AuthUser['user_id'], email: string) {
-    // TODO: implement this with a proper invitation system
+    await this.athleteInvitationService.createInvitation(userId, email);
   }
 
   async removeAthlete(

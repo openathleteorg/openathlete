@@ -30,6 +30,7 @@ import { SendEmailEvent } from 'src/events';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { AuthUser } from '../decorators/user.decorator';
+import { AthleteInvitationService } from './athlete-invitation.service';
 import { TokenService } from './token.service';
 
 @Injectable()
@@ -42,6 +43,7 @@ export class UserService {
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
     private eventEmitter: EventEmitter2,
     private tokenService: TokenService,
+    private invitationService: AthleteInvitationService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -86,6 +88,7 @@ export class UserService {
     password,
     firstName,
     lastName,
+    invitationToken,
   }: CreateAccountDto) => {
     const hashedPassword = await this.hashPassword(password);
 
@@ -142,39 +145,47 @@ export class UserService {
     const allSports = Object.values(sport_type) as sport_type[];
 
     const created = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          first_name: firstName,
-          last_name: lastName,
-          roles: [user_role.ATHLETE, user_role.COACH],
-          athlete: {
-            create: {
-              training_zones: {
-                create: DEFAULT_HR_ZONES.map((z, idx) => ({
-                  name: z.name,
-                  description: z.description,
-                  index: idx,
-                  type: 'HEARTRATE',
-                  color: z.color,
-                  values: {
-                    create: [
-                      {
-                        min: z.min,
-                        max: z.max,
-                        sports: allSports,
-                      },
-                    ],
-                  },
-                })),
-              },
+      data: {
+        email,
+        password: hashedPassword,
+        first_name: firstName,
+        last_name: lastName,
+        roles: [user_role.ATHLETE, user_role.COACH],
+        athlete: {
+          create: {
+            training_zones: {
+              create: DEFAULT_HR_ZONES.map((z, idx) => ({
+                name: z.name,
+                description: z.description,
+                index: idx,
+                type: 'HEARTRATE',
+                color: z.color,
+                values: {
+                  create: [
+                    {
+                      min: z.min,
+                      max: z.max,
+                      sports: allSports,
+                    },
+                  ],
+                },
+              })),
             },
           },
         },
-        select: {
-          user_id: true,
-        },
-      });
+      },
+      select: {
+        user_id: true,
+      },
+    });
+
+    // If invitation token is provided, link athlete to coach
+    if (invitationToken) {
+      await this.invitationService.consumeInvitation(
+        invitationToken,
+        created.user_id,
+      );
+    }
 
     // Fire and forget welcome email
     this.eventEmitter.emit(

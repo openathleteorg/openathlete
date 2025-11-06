@@ -10,12 +10,14 @@ import {
 } from '@openathlete/shared';
 
 import { AuthService, UserService } from '../services';
+import { InvitationService } from '../services/invitation.service';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
     private userService: UserService,
+    private invitationService: InvitationService,
   ) {}
 
   @Post('login')
@@ -35,5 +37,18 @@ export class AuthController {
     return this.userService.exists({
       email,
     });
+  }
+
+  @Get('invitation')
+  async verifyInvitation(@Query('token') token: string) {
+    const invitation =
+      await this.invitationService.verifyInvitationToken(token);
+    if (!invitation) {
+      return { valid: false };
+    }
+    return {
+      valid: true,
+      email: invitation.email,
+    };
   }
 }

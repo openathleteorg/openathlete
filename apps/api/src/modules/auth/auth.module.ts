@@ -6,6 +6,8 @@ import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { AuthController, UserController } from './controllers';
 import { AuthService, CaslAbilityFactory, UserService } from './services';
+import { AthleteInvitationService } from './services/athlete-invitation.service';
+import { InvitationService } from './services/invitation.service';
 import { TokenService } from './services/token.service';
 import { JwtStrategy } from './strategies';
 
@@ -22,10 +24,17 @@ import { JwtStrategy } from './strategies';
     AuthService,
     UserService,
     TokenService,
+    AthleteInvitationService,
+    InvitationService,
     JwtStrategy,
     CaslAbilityFactory,
     PrismaService,
   ],
-  exports: [CaslAbilityFactory, UserService, JwtModule],
+  exports: [
+    CaslAbilityFactory,
+    UserService,
+    JwtModule,
+    AthleteInvitationService,
+  ],
 })
 export class AuthModule {}
