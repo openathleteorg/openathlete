@@ -61,7 +61,7 @@ export function RecordsChart({ records, className }: P) {
       {} as Record<number, { [key in RECORD_TYPE]: number }>,
     );
 
-    return Object.entries(groupedByDistance)
+    const sortedData = Object.entries(groupedByDistance)
       .sort(([a], [b]) => Number(a) - Number(b))
       .map(([distance, values]) => ({
         distance: Number(distance),
@@ -72,7 +72,23 @@ export function RecordsChart({ records, className }: P) {
         ELEVATION_GAIN: values[RECORD_TYPE.ELEVATION_GAIN] || 0,
         ELEVATION_LOSS: values[RECORD_TYPE.ELEVATION_LOSS] || 0,
       }));
+
+    return sortedData;
   }, [records]);
+
+  const xAxisTicks = useMemo(() => {
+    return chartData.map((d) => d.distance);
+  }, [chartData]);
+
+  const xAxisDomain = useMemo(() => {
+    if (chartData.length === 0) {
+      return ['dataMin', 'dataMax'];
+    }
+    const minDistance = Math.min(...chartData.map((d) => d.distance));
+    const maxDistance = Math.max(...chartData.map((d) => d.distance));
+    // Ensure minimum is at least 100 for log scale, and add some padding
+    return [Math.max(100, minDistance * 0.9), maxDistance * 1.1];
+  }, [chartData]);
 
   const toggleLine = useCallback((type: RECORD_TYPE) => {
     setHiddenLines((prev) => {
@@ -84,6 +100,20 @@ export function RecordsChart({ records, className }: P) {
       }
       return next;
     });
+  }, []);
+
+  const formatDistance = useCallback((distance: number | string) => {
+    const numDistance = typeof distance === 'number' ? distance : Number(distance);
+    if (!numDistance || isNaN(numDistance) || numDistance <= 0) {
+      return '0m';
+    }
+    if (numDistance < 1000) {
+      return `${Math.round(numDistance)}m`;
+    } else if (numDistance < 10000) {
+      return `${(numDistance / 1000).toFixed(1)}km`;
+    } else {
+      return `${Math.round(numDistance / 1000)}km`;
+    }
   }, []);
 
   const typeFormatter = useCallback((value: number, type: RECORD_TYPE) => {
@@ -172,7 +202,15 @@ export function RecordsChart({ records, className }: P) {
         <YAxis yAxisId="CADENCE" hide domain={['dataMin', 'dataMax']} />
         <YAxis yAxisId="ELEVATION_GAIN" hide domain={['dataMin', 'dataMax']} />
         <YAxis yAxisId="ELEVATION_LOSS" hide domain={['dataMin', 'dataMax']} />
-        <XAxis dataKey="distance" domain={['dataMin', 'dataMax']} />
+        <XAxis
+          dataKey="distance"
+          domain={xAxisDomain}
+          scale="log"
+          type="number"
+          tickFormatter={(value) => formatDistance(value)}
+          ticks={xAxisTicks.length > 0 ? xAxisTicks : undefined}
+          allowDataOverflow={false}
+        />
         <Line
           type="monotone"
           dataKey="POWER"
@@ -292,14 +330,33 @@ export function RecordsChart({ records, className }: P) {
         <ChartTooltip
           content={
             <ChartTooltipContent
-              formatter={(value, name) => (
-                <div className="flex min-w-[130px] items-center text-xs text-muted-foreground gap-2">
-                  {recordTypeLabelMap[name as RECORD_TYPE]}
-                  <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                    {typeFormatter(Number(value), name as RECORD_TYPE)}
+              labelFormatter={(value, payload) => {
+                // Get distance from payload
+                if (payload && payload.length > 0) {
+                  const firstPayload = payload[0];
+                  if (firstPayload?.payload?.distance) {
+                    return formatDistance(firstPayload.payload.distance);
+                  }
+                }
+                // Fallback to value if it's a number
+                if (typeof value === 'number') {
+                  return formatDistance(value);
+                }
+                return '';
+              }}
+              formatter={(value, name) => {
+                if (value === null || value === undefined || isNaN(Number(value)) || Number(value) === 0) {
+                  return null;
+                }
+                return (
+                  <div className="flex min-w-[130px] items-center text-xs text-muted-foreground gap-2">
+                    {recordTypeLabelMap[name as RECORD_TYPE]}
+                    <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                      {typeFormatter(Number(value), name as RECORD_TYPE)}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              }}
             />
           }
         />
