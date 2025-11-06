@@ -46,6 +46,7 @@ enum training_zone_type {
 
 enum token_type {
   PASSWORD_RESET
+  ATHLETE_INVITATION
 }
 
 enum record_type {
