@@ -15,7 +15,7 @@ export const ApiEnvSchema = z.object({
   STRAVA_CLIENT_ID: z.string().nonempty(),
   STRAVA_CLIENT_SECRET: z.string().nonempty(),
   STRAVA_REDIRECT_URI: z.string().nonempty(),
-  STRAVA_WEBHOOK_VERIFY_TOKEN: z.string().nonempty(),
+  STRAVA_WEBHOOK_TOKEN: z.string().nonempty(),
 
   GARMIN_CLIENT_ID: z.string().optional(),
   GARMIN_CLIENT_SECRET: z.string().optional(),
