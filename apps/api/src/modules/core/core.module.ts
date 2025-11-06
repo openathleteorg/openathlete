@@ -14,6 +14,7 @@ import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateFolderController } from './controllers/event-template-folder.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
 import { MetricController } from './controllers/metric.controller';
+import { CoachController } from './controllers/coach.controller';
 import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
@@ -27,6 +28,7 @@ import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
 import { MetricService } from './services/metric.service';
+import { CoachService } from './services/coach.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import {
   GapProcessor,
@@ -48,6 +50,7 @@ import { WeatherService } from './services/weather/weather.service';
     EventTemplateController,
     EventTemplateFolderController,
     AthleteController,
+    CoachController,
     StatisticsController,
     RecordController,
     EquipmentController,
@@ -63,6 +66,7 @@ import { WeatherService } from './services/weather/weather.service';
     EventTemplateService,
     EventTemplateFolderService,
     AthleteService,
+    CoachService,
     StatisticsService,
     PrismaService,
     RecordService,
