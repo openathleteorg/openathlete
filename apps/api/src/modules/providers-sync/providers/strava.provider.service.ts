@@ -167,8 +167,15 @@ export class StravaProviderService
       externalUserId,
     });
 
-    // Import initial activities (skip weather for bulk import)
-    await this.fetchInitialStravaData(account);
+    // Import initial activities asynchronously (skip weather for bulk import)
+    setImmediate(() => {
+      this.fetchInitialStravaData(account).catch((error) => {
+        this.logger.error(
+          `Failed to import initial Strava activities for account ${account.provider_account_id}: ${error.message}`,
+          error.stack,
+        );
+      });
+    });
 
     return account;
   }
@@ -555,13 +562,20 @@ export class StravaProviderService
         },
       });
 
-      // Import single activity WITH weather enrichment (no skipWeather flag)
-      await this.fetchStravaActivityData(
-        accessToken,
-        event,
-        activity,
-        account.athlete.user.user_id,
-      );
+      // Import single activity asynchronously WITH weather enrichment (no skipWeather flag)
+      setImmediate(() => {
+        this.fetchStravaActivityData(
+          accessToken,
+          event,
+          activity,
+          account.athlete.user.user_id,
+        ).catch((error) => {
+          this.logger.error(
+            `Failed to import Strava activity ${payload.object_id} from webhook: ${error.message}`,
+            error.stack,
+          );
+        });
+      });
     }
   }
 }

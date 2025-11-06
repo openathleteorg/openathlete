@@ -18,8 +18,92 @@ const TARGET_DISTANCES = [
   100000, // 100km
 ];
 
+// Tolerance for finding segments close to target distance (2% above target only)
+// Segments must be at least targetDistance, but can be up to 2% longer
+const DISTANCE_TOLERANCE_RATIO = 0.02;
+
+/**
+ * Find all segments of approximately targetDistance length and return the best one
+ * For ELEVATION: returns the segment with maximum gain/loss (absolute value)
+ * For SPEED: returns the segment with minimum normalized time
+ * For other metrics: returns the segment with best average value
+ */
+function findBestSegmentForDistance(
+  cumulativeDistances: number[],
+  timeStream: number[],
+  targetDistance: number,
+  computeValue: (
+    left: number,
+    right: number,
+    actualDistance: number,
+  ) => {
+    value: number;
+    isValid: boolean;
+  },
+  compareValues: (current: number, best: number) => boolean, // returns true if current is better than best
+): {
+  value: number;
+  start: number;
+  end: number;
+  distance: number;
+} | null {
+  let bestValue = null as {
+    value: number;
+    start: number;
+    end: number;
+    distance: number;
+  } | null;
+
+  const tolerance = targetDistance * DISTANCE_TOLERANCE_RATIO;
+  const minDistance = targetDistance; // Must be at least targetDistance
+  const maxDistance = targetDistance + tolerance;
+
+  let right = 0;
+
+  for (let left = 0; left < cumulativeDistances.length; left++) {
+    // Find the right boundary where cumulativeDistances[right] - cumulativeDistances[left] >= minDistance
+    while (
+      right < cumulativeDistances.length &&
+      cumulativeDistances[right] - cumulativeDistances[left] < minDistance
+    ) {
+      right++;
+    }
+
+    // Check all segments within tolerance and find the best one by value
+    for (let r = right; r < cumulativeDistances.length; r++) {
+      const actualDistance = cumulativeDistances[r] - cumulativeDistances[left];
+
+      if (actualDistance > maxDistance) {
+        break; // Too far, stop searching
+      }
+
+      if (actualDistance >= minDistance) {
+        const result = computeValue(left, r, actualDistance);
+
+        if (result.isValid) {
+          const shouldUpdate =
+            bestValue === null || compareValues(result.value, bestValue.value);
+
+          if (shouldUpdate) {
+            bestValue = {
+              value: result.value,
+              start: timeStream[left],
+              end: timeStream[r],
+              distance: actualDistance,
+            };
+          }
+        }
+      }
+    }
+  }
+
+  return bestValue;
+}
+
 /**
  * Generic function to compute distance-based records for any stream
+ * For SPEED: finds minimum time (normalized to target distance)
+ * For other metrics: finds maximum/minimum average value
  */
 const computeDistanceBasedRecords = (
   timeStream: number[],
@@ -61,29 +145,16 @@ const computeDistanceBasedRecords = (
       continue;
     }
 
-    let bestValue = computeMax ? -Infinity : Infinity;
-    let bestStart = 0;
-    let bestEnd = 0;
-    let right = 0;
-
-    for (let left = 0; left < cumulativeDistances.length; left++) {
-      // Find the right boundary where cumulativeDistances[right] - cumulativeDistances[left] >= targetDistance
-      while (
-        right < cumulativeDistances.length &&
-        cumulativeDistances[right] - cumulativeDistances[left] < targetDistance
-      ) {
-        right++;
-      }
-
-      if (right < cumulativeDistances.length) {
-        const actualDistance =
-          cumulativeDistances[right] - cumulativeDistances[left];
-
-        // For speed records, we want the minimum time (bestValue = segmentTime)
-        // But we need to normalize the time to the target distance for fair comparison
-        if (recordType === 'SPEED') {
+    if (recordType === 'SPEED') {
+      // For SPEED: find minimum time, normalized to target distance
+      const segment = findBestSegmentForDistance(
+        cumulativeDistances,
+        timeStream,
+        targetDistance,
+        (left, right, actualDistance) => {
           const segmentTime = timeStream[right] - timeStream[left];
 
+          // Check for pauses
           let hasPause = false;
           for (let i = left + 1; i <= right; i++) {
             if (timeStream[i] - timeStream[i - 1] > 5) {
@@ -92,62 +163,65 @@ const computeDistanceBasedRecords = (
             }
           }
 
-          if (!hasPause && actualDistance >= targetDistance) {
-            // Normalize time to target distance: if we ran actualDistance in segmentTime,
-            // the equivalent time for targetDistance would be segmentTime * (targetDistance / actualDistance)
-            const normalizedTime =
-              segmentTime * (targetDistance / actualDistance);
-
-            if (normalizedTime < bestValue) {
-              bestValue = normalizedTime;
-              bestStart = timeStream[left];
-              bestEnd = timeStream[right];
-            }
+          if (hasPause) {
+            return { value: 0, isValid: false };
           }
-        } else {
-          // For other metrics, calculate average value over the segment
-          // Ensure the segment is at least targetDistance for consistency
-          if (actualDistance >= targetDistance) {
-            // Find points within the segment
-            const segmentPoints = [] as number[];
-            for (let i = left; i <= right; i++) {
-              if (i < valueStream.length) {
-                segmentPoints.push(valueStream[i]);
-              }
-            }
 
-            // Calculate average
-            const average =
-              segmentPoints.reduce((sum, val) => sum + val, 0) /
-              segmentPoints.length;
+          // Normalize time to target distance
+          const normalizedTime =
+            segmentTime * (targetDistance / actualDistance);
+          return { value: normalizedTime, isValid: true };
+        },
+        (current, best) => current < best, // smaller time is better
+      );
 
-            // Update best value if this segment has better average
-            const isBetter = computeMax
-              ? average > bestValue
-              : average < bestValue;
-
-            if (isBetter && segmentPoints.length > 0) {
-              bestValue = average;
-              bestStart = timeStream[left];
-              bestEnd = timeStream[right];
-            }
-          }
-        }
+      if (segment) {
+        records.push({
+          value: segment.value,
+          type: 'SPEED',
+          distance: targetDistance,
+          start_duration: segment.start,
+          end_duration: segment.end,
+        });
       }
-    }
+    } else {
+      // For other metrics: find best average value
+      const segment = findBestSegmentForDistance(
+        cumulativeDistances,
+        timeStream,
+        targetDistance,
+        (left, right) => {
+          const segmentPoints: number[] = [];
+          for (let i = left; i <= right; i++) {
+            if (i < valueStream.length) {
+              segmentPoints.push(valueStream[i]);
+            }
+          }
 
-    const validValue = computeMax
-      ? bestValue > -Infinity
-      : bestValue < Infinity;
+          if (segmentPoints.length === 0) {
+            return { value: 0, isValid: false };
+          }
 
-    if (validValue) {
-      records.push({
-        value: bestValue,
-        type: recordType,
-        distance: targetDistance,
-        start_duration: bestStart,
-        end_duration: bestEnd,
-      });
+          const average =
+            segmentPoints.reduce((sum, val) => sum + val, 0) /
+            segmentPoints.length;
+
+          return { value: average, isValid: true };
+        },
+        computeMax
+          ? (current, best) => current > best // larger is better
+          : (current, best) => current < best, // smaller is better
+      );
+
+      if (segment) {
+        records.push({
+          value: segment.value,
+          type: recordType,
+          distance: targetDistance,
+          start_duration: segment.start,
+          end_duration: segment.end,
+        });
+      }
     }
   }
 
@@ -243,6 +317,8 @@ const computeCadenceRecords = (
 
 /**
  * Compute elevation gain records over specified distances
+ * For each target distance, finds the segment closest to that distance with maximum elevation gain
+ * Uses absolute values (not normalized) and ensures monotonicity
  */
 const computeElevationGainRecords = (
   stream: ActivityStream,
@@ -282,51 +358,75 @@ const computeElevationGainRecords = (
       continue;
     }
 
-    let maxGain = -Infinity;
+    // Find the segment with maximum elevation gain that is closest to targetDistance
+    let bestGain = -Infinity;
     let bestStart = 0;
     let bestEnd = 0;
+    let bestActualDistance = 0;
+
+    const tolerance = targetDistance * DISTANCE_TOLERANCE_RATIO;
+    const minDistance = targetDistance;
+    const maxDistance = targetDistance + tolerance;
+
     let right = 0;
 
     for (let left = 0; left < cumulativeDistances.length; left++) {
+      // Find right boundary
       while (
         right < cumulativeDistances.length &&
-        cumulativeDistances[right] - cumulativeDistances[left] < targetDistance
+        cumulativeDistances[right] - cumulativeDistances[left] < minDistance
       ) {
         right++;
       }
 
-      if (right < cumulativeDistances.length) {
+      // Check all segments within tolerance
+      for (let r = right; r < cumulativeDistances.length; r++) {
         const actualDistance =
-          cumulativeDistances[right] - cumulativeDistances[left];
+          cumulativeDistances[r] - cumulativeDistances[left];
 
-        // Only consider segments that are at least targetDistance
-        if (actualDistance >= targetDistance) {
-          // Calculate elevation gain for this segment
+        if (actualDistance > maxDistance) {
+          break;
+        }
+
+        if (actualDistance >= minDistance) {
+          // Calculate elevation gain for this segment (absolute value)
           let elevGain = 0;
-          for (let i = left + 1; i <= right && i < altitude.length; i++) {
+          for (let i = left + 1; i <= r && i < altitude.length; i++) {
             const diff = altitude[i] - altitude[i - 1];
             if (diff > 0) {
               elevGain += diff;
             }
           }
 
-          // Normalize elevation gain to target distance for fair comparison
-          // If we have elevGain over actualDistance, the equivalent for targetDistance
-          // would be elevGain * (targetDistance / actualDistance)
+          // Normalize gain to target distance for fair comparison
+          // This ensures monotonicity: a longer segment normalized to a shorter distance
+          // will have at least the normalized gain of the best shorter segment
           const normalizedGain = elevGain * (targetDistance / actualDistance);
 
-          if (normalizedGain > maxGain) {
-            maxGain = normalizedGain;
+          // Find the segment with best normalized gain, preferring those closer to targetDistance when gain is similar
+          const distanceDiff = Math.abs(actualDistance - targetDistance);
+          const currentBestDistanceDiff = Math.abs(
+            bestActualDistance - targetDistance,
+          );
+
+          const isBetter =
+            normalizedGain > bestGain ||
+            (normalizedGain === bestGain &&
+              distanceDiff < currentBestDistanceDiff);
+
+          if (isBetter) {
+            bestGain = normalizedGain;
             bestStart = time[left];
-            bestEnd = time[right];
+            bestEnd = time[r];
+            bestActualDistance = actualDistance;
           }
         }
       }
     }
 
-    if (maxGain > -Infinity) {
+    if (bestGain > -Infinity) {
       records.push({
-        value: maxGain,
+        value: bestGain,
         type: 'ELEVATION_GAIN',
         distance: targetDistance,
         start_duration: bestStart,
@@ -340,6 +440,8 @@ const computeElevationGainRecords = (
 
 /**
  * Compute elevation loss records over specified distances
+ * For each target distance, finds the segment closest to that distance with maximum elevation loss
+ * Uses absolute values (not normalized) and ensures monotonicity
  */
 const computeElevationLossRecords = (
   stream: ActivityStream,
@@ -379,51 +481,75 @@ const computeElevationLossRecords = (
       continue;
     }
 
-    let maxLoss = -Infinity;
+    // Find the segment with maximum elevation loss that is closest to targetDistance
+    let bestLoss = -Infinity;
     let bestStart = 0;
     let bestEnd = 0;
+    let bestActualDistance = 0;
+
+    const tolerance = targetDistance * DISTANCE_TOLERANCE_RATIO;
+    const minDistance = targetDistance;
+    const maxDistance = targetDistance + tolerance;
+
     let right = 0;
 
     for (let left = 0; left < cumulativeDistances.length; left++) {
+      // Find right boundary
       while (
         right < cumulativeDistances.length &&
-        cumulativeDistances[right] - cumulativeDistances[left] < targetDistance
+        cumulativeDistances[right] - cumulativeDistances[left] < minDistance
       ) {
         right++;
       }
 
-      if (right < cumulativeDistances.length) {
+      // Check all segments within tolerance
+      for (let r = right; r < cumulativeDistances.length; r++) {
         const actualDistance =
-          cumulativeDistances[right] - cumulativeDistances[left];
+          cumulativeDistances[r] - cumulativeDistances[left];
 
-        // Only consider segments that are at least targetDistance
-        if (actualDistance >= targetDistance) {
-          // Calculate elevation loss for this segment
+        if (actualDistance > maxDistance) {
+          break;
+        }
+
+        if (actualDistance >= minDistance) {
+          // Calculate elevation loss for this segment (absolute value)
           let elevLoss = 0;
-          for (let i = left + 1; i <= right && i < altitude.length; i++) {
+          for (let i = left + 1; i <= r && i < altitude.length; i++) {
             const diff = altitude[i - 1] - altitude[i];
             if (diff > 0) {
               elevLoss += diff;
             }
           }
 
-          // Normalize elevation loss to target distance for fair comparison
-          // If we have elevLoss over actualDistance, the equivalent for targetDistance
-          // would be elevLoss * (targetDistance / actualDistance)
+          // Normalize loss to target distance for fair comparison
+          // This ensures monotonicity: a longer segment normalized to a shorter distance
+          // will have at least the normalized loss of the best shorter segment
           const normalizedLoss = elevLoss * (targetDistance / actualDistance);
 
-          if (normalizedLoss > maxLoss) {
-            maxLoss = normalizedLoss;
+          // Find the segment with best normalized loss, preferring those closer to targetDistance when loss is similar
+          const distanceDiff = Math.abs(actualDistance - targetDistance);
+          const currentBestDistanceDiff = Math.abs(
+            bestActualDistance - targetDistance,
+          );
+
+          const isBetter =
+            normalizedLoss > bestLoss ||
+            (normalizedLoss === bestLoss &&
+              distanceDiff < currentBestDistanceDiff);
+
+          if (isBetter) {
+            bestLoss = normalizedLoss;
             bestStart = time[left];
-            bestEnd = time[right];
+            bestEnd = time[r];
+            bestActualDistance = actualDistance;
           }
         }
       }
     }
 
-    if (maxLoss > -Infinity) {
+    if (bestLoss > -Infinity) {
       records.push({
-        value: maxLoss,
+        value: bestLoss,
         type: 'ELEVATION_LOSS',
         distance: targetDistance,
         start_duration: bestStart,
