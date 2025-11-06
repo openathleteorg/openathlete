@@ -1,7 +1,11 @@
 export const emailLibrary = {
   'password-reset': {
-    defaultSubject: 'Password Reset',
+    defaultSubject: 'Réinitialisation de votre mot de passe',
     props: {} as { url: string },
+  },
+  welcome: {
+    defaultSubject: 'Bienvenue sur OpenAthlete',
+    props: {} as { name?: string; dashboard_url?: string },
   },
 } as const;
 
