@@ -14,4 +14,14 @@ export class AuthAPI {
     });
     return res.data;
   }
+
+  static async verifyInvitation(token: string): Promise<{
+    valid: boolean;
+    email?: string;
+  }> {
+    const res = await client.get(routes.auth.verifyInvitation, {
+      params: { token },
+    });
+    return res.data;
+  }
 }

@@ -1,4 +1,10 @@
+import {
+  useGetMyCoachedAthletesQuery,
+  useInviteAthleteMutation,
+  useRemoveAthleteMutation,
+} from '@/api/athlete';
 import { ConfirmAction } from '@/components/confirm-action';
+import { InviteAthleteDialog } from '@/components/invite-athlete-dialog/invite-athlete.dialog';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -10,12 +16,9 @@ import {
 } from '@/components/ui/table';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import {
-  useGetMyCoachedAthletesQuery,
-  useRemoveAthleteMutation,
-} from '@/api/athlete';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface P {}
 
@@ -25,10 +28,22 @@ export function AthletesTab({}: P) {
   const [deleteAthleteDialog, setDeleteAthleteDialog] = useState<number | null>(
     null,
   );
+  const [inviteAthleteDialog, setInviteAthleteDialog] = useState(false);
   const removeAthleteMutation = useRemoveAthleteMutation();
+  const inviteAthleteMutation = useInviteAthleteMutation({
+    onSuccess: () => {
+      setInviteAthleteDialog(false);
+      toast.success(m.athlete_invited_successfully());
+    },
+  });
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <Button onClick={() => setInviteAthleteDialog(true)}>
+          {m.invite_athlete()}
+        </Button>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -71,6 +86,12 @@ export function AthletesTab({}: P) {
           ))}
         </TableBody>
       </Table>
+      <InviteAthleteDialog
+        open={inviteAthleteDialog}
+        onClose={() => setInviteAthleteDialog(false)}
+        onInvite={(email) => inviteAthleteMutation.mutate({ email })}
+        isLoading={inviteAthleteMutation.isPending}
+      />
       <ConfirmAction
         open={!!deleteAthleteDialog}
         onClose={() => setDeleteAthleteDialog(null)}

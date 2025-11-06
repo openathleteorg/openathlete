@@ -12,6 +12,7 @@ export const routes = {
     login: '/auth/login',
     refreshToken: '/auth/refresh-token',
     emailExists: '/auth/email-exists',
+    verifyInvitation: '/auth/invitation',
   },
   user: {
     getMe: '/user/me',
