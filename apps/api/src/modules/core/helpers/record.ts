@@ -310,8 +310,13 @@ const computeElevationGainRecords = (
             }
           }
 
-          if (elevGain > maxGain) {
-            maxGain = elevGain;
+          // Normalize elevation gain to target distance for fair comparison
+          // If we have elevGain over actualDistance, the equivalent for targetDistance
+          // would be elevGain * (targetDistance / actualDistance)
+          const normalizedGain = elevGain * (targetDistance / actualDistance);
+
+          if (normalizedGain > maxGain) {
+            maxGain = normalizedGain;
             bestStart = time[left];
             bestEnd = time[right];
           }
@@ -402,8 +407,13 @@ const computeElevationLossRecords = (
             }
           }
 
-          if (elevLoss > maxLoss) {
-            maxLoss = elevLoss;
+          // Normalize elevation loss to target distance for fair comparison
+          // If we have elevLoss over actualDistance, the equivalent for targetDistance
+          // would be elevLoss * (targetDistance / actualDistance)
+          const normalizedLoss = elevLoss * (targetDistance / actualDistance);
+
+          if (normalizedLoss > maxLoss) {
+            maxLoss = normalizedLoss;
             bestStart = time[left];
             bestEnd = time[right];
           }

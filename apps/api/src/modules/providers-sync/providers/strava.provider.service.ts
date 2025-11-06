@@ -290,17 +290,21 @@ export class StravaProviderService
     user_id: number,
     options?: { skipWeather?: boolean },
   ): Promise<event_activity> {
-    const { data: streams } = await axios.get(
-      `https://www.strava.com/api/v3/activities/${activity.id}/streams`,
-      {
+    const { data: streams } = await axios
+      .get(`https://www.strava.com/api/v3/activities/${activity.id}/streams`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
         params: {
           keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
         },
-      },
-    );
+      })
+      .catch((error) => {
+        this.logger.error(
+          `Error fetching Strava activity data for activity ${activity.id}: ${error.message}`,
+        );
+        return { data: [] };
+      });
 
     const mergedData: ActivityStream = {};
     for (const stream of streams) {

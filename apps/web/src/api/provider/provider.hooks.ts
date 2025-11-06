@@ -35,7 +35,9 @@ export const useSetOAuthTokenMutation = (
   return useMutation({
     ...opt,
     mutationFn: ProviderAPI.setOAuthToken,
-    onSuccess: () => {
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: [providerKeys.getConnected] });
     },
   });
@@ -53,7 +55,9 @@ export const useDisconnectProviderMutation = (
     ...opt,
     mutationFn: (provider: ConnectorProvider) =>
       ProviderAPI.disconnect(provider),
-    onSuccess: () => {
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({ queryKey: [providerKeys.getConnected] });
     },
   });
