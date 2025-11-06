@@ -17,6 +17,7 @@ model user {
   templates             event_template[]
   agent_threads         agent_thread[]
   event_template_folder event_template_folder[]
+  athlete_invitations   athlete_invitation[]
 
   // timestamps
   created_at DateTime @default(now())

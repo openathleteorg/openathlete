@@ -42,6 +42,24 @@ model coach_athlete {
   updated_at DateTime @updatedAt
 }
 
+model training_zone_value {
+  // primary key
+  training_zone_value_id Int @id @default(autoincrement())
+
+  // fields
+  min    Float
+  max    Float
+  sports sport_type[]
+
+  // relationships
+  training_zone    training_zone @relation(fields: [training_zone_id], references: [training_zone_id])
+  training_zone_id Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+}
+
 model training_zone {
   // primary key
   training_zone_id Int @id @default(autoincrement())
@@ -63,20 +81,22 @@ model training_zone {
   updated_at DateTime @updatedAt
 }
 
-model training_zone_value {
+model athlete_invitation {
   // primary key
-  training_zone_value_id Int @id @default(autoincrement())
+  athlete_invitation_id Int @id @default(autoincrement())
 
   // fields
-  min    Float
-  max    Float
-  sports sport_type[]
+  email String
+  token String @unique
 
   // relationships
-  training_zone    training_zone @relation(fields: [training_zone_id], references: [training_zone_id])
-  training_zone_id Int
+  user    user @relation(fields: [user_id], references: [user_id])
+  user_id Int
 
   // timestamps
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
+
+  @@index([token])
+  @@index([email])
 }
