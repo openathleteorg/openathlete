@@ -14,6 +14,7 @@ import { AuthModule } from './auth';
 import { CoreModule } from './core';
 import { NotificationModule } from './notification';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
+import { QueueModule } from './queue';
 import { PrismaService } from './prisma/services/prisma.service';
 
 @Module({
@@ -24,6 +25,7 @@ import { PrismaService } from './prisma/services/prisma.service';
     EventEmitterModule.forRoot(),
     NotificationModule,
     ProvidersSyncModule,
+    QueueModule,
   ],
   controllers: [AppController],
   providers: [

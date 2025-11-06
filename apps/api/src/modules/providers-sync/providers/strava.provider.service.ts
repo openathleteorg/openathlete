@@ -1,8 +1,7 @@
 import axios, { isAxiosError } from 'axios';
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
   connector_provider,
@@ -12,11 +11,10 @@ import {
 } from '@openathlete/database';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
-import { ActivityImportedEvent } from 'src/events';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { QueueService } from 'src/modules/queue';
 
 import { compressActivityStream } from '../../core/helpers/activity-stream';
-import { computeRecords } from '../../core/helpers/record';
 import {
   roundCadence,
   roundDistance,
@@ -61,7 +59,8 @@ export class StravaProviderService
   constructor(
     prisma: PrismaService,
     configService: ConfigService<ApiEnvSchemaType, true>,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject(forwardRef(() => QueueService))
+    private readonly queueService: QueueService,
   ) {
     super(prisma, configService);
   }
@@ -167,14 +166,12 @@ export class StravaProviderService
       externalUserId,
     });
 
-    // Import initial activities asynchronously (skip weather for bulk import)
-    setImmediate(() => {
-      this.fetchInitialStravaData(account).catch((error) => {
-        this.logger.error(
-          `Failed to import initial Strava activities for account ${account.provider_account_id}: ${error.message}`,
-          error.stack,
-        );
-      });
+    // Import initial activities using queue (skip weather for bulk import)
+    this.fetchInitialStravaData(account).catch((error) => {
+      this.logger.error(
+        `Failed to queue initial Strava activities for account ${account.provider_account_id}: ${error.message}`,
+        error.stack,
+      );
     });
 
     return account;
@@ -321,7 +318,6 @@ export class StravaProviderService
     const compressedActivityStream = compressActivityStream(mergedData);
 
     const sport = mapStravaSportType(activity.type);
-    const records = computeRecords(mergedData);
 
     const athlete = await this.prisma.athlete.findUnique({
       where: { user_id },
@@ -330,15 +326,6 @@ export class StravaProviderService
     if (!athlete) {
       throw new Error('Athlete not found');
     }
-
-    const defaultEquipment = await this.prisma.equipment.findFirst({
-      where: {
-        athlete_id: athlete.athlete_id,
-        type:
-          sport === 'RUNNING' || sport === 'TRAIL_RUNNING' ? 'SHOE' : 'BIKE',
-        is_default: true,
-      },
-    });
 
     const savedActivity = await this.prisma.event_activity.create({
       data: {
@@ -363,128 +350,62 @@ export class StravaProviderService
             event_id: event.event_id,
           },
         },
-        equipment: defaultEquipment
-          ? {
-              connect: {
-                equipment_id: defaultEquipment.equipment_id,
-              },
-            }
-          : undefined,
       },
     });
-
-    // Emit event
-    this.eventEmitter.emit(
-      ActivityImportedEvent.SLUG,
-      new ActivityImportedEvent({
-        eventActivityId: savedActivity.event_activity_id,
-        eventId: event.event_id,
-        skipWeather: options?.skipWeather,
-      }),
-    );
-
-    if (defaultEquipment) {
-      await this.prisma.equipment.update({
-        where: {
-          equipment_id: defaultEquipment.equipment_id,
-        },
-        data: {
-          total_distance: {
-            increment: roundDistance(activity.distance),
-          },
-        },
-      });
-    }
-
-    if (records.length > 0) {
-      await this.prisma.record.createMany({
-        data: records.map((record) => ({
-          ...record,
-          date: new Date(activity.start_date),
-          event_activity_id: savedActivity.event_activity_id,
-          athlete_id: athlete.athlete_id,
-        })),
-      });
-    }
 
     return savedActivity;
   }
 
   /**
    * Import initial activities from Strava when connecting
-   * Similar to fetchInitialStravaData from old StravaConnectorService
+   * Fetches activities and adds them to the import queue
    */
   private async fetchInitialStravaData(
     account: provider_account,
   ): Promise<void> {
-    const accessToken = await this.getValidAccessToken(account);
+    this.logger.log(
+      `Fetching initial Strava activities for account ${account.provider_account_id}`,
+    );
 
-    // Get athlete with user for user_id
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: account.athlete_id },
-      include: { user: true },
+    // Fetch all activities using importActivities
+    const activities = await this.importActivities(account);
+
+    if (activities.length === 0) {
+      this.logger.log('No new activities to import');
+      return;
+    }
+
+    // Filter out activities that already exist
+    const existingExternalIds = await this.prisma.event_activity.findMany({
+      where: {
+        external_id: {
+          in: activities.map((a) => a.externalId),
+        },
+      },
+      select: {
+        external_id: true,
+      },
     });
 
-    if (!athlete) {
-      throw new Error('Athlete not found');
+    const existingIdsSet = new Set(
+      existingExternalIds.map((a) => a.external_id),
+    );
+
+    const newActivities = activities.filter(
+      (a) => !existingIdsSet.has(a.externalId),
+    );
+
+    if (newActivities.length === 0) {
+      this.logger.log('All activities already imported');
+      return;
     }
 
-    let page = 1;
-    let hasMoreData = true;
+    // Add all activities to the import queue (skip weather for bulk import)
+    await this.queueService.addActivityImportJobs(account, newActivities, true);
 
-    while (hasMoreData) {
-      const { data } = await axios.get<StravaSummaryActivity[]>(
-        `https://www.strava.com/api/v3/athlete/activities?page=${page}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
-      );
-
-      if (data.length === 0) {
-        hasMoreData = false;
-        break;
-      }
-
-      for (const activity of data) {
-        // Check if activity already exists
-        const existingActivity = await this.prisma.event_activity.findFirst({
-          where: {
-            external_id: activity.id.toString(),
-          },
-        });
-
-        if (existingActivity) {
-          continue;
-        }
-
-        const endDate = new Date(activity.start_date);
-        endDate.setSeconds(endDate.getSeconds() + activity.elapsed_time);
-
-        // Create event
-        const event = await this.prisma.event.create({
-          data: {
-            athlete_id: athlete.athlete_id,
-            name: activity.name,
-            type: event_type.ACTIVITY,
-            start_date: new Date(activity.start_date),
-            end_date: endDate,
-          },
-        });
-
-        // Import activity with skipWeather=true for bulk import
-        await this.fetchStravaActivityData(
-          accessToken,
-          event,
-          activity,
-          athlete.user.user_id,
-          { skipWeather: true },
-        );
-      }
-
-      page++;
-    }
+    this.logger.log(
+      `Queued ${newActivities.length} activities for import (out of ${activities.length} total)`,
+    );
   }
 
   /**
@@ -551,31 +472,26 @@ export class StravaProviderService
       const endDate = new Date(activity.start_date);
       endDate.setSeconds(endDate.getSeconds() + activity.elapsed_time);
 
-      // Create event
-      const event = await this.prisma.event.create({
-        data: {
-          athlete_id: account.athlete_id,
-          name: activity.name,
-          type: event_type.ACTIVITY,
-          start_date: new Date(activity.start_date),
-          end_date: endDate,
-        },
-      });
+      const importedActivity: ImportedActivity = {
+        externalId: activity.id.toString(),
+        name: activity.name,
+        startDate: new Date(activity.start_date),
+        endDate,
+        sport: mapStravaSportType(activity.type),
+        distance: activity.distance,
+        duration: activity.elapsed_time,
+        raw: activity,
+      };
 
-      // Import single activity asynchronously WITH weather enrichment (no skipWeather flag)
-      setImmediate(() => {
-        this.fetchStravaActivityData(
-          accessToken,
-          event,
-          activity,
-          account.athlete.user.user_id,
-        ).catch((error) => {
-          this.logger.error(
-            `Failed to import Strava activity ${payload.object_id} from webhook: ${error.message}`,
-            error.stack,
-          );
-        });
-      });
+      await this.queueService.addActivityImportJob(
+        account,
+        importedActivity,
+        false,
+      );
+
+      this.logger.log(
+        `Queued activity ${payload.object_id} from webhook for import`,
+      );
     }
   }
 }
