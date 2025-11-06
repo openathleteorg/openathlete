@@ -95,7 +95,7 @@ export function CoachDashboardView() {
       </div>
 
       <div className="border-t rounded-none bg-background flex-1 min-h-0 flex flex-col relative">
-        <div className="absolute left-[239px] top-0 bottom-0 w-3 pointer-events-none bg-gradient-to-r from-black/10 to-transparent dark:from-white/10 z-[45] border-l" />
+        <div className="absolute left-[239px] top-0 bottom-0 w-4 pointer-events-none bg-gradient-to-r from-black/6 to-transparent dark:from-white/10 z-[45] border-l" />
         <div className="flex-1 min-h-0 overflow-x-auto relative">
           <div className="relative min-w-[1560px] flex flex-col h-full">
             <div className="sticky top-0 z-[25] bg-background grid grid-cols-[240px_200px_140px_140px_140px_140px_140px_140px_140px_140px] border-b shrink-0">
