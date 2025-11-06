@@ -5,6 +5,7 @@ import {
   useGetOAuthUriMutation,
 } from '@/api/provider';
 import { StravaIcon } from '@/assets/icons';
+import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -17,6 +18,7 @@ import { API_BASE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { connectorProviderLabelMap } from '@/utils/label-map/core/connector-provider.label-map';
 import { CheckCircle2, Link2, Link2Off } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { ConnectorProvider } from '@openathlete/shared';
@@ -31,6 +33,10 @@ const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
 ];
 
 export function ConnectorsTab({}: P) {
+  const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
+  const [providerToDisconnect, setProviderToDisconnect] =
+    useState<ConnectorProvider | null>(null);
+
   const { data: connectedProviders = [], isLoading: isLoadingConnected } =
     useGetConnectedProvidersQuery();
 
@@ -50,6 +56,8 @@ export function ConnectorsTab({}: P) {
           provider: connectorProviderLabelMap[provider],
         }),
       );
+      setDisconnectDialogOpen(false);
+      setProviderToDisconnect(null);
     },
     onError: (error) => {
       toast.error(error.message || m.failed_to_disconnect());
@@ -67,14 +75,13 @@ export function ConnectorsTab({}: P) {
   };
 
   const handleDisconnect = (provider: ConnectorProvider) => {
-    if (
-      confirm(
-        m.confirm_disconnect_provider({
-          provider: connectorProviderLabelMap[provider],
-        }),
-      )
-    ) {
-      disconnectMutation.mutate(provider);
+    setProviderToDisconnect(provider);
+    setDisconnectDialogOpen(true);
+  };
+
+  const handleConfirmDisconnect = () => {
+    if (providerToDisconnect) {
+      disconnectMutation.mutate(providerToDisconnect);
     }
   };
 
@@ -192,6 +199,24 @@ export function ConnectorsTab({}: P) {
           </CardContent>
         </Card>
       )}
+
+      <ConfirmAction
+        open={disconnectDialogOpen}
+        onClose={() => {
+          setDisconnectDialogOpen(false);
+          setProviderToDisconnect(null);
+        }}
+        onConfirm={handleConfirmDisconnect}
+        title={m.disconnect()}
+        message={
+          providerToDisconnect
+            ? m.confirm_disconnect_provider({
+                provider: connectorProviderLabelMap[providerToDisconnect],
+              })
+            : ''
+        }
+        isLoading={disconnectMutation.isPending}
+      />
     </div>
   );
 }
