@@ -25,11 +25,13 @@ import {
   event_type,
 } from '@openathlete/database';
 import {
+  ActivityEvent,
   ActivityStream,
   ApiEnvSchemaType,
   CompressedActivityStream,
   CreateEventDto,
   DuplicateWorkoutDto,
+  Event,
   ReorderWorkoutStepsDto,
   UpdateEventDto,
   calculateWorkoutDistance,
@@ -42,10 +44,7 @@ import {
   updateWorkoutSchema,
 } from '@openathlete/shared';
 
-import {
-  ActivityImportedEvent,
-  WorkoutPlannedChangedEvent,
-} from 'src/events';
+import { ActivityImportedEvent, WorkoutPlannedChangedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
@@ -1208,6 +1207,183 @@ export class EventService {
 
     // Return updated target event
     return this.getEventById(user, data.targetTrainingId);
+  }
+
+  /**
+   * Check if an event is validated based on athlete settings
+   */
+  private async isEventValidated(
+    event: event & {
+      competition: event_competition | null;
+      training: event_training | null;
+      note: event_note | null;
+      activity: Omit<event_activity, 'stream'> | null;
+    },
+  ): Promise<boolean> {
+    if (!event.athlete_id) return true; // No athlete, consider validated
+
+    // Get athlete settings
+    const settings = await this.prisma.athlete_settings.findUnique({
+      where: { athlete_id: event.athlete_id },
+    });
+
+    // If no settings, consider validated
+    if (!settings || (!settings.require_rpe && !settings.require_comment)) {
+      return true;
+    }
+
+    // For ACTIVITY events, check RPE and comment
+    if (event.type === event_type.ACTIVITY && event.activity) {
+      const hasRpe =
+        event.activity.rpe !== null && event.activity.rpe !== undefined;
+      const hasComment =
+        event.activity.description !== null &&
+        event.activity.description !== undefined &&
+        event.activity.description.trim() !== '';
+
+      if (settings.require_rpe && !hasRpe) return false;
+      if (settings.require_comment && !hasComment) return false;
+
+      return true;
+    }
+
+    // For TRAINING events, check related activity
+    if (
+      event.type === event_type.TRAINING &&
+      event.training?.related_activity_id
+    ) {
+      const relatedActivity = await this.prisma.event_activity.findUnique({
+        where: { event_activity_id: event.training.related_activity_id },
+      });
+
+      if (!relatedActivity) return false;
+
+      const hasRpe =
+        relatedActivity.rpe !== null && relatedActivity.rpe !== undefined;
+      const hasComment =
+        relatedActivity.description !== null &&
+        relatedActivity.description !== undefined &&
+        relatedActivity.description.trim() !== '';
+
+      if (settings.require_rpe && !hasRpe) return false;
+      if (settings.require_comment && !hasComment) return false;
+
+      return true;
+    }
+
+    // For COMPETITION events, check related activity
+    if (
+      event.type === event_type.COMPETITION &&
+      event.competition?.related_activity_id
+    ) {
+      const relatedActivity = await this.prisma.event_activity.findUnique({
+        where: { event_activity_id: event.competition.related_activity_id },
+      });
+
+      if (!relatedActivity) return false;
+
+      const hasRpe =
+        relatedActivity.rpe !== null && relatedActivity.rpe !== undefined;
+      const hasComment =
+        relatedActivity.description !== null &&
+        relatedActivity.description !== undefined &&
+        relatedActivity.description.trim() !== '';
+
+      if (settings.require_rpe && !hasRpe) return false;
+      if (settings.require_comment && !hasComment) return false;
+
+      return true;
+    }
+
+    // For TRAINING and COMPETITION without related activity, they are not validated
+    if (
+      (event.type === event_type.TRAINING ||
+        event.type === event_type.COMPETITION) &&
+      !event.training?.related_activity_id &&
+      !event.competition?.related_activity_id
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Get unvalidated sessions for an athlete
+   */
+  async getUnvalidatedSessions(
+    user: AuthUser,
+    athleteId: number,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
+    const ability = await this.abilities.getFor({ user });
+
+    // Check access to athlete
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { athlete_id: athleteId },
+    });
+    if (!athlete) throw new NotFoundException('Athlete not found');
+    if (!ability.can('read', subject('athlete', athlete))) {
+      throw new ForbiddenException('Not allowed to access this athlete');
+    }
+
+    // Build date filter if dates are provided
+    const dateFilter =
+      startDate && endDate
+        ? {
+            OR: [
+              {
+                start_date: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              {
+                end_date: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+              {
+                AND: [
+                  { start_date: { lte: startDate } },
+                  { end_date: { gte: endDate } },
+                ],
+              },
+            ],
+          }
+        : {};
+
+    // Get all events for the athlete
+    const events = await this.prisma.event.findMany({
+      where: {
+        AND: [
+          accessibleBy(ability, 'read').event,
+          {
+            athlete_id: athleteId,
+            type: {
+              in: [event_type.ACTIVITY],
+            },
+          },
+          dateFilter,
+        ],
+      },
+      include: EVENT_INCLUDES,
+    });
+
+    // Filter unvalidated events
+    const unvalidatedEvents = [] as typeof events;
+    for (const event of events) {
+      const isValidated = await this.isEventValidated(event);
+      if (!isValidated) {
+        unvalidatedEvents.push(event);
+      }
+    }
+
+    return unvalidatedEvents.map((e) =>
+      keysToCamel(this.prismaEventToEvent(e)),
+    );
   }
 
   // Legacy builder/mapper removed; mapping is handled in @openathlete/shared utils.

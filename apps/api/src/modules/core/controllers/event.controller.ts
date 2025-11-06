@@ -55,6 +55,22 @@ export class EventController {
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get('unvalidated/:athleteId')
+  getUnvalidatedSessions(
+    @JwtUser() user: AuthUser,
+    @Param('athleteId', ParseIntPipe) athleteId: number,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.eventService.getUnvalidatedSessions(
+      user,
+      athleteId,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get()
   getMyEvents(
     @JwtUser() user: AuthUser,

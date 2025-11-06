@@ -20,6 +20,7 @@ import { TrainingZoneController } from './controllers/training-zone.controller';
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { AthleteService } from './services/athlete.service';
+import { AthleteSettingsService } from './services/athlete-settings.service';
 import { BetaAccessService } from './services/beta-access.service';
 import { CoachService } from './services/coach.service';
 import { ContactService } from './services/contact.service';
@@ -64,6 +65,7 @@ import { WeatherService } from './services/weather/weather.service';
     EventTemplateService,
     EventTemplateFolderService,
     AthleteService,
+    AthleteSettingsService,
     CoachService,
     StatisticsService,
     PrismaService,

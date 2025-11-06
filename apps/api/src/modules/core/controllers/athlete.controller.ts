@@ -7,6 +7,7 @@ import {
   Get,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   UseGuards,
 } from '@nestjs/common';
@@ -15,18 +16,24 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   InviteAthleteDto,
   InviteCoachDto,
+  UpdateAthleteSettingsDto,
   inviteAthleteSchema,
   inviteCoachSchema,
+  updateAthleteSettingsDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { AthleteService } from '../services/athlete.service';
+import { AthleteSettingsService } from '../services/athlete-settings.service';
 
 @Controller('athlete')
 export class AthleteController {
-  constructor(private athleteService: AthleteService) {}
+  constructor(
+    private athleteService: AthleteService,
+    private athleteSettingsService: AthleteSettingsService,
+  ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Get('me')
@@ -80,5 +87,25 @@ export class AthleteController {
     @Param('coachId', ParseIntPipe) coachId: number,
   ) {
     return this.athleteService.removeCoach(user.user_id, coachId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get(':athleteId/settings')
+  getAthleteSettings(
+    @JwtUser() user: AuthUser,
+    @Param('athleteId', ParseIntPipe) athleteId: number,
+  ) {
+    return this.athleteSettingsService.getSettingsForAthlete(user, athleteId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch(':athleteId/settings')
+  updateAthleteSettings(
+    @JwtUser() user: AuthUser,
+    @Param('athleteId', ParseIntPipe) athleteId: number,
+    @Body(new ZodValidationPipe(updateAthleteSettingsDtoSchema))
+    dto: UpdateAthleteSettingsDto,
+  ) {
+    return this.athleteSettingsService.updateSettings(user, athleteId, dto);
   }
 }
