@@ -34,8 +34,16 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 
   const sidebarNavigation = useMemo(() => {
     if (space === 'COACH') {
-      return (
-        athletes?.map((athlete) => ({
+      type SidebarItem = Parameters<typeof NavMain>[0]['items'][number];
+      const baseItems: SidebarItem[] = [
+        {
+          title: m.dashboard(),
+          url: getPath(['dashboard', 'coach']),
+          icon: PieChart,
+          spaces: ['COACH'] as UserRole[],
+        },
+      ];
+      const athleteGroups: SidebarItem[] = (athletes || []).map((athlete) => ({
           title: athlete.user?.firstName + ' ' + athlete.user?.lastName,
           icon: User,
           spaces: ['COACH'] as UserRole[],
@@ -72,8 +80,8 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
               icon: CogIcon,
             },
           ],
-        })) || []
-      );
+          })) as SidebarItem[];
+      return [...baseItems, ...athleteGroups];
     }
 
     return [

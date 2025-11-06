@@ -80,6 +80,12 @@ const ChatbotPage = lazy(() =>
   })),
 );
 
+const CoachDashboardPage = lazy(() =>
+  import('@/pages/dashboard/coach').then((module) => ({
+    default: module.CoachDashboardPage,
+  })),
+);
+
 export const dashboardRoutes: RouteObject[] = [
   {
     path: getPath(['dashboard']),
@@ -94,6 +100,10 @@ export const dashboardRoutes: RouteObject[] = [
     ),
     children: [
       { element: <IndexPage />, index: true },
+      {
+        path: getPath(['dashboard', 'coach']),
+        element: <CoachDashboardPage />,
+      },
       {
         path: getPath(['dashboard', 'calendar']),
         element: <CalendarPage />,

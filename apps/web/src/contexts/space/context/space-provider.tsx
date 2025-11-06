@@ -23,7 +23,11 @@ export function SpaceProvider({ children }: Props) {
   const handleSpaceChange = (space: UserRole) => {
     setCurrentSpace(space);
     setItem(CURRENT_SPACE, space);
-    nav(getPath(['dashboard', 'calendar']));
+    if (space === 'COACH') {
+      nav(getPath(['dashboard', 'coach']));
+    } else {
+      nav(getPath(['dashboard', 'calendar']));
+    }
   };
 
   const memoizedValue = useMemo<SpaceContextType>(

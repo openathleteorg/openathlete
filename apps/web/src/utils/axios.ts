@@ -96,6 +96,10 @@ export const routes = {
       endDate: string,
     ) => `/statistics?athleteId=${athleteId}&start=${startDate}&end=${endDate}`,
   },
+  coach: {
+    dashboard: (start?: string, end?: string) =>
+      `/coach/dashboard${start && end ? `?start=${start}&end=${end}` : ''}`,
+  },
   cycle: {
     create: '/cycle',
     update: (cycleId: number) => `/cycle/${cycleId}`,
