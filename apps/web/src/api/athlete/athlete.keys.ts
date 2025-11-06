@@ -7,4 +7,8 @@ export const athleteKeys = {
   inviteAthlete: 'AthleteAPI.inviteAthlete',
   removeAthlete: 'AthleteAPI.removeAthlete',
   removeCoach: 'AthleteAPI.removeCoach',
+  getAthleteSettings: (athleteId: number) => [
+    'AthleteAPI.getAthleteSettings',
+    athleteId,
+  ],
 } as const;

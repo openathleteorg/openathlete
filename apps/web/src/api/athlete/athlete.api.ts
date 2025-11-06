@@ -2,9 +2,11 @@ import client, { routes } from '@/utils/axios';
 
 import {
   Athlete,
+  AthleteSettings,
   InviteCoachDto,
   TrainingZone,
   TrainingZoneValue,
+  UpdateAthleteSettingsDto,
   User,
 } from '@openathlete/shared';
 
@@ -50,5 +52,21 @@ export class AthleteAPI {
 
   static async removeCoach(coachId: number): Promise<void> {
     await client.delete(routes.athlete.removeCoach(coachId));
+  }
+
+  static async getAthleteSettings(athleteId: number): Promise<AthleteSettings> {
+    const res = await client.get(routes.athlete.getAthleteSettings(athleteId));
+    return res.data;
+  }
+
+  static async updateAthleteSettings(
+    athleteId: number,
+    body: UpdateAthleteSettingsDto,
+  ): Promise<AthleteSettings> {
+    const res = await client.patch(
+      routes.athlete.updateAthleteSettings(athleteId),
+      body,
+    );
+    return res.data;
   }
 }

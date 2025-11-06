@@ -119,3 +119,39 @@ export const useRemoveCoachMutation = (
     },
   });
 };
+
+export const useGetAthleteSettingsQuery = (
+  athleteId: number,
+  enabled?: boolean,
+  opt?: QueryOptions<Awaited<ReturnType<typeof AthleteAPI.getAthleteSettings>>>,
+) =>
+  useQuery({
+    ...opt,
+    queryFn: () => AthleteAPI.getAthleteSettings(athleteId),
+    queryKey: athleteKeys.getAthleteSettings(athleteId),
+    enabled: !!athleteId && enabled !== false,
+  });
+
+export const useUpdateAthleteSettingsMutation = (
+  athleteId: number,
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof AthleteAPI.updateAthleteSettings>>,
+    Error,
+    Parameters<typeof AthleteAPI.updateAthleteSettings>[1]
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: (
+      body: Parameters<typeof AthleteAPI.updateAthleteSettings>[1],
+    ) => AthleteAPI.updateAthleteSettings(athleteId, body),
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
+      queryClient.invalidateQueries({
+        queryKey: athleteKeys.getAthleteSettings(athleteId),
+      });
+    },
+  });
+};

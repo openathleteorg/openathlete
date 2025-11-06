@@ -39,6 +39,14 @@ export const routes = {
     unsetRelatedActivity: (eventId: Event['eventId']) =>
       `/event/${eventId}/related-activity`,
     getMyIcalCalendarSecret: '/event/ical/secret',
+    getUnvalidatedSessions: (
+      athleteId: number,
+      startDate?: string,
+      endDate?: string,
+    ) =>
+      `/event/unvalidated/${athleteId}${
+        startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''
+      }`,
   },
   eventTemplate: {
     getMyTemplates: '/event-template',
@@ -89,6 +97,8 @@ export const routes = {
     inviteAthlete: '/athlete/invite/athlete',
     removeAthlete: (athleteId: number) => `/athlete/${athleteId}`,
     removeCoach: (coachId: number) => `/athlete/coach/${coachId}`,
+    getAthleteSettings: (athleteId: number) => `/athlete/${athleteId}/settings`,
+    updateAthleteSettings: (athleteId: number) => `/athlete/${athleteId}/settings`,
   },
   statistics: {
     getStatisticsForPeriod: (

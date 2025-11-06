@@ -6,10 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import {
-  UpdateAthleteSettingsDto,
-  keysToCamel,
-} from '@openathlete/shared';
+import { UpdateAthleteSettingsDto, keysToCamel } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -85,4 +82,3 @@ export class AthleteSettingsService {
     return keysToCamel(settings);
   }
 }
-

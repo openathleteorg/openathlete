@@ -1,9 +1,7 @@
-import { m } from '@/paraglide/messages';
-import {
-  useDeleteEventMutation,
-  useDuplicateEventMutation,
-} from '@/api/event';
+import { useDeleteEventMutation, useDuplicateEventMutation } from '@/api/event';
 import { useCreateEventTemplateMutation } from '@/api/event-template';
+import { useIsEventValidated } from '@/hooks/use-event-validation';
+import { m } from '@/paraglide/messages';
 import {
   getEventTypeColor,
   getHighSaturatedRpeColor,
@@ -96,6 +94,7 @@ export function CalendarEvent({ event, wrapped }: P) {
     editEvent,
     events: allEvents,
     coloredBy,
+    athleteId,
   } = useCalendarContext();
   const [deleteEventDialog, setDeleteEventDialog] = useState<boolean>(false);
   const deleteEventMutation = useDeleteEventMutation();
@@ -103,6 +102,7 @@ export function CalendarEvent({ event, wrapped }: P) {
   const createEventTemplateMutation = useCreateEventTemplateMutation({
     onSuccess: () => toast.success('Saved as template successfully'),
   });
+  const isValidated = useIsEventValidated(event, athleteId);
 
   const eventColor = useMemo(() => {
     switch (coloredBy || COLORED_BY.TYPE) {
@@ -143,6 +143,7 @@ export function CalendarEvent({ event, wrapped }: P) {
               eventColor,
               isDragging ? 'z-50' : '',
               wrapped ? 'border-2' : '',
+              !isValidated ? 'opacity-60' : '',
             )}
             style={{
               transform: draggable
