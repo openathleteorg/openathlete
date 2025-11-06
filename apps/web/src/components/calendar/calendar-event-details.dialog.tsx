@@ -8,11 +8,13 @@ import { cn } from '@/utils/shadcn';
 
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 
+import { ActivityValidationAlert } from '../activity-validation-alert';
 import { EventDetails } from '../event-details/event-details';
 import { SportIcon } from '../sport-icon/sport-icon';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { useCalendarContext } from './hooks/use-calendar-context';
 
 interface P {
   open: boolean;
@@ -27,6 +29,8 @@ export function CalendarEventDetailsDialog({
   event,
   onEditEvent,
 }: P) {
+  const { athleteId } = useCalendarContext();
+
   return (
     <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
       <DialogContent
@@ -76,6 +80,9 @@ export function CalendarEventDetailsDialog({
             </div>
           </DialogTitle>
         </DialogHeader>
+        {event && event.type === EVENT_TYPE.ACTIVITY && (
+          <ActivityValidationAlert event={event} athleteId={athleteId} />
+        )}
         {event && <EventDetails eventId={event.eventId} />}
       </DialogContent>
     </Dialog>
