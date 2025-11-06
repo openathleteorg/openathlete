@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType, EmailId, emailLibrary } from '@openathlete/shared';
 
+import { emailTemplates } from '../emails/templates';
 import { SendEmail } from '../types';
 
 @Injectable()
@@ -28,15 +29,22 @@ export class NotificationService {
       sendSmtpEmail.sender = {
         email: this.configService.get('BREVO_FROM_EMAIL'),
       };
-      sendSmtpEmail.subject =
+
+      const subject =
         payload.subject || emailLibrary[payload.type].defaultSubject;
-      sendSmtpEmail.htmlContent = `<ul>${Object.entries(payload.params)
-        .map(([key, value]) => `<li>${key}: ${value}</li>`)
-        .join('')}</ul>`;
+
+      const buildHtml = emailTemplates[payload.type as EmailId] as any;
+      const htmlContent = buildHtml
+        ? buildHtml(payload.params as any)
+        : `<p>${subject}</p>`;
+
+      sendSmtpEmail.subject = subject;
+      sendSmtpEmail.htmlContent = htmlContent;
 
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
     } catch (error: any) {
       console.error('Error sending email', error?.response?.body);
+      console.error('Error sending email', error);
     }
   }
 }

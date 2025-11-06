@@ -141,8 +141,7 @@ export class UserService {
 
     const allSports = Object.values(sport_type) as sport_type[];
 
-    return keysToCamel(
-      await this.prisma.user.create({
+    const created = await this.prisma.user.create({
         data: {
           email,
           password: hashedPassword,
@@ -175,8 +174,22 @@ export class UserService {
         select: {
           user_id: true,
         },
+      });
+
+    // Fire and forget welcome email
+    this.eventEmitter.emit(
+      SendEmailEvent.SLUG,
+      new SendEmailEvent({
+        type: 'welcome',
+        to: email,
+        params: {
+          name: firstName,
+          dashboard_url: `${this.configService.get('APP_URL')}/dashboard`,
+        },
       }),
     );
+
+    return keysToCamel(created);
   };
 
   public updateAccount = async (user: AuthUser, data: UpdateAccountDto) => {
