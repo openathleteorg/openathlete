@@ -8,6 +8,7 @@ export * from './update-event-template-folder.dto';
 export * from './invite-coach.dto';
 export * from './invite-athlete.dto';
 export * from './get-statistics-for-period.response.dto';
+export * from './coach-dashboard.dto';
 export * from './equipment.dto';
 export * from './metric.dto';
 export * from './create-training-zone.dto';
