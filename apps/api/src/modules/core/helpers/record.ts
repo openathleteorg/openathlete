@@ -67,6 +67,7 @@ const computeDistanceBasedRecords = (
     let right = 0;
 
     for (let left = 0; left < cumulativeDistances.length; left++) {
+      // Find the right boundary where cumulativeDistances[right] - cumulativeDistances[left] >= targetDistance
       while (
         right < cumulativeDistances.length &&
         cumulativeDistances[right] - cumulativeDistances[left] < targetDistance
@@ -75,8 +76,11 @@ const computeDistanceBasedRecords = (
       }
 
       if (right < cumulativeDistances.length) {
+        const actualDistance =
+          cumulativeDistances[right] - cumulativeDistances[left];
+
         // For speed records, we want the minimum time (bestValue = segmentTime)
-        // For other metrics, we typically want maximum average (bestValue = average)
+        // But we need to normalize the time to the target distance for fair comparison
         if (recordType === 'SPEED') {
           const segmentTime = timeStream[right] - timeStream[left];
 
@@ -88,38 +92,45 @@ const computeDistanceBasedRecords = (
             }
           }
 
-          if (!hasPause && segmentTime < bestValue) {
-            bestValue = segmentTime;
-            bestStart = timeStream[left];
-            bestEnd = timeStream[right];
+          if (!hasPause && actualDistance >= targetDistance) {
+            // Normalize time to target distance: if we ran actualDistance in segmentTime,
+            // the equivalent time for targetDistance would be segmentTime * (targetDistance / actualDistance)
+            const normalizedTime =
+              segmentTime * (targetDistance / actualDistance);
+
+            if (normalizedTime < bestValue) {
+              bestValue = normalizedTime;
+              bestStart = timeStream[left];
+              bestEnd = timeStream[right];
+            }
           }
         } else {
           // For other metrics, calculate average value over the segment
-          let sum = 0;
-          let count = 0;
-
-          // Find points within the segment
-          const segmentPoints = [] as number[];
-          for (let i = left; i <= right; i++) {
-            if (i < valueStream.length) {
-              segmentPoints.push(valueStream[i]);
+          // Ensure the segment is at least targetDistance for consistency
+          if (actualDistance >= targetDistance) {
+            // Find points within the segment
+            const segmentPoints = [] as number[];
+            for (let i = left; i <= right; i++) {
+              if (i < valueStream.length) {
+                segmentPoints.push(valueStream[i]);
+              }
             }
-          }
 
-          // Calculate average
-          const average =
-            segmentPoints.reduce((sum, val) => sum + val, 0) /
-            segmentPoints.length;
+            // Calculate average
+            const average =
+              segmentPoints.reduce((sum, val) => sum + val, 0) /
+              segmentPoints.length;
 
-          // Update best value if this segment has better average
-          const isBetter = computeMax
-            ? average > bestValue
-            : average < bestValue;
+            // Update best value if this segment has better average
+            const isBetter = computeMax
+              ? average > bestValue
+              : average < bestValue;
 
-          if (isBetter && segmentPoints.length > 0) {
-            bestValue = average;
-            bestStart = timeStream[left];
-            bestEnd = timeStream[right];
+            if (isBetter && segmentPoints.length > 0) {
+              bestValue = average;
+              bestStart = timeStream[left];
+              bestEnd = timeStream[right];
+            }
           }
         }
       }
@@ -285,19 +296,25 @@ const computeElevationGainRecords = (
       }
 
       if (right < cumulativeDistances.length) {
-        // Calculate elevation gain for this segment
-        let elevGain = 0;
-        for (let i = left + 1; i <= right && i < altitude.length; i++) {
-          const diff = altitude[i] - altitude[i - 1];
-          if (diff > 0) {
-            elevGain += diff;
-          }
-        }
+        const actualDistance =
+          cumulativeDistances[right] - cumulativeDistances[left];
 
-        if (elevGain > maxGain) {
-          maxGain = elevGain;
-          bestStart = time[left];
-          bestEnd = time[right];
+        // Only consider segments that are at least targetDistance
+        if (actualDistance >= targetDistance) {
+          // Calculate elevation gain for this segment
+          let elevGain = 0;
+          for (let i = left + 1; i <= right && i < altitude.length; i++) {
+            const diff = altitude[i] - altitude[i - 1];
+            if (diff > 0) {
+              elevGain += diff;
+            }
+          }
+
+          if (elevGain > maxGain) {
+            maxGain = elevGain;
+            bestStart = time[left];
+            bestEnd = time[right];
+          }
         }
       }
     }
@@ -371,19 +388,25 @@ const computeElevationLossRecords = (
       }
 
       if (right < cumulativeDistances.length) {
-        // Calculate elevation loss for this segment
-        let elevLoss = 0;
-        for (let i = left + 1; i <= right && i < altitude.length; i++) {
-          const diff = altitude[i - 1] - altitude[i];
-          if (diff > 0) {
-            elevLoss += diff;
-          }
-        }
+        const actualDistance =
+          cumulativeDistances[right] - cumulativeDistances[left];
 
-        if (elevLoss > maxLoss) {
-          maxLoss = elevLoss;
-          bestStart = time[left];
-          bestEnd = time[right];
+        // Only consider segments that are at least targetDistance
+        if (actualDistance >= targetDistance) {
+          // Calculate elevation loss for this segment
+          let elevLoss = 0;
+          for (let i = left + 1; i <= right && i < altitude.length; i++) {
+            const diff = altitude[i - 1] - altitude[i];
+            if (diff > 0) {
+              elevLoss += diff;
+            }
+          }
+
+          if (elevLoss > maxLoss) {
+            maxLoss = elevLoss;
+            bestStart = time[left];
+            bestEnd = time[right];
+          }
         }
       }
     }

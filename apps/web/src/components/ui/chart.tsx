@@ -253,12 +253,21 @@ function ChartLegendContent({
   payload,
   verticalAlign = 'bottom',
   nameKey,
-  ...props
-}: React.ComponentProps<'div'> &
-  Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
-    hideIcon?: boolean;
-    nameKey?: string;
-  }) {
+  onMouseEnter,
+  onMouseLeave,
+  onClick,
+  hiddenItems,
+}: {
+  className?: string;
+  hideIcon?: boolean;
+  payload?: RechartsPrimitive.LegendProps['payload'];
+  verticalAlign?: RechartsPrimitive.LegendProps['verticalAlign'];
+  nameKey?: string;
+  onMouseEnter?: (e: React.MouseEvent, type: string) => void;
+  onMouseLeave?: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent, type: string) => void;
+  hiddenItems?: Set<string>;
+}) {
   const { config } = useChart();
 
   if (!payload?.length) {
@@ -272,18 +281,35 @@ function ChartLegendContent({
         verticalAlign === 'top' ? 'pb-3' : 'pt-3',
         className,
       )}
-      {...props}
     >
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
+        const isHidden = hiddenItems?.has(key) ?? false;
 
         return (
           <div
             key={item.value}
             className={cn(
               '[&>svg]:text-muted-foreground flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3',
+              onClick && 'cursor-pointer',
+              isHidden && 'opacity-50',
             )}
+            onMouseEnter={
+              onMouseEnter
+                ? (e) => {
+                    onMouseEnter(e, key);
+                  }
+                : undefined
+            }
+            onMouseLeave={onMouseLeave || undefined}
+            onClick={
+              onClick
+                ? (e) => {
+                    onClick(e, key);
+                  }
+                : undefined
+            }
           >
             {itemConfig?.icon && !hideIcon ? (
               <itemConfig.icon />
@@ -292,10 +318,13 @@ function ChartLegendContent({
                 className="h-2 w-2 shrink-0 rounded-[2px]"
                 style={{
                   backgroundColor: item.color,
+                  opacity: isHidden ? 0.5 : 1,
                 }}
               />
             )}
-            {itemConfig?.label}
+            <span className={isHidden ? 'line-through' : ''}>
+              {itemConfig?.label}
+            </span>
           </div>
         );
       })}

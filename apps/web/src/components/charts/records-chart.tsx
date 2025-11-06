@@ -1,7 +1,7 @@
 import { m } from '@/paraglide/messages';
 import { recordTypeLabelMap } from '@/utils/label-map/core';
 import { cn } from '@/utils/shadcn';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import {
@@ -24,6 +24,8 @@ interface P {
 }
 
 export function RecordsChart({ records, className }: P) {
+  const [hiddenLines, setHiddenLines] = useState<Set<RECORD_TYPE>>(new Set());
+  const [hoveredLine, setHoveredLine] = useState<RECORD_TYPE | null>(null);
   const chartData = useMemo(() => {
     const groupedByDistance = records.reduce(
       (acc, record) => {
@@ -71,6 +73,18 @@ export function RecordsChart({ records, className }: P) {
         ELEVATION_LOSS: values[RECORD_TYPE.ELEVATION_LOSS] || 0,
       }));
   }, [records]);
+
+  const toggleLine = useCallback((type: RECORD_TYPE) => {
+    setHiddenLines((prev) => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  }, []);
 
   const typeFormatter = useCallback((value: number, type: RECORD_TYPE) => {
     switch (type) {
@@ -165,7 +179,17 @@ export function RecordsChart({ records, className }: P) {
           yAxisId="POWER"
           stroke="var(--chart-2)"
           dot={true}
-          strokeWidth={1}
+          strokeWidth={
+            hoveredLine === null || hoveredLine === RECORD_TYPE.POWER ? 2 : 0.5
+          }
+          strokeOpacity={
+            hiddenLines.has(RECORD_TYPE.POWER)
+              ? 0
+              : hoveredLine === null || hoveredLine === RECORD_TYPE.POWER
+                ? 1
+                : 0.2
+          }
+          hide={hiddenLines.has(RECORD_TYPE.POWER)}
         />
         <Line
           type="monotone"
@@ -173,7 +197,17 @@ export function RecordsChart({ records, className }: P) {
           yAxisId="SPEED"
           stroke="var(--chart-3)"
           dot={true}
-          strokeWidth={1}
+          strokeWidth={
+            hoveredLine === null || hoveredLine === RECORD_TYPE.SPEED ? 2 : 0.5
+          }
+          strokeOpacity={
+            hiddenLines.has(RECORD_TYPE.SPEED)
+              ? 0
+              : hoveredLine === null || hoveredLine === RECORD_TYPE.SPEED
+                ? 1
+                : 0.2
+          }
+          hide={hiddenLines.has(RECORD_TYPE.SPEED)}
         />
         <Line
           type="monotone"
@@ -181,7 +215,19 @@ export function RecordsChart({ records, className }: P) {
           yAxisId="HEARTRATE"
           stroke="var(--chart-4)"
           dot={true}
-          strokeWidth={1}
+          strokeWidth={
+            hoveredLine === null || hoveredLine === RECORD_TYPE.HEARTRATE
+              ? 2
+              : 0.5
+          }
+          strokeOpacity={
+            hiddenLines.has(RECORD_TYPE.HEARTRATE)
+              ? 0
+              : hoveredLine === null || hoveredLine === RECORD_TYPE.HEARTRATE
+                ? 1
+                : 0.2
+          }
+          hide={hiddenLines.has(RECORD_TYPE.HEARTRATE)}
         />
         <Line
           type="monotone"
@@ -189,7 +235,17 @@ export function RecordsChart({ records, className }: P) {
           yAxisId="CADENCE"
           stroke="var(--chart-5)"
           dot={true}
-          strokeWidth={1}
+          strokeWidth={
+            hoveredLine === null || hoveredLine === RECORD_TYPE.CADENCE ? 2 : 0.5
+          }
+          strokeOpacity={
+            hiddenLines.has(RECORD_TYPE.CADENCE)
+              ? 0
+              : hoveredLine === null || hoveredLine === RECORD_TYPE.CADENCE
+                ? 1
+                : 0.2
+          }
+          hide={hiddenLines.has(RECORD_TYPE.CADENCE)}
         />
         <Line
           type="monotone"
@@ -197,7 +253,20 @@ export function RecordsChart({ records, className }: P) {
           yAxisId="ELEVATION_GAIN"
           stroke="var(--chart-4)"
           dot={true}
-          strokeWidth={1}
+          strokeWidth={
+            hoveredLine === null || hoveredLine === RECORD_TYPE.ELEVATION_GAIN
+              ? 2
+              : 0.5
+          }
+          strokeOpacity={
+            hiddenLines.has(RECORD_TYPE.ELEVATION_GAIN)
+              ? 0
+              : hoveredLine === null ||
+                  hoveredLine === RECORD_TYPE.ELEVATION_GAIN
+                ? 1
+                : 0.2
+          }
+          hide={hiddenLines.has(RECORD_TYPE.ELEVATION_GAIN)}
         />
         <Line
           type="monotone"
@@ -205,7 +274,20 @@ export function RecordsChart({ records, className }: P) {
           yAxisId="ELEVATION_LOSS"
           stroke="var(--chart-3)"
           dot={true}
-          strokeWidth={1}
+          strokeWidth={
+            hoveredLine === null || hoveredLine === RECORD_TYPE.ELEVATION_LOSS
+              ? 2
+              : 0.5
+          }
+          strokeOpacity={
+            hiddenLines.has(RECORD_TYPE.ELEVATION_LOSS)
+              ? 0
+              : hoveredLine === null ||
+                  hoveredLine === RECORD_TYPE.ELEVATION_LOSS
+                ? 1
+                : 0.2
+          }
+          hide={hiddenLines.has(RECORD_TYPE.ELEVATION_LOSS)}
         />
         <ChartTooltip
           content={
@@ -221,7 +303,31 @@ export function RecordsChart({ records, className }: P) {
             />
           }
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend
+          content={(props) => {
+            const hiddenItemsSet = new Set(
+              Array.from(hiddenLines).map((type) => type.toString()),
+            );
+            return (
+              <ChartLegendContent
+                {...props}
+                hiddenItems={hiddenItemsSet}
+                onMouseEnter={(_e, type) => {
+                  const recordType = type as RECORD_TYPE;
+                  if (!hiddenLines.has(recordType)) {
+                    setHoveredLine(recordType);
+                  }
+                }}
+                onMouseLeave={() => {
+                  setHoveredLine(null);
+                }}
+                onClick={(_e, type) => {
+                  toggleLine(type as RECORD_TYPE);
+                }}
+              />
+            );
+          }}
+        />
       </LineChart>
     </ChartContainer>
   );
