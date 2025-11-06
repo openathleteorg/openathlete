@@ -207,6 +207,7 @@ export abstract class BaseProviderService {
           expires_at: expiresAt,
           scopes: scopes ?? existing.scopes,
           status: 'active',
+          external_user_id: externalUserId ?? existing.external_user_id,
         },
       });
     }
@@ -220,6 +221,7 @@ export abstract class BaseProviderService {
         expires_at: expiresAt,
         scopes: scopes ?? null,
         status: 'active',
+        external_user_id: externalUserId ?? null,
       },
     });
   }

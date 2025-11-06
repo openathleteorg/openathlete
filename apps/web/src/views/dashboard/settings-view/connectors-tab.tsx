@@ -25,9 +25,9 @@ interface P {}
 
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
-  'GARMIN',
-  'SUUNTO',
-  'COROS',
+  // 'GARMIN',
+  // 'SUUNTO',
+  // 'COROS',
 ];
 
 export function ConnectorsTab({}: P) {

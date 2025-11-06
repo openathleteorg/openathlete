@@ -32,3 +32,4 @@ export class SuuntoProviderService extends BaseProviderService {
     super(prisma, configService);
   }
 }
+

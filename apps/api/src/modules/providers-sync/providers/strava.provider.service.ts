@@ -167,10 +167,8 @@ export class StravaProviderService
       externalUserId,
     });
 
-    // Optionally fetch initial data
-    if (this.configService.get('NODE_ENV') === 'development') {
-      await this.importActivities(account);
-    }
+    // Import initial activities (skip weather for bulk import)
+    await this.fetchInitialStravaData(account);
 
     return account;
   }
@@ -402,6 +400,83 @@ export class StravaProviderService
   }
 
   /**
+   * Import initial activities from Strava when connecting
+   * Similar to fetchInitialStravaData from old StravaConnectorService
+   */
+  private async fetchInitialStravaData(
+    account: provider_account,
+  ): Promise<void> {
+    const accessToken = await this.getValidAccessToken(account);
+
+    // Get athlete with user for user_id
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { athlete_id: account.athlete_id },
+      include: { user: true },
+    });
+
+    if (!athlete) {
+      throw new Error('Athlete not found');
+    }
+
+    let page = 1;
+    let hasMoreData = true;
+
+    while (hasMoreData) {
+      const { data } = await axios.get<StravaSummaryActivity[]>(
+        `https://www.strava.com/api/v3/athlete/activities?page=${page}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
+      );
+
+      if (data.length === 0) {
+        hasMoreData = false;
+        break;
+      }
+
+      for (const activity of data) {
+        // Check if activity already exists
+        const existingActivity = await this.prisma.event_activity.findFirst({
+          where: {
+            external_id: activity.id.toString(),
+          },
+        });
+
+        if (existingActivity) {
+          continue;
+        }
+
+        const endDate = new Date(activity.start_date);
+        endDate.setSeconds(endDate.getSeconds() + activity.elapsed_time);
+
+        // Create event
+        const event = await this.prisma.event.create({
+          data: {
+            athlete_id: athlete.athlete_id,
+            name: activity.name,
+            type: event_type.ACTIVITY,
+            start_date: new Date(activity.start_date),
+            end_date: endDate,
+          },
+        });
+
+        // Import activity with skipWeather=true for bulk import
+        await this.fetchStravaActivityData(
+          accessToken,
+          event,
+          activity,
+          athlete.user.user_id,
+          { skipWeather: true },
+        );
+      }
+
+      page++;
+    }
+  }
+
+  /**
    * Handle Strava webhook
    */
   async handleWebhook(payload: {
@@ -414,37 +489,75 @@ export class StravaProviderService
       payload.object_id &&
       payload.owner_id
     ) {
+      // Find account by external_user_id (Strava athlete ID)
       const account = await this.prisma.provider_account.findFirst({
         where: {
           provider: connector_provider.STRAVA,
-          // external_user_id would need to be added to provider_account if we want to use it
-          // For now, we'll find by athlete (would need to add external_user_id tracking)
+          external_user_id: payload.owner_id.toString(),
+          status: 'active',
+        },
+        include: {
+          athlete: {
+            include: {
+              user: true,
+            },
+          },
         },
       });
 
-      if (!account) return;
+      if (!account || !account.athlete || !account.athlete.user) {
+        this.logger.warn(
+          `No active Strava account found for owner_id ${payload.owner_id}`,
+        );
+        return;
+      }
 
-      // Check if already imported
-      const existing = await this.prisma.event_activity.findFirst({
+      // Check if activity already imported
+      const existingActivity = await this.prisma.event_activity.findFirst({
         where: {
           external_id: payload.object_id.toString(),
         },
       });
 
-      if (existing) return;
+      if (existingActivity) {
+        this.logger.debug(
+          `Activity ${payload.object_id} already imported, skipping`,
+        );
+        return;
+      }
 
-      // Fetch and import
-      const activities = await this.importActivities(account, {
-        limit: 1,
-      });
-
-      const activity = activities.find(
-        (a) => a.externalId === payload.object_id.toString(),
+      // Fetch activity details from Strava
+      const accessToken = await this.getValidAccessToken(account);
+      const { data: activity } = await axios.get<StravaSummaryActivity>(
+        `https://www.strava.com/api/v3/activities/${payload.object_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        },
       );
 
-      if (activity) {
-        await this.importActivity(account, activity);
-      }
+      const endDate = new Date(activity.start_date);
+      endDate.setSeconds(endDate.getSeconds() + activity.elapsed_time);
+
+      // Create event
+      const event = await this.prisma.event.create({
+        data: {
+          athlete_id: account.athlete_id,
+          name: activity.name,
+          type: event_type.ACTIVITY,
+          start_date: new Date(activity.start_date),
+          end_date: endDate,
+        },
+      });
+
+      // Import single activity WITH weather enrichment (no skipWeather flag)
+      await this.fetchStravaActivityData(
+        accessToken,
+        event,
+        activity,
+        account.athlete.user.user_id,
+      );
     }
   }
 }
