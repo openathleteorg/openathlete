@@ -150,7 +150,7 @@ export function CoachDashboardView() {
                           : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300';
                     return (
                       <div key={row.athleteId} className="contents group">
-                        <div className="sticky left-0 z-[30] bg-background border-r border-b pl-4 pr-2 h-[57px] flex items-center font-medium group-hover:bg-muted/40">
+                        <div className="sticky left-0 z-[30] bg-background border-r border-b pl-4 pr-2 h-[57px] flex items-center font-medium group-hover:bg-accent">
                           <div className="flex items-center gap-2">
                             <span>
                               {row.firstName} {row.lastName}
