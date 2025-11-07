@@ -1,3 +1,16 @@
+import {
+  MessageChunk,
+  useAgentWebSocket,
+  useCreateThreadMutation,
+  useGetUserThreadsQuery,
+} from '@/api/agent';
+import {
+  useCreateThreadMutation as useCreateMessageThreadMutation,
+  useGetUserThreadsQuery as useGetMessageThreadsQuery,
+  useMessagesWebSocket,
+} from '@/api/messages';
+import { MessageMessages } from '@/components/messages/message-messages';
+import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -9,22 +22,22 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
-import {
-  MessageChunk,
-  useAgentWebSocket,
-  useCreateThreadMutation,
-  useGetUserThreadsQuery,
-} from '@/api/agent';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Maximize2, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ToolExecutionState } from '@openathlete/shared';
+import {
+  AgentThread,
+  MessageThread,
+  ToolExecutionState,
+} from '@openathlete/shared';
 
 import { ChatInput } from './chat-input';
 import { ChatMessages } from './chat-messages';
+
+type ChatMode = 'messages' | 'assistant';
 
 const MIN_WIDTH = 320;
 const MAX_WIDTH = 800;
@@ -42,6 +55,11 @@ export function ChatWindow() {
   } = useChatbot();
 
   const navigate = useNavigate();
+  const [mode, setMode] = useState<ChatMode>('messages');
+  const [activeMessageThreadId, setActiveMessageThreadId] = useState<
+    number | null
+  >(null);
+  const [newThreadDialogOpen, setNewThreadDialogOpen] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [streamingBlocks, setStreamingBlocks] = useState<
@@ -57,44 +75,61 @@ export function ChatWindow() {
     startSide: 'left' | 'right';
     hasSwapped: boolean;
   } | null>(null);
+  const { data: agentThreads, isLoading: isLoadingAgentThreads } =
+    useGetUserThreadsQuery();
+  const createAgentThreadMutation = useCreateThreadMutation();
 
-  // Fetch threads
-  const { data: threads, isLoading } = useGetUserThreadsQuery();
-  const createThreadMutation = useCreateThreadMutation();
+  const { data: messageThreads, isLoading: isLoadingMessageThreads } =
+    useGetMessageThreadsQuery();
+  const createMessageThreadMutation = useCreateMessageThreadMutation();
 
-  // WebSocket for streaming
-  const { isStreaming, sendMessage } = useAgentWebSocket({
-    threadId: activeThreadId || undefined,
-    onMessageChunk: (chunk) => {
-      setStreamingBlocks((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(chunk.blockId, chunk);
-        return newMap;
-      });
-    },
-    onMessageComplete: () => {
-      setStreamingBlocks(new Map());
-    },
-    onMessageError: (error) => {
-      console.error('WebSocket error:', error);
-      setStreamingBlocks(new Map());
-    },
-    onToolCallStart: (tool) => {
-      console.log('[ChatWindow] Tool started:', tool.toolName);
-      setActiveToolExecutions((prev) => [...prev, tool]);
-    },
-    onToolCallComplete: (tool) => {
-      console.log('[ChatWindow] Tool completed:', tool.toolName);
-      setActiveToolExecutions((prev) =>
-        prev.filter((t) => t.toolCallId !== tool.toolCallId),
-      );
-    },
-    onToolCallError: (tool) => {
-      console.error('[ChatWindow] Tool error:', tool.toolName, tool.error);
-    },
+  const threads = mode === 'assistant' ? agentThreads : messageThreads;
+  const isLoading =
+    mode === 'assistant' ? isLoadingAgentThreads : isLoadingMessageThreads;
+  const activeId =
+    mode === 'assistant' ? activeThreadId : activeMessageThreadId;
+
+  const { isStreaming: isAgentStreaming, sendMessage: sendAgentMessage } =
+    useAgentWebSocket({
+      threadId: mode === 'assistant' ? activeThreadId || undefined : undefined,
+      onMessageChunk: (chunk) => {
+        setStreamingBlocks((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(chunk.blockId, chunk);
+          return newMap;
+        });
+      },
+      onMessageComplete: () => {
+        setStreamingBlocks(new Map());
+      },
+      onMessageError: (error) => {
+        console.error('WebSocket error:', error);
+        setStreamingBlocks(new Map());
+      },
+      onToolCallStart: (tool) => {
+        console.log('[ChatWindow] Tool started:', tool.toolName);
+        setActiveToolExecutions((prev) => [...prev, tool]);
+      },
+      onToolCallComplete: (tool) => {
+        console.log('[ChatWindow] Tool completed:', tool.toolName);
+        setActiveToolExecutions((prev) =>
+          prev.filter((t) => t.toolCallId !== tool.toolCallId),
+        );
+      },
+      onToolCallError: (tool) => {
+        console.error('[ChatWindow] Tool error:', tool.toolName, tool.error);
+      },
+    });
+
+  const { sendMessage: sendMessageMessage } = useMessagesWebSocket({
+    messageThreadId:
+      mode === 'messages' ? activeMessageThreadId || undefined : undefined,
   });
 
-  // Resize handlers
+  useMessagesWebSocket({});
+
+  const isStreaming = mode === 'assistant' ? isAgentStreaming : false;
+
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -112,8 +147,6 @@ export function ChatWindow() {
       if (!isResizing || !resizeRef.current) return;
 
       const delta = e.clientX - resizeRef.current.startX;
-      // When on left side, dragging right increases width
-      // When on right side, dragging left increases width
       const direction = chatSide === 'left' ? 1 : -1;
       const newWidth = Math.max(
         MIN_WIDTH,
@@ -142,7 +175,6 @@ export function ChatWindow() {
     }
   }, [isResizing, handleResizeMove, handleResizeEnd]);
 
-  // Drag handlers
   const handleDragStart = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault();
@@ -195,33 +227,89 @@ export function ChatWindow() {
 
   const handleFullscreen = useCallback(() => {
     closeChat();
-    navigate('/dashboard/chatbot');
+    navigate('/dashboard/messages');
   }, [closeChat, navigate]);
 
   const handleNewThread = useCallback(() => {
-    createThreadMutation.mutate(
-      { title: m.chatbot_new_conversation() },
-      {
-        onSuccess: (thread) => {
-          setActiveThreadId(thread.threadId);
+    if (mode === 'assistant') {
+      createAgentThreadMutation.mutate(
+        { title: m.chatbot_new_conversation() },
+        {
+          onSuccess: (thread) => {
+            setActiveThreadId(thread.threadId);
+          },
         },
-      },
-    );
-  }, [createThreadMutation, setActiveThreadId]);
-
-  // Create default thread if none exists
-  useEffect(() => {
-    if (isOpen && threads && threads.length === 0 && !isLoading) {
-      handleNewThread();
+      );
+    } else {
+      setNewThreadDialogOpen(true);
     }
-  }, [isOpen, threads, isLoading, handleNewThread]);
+  }, [mode, createAgentThreadMutation, setActiveThreadId]);
 
-  // Auto-select first thread if none selected
+  const handleCreateMessageThread = useCallback(
+    (participantUserIds: number[]) => {
+      createMessageThreadMutation.mutate(
+        { participantUserIds },
+        {
+          onSuccess: (thread) => {
+            setActiveMessageThreadId(thread.messageThreadId);
+            setNewThreadDialogOpen(false);
+          },
+        },
+      );
+    },
+    [createMessageThreadMutation],
+  );
+
+  const handleSendMessage = useCallback(
+    (content: string) => {
+      if (mode === 'assistant' && activeThreadId) {
+        sendAgentMessage(content);
+      } else if (mode === 'messages' && activeMessageThreadId) {
+        sendMessageMessage(content);
+      }
+    },
+    [
+      mode,
+      activeThreadId,
+      activeMessageThreadId,
+      sendAgentMessage,
+      sendMessageMessage,
+    ],
+  );
+
   useEffect(() => {
-    if (threads && threads.length > 0 && !activeThreadId) {
-      setActiveThreadId(threads[0].threadId);
+    if (
+      isOpen &&
+      threads &&
+      threads.length === 0 &&
+      !isLoading &&
+      !(mode === 'assistant'
+        ? createAgentThreadMutation.isPending
+        : createMessageThreadMutation.isPending)
+    ) {
+      if (mode === 'assistant') {
+        createAgentThreadMutation.mutate(
+          {},
+          {
+            onSuccess: (newThread) => {
+              setActiveThreadId(newThread.threadId);
+            },
+          },
+        );
+      }
     }
-  }, [threads, activeThreadId, setActiveThreadId]);
+  }, [isOpen, threads, isLoading, mode]);
+
+  useEffect(() => {
+    if (threads && threads.length > 0 && !activeId) {
+      if (mode === 'assistant') {
+        setActiveThreadId((threads[0] as any).threadId);
+      } else {
+        setActiveMessageThreadId((threads[0] as any).messageThreadId);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [threads, activeId, mode]);
 
   const windowMargin = 24;
   const windowHeight = `calc(100vh - ${windowMargin * 2}px)`;
@@ -230,17 +318,14 @@ export function ChatWindow() {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[9998]"
+            className="fixed inset-0 z-[101]"
             onClick={closeChat}
           />
-
-          {/* Chat window */}
           <motion.div
             initial={{
               opacity: 0,
@@ -269,11 +354,10 @@ export function ChatWindow() {
               top: `${windowMargin}px`,
               width: `${chatWidth}px`,
               height: windowHeight,
-              zIndex: 9999,
+              zIndex: 102,
             }}
             className="bg-background border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
           >
-            {/* Resize handle - on the inner edge (opposite to scrollbar) */}
             <div
               onMouseDown={handleResizeStart}
               className={cn(
@@ -283,31 +367,51 @@ export function ChatWindow() {
               )}
             />
 
-            {/* Header */}
             <div className="flex-shrink-0">
-              <div className="flex items-center justify-between p-4 pb-3">
+              <div className="flex items-center p-4 pb-3">
+                <Select
+                  value={mode}
+                  onValueChange={(v) => setMode(v as ChatMode)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue>
+                      {mode === 'assistant'
+                        ? m.chatbot_assistant()
+                        : 'Messages'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="z-[10000]">
+                    <SelectItem value="messages">Messages</SelectItem>
+                    <SelectItem value="assistant" disabled>
+                      {m.chatbot_assistant()}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 <div
                   onMouseDown={handleDragStart}
                   className={cn(
-                    'flex items-center gap-2 flex-1',
+                    'h-5 flex-1',
                     'cursor-grab active:cursor-grabbing',
                     isDragging && 'cursor-grabbing',
                   )}
-                >
-                  <h2 className="text-lg font-semibold select-none">
-                    {m.chatbot_assistant()}
-                  </h2>
-                  <div className="flex-1 h-1 rounded-full bg-muted/30 hover:bg-muted/50 transition-colors" />
-                </div>
+                />
                 <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handleNewThread}
                     title={m.chatbot_new_conversation()}
-                    disabled={createThreadMutation.isPending}
+                    disabled={
+                      mode === 'assistant'
+                        ? createAgentThreadMutation.isPending
+                        : createMessageThreadMutation.isPending
+                    }
                   >
-                    {createThreadMutation.isPending ? (
+                    {(
+                      mode === 'assistant'
+                        ? createAgentThreadMutation.isPending
+                        : createMessageThreadMutation.isPending
+                    ) ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                       <Plus className="h-4 w-4" />
@@ -331,15 +435,18 @@ export function ChatWindow() {
                   </Button>
                 </div>
               </div>
-
-              {/* Thread selector */}
               {threads && threads.length > 0 && (
                 <div className="px-4 pb-3">
                   <Select
-                    value={activeThreadId?.toString() || undefined}
-                    onValueChange={(value) =>
-                      setActiveThreadId(parseInt(value, 10))
-                    }
+                    value={activeId?.toString() || undefined}
+                    onValueChange={(value) => {
+                      const id = parseInt(value, 10);
+                      if (mode === 'assistant') {
+                        setActiveThreadId(id);
+                      } else {
+                        setActiveMessageThreadId(id);
+                      }
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue
@@ -347,29 +454,45 @@ export function ChatWindow() {
                       />
                     </SelectTrigger>
                     <SelectContent className="z-[10000]">
-                      {threads.map((thread) => (
-                        <SelectItem
-                          key={thread.threadId}
-                          value={thread.threadId.toString()}
-                        >
-                          {thread.title || `Thread ${thread.threadId}`}
-                        </SelectItem>
-                      ))}
+                      {threads.map((thread) => {
+                        const threadId =
+                          mode === 'assistant'
+                            ? (thread as AgentThread).threadId
+                            : (thread as MessageThread).messageThreadId;
+                        const threadTitle =
+                          mode === 'assistant'
+                            ? (thread as AgentThread).title
+                            : (thread as MessageThread).title;
+                        return (
+                          <SelectItem
+                            key={threadId}
+                            value={threadId.toString()}
+                          >
+                            {threadTitle || `Thread ${threadId}`} -{' '}
+                            {new Date(thread.createdAt).toLocaleDateString()}
+                          </SelectItem>
+                        );
+                      })}
                     </SelectContent>
                   </Select>
                 </div>
               )}
             </div>
-
-            {/* Messages */}
             <Separator />
             <div className="flex-1 overflow-hidden flex flex-col">
-              {activeThreadId ? (
-                <ChatMessages
-                  threadId={activeThreadId}
-                  streamingBlocks={streamingBlocks}
-                  activeTools={activeToolExecutions}
-                />
+              {activeId ? (
+                mode === 'assistant' ? (
+                  <ChatMessages
+                    threadId={activeId}
+                    streamingBlocks={streamingBlocks}
+                    activeTools={activeToolExecutions}
+                  />
+                ) : (
+                  <MessageMessages
+                    messageThreadId={activeId}
+                    isWindowMode={true}
+                  />
+                )
               ) : (
                 <div className="flex items-center justify-center h-full text-muted-foreground">
                   <p>{m.chatbot_select_or_create()}</p>
@@ -377,18 +500,24 @@ export function ChatWindow() {
               )}
             </div>
 
-            {/* Input */}
             <Separator />
             <div className="flex-shrink-0 p-4">
-              {activeThreadId && (
+              {activeId && (
                 <ChatInput
-                  threadId={activeThreadId}
-                  onSendMessage={sendMessage}
+                  threadId={activeId}
+                  onSendMessage={handleSendMessage}
                   isStreaming={isStreaming}
                 />
               )}
             </div>
           </motion.div>
+
+          <NewMessageThreadDialog
+            open={newThreadDialogOpen}
+            onOpenChange={setNewThreadDialogOpen}
+            onConfirm={handleCreateMessageThread}
+            isLoading={createMessageThreadMutation.isPending}
+          />
         </>
       )}
     </AnimatePresence>

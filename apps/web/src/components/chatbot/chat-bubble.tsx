@@ -159,7 +159,7 @@ export function ChatBubble() {
       onMouseDown={handleMouseDown}
       style={{
         position: 'fixed',
-        zIndex: 9998,
+        zIndex: 100,
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
       className={cn(

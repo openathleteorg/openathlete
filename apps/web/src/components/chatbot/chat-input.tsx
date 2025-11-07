@@ -17,10 +17,8 @@ export function ChatInput({ onSendMessage, isStreaming }: ChatInputProps) {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || isStreaming) return;
 
-    // Clear input immediately
     setMessage('');
 
-    // Send via WebSocket
     onSendMessage(trimmedMessage);
   }, [message, isStreaming, onSendMessage]);
 

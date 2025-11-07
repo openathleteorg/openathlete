@@ -59,7 +59,7 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/race-plan`,
       viewer: `${ROOTS.DASHBOARD}/race-plan/viewer`,
     },
-    chatbot: `${ROOTS.DASHBOARD}/chatbot`,
+    messages: `${ROOTS.DASHBOARD}/messages`,
   },
 } as const;
 

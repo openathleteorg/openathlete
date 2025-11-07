@@ -133,6 +133,20 @@ export const routes = {
     deleteBlock: (blockId: number) => `/agent/blocks/${blockId}`,
     chat: (threadId: number) => `/agent/threads/${threadId}/chat`,
   },
+  messages: {
+    createThread: '/messages/threads',
+    getThreads: '/messages/threads',
+    getThread: (threadId: number) => `/messages/threads/${threadId}`,
+    updateThread: (threadId: number) => `/messages/threads/${threadId}`,
+    deleteThread: (threadId: number) => `/messages/threads/${threadId}`,
+    createMessage: '/messages/messages',
+    getThreadMessages: (threadId: number) =>
+      `/messages/threads/${threadId}/messages`,
+    getMessage: (messageId: number) => `/messages/messages/${messageId}`,
+    updateMessage: (messageId: number) => `/messages/messages/${messageId}`,
+    deleteMessage: (messageId: number) => `/messages/messages/${messageId}`,
+    markAsRead: (threadId: number) => `/messages/threads/${threadId}/read`,
+  },
   workout: {
     // Note: Workouts are now managed through event endpoints
     reorder: (eventId: number) => `/event/${eventId}/workout/reorder`,
