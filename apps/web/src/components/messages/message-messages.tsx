@@ -112,6 +112,11 @@ function MessageBubble({
           </div>
         ) : (
           <>
+            {!isUser && message.sender && (
+              <div className="text-xs font-medium mb-1 opacity-80">
+                {message.sender.firstName} {message.sender.lastName}
+              </div>
+            )}
             <div className="whitespace-pre-wrap break-words">
               {message.content}
             </div>
