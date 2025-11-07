@@ -1,6 +1,10 @@
+import { useGetUserThreadsQuery as useGetMessageThreadsQuery } from '@/api/messages';
+import { useGetMeQuery } from '@/api/user';
 import { useChatbot } from '@/contexts/chatbot';
+import { UnreadBadge } from '@/components/ui/unread-badge';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
+import { calculateTotalUnreadCount } from '@/utils/messages';
 import { motion } from 'framer-motion';
 import { MessageCircle } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -14,6 +18,14 @@ export function ChatBubble() {
     startPosX: number;
     startPosY: number;
   } | null>(null);
+
+  const { data: messageThreads } = useGetMessageThreadsQuery();
+  const { data: currentUser } = useGetMeQuery();
+
+  const unreadCount =
+    messageThreads && currentUser
+      ? calculateTotalUnreadCount(messageThreads, currentUser.userId)
+      : 0;
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -163,7 +175,7 @@ export function ChatBubble() {
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
       className={cn(
-        'flex items-center justify-center',
+        'relative flex items-center justify-center',
         'h-14 w-14 rounded-full',
         'bg-primary text-primary-foreground',
         'shadow-lg hover:shadow-xl',
@@ -174,6 +186,12 @@ export function ChatBubble() {
       aria-label={m.chatbot_open()}
     >
       <MessageCircle className="h-6 w-6" />
+      {unreadCount > 0 && (
+        <UnreadBadge
+          count={unreadCount}
+          className="absolute -top-1 -right-1"
+        />
+      )}
     </motion.button>
   );
 }

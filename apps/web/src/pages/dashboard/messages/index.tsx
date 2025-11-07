@@ -11,6 +11,7 @@ import {
   useGetUserThreadsQuery as useGetMessageThreadsQuery,
   useMessagesWebSocket,
 } from '@/api/messages';
+import { useGetMeQuery } from '@/api/user';
 import { ChatInput } from '@/components/chatbot/chat-input';
 import { ChatMessages } from '@/components/chatbot/chat-messages';
 import { MessageMessages } from '@/components/messages/message-messages';
@@ -25,19 +26,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { UnreadBadge } from '@/components/ui/unread-badge';
 import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
+import { calculateUnreadCount } from '@/utils/messages';
 import { cn } from '@/utils/shadcn';
 import { motion } from 'framer-motion';
 import { MessageCircle, Plus, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ToolExecutionState } from '@openathlete/shared';
 
 type MessageMode = 'chatbot' | 'messages';
+type ThreadFilter = 'all' | 'unread';
 
 export function MessagesPage() {
   const [mode, setMode] = useState<MessageMode>('messages');
+  const [filter, setFilter] = useState<ThreadFilter>('all');
   const [newThreadDialogOpen, setNewThreadDialogOpen] = useState(false);
   const { activeThreadId, setActiveThreadId } = useChatbot();
   const [activeMessageThreadId, setActiveMessageThreadId] = useState<
@@ -61,6 +66,7 @@ export function MessagesPage() {
     useGetMessageThreadsQuery();
   const createMessageThreadMutation = useCreateMessageThreadMutation();
   const deleteMessageThreadMutation = useDeleteMessageThreadMutation();
+  const { data: currentUser } = useGetMeQuery();
 
   // WebSocket for agent streaming
   const { isStreaming: isAgentStreaming, sendMessage: sendAgentMessage } =
@@ -122,7 +128,28 @@ export function MessagesPage() {
 
   const isLoading =
     mode === 'chatbot' ? isLoadingAgentThreads : isLoadingMessageThreads;
-  const threads = mode === 'chatbot' ? agentThreads : messageThreads;
+  const allThreads = mode === 'chatbot' ? agentThreads : messageThreads;
+
+  // Filter threads based on filter state
+  const threads = useMemo(() => {
+    if (!allThreads) return undefined;
+    if (mode === 'chatbot' || filter === 'all' || !currentUser) {
+      return allThreads;
+    }
+    // For messages mode, filter by unread count
+    if (mode === 'messages') {
+      const messageThreadsArray = messageThreads || [];
+      return messageThreadsArray.filter((thread: any) => {
+        const unreadCount = calculateUnreadCount(
+          thread as any,
+          currentUser.userId,
+        );
+        return unreadCount > 0;
+      });
+    }
+    return allThreads;
+  }, [allThreads, mode, filter, currentUser, messageThreads]);
+
   const activeId = mode === 'chatbot' ? activeThreadId : activeMessageThreadId;
   const setActiveId =
     mode === 'chatbot' ? setActiveThreadId : setActiveMessageThreadId;
@@ -294,6 +321,26 @@ export function MessagesPage() {
               <Plus className="h-5 w-5" />
             </Button>
           </div>
+          {mode === 'messages' && (
+            <div className="flex items-center gap-2 mb-2">
+              <Button
+                variant={filter === 'all' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFilter('all')}
+                className="h-7"
+              >
+                Tous
+              </Button>
+              <Button
+                variant={filter === 'unread' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setFilter('unread')}
+                className="h-7"
+              >
+                Non lus
+              </Button>
+            </div>
+          )}
           <p className="text-sm text-muted-foreground">
             {threads?.length || 0}{' '}
             {(threads?.length || 0) > 1
@@ -308,7 +355,7 @@ export function MessagesPage() {
 
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-2 space-y-1">
-            {threads?.map((thread) => {
+            {threads?.map((thread: any) => {
               const threadId =
                 mode === 'chatbot'
                   ? (thread as any).threadId
@@ -321,6 +368,10 @@ export function MessagesPage() {
                 mode === 'chatbot'
                   ? (thread as any).createdAt
                   : (thread as any).createdAt;
+              const unreadCount =
+                mode === 'messages' && currentUser
+                  ? calculateUnreadCount(thread as any, currentUser.userId)
+                  : 0;
               return (
                 <motion.button
                   key={threadId}
@@ -337,9 +388,16 @@ export function MessagesPage() {
                 >
                   <MessageCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm truncate">
-                      {threadTitle || `Thread ${threadId}`}
-                    </h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-sm truncate">
+                        {threadTitle
+                          ? threadTitle.length > 25
+                            ? threadTitle.substring(0, 25) + '...'
+                            : threadTitle
+                          : `Thread ${threadId}`}
+                      </h3>
+                      {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {new Date(threadCreatedAt).toLocaleDateString()}
                     </p>

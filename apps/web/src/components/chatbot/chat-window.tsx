@@ -11,7 +11,10 @@ import {
 } from '@/api/messages';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
+import { UnreadBadge } from '@/components/ui/unread-badge';
 import { Button } from '@/components/ui/button';
+import { useGetMeQuery } from '@/api/user';
+import { calculateUnreadCount } from '@/utils/messages';
 import {
   Select,
   SelectContent,
@@ -82,6 +85,7 @@ export function ChatWindow() {
   const { data: messageThreads, isLoading: isLoadingMessageThreads } =
     useGetMessageThreadsQuery();
   const createMessageThreadMutation = useCreateMessageThreadMutation();
+  const { data: currentUser } = useGetMeQuery();
 
   const threads = mode === 'assistant' ? agentThreads : messageThreads;
   const isLoading =
@@ -463,13 +467,27 @@ export function ChatWindow() {
                           mode === 'assistant'
                             ? (thread as AgentThread).title
                             : (thread as MessageThread).title;
+                        const unreadCount =
+                          mode === 'messages' && currentUser
+                            ? calculateUnreadCount(
+                                thread as MessageThread,
+                                currentUser.userId,
+                              )
+                            : 0;
                         return (
                           <SelectItem
                             key={threadId}
                             value={threadId.toString()}
                           >
-                            {threadTitle || `Thread ${threadId}`} -{' '}
-                            {new Date(thread.createdAt).toLocaleDateString()}
+                            <div className="flex items-center justify-between w-full gap-2">
+                              <span className="flex-1 truncate">
+                                {threadTitle || `Thread ${threadId}`} -{' '}
+                                {new Date(thread.createdAt).toLocaleDateString()}
+                              </span>
+                              {unreadCount > 0 && (
+                                <UnreadBadge count={unreadCount} />
+                              )}
+                            </div>
                           </SelectItem>
                         );
                       })}
