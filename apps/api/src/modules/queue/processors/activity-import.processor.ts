@@ -231,15 +231,15 @@ export class ActivityImportProcessor implements OnModuleInit {
       fullActivity.distance,
     );
 
-    // Handle records
-    if (fullActivity.stream) {
-      await this.handleRecords(
-        fullActivity.event_activity_id,
-        athlete.athlete_id,
-        fullActivity.stream,
-        fullActivity.event.start_date,
-      );
-    }
+    // Handle records TODO: Uncomment this when we have a better way to handle records
+    // if (fullActivity.stream) {
+    //   await this.handleRecords(
+    //     fullActivity.event_activity_id,
+    //     athlete.athlete_id,
+    //     fullActivity.stream,
+    //     fullActivity.event.start_date,
+    //   );
+    // }
   }
 
   /**

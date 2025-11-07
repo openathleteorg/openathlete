@@ -12,6 +12,7 @@ import { AgentModule } from './agent/agent.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
 import { CoreModule } from './core';
+import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { QueueModule } from './queue';
@@ -22,6 +23,7 @@ import { PrismaService } from './prisma/services/prisma.service';
     AuthModule,
     CoreModule,
     AgentModule,
+    MessagesModule,
     EventEmitterModule.forRoot(),
     NotificationModule,
     ProvidersSyncModule,

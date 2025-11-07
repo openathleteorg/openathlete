@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from '../auth';
+import { MessagesModule } from '../messages/messages.module';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
@@ -43,7 +44,11 @@ import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo
 import { WeatherService } from './services/weather/weather.service';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), AuthModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule,
+    forwardRef(() => MessagesModule),
+  ],
   controllers: [
     EventController,
     EventTemplateController,

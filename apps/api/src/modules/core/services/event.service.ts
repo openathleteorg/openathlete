@@ -48,6 +48,8 @@ import { ActivityImportedEvent, WorkoutPlannedChangedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
+import { MessageThreadService } from 'src/modules/messages/services/message-thread.service';
+import { MessageService } from 'src/modules/messages/services/message.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
@@ -144,6 +146,8 @@ export class EventService {
     private configService: ConfigService<ApiEnvSchemaType, true>,
     private readonly abilities: CaslAbilityFactory,
     private eventEmitter: EventEmitter2,
+    private messageThreadService: MessageThreadService,
+    private messageService: MessageService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -575,6 +579,84 @@ export class EventService {
           eventId: eventId,
         }),
       );
+    }
+
+    if (
+      event.type === 'ACTIVITY' &&
+      event.activity &&
+      'description' in rest &&
+      rest.description !== undefined
+    ) {
+      const description = rest.description as string | null;
+      const eventActivityId = event.activity.event_activity_id;
+
+      try {
+        const existingThread = await this.prisma.message_thread.findUnique({
+          where: { event_activity_id: eventActivityId },
+          include: {
+            messages: {
+              orderBy: { created_at: 'asc' },
+              take: 1,
+            },
+          },
+        });
+
+        if (existingThread) {
+          const firstMessage = existingThread.messages[0];
+          if (firstMessage) {
+            await this.messageService.updateMessage(
+              user,
+              firstMessage.message_id,
+              {
+                content: description || '',
+              },
+            );
+          } else if (description) {
+            await this.messageService.createMessage(user, {
+              messageThreadId: existingThread.message_thread_id,
+              content: description,
+            });
+          }
+        } else if (description) {
+          const eventWithAthlete = await this.prisma.event.findUnique({
+            where: { event_id: eventId },
+            include: {
+              athlete: {
+                include: {
+                  coach_athletes: {
+                    include: {
+                      user: true,
+                    },
+                  },
+                },
+              },
+            },
+          });
+
+          if (eventWithAthlete?.athlete) {
+            const athlete = eventWithAthlete.athlete;
+            const participantUserIds = [
+              athlete.user_id,
+              ...athlete.coach_athletes.map((ca) => ca.user_id),
+            ];
+
+            const thread = await this.messageThreadService.createThread(user, {
+              eventActivityId,
+              participantUserIds,
+            });
+
+            await this.messageService.createMessage(user, {
+              messageThreadId: thread.message_thread_id,
+              content: description,
+            });
+          }
+        }
+      } catch (error) {
+        console.error(
+          '[EventService] Error creating/updating comment thread:',
+          error,
+        );
+      }
     }
 
     // Return the full updated event with all includes
