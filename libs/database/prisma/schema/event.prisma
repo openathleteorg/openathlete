@@ -39,11 +39,13 @@ model event_training {
   goal_rpe            Float? // in RPE (0-1)
 
   // relationships
-  event               event           @relation(fields: [event_id], references: [event_id])
-  event_id            Int             @unique
-  related_activity    event_activity? @relation(fields: [related_activity_id], references: [event_activity_id])
-  related_activity_id Int?            @unique
-  workout             workout? // structured workout definition
+  event                            event           @relation(fields: [event_id], references: [event_id])
+  event_id                         Int             @unique
+  related_activity                 event_activity? @relation(fields: [related_activity_id], references: [event_activity_id])
+  related_activity_id              Int?            @unique
+  workout                          workout? // structured workout definition
+  message_thread                   message_thread? @relation("TrainingCommentThread", fields: [message_thread_message_thread_id], references: [message_thread_id])
+  message_thread_message_thread_id Int?            @unique
 }
 
 model event_competition {
@@ -114,6 +116,7 @@ model event_activity {
   weather               event_activity_weather?
   normalization         event_activity_normalization?
   training_load_entries training_load_entry[]
+  message_thread        message_thread?               @relation("ActivityCommentThread") // comment thread for this activity
 }
 
 model event_activity_weather {

@@ -1,0 +1,109 @@
+// ============================================================================
+// Messaging System Models
+// ============================================================================
+// Messaging system for athlete-coach communication
+// Separate from agent_thread/agent_message which are for AI chatbot
+//
+// Architecture:
+// - message_thread: Conversation threads between users (athlete-coach)
+// - message: Individual messages in a thread
+// - message_read_receipt: Track who has read which messages
+//
+// Threads can be linked to training sessions (event_training) for comments
+// ============================================================================
+
+model message_thread {
+  // primary key
+  message_thread_id Int @id @default(autoincrement())
+
+  // fields
+  title String?
+
+  // Thread type: can be a general conversation or linked to an activity
+  // If linked to event_activity, this is a comment thread for that activity
+  event_activity_id Int? @unique
+
+  // relationships
+  // Participants: users who are part of this thread
+  // For athlete-coach threads: one athlete + one or more coaches
+  participants message_thread_participant[]
+  messages     message[]
+
+  // Link to activity if this is a comment thread
+  event_activity event_activity? @relation("ActivityCommentThread", fields: [event_activity_id], references: [event_activity_id], onDelete: Cascade)
+
+  // Link to training session if this is a comment thread (legacy, prefer eventActivity)
+  event_training event_training? @relation("TrainingCommentThread")
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([event_activity_id])
+}
+
+model message_thread_participant {
+  // primary key
+  message_thread_participant_id Int @id @default(autoincrement())
+
+  // fields
+  // Last time this user read messages in this thread
+  last_read_at DateTime?
+
+  // relationships
+  thread            message_thread @relation(fields: [message_thread_id], references: [message_thread_id], onDelete: Cascade)
+  message_thread_id Int
+  user              user           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id           Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([message_thread_id, user_id])
+  @@index([user_id])
+  @@index([message_thread_id])
+}
+
+model message {
+  // primary key
+  message_id Int @id @default(autoincrement())
+
+  // fields
+  content   String
+  edited_at DateTime? // When the message was edited (null if never edited)
+
+  // relationships
+  thread            message_thread         @relation(fields: [message_thread_id], references: [message_thread_id], onDelete: Cascade)
+  message_thread_id Int
+  sender            user                   @relation(fields: [sender_id], references: [user_id], onDelete: Cascade)
+  sender_id         Int
+  read_receipts     message_read_receipt[]
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([message_thread_id, created_at])
+  @@index([sender_id])
+}
+
+model message_read_receipt {
+  // primary key
+  message_read_receipt_id Int @id @default(autoincrement())
+
+  // fields
+
+  // relationships
+  message    message @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
+  message_id Int
+  user       user    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id    Int
+
+  // timestamps
+  read_at DateTime @default(now())
+
+  @@unique([message_id, user_id])
+  @@index([user_id])
+  @@index([message_id])
+}
