@@ -381,11 +381,11 @@ export function ChatWindow() {
                     <SelectValue>
                       {mode === 'assistant'
                         ? m.chatbot_assistant()
-                        : 'Messages'}
+                        : m.messages()}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent className="z-[10000]">
-                    <SelectItem value="messages">Messages</SelectItem>
+                    <SelectItem value="messages">{m.messages()}</SelectItem>
                     <SelectItem value="assistant" disabled>
                       {m.chatbot_assistant()}
                     </SelectItem>

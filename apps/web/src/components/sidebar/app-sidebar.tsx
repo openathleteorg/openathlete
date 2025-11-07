@@ -19,6 +19,7 @@ import {
   Calendar,
   CogIcon,
   MedalIcon,
+  MessageCircle,
   PieChart,
   User,
 } from 'lucide-react';
@@ -42,45 +43,50 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           icon: PieChart,
           spaces: ['COACH'] as UserRole[],
         },
+        {
+          title: m.messages(),
+          url: getPath(['dashboard', 'messages']),
+          icon: MessageCircle,
+          spaces: ['COACH'] as UserRole[],
+        },
       ];
       const athleteGroups: SidebarItem[] = (athletes || []).map((athlete) => ({
-          title: athlete.user?.firstName + ' ' + athlete.user?.lastName,
-          icon: User,
-          spaces: ['COACH'] as UserRole[],
-          items: [
-            // {
-            //   title: m.summary(),
-            //   url: getPath(['dashboard', 'summary']) + `/${athlete.athleteId}`,
-            //   icon: FileText,
-            // },
-            {
-              title: m.calendar(),
-              url: getPath(['dashboard', 'calendar']) + `/${athlete.athleteId}`,
-              icon: Calendar,
-            },
-            {
-              title: m.statistics(),
-              url:
-                getPath(['dashboard', 'statistics']) + `/${athlete.athleteId}`,
-              icon: PieChart,
-            },
-            {
-              title: m.records(),
-              url: getPath(['dashboard', 'records']) + `/${athlete.athleteId}`,
-              icon: MedalIcon,
-            },
-            {
-              title: m.metrics(),
-              url: getPath(['dashboard', 'metrics']) + `/${athlete.athleteId}`,
-              icon: Activity,
-            },
-            {
-              title: m.settings(),
-              url: getPath(['dashboard', 'settings']) + `/${athlete.athleteId}`,
-              icon: CogIcon,
-            },
-          ],
-          })) as SidebarItem[];
+        title: athlete.user?.firstName + ' ' + athlete.user?.lastName,
+        icon: User,
+        spaces: ['COACH'] as UserRole[],
+        items: [
+          // {
+          //   title: m.summary(),
+          //   url: getPath(['dashboard', 'summary']) + `/${athlete.athleteId}`,
+          //   icon: FileText,
+          // },
+          {
+            title: m.calendar(),
+            url: getPath(['dashboard', 'calendar']) + `/${athlete.athleteId}`,
+            icon: Calendar,
+          },
+          {
+            title: m.statistics(),
+            url: getPath(['dashboard', 'statistics']) + `/${athlete.athleteId}`,
+            icon: PieChart,
+          },
+          {
+            title: m.records(),
+            url: getPath(['dashboard', 'records']) + `/${athlete.athleteId}`,
+            icon: MedalIcon,
+          },
+          {
+            title: m.metrics(),
+            url: getPath(['dashboard', 'metrics']) + `/${athlete.athleteId}`,
+            icon: Activity,
+          },
+          {
+            title: m.settings(),
+            url: getPath(['dashboard', 'settings']) + `/${athlete.athleteId}`,
+            icon: CogIcon,
+          },
+        ],
+      })) as SidebarItem[];
       return [...baseItems, ...athleteGroups];
     }
 
@@ -107,6 +113,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         title: m.metrics(),
         url: getPath(['dashboard', 'metrics']),
         icon: Activity,
+        spaces: ['ATHLETE'] as UserRole[],
+      },
+      {
+        title: m.messages(),
+        url: getPath(['dashboard', 'messages']),
+        icon: MessageCircle,
         spaces: ['ATHLETE'] as UserRole[],
       },
     ];

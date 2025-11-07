@@ -311,6 +311,7 @@
   "chatbot_messages": "messages",
   "chatbot_message": "message",
   "chatbot_created_on": "Créée le",
+  "messages": "Messages",
   "chatbot_select_or_create": "Sélectionnez ou créez une conversation",
   "chatbot_default_response": "Je suis un assistant virtuel en cours de développement. Bientôt, je pourrai vous aider avec vos entraînements et objectifs sportifs !",
   "chatbot_open": "Ouvrir le chatbot",

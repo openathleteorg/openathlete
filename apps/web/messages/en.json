@@ -309,6 +309,7 @@
   "chatbot_messages": "messages",
   "chatbot_message": "message",
   "chatbot_created_on": "Created on",
+  "messages": "Messages",
   "chatbot_select_or_create": "Select or create a conversation",
   "chatbot_default_response": "I'm a virtual assistant under development. Soon, I'll be able to help you with your training and sports goals!",
   "chatbot_open": "Open chatbot",
