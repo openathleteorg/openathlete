@@ -62,7 +62,7 @@ const pushToCompressed = (
   return { compressed, repeatCount, incrCount };
 };
 
-export const compressStream = (
+const compressStream = (
   stream: (number | number[])[],
 ): CompressedActivityStreamUnit[] => {
   let compressed: CompressedActivityStreamUnit[] = [];
@@ -99,7 +99,7 @@ export const compressStream = (
   return compressed;
 };
 
-export const uncompressStream = (
+const uncompressStream = (
   stream: CompressedActivityStreamUnit[],
 ): (number | number[])[] => {
   const uncompressed: (number | number[])[] = [];
@@ -144,71 +144,4 @@ export const uncompressActivityStream = (
     }
   }
   return uncompressedStream;
-};
-
-export const compareActivityStream = (a: ActivityStream, b: ActivityStream) => {
-  const keysA = Object.keys(a);
-  const keysB = Object.keys(b);
-
-  if (keysA.length !== keysB.length) {
-    console.log(`Key length mismatch: ${keysA.length} !== ${keysB.length}`);
-    console.log(`Keys A: ${keysA}`);
-    console.log(`Keys B: ${keysB}`);
-    return false;
-  }
-
-  for (const key of keysA) {
-    if (!keysB.includes(key)) {
-      console.log(`Key ${key} not found in both streams`);
-      return false;
-    }
-
-    const streamA = a[key];
-    const streamB = b[key];
-
-    if (streamA.length !== streamB.length) {
-      console.log(
-        `Length mismatch at key ${key}: ${streamA.length} !== ${streamB.length}`,
-      );
-      return false;
-    }
-
-    for (let i = 0; i < streamA.length; i++) {
-      if (
-        typeof streamA[i] === 'number' &&
-        typeof streamB[i] === 'number' &&
-        Math.round((streamA[i] || 0) * 100) !==
-          Math.round((streamB[i] || 0) * 100)
-      ) {
-        console.log(JSON.stringify(streamA));
-        if (i > 0) {
-          console.log(
-            `Previous values: ${streamA[i - 1]} !== ${streamB[i - 1]}`,
-          );
-        }
-        console.log(
-          `Mismatch at key ${key}, index ${i} / ${streamA.length}: ${streamA[i]} !== ${streamB[i]}`,
-        );
-        if (i < streamA.length - 1) {
-          console.log(`Next values: ${streamA[i + 1]} !== ${streamB[i + 1]}`);
-        }
-
-        return false;
-      }
-      if (
-        Array.isArray(streamA[i]) &&
-        Array.isArray(streamB[i]) &&
-        !streamA[i].every(
-          (v, j) => Math.round(v * 100) === Math.round(streamB[i][j] * 100),
-        )
-      ) {
-        console.log(
-          `Mismatch at key ${key}, index ${i} / ${streamA.length}: ${streamA[i]} !== ${streamB[i]}`,
-        );
-        return false;
-      }
-    }
-  }
-
-  return true;
 };

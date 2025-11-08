@@ -5,14 +5,14 @@ import { uncompressActivityStream } from './activity-stream';
 /**
  * Segment query configuration
  */
-export interface StreamSegmentQuery {
+interface StreamSegmentQuery {
   type: 'distance' | 'time' | 'altitude';
   from: number; // meters, seconds, or meters
   to: number;
   metrics?: StreamMetric[];
 }
 
-export type StreamMetric =
+type StreamMetric =
   | 'avg_speed'
   | 'max_speed'
   | 'avg_heartrate'
@@ -26,7 +26,7 @@ export type StreamMetric =
 /**
  * Segment analysis result
  */
-export interface StreamSegmentAnalysis {
+interface StreamSegmentAnalysis {
   segment_info: {
     type: string;
     from: number;
@@ -315,137 +315,4 @@ function calculateElevationMetrics(
   }
 
   return result;
-}
-
-/**
- * Analyze a segment of the activity stream
- */
-export function analyzeStreamSegment(
-  compressedStream: CompressedActivityStream | object,
-  query: StreamSegmentQuery,
-): StreamSegmentAnalysis | null {
-  // Uncompress the stream
-  const stream = uncompressActivityStream(
-    compressedStream as CompressedActivityStream,
-  );
-
-  // Find segment indices
-  const indices = findSegmentIndices(stream, query);
-  if (!indices) {
-    console.warn('[StreamAnalysis] Could not find segment indices');
-    return null;
-  }
-
-  const { startIdx, endIdx } = indices;
-
-  // Get actual values at boundaries for reference
-  let actualFrom: number | undefined;
-  let actualTo: number | undefined;
-  if (query.type === 'distance' && stream.distance) {
-    actualFrom = stream.distance[startIdx];
-    actualTo = stream.distance[endIdx];
-  } else if (query.type === 'time' && stream.time) {
-    actualFrom = stream.time[startIdx];
-    actualTo = stream.time[endIdx];
-  } else if (query.type === 'altitude' && stream.altitude) {
-    actualFrom = stream.altitude[startIdx];
-    actualTo = stream.altitude[endIdx];
-  }
-
-  // Build result with segment info
-  const result: StreamSegmentAnalysis = {
-    segment_info: {
-      type: query.type,
-      from: query.from,
-      to: query.to,
-      start_index: startIdx,
-      end_index: endIdx,
-      points_count: endIdx - startIdx + 1,
-      actual_from: actualFrom,
-      actual_to: actualTo,
-    },
-  };
-
-  // Calculate requested metrics
-  const metrics = query.metrics || [];
-
-  for (const metric of metrics) {
-    switch (metric) {
-      case 'avg_speed':
-      case 'max_speed': {
-        const speedMetrics = calculateSpeedMetrics(
-          stream,
-          startIdx,
-          endIdx,
-          metrics.includes('max_speed'),
-        );
-        Object.assign(result, speedMetrics);
-        break;
-      }
-
-      case 'avg_heartrate':
-      case 'max_heartrate': {
-        const hrMetrics = calculateHeartRateMetrics(stream, startIdx, endIdx);
-        Object.assign(result, hrMetrics);
-        break;
-      }
-
-      case 'avg_cadence': {
-        const cadenceMetrics = calculateCadenceMetrics(
-          stream,
-          startIdx,
-          endIdx,
-        );
-        Object.assign(result, cadenceMetrics);
-        break;
-      }
-
-      case 'avg_watts': {
-        const powerMetrics = calculatePowerMetrics(stream, startIdx, endIdx);
-        Object.assign(result, powerMetrics);
-        break;
-      }
-
-      case 'avg_gap': {
-        const gapMetrics = calculateGAPMetrics(stream, startIdx, endIdx);
-        Object.assign(result, gapMetrics);
-        break;
-      }
-
-      case 'elevation_gain':
-      case 'elevation_loss': {
-        const elevMetrics = calculateElevationMetrics(stream, startIdx, endIdx);
-        Object.assign(result, elevMetrics);
-        break;
-      }
-    }
-  }
-
-  return result;
-}
-
-/**
- * Check if an activity has stream data available
- */
-export function hasStreamData(
-  compressedStream: CompressedActivityStream | object | null | undefined,
-): boolean {
-  if (!compressedStream) return false;
-  const keys = Object.keys(compressedStream);
-  return keys.length > 0;
-}
-
-/**
- * Get available stream types
- */
-export function getStreamTypes(
-  compressedStream: CompressedActivityStream | object | null | undefined,
-): string[] {
-  if (!compressedStream) return [];
-  return Object.keys(compressedStream).filter(
-    (key) =>
-      compressedStream[key] &&
-      Array.isArray(compressedStream[key]) &&
-      compressedStream[key].length > 0,
-  );
 }

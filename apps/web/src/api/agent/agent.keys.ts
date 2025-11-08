@@ -5,11 +5,5 @@ export const agentKeys = {
   getUserThreads: 'AgentAPI.getUserThreads',
   updateThread: 'AgentAPI.updateThread',
   deleteThread: 'AgentAPI.deleteThread',
-  createMessage: 'AgentAPI.createMessage',
   getThreadMessages: 'AgentAPI.getThreadMessages',
-  deleteMessage: 'AgentAPI.deleteMessage',
-  createBlock: 'AgentAPI.createBlock',
-  updateBlock: 'AgentAPI.updateBlock',
-  deleteBlock: 'AgentAPI.deleteBlock',
-  sendMessage: 'AgentAPI.sendMessage',
 } as const;

@@ -9,12 +9,10 @@ import {
   useGetUserThreadsQuery as useGetMessageThreadsQuery,
   useMessagesWebSocket,
 } from '@/api/messages';
+import { useGetMeQuery } from '@/api/user';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
-import { UnreadBadge } from '@/components/ui/unread-badge';
 import { Button } from '@/components/ui/button';
-import { useGetMeQuery } from '@/api/user';
-import { calculateUnreadCount } from '@/utils/messages';
 import {
   Select,
   SelectContent,
@@ -23,8 +21,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { UnreadBadge } from '@/components/ui/unread-badge';
 import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
+import { calculateUnreadCount } from '@/utils/messages';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Loader2, Maximize2, Plus, X } from 'lucide-react';
@@ -386,7 +386,7 @@ export function ChatWindow() {
                   </SelectTrigger>
                   <SelectContent className="z-[10000]">
                     <SelectItem value="messages">{m.messages()}</SelectItem>
-                    <SelectItem value="assistant" disabled>
+                    <SelectItem value="assistant">
                       {m.chatbot_assistant()}
                     </SelectItem>
                   </SelectContent>
@@ -482,7 +482,9 @@ export function ChatWindow() {
                             <div className="flex items-center justify-between w-full gap-2">
                               <span className="flex-1 truncate">
                                 {threadTitle || `Thread ${threadId}`} -{' '}
-                                {new Date(thread.createdAt).toLocaleDateString()}
+                                {new Date(
+                                  thread.createdAt,
+                                ).toLocaleDateString()}
                               </span>
                               {unreadCount > 0 && (
                                 <UnreadBadge count={unreadCount} />

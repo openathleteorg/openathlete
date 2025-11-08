@@ -1,4 +1,4 @@
-export type WorkoutPlannedChangedPayload = {
+type WorkoutPlannedChangedPayload = {
   eventId: number;
   athleteId: number;
   workoutId?: number | null; // null if workout was deleted
@@ -11,4 +11,3 @@ export class WorkoutPlannedChangedEvent {
 
   constructor(public readonly payload: WorkoutPlannedChangedPayload) {}
 }
-

@@ -1,76 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import { macroPlanSchema } from '../types';
-
-// TODO: Agent that designs the macro-structure of a training plan
-//
-// RESPONSIBILITIES:
-// - Define training phases (BASE, SPECIFIC, TAPER) with durations
-// - Set volume progression across phases (build, peak, taper)
-// - Identify key milestones (VMA tests, preparatory races, goal race)
-// - Determine overall plan duration based on goal race date
-// - Balance volume and intensity across the macro cycle
-// - Account for athlete's current fitness level and goal difficulty
-//
-// INPUT:
-//   - athleteFacts: AthleteFacts (from athlete-profile agent)
-//   - goal: {
-//       raceName: string,
-//       raceDate: Date,
-//       distance: number, // meters
-//       elevationGain: number, // meters
-//       terrain?: 'ROAD' | 'TRAIL' | 'MIXED'
-//     }
-//   - currentDate: Date
-//
-// OUTPUT: MacroPlan object with:
-//   {
-//     totalDuration: number, // weeks
-//     phases: [{
-//       name: string,
-//       phase: 'BASE' | 'SPECIFIC' | 'TAPER' | 'RECOVERY',
-//       startDate: Date,
-//       endDate: Date,
-//       durationWeeks: number,
-//       targetWeeklyVolume: {min: number, max: number}, // seconds
-//       volumeProgression: 'LINEAR' | 'STEPPED' | 'UNDULATING',
-//       focus: string, // description of phase focus
-//       keyWorkouts: string[] // types of key workouts in this phase
-//     }],
-//     milestones: [{
-//       date: Date,
-//       type: 'TEST' | 'RACE' | 'CHECKPOINT',
-//       name: string,
-//       description: string
-//     }],
-//     overallStrategy: string, // narrative description of the macro plan
-//     progressionRationale: string // why this progression was chosen
-//   }
-//
-// EXAMPLE PHASES:
-// - Phase 1 (BASE): 12 weeks, build aerobic base, increase volume gradually, Z2 focus
-// - Phase 2 (SPECIFIC): 8 weeks, race-specific training, terrain practice, threshold & tempo
-// - Phase 3 (TAPER): 3 weeks, reduce volume, maintain intensity, recovery focus
-//
-// TRAINING PRINCIPLES TO APPLY:
-// - Allow adequate time for adaptation (minimum 12-16 weeks for marathon/ultra)
-// - Build base before intensity (80/20 rule)
-// - Include race-specific work in specific phase
-// - Taper 2-3 weeks before goal race (reduce volume by 40-60%)
-// - Plan recovery weeks every 3-4 weeks
-// - Consider athlete's current fitness (less time needed if already fit)
-//
-// NO TOOLS NEEDED - Pure reasoning based on inputs and training principles
-//
-// IMPLEMENTATION NOTES:
-// - Should receive AthleteFacts from previous step in workflow
-// - Output becomes input for meso-plan agent
-// - Consider different strategies for different race types (marathon vs ultra vs trail)
-// - Account for athlete experience level (beginners need more base, less intensity)
-//
-// MODEL: GPT-4o (needs strategic reasoning and training knowledge)
-
 export const macroPlanAgent = new Agent({
   name: 'macro-plan',
   description:
@@ -153,5 +83,3 @@ CRITICAL FIELD REQUIREMENTS:
 Be specific with dates, durations, and volume targets. Use the athlete's current fitness as a baseline.`,
   model: openai('gpt-4o'),
 });
-
-export { macroPlanSchema };

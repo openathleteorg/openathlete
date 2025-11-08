@@ -5,22 +5,16 @@ import { Socket, io } from 'socket.io-client';
 
 import {
   AgentMessage,
-  AgentMessageBlock,
   AgentThread,
-  CreateBlockDto,
   CreateMessageDto,
   CreateThreadDto,
   SendMessageDto,
-  UpdateBlockDto,
   UpdateThreadDto,
 } from '@openathlete/shared';
 
 export class AgentAPI {
   private static socket: Socket | null = null;
 
-  // ==================== REST API Methods ====================
-
-  // Thread operations
   static async createThread(body: CreateThreadDto): Promise<AgentThread> {
     const res = await client.post(routes.agent.createThread, body);
     return res.data;
@@ -51,7 +45,6 @@ export class AgentAPI {
     await client.delete(routes.agent.deleteThread(threadId));
   }
 
-  // Message operations
   static async createMessage(body: CreateMessageDto): Promise<AgentMessage> {
     const res = await client.post(routes.agent.createMessage, body);
     return res.data;
@@ -66,28 +59,6 @@ export class AgentAPI {
     await client.delete(routes.agent.deleteMessage(messageId));
   }
 
-  // Block operations
-  static async createBlock(body: CreateBlockDto): Promise<AgentMessageBlock> {
-    const res = await client.post(routes.agent.createBlock, body);
-    return res.data;
-  }
-
-  static async updateBlock({
-    blockId,
-    body,
-  }: {
-    blockId: number;
-    body: UpdateBlockDto;
-  }): Promise<AgentMessageBlock> {
-    const res = await client.put(routes.agent.updateBlock(blockId), body);
-    return res.data;
-  }
-
-  static async deleteBlock(blockId: number): Promise<void> {
-    await client.delete(routes.agent.deleteBlock(blockId));
-  }
-
-  // Chat endpoint (non-streaming)
   static async sendMessage({
     threadId,
     body,
@@ -99,23 +70,19 @@ export class AgentAPI {
     return res.data;
   }
 
-  // ==================== WebSocket Methods ====================
-
   static getSocket(): Socket {
     if (!this.socket) {
-      // Get JWT token from localStorage using project's auth utils
       const token = getItem(ACCESS_TOKEN);
 
       this.socket = io(`${API_BASE_URL}/agent`, {
-        transports: ['polling', 'websocket'], // Allow polling first, then upgrade to websocket
+        transports: ['polling', 'websocket'],
         withCredentials: true,
         autoConnect: false,
-        upgrade: true, // Allow upgrade from polling to websocket
-        rememberUpgrade: true, // Remember transport preference
+        upgrade: true,
+        rememberUpgrade: true,
         auth: {
           token: token || '',
         },
-        // Also send token in headers as fallback
         extraHeaders: token
           ? {
               Authorization: `Bearer ${token}`,
@@ -129,7 +96,6 @@ export class AgentAPI {
   static connectSocket(): void {
     const socket = this.getSocket();
     if (!socket.connected) {
-      // Update token before connecting (in case it was refreshed)
       const token = getItem(ACCESS_TOKEN);
       socket.auth = {
         token: token || '',

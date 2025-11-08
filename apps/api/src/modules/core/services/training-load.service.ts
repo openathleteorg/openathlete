@@ -23,7 +23,7 @@ import { uncompressActivityStream } from '../helpers/activity-stream';
 /**
  * Training load calculation metadata
  */
-export interface TrainingLoadMetadata {
+interface TrainingLoadMetadata {
   calculationType: training_load_calculation_type;
   rpe?: number;
   duration?: number; // seconds
@@ -41,7 +41,7 @@ export interface TrainingLoadMetadata {
 /**
  * Training load metrics for a time period
  */
-export interface TrainingLoadMetrics {
+interface TrainingLoadMetrics {
   // Acute Training Load (7-day exponentially weighted average)
   atl: number;
   // Chronic Training Load (42-day exponentially weighted average)
@@ -64,7 +64,7 @@ export interface TrainingLoadMetrics {
 /**
  * Daily training load entry
  */
-export interface DailyTrainingLoad {
+interface DailyTrainingLoad {
   date: Date;
   load: number;
   activityCount: number;

@@ -303,9 +303,7 @@ export function MessagesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="messages">{m.messages()}</SelectItem>
-                <SelectItem disabled value="chatbot">
-                  {m.chatbot_assistant()}
-                </SelectItem>
+                <SelectItem value="chatbot">{m.chatbot_assistant()}</SelectItem>
               </SelectContent>
             </Select>
             <Button

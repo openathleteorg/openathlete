@@ -1,21 +1,10 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import {
-  adaptationAgent,
-  athleteProfileAgent,
-  macroPlanAgent,
-  mesoPlanAgent,
-  microPlanAgent,
-  qaAgent,
-  qnaAgent,
-  schedulingAgent,
-} from './agents';
-import { createMastraMemory } from './config/memory.config';
-import { planAdaptationWorkflow, planGenerationWorkflow } from './workflows';
+import { qnaAgent } from './agents';
 
 export function createOpenAthleteCoachAssistant(context?: any): Agent {
-  const memory = createMastraMemory();
+  // const memory = createMastraMemory();
 
   const coachAssistant = new Agent({
     id: 'openathlete-coach',
@@ -59,34 +48,21 @@ RESPONSE FORMAT:
 Keep it simple. Your job is routing, not coaching.`,
     model: openai('gpt-4o'),
     agents: {
-      athleteProfileAgent,
-      macroPlanAgent,
-      mesoPlanAgent,
-      microPlanAgent,
-      schedulingAgent,
-      qaAgent,
-      adaptationAgent,
+      // athleteProfileAgent,
+      // macroPlanAgent,
+      // mesoPlanAgent,
+      // microPlanAgent,
+      // schedulingAgent,
+      // qaAgent,
+      // adaptationAgent,
       qnaAgent,
     },
-    workflows: {
-      planGenerationWorkflow,
-      planAdaptationWorkflow,
-    },
-    memory,
+    // workflows: {
+    //   planGenerationWorkflow,
+    //   planAdaptationWorkflow,
+    // },
+    // memory,
   });
 
   return coachAssistant;
 }
-
-export {
-  adaptationAgent,
-  athleteProfileAgent,
-  macroPlanAgent,
-  mesoPlanAgent,
-  microPlanAgent,
-  planAdaptationWorkflow,
-  planGenerationWorkflow,
-  qaAgent,
-  qnaAgent,
-  schedulingAgent,
-};

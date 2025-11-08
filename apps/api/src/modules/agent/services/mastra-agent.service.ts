@@ -84,7 +84,6 @@ interface BlockData {
 
 @Injectable()
 export class MastraAgentService implements OnModuleInit {
-  // Singleton agent instance - created once and reused
   private coachAgent!: Agent;
 
   constructor(
@@ -104,9 +103,7 @@ export class MastraAgentService implements OnModuleInit {
    * Best Practice: Create agent once and reuse for all requests
    */
   async onModuleInit() {
-    console.log('[MastraAgentService] Initializing singleton coach agent...');
     this.coachAgent = mastra.getAgent('openathlete-coach');
-    console.log('[MastraAgentService] Coach agent initialized successfully');
   }
 
   /**
@@ -152,7 +149,6 @@ export class MastraAgentService implements OnModuleInit {
       // Get athleteId for runtime context and memory
       const athleteId = user.athlete?.athlete_id || user.user_id;
 
-      // Create runtime context with tool dependencies
       const runtimeContext = new RuntimeContext();
       runtimeContext.set('prisma', this.prismaService);
       runtimeContext.set('athleteId', athleteId);
@@ -160,8 +156,6 @@ export class MastraAgentService implements OnModuleInit {
       runtimeContext.set('trainingLoadService', this.trainingLoadService);
       runtimeContext.set('currentDate', new Date().toISOString());
 
-      // Use the singleton agent with memory configuration
-      // Memory automatically handles conversation history - no need to build it manually
       const resultStream = await this.coachAgent.generate(
         `[CURRENT DATE: ${new Date().toISOString().split('T')[0]} (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})]\n\n${content}`,
         {
@@ -271,10 +265,8 @@ export class MastraAgentService implements OnModuleInit {
         'processing',
       );
 
-      // Get athleteId for runtime context and memory
       const athleteId = user.athlete?.athlete_id || user.user_id;
 
-      // Create runtime context with tool dependencies
       const runtimeContext = new RuntimeContext();
       runtimeContext.set('prisma', this.prismaService);
       runtimeContext.set('athleteId', athleteId);
@@ -282,8 +274,6 @@ export class MastraAgentService implements OnModuleInit {
       runtimeContext.set('trainingLoadService', this.trainingLoadService);
       runtimeContext.set('currentDate', new Date().toISOString());
 
-      // Use the singleton agent with streaming
-      // Memory automatically handles conversation history
       const stream = await this.coachAgent.stream(
         `[CURRENT DATE: ${new Date().toISOString().split('T')[0]} (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})]\n\n${content}`,
         {
@@ -301,21 +291,9 @@ export class MastraAgentService implements OnModuleInit {
       >();
       let currentAgent: string | null = null;
 
-      // Process the full stream to capture all events including tool calls
       try {
-        // Use fullStream to get ALL events (text, tool calls, etc.)
         for await (const chunk of stream.fullStream) {
-          // Log ALL chunk types to understand what Mastra sends
-          console.log('[MastraAgentService] chunk.type:', chunk.type);
-
-          // Handle step-start events to detect agent/workflow step changes
           if (chunk.type === 'step-start' && chunk.payload) {
-            // Log the full payload to understand its structure
-            console.log(
-              '[MastraAgentService] step-start payload:',
-              JSON.stringify(chunk.payload, null, 2),
-            );
-
             const stepAgent =
               (chunk.payload as any).agent ||
               (chunk.payload as any).name ||
@@ -324,11 +302,6 @@ export class MastraAgentService implements OnModuleInit {
 
             if (stepAgent && stepAgent !== currentAgent) {
               currentAgent = stepAgent;
-              console.log(
-                `[MastraAgentService] Agent/Step started: ${currentAgent}`,
-              );
-
-              // Emit agent execution event
               onChunk({
                 type: 'agent_thinking',
                 data: {
@@ -339,21 +312,14 @@ export class MastraAgentService implements OnModuleInit {
             }
           }
 
-          // Handle tool call events
           if (chunk.type === 'tool-call' && chunk.payload) {
             const { toolCallId, toolName, args } = chunk.payload;
 
-            // Track active tool call
             activeToolCalls.set(toolCallId, {
               toolName,
               startTime: Date.now(),
             });
 
-            console.log(
-              `[MastraAgentService] Tool call started: ${toolName} (${toolCallId})`,
-            );
-
-            // Emit tool call start event
             onChunk({
               type: 'tool_call_start',
               data: {
@@ -364,16 +330,10 @@ export class MastraAgentService implements OnModuleInit {
               },
             });
 
-            // Special handling for workflow tools - emit workflow execution started
             if (
               toolName === 'run_plan-generation' ||
               toolName === 'run_planGenerationWorkflow'
             ) {
-              console.log(
-                '[MastraAgentService] Plan generation workflow started',
-              );
-
-              // Emit workflow start
               onChunk({
                 type: 'agent_thinking',
                 data: {
@@ -382,9 +342,6 @@ export class MastraAgentService implements OnModuleInit {
                 },
               });
 
-              // Simulate workflow steps progression
-              // Since Mastra doesn't emit step events for workflows called as tools,
-              // we emit them manually with realistic delays
               const workflowSteps = [
                 { id: 'profile-analysis', delay: 2000 },
                 { id: 'macro-planning', delay: 15000 },
@@ -396,11 +353,9 @@ export class MastraAgentService implements OnModuleInit {
                 { id: 'finalize', delay: 5000 },
               ];
 
-              // Emit steps sequentially with delays
-              let cumulativeDelay = 1000; // Start after 1s
+              let cumulativeDelay = 1000;
               for (const step of workflowSteps) {
                 setTimeout(() => {
-                  console.log(`[MastraAgentService] Workflow step: ${step.id}`);
                   onChunk({
                     type: 'agent_thinking',
                     data: {
@@ -414,21 +369,14 @@ export class MastraAgentService implements OnModuleInit {
             }
           }
 
-          // Handle tool result events
           if (chunk.type === 'tool-result' && chunk.payload) {
             const { toolCallId, toolName, result, isError } = chunk.payload;
 
             const toolInfo = activeToolCalls.get(toolCallId);
             const duration = toolInfo ? Date.now() - toolInfo.startTime : 0;
 
-            console.log(
-              `[MastraAgentService] Tool call completed: ${toolName} (${toolCallId}) in ${duration}ms`,
-            );
-
-            // Remove from active tracking
             activeToolCalls.delete(toolCallId);
 
-            // Emit tool result event
             onChunk({
               type: isError ? 'tool_call_error' : 'tool_call_complete',
               data: {
@@ -442,12 +390,10 @@ export class MastraAgentService implements OnModuleInit {
             });
           }
 
-          // Handle text delta events (agent response)
           if (chunk.type === 'text-delta' && chunk.payload) {
             const textChunk = chunk.payload.text || '';
             responseContent += textChunk;
 
-            // Create text block on first chunk
             if (!textBlock) {
               textBlock = (await this.blockService.createBlock(
                 user,
@@ -465,7 +411,6 @@ export class MastraAgentService implements OnModuleInit {
                 data: textBlock as unknown as Record<string, unknown>,
               });
             } else {
-              // Update block with accumulated content
               await this.blockService.updateBlock(user, textBlock.block_id!, {
                 content: responseContent,
                 status: 'processing',
@@ -484,7 +429,6 @@ export class MastraAgentService implements OnModuleInit {
           }
         }
 
-        // Mark as completed
         if (textBlock) {
           await this.blockService.updateBlock(user, textBlock.block_id!, {
             status: 'completed',
@@ -501,7 +445,6 @@ export class MastraAgentService implements OnModuleInit {
           streamError,
         );
 
-        // Fallback: create error block
         if (!textBlock) {
           textBlock = (await this.blockService.createBlock(
             user,
@@ -521,7 +464,6 @@ export class MastraAgentService implements OnModuleInit {
         }
       }
 
-      // Update message status
       await this.messageService.updateMessageStatus(
         user,
         assistantMessage.message_id,
@@ -540,7 +482,6 @@ export class MastraAgentService implements OnModuleInit {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
 
-      // Create error block
       const errorBlock = await this.blockService.createBlock(
         user,
         assistantMessage.message_id,
@@ -563,74 +504,6 @@ export class MastraAgentService implements OnModuleInit {
         assistantMessage.message_id,
         'error',
       );
-    }
-  }
-
-  /**
-   * Create enriched blocks for specific tool results (e.g., activity lists)
-   * This is used for rendering rich UI components on the frontend
-   */
-  private async createEnrichedBlock(
-    user: AuthUser,
-    messageId: number,
-    toolName: string,
-    toolResult: Record<string, unknown>,
-    order: number,
-    onChunk: (data: StreamChunkData) => void,
-  ): Promise<void> {
-    let enrichedBlock: Record<string, unknown> | null = null;
-
-    if (
-      toolName === 'getRecentActivities' ||
-      toolName === 'get-recent-activities'
-    ) {
-      const activities = Array.isArray(toolResult.activities)
-        ? toolResult.activities
-        : [];
-
-      enrichedBlock = await this.blockService.createBlock(user, messageId, {
-        type: 'ACTIVITY_LIST' as any,
-        order: order,
-        content: `Found ${activities.length} activities`,
-        metadata: {
-          activities: toolResult.activities,
-          totalCount: toolResult.totalCount,
-        },
-        status: 'completed',
-      });
-    } else if (
-      toolName === 'createTraining' ||
-      toolName === 'create-training' ||
-      toolName === 'createActivity' ||
-      toolName === 'create-activity'
-    ) {
-      const message =
-        typeof toolResult.message === 'string'
-          ? toolResult.message
-          : 'Training created successfully';
-
-      enrichedBlock = await this.blockService.createBlock(user, messageId, {
-        type: 'ACTIVITY_CREATED' as any,
-        order: order,
-        content: message,
-        metadata: {
-          activity: {
-            eventId: toolResult.eventId,
-            name: toolResult.name,
-            sport: toolResult.sport,
-            startDate: toolResult.startDate,
-            endDate: toolResult.endDate,
-          },
-        },
-        status: 'completed',
-      });
-    }
-
-    if (enrichedBlock) {
-      onChunk({
-        type: 'block_created',
-        data: enrichedBlock,
-      });
     }
   }
 }

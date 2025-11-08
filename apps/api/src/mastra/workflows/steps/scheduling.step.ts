@@ -39,12 +39,7 @@ export const schedulingStepOutputSchema = z.object({
   athleteFacts: athleteFactsSchema,
 });
 
-export type SchedulingStepInput = z.infer<typeof schedulingStepInputSchema>;
-export type SchedulingStepOutput = z.infer<typeof schedulingStepOutputSchema>;
-
 /**
- * Step 5: Scheduling
- *
  * PURPOSE:
  * Assign training sessions to specific calendar days and times.
  *
@@ -78,7 +73,6 @@ export const schedulingStep = createStep({
         `[schedulingStep] Scheduling ${inputData.weekIntentions.length} weeks...`,
       );
 
-      // Process each week sequentially
       for (const weekIntentions of inputData.weekIntentions) {
         const prompt = buildSchedulingPrompt(
           weekIntentions,
@@ -98,7 +92,6 @@ export const schedulingStep = createStep({
 
         const scheduledWeek = response.object;
 
-        // Ensure metadata matches
         scheduledWeek.weekNumber = weekIntentions.weekNumber;
         scheduledWeek.startDate = weekIntentions.startDate;
         scheduledWeek.endDate = weekIntentions.endDate;
@@ -107,7 +100,6 @@ export const schedulingStep = createStep({
 
         scheduledWeeks.push(scheduledWeek);
 
-        // Track metrics
         const scheduled = scheduledWeek.sessions.length;
         const unscheduled = scheduledWeek.unscheduledSessions?.length || 0;
         totalScheduled += scheduled;
@@ -156,7 +148,7 @@ export const schedulingStep = createStep({
 });
 
 /**
- * Build scheduling prompt for a single week
+ * Build scheduling prompt
  */
 function buildSchedulingPrompt(
   weekIntentions: z.infer<typeof weekIntentionsSchema>,

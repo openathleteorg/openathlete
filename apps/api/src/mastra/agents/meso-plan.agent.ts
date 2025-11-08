@@ -4,81 +4,6 @@ import { z } from 'zod';
 
 import { mesoBlockSchema } from '../types';
 
-// TODO: Agent that breaks macro phases into meso-cycles (training blocks)
-//
-// RESPONSIBILITIES:
-// - Divide each phase into 3-4 week blocks (meso-cycles)
-// - Apply progression patterns (2-3 weeks load + 1 week recovery)
-// - Assign themes to each block (VO2 focus, threshold focus, long runs, etc.)
-// - Set weekly volume targets that progress logically
-// - Respect the 10% rule (max +10% volume increase per week)
-// - Balance intensity distribution across blocks
-//
-// INPUT:
-//   - macroPlan: MacroPlan (from macro-plan agent)
-//   - athleteFacts: AthleteFacts (from athlete-profile agent)
-//
-// OUTPUT: MesoBlocks array:
-//   [{
-//     blockNumber: number,
-//     phase: 'BASE' | 'SPECIFIC' | 'TAPER',
-//     startDate: Date,
-//     endDate: Date,
-//     blockTheme: string, // ex: "Base building", "VO2max development", "Race prep"
-//     progressionPattern: '3:1' | '2:1' | 'STEADY', // load:recovery ratio
-//     weeks: [{
-//       weekNumber: number, // global week number in plan
-//       weekInBlock: number, // week number within this block (1, 2, 3, 4)
-//       startDate: Date,
-//       endDate: Date,
-//       theme: string, // specific theme for this week
-//       targetVolume: number, // seconds
-//       targetLoad: number, // TRIMP estimate
-//       intensityFocus: 'EASY' | 'MODERATE' | 'HARD' | 'RECOVERY',
-//       notes?: string // any special notes for this week
-//     }]
-//   }]
-//
-// EXAMPLE BLOCK:
-// Block 1 (Weeks 1-4 of BASE phase) - "Aerobic Foundation":
-//   - Week 1: 8h (28,800s), base building, EASY focus, "Establish routine"
-//   - Week 2: 9h (32,400s), base building, EASY focus, "+10% volume increase"
-//   - Week 3: 10h (36,000s), base building with tempo, MODERATE focus, "Peak week"
-//   - Week 4: 6h (21,600s), recovery week, EASY focus, "-40% volume for recovery"
-//
-// PROGRESSION PATTERNS:
-// - 3:1 pattern: 3 weeks progressive load + 1 recovery week
-// - 2:1 pattern: 2 weeks load + 1 recovery week (for less experienced athletes)
-// - Recovery week: typically -20% to -40% volume from previous week
-// - Load increase: max +10% per week (can be less for beginners)
-//
-// BLOCK THEMES BY PHASE:
-// BASE phase blocks:
-//   - "Aerobic Foundation" (Z1-Z2 focus)
-//   - "Base Building" (increasing volume steadily)
-//   - "Aerobic Capacity" (Z2-Z3 with some tempo)
-//
-// SPECIFIC phase blocks:
-//   - "VO2max Development" (interval work)
-//   - "Threshold Training" (tempo runs, lactate threshold work)
-//   - "Race-Specific Prep" (pace work, terrain simulation)
-//   - "Peak Week" (highest volume/load before taper)
-//
-// TAPER phase blocks:
-//   - "Early Taper" (reduce volume, keep intensity)
-//   - "Final Taper" (minimal volume, race prep)
-//
-// NO TOOLS NEEDED - Logical breakdown based on macro plan
-//
-// IMPLEMENTATION NOTES:
-// - Each macro phase should be divided into logical blocks
-// - Apply consistent progression patterns within blocks
-// - Ensure smooth transitions between blocks
-// - Consider athlete's current fitness when setting starting volume
-// - Flag if progression seems too aggressive or conservative
-//
-// MODEL: GPT-4o (needs reasoning for progression logic)
-
 export const mesoPlanAgent = new Agent({
   name: 'meso-plan',
   description:
@@ -143,9 +68,6 @@ Be specific with dates, volumes (in seconds), and provide clear rationale for pr
   // No tools needed - logical breakdown
 });
 
-// Export schema for use in workflow steps
 export const mesoBlocksOutputSchema = z.object({
   mesoBlocks: z.array(mesoBlockSchema),
 });
-
-export { mesoBlockSchema };

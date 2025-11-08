@@ -1,4 +1,4 @@
-export type ActivityImportedPayload = {
+type ActivityImportedPayload = {
   eventActivityId: number;
   eventId: number;
   skipWeather?: boolean; // Skip weather enrichment for bulk imports

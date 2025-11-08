@@ -7,7 +7,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 /**
  * Activity search criteria
  */
-export interface ActivitySearchCriteria {
+interface ActivitySearchCriteria {
   athleteId: number;
   activityId?: number;
   date?: Date; // Specific date (will search for activities on that day)
@@ -19,7 +19,7 @@ export interface ActivitySearchCriteria {
 /**
  * Full activity with related data
  */
-export type FullActivity = event & {
+type FullActivity = event & {
   activity: event_activity & {
     weather?: any;
     normalization?: any;
