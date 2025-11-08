@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 
-import { Message } from '@openathlete/shared';
+import { Message, MessageThread } from '@openathlete/shared';
 
 import { MessagesAPI } from './messages.api';
 import { messagesKeys } from './messages.keys';
@@ -83,20 +83,52 @@ export function useMessagesWebSocket({
         onNewMessage(data.message);
       }
       if (data.message.messageThreadId) {
-        // Invalidate messages for this thread
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getThreadMessages(
-            data.message.messageThreadId,
-          ),
-        });
-        // Invalidate thread details
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getThread(data.message.messageThreadId),
-        });
-        // Invalidate thread list to update last message and unread count
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getUserThreads,
-        });
+        const threadId = data.message.messageThreadId;
+        const newMessage = data.message;
+
+        // Update messages cache directly - add new message to the list
+        queryClient.setQueryData<Message[]>(
+          messagesKeys.getThreadMessages(threadId),
+          (oldMessages) => {
+            if (!oldMessages) return [newMessage];
+            // Check if message already exists (avoid duplicates)
+            if (oldMessages.some((m) => m.messageId === newMessage.messageId)) {
+              return oldMessages;
+            }
+            return [...oldMessages, newMessage];
+          },
+        );
+
+        // Update thread cache - update lastMessage and updatedAt
+        queryClient.setQueryData<MessageThread>(
+          messagesKeys.getThread(threadId),
+          (oldThread) => {
+            if (!oldThread) return undefined;
+            return {
+              ...oldThread,
+              lastMessage: newMessage,
+              updatedAt: newMessage.createdAt,
+            };
+          },
+        );
+
+        // Update thread list cache - update the thread in the list
+        queryClient.setQueryData<MessageThread[]>(
+          messagesKeys.getUserThreads,
+          (oldThreads) => {
+            if (!oldThreads) return undefined;
+            return oldThreads.map((thread) => {
+              if (thread.messageThreadId === threadId) {
+                return {
+                  ...thread,
+                  lastMessage: newMessage,
+                  updatedAt: newMessage.createdAt,
+                };
+              }
+              return thread;
+            });
+          },
+        );
       }
     });
 
@@ -105,20 +137,64 @@ export function useMessagesWebSocket({
         onMessageUpdated(data.message);
       }
       if (data.message.messageThreadId) {
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getThreadMessages(
-            data.message.messageThreadId,
-          ),
-        });
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getMessage(data.message.messageId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getThread(data.message.messageThreadId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getUserThreads,
-        });
+        const threadId = data.message.messageThreadId;
+        const updatedMessage = data.message;
+
+        // Update messages cache directly - replace the message in the list
+        queryClient.setQueryData<Message[]>(
+          messagesKeys.getThreadMessages(threadId),
+          (oldMessages) => {
+            if (!oldMessages) return undefined;
+            return oldMessages.map((msg) =>
+              msg.messageId === updatedMessage.messageId ? updatedMessage : msg,
+            );
+          },
+        );
+
+        // Update message cache
+        queryClient.setQueryData<Message>(
+          messagesKeys.getMessage(updatedMessage.messageId),
+          updatedMessage,
+        );
+
+        // Update thread cache - update lastMessage if it's the last one
+        queryClient.setQueryData<MessageThread>(
+          messagesKeys.getThread(threadId),
+          (oldThread) => {
+            if (!oldThread) return undefined;
+            const isLastMessage =
+              oldThread.lastMessage?.messageId === updatedMessage.messageId;
+            return {
+              ...oldThread,
+              lastMessage: isLastMessage
+                ? updatedMessage
+                : oldThread.lastMessage,
+              updatedAt: updatedMessage.updatedAt,
+            };
+          },
+        );
+
+        // Update thread list cache
+        queryClient.setQueryData<MessageThread[]>(
+          messagesKeys.getUserThreads,
+          (oldThreads) => {
+            if (!oldThreads) return undefined;
+            return oldThreads.map((thread) => {
+              if (thread.messageThreadId === threadId) {
+                const isLastMessage =
+                  thread.lastMessage?.messageId === updatedMessage.messageId;
+                return {
+                  ...thread,
+                  lastMessage: isLastMessage
+                    ? updatedMessage
+                    : thread.lastMessage,
+                  updatedAt: updatedMessage.updatedAt,
+                };
+              }
+              return thread;
+            });
+          },
+        );
       }
     });
 
@@ -132,12 +208,46 @@ export function useMessagesWebSocket({
         if (onMessagesRead) {
           onMessagesRead(data);
         }
+        const { messageThreadId, messageIds } = data;
+
+        // Update messages cache - mark messages as read
+        queryClient.setQueryData<Message[]>(
+          messagesKeys.getThreadMessages(messageThreadId),
+          (oldMessages) => {
+            if (!oldMessages) return undefined;
+            return oldMessages.map((msg) => {
+              if (messageIds.includes(msg.messageId)) {
+                // Add read receipt if not already present
+                const hasReadReceipt = msg.readReceipts?.some(
+                  (rr) => rr.userId === data.userId,
+                );
+                if (!hasReadReceipt) {
+                  return {
+                    ...msg,
+                    readReceipts: [
+                      ...(msg.readReceipts || []),
+                      {
+                        messageReadReceiptId: 0, // Will be set by server
+                        messageId: msg.messageId,
+                        userId: data.userId,
+                        readAt: new Date().toISOString(),
+                      },
+                    ],
+                  };
+                }
+              }
+              return msg;
+            });
+          },
+        );
+
+        // Update thread cache - recalculate unread count would require server data
+        // So we invalidate thread to get updated unread count
         queryClient.invalidateQueries({
-          queryKey: messagesKeys.getThreadMessages(data.messageThreadId),
+          queryKey: messagesKeys.getThread(messageThreadId),
         });
-        queryClient.invalidateQueries({
-          queryKey: messagesKeys.getThread(data.messageThreadId),
-        });
+
+        // Update thread list cache - invalidate to get updated unread counts
         queryClient.invalidateQueries({
           queryKey: messagesKeys.getUserThreads,
         });
@@ -196,20 +306,49 @@ export function useMessagesWebSocket({
   }, [isConnected, messageThreadId]);
 
   const sendMessage = useCallback(
-    (content: string) => {
+    async (content: string) => {
       if (!messageThreadId) {
         return;
       }
 
       const socket = MessagesAPI.getSocket();
-      MessagesAPI.sendMessage(messageThreadId, content);
 
-      if (!socket.connected && !connectingRef.current) {
+      // If socket is connected, send via websocket (preferred method)
+      if (socket.connected) {
+        MessagesAPI.sendMessage(messageThreadId, content);
+        return;
+      }
+
+      // Socket not connected - try to connect first
+      if (!connectingRef.current) {
         connectingRef.current = true;
         MessagesAPI.connectSocket();
       }
+
+      // Fallback: send via REST API and refresh only the conversation
+      // This ensures the message is sent even if websocket is not available
+      try {
+        await MessagesAPI.createMessage({
+          messageThreadId,
+          content,
+        });
+        // Refresh only the messages for this thread (not all threads)
+        queryClient.invalidateQueries({
+          queryKey: messagesKeys.getThreadMessages(messageThreadId),
+        });
+        // Refresh thread list to update last message
+        queryClient.invalidateQueries({
+          queryKey: messagesKeys.getUserThreads,
+        });
+      } catch (error) {
+        if (onError) {
+          onError(
+            error instanceof Error ? error.message : 'Failed to send message',
+          );
+        }
+      }
     },
-    [messageThreadId, isConnected],
+    [messageThreadId, isConnected, queryClient, onError],
   );
 
   const updateMessage = useCallback((messageId: number, content: string) => {
