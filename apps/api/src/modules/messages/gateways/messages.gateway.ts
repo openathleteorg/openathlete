@@ -34,8 +34,11 @@ import { MessageService } from '../services/message.service';
   cors: {
     origin: process.env.APP_URL || 'http://localhost:5173',
     credentials: true,
+    methods: ['GET', 'POST'],
   },
   namespace: '/messages',
+  transports: ['polling', 'websocket'], // Support both transports for proxy compatibility
+  allowEIO3: true, // Allow Engine.IO v3 clients for better compatibility
 })
 export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect

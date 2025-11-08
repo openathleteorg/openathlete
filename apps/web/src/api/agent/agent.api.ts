@@ -107,9 +107,11 @@ export class AgentAPI {
       const token = getItem(ACCESS_TOKEN);
 
       this.socket = io(`${API_BASE_URL}/agent`, {
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'], // Allow polling first, then upgrade to websocket
         withCredentials: true,
         autoConnect: false,
+        upgrade: true, // Allow upgrade from polling to websocket
+        rememberUpgrade: true, // Remember transport preference
         auth: {
           token: token || '',
         },

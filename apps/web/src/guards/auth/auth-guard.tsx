@@ -26,7 +26,6 @@ export function AuthGuard({ children }: Props) {
     if (isLoading) return;
 
     if (user) {
-      console.log(pathname);
       if (
         !user.onboardingCompleted &&
         pathname !== getPath(['dashboard', 'onboarding'])

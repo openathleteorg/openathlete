@@ -103,13 +103,15 @@ export class MessagesAPI {
       const token = getItem(ACCESS_TOKEN);
 
       this.socket = io(`${API_BASE_URL}/messages`, {
-        transports: ['websocket'],
+        transports: ['polling', 'websocket'], // Allow polling first, then upgrade to websocket
         withCredentials: true,
         autoConnect: false,
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
         reconnectionAttempts: 5,
+        upgrade: true, // Allow upgrade from polling to websocket
+        rememberUpgrade: true, // Remember transport preference
         auth: {
           token: token || '',
         },
