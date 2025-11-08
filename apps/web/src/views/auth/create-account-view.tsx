@@ -1,16 +1,16 @@
+import { useLoginMutation } from '@/api/auth';
+import { AuthAPI } from '@/api/auth/auth.api';
+import { useCreateAccountMutation } from '@/api/user';
 import { FormProvider, RHFTextField } from '@/components/hook-form';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { useLoginMutation } from '@/api/auth';
-import { AuthAPI } from '@/api/auth/auth.api';
-import { useCreateAccountMutation } from '@/api/user';
 import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
 import z from 'zod';
 
 import { createAccountDtoSchema } from '@openathlete/shared';
@@ -55,7 +55,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   const loginMutation = useLoginMutation({
     onSuccess: async () => {
       await initialize();
-      navigate(getPath(['dashboard']));
+      navigate(getPath(['dashboard', 'onboarding']));
     },
   });
   const createAccountMutation = useCreateAccountMutation({

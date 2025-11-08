@@ -20,6 +20,7 @@ export const routes = {
     updateAccount: '/user',
     passwordReset: '/user/password-reset',
     passwordResetRequest: '/user/password-reset/request',
+    completeOnboarding: '/user/complete-onboarding',
   },
   event: {
     create: '/event',

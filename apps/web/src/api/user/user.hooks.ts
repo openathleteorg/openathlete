@@ -1,6 +1,6 @@
 import {
   MutationOptions,
-  QueryOptions,
+  UseQueryOptions,
   useMutation,
   useQuery,
 } from '@tanstack/react-query';
@@ -34,8 +34,24 @@ export const useUpdateAccountMutation = (
   });
 };
 
+export const useCompleteOnboardingMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof UserAPI.completeOnboarding>>,
+    Error,
+    Parameters<typeof UserAPI.completeOnboarding>[0]
+  >,
+) => {
+  return useMutation({
+    ...opt,
+    mutationFn: UserAPI.completeOnboarding,
+  });
+};
+
 export const useGetMeQuery = (
-  opt?: QueryOptions<Awaited<ReturnType<typeof UserAPI.getMe>>>,
+  opt?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof UserAPI.getMe>>>,
+    'queryKey' | 'queryFn'
+  >,
 ) =>
   useQuery({
     ...opt,

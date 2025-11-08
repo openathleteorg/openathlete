@@ -86,6 +86,12 @@ const CoachDashboardPage = lazy(() =>
   })),
 );
 
+const OnboardingPage = lazy(() =>
+  import('@/pages/dashboard/onboarding').then((module) => ({
+    default: module.OnboardingPage,
+  })),
+);
+
 export const dashboardRoutes: RouteObject[] = [
   {
     path: getPath(['dashboard']),
@@ -103,6 +109,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'coach']),
         element: <CoachDashboardPage />,
+      },
+      {
+        path: getPath(['dashboard', 'onboarding']),
+        element: <OnboardingPage />,
       },
       {
         path: getPath(['dashboard', 'calendar']),

@@ -12,4 +12,3 @@ export const completeOnboardingDtoSchema = z.object({
 });
 
 export type CompleteOnboardingDto = z.infer<typeof completeOnboardingDtoSchema>;
-

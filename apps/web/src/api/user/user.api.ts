@@ -1,6 +1,7 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  CompleteOnboardingDto,
   CreateAccountDto,
   PasswordResetDto,
   PasswordResetRequestDto,
@@ -32,5 +33,12 @@ export class UserAPI {
 
   static async passwordReset(body: PasswordResetDto): Promise<void> {
     await client.post(routes.user.passwordReset, body);
+  }
+
+  static async completeOnboarding(
+    body: CompleteOnboardingDto,
+  ): Promise<{ success: boolean }> {
+    const res = await client.post(routes.user.completeOnboarding, body);
+    return res.data;
   }
 }
