@@ -47,6 +47,13 @@ enum training_zone_type {
 enum token_type {
   PASSWORD_RESET
   ATHLETE_INVITATION
+  COACH_INVITATION
+}
+
+enum invitation_status {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 enum record_type {

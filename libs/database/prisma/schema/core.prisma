@@ -18,6 +18,8 @@ model user {
   agent_threads               agent_thread[]
   event_template_folder       event_template_folder[]
   athlete_invitations         athlete_invitation[]
+  coach_invitations_sent      coach_invitation[] @relation("CoachInvitationsSent")
+  coach_invitations_received  coach_invitation[] @relation("CoachInvitationsReceived")
   message_thread_participants message_thread_participant[]
   sent_messages               message[]
   message_read_receipts       message_read_receipt[]

@@ -87,8 +87,9 @@ model athlete_invitation {
   athlete_invitation_id Int @id @default(autoincrement())
 
   // fields
-  email String
-  token String @unique
+  email  String
+  token  String?  @unique
+  status invitation_status? // null = auto-accept on account creation, PENDING = user exists and needs to accept
 
   // relationships
   user    user @relation(fields: [user_id], references: [user_id])
@@ -100,4 +101,30 @@ model athlete_invitation {
 
   @@index([token])
   @@index([email])
+  @@index([status])
+}
+
+model coach_invitation {
+  // primary key
+  coach_invitation_id Int @id @default(autoincrement())
+
+  // fields
+  email  String
+  token  String?  @unique // null if user exists, set if user doesn't exist (for account creation)
+  status invitation_status @default(PENDING)
+
+  // relationships
+  athlete_user    user @relation("CoachInvitationsSent", fields: [athlete_user_id], references: [user_id])
+  athlete_user_id Int
+  coach_user      user? @relation("CoachInvitationsReceived", fields: [coach_user_id], references: [user_id])
+  coach_user_id   Int?
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([token])
+  @@index([email])
+  @@index([status])
+  @@index([coach_user_id])
 }
