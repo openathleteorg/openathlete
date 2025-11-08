@@ -78,7 +78,6 @@ export class MastraAgentService implements OnModuleInit {
   }
 
   private async updateThreadTitleFromMastra(
-    user: AuthUser,
     threadId: number,
     athleteId: number,
   ): Promise<string | null> {
@@ -94,12 +93,18 @@ export class MastraAgentService implements OnModuleInit {
           threadId: mastraThreadId,
         });
 
+        console.log('thread', thread);
+
         if (!thread) {
           throw new Error('Thread not found in Mastra');
         }
 
         if (thread.resourceId !== resourceId || !thread.title) {
           throw new Error('Thread resourceId mismatch or no title');
+        }
+
+        if (thread.title) {
+          return thread.title;
         }
 
         if (attempt === maxAttempts) {
@@ -353,7 +358,6 @@ export class MastraAgentService implements OnModuleInit {
       let updatedTitle: string | null = null;
       if (isFirstMessage) {
         updatedTitle = await this.updateThreadTitleFromMastra(
-          user,
           threadId,
           athleteId,
         );
