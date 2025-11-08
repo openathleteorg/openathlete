@@ -41,7 +41,7 @@ interface TrainingLoadMetadata {
 /**
  * Training load metrics for a time period
  */
-interface TrainingLoadMetrics {
+export interface TrainingLoadMetrics {
   // Acute Training Load (7-day exponentially weighted average)
   atl: number;
   // Chronic Training Load (42-day exponentially weighted average)
@@ -64,7 +64,7 @@ interface TrainingLoadMetrics {
 /**
  * Daily training load entry
  */
-interface DailyTrainingLoad {
+export interface DailyTrainingLoad {
   date: Date;
   load: number;
   activityCount: number;

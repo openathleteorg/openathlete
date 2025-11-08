@@ -11,6 +11,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 import { athlete, training_load_calculation_type } from '@openathlete/database';
+import { DailyTrainingLoad, TrainingLoadMetrics } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -49,7 +50,7 @@ export class TrainingLoadController {
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
     @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
-  ) {
+  ): Promise<DailyTrainingLoad[]> {
     return this.trainingLoadService.getTrainingLoadByPeriod(
       user,
       calculationType,
@@ -69,7 +70,7 @@ export class TrainingLoadController {
     @Query('calculationType') calculationType: training_load_calculation_type,
     @Query('targetDate') targetDate?: string,
     @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
-  ) {
+  ): Promise<TrainingLoadMetrics> {
     const date = targetDate ? new Date(targetDate) : new Date();
     return this.trainingLoadService.getTrainingLoadMetrics(
       user,
