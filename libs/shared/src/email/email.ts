@@ -11,6 +11,18 @@ export const emailLibrary = {
     defaultSubject: 'Invitation à rejoindre OpenAthlete',
     props: {} as { coachName: string; url: string },
   },
+  'athlete-invitation-existing': {
+    defaultSubject: 'Nouvelle invitation de coach',
+    props: {} as { coachName: string; url: string },
+  },
+  'coach-invitation-new': {
+    defaultSubject: 'Invitation à rejoindre OpenAthlete',
+    props: {} as { athleteName: string; url: string },
+  },
+  'coach-invitation-existing': {
+    defaultSubject: 'Nouvelle invitation de coach',
+    props: {} as { athleteName: string; url: string },
+  },
 } as const;
 
 export type EmailId = keyof typeof emailLibrary;
