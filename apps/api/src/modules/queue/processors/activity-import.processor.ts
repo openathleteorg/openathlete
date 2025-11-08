@@ -231,15 +231,14 @@ export class ActivityImportProcessor implements OnModuleInit {
       fullActivity.distance,
     );
 
-    // Handle records TODO: Uncomment this when we have a better way to handle records
-    // if (fullActivity.stream) {
-    //   await this.handleRecords(
-    //     fullActivity.event_activity_id,
-    //     athlete.athlete_id,
-    //     fullActivity.stream,
-    //     fullActivity.event.start_date,
-    //   );
-    // }
+    if (fullActivity.stream) {
+      await this.handleRecords(
+        fullActivity.event_activity_id,
+        athlete.athlete_id,
+        fullActivity.stream,
+        fullActivity.event.start_date,
+      );
+    }
   }
 
   /**
@@ -313,12 +312,10 @@ export class ActivityImportProcessor implements OnModuleInit {
     activityStartDate: Date,
   ): Promise<void> {
     try {
-      // Uncompress stream
       const stream = uncompressActivityStream(
         compressedStream as CompressedActivityStream,
       );
 
-      // Compute records
       const records = computeRecords(stream);
 
       if (records.length > 0) {
@@ -340,7 +337,6 @@ export class ActivityImportProcessor implements OnModuleInit {
       this.logger.error(
         `Failed to create records for activity ${eventActivityId}: ${error instanceof Error ? error.message : String(error)}`,
       );
-      // Don't throw - records are not critical
     }
   }
 
