@@ -1,13 +1,3 @@
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { m } from '@/paraglide/messages';
 import {
   useAcceptInvitationMutation,
   useGetPendingInvitationsQuery,
@@ -18,7 +8,17 @@ import {
   useGetPendingInvitationsQuery as useCoachGetPendingInvitationsQuery,
   useRejectInvitationMutation as useCoachRejectInvitationMutation,
 } from '@/api/coach';
+import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useUserRoles } from '@/contexts/auth';
+import { m } from '@/paraglide/messages';
 import { toast } from 'sonner';
 
 interface P {}
@@ -29,12 +29,10 @@ export function InvitationsTab({}: P) {
   const isCoach = roles?.includes('COACH');
 
   // Athlete invitations (invitations from coaches)
-  const {
-    data: athleteInvitations,
-    isLoading: athleteInvitationsLoading,
-  } = useGetPendingInvitationsQuery({
-    enabled: isAthlete,
-  });
+  const { data: athleteInvitations, isLoading: athleteInvitationsLoading } =
+    useGetPendingInvitationsQuery({
+      enabled: isAthlete,
+    });
 
   const acceptAthleteInvitation = useAcceptInvitationMutation({
     onSuccess: () => {
@@ -55,12 +53,10 @@ export function InvitationsTab({}: P) {
   });
 
   // Coach invitations (invitations from athletes)
-  const {
-    data: coachInvitations,
-    isLoading: coachInvitationsLoading,
-  } = useCoachGetPendingInvitationsQuery({
-    enabled: isCoach,
-  });
+  const { data: coachInvitations, isLoading: coachInvitationsLoading } =
+    useCoachGetPendingInvitationsQuery({
+      enabled: isCoach,
+    });
 
   const acceptCoachInvitation = useCoachAcceptInvitationMutation({
     onSuccess: () => {
@@ -209,4 +205,3 @@ export function InvitationsTab({}: P) {
     </div>
   );
 }
-
