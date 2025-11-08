@@ -99,6 +99,9 @@ export const routes = {
     removeCoach: (coachId: number) => `/athlete/coach/${coachId}`,
     getAthleteSettings: (athleteId: number) => `/athlete/${athleteId}/settings`,
     updateAthleteSettings: (athleteId: number) => `/athlete/${athleteId}/settings`,
+    getPendingInvitations: '/athlete/invitations/pending',
+    acceptInvitation: (invitationId: number) => `/athlete/invitations/${invitationId}/accept`,
+    rejectInvitation: (invitationId: number) => `/athlete/invitations/${invitationId}/reject`,
   },
   statistics: {
     getStatisticsForPeriod: (
@@ -110,6 +113,9 @@ export const routes = {
   coach: {
     dashboard: (start?: string, end?: string) =>
       `/coach/dashboard${start && end ? `?start=${start}&end=${end}` : ''}`,
+    getPendingInvitations: '/coach/invitations/pending',
+    acceptInvitation: (invitationId: number) => `/coach/invitations/${invitationId}/accept`,
+    rejectInvitation: (invitationId: number) => `/coach/invitations/${invitationId}/reject`,
   },
   cycle: {
     create: '/cycle',

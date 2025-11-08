@@ -776,5 +776,16 @@
   "landing_request_access_athletes_error": "Number of athletes is required",
   "landing_providers_title": "Compatible with your favorite devices",
   "landing_providers_subtitle": "OpenAthlete automatically imports your activities and exports workouts to your watch or bike computer.",
-  "landing_how_step_label": "Step {num}"
+  "landing_how_step_label": "Step {num}",
+  "invitations": "Invitations",
+  "invitation_accepted": "Invitation accepted",
+  "invitation_rejected": "Invitation rejected",
+  "failed_to_accept_invitation": "Failed to accept invitation",
+  "failed_to_reject_invitation": "Failed to reject invitation",
+  "no_pending_invitations": "No pending invitations",
+  "invitations_from_coaches": "Invitations from coaches",
+  "invitations_from_athletes": "Invitations from athletes",
+  "accept": "Accept",
+  "reject": "Reject",
+  "loading": "Loading..."
 }

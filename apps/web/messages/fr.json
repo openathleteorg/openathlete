@@ -778,5 +778,16 @@
   "landing_request_access_athletes_error": "Le nombre d'athlètes est requis",
   "landing_providers_title": "Compatible avec vos appareils préférés",
   "landing_providers_subtitle": "OpenAthlete importe automatiquement vos activités et exporte les séances sur votre montre ou votre compteur.",
-  "landing_how_step_label": "Étape {num}"
+  "landing_how_step_label": "Étape {num}",
+  "invitations": "Invitations",
+  "invitation_accepted": "Invitation acceptée",
+  "invitation_rejected": "Invitation refusée",
+  "failed_to_accept_invitation": "Échec de l'acceptation de l'invitation",
+  "failed_to_reject_invitation": "Échec du refus de l'invitation",
+  "no_pending_invitations": "Aucune invitation en attente",
+  "invitations_from_coaches": "Invitations des entraîneurs",
+  "invitations_from_athletes": "Invitations des athlètes",
+  "accept": "Accepter",
+  "reject": "Refuser",
+  "loading": "Chargement..."
 }

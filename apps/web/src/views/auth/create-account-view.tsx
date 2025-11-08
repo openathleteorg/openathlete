@@ -20,6 +20,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const invitationToken = searchParams.get('invitation');
+  const coachInvitationToken = searchParams.get('coach-invitation');
   const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
   const [isVerifyingInvitation, setIsVerifyingInvitation] = useState(false);
   const methods = useForm<z.infer<typeof createAccountDtoSchema>>({
@@ -30,13 +31,15 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
       firstName: '',
       lastName: '',
       invitationToken: invitationToken || undefined,
+      coachInvitationToken: coachInvitationToken || undefined,
     },
   });
 
   useEffect(() => {
-    if (invitationToken) {
+    const token = invitationToken || coachInvitationToken;
+    if (token) {
       setIsVerifyingInvitation(true);
-      AuthAPI.verifyInvitation(invitationToken)
+      AuthAPI.verifyInvitation(token)
         .then((result) => {
           if (result.valid && result.email) {
             setInvitationEmail(result.email);
@@ -47,7 +50,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
           setIsVerifyingInvitation(false);
         });
     }
-  }, [invitationToken, methods]);
+  }, [invitationToken, coachInvitationToken, methods]);
 
   const loginMutation = useLoginMutation({
     onSuccess: async () => {
@@ -67,6 +70,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
     const submitData = {
       ...data,
       invitationToken: invitationToken || undefined,
+      coachInvitationToken: coachInvitationToken || undefined,
     };
     createAccountMutation.mutate(submitData);
   });

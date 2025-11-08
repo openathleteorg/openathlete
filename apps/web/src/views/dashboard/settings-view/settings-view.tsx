@@ -6,6 +6,7 @@ import { AthletesTab } from './athletes-tab';
 import { CoachesTab } from './coaches-tab';
 import { ConnectorsTab } from './connectors-tab';
 import { EquipmentTab } from './equipment-tab';
+import { InvitationsTab } from './invitations-tab';
 import { ProfileTab } from './profile-tab';
 import { TrainingZonesTab } from './training-zones-tab';
 
@@ -26,6 +27,7 @@ export function SettingsView() {
           {roles?.includes('ATHLETE') && (
             <TabsTrigger value="coaches">{m.coaches()}</TabsTrigger>
           )}
+          <TabsTrigger value="invitations">{m.invitations()}</TabsTrigger>
         </TabsList>
         <TabsContent value="connectors">
           <ConnectorsTab />
@@ -44,6 +46,9 @@ export function SettingsView() {
         </TabsContent>
         <TabsContent value="coaches">
           <CoachesTab />
+        </TabsContent>
+        <TabsContent value="invitations">
+          <InvitationsTab />
         </TabsContent>
       </Tabs>
     </div>

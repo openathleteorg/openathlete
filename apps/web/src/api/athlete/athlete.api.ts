@@ -69,4 +69,33 @@ export class AthleteAPI {
     );
     return res.data;
   }
+
+  static async getPendingInvitations(): Promise<
+    Array<{
+      athleteInvitationId: number;
+      email: string;
+      token: string | null;
+      status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null;
+      userId: number;
+      user: {
+        userId: number;
+        firstName: string;
+        lastName: string;
+        email: string;
+      };
+      createdAt: string;
+      updatedAt: string;
+    }>
+  > {
+    const res = await client.get(routes.athlete.getPendingInvitations);
+    return res.data;
+  }
+
+  static async acceptInvitation(invitationId: number): Promise<void> {
+    await client.post(routes.athlete.acceptInvitation(invitationId));
+  }
+
+  static async rejectInvitation(invitationId: number): Promise<void> {
+    await client.post(routes.athlete.rejectInvitation(invitationId));
+  }
 }

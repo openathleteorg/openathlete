@@ -155,3 +155,61 @@ export const useUpdateAthleteSettingsMutation = (
     },
   });
 };
+
+export const useGetPendingInvitationsQuery = (
+  { enabled }: { enabled?: boolean },
+  opt?: QueryOptions<
+    Awaited<ReturnType<typeof AthleteAPI.getPendingInvitations>>
+  >,
+) =>
+  useQuery({
+    ...opt,
+    queryFn: AthleteAPI.getPendingInvitations,
+    queryKey: [athleteKeys.getPendingInvitations],
+    enabled: !!enabled,
+  });
+
+export const useAcceptInvitationMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof AthleteAPI.acceptInvitation>>,
+    Error,
+    Parameters<typeof AthleteAPI.acceptInvitation>[0]
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: AthleteAPI.acceptInvitation,
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
+      queryClient.invalidateQueries({
+        queryKey: [athleteKeys.getPendingInvitations],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [athleteKeys.getMyCoaches],
+      });
+    },
+  });
+};
+
+export const useRejectInvitationMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof AthleteAPI.rejectInvitation>>,
+    Error,
+    Parameters<typeof AthleteAPI.rejectInvitation>[0]
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: AthleteAPI.rejectInvitation,
+    onSuccess: (data, variables, onMutateResult, context) => {
+      if (opt?.onSuccess)
+        opt.onSuccess(data, variables, onMutateResult, context);
+      queryClient.invalidateQueries({
+        queryKey: [athleteKeys.getPendingInvitations],
+      });
+    },
+  });
+};
