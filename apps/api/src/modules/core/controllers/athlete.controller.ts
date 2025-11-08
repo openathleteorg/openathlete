@@ -24,6 +24,7 @@ import {
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { AthleteInvitationService } from 'src/modules/auth/services/athlete-invitation.service';
 
 import { AthleteService } from '../services/athlete.service';
 import { AthleteSettingsService } from '../services/athlete-settings.service';
@@ -33,6 +34,7 @@ export class AthleteController {
   constructor(
     private athleteService: AthleteService,
     private athleteSettingsService: AthleteSettingsService,
+    private athleteInvitationService: AthleteInvitationService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -107,5 +109,37 @@ export class AthleteController {
     dto: UpdateAthleteSettingsDto,
   ) {
     return this.athleteSettingsService.updateSettings(user, athleteId, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get('invitations/pending')
+  getPendingInvitations(@JwtUser() user: AuthUser) {
+    return this.athleteInvitationService.getPendingInvitationsForAthlete(
+      user.user_id,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post('invitations/:invitationId/accept')
+  acceptInvitation(
+    @JwtUser() user: AuthUser,
+    @Param('invitationId', ParseIntPipe) invitationId: number,
+  ) {
+    return this.athleteInvitationService.acceptInvitation(
+      user.user_id,
+      invitationId,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post('invitations/:invitationId/reject')
+  rejectInvitation(
+    @JwtUser() user: AuthUser,
+    @Param('invitationId', ParseIntPipe) invitationId: number,
+  ) {
+    return this.athleteInvitationService.rejectInvitation(
+      user.user_id,
+      invitationId,
+    );
   }
 }

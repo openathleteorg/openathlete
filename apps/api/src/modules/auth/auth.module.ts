@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/services/prisma.service';
 import { AuthController, UserController } from './controllers';
 import { AuthService, CaslAbilityFactory, UserService } from './services';
 import { AthleteInvitationService } from './services/athlete-invitation.service';
+import { CoachInvitationService } from './services/coach-invitation.service';
 import { InvitationService } from './services/invitation.service';
 import { TokenService } from './services/token.service';
 import { JwtStrategy } from './strategies';
@@ -25,6 +26,7 @@ import { JwtStrategy } from './strategies';
     UserService,
     TokenService,
     AthleteInvitationService,
+    CoachInvitationService,
     InvitationService,
     JwtStrategy,
     CaslAbilityFactory,
@@ -35,6 +37,7 @@ import { JwtStrategy } from './strategies';
     UserService,
     JwtModule,
     AthleteInvitationService,
+    CoachInvitationService,
   ],
 })
 export class AuthModule {}

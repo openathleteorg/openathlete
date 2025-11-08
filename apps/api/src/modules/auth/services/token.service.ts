@@ -20,6 +20,10 @@ export class TokenService {
         return 60 * 15 * 1000; // 15 minutes;
       case token_type.ATHLETE_INVITATION:
         return 60 * 60 * 24 * 7 * 1000; // 7 days;
+      case token_type.COACH_INVITATION:
+        return 60 * 60 * 24 * 7 * 1000; // 7 days;
+      default:
+        return 0;
     }
   }
 

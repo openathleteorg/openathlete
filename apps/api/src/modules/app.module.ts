@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import {
-  ActivityProcessingListener,
   NotificationListener,
   TrainingLoadListener,
   WorkoutSyncListener,
@@ -33,7 +32,6 @@ import { PrismaService } from './prisma/services/prisma.service';
   providers: [
     PrismaService,
     NotificationListener,
-    ActivityProcessingListener,
     TrainingLoadListener,
     WorkoutSyncListener,
   ],

@@ -12,6 +12,7 @@ import { keysToCamel } from '@openathlete/shared';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { AthleteInvitationService } from 'src/modules/auth/services/athlete-invitation.service';
+import { CoachInvitationService } from 'src/modules/auth/services/coach-invitation.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 const ATHLETE_INCLUDES = {
@@ -37,6 +38,7 @@ export class AthleteService {
     private prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
     private athleteInvitationService: AthleteInvitationService,
+    private coachInvitationService: CoachInvitationService,
   ) {}
 
   private async seedDefaultHeartrateZonesIfEmpty(athleteId: number) {
@@ -178,28 +180,7 @@ export class AthleteService {
   }
 
   async inviteCoach(userId: AuthUser['user_id'], email: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: userId },
-    });
-
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
-    }
-
-    await this.prisma.coach_athlete.create({
-      data: {
-        athlete_id: athlete.athlete_id,
-        user_id: user.user_id,
-      },
-    });
+    await this.coachInvitationService.createInvitation(userId, email);
   }
 
   async inviteAthlete(userId: AuthUser['user_id'], email: string) {

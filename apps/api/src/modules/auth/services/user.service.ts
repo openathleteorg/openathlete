@@ -31,6 +31,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { AuthUser } from '../decorators/user.decorator';
 import { AthleteInvitationService } from './athlete-invitation.service';
+import { CoachInvitationService } from './coach-invitation.service';
 import { TokenService } from './token.service';
 
 @Injectable()
@@ -44,6 +45,7 @@ export class UserService {
     private eventEmitter: EventEmitter2,
     private tokenService: TokenService,
     private invitationService: AthleteInvitationService,
+    private coachInvitationService: CoachInvitationService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -89,6 +91,7 @@ export class UserService {
     firstName,
     lastName,
     invitationToken,
+    coachInvitationToken,
   }: CreateAccountDto) => {
     const hashedPassword = await this.hashPassword(password);
 
@@ -183,6 +186,14 @@ export class UserService {
     if (invitationToken) {
       await this.invitationService.consumeInvitation(
         invitationToken,
+        created.user_id,
+      );
+    }
+
+    // If coach invitation token is provided, link coach to athlete
+    if (coachInvitationToken) {
+      await this.coachInvitationService.consumeInvitation(
+        coachInvitationToken,
         created.user_id,
       );
     }
