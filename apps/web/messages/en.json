@@ -554,6 +554,7 @@
   "tool_error": "Error executing {toolName}",
   "folder_created_successfully": "Folder created successfully",
   "template_moved_successfully": "Template moved successfully",
+  "template_saved_successfully": "Saved as template successfully",
   "failed_to_move_template": "Failed to move template",
   "cannot_move_folder_circular": "Cannot move folder into itself or its descendants",
   "folder_moved_successfully": "Folder moved successfully",

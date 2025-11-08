@@ -100,7 +100,7 @@ export function CalendarEvent({ event, wrapped }: P) {
   const deleteEventMutation = useDeleteEventMutation();
   const duplicateEventMutation = useDuplicateEventMutation();
   const createEventTemplateMutation = useCreateEventTemplateMutation({
-    onSuccess: () => toast.success('Saved as template successfully'),
+    onSuccess: () => toast.success(m.template_saved_successfully()),
   });
   const isValidated = useIsEventValidated(event, athleteId);
 
