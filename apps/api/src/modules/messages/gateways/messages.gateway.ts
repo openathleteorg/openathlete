@@ -30,11 +30,20 @@ import { WsZodValidationPipe } from '../pipes/ws-zod-validation.pipe';
 import { MessageThreadService } from '../services/message-thread.service';
 import { MessageService } from '../services/message.service';
 
+// Helper function to get allowed origins (same as main.ts)
+const getAllowedOrigins = (): string | string[] => {
+  if (process.env.CORS_ORIGINS) {
+    return process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim());
+  }
+  return process.env.APP_URL || 'http://localhost:5173';
+};
+
 @WebSocketGateway({
   cors: {
-    origin: process.env.APP_URL || 'http://localhost:5173',
+    origin: getAllowedOrigins(),
     credentials: true,
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   },
   namespace: '/messages',
   transports: ['polling', 'websocket'], // Support both transports for proxy compatibility

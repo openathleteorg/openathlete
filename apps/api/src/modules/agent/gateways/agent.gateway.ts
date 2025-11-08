@@ -16,11 +16,20 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { MastraAgentService } from '../services/mastra-agent.service';
 
+// Helper function to get allowed origins (same as main.ts)
+const getAllowedOrigins = (): string | string[] => {
+  if (process.env.CORS_ORIGINS) {
+    return process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim());
+  }
+  return process.env.APP_URL || 'http://localhost:5173';
+};
+
 @WebSocketGateway({
   cors: {
-    origin: process.env.APP_URL || 'http://localhost:5173',
+    origin: getAllowedOrigins(),
     credentials: true,
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   },
   namespace: '/agent',
   transports: ['polling', 'websocket'], // Support both transports for proxy compatibility
