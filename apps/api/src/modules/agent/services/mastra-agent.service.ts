@@ -365,6 +365,12 @@ export class MastraAgentService implements OnModuleInit {
         if (updatedTitle && onThreadTitleUpdated) {
           onThreadTitleUpdated(updatedTitle);
         }
+
+        if (updatedTitle) {
+          await this.threadService.updateThread(user, threadId, {
+            title: updatedTitle,
+          });
+        }
       }
 
       onChunk({
