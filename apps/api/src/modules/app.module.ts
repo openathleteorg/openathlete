@@ -13,9 +13,9 @@ import { AuthModule } from './auth';
 import { CoreModule } from './core';
 import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
+import { PrismaService } from './prisma/services/prisma.service';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { QueueModule } from './queue';
-import { PrismaService } from './prisma/services/prisma.service';
 
 @Module({
   imports: [
