@@ -180,6 +180,27 @@ export class AthleteInvitationService {
     return invitation;
   }
 
+  async bulkCreateInvitations(coachUserId: number, emails: string[]) {
+    const results = {
+      successful: [] as string[],
+      failed: [] as Array<{ email: string; error: string }>,
+    };
+
+    for (const email of emails) {
+      try {
+        await this.createInvitation(coachUserId, email);
+        results.successful.push(email);
+      } catch (error) {
+        results.failed.push({
+          email,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+
+    return results;
+  }
+
   async verifyInvitationToken(token: string) {
     const invitation = await this.prisma.athlete_invitation.findUnique({
       where: { token },

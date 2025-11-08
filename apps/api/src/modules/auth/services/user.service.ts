@@ -5,6 +5,7 @@ import {
   ConflictException,
   Injectable,
   Logger,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +13,8 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
   Prisma,
+  gender,
+  metric_type,
   sport_type,
   token_type,
   user,
@@ -19,6 +22,7 @@ import {
 } from '@openathlete/database';
 import {
   ApiEnvSchemaType,
+  CompleteOnboardingDto,
   CreateAccountDto,
   PasswordResetDto,
   PasswordResetRequestDto,
@@ -80,6 +84,7 @@ export class UserService {
           last_name: true,
           gender: true,
           roles: true,
+          onboarding_completed: true,
         },
       }),
     );
@@ -294,5 +299,118 @@ export class UserService {
       where: { user_id: user.user_id },
       data: { password: hashedPassword },
     });
+  };
+
+  public completeOnboarding = async (
+    user: AuthUser,
+    data: CompleteOnboardingDto,
+  ) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Update user roles, gender, and mark onboarding as completed
+    await this.prisma.user.update({
+      where: { user_id: user.user_id },
+      data: {
+        gender: data.gender as gender | undefined,
+        onboarding_completed: true,
+      },
+    });
+
+    // Get athlete record
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { user_id: user.user_id },
+    });
+
+    if (!athlete) {
+      throw new NotFoundException('Athlete record not found');
+    }
+
+    // Create metrics if provided
+    const metricsToCreate: Array<{
+      type: metric_type;
+      date: Date;
+      value: number;
+    }> = [];
+
+    if (data.weight) {
+      metricsToCreate.push({
+        type: 'WEIGHT',
+        date: today,
+        value: data.weight,
+      });
+    }
+
+    if (data.height) {
+      metricsToCreate.push({
+        type: 'HEIGHT',
+        date: today,
+        value: data.height,
+      });
+    }
+
+    if (data.hrMax) {
+      metricsToCreate.push({
+        type: 'HR_MAX',
+        date: today,
+        value: data.hrMax,
+      });
+    }
+
+    if (data.hrRest) {
+      metricsToCreate.push({
+        type: 'HR_REST',
+        date: today,
+        value: data.hrRest,
+      });
+    }
+
+    // Create metrics (upsert to avoid duplicates)
+    for (const metric of metricsToCreate) {
+      await this.prisma.athlete_metric.upsert({
+        where: {
+          athlete_id_type_date: {
+            athlete_id: athlete.athlete_id,
+            type: metric.type,
+            date: metric.date,
+          },
+        },
+        create: {
+          athlete_id: athlete.athlete_id,
+          type: metric.type,
+          date: metric.date,
+          value: metric.value,
+        },
+        update: {
+          value: metric.value,
+        },
+      });
+    }
+
+    // Invite coach if provided
+    if (data.coachEmail && data.roles.includes('ATHLETE')) {
+      await this.coachInvitationService.createInvitation(
+        user.user_id,
+        data.coachEmail,
+      );
+    }
+
+    // Invite athletes if provided
+    if (
+      data.athleteEmails &&
+      data.athleteEmails.length > 0 &&
+      data.roles.includes('COACH')
+    ) {
+      for (const email of data.athleteEmails) {
+        try {
+          await this.invitationService.createInvitation(user.user_id, email);
+        } catch (error) {
+          // Log but don't fail the entire onboarding if one invitation fails
+          this.logger.warn(`Failed to invite athlete ${email}: ${error}`);
+        }
+      }
+    }
+
+    return { success: true };
   };
 }

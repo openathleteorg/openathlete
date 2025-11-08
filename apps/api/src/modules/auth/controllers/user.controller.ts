@@ -4,10 +4,12 @@ import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import {
+  CompleteOnboardingDto,
   CreateAccountDto,
   PasswordResetDto,
   PasswordResetRequestDto,
   UpdateAccountDto,
+  completeOnboardingDtoSchema,
   createAccountDtoSchema,
   passwordResetRequestSchema,
   passwordResetSchema,
@@ -58,5 +60,15 @@ export class UserController {
     @Body(new ZodValidationPipe(passwordResetSchema)) body: PasswordResetDto,
   ) {
     return this.userService.passwordReset(body);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post('complete-onboarding')
+  completeOnboarding(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(completeOnboardingDtoSchema))
+    body: CompleteOnboardingDto,
+  ) {
+    return this.userService.completeOnboarding(user, body);
   }
 }
