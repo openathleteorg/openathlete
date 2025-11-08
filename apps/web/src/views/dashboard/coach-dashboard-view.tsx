@@ -152,7 +152,7 @@ export function CoachDashboardView() {
                       <div key={row.athleteId} className="contents group">
                         <div className="sticky left-0 z-[30] bg-background border-r border-b pl-4 pr-2 h-[57px] flex items-center font-medium group-hover:bg-accent">
                           <div className="flex items-center gap-2">
-                            <span>
+                            <span className="text-sm">
                               {row.firstName} {row.lastName}
                             </span>
                             <Button
@@ -172,22 +172,30 @@ export function CoachDashboardView() {
                           </div>
                         </div>
                         <div className="pl-6 pr-2 h-[57px] flex items-center text-muted-foreground border-b group-hover:bg-muted/40 bg-background">
-                          {row.email}
+                          <span className="text-sm">{row.email}</span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
-                          {row.plannedSessions}
+                          <span className="text-sm">{row.plannedSessions}</span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
-                          {row.completedSessions}
+                          <span className="text-sm">
+                            {row.completedSessions}
+                          </span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
-                          {formatSeconds(row.plannedTime)}
+                          <span className="text-sm">
+                            {formatSeconds(row.plannedTime)}
+                          </span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
-                          {formatSeconds(row.completedTime)}
+                          <span className="text-sm">
+                            {formatSeconds(row.completedTime)}
+                          </span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
-                          {formatMeters(row.completedDistance)}
+                          <span className="text-sm">
+                            {formatMeters(row.completedDistance)}
+                          </span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
                           <Badge className={badgeClass}>
@@ -196,9 +204,13 @@ export function CoachDashboardView() {
                           </Badge>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center text-muted-foreground border-b group-hover:bg-muted/40 bg-background">
-                          {row.lastActivityAt
-                            ? new Date(row.lastActivityAt).toLocaleDateString()
-                            : '-'}
+                          <span className="text-sm">
+                            {row.lastActivityAt
+                              ? new Date(
+                                  row.lastActivityAt,
+                                ).toLocaleDateString()
+                              : '-'}
+                          </span>
                         </div>
                         <div className="px-2 h-[57px] flex items-center justify-center border-b group-hover:bg-muted/40 bg-background">
                           <Button
