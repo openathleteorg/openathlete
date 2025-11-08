@@ -5,9 +5,7 @@ import { createOpenAthleteCoachAssistant } from './index';
 
 const logger = new PinoLogger({
   name: 'OpenAthlete-Mastra',
-  level:
-    (process.env.MASTRA_LOG_LEVEL as 'debug' | 'info' | 'warn' | 'error') ||
-    'info',
+  level: 'info',
 });
 
 const coachAssistant = createOpenAthleteCoachAssistant();

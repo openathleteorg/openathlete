@@ -23,7 +23,6 @@ export class WsJwtAuthGuard implements CanActivate {
         throw new WsException('Unauthorized: No token provided');
       }
 
-      // Verify JWT token
       const payload = await this.jwtService.verifyAsync<{
         userId: number;
         email: string;
@@ -51,13 +50,11 @@ export class WsJwtAuthGuard implements CanActivate {
   }
 
   private extractTokenFromHandshake(client: Socket): string | null {
-    // Try to get token from auth header
     const authHeader = client.handshake.headers.authorization;
     if (authHeader && authHeader.startsWith('Bearer ')) {
       return authHeader.substring(7);
     }
 
-    // Try to get token from query params (fallback for some clients)
     const token = client.handshake.auth?.token || client.handshake.query?.token;
     if (typeof token === 'string') {
       return token;

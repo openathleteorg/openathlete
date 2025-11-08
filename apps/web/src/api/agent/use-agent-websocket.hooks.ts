@@ -117,7 +117,6 @@ export function useAgentWebSocket({
         };
         onMessageChunk(messageChunk);
       } else if (chunk.type === 'tool_call_start' && chunk.data) {
-        // Tool execution started
         const toolState: ToolExecutionState = {
           toolCallId: chunk.data.toolCallId,
           toolName: chunk.data.toolName,
@@ -134,7 +133,6 @@ export function useAgentWebSocket({
           onToolCallStart(toolState);
         }
       } else if (chunk.type === 'tool_call_complete' && chunk.data) {
-        // Tool execution completed successfully
         const toolState: ToolExecutionState = {
           toolCallId: chunk.data.toolCallId,
           toolName: chunk.data.toolName,
@@ -155,7 +153,6 @@ export function useAgentWebSocket({
           onToolCallComplete(toolState);
         }
       } else if (chunk.type === 'tool_call_error' && chunk.data) {
-        // Tool execution failed
         const toolState: ToolExecutionState = {
           toolCallId: chunk.data.toolCallId,
           toolName: chunk.data.toolName,
@@ -188,10 +185,10 @@ export function useAgentWebSocket({
       }
     });
 
-    socket.on('message_complete', (data: AgentMessage) => {
+    socket.on('message_complete', (data: any) => {
       setIsStreaming(false);
-      setActiveTools(new Map()); // Clear all active tools
-      setCurrentAgent(null); // Clear current agent
+      setActiveTools(new Map());
+      setCurrentAgent(null);
       if (onMessageComplete) {
         onMessageComplete(data);
       }
@@ -203,6 +200,35 @@ export function useAgentWebSocket({
           queryKey: [agentKeys.getThread, threadId],
         });
       }
+
+      if (data.threadTitle && threadId) {
+        queryClient.setQueryData(
+          [agentKeys.getThread, threadId],
+          (oldThread: any) => {
+            if (!oldThread) return undefined;
+            return {
+              ...oldThread,
+              title: data.threadTitle,
+            };
+          },
+        );
+
+        queryClient.setQueryData(
+          [agentKeys.getUserThreads],
+          (oldThreads: any) => {
+            if (!oldThreads) return undefined;
+            return oldThreads.map((thread: any) => {
+              if (thread.threadId === threadId) {
+                return {
+                  ...thread,
+                  title: data.threadTitle,
+                };
+              }
+              return thread;
+            });
+          },
+        );
+      }
     });
 
     socket.on('message_error', (data: { error: string }) => {
@@ -213,6 +239,40 @@ export function useAgentWebSocket({
       }
     });
 
+    socket.on(
+      'thread_title_updated',
+      (data: { threadId: number; title: string }) => {
+        const updatedThreadId = data.threadId;
+
+        queryClient.setQueryData(
+          [agentKeys.getThread, updatedThreadId],
+          (oldThread: any) => {
+            if (!oldThread) return undefined;
+            return {
+              ...oldThread,
+              title: data.title,
+            };
+          },
+        );
+
+        queryClient.setQueryData(
+          [agentKeys.getUserThreads],
+          (oldThreads: any) => {
+            if (!oldThreads) return undefined;
+            return oldThreads.map((thread: any) => {
+              if (thread.threadId === updatedThreadId) {
+                return {
+                  ...thread,
+                  title: data.title,
+                };
+              }
+              return thread;
+            });
+          },
+        );
+      },
+    );
+
     AgentAPI.connectSocket();
 
     return () => {
@@ -222,6 +282,7 @@ export function useAgentWebSocket({
       socket.off('message_chunk');
       socket.off('message_complete');
       socket.off('message_error');
+      socket.off('thread_title_updated');
     };
   }, [
     threadId,

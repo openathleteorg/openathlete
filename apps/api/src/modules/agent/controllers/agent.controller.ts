@@ -16,22 +16,17 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   CreateMessageDto,
   CreateThreadDto,
-  SendMessageDto,
   UpdateThreadDto,
   createMessageDtoSchema,
   createThreadDtoSchema,
   keysToCamel,
-  sendMessageDtoSchema,
   updateThreadDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
-import {
-  MastraAgentService,
-  ProcessMessageResponse,
-} from '../services/mastra-agent.service';
+import { MastraAgentService } from '../services/mastra-agent.service';
 import { MessageService } from '../services/message.service';
 import { ThreadService } from '../services/thread.service';
 
@@ -42,8 +37,6 @@ export class AgentController {
     private messageService: MessageService,
     private mastraAgentService: MastraAgentService,
   ) {}
-
-  // ==================== Thread Routes ====================
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Post('threads')
@@ -123,15 +116,5 @@ export class AgentController {
   ) {
     const message = await this.messageService.getMessageById(user, messageId);
     return keysToCamel(message);
-  }
-
-  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
-  @Post('threads/:threadId/chat')
-  async sendMessage(
-    @JwtUser() user: AuthUser,
-    @Param('threadId', ParseIntPipe) threadId: number,
-    @Body(new ZodValidationPipe(sendMessageDtoSchema)) dto: SendMessageDto,
-  ): Promise<ProcessMessageResponse> {
-    return this.mastraAgentService.processMessage(user, threadId, dto.content);
   }
 }

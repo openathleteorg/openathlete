@@ -8,7 +8,6 @@ import {
   AgentThread,
   CreateMessageDto,
   CreateThreadDto,
-  SendMessageDto,
   UpdateThreadDto,
 } from '@openathlete/shared';
 
@@ -57,17 +56,6 @@ export class AgentAPI {
 
   static async deleteMessage(messageId: number): Promise<void> {
     await client.delete(routes.agent.deleteMessage(messageId));
-  }
-
-  static async sendMessage({
-    threadId,
-    body,
-  }: {
-    threadId: number;
-    body: SendMessageDto;
-  }): Promise<AgentMessage> {
-    const res = await client.post(routes.agent.chat(threadId), body);
-    return res.data;
   }
 
   static getSocket(): Socket {

@@ -1,14 +1,16 @@
 import { Agent } from '@mastra/core/agent';
 import { RuntimeContext } from '@mastra/core/runtime-context';
+import { Memory } from '@mastra/memory';
+import { PostgresStore } from '@mastra/pg';
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { createMastraMemory } from 'src/mastra/config/memory.config';
 import { mastra } from 'src/mastra/mastra.instance';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
-import { ActivityDetailService } from 'src/modules/core/services/activity-detail.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -16,7 +18,6 @@ import { BlockService } from './block.service';
 import { MessageService } from './message.service';
 import { ThreadService } from './thread.service';
 
-// Types for better type safety
 interface StreamChunkData {
   type:
     | 'user_message'
@@ -36,36 +37,7 @@ interface StreamChunkData {
 export interface ProcessMessageResponse {
   userMessage: Record<string, unknown>;
   assistantMessage: Record<string, unknown>;
-}
-
-interface ToolCall {
-  payload: {
-    toolName: string;
-    args: Record<string, unknown>;
-  };
-}
-
-interface ToolResult {
-  payload: {
-    toolName: string;
-    result: Record<string, unknown>;
-  };
-}
-
-interface MessageWithBlocks {
-  message_id: number;
-  role: string;
-  status: string;
-  blocks?: Array<{
-    type: string;
-    content: string;
-    status: string;
-  }>;
-}
-
-interface AgentMessage {
-  role: string;
-  content: string;
+  updatedThreadTitle?: string | null;
 }
 
 interface BlockData {
@@ -85,6 +57,8 @@ interface BlockData {
 @Injectable()
 export class MastraAgentService implements OnModuleInit {
   private coachAgent!: Agent;
+  private memory!: Memory;
+  private storage!: PostgresStore;
 
   constructor(
     private configService: ConfigService<ApiEnvSchemaType, true>,
@@ -92,127 +66,65 @@ export class MastraAgentService implements OnModuleInit {
     private messageService: MessageService,
     private blockService: BlockService,
     private prismaService: PrismaService,
-    private activityDetailService: ActivityDetailService,
     private trainingLoadService: TrainingLoadService,
   ) {
     process.env.OPENAI_API_KEY = this.configService.get('OPENAI_API_KEY');
   }
 
-  /**
-   * Initialize the agent singleton on module startup
-   * Best Practice: Create agent once and reuse for all requests
-   */
   async onModuleInit() {
     this.coachAgent = mastra.getAgent('openathlete-coach');
+    this.memory = createMastraMemory();
+    this.storage = this.memory.storage as PostgresStore;
   }
 
-  /**
-   * Non-streaming version of process message (kept for backwards compatibility)
-   * Consider migrating all calls to use processMessageStream instead
-   */
-  async processMessage(
+  private async updateThreadTitleFromMastra(
     user: AuthUser,
     threadId: number,
-    content: string,
-  ): Promise<ProcessMessageResponse> {
-    await this.threadService.getThreadById(user, threadId);
+    athleteId: number,
+  ): Promise<string | null> {
+    const mastraThreadId = `thread-${threadId}`;
+    const resourceId = `athlete-${athleteId}`;
 
-    // Create user message with a text block
-    const userMessage = await this.messageService.createMessage(user, {
-      threadId,
-      role: 'USER',
-      blocks: [
-        {
-          type: 'TEXT',
-          order: 0,
-          content,
-          status: 'completed',
-        },
-      ],
-    });
+    const maxAttempts = 5;
+    const delayMs = 2000;
 
-    // Create assistant message
-    const assistantMessage = await this.messageService.createMessage(user, {
-      threadId,
-      role: 'ASSISTANT',
-      blocks: [],
-    });
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const thread = await this.storage.getThreadById({
+          threadId: mastraThreadId,
+        });
 
-    try {
-      // Update message status
-      await this.messageService.updateMessageStatus(
-        user,
-        assistantMessage.message_id,
-        'processing',
-      );
+        if (!thread) {
+          throw new Error('Thread not found in Mastra');
+        }
 
-      // Get athleteId for runtime context and memory
-      const athleteId = user.athlete?.athlete_id || user.user_id;
+        if (thread.resourceId !== resourceId || !thread.title) {
+          throw new Error('Thread resourceId mismatch or no title');
+        }
 
-      const runtimeContext = new RuntimeContext();
-      runtimeContext.set('prisma', this.prismaService);
-      runtimeContext.set('athleteId', athleteId);
-      runtimeContext.set('userId', user.user_id);
-      runtimeContext.set('trainingLoadService', this.trainingLoadService);
-      runtimeContext.set('currentDate', new Date().toISOString());
+        if (attempt === maxAttempts) {
+          console.log(
+            `[MastraAgentService] Thread title not available after ${maxAttempts} attempts for thread ${threadId}`,
+          );
+          return null;
+        }
 
-      const resultStream = await this.coachAgent.generate(
-        `[CURRENT DATE: ${new Date().toISOString().split('T')[0]} (${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })})]\n\n${content}`,
-        {
-          runtimeContext,
-          threadId: `thread-${threadId}`,
-          resourceId: `athlete-${athleteId}`,
-        },
-      );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      } catch (error) {
+        console.error(
+          `[MastraAgentService] Error updating thread title from Mastra (attempt ${attempt}/${maxAttempts}):`,
+          error,
+        );
 
-      const responseContent = resultStream.text || 'No response';
+        if (attempt === maxAttempts) {
+          return null;
+        }
 
-      // Create response block
-      await this.blockService.createBlock(user, assistantMessage.message_id, {
-        type: 'TEXT',
-        order: 0,
-        content: responseContent,
-        status: 'completed',
-      });
-
-      // Update message status
-      await this.messageService.updateMessageStatus(
-        user,
-        assistantMessage.message_id,
-        'completed',
-      );
-
-      return {
-        userMessage,
-        assistantMessage: await this.messageService.getMessageById(
-          user,
-          assistantMessage.message_id,
-        ),
-      };
-    } catch (error) {
-      console.error('[MastraAgentService] Error processing message:', error);
-
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-
-      // Create error block
-      await this.blockService.createBlock(user, assistantMessage.message_id, {
-        type: 'ERROR',
-        order: 0,
-        content: 'An error occurred while processing your message',
-        error: errorMessage,
-        status: 'error',
-      });
-
-      // Update message status
-      await this.messageService.updateMessageStatus(
-        user,
-        assistantMessage.message_id,
-        'error',
-      );
-
-      throw error;
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+      }
     }
+
+    return null;
   }
 
   async processMessageStream(
@@ -220,8 +132,14 @@ export class MastraAgentService implements OnModuleInit {
     threadId: number,
     content: string,
     onChunk: (data: StreamChunkData) => void,
+    onThreadTitleUpdated?: (title: string) => void,
   ): Promise<void> {
     await this.threadService.getThreadById(user, threadId);
+    const existingMessages = await this.messageService.getThreadMessages(
+      user,
+      threadId,
+    );
+    const isFirstMessage = existingMessages.length === 0;
 
     const userMessage = await this.messageService.createMessage(user, {
       threadId,
@@ -329,44 +247,6 @@ export class MastraAgentService implements OnModuleInit {
                 timestamp: Date.now(),
               },
             });
-
-            if (
-              toolName === 'run_plan-generation' ||
-              toolName === 'run_planGenerationWorkflow'
-            ) {
-              onChunk({
-                type: 'agent_thinking',
-                data: {
-                  agentName: 'plan-generation',
-                  timestamp: Date.now(),
-                },
-              });
-
-              const workflowSteps = [
-                { id: 'profile-analysis', delay: 2000 },
-                { id: 'macro-planning', delay: 15000 },
-                { id: 'meso-planning', delay: 20000 },
-                { id: 'micro-planning', delay: 25000 },
-                { id: 'scheduling', delay: 15000 },
-                { id: 'quality-assurance', delay: 10000 },
-                { id: 'qa-improvement-loop', delay: 20000 },
-                { id: 'finalize', delay: 5000 },
-              ];
-
-              let cumulativeDelay = 1000;
-              for (const step of workflowSteps) {
-                setTimeout(() => {
-                  onChunk({
-                    type: 'agent_thinking',
-                    data: {
-                      agentName: step.id,
-                      timestamp: Date.now(),
-                    },
-                  });
-                }, cumulativeDelay);
-                cumulativeDelay += step.delay;
-              }
-            }
           }
 
           if (chunk.type === 'tool-result' && chunk.payload) {
@@ -470,10 +350,24 @@ export class MastraAgentService implements OnModuleInit {
         'completed',
       );
 
+      let updatedTitle: string | null = null;
+      if (isFirstMessage) {
+        updatedTitle = await this.updateThreadTitleFromMastra(
+          user,
+          threadId,
+          athleteId,
+        );
+
+        if (updatedTitle && onThreadTitleUpdated) {
+          onThreadTitleUpdated(updatedTitle);
+        }
+      }
+
       onChunk({
         type: 'message_completed',
         data: {
           messageId: assistantMessage.message_id,
+          threadTitle: updatedTitle || undefined,
         },
       });
     } catch (error) {

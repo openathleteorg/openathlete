@@ -67,10 +67,8 @@ export class BlockService {
       throw new NotFoundException(`Block with ID ${blockId} not found`);
     }
 
-    // Verify message access
     await this.messageService.getMessageById(user, block.message_id);
 
-    // Keep snake_case for internal usage
     return block;
   }
 
@@ -79,7 +77,7 @@ export class BlockService {
     blockId: number,
     dto: UpdateBlockDto,
   ): Promise<agent_message_block> {
-    await this.getBlockById(user, blockId); // Check authorization
+    await this.getBlockById(user, blockId);
 
     const block = await this.prisma.agent_message_block.update({
       where: { block_id: blockId },
@@ -105,12 +103,11 @@ export class BlockService {
       },
     });
 
-    // Keep snake_case for internal usage
     return block;
   }
 
   async deleteBlock(user: AuthUser, blockId: number): Promise<void> {
-    await this.getBlockById(user, blockId); // Check authorization
+    await this.getBlockById(user, blockId);
 
     await this.prisma.agent_message_block.delete({
       where: { block_id: blockId },

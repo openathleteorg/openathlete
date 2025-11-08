@@ -125,6 +125,19 @@ export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
         (chunk) => {
           client.emit('message_chunk', chunk);
         },
+        (title) => {
+          // Notifier tous les clients du thread que le titre a été mis à jour
+          this.broadcastToThread(threadId, 'thread_title_updated', {
+            threadId,
+            title,
+          });
+          // Également envoyer directement au client qui a envoyé le message
+          // pour s'assurer qu'il reçoit l'événement même s'il n'est pas dans la room
+          client.emit('thread_title_updated', {
+            threadId,
+            title,
+          });
+        },
       );
 
       client.emit('message_complete', {

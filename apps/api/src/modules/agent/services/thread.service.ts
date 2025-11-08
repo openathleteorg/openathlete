@@ -39,13 +39,11 @@ export class ThreadService {
       data: {
         user_id: user.user_id,
         title: dto.title,
-        // Cast to Prisma.JsonValue for JSON fields
         metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
       },
       include: THREAD_INCLUDES,
     });
 
-    // Keep snake_case for internal usage
     return thread;
   }
 
@@ -61,12 +59,10 @@ export class ThreadService {
       throw new NotFoundException(`Thread with ID ${threadId} not found`);
     }
 
-    // Use CASL authorization
     if (!ability.can('read', subject('agent_thread', thread))) {
       throw new ForbiddenException('You cannot access this thread');
     }
 
-    // Keep snake_case for internal usage
     return thread;
   }
 
@@ -77,7 +73,6 @@ export class ThreadService {
       orderBy: { updated_at: 'desc' },
     });
 
-    // Keep snake_case for internal usage
     return threads;
   }
 
@@ -86,7 +81,7 @@ export class ThreadService {
     threadId: number,
     dto: UpdateThreadDto,
   ): Promise<agent_thread> {
-    await this.getThreadById(user, threadId); // Check authorization
+    await this.getThreadById(user, threadId);
 
     const thread = await this.prisma.agent_thread.update({
       where: { thread_id: threadId },
@@ -99,12 +94,11 @@ export class ThreadService {
       include: THREAD_INCLUDES,
     });
 
-    // Keep snake_case for internal usage
     return thread;
   }
 
   async deleteThread(user: AuthUser, threadId: number): Promise<void> {
-    await this.getThreadById(user, threadId); // Check authorization
+    await this.getThreadById(user, threadId);
 
     await this.prisma.agent_thread.delete({
       where: { thread_id: threadId },

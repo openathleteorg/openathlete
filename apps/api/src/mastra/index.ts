@@ -2,9 +2,10 @@ import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
 import { qnaAgent } from './agents';
+import { createMastraMemory } from './config/memory.config';
 
 export function createOpenAthleteCoachAssistant(context?: any): Agent {
-  // const memory = createMastraMemory();
+  const memory = createMastraMemory();
 
   const coachAssistant = new Agent({
     id: 'openathlete-coach',
@@ -61,7 +62,7 @@ Keep it simple. Your job is routing, not coaching.`,
     //   planGenerationWorkflow,
     //   planAdaptationWorkflow,
     // },
-    // memory,
+    memory,
   });
 
   return coachAssistant;

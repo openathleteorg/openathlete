@@ -25,7 +25,6 @@ export class MessageService {
     user: AuthUser,
     dto: CreateMessageDto,
   ): Promise<agent_message> {
-    // Verify thread access
     await this.threadService.getThreadById(user, dto.threadId);
 
     const message = await this.prisma.agent_message.create({
@@ -60,7 +59,6 @@ export class MessageService {
       include: MESSAGE_INCLUDES,
     });
 
-    // Don't convert to camelCase - keep snake_case for internal usage
     return message;
   }
 
@@ -80,10 +78,8 @@ export class MessageService {
       throw new NotFoundException(`Message with ID ${messageId} not found`);
     }
 
-    // Verify thread access
     await this.threadService.getThreadById(user, message.thread_id);
 
-    // Keep snake_case for internal usage
     return message;
   }
 
@@ -91,7 +87,6 @@ export class MessageService {
     user: AuthUser,
     threadId: number,
   ): Promise<agent_message[]> {
-    // Verify thread access
     await this.threadService.getThreadById(user, threadId);
 
     const messages = await this.prisma.agent_message.findMany({
@@ -100,7 +95,6 @@ export class MessageService {
       orderBy: { created_at: 'asc' },
     });
 
-    // Keep snake_case for internal usage
     return messages;
   }
 
@@ -117,12 +111,11 @@ export class MessageService {
       include: MESSAGE_INCLUDES,
     });
 
-    // Keep snake_case for internal usage
     return updated;
   }
 
   async deleteMessage(user: AuthUser, messageId: number): Promise<void> {
-    await this.getMessageById(user, messageId); // Check authorization
+    await this.getMessageById(user, messageId);
 
     await this.prisma.agent_message.delete({
       where: { message_id: messageId },
