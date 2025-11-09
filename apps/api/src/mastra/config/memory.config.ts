@@ -8,10 +8,12 @@ const getDatabaseUrlForMastra = (): string => {
   return url.split('?')[0];
 };
 
-const storage = new PostgresStore({
+export const mastraStorage = new PostgresStore({
   connectionString: getDatabaseUrlForMastra(),
   schemaName: 'mastra',
 });
+
+const storage = mastraStorage;
 
 const vector = new PgVector({
   connectionString: getDatabaseUrlForMastra(),
