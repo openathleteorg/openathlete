@@ -57,22 +57,42 @@ export function useMessagesWebSocket({
         setTimeout(() => {
           if (!connectingRef.current && !socket.connected) {
             connectingRef.current = true;
-            MessagesAPI.connectSocket();
+            MessagesAPI.connectSocket().catch((err) => {
+              console.error('[Messages WebSocket] Failed to reconnect:', err);
+              connectingRef.current = false;
+            });
           }
         }, 1000);
       }
     });
 
-    socket.on('connect_error', () => {
+    socket.on('connect_error', async (error: any) => {
       setIsConnected(false);
       connectingRef.current = false;
 
-      if (reconnectAttempts < maxReconnectAttempts) {
+      // If authentication failed, try to refresh token and reconnect
+      if (
+        error?.message?.includes('Unauthorized') ||
+        error?.message?.includes('jwt expired') ||
+        error?.message?.includes('Invalid token')
+      ) {
+        try {
+          // Refresh token and reconnect
+          connectingRef.current = true;
+          await MessagesAPI.connectSocket();
+        } catch (refreshError) {
+          console.error('[Messages WebSocket] Failed to refresh token:', refreshError);
+          connectingRef.current = false;
+        }
+      } else if (reconnectAttempts < maxReconnectAttempts) {
         reconnectAttempts++;
         setTimeout(() => {
           if (!connectingRef.current && !socket.connected) {
             connectingRef.current = true;
-            MessagesAPI.connectSocket();
+            MessagesAPI.connectSocket().catch((err) => {
+              console.error('[Messages WebSocket] Failed to reconnect:', err);
+              connectingRef.current = false;
+            });
           }
         }, 1000 * reconnectAttempts);
       }
@@ -278,7 +298,10 @@ export function useMessagesWebSocket({
     const token = getItem(ACCESS_TOKEN);
     if (token && !connectingRef.current && !socket.connected) {
       connectingRef.current = true;
-      MessagesAPI.connectSocket();
+      MessagesAPI.connectSocket().catch((err) => {
+        console.error('[Messages WebSocket] Failed to connect:', err);
+        connectingRef.current = false;
+      });
     }
 
     return () => {
@@ -322,7 +345,10 @@ export function useMessagesWebSocket({
       // Socket not connected - try to connect first
       if (!connectingRef.current) {
         connectingRef.current = true;
-        MessagesAPI.connectSocket();
+        MessagesAPI.connectSocket().catch((err) => {
+          console.error('[Messages WebSocket] Failed to connect:', err);
+          connectingRef.current = false;
+        });
       }
 
       // Fallback: send via REST API and refresh only the conversation

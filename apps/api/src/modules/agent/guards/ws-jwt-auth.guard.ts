@@ -23,10 +23,24 @@ export class WsJwtAuthGuard implements CanActivate {
         throw new WsException('Unauthorized: No token provided');
       }
 
-      const payload = await this.jwtService.verifyAsync<{
-        userId: number;
-        email: string;
-      }>(token);
+      let payload: { userId: number; email: string };
+      try {
+        payload = await this.jwtService.verifyAsync<{
+          userId: number;
+          email: string;
+        }>(token);
+      } catch (jwtError: any) {
+        // Provide more specific error messages for JWT errors
+        if (jwtError?.name === 'TokenExpiredError') {
+          console.error('[WsJwtAuthGuard] JWT expired');
+          throw new WsException('Unauthorized: jwt expired');
+        } else if (jwtError?.name === 'JsonWebTokenError') {
+          console.error('[WsJwtAuthGuard] Invalid JWT token:', jwtError.message);
+          throw new WsException('Unauthorized: Invalid token');
+        }
+        throw new WsException('Unauthorized: Invalid token');
+      }
+
       const user = await this.prisma.user.findUnique({
         where: { user_id: payload.userId },
         select: { user_id: true, email: true },
@@ -41,6 +55,10 @@ export class WsJwtAuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
+      // If it's already a WsException, rethrow it
+      if (error instanceof WsException) {
+        throw error;
+      }
       console.error(
         '[WsJwtAuthGuard] Authentication failed:',
         error instanceof Error ? error.message : error,

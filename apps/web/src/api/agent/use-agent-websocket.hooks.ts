@@ -73,10 +73,22 @@ export function useAgentWebSocket({
       setIsStreaming(false);
     });
 
-    socket.on('connect_error', () => {
+    socket.on('connect_error', async (error: any) => {
       setIsConnected(false);
 
-      if (reconnectAttempts < maxReconnectAttempts) {
+      // If authentication failed, try to refresh token and reconnect
+      if (
+        error?.message?.includes('Unauthorized') ||
+        error?.message?.includes('jwt expired') ||
+        error?.message?.includes('Invalid token')
+      ) {
+        try {
+          // Refresh token and reconnect
+          await AgentAPI.connectSocket();
+        } catch (refreshError) {
+          console.error('[Agent WebSocket] Failed to refresh token:', refreshError);
+        }
+      } else if (reconnectAttempts < maxReconnectAttempts) {
         reconnectAttempts++;
       }
     });
@@ -273,7 +285,9 @@ export function useAgentWebSocket({
       },
     );
 
-    AgentAPI.connectSocket();
+    AgentAPI.connectSocket().catch((error) => {
+      console.error('[Agent WebSocket] Failed to connect:', error);
+    });
 
     return () => {
       socket.off('connect');
