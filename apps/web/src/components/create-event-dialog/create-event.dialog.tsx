@@ -1,9 +1,11 @@
 import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { eventTypeLabelMap, sportTypeLabelMap } from '@/utils/label-map/core';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useCallback, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
 
 import type {
   CreateEventDto,
@@ -100,23 +102,67 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     },
   });
 
-  type EventFormValues = {
-    type: EVENT_TYPE;
-    name: string;
-    description?: string;
-    sport?: SPORT_TYPE;
-    startDate: Date;
-    endDate: Date;
-    goalDistance?: number | null;
-    goalDuration?: number | null;
-    goalElevationGain?: number | null;
-    goalRpe?: number | null;
-    rpe?: number | null;
-  };
+  // Form schema for validation - uses Date objects (not z.coerce.date)
+  const baseEventFormSchema = z.object({
+    startDate: z.date({
+      required_error: m.required(),
+    }),
+    endDate: z.date({
+      required_error: m.required(),
+    }),
+    name: z.string().min(1, m.required()).max(100),
+    description: z.string().optional(),
+  });
+
+  const trainingEventFormSchema = baseEventFormSchema.extend({
+    type: z.literal(EVENT_TYPE.TRAINING),
+    sport: z.nativeEnum(SPORT_TYPE, {
+      required_error: m.required(),
+    }),
+    description: z.string(),
+    goalDistance: z.number().optional().nullable(),
+    goalDuration: z.number().optional().nullable(),
+    goalElevationGain: z.number().optional().nullable(),
+    goalRpe: z.number().optional().nullable(),
+  });
+
+  const competitionEventFormSchema = baseEventFormSchema.extend({
+    type: z.literal(EVENT_TYPE.COMPETITION),
+    sport: z.nativeEnum(SPORT_TYPE, {
+      required_error: m.required(),
+    }),
+    description: z.string(),
+    goalDistance: z.number().optional().nullable(),
+    goalDuration: z.number().optional().nullable(),
+    goalElevationGain: z.number().optional().nullable(),
+    goalRpe: z.number().optional().nullable(),
+  });
+
+  const noteEventFormSchema = baseEventFormSchema.extend({
+    type: z.literal(EVENT_TYPE.NOTE),
+    description: z.string().min(1, m.required()),
+  });
+
+  const activityEventFormSchema = baseEventFormSchema.extend({
+    type: z.literal(EVENT_TYPE.ACTIVITY),
+    sport: z.nativeEnum(SPORT_TYPE, {
+      required_error: m.required(),
+    }),
+    description: z.string().optional(),
+    rpe: z.number().optional().nullable(),
+  });
+
+  const eventFormSchema = z.discriminatedUnion('type', [
+    trainingEventFormSchema,
+    competitionEventFormSchema,
+    noteEventFormSchema,
+    activityEventFormSchema,
+  ]);
+
+  type EventFormValues = z.infer<typeof eventFormSchema>;
 
   const methods = useForm<EventFormValues>({
-    // Skip validation for workout field - we handle it separately
-    resolver: undefined,
+    resolver: zodResolver(eventFormSchema),
     defaultValues:
       edit && rest.event
         ? (() => {
@@ -169,13 +215,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           : undefined,
   });
 
-  const {
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = methods;
-  console.log('[CreateEventDialog] errors:', errors);
+  const { handleSubmit, setValue, watch } = methods;
 
   const onSubmit = handleSubmit(async (data: EventFormValues) => {
     if (data.type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
@@ -398,8 +438,9 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           <Button
             type="submit"
             className="w-full"
-            onClick={onSubmit}
-            isLoading={createEventMutation.isPending}
+            isLoading={
+              createEventMutation.isPending || updateEventMutation.isPending
+            }
           >
             {edit ? m.edit() : m.create()} {m.the()}
             {eventTypeLabelMap[type]}

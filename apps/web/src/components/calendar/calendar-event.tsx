@@ -10,7 +10,6 @@ import {
 } from '@/utils/color';
 import { cn } from '@/utils/shadcn';
 import { useDraggable } from '@dnd-kit/core';
-import { Bookmark, Copy, Edit2, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -206,7 +205,6 @@ export function CalendarEvent({ event, wrapped }: P) {
               e.stopPropagation();
             }}
           >
-            <Edit2 className="w-4 h-4 mr-2" />
             {m.edit()}
           </ContextMenuItem>
           {event.type === EVENT_TYPE.TRAINING && (
@@ -218,7 +216,6 @@ export function CalendarEvent({ event, wrapped }: P) {
                 e.stopPropagation();
               }}
             >
-              <Bookmark className="w-4 h-4 mr-2" />
               {m.save_as_template()}
             </ContextMenuItem>
           )}
@@ -229,7 +226,6 @@ export function CalendarEvent({ event, wrapped }: P) {
                 e.stopPropagation();
               }}
             >
-              <Copy className="w-4 h-4 mr-2" />
               {m.duplicate()}
             </ContextMenuItem>
           )}
@@ -239,7 +235,6 @@ export function CalendarEvent({ event, wrapped }: P) {
               e.stopPropagation();
             }}
           >
-            <Trash2 className="w-4 h-4 mr-2" />
             {m.delete_()}
           </ContextMenuItem>
         </ContextMenuContent>
