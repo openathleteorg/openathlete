@@ -108,15 +108,24 @@ jobs:
           
           echo "Updating container ${CONTAINER_ID_ONLY} (region: ${SCW_REGION}) to image ${IMAGE}"
           
-          # List all containers to debug
-          echo "Listing all containers in namespace..."
-          curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers" | jq '.containers[] | {id, name, status}'
+          # List all containers to debug (with project filter)
+          echo "Listing all containers in project..."
+          CONTAINERS_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers?project_id=${SCW_PROJECT_ID}")
+          echo "$CONTAINERS_RESPONSE" | jq '.containers[]? | {id, name, status}' || echo "No containers found or API returned null"
           
           # Get current container state
           echo "Fetching current container state..."
-          curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}" | jq '.' || echo "Container not found with ID: ${CONTAINER_ID_ONLY}"
+          CONTAINER_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}")
+          echo "$CONTAINER_RESPONSE" | jq '.' || echo "Container not found with ID: ${CONTAINER_ID_ONLY}"
+          
+          # Check if container exists
+          if echo "$CONTAINER_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+            echo "Container found: $(echo "$CONTAINER_RESPONSE" | jq -r '.name // .id')"
+          else
+            echo "WARNING: Container ${CONTAINER_ID_ONLY} not found. Will attempt update anyway..."
+          fi
           
           # Update container image
           echo "Updating container image..."
