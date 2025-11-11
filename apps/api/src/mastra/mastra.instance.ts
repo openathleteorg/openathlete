@@ -18,6 +18,6 @@ export const mastra = new Mastra({
   logger,
   storage: mastraStorage,
   observability: {
-    default: { enabled: true },
+    default: { enabled: false }, // Disabled to avoid JSON serialization errors with complex structured output
   },
 });
