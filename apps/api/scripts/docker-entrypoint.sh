@@ -17,8 +17,25 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
-# Debug: Show that DATABASE_URL is available (without exposing the full value)
+# Scaleway Secret Manager stores secrets as base64-encoded strings
+# When injected as environment variables, they may still be encoded
+# Try to decode if it looks like base64 and doesn't start with postgresql://
 if [ -n "$DATABASE_URL" ]; then
+  # Check if it's base64 encoded (doesn't start with postgresql:// or postgres://)
+  if ! echo "$DATABASE_URL" | grep -qE '^(postgresql|postgres)://'; then
+    echo "${YELLOW}Detected base64-encoded DATABASE_URL, decoding...${NC}"
+    # Try to decode base64
+    DECODED=$(echo "$DATABASE_URL" | base64 -d 2>/dev/null)
+    if [ $? -eq 0 ] && echo "$DECODED" | grep -qE '^(postgresql|postgres)://'; then
+      DATABASE_URL="$DECODED"
+      echo "${GREEN}✓ Successfully decoded DATABASE_URL${NC}"
+    else
+      echo "${RED}ERROR: Failed to decode DATABASE_URL or decoded value is invalid${NC}"
+      exit 1
+    fi
+  fi
+  
+  # Debug: Show that DATABASE_URL is available (without exposing the full value)
   echo "${GREEN}✓ DATABASE_URL is set (length: ${#DATABASE_URL} chars)${NC}"
   PROTOCOL=$(echo "$DATABASE_URL" | cut -d: -f1)
   echo "${YELLOW}  Protocol: ${PROTOCOL}${NC}"
