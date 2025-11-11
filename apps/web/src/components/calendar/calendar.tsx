@@ -13,8 +13,9 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
+import { CreateEventDto, Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
 
+import { AIGenerateEventDialog } from '../ai-generate-event-dialog/ai-generate-event.dialog';
 import { CreateCycleDialog } from '../create-cycle-dialog';
 import { CreateEventDialog } from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
@@ -53,8 +54,11 @@ export function Calendar({
   const [createEventDialog, setCreateEventDialog] = useState<{
     date: Date;
     type: EVENT_TYPE;
+    prefilledData?: CreateEventDto;
   } | null>(null);
   const [createEventFromTemplateDialog, setCreateEventFromTemplateDialog] =
+    useState<Date | null>(null);
+  const [aiGenerateEventDialog, setAIGenerateEventDialog] =
     useState<Date | null>(null);
   const [editEventDialog, setEditEventDialog] = useState<
     Event['eventId'] | null
@@ -132,6 +136,7 @@ export function Calendar({
         setCreateEventDialog({ date, type });
       },
       createEventFromTemplate: setCreateEventFromTemplateDialog,
+      createEventWithAI: setAIGenerateEventDialog,
       openEventDetails: setEventDetailsOpened,
       eventDetailsOpened,
       editEvent: (eventId) => setEditEventDialog(eventId),
@@ -268,9 +273,27 @@ export function Calendar({
         <CreateEventDialog
           key={createEventDialog?.date?.toDateString()}
           open={createEventDialog !== null}
-          onClose={() => setCreateEventDialog(null)}
+          onClose={() => {
+            setCreateEventDialog(null);
+          }}
           date={createEventDialog?.date}
           type={createEventDialog?.type}
+          prefilledData={createEventDialog?.prefilledData}
+        />
+        <AIGenerateEventDialog
+          open={aiGenerateEventDialog !== null}
+          onClose={() => {
+            setAIGenerateEventDialog(null);
+          }}
+          date={aiGenerateEventDialog || new Date()}
+          onEventGenerated={(event) => {
+            setAIGenerateEventDialog(null);
+            setCreateEventDialog({
+              date: event.startDate,
+              type: event.type,
+              prefilledData: event,
+            });
+          }}
         />
         <CreateEventDialog
           key={editEventDialog}

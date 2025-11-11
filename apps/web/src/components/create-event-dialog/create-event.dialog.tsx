@@ -2,7 +2,7 @@ import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { eventTypeLabelMap, sportTypeLabelMap } from '@/utils/label-map/core';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -44,6 +44,7 @@ type P =
       onClose: () => void;
       date?: Date;
       type?: EVENT_TYPE;
+      prefilledData?: CreateEventDto;
     }
   | {
       open: boolean;
@@ -204,18 +205,109 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             }
             return base;
           })()
-        : create
-          ? {
-              type: rest.type!,
-              name: '',
-              description: '',
-              startDate: startDate!,
-              endDate: endDate!,
-            }
-          : undefined,
+        : create && rest.prefilledData
+          ? (() => {
+              const prefilled = rest.prefilledData;
+              const base = {
+                type: prefilled.type,
+                name: prefilled.name,
+                description: (prefilled as any).description ?? '',
+                startDate: prefilled.startDate,
+                endDate: prefilled.endDate,
+              } as EventFormValues;
+              if (prefilled.type === EVENT_TYPE.TRAINING) {
+                return {
+                  ...base,
+                  sport: (prefilled as any).sport,
+                  goalDistance: (prefilled as any).goalDistance ?? null,
+                  goalDuration: (prefilled as any).goalDuration ?? null,
+                  goalElevationGain:
+                    (prefilled as any).goalElevationGain ?? null,
+                  goalRpe: (prefilled as any).goalRpe ?? null,
+                } as EventFormValues;
+              }
+              if (prefilled.type === EVENT_TYPE.COMPETITION) {
+                return {
+                  ...base,
+                  sport: (prefilled as any).sport,
+                  goalDistance: (prefilled as any).goalDistance ?? null,
+                  goalDuration: (prefilled as any).goalDuration ?? null,
+                  goalElevationGain:
+                    (prefilled as any).goalElevationGain ?? null,
+                  goalRpe: (prefilled as any).goalRpe ?? null,
+                } as EventFormValues;
+              }
+              if (prefilled.type === EVENT_TYPE.ACTIVITY) {
+                return {
+                  ...base,
+                  sport: (prefilled as any).sport,
+                  rpe: (prefilled as any).rpe ?? null,
+                } as EventFormValues;
+              }
+              return base;
+            })()
+          : create
+            ? {
+                type: rest.type!,
+                name: '',
+                description: '',
+                startDate: startDate!,
+                endDate: endDate!,
+              }
+            : undefined,
   });
 
   const { handleSubmit, setValue, watch } = methods;
+
+  useEffect(() => {
+    const hasPrefilledData = 'prefilledData' in rest && !!rest.prefilledData;
+    if (
+      create &&
+      hasPrefilledData &&
+      rest.prefilledData &&
+      rest.prefilledData.type === EVENT_TYPE.TRAINING
+    ) {
+      const prefilled = rest.prefilledData;
+      const hasWorkout = 'workout' in prefilled && !!prefilled.workout;
+      if (
+        hasWorkout &&
+        prefilled.workout?.steps &&
+        prefilled.workout.steps.length > 0
+      ) {
+        setWorkoutSteps(prefilled.workout.steps);
+      } else {
+        setWorkoutSteps([]);
+      }
+    } else if (
+      edit &&
+      'event' in rest &&
+      rest.event &&
+      rest.event.type === EVENT_TYPE.TRAINING
+    ) {
+      const existingWorkout = (rest.event as { workout?: WorkoutDto })?.workout;
+      if (existingWorkout?.steps) {
+        setWorkoutSteps(
+          existingWorkout.steps.map((step) => {
+            const {
+              workoutStepId,
+              workoutId,
+              createdAt,
+              updatedAt,
+              ...stepData
+            } = step;
+            return stepData as CreateWorkoutStepDto;
+          }),
+        );
+      }
+    } else {
+      setWorkoutSteps([]);
+    }
+  }, [
+    create,
+    edit,
+    'prefilledData' in rest ? rest.prefilledData : null,
+    'event' in rest ? rest.event : null,
+  ]);
 
   const onSubmit = handleSubmit(async (data: EventFormValues) => {
     if (data.type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
@@ -310,19 +402,47 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const goalDistanceValue = watch('goalDistance');
   const goalDurationValue = watch('goalDuration');
 
-  if ((create && (!rest.date || !rest.type)) || (edit && !rest.event)) {
+  if (
+    (create &&
+      (!('date' in rest) || !rest.date || !('type' in rest) || !rest.type)) ||
+    (edit && (!('event' in rest) || !rest.event))
+  ) {
     return null;
   }
   const type = create
-    ? rest.type || EVENT_TYPE.TRAINING
+    ? ('type' in rest && rest.type) || EVENT_TYPE.TRAINING
     : edit
-      ? rest.event?.type || EVENT_TYPE.TRAINING
+      ? ('event' in rest && rest.event?.type) || EVENT_TYPE.TRAINING
       : EVENT_TYPE.TRAINING;
 
-  const existingWorkout =
-    edit && type === EVENT_TYPE.TRAINING && 'event' in rest
-      ? ((rest.event as { workout?: WorkoutDto })?.workout ?? null)
-      : null;
+  // Memoize workout steps to avoid recreating the workout object on every render
+  const workoutStepsKey = useMemo(() => {
+    return workoutSteps
+      .map((s) => `${s.stepType}-${s.name}-${s.durationValue}`)
+      .join('|');
+  }, [workoutSteps]);
+
+  const existingWorkout = useMemo(() => {
+    if (edit && type === EVENT_TYPE.TRAINING && 'event' in rest) {
+      return (rest.event as { workout?: WorkoutDto })?.workout ?? null;
+    }
+    if (create && type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
+      return {
+        steps: workoutSteps.map((step, index) => ({
+          ...step,
+          workoutStepId: -(Date.now() + index),
+          orderIndex: index,
+        })) as WorkoutStepDto[],
+      } as WorkoutDto;
+    }
+    return null;
+  }, [
+    edit,
+    create,
+    type,
+    'event' in rest ? rest.event : null,
+    workoutStepsKey,
+  ]);
 
   const isTraining = type === EVENT_TYPE.TRAINING;
   const sportValue = watch('sport');
@@ -331,7 +451,8 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {edit ? m.edit() : m.plan()} {m.a()} {eventTypeLabelMap[type]}
+            {edit ? m.edit() : m.plan()} {m.a()}{' '}
+            {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
           </DialogTitle>
         </DialogHeader>
         <FormProvider
@@ -443,7 +564,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             }
           >
             {edit ? m.edit() : m.create()} {m.the()}
-            {eventTypeLabelMap[type]}
+            {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
           </Button>
         </FormProvider>
       </DialogContent>

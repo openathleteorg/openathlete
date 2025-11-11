@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type {
   WorkoutDto,
@@ -48,6 +48,32 @@ export function WorkoutBuilder({
   const [steps, setSteps] = useState<WorkoutStepDto[]>(workout?.steps || []);
   const [dialogState, setDialogState] = useState<DialogState>({ type: 'none' });
   const [idCounter, setIdCounter] = useState<number>(0);
+  const prevWorkoutRef = useRef<WorkoutDto | null | undefined>(workout);
+
+  // Update steps when workout prop changes (only if workout actually changed)
+  useEffect(() => {
+    const prevWorkout = prevWorkoutRef.current;
+    const workoutStepsIds =
+      workout?.steps
+        ?.map((s) => s.workoutStepId)
+        .sort()
+        .join(',') || '';
+    const prevWorkoutStepsIds =
+      prevWorkout?.steps
+        ?.map((s) => s.workoutStepId)
+        .sort()
+        .join(',') || '';
+
+    // Only update if workout reference changed or step IDs changed
+    if (prevWorkout !== workout || workoutStepsIds !== prevWorkoutStepsIds) {
+      if (workout?.steps && workout.steps.length > 0) {
+        setSteps(workout.steps);
+      } else if (!workout?.steps || workout.steps.length === 0) {
+        setSteps([]);
+      }
+      prevWorkoutRef.current = workout;
+    }
+  }, [workout]);
 
   const generateTempId = () => {
     const newId = -(Date.now() + idCounter);

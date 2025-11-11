@@ -140,6 +140,9 @@ export const routes = {
     deleteBlock: (blockId: number) => `/agent/blocks/${blockId}`,
     chat: (threadId: number) => `/agent/threads/${threadId}/chat`,
   },
+  aiFeatures: {
+    generateEvent: '/agent/ai/events/generate',
+  },
   messages: {
     createThread: '/messages/threads',
     getThreads: '/messages/threads',

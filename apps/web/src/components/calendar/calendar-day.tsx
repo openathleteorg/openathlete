@@ -1,7 +1,7 @@
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useDroppable } from '@dnd-kit/core';
-import { Activity, Award, FileText, StickyNote } from 'lucide-react';
+import { Activity, Award, FileText, Sparkles, StickyNote } from 'lucide-react';
 
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 
@@ -29,6 +29,7 @@ export function CalendarDay({ day, events, cycleSegments = [] }: P) {
     createEvent,
     allowCreate,
     createEventFromTemplate,
+    createEventWithAI,
     dragSelection,
     setDragSelection,
     createCycle,
@@ -197,6 +198,11 @@ export function CalendarDay({ day, events, cycleSegments = [] }: P) {
         </ContextMenuTrigger>
         {allowCreate && (
           <ContextMenuContent className="w-64">
+            <ContextMenuItem onClick={() => createEventWithAI(day)}>
+              <Sparkles className="w-4 h-4 mr-2" />
+              {m.create_with_ai()}
+            </ContextMenuItem>
+            <ContextMenuSeparator />
             <ContextMenuItem onClick={() => createEventFromTemplate(day)}>
               <FileText className="w-4 h-4 mr-2" />
               {m.set_a_template()}

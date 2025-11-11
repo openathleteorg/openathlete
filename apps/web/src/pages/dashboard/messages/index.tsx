@@ -87,18 +87,14 @@ export function MessagesPage() {
         setStreamingBlocks(new Map());
       },
       onToolCallStart: (tool) => {
-        console.log('[MessagesPage] Tool started:', tool.toolName);
         setActiveToolExecutions((prev) => [...prev, tool]);
       },
       onToolCallComplete: (tool) => {
-        console.log('[MessagesPage] Tool completed:', tool.toolName);
         setActiveToolExecutions((prev) =>
           prev.filter((t) => t.toolCallId !== tool.toolCallId),
         );
       },
-      onToolCallError: (tool) => {
-        console.error('[MessagesPage] Tool error:', tool.toolName, tool.error);
-      },
+      onToolCallError: () => {},
     });
 
   // WebSocket for messages - always connected to receive thread updates
@@ -249,12 +245,6 @@ export function MessagesPage() {
       if (mode === 'chatbot' && activeThreadId) {
         sendAgentMessage(content);
       } else if (mode === 'messages' && activeMessageThreadId) {
-        console.log('[MessagesPage] Sending message via WebSocket:', {
-          activeMessageThreadId,
-          content,
-          isConnected: isMessagesConnected,
-        });
-        // sendMessage will handle connection check internally
         sendMessageMessage(content);
       } else {
         console.error('[MessagesPage] Cannot send message:', {

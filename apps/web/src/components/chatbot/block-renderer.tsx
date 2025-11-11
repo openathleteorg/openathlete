@@ -62,7 +62,7 @@ export function BlockRenderer({
     case 'TABLE':
       return <TableBlock block={block} />;
     case 'MAP':
-      return <MapBlock block={block} />;
+      return <MapBlock />;
     case 'ACTIVITY_SUMMARY':
       return <ActivitySummaryBlock block={block} />;
     case 'ACTIVITY_LIST':
@@ -250,10 +250,7 @@ function TableBlock({ block }: { block: AgentMessageBlock }) {
 }
 
 // ==================== Map Block ====================
-function MapBlock({ block }: { block: AgentMessageBlock }) {
-  // TODO: Implement map visualization with block.metadata coordinates
-  console.log('Map block:', block);
-
+function MapBlock() {
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">

@@ -111,11 +111,9 @@ export function ChatWindow() {
         setStreamingBlocks(new Map());
       },
       onToolCallStart: (tool) => {
-        console.log('[ChatWindow] Tool started:', tool.toolName);
         setActiveToolExecutions((prev) => [...prev, tool]);
       },
       onToolCallComplete: (tool) => {
-        console.log('[ChatWindow] Tool completed:', tool.toolName);
         setActiveToolExecutions((prev) =>
           prev.filter((t) => t.toolCallId !== tool.toolCallId),
         );

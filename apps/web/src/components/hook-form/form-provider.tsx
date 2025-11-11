@@ -13,7 +13,7 @@ export const FormProvider = <T extends FieldValues>({
 }: {
   children: React.ReactNode;
   methods: UseFormReturn<T>;
-  onSubmit?: VoidFunction;
+  onSubmit?: (e?: React.BaseSyntheticEvent) => Promise<void> | void;
   id?: string;
 } & React.HTMLAttributes<HTMLFormElement>) => {
   return (
