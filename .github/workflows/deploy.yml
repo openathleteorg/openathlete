@@ -17,16 +17,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
       - name: Set up PNPM
         uses: pnpm/action-setup@v4
         with:
           version: 9
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
 
       - name: Docker login to Scaleway registry
         run: |
@@ -36,9 +36,8 @@ jobs:
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
 
       - name: Build Docker image
-        working-directory: apps/api
         run: |
-          docker build -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}" -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest" .
+          docker build -f apps/api/Dockerfile -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}" -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest" .
 
       - name: Push Docker image
         run: |
