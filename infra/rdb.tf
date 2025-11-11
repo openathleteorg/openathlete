@@ -22,7 +22,7 @@ resource "scaleway_rdb_instance" "db" {
 
   // Private network only
   private_network {
-    pn_id      = scaleway_vpc_private_network.pn.id
+    pn_id       = scaleway_vpc_private_network.pn.id
     enable_ipam = true
     // IP is allocated automatically via IPAM on the PN
   }
@@ -40,7 +40,9 @@ resource "scaleway_rdb_user" "db_user" {
   instance_id = scaleway_rdb_instance.db.id
   name        = var.db_user
   password    = local.effective_db_password
-  is_admin    = false
+  // Set to true to grant admin privileges (CONNECT, CREATE, etc.)
+  // This is safe for a dedicated application user on a private network
+  is_admin    = true
 }
 
 // Build DATABASE_URL from the private network attachment IP

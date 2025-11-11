@@ -26,11 +26,12 @@ resource "scaleway_container" "api" {
 
   // Static environment variables
   // Note: PORT is reserved by Scaleway containers and is automatically set from the port attribute
+  // We use secret version resources directly to get the actual values (not IDs)
   environment_variables = {
     NODE_ENV     = "production"
-    DATABASE_URL = data.scaleway_secret_version.database_url_latest.data
-    REDIS_URL    = data.scaleway_secret_version.redis_url_latest.data
-    JWT_SECRET   = data.scaleway_secret_version.jwt_secret_latest.data
+    DATABASE_URL = scaleway_secret_version.database_url_v.data
+    REDIS_URL    = scaleway_secret_version.redis_url_vm_v[0].data
+    JWT_SECRET   = scaleway_secret_version.jwt_secret_v.data
   }
 
   depends_on = [

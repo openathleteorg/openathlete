@@ -32,25 +32,4 @@ resource "scaleway_secret_version" "redis_url_placeholder" {
   data      = "pending"
 }
 
-// Data sources to fetch latest secret values (used in container environment variables)
-// These read the actual secret values to inject them as regular environment variables
-// instead of using secret_environment_variables which injects secret IDs
-data "scaleway_secret_version" "jwt_secret_latest" {
-  secret_id = scaleway_secret.jwt_secret.id
-  revision  = "latest"
-  depends_on = [scaleway_secret_version.jwt_secret_v]
-}
-
-data "scaleway_secret_version" "database_url_latest" {
-  secret_id = scaleway_secret.database_url.id
-  revision  = "latest"
-  depends_on = [scaleway_secret_version.database_url_v]
-}
-
-data "scaleway_secret_version" "redis_url_latest" {
-  secret_id = scaleway_secret.redis_url.id
-  revision  = "latest"
-  depends_on = [scaleway_secret_version.redis_url_vm_v]
-}
-
 
