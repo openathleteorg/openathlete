@@ -27,23 +27,63 @@ jobs:
           node-version: 22
           cache: 'pnpm'
 
+      - name: Debug env values
+        run: |
+          set -x
+          echo "SCW_REGION=${SCW_REGION}"
+          echo "REGISTRY_NAMESPACE=${{ secrets.REGISTRY_NAMESPACE }}"
+          echo "REGISTRY=rg.${SCW_REGION}.scw.cloud"
+          echo "IMAGE_PATH=${{ secrets.REGISTRY_NAMESPACE }}/openathlete"
+
+      - name: Verify namespace exists (Scaleway API)
+        run: |
+          set -x
+          curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/registry/v1/regions/${SCW_REGION}/namespaces" | jq '.'
+          echo "Fetching details for namespace name='${{ secrets.REGISTRY_NAMESPACE }}' (if present)"
+          curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/registry/v1/regions/${SCW_REGION}/namespaces?name=${{ secrets.REGISTRY_NAMESPACE }}" | jq '.'
+        env:
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+
       - name: Docker login to Scaleway registry
         run: |
+          set -x
           # Scaleway Container Registry authentication
           # Try with Access Key first, fallback to nologin
           echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "${SCW_ACCESS_KEY}" --password-stdin || \
           echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "nologin" --password-stdin
+          docker logout || true
+          # Re-login and verify
+          echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "${SCW_ACCESS_KEY}" --password-stdin || \
+          echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "nologin" --password-stdin
+          docker info
         env:
           SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
 
       - name: Build Docker image
         run: |
-          docker build -f apps/api/Dockerfile -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}" -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest" .
+          set -x
+          IMAGE_SHA="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
+          IMAGE_LATEST="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest"
+          echo "Building images: $IMAGE_SHA and $IMAGE_LATEST"
+          docker build -f apps/api/Dockerfile -t "$IMAGE_SHA" -t "$IMAGE_LATEST" .
+
+      - name: Show local images
+        run: |
+          set -x
+          docker images | grep -E "openathlete"
 
       - name: Push Docker image
         run: |
-          docker push "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest"
+          set -x
+          IMAGE_SHA="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
+          IMAGE_LATEST="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest"
+          echo "Pushing $IMAGE_SHA"
+          docker push "$IMAGE_SHA"
+          echo "Pushing $IMAGE_LATEST"
+          docker push "$IMAGE_LATEST"
 
       - name: Update Serverless Container image
         env:
@@ -53,12 +93,13 @@ jobs:
           SCW_REGION: ${{ env.SCW_REGION }}
           CONTAINER_ID: ${{ secrets.CONTAINER_ID }}
         run: |
+          set -x
           IMAGE="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
-          # Scaleway API: update container with new image
+          echo "Updating container ${CONTAINER_ID} to image ${IMAGE}"
           curl -sS -X PATCH \
             -H "Content-Type: application/json" \
             -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
             "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" \
-            -d "{\"image\":\"${IMAGE}\"}"
+            -d "{\"image\":\"${IMAGE}\"}" | jq '.'
 
 
