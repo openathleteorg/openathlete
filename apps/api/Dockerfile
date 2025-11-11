@@ -19,15 +19,15 @@ RUN pnpm install --frozen-lockfile
 # Copy full repo (only after deps to maximize layer cache)
 COPY . .
 
-# Build shared first (required by API)
-WORKDIR /app/libs/shared
-RUN pnpm build
-
-# Generate Prisma client (required by API)
+# Generate Prisma client FIRST (required by shared and API)
 WORKDIR /app/libs/database
 RUN pnpm db:generate
 
-# Build API
+# Build shared (depends on database types)
+WORKDIR /app/libs/shared
+RUN pnpm build
+
+# Build API (depends on shared and database)
 WORKDIR /app/apps/api
 RUN pnpm build
 
