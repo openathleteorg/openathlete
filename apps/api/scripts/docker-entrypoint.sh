@@ -17,17 +17,11 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
-# Explicitly export DATABASE_URL to ensure Prisma can read it
-# Even with prisma.config.js, Prisma should read env("DATABASE_URL") from process.env
-export DATABASE_URL
-
-# Navigate to database directory
-cd /app/libs/database
-
-# Run Prisma migrations
-# Uses prisma.config.js which points to prisma/schema directory (multi-file schema)
+# Run Prisma migrations using pnpm to leverage workspace scripts
+# prisma.config.js (compiled from prisma.config.ts) handles multi-file schema
 echo "${YELLOW}Running Prisma migrations...${NC}"
-if prisma migrate deploy; then
+cd /app
+if pnpm database run db:deploy; then
   echo "${GREEN}✓ Migrations completed successfully${NC}"
 else
   echo "${RED}✗ Migration failed${NC}"

@@ -11,7 +11,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:reset": "prisma migrate reset",
     "db:revert": "prisma migrate resolve",
-    "db:seed:demo-month": "tsx scripts/seed-demo-month.ts"
+    "db:seed:demo-month": "tsx scripts/seed-demo-month.ts",
+    "build:config": "tsc prisma.config.ts --outDir . --module commonjs --target es2016 --esModuleInterop --skipLibCheck"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

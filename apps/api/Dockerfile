@@ -20,8 +20,9 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Generate Prisma client FIRST (required by shared and API)
+# Also compile prisma.config.ts to prisma.config.js for Docker runtime
 WORKDIR /app/libs/database
-RUN pnpm db:generate
+RUN pnpm db:generate && pnpm build:config
 
 # Build shared (depends on database types)
 WORKDIR /app/libs/shared
@@ -60,14 +61,12 @@ COPY --from=build /app/libs/shared/package.json ./libs/shared/package.json
 COPY --from=build /app/libs/database/generated ./libs/database/generated
 COPY --from=build /app/libs/database/package.json ./libs/database/package.json
 COPY --from=build /app/libs/database/prisma ./libs/database/prisma
-
-# Create prisma.config.js for multi-file schema support
-# Points to the schema directory so Prisma loads all .prisma files
-RUN echo 'module.exports = { schema: "prisma/schema", migrations: { path: "prisma/schema/migrations" } };' > /app/libs/database/prisma.config.js
+COPY --from=build /app/libs/database/prisma.config.js ./libs/database/prisma.config.js
 
 # Copy and set up entrypoint script
 COPY apps/api/scripts/docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN chmod +x /app/docker-entrypoint.sh
+
 
 EXPOSE 3000
 
