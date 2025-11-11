@@ -27,7 +27,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { type WorkoutStepDto as WorkoutStep } from '@openathlete/shared';
 
@@ -59,6 +59,13 @@ function SortableChildStep({
   onEdit,
   onDelete,
 }: SortableChildStepProps) {
+  // Ensure step has a valid ID - this should never be undefined at this point
+  const stepId = step.workoutStepId;
+  if (!stepId) {
+    console.error('SortableChildStep: step.workoutStepId is undefined', step);
+    return null;
+  }
+
   const {
     attributes,
     listeners,
@@ -67,7 +74,8 @@ function SortableChildStep({
     transition,
     isDragging,
   } = useSortable({
-    id: step.workoutStepId!,
+    id: stepId,
+    disabled: false,
   });
 
   const style = {
@@ -118,15 +126,72 @@ export function RepeatBlockInline({
     }),
   );
 
+  // Ensure all child steps have valid IDs - normalize on the fly if needed
+  // Use a stable reference to avoid regenerating IDs on every render
+  const normalizedChildSteps = useMemo(() => {
+    if (!step.repeatBlock?.childSteps) return [];
+
+    // Check if any child step is missing an ID
+    const needsNormalization = step.repeatBlock.childSteps.some(
+      (s: WorkoutStep) => s.workoutStepId == null,
+    );
+
+    if (!needsNormalization) {
+      // All steps already have IDs, return as-is
+      return step.repeatBlock.childSteps as WorkoutStep[];
+    }
+
+    // Normalize steps that are missing IDs
+    let idCounter = 0;
+    const generateTempId = () => -(Date.now() + idCounter++);
+
+    return step.repeatBlock.childSteps.map(
+      (childStep: WorkoutStep, idx: number) => ({
+        ...childStep,
+        workoutStepId: childStep.workoutStepId ?? generateTempId(),
+        orderIndex: childStep.orderIndex ?? idx,
+      }),
+    ) as WorkoutStep[];
+  }, [step.repeatBlock?.childSteps]);
+
+  // Sync normalized child steps back to parent if they were normalized
+  useEffect(() => {
+    if (normalizedChildSteps.length > 0) {
+      const needsSync = normalizedChildSteps.some(
+        (normalized: WorkoutStep, idx: number) => {
+          const original = step.repeatBlock?.childSteps?.[idx];
+          return (
+            original &&
+            (original.workoutStepId !== normalized.workoutStepId ||
+              original.orderIndex !== normalized.orderIndex)
+          );
+        },
+      );
+
+      if (needsSync) {
+        // Update parent with normalized child steps to persist IDs
+        onUpdate({
+          ...step,
+          repeatBlock: {
+            ...step.repeatBlock,
+            childSteps: normalizedChildSteps,
+          },
+        });
+      }
+    }
+  }, [normalizedChildSteps, step, onUpdate]);
+
   const handleRepetitionsChange = (value: string) => {
     const repetitions = parseInt(value, 10);
     if (isNaN(repetitions) || repetitions < 1) return;
 
+    // Ensure we update with normalized child steps
     onUpdate({
       ...step,
       repeatBlock: {
         ...step.repeatBlock,
         repetitions,
+        childSteps: normalizedChildSteps,
       },
     });
   };
@@ -135,23 +200,31 @@ export function RepeatBlockInline({
     const { active, over } = event;
 
     if (over && active.id !== over.id) {
-      const childSteps = step.repeatBlock.childSteps;
-      const oldIndex = childSteps.findIndex(
+      const oldIndex = normalizedChildSteps.findIndex(
         (s: WorkoutStep) => s.workoutStepId === active.id,
       );
-      const newIndex = childSteps.findIndex(
+      const newIndex = normalizedChildSteps.findIndex(
         (s: WorkoutStep) => s.workoutStepId === over.id,
       );
 
-      const reorderedChildSteps = arrayMove(childSteps, oldIndex, newIndex);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedChildSteps = arrayMove(
+          normalizedChildSteps,
+          oldIndex,
+          newIndex,
+        ).map(
+          (child, idx) =>
+            ({ ...(child as WorkoutStep), orderIndex: idx }) as WorkoutStep,
+        );
 
-      onUpdate({
-        ...step,
-        repeatBlock: {
-          ...step.repeatBlock,
-          childSteps: reorderedChildSteps,
-        },
-      });
+        onUpdate({
+          ...step,
+          repeatBlock: {
+            ...step.repeatBlock,
+            childSteps: reorderedChildSteps,
+          },
+        });
+      }
     }
   };
 
@@ -166,12 +239,21 @@ export function RepeatBlockInline({
   };
 
   const handleStepSubmit = (childStep: Omit<WorkoutStep, 'workoutStepId'>) => {
-    if (editingChildStep) {
+    // Strict check: we're editing if editingChildStep exists AND has a valid ID
+    const isEditing =
+      editingChildStep != null &&
+      editingChildStep.workoutStepId != null &&
+      editingChildStep.workoutStepId !== undefined;
+
+    if (isEditing) {
+      // EDIT MODE: Update existing step
       onEditChildStep(step.workoutStepId!, {
         ...childStep,
-        workoutStepId: editingChildStep.workoutStepId,
+        workoutStepId: editingChildStep.workoutStepId!,
+        orderIndex: editingChildStep.orderIndex ?? 0,
       } as WorkoutStep);
     } else {
+      // ADD MODE: Create new step
       onAddChildStep(step.workoutStepId!, childStep);
     }
     setIsStepDialogOpen(false);
@@ -211,26 +293,27 @@ export function RepeatBlockInline({
           </div>
 
           <div className="ml-2 space-y-1.5 border-l-2 border-border pl-3">
-            {step.repeatBlock.childSteps.length === 0 ? (
+            {normalizedChildSteps.length === 0 ? (
               <div className="text-sm text-muted-foreground py-2 text-center italic">
                 {m.repeat_form_no_steps_description()}
               </div>
             ) : (
               <DndContext
+                id={`repeat-block-${step.workoutStepId}`}
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
               >
                 <SortableContext
-                  items={step.repeatBlock.childSteps.map(
+                  items={normalizedChildSteps.map(
                     (s: WorkoutStep) => s.workoutStepId!,
                   )}
                   strategy={verticalListSortingStrategy}
                 >
-                  {step.repeatBlock.childSteps.map(
+                  {normalizedChildSteps.map(
                     (childStep: WorkoutStep, childIndex: number) => (
                       <SortableChildStep
-                        key={childStep.workoutStepId || childIndex}
+                        key={childStep.workoutStepId}
                         step={childStep}
                         index={childIndex + 1}
                         onEdit={() => handleEditChildStep(childStep)}
@@ -262,7 +345,16 @@ export function RepeatBlockInline({
         </div>
       </Card>
 
-      <Dialog open={isStepDialogOpen} onOpenChange={setIsStepDialogOpen}>
+      <Dialog
+        open={isStepDialogOpen}
+        onOpenChange={(open) => {
+          setIsStepDialogOpen(open);
+          if (!open) {
+            // Reset editing state when dialog closes
+            setEditingChildStep(null);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>

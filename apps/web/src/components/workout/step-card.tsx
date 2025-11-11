@@ -1,10 +1,5 @@
 import { Button } from '@/components/ui/button';
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -151,18 +146,11 @@ export function StepCard({
       </div>
 
       {!isCompact && hasNotes && (
-        <Collapsible>
-          <div className="border-t px-3 py-2">
-            <CollapsibleTrigger className="flex w-full items-center justify-between text-xs font-medium text-muted-foreground hover:text-foreground">
-              Notes
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <p className="mt-2 text-xs text-muted-foreground whitespace-pre-wrap">
-                {step.notes}
-              </p>
-            </CollapsibleContent>
-          </div>
-        </Collapsible>
+        <div className="border-t px-3 py-2">
+          <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+            {step.notes}
+          </p>
+        </div>
       )}
     </div>
   );

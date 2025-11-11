@@ -50,6 +50,42 @@ export function WorkoutBuilder({
   const [idCounter, setIdCounter] = useState<number>(0);
   const prevWorkoutRef = useRef<WorkoutDto | null | undefined>(workout);
 
+  const generateTempId = () => {
+    const newId = -(Date.now() + idCounter);
+    setIdCounter((prev) => prev + 1);
+    return newId;
+  };
+
+  const ensureIdsAndOrder = useCallback(
+    (input: WorkoutStepDto[]): WorkoutStepDto[] => {
+      const assign = (arr: WorkoutStepDto[]): WorkoutStepDto[] =>
+        arr.map((s, idx) => {
+          const withId: WorkoutStepDto = {
+            ...s,
+            workoutStepId: s.workoutStepId ?? generateTempId(),
+            orderIndex: idx,
+          } as WorkoutStepDto;
+          if (
+            withId.stepType === WORKOUT_STEP_TYPE.REPEAT &&
+            withId.repeatBlock
+          ) {
+            const childSteps = withId.repeatBlock.childSteps || [];
+            const withChildIds = assign(childSteps);
+            return {
+              ...withId,
+              repeatBlock: {
+                ...withId.repeatBlock,
+                childSteps: withChildIds,
+              },
+            } as WorkoutStepDto;
+          }
+          return withId;
+        });
+      return assign(input || []);
+    },
+    [idCounter],
+  );
+
   // Update steps when workout prop changes (only if workout actually changed)
   useEffect(() => {
     const prevWorkout = prevWorkoutRef.current;
@@ -67,19 +103,15 @@ export function WorkoutBuilder({
     // Only update if workout reference changed or step IDs changed
     if (prevWorkout !== workout || workoutStepsIds !== prevWorkoutStepsIds) {
       if (workout?.steps && workout.steps.length > 0) {
-        setSteps(workout.steps);
+        setSteps(
+          ensureIdsAndOrder(workout.steps as unknown as WorkoutStepDto[]),
+        );
       } else if (!workout?.steps || workout.steps.length === 0) {
         setSteps([]);
       }
       prevWorkoutRef.current = workout;
     }
-  }, [workout]);
-
-  const generateTempId = () => {
-    const newId = -(Date.now() + idCounter);
-    setIdCounter((prev) => prev + 1);
-    return newId;
-  };
+  }, [workout, ensureIdsAndOrder]);
 
   const prepareStepsForSave = useCallback((stepsToClean: WorkoutStepDto[]) => {
     const normalized = normalizeWorkoutForCreate({ steps: stepsToClean });
@@ -154,9 +186,24 @@ export function WorkoutBuilder({
   };
 
   const handleUpdateRepeatBlock = (updatedStep: WorkoutStepDto) => {
+    // Ensure child steps have ids and coherent order after update
+    const normalized =
+      updatedStep.stepType === WORKOUT_STEP_TYPE.REPEAT &&
+      updatedStep.repeatBlock
+        ? ({
+            ...updatedStep,
+            repeatBlock: {
+              ...updatedStep.repeatBlock,
+              childSteps: ensureIdsAndOrder(
+                updatedStep.repeatBlock
+                  .childSteps as unknown as WorkoutStepDto[],
+              ),
+            },
+          } as WorkoutStepDto)
+        : updatedStep;
     setSteps((prev) =>
       prev.map((s) =>
-        s.workoutStepId === updatedStep.workoutStepId ? updatedStep : s,
+        s.workoutStepId === normalized.workoutStepId ? normalized : s,
       ),
     );
   };
@@ -193,16 +240,44 @@ export function WorkoutBuilder({
     setSteps((prev) =>
       prev.map((s) => {
         if (s.workoutStepId === parentStepId && s.repeatBlock) {
+          const childStepId = updatedChildStep.workoutStepId;
+          // Strict validation: childStepId must be defined
+          if (childStepId == null || childStepId === undefined) {
+            console.error(
+              'handleEditChildStep: updatedChildStep.workoutStepId is invalid',
+              updatedChildStep,
+            );
+            return s;
+          }
+
+          // Find the index of the step to update
+          const childIndex = s.repeatBlock.childSteps.findIndex(
+            (child: WorkoutStepDto) => child.workoutStepId === childStepId,
+          );
+
+          // If step not found, don't modify (should not happen)
+          if (childIndex === -1) {
+            console.error(
+              'handleEditChildStep: child step not found',
+              childStepId,
+              s.repeatBlock.childSteps,
+            );
+            return s;
+          }
+
+          // Update only the specific step at its current position
+          const updatedChildren = [...s.repeatBlock.childSteps];
+          updatedChildren[childIndex] = {
+            ...updatedChildStep,
+            workoutStepId: childStepId,
+            orderIndex: childIndex, // Preserve position
+          } as WorkoutStepDto;
+
           return {
             ...s,
             repeatBlock: {
               ...s.repeatBlock,
-              childSteps: s.repeatBlock.childSteps.map(
-                (child: WorkoutStepDto) =>
-                  child.workoutStepId === updatedChildStep.workoutStepId
-                    ? updatedChildStep
-                    : child,
-              ),
+              childSteps: updatedChildren,
             },
           };
         }

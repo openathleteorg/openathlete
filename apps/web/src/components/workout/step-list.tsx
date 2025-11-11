@@ -135,9 +135,22 @@ export function StepList({
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
+    // Ignore drags that involve child steps (they're handled by nested DndContext)
+    const isActiveChildStep = !steps.some((s) => s.workoutStepId === active.id);
+    const isOverChildStep = over && !steps.some((s) => s.workoutStepId === over.id);
+    
+    if (isActiveChildStep || isOverChildStep) {
+      // This drag is for a child step, let the nested context handle it
+      return;
+    }
+
     if (over && active.id !== over.id) {
       const oldIndex = steps.findIndex((s) => s.workoutStepId === active.id);
       const newIndex = steps.findIndex((s) => s.workoutStepId === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) {
+        return;
+      }
 
       const reorderedSteps = arrayMove(steps, oldIndex, newIndex).map(
         (step, index) => ({
