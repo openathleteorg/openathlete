@@ -6,3 +6,4 @@ export { schedulingAgent } from './scheduling.agent';
 export { qaAgent } from './qa.agent';
 export { adaptationAgent } from './adaptation.agent';
 export { qnaAgent } from './qna.agent';
+export { eventGenerationAgent } from './event-generation.agent';

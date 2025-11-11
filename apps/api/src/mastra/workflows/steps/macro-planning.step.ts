@@ -88,8 +88,6 @@ Consider:
 - Race distance and demands
 - Need for adequate base, specific work, and taper`;
 
-      console.log('[macroStep] Calling macro-plan agent');
-
       const response = await macroPlanAgent.generate(prompt, {
         runtimeContext,
         structuredOutput: {
@@ -98,14 +96,6 @@ Consider:
       });
 
       const macroPlan = response.object;
-
-      console.log('[macroStep] Macro plan generated successfully');
-      console.log('[macroStep] Total phases:', macroPlan.phases.length);
-      console.log(
-        '[macroStep] Total duration:',
-        macroPlan.totalDurationWeeks,
-        'weeks',
-      );
 
       return {
         macroPlan,

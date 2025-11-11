@@ -138,16 +138,6 @@ export const planGenerationWorkflow = createWorkflow({
     const planIsGood = score >= 75 && criticalErrors.length === 0;
     const maxIterationsReached = (iterationCount || 0) >= 3;
 
-    if (planIsGood) {
-      console.log(
-        `[Workflow] Plan quality acceptable (score: ${score}/100, no critical errors). Stopping improvement loop.`,
-      );
-    } else if (maxIterationsReached) {
-      console.log(
-        `[Workflow] Max ${3} improvement iterations reached. Current score: ${score}/100 with ${criticalErrors.length} critical errors remaining.`,
-      );
-    }
-
     return planIsGood || maxIterationsReached;
   })
 

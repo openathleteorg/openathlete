@@ -1089,11 +1089,6 @@ export const validatePlanTool = createTool({
         errors: allErrors,
         metrics,
       };
-
-      console.log(
-        `[validate-plan] Validation complete. Score: ${score}/100, Valid: ${valid}, Errors: ${allErrors.length}`,
-      );
-
       return report;
     } catch (error) {
       console.error('[validate-plan] Validation failed:', error);

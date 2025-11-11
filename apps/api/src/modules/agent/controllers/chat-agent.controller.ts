@@ -31,7 +31,7 @@ import { MessageService } from '../services/message.service';
 import { ThreadService } from '../services/thread.service';
 
 @Controller('agent')
-export class AgentController {
+export class ChatAgentController {
   constructor(
     private threadService: ThreadService,
     private messageService: MessageService,

@@ -276,9 +276,6 @@ function applySessionCorrection(
 
     case 'REMOVE_SESSION':
       week.sessions.splice(sessionIndex, 1);
-      console.log(
-        `[applySessionCorrection] Removed session ${sessionIndex} from week ${week.weekNumber}`,
-      );
       break;
 
     case 'REDUCE_SESSION_INTENSITY':
@@ -286,9 +283,6 @@ function applySessionCorrection(
       session.targetIntensity.rpe = Math.max(
         0.1,
         session.targetIntensity.rpe - 0.15,
-      );
-      console.log(
-        `[applySessionCorrection] Reduced session ${sessionIndex} intensity to RPE ${session.targetIntensity.rpe.toFixed(2)}`,
       );
       break;
 

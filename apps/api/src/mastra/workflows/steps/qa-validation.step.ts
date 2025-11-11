@@ -105,10 +105,6 @@ export const qaStep = createStep({
   inputSchema: qaStepInputSchema,
   outputSchema: qaStepOutputSchema,
   execute: async ({ inputData, runtimeContext }) => {
-    console.log(
-      `[qaStep] Starting validation for ${inputData.scheduledWeeks.length} weeks`,
-    );
-
     try {
       // Transform scheduledWeeks into the format expected by validatePlanTool
       const cycles = inputData.mesoBlocks.map((block, idx) => {
@@ -162,8 +158,6 @@ export const qaStep = createStep({
       // Build the prompt for QA agent
       const prompt = buildQAPrompt(trainingPlan, inputData.athleteFacts);
 
-      console.log('[qaStep] Calling QA agent with validation tool');
-
       const response = await qaAgent.generate(prompt, {
         runtimeContext,
         structuredOutput: {
@@ -172,11 +166,6 @@ export const qaStep = createStep({
       });
 
       const validationReport = response.object;
-
-      console.log('[qaStep] Validation complete');
-      console.log('[qaStep] Valid:', validationReport.valid);
-      console.log('[qaStep] Score:', validationReport.overallScore);
-      console.log('[qaStep] Errors:', validationReport.errors.length);
 
       return {
         validationReport,

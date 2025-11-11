@@ -103,11 +103,6 @@ export const fetchAthleteDataTool = createTool({
 
       const { includeAvailability = true, includeStats = true } = input;
 
-      console.log(
-        `[DEBUG] Fetching athlete data for athleteId: ${athleteId}, includeAvailability: ${includeAvailability}, includeStats: ${includeStats}`,
-      );
-
-      // Build include object dynamically
       const includeClause: any = {
         user: {
           select: {
@@ -134,8 +129,6 @@ export const fetchAthleteDataTool = createTool({
       if (!athlete) {
         throw new Error(`Athlete with ID ${athleteId} not found`);
       }
-
-      console.log(`[DEBUG] Found athlete: ${athleteId}`);
 
       // Map athlete data to camelCase
       const mappedAthlete = keysToCamel(athlete) as any;
@@ -167,15 +160,10 @@ export const fetchAthleteDataTool = createTool({
           endTime: slot.endTime,
           priority: slot.priority,
         }));
-        console.log(
-          `[DEBUG] Included ${result.availability.length} availability slots`,
-        );
       }
 
       // Calculate stats if requested
       if (includeStats) {
-        console.log('[DEBUG] Calculating athlete statistics...');
-
         // Query all activity events for this athlete
         const activityStats = await prisma.event_activity.aggregate({
           where: {
@@ -200,13 +188,7 @@ export const fetchAthleteDataTool = createTool({
           totalDuration: activityStats._sum.moving_time || 0,
           totalElevationGain: activityStats._sum.elevation_gain || 0,
         };
-
-        console.log(
-          `[DEBUG] Stats calculated: ${result.stats.totalActivities} activities, ${Math.round(result.stats.totalDistance / 1000)}km total`,
-        );
       }
-
-      console.log('[DEBUG] Successfully fetched athlete data');
       return result;
     } catch (error) {
       console.error('[fetchAthleteDataTool] Error:', error);

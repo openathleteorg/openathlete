@@ -69,18 +69,10 @@ export const schedulingStep = createStep({
       let totalScheduled = 0;
       let totalUnscheduled = 0;
 
-      console.log(
-        `[schedulingStep] Scheduling ${inputData.weekIntentions.length} weeks...`,
-      );
-
       for (const weekIntentions of inputData.weekIntentions) {
         const prompt = buildSchedulingPrompt(
           weekIntentions,
           inputData.athleteFacts,
-        );
-
-        console.log(
-          `[schedulingStep] Scheduling week ${weekIntentions.weekNumber}...`,
         );
 
         const response = await schedulingAgent.generate(prompt, {
@@ -112,15 +104,7 @@ export const schedulingStep = createStep({
             ),
           );
         }
-
-        console.log(
-          `[schedulingStep] Week ${weekIntentions.weekNumber}: ${scheduled} scheduled, ${unscheduled} unscheduled`,
-        );
       }
-
-      console.log(
-        `[schedulingStep] Scheduling complete: ${totalScheduled} sessions scheduled, ${totalUnscheduled} unscheduled`,
-      );
 
       return {
         scheduledWeeks,

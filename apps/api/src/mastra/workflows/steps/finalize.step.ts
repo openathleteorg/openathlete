@@ -77,14 +77,6 @@ export const finalizeStep = createStep({
   inputSchema: finalizeStepInputSchema,
   outputSchema: finalizeStepOutputSchema,
   execute: async ({ inputData }) => {
-    console.log(
-      '[finalizeStep] Preparing final output with validation results',
-    );
-
-    console.log(
-      `[finalizeStep] Improvement applied: ${inputData.improvementApplied}, Summary: ${inputData.improvementSummary}`,
-    );
-
     const hasUnscheduledSessions =
       inputData.schedulingMetadata.totalUnscheduled > 0;
     const hasCriticalErrors = inputData.validationReport.errors
@@ -131,10 +123,6 @@ export const finalizeStep = createStep({
     } else {
       message = `Training plan generated but requires attention: ${criticalErrorsCount} critical errors, ${warningsCount} warnings, ${inputData.schedulingMetadata.totalUnscheduled} unscheduled sessions.`;
     }
-
-    console.log(
-      `[finalizeStep] Complete - Success: ${overallSuccess}, Score: ${inputData.validationReport.overallScore}`,
-    );
 
     return {
       success: overallSuccess,

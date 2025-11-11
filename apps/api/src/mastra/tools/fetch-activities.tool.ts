@@ -250,14 +250,6 @@ This is essential for understanding training history, progress tracking, and per
         take: limit + 1, // Fetch one more to check if there are more results
       });
 
-      console.log(
-        '[DEBUG] Found activities:',
-        activities.length,
-        '(limit was',
-        limit,
-        ')',
-      );
-
       // Check if there are more results
       const hasMore = activities.length > limit;
       const activitiesToReturn = hasMore
@@ -309,8 +301,6 @@ This is essential for understanding training history, progress tracking, and per
       if (hasMore) {
         message += `. More results available (showing first ${limit}).`;
       }
-
-      console.log('[DEBUG] Returning formatted activities:', message);
 
       return {
         success: true,

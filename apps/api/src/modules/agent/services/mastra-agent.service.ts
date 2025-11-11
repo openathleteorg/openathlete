@@ -93,8 +93,6 @@ export class MastraAgentService implements OnModuleInit {
           threadId: mastraThreadId,
         });
 
-        console.log('thread', thread);
-
         if (!thread) {
           throw new Error('Thread not found in Mastra');
         }
@@ -108,9 +106,6 @@ export class MastraAgentService implements OnModuleInit {
         }
 
         if (attempt === maxAttempts) {
-          console.log(
-            `[MastraAgentService] Thread title not available after ${maxAttempts} attempts for thread ${threadId}`,
-          );
           return null;
         }
 

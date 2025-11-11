@@ -92,8 +92,6 @@ For each phase in the macro plan, create meso-cycles with:
 
 Please create detailed meso-blocks for the entire plan duration.`;
 
-      console.log('[mesoStep] Calling meso-plan agent');
-
       const response = await mesoPlanAgent.generate(prompt, {
         runtimeContext,
         structuredOutput: {
@@ -103,16 +101,10 @@ Please create detailed meso-blocks for the entire plan duration.`;
 
       const mesoBlocks = response.object.mesoBlocks;
 
-      console.log(
-        `[mesoStep] Generated ${mesoBlocks.length} meso-blocks successfully`,
-      );
-
       const totalWeeks = mesoBlocks.reduce(
         (sum, block) => sum + block.weeks.length,
         0,
       );
-      console.log(`[mesoStep] Total weeks across all blocks: ${totalWeeks}`);
-
       return {
         mesoBlocks,
         athleteFacts: inputData.athleteFacts,
