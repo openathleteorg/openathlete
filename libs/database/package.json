@@ -12,7 +12,7 @@
     "db:reset": "prisma migrate reset",
     "db:revert": "prisma migrate resolve",
     "db:seed:demo-month": "tsx scripts/seed-demo-month.ts",
-    "build:config": "tsc prisma.config.ts --outDir . --module commonjs --target es2016 --esModuleInterop --skipLibCheck"
+    "build:config": "node scripts/build-docker-config.js"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",
