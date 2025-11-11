@@ -76,15 +76,14 @@ export function AIGenerateEventDialog({
         <DialogHeader>
           <DialogTitle>{m.create_with_ai()}</DialogTitle>
           <DialogDescription>
-            Describe the training session you want to create, and AI will generate
-            it for you.
+            {m.ai_generate_event_dialog_description()}
           </DialogDescription>
         </DialogHeader>
         <FormProvider methods={methods} onSubmit={onSubmit}>
           <div className="space-y-4 pt-3">
             <RHFTextarea
               name="prompt"
-              label="Session description"
+              label={m.ai_generate_event_prompt_label()}
               placeholder={m.ai_generate_event_prompt_placeholder()}
               className="min-h-[120px]"
               required
@@ -97,7 +96,7 @@ export function AIGenerateEventDialog({
                 onClick={onClose}
                 disabled={generateEventMutation.isPending}
               >
-                Cancel
+                {m.cancel()}
               </Button>
               <Button
                 type="submit"
@@ -105,7 +104,7 @@ export function AIGenerateEventDialog({
               >
                 {generateEventMutation.isPending
                   ? m.generating_event()
-                  : 'Generate'}
+                  : m.generate()}
               </Button>
             </div>
           </div>
