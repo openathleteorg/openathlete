@@ -228,3 +228,49 @@
   /* Avoid breaking tables/rows when possible */
   table, thead, tbody, tr, td, th { page-break-inside: avoid; break-inside: avoid; }
 }
+
+/* Animated rotating brand border for AI generation states */
+.ai-rotating-brand-border {
+  position: relative;
+  border-radius: var(--radius-lg);
+  isolation: isolate;
+}
+
+.ai-rotating-brand-border::before {
+  content: "";
+  position: absolute;
+  /* Extend beyond dialog padding (p-6 = 24px) plus border thickness (3px) */
+  inset: -28px;
+  border-radius: 13px;
+  background: conic-gradient(
+    from var(--oa-rotation, 0deg),
+    var(--oa-brand-1),
+    var(--oa-brand-2),
+    var(--oa-brand-3),
+    var(--oa-brand-4),
+    var(--oa-brand-1)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 3px; /* 3-4px border thickness */
+  z-index: -1; /* derrière le contenu */
+  animation: oa-rotate-gradient 2.25s linear infinite;
+  will-change: background;
+  pointer-events: none;
+}
+
+@property --oa-rotation {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes oa-rotate-gradient {
+  to { --oa-rotation: 360deg; }
+}
