@@ -21,12 +21,29 @@ execSync(
   { cwd: configDir, stdio: 'inherit' }
 );
 
-// Read compiled file and remove dotenv import
-console.log('Removing dotenv import for Docker...');
+// Read compiled file and transform for Prisma compatibility
+console.log('Transforming config for Docker/Prisma...');
 let content = fs.readFileSync(configJsPath, 'utf8');
 
-// Remove require('dotenv/config') or require("dotenv/config")
+// Remove require('dotenv/config') or require("dotenv/config") if present
 content = content.replace(/require\(['"]dotenv\/config['"]\);?\s*/g, '');
+
+// Convert exports.default to module.exports and simplify path usage
+// Extract the config object
+const defaultExportMatch = content.match(/exports\.default\s*=\s*(\{[\s\S]*?\});?\s*$/m);
+if (defaultExportMatch) {
+  // Get the config object content
+  const configObject = defaultExportMatch[1];
+
+  // Replace node_path_1.default.join with path.join
+  const simplifiedConfig = configObject.replace(/node_path_1\.default\.join/g, 'path.join');
+
+  // Generate clean CommonJS module
+  content = `const path = require('path');
+
+module.exports = ${simplifiedConfig};
+`;
+}
 
 // Write back
 fs.writeFileSync(configJsPath, content);
