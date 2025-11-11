@@ -17,11 +17,36 @@ if [ -z "$DATABASE_URL" ]; then
   exit 1
 fi
 
-# Run Prisma migrations using pnpm to leverage workspace scripts
-# prisma.config.js (compiled from prisma.config.ts) handles multi-file schema
+# Debug: Show that DATABASE_URL is available (without exposing the full value)
+if [ -n "$DATABASE_URL" ]; then
+  echo "${GREEN}✓ DATABASE_URL is set (length: ${#DATABASE_URL} chars)${NC}"
+  PROTOCOL=$(echo "$DATABASE_URL" | cut -d: -f1)
+  echo "${YELLOW}  Protocol: ${PROTOCOL}${NC}"
+  
+  # Verify it starts with postgresql:// or postgres://
+  if [ "$PROTOCOL" != "postgresql" ] && [ "$PROTOCOL" != "postgres" ]; then
+    echo "${RED}ERROR: DATABASE_URL must start with postgresql:// or postgres://${NC}"
+    echo "${RED}  Got: ${PROTOCOL}://...${NC}"
+    exit 1
+  fi
+else
+  echo "${RED}ERROR: DATABASE_URL is empty${NC}"
+  exit 1
+fi
+
+# Run Prisma migrations directly
+# prisma.config.js handles multi-file schema
+# Note: When prisma.config.js is present, Prisma skips auto-loading env vars from .env files,
+# but it still reads from process.env, so we ensure DATABASE_URL is exported
 echo "${YELLOW}Running Prisma migrations...${NC}"
-cd /app
-if pnpm database run db:deploy; then
+cd /app/libs/database
+
+# Export DATABASE_URL explicitly to ensure it's available to Prisma
+export DATABASE_URL
+
+# Run Prisma migrate deploy directly (prisma CLI is installed globally in Docker)
+# This ensures the environment variable is properly passed
+if prisma migrate deploy; then
   echo "${GREEN}✓ Migrations completed successfully${NC}"
 else
   echo "${RED}✗ Migration failed${NC}"
