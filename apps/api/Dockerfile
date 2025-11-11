@@ -60,11 +60,13 @@ COPY --from=build /app/libs/shared/package.json ./libs/shared/package.json
 COPY --from=build /app/libs/database/generated ./libs/database/generated
 COPY --from=build /app/libs/database/package.json ./libs/database/package.json
 COPY --from=build /app/libs/database/prisma ./libs/database/prisma
+# Also copy prisma config for completeness
+COPY --from=build /app/libs/database/prisma.config.ts ./libs/database/prisma.config.ts
 
 EXPOSE 3000
 
 # Run migrations before starting the API
-# Migrations must run from the database package directory
-CMD ["sh", "-c", "cd /app/libs/database && prisma migrate deploy && cd /app/apps/api && node dist/main.js"]
+# Use explicit schema path to avoid config resolution issues in container
+CMD ["sh", "-c", "cd /app/libs/database && prisma migrate deploy --schema=./prisma/schema/schema.prisma && cd /app/apps/api && node dist/main.js"]
 
 
