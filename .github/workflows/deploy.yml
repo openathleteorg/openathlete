@@ -95,10 +95,31 @@ jobs:
           set -x
           IMAGE="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
           echo "Updating container ${CONTAINER_ID} to image ${IMAGE}"
-          curl -sS -X PATCH \
+          
+          # Get current container state
+          echo "Fetching current container state..."
+          curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" | jq '.'
+          
+          # Update container image
+          echo "Updating container image..."
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X PATCH \
             -H "Content-Type: application/json" \
             -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" \
-            -d "{\"image\":\"${IMAGE}\"}" | jq '.'
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" \
+            -d "{\"registry_image\":\"${IMAGE}\"}")
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "$BODY" | jq '.'
+          
+          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "202" ]; then
+            echo "Error: Failed to update container (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+          
+          echo "Container update initiated successfully. Deployment should start automatically."
 
 
