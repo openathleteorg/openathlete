@@ -29,8 +29,12 @@ jobs:
 
       - name: Docker login to Scaleway registry
         run: |
+          # Scaleway Container Registry authentication
+          # Try with Access Key first, fallback to nologin
+          echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "${SCW_ACCESS_KEY}" --password-stdin || \
           echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "nologin" --password-stdin
         env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
 
       - name: Build Docker image
@@ -39,7 +43,6 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker push "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
           docker push "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest"
 
       - name: Update Serverless Container image
