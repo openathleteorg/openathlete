@@ -60,13 +60,16 @@ COPY --from=build /app/libs/shared/package.json ./libs/shared/package.json
 COPY --from=build /app/libs/database/generated ./libs/database/generated
 COPY --from=build /app/libs/database/package.json ./libs/database/package.json
 COPY --from=build /app/libs/database/prisma ./libs/database/prisma
-# Also copy prisma config for completeness
-COPY --from=build /app/libs/database/prisma.config.ts ./libs/database/prisma.config.ts
+# Note: prisma.config.ts is not copied - we create a minimal JS config instead
+# Create a minimal prisma.config.js pointing to the SCHEMA DIRECTORY (not a file)
+# This allows Prisma to load all .prisma files in that directory (multi-file schema)
+RUN echo 'module.exports = { schema: "prisma/schema", migrations: { path: "prisma/schema/migrations" } };' > /app/libs/database/prisma.config.js
 
 EXPOSE 3000
 
 # Run migrations before starting the API
-# Use explicit schema path to avoid config resolution issues in container
-CMD ["sh", "-c", "cd /app/libs/database && prisma migrate deploy --schema=./prisma/schema/schema.prisma && cd /app/apps/api && node dist/main.js"]
+# Use schema directory (not a specific file) to load all .prisma files
+# DATABASE_URL is already available as environment variable from Secret Manager
+CMD ["sh", "-c", "cd /app/libs/database && prisma migrate deploy --schema=prisma/schema && cd /app/apps/api && node dist/main.js"]
 
 
