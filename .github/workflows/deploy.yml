@@ -94,19 +94,36 @@ jobs:
         run: |
           set -x
           IMAGE="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
-          echo "Updating container ${CONTAINER_ID} to image ${IMAGE}"
+          
+          # Handle CONTAINER_ID format: could be "region/id" or just "id"
+          if [[ "$CONTAINER_ID" == *"/"* ]]; then
+            # Format: "fr-par/xxx-xxx-xxx" - extract just the ID part
+            CONTAINER_ID_ONLY="${CONTAINER_ID#*/}"
+            echo "Container ID format detected: region/id, using ID only: ${CONTAINER_ID_ONLY}"
+          else
+            # Format: just the ID
+            CONTAINER_ID_ONLY="${CONTAINER_ID}"
+            echo "Container ID format: ID only: ${CONTAINER_ID_ONLY}"
+          fi
+          
+          echo "Updating container ${CONTAINER_ID_ONLY} (region: ${SCW_REGION}) to image ${IMAGE}"
+          
+          # List all containers to debug
+          echo "Listing all containers in namespace..."
+          curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers" | jq '.containers[] | {id, name, status}'
           
           # Get current container state
           echo "Fetching current container state..."
           curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" | jq '.'
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}" | jq '.' || echo "Container not found with ID: ${CONTAINER_ID_ONLY}"
           
           # Update container image
           echo "Updating container image..."
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X PATCH \
             -H "Content-Type: application/json" \
             -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" \
+            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}" \
             -d "{\"registry_image\":\"${IMAGE}\"}")
           
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
@@ -117,6 +134,10 @@ jobs:
           
           if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "202" ]; then
             echo "Error: Failed to update container (HTTP $HTTP_CODE)"
+            echo "Please verify:"
+            echo "  1. CONTAINER_ID secret is correct (run: cd infra && tofu output container_id)"
+            echo "  2. Container exists in region ${SCW_REGION}"
+            echo "  3. Access Key has proper permissions"
             exit 1
           fi
           
