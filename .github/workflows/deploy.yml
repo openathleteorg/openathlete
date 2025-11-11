@@ -109,30 +109,34 @@ jobs:
           echo "Updating container ${CONTAINER_ID_ONLY} (region: ${SCW_REGION}) to image ${IMAGE}"
           
           # List all containers to debug (with project filter)
+          # Use /containers/v1beta1 endpoint (not /serverless-containers/v1beta1)
           echo "Listing all containers in project..."
           CONTAINERS_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers?project_id=${SCW_PROJECT_ID}")
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers?project_id=${SCW_PROJECT_ID}")
           echo "$CONTAINERS_RESPONSE" | jq '.containers[]? | {id, name, status}' || echo "No containers found or API returned null"
           
           # Get current container state
           echo "Fetching current container state..."
           CONTAINER_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}")
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}")
           echo "$CONTAINER_RESPONSE" | jq '.' || echo "Container not found with ID: ${CONTAINER_ID_ONLY}"
           
           # Check if container exists
           if echo "$CONTAINER_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+            CONTAINER_STATUS=$(echo "$CONTAINER_RESPONSE" | jq -r '.status // "unknown"')
             echo "Container found: $(echo "$CONTAINER_RESPONSE" | jq -r '.name // .id')"
+            echo "Current status: ${CONTAINER_STATUS}"
           else
             echo "WARNING: Container ${CONTAINER_ID_ONLY} not found. Will attempt update anyway..."
           fi
           
           # Update container image
+          # Use /containers/v1beta1 endpoint (not /serverless-containers/v1beta1)
           echo "Updating container image..."
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X PATCH \
             -H "Content-Type: application/json" \
             -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
-            "https://api.scaleway.com/serverless-containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}" \
             -d "{\"registry_image\":\"${IMAGE}\"}")
           
           HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
@@ -150,6 +154,17 @@ jobs:
             exit 1
           fi
           
-          echo "Container update initiated successfully. Deployment should start automatically."
+          echo "Container image updated successfully (HTTP $HTTP_CODE)"
+          
+          # Wait a moment for the update to propagate
+          sleep 2
+          
+          # Check container status after update
+          echo "Checking container status after update..."
+          UPDATED_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID_ONLY}")
+          UPDATED_STATUS=$(echo "$UPDATED_RESPONSE" | jq -r '.status // "unknown"')
+          echo "Container status: ${UPDATED_STATUS}"
+          echo "Container will automatically deploy with the new image."
 
 
