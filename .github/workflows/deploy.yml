@@ -1,0 +1,64 @@
+name: Deploy API to Scaleway
+
+on:
+  push:
+    branches: [ "main" ]
+
+env:
+  SCW_REGION: ${{ secrets.SCW_DEFAULT_REGION || 'fr-par' }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Docker login to Scaleway registry
+        run: |
+          echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "${SCW_ACCESS_KEY}" --password-stdin
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+
+      - name: Build Docker image
+        working-directory: apps/api
+        run: |
+          docker build -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}" -t "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest" .
+
+      - name: Push Docker image
+        run: |
+          docker push "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
+          docker push "rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:latest"
+
+      - name: Update Serverless Container image
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_REGION: ${{ env.SCW_REGION }}
+          CONTAINER_ID: ${{ secrets.CONTAINER_ID }}
+        run: |
+          IMAGE="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
+          # Scaleway API: update container with new image
+          curl -sS -X PATCH \
+            -H "Content-Type: application/json" \
+            -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${CONTAINER_ID}" \
+            -d "{\"image\":\"${IMAGE}\"}"
+
+
