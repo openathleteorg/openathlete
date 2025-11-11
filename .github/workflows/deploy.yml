@@ -29,9 +29,8 @@ jobs:
 
       - name: Docker login to Scaleway registry
         run: |
-          echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "${SCW_ACCESS_KEY}" --password-stdin
+          echo "${SCW_SECRET_KEY}" | docker login "rg.${SCW_REGION}.scw.cloud" --username "nologin" --password-stdin
         env:
-          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
           SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
 
       - name: Build Docker image
