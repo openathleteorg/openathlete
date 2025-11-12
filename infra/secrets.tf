@@ -32,4 +32,42 @@ resource "scaleway_secret_version" "redis_url_placeholder" {
   data      = "pending"
 }
 
+resource "scaleway_secret" "strava_client_secret" {
+  name        = "${var.app_name}-STRAVA_CLIENT_SECRET"
+  description = "Strava client secret for ${var.app_name}"
+}
 
+resource "scaleway_secret_version" "strava_client_secret_v" {
+  secret_id = scaleway_secret.strava_client_secret.id
+  data      = var.strava_client_secret
+}
+
+resource "scaleway_secret" "strava_webhook_token" {
+  name        = "${var.app_name}-STRAVA_WEBHOOK_TOKEN"
+  description = "Strava webhook token for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "strava_webhook_token_v" {
+  secret_id = scaleway_secret.strava_webhook_token.id
+  data      = var.strava_webhook_token
+}
+
+resource "scaleway_secret" "openai_api_key" {
+  name        = "${var.app_name}-OPENAI_API_KEY"
+  description = "OpenAI API key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "openai_api_key_v" {
+  secret_id = scaleway_secret.openai_api_key.id
+  data      = var.openai_api_key
+}
+
+resource "scaleway_secret" "brevo_api_key" {
+  name        = "${var.app_name}-BREVO_API_KEY"
+  description = "Brevo API key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "brevo_api_key_v" {
+  secret_id = scaleway_secret.brevo_api_key.id
+  data      = var.brevo_api_key
+}

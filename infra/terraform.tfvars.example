@@ -1,0 +1,10 @@
+# Terraform variables template
+# Copy this file to terraform.tfvars and fill in your values
+# terraform.tfvars is automatically ignored by git
+
+jwt_secret = "your-jwt-secret-here"
+strava_client_secret = "your-strava-client-secret-here"
+strava_webhook_token = "your-strava-webhook-token-here"
+openai_api_key = "your-openai-api-key-here"
+brevo_api_key = "your-brevo-api-key-here"
+

@@ -60,22 +60,10 @@ variable "db_volume_size_gb" {
   default     = 20
 }
 
-variable "use_managed_redis" {
-  description = "Feature toggle: true for Managed Redis, false for cheapest VM-based Redis. NOTE: Managed Redis is not yet available in the Scaleway Terraform provider, so this must be false for now."
-  type        = bool
-  default     = false
-}
-
 variable "redis_managed_node_type" {
-  description = "Managed Redis node type (single-node smallest tier recommended)."
+  description = "Managed Redis node type (cheapest plan)."
   type        = string
   default     = "RED1-MICRO"
-}
-
-variable "redis_vm_instance_type" {
-  description = "Instance type for the cheapest VM-based Redis (no public IP, private only)."
-  type        = string
-  default     = "DEV1-S"
 }
 
 variable "jwt_secret" {
@@ -98,4 +86,26 @@ variable "redis_password" {
   sensitive   = true
 }
 
+variable "strava_client_secret" {
+  description = "Strava client secret for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
 
+variable "strava_webhook_token" {
+  description = "Strava webhook token for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "openai_api_key" {
+  description = "OpenAI API key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "brevo_api_key" {
+  description = "Brevo API key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

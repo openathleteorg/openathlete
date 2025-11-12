@@ -11,8 +11,11 @@ output "rdb_private_ip" {
 }
 
 output "redis_private_ip_or_hostname" {
-  value       = try(scaleway_instance_server.redis_vm[0].private_ips[0].address, null)
-  description = "Private IP of Redis (VM-based, managed Redis not available in provider yet)."
+  value = try([
+    for pn in scaleway_redis_cluster.redis.private_network : pn.service_ips[0]
+    if length(pn.service_ips) > 0
+  ][0], null)
+  description = "Private IP of Managed Redis cluster."
 }
 
 output "registry_endpoint" {

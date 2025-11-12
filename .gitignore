@@ -43,3 +43,7 @@ scripts/**/assets
 *.env.build
 deploy/
 files/
+
+# Terraform
+**/terraform.tfvars
+**/.terraform.lock.hcl
