@@ -168,10 +168,26 @@ export class StravaProviderService
 
     // Import initial activities using queue (skip weather for bulk import)
     this.fetchInitialStravaData(account).catch((error) => {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+
       this.logger.error(
-        `Failed to queue initial Strava activities for account ${account.provider_account_id}: ${error.message}`,
-        error.stack,
+        `Failed to queue initial Strava activities for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
       );
+
+      // Check if it's a Redis connection error
+      if (
+        errorName === 'MaxRetriesPerRequestError' ||
+        errorMessage.includes('ECONNREFUSED') ||
+        errorMessage.includes('Redis') ||
+        errorMessage.includes('Connection')
+      ) {
+        this.logger.error(
+          `CRITICAL: Redis connection error detected during Strava account connection. Activities will NOT be synchronized until Redis is available. Please check: 1) Redis is running, 2) REDIS_URL environment variable is correctly set, 3) Network connectivity between API container and Redis server.`,
+        );
+      }
     });
 
     return account;
@@ -367,45 +383,71 @@ export class StravaProviderService
       `Fetching initial Strava activities for account ${account.provider_account_id}`,
     );
 
-    // Fetch all activities using importActivities
-    const activities = await this.importActivities(account);
+    try {
+      // Fetch all activities using importActivities
+      const activities = await this.importActivities(account);
 
-    if (activities.length === 0) {
-      this.logger.log('No new activities to import');
-      return;
-    }
+      this.logger.log(
+        `Fetched ${activities.length} activities from Strava for account ${account.provider_account_id}`,
+      );
 
-    // Filter out activities that already exist
-    const existingExternalIds = await this.prisma.event_activity.findMany({
-      where: {
-        external_id: {
-          in: activities.map((a) => a.externalId),
+      if (activities.length === 0) {
+        this.logger.log('No new activities to import');
+        return;
+      }
+
+      // Filter out activities that already exist
+      const existingExternalIds = await this.prisma.event_activity.findMany({
+        where: {
+          external_id: {
+            in: activities.map((a) => a.externalId),
+          },
         },
-      },
-      select: {
-        external_id: true,
-      },
-    });
+        select: {
+          external_id: true,
+        },
+      });
 
-    const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.external_id),
-    );
+      const existingIdsSet = new Set(
+        existingExternalIds.map((a) => a.external_id),
+      );
 
-    const newActivities = activities.filter(
-      (a) => !existingIdsSet.has(a.externalId),
-    );
+      const newActivities = activities.filter(
+        (a) => !existingIdsSet.has(a.externalId),
+      );
 
-    if (newActivities.length === 0) {
-      this.logger.log('All activities already imported');
-      return;
+      if (newActivities.length === 0) {
+        this.logger.log('All activities already imported');
+        return;
+      }
+
+      this.logger.log(
+        `Found ${newActivities.length} new activities to import (out of ${activities.length} total)`,
+      );
+
+      // Add all activities to the import queue (skip weather for bulk import)
+      await this.queueService.addActivityImportJobs(
+        account,
+        newActivities,
+        true,
+      );
+
+      this.logger.log(
+        `Successfully queued ${newActivities.length} activities for import (out of ${activities.length} total)`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+
+      this.logger.error(
+        `Error in fetchInitialStravaData for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      // Re-throw to be caught by the caller
+      throw error;
     }
-
-    // Add all activities to the import queue (skip weather for bulk import)
-    await this.queueService.addActivityImportJobs(account, newActivities, true);
-
-    this.logger.log(
-      `Queued ${newActivities.length} activities for import (out of ${activities.length} total)`,
-    );
   }
 
   /**

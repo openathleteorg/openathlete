@@ -22,6 +22,28 @@ import { QueueService } from './queue.service';
         const redisUrl = process.env.REDIS_URL;
         const logger = new Logger('QueueModule');
 
+        // Common Redis connection options for better error handling
+        // Note: Bull doesn't allow enableReadyCheck or maxRetriesPerRequest
+        // See: https://github.com/OptimalBits/bull/issues/1873
+        const redisOptions = {
+          retryStrategy: (times: number) => {
+            if (times > 3) {
+              logger.error(
+                `Redis connection failed after ${times} attempts, giving up`,
+              );
+              return null; // Stop retrying
+            }
+            const delay = Math.min(times * 200, 2000);
+            logger.warn(
+              `Redis connection attempt ${times} failed, retrying in ${delay}ms`,
+            );
+            return delay;
+          },
+          lazyConnect: false,
+          connectTimeout: 10000, // 10 seconds timeout
+          commandTimeout: 5000, // 5 seconds command timeout
+        };
+
         if (!redisUrl) {
           logger.warn(
             'REDIS_URL not set, using default Redis connection (localhost:6379)',
@@ -30,13 +52,64 @@ import { QueueService } from './queue.service';
             redis: {
               host: 'localhost',
               port: 6379,
+              ...redisOptions,
             },
           };
         }
 
-        return {
-          redis: redisUrl,
-        };
+        // Try to parse the URL to extract connection details
+        // If parsing fails, use the URL string directly (ioredis supports both)
+        try {
+          const url = new URL(redisUrl);
+          const config: {
+            host: string;
+            port: number;
+            password?: string;
+            db?: number;
+            retryStrategy: (times: number) => number | null;
+            lazyConnect: boolean;
+            connectTimeout: number;
+            commandTimeout: number;
+          } = {
+            host: url.hostname,
+            port: parseInt(url.port || '6379', 10),
+            ...redisOptions,
+          };
+
+          // Extract password if present (format: redis://:password@host:port/db)
+          if (url.password) {
+            config.password = decodeURIComponent(url.password);
+          }
+
+          // Extract database number if present (format: redis://host:port/0)
+          if (url.pathname && url.pathname.length > 1) {
+            const db = parseInt(url.pathname.slice(1), 10);
+            if (!isNaN(db)) {
+              config.db = db;
+            }
+          }
+
+          logger.log(
+            `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})`,
+          );
+
+          return {
+            redis: config,
+          };
+        } catch (parseError) {
+          // If URL parsing fails, use the string directly
+          // ioredis will handle the URL string, but we can't add custom options
+          logger.warn(
+            `Could not parse REDIS_URL (${redisUrl}), using as-is. Some connection options may not apply.`,
+          );
+          logger.warn(
+            'Consider using format: redis://[:password]@host:port[/db] for better error handling',
+          );
+
+          return {
+            redis: redisUrl,
+          };
+        }
       },
     }),
     BullModule.registerQueue(

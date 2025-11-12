@@ -39,46 +39,88 @@ export class QueueService {
     activity: ImportedActivity,
     skipWeather = false,
   ): Promise<void> {
-    // Use negative timestamp as priority (Bull uses higher priority first)
-    // Most recent activities (higher timestamp) get higher priority
-    const priority = -new Date(activity.startDate).getTime();
-    const jobId = `import-${account.provider}-${activity.externalId}`;
+    try {
+      // Use negative timestamp as priority (Bull uses higher priority first)
+      // Most recent activities (higher timestamp) get higher priority
+      const priority = -new Date(activity.startDate).getTime();
+      const jobId = `import-${account.provider}-${activity.externalId}`;
 
-    // Check if job already exists
-    const existingJob = await this.activityImportQueue.getJob(jobId);
-    if (existingJob) {
-      const state = await existingJob.getState();
-      if (state === 'completed' || state === 'failed') {
-        // Remove old job to allow re-import
-        await existingJob.remove();
-        this.logger.debug(
-          `Removed existing ${state} job ${jobId} to allow re-import`,
+      // Check if job already exists
+      let existingJob;
+      try {
+        existingJob = await this.activityImportQueue.getJob(jobId);
+      } catch (error) {
+        this.logger.error(
+          `Failed to check for existing job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
         );
-      } else {
-        // Job is already active or waiting, skip
-        this.logger.debug(
-          `Job ${jobId} already exists with state ${state}, skipping`,
-        );
-        return;
+        throw error; // Re-throw Redis errors
       }
+
+      if (existingJob) {
+        try {
+          const state = await existingJob.getState();
+          if (state === 'completed' || state === 'failed') {
+            // Remove old job to allow re-import
+            await existingJob.remove();
+            this.logger.debug(
+              `Removed existing ${state} job ${jobId} to allow re-import`,
+            );
+          } else {
+            // Job is already active or waiting, skip
+            this.logger.debug(
+              `Job ${jobId} already exists with state ${state}, skipping`,
+            );
+            return;
+          }
+        } catch (error) {
+          this.logger.error(
+            `Failed to check/remove existing job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          throw error; // Re-throw Redis errors
+        }
+      }
+
+      const job = await this.activityImportQueue.add(
+        'import',
+        {
+          providerAccountId: account.provider_account_id,
+          activity,
+          skipWeather,
+        },
+        {
+          priority,
+          jobId,
+        },
+      );
+
+      this.logger.log(
+        `Added activity import job for ${activity.externalId} (jobId: ${jobId}, priority: ${priority}, queueJobId: ${job.id})`,
+      );
+    } catch (error) {
+      // Log detailed error information for Redis connection issues
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+
+      this.logger.error(
+        `Failed to add activity import job for ${activity.externalId} (provider: ${account.provider}, accountId: ${account.provider_account_id}): ${errorName}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      // Check if it's a Redis connection error
+      if (
+        errorName === 'MaxRetriesPerRequestError' ||
+        errorMessage.includes('ECONNREFUSED') ||
+        errorMessage.includes('Redis') ||
+        errorMessage.includes('Connection')
+      ) {
+        this.logger.error(
+          `Redis connection error detected. Please check: 1) Redis is running, 2) REDIS_URL is correctly configured, 3) Network connectivity to Redis server.`,
+        );
+      }
+
+      throw error; // Re-throw to allow caller to handle
     }
-
-    const job = await this.activityImportQueue.add(
-      'import',
-      {
-        providerAccountId: account.provider_account_id,
-        activity,
-        skipWeather,
-      },
-      {
-        priority,
-        jobId,
-      },
-    );
-
-    this.logger.log(
-      `Added activity import job for ${activity.externalId} (jobId: ${jobId}, priority: ${priority}, queueJobId: ${job.id})`,
-    );
   }
 
   /**
@@ -90,65 +132,106 @@ export class QueueService {
     activities: ImportedActivity[],
     skipWeather = false,
   ): Promise<void> {
-    // Sort activities by start date (most recent first)
-    const sortedActivities = [...activities].sort(
-      (a, b) =>
-        new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
-    );
+    try {
+      // Sort activities by start date (most recent first)
+      const sortedActivities = [...activities].sort(
+        (a, b) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+      );
 
-    // Check and clean up existing jobs before adding
-    const jobsToAdd: Array<{
-      name: string;
-      data: ActivityImportJobData;
-      opts: { priority: number; jobId: string };
-    }> = [];
-    for (const activity of sortedActivities) {
-      const jobId = `import-${account.provider}-${activity.externalId}`;
-      const existingJob = await this.activityImportQueue.getJob(jobId);
-
-      if (existingJob) {
-        const state = await existingJob.getState();
-        if (state === 'completed' || state === 'failed') {
-          await existingJob.remove();
-          this.logger.debug(
-            `Removed existing ${state} job ${jobId} to allow re-import`,
+      // Check and clean up existing jobs before adding
+      const jobsToAdd: Array<{
+        name: string;
+        data: ActivityImportJobData;
+        opts: { priority: number; jobId: string };
+      }> = [];
+      for (const activity of sortedActivities) {
+        const jobId = `import-${account.provider}-${activity.externalId}`;
+        let existingJob;
+        try {
+          existingJob = await this.activityImportQueue.getJob(jobId);
+        } catch (error) {
+          this.logger.error(
+            `Failed to check for existing job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
           );
-        } else {
-          // Job is already active or waiting, skip
-          this.logger.debug(
-            `Job ${jobId} already exists with state ${state}, skipping`,
-          );
-          continue;
+          // Continue with adding the job even if check fails
         }
+
+        if (existingJob) {
+          try {
+            const state = await existingJob.getState();
+            if (state === 'completed' || state === 'failed') {
+              await existingJob.remove();
+              this.logger.debug(
+                `Removed existing ${state} job ${jobId} to allow re-import`,
+              );
+            } else {
+              // Job is already active or waiting, skip
+              this.logger.debug(
+                `Job ${jobId} already exists with state ${state}, skipping`,
+              );
+              continue;
+            }
+          } catch (error) {
+            this.logger.error(
+              `Failed to check/remove existing job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+            // Continue with adding the job even if check/remove fails
+          }
+        }
+
+        const priority = -new Date(activity.startDate).getTime();
+        jobsToAdd.push({
+          name: 'import',
+          data: {
+            providerAccountId: account.provider_account_id,
+            activity,
+            skipWeather,
+          },
+          opts: {
+            priority,
+            jobId,
+          },
+        });
       }
 
-      const priority = -new Date(activity.startDate).getTime();
-      jobsToAdd.push({
-        name: 'import',
-        data: {
-          providerAccountId: account.provider_account_id,
-          activity,
-          skipWeather,
-        },
-        opts: {
-          priority,
-          jobId,
-        },
-      });
-    }
+      if (jobsToAdd.length === 0) {
+        this.logger.log(
+          `No new jobs to add for provider ${account.provider} (all already exist)`,
+        );
+        return;
+      }
 
-    if (jobsToAdd.length === 0) {
+      const addedJobs = await this.activityImportQueue.addBulk(jobsToAdd);
+
       this.logger.log(
-        `No new jobs to add for provider ${account.provider} (all already exist)`,
+        `Added ${addedJobs.length} activity import jobs to queue for provider ${account.provider}`,
       );
-      return;
+    } catch (error) {
+      // Log detailed error information for Redis connection issues
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+
+      this.logger.error(
+        `Failed to add activity import jobs for provider ${account.provider} (accountId: ${account.provider_account_id}, activities: ${activities.length}): ${errorName}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      // Check if it's a Redis connection error
+      if (
+        errorName === 'MaxRetriesPerRequestError' ||
+        errorMessage.includes('ECONNREFUSED') ||
+        errorMessage.includes('Redis') ||
+        errorMessage.includes('Connection')
+      ) {
+        this.logger.error(
+          `Redis connection error detected while adding ${activities.length} activities. Please check: 1) Redis is running, 2) REDIS_URL is correctly configured, 3) Network connectivity to Redis server. Activities will not be synchronized until Redis is available.`,
+        );
+      }
+
+      throw error; // Re-throw to allow caller to handle
     }
-
-    const addedJobs = await this.activityImportQueue.addBulk(jobsToAdd);
-
-    this.logger.log(
-      `Added ${addedJobs.length} activity import jobs to queue for provider ${account.provider}`,
-    );
   }
 
   /**
@@ -159,15 +242,40 @@ export class QueueService {
     eventId: number,
     skipWeather = false,
   ): Promise<void> {
-    await this.activityProcessingQueue.add({
-      eventActivityId,
-      eventId,
-      skipWeather,
-    });
+    try {
+      await this.activityProcessingQueue.add({
+        eventActivityId,
+        eventId,
+        skipWeather,
+      });
 
-    this.logger.debug(
-      `Added activity processing job for eventActivityId ${eventActivityId}`,
-    );
+      this.logger.debug(
+        `Added activity processing job for eventActivityId ${eventActivityId}`,
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorName = error instanceof Error ? error.name : 'UnknownError';
+
+      this.logger.error(
+        `Failed to add activity processing job for eventActivityId ${eventActivityId}: ${errorName}: ${errorMessage}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      // Check if it's a Redis connection error
+      if (
+        errorName === 'MaxRetriesPerRequestError' ||
+        errorMessage.includes('ECONNREFUSED') ||
+        errorMessage.includes('Redis') ||
+        errorMessage.includes('Connection')
+      ) {
+        this.logger.error(
+          `Redis connection error detected. Please check: 1) Redis is running, 2) REDIS_URL is correctly configured, 3) Network connectivity to Redis server.`,
+        );
+      }
+
+      throw error; // Re-throw to allow caller to handle
+    }
   }
 
   /**
