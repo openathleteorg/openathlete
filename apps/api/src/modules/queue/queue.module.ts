@@ -157,8 +157,20 @@ import { QueueService } from './queue.service';
             config.db = db;
           }
 
+          // Check if host is IPv6 (contains colons and no dots)
+          const isIPv6 =
+            config.host.includes(':') && !config.host.includes('.');
+          if (isIPv6) {
+            logger.warn(
+              `Redis host is IPv6 (${config.host}). Ensure IPv6 is enabled and routable in your container environment.`,
+            );
+          }
+
           logger.log(
             `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})`,
+          );
+          logger.debug(
+            `Redis connection details: host=${config.host}, port=${config.port}, isIPv6=${isIPv6}, hasPassword=${!!config.password}, db=${config.db ?? 0}`,
           );
 
           return {
