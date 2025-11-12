@@ -51,6 +51,39 @@ else
   exit 1
 fi
 
+# Handle REDIS_URL (optional, has default value)
+# Scaleway Secret Manager stores secrets as base64-encoded strings
+# When injected as environment variables, they may still be encoded
+# Try to decode if it looks like base64 and doesn't start with redis://
+if [ -n "$REDIS_URL" ]; then
+  # Check if it's base64 encoded (doesn't start with redis://)
+  if ! echo "$REDIS_URL" | grep -qE '^redis://'; then
+    echo "${YELLOW}Detected base64-encoded REDIS_URL, decoding...${NC}"
+    # Try to decode base64
+    DECODED=$(echo "$REDIS_URL" | base64 -d 2>/dev/null)
+    if [ $? -eq 0 ] && echo "$DECODED" | grep -qE '^redis://'; then
+      REDIS_URL="$DECODED"
+      echo "${GREEN}✓ Successfully decoded REDIS_URL${NC}"
+    else
+      echo "${YELLOW}WARNING: Failed to decode REDIS_URL or decoded value is invalid, using as-is${NC}"
+    fi
+  fi
+  
+  # Debug: Show that REDIS_URL is available (without exposing the full value)
+  echo "${GREEN}✓ REDIS_URL is set (length: ${#REDIS_URL} chars)${NC}"
+  PROTOCOL=$(echo "$REDIS_URL" | cut -d: -f1)
+  echo "${YELLOW}  Protocol: ${PROTOCOL}${NC}"
+  
+  # Verify it starts with redis:// (warn but don't fail, as it has a default)
+  if [ "$PROTOCOL" != "redis" ]; then
+    echo "${YELLOW}WARNING: REDIS_URL should start with redis://${NC}"
+    echo "${YELLOW}  Got: ${PROTOCOL}://...${NC}"
+  fi
+  
+  # Export REDIS_URL explicitly to ensure it's available to the application
+  export REDIS_URL
+fi
+
 # Run Prisma migrations directly
 # prisma.config.js handles multi-file schema
 # Note: When prisma.config.js is present, Prisma skips auto-loading env vars from .env files,
