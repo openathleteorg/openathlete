@@ -59,29 +59,54 @@ import { QueueService } from './queue.service';
 
         // Try to parse the URL to extract connection details
         // Handle IPv6 addresses and URL-encoded passwords manually
-        // Format: redis://[:password]@[host]:port[/db] or redis://:password@ipv6:port/db
+        // Format: redis://[:password]@[host]:port[/db] or redis://username:password@host:port/db
         try {
           // Manual parsing to handle IPv6 without brackets and URL-encoded passwords
-          // Pattern: redis://(:password@)?host:port(/db)?
+          // Pattern: redis://(username:)?password@host:port(/db)?
           // For IPv6 without brackets, we need to find the last : before / or end
-          const urlMatch = redisUrl.match(/^redis:\/\/(?::([^@]+)@)?(.+)$/);
-          if (!urlMatch) {
-            throw new Error('Invalid Redis URL format');
-          }
+          let hostPortDbToParse: string;
+          let decodedPasswordToUse: string | undefined;
+          let usernameToUse: string | undefined;
 
-          const [, password, hostPortDb] = urlMatch;
+          // Try format with username first: redis://username:password@host
+          const urlMatchWithUser = redisUrl.match(
+            /^redis:\/\/([^:]+):([^@]+)@(.+)$/,
+          );
+          if (urlMatchWithUser) {
+            const [, username, password, hostPortDb] = urlMatchWithUser;
+            usernameToUse = username;
 
-          // Extract password (decode if URL-encoded)
-          let decodedPassword: string | undefined;
-          if (password) {
+            // Extract password (decode if URL-encoded)
             try {
-              decodedPassword = decodeURIComponent(password);
+              decodedPasswordToUse = decodeURIComponent(password);
             } catch {
-              decodedPassword = password;
+              decodedPasswordToUse = password;
             }
+
+            hostPortDbToParse = hostPortDb;
+          } else {
+            // Try format without username: redis://:password@host or redis://host
+            const urlMatchNoUser = redisUrl.match(
+              /^redis:\/\/(?::([^@]+)@)?(.+)$/,
+            );
+            if (!urlMatchNoUser) {
+              throw new Error('Invalid Redis URL format');
+            }
+            const [, password, hostPortDb] = urlMatchNoUser;
+
+            // Extract password (decode if URL-encoded)
+            if (password) {
+              try {
+                decodedPasswordToUse = decodeURIComponent(password);
+              } catch {
+                decodedPasswordToUse = password;
+              }
+            }
+
+            hostPortDbToParse = hostPortDb;
           }
 
-          // Parse host:port/db
+          // Parse host:port/db using hostPortDbToParse
           // Handle IPv6 in brackets: [host]:port/db
           // Handle IPv6 without brackets: host:port/db (find last : before / or end)
           // Handle IPv4: host:port/db
@@ -90,7 +115,7 @@ import { QueueService } from './queue.service';
           let db: number | undefined;
 
           // Check if IPv6 is in brackets
-          const bracketedMatch = hostPortDb.match(
+          const bracketedMatch = hostPortDbToParse.match(
             /^\[([^\]]+)\](?::(\d+))?(?:\/(\d+))?$/,
           );
           if (bracketedMatch) {
@@ -102,25 +127,25 @@ import { QueueService } from './queue.service';
           } else {
             // No brackets - need to find last : before / or end
             // Format: host:port/db or host:port
-            const lastColonIndex = hostPortDb.lastIndexOf(':');
-            const slashIndex = hostPortDb.indexOf('/', lastColonIndex);
+            const lastColonIndex = hostPortDbToParse.lastIndexOf(':');
+            const slashIndex = hostPortDbToParse.indexOf('/', lastColonIndex);
 
             if (lastColonIndex !== -1) {
               // Extract port (between last : and / or end)
               const portStr =
                 slashIndex !== -1
-                  ? hostPortDb.substring(lastColonIndex + 1, slashIndex)
-                  : hostPortDb.substring(lastColonIndex + 1);
+                  ? hostPortDbToParse.substring(lastColonIndex + 1, slashIndex)
+                  : hostPortDbToParse.substring(lastColonIndex + 1);
 
               port = parseInt(portStr, 10);
               if (isNaN(port)) {
                 port = 6379; // Default port
-                host = hostPortDb; // No port found, entire string is host
+                host = hostPortDbToParse; // No port found, entire string is host
               } else {
-                host = hostPortDb.substring(0, lastColonIndex);
+                host = hostPortDbToParse.substring(0, lastColonIndex);
                 // Extract db if present
                 if (slashIndex !== -1) {
-                  const dbStr = hostPortDb.substring(slashIndex + 1);
+                  const dbStr = hostPortDbToParse.substring(slashIndex + 1);
                   const dbNum = parseInt(dbStr, 10);
                   if (!isNaN(dbNum)) {
                     db = dbNum;
@@ -129,7 +154,7 @@ import { QueueService } from './queue.service';
               }
             } else {
               // No colon found, entire string is host
-              host = hostPortDb;
+              host = hostPortDbToParse;
               port = 6379;
             }
           }
@@ -137,6 +162,7 @@ import { QueueService } from './queue.service';
           const config: {
             host: string;
             port: number;
+            username?: string;
             password?: string;
             db?: number;
             retryStrategy: (times: number) => number | null;
@@ -149,8 +175,12 @@ import { QueueService } from './queue.service';
             ...redisOptions,
           };
 
-          if (decodedPassword) {
-            config.password = decodedPassword;
+          if (usernameToUse) {
+            config.username = usernameToUse;
+          }
+
+          if (decodedPasswordToUse) {
+            config.password = decodedPasswordToUse;
           }
 
           if (db !== undefined) {
