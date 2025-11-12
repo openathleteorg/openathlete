@@ -58,9 +58,82 @@ import { QueueService } from './queue.service';
         }
 
         // Try to parse the URL to extract connection details
-        // If parsing fails, use the URL string directly (ioredis supports both)
+        // Handle IPv6 addresses and URL-encoded passwords manually
+        // Format: redis://[:password]@[host]:port[/db] or redis://:password@ipv6:port/db
         try {
-          const url = new URL(redisUrl);
+          // Manual parsing to handle IPv6 without brackets and URL-encoded passwords
+          // Pattern: redis://(:password@)?host:port(/db)?
+          // For IPv6 without brackets, we need to find the last : before / or end
+          const urlMatch = redisUrl.match(/^redis:\/\/(?::([^@]+)@)?(.+)$/);
+          if (!urlMatch) {
+            throw new Error('Invalid Redis URL format');
+          }
+
+          const [, password, hostPortDb] = urlMatch;
+
+          // Extract password (decode if URL-encoded)
+          let decodedPassword: string | undefined;
+          if (password) {
+            try {
+              decodedPassword = decodeURIComponent(password);
+            } catch {
+              decodedPassword = password;
+            }
+          }
+
+          // Parse host:port/db
+          // Handle IPv6 in brackets: [host]:port/db
+          // Handle IPv6 without brackets: host:port/db (find last : before / or end)
+          // Handle IPv4: host:port/db
+          let host: string;
+          let port: number;
+          let db: number | undefined;
+
+          // Check if IPv6 is in brackets
+          const bracketedMatch = hostPortDb.match(
+            /^\[([^\]]+)\](?::(\d+))?(?:\/(\d+))?$/,
+          );
+          if (bracketedMatch) {
+            host = bracketedMatch[1];
+            port = bracketedMatch[2] ? parseInt(bracketedMatch[2], 10) : 6379;
+            db = bracketedMatch[3]
+              ? parseInt(bracketedMatch[3], 10)
+              : undefined;
+          } else {
+            // No brackets - need to find last : before / or end
+            // Format: host:port/db or host:port
+            const lastColonIndex = hostPortDb.lastIndexOf(':');
+            const slashIndex = hostPortDb.indexOf('/', lastColonIndex);
+
+            if (lastColonIndex !== -1) {
+              // Extract port (between last : and / or end)
+              const portStr =
+                slashIndex !== -1
+                  ? hostPortDb.substring(lastColonIndex + 1, slashIndex)
+                  : hostPortDb.substring(lastColonIndex + 1);
+
+              port = parseInt(portStr, 10);
+              if (isNaN(port)) {
+                port = 6379; // Default port
+                host = hostPortDb; // No port found, entire string is host
+              } else {
+                host = hostPortDb.substring(0, lastColonIndex);
+                // Extract db if present
+                if (slashIndex !== -1) {
+                  const dbStr = hostPortDb.substring(slashIndex + 1);
+                  const dbNum = parseInt(dbStr, 10);
+                  if (!isNaN(dbNum)) {
+                    db = dbNum;
+                  }
+                }
+              }
+            } else {
+              // No colon found, entire string is host
+              host = hostPortDb;
+              port = 6379;
+            }
+          }
+
           const config: {
             host: string;
             port: number;
@@ -71,22 +144,17 @@ import { QueueService } from './queue.service';
             connectTimeout: number;
             commandTimeout: number;
           } = {
-            host: url.hostname,
-            port: parseInt(url.port || '6379', 10),
+            host,
+            port,
             ...redisOptions,
           };
 
-          // Extract password if present (format: redis://:password@host:port/db)
-          if (url.password) {
-            config.password = decodeURIComponent(url.password);
+          if (decodedPassword) {
+            config.password = decodedPassword;
           }
 
-          // Extract database number if present (format: redis://host:port/0)
-          if (url.pathname && url.pathname.length > 1) {
-            const db = parseInt(url.pathname.slice(1), 10);
-            if (!isNaN(db)) {
-              config.db = db;
-            }
+          if (db !== undefined) {
+            config.db = db;
           }
 
           logger.log(
@@ -100,10 +168,10 @@ import { QueueService } from './queue.service';
           // If URL parsing fails, use the string directly
           // ioredis will handle the URL string, but we can't add custom options
           logger.warn(
-            `Could not parse REDIS_URL (${redisUrl}), using as-is. Some connection options may not apply.`,
+            `Could not parse REDIS_URL, using as-is. Some connection options may not apply.`,
           );
-          logger.warn(
-            'Consider using format: redis://[:password]@host:port[/db] for better error handling',
+          logger.debug(
+            `REDIS_URL value (first 50 chars): ${redisUrl.substring(0, 50)}...`,
           );
 
           return {
