@@ -32,7 +32,7 @@ export default function LegalNoticePage() {
         <p>{m.legal_notice_hosting_content()}</p>
         <ul>
           <li>{m.legal_notice_hosting_list_1()}</li>
-          <li>{m.legal_notice_hosting_list_2()}</li>
+          {m.legal_notice_hosting_list_2() && <li>{m.legal_notice_hosting_list_2()}</li>}
         </ul>
 
         <h2>{m.legal_notice_contact_title()}</h2>
