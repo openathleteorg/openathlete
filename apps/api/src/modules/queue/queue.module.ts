@@ -48,10 +48,10 @@ import { QueueService } from './queue.service';
             );
             return delay;
           },
-          // Use lazyConnect for workers to allow startup even if Redis isn't ready
-          // Connection will be established on first use (when a job is processed)
-          // IMPORTANT: lazyConnect only works with object config, not URL strings
-          lazyConnect: isWorker,
+          // For workers, don't use lazyConnect - instead use retryStrategy to handle connection delays
+          // lazyConnect can prevent Bull from connecting even when jobs are available
+          // Better to retry connection attempts with longer delays
+          lazyConnect: false, // Always connect, but retryStrategy will handle delays
           connectTimeout: 10000, // 10 seconds timeout
           commandTimeout: 5000, // 5 seconds command timeout
         };
