@@ -1,6 +1,7 @@
-import { Job } from 'bull';
+import { Job, Queue } from 'bull';
 
 import {
+  InjectQueue,
   OnQueueActive,
   OnQueueCompleted,
   OnQueueFailed,
@@ -43,6 +44,8 @@ export class ActivityImportProcessor implements OnModuleInit {
     @Inject(forwardRef(() => CorosProviderService))
     corosProviderService: CorosProviderService,
     private readonly queueService: QueueService,
+    @InjectQueue('activity-import')
+    private readonly activityImportQueue: Queue<ActivityImportJobData>,
   ) {
     // Store providers for later use (they might not be available immediately due to circular deps)
     this.stravaProviderService = stravaProviderService;
@@ -58,6 +61,29 @@ export class ActivityImportProcessor implements OnModuleInit {
         'ActivityImportProcessor disabled (ENABLE_ACTIVITY_IMPORT not set to true)',
       );
       return;
+    }
+
+    // Force Redis connection by accessing the queue
+    // This ensures Bull connects even if it hasn't connected yet
+    // Workers only read jobs, so we need to force the connection
+    try {
+      // Access the queue's Redis client to force connection
+      const client = (this.activityImportQueue as any).client;
+      if (client) {
+        // Check if already connected
+        if (client.status === 'ready') {
+          this.logger.log('Redis already connected for activity-import queue');
+        } else {
+          // Force connection attempt (will use retryStrategy if it fails)
+          await client.connect();
+          this.logger.log('Redis connection established for activity-import queue');
+        }
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Failed to force Redis connection: ${error instanceof Error ? error.message : String(error)}. Will retry automatically.`,
+      );
+      // Don't throw - connection will be retried automatically via retryStrategy
     }
 
     this.logger.log(
