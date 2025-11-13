@@ -18,7 +18,7 @@ export class ActivityProcessingProcessor {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @Process()
+  @Process({ concurrency: 2 })
   async handleActivityProcessing(job: Job<ActivityProcessingJobData>) {
     const { eventActivityId, eventId, skipWeather } = job.data;
 

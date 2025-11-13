@@ -83,7 +83,7 @@ export class ActivityImportProcessor implements OnModuleInit {
     );
   }
 
-  @Process('import')
+  @Process({ name: 'import', concurrency: 3 })
   async handleActivityImport(job: Job<ActivityImportJobData>) {
     const { providerAccountId, activity, skipWeather } = job.data;
     const startTime = Date.now();

@@ -21,7 +21,7 @@ variable "app_name" {
 variable "container_min_scale" {
   description = "Minimum number of serverless container instances (0 to scale-to-zero)."
   type        = number
-  default     = 0
+  default     = 1
 }
 
 variable "container_max_scale" {
