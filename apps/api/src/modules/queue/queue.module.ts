@@ -50,6 +50,7 @@ import { QueueService } from './queue.service';
           },
           // Use lazyConnect for workers to allow startup even if Redis isn't ready
           // Connection will be established on first use (when a job is processed)
+          // IMPORTANT: lazyConnect only works with object config, not URL strings
           lazyConnect: isWorker,
           connectTimeout: 10000, // 10 seconds timeout
           commandTimeout: 5000, // 5 seconds command timeout
@@ -208,10 +209,10 @@ import { QueueService } from './queue.service';
           }
 
           logger.log(
-            `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})`,
+            `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})${isWorker ? ' [WORKER MODE: lazyConnect enabled]' : ''}`,
           );
           logger.debug(
-            `Redis connection details: host=${config.host}, port=${config.port}, isIPv6=${isIPv6}, hasPassword=${!!config.password}, db=${config.db ?? 0}`,
+            `Redis connection details: host=${config.host}, port=${config.port}, isIPv6=${isIPv6}, hasPassword=${!!config.password}, db=${config.db ?? 0}, lazyConnect=${config.lazyConnect}`,
           );
 
           return {
