@@ -32,7 +32,11 @@ import { QueueModule } from './queue';
   providers: [
     PrismaService,
     NotificationListener,
-    TrainingLoadListener,
+    // Only register TrainingLoadListener if ENABLE_ACTIVITY_PROCESSING is true
+    // Training load is calculated after activity processing, so it should be on the same instances
+    ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
+      ? [TrainingLoadListener]
+      : []),
     WorkoutSyncListener,
   ],
 })

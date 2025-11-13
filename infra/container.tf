@@ -44,6 +44,7 @@ resource "scaleway_container" "api" {
     OPENAI_API_KEY = scaleway_secret_version.openai_api_key_v.data
     BREVO_API_KEY = scaleway_secret_version.brevo_api_key_v.data
     ENABLE_ACTIVITY_IMPORT = "false"
+    ENABLE_ACTIVITY_PROCESSING = "false"
   }
 
   depends_on = [
@@ -86,6 +87,7 @@ resource "scaleway_container" "import_worker" {
     STRAVA_CLIENT_SECRET = scaleway_secret_version.strava_client_secret_v.data
     STRAVA_REDIRECT_URI = "https://openathlete.org/auth/callback/strava"
     ENABLE_ACTIVITY_IMPORT = "true"
+    ENABLE_ACTIVITY_PROCESSING = "true"
   }
 
   depends_on = [

@@ -16,7 +16,14 @@ export class ActivityProcessingProcessor {
   constructor(
     private readonly pipeline: ActivityPipelineService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) {
+    // Check if processing is enabled
+    if (process.env.ENABLE_ACTIVITY_PROCESSING !== 'true') {
+      this.logger.warn(
+        'ActivityProcessingProcessor disabled (ENABLE_ACTIVITY_PROCESSING not set to true)',
+      );
+    }
+  }
 
   @Process({ concurrency: 2 })
   async handleActivityProcessing(job: Job<ActivityProcessingJobData>) {

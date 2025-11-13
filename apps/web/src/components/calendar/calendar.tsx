@@ -1,6 +1,7 @@
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
+import { m } from '@/paraglide/messages';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import {
   DndContext,
@@ -10,6 +11,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -32,6 +34,7 @@ interface P {
   athleteId?: number;
   allowCreate?: boolean;
   onMonthChange?: (month: Date) => void;
+  isLoading?: boolean;
 }
 
 export function Calendar({
@@ -39,6 +42,7 @@ export function Calendar({
   athleteId,
   allowCreate = true,
   onMonthChange,
+  isLoading = false,
 }: P) {
   const calendarData = useCalendarData({ events });
   const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
@@ -267,9 +271,21 @@ export function Calendar({
     <div className="flex flex-col gap-3">
       <CalendarContext.Provider value={memoizedValue}>
         <CalendarHeader />
-        <DndContext onDragEnd={dndOnDragEnd} sensors={sensors}>
-          <CalendarBody />
-        </DndContext>
+        <div className="relative">
+          <div className={isLoading ? 'opacity-50 transition-opacity' : ''}>
+            <DndContext onDragEnd={dndOnDragEnd} sensors={sensors}>
+              <CalendarBody />
+            </DndContext>
+          </div>
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-lg z-10">
+              <div className="flex flex-col items-center gap-2">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">{m.loading()}</p>
+              </div>
+            </div>
+          )}
+        </div>
         <CreateEventDialog
           key={createEventDialog?.date?.toDateString()}
           open={createEventDialog !== null}

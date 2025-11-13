@@ -277,7 +277,11 @@ import { QueueService } from './queue.service';
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
       ? [ActivityImportProcessor]
       : []),
-    ActivityProcessingProcessor,
+    // Only register ActivityProcessingProcessor if ENABLE_ACTIVITY_PROCESSING is true
+    // This allows only specific instances to process activity processing jobs
+    ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
+      ? [ActivityProcessingProcessor]
+      : []),
   ],
   exports: [QueueService],
 })

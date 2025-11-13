@@ -24,7 +24,7 @@ export function CalendarView() {
     return { startDate: start, endDate: end };
   }, [displayedMonth]);
 
-  const { data, refetch } = useGetMyEventsQuery(
+  const { data, refetch, isPending } = useGetMyEventsQuery(
     space === 'COACH' ? true : undefined,
     undefined,
     startDate,
@@ -46,6 +46,7 @@ export function CalendarView() {
         athleteId={space === 'ATHLETE' ? athlete?.athleteId : undefined}
         allowCreate={space === 'ATHLETE'}
         onMonthChange={handleMonthChange}
+        isLoading={isPending}
       />
     </div>
   );

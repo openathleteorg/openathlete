@@ -25,7 +25,7 @@ export function AthleteCalendarView({ athleteId }: P) {
     return { startDate: start, endDate: end };
   }, [displayedMonth]);
 
-  const { data, refetch, isError } = useGetMyEventsQuery(
+  const { data, refetch, isError, isFetching } = useGetMyEventsQuery(
     true,
     athleteId,
     startDate,
@@ -52,6 +52,7 @@ export function AthleteCalendarView({ athleteId }: P) {
         events={data}
         athleteId={athleteId}
         onMonthChange={handleMonthChange}
+        isLoading={isFetching}
       />
     </div>
   );
