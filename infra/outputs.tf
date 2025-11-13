@@ -43,4 +43,9 @@ output "container_namespace_id" {
   description = "Serverless Container namespace ID."
 }
 
+output "import_worker_container_id" {
+  value       = scaleway_container.import_worker.id
+  description = "Serverless Container ID for the import worker."
+}
+
 

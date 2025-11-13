@@ -1,4 +1,4 @@
-name: Deploy API to Scaleway
+name: Deploy API and Worker to Scaleway
 
 on:
   push:
@@ -166,5 +166,80 @@ jobs:
           UPDATED_STATUS=$(echo "$UPDATED_RESPONSE" | jq -r '.status // "unknown"')
           echo "Container status: ${UPDATED_STATUS}"
           echo "Container will automatically deploy with the new image."
+
+      - name: Update Import Worker Container image
+        env:
+          SCW_ACCESS_KEY: ${{ secrets.SCW_ACCESS_KEY }}
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_PROJECT_ID: ${{ secrets.SCW_DEFAULT_PROJECT_ID }}
+          SCW_REGION: ${{ env.SCW_REGION }}
+          WORKER_CONTAINER_ID: ${{ secrets.WORKER_CONTAINER_ID }}
+        run: |
+          set -x
+          IMAGE="rg.${SCW_REGION}.scw.cloud/${{ secrets.REGISTRY_NAMESPACE }}/openathlete:${GITHUB_SHA}"
+          
+          # Handle WORKER_CONTAINER_ID format: could be "region/id" or just "id"
+          if [[ "$WORKER_CONTAINER_ID" == *"/"* ]]; then
+            # Format: "fr-par/xxx-xxx-xxx" - extract just the ID part
+            WORKER_CONTAINER_ID_ONLY="${WORKER_CONTAINER_ID#*/}"
+            echo "Worker Container ID format detected: region/id, using ID only: ${WORKER_CONTAINER_ID_ONLY}"
+          else
+            # Format: just the ID
+            WORKER_CONTAINER_ID_ONLY="${WORKER_CONTAINER_ID}"
+            echo "Worker Container ID format: ID only: ${WORKER_CONTAINER_ID_ONLY}"
+          fi
+          
+          echo "Updating worker container ${WORKER_CONTAINER_ID_ONLY} (region: ${SCW_REGION}) to image ${IMAGE}"
+          
+          # Get current container state
+          echo "Fetching current worker container state..."
+          WORKER_CONTAINER_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${WORKER_CONTAINER_ID_ONLY}")
+          echo "$WORKER_CONTAINER_RESPONSE" | jq '.' || echo "Worker container not found with ID: ${WORKER_CONTAINER_ID_ONLY}"
+          
+          # Check if container exists
+          if echo "$WORKER_CONTAINER_RESPONSE" | jq -e '.id' > /dev/null 2>&1; then
+            WORKER_CONTAINER_STATUS=$(echo "$WORKER_CONTAINER_RESPONSE" | jq -r '.status // "unknown"')
+            echo "Worker container found: $(echo "$WORKER_CONTAINER_RESPONSE" | jq -r '.name // .id')"
+            echo "Current status: ${WORKER_CONTAINER_STATUS}"
+          else
+            echo "WARNING: Worker container ${WORKER_CONTAINER_ID_ONLY} not found. Will attempt update anyway..."
+          fi
+          
+          # Update container image
+          echo "Updating worker container image..."
+          WORKER_RESPONSE=$(curl -sS -w "\n%{http_code}" -X PATCH \
+            -H "Content-Type: application/json" \
+            -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${WORKER_CONTAINER_ID_ONLY}" \
+            -d "{\"registry_image\":\"${IMAGE}\"}")
+          
+          WORKER_HTTP_CODE=$(echo "$WORKER_RESPONSE" | tail -n1)
+          WORKER_BODY=$(echo "$WORKER_RESPONSE" | sed '$d')
+          
+          echo "HTTP Status: $WORKER_HTTP_CODE"
+          echo "$WORKER_BODY" | jq '.'
+          
+          if [ "$WORKER_HTTP_CODE" != "200" ] && [ "$WORKER_HTTP_CODE" != "202" ]; then
+            echo "Error: Failed to update worker container (HTTP $WORKER_HTTP_CODE)"
+            echo "Please verify:"
+            echo "  1. WORKER_CONTAINER_ID secret is correct (run: cd infra && tofu output import_worker_container_id)"
+            echo "  2. Worker container exists in region ${SCW_REGION}"
+            echo "  3. Access Key has proper permissions"
+            exit 1
+          fi
+          
+          echo "Worker container image updated successfully (HTTP $WORKER_HTTP_CODE)"
+          
+          # Wait a moment for the update to propagate
+          sleep 2
+          
+          # Check container status after update
+          echo "Checking worker container status after update..."
+          WORKER_UPDATED_RESPONSE=$(curl -sS -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            "https://api.scaleway.com/containers/v1beta1/regions/${SCW_REGION}/containers/${WORKER_CONTAINER_ID_ONLY}")
+          WORKER_UPDATED_STATUS=$(echo "$WORKER_UPDATED_RESPONSE" | jq -r '.status // "unknown"')
+          echo "Worker container status: ${WORKER_UPDATED_STATUS}"
+          echo "Worker container will automatically deploy with the new image."
 
 
