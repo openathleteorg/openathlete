@@ -142,12 +142,16 @@ export class ActivityImportProcessor implements OnModuleInit {
       // Update progress after import (before potentially long operations)
       await job.progress(50);
 
-      // Get full activity data with event for records and equipment handling
+      // Get minimal activity data needed for records and equipment handling
       const fullActivity = await this.prisma.event_activity.findUnique({
         where: {
           event_activity_id: savedActivity.event_activity_id,
         },
-        include: {
+        select: {
+          event_activity_id: true,
+          sport: true,
+          distance: true,
+          stream: true,
           event: {
             select: {
               athlete_id: true,
@@ -166,17 +170,23 @@ export class ActivityImportProcessor implements OnModuleInit {
       // Update progress before records and equipment handling
       await job.progress(60);
 
-      // Handle records and equipment (generic logic for all providers)
-      await this.handleRecordsAndEquipment({
-        event_activity_id: fullActivity.event_activity_id,
-        sport: fullActivity.sport,
-        distance: fullActivity.distance,
-        stream: fullActivity.stream as object | null,
-        event: {
-          athlete_id: fullActivity.event.athlete_id,
-          start_date: fullActivity.event.start_date,
-        },
-      });
+      // Handle records and equipment in parallel (they are independent)
+      await Promise.all([
+        this.handleEquipment(
+          fullActivity.event_activity_id,
+          fullActivity.event.athlete_id,
+          fullActivity.sport,
+          fullActivity.distance,
+        ),
+        fullActivity.stream && typeof fullActivity.stream === 'object'
+          ? this.handleRecords(
+              fullActivity.event_activity_id,
+              fullActivity.event.athlete_id,
+              fullActivity.stream as object,
+              fullActivity.event.start_date,
+            )
+          : Promise.resolve(),
+      ]);
 
       await job.progress(85);
 
@@ -205,46 +215,6 @@ export class ActivityImportProcessor implements OnModuleInit {
         error instanceof Error ? error.stack : undefined,
       );
       throw error;
-    }
-  }
-
-  /**
-   * Handle records and equipment management (generic for all providers)
-   */
-  private async handleRecordsAndEquipment(fullActivity: {
-    event_activity_id: number;
-    sport: sport_type;
-    distance: number | null;
-    stream: object | null;
-    event: { athlete_id: number; start_date: Date };
-  }): Promise<void> {
-    // Get athlete
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: fullActivity.event.athlete_id },
-    });
-
-    if (!athlete) {
-      this.logger.warn(
-        `Athlete ${fullActivity.event.athlete_id} not found for activity ${fullActivity.event_activity_id}`,
-      );
-      return;
-    }
-
-    // Handle equipment
-    await this.handleEquipment(
-      fullActivity.event_activity_id,
-      athlete.athlete_id,
-      fullActivity.sport,
-      fullActivity.distance,
-    );
-
-    if (fullActivity.stream) {
-      await this.handleRecords(
-        fullActivity.event_activity_id,
-        athlete.athlete_id,
-        fullActivity.stream,
-        fullActivity.event.start_date,
-      );
     }
   }
 
@@ -326,7 +296,7 @@ export class ActivityImportProcessor implements OnModuleInit {
       const records = computeRecords(stream);
 
       if (records.length > 0) {
-        // Create records
+        // Create records (skip duplicates to allow re-import)
         await this.prisma.record.createMany({
           data: records.map((record) => ({
             ...record,
@@ -334,6 +304,7 @@ export class ActivityImportProcessor implements OnModuleInit {
             event_activity_id: eventActivityId,
             athlete_id: athleteId,
           })),
+          skipDuplicates: true,
         });
 
         this.logger.debug(

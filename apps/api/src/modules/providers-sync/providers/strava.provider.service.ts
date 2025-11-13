@@ -271,6 +271,7 @@ export class StravaProviderService
               headers: {
                 Authorization: `Bearer ${accessToken}`,
               },
+              timeout: 15000, // 15 seconds timeout for activities list
             },
           );
           return response.data;
@@ -316,6 +317,7 @@ export class StravaProviderService
     activity: ImportedActivity,
   ): Promise<event_activity> {
     // Check if already imported
+    // TODO: After migration, use findUnique with external_id unique index
     const existing = await this.prisma.event_activity.findFirst({
       where: {
         external_id: activity.externalId,
@@ -326,10 +328,10 @@ export class StravaProviderService
       return existing;
     }
 
-    // Get athlete
+    // Get athlete (only need athlete_id, no need for user relation)
     const athlete = await this.prisma.athlete.findUnique({
       where: { athlete_id: account.athlete_id },
-      include: { user: true },
+      select: { athlete_id: true },
     });
 
     if (!athlete) {
@@ -353,7 +355,7 @@ export class StravaProviderService
       account,
       event,
       stravaActivity,
-      athlete.user_id,
+      athlete.athlete_id,
     );
 
     return savedActivity;
@@ -366,7 +368,7 @@ export class StravaProviderService
     account: provider_account,
     event: { event_id: number },
     activity: StravaSummaryActivity,
-    user_id: number,
+    athlete_id: number,
     options?: { skipWeather?: boolean },
   ): Promise<event_activity> {
     const streams = await this.makeAuthenticatedRequest<any[]>(
@@ -382,6 +384,7 @@ export class StravaProviderService
               params: {
                 keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
               },
+              timeout: 30000, // 30 seconds timeout for stream fetching
             },
           );
           return response.data;
@@ -402,14 +405,6 @@ export class StravaProviderService
     const compressedActivityStream = compressActivityStream(mergedData);
 
     const sport = mapStravaSportType(activity.type);
-
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id },
-    });
-
-    if (!athlete) {
-      throw new Error('Athlete not found');
-    }
 
     const savedActivity = await this.prisma.event_activity.create({
       data: {
@@ -579,6 +574,7 @@ export class StravaProviderService
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
                 },
+                timeout: 15000, // 15 seconds timeout for activity details
               },
             );
             return response.data;
