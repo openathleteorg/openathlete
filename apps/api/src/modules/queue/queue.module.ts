@@ -25,9 +25,18 @@ import { QueueService } from './queue.service';
         // Common Redis connection options for better error handling
         // Note: Bull doesn't allow enableReadyCheck or maxRetriesPerRequest
         // See: https://github.com/OptimalBits/bull/issues/1873
+
+        // For workers, use lazyConnect to allow startup even if Redis isn't ready yet
+        // Workers may start before the private network is fully configured
+        const isWorker =
+          process.env.ENABLE_ACTIVITY_IMPORT === 'true' ||
+          process.env.ENABLE_ACTIVITY_PROCESSING === 'true';
+
         const redisOptions = {
           retryStrategy: (times: number) => {
-            if (times > 3) {
+            // Workers need more retries as they may start before Redis is ready
+            const maxRetries = isWorker ? 10 : 3;
+            if (times > maxRetries) {
               logger.error(
                 `Redis connection failed after ${times} attempts, giving up`,
               );
@@ -39,7 +48,9 @@ import { QueueService } from './queue.service';
             );
             return delay;
           },
-          lazyConnect: false,
+          // Use lazyConnect for workers to allow startup even if Redis isn't ready
+          // Connection will be established on first use (when a job is processed)
+          lazyConnect: isWorker,
           connectTimeout: 10000, // 10 seconds timeout
           commandTimeout: 5000, // 5 seconds command timeout
         };
