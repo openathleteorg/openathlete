@@ -371,31 +371,45 @@ export class StravaProviderService
     athlete_id: number,
     options?: { skipWeather?: boolean },
   ): Promise<event_activity> {
-    const streams = await this.makeAuthenticatedRequest<any[]>(
-      account,
-      async (accessToken) => {
-        try {
-          const response = await axios.get(
-            `https://www.strava.com/api/v3/activities/${activity.id}/streams`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
+    const shouldFetchStreams =
+      !activity.manual &&
+      !!activity.map?.summary_polyline &&
+      activity.map.summary_polyline.length > 0 &&
+      activity.distance > 0;
+
+    let streams: any[] = [];
+
+    if (shouldFetchStreams) {
+      streams = await this.makeAuthenticatedRequest<any[]>(
+        account,
+        async (accessToken) => {
+          try {
+            const response = await axios.get(
+              `https://www.strava.com/api/v3/activities/${activity.id}/streams`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                params: {
+                  keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
+                },
+                timeout: 30000, // 30 seconds timeout for stream fetching
               },
-              params: {
-                keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
-              },
-              timeout: 30000, // 30 seconds timeout for stream fetching
-            },
-          );
-          return response.data;
-        } catch (error) {
-          this.logger.error(
-            `Error fetching Strava activity data for activity ${activity.id}: ${error instanceof Error ? error.message : String(error)}`,
-          );
-          return [];
-        }
-      },
-    );
+            );
+            return response.data;
+          } catch (error) {
+            this.logger.error(
+              `Error fetching Strava activity data for activity ${activity.id}: ${error instanceof Error ? error.message : String(error)}`,
+            );
+            return [];
+          }
+        },
+      );
+    } else {
+      this.logger.warn(
+        `Skipping stream fetch for Strava activity ${activity.id} (manual: ${activity.manual}, hasPolyline: ${!!activity.map?.summary_polyline?.length}, distance: ${activity.distance})`,
+      );
+    }
 
     const mergedData: ActivityStream = {};
     for (const stream of streams) {
