@@ -29,7 +29,6 @@ if [ -n "$REDIS_URL" ]; then
     DECODED=$(echo "$REDIS_URL" | base64 -d 2>/dev/null)
     if [ $? -eq 0 ] && echo "$DECODED" | grep -qE '^redis://'; then
       REDIS_URL="$DECODED"
-    else
     fi
   fi
 
