@@ -53,6 +53,13 @@ export class ActivityImportProcessor implements OnModuleInit {
   }
 
   async onModuleInit() {
+    if (process.env.ENABLE_ACTIVITY_IMPORT !== 'true') {
+      this.logger.warn(
+        'ActivityImportProcessor disabled (ENABLE_ACTIVITY_IMPORT not set to true)',
+      );
+      return;
+    }
+
     this.logger.log(
       'ActivityImportProcessor initialized and ready to process jobs',
     );

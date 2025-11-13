@@ -272,7 +272,11 @@ import { QueueService } from './queue.service';
   providers: [
     PrismaService,
     QueueService,
-    ActivityImportProcessor,
+    // Only register ActivityImportProcessor if ENABLE_ACTIVITY_IMPORT is true
+    // This allows only specific instances to process import jobs
+    ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
+      ? [ActivityImportProcessor]
+      : []),
     ActivityProcessingProcessor,
   ],
   exports: [QueueService],
