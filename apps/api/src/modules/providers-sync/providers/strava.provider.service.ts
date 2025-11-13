@@ -393,7 +393,7 @@ export class StravaProviderService
                 params: {
                   keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
                 },
-                timeout: 30000, // 30 seconds timeout for stream fetching
+                timeout: 45000, // 45 seconds timeout for stream fetching (increased for large activities)
               },
             );
             return response.data;
@@ -416,7 +416,15 @@ export class StravaProviderService
       mergedData[stream.type] = stream.data;
     }
 
+    // Compress stream (can take time for large activities)
+    const compressionStart = Date.now();
     const compressedActivityStream = compressActivityStream(mergedData);
+    const compressionTime = Date.now() - compressionStart;
+    if (compressionTime > 1000) {
+      this.logger.debug(
+        `Stream compression took ${compressionTime}ms for activity ${activity.id}`,
+      );
+    }
 
     const sport = mapStravaSportType(activity.type);
 

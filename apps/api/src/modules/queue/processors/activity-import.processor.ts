@@ -127,6 +127,7 @@ export class ActivityImportProcessor implements OnModuleInit {
       await job.progress(30);
 
       // Import the activity (this can take time due to API calls)
+      const importStart = Date.now();
       this.logger.log(
         `Starting import of activity ${activity.externalId} from Strava API...`,
       );
@@ -134,9 +135,10 @@ export class ActivityImportProcessor implements OnModuleInit {
         account,
         activity,
       );
+      const importTime = Date.now() - importStart;
 
       this.logger.log(
-        `Successfully imported activity ${activity.externalId} (eventActivityId: ${savedActivity.event_activity_id})`,
+        `Successfully imported activity ${activity.externalId} (eventActivityId: ${savedActivity.event_activity_id}) in ${importTime}ms`,
       );
 
       // Update progress after import (before potentially long operations)
@@ -171,6 +173,8 @@ export class ActivityImportProcessor implements OnModuleInit {
       await job.progress(60);
 
       // Handle records and equipment in parallel (they are independent)
+      // Note: These operations can take significant time for large activities
+      const recordsEquipmentStart = Date.now();
       await Promise.all([
         this.handleEquipment(
           fullActivity.event_activity_id,
@@ -187,6 +191,12 @@ export class ActivityImportProcessor implements OnModuleInit {
             )
           : Promise.resolve(),
       ]);
+      const recordsEquipmentTime = Date.now() - recordsEquipmentStart;
+      if (recordsEquipmentTime > 5000) {
+        this.logger.warn(
+          `Records and equipment handling took ${recordsEquipmentTime}ms for activity ${fullActivity.event_activity_id}`,
+        );
+      }
 
       await job.progress(85);
 
@@ -289,11 +299,27 @@ export class ActivityImportProcessor implements OnModuleInit {
     activityStartDate: Date,
   ): Promise<void> {
     try {
+      // Uncompress stream (can take time for large activities)
+      const uncompressStart = Date.now();
       const stream = uncompressActivityStream(
         compressedStream as CompressedActivityStream,
       );
+      const uncompressTime = Date.now() - uncompressStart;
+      if (uncompressTime > 1000) {
+        this.logger.debug(
+          `Stream uncompression took ${uncompressTime}ms for activity ${eventActivityId}`,
+        );
+      }
 
+      // Compute records (can take time for large activities)
+      const computeStart = Date.now();
       const records = computeRecords(stream);
+      const computeTime = Date.now() - computeStart;
+      if (computeTime > 2000) {
+        this.logger.warn(
+          `Records computation took ${computeTime}ms for activity ${eventActivityId} (${records.length} records)`,
+        );
+      }
 
       if (records.length > 0) {
         // Create records (skip duplicates to allow re-import)
