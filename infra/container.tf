@@ -92,8 +92,11 @@ resource "scaleway_container" "import_worker" {
 
   depends_on = [
     scaleway_secret_version.database_url_v,
+    scaleway_secret_version.jwt_secret_v, // Required since JWT_SECRET_KEY is used
     scaleway_secret_version.redis_url_managed_v,
     scaleway_secret_version.strava_client_secret_v,
+    // Explicitly depend on Redis cluster to ensure it's ready on private network
+    scaleway_redis_cluster.redis,
   ]
 }
 

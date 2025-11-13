@@ -40,9 +40,7 @@ export class QueueService {
     skipWeather = false,
   ): Promise<void> {
     try {
-      // Use negative timestamp as priority (Bull uses higher priority first)
-      // Most recent activities (higher timestamp) get higher priority
-      const priority = -new Date(activity.startDate).getTime();
+      const priority = new Date(activity.startDate).getTime();
       const jobId = `import-${account.provider}-${activity.externalId}`;
 
       // Check if job already exists
@@ -97,7 +95,6 @@ export class QueueService {
         `Added activity import job for ${activity.externalId} (jobId: ${jobId}, priority: ${priority}, queueJobId: ${job.id})`,
       );
     } catch (error) {
-      // Log detailed error information for Redis connection issues
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       const errorName = error instanceof Error ? error.name : 'UnknownError';
@@ -107,7 +104,6 @@ export class QueueService {
         error instanceof Error ? error.stack : undefined,
       );
 
-      // Check if it's a Redis connection error
       if (
         errorName === 'MaxRetriesPerRequestError' ||
         errorMessage.includes('ECONNREFUSED') ||
@@ -119,7 +115,7 @@ export class QueueService {
         );
       }
 
-      throw error; // Re-throw to allow caller to handle
+      throw error;
     }
   }
 

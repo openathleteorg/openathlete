@@ -21,20 +21,12 @@ import { QueueService } from './queue.service';
       useFactory: () => {
         const redisUrl = process.env.REDIS_URL;
         const logger = new Logger('QueueModule');
-
-        // Common Redis connection options for better error handling
-        // Note: Bull doesn't allow enableReadyCheck or maxRetriesPerRequest
-        // See: https://github.com/OptimalBits/bull/issues/1873
-
-        // For workers, use lazyConnect to allow startup even if Redis isn't ready yet
-        // Workers may start before the private network is fully configured
         const isWorker =
           process.env.ENABLE_ACTIVITY_IMPORT === 'true' ||
           process.env.ENABLE_ACTIVITY_PROCESSING === 'true';
 
         const redisOptions = {
           retryStrategy: (times: number) => {
-            // Workers need more retries and longer delays as they may start before Redis is ready
             const maxRetries = isWorker ? 20 : 3;
             if (times > maxRetries) {
               logger.error(
@@ -42,7 +34,6 @@ import { QueueService } from './queue.service';
               );
               return null; // Stop retrying
             }
-            // For workers, use longer delays to allow network to be ready
             const baseDelay = isWorker ? 500 : 200;
             const delay = Math.min(times * baseDelay, isWorker ? 5000 : 2000);
             logger.warn(
@@ -50,12 +41,9 @@ import { QueueService } from './queue.service';
             );
             return delay;
           },
-          // For workers, don't use lazyConnect - instead use retryStrategy to handle connection delays
-          // lazyConnect can prevent Bull from connecting even when jobs are available
-          // Better to retry connection attempts with longer delays
-          lazyConnect: false, // Always connect, but retryStrategy will handle delays
-          connectTimeout: isWorker ? 30000 : 10000, // 30s for workers, 10s for API
-          commandTimeout: 5000, // 5 seconds command timeout
+          lazyConnect: false,
+          connectTimeout: isWorker ? 30000 : 10000,
+          commandTimeout: 5000,
         };
 
         if (!redisUrl) {
@@ -71,18 +59,11 @@ import { QueueService } from './queue.service';
           };
         }
 
-        // Try to parse the URL to extract connection details
-        // Handle IPv6 addresses and URL-encoded passwords manually
-        // Format: redis://[:password]@[host]:port[/db] or redis://username:password@host:port/db
         try {
-          // Manual parsing to handle IPv6 without brackets and URL-encoded passwords
-          // Pattern: redis://(username:)?password@host:port(/db)?
-          // For IPv6 without brackets, we need to find the last : before / or end
           let hostPortDbToParse: string;
           let decodedPasswordToUse: string | undefined;
           let usernameToUse: string | undefined;
 
-          // Try format with username first: redis://username:password@host
           const urlMatchWithUser = redisUrl.match(
             /^redis:\/\/([^:]+):([^@]+)@(.+)$/,
           );
@@ -90,7 +71,6 @@ import { QueueService } from './queue.service';
             const [, username, password, hostPortDb] = urlMatchWithUser;
             usernameToUse = username;
 
-            // Extract password (decode if URL-encoded)
             try {
               decodedPasswordToUse = decodeURIComponent(password);
             } catch {
@@ -99,7 +79,6 @@ import { QueueService } from './queue.service';
 
             hostPortDbToParse = hostPortDb;
           } else {
-            // Try format without username: redis://:password@host or redis://host
             const urlMatchNoUser = redisUrl.match(
               /^redis:\/\/(?::([^@]+)@)?(.+)$/,
             );
@@ -108,7 +87,6 @@ import { QueueService } from './queue.service';
             }
             const [, password, hostPortDb] = urlMatchNoUser;
 
-            // Extract password (decode if URL-encoded)
             if (password) {
               try {
                 decodedPasswordToUse = decodeURIComponent(password);
@@ -120,15 +98,10 @@ import { QueueService } from './queue.service';
             hostPortDbToParse = hostPortDb;
           }
 
-          // Parse host:port/db using hostPortDbToParse
-          // Handle IPv6 in brackets: [host]:port/db
-          // Handle IPv6 without brackets: host:port/db (find last : before / or end)
-          // Handle IPv4: host:port/db
           let host: string;
           let port: number;
           let db: number | undefined;
 
-          // Check if IPv6 is in brackets
           const bracketedMatch = hostPortDbToParse.match(
             /^\[([^\]]+)\](?::(\d+))?(?:\/(\d+))?$/,
           );
@@ -139,13 +112,10 @@ import { QueueService } from './queue.service';
               ? parseInt(bracketedMatch[3], 10)
               : undefined;
           } else {
-            // No brackets - need to find last : before / or end
-            // Format: host:port/db or host:port
             const lastColonIndex = hostPortDbToParse.lastIndexOf(':');
             const slashIndex = hostPortDbToParse.indexOf('/', lastColonIndex);
 
             if (lastColonIndex !== -1) {
-              // Extract port (between last : and / or end)
               const portStr =
                 slashIndex !== -1
                   ? hostPortDbToParse.substring(lastColonIndex + 1, slashIndex)
@@ -157,7 +127,6 @@ import { QueueService } from './queue.service';
                 host = hostPortDbToParse; // No port found, entire string is host
               } else {
                 host = hostPortDbToParse.substring(0, lastColonIndex);
-                // Extract db if present
                 if (slashIndex !== -1) {
                   const dbStr = hostPortDbToParse.substring(slashIndex + 1);
                   const dbNum = parseInt(dbStr, 10);
@@ -167,7 +136,6 @@ import { QueueService } from './queue.service';
                 }
               }
             } else {
-              // No colon found, entire string is host
               host = hostPortDbToParse;
               port = 6379;
             }
@@ -221,8 +189,6 @@ import { QueueService } from './queue.service';
             redis: config,
           };
         } catch (parseError) {
-          // If URL parsing fails, use the string directly
-          // ioredis will handle the URL string, but we can't add custom options
           logger.warn(
             `Could not parse REDIS_URL, using as-is. Some connection options may not apply.`,
           );
