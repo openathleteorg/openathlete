@@ -34,15 +34,17 @@ import { QueueService } from './queue.service';
 
         const redisOptions = {
           retryStrategy: (times: number) => {
-            // Workers need more retries as they may start before Redis is ready
-            const maxRetries = isWorker ? 10 : 3;
+            // Workers need more retries and longer delays as they may start before Redis is ready
+            const maxRetries = isWorker ? 20 : 3;
             if (times > maxRetries) {
               logger.error(
                 `Redis connection failed after ${times} attempts, giving up`,
               );
               return null; // Stop retrying
             }
-            const delay = Math.min(times * 200, 2000);
+            // For workers, use longer delays to allow network to be ready
+            const baseDelay = isWorker ? 500 : 200;
+            const delay = Math.min(times * baseDelay, isWorker ? 5000 : 2000);
             logger.warn(
               `Redis connection attempt ${times} failed, retrying in ${delay}ms`,
             );
@@ -52,7 +54,7 @@ import { QueueService } from './queue.service';
           // lazyConnect can prevent Bull from connecting even when jobs are available
           // Better to retry connection attempts with longer delays
           lazyConnect: false, // Always connect, but retryStrategy will handle delays
-          connectTimeout: 10000, // 10 seconds timeout
+          connectTimeout: isWorker ? 30000 : 10000, // 30s for workers, 10s for API
           commandTimeout: 5000, // 5 seconds command timeout
         };
 
@@ -209,7 +211,7 @@ import { QueueService } from './queue.service';
           }
 
           logger.log(
-            `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})${isWorker ? ' [WORKER MODE: lazyConnect enabled]' : ''}`,
+            `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})${isWorker ? ' [WORKER MODE: extended retries]' : ''}`,
           );
           logger.debug(
             `Redis connection details: host=${config.host}, port=${config.port}, isIPv6=${isIPv6}, hasPassword=${!!config.password}, db=${config.db ?? 0}, lazyConnect=${config.lazyConnect}`,
