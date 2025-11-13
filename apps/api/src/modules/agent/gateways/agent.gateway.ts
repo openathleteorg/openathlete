@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 
-import { UseGuards } from '@nestjs/common';
+import { OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -13,6 +13,7 @@ import {
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
+import { WebSocketRedisService } from '../../websocket/websocket-redis.service';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { MastraAgentService } from '../services/mastra-agent.service';
 
@@ -87,11 +88,33 @@ const corsOriginValidator = (
   transports: ['polling', 'websocket'], // Support both transports for proxy compatibility
   allowEIO3: true, // Allow Engine.IO v3 clients for better compatibility
 })
-export class AgentGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class AgentGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
+{
   @WebSocketServer()
   server: Server;
 
-  constructor(private mastraAgentService: MastraAgentService) {}
+  constructor(
+    private mastraAgentService: MastraAgentService,
+    private webSocketRedisService: WebSocketRedisService,
+  ) {}
+
+  onModuleInit() {
+    // Configure Redis adapter if available (for multi-instance production)
+    // This must be done after the server is initialized
+    const adapter = this.webSocketRedisService.getAdapter();
+    if (adapter && this.server) {
+      // In Socket.IO v4, configure adapter on the main server (not namespace)
+      // The server property is the namespace, so we access the main server via .server
+      const mainServer = (this.server as any).server;
+      if (mainServer && typeof mainServer.adapter === 'function') {
+        mainServer.adapter(adapter);
+        console.log('[AgentGateway] Redis adapter configured for Socket.IO');
+      } else {
+        console.warn('[AgentGateway] Could not configure Redis adapter - main server not available');
+      }
+    }
+  }
 
   handleConnection(client: Socket) {}
 

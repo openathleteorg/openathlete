@@ -2,6 +2,7 @@ import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 
 import { UseGuards } from '@nestjs/common';
+import { OnModuleInit } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -25,6 +26,7 @@ import {
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
+import { WebSocketRedisService } from '../../websocket/websocket-redis.service';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { WsZodValidationPipe } from '../pipes/ws-zod-validation.pipe';
 import { MessageThreadService } from '../services/message-thread.service';
@@ -102,7 +104,7 @@ const corsOriginValidator = (
   allowEIO3: true, // Allow Engine.IO v3 clients for better compatibility
 })
 export class MessagesGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
   @WebSocketServer()
   server: Server;
@@ -113,7 +115,27 @@ export class MessagesGateway
   constructor(
     private messageService: MessageService,
     private threadService: MessageThreadService,
+    private webSocketRedisService: WebSocketRedisService,
   ) {}
+
+  onModuleInit() {
+    // Configure Redis adapter if available (for multi-instance production)
+    // This must be done after the server is initialized
+    const adapter = this.webSocketRedisService.getAdapter();
+    if (adapter && this.server) {
+      // In Socket.IO v4, configure adapter on the main server (not namespace)
+      // The server property is the namespace, so we access the main server via .server
+      const mainServer = (this.server as any).server;
+      if (mainServer && typeof mainServer.adapter === 'function') {
+        mainServer.adapter(adapter);
+        console.log('[MessagesGateway] Redis adapter configured for Socket.IO');
+      } else {
+        console.warn(
+          '[MessagesGateway] Could not configure Redis adapter - main server not available',
+        );
+      }
+    }
+  }
 
   handleConnection(client: Socket) {
     // Authentication happens on first message, not on connection

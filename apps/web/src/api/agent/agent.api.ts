@@ -70,6 +70,10 @@ export class AgentAPI {
         transports: ['polling', 'websocket'],
         withCredentials: true,
         autoConnect: false,
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 5000,
+        reconnectionAttempts: Infinity, // Retry indefinitely in production
         upgrade: true,
         rememberUpgrade: true,
         auth: {
@@ -80,6 +84,25 @@ export class AgentAPI {
               Authorization: `Bearer ${token}`,
             }
           : {},
+      });
+
+      // Handle session errors by forcing a fresh connection
+      this.socket.io.on('error', (error: any) => {
+        // Check for session ID unknown errors (common in multi-instance setups)
+        if (
+          error?.message?.includes('Session ID unknown') ||
+          (error?.data && typeof error.data === 'object' && error.data.code === 1)
+        ) {
+          console.warn('[AgentAPI] Session error detected, forcing reconnection');
+          // Disconnect and clear socket to force a fresh connection
+          const oldSocket = this.socket;
+          this.socket = null;
+          if (oldSocket) {
+            oldSocket.disconnect();
+            oldSocket.removeAllListeners();
+          }
+          // Next getSocket() call will create a fresh socket
+        }
       });
 
       // Set up token refresh mechanism
