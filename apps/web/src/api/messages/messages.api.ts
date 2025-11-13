@@ -17,6 +17,7 @@ import {
 export class MessagesAPI {
   private static socket: Socket | null = null;
   private static tokenRefreshInterval: NodeJS.Timeout | null = null;
+  private static connectingPromise: Promise<void> | null = null;
   private static readonly TOKEN_REFRESH_CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
 
   // ==================== REST API Methods ====================
@@ -149,7 +150,7 @@ export class MessagesAPI {
         return false;
       }
 
-      // Update socket auth and headers
+      // Update socket auth and headers for future connections
       socket.auth = {
         token: tokenInfo.accessToken,
       };
@@ -157,14 +158,9 @@ export class MessagesAPI {
         Authorization: `Bearer ${tokenInfo.accessToken}`,
       };
 
-      // If socket is connected, disconnect and reconnect with new token
-      if (socket.connected) {
-        const wasConnected = socket.connected;
-        socket.disconnect();
-        if (wasConnected) {
-          socket.connect();
-        }
-      }
+      // Don't disconnect/reconnect - let Socket.IO handle reconnection naturally
+      // If the connection fails due to expired token, Socket.IO will reconnect
+      // with the new token automatically
 
       return true;
     } catch (error) {
@@ -194,27 +190,47 @@ export class MessagesAPI {
   }
 
   static async connectSocket(): Promise<void> {
-    const socket = this.getSocket();
-    if (!socket.connected) {
-      // Ensure we have a valid token before connecting
-      const tokenInfo = await getAccessToken();
-      if (!tokenInfo) {
-        console.error('[MessagesAPI] No valid token available for connection');
-        return;
-      }
-
-      if (tokenInfo.refreshToken) {
-        setItem(ACCESS_TOKEN, tokenInfo.accessToken);
-      }
-
-      socket.auth = {
-        token: tokenInfo.accessToken,
-      };
-      socket.io.opts.extraHeaders = {
-        Authorization: `Bearer ${tokenInfo.accessToken}`,
-      };
-      socket.connect();
+    // Prevent multiple simultaneous connection attempts
+    if (this.connectingPromise) {
+      return this.connectingPromise;
     }
+
+    const socket = this.getSocket();
+    if (socket.connected) {
+      return;
+    }
+
+    this.connectingPromise = (async () => {
+      try {
+        // Ensure we have a valid token before connecting
+        const tokenInfo = await getAccessToken();
+        if (!tokenInfo) {
+          console.error(
+            '[MessagesAPI] No valid token available for connection',
+          );
+          return;
+        }
+
+        if (tokenInfo.refreshToken) {
+          setItem(ACCESS_TOKEN, tokenInfo.accessToken);
+        }
+
+        socket.auth = {
+          token: tokenInfo.accessToken,
+        };
+        socket.io.opts.extraHeaders = {
+          Authorization: `Bearer ${tokenInfo.accessToken}`,
+        };
+        socket.connect();
+      } finally {
+        // Clear the promise after a short delay to allow connection to establish
+        setTimeout(() => {
+          this.connectingPromise = null;
+        }, 1000);
+      }
+    })();
+
+    return this.connectingPromise;
   }
 
   static disconnectSocket(): void {
@@ -222,6 +238,7 @@ export class MessagesAPI {
       clearInterval(this.tokenRefreshInterval);
       this.tokenRefreshInterval = null;
     }
+    this.connectingPromise = null;
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;

@@ -1,3 +1,5 @@
+import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
+import { getAccessToken } from '@/utils/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -71,26 +73,41 @@ export function useAgentWebSocket({
     socket.on('disconnect', () => {
       setIsConnected(false);
       setIsStreaming(false);
+      // Let Socket.IO's built-in reconnection handle reconnection
     });
 
     socket.on('connect_error', async (error: any) => {
       setIsConnected(false);
 
-      // If authentication failed, try to refresh token and reconnect
+      // If authentication failed, try to refresh token
+      // Socket.IO will automatically retry connection with new token
       if (
         error?.message?.includes('Unauthorized') ||
         error?.message?.includes('jwt expired') ||
         error?.message?.includes('Invalid token')
       ) {
         try {
-          // Refresh token and reconnect
-          await AgentAPI.connectSocket();
+          // Refresh token - this updates the socket auth for next connection attempt
+          // Don't call connectSocket() here - let Socket.IO's reconnection handle it
+          // The token will be updated and Socket.IO will use it on the next retry
+          const tokenInfo = await getAccessToken();
+          if (tokenInfo) {
+            if (tokenInfo.refreshToken) {
+              setItem(ACCESS_TOKEN, tokenInfo.accessToken);
+            }
+            const socket = AgentAPI.getSocket();
+            socket.auth = {
+              token: tokenInfo.accessToken,
+            };
+            socket.io.opts.extraHeaders = {
+              Authorization: `Bearer ${tokenInfo.accessToken}`,
+            };
+          }
         } catch (refreshError) {
           console.error('[Agent WebSocket] Failed to refresh token:', refreshError);
         }
-      } else if (reconnectAttempts < maxReconnectAttempts) {
-        reconnectAttempts++;
       }
+      // Let Socket.IO's built-in reconnection handle retries
     });
 
     socket.on('message_chunk', (chunk: any) => {

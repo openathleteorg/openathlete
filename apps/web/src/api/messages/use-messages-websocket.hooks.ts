@@ -1,4 +1,5 @@
-import { ACCESS_TOKEN, getItem } from '@/utils/local-storage';
+import { ACCESS_TOKEN, getItem, setItem } from '@/utils/local-storage';
+import { getAccessToken } from '@/utils/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -52,50 +53,44 @@ export function useMessagesWebSocket({
     socket.on('disconnect', (reason) => {
       setIsConnected(false);
       connectingRef.current = false;
-
-      if (reason === 'transport close' || reason === 'transport error') {
-        setTimeout(() => {
-          if (!connectingRef.current && !socket.connected) {
-            connectingRef.current = true;
-            MessagesAPI.connectSocket().catch((err) => {
-              console.error('[Messages WebSocket] Failed to reconnect:', err);
-              connectingRef.current = false;
-            });
-          }
-        }, 1000);
-      }
+      // Let Socket.IO's built-in reconnection handle reconnection
+      // Don't manually reconnect here to avoid loops
     });
 
     socket.on('connect_error', async (error: any) => {
       setIsConnected(false);
       connectingRef.current = false;
 
-      // If authentication failed, try to refresh token and reconnect
+      // If authentication failed, try to refresh token
+      // Socket.IO will automatically retry connection with new token
       if (
         error?.message?.includes('Unauthorized') ||
         error?.message?.includes('jwt expired') ||
         error?.message?.includes('Invalid token')
       ) {
         try {
-          // Refresh token and reconnect
-          connectingRef.current = true;
-          await MessagesAPI.connectSocket();
+          // Refresh token - this updates the socket auth for next connection attempt
+          // Don't call connectSocket() here - let Socket.IO's reconnection handle it
+          // The token will be updated and Socket.IO will use it on the next retry
+          const tokenInfo = await getAccessToken();
+          if (tokenInfo) {
+            if (tokenInfo.refreshToken) {
+              setItem(ACCESS_TOKEN, tokenInfo.accessToken);
+            }
+            const socket = MessagesAPI.getSocket();
+            socket.auth = {
+              token: tokenInfo.accessToken,
+            };
+            socket.io.opts.extraHeaders = {
+              Authorization: `Bearer ${tokenInfo.accessToken}`,
+            };
+          }
         } catch (refreshError) {
           console.error('[Messages WebSocket] Failed to refresh token:', refreshError);
-          connectingRef.current = false;
         }
-      } else if (reconnectAttempts < maxReconnectAttempts) {
-        reconnectAttempts++;
-        setTimeout(() => {
-          if (!connectingRef.current && !socket.connected) {
-            connectingRef.current = true;
-            MessagesAPI.connectSocket().catch((err) => {
-              console.error('[Messages WebSocket] Failed to reconnect:', err);
-              connectingRef.current = false;
-            });
-          }
-        }, 1000 * reconnectAttempts);
       }
+      // Let Socket.IO's built-in reconnection handle retries
+      // Don't manually reconnect to avoid loops
     });
 
     socket.on('new_message', (data: { message: Message }) => {
@@ -296,12 +291,15 @@ export function useMessagesWebSocket({
     });
 
     const token = getItem(ACCESS_TOKEN);
-    if (token && !connectingRef.current && !socket.connected) {
+    if (token && !socket.connected && !connectingRef.current) {
       connectingRef.current = true;
-      MessagesAPI.connectSocket().catch((err) => {
-        console.error('[Messages WebSocket] Failed to connect:', err);
-        connectingRef.current = false;
-      });
+      MessagesAPI.connectSocket()
+        .catch((err) => {
+          console.error('[Messages WebSocket] Failed to connect:', err);
+        })
+        .finally(() => {
+          connectingRef.current = false;
+        });
     }
 
     return () => {
