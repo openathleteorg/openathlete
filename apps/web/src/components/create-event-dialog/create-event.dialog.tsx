@@ -19,6 +19,7 @@ import {
   EVENT_TYPE,
   Event,
   SPORT_TYPE,
+  calculateWorkoutDuration,
   formatSpeed,
 } from '@openathlete/shared';
 
@@ -402,6 +403,37 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const goalDistanceValue = watch('goalDistance');
   const goalDurationValue = watch('goalDuration');
 
+  // Calculate total duration from workout steps
+  const calculatedDuration = useMemo(() => {
+    if (workoutSteps.length === 0) {
+      return null;
+    }
+    // Convert CreateWorkoutStepDto[] to WorkoutDto for calculation
+    const workout = {
+      steps: workoutSteps.map((step, index) => ({
+        ...step,
+        workoutStepId: -(Date.now() + index),
+        orderIndex: index,
+      })) as WorkoutStepDto[],
+      eventTrainingId: 0, // Not used by calculateWorkoutDuration
+    } as WorkoutDto;
+    return calculateWorkoutDuration(workout);
+  }, [workoutSteps]);
+
+  const hasStepsWithDuration = calculatedDuration !== null;
+
+  // Update goalDuration when calculated duration changes
+  useEffect(() => {
+    if (hasStepsWithDuration && calculatedDuration !== null) {
+      setValue('goalDuration', calculatedDuration);
+      // Update endDate based on calculated duration
+      const start = new Date(startDateValue);
+      const end = new Date(start);
+      end.setSeconds(start.getSeconds() + calculatedDuration);
+      setValue('endDate', end);
+    }
+  }, [calculatedDuration, hasStepsWithDuration, setValue, startDateValue]);
+
   if (
     (create &&
       (!('date' in rest) || !rest.date || !('type' in rest) || !rest.type)) ||
@@ -502,12 +534,15 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                 <RHFDuration
                   name="goalDuration"
                   label={m.goal_duration()}
+                  disabled={hasStepsWithDuration}
                   onChange={(value) => {
-                    const start = new Date(startDateValue);
-                    const duration = value || 0;
-                    const end = new Date(start);
-                    end.setSeconds(start.getSeconds() + duration);
-                    setValue('endDate', end);
+                    if (!hasStepsWithDuration) {
+                      const start = new Date(startDateValue);
+                      const duration = value || 0;
+                      const end = new Date(start);
+                      end.setSeconds(start.getSeconds() + duration);
+                      setValue('endDate', end);
+                    }
                   }}
                 />
                 {!!goalDistanceValue && !!goalDurationValue && (
