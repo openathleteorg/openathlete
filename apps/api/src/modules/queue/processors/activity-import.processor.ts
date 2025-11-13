@@ -126,7 +126,10 @@ export class ActivityImportProcessor implements OnModuleInit {
       // Update job progress
       await job.progress(30);
 
-      // Import the activity
+      // Import the activity (this can take time due to API calls)
+      this.logger.log(
+        `Starting import of activity ${activity.externalId} from Strava API...`,
+      );
       const savedActivity = await this.stravaProviderService.importActivity(
         account,
         activity,
@@ -136,7 +139,8 @@ export class ActivityImportProcessor implements OnModuleInit {
         `Successfully imported activity ${activity.externalId} (eventActivityId: ${savedActivity.event_activity_id})`,
       );
 
-      await job.progress(60);
+      // Update progress after import (before potentially long operations)
+      await job.progress(50);
 
       // Get full activity data with event for records and equipment handling
       const fullActivity = await this.prisma.event_activity.findUnique({
@@ -159,6 +163,9 @@ export class ActivityImportProcessor implements OnModuleInit {
         );
       }
 
+      // Update progress before records and equipment handling
+      await job.progress(60);
+
       // Handle records and equipment (generic logic for all providers)
       await this.handleRecordsAndEquipment({
         event_activity_id: fullActivity.event_activity_id,
@@ -171,7 +178,7 @@ export class ActivityImportProcessor implements OnModuleInit {
         },
       });
 
-      await job.progress(80);
+      await job.progress(85);
 
       // Queue the activity processing job
       await this.queueService.addActivityProcessingJob(

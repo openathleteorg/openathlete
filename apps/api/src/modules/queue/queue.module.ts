@@ -241,8 +241,8 @@ import { QueueService } from './queue.service';
         },
         settings: {
           stalledInterval: 30000, // Check for stalled jobs every 30 seconds
-          maxStalledCount: 1, // Max number of times a job can be stalled before failing
-          lockDuration: 300000, // 5 minutes - time a job is locked for processing
+          maxStalledCount: 2, // Max number of times a job can be stalled before failing
+          lockDuration: 600000, // 10 minutes - time a job is locked for processing (increased for long API calls)
         },
       },
       {
