@@ -137,6 +137,63 @@ export class StravaProviderService
   }
 
   /**
+   * Make an authenticated request to Strava API with automatic token refresh on 401
+   * @param account Provider account
+   * @param requestFn Function that makes the API request with the access token
+   * @returns The response data
+   */
+  private async makeAuthenticatedRequest<T>(
+    account: provider_account,
+    requestFn: (accessToken: string) => Promise<T>,
+  ): Promise<T> {
+    let accessToken = await this.getValidAccessToken(account);
+
+    try {
+      return await requestFn(accessToken);
+    } catch (error) {
+      // Check if it's a 401 Unauthorized error
+      if (
+        isAxiosError(error) &&
+        error.response?.status === 401 &&
+        account.refresh_token
+      ) {
+        this.logger.warn(
+          `Access token invalid for Strava account ${account.provider_account_id}, refreshing...`,
+        );
+
+        // Refresh the token
+        const tokenResponse = await this.refreshAccessToken(
+          account.refresh_token,
+        );
+
+        // Update the account in database
+        const updatedAccount = await this.prisma.provider_account.update({
+          where: {
+            provider_account_id: account.provider_account_id,
+          },
+          data: {
+            access_token: tokenResponse.access_token,
+            refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
+            expires_at: null, // Strava tokens don't expire
+          },
+        });
+
+        // Update the account object for potential retry and subsequent calls
+        account.access_token = updatedAccount.access_token;
+        account.refresh_token = updatedAccount.refresh_token;
+        account.expires_at = updatedAccount.expires_at;
+
+        // Retry the request with the new token
+        accessToken = tokenResponse.access_token;
+        return await requestFn(accessToken);
+      }
+
+      // Re-throw if it's not a 401 or if we can't refresh
+      throw error;
+    }
+  }
+
+  /**
    * Complete OAuth flow and save account
    */
   async connect(user: AuthUser, code: string): Promise<provider_account> {
@@ -200,19 +257,23 @@ export class StravaProviderService
     account: provider_account,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]> {
-    const accessToken = await this.getValidAccessToken(account);
-
     let page = 1;
     const limit = options?.limit ?? 100;
     const activities: ImportedActivity[] = [];
 
     while (activities.length < limit) {
-      const { data } = await axios.get<StravaSummaryActivity[]>(
-        `https://www.strava.com/api/v3/athlete/activities?page=${page}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
+      const data = await this.makeAuthenticatedRequest<StravaSummaryActivity[]>(
+        account,
+        async (accessToken) => {
+          const response = await axios.get<StravaSummaryActivity[]>(
+            `https://www.strava.com/api/v3/athlete/activities?page=${page}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            },
+          );
+          return response.data;
         },
       );
 
@@ -254,8 +315,6 @@ export class StravaProviderService
     account: provider_account,
     activity: ImportedActivity,
   ): Promise<event_activity> {
-    const accessToken = await this.getValidAccessToken(account);
-
     // Check if already imported
     const existing = await this.prisma.event_activity.findFirst({
       where: {
@@ -291,7 +350,7 @@ export class StravaProviderService
     // Fetch full activity data with streams
     const stravaActivity = activity.raw as StravaSummaryActivity;
     const savedActivity = await this.fetchStravaActivityData(
-      accessToken,
+      account,
       event,
       stravaActivity,
       athlete.user_id,
@@ -304,27 +363,36 @@ export class StravaProviderService
    * Fetch full activity data with streams (from original StravaConnectorService)
    */
   private async fetchStravaActivityData(
-    accessToken: string,
+    account: provider_account,
     event: { event_id: number },
     activity: StravaSummaryActivity,
     user_id: number,
     options?: { skipWeather?: boolean },
   ): Promise<event_activity> {
-    const { data: streams } = await axios
-      .get(`https://www.strava.com/api/v3/activities/${activity.id}/streams`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        params: {
-          keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
-        },
-      })
-      .catch((error) => {
-        this.logger.error(
-          `Error fetching Strava activity data for activity ${activity.id}: ${error.message}`,
-        );
-        return { data: [] };
-      });
+    const streams = await this.makeAuthenticatedRequest<any[]>(
+      account,
+      async (accessToken) => {
+        try {
+          const response = await axios.get(
+            `https://www.strava.com/api/v3/activities/${activity.id}/streams`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+              params: {
+                keys: 'time,distance,latlng,altitude,heartrate,cadence,watts,temp',
+              },
+            },
+          );
+          return response.data;
+        } catch (error) {
+          this.logger.error(
+            `Error fetching Strava activity data for activity ${activity.id}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+          return [];
+        }
+      },
+    );
 
     const mergedData: ActivityStream = {};
     for (const stream of streams) {
@@ -501,15 +569,21 @@ export class StravaProviderService
       }
 
       // Fetch activity details from Strava
-      const accessToken = await this.getValidAccessToken(account);
-      const { data: activity } = await axios.get<StravaSummaryActivity>(
-        `https://www.strava.com/api/v3/activities/${payload.object_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
+      const activity =
+        await this.makeAuthenticatedRequest<StravaSummaryActivity>(
+          account,
+          async (accessToken) => {
+            const response = await axios.get<StravaSummaryActivity>(
+              `https://www.strava.com/api/v3/activities/${payload.object_id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              },
+            );
+            return response.data;
           },
-        },
-      );
+        );
 
       const endDate = new Date(activity.start_date);
       endDate.setSeconds(endDate.getSeconds() + activity.elapsed_time);
