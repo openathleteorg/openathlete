@@ -43,6 +43,7 @@ resource "scaleway_container" "api" {
     STRAVA_WEBHOOK_TOKEN = scaleway_secret_version.strava_webhook_token_v.data
     OPENAI_API_KEY = scaleway_secret_version.openai_api_key_v.data
     BREVO_API_KEY = scaleway_secret_version.brevo_api_key_v.data
+    ENABLE_ACTIVITY_IMPORT = "false"
   }
 
   depends_on = [
@@ -53,6 +54,44 @@ resource "scaleway_container" "api" {
     scaleway_secret_version.strava_webhook_token_v,
     scaleway_secret_version.openai_api_key_v,
     scaleway_secret_version.brevo_api_key_v
+  ]
+}
+
+// Dedicated worker container for activity imports
+// This container only processes activity import jobs, not HTTP requests
+resource "scaleway_container" "import_worker" {
+  name         = "${var.app_name}-import-worker"
+  namespace_id = scaleway_container_namespace.ns.id
+  region       = var.scw_region
+
+  // Same image as main API
+  registry_image = "rg.${var.scw_region}.scw.cloud/${var.app_name}/${var.app_name}:latest"
+
+  min_scale = 1  // Always have at least 1 worker
+  max_scale = 3  // Scale up if many imports
+
+  http_option = "enabled"
+  port        = 3000  // Required but not used for HTTP (worker only)
+
+  private_network_id = scaleway_vpc_private_network.pn.id
+
+  // Environment variables - minimal set for import processing
+  environment_variables = {
+    NODE_ENV       = "production"
+    DATABASE_URL   = scaleway_secret_version.database_url_v.data
+    REDIS_URL      = scaleway_secret_version.redis_url_managed_v.data
+    JWT_SECRET_KEY = scaleway_secret_version.jwt_secret_v.data
+    NODE_VERSION    = "22.14.0"
+    STRAVA_CLIENT_ID = "151078"
+    STRAVA_CLIENT_SECRET = scaleway_secret_version.strava_client_secret_v.data
+    STRAVA_REDIRECT_URI = "https://openathlete.org/auth/callback/strava"
+    ENABLE_ACTIVITY_IMPORT = "true"
+  }
+
+  depends_on = [
+    scaleway_secret_version.database_url_v,
+    scaleway_secret_version.redis_url_managed_v,
+    scaleway_secret_version.strava_client_secret_v,
   ]
 }
 

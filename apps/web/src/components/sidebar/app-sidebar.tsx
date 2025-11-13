@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { ComponentProps, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import { UserRole } from '@openathlete/shared';
 
@@ -128,8 +129,8 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-between gap-2 px-0.5 py-1 w-full">
-          <a
-            href={getPath(['dashboard'])}
+          <Link
+            to={getPath(['dashboard'])}
             className="flex items-center justify-center gap-2 w-full"
           >
             <img
@@ -137,7 +138,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
               alt="OpenAthlete Logo"
               className="h-10 w-10"
             />
-          </a>
+          </Link>
         </div>
         <SpaceSwitcher />
       </SidebarHeader>

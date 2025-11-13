@@ -18,7 +18,7 @@ import { useSpaceContext } from '@/contexts/space';
 import { SIDEBAR_OPEN_STATES, getItem, setItem } from '@/utils/local-storage';
 import { ChevronRight, type LucideIcon } from 'lucide-react';
 import { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { UserRole } from '@openathlete/shared';
 
@@ -82,15 +82,15 @@ export function NavMain({
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton asChild>
-                            <a
-                              href={subItem.url}
+                            <Link
+                              to={subItem.url}
                               className={
                                 pathname === subItem.url ? 'font-bold' : ''
                               }
                             >
                               {subItem.icon && <subItem.icon />}
                               <span>{subItem.title}</span>
-                            </a>
+                            </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
@@ -101,15 +101,15 @@ export function NavMain({
             ) : (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton asChild>
-                  <a
-                    href={item.url}
+                  <Link
+                    to={item.url || '#'}
                     className={`flex items-center gap-2 ${
                       pathname === item.url ? 'font-bold' : ''
                     }`}
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ),
