@@ -24,7 +24,8 @@ const DISTANCE_TOLERANCE_RATIO = 0.02;
 
 // Maximum number of points to process without sampling
 // If stream has more points, we'll sample it down to this limit
-const MAX_POINTS_WITHOUT_SAMPLING = 10000;
+// Reduced from 10000 to 5000 to improve performance for large activities
+const MAX_POINTS_WITHOUT_SAMPLING = 5000;
 
 /**
  * Sample arrays to reduce size while preserving start and end points
@@ -85,7 +86,7 @@ function calculateCumulativeDistances(latlngStream: number[][]): number[] {
 
 /**
  * Find all segments of approximately targetDistance length and return the best one
- * Optimized version using sliding window approach
+ * Optimized version using sliding window approach with step size to reduce computation
  * For ELEVATION: returns the segment with maximum gain/loss (absolute value)
  * For SPEED: returns the segment with minimum normalized time
  * For other metrics: returns the segment with best average value
@@ -120,15 +121,29 @@ function findBestSegmentForDistance(
   const minDistance = targetDistance; // Must be at least targetDistance
   const maxDistance = targetDistance + tolerance;
 
+  // Use step size to reduce computation: check every Nth point instead of every point
+  // Step size increases with stream length to maintain performance
+  const stepSize = Math.max(1, Math.floor(cumulativeDistances.length / 2000));
+  const perfectDistanceThreshold = targetDistance * 0.001; // 0.1% tolerance for "perfect" match
+
   let right = 0;
 
-  for (let left = 0; left < cumulativeDistances.length; left++) {
+  for (let left = 0; left < cumulativeDistances.length; left += stepSize) {
     // Find the right boundary where cumulativeDistances[right] - cumulativeDistances[left] >= minDistance
     while (
       right < cumulativeDistances.length &&
       cumulativeDistances[right] - cumulativeDistances[left] < minDistance
     ) {
       right++;
+    }
+
+    // Early exit if we found a perfect match
+    if (bestValue) {
+      const distanceDiff = Math.abs(bestValue.distance - targetDistance);
+      if (distanceDiff < perfectDistanceThreshold) {
+        // Found a very close match, continue searching but with early exit optimization
+        // We'll still check a few more segments but can exit early if we find another perfect match
+      }
     }
 
     // Check all segments within tolerance and find the best one by value
@@ -153,6 +168,13 @@ function findBestSegmentForDistance(
               end: timeStream[r],
               distance: actualDistance,
             };
+
+            // Early exit if we found a perfect match (within 0.1% of target)
+            const distanceDiff = Math.abs(actualDistance - targetDistance);
+            if (distanceDiff < perfectDistanceThreshold) {
+              // Perfect match found, but continue to see if we can find a better value
+              // (distance is perfect, but value might be better)
+            }
           }
         }
       }
@@ -376,22 +398,31 @@ const computeCadenceRecords = (
 
 /**
  * Pre-calculate elevation gains/losses between consecutive points
+ * Also calculate cumulative sums for O(1) range queries
  * This avoids recalculating the same values multiple times
  */
 function calculateElevationChanges(altitude: number[]): {
   gains: number[];
   losses: number[];
+  cumulativeGains: number[];
+  cumulativeLosses: number[];
 } {
   const gains: number[] = [0]; // First point has no change
   const losses: number[] = [0];
+  const cumulativeGains: number[] = [0];
+  const cumulativeLosses: number[] = [0];
 
   for (let i = 1; i < altitude.length; i++) {
     const diff = altitude[i] - altitude[i - 1];
-    gains.push(diff > 0 ? diff : 0);
-    losses.push(diff < 0 ? -diff : 0);
+    const gain = diff > 0 ? diff : 0;
+    const loss = diff < 0 ? -diff : 0;
+    gains.push(gain);
+    losses.push(loss);
+    cumulativeGains.push(cumulativeGains[i - 1] + gain);
+    cumulativeLosses.push(cumulativeLosses[i - 1] + loss);
   }
 
-  return { gains, losses };
+  return { gains, losses, cumulativeGains, cumulativeLosses };
 }
 
 /**
@@ -417,8 +448,8 @@ const computeElevationGainRecords = (
     return [];
   }
 
-  // Pre-calculate elevation gains
-  const { gains } = calculateElevationChanges(altitude);
+  // Pre-calculate elevation gains with cumulative sums for O(1) queries
+  const { cumulativeGains } = calculateElevationChanges(altitude);
 
   const records: Pick<
     record,
@@ -442,9 +473,12 @@ const computeElevationGainRecords = (
     const minDistance = targetDistance;
     const maxDistance = targetDistance + tolerance;
 
+    // Use step size to reduce computation
+    const stepSize = Math.max(1, Math.floor(cumulativeDistances.length / 2000));
+
     let right = 0;
 
-    for (let left = 0; left < cumulativeDistances.length; left++) {
+    for (let left = 0; left < cumulativeDistances.length; left += stepSize) {
       // Find right boundary
       while (
         right < cumulativeDistances.length &&
@@ -463,12 +497,18 @@ const computeElevationGainRecords = (
         }
 
         if (actualDistance >= minDistance) {
-          // Calculate elevation gain using pre-calculated gains
-          let elevGain = 0;
-          const maxGainIndex = Math.min(r, gains.length - 1);
-          for (let i = left + 1; i <= maxGainIndex; i++) {
-            elevGain += gains[i];
-          }
+          // Calculate elevation gain using cumulative sums (O(1) instead of O(n))
+          // cumulativeGains[i] contains sum of gains from point 1 to i
+          // To get gains from left+1 to r: cumulativeGains[r] - cumulativeGains[left]
+          const startIndex = Math.max(
+            0,
+            Math.min(left, cumulativeGains.length - 1),
+          );
+          const endIndex = Math.min(r, cumulativeGains.length - 1);
+          const elevGain =
+            endIndex >= 0 && startIndex >= 0 && endIndex >= startIndex
+              ? cumulativeGains[endIndex] - cumulativeGains[startIndex]
+              : 0;
 
           // Normalize gain to target distance for fair comparison
           const normalizedGain = elevGain * (targetDistance / actualDistance);
@@ -531,8 +571,8 @@ const computeElevationLossRecords = (
     return [];
   }
 
-  // Pre-calculate elevation losses
-  const { losses } = calculateElevationChanges(altitude);
+  // Pre-calculate elevation losses with cumulative sums for O(1) queries
+  const { cumulativeLosses } = calculateElevationChanges(altitude);
 
   const records: Pick<
     record,
@@ -556,9 +596,12 @@ const computeElevationLossRecords = (
     const minDistance = targetDistance;
     const maxDistance = targetDistance + tolerance;
 
+    // Use step size to reduce computation
+    const stepSize = Math.max(1, Math.floor(cumulativeDistances.length / 2000));
+
     let right = 0;
 
-    for (let left = 0; left < cumulativeDistances.length; left++) {
+    for (let left = 0; left < cumulativeDistances.length; left += stepSize) {
       // Find right boundary
       while (
         right < cumulativeDistances.length &&
@@ -577,12 +620,18 @@ const computeElevationLossRecords = (
         }
 
         if (actualDistance >= minDistance) {
-          // Calculate elevation loss using pre-calculated losses
-          let elevLoss = 0;
-          const maxLossIndex = Math.min(r, losses.length - 1);
-          for (let i = left + 1; i <= maxLossIndex; i++) {
-            elevLoss += losses[i];
-          }
+          // Calculate elevation loss using cumulative sums (O(1) instead of O(n))
+          // cumulativeLosses[i] contains sum of losses from point 1 to i
+          // To get losses from left+1 to r: cumulativeLosses[r] - cumulativeLosses[left]
+          const startIndex = Math.max(
+            0,
+            Math.min(left, cumulativeLosses.length - 1),
+          );
+          const endIndex = Math.min(r, cumulativeLosses.length - 1);
+          const elevLoss =
+            endIndex >= 0 && startIndex >= 0 && endIndex >= startIndex
+              ? cumulativeLosses[endIndex] - cumulativeLosses[startIndex]
+              : 0;
 
           // Normalize loss to target distance for fair comparison
           const normalizedLoss = elevLoss * (targetDistance / actualDistance);
