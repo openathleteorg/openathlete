@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">OpenAthlete</string>
+    <string name="title_activity_main">OpenAthlete</string>
+    <string name="package_name">org.openathlete</string>
+    <string name="custom_url_scheme">org.openathlete</string>
+</resources>

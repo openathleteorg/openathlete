@@ -23,4 +23,6 @@ export default defineConfig({
     // Define global for socket.io-client
     global: 'globalThis',
   },
+  // Base path for Capacitor - empty for root
+  base: './',
 });

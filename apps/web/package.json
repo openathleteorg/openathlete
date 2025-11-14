@@ -14,9 +14,19 @@
     "format": "prettier --check \"src/**/*.{ts,tsx,js,jsx,css,scss,sass}\"",
     "lint": "eslint \"{src,apps,libs,test}/**/*.{ts,tsx,js,jsx}\" --max-warnings 0",
     "tsc:check": "tsc --noEmit",
-    "machine-translate": "inlang machine translate --project project.inlang"
+    "machine-translate": "inlang machine translate --project project.inlang",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy",
+    "cap:open:ios": "npx cap open ios",
+    "cap:open:android": "npx cap open android",
+    "cap:build": "pnpm build && pnpm cap:sync"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/browser": "^7.0.2",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/ios": "^7.4.4",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",

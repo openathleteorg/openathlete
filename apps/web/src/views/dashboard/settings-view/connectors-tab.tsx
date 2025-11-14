@@ -17,6 +17,7 @@ import {
 import { API_BASE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { connectorProviderLabelMap } from '@/utils/label-map/core/connector-provider.label-map';
+import { openOAuthUrl } from '@/utils/oauth';
 import { CheckCircle2, Link2, Link2Off } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -41,8 +42,8 @@ export function ConnectorsTab({}: P) {
     useGetConnectedProvidersQuery();
 
   const getOAuthUriMutation = useGetOAuthUriMutation({
-    onSuccess: (uri) => {
-      window.open(uri, '_self')?.focus();
+    onSuccess: async (uri) => {
+      await openOAuthUrl(uri);
     },
     onError: (error) => {
       toast.error(error.message || m.failed_to_initiate_connection());
