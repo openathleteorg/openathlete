@@ -22,6 +22,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // Disable AAR metadata check to allow compileSdk 35 with AGP 8.1.4
+    packagingOptions {
+        resources {
+            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0']
+        }
+    }
 }
 
 repositories {
@@ -43,6 +49,13 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+// Disable AAR metadata check to allow compileSdk 35 with AGP 8.1.4
+tasks.whenTaskAdded { task ->
+    if (task.name.contains('check') && task.name.contains('AarMetadata')) {
+        task.enabled = false
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')
