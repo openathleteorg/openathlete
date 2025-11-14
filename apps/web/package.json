@@ -19,7 +19,7 @@
     "cap:copy": "npx cap copy",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",
-    "cap:build": "pnpm build && pnpm cap:sync",
+    "cap:build": "CAPACITOR=true pnpm build && pnpm cap:sync",
     "cap:dev": "pnpm dev --host",
     "cap:dev:android": "pnpm cap:dev & pnpm cap:sync && pnpm cap:open:android",
     "cap:dev:ios": "pnpm cap:dev & pnpm cap:sync && pnpm cap:open:ios"

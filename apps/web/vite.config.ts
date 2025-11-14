@@ -23,8 +23,9 @@ export default defineConfig({
     // Define global for socket.io-client
     global: 'globalThis',
   },
-  // Base path for Capacitor - empty for root
-  base: './',
+  // Base path: use absolute path for web production, relative for Capacitor
+  // For Capacitor builds, override this with --base=./ in the build command
+  base: process.env.CAPACITOR === 'true' ? './' : '/',
   server: {
     host: true,
     port: 5173,
