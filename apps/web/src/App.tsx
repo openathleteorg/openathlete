@@ -6,6 +6,7 @@ import { Toaster } from './components/ui/sonner';
 import { AuthConsumer, AuthProvider } from './contexts/auth';
 import { ChatbotProvider } from './contexts/chatbot';
 import router from './routes/sections';
+import { StatusBarThemeSync } from './components/status-bar-theme-sync';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -19,19 +20,26 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppContent() {
+  return (
+    <AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <ChatbotProvider>
+          <AuthConsumer>
+            <RouterProvider router={router} />
+            <Toaster />
+          </AuthConsumer>
+        </ChatbotProvider>
+      </QueryClientProvider>
+    </AuthProvider>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>
-        <QueryClientProvider client={queryClient}>
-          <ChatbotProvider>
-            <AuthConsumer>
-              <RouterProvider router={router} />
-              <Toaster />
-            </AuthConsumer>
-          </ChatbotProvider>
-        </QueryClientProvider>
-      </AuthProvider>
+      <StatusBarThemeSync />
+      <AppContent />
     </ThemeProvider>
   );
 }

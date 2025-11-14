@@ -28,14 +28,14 @@ export function isAndroid(): boolean {
 export function getApiBaseUrl(): string {
   const envUrl = import.meta.env.VITE_API_BASE_URL;
 
+  if (envUrl) {
+    return envUrl;
+  }
+
   if (isCapacitor()) {
     // Try api.openathlete.org first, fallback to openathlete.org
     // You can override this with VITE_API_BASE_URL environment variable
     return 'https://api.openathlete.org';
-  }
-
-  if (envUrl) {
-    return envUrl;
   }
 
   return 'http://localhost:3000';

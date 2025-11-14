@@ -12,6 +12,7 @@ def capacitor_pods
   pod 'Capacitor', :path => '../../../../node_modules/.pnpm/@capacitor+ios@7.4.4_@capacitor+core@7.4.4/node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../../../node_modules/.pnpm/@capacitor+ios@7.4.4_@capacitor+core@7.4.4/node_modules/@capacitor/ios'
   pod 'CapacitorBrowser', :path => '../../../../node_modules/.pnpm/@capacitor+browser@7.0.2_@capacitor+core@7.4.4/node_modules/@capacitor/browser'
+  pod 'CapacitorStatusBar', :path => '../../../../node_modules/.pnpm/@capacitor+status-bar@7.0.3_@capacitor+core@7.4.4/node_modules/@capacitor/status-bar'
 end
 
 target 'App' do

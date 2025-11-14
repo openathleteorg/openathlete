@@ -9,17 +9,8 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
     // Uncomment for local development with live reload
-    // url: 'http://localhost:5173',
-    // cleartext: true,
-  },
-  // Configure deep linking for OAuth callbacks
-  // OAuth callbacks will redirect to: openathlete://auth/callback/:provider
-  // Make sure your OAuth providers (Strava, etc.) are configured with this URL
-  app: {
-    // Custom URL scheme for deep linking
-    // This will be used for OAuth callbacks
-    // Format: {appId}://{path}
-    // Example: org.openathlete://auth/callback/strava
+    url: 'http://localhost:5173',
+    cleartext: true,
   },
   plugins: {
     SplashScreen: {

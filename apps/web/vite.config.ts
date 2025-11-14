@@ -25,4 +25,8 @@ export default defineConfig({
   },
   // Base path for Capacitor - empty for root
   base: './',
+  server: {
+    host: true,
+    port: 5173,
+  },
 });

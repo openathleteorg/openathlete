@@ -20,6 +20,13 @@
         </trust-anchors>
     </domain-config>
     
+    <!-- Allow localhost for development (hot reload) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <!-- 10.0.2.2 is the special IP address that Android emulator uses to refer to the host machine's localhost -->
+    </domain-config>
+    
     <!-- Base configuration: only allow HTTPS by default -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>

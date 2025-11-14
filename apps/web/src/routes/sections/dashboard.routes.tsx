@@ -80,6 +80,12 @@ const MessagesPage = lazy(() =>
   })),
 );
 
+const ProfilePage = lazy(() =>
+  import('@/pages/dashboard/profile').then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
+
 const CoachDashboardPage = lazy(() =>
   import('@/pages/dashboard/coach').then((module) => ({
     default: module.CoachDashboardPage,
@@ -165,6 +171,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'messages']),
         element: <MessagesPage />,
+      },
+      {
+        path: getPath(['dashboard', 'profile']),
+        element: <ProfilePage />,
       },
     ],
   },

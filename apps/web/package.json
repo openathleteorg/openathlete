@@ -19,7 +19,10 @@
     "cap:copy": "npx cap copy",
     "cap:open:ios": "npx cap open ios",
     "cap:open:android": "npx cap open android",
-    "cap:build": "pnpm build && pnpm cap:sync"
+    "cap:build": "pnpm build && pnpm cap:sync",
+    "cap:dev": "pnpm dev --host",
+    "cap:dev:android": "pnpm cap:dev & pnpm cap:sync && pnpm cap:open:android",
+    "cap:dev:ios": "pnpm cap:dev & pnpm cap:sync && pnpm cap:open:ios"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.4",
@@ -27,6 +30,7 @@
     "@capacitor/cli": "^7.4.4",
     "@capacitor/core": "^7.4.4",
     "@capacitor/ios": "^7.4.4",
+    "@capacitor/status-bar": "^7.0.3",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",

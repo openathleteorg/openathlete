@@ -61,6 +61,7 @@ export const paths: Paths = {
       viewer: `${ROOTS.DASHBOARD}/race-plan/viewer`,
     },
     messages: `${ROOTS.DASHBOARD}/messages`,
+    profile: `${ROOTS.DASHBOARD}/profile`,
   },
 } as const;
 

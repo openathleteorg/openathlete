@@ -4,3 +4,6 @@ project(':capacitor-android').projectDir = new File('../../../node_modules/.pnpm
 
 include ':capacitor-browser'
 project(':capacitor-browser').projectDir = new File('../../../node_modules/.pnpm/@capacitor+browser@7.0.2_@capacitor+core@7.4.4/node_modules/@capacitor/browser/android')
+
+include ':capacitor-status-bar'
+project(':capacitor-status-bar').projectDir = new File('../../../node_modules/.pnpm/@capacitor+status-bar@7.0.3_@capacitor+core@7.4.4/node_modules/@capacitor/status-bar/android')
