@@ -180,6 +180,82 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
             this.logger.log(
               `Handlers: ${Object.keys(handlers).join(', ') || 'none'}`,
             );
+
+            // CRITICAL FIX: Bull v4 requires queue.process() to be called to create the worker
+            // NestJS/Bull should do this automatically, but it seems it's not happening
+            // We need to manually ensure the worker is created
+            try {
+              // Check if process() was already called by checking if worker exists
+              const existingWorker = queue.worker || queue.workers?.[0];
+
+              if (!existingWorker) {
+                this.logger.error(
+                  '❌ CRITICAL: Handler registered but no worker found!',
+                );
+                this.logger.error(
+                  'NestJS/Bull should have called queue.process() automatically, but it did not.',
+                );
+                this.logger.error(
+                  'This is likely a bug in @nestjs/bull or a configuration issue.',
+                );
+
+                // Try to manually trigger worker creation by calling process()
+                // This is a workaround - normally NestJS/Bull should do this automatically
+                try {
+                  this.logger.warn(
+                    'Attempting workaround: manually calling queue.process() to create worker...',
+                  );
+
+                  // Get the handler function that was registered
+                  const handlerFunction = handlers['import'];
+                  if (handlerFunction) {
+                    // Call queue.process() manually with the handler
+                    // This should create the worker
+                    const processResult = queue.process(
+                      'import',
+                      3, // concurrency
+                      handlerFunction,
+                    );
+                    this.logger.log(
+                      '✅ Manually called queue.process() - worker should now be created',
+                    );
+
+                    // Wait a bit and check if worker was created
+                    setTimeout(() => {
+                      const newWorker = queue.worker || queue.workers?.[0];
+                      if (newWorker) {
+                        this.logger.log(
+                          '✅ Worker successfully created after manual queue.process() call',
+                        );
+                      } else {
+                        this.logger.error(
+                          '❌ Worker still not created after manual queue.process() call',
+                        );
+                      }
+                    }, 1000);
+                  } else {
+                    this.logger.error(
+                      '❌ Handler function not found - cannot manually create worker',
+                    );
+                  }
+                } catch (processError) {
+                  this.logger.error(
+                    `Failed to manually create worker: ${processError instanceof Error ? processError.message : String(processError)}`,
+                    processError instanceof Error
+                      ? processError.stack
+                      : undefined,
+                  );
+                }
+              } else {
+                this.logger.log(
+                  '✅ Worker exists - Bull should process jobs automatically',
+                );
+              }
+            } catch (workerCheckError) {
+              this.logger.warn(
+                `Could not check worker creation: ${workerCheckError instanceof Error ? workerCheckError.message : String(workerCheckError)}`,
+              );
+            }
           }
         } catch (error) {
           this.logger.error(
