@@ -334,6 +334,7 @@ export function StepForm({
                         targetValue: target.targetValue,
                       } as unknown as WorkoutStepTarget
                     }
+                    sport={SPORT_TYPE[sport]}
                   />
                   <button
                     type="button"

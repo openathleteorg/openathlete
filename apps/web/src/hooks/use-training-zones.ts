@@ -72,6 +72,7 @@ export function useTrainingZones(type: TRAINING_ZONE_TYPE, sport?: SPORT_TYPE) {
       }
 
       return {
+        id: zone.trainingZoneId,
         name: zone.name,
         description: zone.description,
         color: zone.color,
@@ -86,7 +87,21 @@ export function useTrainingZones(type: TRAINING_ZONE_TYPE, sport?: SPORT_TYPE) {
     .map((zone) => zone as Exclude<typeof zone, null>);
 
   if (!filteredTrainingZones || filteredTrainingZones.length === 0) {
-    return DEFAULT_TRAINING_ZONES.find((zone) => zone.type === type)?.values!;
+    const defaultZones = DEFAULT_TRAINING_ZONES.find(
+      (zone) => zone.type === type,
+    )?.values;
+    if (defaultZones) {
+      // Add temporary IDs for default zones (negative IDs to avoid conflicts)
+      return defaultZones.map((zone, index) => ({
+        id: -(index + 1), // Negative IDs for default zones
+        name: zone.name,
+        description: zone.description,
+        color: zone.color,
+        min: zone.min,
+        max: zone.max,
+      }));
+    }
+    return [];
   }
 
   return filteredTrainingZones;

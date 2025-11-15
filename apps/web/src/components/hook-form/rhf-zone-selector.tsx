@@ -80,26 +80,33 @@ export const RHFZoneSelector = ({
                 />
               </SelectTrigger>
               <SelectContent>
-                {zones?.map((zone, index) => (
-                  <SelectItem key={index} value={(index + 1).toString()}>
-                    <div className="flex items-center gap-2">
-                      {zone.color && (
-                        <div
-                          className="h-3 w-3 rounded-full"
-                          style={{
-                            backgroundColor: zone.color,
-                          }}
-                        />
-                      )}
-                      <span>{zone.name}</span>
-                      {zone.description && (
-                        <span className="text-sm text-muted-foreground">
-                          ({zone.description})
-                        </span>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
+                {zones?.map((zone) => {
+                  // Zone ID should always be present (either from DB or negative for defaults)
+                  if (zone.id === undefined || zone.id === null) {
+                    console.warn('Zone without ID found in RHFZoneSelector');
+                    return null;
+                  }
+                  return (
+                    <SelectItem key={zone.id} value={zone.id.toString()}>
+                      <div className="flex items-center gap-2">
+                        {zone.color && (
+                          <div
+                            className="h-3 w-3 rounded-full"
+                            style={{
+                              backgroundColor: zone.color,
+                            }}
+                          />
+                        )}
+                        <span>{zone.name}</span>
+                        {zone.description && (
+                          <span className="text-sm text-muted-foreground">
+                            ({zone.description})
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  );
+                }).filter(Boolean)}
               </SelectContent>
             </Select>
           );

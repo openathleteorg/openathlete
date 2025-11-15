@@ -142,6 +142,7 @@ export const routes = {
   },
   aiFeatures: {
     generateEvent: '/agent/ai/events/generate',
+    modifyEvent: '/agent/ai/events/modify',
   },
   messages: {
     createThread: '/messages/threads',

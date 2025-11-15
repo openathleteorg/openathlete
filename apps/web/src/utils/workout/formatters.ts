@@ -7,7 +7,10 @@ import type {
   WorkoutStepType,
   WorkoutTargetType,
 } from '@openathlete/shared';
-import { calculateWorkoutDuration as sharedCalculateWorkoutDuration } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  calculateWorkoutDuration as sharedCalculateWorkoutDuration,
+} from '@openathlete/shared';
 
 /**
  * Format duration value based on duration type
@@ -94,9 +97,13 @@ function formatPace(seconds: number): string {
 /**
  * Format a workout target for display
  * @param target - Target object with type, unit, and values
+ * @param sport - Optional sport to determine zone type
  * @returns Human-readable formatted target
  */
-export function formatTarget(target: WorkoutStepTarget): string {
+export function formatTarget(
+  target: WorkoutStepTarget,
+  sport?: SPORT_TYPE,
+): string {
   const { targetType, unit, targetMin, targetMax, targetValue } = target;
 
   // Open target (no specific goal)
@@ -104,12 +111,14 @@ export function formatTarget(target: WorkoutStepTarget): string {
     return 'Open';
   }
 
-  // ZONE target (single value)
+  // ZONE target (single value) - zone name should be resolved in component
+  // This function will be called with zone name already resolved in TargetBadge
   if (
     targetType === 'ZONE' &&
     targetValue !== null &&
     targetValue !== undefined
   ) {
+    // Fallback: if zone name not provided, show ID
     return `Zone ${targetValue}`;
   }
 

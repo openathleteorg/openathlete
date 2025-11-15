@@ -7,4 +7,5 @@ export const agentKeys = {
   deleteThread: 'AgentAPI.deleteThread',
   getThreadMessages: 'AgentAPI.getThreadMessages',
   generateEvent: () => ['AgentAPI', 'generateEvent'] as const,
+  modifyEvent: () => ['AgentAPI', 'modifyEvent'] as const,
 } as const;

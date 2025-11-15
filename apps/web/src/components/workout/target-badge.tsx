@@ -1,3 +1,4 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import {
   Tooltip,
   TooltipContent,
@@ -6,21 +7,46 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/utils/shadcn';
 import { formatTarget, getTargetTypeLabel } from '@/utils/workout';
+import { useMemo } from 'react';
 
 import type { WorkoutStepTarget } from '@openathlete/shared';
+import { SPORT_TYPE, TRAINING_ZONE_TYPE } from '@openathlete/shared';
 
 interface TargetBadgeProps {
   target: WorkoutStepTarget;
   className?: string;
   showTooltip?: boolean;
+  sport?: SPORT_TYPE;
 }
 
 export function TargetBadge({
   target,
   className,
   showTooltip = true,
+  sport,
 }: TargetBadgeProps) {
-  const formatted = formatTarget(target);
+  const { data: athlete } = useGetMyAthleteQuery();
+
+  // Get zone name if target is a ZONE type
+  // Since zone IDs are unique, we can search across all zone types
+  const zoneName = useMemo(() => {
+    if (target.targetType === 'ZONE' && target.targetValue && athlete?.trainingZones) {
+      const zone = athlete.trainingZones.find(
+        (z) => z.trainingZoneId === target.targetValue,
+      );
+      return zone?.name;
+    }
+    return null;
+  }, [target, athlete]);
+
+  // Format target, using zone name if available
+  const formatted = useMemo(() => {
+    if (target.targetType === 'ZONE' && zoneName) {
+      return zoneName;
+    }
+    return formatTarget(target, sport);
+  }, [target, zoneName, sport]);
+
   const label = getTargetTypeLabel(target.targetType);
 
   const badge = (
