@@ -63,9 +63,11 @@ export class ActivityImportProcessor implements OnModuleInit {
       return;
     }
 
+    this.logger.log('Initializing ActivityImportProcessor...');
+
     // Force Redis connection by accessing the queue
-    // This ensures Bull connects even if it hasn't connected yet
-    // Workers only read jobs, so we need to force the connection
+    // Bull listens continuously once the processor is registered and Redis is connected
+    // We need to ensure Redis is connected so Bull can start listening
     try {
       // Access the queue's Redis client to force connection
       const client = (this.activityImportQueue as any).client;
@@ -75,15 +77,41 @@ export class ActivityImportProcessor implements OnModuleInit {
           this.logger.log('Redis already connected for activity-import queue');
         } else {
           // Force connection attempt (will use retryStrategy if it fails)
+          this.logger.log('Attempting to connect to Redis...');
           await client.connect();
           this.logger.log('Redis connection established for activity-import queue');
         }
+      } else {
+        this.logger.warn(
+          'Redis client not available yet, Bull will connect automatically',
+        );
+      }
+
+      // Verify queue is ready by checking its state
+      // This also ensures Bull has initialized the queue properly
+      try {
+        const waiting = await this.activityImportQueue.getWaitingCount();
+        const active = await this.activityImportQueue.getActiveCount();
+        const completed = await this.activityImportQueue.getCompletedCount();
+        const failed = await this.activityImportQueue.getFailedCount();
+
+        this.logger.log(
+          `Queue status - Waiting: ${waiting}, Active: ${active}, Completed: ${completed}, Failed: ${failed}`,
+        );
+        this.logger.log(
+          'ActivityImportProcessor is now listening for jobs (Bull listens continuously)',
+        );
+      } catch (queueError) {
+        this.logger.warn(
+          `Could not check queue status: ${queueError instanceof Error ? queueError.message : String(queueError)}. Queue may still be initializing.`,
+        );
       }
     } catch (error) {
       this.logger.warn(
         `Failed to force Redis connection: ${error instanceof Error ? error.message : String(error)}. Will retry automatically.`,
       );
       // Don't throw - connection will be retried automatically via retryStrategy
+      // Bull will start listening once Redis connection is established
     }
 
     this.logger.log(
