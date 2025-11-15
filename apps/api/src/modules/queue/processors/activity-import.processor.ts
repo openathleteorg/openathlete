@@ -115,12 +115,58 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
           );
         }
 
+        // Check for stuck active jobs (jobs that are active but not being processed)
+        if (active > 0) {
+          this.logger.warn(
+            `⚠️ Found ${active} active job(s) - these may be stuck from a previous worker instance. They will be automatically moved to failed after lockDuration expires.`,
+          );
+
+          // Try to get active jobs to see their state
+          try {
+            const activeJobs = await this.activityImportQueue.getActive();
+            for (const job of activeJobs) {
+              const jobAge = Date.now() - (job.processedOn || 0);
+              this.logger.warn(
+                `Active job ${job.id} (${job.data?.activity?.externalId || 'unknown'}) - age: ${jobAge}ms, processedOn: ${job.processedOn ? new Date(job.processedOn).toISOString() : 'never'}`,
+              );
+            }
+          } catch (error) {
+            this.logger.debug(
+              `Could not get active jobs details: ${error instanceof Error ? error.message : String(error)}`,
+            );
+          }
+        }
+
         // Verify the processor is actually registered by checking if Bull has the process handler
         // This is a sanity check to ensure the @Process decorator was processed
         const queueName = this.activityImportQueue.name;
-        this.logger.log(
-          `Queue '${queueName}' initialized. Processor registered with @Process({ name: 'import', concurrency: 3 })`,
-        );
+
+        // Check if Bull has registered the processor handlers
+        try {
+          const queue = this.activityImportQueue as any;
+          // Bull stores processors in queue.processors array
+          const processors = queue.processors || [];
+          const handlers = queue.handlers || {};
+
+          this.logger.log(
+            `Queue '${queueName}' initialized. Found ${processors.length} processor(s), ${Object.keys(handlers).length} handler(s)`,
+          );
+
+          if (processors.length === 0 && Object.keys(handlers).length === 0) {
+            this.logger.error(
+              '❌ CRITICAL: No processors or handlers found on queue! The @Process decorator may not have been registered correctly.',
+            );
+          } else {
+            this.logger.log(
+              `Processor registered with @Process({ name: 'import', concurrency: 3 })`,
+            );
+          }
+        } catch (error) {
+          this.logger.warn(
+            `Could not check processor registration: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+
         this.logger.log(
           'ActivityImportProcessor is now listening for jobs (Bull listens continuously)',
         );
@@ -185,8 +231,31 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
           // Note: Bull should handle this automatically, but this is a diagnostic aid
           try {
             // Access the queue's worker to ensure it's active
-            const worker = (this.activityImportQueue as any).worker;
-            if (worker) {
+            const queue = this.activityImportQueue as any;
+            const worker = queue.worker;
+
+            // Bull v4 stores worker differently - check multiple possible locations
+            if (!worker) {
+              // Try alternative locations where Bull might store the worker
+              const workers = queue.workers || [];
+              if (workers.length > 0) {
+                this.logger.log(
+                  `Found ${workers.length} worker(s) in workers array`,
+                );
+                for (let i = 0; i < workers.length; i++) {
+                  const w = workers[i];
+                  const isRunning = w?.isRunning?.() ?? 'unknown';
+                  this.logger.log(`Worker ${i} status: isRunning=${isRunning}`);
+                }
+              } else {
+                this.logger.error(
+                  '❌ CRITICAL: No worker found on queue! Bull may not have created a worker even though processor is registered. This is why jobs are not being processed.',
+                );
+                this.logger.error(
+                  'This usually means the @Process decorator was not properly registered by NestJS/Bull.',
+                );
+              }
+            } else {
               const isRunning = worker.isRunning?.() ?? 'unknown';
               this.logger.log(
                 `Worker status: isRunning=${isRunning}, waiting=${waiting}, active=${active}`,
@@ -197,13 +266,12 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                   '❌ Bull worker is not running! This is the problem - jobs cannot be processed.',
                 );
               }
-            } else {
-              this.logger.warn('Worker object not found on queue');
             }
           } catch (workerError) {
             // Worker check failed, but that's okay - Bull might handle it differently
-            this.logger.debug(
+            this.logger.warn(
               `Could not check worker status: ${workerError instanceof Error ? workerError.message : String(workerError)}`,
+              workerError instanceof Error ? workerError.stack : undefined,
             );
           }
         } else {
