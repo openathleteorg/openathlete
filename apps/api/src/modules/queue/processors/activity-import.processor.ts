@@ -199,53 +199,61 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                   'This is likely a bug in @nestjs/bull or a configuration issue.',
                 );
 
-                // Try to manually trigger worker creation by calling process()
-                // This is a workaround - normally NestJS/Bull should do this automatically
+                // Check Bull's internal state to understand why worker wasn't created
                 try {
+                  const isInitializing = queue._initializingProcess;
+                  const processing = queue.processing;
+                  const processJob = queue.processJob;
+
                   this.logger.warn(
-                    'Attempting workaround: manually calling queue.process() to create worker...',
+                    `Bull internal state: _initializingProcess=${isInitializing}, processing=${processing}, processJob=${!!processJob}`,
                   );
 
-                  // Get the handler function that was registered
-                  const handlerFunction = handlers['import'];
-                  if (handlerFunction) {
-                    // Call queue.process() manually with the handler
-                    // This should create the worker
-                    const processResult = queue.process(
-                      'import',
-                      3, // concurrency
-                      handlerFunction,
-                    );
-                    this.logger.log(
-                      '✅ Manually called queue.process() - worker should now be created',
-                    );
-
-                    // Wait a bit and check if worker was created
-                    setTimeout(() => {
-                      const newWorker = queue.worker || queue.workers?.[0];
-                      if (newWorker) {
-                        this.logger.log(
-                          '✅ Worker successfully created after manual queue.process() call',
-                        );
-                      } else {
-                        this.logger.error(
-                          '❌ Worker still not created after manual queue.process() call',
-                        );
-                      }
-                    }, 1000);
-                  } else {
-                    this.logger.error(
-                      '❌ Handler function not found - cannot manually create worker',
+                  // Check if there's a processing promise that might be stuck
+                  if (isInitializing) {
+                    this.logger.warn(
+                      '⚠️ Bull appears to be initializing worker (but taking too long or stuck)',
                     );
                   }
-                } catch (processError) {
-                  this.logger.error(
-                    `Failed to manually create worker: ${processError instanceof Error ? processError.message : String(processError)}`,
-                    processError instanceof Error
-                      ? processError.stack
-                      : undefined,
+
+                  // The handler is registered but worker not created
+                  // This suggests NestJS/Bull registered the handler but didn't call queue.process()
+                  // OR queue.process() was called but failed silently
+
+                  // Check if we can access the actual process method
+                  if (typeof queue.process === 'function') {
+                    this.logger.warn(
+                      'queue.process() method exists - but worker was not created',
+                    );
+                    this.logger.warn(
+                      'This suggests queue.process() was never called, or was called but failed silently',
+                    );
+                  }
+
+                  // Check if there's an error in the processing chain
+                  if (processing && typeof processing.catch === 'function') {
+                    processing.catch((error: any) => {
+                      this.logger.error(
+                        `Processing promise rejected: ${error instanceof Error ? error.message : String(error)}`,
+                        error instanceof Error ? error.stack : undefined,
+                      );
+                    });
+                  }
+                } catch (stateError) {
+                  this.logger.warn(
+                    `Could not check Bull internal state: ${stateError instanceof Error ? stateError.message : String(stateError)}`,
                   );
                 }
+
+                this.logger.error(
+                  '❌ SOLUTION NEEDED: NestJS/Bull registered the handler but did not create the worker.',
+                );
+                this.logger.error(
+                  'This is likely a bug in @nestjs/bull v11.0.4 or a configuration issue.',
+                );
+                this.logger.error(
+                  'Possible solutions: 1) Update @nestjs/bull, 2) Check if there are circular dependencies, 3) Verify module loading order',
+                );
               } else {
                 this.logger.log(
                   '✅ Worker exists - Bull should process jobs automatically',
