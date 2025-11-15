@@ -79,7 +79,9 @@ export class ActivityImportProcessor implements OnModuleInit {
           // Force connection attempt (will use retryStrategy if it fails)
           this.logger.log('Attempting to connect to Redis...');
           await client.connect();
-          this.logger.log('Redis connection established for activity-import queue');
+          this.logger.log(
+            'Redis connection established for activity-import queue',
+          );
         }
       } else {
         this.logger.warn(
@@ -167,12 +169,13 @@ export class ActivityImportProcessor implements OnModuleInit {
   private keepJobAlive(
     job: Job<ActivityImportJobData>,
     currentProgress: number,
-    intervalMs = 300000, // Update every 5 minutes (lockDuration is 30 minutes)
+    intervalMs = 600000, // Update every 10 minutes (lockDuration is 30 minutes, so we renew well before expiry)
   ): () => void {
     let isActive = true;
-    const interval = setInterval(async () => {
-      if (!isActive) {
-        clearInterval(interval);
+    let interval: NodeJS.Timeout | null = null;
+
+    const heartbeat = async () => {
+      if (!isActive || !interval) {
         return;
       }
       try {
@@ -185,13 +188,23 @@ export class ActivityImportProcessor implements OnModuleInit {
         this.logger.warn(
           `Failed to renew lock for job ${job.id}: ${error instanceof Error ? error.message : String(error)}`,
         );
+        // If we can't renew, stop trying
+        if (interval) {
+          clearInterval(interval);
+          interval = null;
+        }
       }
-    }, intervalMs);
+    };
+
+    interval = setInterval(heartbeat, intervalMs);
 
     // Return cleanup function
     return () => {
       isActive = false;
-      clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
     };
   }
 
@@ -205,6 +218,9 @@ export class ActivityImportProcessor implements OnModuleInit {
     );
 
     let keepAliveCleanup: (() => void) | undefined;
+    // Only enable heartbeat if job is expected to take longer than 10 minutes
+    // This prevents unnecessary overhead for quick jobs
+    const enableHeartbeat = process.env.ENABLE_JOB_HEARTBEAT !== 'false';
 
     try {
       // Update job progress to prevent stalling
@@ -241,7 +257,10 @@ export class ActivityImportProcessor implements OnModuleInit {
       await job.progress(30);
 
       // Start heartbeat to keep job alive during long API calls
-      keepAliveCleanup = this.keepJobAlive(job, 30);
+      if (enableHeartbeat) {
+        keepAliveCleanup = this.keepJobAlive(job, 30);
+        this.logger.debug(`Heartbeat enabled for job ${job.id}`);
+      }
 
       // Import the activity (this can take time due to API calls)
       const importStart = Date.now();
@@ -296,7 +315,12 @@ export class ActivityImportProcessor implements OnModuleInit {
       // Handle records and equipment in parallel (they are independent)
       // Note: These operations can take significant time for large activities
       // Start heartbeat again for potentially long operations
-      keepAliveCleanup = this.keepJobAlive(job, 60);
+      if (enableHeartbeat) {
+        keepAliveCleanup = this.keepJobAlive(job, 60);
+        this.logger.debug(
+          `Heartbeat enabled for records/equipment processing on job ${job.id}`,
+        );
+      }
       const recordsEquipmentStart = Date.now();
       await Promise.all([
         this.handleEquipment(
