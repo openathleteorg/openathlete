@@ -209,25 +209,47 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                     `Bull internal state: _initializingProcess=${isInitializing}, processing=${processing}, processJob=${!!processJob}`,
                   );
 
-                  // Check if there's a processing promise that might be stuck
-                  if (isInitializing) {
+                  // CRITICAL: _initializingProcess is a Promise - we need to wait for it or check if it failed
+                  if (
+                    isInitializing &&
+                    typeof isInitializing.then === 'function'
+                  ) {
                     this.logger.warn(
-                      '⚠️ Bull appears to be initializing worker (but taking too long or stuck)',
+                      '⚠️ Bull is initializing worker (Promise exists) - waiting for it to resolve...',
                     );
-                  }
 
-                  // The handler is registered but worker not created
-                  // This suggests NestJS/Bull registered the handler but didn't call queue.process()
-                  // OR queue.process() was called but failed silently
-
-                  // Check if we can access the actual process method
-                  if (typeof queue.process === 'function') {
-                    this.logger.warn(
-                      'queue.process() method exists - but worker was not created',
-                    );
-                    this.logger.warn(
-                      'This suggests queue.process() was never called, or was called but failed silently',
-                    );
+                    // Wait for the initialization promise to resolve
+                    isInitializing
+                      .then(() => {
+                        this.logger.log(
+                          '✅ Bull worker initialization promise resolved',
+                        );
+                        // Check if worker was created after promise resolves
+                        setTimeout(() => {
+                          const workerAfterInit =
+                            queue.worker || queue.workers?.[0];
+                          if (workerAfterInit) {
+                            this.logger.log(
+                              '✅ Worker successfully created after initialization promise resolved!',
+                            );
+                          } else {
+                            this.logger.error(
+                              '❌ Worker still not created after initialization promise resolved',
+                            );
+                          }
+                        }, 500);
+                      })
+                      .catch((initError: any) => {
+                        this.logger.error(
+                          `❌ CRITICAL: Bull worker initialization promise REJECTED: ${initError instanceof Error ? initError.message : String(initError)}`,
+                          initError instanceof Error
+                            ? initError.stack
+                            : undefined,
+                        );
+                        this.logger.error(
+                          'This is why the worker was never created!',
+                        );
+                      });
                   }
 
                   // Check if there's an error in the processing chain
@@ -240,8 +262,9 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                     });
                   }
                 } catch (stateError) {
-                  this.logger.warn(
+                  this.logger.error(
                     `Could not check Bull internal state: ${stateError instanceof Error ? stateError.message : String(stateError)}`,
+                    stateError instanceof Error ? stateError.stack : undefined,
                   );
                 }
 
