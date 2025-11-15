@@ -101,7 +101,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   );
 
   // Get current event data for AI modification
-  const { eventId, currentEventData } = useCurrentEventData(
+  const { currentEventData } = useCurrentEventData(
     rest,
     watch,
     workoutSteps,
@@ -125,9 +125,9 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   // AI modification/generation dialog state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
 
-  // Determine if we're in create mode (no eventId + empty form)
+  // Determine if we're in create mode (empty form)
   const formName = watch('name');
-  const isCreateMode = !eventId && (!formName || formName.trim() === '');
+  const isCreateMode = !formName || formName.trim() === '';
 
   // Handle event generation (for create mode)
   const handleEventGenerated = (generatedEvent: CreateEventDto) => {
@@ -301,16 +301,17 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           </Button>
         </FormProvider>
       </DialogContent>
-      <AIModifyEventDialog
-        open={aiDialogOpen}
-        onClose={() => setAiDialogOpen(false)}
-        eventId={eventId}
-        eventData={currentEventData}
-        date={create ? rest.date : undefined}
-        isCreateMode={isCreateMode}
-        onEventGenerated={handleEventGenerated}
-        onEventModified={handleEventModified}
-      />
+      {currentEventData && (
+        <AIModifyEventDialog
+          open={aiDialogOpen}
+          onClose={() => setAiDialogOpen(false)}
+          eventData={currentEventData}
+          date={create ? rest.date : undefined}
+          isCreateMode={isCreateMode}
+          onEventGenerated={handleEventGenerated}
+          onEventModified={handleEventModified}
+        />
+      )}
     </Dialog>
   );
 }

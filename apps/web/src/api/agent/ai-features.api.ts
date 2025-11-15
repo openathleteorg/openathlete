@@ -38,27 +38,21 @@ export class AIFeaturesAPI {
 
   static async modifyEvent(
     prompt: string,
-    eventId?: number,
-    eventData?: CreateEventDto,
+    eventData: CreateEventDto,
   ): Promise<ModifyEventResponseDto> {
     const payload: ModifyEventDto = {
       prompt,
-      ...(eventId ? { eventId } : {}),
-      ...(eventData
-        ? {
-            eventData: {
-              ...eventData,
-              startDate:
-                eventData.startDate instanceof Date
-                  ? eventData.startDate.toISOString()
-                  : eventData.startDate,
-              endDate:
-                eventData.endDate instanceof Date
-                  ? eventData.endDate.toISOString()
-                  : eventData.endDate,
-            },
-          }
-        : {}),
+      eventData: {
+        ...eventData,
+        startDate:
+          eventData.startDate instanceof Date
+            ? eventData.startDate.toISOString()
+            : (eventData.startDate as any),
+        endDate:
+          eventData.endDate instanceof Date
+            ? eventData.endDate.toISOString()
+            : (eventData.endDate as any),
+      } as any,
     };
 
     const res = await client.post<ModifyEventResponseDto>(
@@ -66,14 +60,15 @@ export class AIFeaturesAPI {
       payload,
     );
     const event = res.data;
-    const trainingEvent = event as Extract<typeof event, { type: 'TRAINING' }>;
     const workout =
-      'workout' in trainingEvent ? trainingEvent.workout : undefined;
+      'workout' in event && event.type === 'TRAINING'
+        ? (event as any).workout
+        : undefined;
 
     const mappedEvent: UpdateEventDto = {
       ...event,
-      startDate: new Date(event.startDate),
-      endDate: new Date(event.endDate),
+      startDate: event.startDate ? new Date(event.startDate) : new Date(),
+      endDate: event.endDate ? new Date(event.endDate) : new Date(),
       ...(workout ? { workout } : {}),
     } as UpdateEventDto;
 

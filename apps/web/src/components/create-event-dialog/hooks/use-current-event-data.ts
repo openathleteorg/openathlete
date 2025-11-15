@@ -24,11 +24,7 @@ export function useCurrentEventData(
   workoutSteps: any[],
   athleteId: number,
 ) {
-  const eventId = 'event' in props ? props.event?.eventId : undefined;
-
   const currentEventData = useMemo(() => {
-    if (eventId) return undefined; // Use eventId if available
-
     const formValues = watch();
     const eventType =
       formValues.type || ('type' in props ? props.type : EVENT_TYPE.TRAINING);
@@ -89,10 +85,9 @@ export function useCurrentEventData(
       endDate: formValues.endDate || new Date(),
       athleteId,
     } as CreateEventDto;
-  }, [props, watch, workoutSteps, athleteId, eventId]);
+  }, [props, watch, workoutSteps, athleteId]);
 
   return {
-    eventId,
     currentEventData,
   };
 }

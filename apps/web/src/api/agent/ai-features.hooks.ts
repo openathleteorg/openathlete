@@ -24,10 +24,10 @@ export function useModifyEventMutation() {
   return useMutation<
     ModifyEventResponseDto,
     Error,
-    { prompt: string; eventId?: number; eventData?: CreateEventDto }
+    { prompt: string; eventData: CreateEventDto }
   >({
-    mutationFn: ({ prompt, eventId, eventData }) =>
-      AIFeaturesAPI.modifyEvent(prompt, eventId, eventData),
+    mutationFn: ({ prompt, eventData }) =>
+      AIFeaturesAPI.modifyEvent(prompt, eventData),
     mutationKey: agentKeys.modifyEvent(),
   });
 }

@@ -22,8 +22,7 @@ import {
 type Props = {
   open: boolean;
   onClose: () => void;
-  eventId?: number;
-  eventData?: CreateEventDto;
+  eventData: CreateEventDto;
   date?: Date;
   isCreateMode: boolean;
   onEventGenerated?: (event: CreateEventDto) => void;
@@ -39,7 +38,6 @@ type PromptFormValues = z.infer<typeof promptSchema>;
 export function AIModifyEventDialog({
   open,
   onClose,
-  eventId,
   eventData,
   date,
   isCreateMode,
@@ -88,8 +86,7 @@ export function AIModifyEventDialog({
         // Modify existing event
         const modifiedEvent = await modifyEventMutation.mutateAsync({
           prompt: data.prompt,
-          ...(eventId ? { eventId } : {}),
-          ...(eventData ? { eventData } : {}),
+          eventData,
         });
 
         toast.success(m.event_modified_successfully());
