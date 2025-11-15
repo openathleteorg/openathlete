@@ -28,7 +28,46 @@ export class QueueService {
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
     @InjectQueue('activity-processing')
     private readonly activityProcessingQueue: Queue<ActivityProcessingJobData>,
-  ) {}
+  ) {
+    // Log warning if API tries to process jobs (should only be a producer, not consumer)
+    const isWorker =
+      process.env.ENABLE_ACTIVITY_IMPORT === 'true' ||
+      process.env.ENABLE_ACTIVITY_PROCESSING === 'true';
+
+    if (!isWorker) {
+      this.logger.log(
+        'QueueService initialized in PRODUCER mode (API) - will only add jobs, not process them',
+      );
+      
+      // Verify that no processors are registered (safety check)
+      // This ensures the API doesn't accidentally consume jobs
+      try {
+        // Check if workers exist on the queues (they shouldn't on API)
+        const importWorker = (this.activityImportQueue as any).worker;
+        const processingWorker = (this.activityProcessingQueue as any).worker;
+        
+        if (importWorker) {
+          this.logger.warn(
+            '⚠️ WARNING: activity-import queue has a worker on API instance! This should not happen. API should only produce jobs, not consume them.',
+          );
+        }
+        if (processingWorker) {
+          this.logger.warn(
+            '⚠️ WARNING: activity-processing queue has a worker on API instance! This should not happen. API should only produce jobs, not consume them.',
+          );
+        }
+      } catch (error) {
+        // Ignore errors when checking workers (they might not be accessible)
+        this.logger.debug(
+          `Could not check worker status: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    } else {
+      this.logger.log(
+        'QueueService initialized in WORKER mode - will process jobs',
+      );
+    }
+  }
 
   /**
    * Add an activity import job to the queue

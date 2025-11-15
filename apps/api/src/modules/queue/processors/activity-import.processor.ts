@@ -165,16 +165,19 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
    * Note: Bull should automatically process jobs, but this helps diagnose issues
    */
   private startPollingFallback() {
-    // Poll every 10 seconds to check for waiting jobs and log status
+    // Poll every 5 seconds to check for waiting jobs and log status
     // This helps diagnose if jobs are stuck in waiting state
     this.pollingInterval = setInterval(async () => {
       try {
         const waiting = await this.activityImportQueue.getWaitingCount();
         const active = await this.activityImportQueue.getActiveCount();
+        const completed = await this.activityImportQueue.getCompletedCount();
+        const failed = await this.activityImportQueue.getFailedCount();
 
-        if (waiting > 0) {
+        // Log status every time to see if jobs appear
+        if (waiting > 0 || active > 0) {
           this.logger.warn(
-            `⚠️ Polling check: ${waiting} job(s) waiting, ${active} active - Bull should process them automatically via pub/sub or stalledInterval`,
+            `⚠️ Polling check: ${waiting} waiting, ${active} active, ${completed} completed, ${failed} failed - Bull should process them automatically`,
           );
 
           // Try to manually trigger processing by accessing the queue
@@ -183,10 +186,19 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
           try {
             // Access the queue's worker to ensure it's active
             const worker = (this.activityImportQueue as any).worker;
-            if (worker && worker.isRunning && !worker.isRunning()) {
-              this.logger.error(
-                '❌ Bull worker is not running! This is the problem - jobs cannot be processed.',
+            if (worker) {
+              const isRunning = worker.isRunning?.() ?? 'unknown';
+              this.logger.log(
+                `Worker status: isRunning=${isRunning}, waiting=${waiting}, active=${active}`,
               );
+
+              if (worker.isRunning && !worker.isRunning()) {
+                this.logger.error(
+                  '❌ Bull worker is not running! This is the problem - jobs cannot be processed.',
+                );
+              }
+            } else {
+              this.logger.warn('Worker object not found on queue');
             }
           } catch (workerError) {
             // Worker check failed, but that's okay - Bull might handle it differently
@@ -194,16 +206,39 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
               `Could not check worker status: ${workerError instanceof Error ? workerError.message : String(workerError)}`,
             );
           }
+        } else {
+          // Log debug info periodically even when no jobs
+          this.logger.debug(
+            `Polling check: No jobs (waiting: ${waiting}, active: ${active})`,
+          );
+        }
+
+        // Check Redis connection status
+        try {
+          const client = (this.activityImportQueue as any).client;
+          if (client) {
+            const status = client.status;
+            if (status !== 'ready') {
+              this.logger.warn(
+                `⚠️ Redis connection status: ${status} (should be 'ready')`,
+              );
+            }
+          }
+        } catch (redisError) {
+          this.logger.warn(
+            `Could not check Redis status: ${redisError instanceof Error ? redisError.message : String(redisError)}`,
+          );
         }
       } catch (error) {
-        this.logger.warn(
+        this.logger.error(
           `Polling fallback error: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
         );
       }
-    }, 10000); // Check every 10 seconds
+    }, 5000); // Check every 5 seconds for faster detection
 
     this.logger.log(
-      'Started polling fallback (checks every 10s) - diagnostic aid to ensure job detection',
+      'Started polling fallback (checks every 5s) - diagnostic aid to ensure job detection',
     );
   }
 
