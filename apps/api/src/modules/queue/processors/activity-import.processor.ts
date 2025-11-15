@@ -280,6 +280,72 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                             this.logger.error(
                               'This is likely a bug in Bull v4.16.5 or @nestjs/bull v11.0.4.',
                             );
+
+                            // WORKAROUND: Try to manually call queue.process() to create the worker
+                            // This is a workaround for the bug where NestJS/Bull doesn't create the worker
+                            this.logger.warn(
+                              'Attempting workaround: manually calling queue.process() with registered handler...',
+                            );
+
+                            try {
+                              // WORKAROUND: Call queue.process() directly with the processor method
+                              // Since the handler is already registered, we'll use the actual method
+                              // This bypasses the "Cannot define the same handler twice" error
+                              if (typeof queue.process === 'function') {
+                                this.logger.warn(
+                                  'Attempting workaround: calling queue.process() with processor method directly...',
+                                );
+
+                                // Use the actual handleActivityImport method instead of the registered handler
+                                // This should create the worker even though the handler is already registered
+                                const processResult = queue.process(
+                                  3, // concurrency from @Process decorator
+                                  async (job: Job<ActivityImportJobData>) => {
+                                    // Call the actual processor method directly
+                                    return await this.handleActivityImport(job);
+                                  },
+                                );
+
+                                this.logger.log(
+                                  '✅ Manually called queue.process() with processor method - checking if worker was created...',
+                                );
+
+                                // Wait a bit and check again
+                                setTimeout(() => {
+                                  const workerAfterManualCall =
+                                    queue.worker || queue.workers?.[0];
+                                  if (workerAfterManualCall) {
+                                    this.logger.log(
+                                      '✅ SUCCESS: Worker created after manual queue.process() call!',
+                                    );
+                                    this.logger.log(
+                                      'The workaround worked! Jobs should now be processed.',
+                                    );
+                                  } else {
+                                    this.logger.error(
+                                      '❌ Worker still not created after manual queue.process() call',
+                                    );
+                                    this.logger.error(
+                                      'This workaround did not work. The issue is deeper than expected.',
+                                    );
+                                    this.logger.error(
+                                      'Consider updating @nestjs/bull and bull to the latest versions.',
+                                    );
+                                  }
+                                }, 1000);
+                              } else {
+                                this.logger.error(
+                                  'Cannot apply workaround: queue.process() not available',
+                                );
+                              }
+                            } catch (workaroundError) {
+                              this.logger.error(
+                                `Workaround failed: ${workaroundError instanceof Error ? workaroundError.message : String(workaroundError)}`,
+                                workaroundError instanceof Error
+                                  ? workaroundError.stack
+                                  : undefined,
+                              );
+                            }
                           }
                         }, 500);
                       })
