@@ -60,6 +60,9 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
     this.suuntoProviderService = suuntoProviderService;
     this.corosProviderService = corosProviderService;
     this.logger.log('ActivityImportProcessor constructor called');
+    this.logger.log(
+      `ENABLE_ACTIVITY_IMPORT=${process.env.ENABLE_ACTIVITY_IMPORT}`,
+    );
   }
 
   async onModuleInit() {
@@ -148,22 +151,40 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
           const processors = queue.processors || [];
           const handlers = queue.handlers || {};
 
+          // Check all possible locations where Bull might store handlers
+          const allKeys = Object.keys(queue);
+          const handlerKeys = allKeys.filter(
+            (key) =>
+              key.toLowerCase().includes('handler') ||
+              key.toLowerCase().includes('process'),
+          );
+
           this.logger.log(
             `Queue '${queueName}' initialized. Found ${processors.length} processor(s), ${Object.keys(handlers).length} handler(s)`,
+          );
+          this.logger.debug(
+            `Queue object keys related to processing: ${handlerKeys.join(', ') || 'none'}`,
           );
 
           if (processors.length === 0 && Object.keys(handlers).length === 0) {
             this.logger.error(
               '❌ CRITICAL: No processors or handlers found on queue! The @Process decorator may not have been registered correctly.',
             );
+            this.logger.error(
+              'This means Bull will NOT process any jobs. The @Process decorator must be properly registered by NestJS/Bull.',
+            );
           } else {
             this.logger.log(
-              `Processor registered with @Process({ name: 'import', concurrency: 3 })`,
+              `✅ Processor registered with @Process({ name: 'import', concurrency: 3 })`,
+            );
+            this.logger.log(
+              `Handlers: ${Object.keys(handlers).join(', ') || 'none'}`,
             );
           }
         } catch (error) {
-          this.logger.warn(
+          this.logger.error(
             `Could not check processor registration: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
           );
         }
 
@@ -190,6 +211,35 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
     this.logger.log(
       `StravaProviderService available: ${!!this.stravaProviderService}`,
     );
+
+    // IMPORTANT: Wait a bit for Bull to fully initialize the worker
+    // Sometimes Bull creates the worker asynchronously after module init
+    setTimeout(async () => {
+      try {
+        const queue = this.activityImportQueue as any;
+        const worker = queue.worker || queue.workers?.[0];
+
+        if (!worker) {
+          this.logger.error(
+            '❌ CRITICAL: Still no worker found after 2 seconds! Bull has not created a worker.',
+          );
+          this.logger.error(
+            'This means the @Process decorator was not properly processed by NestJS/Bull.',
+          );
+          this.logger.error(
+            'Possible causes: 1) Module not properly loaded, 2) Bull version incompatibility, 3) Decorator not processed',
+          );
+        } else {
+          this.logger.log(
+            `✅ Worker found after delay - Bull worker is active`,
+          );
+        }
+      } catch (error) {
+        this.logger.warn(
+          `Could not check worker after delay: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }, 2000); // Check after 2 seconds
 
     // Start periodic polling as fallback if Redis pub/sub doesn't work
     // This ensures jobs are detected even if pub/sub fails
