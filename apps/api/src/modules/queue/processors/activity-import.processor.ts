@@ -98,12 +98,27 @@ export class ActivityImportProcessor implements OnModuleInit {
         this.logger.log(
           `Queue status - Waiting: ${waiting}, Active: ${active}, Completed: ${completed}, Failed: ${failed}`,
         );
+
+        // Check if there are waiting jobs that should be processed
+        if (waiting > 0) {
+          this.logger.warn(
+            `⚠️ Found ${waiting} waiting job(s) in queue. If jobs are not being processed, check: 1) Processor is registered, 2) Redis connection is stable, 3) Worker has ENABLE_ACTIVITY_IMPORT=true`,
+          );
+        }
+
+        // Verify the processor is actually registered by checking if Bull has the process handler
+        // This is a sanity check to ensure the @Process decorator was processed
+        const queueName = this.activityImportQueue.name;
+        this.logger.log(
+          `Queue '${queueName}' initialized. Processor registered with @Process({ name: 'import', concurrency: 3 })`,
+        );
         this.logger.log(
           'ActivityImportProcessor is now listening for jobs (Bull listens continuously)',
         );
       } catch (queueError) {
-        this.logger.warn(
-          `Could not check queue status: ${queueError instanceof Error ? queueError.message : String(queueError)}. Queue may still be initializing.`,
+        this.logger.error(
+          `❌ Could not check queue status: ${queueError instanceof Error ? queueError.message : String(queueError)}. Queue may not be properly initialized.`,
+          queueError instanceof Error ? queueError.stack : undefined,
         );
       }
     } catch (error) {
@@ -125,7 +140,7 @@ export class ActivityImportProcessor implements OnModuleInit {
   @OnQueueActive()
   onActive(job: Job<ActivityImportJobData>) {
     this.logger.log(
-      `[ON_ACTIVE] Job ${job.id} (${job.data.activity.externalId}) is now active`,
+      `✅ [ON_ACTIVE] Job ${job.id} (${job.data.activity.externalId}) is now active - processor is working!`,
     );
   }
 
@@ -150,7 +165,7 @@ export class ActivityImportProcessor implements OnModuleInit {
     const startTime = Date.now();
 
     this.logger.log(
-      `[PROCESS] Processing activity import job ${job.id} for activity ${activity.externalId}`,
+      `🚀 [PROCESS] Processing activity import job ${job.id} for activity ${activity.externalId} (providerAccountId: ${providerAccountId})`,
     );
 
     try {

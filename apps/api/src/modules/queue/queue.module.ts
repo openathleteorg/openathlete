@@ -255,13 +255,37 @@ import { QueueService } from './queue.service';
     // Only register ActivityImportProcessor if ENABLE_ACTIVITY_IMPORT is true
     // This allows only specific instances to process import jobs
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
-      ? [ActivityImportProcessor]
-      : []),
+      ? (() => {
+          const logger = new Logger('QueueModule');
+          logger.log(
+            '✅ ActivityImportProcessor will be registered (ENABLE_ACTIVITY_IMPORT=true)',
+          );
+          return [ActivityImportProcessor];
+        })()
+      : (() => {
+          const logger = new Logger('QueueModule');
+          logger.debug(
+            'ActivityImportProcessor NOT registered (ENABLE_ACTIVITY_IMPORT is not true)',
+          );
+          return [];
+        })()),
     // Only register ActivityProcessingProcessor if ENABLE_ACTIVITY_PROCESSING is true
     // This allows only specific instances to process activity processing jobs
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
-      ? [ActivityProcessingProcessor]
-      : []),
+      ? (() => {
+          const logger = new Logger('QueueModule');
+          logger.log(
+            '✅ ActivityProcessingProcessor will be registered (ENABLE_ACTIVITY_PROCESSING=true)',
+          );
+          return [ActivityProcessingProcessor];
+        })()
+      : (() => {
+          const logger = new Logger('QueueModule');
+          logger.debug(
+            'ActivityProcessingProcessor NOT registered (ENABLE_ACTIVITY_PROCESSING is not true)',
+          );
+          return [];
+        })()),
   ],
   exports: [QueueService],
 })
