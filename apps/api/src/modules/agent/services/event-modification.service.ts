@@ -104,221 +104,109 @@ export class EventModificationService {
   async modifyTrainingEvent(
     prompt: string,
     athleteId: number,
-    eventId?: number,
-    eventData?: any,
+    eventData: any,
   ): Promise<TrainingEventSchema> {
-    let existingEventContext: any;
-
-    if (eventId) {
-      // Fetch the existing event from database
-      const existingEvent = await this.prismaService.event.findUnique({
-        where: { event_id: eventId },
-        include: {
-          training: {
-            include: {
-              workout: {
-                include: {
-                  steps: {
-                    include: {
-                      targets: true,
-                      repeat_block: {
-                        include: {
-                          child_steps: {
-                            include: {
-                              targets: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                    orderBy: {
-                      order_index: 'asc',
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      if (!existingEvent) {
-        throw new Error('Event not found');
-      }
-
-      if (existingEvent.athlete_id !== athleteId) {
-        throw new Error('Unauthorized: event does not belong to athlete');
-      }
-
-      // Format existing event for context
-      existingEventContext = {
-        name: existingEvent.name,
-        description: existingEvent.training?.description || '',
-        sport: existingEvent.training?.sport || SPORT_TYPE.RUNNING,
-        startDate: existingEvent.start_date.toISOString(),
-        endDate: existingEvent.end_date.toISOString(),
-        goalDuration: existingEvent.training?.goal_duration || undefined,
-        goalDistance: existingEvent.training?.goal_distance || undefined,
-        goalElevationGain:
-          existingEvent.training?.goal_elevation_gain || undefined,
-        goalRpe: existingEvent.training?.goal_rpe || undefined,
-        workout: existingEvent.training?.workout
-          ? {
-              steps: existingEvent.training.workout.steps.map((step) => {
-                const baseStep = {
-                  stepType: step.step_type,
-                  name: step.name || undefined,
-                  durationType: step.duration_type || undefined,
-                  durationValue: step.duration_value || undefined,
-                  notes: step.notes || undefined,
-                  targets: step.targets.map((target) => ({
-                    targetType: target.target_type,
-                    targetMin: target.target_min ?? undefined,
-                    targetMax: target.target_max ?? undefined,
-                    targetValue: target.target_value ?? undefined,
-                    unit: target.unit ?? undefined,
-                  })),
-                };
-
-                if (step.repeat_block) {
-                  return {
-                    ...baseStep,
-                    repeatBlock: {
-                      repetitions: step.repeat_block.repetitions,
-                      childSteps: step.repeat_block.child_steps.map(
-                        (childStep) => ({
-                          stepType: childStep.step_type,
-                          name: childStep.name || undefined,
-                          durationType: childStep.duration_type || undefined,
-                          durationValue: childStep.duration_value || undefined,
-                          notes: childStep.notes || undefined,
-                          targets: childStep.targets.map((target) => ({
-                            targetType: target.target_type,
-                            targetMin: target.target_min ?? undefined,
-                            targetMax: target.target_max ?? undefined,
-                            targetValue: target.target_value ?? undefined,
-                            unit: target.unit ?? undefined,
-                          })),
-                        }),
-                      ),
-                    },
-                  };
-                }
-
-                return baseStep;
-              }),
-            }
-          : null,
-      };
-    } else if (eventData) {
-      // Use provided event data (for unsaved events)
-      existingEventContext = {
-        name: eventData.name,
-        description: eventData.description || '',
-        sport: eventData.sport,
-        startDate:
-          eventData.startDate instanceof Date
-            ? eventData.startDate.toISOString()
-            : eventData.startDate,
-        endDate:
-          eventData.endDate instanceof Date
-            ? eventData.endDate.toISOString()
-            : eventData.endDate,
-        goalDuration: eventData.goalDuration || undefined,
-        goalDistance: (eventData as any).goalDistance || undefined,
-        goalElevationGain: (eventData as any).goalElevationGain || undefined,
-        goalRpe: (eventData as any).goalRpe || undefined,
-        workout: eventData.workout
-          ? {
-              steps: eventData.workout.steps.map((step: any) => {
-                const baseStep = {
-                  stepType: step.stepType,
-                  name: step.name || undefined,
-                  durationType: step.durationType || undefined,
-                  durationValue: step.durationValue || undefined,
-                  notes: step.notes || undefined,
-                  targets: (step.targets || []).map((target: any) => {
-                    // Handle both formats: legacy { targetType: value } or new { targetType, targetValue, ... }
-                    if (typeof target === 'object' && target !== null) {
-                      // If it's already in the new format, use it as is
-                      if (target.targetType) {
-                        return {
-                          targetType: target.targetType,
-                          targetMin: target.targetMin ?? undefined,
-                          targetMax: target.targetMax ?? undefined,
-                          targetValue: target.targetValue ?? undefined,
-                          unit: target.unit ?? undefined,
-                        };
-                      }
-                      // Legacy format: { targetType: value }
-                      const entries = Object.entries(target);
-                      if (entries.length > 0) {
-                        return {
-                          targetType: entries[0][0],
-                          targetValue: entries[0][1] as number,
-                        };
-                      }
+    // Use provided event data (always use the current state from frontend)
+    const existingEventContext = {
+      name: eventData.name,
+      description: eventData.description || '',
+      sport: eventData.sport,
+      startDate:
+        eventData.startDate instanceof Date
+          ? eventData.startDate.toISOString()
+          : eventData.startDate,
+      endDate:
+        eventData.endDate instanceof Date
+          ? eventData.endDate.toISOString()
+          : eventData.endDate,
+      goalDuration: eventData.goalDuration || undefined,
+      goalDistance: (eventData as any).goalDistance || undefined,
+      goalElevationGain: (eventData as any).goalElevationGain || undefined,
+      goalRpe: (eventData as any).goalRpe || undefined,
+      workout: eventData.workout
+        ? {
+            steps: eventData.workout.steps.map((step: any) => {
+              const baseStep = {
+                stepType: step.stepType,
+                name: step.name || undefined,
+                durationType: step.durationType || undefined,
+                durationValue: step.durationValue || undefined,
+                notes: step.notes || undefined,
+                targets: (step.targets || []).map((target: any) => {
+                  // Handle both formats: legacy { targetType: value } or new { targetType, targetValue, ... }
+                  if (typeof target === 'object' && target !== null) {
+                    // If it's already in the new format, use it as is
+                    if (target.targetType) {
+                      return {
+                        targetType: target.targetType,
+                        targetMin: target.targetMin ?? undefined,
+                        targetMax: target.targetMax ?? undefined,
+                        targetValue: target.targetValue ?? undefined,
+                        unit: target.unit ?? undefined,
+                      };
                     }
-                    return {};
-                  }),
-                };
+                    // Legacy format: { targetType: value }
+                    const entries = Object.entries(target);
+                    if (entries.length > 0) {
+                      return {
+                        targetType: entries[0][0],
+                        targetValue: entries[0][1] as number,
+                      };
+                    }
+                  }
+                  return {};
+                }),
+              };
 
-                if (step.repeatBlock) {
-                  return {
-                    ...baseStep,
-                    repeatBlock: {
-                      repetitions: step.repeatBlock.repetitions,
-                      childSteps: step.repeatBlock.childSteps.map(
-                        (childStep: any) => ({
-                          stepType: childStep.stepType,
-                          name: childStep.name || undefined,
-                          durationType: childStep.durationType || undefined,
-                          durationValue: childStep.durationValue || undefined,
-                          notes: childStep.notes || undefined,
-                          targets: (childStep.targets || []).map(
-                            (target: any) => {
-                              // Handle both formats: legacy { targetType: value } or new { targetType, targetValue, ... }
-                              if (
-                                typeof target === 'object' &&
-                                target !== null
-                              ) {
-                                // If it's already in the new format, use it as is
-                                if (target.targetType) {
-                                  return {
-                                    targetType: target.targetType,
-                                    targetMin: target.targetMin ?? undefined,
-                                    targetMax: target.targetMax ?? undefined,
-                                    targetValue:
-                                      target.targetValue ?? undefined,
-                                    unit: target.unit ?? undefined,
-                                  };
-                                }
-                                // Legacy format: { targetType: value }
-                                const entries = Object.entries(target);
-                                if (entries.length > 0) {
-                                  return {
-                                    targetType: entries[0][0],
-                                    targetValue: entries[0][1] as number,
-                                  };
-                                }
+              if (step.repeatBlock) {
+                return {
+                  ...baseStep,
+                  repeatBlock: {
+                    repetitions: step.repeatBlock.repetitions,
+                    childSteps: step.repeatBlock.childSteps.map(
+                      (childStep: any) => ({
+                        stepType: childStep.stepType,
+                        name: childStep.name || undefined,
+                        durationType: childStep.durationType || undefined,
+                        durationValue: childStep.durationValue || undefined,
+                        notes: childStep.notes || undefined,
+                        targets: (childStep.targets || []).map(
+                          (target: any) => {
+                            // Handle both formats: legacy { targetType: value } or new { targetType, targetValue, ... }
+                            if (typeof target === 'object' && target !== null) {
+                              // If it's already in the new format, use it as is
+                              if (target.targetType) {
+                                return {
+                                  targetType: target.targetType,
+                                  targetMin: target.targetMin ?? undefined,
+                                  targetMax: target.targetMax ?? undefined,
+                                  targetValue: target.targetValue ?? undefined,
+                                  unit: target.unit ?? undefined,
+                                };
                               }
-                              return {};
-                            },
-                          ),
-                        }),
-                      ),
-                    },
-                  };
-                }
+                              // Legacy format: { targetType: value }
+                              const entries = Object.entries(target);
+                              if (entries.length > 0) {
+                                return {
+                                  targetType: entries[0][0],
+                                  targetValue: entries[0][1] as number,
+                                };
+                              }
+                            }
+                            return {};
+                          },
+                        ),
+                      }),
+                    ),
+                  },
+                };
+              }
 
-                return baseStep;
-              }),
-            }
-          : null,
-      };
-    } else {
-      throw new Error('Either eventId or eventData must be provided');
-    }
+              return baseStep;
+            }),
+          }
+        : null,
+    };
 
     // Fetch athlete's training zones
     const zones = await this.prismaService.training_zone.findMany({

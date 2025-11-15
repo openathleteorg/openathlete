@@ -133,7 +133,6 @@ export class AIFeaturesController {
       await this.eventModificationService.modifyTrainingEvent(
         dto.prompt,
         athleteId,
-        dto.eventId,
         dto.eventData,
       );
 
