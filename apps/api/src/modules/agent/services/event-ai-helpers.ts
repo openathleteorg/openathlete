@@ -213,7 +213,9 @@ export function buildMetricsContext(
 /**
  * Create zone ID map for validation
  */
-export function createZoneIdMap(zones: Zone[]): Map<number, { type: string; id: number }> {
+export function createZoneIdMap(
+  zones: Zone[],
+): Map<number, { type: string; id: number }> {
   const zoneIdMap = new Map<number, { type: string; id: number }>();
   zones.forEach((zone) => {
     zoneIdMap.set(zone.training_zone_id, {
@@ -245,9 +247,7 @@ export function validateZoneTarget(
         return { target, fixed: true };
       } else {
         // Remove invalid zone target
-        console.warn(
-          `Invalid zone ID ${zoneId} in target, removing`,
-        );
+        console.warn(`Invalid zone ID ${zoneId} in target, removing`);
         return { target: null, fixed: false };
       }
     }
@@ -364,4 +364,3 @@ export function buildWorkoutTargetsInstructions(): string {
 - IMPORTANT: Match the zone type to the target context (HEARTRATE zones for heartrate targets, POWER zones for power targets, PACE zones for pace targets)
 - For other targets: specify targetMin/targetMax for ranges, or targetValue for single values, with appropriate unit`;
 }
-
