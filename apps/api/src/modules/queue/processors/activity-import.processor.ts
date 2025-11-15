@@ -296,19 +296,55 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                                   'Attempting workaround: calling queue.process() with processor method directly...',
                                 );
 
+                                // Check Redis connection before calling process()
+                                try {
+                                  const client = (queue as any).client;
+                                  if (client) {
+                                    const redisStatus = client.status;
+                                    this.logger.debug(
+                                      `Redis connection status before process(): ${redisStatus}`,
+                                    );
+                                    if (redisStatus !== 'ready') {
+                                      this.logger.error(
+                                        `❌ Redis is not ready (status: ${redisStatus}) - this may prevent worker creation!`,
+                                      );
+                                    }
+                                  }
+                                } catch (redisCheckError) {
+                                  this.logger.warn(
+                                    `Could not check Redis status: ${redisCheckError instanceof Error ? redisCheckError.message : String(redisCheckError)}`,
+                                  );
+                                }
+
                                 // Use the actual handleActivityImport method instead of the registered handler
                                 // This should create the worker even though the handler is already registered
-                                const processResult = queue.process(
-                                  3, // concurrency from @Process decorator
-                                  async (job: Job<ActivityImportJobData>) => {
-                                    // Call the actual processor method directly
-                                    return await this.handleActivityImport(job);
-                                  },
-                                );
+                                let processResult;
+                                try {
+                                  processResult = queue.process(
+                                    3, // concurrency from @Process decorator
+                                    async (job: Job<ActivityImportJobData>) => {
+                                      // Call the actual processor method directly
+                                      return await this.handleActivityImport(
+                                        job,
+                                      );
+                                    },
+                                  );
 
-                                this.logger.log(
-                                  '✅ Manually called queue.process() with processor method - checking if worker was created...',
-                                );
+                                  this.logger.log(
+                                    `✅ Manually called queue.process() - result: ${processResult ? 'success' : 'no result'}`,
+                                  );
+                                  this.logger.debug(
+                                    `process() returned: ${JSON.stringify(processResult)}`,
+                                  );
+                                } catch (processError) {
+                                  this.logger.error(
+                                    `❌ queue.process() threw an error: ${processError instanceof Error ? processError.message : String(processError)}`,
+                                    processError instanceof Error
+                                      ? processError.stack
+                                      : undefined,
+                                  );
+                                  throw processError;
+                                }
 
                                 // Wait a bit and check again
                                 setTimeout(() => {
@@ -326,11 +362,21 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                                       '❌ Worker still not created after manual queue.process() call',
                                     );
                                     this.logger.error(
-                                      'This workaround did not work. The issue is deeper than expected.',
+                                      'This suggests queue.process() was called but did not create a worker.',
                                     );
                                     this.logger.error(
-                                      'Consider updating @nestjs/bull and bull to the latest versions.',
+                                      'This is likely a bug in Bull v4.16.5. Consider updating to a newer version.',
                                     );
+
+                                    // Check if there are any errors in the queue state
+                                    try {
+                                      const queueKeys = Object.keys(queue);
+                                      this.logger.debug(
+                                        `Queue keys after process(): ${queueKeys.filter((k) => !k.startsWith('_')).join(', ')}`,
+                                      );
+                                    } catch (keyError) {
+                                      // Ignore
+                                    }
                                   }
                                 }, 1000);
                               } else {
