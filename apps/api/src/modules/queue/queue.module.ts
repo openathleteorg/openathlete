@@ -43,7 +43,9 @@ import { QueueService } from './queue.service';
           },
           lazyConnect: false,
           connectTimeout: isWorker ? 30000 : 10000,
-          commandTimeout: 5000,
+          // Workers need longer timeout for long-running operations (activity imports can take 30+ minutes)
+          // API only needs short timeout for quick queue operations
+          commandTimeout: isWorker ? 60000 : 5000, // 60 seconds for workers, 5 seconds for API
         };
 
         if (!redisUrl) {
