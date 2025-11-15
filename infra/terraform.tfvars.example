@@ -7,7 +7,3 @@ strava_client_secret = "your-strava-client-secret-here"
 strava_webhook_token = "your-strava-webhook-token-here"
 openai_api_key = "your-openai-api-key-here"
 brevo_api_key = "your-brevo-api-key-here"
-
-
-
-
