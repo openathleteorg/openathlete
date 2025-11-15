@@ -159,6 +159,42 @@ export class ActivityImportProcessor implements OnModuleInit {
     );
   }
 
+  /**
+   * Helper to keep job alive during long operations by updating progress periodically
+   * This renews the lock and prevents the job from being marked as stalled
+   * @returns Cleanup function to stop the heartbeat
+   */
+  private keepJobAlive(
+    job: Job<ActivityImportJobData>,
+    currentProgress: number,
+    intervalMs = 300000, // Update every 5 minutes (lockDuration is 30 minutes)
+  ): () => void {
+    let isActive = true;
+    const interval = setInterval(async () => {
+      if (!isActive) {
+        clearInterval(interval);
+        return;
+      }
+      try {
+        // Update progress to renew the lock (Bull automatically renews lock on progress update)
+        await job.progress(currentProgress);
+        this.logger.debug(
+          `Job ${job.id} heartbeat - lock renewed (progress: ${currentProgress}%)`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Failed to renew lock for job ${job.id}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }, intervalMs);
+
+    // Return cleanup function
+    return () => {
+      isActive = false;
+      clearInterval(interval);
+    };
+  }
+
   @Process({ name: 'import', concurrency: 3 })
   async handleActivityImport(job: Job<ActivityImportJobData>) {
     const { providerAccountId, activity, skipWeather } = job.data;
@@ -167,6 +203,8 @@ export class ActivityImportProcessor implements OnModuleInit {
     this.logger.log(
       `🚀 [PROCESS] Processing activity import job ${job.id} for activity ${activity.externalId} (providerAccountId: ${providerAccountId})`,
     );
+
+    let keepAliveCleanup: (() => void) | undefined;
 
     try {
       // Update job progress to prevent stalling
@@ -202,6 +240,9 @@ export class ActivityImportProcessor implements OnModuleInit {
       // Update job progress
       await job.progress(30);
 
+      // Start heartbeat to keep job alive during long API calls
+      keepAliveCleanup = this.keepJobAlive(job, 30);
+
       // Import the activity (this can take time due to API calls)
       const importStart = Date.now();
       this.logger.log(
@@ -217,7 +258,11 @@ export class ActivityImportProcessor implements OnModuleInit {
         `Successfully imported activity ${activity.externalId} (eventActivityId: ${savedActivity.event_activity_id}) in ${importTime}ms`,
       );
 
-      // Update progress after import (before potentially long operations)
+      // Stop heartbeat and update progress after import
+      if (keepAliveCleanup) {
+        keepAliveCleanup();
+        keepAliveCleanup = undefined;
+      }
       await job.progress(50);
 
       // Get minimal activity data needed for records and equipment handling
@@ -250,6 +295,8 @@ export class ActivityImportProcessor implements OnModuleInit {
 
       // Handle records and equipment in parallel (they are independent)
       // Note: These operations can take significant time for large activities
+      // Start heartbeat again for potentially long operations
+      keepAliveCleanup = this.keepJobAlive(job, 60);
       const recordsEquipmentStart = Date.now();
       await Promise.all([
         this.handleEquipment(
@@ -274,6 +321,11 @@ export class ActivityImportProcessor implements OnModuleInit {
         );
       }
 
+      // Stop heartbeat
+      if (keepAliveCleanup) {
+        keepAliveCleanup();
+        keepAliveCleanup = undefined;
+      }
       await job.progress(85);
 
       // Queue the activity processing job
@@ -296,6 +348,10 @@ export class ActivityImportProcessor implements OnModuleInit {
         eventId: savedActivity.event_id,
       };
     } catch (error) {
+      // Make sure to cleanup heartbeat on error
+      if (keepAliveCleanup) {
+        keepAliveCleanup();
+      }
       this.logger.error(
         `Failed to import activity ${activity.externalId}: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error.stack : undefined,
