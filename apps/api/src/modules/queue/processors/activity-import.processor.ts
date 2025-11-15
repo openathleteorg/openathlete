@@ -226,15 +226,59 @@ export class ActivityImportProcessor implements OnModuleInit, OnModuleDestroy {
                         );
                         // Check if worker was created after promise resolves
                         setTimeout(() => {
+                          // Check multiple possible locations for the worker
                           const workerAfterInit =
                             queue.worker || queue.workers?.[0];
-                          if (workerAfterInit) {
+
+                          // Also check if there's a _worker property or other internal storage
+                          const allQueueKeys = Object.keys(queue);
+                          const workerKeys = allQueueKeys.filter((key) =>
+                            key.toLowerCase().includes('worker'),
+                          );
+
+                          this.logger.debug(
+                            `Queue keys containing 'worker': ${workerKeys.join(', ') || 'none'}`,
+                          );
+
+                          // Try to access worker via different paths
+                          let foundWorker = workerAfterInit;
+                          if (!foundWorker) {
+                            // Try accessing via different property names
+                            for (const key of workerKeys) {
+                              const potentialWorker = (queue as any)[key];
+                              if (potentialWorker) {
+                                this.logger.debug(
+                                  `Found potential worker at queue.${key}`,
+                                );
+                                foundWorker = potentialWorker;
+                                break;
+                              }
+                            }
+                          }
+
+                          // Check if processing is actually happening
+                          const isProcessing = queue.processing;
+                          const activeCount = queue.activeCount;
+
+                          if (foundWorker) {
                             this.logger.log(
-                              '✅ Worker successfully created after initialization promise resolved!',
+                              '✅ Worker found after initialization promise resolved!',
+                            );
+                            this.logger.log(
+                              `Worker details: isProcessing=${isProcessing}, activeCount=${activeCount}`,
                             );
                           } else {
                             this.logger.error(
-                              '❌ Worker still not created after initialization promise resolved',
+                              '❌ Worker still not found after initialization promise resolved',
+                            );
+                            this.logger.error(
+                              `Queue state: processing=${isProcessing}, activeCount=${activeCount}`,
+                            );
+                            this.logger.error(
+                              'This suggests Bull resolved the promise but did not actually create the worker.',
+                            );
+                            this.logger.error(
+                              'This is likely a bug in Bull v4.16.5 or @nestjs/bull v11.0.4.',
                             );
                           }
                         }, 500);
