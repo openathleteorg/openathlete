@@ -7,3 +7,4 @@ export { qaAgent } from './qa.agent';
 export { adaptationAgent } from './adaptation.agent';
 export { qnaAgent } from './qna.agent';
 export { eventGenerationAgent } from './event-generation.agent';
+export { eventModificationAgent } from './event-modification.agent';

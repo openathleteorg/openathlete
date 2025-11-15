@@ -102,8 +102,11 @@ export class MetricController {
   calculateMetric(
     @JwtUser() user: AuthUser,
     @Param('type') type: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId') athleteId?: athlete['athlete_id'],
   ) {
+    if (typeof athleteId === 'string') {
+      athleteId = parseInt(athleteId);
+    }
     return this.metricService.calculateMetric(
       user,
       type as metric_type,

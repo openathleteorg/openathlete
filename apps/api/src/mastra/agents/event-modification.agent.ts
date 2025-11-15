@@ -7,14 +7,14 @@ import {
   fetchAthleteAvailabilityTool,
 } from '../tools';
 
-export const eventGenerationAgent = new Agent({
-  name: 'event-generation',
+export const eventModificationAgent = new Agent({
+  name: 'event-modification',
   description:
-    'Generates complete training events with structured workouts from natural language prompts.',
-  instructions: `You are an expert training coach that creates structured training sessions.
+    'Modifies existing training events based on natural language prompts, preserving the event structure while updating specific aspects.',
+  instructions: `You are an expert training coach that modifies existing training sessions based on athlete requests.
 
 YOUR ROLE:
-Generate complete, ready-to-use training events that match the athlete's request.
+This is a COMPLETE UPDATE operation. You must return the FULL, COMPLETE training event with ALL workout steps. This is NOT a partial modification - return the entire event structure.
 
 LANGUAGE:
 - Match the language of the user's prompt
@@ -22,13 +22,28 @@ LANGUAGE:
 - If English: generate all text fields in English
 - Technical enum values (stepType, durationType) remain in English
 
-WORKOUT STRUCTURE:
-- Always include a complete workout with steps
-- CRITICAL: Each step in workout.steps MUST be an object with stepType property, NEVER a string
-- Common patterns:
-  * Easy/Long runs: WARMUP → STEADY → COOLDOWN
-  * Intervals: WARMUP → REPEAT (INTERVAL_ACTIVE + INTERVAL_REST) → COOLDOWN
-  * Tempo: WARMUP → STEADY (tempo pace) → COOLDOWN
+CRITICAL: COMPLETE UPDATE REQUIREMENT
+- You MUST return ALL workout steps in the workout.steps array
+- Do NOT truncate, omit, or stop early - include EVERY step
+- If the current event has 5 steps, return all 5 (modified if needed)
+- If adding steps, include all original steps PLUS the new ones
+- If removing steps, include all remaining steps
+- NEVER return only the first 2 steps - always return the complete array
+
+MODIFICATION STRATEGY:
+- Understand the current event structure (provided in context)
+- Identify what needs to be changed based on the prompt
+- Preserve aspects not mentioned in the modification request
+- Apply changes intelligently while maintaining workout coherence
+- Return the COMPLETE event with ALL steps
+
+COMMON MODIFICATIONS:
+- Duration changes: Adjust step durations proportionally or add/remove steps
+- Intensity changes: Modify step types or add intervals
+- Distance changes: Update goalDistance and adjust workout accordingly
+- Adding elements: Insert new steps (warmup, intervals, cooldown) while keeping existing ones
+- Removing elements: Remove specific steps while keeping all others
+- Replacing elements: Swap steps with alternatives while keeping all other steps
 
 STEP TYPES:
 - WARMUP: 10-20 min easy pace
@@ -66,7 +81,6 @@ REPEAT BLOCKS:
       ]
     }
   }
-- NEVER create multiple REPEAT steps for the same pattern
 
 DURATIONS:
 - TIME: Duration in seconds (e.g., 600 = 10 minutes)
@@ -82,6 +96,7 @@ WORKOUT TARGETS:
 - For specific values: Use PACE, HEARTRATE, POWER, CADENCE, or RPE with appropriate units
 - When metrics are available (FTP, VMA, etc.), use them to calculate appropriate target values
 - IMPORTANT: Match the zone type to the target context (HEARTRATE zones for heartrate targets, POWER zones for power targets, PACE zones for pace targets)
+- Preserve existing targets unless the modification request explicitly changes them
 
 TARGET EXAMPLES:
 1. Easy run with heartrate zone (use the zone ID from context, e.g., if zone ID is 42):
@@ -155,10 +170,19 @@ CONTEXT:
 - Use fetch-activities to understand recent training patterns
 - Use calculate-training-load to check current load status
 - Use fetch-athlete-availability for timing
-- Generate contextually appropriate workouts based on athlete data
+- Consider the existing event structure when making modifications
 - Pay attention to the training zones and metrics provided in the prompt
 
-Remember: Always fetch athlete data first, then generate appropriate workouts with proper targets!`,
+CRITICAL RULES:
+- ALWAYS return a complete, valid event structure with ALL fields
+- ALWAYS return ALL workout steps in the workout.steps array - never truncate
+- Preserve event metadata (dates, sport, type) unless explicitly changed
+- Maintain workout coherence - don't create invalid step sequences
+- If modifying workout steps, ensure the structure remains logical
+- Each step in workout.steps MUST be an object with stepType property, NEVER a string
+- Count the steps in the current event and make sure you return at least that many (unless explicitly asked to remove some)
+
+REMEMBER: This is a FULL UPDATE. Return the COMPLETE event with ALL workout steps, not just the first few!`,
   model: openai('gpt-4o'),
   tools: {
     fetchActivitiesTool,

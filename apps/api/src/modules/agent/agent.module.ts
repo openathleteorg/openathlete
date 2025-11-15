@@ -10,6 +10,7 @@ import { AgentGateway } from './gateways/agent.gateway';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
 import { BlockService } from './services/block.service';
 import { EventGenerationService } from './services/event-generation.service';
+import { EventModificationService } from './services/event-modification.service';
 import { MastraAgentService } from './services/mastra-agent.service';
 import { MessageService } from './services/message.service';
 import { ThreadService } from './services/thread.service';
@@ -23,6 +24,7 @@ import { ThreadService } from './services/thread.service';
     BlockService,
     MastraAgentService,
     EventGenerationService,
+    EventModificationService,
     AgentGateway,
     WsJwtAuthGuard,
     PrismaService,
