@@ -27,10 +27,6 @@ export class ActivityProcessingProcessor extends WorkerHost {
   async process(job: Job<ActivityProcessingJobData>) {
     const { eventActivityId, eventId, skipWeather } = job.data;
 
-    this.logger.log(
-      `Processing activity processing job ${job.id} for eventActivityId ${eventActivityId}`,
-    );
-
     try {
       await this.pipeline.run({
         eventActivityId,
@@ -46,8 +42,6 @@ export class ActivityProcessingProcessor extends WorkerHost {
           skipWeather,
         }),
       );
-
-      this.logger.log(`Successfully processed activity ${eventActivityId}`);
 
       return {
         success: true,

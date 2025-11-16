@@ -165,18 +165,6 @@ import { QueueService } from './queue.service';
             config.db = db;
           }
 
-          const isIPv6 =
-            config.host.includes(':') && !config.host.includes('.');
-          if (isIPv6) {
-            logger.warn(
-              `Redis host is IPv6 (${config.host}). Ensure IPv6 is enabled and routable in your container environment.`,
-            );
-          }
-
-          logger.log(
-            `Configuring Redis connection to ${config.host}:${config.port} (db: ${config.db ?? 0})${isWorker ? ' [WORKER MODE]' : ''}`,
-          );
-
           return {
             connection: config,
           };
@@ -184,7 +172,6 @@ import { QueueService } from './queue.service';
           logger.warn(
             `Could not parse REDIS_URL, using as-is. Some connection options may not apply.`,
           );
-          // Return connection string directly - BullMQ will parse it
           return {
             connection: {
               host: 'localhost',

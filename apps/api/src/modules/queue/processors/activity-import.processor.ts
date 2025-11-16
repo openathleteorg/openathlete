@@ -34,13 +34,6 @@ export class ActivityImportProcessor extends WorkerHost {
     super();
   }
 
-  @OnWorkerEvent('completed')
-  onCompleted(job: Job<ActivityImportJobData>) {
-    this.logger.log(
-      `Completed activity import job ${job.id} (${job.data.activity.externalId})`,
-    );
-  }
-
   @OnWorkerEvent('failed')
   onFailed(job: Job<ActivityImportJobData>, error: Error) {
     this.logger.error(
@@ -51,11 +44,6 @@ export class ActivityImportProcessor extends WorkerHost {
 
   async process(job: Job<ActivityImportJobData>) {
     const { providerAccountId, activity, skipWeather } = job.data;
-    const startTime = Date.now();
-
-    this.logger.log(
-      `Processing activity import job ${job.id} for activity ${activity.externalId}`,
-    );
 
     try {
       await job.updateProgress(10);
@@ -89,13 +77,8 @@ export class ActivityImportProcessor extends WorkerHost {
         activity,
       );
 
-      this.logger.log(
-        `Successfully imported activity ${activity.externalId} (eventActivityId: ${savedActivity.event_activity_id})`,
-      );
-
       await job.updateProgress(60);
 
-      // Compute and save records
       const activityWithStream = await this.prisma.event_activity.findUnique({
         where: { event_activity_id: savedActivity.event_activity_id },
         select: { stream: true, event: { select: { athlete_id: true } } },
@@ -119,20 +102,11 @@ export class ActivityImportProcessor extends WorkerHost {
               })),
               skipDuplicates: true,
             });
-
-            this.logger.debug(
-              `Created ${records.length} records for activity ${savedActivity.event_activity_id}`,
-            );
           }
         }
       }
 
       await job.updateProgress(90);
-
-      const totalDuration = Date.now() - startTime;
-      this.logger.log(
-        `Completed activity import job ${job.id} in ${totalDuration}ms`,
-      );
 
       await this.queueService.addActivityProcessingJob(
         savedActivity.event_activity_id,
