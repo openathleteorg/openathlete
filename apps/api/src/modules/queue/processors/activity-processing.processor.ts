@@ -1,7 +1,7 @@
 import { Job, Queue } from 'bullmq';
 
-import { InjectQueue, Processor } from '@nestjs/bullmq';
-import { Logger, OnModuleInit } from '@nestjs/common';
+import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Logger } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { ActivityImportedEvent } from 'src/events';
@@ -12,7 +12,7 @@ import { ActivityProcessingJobData } from '../queue.service';
 @Processor('activity-processing', {
   concurrency: 2,
 })
-export class ActivityProcessingProcessor implements OnModuleInit {
+export class ActivityProcessingProcessor extends WorkerHost {
   private readonly logger = new Logger(ActivityProcessingProcessor.name);
 
   constructor(
@@ -20,14 +20,8 @@ export class ActivityProcessingProcessor implements OnModuleInit {
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue('activity-processing')
     private readonly activityProcessingQueue: Queue<ActivityProcessingJobData>,
-  ) {}
-
-  async onModuleInit() {
-    if (process.env.ENABLE_ACTIVITY_PROCESSING !== 'true') {
-      return;
-    }
-
-    this.logger.log('ActivityProcessingProcessor ready');
+  ) {
+    super();
   }
 
   async process(job: Job<ActivityProcessingJobData>) {

@@ -1,7 +1,12 @@
 import { Job, Queue } from 'bullmq';
 
-import { InjectQueue, OnWorkerEvent, Processor } from '@nestjs/bullmq';
-import { Inject, Logger, OnModuleInit, forwardRef } from '@nestjs/common';
+import {
+  InjectQueue,
+  OnWorkerEvent,
+  Processor,
+  WorkerHost,
+} from '@nestjs/bullmq';
+import { Inject, Logger, forwardRef } from '@nestjs/common';
 
 import { connector_provider } from '@openathlete/database';
 import { CompressedActivityStream } from '@openathlete/shared';
@@ -15,7 +20,7 @@ import { ActivityImportJobData, QueueService } from '../queue.service';
 @Processor('activity-import', {
   concurrency: 3,
 })
-export class ActivityImportProcessor implements OnModuleInit {
+export class ActivityImportProcessor extends WorkerHost {
   private readonly logger = new Logger(ActivityImportProcessor.name);
 
   constructor(
@@ -25,14 +30,8 @@ export class ActivityImportProcessor implements OnModuleInit {
     private readonly queueService: QueueService,
     @InjectQueue('activity-import')
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
-  ) {}
-
-  async onModuleInit() {
-    if (process.env.ENABLE_ACTIVITY_IMPORT !== 'true') {
-      return;
-    }
-
-    this.logger.log('ActivityImportProcessor ready');
+  ) {
+    super();
   }
 
   @OnWorkerEvent('completed')
