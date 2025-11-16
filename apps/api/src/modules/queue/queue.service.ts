@@ -85,14 +85,18 @@ export class QueueService {
         }
       }
 
-      const job = await this.activityImportQueue.add('import', {
-        providerAccountId: account.provider_account_id,
-        activity,
-        skipWeather,
-      }, {
-        priority,
-        jobId,
-      });
+      const job = await this.activityImportQueue.add(
+        'import',
+        {
+          providerAccountId: account.provider_account_id,
+          activity,
+          skipWeather,
+        },
+        {
+          priority,
+          jobId,
+        },
+      );
 
       this.logger.log(
         `Added activity import job for ${activity.externalId} (jobId: ${jobId})`,
