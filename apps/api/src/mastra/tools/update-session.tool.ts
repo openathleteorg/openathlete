@@ -24,7 +24,7 @@ export const updateSessionTool = createTool({
     success: z.boolean(),
     updatedSession: z.any(),
   }),
-  execute: async (context) => {
+  execute: async () => {
     // TODO: Implement
     // - Update event_training by ID
     // - Also update parent event if dates changed

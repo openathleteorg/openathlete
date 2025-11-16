@@ -14,7 +14,6 @@ import {
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
-import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()

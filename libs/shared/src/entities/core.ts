@@ -36,7 +36,7 @@ export interface User extends ConvertKeysToCamelCase<user> {
   athlete?: Athlete;
 }
 
-export interface Record extends ConvertKeysToCamelCase<record> {}
+export type Record = ConvertKeysToCamelCase<record>;
 
 export interface Equipment extends ConvertKeysToCamelCase<equipment> {
   type: EQUIPMENT_TYPE;
@@ -48,11 +48,9 @@ export interface Athlete extends ConvertKeysToCamelCase<athlete> {
   settings?: AthleteSettings;
 }
 
-export interface AthleteSettings
-  extends ConvertKeysToCamelCase<athlete_settings> {}
+export type AthleteSettings = ConvertKeysToCamelCase<athlete_settings>;
 
-export interface WorkoutStepEntity
-  extends ConvertKeysToCamelCase<workout_step> {}
+export type WorkoutStepEntity = ConvertKeysToCamelCase<workout_step>;
 
 export interface WorkoutEntity extends ConvertKeysToCamelCase<workout> {
   steps: WorkoutStepEntity[];

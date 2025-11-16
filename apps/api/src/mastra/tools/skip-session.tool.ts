@@ -17,7 +17,7 @@ export const skipSessionTool = createTool({
     success: z.boolean(),
     eventTrainingId: z.number(),
   }),
-  execute: async (context) => {
+  execute: async () => {
     // TODO: Implement
     // Option: Add status field to event_training (PLANNED, SKIPPED, COMPLETED)
     // For now: Update description to include "[SKIPPED] {reason}"

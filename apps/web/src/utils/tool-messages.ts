@@ -1,11 +1,5 @@
 import { m } from '@/paraglide/messages';
 
-/**
- * Tool action messages for a clean, conversational UX
- * Maps tool names to i18n message keys
- */
-
-// Map tool names (both formats) to a normalized key
 const TOOL_NAME_MAP: Record<string, string> = {
   'get-recent-activities': 'get_recent_activities',
   getRecentActivities: 'get_recent_activities',
@@ -32,13 +26,11 @@ export function getToolMessage(
   const normalizedTool = TOOL_NAME_MAP[toolName];
 
   if (!normalizedTool) {
-    // Fallback for unknown tools
     return status === 'processing'
       ? m.tool_unknown_processing({ toolName })
       : m.tool_unknown_completed({ toolName });
   }
 
-  // Fallback for any other tools
   return status === 'processing'
     ? m.tool_unknown_processing({ toolName })
     : m.tool_unknown_completed({ toolName });

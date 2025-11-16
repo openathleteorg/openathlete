@@ -1,6 +1,11 @@
 import { createTool } from '@mastra/core';
 import { z } from 'zod';
 
+import { user } from '@openathlete/database';
+
+import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
+
 /**
  * Calculate Training Load Tool
  *
@@ -85,8 +90,10 @@ export const calculateTrainingLoadTool = createTool({
     const { startDate, endDate, calculationType } = input;
 
     // Get services from runtime context
-    const trainingLoadService = runtimeContext?.get('trainingLoadService');
-    const userId = runtimeContext?.get('userId');
+    const trainingLoadService = runtimeContext?.get(
+      'trainingLoadService',
+    ) as TrainingLoadService;
+    const userId = runtimeContext?.get('userId') as user['user_id'];
 
     if (!trainingLoadService) {
       throw new Error('TrainingLoadService not available in runtime context');
@@ -101,7 +108,7 @@ export const calculateTrainingLoadTool = createTool({
     const end = new Date(endDate);
 
     // Create AuthUser object for the service
-    const authUser = { user_id: userId } as any;
+    const authUser = { user_id: userId } as AuthUser;
 
     // Use TrainingLoadService to get comprehensive metrics
     const loadMetrics = await trainingLoadService.getTrainingLoadMetrics(

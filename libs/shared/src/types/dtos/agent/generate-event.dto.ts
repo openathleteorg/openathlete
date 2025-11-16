@@ -14,5 +14,3 @@ export const generateEventResponseDtoSchema = createEventDtoSchema;
 export type GenerateEventResponseDto = z.infer<
   typeof generateEventResponseDtoSchema
 >;
-
-

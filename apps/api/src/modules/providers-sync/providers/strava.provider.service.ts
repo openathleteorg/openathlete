@@ -25,7 +25,7 @@ import {
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
 import { mapStravaSportType } from '../../core/helpers/strava';
-import { StravaSummaryActivity } from '../../core/types/connector';
+import { StravaSteam, StravaSummaryActivity } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import {
   BaseProviderService,
@@ -211,7 +211,7 @@ export class StravaProviderService
 
     // Extract external user ID from Strava response
     // Strava includes athlete data in the token response
-    const tokenData = tokenResponse as any;
+    const tokenData = tokenResponse;
     const externalUserId = tokenData.athlete?.id?.toString();
 
     // Save provider account
@@ -355,7 +355,6 @@ export class StravaProviderService
       account,
       event,
       stravaActivity,
-      athlete.athlete_id,
     );
 
     return savedActivity;
@@ -368,8 +367,6 @@ export class StravaProviderService
     account: provider_account,
     event: { event_id: number },
     activity: StravaSummaryActivity,
-    athlete_id: number,
-    options?: { skipWeather?: boolean },
   ): Promise<event_activity> {
     const shouldFetchStreams =
       !activity.manual &&
@@ -377,10 +374,10 @@ export class StravaProviderService
       activity.map.summary_polyline.length > 0 &&
       activity.distance > 0;
 
-    let streams: any[] = [];
+    let streams: StravaSteam[] = [];
 
     if (shouldFetchStreams) {
-      streams = await this.makeAuthenticatedRequest<any[]>(
+      streams = await this.makeAuthenticatedRequest<StravaSteam[]>(
         account,
         async (accessToken) => {
           try {
@@ -413,10 +410,14 @@ export class StravaProviderService
 
     const mergedData: ActivityStream = {};
     for (const stream of streams) {
-      mergedData[stream.type] = stream.data;
+      const key = stream.type as keyof ActivityStream;
+      if (key === 'latlng') {
+        mergedData[key] = stream.data as number[][];
+      } else {
+        mergedData[key] = stream.data as number[];
+      }
     }
 
-    // Compress stream (can take time for large activities)
     const compressionStart = Date.now();
     const compressedActivityStream = compressActivityStream(mergedData);
     const compressionTime = Date.now() - compressionStart;

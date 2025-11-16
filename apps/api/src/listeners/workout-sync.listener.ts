@@ -114,10 +114,10 @@ export class WorkoutSyncListener {
         this.logger.debug(
           `Exported workout ${workoutId} to ${account.provider} for athlete ${athleteId}`,
         );
-      } catch (err: any) {
+      } catch (err) {
         this.logger.error(
-          `Failed to export workout ${workoutId} to ${account.provider} for athlete ${athleteId}: ${err?.message}`,
-          err?.stack,
+          `Failed to export workout ${workoutId} to ${account.provider} for athlete ${athleteId}: ${err instanceof Error ? err.message : String(err)}`,
+          err instanceof Error ? err.stack : undefined,
         );
       }
     });

@@ -185,13 +185,11 @@ export class MessageService {
     user: AuthUser,
     dto: MarkMessagesAsReadDto,
   ): Promise<void> {
-    // Verify thread access
     await this.threadService.getThreadById(user, dto.messageThreadId);
 
-    // Get messages to mark as read
-    const whereClause: any = {
+    const whereClause: Prisma.messageWhereInput = {
       message_thread_id: dto.messageThreadId,
-      sender_id: { not: user.user_id }, // Don't mark own messages as read
+      sender_id: { not: user.user_id },
     };
 
     if (dto.messageIds && dto.messageIds.length > 0) {
@@ -203,7 +201,6 @@ export class MessageService {
       select: { message_id: true },
     });
 
-    // Create read receipts (using createMany with skipDuplicates)
     if (messages.length > 0) {
       await this.prisma.message_read_receipt.createMany({
         data: messages.map((m) => ({
@@ -214,7 +211,6 @@ export class MessageService {
       });
     }
 
-    // Update participant's last_read_at
     await this.prisma.message_thread_participant.updateMany({
       where: {
         message_thread_id: dto.messageThreadId,

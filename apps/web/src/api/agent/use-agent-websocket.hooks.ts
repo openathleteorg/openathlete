@@ -1,5 +1,5 @@
-import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
 import { getAccessToken } from '@/utils/auth';
+import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -62,12 +62,8 @@ export function useAgentWebSocket({
     const socket = AgentAPI.getSocket();
     socketRef.current = socket;
 
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-
     socket.on('connect', () => {
       setIsConnected(true);
-      reconnectAttempts = 0;
     });
 
     socket.on('disconnect', () => {
@@ -104,7 +100,10 @@ export function useAgentWebSocket({
             };
           }
         } catch (refreshError) {
-          console.error('[Agent WebSocket] Failed to refresh token:', refreshError);
+          console.error(
+            '[Agent WebSocket] Failed to refresh token:',
+            refreshError,
+          );
         }
       }
       // Let Socket.IO's built-in reconnection handle retries

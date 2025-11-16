@@ -60,30 +60,6 @@ const altitudeFilter: NormFilter = {
   },
 };
 
-// Slope filter: conceptual multiplier from GAP vs base. We won't apply it when
-// computing the normalized speed if GAP exists (we'll start from GAP instead),
-// but we keep it to allocate cost shares accurately.
-const slopeFilter: NormFilter = {
-  name: normalization_factor.SLOPE,
-  factorAt: (i, ctx) => {
-    const v0 = ctx.base?.[i];
-    const vGap = ctx.gap?.[i];
-    if (
-      Number.isFinite(v0) &&
-      (v0 as number) > 0 &&
-      Number.isFinite(vGap) &&
-      (vGap as number) > 0
-    ) {
-      // Do NOT clamp: GAP already accounts for realistic grades. Use epsilon to avoid div-by-zero.
-      const eps = 1e-6;
-      const m = (vGap as number) / Math.max(v0 as number, eps);
-      return Number.isFinite(m) && m > 0 ? m : 1;
-    }
-    // No GAP => no slope impact
-    return 1;
-  },
-};
-
 @Injectable()
 export class NormalizationProcessor implements ActivityProcessor {
   name = 'normalization';
@@ -133,18 +109,14 @@ export class NormalizationProcessor implements ActivityProcessor {
       const samples = activity.weather.samples as unknown as Array<{
         distM: number;
         temperatureC?: number;
-      }> as any[];
+      }>;
       if (Array.isArray(samples) && samples.length) {
         tempByIndex = new Array(n);
         let j = 0;
         for (let i = 0; i < n; i++) {
           const d = dist[i] ?? 0;
           while (j < samples.length - 1 && samples[j + 1].distM <= d) j++;
-          tempByIndex[i] =
-            samples[j]?.temperatureC ??
-            samples[j]?.apparentTemperatureC ??
-            tempByIndex[i - 1] ??
-            12;
+          tempByIndex[i] = samples[j]?.temperatureC ?? tempByIndex[i - 1] ?? 12;
         }
       }
     }
@@ -205,17 +177,10 @@ export class NormalizationProcessor implements ActivityProcessor {
     let tempSeconds = 0;
     let altSeconds = 0;
 
-    // Counter for skipped slow segments (not persisted; guard against pauses)
-    let skippedSlow = 0;
-
     const safe = (v: number | undefined) =>
       Number.isFinite(v as number) && (v as number) > 0 ? (v as number) : 0;
 
     for (let i = 1; i < n; i++) {
-      const dt = Math.max(
-        0,
-        (time[i] ?? time[i - 1]) - (time[i - 1] ?? time[i]),
-      );
       const ds = Math.max(
         0,
         (dist[i] ?? dist[i - 1]) - (dist[i - 1] ?? dist[i]),
@@ -227,8 +192,6 @@ export class NormalizationProcessor implements ActivityProcessor {
 
       // Skip delta allocation on paused/very-slow segments
       if (!(ds > 0) || vObs < MIN_MOVING_SPEED_MS) {
-        skippedSlow++;
-        // Still compute normalized stream below but with no delta accumulation
         const mTemp = temperatureFilter.factorAt(i, ctxF);
         const mAlt = altitudeFilter.factorAt(i, ctxF);
         const v0 = baseSpeed[i] ?? baseSpeed[i - 1] ?? 0;

@@ -14,21 +14,21 @@ type ModelWhereInput = {
   [K in Prisma.ModelName]: Uncapitalize<K> extends keyof PrismaClient
     ? Extract<
         Parameters<PrismaClient[Uncapitalize<K>]['findFirst']>[0],
-        { where?: any }
+        { where?: Record<string, unknown> }
       >['where']
     : never;
 };
 
 type WhereInput<TModelName extends Prisma.ModelName> = Extract<
   ModelWhereInput[TModelName],
-  Record<any, any>
+  Record<string, unknown>
 >;
 
 interface PrismaQueryTypeFactory extends hkt.GenericFactory {
   produce: WhereInput<ExtractModelName<this[0], ModelName>>;
 }
 
-type PrismaModel = Model<Record<string, any>, string>;
+type PrismaModel = Model<Record<string, unknown>, string>;
 // Higher Order type that allows to infer passed in Prisma Model name
 export type PrismaQuery<T extends PrismaModel = PrismaModel> = WhereInput<
   ExtractModelName<T, ModelName>

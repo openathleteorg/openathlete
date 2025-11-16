@@ -1,7 +1,6 @@
 import type { NormalizedWorkout } from '@openathlete/shared/src/types/workout-normalized';
 
 export interface ProviderPlannedWorkoutPayload {
-  // Generic shape; concrete adapters will serialize as needed
   date: string; // YYYY-MM-DD
   title?: string | null;
   description?: string | null;

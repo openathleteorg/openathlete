@@ -101,10 +101,6 @@ Please create detailed meso-blocks for the entire plan duration.`;
 
       const mesoBlocks = response.object.mesoBlocks;
 
-      const totalWeeks = mesoBlocks.reduce(
-        (sum, block) => sum + block.weeks.length,
-        0,
-      );
       return {
         mesoBlocks,
         athleteFacts: inputData.athleteFacts,

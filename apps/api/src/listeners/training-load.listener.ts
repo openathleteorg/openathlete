@@ -103,7 +103,8 @@ export class TrainingLoadListener {
             `✓ Foster RPE training load calculated for activity ${eventActivityId}`,
           );
         } catch (error) {
-          const message = error instanceof Error ? error.message : String(error);
+          const message =
+            error instanceof Error ? error.message : String(error);
           this.logger.error(
             `Failed to calculate Foster RPE for activity ${eventActivityId}: ${message}`,
           );
@@ -146,7 +147,8 @@ export class TrainingLoadListener {
               `✓ TRIMP Edwards training load calculated for activity ${eventActivityId}`,
             );
           } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            const message =
+              error instanceof Error ? error.message : String(error);
             this.logger.error(
               `Failed to calculate TRIMP Edwards for activity ${eventActivityId}: ${message}`,
             );
@@ -163,7 +165,8 @@ export class TrainingLoadListener {
               `✓ TRIMP Banister training load calculated for activity ${eventActivityId}`,
             );
           } catch (error) {
-            const message = error instanceof Error ? error.message : String(error);
+            const message =
+              error instanceof Error ? error.message : String(error);
             this.logger.error(
               `Failed to calculate TRIMP Banister for activity ${eventActivityId}: ${message}`,
             );

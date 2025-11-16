@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
+import { trainingEventSchema } from '@openathlete/shared';
+
 import { eventGenerationAgent } from 'src/mastra/agents';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
+  type TrainingEventSchema,
   buildMetricsContext,
   buildWorkoutTargetsInstructions,
   buildZonesContext,
@@ -14,8 +17,6 @@ import {
   fetchAthleteZones,
   formatZonesByType,
   getLatestMetrics,
-  trainingEventSchema,
-  type TrainingEventSchema,
   validateWorkoutZoneTargets,
 } from './event-ai-helpers';
 
@@ -31,7 +32,6 @@ export class EventGenerationService {
     date: Date,
     athleteId: number,
   ): Promise<TrainingEventSchema> {
-    // Fetch athlete's training zones and metrics
     const zones = await fetchAthleteZones(this.prismaService, athleteId);
     const metrics = await fetchAthleteMetrics(this.prismaService, athleteId);
     const latestMetrics = getLatestMetrics(metrics);
@@ -64,7 +64,7 @@ ${buildWorkoutTargetsInstructions()}`;
     const response = await eventGenerationAgent.generate(fullPrompt, {
       runtimeContext,
       structuredOutput: {
-        schema: trainingEventSchema as any, // Type assertion needed for complex nested schemas
+        schema: trainingEventSchema,
       },
     });
 
@@ -74,17 +74,11 @@ ${buildWorkoutTargetsInstructions()}`;
       );
     }
 
-    // Validate and fix zone targets
     const zoneIdMap = createZoneIdMap(zones);
     if (response.object.workout) {
-      validateWorkoutZoneTargets(
-        response.object.workout,
-        zoneIdMap,
-        zones,
-      );
+      validateWorkoutZoneTargets(response.object.workout, zoneIdMap, zones);
     }
 
-    // Steps are already filtered by the schema transform
     return response.object;
   }
 }

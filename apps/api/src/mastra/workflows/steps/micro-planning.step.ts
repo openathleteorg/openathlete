@@ -67,10 +67,6 @@ export const microStep = createStep({
         })),
       );
 
-      console.log(
-        `[microStep] Generating sessions for ${allWeeks.length} weeks...`,
-      );
-
       // Process each week sequentially
       for (const week of allWeeks) {
         const prompt = `Generate specific training sessions for the following week:
@@ -125,8 +121,6 @@ CRITICAL:
 
 Generate sessions now.`;
 
-        console.log(`[microStep] Processing week ${week.weekNumber}...`);
-
         const response = await microPlanAgent.generate(prompt, {
           runtimeContext,
           structuredOutput: {
@@ -144,15 +138,7 @@ Generate sessions now.`;
         weekIntentions.targetVolume = week.targetVolume;
 
         allWeekIntentions.push(weekIntentions);
-
-        console.log(
-          `[microStep] Week ${week.weekNumber}: Generated ${weekIntentions.sessions.length} sessions`,
-        );
       }
-
-      console.log(
-        `[microStep] Successfully generated sessions for all ${allWeeks.length} weeks`,
-      );
 
       return {
         weekIntentions: allWeekIntentions,

@@ -1,6 +1,7 @@
 import { createTool } from '@mastra/core';
 import { z } from 'zod';
 
+import { Prisma } from '@openathlete/database';
 import { SPORT_TYPE } from '@openathlete/shared';
 import { keysToCamel } from '@openathlete/shared';
 
@@ -197,7 +198,7 @@ This is essential for understanding training history, progress tracking, and per
       } = input;
 
       // Build the where clause dynamically
-      const whereClause: any = {
+      const whereClause: Prisma.event_activityWhereInput = {
         event: {
           athlete_id: athleteId,
           type: 'ACTIVITY', // Only fetch completed activities
@@ -213,20 +214,20 @@ This is essential for understanding training history, progress tracking, and per
 
       // Handle date filtering on the related event
       if (startDate || endDate) {
-        whereClause.event.start_date = {};
+        whereClause.event!.start_date = {};
         if (startDate) {
-          whereClause.event.start_date.gte = new Date(startDate);
+          whereClause.event!.start_date.gte = new Date(startDate);
         }
         if (endDate) {
           const endDateObj = new Date(endDate);
           // Include the entire day
           endDateObj.setHours(23, 59, 59, 999);
-          whereClause.event.start_date.lte = endDateObj;
+          whereClause.event!.start_date.lte = endDateObj;
         }
       }
 
       // Determine order by clause
-      let orderByClause: any;
+      let orderByClause: Prisma.event_activityOrderByWithRelationInput;
       switch (orderBy) {
         case 'distance':
           orderByClause = { distance: 'desc' };
@@ -260,7 +261,7 @@ This is essential for understanding training history, progress tracking, and per
       const formattedActivities: ActivityDetail[] = activitiesToReturn.map(
         (activity) => {
           // Map the activity fields using keysToCamel
-          const mappedActivity = keysToCamel(activity) as any;
+          const mappedActivity = keysToCamel(activity);
 
           return {
             eventActivityId: mappedActivity.eventActivityId,

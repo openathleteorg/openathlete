@@ -213,12 +213,16 @@ export class MastraAgentService implements OnModuleInit {
         for await (const chunk of stream.fullStream) {
           if (chunk.type === 'step-start' && chunk.payload) {
             const stepAgent =
-              (chunk.payload as any).agent ||
-              (chunk.payload as any).name ||
-              (chunk.payload as any).stepId ||
-              (chunk.payload as any).id;
+              (chunk.payload as Record<string, unknown>).agent ||
+              (chunk.payload as Record<string, unknown>).name ||
+              (chunk.payload as Record<string, unknown>).stepId ||
+              (chunk.payload as Record<string, unknown>).id;
 
-            if (stepAgent && stepAgent !== currentAgent) {
+            if (
+              stepAgent &&
+              typeof stepAgent === 'string' &&
+              stepAgent !== currentAgent
+            ) {
               currentAgent = stepAgent;
               onChunk({
                 type: 'agent_thinking',

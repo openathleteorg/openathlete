@@ -10,7 +10,7 @@ const baseEventSchema = z.object({
   athleteId: z.number().optional().nullable(),
 });
 
-const trainingEventSchema = baseEventSchema.extend({
+export const trainingEventSchema = baseEventSchema.extend({
   type: z.literal(EVENT_TYPE.TRAINING),
   sport: z.nativeEnum(SPORT_TYPE),
   description: z.string(),
@@ -19,9 +19,12 @@ const trainingEventSchema = baseEventSchema.extend({
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
   // Workout data for structured training sessions
-  workout: z.object({
-    steps: z.array(createWorkoutStepDtoSchema).default([]),
-  }).optional().nullable(),
+  workout: z
+    .object({
+      steps: z.array(createWorkoutStepDtoSchema).default([]),
+    })
+    .optional()
+    .nullable(),
 });
 
 const competitionEventSchema = baseEventSchema.extend({

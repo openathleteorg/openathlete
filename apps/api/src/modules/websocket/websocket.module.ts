@@ -7,4 +7,3 @@ import { WebSocketRedisService } from './websocket-redis.service';
   exports: [WebSocketRedisService],
 })
 export class WebSocketModule {}
-

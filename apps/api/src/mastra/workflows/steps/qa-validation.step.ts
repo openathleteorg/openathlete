@@ -107,7 +107,7 @@ export const qaStep = createStep({
   execute: async ({ inputData, runtimeContext }) => {
     try {
       // Transform scheduledWeeks into the format expected by validatePlanTool
-      const cycles = inputData.mesoBlocks.map((block, idx) => {
+      const cycles = inputData.mesoBlocks.map((block) => {
         const blockWeeks = inputData.scheduledWeeks.filter(
           (w) =>
             block.weeks.find((bw) => bw.weekNumber === w.weekNumber) !==

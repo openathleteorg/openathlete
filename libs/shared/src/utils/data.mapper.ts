@@ -57,8 +57,10 @@ export function keysToCamel<T>(obj: ConvertKeysToSnakeCase<T>): T {
     typeof obj !== 'function' &&
     !(obj instanceof Date)
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const n: { [key: string]: any } = {};
     Object.keys(obj as object).forEach((k) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       n[toCamel(k)] = keysToCamel((obj as any)[k]);
     });
     return n as T;
@@ -77,9 +79,11 @@ export function keysToSnake<T>(obj: T): ConvertKeysToSnakeCase<T> {
     typeof obj !== 'function' &&
     !(obj instanceof Date)
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const n = {} as { [key: string]: any };
     Object.keys(obj as object).forEach((k: string) => {
       n[k.replace(/([A-Z])/g, '_$1').toLowerCase()] = keysToSnake(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (obj as any)[k],
       );
     });
@@ -99,8 +103,10 @@ export function keysToLower<T>(obj: T): ConvertKeysToLowerCase<T> {
     typeof obj !== 'function' &&
     !(obj instanceof Date)
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const n = {} as { [key: string]: any };
     Object.keys(obj as object).forEach((k: string) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       n[k.toLowerCase()] = keysToLower((obj as any)[k]);
     });
     return n as ConvertKeysToLowerCase<T>;

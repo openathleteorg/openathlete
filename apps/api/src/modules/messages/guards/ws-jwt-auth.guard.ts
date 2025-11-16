@@ -1,7 +1,7 @@
 import { Socket } from 'socket.io';
 
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -29,13 +29,15 @@ export class WsJwtAuthGuard implements CanActivate {
           userId: number;
           email: string;
         }>(token);
-      } catch (jwtError: any) {
-        // Provide more specific error messages for JWT errors
-        if (jwtError?.name === 'TokenExpiredError') {
+      } catch (jwtError: unknown) {
+        if (jwtError instanceof TokenExpiredError) {
           console.error('[WsJwtAuthGuard] JWT expired');
           throw new WsException('Unauthorized: jwt expired');
-        } else if (jwtError?.name === 'JsonWebTokenError') {
-          console.error('[WsJwtAuthGuard] Invalid JWT token:', jwtError.message);
+        } else if (jwtError instanceof JsonWebTokenError) {
+          console.error(
+            '[WsJwtAuthGuard] Invalid JWT token:',
+            jwtError.message,
+          );
           throw new WsException('Unauthorized: Invalid token');
         }
         throw new WsException('Unauthorized: Invalid token');
@@ -83,4 +85,3 @@ export class WsJwtAuthGuard implements CanActivate {
     return null;
   }
 }
-

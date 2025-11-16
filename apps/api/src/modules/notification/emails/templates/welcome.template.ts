@@ -1,5 +1,5 @@
-import { layout } from '../core/layout';
 import { button, h1, note, p } from '../core/blocks';
+import { layout } from '../core/layout';
 
 export function buildWelcomeEmail({
   name,
@@ -16,10 +16,10 @@ export function buildWelcomeEmail({
     p(
       name
         ? `Ravi de vous compter parmi nous, ${name}.`
-        : "Ravi de vous compter parmi nous.",
+        : 'Ravi de vous compter parmi nous.',
     ),
     p(
-      "Vous pouvez dès maintenant configurer vos objectifs, importer vos séances et explorer votre tableau de bord.",
+      'Vous pouvez dès maintenant configurer vos objectifs, importer vos séances et explorer votre tableau de bord.',
     ),
     dashboard_url
       ? button({ href: dashboard_url, label: 'Accéder au tableau de bord' })
@@ -33,5 +33,3 @@ export function buildWelcomeEmail({
 
   return layout({ title, preview, contentHtml: content });
 }
-
-

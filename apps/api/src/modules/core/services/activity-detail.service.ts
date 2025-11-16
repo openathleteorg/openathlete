@@ -1,6 +1,13 @@
 import { Injectable } from '@nestjs/common';
 
-import { event, event_activity, sport_type } from '@openathlete/database';
+import {
+  Prisma,
+  event,
+  event_activity,
+  event_activity_normalization,
+  event_activity_weather,
+  sport_type,
+} from '@openathlete/database';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -21,8 +28,8 @@ interface ActivitySearchCriteria {
  */
 type FullActivity = event & {
   activity: event_activity & {
-    weather?: any;
-    normalization?: any;
+    weather?: event_activity_weather;
+    normalization?: event_activity_normalization;
   };
 };
 
@@ -39,7 +46,7 @@ export class ActivityDetailService {
     const { athleteId, activityId, date, name, position, sport } = criteria;
 
     // Build where clause
-    const whereClause: any = {
+    const whereClause: Prisma.eventWhereInput = {
       athlete_id: athleteId,
       type: 'ACTIVITY',
       activity: {
@@ -49,11 +56,8 @@ export class ActivityDetailService {
 
     // Filter by sport if provided
     if (sport) {
-      whereClause.activity = {
-        ...whereClause.activity,
-        is: {
-          sport,
-        },
+      whereClause.activity!.is = {
+        sport,
       };
     }
 

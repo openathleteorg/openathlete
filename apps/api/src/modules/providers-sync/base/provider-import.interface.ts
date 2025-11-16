@@ -1,3 +1,5 @@
+import { provider_account } from '@openathlete/database';
+
 /**
  * Interface for providers that support activity import
  */
@@ -8,7 +10,7 @@ export interface ProviderImportCapability {
    * @param options Import options (date range, etc.)
    */
   importActivities(
-    account: any, // provider_account from Prisma
+    account: provider_account,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]>;
 
@@ -36,4 +38,3 @@ export interface ImportedActivity {
   // Additional metadata
   [key: string]: unknown;
 }
-

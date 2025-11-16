@@ -1,8 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import { validatePlanTool } from '../tools';
-
 // TODO: Agent that validates training plans against constraints and best practices
 //
 // RESPONSIBILITIES:
@@ -203,7 +201,7 @@ Be thorough but practical. Consider the athlete's experience level and goals whe
 Output your validation as a detailed ValidationReport object.`,
   model: openai('gpt-4o'),
   tools: {
-    validatePlan: validatePlanTool,
+    // TODO: Add validatePlan tool when implemented
     // TODO: Add check-constraints tool when needed for specific constraint validation
   },
 });

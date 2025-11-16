@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { connector_provider, provider_account } from '@openathlete/database';
+import { connector_provider } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -32,4 +32,3 @@ export class SuuntoProviderService extends BaseProviderService {
     super(prisma, configService);
   }
 }
-

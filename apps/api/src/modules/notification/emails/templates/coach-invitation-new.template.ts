@@ -27,4 +27,3 @@ export function buildCoachInvitationNewEmail({
 
   return layout({ title, preview, contentHtml: content });
 }
-

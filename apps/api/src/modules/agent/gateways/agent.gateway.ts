@@ -92,7 +92,7 @@ export class AgentGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   constructor(
     private mastraAgentService: MastraAgentService,
@@ -106,19 +106,16 @@ export class AgentGateway
     if (adapter && this.server) {
       // In Socket.IO v4, configure adapter on the main server (not namespace)
       // The server property is the namespace, so we access the main server via .server
-      const mainServer = (this.server as any).server;
+      const mainServer = (this.server as unknown as { server: Server }).server;
       if (mainServer && typeof mainServer.adapter === 'function') {
         mainServer.adapter(adapter);
-        console.log('[AgentGateway] Redis adapter configured for Socket.IO');
-      } else {
-        console.warn('[AgentGateway] Could not configure Redis adapter - main server not available');
       }
     }
   }
 
-  handleConnection(client: Socket) {}
+  handleConnection(_: Socket) {}
 
-  handleDisconnect(client: Socket) {}
+  handleDisconnect(_: Socket) {}
 
   @UseGuards(WsJwtAuthGuard)
   @SubscribeMessage('send_message')
@@ -196,7 +193,11 @@ export class AgentGateway
   }
 
   // Broadcast to all clients in a thread
-  broadcastToThread(threadId: number, event: string, data: any) {
+  broadcastToThread(
+    threadId: number,
+    event: string,
+    data: Record<string, unknown>,
+  ) {
     this.server.to(`thread:${threadId}`).emit(event, data);
   }
 }

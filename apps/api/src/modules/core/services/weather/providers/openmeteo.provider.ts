@@ -128,8 +128,10 @@ export class OpenMeteoWeatherProvider implements WeatherProvider {
           throw new Error(`HTTP ${res.status}`);
         }
         if (!res || !res.ok) throw new Error(`HTTP ${res?.status}`);
-        const data: any = await res.json();
-        const hourly: Hourly = data?.hourly || { time: [] };
+        const data: unknown = await res.json();
+        const hourly: Hourly = (data as { hourly?: Hourly })?.hourly || {
+          time: [],
+        };
 
         // Convert point date to target hour in UTC
         const tIso = isoHourUtc(p.date);

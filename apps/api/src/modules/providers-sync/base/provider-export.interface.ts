@@ -15,4 +15,3 @@ export interface ProviderExportCapability {
     previousExternalId?: string;
   }): Promise<{ externalId: string }>;
 }
-

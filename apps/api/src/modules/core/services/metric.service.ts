@@ -51,7 +51,9 @@ export class MetricService {
       if (
         !ability.can(
           'manage',
-          subject('athlete_metric', { athlete_id: athleteId } as any),
+          subject('athlete_metric', {
+            athlete_id: athleteId,
+          } as athlete_metric),
         )
       ) {
         throw new ForbiddenException(
@@ -157,7 +159,9 @@ export class MetricService {
     if (
       !ability.can(
         'manage',
-        subject('athlete_metric', { athlete_id: metric.athlete_id } as any),
+        subject('athlete_metric', {
+          athlete_id: metric.athlete_id,
+        } as athlete_metric),
       )
     ) {
       throw new ForbiddenException('Not allowed to update this metric');
@@ -206,7 +210,9 @@ export class MetricService {
     if (
       !ability.can(
         'manage',
-        subject('athlete_metric', { athlete_id: metric.athlete_id } as any),
+        subject('athlete_metric', {
+          athlete_id: metric.athlete_id,
+        } as athlete_metric),
       )
     ) {
       throw new ForbiddenException('Not allowed to delete this metric');
@@ -347,7 +353,7 @@ export class MetricService {
     );
 
     // Convert each metric object to camelCase, but keep the Record keys as-is
-    const result: Record<string, any> = {};
+    const result: Record<string, athlete_metric> = {};
     Object.entries(latestByType).forEach(([type, metric]) => {
       result[type] = keysToCamel(metric);
     });

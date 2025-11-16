@@ -164,20 +164,20 @@ export class ProviderExportScheduler {
               this.logger.debug(
                 `Synced workout ${event.training!.workout!.workout_id} to ${provider} for athlete ${athleteId}`,
               );
-            } catch (err: any) {
+            } catch (err: unknown) {
               this.logger.error(
-                `Failed to sync workout ${event.training!.workout!.workout_id} to ${provider} for athlete ${athleteId}: ${err?.message}`,
-                err?.stack,
+                `Failed to sync workout ${event.training!.workout!.workout_id} to ${provider} for athlete ${athleteId}: ${err instanceof Error ? err.message : String(err)}`,
+                err instanceof Error ? err.stack : undefined,
               );
             }
           });
 
           await Promise.allSettled(exportPromises);
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         this.logger.error(
-          `Error syncing exports for athlete ${athleteId}: ${err?.message}`,
-          err?.stack,
+          `Error syncing exports for athlete ${athleteId}: ${err instanceof Error ? err.message : String(err)}`,
+          err instanceof Error ? err.stack : undefined,
         );
       }
     }

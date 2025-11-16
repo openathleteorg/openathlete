@@ -161,10 +161,6 @@ Provide your analysis as a JSON object matching the AthleteFacts schema with the
 
 Be thorough in your analysis and provide context for your findings.`;
 
-      console.log(
-        `[profileStep] Calling athlete-profile agent for athlete ${athleteId}`,
-      );
-
       const response = await athleteProfileAgent.generate(prompt, {
         runtimeContext,
         structuredOutput: {
@@ -172,20 +168,7 @@ Be thorough in your analysis and provide context for your findings.`;
         },
       });
 
-      console.log('[profileStep] Received structured response from agent');
-
       const athleteFacts = response.object;
-
-      console.log('[profileStep] Successfully validated AthleteFacts');
-      console.log(
-        '[profileStep] Weekly volume:',
-        athleteFacts.currentFitness.recentWeeklyVolume,
-        'seconds',
-      );
-      console.log(
-        '[profileStep] Availability slots:',
-        athleteFacts.availability.length,
-      );
 
       return { athleteFacts, goal: inputData.goal };
     } catch (error) {

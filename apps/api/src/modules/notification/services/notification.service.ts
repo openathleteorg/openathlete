@@ -3,7 +3,12 @@ import * as brevo from '@getbrevo/brevo';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ApiEnvSchemaType, EmailId, emailLibrary } from '@openathlete/shared';
+import {
+  ApiEnvSchemaType,
+  EmailId,
+  EmailPropsFromId,
+  emailLibrary,
+} from '@openathlete/shared';
 
 import { emailTemplates } from '../emails/templates';
 import { SendEmail } from '../types';
@@ -33,17 +38,18 @@ export class NotificationService {
       const subject =
         payload.subject || emailLibrary[payload.type].defaultSubject;
 
-      const buildHtml = emailTemplates[payload.type as EmailId] as any;
+      const buildHtml = emailTemplates[payload.type] as (
+        props: EmailPropsFromId<T>,
+      ) => string;
       const htmlContent = buildHtml
-        ? buildHtml(payload.params as any)
+        ? buildHtml(payload.params)
         : `<p>${subject}</p>`;
 
       sendSmtpEmail.subject = subject;
       sendSmtpEmail.htmlContent = htmlContent;
 
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-    } catch (error: any) {
-      console.error('Error sending email', error?.response?.body);
+    } catch (error) {
       console.error('Error sending email', error);
     }
   }

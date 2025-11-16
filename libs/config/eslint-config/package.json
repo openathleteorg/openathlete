@@ -4,16 +4,18 @@
   "description": "OpenAthlete ESLint configuration",
   "author": "Tristan Bouillot <tristan@tblt.fr>",
   "license": "MPL-2.0",
-  "main": ".eslintrc.cjs",
-  "type": "commonjs",
+  "main": "eslint.config.js",
+  "type": "module",
   "scripts": {
     "rimraf:node_modules": "sudo rm -rf node_modules"
   },
   "dependencies": {
+    "@eslint/js": "^9.18.0",
     "@typescript-eslint/eslint-plugin": "^8.26.0",
     "@typescript-eslint/parser": "^8.26.0",
     "eslint-config-prettier": "^10.1.1",
-    "eslint-plugin-prettier": "^5.2.3"
+    "eslint-plugin-prettier": "^5.2.3",
+    "typescript-eslint": "^8.26.0"
   },
   "peerDependencies": {
     "eslint": "^9.22.0"

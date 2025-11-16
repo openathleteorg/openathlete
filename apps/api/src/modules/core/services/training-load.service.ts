@@ -8,11 +8,14 @@ import {
 
 import {
   athlete,
-  event_activity,
   metric_type,
   training_load_calculation_type,
 } from '@openathlete/database';
-import { ActivityStream, keysToCamel } from '@openathlete/shared';
+import {
+  ActivityStream,
+  CompressedActivityStream,
+  keysToCamel,
+} from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -277,10 +280,7 @@ export class TrainingLoadService {
   /**
    * Get all training load entries for a specific activity
    */
-  async getActivityTrainingLoads(
-    user: AuthUser,
-    activityId: number,
-  ): Promise<any[]> {
+  async getActivityTrainingLoads(user: AuthUser, activityId: number) {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
@@ -329,7 +329,7 @@ export class TrainingLoadService {
     user: AuthUser,
     activityId: number,
     calculationType: training_load_calculation_type,
-  ): Promise<any> {
+  ) {
     // Get athlete with user info
     const athlete = await this.prisma.athlete.findFirst({
       where: {
@@ -385,7 +385,7 @@ export class TrainingLoadService {
         break;
 
       case 'TRIMP_EDWARDS':
-      case 'TRIMP_BANISTER':
+      case 'TRIMP_BANISTER': {
         // Get HR metrics
         const hrMax = await this.getLatestMetric(
           athlete.athlete_id,
@@ -407,7 +407,9 @@ export class TrainingLoadService {
           throw new Error('Activity stream not available');
         }
 
-        const stream = uncompressActivityStream(activity.stream as any);
+        const stream = uncompressActivityStream(
+          activity.stream as CompressedActivityStream,
+        );
 
         if (calculationType === 'TRIMP_EDWARDS') {
           result = this.calculateEdwardsTRIMP(stream, hrMax, hrRest);
@@ -418,6 +420,7 @@ export class TrainingLoadService {
           result = this.calculateBanisterTRIMP(stream, hrMax, hrRest, gender);
         }
         break;
+      }
 
       default:
         throw new Error(`Unknown calculation type: ${calculationType}`);
@@ -454,7 +457,7 @@ export class TrainingLoadService {
           },
           data: {
             value: result.value,
-            metadata: result.metadata as any,
+            metadata: result.metadata as object,
             date: activityDate,
           },
         }),
@@ -468,7 +471,7 @@ export class TrainingLoadService {
           activity_id: activity.event_activity_id,
           date: activityDate,
           value: result.value,
-          metadata: result.metadata as any,
+          metadata: result.metadata as object,
         },
       }),
     );

@@ -1,33 +1,45 @@
 import { createTool } from '@mastra/core';
 import { z } from 'zod';
 
+import { Prisma } from '@openathlete/database';
 import { keysToCamel } from '@openathlete/shared';
 
-/**
- * Fetch Athlete Data Tool
- *
- * Purpose: Retrieve comprehensive athlete profile data for training plan generation and analysis.
- *
- * This tool fetches the athlete's complete profile including:
- * - Basic athlete data (athleteId, userId, timestamps)
- * - Related user information (name, email, etc.)
- * - Weekly availability windows (if requested)
- * - Training statistics (activity counts, totals) (if requested)
- *
- * The tool is designed to provide all necessary context for the athlete-profile.agent
- * to build a comprehensive AthleteFacts object for plan generation.
- *
- * Used by:
- * - athlete-profile.agent: Primary use for profile analysis
- * - adaptation.agent: To understand athlete constraints when adapting plans
- * - qna.agent: To answer questions about athlete data
- *
- * Note: athleteId is automatically provided from the authenticated user context - no need to specify it!
- *
- * Authorization:
- * - The athleteId from runtimeContext is automatically scoped to the authenticated user
- * - CASL checks are handled at the API layer before tools are invoked
- */
+const outputSchema = z.object({
+  athlete: z.object({
+    athleteId: z.number(),
+    userId: z.number(),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    user: z
+      .object({
+        userId: z.number(),
+        email: z.string(),
+        firstName: z.string().nullable(),
+        lastName: z.string().nullable(),
+      })
+      .optional(),
+  }),
+  availability: z
+    .array(
+      z.object({
+        athleteAvailabilityId: z.number(),
+        dayOfWeek: z.number(),
+        startTime: z.string(),
+        endTime: z.string(),
+        priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
+      }),
+    )
+    .optional(),
+  stats: z
+    .object({
+      totalActivities: z.number().describe('Total number of activities'),
+      totalDistance: z.number().describe('Total distance covered in meters'),
+      totalDuration: z.number().describe('Total moving time in seconds'),
+      totalElevationGain: z.number().describe('Total elevation gain in meters'),
+    })
+    .optional(),
+});
+
 export const fetchAthleteDataTool = createTool({
   id: 'fetch-athlete-data',
   description:
@@ -46,43 +58,7 @@ export const fetchAthleteDataTool = createTool({
         'Whether to calculate summary statistics (total activities, distance, duration)',
       ),
   }),
-  outputSchema: z.object({
-    athlete: z.object({
-      athleteId: z.number(),
-      userId: z.number(),
-      createdAt: z.string(),
-      updatedAt: z.string(),
-      user: z
-        .object({
-          userId: z.number(),
-          email: z.string(),
-          firstName: z.string().nullable(),
-          lastName: z.string().nullable(),
-        })
-        .optional(),
-    }),
-    availability: z
-      .array(
-        z.object({
-          athleteAvailabilityId: z.number(),
-          dayOfWeek: z.number(),
-          startTime: z.string(),
-          endTime: z.string(),
-          priority: z.enum(['LOW', 'MEDIUM', 'HIGH']),
-        }),
-      )
-      .optional(),
-    stats: z
-      .object({
-        totalActivities: z.number().describe('Total number of activities'),
-        totalDistance: z.number().describe('Total distance covered in meters'),
-        totalDuration: z.number().describe('Total moving time in seconds'),
-        totalElevationGain: z
-          .number()
-          .describe('Total elevation gain in meters'),
-      })
-      .optional(),
-  }),
+  outputSchema,
   execute: async ({ context: input, runtimeContext }) => {
     try {
       // Get athleteId and prisma from RuntimeContext
@@ -103,7 +79,7 @@ export const fetchAthleteDataTool = createTool({
 
       const { includeAvailability = true, includeStats = true } = input;
 
-      const includeClause: any = {
+      const includeClause: Prisma.athleteInclude = {
         user: {
           select: {
             user_id: true,
@@ -131,10 +107,10 @@ export const fetchAthleteDataTool = createTool({
       }
 
       // Map athlete data to camelCase
-      const mappedAthlete = keysToCamel(athlete) as any;
+      const mappedAthlete = keysToCamel(athlete);
 
       // Build result object
-      const result: any = {
+      const result: z.infer<typeof outputSchema> = {
         athlete: {
           athleteId: mappedAthlete.athleteId,
           userId: mappedAthlete.userId,
@@ -153,7 +129,7 @@ export const fetchAthleteDataTool = createTool({
 
       // Add availability if requested and present
       if (includeAvailability && mappedAthlete.availability) {
-        result.availability = mappedAthlete.availability.map((slot: any) => ({
+        result.availability = mappedAthlete.availability.map((slot) => ({
           athleteAvailabilityId: slot.athleteAvailabilityId,
           dayOfWeek: slot.dayOfWeek,
           startTime: slot.startTime,

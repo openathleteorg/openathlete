@@ -107,7 +107,7 @@ export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   // Map to track user sockets: userId -> Set of socket IDs
   private userSockets = new Map<number, Set<string>>();
@@ -125,19 +125,14 @@ export class MessagesGateway
     if (adapter && this.server) {
       // In Socket.IO v4, configure adapter on the main server (not namespace)
       // The server property is the namespace, so we access the main server via .server
-      const mainServer = (this.server as any).server;
+      const mainServer = (this.server as unknown as { server: Server }).server;
       if (mainServer && typeof mainServer.adapter === 'function') {
         mainServer.adapter(adapter);
-        console.log('[MessagesGateway] Redis adapter configured for Socket.IO');
-      } else {
-        console.warn(
-          '[MessagesGateway] Could not configure Redis adapter - main server not available',
-        );
       }
     }
   }
 
-  handleConnection(client: Socket) {
+  handleConnection(_: Socket) {
     // Authentication happens on first message, not on connection
   }
 
@@ -482,7 +477,11 @@ export class MessagesGateway
   /**
    * Broadcast to all clients in a thread room
    */
-  private broadcastToThread(messageThreadId: number, event: string, data: any) {
+  private broadcastToThread(
+    messageThreadId: number,
+    event: string,
+    data: unknown,
+  ) {
     this.server.to(`thread:${messageThreadId}`).emit(event, data);
   }
 
@@ -490,7 +489,7 @@ export class MessagesGateway
    * Broadcast to specific users by their user IDs
    * Uses tracked sockets directly for reliability, with room fallback
    */
-  broadcastToUsers(event: string, data: any, userIds: number[]) {
+  broadcastToUsers(event: string, data: unknown, userIds: number[]) {
     for (const userId of userIds) {
       const trackedSockets = this.userSockets.get(userId);
       const socketIds = trackedSockets ? Array.from(trackedSockets) : [];
@@ -503,9 +502,17 @@ export class MessagesGateway
           socket = this.server.sockets.sockets.get(socketId);
         } else if (
           this.server?.sockets &&
-          typeof (this.server.sockets as any).get === 'function'
+          typeof (
+            this.server.sockets as unknown as {
+              get: (socketId: string) => Socket;
+            }
+          ).get === 'function'
         ) {
-          socket = (this.server.sockets as any).get(socketId);
+          socket = (
+            this.server.sockets as unknown as {
+              get: (socketId: string) => Socket;
+            }
+          ).get(socketId);
         }
 
         if (socket && socket.connected) {

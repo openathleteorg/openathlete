@@ -18,10 +18,12 @@ const trainingEventUpdateSchema = baseEventUpdateSchema.extend({
   goalDuration: z.number().optional().nullable(),
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
-  // Workout data for structured training sessions
-  workout: z.object({
-    steps: z.array(createWorkoutStepDtoSchema).optional(),
-  }).optional().nullable(),
+  workout: z
+    .object({
+      steps: z.array(createWorkoutStepDtoSchema).optional(),
+    })
+    .optional()
+    .nullable(),
 });
 
 const competitionEventUpdateSchema = baseEventUpdateSchema.extend({
@@ -55,7 +57,6 @@ export const updateEventDtoSchema = z.union([
 
 export type UpdateEventDto = z.infer<typeof updateEventDtoSchema>;
 
-// Workout-specific actions
 export const reorderWorkoutStepsSchema = z.object({
   stepOrders: z.array(
     z.object({

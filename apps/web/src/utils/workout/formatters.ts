@@ -7,10 +7,7 @@ import type {
   WorkoutStepType,
   WorkoutTargetType,
 } from '@openathlete/shared';
-import {
-  SPORT_TYPE,
-  calculateWorkoutDuration as sharedCalculateWorkoutDuration,
-} from '@openathlete/shared';
+import { calculateWorkoutDuration as sharedCalculateWorkoutDuration } from '@openathlete/shared';
 
 /**
  * Format duration value based on duration type
@@ -100,10 +97,7 @@ function formatPace(seconds: number): string {
  * @param sport - Optional sport to determine zone type
  * @returns Human-readable formatted target
  */
-export function formatTarget(
-  target: WorkoutStepTarget,
-  sport?: SPORT_TYPE,
-): string {
+export function formatTarget(target: WorkoutStepTarget): string {
   const { targetType, unit, targetMin, targetMax, targetValue } = target;
 
   // Open target (no specific goal)

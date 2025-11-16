@@ -11,7 +11,6 @@ export { skipSessionTool } from './skip-session.tool';
 
 // Calculation & Validation Tools
 export { calculateTrainingLoadTool } from './calculate-training-load.tool';
-export { validatePlanTool } from './validate-plan.tool';
 
 // TODO: Future tools to add:
 // - compare-sessions.tool.ts

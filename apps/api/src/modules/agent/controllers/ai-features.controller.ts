@@ -5,6 +5,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 import {
   CreateWorkoutStepDto,
+  EVENT_TYPE,
   GenerateEventDto,
   GenerateEventResponseDto,
   ModifyEventDto,
@@ -13,7 +14,6 @@ import {
   generateEventDtoSchema,
   modifyEventDtoSchema,
 } from '@openathlete/shared';
-import { EVENT_TYPE } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -36,7 +36,6 @@ export class AIFeaturesController {
   ): Promise<GenerateEventResponseDto> {
     const athleteId = user.athlete?.athlete_id || user.user_id;
 
-    // Generate training event
     const generatedEvent =
       await this.eventGenerationService.generateTrainingEvent(
         dto.prompt,
@@ -44,7 +43,6 @@ export class AIFeaturesController {
         athleteId,
       );
 
-    // Convert to CreateEventDto format
     const eventDate = new Date(dto.date);
     const startDate = new Date(eventDate);
     startDate.setHours(8, 0, 0, 0);
@@ -104,7 +102,6 @@ export class AIFeaturesController {
         }
       : undefined;
 
-    // Build result
     const result: GenerateEventResponseDto = {
       type: EVENT_TYPE.TRAINING,
       name: generatedEvent.name,
@@ -128,7 +125,6 @@ export class AIFeaturesController {
   ): Promise<ModifyEventResponseDto> {
     const athleteId = user.athlete?.athlete_id || user.user_id;
 
-    // Modify training event
     const modifiedEvent =
       await this.eventModificationService.modifyTrainingEvent(
         dto.prompt,
@@ -136,18 +132,12 @@ export class AIFeaturesController {
         dto.eventData,
       );
 
-    // Convert to UpdateEventDto format
     const startDate = new Date(modifiedEvent.startDate);
     const endDate = new Date(modifiedEvent.endDate);
 
-    // Log for debugging
-    console.log(
-      `[ModifyEvent Controller] Received ${modifiedEvent.workout?.steps?.length || 0} steps from service`,
-    );
-
     const transformedWorkout = modifiedEvent.workout
       ? {
-          steps: modifiedEvent.workout.steps.map((step, index) => {
+          steps: modifiedEvent.workout.steps.map((step) => {
             const baseStep: CreateWorkoutStepDto = {
               stepType: step.stepType,
               name: step.name ?? null,
@@ -164,9 +154,6 @@ export class AIFeaturesController {
             };
 
             if (step.repeatBlock) {
-              console.log(
-                `[ModifyEvent Controller] Step ${index + 1}: REPEAT with ${step.repeatBlock.childSteps.length} childSteps`,
-              );
               return {
                 ...baseStep,
                 repeatBlock: {
@@ -190,10 +177,6 @@ export class AIFeaturesController {
                 },
               } as CreateWorkoutStepDto;
             }
-
-            console.log(
-              `[ModifyEvent Controller] Step ${index + 1}: ${step.stepType}`,
-            );
             return baseStep;
           }),
         }
@@ -201,11 +184,6 @@ export class AIFeaturesController {
         ? null
         : undefined;
 
-    console.log(
-      `[ModifyEvent Controller] Returning ${transformedWorkout?.steps?.length || 0} steps`,
-    );
-
-    // Build result
     const result: ModifyEventResponseDto = {
       type: EVENT_TYPE.TRAINING,
       name: modifiedEvent.name,
@@ -214,9 +192,9 @@ export class AIFeaturesController {
       endDate,
       sport: modifiedEvent.sport,
       goalDuration: modifiedEvent.goalDuration ?? undefined,
-      goalDistance: (modifiedEvent as any).goalDistance ?? undefined,
-      goalElevationGain: (modifiedEvent as any).goalElevationGain ?? undefined,
-      goalRpe: (modifiedEvent as any).goalRpe ?? undefined,
+      goalDistance: modifiedEvent.goalDistance ?? undefined,
+      goalElevationGain: modifiedEvent.goalElevationGain ?? undefined,
+      goalRpe: modifiedEvent.goalRpe ?? undefined,
       ...(transformedWorkout ? { workout: transformedWorkout } : {}),
     } as UpdateEventDto;
 

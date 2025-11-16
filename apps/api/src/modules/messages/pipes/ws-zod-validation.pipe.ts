@@ -1,12 +1,13 @@
-import { PipeTransform, Injectable, ArgumentMetadata } from '@nestjs/common';
+import { ZodError, ZodSchema } from 'zod';
+
+import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
-import { ZodSchema, ZodError } from 'zod';
 
 @Injectable()
 export class WsZodValidationPipe implements PipeTransform {
   constructor(private schema: ZodSchema) {}
 
-  transform(value: any, metadata: ArgumentMetadata) {
+  transform(value: unknown, _: ArgumentMetadata) {
     try {
       const parsedValue = this.schema.parse(value);
       return parsedValue;
@@ -27,4 +28,3 @@ export class WsZodValidationPipe implements PipeTransform {
     }
   }
 }
-

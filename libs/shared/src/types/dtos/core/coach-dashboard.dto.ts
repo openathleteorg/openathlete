@@ -5,26 +5,14 @@ export const coachDashboardAthleteRowSchema = z.object({
   firstName: z.string().nullable(),
   lastName: z.string().nullable(),
   email: z.string().email().nullable(),
-
-  // Period boundaries (ISO strings)
   start: z.string(),
   end: z.string(),
-
-  // Session counts
   plannedSessions: z.number(),
   completedSessions: z.number(),
-
-  // Time volumes in seconds
   plannedTime: z.number(),
   completedTime: z.number(),
-
-  // Distance in meters
   completedDistance: z.number(),
-
-  // Last activity date if any
   lastActivityAt: z.string().nullable(),
-
-  // Compliance percentage (0-100)
   compliancePercent: z.number(),
 });
 
@@ -40,5 +28,3 @@ export type CoachDashboardAthleteRowDto = z.infer<
 export type CoachDashboardResponseDto = z.infer<
   typeof coachDashboardResponseSchema
 >;
-
-

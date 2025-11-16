@@ -14,6 +14,13 @@ export interface OAuthTokenResponse {
   expires_in?: number; // seconds until expiration
   token_type?: string;
   scope?: string;
+  athlete?: {
+    id: number;
+    name: string;
+    email: string;
+    profile: string;
+    profile_medium: string;
+  };
 }
 
 export interface OAuthConfig {
@@ -58,10 +65,7 @@ export abstract class BaseProviderService {
    * Exchange authorization code for tokens
    * Can be overridden for providers with special requirements (e.g., PKCE)
    */
-  async exchangeCodeForTokens(
-    code: string,
-    codeVerifier?: string,
-  ): Promise<OAuthTokenResponse> {
+  async exchangeCodeForTokens(code: string): Promise<OAuthTokenResponse> {
     try {
       const { data } = await axios.post<OAuthTokenResponse>(
         this.oauthConfig.tokenUrl,

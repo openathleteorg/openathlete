@@ -27,4 +27,3 @@ export function buildAthleteInvitationEmail({
 
   return layout({ title, preview, contentHtml: content });
 }
-

@@ -1,10 +1,10 @@
 import type { NormalizedWorkout } from '@openathlete/shared/src/types/workout-normalized';
-import type { ProviderPlannedWorkoutPayload, ProviderMapper } from './index';
 
-// Garmin supports structured workouts with range/single targets for HR/Power/Pace
-// Graceful degradation: when unsupported, emit OPEN step with notes
+import type { ProviderMapper, ProviderPlannedWorkoutPayload } from './index';
 
-function simplifyStep(step: NormalizedWorkout['steps'][number]): ProviderPlannedWorkoutPayload['steps'][number] {
+function simplifyStep(
+  step: NormalizedWorkout['steps'][number],
+): ProviderPlannedWorkoutPayload['steps'][number] {
   const base = {
     type: step.stepType,
     durationType: step.durationType,
@@ -21,7 +21,7 @@ function simplifyStep(step: NormalizedWorkout['steps'][number]): ProviderPlanned
     min: t.targetMin ?? null,
     max: t.targetMax ?? null,
     value: t.targetValue ?? null,
-    zone: t.targetType === 'ZONE' ? t.targetValue ?? null : null,
+    zone: t.targetType === 'ZONE' ? (t.targetValue ?? null) : null,
     unit: t.unit ?? null,
   };
 
@@ -39,5 +39,3 @@ export const mapToGarmin: ProviderMapper = (
     steps: (workout.steps || []).map(simplifyStep),
   };
 };
-
-

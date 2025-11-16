@@ -1,6 +1,7 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { Redis } from 'ioredis';
 import { createAdapter } from '@socket.io/redis-adapter';
+import { Redis } from 'ioredis';
+
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 
 @Injectable()
 export class WebSocketRedisService implements OnModuleInit {
@@ -24,11 +25,8 @@ export class WebSocketRedisService implements OnModuleInit {
     }
 
     try {
-      // Parse Redis URL (similar to QueueModule logic)
       const config = this.parseRedisUrl(redisUrl);
 
-      // Create pub/sub clients for Socket.IO adapter
-      // Use different DB numbers to avoid conflicts (db + 1 for pub, db + 2 for sub)
       const pubDb = (config.db ?? 0) + 1;
       const subDb = (config.db ?? 0) + 2;
 
@@ -49,7 +47,6 @@ export class WebSocketRedisService implements OnModuleInit {
       this.subClient = this.pubClient.duplicate();
       this.subClient.options.db = subDb;
 
-      // Create adapter
       this.adapter = createAdapter(this.pubClient, this.subClient);
 
       this.logger.log(
@@ -59,8 +56,6 @@ export class WebSocketRedisService implements OnModuleInit {
       this.logger.error(
         `Failed to initialize Redis adapter for Socket.IO: ${error instanceof Error ? error.message : String(error)}`,
       );
-      // Don't throw - allow app to start without Redis adapter
-      // Socket.IO will fall back to in-memory adapter
     }
   }
 
@@ -71,7 +66,6 @@ export class WebSocketRedisService implements OnModuleInit {
     password?: string;
     db?: number;
   } {
-    // Try format with username first: redis://username:password@host
     const urlMatchWithUser = redisUrl.match(/^redis:\/\/([^:]+):([^@]+)@(.+)$/);
     if (urlMatchWithUser) {
       const [, username, password, hostPortDb] = urlMatchWithUser;
@@ -96,7 +90,6 @@ export class WebSocketRedisService implements OnModuleInit {
       }
     }
 
-    // Try format without username: redis://:password@host or redis://host
     const urlMatchNoUser = redisUrl.match(/^redis:\/\/(?::([^@]+)@)?(.+)$/);
     if (!urlMatchNoUser) {
       throw new Error('Invalid Redis URL format');
@@ -127,7 +120,6 @@ export class WebSocketRedisService implements OnModuleInit {
     port: number;
     db?: number;
   } {
-    // Check if IPv6 is in brackets
     const bracketedMatch = hostPortDb.match(
       /^\[([^\]]+)\](?::(\d+))?(?:\/(\d+))?$/,
     );
@@ -140,7 +132,6 @@ export class WebSocketRedisService implements OnModuleInit {
       };
     }
 
-    // No brackets - find last : before / or end
     const lastColonIndex = hostPortDb.lastIndexOf(':');
     const slashIndex = hostPortDb.indexOf('/', lastColonIndex);
 
@@ -198,4 +189,3 @@ export class WebSocketRedisService implements OnModuleInit {
     }
   }
 }
-

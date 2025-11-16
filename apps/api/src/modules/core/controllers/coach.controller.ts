@@ -9,8 +9,6 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { coachDashboardResponseSchema } from '@openathlete/shared';
-
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CoachInvitationService } from 'src/modules/auth/services/coach-invitation.service';

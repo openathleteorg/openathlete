@@ -61,13 +61,7 @@ export const savePlanTool = createTool({
     createdWeeks: z.number(),
     createdSessions: z.number(),
   }),
-  execute: async (context) => {
-    // TODO: Implement with Prisma transaction
-    // - Create training_plan
-    // - Create cycles with training_plan_id FK
-    // - Create weeks with cycle_id FK
-    // - Create event + event_training for each session with week FK
-    // - Convert camelCase to snake_case using keysToSnake
+  execute: async () => {
     throw new Error('Not implemented yet - save-plan tool');
   },
 });

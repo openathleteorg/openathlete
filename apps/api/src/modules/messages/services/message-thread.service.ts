@@ -203,8 +203,6 @@ export class MessageThreadService {
     user: AuthUser,
     threadId: number,
   ): Promise<message_thread> {
-    const ability = await this.abilities.getFor({ user });
-
     const thread = await this.prisma.message_thread.findUnique({
       where: { message_thread_id: threadId },
       include: THREAD_INCLUDES,

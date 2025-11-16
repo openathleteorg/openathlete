@@ -10,5 +10,3 @@ export function escapeHtml(input: string) {
 export function escapeAttribute(input: string) {
   return escapeHtml(input);
 }
-
-

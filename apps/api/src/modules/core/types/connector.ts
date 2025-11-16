@@ -63,3 +63,8 @@ export interface StravaSummaryActivity {
   has_kudoed: boolean;
   suffer_score: number;
 }
+
+export interface StravaSteam {
+  type: string;
+  data: (number | number[])[];
+}

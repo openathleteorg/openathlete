@@ -1,17 +1,27 @@
-import { EmailId } from '@openathlete/shared';
+import { EmailPropsFromId } from '@openathlete/shared';
 
-import { buildAthleteInvitationEmail } from './templates/athlete-invitation.template';
 import { buildAthleteInvitationExistingEmail } from './templates/athlete-invitation-existing.template';
+import { buildAthleteInvitationEmail } from './templates/athlete-invitation.template';
 import { buildCoachInvitationExistingEmail } from './templates/coach-invitation-existing.template';
 import { buildCoachInvitationNewEmail } from './templates/coach-invitation-new.template';
 import { buildPasswordResetEmail } from './templates/password-reset.template';
 import { buildWelcomeEmail } from './templates/welcome.template';
 
 export const emailTemplates = {
-  'password-reset': buildPasswordResetEmail as (props: any) => string,
-  welcome: buildWelcomeEmail as (props: any) => string,
-  'athlete-invitation': buildAthleteInvitationEmail as (props: any) => string,
-  'athlete-invitation-existing': buildAthleteInvitationExistingEmail as (props: any) => string,
-  'coach-invitation-new': buildCoachInvitationNewEmail as (props: any) => string,
-  'coach-invitation-existing': buildCoachInvitationExistingEmail as (props: any) => string,
+  'password-reset': buildPasswordResetEmail as (
+    props: EmailPropsFromId<'password-reset'>,
+  ) => string,
+  welcome: buildWelcomeEmail as (props: EmailPropsFromId<'welcome'>) => string,
+  'athlete-invitation': buildAthleteInvitationEmail as (
+    props: EmailPropsFromId<'athlete-invitation'>,
+  ) => string,
+  'athlete-invitation-existing': buildAthleteInvitationExistingEmail as (
+    props: EmailPropsFromId<'athlete-invitation-existing'>,
+  ) => string,
+  'coach-invitation-new': buildCoachInvitationNewEmail as (
+    props: EmailPropsFromId<'coach-invitation-new'>,
+  ) => string,
+  'coach-invitation-existing': buildCoachInvitationExistingEmail as (
+    props: EmailPropsFromId<'coach-invitation-existing'>,
+  ) => string,
 };

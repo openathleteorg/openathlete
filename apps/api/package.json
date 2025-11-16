@@ -11,9 +11,9 @@
     "start:debug": "nest start --debug --watch -e \"node -r dotenv/config\"",
     "start:prod": "node -r dotenv/config dist/main",
     "format:write": "prettier --write \"src/**/*.ts\"",
-    "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --check \"src/**/*.ts\"",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --max-warnings 0",
+    "lint": "eslint \"src/**/*.ts\" --max-warnings 0",
     "tsc:check": "tsc --noEmit"
   },
   "dependencies": {

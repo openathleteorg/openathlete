@@ -35,7 +35,11 @@ import { motion } from 'framer-motion';
 import { MessageCircle, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { ToolExecutionState } from '@openathlete/shared';
+import {
+  AgentThread,
+  MessageThread,
+  ToolExecutionState,
+} from '@openathlete/shared';
 
 type MessageMode = 'chatbot' | 'messages';
 type ThreadFilter = 'all' | 'unread';
@@ -135,11 +139,8 @@ export function MessagesPage() {
     // For messages mode, filter by unread count
     if (mode === 'messages') {
       const messageThreadsArray = messageThreads || [];
-      return messageThreadsArray.filter((thread: any) => {
-        const unreadCount = calculateUnreadCount(
-          thread as any,
-          currentUser.userId,
-        );
+      return messageThreadsArray.filter((thread: MessageThread) => {
+        const unreadCount = calculateUnreadCount(thread, currentUser.userId);
         return unreadCount > 0;
       });
     }
@@ -193,8 +194,8 @@ export function MessagesPage() {
     if (threads && threads.length > 0 && !activeId) {
       setActiveId(
         mode === 'chatbot'
-          ? (threads[0] as any).threadId
-          : (threads[0] as any).messageThreadId,
+          ? (threads[0] as AgentThread).threadId
+          : (threads[0] as MessageThread).messageThreadId,
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -343,22 +344,19 @@ export function MessagesPage() {
 
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-2 space-y-1">
-            {threads?.map((thread: any) => {
+            {threads?.map((thread: AgentThread | MessageThread) => {
               const threadId =
                 mode === 'chatbot'
-                  ? (thread as any).threadId
-                  : (thread as any).messageThreadId;
-              const threadTitle =
-                mode === 'chatbot'
-                  ? (thread as any).title
-                  : (thread as any).title;
-              const threadCreatedAt =
-                mode === 'chatbot'
-                  ? (thread as any).createdAt
-                  : (thread as any).createdAt;
+                  ? (thread as AgentThread).threadId
+                  : (thread as MessageThread).messageThreadId;
+              const threadTitle = thread.title;
+              const threadCreatedAt = thread.createdAt;
               const unreadCount =
                 mode === 'messages' && currentUser
-                  ? calculateUnreadCount(thread as any, currentUser.userId)
+                  ? calculateUnreadCount(
+                      thread as MessageThread,
+                      currentUser.userId,
+                    )
                   : 0;
               return (
                 <motion.button

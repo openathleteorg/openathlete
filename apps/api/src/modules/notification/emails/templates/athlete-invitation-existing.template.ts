@@ -21,10 +21,9 @@ export function buildAthleteInvitationExistingEmail({
       `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur: ${url}`,
     ),
     note(
-      "Vous pouvez gérer toutes vos invitations dans la section Paramètres de votre compte.",
+      'Vous pouvez gérer toutes vos invitations dans la section Paramètres de votre compte.',
     ),
   ].join('');
 
   return layout({ title, preview, contentHtml: content });
 }
-

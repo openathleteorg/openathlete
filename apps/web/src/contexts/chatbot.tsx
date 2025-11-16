@@ -122,12 +122,11 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
-        // Convert string dates to Date objects
-        return parsed.map((conv: any) => ({
+        return parsed.map((conv: ChatConversation) => ({
           ...conv,
           createdAt: new Date(conv.createdAt),
           updatedAt: new Date(conv.updatedAt),
-          messages: conv.messages.map((msg: any) => ({
+          messages: conv.messages.map((msg: ChatMessage) => ({
             ...msg,
             timestamp: new Date(msg.timestamp),
           })),

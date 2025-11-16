@@ -1,4 +1,11 @@
 import {
+  workout,
+  workout_repeat,
+  workout_step,
+  workout_step_target,
+} from '@openathlete/database';
+
+import {
   type CreateWorkoutDto,
   type CreateWorkoutStepDto,
   type UpdateWorkoutDto,
@@ -40,16 +47,16 @@ function normalizeStepForCreate(
   step: Partial<WorkoutStepDto>,
 ): CreateWorkoutStepDto {
   const base: CreateWorkoutStepDto = {
-    stepType: (step.stepType || WORKOUT_STEP_TYPE.STEADY) as any,
+    stepType: step.stepType || WORKOUT_STEP_TYPE.STEADY,
     name: step.name ?? null,
-    durationType: (step.durationType || WORKOUT_DURATION_TYPE.OPEN) as any,
+    durationType: step.durationType || WORKOUT_DURATION_TYPE.OPEN,
     durationValue: step.durationValue ?? null,
     repeatTimes: null,
     restTime: null,
     notes: step.notes ?? null,
     targets: (step.targets || []).map((t: Partial<WorkoutStepTarget>) =>
       normalizeTarget(t),
-    ) as any,
+    ),
     childSteps: undefined,
     repeatBlock: undefined,
   };
@@ -65,13 +72,13 @@ function normalizeStepForCreate(
   }
 
   // Legacy childSteps (without repeatBlock wrapper)
-  if (!base.repeatBlock && (step as any).childSteps) {
+  if (!base.repeatBlock && step.childSteps) {
     base.repeatBlock = {
-      repetitions: (step as any).repeatTimes || 1,
-      childSteps: ((step as any).childSteps || []).map(
-        (c: Partial<WorkoutStepDto>) => normalizeStepForCreate(c),
+      repetitions: step.repeatTimes || 1,
+      childSteps: (step.childSteps || []).map((c: Partial<WorkoutStepDto>) =>
+        normalizeStepForCreate(c),
       ),
-    } as WorkoutRepeat as any;
+    } as WorkoutRepeat;
   }
 
   return base;
@@ -116,16 +123,15 @@ const SUPPORTED_UNITS = new Set([
   'LBS',
 ]);
 
-function mapTargetToPrismaCreate(target: any) {
+function mapTargetToPrismaCreate(target: WorkoutStepTarget) {
   if (!SUPPORTED_TARGET_TYPES.has(target.targetType)) {
     return null;
   }
-  // ZONE type doesn't use unit field
   const unit =
-    target.targetType === 'ZONE' || !SUPPORTED_UNITS.has(target.unit)
+    target.targetType === 'ZONE' || !SUPPORTED_UNITS.has(target.unit || '')
       ? null
       : target.unit;
-  const toNum = (v: any): number | null =>
+  const toNum = (v: number | null | undefined | string): number | null =>
     v === null || v === undefined || v === '' || Number.isNaN(Number(v))
       ? null
       : Number(v);
@@ -138,10 +144,8 @@ function mapTargetToPrismaCreate(target: any) {
   };
 }
 
-function mapStepToPrismaCreate(
-  step: CreateWorkoutStepDto,
-  index?: number,
-): any {
+function mapStepToPrismaCreate(step: CreateWorkoutStepDto, index?: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const base: any = {
     order_index: typeof index === 'number' ? index : 0,
     step_type: step.stepType,
@@ -152,7 +156,7 @@ function mapStepToPrismaCreate(
     targets: {
       create: (step.targets || [])
         .map(mapTargetToPrismaCreate)
-        .filter((t: any) => t !== null),
+        .filter((t) => t !== null),
     },
   };
 
@@ -174,7 +178,7 @@ function mapStepToPrismaCreate(
 
 export function mapWorkoutDtoToPrisma(
   data: CreateWorkoutDto | UpdateWorkoutDto,
-): any {
+) {
   if (!('steps' in data) || !data.steps) return {};
   return {
     steps: {
@@ -187,21 +191,26 @@ export function mapWorkoutDtoToPrisma(
 // Prisma → DTO mapping (snake_case → camelCase)
 // ----------------------------------------------------------------------------
 
-function mapPrismaTargetToDto(target: any): WorkoutStepTarget {
+function mapPrismaTargetToDto(target: workout_step_target): WorkoutStepTarget {
   return {
     workoutStepTargetId: target.workout_step_target_id,
     targetType: target.target_type,
-    targetMin: target.target_min ?? target.target_min_value ?? null,
-    targetMax: target.target_max ?? target.target_max_value ?? null,
+    targetMin: target.target_min ?? null,
+    targetMax: target.target_max ?? null,
     targetValue: target.target_value ?? null,
-    unit: target.unit ?? target.target_unit ?? null,
+    unit: target.unit ?? null,
     stepId: target.step_id,
     createdAt: target.created_at ? new Date(target.created_at) : undefined,
     updatedAt: target.updated_at ? new Date(target.updated_at) : undefined,
   } as WorkoutStepTarget;
 }
 
-function mapPrismaStepToDto(step: any): WorkoutStepDto {
+function mapPrismaStepToDto(
+  step: workout_step & {
+    targets?: workout_step_target[];
+    repeat_block?: workout_repeat & { child_steps: workout_step[] };
+  },
+): WorkoutStepDto {
   const dto: WorkoutStepDto = {
     workoutStepId: step.workout_step_id,
     orderIndex: step.order_index,
@@ -213,7 +222,7 @@ function mapPrismaStepToDto(step: any): WorkoutStepDto {
     durationValue: step.duration_value ?? null,
     durationTarget: step.duration_target ?? null,
     workoutId: step.workout_id ?? undefined,
-    repeatParentId: step.repeat_parent_id ?? null,
+    repeatParentId: step.repeat_parent_id ?? undefined,
     targets: (step.targets || []).map(mapPrismaTargetToDto),
     repeatBlock: step.repeat_block
       ? {
@@ -238,13 +247,15 @@ function mapPrismaStepToDto(step: any): WorkoutStepDto {
   return dto;
 }
 
-export function mapPrismaWorkoutToDto(prismaWorkout: any): WorkoutDto {
+export function mapPrismaWorkoutToDto(
+  prismaWorkout: workout & { steps: workout_step[] },
+): WorkoutDto {
   return {
     workoutId: prismaWorkout.workout_id,
     estimatedDuration: prismaWorkout.estimated_duration ?? null,
     totalDistance: prismaWorkout.total_distance ?? null,
     eventTrainingId: prismaWorkout.event_training_id,
-    steps: (prismaWorkout.steps || []).map(mapPrismaStepToDto),
+    steps: (prismaWorkout.steps || []).map((s) => mapPrismaStepToDto(s)),
     createdAt: prismaWorkout.created_at
       ? new Date(prismaWorkout.created_at)
       : undefined,

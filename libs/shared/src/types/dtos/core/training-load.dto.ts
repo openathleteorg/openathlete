@@ -2,7 +2,6 @@ import { z } from 'zod';
 
 import { TRAINING_LOAD_CALCULATION_TYPE } from '../../misc';
 
-// Training Load Entry
 export const trainingLoadEntrySchema = z.object({
   trainingLoadEntryId: z.number(),
   calculationId: z.number(),
@@ -33,7 +32,6 @@ export const trainingLoadEntrySchema = z.object({
 
 export type TrainingLoadEntry = z.infer<typeof trainingLoadEntrySchema>;
 
-// Daily Training Load
 export const dailyTrainingLoadSchema = z.object({
   date: z.coerce.date(),
   load: z.number(),
@@ -42,7 +40,6 @@ export const dailyTrainingLoadSchema = z.object({
 
 export type DailyTrainingLoad = z.infer<typeof dailyTrainingLoadSchema>;
 
-// Training Load Metrics
 export const trainingLoadMetricsSchema = z.object({
   atl: z.number(),
   ctl: z.number(),
@@ -58,7 +55,6 @@ export const trainingLoadMetricsSchema = z.object({
 
 export type TrainingLoadMetrics = z.infer<typeof trainingLoadMetricsSchema>;
 
-// Training Load History
 export const trainingLoadHistorySchema = z.object({
   date: z.coerce.date(),
   load: z.number(),
@@ -69,24 +65,27 @@ export const trainingLoadHistorySchema = z.object({
 
 export type TrainingLoadHistory = z.infer<typeof trainingLoadHistorySchema>;
 
-// Calculate Activity Load DTO
 export const calculateActivityLoadDtoSchema = z.object({
   calculationType: z.nativeEnum(TRAINING_LOAD_CALCULATION_TYPE),
 });
 
-export type CalculateActivityLoadDto = z.infer<typeof calculateActivityLoadDtoSchema>;
+export type CalculateActivityLoadDto = z.infer<
+  typeof calculateActivityLoadDtoSchema
+>;
 
-// Recalculate All Loads DTO
 export const recalculateAllLoadsDtoSchema = z.object({
   calculationType: z.nativeEnum(TRAINING_LOAD_CALCULATION_TYPE),
 });
 
-export type RecalculateAllLoadsDto = z.infer<typeof recalculateAllLoadsDtoSchema>;
+export type RecalculateAllLoadsDto = z.infer<
+  typeof recalculateAllLoadsDtoSchema
+>;
 
-// Recalculate All Loads Response
 export const recalculateAllLoadsResponseSchema = z.object({
   processed: z.number(),
   errors: z.number(),
 });
 
-export type RecalculateAllLoadsResponse = z.infer<typeof recalculateAllLoadsResponseSchema>;
+export type RecalculateAllLoadsResponse = z.infer<
+  typeof recalculateAllLoadsResponseSchema
+>;

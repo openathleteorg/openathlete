@@ -48,10 +48,10 @@ export class BetaAccessService {
       `;
 
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(
         'Error sending beta access request email',
-        error?.response?.body,
+        (error as { response?: { body?: unknown } })?.response?.body,
       );
       throw error;
     }

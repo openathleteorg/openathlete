@@ -9,4 +9,3 @@ export const betaAccessRequestSchema = z.object({
 });
 
 export type BetaAccessRequestDto = z.infer<typeof betaAccessRequestSchema>;
-

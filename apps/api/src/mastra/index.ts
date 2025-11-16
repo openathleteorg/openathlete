@@ -3,8 +3,11 @@ import { Agent } from '@mastra/core/agent';
 
 import { qnaAgent } from './agents';
 import { createMastraMemory } from './config/memory.config';
+import { MastraToolContext } from './config/tool-context';
 
-export function createOpenAthleteCoachAssistant(context?: any): Agent {
+export function createOpenAthleteCoachAssistant(
+  context?: MastraToolContext,
+): Agent {
   const memory = createMastraMemory();
 
   const coachAssistant = new Agent({
@@ -49,19 +52,8 @@ RESPONSE FORMAT:
 Keep it simple. Your job is routing, not coaching.`,
     model: openai('gpt-4o'),
     agents: {
-      // athleteProfileAgent,
-      // macroPlanAgent,
-      // mesoPlanAgent,
-      // microPlanAgent,
-      // schedulingAgent,
-      // qaAgent,
-      // adaptationAgent,
       qnaAgent,
     },
-    // workflows: {
-    //   planGenerationWorkflow,
-    //   planAdaptationWorkflow,
-    // },
     memory,
   });
 

@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios';
 import { createHash } from 'node:crypto';
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -91,11 +92,11 @@ export class ProviderExportService {
         planned_date: plannedDate,
         status: 'pending',
         content_hash: contentHash,
-        raw_payload: payload as any,
+        raw_payload: payload as object,
       },
       update: {
         content_hash: contentHash,
-        raw_payload: payload as any,
+        raw_payload: payload as object,
         status: 'pending',
         last_sync_at: null,
         error_code: null,
@@ -133,7 +134,7 @@ export class ProviderExportService {
       });
 
       return { skipped: false, externalId: result.externalId };
-    } catch (err: any) {
+    } catch (err) {
       await this.prisma.provider_workout_export.update({
         where: {
           provider_workout_export_id: record.provider_workout_export_id,
@@ -142,8 +143,8 @@ export class ProviderExportService {
           status: 'failed',
           last_sync_at: new Date(),
           attempt_count: { increment: 1 },
-          error_code: err?.code ?? null,
-          error_message: err?.message ?? 'Unknown error',
+          error_code: err instanceof AxiosError ? err.code : null,
+          error_message: err instanceof Error ? err.message : 'Unknown error',
         },
       });
       throw err;

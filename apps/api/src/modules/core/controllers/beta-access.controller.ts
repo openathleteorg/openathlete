@@ -38,4 +38,3 @@ export class BetaAccessController {
     return { ok: true };
   }
 }
-

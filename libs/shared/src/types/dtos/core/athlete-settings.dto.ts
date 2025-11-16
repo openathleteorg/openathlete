@@ -8,4 +8,3 @@ export const updateAthleteSettingsDtoSchema = z.object({
 export type UpdateAthleteSettingsDto = z.infer<
   typeof updateAthleteSettingsDtoSchema
 >;
-

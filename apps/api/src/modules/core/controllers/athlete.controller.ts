@@ -26,8 +26,8 @@ import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { AthleteInvitationService } from 'src/modules/auth/services/athlete-invitation.service';
 
-import { AthleteService } from '../services/athlete.service';
 import { AthleteSettingsService } from '../services/athlete-settings.service';
+import { AthleteService } from '../services/athlete.service';
 
 @Controller('athlete')
 export class AthleteController {

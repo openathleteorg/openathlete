@@ -1,93 +1,10 @@
 import { RuntimeContext } from '@mastra/core/runtime-context';
 import { z } from 'zod';
 
-import {
-  SPORT_TYPE,
-  WORKOUT_DURATION_TYPE,
-  WORKOUT_STEP_TYPE,
-  WORKOUT_TARGET_TYPE,
-  WORKOUT_TARGET_UNIT,
-} from '@openathlete/shared';
+import { WorkoutStepDto, trainingEventSchema } from '@openathlete/shared';
 
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
-
-// Shared training event schema
-export const trainingEventSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().optional(),
-  sport: z.nativeEnum(SPORT_TYPE),
-  startDate: z.string().describe('ISO date string'),
-  endDate: z.string().describe('ISO date string'),
-  goalDuration: z.number().nullable().optional(),
-  goalDistance: z.number().nullable().optional(),
-  goalElevationGain: z.number().nullable().optional(),
-  goalRpe: z.number().nullable().optional(),
-  workout: z.object({
-    steps: z
-      .array(
-        z.union([
-          z.object({
-            stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
-            name: z.string().optional(),
-            durationType: z.nativeEnum(WORKOUT_DURATION_TYPE).optional(),
-            durationValue: z.number().optional(),
-            notes: z.string().optional(),
-            targets: z
-              .array(
-                z.object({
-                  targetType: z.nativeEnum(WORKOUT_TARGET_TYPE),
-                  targetMin: z.number().nullable().optional(),
-                  targetMax: z.number().nullable().optional(),
-                  targetValue: z.number().nullable().optional(),
-                  unit: z.nativeEnum(WORKOUT_TARGET_UNIT).nullable().optional(),
-                }),
-              )
-              .optional()
-              .default([]),
-            repeatBlock: z
-              .object({
-                repetitions: z.number().min(1).max(99),
-                childSteps: z.array(
-                  z.object({
-                    stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
-                    name: z.string().optional(),
-                    durationType: z
-                      .nativeEnum(WORKOUT_DURATION_TYPE)
-                      .optional(),
-                    durationValue: z.number().optional(),
-                    notes: z.string().optional(),
-                    targets: z
-                      .array(
-                        z.object({
-                          targetType: z.nativeEnum(WORKOUT_TARGET_TYPE),
-                          targetMin: z.number().nullable().optional(),
-                          targetMax: z.number().nullable().optional(),
-                          targetValue: z.number().nullable().optional(),
-                          unit: z
-                            .nativeEnum(WORKOUT_TARGET_UNIT)
-                            .nullable()
-                            .optional(),
-                        }),
-                      )
-                      .optional()
-                      .default([]),
-                  }),
-                ),
-              })
-              .optional(),
-          }),
-          z.string(), // Allow strings temporarily, will be filtered out
-        ]),
-      )
-      .transform((steps) =>
-        steps.filter(
-          (step): step is Exclude<typeof step, string> =>
-            typeof step === 'object' && step !== null && 'stepType' in step,
-        ),
-      ),
-  }),
-});
 
 export type TrainingEventSchema = z.infer<typeof trainingEventSchema>;
 
@@ -156,14 +73,15 @@ export function getLatestMetrics(metrics: Metric[]): Record<string, number> {
 /**
  * Format zones by type for prompt context
  */
-export function formatZonesByType(zones: Zone[]): Record<string, any[]> {
+export function formatZonesByType(zones: Zone[]): Record<string, Zone[]> {
   return zones.reduce(
     (acc, zone) => {
       if (!acc[zone.type]) {
         acc[zone.type] = [];
       }
       acc[zone.type].push({
-        id: zone.training_zone_id,
+        training_zone_id: zone.training_zone_id,
+        type: zone.type,
         index: zone.index,
         name: zone.name,
         description: zone.description,
@@ -175,14 +93,14 @@ export function formatZonesByType(zones: Zone[]): Record<string, any[]> {
       });
       return acc;
     },
-    {} as Record<string, any[]>,
+    {} as Record<string, Zone[]>,
   );
 }
 
 /**
  * Build zones context string for prompt
  */
-export function buildZonesContext(zonesByType: Record<string, any[]>): string {
+export function buildZonesContext(zonesByType: Record<string, Zone[]>): string {
   return Object.entries(zonesByType)
     .map(
       ([type, zoneList]) => `
@@ -190,9 +108,9 @@ ${type} Zones:
 ${zoneList
   .map(
     (zone) =>
-      `  Zone ID ${zone.id} (display: Zone ${zone.index + 1}): ${zone.name} - ${zone.description}
+      `  Zone ID ${zone.training_zone_id} (display: Zone ${zone.index + 1}): ${zone.name} - ${zone.description}
     Values: ${zone.values.map((v) => `${v.min}-${v.max} (sports: ${v.sports.join(', ')})`).join(', ')}
-    IMPORTANT: Use zone ID ${zone.id} for ZONE targets of type ${type}`,
+    IMPORTANT: Use zone ID ${zone.training_zone_id} for ZONE targets of type ${type}`,
   )
   .join('\n')}`,
     )
@@ -246,8 +164,6 @@ export function validateZoneTarget(
         target.targetValue = zoneByIndex.training_zone_id;
         return { target, fixed: true };
       } else {
-        // Remove invalid zone target
-        console.warn(`Invalid zone ID ${zoneId} in target, removing`);
         return { target: null, fixed: false };
       }
     }
@@ -263,20 +179,15 @@ export function validateStepZoneTargets(
     targets?: Array<{
       targetType: string;
       targetValue?: number | null;
-      [key: string]: any;
     }>;
     repeatBlock?: {
       childSteps?: Array<{
         targets?: Array<{
           targetType: string;
           targetValue?: number | null;
-          [key: string]: any;
         }>;
-        [key: string]: any;
       }>;
-      [key: string]: any;
     };
-    [key: string]: any;
   },
   zoneIdMap: Map<number, { type: string; id: number }>,
   zones: Zone[],
@@ -315,7 +226,7 @@ export function validateStepZoneTargets(
  * Validate and fix zone targets in workout steps
  */
 export function validateWorkoutZoneTargets(
-  workout: { steps: any[] } | null | undefined,
+  workout: { steps: WorkoutStepDto[] } | null | undefined,
   zoneIdMap: Map<number, { type: string; id: number }>,
   zones: Zone[],
 ): typeof workout {
@@ -334,7 +245,7 @@ export function createRuntimeContext(
   prismaService: PrismaService,
   athleteId: number,
   trainingLoadService: TrainingLoadService,
-  existingEvent?: any,
+  existingEvent?: Event,
 ): RuntimeContext {
   const runtimeContext = new RuntimeContext();
   runtimeContext.set('prisma', prismaService);

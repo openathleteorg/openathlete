@@ -43,7 +43,7 @@ export class CaslAbilityFactory {
     params: {
       user: AuthUser;
     },
-    { can, cannot }: AbilityBuilder<AppAbility>,
+    { can }: AbilityBuilder<AppAbility>,
   ) {
     const { user } = params || {};
 

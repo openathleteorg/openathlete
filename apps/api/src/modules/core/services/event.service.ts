@@ -25,13 +25,12 @@ import {
   event_type,
 } from '@openathlete/database';
 import {
-  ActivityEvent,
   ActivityStream,
   ApiEnvSchemaType,
   CompressedActivityStream,
   CreateEventDto,
   DuplicateWorkoutDto,
-  Event,
+  EVENT_TYPE,
   ReorderWorkoutStepsDto,
   UpdateEventDto,
   calculateWorkoutDistance,
@@ -264,7 +263,7 @@ export class EventService {
   async createEvent(user: AuthUser, data: CreateEventDto) {
     const ability = await this.abilities.getFor({ user });
 
-    const workout = (data as any).workout;
+    const workout = data.type === 'TRAINING' ? data.workout : undefined;
 
     const snakeCaseData = keysToSnake(data);
     const { type, end_date, start_date, name, athlete_id, ...rest } =
@@ -272,7 +271,7 @@ export class EventService {
 
     // Remove workout from rest if it exists (it shouldn't be passed to Prisma create)
     if ('workout' in rest) {
-      delete (rest as any).workout;
+      delete rest.workout;
     }
 
     const finalAthleteId = athlete_id || user?.athlete?.athlete_id;
@@ -409,14 +408,15 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    const workout = (data as any).workout;
+    const workout =
+      data.type === EVENT_TYPE.TRAINING ? data.workout : undefined;
 
     const snakeCaseData = keysToSnake(data);
     const { type, end_date, start_date, name, athlete_id, ...rest } =
       snakeCaseData;
 
     if ('workout' in rest) {
-      delete (rest as any).workout;
+      delete rest.workout;
     }
 
     // Check if RPE is being updated on an activity
@@ -767,7 +767,7 @@ export class EventService {
     const compressedStreams: ActivityStream = {};
 
     for (const key of selectedStreams) {
-      if (!stream[key]) {
+      if (!stream[key as keyof typeof stream]) {
         continue;
       }
 
@@ -1078,7 +1078,7 @@ export class EventService {
 
     // Override dates if provided
     if (dto?.startDate || dto?.endDate) {
-      const updateData: any = {};
+      const updateData: Record<string, unknown> = {};
       if (dto.startDate) updateData.start_date = dto.startDate;
       if (dto.endDate) updateData.end_date = dto.endDate;
 

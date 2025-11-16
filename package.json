@@ -37,5 +37,8 @@
   },
   "dependencies": {
     "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "6.0.0"
   }
 }

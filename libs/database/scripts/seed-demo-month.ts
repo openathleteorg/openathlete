@@ -398,14 +398,13 @@ async function createActivityEvent(
           moving_time: metrics.moving_time,
           average_speed: metrics.average_speed,
           max_speed: metrics.max_speed,
-          average_cadence: (metrics as any).average_cadence ?? null,
-          average_heartrate: (metrics as any).average_heartrate ?? null,
-          max_heartrate: (metrics as any).max_heartrate ?? null,
-          average_watts: (metrics as any).average_watts ?? null,
-          max_watts: (metrics as any).max_watts ?? null,
-          weighted_average_watts:
-            (metrics as any).weighted_average_watts ?? null,
-          sport: metrics.sport as any,
+          average_cadence: metrics.average_cadence ?? null,
+          average_heartrate: metrics.average_heartrate ?? null,
+          max_heartrate: metrics.max_heartrate ?? null,
+          average_watts: metrics.average_watts ?? null,
+          max_watts: metrics.max_watts ?? null,
+          weighted_average_watts: metrics.weighted_average_watts ?? null,
+          sport: metrics.sport,
         },
       },
     },
@@ -413,7 +412,6 @@ async function createActivityEvent(
   });
 
   if (maybeLinkToTrainingEventId) {
-    // Link the training to this activity for a few days to showcase features
     await prisma.event_training.update({
       where: { event_id: maybeLinkToTrainingEventId },
       data: { related_activity_id: activity.activity!.event_activity_id },
@@ -432,7 +430,6 @@ async function seedMonthForAthlete(
 
   const daysInMonth = new Date(Date.UTC(year, month1to12, 0)).getUTCDate();
 
-  // Choose a race weekend mid-month
   const raceDay = 15;
   const raceSport: Sport = pickOne(["RUNNING", "TRAIL_RUNNING", "CYCLING"]);
   const race = await createCompetitionEvent(

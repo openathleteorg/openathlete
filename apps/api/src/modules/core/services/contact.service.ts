@@ -57,7 +57,7 @@ export class ContactService {
           },
         }),
       });
-    } catch (e) {
+    } catch {
       throw new InternalServerErrorException('Failed to forward to Notion');
     }
   }

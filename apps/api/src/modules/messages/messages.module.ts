@@ -7,8 +7,8 @@ import { WebSocketModule } from '../websocket/websocket.module';
 import { MessagesController } from './controllers/messages.controller';
 import { MessagesGateway } from './gateways/messages.gateway';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
-import { MessageService } from './services/message.service';
 import { MessageThreadService } from './services/message-thread.service';
+import { MessageService } from './services/message.service';
 
 @Module({
   imports: [AuthModule, forwardRef(() => CoreModule), WebSocketModule],
@@ -23,4 +23,3 @@ import { MessageThreadService } from './services/message-thread.service';
   exports: [MessageThreadService, MessageService],
 })
 export class MessagesModule {}
-

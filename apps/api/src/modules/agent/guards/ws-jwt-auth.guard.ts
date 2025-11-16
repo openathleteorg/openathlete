@@ -29,15 +29,7 @@ export class WsJwtAuthGuard implements CanActivate {
           userId: number;
           email: string;
         }>(token);
-      } catch (jwtError: any) {
-        // Provide more specific error messages for JWT errors
-        if (jwtError?.name === 'TokenExpiredError') {
-          console.error('[WsJwtAuthGuard] JWT expired');
-          throw new WsException('Unauthorized: jwt expired');
-        } else if (jwtError?.name === 'JsonWebTokenError') {
-          console.error('[WsJwtAuthGuard] Invalid JWT token:', jwtError.message);
-          throw new WsException('Unauthorized: Invalid token');
-        }
+      } catch {
         throw new WsException('Unauthorized: Invalid token');
       }
 
@@ -55,14 +47,9 @@ export class WsJwtAuthGuard implements CanActivate {
 
       return true;
     } catch (error) {
-      // If it's already a WsException, rethrow it
       if (error instanceof WsException) {
         throw error;
       }
-      console.error(
-        '[WsJwtAuthGuard] Authentication failed:',
-        error instanceof Error ? error.message : error,
-      );
       throw new WsException('Unauthorized: Invalid token');
     }
   }

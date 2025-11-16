@@ -1,7 +1,15 @@
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrainingLoadCalculationType, useActivityTrainingLoads } from '@/api/training-load';
-import { ActivityIcon } from 'lucide-react';
+import {
+  TrainingLoadCalculationType,
+  TrainingLoadEntry,
+  useActivityTrainingLoads,
+} from '@/api/training-load';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import * as m from '@/paraglide/messages.js';
+import { ActivityIcon } from 'lucide-react';
 
 interface ActivityTrainingLoadStatsProps {
   activityId: number;
@@ -23,9 +31,8 @@ export function ActivityTrainingLoadStats({
     return null;
   }
 
-  // Format all loads as a single string
   const loadsText = trainingLoads
-    .map((load: any) => `${load.value.toFixed(0)}`)
+    .map((load) => `${load.value.toFixed(0)}`)
     .join(' / ');
 
   return (
@@ -39,12 +46,17 @@ export function ActivityTrainingLoadStats({
       </PopoverTrigger>
       <PopoverContent className="w-auto">
         <div className="space-y-2">
-          {trainingLoads.map((load: any) => (
-            <div key={load.trainingLoadEntryId} className="flex items-center justify-between gap-4">
+          {trainingLoads.map((load: TrainingLoadEntry) => (
+            <div
+              key={load.trainingLoadEntryId}
+              className="flex items-center justify-between gap-4"
+            >
               <span className="text-sm text-muted-foreground">
-                {CALCULATION_TYPE_LABELS[load.metadata.calculationType as TrainingLoadCalculationType]}
+                {CALCULATION_TYPE_LABELS[load.metadata.calculationType]}
               </span>
-              <span className="text-sm font-medium">{load.value.toFixed(1)}</span>
+              <span className="text-sm font-medium">
+                {load.value.toFixed(1)}
+              </span>
             </div>
           ))}
         </div>

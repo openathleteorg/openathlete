@@ -138,16 +138,6 @@ function buildSchedulingPrompt(
   weekIntentions: z.infer<typeof weekIntentionsSchema>,
   athleteFacts: z.infer<typeof athleteFactsSchema>,
 ): string {
-  const dayNames = [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ];
-
   const sessionsText = weekIntentions.sessions
     .map((s, i) => {
       const duration = (s.targetDuration / 3600).toFixed(1);

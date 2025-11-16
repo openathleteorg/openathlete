@@ -26,7 +26,7 @@ export const fetchCurrentPlanTool = createTool({
       })
       .nullable(),
   }),
-  execute: async (context) => {
+  execute: async () => {
     // TODO: Implement - query training_plan with status=ACTIVE
     throw new Error('Not implemented yet - fetch-current-plan tool');
   },

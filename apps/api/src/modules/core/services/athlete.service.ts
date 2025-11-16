@@ -88,7 +88,6 @@ export class AthleteService {
     const allSports = Object.values(sport_type) as sport_type[];
     for (let i = 0; i < DEFAULT_HR_ZONES.length; i++) {
       const z = DEFAULT_HR_ZONES[i];
-      // eslint-disable-next-line no-await-in-loop
       await this.prisma.training_zone.create({
         data: {
           name: z.name,

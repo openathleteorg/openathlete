@@ -1,4 +1,4 @@
-import { button, h1, note, p, rawLink } from '../core/blocks';
+import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 export function buildPasswordResetEmail({ url }: { url: string }) {

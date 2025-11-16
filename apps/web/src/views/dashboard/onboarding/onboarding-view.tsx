@@ -186,12 +186,7 @@ export function OnboardingView() {
 
   // Redirect if onboarding already completed (only if user data is loaded and authenticated)
   useEffect(() => {
-    if (
-      authenticated &&
-      !isLoadingUser &&
-      user &&
-      (user as any).onboardingCompleted
-    ) {
+    if (authenticated && !isLoadingUser && user && user.onboardingCompleted) {
       navigate(getPath(['dashboard']));
     }
   }, [authenticated, user, isLoadingUser, navigate]);

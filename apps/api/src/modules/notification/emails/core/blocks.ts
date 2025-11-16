@@ -29,5 +29,3 @@ export function rawLink(href: string) {
   const safeHref = escapeAttribute(href);
   return `<a href="${safeHref}" style="color:${brand.accent};text-decoration:none;">${escapeHtml(href)}</a>`;
 }
-
-

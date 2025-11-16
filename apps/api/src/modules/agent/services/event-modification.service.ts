@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
 
+import {
+  WorkoutStepDto,
+  WorkoutStepTarget,
+  trainingEventSchema,
+} from '@openathlete/shared';
+
 import { eventModificationAgent } from 'src/mastra/agents';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -15,7 +21,6 @@ import {
   fetchAthleteZones,
   formatZonesByType,
   getLatestMetrics,
-  trainingEventSchema,
   validateWorkoutZoneTargets,
 } from './event-ai-helpers';
 
@@ -29,58 +34,50 @@ export class EventModificationService {
   async modifyTrainingEvent(
     prompt: string,
     athleteId: number,
-    eventData: any,
+    eventData: TrainingEventSchema,
   ): Promise<TrainingEventSchema> {
-    // Use provided event data (always use the current state from frontend)
     const existingEventContext = {
       name: eventData.name,
       description: eventData.description || '',
       sport: eventData.sport,
-      startDate:
-        eventData.startDate instanceof Date
-          ? eventData.startDate.toISOString()
-          : eventData.startDate,
-      endDate:
-        eventData.endDate instanceof Date
-          ? eventData.endDate.toISOString()
-          : eventData.endDate,
+      startDate: new Date(eventData.startDate),
+      endDate: new Date(eventData.endDate),
       goalDuration: eventData.goalDuration || undefined,
-      goalDistance: (eventData as any).goalDistance || undefined,
-      goalElevationGain: (eventData as any).goalElevationGain || undefined,
-      goalRpe: (eventData as any).goalRpe || undefined,
+      goalDistance: eventData.goalDistance || undefined,
+      goalElevationGain: eventData.goalElevationGain || undefined,
+      goalRpe: eventData.goalRpe || undefined,
       workout: eventData.workout
         ? {
-            steps: eventData.workout.steps.map((step: any) => {
+            steps: eventData.workout.steps.map((step: WorkoutStepDto) => {
               const baseStep = {
                 stepType: step.stepType,
                 name: step.name || undefined,
                 durationType: step.durationType || undefined,
                 durationValue: step.durationValue || undefined,
                 notes: step.notes || undefined,
-                targets: (step.targets || []).map((target: any) => {
-                  // Handle both formats: legacy { targetType: value } or new { targetType, targetValue, ... }
-                  if (typeof target === 'object' && target !== null) {
-                    // If it's already in the new format, use it as is
-                    if (target.targetType) {
-                      return {
-                        targetType: target.targetType,
-                        targetMin: target.targetMin ?? undefined,
-                        targetMax: target.targetMax ?? undefined,
-                        targetValue: target.targetValue ?? undefined,
-                        unit: target.unit ?? undefined,
-                      };
+                targets: (step.targets || []).map(
+                  (target: WorkoutStepTarget) => {
+                    if (typeof target === 'object' && target !== null) {
+                      if (target.targetType) {
+                        return {
+                          targetType: target.targetType,
+                          targetMin: target.targetMin ?? undefined,
+                          targetMax: target.targetMax ?? undefined,
+                          targetValue: target.targetValue ?? undefined,
+                          unit: target.unit ?? undefined,
+                        };
+                      }
+                      const entries = Object.entries(target);
+                      if (entries.length > 0) {
+                        return {
+                          targetType: entries[0][0],
+                          targetValue: entries[0][1] as number,
+                        };
+                      }
                     }
-                    // Legacy format: { targetType: value }
-                    const entries = Object.entries(target);
-                    if (entries.length > 0) {
-                      return {
-                        targetType: entries[0][0],
-                        targetValue: entries[0][1] as number,
-                      };
-                    }
-                  }
-                  return {};
-                }),
+                    return {};
+                  },
+                ),
               };
 
               if (step.repeatBlock) {
@@ -89,17 +86,15 @@ export class EventModificationService {
                   repeatBlock: {
                     repetitions: step.repeatBlock.repetitions,
                     childSteps: step.repeatBlock.childSteps.map(
-                      (childStep: any) => ({
+                      (childStep: WorkoutStepDto) => ({
                         stepType: childStep.stepType,
                         name: childStep.name || undefined,
                         durationType: childStep.durationType || undefined,
                         durationValue: childStep.durationValue || undefined,
                         notes: childStep.notes || undefined,
                         targets: (childStep.targets || []).map(
-                          (target: any) => {
-                            // Handle both formats: legacy { targetType: value } or new { targetType, targetValue, ... }
+                          (target: WorkoutStepTarget) => {
                             if (typeof target === 'object' && target !== null) {
-                              // If it's already in the new format, use it as is
                               if (target.targetType) {
                                 return {
                                   targetType: target.targetType,
@@ -109,7 +104,6 @@ export class EventModificationService {
                                   unit: target.unit ?? undefined,
                                 };
                               }
-                              // Legacy format: { targetType: value }
                               const entries = Object.entries(target);
                               if (entries.length > 0) {
                                 return {
@@ -173,13 +167,13 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
       this.prismaService,
       athleteId,
       this.trainingLoadService,
-      existingEventContext,
+      undefined, // existingEventContext is only used for JSON stringification in prompt, not for runtime context
     );
 
     const response = await eventModificationAgent.generate(fullPrompt, {
       runtimeContext,
       structuredOutput: {
-        schema: trainingEventSchema as any, // Type assertion needed for complex nested schemas
+        schema: trainingEventSchema,
       },
     });
 
@@ -187,25 +181,11 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
       throw new Error('Failed to modify event: no structured output received');
     }
 
-    // Validate and fix zone targets
     const zoneIdMap = createZoneIdMap(zones);
     if (response.object.workout) {
       validateWorkoutZoneTargets(response.object.workout, zoneIdMap, zones);
     }
 
-    // Log for debugging - check if all steps are present
-    if (response.object.workout?.steps) {
-      console.log(
-        `[EventModification] Received ${response.object.workout.steps.length} steps`,
-      );
-      response.object.workout.steps.forEach((step, index) => {
-        console.log(
-          `  Step ${index + 1}: ${step.stepType}${step.repeatBlock ? ` (REPEAT with ${step.repeatBlock.childSteps.length} childSteps)` : ''}`,
-        );
-      });
-    }
-
-    // Steps are already filtered by the schema transform
     return response.object;
   }
 }

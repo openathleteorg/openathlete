@@ -1,7 +1,6 @@
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,7 +17,6 @@ import {
   CreateTrainingZoneDto,
   UpdateTrainingZoneDto,
   createTrainingZoneDtoSchema,
-  updateTrainingZoneDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';

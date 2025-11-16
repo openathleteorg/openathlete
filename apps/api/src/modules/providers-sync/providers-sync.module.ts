@@ -3,8 +3,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from '../auth';
-import { QueueModule } from '../queue';
 import { PrismaService } from '../prisma/services/prisma.service';
+import { QueueModule } from '../queue';
 import { CorosAdapter } from './adapters/coros.adapter';
 import { GarminAdapter } from './adapters/garmin.adapter';
 import { SuuntoAdapter } from './adapters/suunto.adapter';
@@ -19,7 +19,12 @@ import {
 import { ProviderExportScheduler } from './scheduler.service';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), AuthModule, EventEmitterModule, forwardRef(() => QueueModule)],
+  imports: [
+    ScheduleModule.forRoot(),
+    AuthModule,
+    EventEmitterModule,
+    forwardRef(() => QueueModule),
+  ],
   controllers: [ProviderOAuthController],
   providers: [
     PrismaService,

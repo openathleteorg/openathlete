@@ -3,6 +3,7 @@ import {
   WORKOUT_STEP_TYPE,
   WorkoutDto,
   WorkoutStepDto,
+  WorkoutStepTarget,
 } from '../types/dtos/core/workout.dto';
 
 // ============================================================================
@@ -205,10 +206,8 @@ export function validateWorkoutStructure(
       }
     }
 
-    // Validate targets
     if (step.targets && step.targets.length > 0) {
-      step.targets.forEach((target: any, targetIndex: number) => {
-        // Check range targets
+      step.targets.forEach((target: WorkoutStepTarget, targetIndex: number) => {
         if (
           target.targetMin !== null &&
           target.targetMin !== undefined &&
