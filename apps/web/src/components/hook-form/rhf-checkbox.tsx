@@ -30,7 +30,7 @@ export const RHFCheckbox = ({ name, label, value, ...other }: Props) => {
                 if (isArray) {
                   const newValue = checked
                     ? [...(field.value || []), value]
-                    : field.value?.filter((v: any) => v !== value);
+                    : field.value?.filter((v: unknown) => v !== value);
                   field.onChange(newValue);
                 } else {
                   field.onChange(checked);

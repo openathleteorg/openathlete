@@ -97,8 +97,11 @@ function FitToSelection({
   }, [
     map,
     polylineBounds,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     focusPolyline && focusPolyline.length,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     focusPolyline && focusPolyline[0]?.lat,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     focusPolyline && focusPolyline[0]?.lng,
   ]);
 

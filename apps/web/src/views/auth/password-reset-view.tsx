@@ -1,8 +1,8 @@
+import { usePasswordResetMutation } from '@/api/user';
 import { FormProvider, RHFTextField } from '@/components/hook-form';
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { usePasswordResetMutation } from '@/api/user';
 import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

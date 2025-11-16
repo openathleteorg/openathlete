@@ -1,5 +1,5 @@
-import { m } from '@/paraglide/messages';
 import { useDeleteCycleMutation } from '@/api/cycle';
+import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { Edit2, Trash2 } from 'lucide-react';
 import { useState } from 'react';

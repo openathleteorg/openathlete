@@ -31,7 +31,9 @@ export const useCreateEquipmentMutation = (
     ...opt,
     mutationFn: EquipmentAPI.createEquipment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [equipmentKeys.getMyEquipment] });
+      queryClient.invalidateQueries({
+        queryKey: [equipmentKeys.getMyEquipment],
+      });
     },
   });
 };
@@ -48,7 +50,9 @@ export const useUpdateEquipmentMutation = (
     ...opt,
     mutationFn: EquipmentAPI.updateEquipment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [equipmentKeys.getMyEquipment] });
+      queryClient.invalidateQueries({
+        queryKey: [equipmentKeys.getMyEquipment],
+      });
     },
   });
 };
@@ -65,7 +69,9 @@ export const useDeleteEquipmentMutation = (
     ...opt,
     mutationFn: EquipmentAPI.deleteEquipment,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [equipmentKeys.getMyEquipment] });
+      queryClient.invalidateQueries({
+        queryKey: [equipmentKeys.getMyEquipment],
+      });
     },
   });
 };

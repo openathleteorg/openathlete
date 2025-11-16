@@ -36,7 +36,8 @@ export function cleanWorkoutSteps(
   steps: WorkoutStepDto[],
 ): CreateWorkoutStepDto[] {
   return steps.map((step) => {
-    const { workoutStepId, workoutId, createdAt, updatedAt, ...stepData } = step;
+    const { workoutStepId, workoutId, createdAt, updatedAt, ...stepData } =
+      step;
 
     const cleanedTargets = step.targets?.map((target: WorkoutStepTarget) => {
       const {
@@ -90,4 +91,3 @@ export function cleanWorkoutSteps(
     };
   });
 }
-

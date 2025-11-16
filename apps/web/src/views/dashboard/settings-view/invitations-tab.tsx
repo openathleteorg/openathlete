@@ -21,9 +21,7 @@ import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { toast } from 'sonner';
 
-interface P {}
-
-export function InvitationsTab({}: P) {
+export function InvitationsTab() {
   const roles = useUserRoles();
   const isAthlete = roles?.includes('ATHLETE');
   const isCoach = roles?.includes('COACH');

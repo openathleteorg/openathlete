@@ -20,9 +20,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-interface P {}
-
-export function AthletesTab({}: P) {
+export function AthletesTab() {
   const { data: athletes } = useGetMyCoachedAthletesQuery();
   const nav = useNavigate();
   const [deleteAthleteDialog, setDeleteAthleteDialog] = useState<number | null>(

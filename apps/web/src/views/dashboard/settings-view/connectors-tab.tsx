@@ -24,8 +24,6 @@ import { toast } from 'sonner';
 
 import { ConnectorProvider } from '@openathlete/shared';
 
-interface P {}
-
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
   // 'GARMIN',
@@ -33,7 +31,7 @@ const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   // 'COROS',
 ];
 
-export function ConnectorsTab({}: P) {
+export function ConnectorsTab() {
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
   const [providerToDisconnect, setProviderToDisconnect] =
     useState<ConnectorProvider | null>(null);

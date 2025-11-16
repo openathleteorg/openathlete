@@ -6,6 +6,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
+import { UpdateTrainingZoneDto } from '@openathlete/shared';
+
 import { athleteKeys } from '../athlete/athlete.keys';
 import { TrainingZoneAPI } from './training-zone.api';
 import { trainingZoneKeys } from './training-zone.keys';
@@ -50,7 +52,7 @@ export const useUpdateTrainingZone = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof TrainingZoneAPI.update>>,
     Error,
-    { trainingZoneId: number; body: any }
+    { trainingZoneId: number; body: UpdateTrainingZoneDto }
   >,
 ) => {
   const queryClient = useQueryClient();

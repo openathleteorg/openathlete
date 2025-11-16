@@ -1,3 +1,4 @@
+import { BetaAccessAPI } from '@/api/beta-access/beta-access.api';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -16,10 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
 import { m } from '@/paraglide/messages';
 import { useState } from 'react';
-import { BetaAccessAPI } from '@/api/beta-access/beta-access.api';
 
 interface RequestAccessModalProps {
   open: boolean;
@@ -106,7 +106,7 @@ export function RequestAccessModal({
         setAthletes('');
         setMessage('');
       }, 2000);
-    } catch (err) {
+    } catch {
       setError(m.landing_request_access_error());
     } finally {
       setIsLoading(false);
@@ -169,7 +169,9 @@ export function RequestAccessModal({
                 disabled={isLoading}
               >
                 <SelectTrigger id="type" aria-required="true">
-                  <SelectValue placeholder={m.landing_request_access_type_placeholder()} />
+                  <SelectValue
+                    placeholder={m.landing_request_access_type_placeholder()}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="coach">
@@ -219,15 +221,15 @@ export function RequestAccessModal({
         )}
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isLoading}
-          >
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             {m.landing_request_access_cancel()}
           </Button>
           {!success && (
-            <Button onClick={handleSubmit} disabled={isLoading} isLoading={isLoading}>
+            <Button
+              onClick={handleSubmit}
+              disabled={isLoading}
+              isLoading={isLoading}
+            >
               {m.landing_request_access_submit()}
             </Button>
           )}
@@ -236,5 +238,3 @@ export function RequestAccessModal({
     </Dialog>
   );
 }
-
-

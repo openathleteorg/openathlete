@@ -18,4 +18,3 @@ export function Stat({ value, label, className }: StatProps) {
     </div>
   );
 }
-

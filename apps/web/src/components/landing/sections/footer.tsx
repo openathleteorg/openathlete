@@ -1,5 +1,5 @@
-import { Container } from '@/components/landing/container';
 import { BrandLogo } from '@/components/landing/brand-logo';
+import { Container } from '@/components/landing/container';
 import { m } from '@/paraglide/messages';
 import { Link } from 'react-router-dom';
 
@@ -11,13 +11,21 @@ export function Footer() {
           <div className="flex flex-col items-center gap-4 md:flex-row md:gap-6">
             <Link to="/" className="flex items-center gap-2">
               <BrandLogo className="h-6 w-auto" />
-              <span className="text-lg font-semibold tracking-tight">OpenAthlete</span>
+              <span className="text-lg font-semibold tracking-tight">
+                OpenAthlete
+              </span>
             </Link>
             <nav className="flex gap-4 text-sm text-muted-foreground">
-              <Link to="/legal-notice" className="hover:text-foreground transition-colors">
+              <Link
+                to="/legal-notice"
+                className="hover:text-foreground transition-colors"
+              >
                 {m.landing_footer_legal().split(' · ')[0]}
               </Link>
-              <Link to="/privacy-policy" className="hover:text-foreground transition-colors">
+              <Link
+                to="/privacy-policy"
+                className="hover:text-foreground transition-colors"
+              >
                 {m.landing_footer_legal().split(' · ')[1]}
               </Link>
               <a
@@ -36,4 +44,3 @@ export function Footer() {
     </footer>
   );
 }
-

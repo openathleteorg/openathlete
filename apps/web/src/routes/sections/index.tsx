@@ -14,6 +14,7 @@ const LandingPage = lazy(() => import('@/pages/landing'));
 /**
  * Root component that shows landing page on web, or redirects on Capacitor
  */
+// eslint-disable-next-line react-refresh/only-export-components
 function RootElement() {
   if (isCapacitor()) {
     // In Capacitor, redirect to dashboard/login

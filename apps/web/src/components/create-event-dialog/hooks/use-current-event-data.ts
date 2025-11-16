@@ -1,7 +1,11 @@
 import { useMemo } from 'react';
 import { UseFormWatch } from 'react-hook-form';
 
-import type { CreateEventDto, Event } from '@openathlete/shared';
+import type {
+  CreateEventDto,
+  CreateWorkoutStepDto,
+  Event,
+} from '@openathlete/shared';
 import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
 import type { EventFormValues } from '../utils/event-form-schemas';
@@ -21,7 +25,7 @@ type Props = CreateProps | EditProps;
 export function useCurrentEventData(
   props: Props,
   watch: UseFormWatch<EventFormValues>,
-  workoutSteps: any[],
+  workoutSteps: CreateWorkoutStepDto[],
   athleteId: number,
 ) {
   const currentEventData = useMemo(() => {
@@ -37,11 +41,11 @@ export function useCurrentEventData(
         startDate: formValues.startDate || new Date(),
         endDate: formValues.endDate || new Date(),
         athleteId,
-        sport: (formValues as any).sport || SPORT_TYPE.RUNNING,
-        goalDistance: (formValues as any).goalDistance ?? null,
-        goalDuration: (formValues as any).goalDuration ?? null,
-        goalElevationGain: (formValues as any).goalElevationGain ?? null,
-        goalRpe: (formValues as any).goalRpe ?? null,
+        sport: formValues.sport || SPORT_TYPE.RUNNING,
+        goalDistance: formValues.goalDistance ?? null,
+        goalDuration: formValues.goalDuration ?? null,
+        goalElevationGain: formValues.goalElevationGain ?? null,
+        goalRpe: formValues.goalRpe ?? null,
         ...(workoutSteps.length > 0
           ? { workout: { steps: workoutSteps } }
           : {}),

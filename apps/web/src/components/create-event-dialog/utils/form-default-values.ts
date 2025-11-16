@@ -27,7 +27,7 @@ export function getFormDefaultValues(
     const base = {
       type: props.event.type,
       name: props.event.name,
-      description: (props.event as any).description ?? '',
+      description: props.event.description ?? '',
       startDate: props.event.startDate,
       endDate: props.event.endDate,
     } as EventFormValues;
@@ -35,30 +35,30 @@ export function getFormDefaultValues(
     if (props.event.type === EVENT_TYPE.TRAINING) {
       return {
         ...base,
-        sport: (props.event as any).sport,
-        goalDistance: (props.event as any).goalDistance ?? null,
-        goalDuration: (props.event as any).goalDuration ?? null,
-        goalElevationGain: (props.event as any).goalElevationGain ?? null,
-        goalRpe: (props.event as any).goalRpe ?? null,
+        sport: props.event.sport,
+        goalDistance: props.event.goalDistance ?? null,
+        goalDuration: props.event.goalDuration ?? null,
+        goalElevationGain: props.event.goalElevationGain ?? null,
+        goalRpe: props.event.goalRpe ?? null,
       } as EventFormValues;
     }
 
     if (props.event.type === EVENT_TYPE.COMPETITION) {
       return {
         ...base,
-        sport: (props.event as any).sport,
-        goalDistance: (props.event as any).goalDistance ?? null,
-        goalDuration: (props.event as any).goalDuration ?? null,
-        goalElevationGain: (props.event as any).goalElevationGain ?? null,
-        goalRpe: (props.event as any).goalRpe ?? null,
+        sport: props.event.sport,
+        goalDistance: props.event.goalDistance ?? null,
+        goalDuration: props.event.goalDuration ?? null,
+        goalElevationGain: props.event.goalElevationGain ?? null,
+        goalRpe: props.event.goalRpe ?? null,
       } as EventFormValues;
     }
 
     if (props.event.type === EVENT_TYPE.ACTIVITY) {
       return {
         ...base,
-        sport: (props.event as any).sport,
-        rpe: (props.event as any).rpe ?? null,
+        sport: props.event.sport,
+        rpe: props.event.rpe ?? null,
       } as EventFormValues;
     }
 
@@ -70,7 +70,7 @@ export function getFormDefaultValues(
     const base = {
       type: prefilled.type,
       name: prefilled.name,
-      description: (prefilled as any).description ?? '',
+      description: prefilled.description ?? '',
       startDate: prefilled.startDate,
       endDate: prefilled.endDate,
     } as EventFormValues;
@@ -78,30 +78,30 @@ export function getFormDefaultValues(
     if (prefilled.type === EVENT_TYPE.TRAINING) {
       return {
         ...base,
-        sport: (prefilled as any).sport,
-        goalDistance: (prefilled as any).goalDistance ?? null,
-        goalDuration: (prefilled as any).goalDuration ?? null,
-        goalElevationGain: (prefilled as any).goalElevationGain ?? null,
-        goalRpe: (prefilled as any).goalRpe ?? null,
+        sport: prefilled.sport,
+        goalDistance: prefilled.goalDistance ?? null,
+        goalDuration: prefilled.goalDuration ?? null,
+        goalElevationGain: prefilled.goalElevationGain ?? null,
+        goalRpe: prefilled.goalRpe ?? null,
       } as EventFormValues;
     }
 
     if (prefilled.type === EVENT_TYPE.COMPETITION) {
       return {
         ...base,
-        sport: (prefilled as any).sport,
-        goalDistance: (prefilled as any).goalDistance ?? null,
-        goalDuration: (prefilled as any).goalDuration ?? null,
-        goalElevationGain: (prefilled as any).goalElevationGain ?? null,
-        goalRpe: (prefilled as any).goalRpe ?? null,
+        sport: prefilled.sport,
+        goalDistance: prefilled.goalDistance ?? null,
+        goalDuration: prefilled.goalDuration ?? null,
+        goalElevationGain: prefilled.goalElevationGain ?? null,
+        goalRpe: prefilled.goalRpe ?? null,
       } as EventFormValues;
     }
 
     if (prefilled.type === EVENT_TYPE.ACTIVITY) {
       return {
         ...base,
-        sport: (prefilled as any).sport,
-        rpe: (prefilled as any).rpe ?? null,
+        sport: prefilled.sport,
+        rpe: prefilled.rpe ?? null,
       } as EventFormValues;
     }
 

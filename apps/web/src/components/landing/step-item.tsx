@@ -7,7 +7,12 @@ interface StepItemProps {
   className?: string;
 }
 
-export function StepItem({ step, title, description, className }: StepItemProps) {
+export function StepItem({
+  step,
+  title,
+  description,
+  className,
+}: StepItemProps) {
   return (
     <div className={cn('flex gap-4', className)}>
       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
@@ -22,4 +27,3 @@ export function StepItem({ step, title, description, className }: StepItemProps)
     </div>
   );
 }
-

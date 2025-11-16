@@ -39,6 +39,7 @@ export function AuthGuard({ children }: Props) {
     if (authenticated) {
       setChecked(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, navigate, user, isLoading]);
 
   useEffect(() => {

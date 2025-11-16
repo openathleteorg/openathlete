@@ -66,4 +66,3 @@ export const eventFormSchema = z.discriminatedUnion('type', [
 ]);
 
 export type EventFormValues = z.infer<typeof eventFormSchema>;
-

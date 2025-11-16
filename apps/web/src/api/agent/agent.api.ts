@@ -91,9 +91,10 @@ export class AgentAPI {
         // Check for session ID unknown errors (common in multi-instance setups)
         if (
           error?.message?.includes('Session ID unknown') ||
-          (error?.data && typeof error.data === 'object' && error.data.code === 1)
+          (error?.data &&
+            typeof error.data === 'object' &&
+            error.data.code === 1)
         ) {
-          console.warn('[AgentAPI] Session error detected, forcing reconnection');
           // Disconnect and clear socket to force a fresh connection
           const oldSocket = this.socket;
           this.socket = null;

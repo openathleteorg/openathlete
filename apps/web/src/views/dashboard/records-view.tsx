@@ -1,9 +1,9 @@
+import { useGetRecordsQuery } from '@/api/record';
 import { RecordsChart } from '@/components/charts/records-chart';
 import { SportSelect } from '@/components/sport-select/sport-select';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
-import { useGetRecordsQuery } from '@/api/record';
 import { useState } from 'react';
 
 import { SPORT_TYPE } from '@openathlete/shared';
@@ -49,7 +49,7 @@ export function RecordsView({ athleteId }: P) {
           )}
           {!records?.length && (
             <h1 className="text-2xl font-semibold">
-              {m.no_records_found({ sport: !!sport ? m.for_this_sport() : '' })}
+              {m.no_records_found({ sport: sport ? m.for_this_sport() : '' })}
             </h1>
           )}
         </CardContent>

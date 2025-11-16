@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import type {
+  CreateEventDto,
   CreateWorkoutStepDto,
   Event,
   WorkoutDto,
@@ -14,7 +15,7 @@ import { cleanWorkoutSteps } from '../utils/workout-helpers';
 type CreateProps = {
   date?: Date;
   type?: EVENT_TYPE;
-  prefilledData?: any;
+  prefilledData?: CreateEventDto;
 };
 
 type EditProps = {
@@ -63,10 +64,12 @@ export function WorkoutSection({
       } as WorkoutDto;
     }
     return null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     edit,
     create,
     type,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     'event' in props ? props.event : null,
     workoutStepsKey,
   ]);
@@ -86,7 +89,6 @@ export function WorkoutSection({
   return (
     <div className="border-t pt-6">
       <WorkoutBuilder
-        trainingId={edit && 'event' in props ? props.event?.eventId || 0 : 0}
         workout={existingWorkout}
         hideMetadataForm={true}
         hideActions={true}

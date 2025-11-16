@@ -27,7 +27,6 @@ import { StepForm } from './step-form';
 import { StepList } from './step-list';
 
 interface WorkoutBuilderProps {
-  trainingId: number;
   workout?: WorkoutDto | null;
   sport: SPORT_TYPE;
   hideMetadataForm?: boolean;
@@ -40,7 +39,6 @@ type DialogState =
   | { type: 'step'; editing?: Partial<WorkoutStepDto> };
 
 export function WorkoutBuilder({
-  trainingId: _trainingId,
   workout,
   sport,
   onStepsChange,
@@ -83,6 +81,7 @@ export function WorkoutBuilder({
         });
       return assign(input || []);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [idCounter],
   );
 

@@ -24,10 +24,7 @@ export const PageActionsProvider = ({
   );
 };
 
-/**
- * Hook to get page actions for the mobile header
- * Pages can use this to provide actions that will appear in the header
- */
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePageActions(): PageAction[] {
   return useContext(PageActionsContext);
 }

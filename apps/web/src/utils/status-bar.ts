@@ -11,7 +11,7 @@ export async function initStatusBar() {
     await StatusBar.setOverlaysWebView({ overlay: false });
     await updateStatusBarStyle();
   } catch (error) {
-    console.warn('StatusBar plugin not available:', error);
+    console.error('StatusBar plugin not available:', error);
   }
 }
 
@@ -34,6 +34,6 @@ export async function updateStatusBarStyle(theme?: 'light' | 'dark') {
       color: isDark ? '#050C34' : '#ffffff',
     });
   } catch (error) {
-    console.warn('Failed to update status bar style:', error);
+    console.error('Failed to update status bar style:', error);
   }
 }

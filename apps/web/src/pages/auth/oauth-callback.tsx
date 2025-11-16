@@ -41,6 +41,7 @@ export function OAuthCallbackPage() {
       nav(getPath(['dashboard', 'settings']));
       toast.error(m.invalid_provider());
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider, searchParams]);
 
   return (

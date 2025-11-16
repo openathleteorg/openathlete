@@ -14,5 +14,3 @@ export { Pricing } from './pricing';
 export { FAQ } from './faq';
 export { FinalCTA } from './final-cta';
 export { Footer } from './footer';
-
-

@@ -11,4 +11,3 @@ export function getEndDate(date?: Date): Date | undefined {
   d.setHours(9, 0, 0, 0);
   return d;
 }
-

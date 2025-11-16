@@ -6,5 +6,3 @@ export const messagesKeys = {
   getMessage: (messageId: number) =>
     ['messages', 'message', messageId] as const,
 };
-
-

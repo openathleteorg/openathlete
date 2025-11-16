@@ -314,6 +314,7 @@ export function useAgentWebSocket({
       socket.off('message_error');
       socket.off('thread_title_updated');
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     threadId,
     onMessageChunk,

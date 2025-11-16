@@ -127,30 +127,22 @@ export class MessagesAPI {
           : {},
       });
 
-      // Handle session errors by forcing a fresh connection
       this.socket.io.on('error', (error: any) => {
-        // Check for session ID unknown errors (common in multi-instance setups)
         if (
           error?.message?.includes('Session ID unknown') ||
           (error?.data &&
             typeof error.data === 'object' &&
             error.data.code === 1)
         ) {
-          console.warn(
-            '[MessagesAPI] Session error detected, forcing reconnection',
-          );
-          // Disconnect and clear socket to force a fresh connection
           const oldSocket = this.socket;
           this.socket = null;
           if (oldSocket) {
             oldSocket.disconnect();
             oldSocket.removeAllListeners();
           }
-          // Next getSocket() call will create a fresh socket
         }
       });
 
-      // Set up token refresh mechanism
       this.setupTokenRefresh();
     }
     return this.socket;

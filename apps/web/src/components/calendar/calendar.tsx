@@ -12,7 +12,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import { CreateEventDto, Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
@@ -101,26 +101,25 @@ export function Calendar({
   const duplicateEventMutation = useDuplicateEventMutation();
   const updateCycleMutation = useUpdateCycleMutation();
 
-  const updateCycleDates = (
-    cycleId: number,
-    startDate: Date,
-    endDate: Date,
-  ) => {
-    updateCycleMutation.mutate(
-      {
-        cycleId,
-        body: { startDate, endDate },
-      },
-      {
-        onSuccess: () => {
-          toast.success('Cycle updated successfully');
+  const updateCycleDates = useCallback(
+    (cycleId: number, startDate: Date, endDate: Date) => {
+      updateCycleMutation.mutate(
+        {
+          cycleId,
+          body: { startDate, endDate },
         },
-        onError: () => {
-          toast.error('Failed to update cycle');
+        {
+          onSuccess: () => {
+            toast.success('Cycle updated successfully');
+          },
+          onError: () => {
+            toast.error('Failed to update cycle');
+          },
         },
-      },
-    );
-  };
+      );
+    },
+    [updateCycleMutation],
+  );
 
   // Persist coloredBy to localStorage
   useEffect(() => {
@@ -163,6 +162,7 @@ export function Calendar({
       coloredBy,
       setColoredBy,
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       calendarData.displayedMonth,
       calendarData.events,

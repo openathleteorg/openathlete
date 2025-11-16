@@ -1,3 +1,4 @@
+import { TrainingLoadCalculationType } from '@/api/training-load';
 import { Badge } from '@/components/ui/badge';
 import {
   Tooltip,
@@ -5,7 +6,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { TrainingLoadCalculationType } from '@/api/training-load';
 import { ActivityIcon } from 'lucide-react';
 
 interface TrainingLoadBadgeProps {

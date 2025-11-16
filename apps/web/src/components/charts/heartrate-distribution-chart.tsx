@@ -43,6 +43,7 @@ export function HeartrateDistributionChart({
       distribution: distribution[i] / heartrateStream.length,
       fill: zone.color,
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [distribution, trainingZones]);
 
   return (

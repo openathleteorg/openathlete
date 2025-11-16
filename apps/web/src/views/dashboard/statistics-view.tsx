@@ -1,3 +1,4 @@
+import { useGetStatisticsForPeriodQuery } from '@/api/statistics';
 import { SportDistributionChart } from '@/components/charts/sport-distribution-chart';
 import { StatisticsGlobals } from '@/components/statistics-globals/statistics-globals';
 import { StatisticsPeriodSelect } from '@/components/statistics-period-select/statistics-period-select';
@@ -5,7 +6,6 @@ import { TrainingLoadChart } from '@/components/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
-import { useGetStatisticsForPeriodQuery } from '@/api/statistics';
 import { useState } from 'react';
 
 import {

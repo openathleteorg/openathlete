@@ -137,8 +137,9 @@ export function StepList({
 
     // Ignore drags that involve child steps (they're handled by nested DndContext)
     const isActiveChildStep = !steps.some((s) => s.workoutStepId === active.id);
-    const isOverChildStep = over && !steps.some((s) => s.workoutStepId === over.id);
-    
+    const isOverChildStep =
+      over && !steps.some((s) => s.workoutStepId === over.id);
+
     if (isActiveChildStep || isOverChildStep) {
       // This drag is for a child step, let the nested context handle it
       return;

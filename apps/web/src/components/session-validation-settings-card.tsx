@@ -1,9 +1,18 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  useGetAthleteSettingsQuery,
+  useUpdateAthleteSettingsMutation,
+} from '@/api/athlete';
+import { LoadingScreen } from '@/components/loading-screen';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { useGetAthleteSettingsQuery, useUpdateAthleteSettingsMutation } from '@/api/athlete';
 import { m } from '@/paraglide/messages';
-import { LoadingScreen } from '@/components/loading-screen';
 
 interface P {
   athleteId: number;
@@ -64,4 +73,3 @@ export function SessionValidationSettingsCard({ athleteId }: P) {
     </Card>
   );
 }
-

@@ -10,7 +10,7 @@ type Props = {
 export default function GuestGuard({ children }: Props) {
   const navigate = useNavigate();
 
-  const { authenticated, logout } = useAuthContext();
+  const { authenticated } = useAuthContext();
 
   const [checked, setChecked] = useState(false);
 
@@ -20,7 +20,7 @@ export default function GuestGuard({ children }: Props) {
     } else {
       setChecked(true);
     }
-  }, [authenticated, logout, navigate]);
+  }, [authenticated, navigate]);
 
   useEffect(() => {
     check();

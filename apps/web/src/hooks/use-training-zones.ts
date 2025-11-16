@@ -80,7 +80,7 @@ export function useTrainingZones(type: TRAINING_ZONE_TYPE, sport?: SPORT_TYPE) {
         max: values[0].max,
       };
     });
-  }, [trainingZones]);
+  }, [trainingZones, sport]);
 
   const filteredTrainingZones = finalTrainingZones
     ?.filter((zone) => zone !== null)

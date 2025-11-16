@@ -29,6 +29,7 @@ export function SimpleElevationChart({ altitudeStream, distanceStream }: P) {
       altitude,
       time: distanceStream[i],
     }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [altitudeStream]);
 
   return (

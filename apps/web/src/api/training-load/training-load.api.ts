@@ -20,19 +20,21 @@ export type {
   RecalculateAllLoadsResponse,
 };
 
-const mapTrainingLoadEntry = (entry: any): TrainingLoadEntry => ({
+const mapTrainingLoadEntry = (entry: TrainingLoadEntry): TrainingLoadEntry => ({
   ...entry,
   date: new Date(entry.date),
   createdAt: new Date(entry.createdAt),
   updatedAt: new Date(entry.updatedAt),
 });
 
-const mapDailyTrainingLoad = (item: any): DailyTrainingLoad => ({
+const mapDailyTrainingLoad = (item: DailyTrainingLoad): DailyTrainingLoad => ({
   ...item,
   date: new Date(item.date),
 });
 
-const mapTrainingLoadHistory = (item: any): TrainingLoadHistory => ({
+const mapTrainingLoadHistory = (
+  item: TrainingLoadHistory,
+): TrainingLoadHistory => ({
   ...item,
   date: new Date(item.date),
 });

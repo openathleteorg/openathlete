@@ -6,7 +6,11 @@ interface LandingBadgeProps extends ComponentProps<typeof UIBadge> {
   children: ReactNode;
 }
 
-export function LandingBadge({ children, className, ...props }: LandingBadgeProps) {
+export function LandingBadge({
+  children,
+  className,
+  ...props
+}: LandingBadgeProps) {
   return (
     <UIBadge
       className={cn('bg-primary/10 text-primary border-primary/20', className)}
@@ -16,4 +20,3 @@ export function LandingBadge({ children, className, ...props }: LandingBadgeProp
     </UIBadge>
   );
 }
-

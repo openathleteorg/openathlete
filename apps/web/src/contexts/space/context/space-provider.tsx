@@ -1,7 +1,6 @@
-/* eslint-disable no-console */
 import { getPath } from '@/routes/paths';
 import { CURRENT_SPACE, getItem, setItem } from '@/utils/local-storage';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { UserRole } from '@openathlete/shared';
@@ -20,22 +19,25 @@ export function SpaceProvider({ children }: Props) {
   });
   const nav = useNavigate();
 
-  const handleSpaceChange = (space: UserRole) => {
-    setCurrentSpace(space);
-    setItem(CURRENT_SPACE, space);
-    if (space === 'COACH') {
-      nav(getPath(['dashboard', 'coach']));
-    } else {
-      nav(getPath(['dashboard', 'calendar']));
-    }
-  };
+  const handleSpaceChange = useCallback(
+    (space: UserRole) => {
+      setCurrentSpace(space);
+      setItem(CURRENT_SPACE, space);
+      if (space === 'COACH') {
+        nav(getPath(['dashboard', 'coach']));
+      } else {
+        nav(getPath(['dashboard', 'calendar']));
+      }
+    },
+    [nav],
+  );
 
   const memoizedValue = useMemo<SpaceContextType>(
     () => ({
       space: currentSpace,
       setSpace: handleSpaceChange,
     }),
-    [currentSpace],
+    [currentSpace, handleSpaceChange],
   );
 
   return (

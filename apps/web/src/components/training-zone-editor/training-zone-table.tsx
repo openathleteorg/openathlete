@@ -23,10 +23,16 @@ interface TrainingZoneTableProps {
 
 export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
   const displayData = useMemo(() => {
-    const sportConfigs = new Map<string, any[]>();
+    const sportConfigs = new Map<
+      string,
+      {
+        zone: TrainingZone & { values: TrainingZoneValue[] };
+        value: TrainingZoneValue;
+      }[]
+    >();
 
     zones.forEach((zone) => {
-      zone.values.forEach((value: any) => {
+      zone.values.forEach((value: TrainingZoneValue) => {
         const key = value.sports.sort().join(',');
         if (!sportConfigs.has(key)) {
           sportConfigs.set(key, []);
@@ -72,40 +78,48 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {config.zones.map((item: any, idx: number) => {
-                  // Check if this is the last zone in the entire zones array
-                  const isLastZone =
-                    config.zones.length === zones.length &&
-                    idx === config.zones.length - 1;
-                  return (
-                    <TableRow key={idx}>
-                      <TableCell className="font-medium">
-                        {item.zone.index + 1}
-                      </TableCell>
-                      <TableCell>{item.zone.name}</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {item.zone.description}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {item.value.min}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {item.value.max}
-                        {isLastZone && (
-                          <span className="text-xs text-muted-foreground ml-1">
-                            +
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className="w-6 h-6 rounded-full border"
-                          style={{ backgroundColor: item.zone.color }}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {config.zones.map(
+                  (
+                    item: {
+                      zone: TrainingZone & { values: TrainingZoneValue[] };
+                      value: TrainingZoneValue;
+                    },
+                    idx: number,
+                  ) => {
+                    // Check if this is the last zone in the entire zones array
+                    const isLastZone =
+                      config.zones.length === zones.length &&
+                      idx === config.zones.length - 1;
+                    return (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium">
+                          {item.zone.index + 1}
+                        </TableCell>
+                        <TableCell>{item.zone.name}</TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {item.zone.description}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {item.value.min}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">
+                          {item.value.max}
+                          {isLastZone && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              +
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className="w-6 h-6 rounded-full border"
+                            style={{ backgroundColor: item.zone.color }}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  },
+                )}
               </TableBody>
             </Table>
           </div>

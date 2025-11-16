@@ -1,6 +1,6 @@
 import { Container } from '@/components/landing/container';
-import { Section } from '@/components/landing/section';
 import { FAQItem } from '@/components/landing/faq-item';
+import { Section } from '@/components/landing/section';
 import { m } from '@/paraglide/messages';
 
 export function FAQ() {
@@ -51,4 +51,3 @@ export function FAQ() {
     </Section>
   );
 }
-

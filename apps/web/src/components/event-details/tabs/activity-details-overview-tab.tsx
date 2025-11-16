@@ -65,7 +65,7 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
 
   const normLabel = (factor: string) => {
     const key = `normalization_${factor.toLowerCase()}` as keyof typeof m;
-    const fn = (m as any)[key];
+    const fn = (m as unknown as Record<string, () => string>)[key];
     return typeof fn === 'function' ? fn() : factor;
   };
 

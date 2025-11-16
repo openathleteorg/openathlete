@@ -36,6 +36,7 @@ export function ChartsZoomProvider({ fullDomain, children }: P) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useChartsZoom() {
   const ctx = useContext(ChartsZoomContext);
   if (!ctx) {

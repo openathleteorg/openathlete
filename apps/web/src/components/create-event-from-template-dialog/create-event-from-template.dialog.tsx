@@ -10,6 +10,7 @@ import {
 } from '@/api/event-template-folder';
 import { m } from '@/paraglide/messages';
 import {
+  CollisionDetection,
   DndContext,
   DragEndEvent,
   DragOverlay,
@@ -84,7 +85,9 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
   );
 
   // Custom collision detection strategy
-  const collisionDetectionStrategy = (args: any) => {
+  const collisionDetectionStrategy = (
+    args: Parameters<CollisionDetection>[0],
+  ) => {
     // First, check pointer intersections (most precise)
     const pointerCollisions = pointerWithin(args);
 

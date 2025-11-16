@@ -73,7 +73,7 @@ export const paths: Paths = {
  */
 export const getPath = (parts: string[]): string => {
   const path = parts.reduce(
-    (acc: Path, part) => (acc as any)[part],
+    (acc: Path, part) => (acc as Record<string, Path>)[part],
     paths as Path,
   );
   if (!path) {

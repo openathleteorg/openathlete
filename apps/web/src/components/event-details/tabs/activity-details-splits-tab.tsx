@@ -78,7 +78,9 @@ function computeSplits(stream: ActivityStream | undefined) {
   const d = stream?.distance;
   const t = stream?.time;
   const alt = stream?.altitude;
-  const gap = (stream as any)?.gap as number[] | undefined;
+  const gap = (stream as unknown as { gap: number[] })?.gap as
+    | number[]
+    | undefined;
   if (!d?.length || !t?.length)
     return [] as Array<{
       km: number;

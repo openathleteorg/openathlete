@@ -288,6 +288,7 @@ export function ChatBubble() {
       setIsDragging(false);
     }
     dragRef.current = null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isDragging,
     openChat,

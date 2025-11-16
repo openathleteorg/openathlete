@@ -7,4 +7,3 @@ export class BetaAccessAPI {
     await client.post(routes.betaAccess.request, body);
   }
 }
-

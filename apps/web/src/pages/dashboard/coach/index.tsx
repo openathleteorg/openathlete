@@ -11,5 +11,3 @@ export function CoachDashboardPage() {
 }
 
 export default CoachDashboardPage;
-
-

@@ -1,6 +1,6 @@
 import { RHFNumberWithUnit } from '@/components/hook-form/rhf-number-with-unit';
-import { RHFVelocityPace } from '@/components/hook-form/rhf-velocity-pace';
 import { RHFRpe } from '@/components/hook-form/rhf-rpe';
+import { RHFVelocityPace } from '@/components/hook-form/rhf-velocity-pace';
 import { RHFZoneSelector } from '@/components/hook-form/rhf-zone-selector';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +24,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { FormProvider } from 'react-hook-form';
+import type { ControllerRenderProps } from 'react-hook-form';
 import { z } from 'zod';
 
 import type { WorkoutStepTarget, WorkoutTargetType } from '@openathlete/shared';
@@ -68,6 +69,46 @@ const targetFormSchema = z.object({
 });
 
 type TargetFormValues = z.infer<typeof targetFormSchema>;
+
+/**
+ * Adapter component for RPE field that converts between 0-1 (RHFRpe format) and 1-10 (workout format)
+ */
+function RpeFieldAdapter({
+  field,
+}: {
+  field: ControllerRenderProps<TargetFormValues, 'targetValue'>;
+}) {
+  // RHFRpe stores 0-1, but workouts store 1-10
+  // Create a temporary form context for RHFRpe with conversion
+  const rpeValue = field.value ? field.value / 10 : undefined;
+  const tempForm = useForm({
+    defaultValues: { rpeValue },
+  });
+
+  // Sync field.value changes to temp form
+  useEffect(() => {
+    const newRpeValue = field.value ? field.value / 10 : undefined;
+    tempForm.setValue('rpeValue', newRpeValue);
+  }, [field.value, tempForm]);
+
+  // Sync temp form changes back to main form
+  useEffect(() => {
+    const subscription = tempForm.watch((data) => {
+      const newRpe = data.rpeValue;
+      const workoutValue = newRpe !== undefined ? newRpe * 10 : undefined;
+      if (field.value !== workoutValue) {
+        field.onChange(workoutValue);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [tempForm, field]);
+
+  return (
+    <FormProvider {...tempForm}>
+      <RHFRpe name="rpeValue" label={m.target_form_single_value()} />
+    </FormProvider>
+  );
+}
 
 interface TargetFormProps {
   initialValues?: Partial<WorkoutStepTarget>;
@@ -120,7 +161,6 @@ export function TargetForm({
     };
     onSubmit(cleanedValues);
   };
-
 
   return (
     <Form {...form}>
@@ -309,41 +349,7 @@ export function TargetForm({
             <FormField
               control={form.control}
               name="targetValue"
-              render={({ field }) => {
-                // RHFRpe stores 0-1, but workouts store 1-10
-                // Create a temporary form context for RHFRpe with conversion
-                const rpeValue = field.value ? field.value / 10 : undefined;
-                const tempForm = useForm({
-                  defaultValues: { rpeValue },
-                });
-
-                // Sync field.value changes to temp form
-                useEffect(() => {
-                  const newRpeValue = field.value ? field.value / 10 : undefined;
-                  tempForm.setValue('rpeValue', newRpeValue);
-                }, [field.value, tempForm]);
-
-                // Sync temp form changes back to main form
-                useEffect(() => {
-                  const subscription = tempForm.watch((data) => {
-                    const newRpe = data.rpeValue;
-                    const workoutValue = newRpe !== undefined ? newRpe * 10 : undefined;
-                    if (field.value !== workoutValue) {
-                      field.onChange(workoutValue);
-                    }
-                  });
-                  return () => subscription.unsubscribe();
-                }, [tempForm, field]);
-
-                return (
-                  <FormProvider {...tempForm}>
-                    <RHFRpe
-                      name="rpeValue"
-                      label={m.target_form_single_value()}
-                    />
-                  </FormProvider>
-                );
-              }}
+              render={({ field }) => <RpeFieldAdapter field={field} />}
             />
           )
         ) : null}
@@ -360,7 +366,3 @@ export function TargetForm({
     </Form>
   );
 }
-
-
-
-

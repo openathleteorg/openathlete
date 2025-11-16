@@ -21,9 +21,7 @@ import { z } from 'zod';
 
 import { updateAccountDtoSchema } from '@openathlete/shared';
 
-interface P {}
-
-export function ProfileTab({}: P) {
+export function ProfileTab() {
   const { user } = useAuthContext();
   const { data: athlete } = useGetMyAthleteQuery();
   const updateAccountMutation = useUpdateAccountMutation({

@@ -1,3 +1,7 @@
+import {
+  TrainingLoadCalculationType,
+  useTrainingLoadHistory,
+} from '@/api/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   ChartContainer,
@@ -12,10 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import * as m from '@/paraglide/messages.js';
-import {
-  TrainingLoadCalculationType,
-  useTrainingLoadHistory,
-} from '@/api/training-load';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useEffect, useMemo, useState } from 'react';

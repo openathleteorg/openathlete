@@ -65,7 +65,7 @@ export function AIGenerateEventDialog({
       onEventGenerated(generatedEvent);
       methods.reset();
       onClose();
-    } catch (error) {
+    } catch {
       toast.error(m.failed_to_generate_event());
     }
   });

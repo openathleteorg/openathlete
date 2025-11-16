@@ -7,7 +7,9 @@ import { useForm } from 'react-hook-form';
 
 import type {
   CreateEventDto,
+  CreateWorkoutStepDto,
   Event,
+  SPORT_TYPE,
   UpdateEventDto,
 } from '@openathlete/shared';
 import { EVENT_TYPE } from '@openathlete/shared';
@@ -49,16 +51,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const edit = 'event' in rest;
   const create = 'type' in rest && 'date' in rest;
 
-  // Early return if invalid props
-  if (
-    (create &&
-      (!('date' in rest) || !rest.date || !('type' in rest) || !rest.type)) ||
-    (edit && (!('event' in rest) || !rest.event))
-  ) {
-    return null;
-  }
-
-  // Determine event type
   const type = create
     ? ('type' in rest && rest.type) || EVENT_TYPE.TRAINING
     : edit
@@ -186,14 +178,14 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const handleEventModified = (modifiedEvent: UpdateEventDto) => {
     const isTraining = modifiedEvent.type === EVENT_TYPE.TRAINING;
     const trainingEventData = isTraining
-      ? (modifiedEvent as any as {
+      ? (modifiedEvent as UpdateEventDto & {
           type: EVENT_TYPE.TRAINING;
-          sport?: any;
+          sport?: SPORT_TYPE;
           goalDuration?: number | null;
           goalDistance?: number | null;
           goalElevationGain?: number | null;
           goalRpe?: number | null;
-          workout?: { steps: any[] } | null;
+          workout?: { steps: CreateWorkoutStepDto[] } | null;
         })
       : null;
     const hasWorkout =
@@ -248,6 +240,14 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       setWorkoutSteps(trainingEventData.workout.steps);
     }
   };
+
+  if (
+    (create &&
+      (!('date' in rest) || !rest.date || !('type' in rest) || !rest.type)) ||
+    (edit && (!('event' in rest) || !rest.event))
+  ) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>

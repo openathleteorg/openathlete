@@ -1,3 +1,9 @@
+import {
+  useCreateEquipmentMutation,
+  useDeleteEquipmentMutation,
+  useGetMyEquipmentQuery,
+  useUpdateEquipmentMutation,
+} from '@/api/equipment';
 import { EquipmentForm } from '@/components/equipment/equipment-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +15,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { m } from '@/paraglide/messages';
-import {
-  useCreateEquipmentMutation,
-  useDeleteEquipmentMutation,
-  useGetMyEquipmentQuery,
-  useUpdateEquipmentMutation,
-} from '@/api/equipment';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';

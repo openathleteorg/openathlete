@@ -1,3 +1,4 @@
+import { useGetMyCoachesQuery, useRemoveCoachMutation } from '@/api/athlete';
 import { ConfirmAction } from '@/components/confirm-action';
 import { InviteCoachDialog } from '@/components/invite-coach-dialog/invite-coach.dialog';
 import { Button } from '@/components/ui/button';
@@ -10,15 +11,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { m } from '@/paraglide/messages';
-import {
-  useGetMyCoachesQuery,
-  useRemoveCoachMutation,
-} from '@/api/athlete';
 import { useState } from 'react';
 
-interface P {}
-
-export function CoachesTab({}: P) {
+export function CoachesTab() {
   const { data: coaches } = useGetMyCoachesQuery();
   const [inviteCoachDialogOpen, setInviteCoachDialogOpen] =
     useState<boolean>(false);

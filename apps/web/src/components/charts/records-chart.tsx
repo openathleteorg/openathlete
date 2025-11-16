@@ -103,7 +103,8 @@ export function RecordsChart({ records, className }: P) {
   }, []);
 
   const formatDistance = useCallback((distance: number | string) => {
-    const numDistance = typeof distance === 'number' ? distance : Number(distance);
+    const numDistance =
+      typeof distance === 'number' ? distance : Number(distance);
     if (!numDistance || isNaN(numDistance) || numDistance <= 0) {
       return '0m';
     }
@@ -274,7 +275,9 @@ export function RecordsChart({ records, className }: P) {
           stroke="var(--chart-5)"
           dot={true}
           strokeWidth={
-            hoveredLine === null || hoveredLine === RECORD_TYPE.CADENCE ? 2 : 0.5
+            hoveredLine === null || hoveredLine === RECORD_TYPE.CADENCE
+              ? 2
+              : 0.5
           }
           strokeOpacity={
             hiddenLines.has(RECORD_TYPE.CADENCE)
@@ -345,7 +348,12 @@ export function RecordsChart({ records, className }: P) {
                 return '';
               }}
               formatter={(value, name) => {
-                if (value === null || value === undefined || isNaN(Number(value)) || Number(value) === 0) {
+                if (
+                  value === null ||
+                  value === undefined ||
+                  isNaN(Number(value)) ||
+                  Number(value) === 0
+                ) {
                   return null;
                 }
                 return (

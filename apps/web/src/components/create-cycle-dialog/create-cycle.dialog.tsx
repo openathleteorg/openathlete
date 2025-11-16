@@ -1,8 +1,5 @@
+import { useCreateCycleMutation, useUpdateCycleMutation } from '@/api/cycle';
 import { m } from '@/paraglide/messages';
-import {
-  useCreateCycleMutation,
-  useUpdateCycleMutation,
-} from '@/api/cycle';
 import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemo } from 'react';
@@ -61,6 +58,7 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
       return new Date(rest.cycle.startDate);
     }
     return new Date();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rest]);
 
   const initialEndDate = useMemo(() => {
@@ -72,6 +70,7 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
       return new Date(rest.cycle.endDate);
     }
     return new Date();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rest]);
 
   // Convert Date to string format for date inputs (YYYY-MM-DD)

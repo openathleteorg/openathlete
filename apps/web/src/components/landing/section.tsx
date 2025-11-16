@@ -1,8 +1,12 @@
 import { cn } from '@/utils/shadcn';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { HTMLMotionProps, motion } from 'framer-motion';
 import * as React from 'react';
 
-interface SectionProps extends Omit<HTMLMotionProps<'section'>, 'initial' | 'whileInView' | 'viewport' | 'transition'> {
+interface SectionProps
+  extends Omit<
+    HTMLMotionProps<'section'>,
+    'initial' | 'whileInView' | 'viewport' | 'transition'
+  > {
   children: React.ReactNode;
   className?: string;
   animateOnScroll?: boolean;
@@ -27,4 +31,3 @@ export function Section({
     </motion.section>
   );
 }
-

@@ -63,10 +63,13 @@ export function useWorkoutSteps(props: Props) {
     } else {
       setWorkoutSteps([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     create,
     edit,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     'prefilledData' in props ? props.prefilledData : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     'event' in props ? props.event : null,
   ]);
 
@@ -75,4 +78,3 @@ export function useWorkoutSteps(props: Props) {
     setWorkoutSteps,
   };
 }
-

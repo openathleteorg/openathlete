@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
 import { isValidToken } from '@/utils/auth';
@@ -79,7 +78,7 @@ export function AuthProvider({ children }: Props) {
               user,
             },
           });
-        } catch (error) {
+        } catch {
           dispatch({
             type: Types.INITIAL,
             payload: {
@@ -88,7 +87,7 @@ export function AuthProvider({ children }: Props) {
           });
         }
       }
-    } catch (error) {
+    } catch {
       dispatch({
         type: Types.INITIAL,
         payload: {
@@ -123,7 +122,7 @@ export function AuthProvider({ children }: Props) {
       initialize,
       logout,
     }),
-    [state.user, status, initialize],
+    [state.user, status, initialize, logout],
   );
 
   return (

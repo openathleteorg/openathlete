@@ -16,9 +16,7 @@ import { CalendarWeekSummary } from './calendar-week-summary';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { calculateCyclesForDay } from './utils/cycle-day-layout';
 
-interface P {}
-
-export function CalendarBody({}: P) {
+export function CalendarBody() {
   const {
     displayedWeeks,
     events,

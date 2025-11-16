@@ -96,7 +96,7 @@ export function AIModifyEventDialog({
       }
       methods.reset();
       onClose();
-    } catch (error) {
+    } catch {
       if (isCreateMode) {
         toast.error(m.failed_to_generate_event());
       } else {

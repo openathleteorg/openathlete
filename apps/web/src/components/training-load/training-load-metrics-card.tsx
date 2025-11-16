@@ -1,3 +1,7 @@
+import {
+  TrainingLoadCalculationType,
+  useTrainingLoadMetrics,
+} from '@/api/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -6,10 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  TrainingLoadCalculationType,
-  useTrainingLoadMetrics,
-} from '@/api/training-load';
 import { ActivityIcon, TrendingDownIcon, TrendingUpIcon } from 'lucide-react';
 import { useState } from 'react';
 

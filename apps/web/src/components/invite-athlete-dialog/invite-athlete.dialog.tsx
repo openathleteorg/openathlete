@@ -1,3 +1,5 @@
+import { RHFTextField } from '@/components/hook-form';
+import { FormProvider } from '@/components/hook-form';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -5,8 +7,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { RHFTextField } from '@/components/hook-form';
-import { FormProvider } from '@/components/hook-form';
 import { m } from '@/paraglide/messages';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -25,12 +25,7 @@ interface P {
   isLoading?: boolean;
 }
 
-export function InviteAthleteDialog({
-  open,
-  onClose,
-  onInvite,
-  isLoading,
-}: P) {
+export function InviteAthleteDialog({ open, onClose, onInvite, isLoading }: P) {
   const methods = useForm<InviteAthleteForm>({
     resolver: zodResolver(inviteAthleteSchema),
     defaultValues: { email: '' },
@@ -83,4 +78,3 @@ export function InviteAthleteDialog({
     </Dialog>
   );
 }
-

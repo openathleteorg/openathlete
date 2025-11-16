@@ -76,9 +76,7 @@ export function SpeedChart({
   const displayData = useMemo(() => {
     const [from, to] = xDomain;
     if (from === undefined || to === undefined) return chartData;
-    const filtered = chartData.filter(
-      (d) => (d as any).x >= from && (d as any).x <= to,
-    );
+    const filtered = chartData.filter((d) => d.x >= from && d.x <= to);
     return filtered.length > 1 ? filtered : chartData;
   }, [chartData, xDomain]);
 

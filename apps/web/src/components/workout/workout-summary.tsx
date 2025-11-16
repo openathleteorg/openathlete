@@ -2,7 +2,11 @@ import { Separator } from '@/components/ui/separator';
 import * as m from '@/paraglide/messages';
 import { getStepTypeLabel } from '@/utils/workout';
 
-import type { WorkoutDto, WorkoutStepDto, WorkoutStepTarget } from '@openathlete/shared';
+import type {
+  WorkoutDto,
+  WorkoutStepDto,
+  WorkoutStepTarget,
+} from '@openathlete/shared';
 
 import { DurationDisplay } from './duration-display';
 import { TargetBadge } from './target-badge';

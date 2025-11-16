@@ -109,12 +109,13 @@ export function CalendarEvent({ event, wrapped }: P) {
     switch (coloredBy || COLORED_BY.TYPE) {
       case COLORED_BY.TYPE:
         return getEventTypeColor(event.type);
-      case COLORED_BY.SPORT:
+      case COLORED_BY.SPORT: {
         const sport = event.type !== EVENT_TYPE.NOTE ? event.sport : null;
         if (sport === null)
           return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
         return getSportColor(sport);
-      case COLORED_BY.RPE:
+      }
+      case COLORED_BY.RPE: {
         const rpe =
           event.type === EVENT_TYPE.ACTIVITY
             ? event.rpe
@@ -125,6 +126,7 @@ export function CalendarEvent({ event, wrapped }: P) {
         if (rpe === null)
           return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
         return getLowSaturatedRpeColor(rpe);
+      }
     }
   }, [event, coloredBy]);
 

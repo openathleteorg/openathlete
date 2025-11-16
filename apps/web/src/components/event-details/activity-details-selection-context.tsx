@@ -37,6 +37,7 @@ export function ActivityDetailsSelectionProvider({ fullDomain, children }: P) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useActivityDetailsSelection() {
   const ctx = useContext(ActivityDetailsSelectionContext);
   if (!ctx) {

@@ -61,10 +61,6 @@ function SortableChildStep({
 }: SortableChildStepProps) {
   // Ensure step has a valid ID - this should never be undefined at this point
   const stepId = step.workoutStepId;
-  if (!stepId) {
-    console.error('SortableChildStep: step.workoutStepId is undefined', step);
-    return null;
-  }
 
   const {
     attributes,
@@ -77,6 +73,11 @@ function SortableChildStep({
     id: stepId,
     disabled: false,
   });
+
+  if (!stepId) {
+    console.error('SortableChildStep: step.workoutStepId is undefined', step);
+    return null;
+  }
 
   const style = {
     transform: CSS.Transform.toString(transform),

@@ -1,22 +1,22 @@
-import { SEOHead } from '@/components/landing/seo-head';
 import {
-  TopBar,
-  Navbar,
-  Hero,
-  Problem,
-  Solution,
-  HowItWorks,
   Benefits,
-  Features,
-  Providers,
-  Science,
-  PilotResults,
-  Testimonials,
-  Pricing,
   FAQ,
+  Features,
   FinalCTA,
   Footer,
+  Hero,
+  HowItWorks,
+  Navbar,
+  PilotResults,
+  Pricing,
+  Problem,
+  Providers,
+  Science,
+  Solution,
+  Testimonials,
+  TopBar,
 } from '@/components/landing/sections';
+import { SEOHead } from '@/components/landing/seo-head';
 
 export default function LandingPage() {
   return (
@@ -43,4 +43,3 @@ export default function LandingPage() {
     </>
   );
 }
-

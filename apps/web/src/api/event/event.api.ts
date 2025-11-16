@@ -48,14 +48,14 @@ export class EventAPI {
     endDate?: Date,
   ): Promise<Event[]> {
     const params: any = { coach: isCoach, athleteId };
-    
+
     if (startDate) {
       params.startDate = startDate.toISOString();
     }
     if (endDate) {
       params.endDate = endDate.toISOString();
     }
-    
+
     const res = await client.get(routes.event.getMyEvents, { params });
     const data = res.data as Event[];
     return data.map((event) => mapEvent(event));

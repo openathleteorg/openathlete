@@ -300,14 +300,15 @@ export function ChatWindow() {
         );
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, threads, isLoading, mode]);
 
   useEffect(() => {
     if (threads && threads.length > 0 && !activeId) {
       if (mode === 'assistant') {
-        setActiveThreadId((threads[0] as any).threadId);
+        setActiveThreadId((threads[0] as AgentThread).threadId);
       } else {
-        setActiveMessageThreadId((threads[0] as any).messageThreadId);
+        setActiveMessageThreadId((threads[0] as MessageThread).messageThreadId);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -19,9 +19,7 @@ import {
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY, coloredByLabelMap } from './types/filter';
 
-interface P {}
-
-export function CalendarHeader({}: P) {
+export function CalendarHeader() {
   const {
     nextMonth,
     prevMonth,

@@ -1,3 +1,8 @@
+import {
+  AthleteMetric,
+  useCreateMetricMutation,
+  useGetLatestMetricsQuery,
+} from '@/api/metric';
 import { MetricCard } from '@/components/metrics/metric-card';
 import { MetricChart } from '@/components/metrics/metric-chart';
 import { MetricForm } from '@/components/metrics/metric-form';
@@ -11,11 +16,6 @@ import {
 } from '@/components/ui/dialog';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
-import {
-  AthleteMetric,
-  useCreateMetricMutation,
-  useGetLatestMetricsQuery,
-} from '@/api/metric';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 

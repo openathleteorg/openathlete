@@ -2,11 +2,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 import { RouterProvider } from 'react-router-dom';
 
+import { StatusBarThemeSync } from './components/status-bar-theme-sync';
 import { Toaster } from './components/ui/sonner';
 import { AuthConsumer, AuthProvider } from './contexts/auth';
 import { ChatbotProvider } from './contexts/chatbot';
 import router from './routes/sections';
-import { StatusBarThemeSync } from './components/status-bar-theme-sync';
 
 const queryClient = new QueryClient({
   defaultOptions: {

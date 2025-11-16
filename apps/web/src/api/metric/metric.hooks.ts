@@ -75,8 +75,12 @@ export const useCreateMetricMutation = (
       MetricAPI.createMetric(body, athleteId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [metricKeys.getMetrics] });
-      queryClient.invalidateQueries({ queryKey: [metricKeys.getLatestMetrics] });
-      queryClient.invalidateQueries({ queryKey: [metricKeys.getMetricHistory] });
+      queryClient.invalidateQueries({
+        queryKey: [metricKeys.getLatestMetrics],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [metricKeys.getMetricHistory],
+      });
     },
   });
 };
@@ -94,8 +98,12 @@ export const useUpdateMetricMutation = (
     mutationFn: MetricAPI.updateMetric,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [metricKeys.getMetrics] });
-      queryClient.invalidateQueries({ queryKey: [metricKeys.getLatestMetrics] });
-      queryClient.invalidateQueries({ queryKey: [metricKeys.getMetricHistory] });
+      queryClient.invalidateQueries({
+        queryKey: [metricKeys.getLatestMetrics],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [metricKeys.getMetricHistory],
+      });
     },
   });
 };
@@ -116,8 +124,12 @@ export const useDeleteMetricMutation = (
     mutationFn: ({ id, athleteId }) => MetricAPI.deleteMetric(id, athleteId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [metricKeys.getMetrics] });
-      queryClient.invalidateQueries({ queryKey: [metricKeys.getLatestMetrics] });
-      queryClient.invalidateQueries({ queryKey: [metricKeys.getMetricHistory] });
+      queryClient.invalidateQueries({
+        queryKey: [metricKeys.getLatestMetrics],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [metricKeys.getMetricHistory],
+      });
     },
   });
 };

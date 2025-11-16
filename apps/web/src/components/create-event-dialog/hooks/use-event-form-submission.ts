@@ -1,9 +1,8 @@
+import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
+import { m } from '@/paraglide/messages';
 import { useCallback } from 'react';
 import { UseFormHandleSubmit } from 'react-hook-form';
 import { toast } from 'sonner';
-
-import { m } from '@/paraglide/messages';
-import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
 
 import type {
   CreateEventDto,
@@ -107,4 +106,3 @@ export function useEventFormSubmission(
       createEventMutation.isPending || updateEventMutation.isPending,
   };
 }
-

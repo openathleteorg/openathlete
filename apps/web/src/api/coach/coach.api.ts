@@ -8,10 +8,7 @@ export class CoachAPI {
     end?: Date,
   ): Promise<CoachDashboardResponseDto> {
     const res = await client.get(
-      routes.coach.dashboard(
-        start?.toISOString(),
-        end?.toISOString(),
-      ),
+      routes.coach.dashboard(start?.toISOString(), end?.toISOString()),
     );
     return res.data;
   }
@@ -46,5 +43,3 @@ export class CoachAPI {
     await client.post(routes.coach.rejectInvitation(invitationId));
   }
 }
-
-

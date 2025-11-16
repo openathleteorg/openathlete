@@ -1,5 +1,5 @@
-import { m } from '@/paraglide/messages';
 import { AthleteMetric, MetricAPI } from '@/api/metric';
+import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Calculator } from 'lucide-react';

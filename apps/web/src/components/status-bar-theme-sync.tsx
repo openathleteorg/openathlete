@@ -13,4 +13,3 @@ export function StatusBarThemeSync() {
 
   return null;
 }
-
