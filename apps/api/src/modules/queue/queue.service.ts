@@ -50,7 +50,21 @@ export class QueueService {
     skipWeather = false,
   ): Promise<void> {
     try {
-      const priority = new Date(activity.startDate).getTime();
+      // BullMQ priority: 0 = highest priority, 2097152 = lowest priority
+      // We want most recent activities to have lower priority (processed first)
+      // Calculate days since activity date (positive for past dates)
+      const activityDate = new Date(activity.startDate);
+      const now = new Date();
+      const daysDiff = Math.max(
+        0,
+        Math.floor(
+          (now.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24),
+        ),
+      );
+      // Recent activities (small daysDiff) get low priority (0-1000000)
+      // Older activities (large daysDiff) get higher priority (1000000-2097152)
+      // Cap at 200 days to keep priority in valid range
+      const priority = Math.min(2097152, Math.min(daysDiff, 200) * 10000);
       const jobId = `import-${account.provider}-${activity.externalId}`;
 
       let existingJob;
@@ -155,7 +169,20 @@ export class QueueService {
           }
         }
 
-        const priority = -new Date(activity.startDate).getTime();
+        // BullMQ priority: 0 = highest priority, 2097152 = lowest priority
+        // We want most recent activities to have lower priority (processed first)
+        const activityDate = new Date(activity.startDate);
+        const now = new Date();
+        const daysDiff = Math.max(
+          0,
+          Math.floor(
+            (now.getTime() - activityDate.getTime()) / (1000 * 60 * 60 * 24),
+          ),
+        );
+        // Recent activities (small daysDiff) get low priority (0-1000000)
+        // Older activities (large daysDiff) get higher priority (1000000-2097152)
+        // Cap at 200 days to keep priority in valid range
+        const priority = Math.min(2097152, Math.min(daysDiff, 200) * 10000);
         jobsToAdd.push({
           name: 'import',
           data: {
