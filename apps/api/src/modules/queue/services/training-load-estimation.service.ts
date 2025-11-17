@@ -46,15 +46,11 @@ export class TrainingLoadEstimationService {
 
         if (state === 'completed' || state === 'failed') {
           await existingJob.remove();
-          // } else if (state === 'active') {
-          //   this.logger.log(
-          //     `Job for event ${eventId} is currently active, scheduling new job after completion`,
-          //   );
-        } else if (
-          state === 'delayed' ||
-          state === 'waiting' ||
-          state === 'active'
-        ) {
+        } else if (state === 'active') {
+          this.logger.log(
+            `Job for event ${eventId} is currently active, scheduling new job after completion`,
+          );
+        } else if (state === 'delayed' || state === 'waiting') {
           // If job is waiting or delayed, remove it and create a new one with updated delay
           await existingJob.remove();
           this.logger.log(

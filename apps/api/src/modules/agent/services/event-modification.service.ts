@@ -40,6 +40,7 @@ export class EventModificationService {
       name: eventData.name,
       description: eventData.description || '',
       sport: eventData.sport,
+      type: eventData.type,
       startDate: new Date(eventData.startDate),
       endDate: new Date(eventData.endDate),
       goalDuration: eventData.goalDuration || undefined,
