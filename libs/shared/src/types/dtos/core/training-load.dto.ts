@@ -89,3 +89,15 @@ export const recalculateAllLoadsResponseSchema = z.object({
 export type RecalculateAllLoadsResponse = z.infer<
   typeof recalculateAllLoadsResponseSchema
 >;
+
+export const calendarWeekLoadSummarySchema = z.object({
+  weekStart: z.coerce.date(),
+  weekEnd: z.coerce.date(),
+  actualLoad: z.number(),
+  estimatedLoad: z.number(),
+  totalLoad: z.number(),
+});
+
+export type CalendarWeekLoadSummary = z.infer<
+  typeof calendarWeekLoadSummarySchema
+>;

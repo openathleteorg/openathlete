@@ -27,7 +27,7 @@ export const trainingEventSchema = baseEventSchema.extend({
     .nullable(),
 });
 
-const competitionEventSchema = baseEventSchema.extend({
+export const competitionEventSchema = baseEventSchema.extend({
   type: z.literal(EVENT_TYPE.COMPETITION),
   sport: z.nativeEnum(SPORT_TYPE),
   description: z.string(),
@@ -37,12 +37,12 @@ const competitionEventSchema = baseEventSchema.extend({
   goalRpe: z.number().optional().nullable(),
 });
 
-const noteEventSchema = baseEventSchema.extend({
+export const noteEventSchema = baseEventSchema.extend({
   type: z.literal(EVENT_TYPE.NOTE),
   description: z.string().min(1),
 });
 
-const activityEventSchema = baseEventSchema.extend({
+export const activityEventSchema = baseEventSchema.extend({
   type: z.literal(EVENT_TYPE.ACTIVITY),
   sport: z.nativeEnum(SPORT_TYPE),
   description: z.string().optional(),
