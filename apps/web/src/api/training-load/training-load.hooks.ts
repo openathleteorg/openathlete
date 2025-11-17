@@ -127,7 +127,8 @@ export const useWeeklyTrimpSummaryQuery = (
 ) =>
   useQuery({
     ...opt,
-    enabled: (enabled ?? true) && Boolean(startDate && endDate),
+    enabled:
+      (enabled ?? true) && Boolean(startDate && endDate) && Boolean(athleteId),
     queryFn: () => {
       if (!startDate || !endDate) {
         return Promise.resolve([]);
