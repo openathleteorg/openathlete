@@ -21,12 +21,6 @@ export class TrainingLoadEstimationService {
     private readonly prisma: PrismaService,
   ) {}
 
-  /**
-   * Schedule training load estimation for a training event
-   * - Plans execution 1 minute after the last update
-   * - Ensures max 1 job per event (removes existing pending/delayed jobs)
-   * - If a job is currently active, it will still add a new one to run after completion
-   */
   async scheduleEstimation(
     eventId: number,
     eventTrainingId: number,
@@ -35,22 +29,22 @@ export class TrainingLoadEstimationService {
     try {
       const jobId = `training-load-estimation-${eventId}`;
 
-      // Check for existing job
       const existingJob = await this.trainingLoadEstimationQueue.getJob(jobId);
 
       if (existingJob) {
         const state = await existingJob.getState();
 
-        // If job is completed or failed, remove it
         if (state === 'completed' || state === 'failed') {
           await existingJob.remove();
-        } else if (state === 'active') {
-          // If job is currently running, we still add a new one to run after
-          // The new job will be scheduled with delay
-          this.logger.log(
-            `Job for event ${eventId} is currently active, scheduling new job after completion`,
-          );
-        } else if (state === 'delayed' || state === 'waiting') {
+          // } else if (state === 'active') {
+          //   this.logger.log(
+          //     `Job for event ${eventId} is currently active, scheduling new job after completion`,
+          //   );
+        } else if (
+          state === 'delayed' ||
+          state === 'waiting' ||
+          state === 'active'
+        ) {
           // If job is waiting or delayed, remove it and create a new one with updated delay
           await existingJob.remove();
           this.logger.log(
@@ -58,9 +52,6 @@ export class TrainingLoadEstimationService {
           );
         }
       }
-
-      // Schedule job 1 minute from now
-      const delay = 0 * 1000; // 1 minute in milliseconds
 
       await this.trainingLoadEstimationQueue.add(
         'estimate',
@@ -71,7 +62,6 @@ export class TrainingLoadEstimationService {
         },
         {
           jobId,
-          delay,
           attempts: 3,
           backoff: {
             type: 'exponential',
@@ -99,9 +89,6 @@ export class TrainingLoadEstimationService {
     }
   }
 
-  /**
-   * Cancel estimation job for an event (if it's not already active)
-   */
   async cancelEstimation(eventId: number): Promise<void> {
     try {
       const jobId = `training-load-estimation-${eventId}`;
@@ -124,7 +111,6 @@ export class TrainingLoadEstimationService {
       this.logger.error(
         `Failed to cancel training load estimation for event ${eventId}: ${error instanceof Error ? error.message : String(error)}`,
       );
-      // Don't throw, just log the error
     }
   }
 }
