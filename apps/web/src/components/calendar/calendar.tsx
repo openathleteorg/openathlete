@@ -1,5 +1,6 @@
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
+import { useWeeklyTrimpSummaryQuery } from '@/api/training-load';
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
 import { m } from '@/paraglide/messages';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
@@ -28,6 +29,7 @@ import { CalendarContext } from './contexts/calendar-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType, SummaryType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
+import { getWeekEnd, getWeekKey, getWeekStart } from './utils/week';
 
 interface P {
   events?: Event[];
@@ -46,6 +48,43 @@ export function Calendar({
 }: P) {
   const calendarData = useCalendarData({ events });
   const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
+  const weekRangeStart = calendarData.displayedWeeks[0]?.[0];
+  const weekRangeEnd =
+    calendarData.displayedWeeks[calendarData.displayedWeeks.length - 1]?.[6];
+
+  const loadRange = useMemo(() => {
+    if (!weekRangeStart || !weekRangeEnd) {
+      return { start: undefined, end: undefined };
+    }
+
+    const start = getWeekStart(weekRangeStart);
+    const end = getWeekEnd(weekRangeEnd);
+    end.setHours(23, 59, 59, 999);
+
+    return { start, end };
+  }, [weekRangeStart, weekRangeEnd]);
+
+  const { data: weeklyLoadSummary, isPending: weeklyLoadSummaryLoading } =
+    useWeeklyTrimpSummaryQuery(
+      loadRange.start,
+      loadRange.end,
+      athleteId,
+      Boolean(loadRange.start && loadRange.end),
+    );
+
+  const weeklyLoadSummaryMap = useMemo(() => {
+    if (!weeklyLoadSummary) {
+      return {};
+    }
+
+    return weeklyLoadSummary.reduce(
+      (acc, summary) => ({
+        ...acc,
+        [getWeekKey(summary.weekStart)]: summary,
+      }),
+      {} as CalendarContextType['weeklyLoadSummary'],
+    );
+  }, [weeklyLoadSummary]);
 
   useEffect(() => {
     if (onMonthChange) {
@@ -161,6 +200,8 @@ export function Calendar({
       setFilter,
       coloredBy,
       setColoredBy,
+      weeklyLoadSummary: weeklyLoadSummaryMap,
+      weeklyLoadSummaryLoading,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -175,6 +216,8 @@ export function Calendar({
       eventDetailsOpened,
       allowCreate,
       athleteId,
+      weeklyLoadSummaryMap,
+      weeklyLoadSummaryLoading,
     ],
   );
 

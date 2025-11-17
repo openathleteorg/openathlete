@@ -89,6 +89,7 @@ export function CalendarBody() {
             />
           ))}
           <CalendarWeekSummary
+            week={week}
             events={events.filter(
               (event) =>
                 event.startDate.getTime() >= startOfDay(week[0]).getTime() &&

@@ -174,6 +174,7 @@ export const routes = {
     period: '/training-load/period',
     metrics: '/training-load/metrics',
     history: '/training-load/history',
+    weeklySummary: '/training-load/weekly-summary',
     recalculate: '/training-load/recalculate',
   },
   betaAccess: {

@@ -116,6 +116,36 @@ export const useTrainingLoadHistory = (
     ],
   });
 
+export const useWeeklyTrimpSummaryQuery = (
+  startDate?: Date,
+  endDate?: Date,
+  athleteId?: number,
+  enabled?: boolean,
+  opt?: QueryOptions<
+    Awaited<ReturnType<typeof TrainingLoadAPI.getWeeklyTrimpSummary>>
+  >,
+) =>
+  useQuery({
+    ...opt,
+    enabled: (enabled ?? true) && Boolean(startDate && endDate),
+    queryFn: () => {
+      if (!startDate || !endDate) {
+        return Promise.resolve([]);
+      }
+      return TrainingLoadAPI.getWeeklyTrimpSummary(
+        startDate,
+        endDate,
+        athleteId,
+      );
+    },
+    queryKey: [
+      trainingLoadKeys.getWeeklyTrimpSummary,
+      startDate?.toISOString(),
+      endDate?.toISOString(),
+      athleteId,
+    ],
+  });
+
 export const useActivityTrainingLoads = (
   activityId: number,
   opt?: QueryOptions<

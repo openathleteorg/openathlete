@@ -5,5 +5,6 @@ export const trainingLoadKeys = {
   getTrainingLoadByPeriod: 'TrainingLoadAPI.getTrainingLoadByPeriod',
   getTrainingLoadMetrics: 'TrainingLoadAPI.getTrainingLoadMetrics',
   getTrainingLoadHistory: 'TrainingLoadAPI.getTrainingLoadHistory',
+  getWeeklyTrimpSummary: 'TrainingLoadAPI.getWeeklyTrimpSummary',
   recalculateAllLoads: 'TrainingLoadAPI.recalculateAllLoads',
 } as const;

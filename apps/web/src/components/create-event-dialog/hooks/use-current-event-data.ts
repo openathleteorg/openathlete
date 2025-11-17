@@ -1,10 +1,14 @@
 import { useMemo } from 'react';
 import { UseFormWatch } from 'react-hook-form';
+import z from 'zod';
 
 import type {
   CreateEventDto,
   CreateWorkoutStepDto,
   Event,
+  activityEventSchema,
+  competitionEventSchema,
+  trainingEventSchema,
 } from '@openathlete/shared';
 import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
@@ -41,11 +45,20 @@ export function useCurrentEventData(
         startDate: formValues.startDate || new Date(),
         endDate: formValues.endDate || new Date(),
         athleteId,
-        sport: formValues.sport || SPORT_TYPE.RUNNING,
-        goalDistance: formValues.goalDistance ?? null,
-        goalDuration: formValues.goalDuration ?? null,
-        goalElevationGain: formValues.goalElevationGain ?? null,
-        goalRpe: formValues.goalRpe ?? null,
+        sport:
+          (formValues as z.infer<typeof trainingEventSchema>).sport ||
+          SPORT_TYPE.RUNNING,
+        goalDistance:
+          (formValues as z.infer<typeof trainingEventSchema>).goalDistance ??
+          null,
+        goalDuration:
+          (formValues as z.infer<typeof trainingEventSchema>).goalDuration ??
+          null,
+        goalElevationGain:
+          (formValues as z.infer<typeof trainingEventSchema>)
+            .goalElevationGain ?? null,
+        goalRpe:
+          (formValues as z.infer<typeof trainingEventSchema>).goalRpe ?? null,
         ...(workoutSteps.length > 0
           ? { workout: { steps: workoutSteps } }
           : {}),
@@ -60,11 +73,21 @@ export function useCurrentEventData(
         startDate: formValues.startDate || new Date(),
         endDate: formValues.endDate || new Date(),
         athleteId,
-        sport: (formValues as any).sport || SPORT_TYPE.RUNNING,
-        goalDistance: (formValues as any).goalDistance ?? null,
-        goalDuration: (formValues as any).goalDuration ?? null,
-        goalElevationGain: (formValues as any).goalElevationGain ?? null,
-        goalRpe: (formValues as any).goalRpe ?? null,
+        sport:
+          (formValues as z.infer<typeof competitionEventSchema>).sport ||
+          SPORT_TYPE.RUNNING,
+        goalDistance:
+          (formValues as z.infer<typeof competitionEventSchema>).goalDistance ??
+          null,
+        goalDuration:
+          (formValues as z.infer<typeof competitionEventSchema>).goalDuration ??
+          null,
+        goalElevationGain:
+          (formValues as z.infer<typeof competitionEventSchema>)
+            .goalElevationGain ?? null,
+        goalRpe:
+          (formValues as z.infer<typeof competitionEventSchema>).goalRpe ??
+          null,
       } as CreateEventDto;
     }
 
@@ -76,8 +99,10 @@ export function useCurrentEventData(
         startDate: formValues.startDate || new Date(),
         endDate: formValues.endDate || new Date(),
         athleteId,
-        sport: (formValues as any).sport || SPORT_TYPE.RUNNING,
-        rpe: (formValues as any).rpe ?? null,
+        sport:
+          (formValues as z.infer<typeof activityEventSchema>).sport ||
+          SPORT_TYPE.RUNNING,
+        rpe: (formValues as z.infer<typeof activityEventSchema>).rpe ?? null,
       } as CreateEventDto;
     }
 

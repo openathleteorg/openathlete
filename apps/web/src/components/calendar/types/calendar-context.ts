@@ -1,6 +1,11 @@
 import { Dispatch, SetStateAction } from 'react';
 
-import { Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
+import {
+  CalendarWeekLoadSummary,
+  Cycle,
+  EVENT_TYPE,
+  Event,
+} from '@openathlete/shared';
 
 import { COLORED_BY } from './filter';
 
@@ -26,6 +31,8 @@ export type CalendarContextType = {
   allowCreate: boolean;
   coloredBy: COLORED_BY | null;
   setColoredBy: (coloredBy: COLORED_BY | null) => void;
+  weeklyLoadSummary: Record<string, CalendarWeekLoadSummary>;
+  weeklyLoadSummaryLoading: boolean;
   // Cycle management
   cycles: Cycle[];
   createCycle: (startDate: Date, endDate: Date) => void;

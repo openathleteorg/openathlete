@@ -1,6 +1,7 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  CalendarWeekLoadSummary,
   DailyTrainingLoad,
   RecalculateAllLoadsResponse,
   TRAINING_LOAD_CALCULATION_TYPE,
@@ -13,6 +14,7 @@ export type TrainingLoadCalculationType = TRAINING_LOAD_CALCULATION_TYPE;
 export const TrainingLoadCalculationType = TRAINING_LOAD_CALCULATION_TYPE;
 
 export type {
+  CalendarWeekLoadSummary,
   TrainingLoadEntry,
   DailyTrainingLoad,
   TrainingLoadMetrics,
@@ -37,6 +39,14 @@ const mapTrainingLoadHistory = (
 ): TrainingLoadHistory => ({
   ...item,
   date: new Date(item.date),
+});
+
+const mapCalendarWeekLoadSummary = (
+  item: CalendarWeekLoadSummary,
+): CalendarWeekLoadSummary => ({
+  ...item,
+  weekStart: new Date(item.weekStart),
+  weekEnd: new Date(item.weekEnd),
 });
 
 export class TrainingLoadAPI {
@@ -131,5 +141,20 @@ export class TrainingLoadAPI {
       calculationType,
     });
     return res.data;
+  }
+
+  static async getWeeklyTrimpSummary(
+    startDate: Date,
+    endDate: Date,
+    athleteId?: number,
+  ): Promise<CalendarWeekLoadSummary[]> {
+    const res = await client.get(routes.trainingLoad.weeklySummary, {
+      params: {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        ...(athleteId && { athleteId }),
+      },
+    });
+    return res.data.map(mapCalendarWeekLoadSummary);
   }
 }

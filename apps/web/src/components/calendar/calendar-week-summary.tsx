@@ -3,20 +3,37 @@ import { CheckCircle2 } from 'lucide-react';
 
 import {
   ActivityEvent,
+  CalendarWeekLoadSummary,
   CompetitionEvent,
   EVENT_TYPE,
   Event,
   TrainingEvent,
 } from '@openathlete/shared';
 
-import { DistanceStat, DurationStat, ElevationStat } from '../numeric-stats';
+import {
+  DistanceStat,
+  DurationStat,
+  ElevationStat,
+  LoadStat,
+} from '../numeric-stats';
 import { useCalendarContext } from './hooks/use-calendar-context';
+import { getWeekKey } from './utils/week';
 
 interface P {
   events: Event[];
+  week: Date[];
 }
 
-function DoneSummary({ events }: P) {
+interface SummaryWithLoadProps extends P {
+  weekLoad?: CalendarWeekLoadSummary;
+  isLoadLoading: boolean;
+}
+
+function DoneSummary({
+  events,
+  weekLoad,
+  isLoadLoading,
+}: SummaryWithLoadProps) {
   const activities = events.filter(
     (event) => event.type === EVENT_TYPE.ACTIVITY,
   ) as ActivityEvent[];
@@ -57,11 +74,21 @@ function DoneSummary({ events }: P) {
       <DurationStat duration={totalDuration} />
       <DistanceStat distance={totalDistance} />
       <ElevationStat elevation={totalElevation} />
+      <LoadStat
+        totalLoad={weekLoad?.totalLoad}
+        actualLoad={weekLoad?.actualLoad}
+        plannedLoad={weekLoad?.estimatedLoad}
+        isLoading={isLoadLoading}
+      />
     </div>
   );
 }
 
-function PlannedSummary({ events }: P) {
+function PlannedSummary({
+  events,
+  weekLoad,
+  isLoadLoading,
+}: SummaryWithLoadProps) {
   const trainings = events.filter(
     (event) =>
       event.type === EVENT_TYPE.TRAINING ||
@@ -83,11 +110,21 @@ function PlannedSummary({ events }: P) {
       <DurationStat duration={totalDuration} />
       <DistanceStat distance={totalDistance} />
       <ElevationStat elevation={totalElevation} />
+      <LoadStat
+        totalLoad={weekLoad?.totalLoad}
+        actualLoad={weekLoad?.actualLoad}
+        plannedLoad={weekLoad?.estimatedLoad}
+        isLoading={isLoadLoading}
+      />
     </div>
   );
 }
 
-function PlannedDoneSummary({ events }: P) {
+function PlannedDoneSummary({
+  events,
+  weekLoad,
+  isLoadLoading,
+}: SummaryWithLoadProps) {
   const todoTrainings = events.filter(
     (event) =>
       (event.type === EVENT_TYPE.TRAINING ||
@@ -131,18 +168,50 @@ function PlannedDoneSummary({ events }: P) {
       <ElevationStat
         elevation={totalActivitiesElevation + totalTrainingElevation}
       />
+      <LoadStat
+        totalLoad={weekLoad?.totalLoad}
+        actualLoad={weekLoad?.actualLoad}
+        plannedLoad={weekLoad?.estimatedLoad}
+        isLoading={isLoadLoading}
+      />
     </div>
   );
 }
 
-export function CalendarWeekSummary({ events }: P) {
-  const { summaryType } = useCalendarContext();
+export function CalendarWeekSummary({ events, week }: P) {
+  const { summaryType, weeklyLoadSummary, weeklyLoadSummaryLoading } =
+    useCalendarContext();
+  const weekKey = getWeekKey(week[0]);
+  const weekLoad = weeklyLoadSummary[weekKey];
 
   if (summaryType === 'done') {
-    return <DoneSummary events={events} />;
+    return (
+      <DoneSummary
+        events={events}
+        week={week}
+        weekLoad={weekLoad}
+        isLoadLoading={weeklyLoadSummaryLoading}
+      />
+    );
   } else if (summaryType === 'planned') {
-    return <PlannedSummary events={events} />;
+    return (
+      <PlannedSummary
+        events={events}
+        week={week}
+        weekLoad={weekLoad}
+        isLoadLoading={weeklyLoadSummaryLoading}
+      />
+    );
   } else if (summaryType === 'planned-done') {
-    return <PlannedDoneSummary events={events} />;
+    return (
+      <PlannedDoneSummary
+        events={events}
+        week={week}
+        weekLoad={weekLoad}
+        isLoadLoading={weeklyLoadSummaryLoading}
+      />
+    );
   }
+
+  return null;
 }
