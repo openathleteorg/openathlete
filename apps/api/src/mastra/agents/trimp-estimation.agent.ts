@@ -54,5 +54,5 @@ export const trimpEstimationAgent = new Agent({
 }
 
 Remember: respond **only** with the final JSON object.`,
-  model: openai('o3'),
+  model: openai('gpt-5.1'),
 });
