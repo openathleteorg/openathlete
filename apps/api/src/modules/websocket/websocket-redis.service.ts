@@ -42,10 +42,17 @@ export class WebSocketRedisService implements OnModuleInit {
           }
           return Math.min(times * 200, 2000);
         },
+        connectTimeout: 10000,
+        commandTimeout: 15000,
+        enableReadyCheck: true,
+        // maxRetriesPerRequest must be null for Socket.IO adapter
+        maxRetriesPerRequest: null,
       });
 
       this.subClient = this.pubClient.duplicate();
       this.subClient.options.db = subDb;
+      // Ensure subClient also has maxRetriesPerRequest set to null
+      this.subClient.options.maxRetriesPerRequest = null;
 
       this.adapter = createAdapter(this.pubClient, this.subClient);
 

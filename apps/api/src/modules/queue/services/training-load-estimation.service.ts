@@ -1,8 +1,15 @@
 import { Queue } from 'bullmq';
 
 import { InjectQueue } from '@nestjs/bullmq';
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  Optional,
+  forwardRef,
+} from '@nestjs/common';
 
+import { CalendarWebSocketService } from '../../calendar/services/calendar-websocket.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
 
 export interface TrainingLoadEstimationJobData {
@@ -19,6 +26,9 @@ export class TrainingLoadEstimationService {
     @InjectQueue('training-load-estimation')
     private readonly trainingLoadEstimationQueue: Queue<TrainingLoadEstimationJobData>,
     private readonly prisma: PrismaService,
+    @Optional()
+    @Inject(forwardRef(() => CalendarWebSocketService))
+    private readonly calendarWebSocketService?: CalendarWebSocketService,
   ) {}
 
   async scheduleEstimation(
@@ -76,6 +86,14 @@ export class TrainingLoadEstimationService {
           },
         },
       );
+
+      // Notify immediately that estimation is scheduled (will start in 1 minute)
+      if (this.calendarWebSocketService) {
+        this.calendarWebSocketService.notifyTrainingLoadEstimationStarted(
+          eventId,
+          athleteId,
+        );
+      }
 
       this.logger.log(
         `Scheduled training load estimation for event ${eventId} (athlete ${athleteId}) in 1 minute`,

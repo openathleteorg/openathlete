@@ -149,7 +149,9 @@ function parseRedisUrl(redisUrl: string): {
           },
           lazyConnect: false,
           connectTimeout: isWorker ? 30000 : 10000,
-          commandTimeout: isWorker ? 60000 : 5000,
+          commandTimeout: isWorker ? 60000 : 15000, // Increased from 5000 to 15000 for local dev
+          enableReadyCheck: true,
+          maxRetriesPerRequest: 3,
         };
 
         if (!redisUrl) {

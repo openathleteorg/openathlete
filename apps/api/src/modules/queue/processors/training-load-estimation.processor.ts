@@ -52,14 +52,6 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
   async process(job: Job<TrainingLoadEstimationJobData>) {
     const { eventId, eventTrainingId, athleteId } = job.data;
 
-    // Notify that estimation started
-    if (this.calendarWebSocketService) {
-      this.calendarWebSocketService.notifyTrainingLoadEstimationStarted(
-        eventId,
-        athleteId,
-      );
-    }
-
     try {
       this.logger.log(
         `Processing training load estimation for event ${eventId} (training ${eventTrainingId})...`,
