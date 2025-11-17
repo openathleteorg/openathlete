@@ -9,9 +9,12 @@ import ical, {
 import {
   BadRequestException,
   ForbiddenException,
+  Inject,
   Injectable,
   NotFoundException,
+  Optional,
   UnauthorizedException,
+  forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -50,6 +53,7 @@ import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { MessageThreadService } from 'src/modules/messages/services/message-thread.service';
 import { MessageService } from 'src/modules/messages/services/message.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { TrainingLoadEstimationService } from 'src/modules/queue';
 
 import {
   reductActivityStreamToResolution,
@@ -147,6 +151,9 @@ export class EventService {
     private eventEmitter: EventEmitter2,
     private messageThreadService: MessageThreadService,
     private messageService: MessageService,
+    @Optional()
+    @Inject(forwardRef(() => TrainingLoadEstimationService))
+    private trainingLoadEstimationService?: TrainingLoadEstimationService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -357,6 +364,27 @@ export class EventService {
       );
     }
 
+    // Schedule training load estimation for future training events
+    if (
+      type === 'TRAINING' &&
+      created.training &&
+      created.start_date > new Date() &&
+      this.trainingLoadEstimationService
+    ) {
+      this.trainingLoadEstimationService
+        .scheduleEstimation(
+          created.event_id,
+          created.training.event_training_id,
+          finalAthleteId,
+        )
+        .catch((error) => {
+          // Log but don't fail the request
+          console.error(
+            `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
+    }
+
     return this.getEventById(user, created.event_id);
   }
 
@@ -551,6 +579,27 @@ export class EventService {
           event.training.sport,
         );
       }
+    }
+
+    // Schedule training load estimation for future training events
+    if (
+      event.type === 'TRAINING' &&
+      event.training &&
+      updatedEvent.start_date > new Date() &&
+      this.trainingLoadEstimationService
+    ) {
+      this.trainingLoadEstimationService
+        .scheduleEstimation(
+          eventId,
+          event.training.event_training_id,
+          event.athlete_id!,
+        )
+        .catch((error) => {
+          // Log but don't fail the request
+          console.error(
+            `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     }
 
     // If date changed and there's a workout, emit event for new date too

@@ -8,7 +8,9 @@ import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
+import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { QueueService } from './queue.service';
+import { TrainingLoadEstimationService } from './services/training-load-estimation.service';
 
 function parseRedisUrl(redisUrl: string): {
   host: string;
@@ -116,7 +118,7 @@ function parseRedisUrl(redisUrl: string): {
   imports: [
     ConfigModule,
     EventEmitterModule,
-    CoreModule,
+    forwardRef(() => CoreModule),
     forwardRef(() => ProvidersSyncModule),
     BullModule.forRootAsync({
       imports: [ConfigModule],
@@ -242,17 +244,38 @@ function parseRedisUrl(redisUrl: string): {
         },
       },
     }),
+    BullModule.registerQueue({
+      name: 'training-load-estimation',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+        removeOnComplete: {
+          age: 24 * 3600,
+          count: 1000,
+        },
+        removeOnFail: {
+          age: 7 * 24 * 3600,
+        },
+      },
+    }),
   ],
   providers: [
     PrismaService,
     QueueService,
+    TrainingLoadEstimationService,
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
       ? [ActivityImportProcessor]
       : []),
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
       ? [ActivityProcessingProcessor]
       : []),
+    ...(process.env.ENABLE_TRAINING_LOAD_ESTIMATION === 'true'
+      ? [TrainingLoadEstimationProcessor]
+      : []),
   ],
-  exports: [QueueService],
+  exports: [QueueService, TrainingLoadEstimationService],
 })
 export class QueueModule {}

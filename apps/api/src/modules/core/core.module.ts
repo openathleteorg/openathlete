@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from '../auth';
 import { MessagesModule } from '../messages/messages.module';
 import { PrismaService } from '../prisma/services/prisma.service';
+import { QueueModule } from '../queue';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
 import { BetaAccessController } from './controllers/beta-access.controller';
@@ -48,6 +49,7 @@ import { WeatherService } from './services/weather/weather.service';
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     forwardRef(() => MessagesModule),
+    forwardRef(() => QueueModule),
   ],
   controllers: [
     EventController,
