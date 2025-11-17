@@ -13,6 +13,7 @@ import {
 } from '@openathlete/database';
 import {
   ActivityStream,
+  CalendarWeekLoadSummary,
   CompressedActivityStream,
   keysToCamel,
 } from '@openathlete/shared';
@@ -832,6 +833,176 @@ export class TrainingLoadService {
     return history;
   }
 
+  async getWeeklyTrimpSummary(
+    user: AuthUser,
+    startDate: Date,
+    endDate: Date,
+    athleteId?: athlete['athlete_id'],
+  ): Promise<CalendarWeekLoadSummary[]> {
+    const ability = await this.abilities.getFor({ user });
+
+    let targetAthleteId: number;
+
+    if (athleteId) {
+      const athlete = await this.prisma.athlete.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      if (!ability.can('read', subject('athlete', athlete))) {
+        throw new ForbiddenException('Not allowed to access this athlete');
+      }
+
+      targetAthleteId = athleteId;
+    } else {
+      const athlete = await this.prisma.athlete.findFirst({
+        where: {
+          user: {
+            user_id: user.user_id,
+          },
+        },
+      });
+
+      if (!athlete) {
+        throw new NotFoundException('Athlete not found');
+      }
+
+      targetAthleteId = athlete.athlete_id;
+    }
+
+    const normalizedStart = this.getWeekStart(startDate);
+    const normalizedEnd = this.addDays(this.getWeekStart(endDate), 6);
+    normalizedStart.setUTCHours(0, 0, 0, 0);
+    normalizedEnd.setUTCHours(23, 59, 59, 999);
+
+    const weekSummaries = new Map<
+      string,
+      {
+        weekStart: Date;
+        weekEnd: Date;
+        actual: number;
+        estimated: number;
+      }
+    >();
+
+    for (
+      let cursor = new Date(normalizedStart);
+      cursor <= normalizedEnd;
+      cursor = this.addDays(cursor, 7)
+    ) {
+      const weekStart = new Date(cursor);
+      const weekEnd = this.addDays(weekStart, 6);
+      weekSummaries.set(weekStart.toISOString(), {
+        weekStart,
+        weekEnd,
+        actual: 0,
+        estimated: 0,
+      });
+    }
+
+    const trimpCalculation =
+      await this.prisma.training_load_calculation.findUnique({
+        where: {
+          athlete_id_type: {
+            athlete_id: targetAthleteId,
+            type: 'TRIMP_BANISTER',
+          },
+        },
+        select: {
+          training_load_calculation_id: true,
+        },
+      });
+
+    if (trimpCalculation) {
+      const entries = await this.prisma.training_load_entry.findMany({
+        where: {
+          calculation_id: trimpCalculation.training_load_calculation_id,
+          date: {
+            gte: normalizedStart,
+            lte: normalizedEnd,
+          },
+        },
+        select: {
+          date: true,
+          value: true,
+        },
+      });
+
+      for (const entry of entries) {
+        const weekStart = this.getWeekStart(entry.date);
+        const weekKey = weekStart.toISOString();
+        const summary =
+          weekSummaries.get(weekKey) ||
+          (() => {
+            const weekEnd = this.addDays(weekStart, 6);
+            const placeholder = { weekStart, weekEnd, actual: 0, estimated: 0 };
+            weekSummaries.set(weekKey, placeholder);
+            return placeholder;
+          })();
+
+        summary.actual += entry.value;
+      }
+    }
+
+    const plannedTrainings = await this.prisma.event_training.findMany({
+      where: {
+        estimated_load: {
+          not: null,
+        },
+        related_activity_id: null,
+        event: {
+          athlete_id: targetAthleteId,
+          start_date: {
+            gte: normalizedStart,
+            lte: normalizedEnd,
+          },
+          type: 'TRAINING',
+        },
+      },
+      select: {
+        estimated_load: true,
+        event: {
+          select: {
+            start_date: true,
+          },
+        },
+      },
+    });
+
+    for (const training of plannedTrainings) {
+      if (training.estimated_load === null) {
+        continue;
+      }
+
+      const eventDate = new Date(training.event.start_date);
+      const weekStart = this.getWeekStart(eventDate);
+      const weekKey = weekStart.toISOString();
+      const summary =
+        weekSummaries.get(weekKey) ||
+        (() => {
+          const weekEnd = this.addDays(weekStart, 6);
+          const placeholder = { weekStart, weekEnd, actual: 0, estimated: 0 };
+          weekSummaries.set(weekKey, placeholder);
+          return placeholder;
+        })();
+
+      summary.estimated += training.estimated_load;
+    }
+
+    return Array.from(weekSummaries.values())
+      .sort((a, b) => a.weekStart.getTime() - b.weekStart.getTime())
+      .map((summary) => ({
+        weekStart: summary.weekStart,
+        weekEnd: summary.weekEnd,
+        actualLoad: Number(summary.actual.toFixed(2)),
+        estimatedLoad: Number(summary.estimated.toFixed(2)),
+        totalLoad: Number((summary.actual + summary.estimated).toFixed(2)),
+      }));
+  }
+
   /**
    * Recalculate all training loads for an athlete
    * Useful when HR metrics are updated or for bulk recalculation
@@ -882,5 +1053,21 @@ export class TrainingLoadService {
     }
 
     return { processed, errors };
+  }
+
+  private getWeekStart(date: Date): Date {
+    const source = new Date(date);
+    const utcDate = new Date(
+      Date.UTC(source.getFullYear(), source.getMonth(), source.getDate()),
+    );
+    const day = (utcDate.getUTCDay() + 6) % 7;
+    utcDate.setUTCDate(utcDate.getUTCDate() - day);
+    return utcDate;
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const next = new Date(date);
+    next.setUTCDate(next.getUTCDate() + days);
+    return next;
   }
 }

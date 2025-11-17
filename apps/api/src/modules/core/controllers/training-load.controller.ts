@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -101,6 +102,29 @@ export class TrainingLoadController {
     );
 
     return history;
+  }
+
+  /**
+   * Get weekly TRIMP summary (actual + estimated load)
+   */
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get('weekly-summary')
+  async getWeeklyTrimpSummary(
+    @JwtUser() user: AuthUser,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+  ) {
+    if (!startDate || !endDate) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+
+    return this.trainingLoadService.getWeeklyTrimpSummary(
+      user,
+      new Date(startDate),
+      new Date(endDate),
+      athleteId,
+    );
   }
 
   /**
