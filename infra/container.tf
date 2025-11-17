@@ -90,6 +90,7 @@ resource "scaleway_container" "import_worker" {
     ENABLE_ACTIVITY_IMPORT = "true"
     ENABLE_ACTIVITY_PROCESSING = "true"
     ENABLE_TRAINING_LOAD_ESTIMATION = "true"
+    OPENAI_API_KEY = scaleway_secret_version.openai_api_key_v.data
   }
 
   depends_on = [
