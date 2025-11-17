@@ -12,7 +12,12 @@ import {
 } from '@openathlete/shared';
 
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
-import { DistanceStat, DurationStat, ElevationStat } from '../numeric-stats';
+import {
+  DistanceStat,
+  DurationStat,
+  ElevationStat,
+  EstimatedLoadStat,
+} from '../numeric-stats';
 import { SelectEvent } from '../select-event';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -55,6 +60,14 @@ export function TrainingCompetitionDetails({ event }: P) {
                   elevation={event.goalElevationGain}
                 />
               )}
+              {isTraining &&
+                (event as TrainingEvent).estimatedLoad !== null &&
+                (event as TrainingEvent).estimatedLoad !== undefined && (
+                  <EstimatedLoadStat
+                    label={m.estimated_training_load()}
+                    estimatedLoad={(event as TrainingEvent).estimatedLoad}
+                  />
+                )}
             </div>
           </CardContent>
         </Card>

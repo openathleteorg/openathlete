@@ -130,6 +130,7 @@
   "description": "Description",
   "goal_distance": "Goal Distance",
   "goal_duration": "Goal Duration",
+  "estimated_training_load": "Estimated Training Load",
   "goal_elevation_gain": "Goal Elevation Gain",
   "goal_rpe": "Goal RPE",
   "rpe": "RPE",

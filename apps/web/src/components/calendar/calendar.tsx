@@ -111,13 +111,36 @@ export function Calendar({
       return;
     }
 
+    let isSubscribed = false;
+
+    const handleConnect = () => {
+      // Re-subscribe when reconnected
+      if (!isSubscribed) {
+        CalendarAPI.subscribe(athleteId);
+        isSubscribed = true;
+      }
+    };
+
+    const handleDisconnect = () => {
+      isSubscribed = false;
+    };
+
     // Connect to websocket
     CalendarAPI.connectSocket().catch((error) => {
       console.error('[Calendar] Failed to connect websocket:', error);
     });
 
-    // Subscribe to athlete events
-    CalendarAPI.subscribe(athleteId);
+    const socket = CalendarAPI.getSocket();
+
+    // Set up connection/disconnection handlers
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+
+    // Subscribe immediately if already connected
+    if (socket.connected) {
+      CalendarAPI.subscribe(athleteId);
+      isSubscribed = true;
+    }
 
     // Set up event listeners
     const cleanup = CalendarAPI.onEvent((event) => {
@@ -168,7 +191,11 @@ export function Calendar({
 
     return () => {
       cleanup();
-      CalendarAPI.unsubscribe(athleteId);
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      if (isSubscribed) {
+        CalendarAPI.unsubscribe(athleteId);
+      }
     };
   }, [athleteId, queryClient, refetchWeeklyLoadSummary]);
 

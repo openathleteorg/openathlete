@@ -115,6 +115,7 @@
   "description": "Description",
   "goal_distance": "Distance cible",
   "goal_duration": "Durée cible",
+  "estimated_training_load": "Charge estimée",
   "goal_elevation_gain": "Gain d'altitude cible",
   "goal_rpe": "RPE cible",
   "rpe": "RPE",
