@@ -179,10 +179,21 @@ function PlannedDoneSummary({
 }
 
 export function CalendarWeekSummary({ events, week }: P) {
-  const { summaryType, weeklyLoadSummary, weeklyLoadSummaryLoading } =
-    useCalendarContext();
+  const {
+    summaryType,
+    weeklyLoadSummary,
+    weeklyLoadSummaryLoading,
+    estimatingEvents,
+  } = useCalendarContext();
   const weekKey = getWeekKey(week[0]);
   const weekLoad = weeklyLoadSummary[weekKey];
+
+  // Check if any event in this week is being estimated
+  const hasEstimatingEvent = events.some(
+    (event) =>
+      event.type === EVENT_TYPE.TRAINING && estimatingEvents.has(event.eventId),
+  );
+  const isLoadLoading = weeklyLoadSummaryLoading || hasEstimatingEvent;
 
   if (summaryType === 'done') {
     return (
@@ -190,7 +201,7 @@ export function CalendarWeekSummary({ events, week }: P) {
         events={events}
         week={week}
         weekLoad={weekLoad}
-        isLoadLoading={weeklyLoadSummaryLoading}
+        isLoadLoading={isLoadLoading}
       />
     );
   } else if (summaryType === 'planned') {
@@ -199,7 +210,7 @@ export function CalendarWeekSummary({ events, week }: P) {
         events={events}
         week={week}
         weekLoad={weekLoad}
-        isLoadLoading={weeklyLoadSummaryLoading}
+        isLoadLoading={isLoadLoading}
       />
     );
   } else if (summaryType === 'planned-done') {
@@ -208,7 +219,7 @@ export function CalendarWeekSummary({ events, week }: P) {
         events={events}
         week={week}
         weekLoad={weekLoad}
-        isLoadLoading={weeklyLoadSummaryLoading}
+        isLoadLoading={isLoadLoading}
       />
     );
   }

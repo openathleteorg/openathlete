@@ -1,6 +1,9 @@
+import { CalendarAPI } from '@/api/calendar/calendar.api';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
+import { eventKeys } from '@/api/event/event.keys';
 import { useWeeklyTrimpSummaryQuery } from '@/api/training-load';
+import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
 import { m } from '@/paraglide/messages';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
@@ -12,6 +15,7 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
+import { useQueryClient } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -64,13 +68,22 @@ export function Calendar({
     return { start, end };
   }, [weekRangeStart, weekRangeEnd]);
 
-  const { data: weeklyLoadSummary, isPending: weeklyLoadSummaryLoading } =
-    useWeeklyTrimpSummaryQuery(
-      loadRange.start,
-      loadRange.end,
-      athleteId,
-      Boolean(loadRange.start && loadRange.end),
-    );
+  const queryClient = useQueryClient();
+  const {
+    data: weeklyLoadSummary,
+    isPending: weeklyLoadSummaryLoading,
+    refetch: refetchWeeklyLoadSummary,
+  } = useWeeklyTrimpSummaryQuery(
+    loadRange.start,
+    loadRange.end,
+    athleteId,
+    Boolean(loadRange.start && loadRange.end),
+  );
+
+  // Track events with ongoing load estimations
+  const [estimatingEvents, setEstimatingEvents] = useState<Set<number>>(
+    new Set(),
+  );
 
   const weeklyLoadSummaryMap = useMemo(() => {
     if (!weeklyLoadSummary) {
@@ -91,6 +104,74 @@ export function Calendar({
       onMonthChange(calendarData.displayedMonth);
     }
   }, [calendarData.displayedMonth, onMonthChange]);
+
+  // WebSocket connection and event handling
+  useEffect(() => {
+    if (!athleteId) {
+      return;
+    }
+
+    // Connect to websocket
+    CalendarAPI.connectSocket().catch((error) => {
+      console.error('[Calendar] Failed to connect websocket:', error);
+    });
+
+    // Subscribe to athlete events
+    CalendarAPI.subscribe(athleteId);
+
+    // Set up event listeners
+    const cleanup = CalendarAPI.onEvent((event) => {
+      switch (event.type) {
+        case 'training_load_estimation_started': {
+          setEstimatingEvents((prev) => {
+            const next = new Set(prev);
+            next.add(event.payload.eventId);
+            return next;
+          });
+          break;
+        }
+        case 'training_load_estimation_completed': {
+          setEstimatingEvents((prev) => {
+            const next = new Set(prev);
+            next.delete(event.payload.eventId);
+            return next;
+          });
+          // Invalidate and refetch weekly load summary
+          queryClient.invalidateQueries({
+            queryKey: [trainingLoadKeys.getWeeklyTrimpSummary],
+          });
+          refetchWeeklyLoadSummary();
+          break;
+        }
+        case 'training_load_estimation_failed': {
+          setEstimatingEvents((prev) => {
+            const next = new Set(prev);
+            next.delete(event.payload.eventId);
+            return next;
+          });
+          break;
+        }
+        case 'activity_processed': {
+          // Invalidate events query to refresh the calendar
+          queryClient.invalidateQueries({
+            queryKey: [eventKeys.getMyEvents],
+          });
+          // Also invalidate weekly load summary
+          queryClient.invalidateQueries({
+            queryKey: [trainingLoadKeys.getWeeklyTrimpSummary],
+          });
+          refetchWeeklyLoadSummary();
+          break;
+        }
+      }
+    });
+
+    return () => {
+      cleanup();
+      CalendarAPI.unsubscribe(athleteId);
+    };
+  }, [athleteId, queryClient, refetchWeeklyLoadSummary]);
+
   const [eventDetailsOpened, setEventDetailsOpened] = useState<
     Event['eventId'] | null
   >(null);
@@ -202,6 +283,7 @@ export function Calendar({
       setColoredBy,
       weeklyLoadSummary: weeklyLoadSummaryMap,
       weeklyLoadSummaryLoading,
+      estimatingEvents,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -218,6 +300,7 @@ export function Calendar({
       athleteId,
       weeklyLoadSummaryMap,
       weeklyLoadSummaryLoading,
+      estimatingEvents,
     ],
   );
 

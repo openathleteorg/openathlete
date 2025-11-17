@@ -1,12 +1,14 @@
 import { Job, Queue } from 'bullmq';
 
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { ActivityImportedEvent } from 'src/events';
 
+import { CalendarWebSocketService } from '../../calendar/services/calendar-websocket.service';
 import { ActivityPipelineService } from '../../core/services/pipeline/activity-pipeline.service';
+import { PrismaService } from '../../prisma/services/prisma.service';
 import { ActivityProcessingJobData } from '../queue.service';
 
 @Processor('activity-processing', {
@@ -18,8 +20,12 @@ export class ActivityProcessingProcessor extends WorkerHost {
   constructor(
     private readonly pipeline: ActivityPipelineService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly prisma: PrismaService,
     @InjectQueue('activity-processing')
     private readonly activityProcessingQueue: Queue<ActivityProcessingJobData>,
+    @Optional()
+    @Inject(forwardRef(() => CalendarWebSocketService))
+    private readonly calendarWebSocketService?: CalendarWebSocketService,
   ) {
     super();
   }
@@ -28,6 +34,14 @@ export class ActivityProcessingProcessor extends WorkerHost {
     const { eventActivityId, eventId, skipWeather } = job.data;
 
     try {
+      // Get athleteId from event before processing
+      const event = await this.prisma.event.findUnique({
+        where: { event_id: eventId },
+        select: { athlete_id: true },
+      });
+
+      const athleteId = event?.athlete_id;
+
       await this.pipeline.run({
         eventActivityId,
         eventId,
@@ -42,6 +56,14 @@ export class ActivityProcessingProcessor extends WorkerHost {
           skipWeather,
         }),
       );
+
+      // Notify that activity was processed
+      if (this.calendarWebSocketService && athleteId) {
+        this.calendarWebSocketService.notifyActivityProcessed(
+          eventId,
+          athleteId,
+        );
+      }
 
       return {
         success: true,

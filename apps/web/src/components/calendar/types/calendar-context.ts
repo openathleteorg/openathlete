@@ -33,6 +33,7 @@ export type CalendarContextType = {
   setColoredBy: (coloredBy: COLORED_BY | null) => void;
   weeklyLoadSummary: Record<string, CalendarWeekLoadSummary>;
   weeklyLoadSummaryLoading: boolean;
+  estimatingEvents: Set<number>;
   // Cycle management
   cycles: Cycle[];
   createCycle: (startDate: Date, endDate: Date) => void;

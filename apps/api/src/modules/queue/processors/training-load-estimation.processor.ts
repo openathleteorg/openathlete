@@ -1,7 +1,7 @@
 import { Job, Queue } from 'bullmq';
 
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
+import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 
 import { mapPrismaWorkoutToDto } from '@openathlete/shared';
 
@@ -12,6 +12,7 @@ import {
   fetchAthleteZones,
   getLatestMetrics,
 } from '../../agent/services/event-ai-helpers';
+import { CalendarWebSocketService } from '../../calendar/services/calendar-websocket.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { TrainingLoadEstimationJobData } from '../services/training-load-estimation.service';
 import {
@@ -41,12 +42,23 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
     @InjectQueue('training-load-estimation')
     private readonly trainingLoadEstimationQueue: Queue<TrainingLoadEstimationJobData>,
+    @Optional()
+    @Inject(forwardRef(() => CalendarWebSocketService))
+    private readonly calendarWebSocketService?: CalendarWebSocketService,
   ) {
     super();
   }
 
   async process(job: Job<TrainingLoadEstimationJobData>) {
     const { eventId, eventTrainingId, athleteId } = job.data;
+
+    // Notify that estimation started
+    if (this.calendarWebSocketService) {
+      this.calendarWebSocketService.notifyTrainingLoadEstimationStarted(
+        eventId,
+        athleteId,
+      );
+    }
 
     try {
       this.logger.log(
@@ -189,6 +201,15 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         `✓ Training load estimated for event ${eventId}: ${result.trimp_banister} TRIMP`,
       );
 
+      // Notify that estimation completed
+      if (this.calendarWebSocketService) {
+        this.calendarWebSocketService.notifyTrainingLoadEstimationCompleted(
+          eventId,
+          athleteId,
+          result.trimp_banister,
+        );
+      }
+
       return {
         success: true,
         eventId,
@@ -201,6 +222,16 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         `Failed to estimate training load for event ${eventId}: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error.stack : undefined,
       );
+
+      // Notify that estimation failed
+      if (this.calendarWebSocketService) {
+        this.calendarWebSocketService.notifyTrainingLoadEstimationFailed(
+          eventId,
+          athleteId,
+          error instanceof Error ? error.message : String(error),
+        );
+      }
+
       throw error;
     }
   }

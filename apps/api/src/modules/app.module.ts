@@ -10,6 +10,7 @@ import {
 import { AgentModule } from './agent/agent.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
+import { CalendarModule } from './calendar/calendar.module';
 import { CoreModule } from './core';
 import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
@@ -23,6 +24,7 @@ import { QueueModule } from './queue';
     CoreModule,
     AgentModule,
     MessagesModule,
+    CalendarModule,
     EventEmitterModule.forRoot(),
     NotificationModule,
     ProvidersSyncModule,

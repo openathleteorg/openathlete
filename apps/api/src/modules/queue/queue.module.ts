@@ -3,6 +3,7 @@ import { Logger, Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
+import { CalendarModule } from '../calendar/calendar.module';
 import { CoreModule } from '../core';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
@@ -120,6 +121,7 @@ function parseRedisUrl(redisUrl: string): {
     EventEmitterModule,
     forwardRef(() => CoreModule),
     forwardRef(() => ProvidersSyncModule),
+    forwardRef(() => CalendarModule),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: () => {
