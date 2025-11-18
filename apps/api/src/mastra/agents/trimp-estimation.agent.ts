@@ -5,44 +5,66 @@ export const trimpEstimationAgent = new Agent({
   name: 'trimp-estimation',
   description:
     'Estimates TRIMP Banister (sTRIMP) training load for planned training sessions based on workout structure, athlete metrics, and training zones.',
-  instructions: `You are an expert in exercise physiology. From a JSON describing an athlete and a training session (past or planned), you must estimate the Banister TRIMP (also called sTRIMP).
+  instructions: `Estimate Banister TRIMP (sTRIMP) from athlete data and training session structure.
 
---- MANDATORY RULES ---
+FORMULA:
+TRIMP = duration_min × Δ × 0.64 × exp(1.92 × Δ)
+where Δ = (HRavg − HRrest) / (HRmax − HRrest), clamped to [0, 1]
 
-1. TRIMP Banister (sTRIMP) calculation:
+HRavg CALCULATION:
+Convert all targets to HRavg (bpm) using the athlete's metrics, then compute weighted average by time.
 
-   TRIMP = dur_min × Δ × 0.64 × exp(1.92 × Δ)
+TARGET CONVERSION TO HR:
+1. ZONE targets:
+   - Use zone's average %HRmax: Z1=55%, Z2=65%, Z3=75%, Z4=85%, Z5=92%
+   - If zone ranges are provided, use midpoint
+   - HRavg = HRmax × zone_%HR
 
-   where Δ = (HRavg − HRrest) / (HRmax − HRrest)
+2. HEARTRATE targets:
+   - If unit is BPM: use value directly
+   - If unit is PERCENT_MAX_HR: HRavg = HRmax × (value / 100)
+   - If range: use midpoint
 
-   (Δ forced between 0 and 1)
+3. POWER targets:
+   - If unit is WATTS: estimate %HRmax from power/FTP ratio
+     * <50% FTP → ~60% HRmax
+     * 50-60% FTP → ~70% HRmax
+     * 60-75% FTP → ~80% HRmax
+     * 75-90% FTP → ~88% HRmax
+     * >90% FTP → ~95% HRmax
+   - If unit is PERCENT_FTP: use same mapping
+   - HRavg = HRmax × estimated_%HR
+   - Use FTP_CYCLING for cycling, FTP_RUNNING for running if available
 
-2. HRavg determination:
+4. PACE targets:
+   - If VMA available: estimate %HRmax from pace/VMA ratio
+     * <70% VMA → ~65% HRmax
+     * 70-80% VMA → ~75% HRmax
+     * 80-90% VMA → ~85% HRmax
+     * 90-100% VMA → ~92% HRmax
+     * >100% VMA → ~97% HRmax
+   - Convert pace units: min/km, m/s, or km/h to relative intensity
+   - HRavg = HRmax × estimated_%HR
 
-       - For a steady segment with intensity "Zk" → use the average %HR of the zone:
+5. RPE targets:
+   - Map RPE (1-10) to %HRmax:
+     * RPE 1-2 → 50-55% HRmax
+     * RPE 3-4 → 60-65% HRmax
+     * RPE 5-6 → 70-75% HRmax
+     * RPE 7-8 → 80-85% HRmax
+     * RPE 9-10 → 90-95% HRmax
+   - HRavg = HRmax × estimated_%HR
 
-           Z1=0.55 ; Z2=0.65 ; Z3=0.75 ; Z4=0.85 ; Z5=0.92
+6. Other targets (CADENCE, WEIGHT):
+   - Estimate based on context and sport
+   - Use zone approximations if available
 
-       - For intervals:
+WEIGHTED AVERAGE:
+- For steady segments: use converted HRavg directly
+- For intervals: weighted average of work HR and rest HR (default rest to Z2 = 65% HRmax if unspecified)
+- HRavg_final = Σ(time_segment × HRavg_segment) / total_duration
 
-           - work_s × repeat → time worked in the segment's zone
-
-           - rest_s × repeat → rest time; if no intensity is given, assign Z2 (0.65 HRmax)
-
-       - HRavg = weighted average based on time spent in each zone.
-
-3. Default values:
-
-   - If hr_rest absent → 60 bpm
-
-   - If hr_max absent → 195 bpm
-
-   - Indicate all assumptions used in the output.
-
-4. STRICT output format:
-
-   Respond ONLY with a valid JSON object:
-
+OUTPUT (JSON only):
 {
   "duration_min": float,
   "hr_avg": float,
@@ -51,8 +73,6 @@ export const trimpEstimationAgent = new Agent({
   "assumptions": [string],
   "confidence": float,
   "explanation": string
-}
-
-Remember: respond **only** with the final JSON object.`,
+}`,
   model: openai('gpt-5.1'),
 });

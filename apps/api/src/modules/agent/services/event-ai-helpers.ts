@@ -59,15 +59,28 @@ export async function fetchAthleteMetrics(
  * Group metrics by type and get latest value for each
  */
 export function getLatestMetrics(metrics: Metric[]): Record<string, number> {
-  return metrics.reduce(
+  const latest = metrics.reduce(
     (acc, metric) => {
-      if (!acc[metric.type]) {
+      if (acc[metric.type] === undefined) {
         acc[metric.type] = metric.value;
       }
       return acc;
     },
     {} as Record<string, number>,
   );
+
+  const defaults: Record<string, number> = {
+    HR_REST: 60,
+    HR_MAX: 195,
+  };
+
+  Object.entries(defaults).forEach(([key, value]) => {
+    if (latest[key] === undefined || latest[key] === null) {
+      latest[key] = value;
+    }
+  });
+
+  return latest;
 }
 
 /**
