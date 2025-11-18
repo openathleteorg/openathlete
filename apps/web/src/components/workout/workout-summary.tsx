@@ -46,21 +46,25 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
               )}
             </div>
 
-            {!step.repeatBlock && (
-              <DurationDisplay
-                className="text-sm text-muted-foreground"
-                durationType={step.durationType}
-                durationValue={step.durationValue}
-              />
-            )}
+            <div className="flex items-center gap-2">
+              {!step.repeatBlock && (
+                <DurationDisplay
+                  className="text-sm text-muted-foreground"
+                  durationType={step.durationType}
+                  durationValue={step.durationValue}
+                />
+              )}
 
-            {step.targets && step.targets.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {step.targets.map((target: WorkoutStepTarget, idx: number) => (
-                  <TargetBadge key={idx} target={target} />
-                ))}
-              </div>
-            )}
+              {step.targets && step.targets.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {step.targets.map(
+                    (target: WorkoutStepTarget, idx: number) => (
+                      <TargetBadge key={idx} target={target} />
+                    ),
+                  )}
+                </div>
+              )}
+            </div>
 
             {step.notes && (
               <p className="text-sm text-muted-foreground italic">

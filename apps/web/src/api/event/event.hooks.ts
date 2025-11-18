@@ -45,7 +45,9 @@ export const useUpdateEventMutation = (
     onSuccess: (data, variables, onMutateResult, context) => {
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
-      queryClient.invalidateQueries({
+      // Invalidate event queries - this will also invalidate workouts since they're part of events
+      // Using resetQueries to completely expire the cache and force a fresh fetch
+      queryClient.resetQueries({
         queryKey: [eventKeys.getEvent, variables.eventId],
       });
       queryClient.invalidateQueries({
@@ -74,10 +76,10 @@ export const useUpdateEventMutation = (
 
       if (updateIndex === -1) return;
 
-      (events[updateIndex] as any) = {
+      events[updateIndex] = {
         ...events[updateIndex],
         ...variables.body,
-      };
+      } as Event;
       queryClient.setQueryData([eventKeys.getMyEvents], events);
     },
   });

@@ -188,12 +188,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           workout?: { steps: CreateWorkoutStepDto[] } | null;
         })
       : null;
-    const hasWorkout =
-      isTraining &&
-      trainingEventData &&
-      trainingEventData.workout &&
-      trainingEventData.workout.steps;
-
     // Update form with modified event data
     if (modifiedEvent.name) setValue('name', modifiedEvent.name);
     if (modifiedEvent.description !== undefined)
@@ -230,14 +224,19 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     if (isTraining && trainingEventData && 'goalRpe' in trainingEventData) {
       setValue('goalRpe', trainingEventData.goalRpe ?? null);
     }
-    if (
-      isTraining &&
-      hasWorkout &&
-      trainingEventData &&
-      trainingEventData.workout &&
-      trainingEventData.workout.steps
-    ) {
-      setWorkoutSteps(trainingEventData.workout.steps);
+    // Always update workout steps for training events, even if empty
+    // This ensures that AI modifications (including removal of steps) are reflected
+    if (isTraining && trainingEventData) {
+      if (
+        trainingEventData.workout &&
+        trainingEventData.workout.steps &&
+        trainingEventData.workout.steps.length > 0
+      ) {
+        setWorkoutSteps(trainingEventData.workout.steps);
+      } else {
+        // Clear steps if workout is empty or doesn't exist
+        setWorkoutSteps([]);
+      }
     }
   };
 
