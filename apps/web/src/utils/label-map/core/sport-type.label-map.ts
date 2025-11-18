@@ -22,7 +22,8 @@ export const sportTypeLabelMap: Record<SPORT_TYPE, string> = {
   [SPORT_TYPE.GOLF]: m.sport_golf(),
   [SPORT_TYPE.GRAVEL_RIDE]: m.sport_gravel_ride(),
   [SPORT_TYPE.HANDCYCLE]: m.sport_handcycle(),
-  [SPORT_TYPE.HIGH_INTENSITY_INTERVAL_TRAINING]: m.sport_high_intensity_interval_training(),
+  [SPORT_TYPE.HIGH_INTENSITY_INTERVAL_TRAINING]:
+    m.sport_high_intensity_interval_training(),
   [SPORT_TYPE.ICE_SKATE]: m.sport_ice_skate(),
   [SPORT_TYPE.INLINE_SKATE]: m.sport_inline_skate(),
   [SPORT_TYPE.KAYAKING]: m.sport_kayaking(),

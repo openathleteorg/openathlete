@@ -1218,10 +1218,7 @@ export class EventService {
     }
 
     // Notify websocket for training load reload (same as updateEvent)
-    if (
-      originalEvent.type === 'TRAINING' &&
-      originalEvent.athlete_id
-    ) {
+    if (originalEvent.type === 'TRAINING' && originalEvent.athlete_id) {
       this.calendarWebSocketService?.notifyWeeklyLoadUpdated(
         originalEvent.athlete_id,
         {

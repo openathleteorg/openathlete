@@ -2,6 +2,7 @@ import { useTrainingZones } from '@/hooks/use-training-zones';
 import { m } from '@/paraglide/messages';
 import { Fragment, useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
 
 import {
   ActivityStream,
@@ -78,13 +79,13 @@ export function HeartrateChart({
         data={chartData}
         syncId="event"
         syncMethod="value"
-        onMouseDown={(e: any) => {
+        onMouseDown={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (e && typeof e.activeLabel === 'number') {
             setRefAreaStart(e.activeLabel);
             setRefAreaEnd(undefined);
           }
         }}
-        onMouseMove={(e: any) => {
+        onMouseMove={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (
             refAreaStart !== undefined &&
             e &&

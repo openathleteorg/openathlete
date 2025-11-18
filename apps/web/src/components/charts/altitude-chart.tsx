@@ -1,6 +1,7 @@
 import { m } from '@/paraglide/messages';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
 
 import { ActivityStream } from '@openathlete/shared';
 
@@ -60,13 +61,13 @@ export function AltitudeChart({
         data={chartData}
         syncId="event"
         syncMethod="value"
-        onMouseDown={(e: any) => {
+        onMouseDown={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (e && typeof e.activeLabel === 'number') {
             setRefAreaStart(e.activeLabel);
             setRefAreaEnd(undefined);
           }
         }}
-        onMouseMove={(e: any) => {
+        onMouseMove={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (
             refAreaStart !== undefined &&
             e &&

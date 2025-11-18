@@ -1,5 +1,6 @@
 import alpineSkiing from '@/assets/icons/sports/alpine_skiing.svg';
 import biking from '@/assets/icons/sports/biking.svg';
+import climbingStairs from '@/assets/icons/sports/climbing_stairs.svg';
 import crossCountrySkiing from '@/assets/icons/sports/cross_country_skiing.svg';
 import ellipticalTraining from '@/assets/icons/sports/elliptical_training.svg';
 import exerciseDumbbells from '@/assets/icons/sports/exercise_dumbbells.svg';
@@ -26,7 +27,6 @@ import trailRun from '@/assets/icons/sports/trail_run.svg';
 import treadmillRunning from '@/assets/icons/sports/treadmill_running.svg';
 import treePose from '@/assets/icons/sports/tree_pose.svg';
 import walk from '@/assets/icons/sports/walk.svg';
-import climbingStairs from '@/assets/icons/sports/climbing_stairs.svg';
 import { cn } from '@/utils/shadcn';
 import { useMemo } from 'react';
 

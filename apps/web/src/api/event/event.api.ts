@@ -47,7 +47,7 @@ export class EventAPI {
     startDate?: Date,
     endDate?: Date,
   ): Promise<Event[]> {
-    const params: any = { coach: isCoach, athleteId };
+    const params: Record<string, unknown> = { coach: isCoach, athleteId };
 
     if (startDate) {
       params.startDate = startDate.toISOString();

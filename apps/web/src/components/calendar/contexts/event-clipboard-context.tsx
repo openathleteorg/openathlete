@@ -44,6 +44,7 @@ export function EventClipboardProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useEventClipboard() {
   const context = useContext(EventClipboardContext);
 
@@ -55,4 +56,3 @@ export function useEventClipboard() {
 
   return context;
 }
-
