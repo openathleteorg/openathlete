@@ -13,6 +13,7 @@ export const baseEventFormSchema = z.object({
   }),
   name: z.string().min(1, m.required()).max(100),
   description: z.string().optional(),
+  saveAsTemplate: z.boolean().optional(),
 });
 
 // Training event schema

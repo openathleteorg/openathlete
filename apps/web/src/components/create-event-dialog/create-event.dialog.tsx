@@ -16,6 +16,7 @@ import { EVENT_TYPE } from '@openathlete/shared';
 
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
 import { FormProvider } from '../hook-form';
+import { RHFCheckbox } from '../hook-form/rhf-checkbox';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { AIModifyEventDialog } from './components/ai-modify-event-dialog';
@@ -294,10 +295,18 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             sportValue={sportValue}
           />
 
-          <Button type="submit" className="w-full" isLoading={isSubmitting}>
-            {edit ? m.edit() : m.create()} {m.the()}
-            {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button type="submit" className="flex-1" isLoading={isSubmitting}>
+              {edit ? m.edit() : m.create()} {m.the()}
+              {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
+            </Button>
+            {create && (
+              <RHFCheckbox
+                name="saveAsTemplate"
+                label={m.save_event_as_template()}
+              />
+            )}
+          </div>
         </FormProvider>
       </DialogContent>
       {currentEventData && (

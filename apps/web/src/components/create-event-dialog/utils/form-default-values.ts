@@ -116,6 +116,7 @@ export function getFormDefaultValues(
       startDate,
       endDate,
       sport: SPORT_TYPE.RUNNING,
+      saveAsTemplate: false,
     };
   }
 

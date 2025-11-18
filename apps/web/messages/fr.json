@@ -633,6 +633,8 @@
   "folder_created_successfully": "Dossier créé avec succès",
   "template_moved_successfully": "Modèle déplacé avec succès",
   "template_saved_successfully": "Modèle enregistré avec succès",
+  "save_event_as_template": "Enregistrer aussi comme modèle",
+  "failed_to_save_template": "Échec de l'enregistrement du modèle",
   "failed_to_move_template": "Échec du déplacement du modèle",
   "cannot_move_folder_circular": "Impossible de déplacer le dossier dans lui-même ou ses descendants",
   "folder_moved_successfully": "Dossier déplacé avec succès",

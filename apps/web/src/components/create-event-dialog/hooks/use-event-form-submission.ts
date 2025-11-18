@@ -1,4 +1,5 @@
 import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
+import { useCreateEventTemplateMutation } from '@/api/event-template';
 import { m } from '@/paraglide/messages';
 import { useCallback } from 'react';
 import { UseFormHandleSubmit } from 'react-hook-form';
@@ -35,6 +36,15 @@ export function useEventFormSubmission(
   const edit = 'event' in props;
   const create = 'type' in props && 'date' in props;
 
+  const createEventTemplateMutation = useCreateEventTemplateMutation({
+    onSuccess: () => {
+      toast.success(m.template_saved_successfully());
+    },
+    onError: () => {
+      toast.error(m.failed_to_save_template());
+    },
+  });
+
   const createEventMutation = useCreateEventMutation({
     onSuccess: () => {
       toast.success(m.event_created_successfully());
@@ -58,9 +68,12 @@ export function useEventFormSubmission(
   const onSubmit = useCallback(
     (handleSubmit: UseFormHandleSubmit<EventFormValues>) =>
       handleSubmit(async (data: EventFormValues) => {
+        const { saveAsTemplate, ...eventData } = data;
+        const shouldSaveAsTemplate = saveAsTemplate === true;
+
         if (data.type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
           const eventWithWorkout = {
-            ...data,
+            ...eventData,
             athleteId,
             workout: {
               steps: workoutSteps,
@@ -68,7 +81,15 @@ export function useEventFormSubmission(
           };
 
           if (create) {
-            createEventMutation.mutate(eventWithWorkout as CreateEventDto);
+            createEventMutation.mutate(eventWithWorkout as CreateEventDto, {
+              onSuccess: (createdEvent) => {
+                if (shouldSaveAsTemplate && createdEvent.eventId) {
+                  createEventTemplateMutation.mutate({
+                    eventId: createdEvent.eventId,
+                  });
+                }
+              },
+            });
           } else if (edit && 'event' in props && props.event) {
             updateEventMutation.mutate({
               eventId: props.event.eventId,
@@ -77,14 +98,25 @@ export function useEventFormSubmission(
           }
         } else {
           if (create) {
-            createEventMutation.mutate({
-              ...(data as CreateEventDto),
-              athleteId,
-            });
+            createEventMutation.mutate(
+              {
+                ...(eventData as CreateEventDto),
+                athleteId,
+              },
+              {
+                onSuccess: (createdEvent) => {
+                  if (shouldSaveAsTemplate && createdEvent.eventId) {
+                    createEventTemplateMutation.mutate({
+                      eventId: createdEvent.eventId,
+                    });
+                  }
+                },
+              },
+            );
           } else if (edit && 'event' in props && props.event) {
             updateEventMutation.mutate({
               eventId: props.event.eventId,
-              body: data as UpdateEventDto,
+              body: eventData as UpdateEventDto,
             });
           }
         }
@@ -97,6 +129,7 @@ export function useEventFormSubmission(
       props,
       createEventMutation,
       updateEventMutation,
+      createEventTemplateMutation,
     ],
   );
 
