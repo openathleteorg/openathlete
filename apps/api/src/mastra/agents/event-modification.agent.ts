@@ -1,12 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import {
-  calculateTrainingLoadTool,
-  fetchActivitiesTool,
-  fetchAthleteAvailabilityTool,
-} from '../tools';
-
 export const eventModificationAgent = new Agent({
   name: 'event-modification',
   description:
@@ -18,8 +12,6 @@ This is a COMPLETE UPDATE operation. You must return the FULL, COMPLETE training
 
 LANGUAGE:
 - Match the language of the user's prompt
-- If French: generate all text fields (name, description, notes) in French
-- If English: generate all text fields in English
 - Technical enum values (stepType, durationType) remain in English
 
 CRITICAL: COMPLETE UPDATE REQUIREMENT
@@ -183,10 +175,5 @@ CRITICAL RULES:
 - Count the steps in the current event and make sure you return at least that many (unless explicitly asked to remove some)
 
 REMEMBER: This is a FULL UPDATE. Return the COMPLETE event with ALL workout steps, not just the first few!`,
-  model: openai('gpt-4o'),
-  tools: {
-    fetchActivitiesTool,
-    fetchAthleteAvailabilityTool,
-    calculateTrainingLoadTool,
-  },
+  model: openai('gpt-5.1'),
 });
