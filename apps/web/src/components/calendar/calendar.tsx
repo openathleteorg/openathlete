@@ -29,6 +29,7 @@ import { CreateEventFromTemplateDialog } from '../create-event-from-template-dia
 import { CalendarBody } from './calendar-body';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
 import { CalendarHeader } from './calendar-header';
+import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
 import { CalendarContext } from './contexts/calendar-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType, SummaryType } from './types/calendar-context';
@@ -446,6 +447,12 @@ export function Calendar({
             </div>
           )}
         </div>
+        <CalendarWeeklyLoadChart
+          weeks={calendarData.displayedWeeks}
+          displayedMonth={calendarData.displayedMonth}
+          weeklyLoadSummary={weeklyLoadSummaryMap}
+          isLoading={weeklyLoadSummaryLoading}
+        />
         <CreateEventDialog
           key={createEventDialog?.date?.toDateString()}
           open={createEventDialog !== null}
