@@ -1,12 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import {
-  calculateTrainingLoadTool,
-  fetchActivitiesTool,
-  fetchAthleteAvailabilityTool,
-} from '../tools';
-
 export const eventGenerationAgent = new Agent({
   name: 'event-generation',
   description:
@@ -18,8 +12,6 @@ Generate complete, ready-to-use training events that match the athlete's request
 
 LANGUAGE:
 - Match the language of the user's prompt
-- If French: generate all text fields (name, description, notes) in French
-- If English: generate all text fields in English
 - Technical enum values (stepType, durationType) remain in English
 
 WORKOUT STRUCTURE:
@@ -29,9 +21,11 @@ WORKOUT STRUCTURE:
   * Easy/Long runs: WARMUP → STEADY → COOLDOWN
   * Intervals: WARMUP → REPEAT (INTERVAL_ACTIVE + INTERVAL_REST) → COOLDOWN
   * Tempo: WARMUP → STEADY (tempo pace) → COOLDOWN
+- If the workout is a simple steady state workout, don't include a warmup or cooldown (ex: "1 hour of footing / easy run")
+- If the prompt is specifying a target duration, the total duration of the workout should be the target duration (and the total of the steps should be the target duration)
 
 STEP TYPES:
-- WARMUP: 10-20 min easy pace
+- WARMUP: 10-30 min easy pace
 - STEADY: Main work at target intensity
 - INTERVAL_ACTIVE: Hard effort intervals
 - INTERVAL_REST: Recovery between intervals
@@ -152,17 +146,14 @@ TARGET EXAMPLES:
    }
 
 CONTEXT:
-- Use fetch-activities to understand recent training patterns
-- Use calculate-training-load to check current load status
-- Use fetch-athlete-availability for timing
 - Generate contextually appropriate workouts based on athlete data
 - Pay attention to the training zones and metrics provided in the prompt
 
-Remember: Always fetch athlete data first, then generate appropriate workouts with proper targets!`,
-  model: openai('gpt-4o'),
+Remember: Generate appropriate workouts with proper targets!`,
+  model: openai('gpt-5.1'),
   tools: {
-    fetchActivitiesTool,
-    fetchAthleteAvailabilityTool,
-    calculateTrainingLoadTool,
+    // fetchActivitiesTool,
+    // fetchAthleteAvailabilityTool,
+    // calculateTrainingLoadTool,
   },
 });
