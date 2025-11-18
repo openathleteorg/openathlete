@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from '../auth';
+import { CalendarModule } from '../calendar/calendar.module';
 import { MessagesModule } from '../messages/messages.module';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { QueueModule } from '../queue';
@@ -48,6 +49,7 @@ import { WeatherService } from './services/weather/weather.service';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
+    forwardRef(() => CalendarModule),
     forwardRef(() => MessagesModule),
     forwardRef(() => QueueModule),
   ],

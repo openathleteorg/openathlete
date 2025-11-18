@@ -8,6 +8,26 @@ export class CalendarWebSocketService {
 
   constructor(private readonly calendarGateway: CalendarGateway) {}
 
+  notifyWeeklyLoadUpdated(
+    athleteId: number,
+    context?: { eventId?: number; reason?: 'event_deleted' | 'event_updated' },
+  ): void {
+    try {
+      this.calendarGateway.broadcastToAthlete(
+        athleteId,
+        'weekly_load_updated',
+        {
+          athleteId,
+          ...context,
+        },
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to notify weekly load updated: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   notifyTrainingLoadEstimationStarted(
     eventId: number,
     athleteId: number,

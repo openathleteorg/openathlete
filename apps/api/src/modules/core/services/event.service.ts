@@ -50,6 +50,7 @@ import { ActivityImportedEvent, WorkoutPlannedChangedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
+import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
 import { MessageThreadService } from 'src/modules/messages/services/message-thread.service';
 import { MessageService } from 'src/modules/messages/services/message.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -154,6 +155,8 @@ export class EventService {
     @Optional()
     @Inject(forwardRef(() => TrainingLoadEstimationService))
     private trainingLoadEstimationService?: TrainingLoadEstimationService,
+    @Optional()
+    private readonly calendarWebSocketService?: CalendarWebSocketService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -771,9 +774,18 @@ export class EventService {
       where: { event_id: eventId },
     });
 
-    return this.prisma.event.delete({
+    const deletedEvent = await this.prisma.event.delete({
       where: { event_id: eventId },
     });
+
+    if (event.athlete_id) {
+      this.calendarWebSocketService?.notifyWeeklyLoadUpdated(event.athlete_id, {
+        eventId,
+        reason: 'event_deleted',
+      });
+    }
+
+    return deletedEvent;
   }
 
   async getEventStream(

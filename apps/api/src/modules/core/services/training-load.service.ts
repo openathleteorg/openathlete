@@ -81,6 +81,113 @@ export class TrainingLoadService {
     private readonly abilities: CaslAbilityFactory,
   ) {}
 
+  private clamp(value: number, min: number, max: number) {
+    if (value < min) {
+      return min;
+    }
+    if (value > max) {
+      return max;
+    }
+    return value;
+  }
+
+  private getWeekLoadSum(
+    dailyLoadLookup: Map<string, number>,
+    weekStart: Date,
+    weekEnd: Date,
+  ) {
+    const cursor = new Date(weekStart);
+    let sum = 0;
+
+    while (cursor <= weekEnd) {
+      const key = cursor.toISOString().split('T')[0];
+      sum += dailyLoadLookup.get(key) ?? 0;
+      cursor.setDate(cursor.getDate() + 1);
+    }
+
+    return sum;
+  }
+
+  private getRecentWeeklyLoads(
+    dailyLoadLookup: Map<string, number>,
+    referenceDate: Date,
+    weeks = 4,
+  ): number[] {
+    const loads: number[] = [];
+
+    for (let weekOffset = 0; weekOffset < weeks; weekOffset++) {
+      const weekEnd = new Date(referenceDate);
+      weekEnd.setDate(weekEnd.getDate() - weekOffset * 7);
+      const weekStart = new Date(weekEnd);
+      weekStart.setDate(weekStart.getDate() - 6);
+      loads.push(this.getWeekLoadSum(dailyLoadLookup, weekStart, weekEnd));
+    }
+
+    return loads;
+  }
+
+  private calculateRecommendedRangeFromWeeklyLoads(weeklyLoads: number[]) {
+    if (weeklyLoads.length === 0) {
+      return { min: 0, max: 0 };
+    }
+
+    const acuteLoad = weeklyLoads[0] ?? 0;
+    const chronicLoads = weeklyLoads.slice(1).filter((load) => load > 0);
+    const chronicBaseline =
+      chronicLoads.length > 0
+        ? chronicLoads.reduce((sum, load) => sum + load, 0) /
+          chronicLoads.length
+        : acuteLoad;
+
+    const previousWeek = weeklyLoads[1] ?? acuteLoad;
+    const loadSlope =
+      chronicBaseline > 0 ? (acuteLoad - previousWeek) / chronicBaseline : 0;
+    const clampedSlope = this.clamp(loadSlope, -0.2, 0.2);
+
+    const BASE_MIN_RATIO = 0.8;
+    const BASE_MAX_RATIO = 1.2;
+    const ABS_MIN_RATIO = 0.75;
+    const ABS_MAX_RATIO = 1.3;
+
+    const adjustedMinRatio = this.clamp(
+      BASE_MIN_RATIO + clampedSlope * 0.5,
+      ABS_MIN_RATIO,
+      1,
+    );
+    const adjustedMaxRatio = this.clamp(
+      BASE_MAX_RATIO + clampedSlope,
+      1,
+      ABS_MAX_RATIO,
+    );
+
+    const safeMinRatio = Math.min(adjustedMinRatio, adjustedMaxRatio - 0.05);
+
+    const baseMin = Math.max(0, chronicBaseline * safeMinRatio);
+    const baseMax = Math.max(chronicBaseline * adjustedMaxRatio, 0);
+
+    if (baseMax <= baseMin) {
+      return {
+        min: baseMin,
+        max: baseMax,
+      };
+    }
+
+    const zoneSpan = baseMax - baseMin;
+    const normalizedPosition = this.clamp(
+      (acuteLoad - baseMin) / zoneSpan,
+      0,
+      1,
+    );
+
+    const PROGRESSION_SHIFT_RATIO = 0.25;
+    const shift = zoneSpan * PROGRESSION_SHIFT_RATIO * normalizedPosition;
+
+    return {
+      min: baseMin + shift,
+      max: baseMax + shift,
+    };
+  }
+
   /**
    * Get or create a training load calculation for an athlete
    */
@@ -640,6 +747,7 @@ export class TrainingLoadService {
 
     // Generate ALL days from startDate to targetDate (including days without activity)
     const allDays: Array<{ date: Date; load: number }> = [];
+    const dailyLoadLookup = new Map<string, number>();
     const currentDate = new Date(startDate);
     currentDate.setHours(0, 0, 0, 0);
 
@@ -647,10 +755,13 @@ export class TrainingLoadService {
       const dateKey = currentDate.toISOString().split('T')[0];
       const load = loadMap.get(dateKey) || 0; // 0 load for rest days
 
-      allDays.push({
+      const dayEntry = {
         date: new Date(currentDate),
         load,
-      });
+      };
+
+      allDays.push(dayEntry);
+      dailyLoadLookup.set(dateKey, load);
 
       currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -684,12 +795,17 @@ export class TrainingLoadService {
       status = 'optimal';
     }
 
-    // Calculate recommended load range (10% progression rule)
-    const avgWeeklyLoad = totalLoad / (trainingDays / 7 || 1);
-    const recommendedLoadRange = {
-      min: avgWeeklyLoad * 0.95,
-      max: avgWeeklyLoad * 1.1,
-    };
+    // Calculate recommended load range using ACWR-informed ramp logic
+    const normalizedTargetDate = new Date(targetDate);
+    normalizedTargetDate.setHours(0, 0, 0, 0);
+
+    const weeklyLoads = this.getRecentWeeklyLoads(
+      dailyLoadLookup,
+      normalizedTargetDate,
+    );
+
+    const recommendedLoadRange =
+      this.calculateRecommendedRangeFromWeeklyLoads(weeklyLoads);
 
     return {
       atl,
@@ -992,15 +1108,33 @@ export class TrainingLoadService {
       summary.estimated += training.estimated_load;
     }
 
-    return Array.from(weekSummaries.values())
-      .sort((a, b) => a.weekStart.getTime() - b.weekStart.getTime())
-      .map((summary) => ({
+    const sortedSummaries = Array.from(weekSummaries.values()).sort(
+      (a, b) => a.weekStart.getTime() - b.weekStart.getTime(),
+    );
+
+    return sortedSummaries.map((summary, index, allSummaries) => {
+      const weeklyLoads: number[] = [];
+
+      for (let offset = 0; offset < 4; offset++) {
+        const targetIndex = index - offset;
+        weeklyLoads.push(
+          targetIndex >= 0 ? allSummaries[targetIndex].actual : 0,
+        );
+      }
+
+      const recommendedRange =
+        this.calculateRecommendedRangeFromWeeklyLoads(weeklyLoads);
+
+      return {
         weekStart: summary.weekStart,
         weekEnd: summary.weekEnd,
         actualLoad: Number(summary.actual.toFixed(2)),
         estimatedLoad: Number(summary.estimated.toFixed(2)),
         totalLoad: Number((summary.actual + summary.estimated).toFixed(2)),
-      }));
+        recommendedMin: Number(recommendedRange.min.toFixed(2)),
+        recommendedMax: Number(recommendedRange.max.toFixed(2)),
+      };
+    });
   }
 
   /**

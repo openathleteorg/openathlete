@@ -368,11 +368,7 @@ export class StravaProviderService
     event: { event_id: number },
     activity: StravaSummaryActivity,
   ): Promise<event_activity> {
-    const shouldFetchStreams =
-      !activity.manual &&
-      !!activity.map?.summary_polyline &&
-      activity.map.summary_polyline.length > 0 &&
-      activity.distance > 0;
+    const shouldFetchStreams = !activity.manual;
 
     let streams: StravaSteam[] = [];
 
