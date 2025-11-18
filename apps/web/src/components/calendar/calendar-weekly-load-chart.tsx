@@ -200,13 +200,13 @@ export function CalendarWeeklyLoadChart({
                 stackId="zone"
                 stroke="none"
                 fill="hsl(var(--muted-foreground))"
-                fillOpacity={0.15}
+                fillOpacity={0.1}
                 isAnimationActive={false}
               />
               <Line
                 type="linear"
                 dataKey="totalLoad"
-                stroke="var(--primary)"
+                stroke="var(--chart-1)"
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}

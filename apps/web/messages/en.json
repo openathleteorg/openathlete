@@ -166,7 +166,7 @@
   "zone_status_high": "Above the sweet spot",
   "weekly_zone_range_label": "Weekly load vs sweet spot",
   "weekly_zone_chart_title": "Weekly load vs target zone",
-  "weekly_zone_chart_description": "Track how each week aligns with the recommended TRIMP band.",
+  "weekly_zone_chart_description": "Track how each week aligns with the recommended load range.",
   "weekly_zone_chart_empty": "No load data for this month yet.",
   "normalized": "Normalized",
   "normalized_speed": "Normalized speed",
