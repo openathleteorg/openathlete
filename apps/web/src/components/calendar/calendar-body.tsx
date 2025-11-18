@@ -39,7 +39,7 @@ export function CalendarBody() {
   });
 
   return (
-    <div className="w-full border-1 rounded-lg">
+    <div className="w-full border-1 rounded-lg shadow-sm">
       <div className="grid grid-cols-8 border-b-1">
         {displayedWeeks[0].map((day, i) => (
           <div
