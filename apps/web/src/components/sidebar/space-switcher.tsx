@@ -62,6 +62,10 @@ export function SpaceSwitcher() {
   const hasNoAthletes = !coachedAthletes || coachedAthletes.length === 0;
 
   React.useEffect(() => {
+    if (activeSpace?.role === 'COACH' && hasNoAthletes) {
+      setSpace('ATHLETE');
+    }
+
     if (!activeSpace || spaces.length <= 1 || hasNoAthletes) {
       return;
     }

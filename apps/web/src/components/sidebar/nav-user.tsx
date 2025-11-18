@@ -21,8 +21,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useAuthContext } from '@/contexts/auth';
+import { useLanguageSync } from '@/hooks/use-language-sync';
 import { m } from '@/paraglide/messages';
-import { getLocale, setLocale } from '@/paraglide/runtime';
+import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { getLocaleName } from '@/utils/locales';
 import { ChevronsUpDown, CogIcon, LogOut } from 'lucide-react';
@@ -34,6 +35,7 @@ export function NavUser() {
   const navigate = useNavigate();
   const { isMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
+  const { syncLanguage } = useLanguageSync();
 
   if (!user) {
     return null;
@@ -103,7 +105,7 @@ export function NavUser() {
                         key={lang}
                         className={getLocale() === lang ? 'font-bold' : ''}
                         onClick={() => {
-                          setLocale(lang as 'en' | 'fr');
+                          syncLanguage(lang as 'en' | 'fr');
                         }}
                       >
                         {getLocaleName(lang)}

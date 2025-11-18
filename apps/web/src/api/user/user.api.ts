@@ -25,6 +25,10 @@ export class UserAPI {
     return res.data;
   }
 
+  static async updateLanguage(language: 'FR' | 'EN'): Promise<void> {
+    await client.patch(routes.user.updateLanguage, { language });
+  }
+
   static async passwordResetRequest(
     body: PasswordResetRequestDto,
   ): Promise<void> {

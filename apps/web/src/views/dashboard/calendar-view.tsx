@@ -3,10 +3,8 @@ import { useGetMyEventsQuery } from '@/api/event';
 import { Calendar } from '@/components/calendar/calendar';
 import { useSpaceContext } from '@/contexts/space';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 export function CalendarView() {
-  const nav = useNavigate();
   const { data: athlete } = useGetMyAthleteQuery();
   const { space } = useSpaceContext();
   const [displayedMonth, setDisplayedMonth] = useState(new Date());
@@ -34,11 +32,8 @@ export function CalendarView() {
   );
 
   useEffect(() => {
-    if (space === 'COACH') {
-      nav('/dashboard/coach');
-    }
     refetch();
-  }, [space, startDate, endDate, refetch, nav]);
+  }, [startDate, endDate, refetch]);
 
   const handleMonthChange = useCallback((month: Date) => {
     setDisplayedMonth(month);

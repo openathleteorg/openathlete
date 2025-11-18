@@ -16,9 +16,10 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { useAuthContext } from '@/contexts/auth';
+import { useLanguageSync } from '@/hooks/use-language-sync';
 import { usePageActions } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
-import { getLocale, setLocale } from '@/paraglide/runtime';
+import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { getLocaleName } from '@/utils/locales';
 import { ArrowLeft, CogIcon, LogOut, Menu, MoreVertical } from 'lucide-react';
@@ -47,6 +48,7 @@ function isProfileSubPage(pathname: string): boolean {
 
 export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
   const { logout, user } = useAuthContext();
+  const { syncLanguage } = useLanguageSync();
   const navigate = useNavigate();
   const location = useLocation();
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -146,7 +148,7 @@ export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
                       key={lang}
                       className={getLocale() === lang ? 'font-bold' : ''}
                       onClick={() => {
-                        setLocale(lang as 'en' | 'fr');
+                        syncLanguage(lang as 'en' | 'fr');
                       }}
                     >
                       {getLocaleName(lang)}

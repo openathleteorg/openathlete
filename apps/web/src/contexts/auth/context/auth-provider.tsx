@@ -62,6 +62,20 @@ export function AuthProvider({ children }: Props) {
 
         const user = await UserAPI.getMe();
 
+        // Update language if provided in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlLang = urlParams.get('lang');
+        if (urlLang && (urlLang === 'fr' || urlLang === 'en')) {
+          const language = urlLang.toUpperCase() as 'FR' | 'EN';
+          if (user.language !== language) {
+            try {
+              await UserAPI.updateLanguage(language);
+            } catch (error) {
+              console.error('Failed to update language:', error);
+            }
+          }
+        }
+
         dispatch({
           type: Types.INITIAL,
           payload: {
@@ -71,6 +85,20 @@ export function AuthProvider({ children }: Props) {
       } else {
         try {
           const user = await UserAPI.getMe();
+
+          // Update language if provided in URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlLang = urlParams.get('lang');
+          if (urlLang && (urlLang === 'fr' || urlLang === 'en')) {
+            const language = urlLang.toUpperCase() as 'FR' | 'EN';
+            if (user.language !== language) {
+              try {
+                await UserAPI.updateLanguage(language);
+              } catch (error) {
+                console.error('Failed to update language:', error);
+              }
+            }
+          }
 
           dispatch({
             type: Types.INITIAL,
