@@ -3,7 +3,7 @@ import { useGetEventStreamQuery, useGetEventWeatherQuery } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { useMemo } from 'react';
 
-import { ActivityEvent } from '@openathlete/shared';
+import { ActivityEvent, getSportConfig } from '@openathlete/shared';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ActivityDetailsOverviewTab } from './tabs/activity-details-overview-tab';
@@ -26,12 +26,14 @@ export function ActivityDetails({ event }: P) {
     'gap',
     'temp',
   ]);
+  const sportConfig = getSportConfig(event.sport);
   const hasSplits = useMemo(() => {
+    if (!sportConfig.showSplits) return false;
     const d = stream?.distance;
     if (!d?.length) return false;
     const lastDistance = d[d.length - 1] ?? 0;
     return Math.floor(lastDistance / 1000) > 0;
-  }, [stream?.distance]);
+  }, [stream?.distance, sportConfig.showSplits]);
 
   const { data: weather } = useGetEventWeatherQuery(event.eventId);
 
@@ -51,7 +53,7 @@ export function ActivityDetails({ event }: P) {
       </TabsContent>
       {hasSplits && (
         <TabsContent value="splits">
-          <ActivityDetailsSplitsTab stream={stream} />
+          <ActivityDetailsSplitsTab stream={stream} sport={event.sport} />
         </TabsContent>
       )}
       {weather && (

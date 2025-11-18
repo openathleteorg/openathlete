@@ -2,8 +2,10 @@ import { m } from '@/paraglide/messages';
 
 import {
   ActivityStream,
-  formatDuration,
+  SPORT_TYPE,
   formatSpeed,
+  formatSpeedUnit,
+  getSportConfig,
 } from '@openathlete/shared';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -18,10 +20,15 @@ import {
 
 interface P {
   stream: ActivityStream | undefined;
+  sport: SPORT_TYPE;
 }
 
-export function ActivityDetailsSplitsTab({ stream }: P) {
+export function ActivityDetailsSplitsTab({ stream, sport }: P) {
+  const config = getSportConfig(sport);
   const splits = computeSplits(stream);
+
+  const speedLabel = config.speedLabel === 'pace' ? m.pace() : m.speed();
+  const speedUnitLabel = formatSpeedUnit(config.speedUnit);
 
   return (
     <Card>
@@ -35,17 +42,23 @@ export function ActivityDetailsSplitsTab({ stream }: P) {
               <TableHead>{m.kilometers()}</TableHead>
               <TableHead>{m.split()}</TableHead>
               <TableHead>
-                {m.pace()} {m.per_km()}
+                {speedLabel} ({speedUnitLabel})
               </TableHead>
-              <TableHead>
-                {m.elevation_gain()} ({m.meters()})
-              </TableHead>
-              <TableHead>
-                {m.elevation_loss()} ({m.meters()})
-              </TableHead>
-              <TableHead>
-                {m.gap()} ({m.per_km()})
-              </TableHead>
+              {config.showElevation && (
+                <>
+                  <TableHead>
+                    {m.elevation_gain()} ({m.meters()})
+                  </TableHead>
+                  <TableHead>
+                    {m.elevation_loss()} ({m.meters()})
+                  </TableHead>
+                </>
+              )}
+              {config.showGap && (
+                <TableHead>
+                  {m.gap()} ({speedUnitLabel})
+                </TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -53,18 +66,29 @@ export function ActivityDetailsSplitsTab({ stream }: P) {
               <TableRow key={s.km}>
                 <TableCell>{s.km}</TableCell>
                 <TableCell>{formatSec(s.durationSec)}</TableCell>
-                <TableCell>{formatDuration(s.paceSecPerKm)}</TableCell>
                 <TableCell>
-                  {s.ascentM !== undefined ? Math.round(s.ascentM) : '-'}
+                  {formatSpeed(
+                    s.paceSecPerKm > 0 ? 1000 / s.paceSecPerKm : 0,
+                    config.speedUnit,
+                  )}
                 </TableCell>
-                <TableCell>
-                  {s.descentM !== undefined ? Math.round(s.descentM) : '-'}
-                </TableCell>
-                <TableCell>
-                  {s.gapMps !== undefined
-                    ? formatSpeed(s.gapMps, 'min/km')
-                    : '-'}
-                </TableCell>
+                {config.showElevation && (
+                  <>
+                    <TableCell>
+                      {s.ascentM !== undefined ? Math.round(s.ascentM) : '-'}
+                    </TableCell>
+                    <TableCell>
+                      {s.descentM !== undefined ? Math.round(s.descentM) : '-'}
+                    </TableCell>
+                  </>
+                )}
+                {config.showGap && (
+                  <TableCell>
+                    {s.gapMps !== undefined
+                      ? formatSpeed(s.gapMps, config.speedUnit)
+                      : '-'}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>

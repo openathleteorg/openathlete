@@ -2,8 +2,15 @@ import { m } from '@/paraglide/messages';
 import { despikeAndEma } from '@/utils/despike';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
 
-import { ActivityStream, formatSpeed } from '@openathlete/shared';
+import {
+  ActivityStream,
+  SPORT_TYPE,
+  formatSpeed,
+  formatSpeedUnit,
+  getSportConfig,
+} from '@openathlete/shared';
 
 import { useActivityDetailsSelection } from '../event-details/activity-details-selection-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
@@ -12,6 +19,7 @@ interface P {
   latLngStream: Exclude<ActivityStream['latlng'], undefined>;
   timeStream?: Exclude<ActivityStream['time'], undefined>;
   distanceStream?: Exclude<ActivityStream['distance'], undefined>;
+  sport: SPORT_TYPE;
   onHover?: (hover?: { index: number; time: number }) => void;
 }
 
@@ -19,8 +27,10 @@ export function SpeedChart({
   latLngStream,
   timeStream,
   distanceStream,
+  sport,
   onHover,
 }: P) {
+  const config = getSportConfig(sport);
   const { domain, setDomain, reset, fullDomain } =
     useActivityDetailsSelection();
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
@@ -84,7 +94,7 @@ export function SpeedChart({
     <ChartContainer
       config={{
         speed: {
-          label: m.pace(),
+          label: config.speedLabel === 'pace' ? m.pace() : m.speed(),
         },
       }}
       className="h-[100px] w-full"
@@ -94,13 +104,13 @@ export function SpeedChart({
         data={chartData}
         syncId="event"
         syncMethod="value"
-        onMouseDown={(e: any) => {
+        onMouseDown={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (e && typeof e.activeLabel === 'number') {
             setRefAreaStart(e.activeLabel);
             setRefAreaEnd(undefined);
           }
         }}
-        onMouseMove={(e: any) => {
+        onMouseMove={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (
             refAreaStart !== undefined &&
             e &&
@@ -170,9 +180,9 @@ export function SpeedChart({
                 <div className="flex min-w-[130px] items-center text-xs text-muted-foreground gap-2">
                   {name}
                   <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                    {formatSpeed(Number(value), 'min/km')}
+                    {formatSpeed(Number(value), config.speedUnit)}
                     <span className="font-normal text-muted-foreground">
-                      {m.per_km()}
+                      {formatSpeedUnit(config.speedUnit)}
                     </span>
                   </div>
                 </div>

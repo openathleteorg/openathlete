@@ -10,6 +10,8 @@ import {
   ActivityStream,
   formatDuration,
   formatSpeed,
+  formatSpeedUnit,
+  getSportConfig,
 } from '@openathlete/shared';
 
 import { AltitudeChart } from '../../charts/altitude-chart';
@@ -62,6 +64,7 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
   }, [stream?.distance, stream?.time]);
 
   const { data: normalization } = useGetEventNormalizationQuery(event.eventId);
+  const speedConfig = getSportConfig(event.sport);
 
   const normLabel = (factor: string) => {
     const key = `normalization_${factor.toLowerCase()}` as keyof typeof m;
@@ -130,7 +133,11 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                 <>
                   <Card className="col-span-2">
                     <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle>{m.pace()}</CardTitle>
+                      <CardTitle>
+                        {speedConfig.speedLabel === 'pace'
+                          ? m.pace()
+                          : m.speed()}
+                      </CardTitle>
                       <div className="absolute right-10">
                         <ZoomResetButton />
                       </div>
@@ -140,6 +147,7 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                         latLngStream={stream.latlng}
                         timeStream={stream.time}
                         distanceStream={stream.distance}
+                        sport={event.sport}
                         onHover={setHover}
                       />
                     </CardContent>
@@ -157,6 +165,7 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                           gapStream={stream.gap as number[]}
                           timeStream={stream.time}
                           distanceStream={stream.distance}
+                          sport={event.sport}
                           onHover={setHover}
                         />
                       </CardContent>
@@ -244,7 +253,11 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
             {typeof normalization.averageNormalizedSpeed === 'number' && (
               <div className="text-sm">
                 <span className="font-medium">{m.normalized_speed()}:</span>{' '}
-                {formatSpeed(normalization.averageNormalizedSpeed)} {m.per_km()}
+                {formatSpeed(
+                  normalization.averageNormalizedSpeed,
+                  speedConfig.speedUnit,
+                )}{' '}
+                {formatSpeedUnit(speedConfig.speedUnit)}
               </div>
             )}
             <Table>

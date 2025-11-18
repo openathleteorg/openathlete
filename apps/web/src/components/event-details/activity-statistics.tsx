@@ -1,6 +1,10 @@
 import { m } from '@/paraglide/messages';
 
-import { ActivityEvent, ActivityStream, SPORT_TYPE } from '@openathlete/shared';
+import {
+  ActivityEvent,
+  ActivityStream,
+  getSportConfig,
+} from '@openathlete/shared';
 
 import {
   DistanceStat,
@@ -21,130 +25,63 @@ interface P {
 }
 
 export function ActivityStatistics({ event, stream }: P) {
-  if (
-    event.sport === SPORT_TYPE.RUNNING ||
-    event.sport === SPORT_TYPE.TRAIL_RUNNING
-  ) {
-    return (
-      <>
+  const config = getSportConfig(event.sport);
+
+  return (
+    <>
+      {config.showDistance && (
         <DistanceStat label={m.distance()} distance={event.distance} />
-        <SpeedStat label={m.average_speed()} speed={event.averageSpeed} />
-        {typeof event.averageGapSpeed === 'number' && (
-          <SpeedStat label="GAP" speed={event.averageGapSpeed} />
-        )}
-        <DurationStat
-          label={m.duration()}
-          duration={event.movingTime}
-          movingDuration={event.movingTime}
-        />
-        <ElevationStat
-          label={m.elevation_gain()}
-          elevation={event.elevationGain}
-          altitudeStream={stream?.altitude}
-          distanceStream={stream?.distance}
-        />
-        {event.averageHeartrate && (
-          <HeartrateStat
-            label={m.average_heart_rate()}
-            heartrate={event.averageHeartrate}
-            sport={event.sport}
-          />
-        )}
-        {event.maxHeartrate && (
-          <HeartrateStat
-            label={m.max_heart_rate()}
-            heartrate={event.maxHeartrate}
-            sport={event.sport}
-          />
-        )}
-        {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
-        <ActivityTrainingLoadStats activityId={event.eventId} />
-      </>
-    );
-  } else if (event.sport === SPORT_TYPE.CYCLING) {
-    return (
-      <>
-        <DistanceStat label={m.distance()} distance={event.distance} />
+      )}
+      {config.showSpeed && (
         <SpeedStat
           label={m.average_speed()}
           speed={event.averageSpeed}
-          unit="km/h"
+          unit={config.speedUnit}
         />
-        <DurationStat
-          label={m.duration()}
-          duration={event.movingTime}
-          movingDuration={event.movingTime}
+      )}
+      {config.showMaxSpeed && event.maxSpeed && (
+        <SpeedStat
+          label={m.max_speed()}
+          speed={event.maxSpeed}
+          unit={config.speedUnit}
         />
-        <SpeedStat label={m.max_speed()} speed={event.maxSpeed} unit="km/h" />
+      )}
+      {config.showGap && typeof event.averageGapSpeed === 'number' && (
+        <SpeedStat
+          label={m.gap()}
+          speed={event.averageGapSpeed}
+          unit={config.speedUnit}
+        />
+      )}
+      <DurationStat
+        label={m.duration()}
+        duration={event.movingTime}
+        movingDuration={event.movingTime}
+      />
+      {config.showElevation && (
         <ElevationStat
           label={m.elevation_gain()}
           elevation={event.elevationGain}
           altitudeStream={stream?.altitude}
           distanceStream={stream?.distance}
         />
-        {event.averageHeartrate && (
-          <HeartrateStat
-            label={m.average_heart_rate()}
-            heartrate={event.averageHeartrate}
-            sport={event.sport}
-          />
-        )}
-        {event.maxHeartrate && (
-          <HeartrateStat
-            label={m.max_heart_rate()}
-            heartrate={event.maxHeartrate}
-            sport={event.sport}
-          />
-        )}
-        {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
-        <ActivityTrainingLoadStats activityId={event.eventId} />
-      </>
-    );
-  } else if (event.sport === SPORT_TYPE.HIKING) {
-    return (
-      <>
-        <DistanceStat label={m.distance()} distance={event.distance} />
-        <SpeedStat label={m.average_speed()} speed={event.averageSpeed} />
-        <DurationStat
-          label={m.duration()}
-          duration={event.movingTime}
-          movingDuration={event.movingTime}
+      )}
+      {config.showHeartrate && event.averageHeartrate && (
+        <HeartrateStat
+          label={m.average_heart_rate()}
+          heartrate={event.averageHeartrate}
+          sport={event.sport}
         />
-        <ElevationStat
-          label={m.elevation_gain()}
-          elevation={event.elevationGain}
-          altitudeStream={stream?.altitude}
-          distanceStream={stream?.distance}
+      )}
+      {config.showHeartrate && event.maxHeartrate && (
+        <HeartrateStat
+          label={m.max_heart_rate()}
+          heartrate={event.maxHeartrate}
+          sport={event.sport}
         />
-        {event.averageHeartrate && (
-          <HeartrateStat
-            label={m.average_heart_rate()}
-            heartrate={event.averageHeartrate}
-            sport={event.sport}
-          />
-        )}
-        {event.maxHeartrate && (
-          <HeartrateStat
-            label={m.max_heart_rate()}
-            heartrate={event.maxHeartrate}
-            sport={event.sport}
-          />
-        )}
-        {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
-        <ActivityTrainingLoadStats activityId={event.eventId} />
-      </>
-    );
-  } else {
-    return (
-      <>
-        <DurationStat
-          label={m.duration()}
-          duration={event.movingTime}
-          movingDuration={event.movingTime}
-        />
-        {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
-        <ActivityTrainingLoadStats activityId={event.eventId} />
-      </>
-    );
-  }
+      )}
+      {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}
+      <ActivityTrainingLoadStats activityId={event.eventId} />
+    </>
+  );
 }

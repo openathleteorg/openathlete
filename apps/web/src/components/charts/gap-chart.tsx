@@ -2,8 +2,14 @@ import { m } from '@/paraglide/messages';
 import { despikeAndEma } from '@/utils/despike';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
+import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
 
-import { formatSpeed } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  formatSpeed,
+  formatSpeedUnit,
+  getSportConfig,
+} from '@openathlete/shared';
 
 import { useActivityDetailsSelection } from '../event-details/activity-details-selection-context';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
@@ -12,6 +18,7 @@ interface P {
   gapStream: number[];
   timeStream?: number[];
   distanceStream?: number[];
+  sport: SPORT_TYPE;
   onHover?: (hover?: { index: number; time: number }) => void;
 }
 
@@ -19,8 +26,10 @@ export function GapChart({
   gapStream,
   timeStream,
   distanceStream,
+  sport,
   onHover,
 }: P) {
+  const config = getSportConfig(sport);
   const { domain, setDomain, reset, fullDomain } =
     useActivityDetailsSelection();
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
@@ -52,9 +61,7 @@ export function GapChart({
   const displayData = useMemo(() => {
     const [from, to] = xDomain;
     if (from === undefined || to === undefined) return chartData;
-    const filtered = chartData.filter(
-      (d) => (d as any).x >= from && (d as any).x <= to,
-    );
+    const filtered = chartData.filter((d) => d.x >= from && d.x <= to);
     return filtered.length > 1 ? filtered : chartData;
   }, [chartData, xDomain]);
 
@@ -72,13 +79,13 @@ export function GapChart({
         data={chartData}
         syncId="event"
         syncMethod="value"
-        onMouseDown={(e: any) => {
+        onMouseDown={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (e && typeof e.activeLabel === 'number') {
             setRefAreaStart(e.activeLabel);
             setRefAreaEnd(undefined);
           }
         }}
-        onMouseMove={(e: any) => {
+        onMouseMove={(e: Parameters<CategoricalChartFunc>['0']) => {
           if (
             refAreaStart !== undefined &&
             e &&
@@ -148,9 +155,9 @@ export function GapChart({
                 <div className="flex min-w-[130px] items-center text-xs text-muted-foreground gap-2">
                   {m.gap()}
                   <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
-                    {formatSpeed(Number(value), 'min/km')}
+                    {formatSpeed(Number(value), config.speedUnit)}
                     <span className="font-normal text-muted-foreground">
-                      / km
+                      {formatSpeedUnit(config.speedUnit)}
                     </span>
                   </div>
                 </div>
