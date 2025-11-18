@@ -91,6 +91,10 @@ export class TrainingLoadService {
     return value;
   }
 
+  private lerp(a: number, b: number, t: number) {
+    return a + (b - a) * t;
+  }
+
   private getWeekLoadSum(
     dailyLoadLookup: Map<string, number>,
     weekStart: Date,
@@ -126,7 +130,10 @@ export class TrainingLoadService {
     return loads;
   }
 
-  private calculateRecommendedRangeFromWeeklyLoads(weeklyLoads: number[]) {
+  private calculateRecommendedRangeFromWeeklyLoads(
+    weeklyLoads: number[],
+    previousRecommendation?: { min: number; max: number },
+  ) {
     if (weeklyLoads.length === 0) {
       return { min: 0, max: 0 };
     }
@@ -144,10 +151,10 @@ export class TrainingLoadService {
       chronicBaseline > 0 ? (acuteLoad - previousWeek) / chronicBaseline : 0;
     const clampedSlope = this.clamp(loadSlope, -0.2, 0.2);
 
-    const BASE_MIN_RATIO = 0.8;
-    const BASE_MAX_RATIO = 1.2;
-    const ABS_MIN_RATIO = 0.75;
-    const ABS_MAX_RATIO = 1.3;
+    const BASE_MIN_RATIO = 0.75;
+    const BASE_MAX_RATIO = 1.3;
+    const ABS_MIN_RATIO = 0.7;
+    const ABS_MAX_RATIO = 1.4;
 
     const adjustedMinRatio = this.clamp(
       BASE_MIN_RATIO + clampedSlope * 0.5,
@@ -160,31 +167,86 @@ export class TrainingLoadService {
       ABS_MAX_RATIO,
     );
 
-    const safeMinRatio = Math.min(adjustedMinRatio, adjustedMaxRatio - 0.05);
+    const safeMinRatio = Math.min(adjustedMinRatio, adjustedMaxRatio - 0.1);
 
-    const baseMin = Math.max(0, chronicBaseline * safeMinRatio);
-    const baseMax = Math.max(chronicBaseline * adjustedMaxRatio, 0);
+    const previousWeekLoad = weeklyLoads[1] ?? chronicBaseline;
+    const baselineReference =
+      previousWeekLoad > 0
+        ? previousWeekLoad
+        : chronicLoads.length > 0
+          ? chronicBaseline
+          : acuteLoad;
+
+    let baseMin = Math.max(0, baselineReference * safeMinRatio);
+    let baseMax = Math.max(baselineReference * adjustedMaxRatio, 0);
 
     if (baseMax <= baseMin) {
-      return {
-        min: baseMin,
-        max: baseMax,
-      };
+      baseMax = baseMin + 1;
     }
 
-    const zoneSpan = baseMax - baseMin;
-    const normalizedPosition = this.clamp(
-      (acuteLoad - baseMin) / zoneSpan,
-      0,
-      1,
+    const ANCHOR_BLEND = 0.5;
+    const ZERO_WEEK_DECAY = 0.5;
+
+    if (acuteLoad > 0) {
+      baseMin = Math.max(0, this.lerp(baseMin, acuteLoad * 0.85, ANCHOR_BLEND));
+      baseMax = Math.max(
+        baseMin + 1,
+        this.lerp(baseMax, acuteLoad * 1.15, ANCHOR_BLEND),
+      );
+    } else {
+      baseMin *= ZERO_WEEK_DECAY;
+      baseMax = Math.max(baseMin + 1, baseMax * ZERO_WEEK_DECAY);
+    }
+
+    const normalizedPrevious = Math.max(1, baselineReference);
+
+    let trendRatio = acuteLoad / normalizedPrevious;
+    if (!isFinite(trendRatio) || trendRatio <= 0) {
+      trendRatio = acuteLoad > 0 ? 1 : ZERO_WEEK_DECAY;
+    }
+
+    let weightedTrend: number;
+
+    const previousRecommendationCenter = previousRecommendation
+      ? (previousRecommendation.min + previousRecommendation.max) / 2
+      : undefined;
+
+    const SHORTFALL_DECAY = 0.3;
+    const ZERO_WEEK_SHORTFALL_DECAY = 0.5;
+
+    if (
+      previousRecommendationCenter &&
+      previousRecommendationCenter > 0 &&
+      (acuteLoad < previousRecommendationCenter || acuteLoad === 0)
+    ) {
+      const deficit =
+        acuteLoad === 0
+          ? 1
+          : (previousRecommendationCenter - acuteLoad) /
+            previousRecommendationCenter;
+      const decayFactor =
+        acuteLoad === 0 ? ZERO_WEEK_SHORTFALL_DECAY : SHORTFALL_DECAY;
+      weightedTrend = Math.max(0.4, 1 - deficit * decayFactor);
+    } else {
+      const TREND_CLAMP_MIN = 0.6;
+      const TREND_CLAMP_MAX = 1.4;
+      const TREND_WEIGHT = 0.6;
+
+      weightedTrend =
+        1 +
+        (this.clamp(trendRatio, TREND_CLAMP_MIN, TREND_CLAMP_MAX) - 1) *
+          TREND_WEIGHT;
+    }
+
+    const progressiveMin = Math.max(0, baseMin * weightedTrend);
+    const progressiveMax = Math.max(
+      progressiveMin + 1,
+      baseMax * weightedTrend,
     );
 
-    const PROGRESSION_SHIFT_RATIO = 0.25;
-    const shift = zoneSpan * PROGRESSION_SHIFT_RATIO * normalizedPosition;
-
     return {
-      min: baseMin + shift,
-      max: baseMax + shift,
+      min: progressiveMin,
+      max: progressiveMax,
     };
   }
 
@@ -994,6 +1056,9 @@ export class TrainingLoadService {
     normalizedStart.setUTCHours(0, 0, 0, 0);
     normalizedEnd.setUTCHours(23, 59, 59, 999);
 
+    const extendedStart = this.addDays(normalizedStart, -42);
+    extendedStart.setUTCHours(0, 0, 0, 0);
+
     const weekSummaries = new Map<
       string,
       {
@@ -1005,7 +1070,7 @@ export class TrainingLoadService {
     >();
 
     for (
-      let cursor = new Date(normalizedStart);
+      let cursor = new Date(extendedStart);
       cursor <= normalizedEnd;
       cursor = this.addDays(cursor, 7)
     ) {
@@ -1037,7 +1102,7 @@ export class TrainingLoadService {
         where: {
           calculation_id: trimpCalculation.training_load_calculation_id,
           date: {
-            gte: normalizedStart,
+            gte: extendedStart,
             lte: normalizedEnd,
           },
         },
@@ -1072,7 +1137,7 @@ export class TrainingLoadService {
         event: {
           athlete_id: targetAthleteId,
           start_date: {
-            gte: normalizedStart,
+            gte: extendedStart,
             lte: normalizedEnd,
           },
           type: 'TRAINING',
@@ -1112,18 +1177,54 @@ export class TrainingLoadService {
       (a, b) => a.weekStart.getTime() - b.weekStart.getTime(),
     );
 
-    return sortedSummaries.map((summary, index, allSummaries) => {
-      const weeklyLoads: number[] = [];
+    const recommendations: Array<{ min: number; max: number } | null> =
+      new Array(sortedSummaries.length).fill(null);
 
+    let projectedFutureWeek: CalendarWeekLoadSummary | null = null;
+
+    let recommendationForCurrentWeek: { min: number; max: number } | undefined;
+
+    for (let index = 0; index < sortedSummaries.length; index++) {
+      const weeklyLoads: number[] = [];
       for (let offset = 0; offset < 4; offset++) {
-        const targetIndex = index - offset;
+        const sourceIndex = index - offset;
         weeklyLoads.push(
-          targetIndex >= 0 ? allSummaries[targetIndex].actual : 0,
+          sourceIndex >= 0 ? sortedSummaries[sourceIndex].actual : 0,
         );
       }
+      const recommendedRange = this.calculateRecommendedRangeFromWeeklyLoads(
+        weeklyLoads,
+        recommendationForCurrentWeek,
+      );
+      recommendationForCurrentWeek = recommendedRange;
+      const targetIndex = index + 1;
 
-      const recommendedRange =
-        this.calculateRecommendedRangeFromWeeklyLoads(weeklyLoads);
+      if (targetIndex < sortedSummaries.length) {
+        recommendations[targetIndex] = recommendedRange;
+      } else {
+        const nextWeekStart = this.addDays(sortedSummaries[index].weekStart, 7);
+        const nextWeekEnd = this.addDays(sortedSummaries[index].weekEnd, 7);
+        projectedFutureWeek = {
+          weekStart: nextWeekStart,
+          weekEnd: nextWeekEnd,
+          actualLoad: 0,
+          estimatedLoad: 0,
+          totalLoad: 0,
+          recommendedMin: Number(recommendedRange.min.toFixed(2)),
+          recommendedMax: Number(recommendedRange.max.toFixed(2)),
+        };
+      }
+    }
+
+    if (!recommendations[0] && sortedSummaries.length > 0) {
+      const initialRange = this.calculateRecommendedRangeFromWeeklyLoads([
+        sortedSummaries[0].actual,
+      ]);
+      recommendations[0] = initialRange;
+    }
+
+    const response = sortedSummaries.map((summary, index) => {
+      const range = recommendations[index];
 
       return {
         weekStart: summary.weekStart,
@@ -1131,10 +1232,21 @@ export class TrainingLoadService {
         actualLoad: Number(summary.actual.toFixed(2)),
         estimatedLoad: Number(summary.estimated.toFixed(2)),
         totalLoad: Number((summary.actual + summary.estimated).toFixed(2)),
-        recommendedMin: Number(recommendedRange.min.toFixed(2)),
-        recommendedMax: Number(recommendedRange.max.toFixed(2)),
+        recommendedMin: Number((range?.min ?? summary.actual).toFixed(2)),
+        recommendedMax: Number((range?.max ?? summary.actual).toFixed(2)),
       };
     });
+
+    let filteredResponse = response.filter(
+      (week) =>
+        week.weekStart >= normalizedStart && week.weekStart <= normalizedEnd,
+    );
+
+    if (projectedFutureWeek) {
+      filteredResponse = [...filteredResponse, projectedFutureWeek];
+    }
+
+    return filteredResponse;
   }
 
   /**
