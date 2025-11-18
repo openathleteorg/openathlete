@@ -96,6 +96,8 @@ export const calendarWeekLoadSummarySchema = z.object({
   actualLoad: z.number(),
   estimatedLoad: z.number(),
   totalLoad: z.number(),
+  recommendedMin: z.number(),
+  recommendedMax: z.number(),
 });
 
 export type CalendarWeekLoadSummary = z.infer<

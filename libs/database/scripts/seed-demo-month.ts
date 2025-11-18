@@ -13,12 +13,12 @@ type Sport =
   | "ROCK_CLIMBING"
   | "OTHER";
 
-const DEMO_EMAIL = process.env.DEMO_USER_EMAIL || "demo@openathlete.local";
-const DEMO_FIRST_NAME = process.env.DEMO_USER_FIRST_NAME || "Demo";
-const DEMO_LAST_NAME = process.env.DEMO_USER_LAST_NAME || "Athlete";
+const DEMO_EMAIL = "demo@openathlete.local";
+const DEMO_FIRST_NAME = "Demo";
+const DEMO_LAST_NAME = "Athlete";
 
-const YEAR = Number(process.env.DEMO_YEAR || 2025);
-const MONTH = Number(process.env.DEMO_MONTH || 9); // 9 = September (JS Date uses 0-indexed months, but we will be careful below)
+const YEAR = Number(2025);
+const MONTH = Number(9); // 9 = September (JS Date uses 0-indexed months, but we will be careful below)
 
 function toDate(y: number, m1to12: number, d: number, hours = 7, minutes = 0) {
   // m1to12 is 1..12; JS Date expects 0..11
