@@ -10,7 +10,7 @@ import {
 } from '@/utils/color';
 import { cn } from '@/utils/shadcn';
 import { useDraggable } from '@dnd-kit/core';
-import { Copy, Edit2, FileText, Trash2 } from 'lucide-react';
+import { ActivityIcon, Copy, Edit2, FileText, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -182,6 +182,11 @@ export function CalendarEvent({ event, wrapped }: P) {
                       getHighSaturatedRpeColor(event.goalRpe),
                     )}
                   />
+                )}
+              {event.type === EVENT_TYPE.TRAINING &&
+                'workout' in event &&
+                event.workout && (
+                  <ActivityIcon className="inline-block w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
                 )}
               {event.name}
             </div>
