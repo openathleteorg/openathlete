@@ -1,26 +1,62 @@
+export type EmailLanguage = 'FR' | 'EN';
+
+const emailSubjects: {
+  'password-reset': Record<EmailLanguage, string>;
+  welcome: Record<EmailLanguage, string>;
+  'athlete-invitation': Record<EmailLanguage, string>;
+  'athlete-invitation-existing': Record<EmailLanguage, string>;
+  'coach-invitation-new': Record<EmailLanguage, string>;
+  'coach-invitation-existing': Record<EmailLanguage, string>;
+} = {
+  'password-reset': {
+    FR: 'Réinitialisation de votre mot de passe',
+    EN: 'Reset your password',
+  },
+  welcome: {
+    FR: 'Bienvenue sur OpenAthlete',
+    EN: 'Welcome to OpenAthlete',
+  },
+  'athlete-invitation': {
+    FR: 'Invitation à rejoindre OpenAthlete',
+    EN: 'Invitation to join OpenAthlete',
+  },
+  'athlete-invitation-existing': {
+    FR: 'Nouvelle invitation de coach',
+    EN: 'New coach invitation',
+  },
+  'coach-invitation-new': {
+    FR: 'Invitation à rejoindre OpenAthlete',
+    EN: 'Invitation to join OpenAthlete',
+  },
+  'coach-invitation-existing': {
+    FR: 'Nouvelle invitation de coach',
+    EN: 'New coach invitation',
+  },
+} as const;
+
 export const emailLibrary = {
   'password-reset': {
-    defaultSubject: 'Réinitialisation de votre mot de passe',
+    defaultSubject: emailSubjects['password-reset'],
     props: {} as { url: string },
   },
   welcome: {
-    defaultSubject: 'Bienvenue sur OpenAthlete',
+    defaultSubject: emailSubjects.welcome,
     props: {} as { name?: string; dashboard_url?: string },
   },
   'athlete-invitation': {
-    defaultSubject: 'Invitation à rejoindre OpenAthlete',
+    defaultSubject: emailSubjects['athlete-invitation'],
     props: {} as { coachName: string; url: string },
   },
   'athlete-invitation-existing': {
-    defaultSubject: 'Nouvelle invitation de coach',
+    defaultSubject: emailSubjects['athlete-invitation-existing'],
     props: {} as { coachName: string; url: string },
   },
   'coach-invitation-new': {
-    defaultSubject: 'Invitation à rejoindre OpenAthlete',
+    defaultSubject: emailSubjects['coach-invitation-new'],
     props: {} as { athleteName: string; url: string },
   },
   'coach-invitation-existing': {
-    defaultSubject: 'Nouvelle invitation de coach',
+    defaultSubject: emailSubjects['coach-invitation-existing'],
     props: {} as { athleteName: string; url: string },
   },
 } as const;
