@@ -25,6 +25,12 @@ export interface ActivityProcessedPayload {
   athleteId: number;
 }
 
+export interface WeeklyLoadUpdatedPayload {
+  athleteId: number;
+  eventId?: number;
+  reason?: 'event_deleted' | 'event_updated';
+}
+
 export type CalendarWebSocketEvent =
   | {
       type: 'training_load_estimation_started';
@@ -38,7 +44,8 @@ export type CalendarWebSocketEvent =
       type: 'training_load_estimation_failed';
       payload: TrainingLoadEstimationFailedPayload;
     }
-  | { type: 'activity_processed'; payload: ActivityProcessedPayload };
+  | { type: 'activity_processed'; payload: ActivityProcessedPayload }
+  | { type: 'weekly_load_updated'; payload: WeeklyLoadUpdatedPayload };
 
 export class CalendarAPI {
   private static socket: Socket | null = null;
@@ -247,6 +254,9 @@ export class CalendarAPI {
       },
       activity_processed: (payload: ActivityProcessedPayload) => {
         callback({ type: 'activity_processed', payload });
+      },
+      weekly_load_updated: (payload: WeeklyLoadUpdatedPayload) => {
+        callback({ type: 'weekly_load_updated', payload });
       },
     };
 

@@ -143,7 +143,7 @@ export class TrainingLoadAPI {
     return res.data;
   }
 
-  static async getWeeklyTrimpSummary(
+  static async getWeeklyLoadSummary(
     startDate: Date,
     endDate: Date,
     athleteId?: number,

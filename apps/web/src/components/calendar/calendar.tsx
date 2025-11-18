@@ -2,7 +2,7 @@ import { CalendarAPI } from '@/api/calendar/calendar.api';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { eventKeys } from '@/api/event/event.keys';
-import { useWeeklyTrimpSummaryQuery } from '@/api/training-load';
+import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
 import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
 import { m } from '@/paraglide/messages';
@@ -73,7 +73,7 @@ export function Calendar({
     data: weeklyLoadSummary,
     isPending: weeklyLoadSummaryLoading,
     refetch: refetchWeeklyLoadSummary,
-  } = useWeeklyTrimpSummaryQuery(
+  } = useWeeklyLoadSummaryQuery(
     loadRange.start,
     loadRange.end,
     athleteId,
@@ -161,7 +161,7 @@ export function Calendar({
           });
           // Invalidate and refetch weekly load summary
           queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyTrimpSummary],
+            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
           });
           refetchWeeklyLoadSummary();
           break;
@@ -181,7 +181,14 @@ export function Calendar({
           });
           // Also invalidate weekly load summary
           queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyTrimpSummary],
+            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
+          });
+          refetchWeeklyLoadSummary();
+          break;
+        }
+        case 'weekly_load_updated': {
+          queryClient.invalidateQueries({
+            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
           });
           refetchWeeklyLoadSummary();
           break;

@@ -78,6 +78,8 @@ function DoneSummary({
         totalLoad={weekLoad?.totalLoad}
         actualLoad={weekLoad?.actualLoad}
         plannedLoad={weekLoad?.estimatedLoad}
+        recommendedMin={weekLoad?.recommendedMin}
+        recommendedMax={weekLoad?.recommendedMax}
         isLoading={isLoadLoading}
       />
     </div>
@@ -114,6 +116,8 @@ function PlannedSummary({
         totalLoad={weekLoad?.totalLoad}
         actualLoad={weekLoad?.actualLoad}
         plannedLoad={weekLoad?.estimatedLoad}
+        recommendedMin={weekLoad?.recommendedMin}
+        recommendedMax={weekLoad?.recommendedMax}
         isLoading={isLoadLoading}
       />
     </div>
@@ -172,6 +176,8 @@ function PlannedDoneSummary({
         totalLoad={weekLoad?.totalLoad}
         actualLoad={weekLoad?.actualLoad}
         plannedLoad={weekLoad?.estimatedLoad}
+        recommendedMin={weekLoad?.recommendedMin}
+        recommendedMax={weekLoad?.recommendedMax}
         isLoading={isLoadLoading}
       />
     </div>

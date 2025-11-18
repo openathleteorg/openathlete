@@ -1,5 +1,3 @@
-import { m } from '@/paraglide/messages';
-
 interface P {
   label?: string;
   estimatedLoad?: number | null;
@@ -22,11 +20,8 @@ export function EstimatedLoadStat({ label, estimatedLoad }: P) {
       {label && <div className="text-sm font-semibold">{label}</div>}
       <div>
         {formatLoadValue(estimatedLoad)}{' '}
-        <span className="text-gray-500 dark:text-gray-400 text-sm">
-          {m.trimp_points_unit()}
-        </span>
+        <span className="text-gray-500 dark:text-gray-400 text-sm"></span>
       </div>
     </div>
   );
 }
-

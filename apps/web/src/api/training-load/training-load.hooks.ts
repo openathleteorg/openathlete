@@ -116,13 +116,13 @@ export const useTrainingLoadHistory = (
     ],
   });
 
-export const useWeeklyTrimpSummaryQuery = (
+export const useWeeklyLoadSummaryQuery = (
   startDate?: Date,
   endDate?: Date,
   athleteId?: number,
   enabled?: boolean,
   opt?: QueryOptions<
-    Awaited<ReturnType<typeof TrainingLoadAPI.getWeeklyTrimpSummary>>
+    Awaited<ReturnType<typeof TrainingLoadAPI.getWeeklyLoadSummary>>
   >,
 ) =>
   useQuery({
@@ -133,14 +133,14 @@ export const useWeeklyTrimpSummaryQuery = (
       if (!startDate || !endDate) {
         return Promise.resolve([]);
       }
-      return TrainingLoadAPI.getWeeklyTrimpSummary(
+      return TrainingLoadAPI.getWeeklyLoadSummary(
         startDate,
         endDate,
         athleteId,
       );
     },
     queryKey: [
-      trainingLoadKeys.getWeeklyTrimpSummary,
+      trainingLoadKeys.getWeeklyLoadSummary,
       startDate?.toISOString(),
       endDate?.toISOString(),
       athleteId,

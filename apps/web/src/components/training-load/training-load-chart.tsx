@@ -1,6 +1,7 @@
 import {
   TrainingLoadCalculationType,
   useTrainingLoadHistory,
+  useTrainingLoadMetrics,
 } from '@/api/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -8,17 +9,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import * as m from '@/paraglide/messages.js';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   Area,
   ComposedChart,
@@ -28,14 +22,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-
-const CALCULATION_TYPE_LABELS: Record<TrainingLoadCalculationType, string> = {
-  [TrainingLoadCalculationType.FOSTER_RPE]: 'Foster (RPE)',
-  [TrainingLoadCalculationType.TRIMP_EDWARDS]: 'TRIMP Edwards',
-  [TrainingLoadCalculationType.TRIMP_BANISTER]: 'TRIMP Banister',
-};
-
-const STORAGE_KEY = 'trainingLoadCalculationType';
 
 interface TrainingLoadChartProps {
   startDate?: Date;
@@ -47,31 +33,9 @@ interface TrainingLoadChartProps {
 export function TrainingLoadChart({
   startDate,
   endDate,
-  defaultCalculationType = TrainingLoadCalculationType.FOSTER_RPE,
   athleteId,
 }: TrainingLoadChartProps) {
-  const [calculationType, setCalculationType] =
-    useState<TrainingLoadCalculationType>(() => {
-      if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (
-          stored &&
-          Object.values(TrainingLoadCalculationType).includes(
-            stored as TrainingLoadCalculationType,
-          )
-        ) {
-          return stored as TrainingLoadCalculationType;
-        }
-      }
-      return defaultCalculationType;
-    });
-
-  // Save to localStorage when changed
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, calculationType);
-    }
-  }, [calculationType]);
+  const calculationType = TrainingLoadCalculationType.TRIMP_BANISTER;
 
   // Default to last 12 weeks
   const defaultStartDate = useMemo(() => {
@@ -87,6 +51,11 @@ export function TrainingLoadChart({
     calculationType,
     finalStartDate,
     finalEndDate,
+    athleteId,
+  );
+  const { data: metrics } = useTrainingLoadMetrics(
+    calculationType,
+    undefined,
     athleteId,
   );
 
@@ -113,23 +82,6 @@ export function TrainingLoadChart({
         <CardTitle className="text-base font-medium">
           {m.training_load_history()}
         </CardTitle>
-        <Select
-          value={calculationType}
-          onValueChange={(value) =>
-            setCalculationType(value as TrainingLoadCalculationType)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(CALCULATION_TYPE_LABELS).map(([key, label]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -138,7 +90,6 @@ export function TrainingLoadChart({
           </div>
         ) : chartData.length > 0 ? (
           <div className="space-y-4">
-            {/* Legend */}
             <div className="flex items-center gap-4 text-sm flex-wrap">
               <div className="flex items-center gap-2">
                 <div
@@ -161,6 +112,14 @@ export function TrainingLoadChart({
                 />
                 <span className="text-muted-foreground">{m.fatigue_atl()}</span>
               </div>
+              {metrics?.recommendedLoadRange && (
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-muted" />
+                  <span className="text-muted-foreground">
+                    {m.recommended_zone_range()}
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Chart */}
@@ -211,6 +170,21 @@ export function TrainingLoadChart({
                     stroke="hsl(var(--border))"
                   />
                   <YAxis stroke="hsl(var(--border))" />
+                  {metrics?.recommendedLoadRange && (
+                    <ReferenceArea
+                      y1={metrics.recommendedLoadRange.min}
+                      y2={metrics.recommendedLoadRange.max}
+                      fill="hsl(var(--muted))"
+                      fillOpacity={0.15}
+                      label={{
+                        value: m.recommended_zone_range(),
+                        position: 'insideRight',
+                        fill: 'hsl(var(--muted-foreground))',
+                        fontSize: 11,
+                        opacity: 0.6,
+                      }}
+                    />
+                  )}
                   <ReferenceArea
                     y1={-100}
                     y2={-10}
