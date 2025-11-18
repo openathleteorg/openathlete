@@ -1,7 +1,6 @@
 import {
   TrainingLoadCalculationType,
   useTrainingLoadHistory,
-  useTrainingLoadMetrics,
 } from '@/api/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -17,7 +16,6 @@ import {
   Area,
   ComposedChart,
   Line,
-  ReferenceArea,
   ResponsiveContainer,
   XAxis,
   YAxis,
@@ -53,12 +51,6 @@ export function TrainingLoadChart({
     finalEndDate,
     athleteId,
   );
-  const { data: metrics } = useTrainingLoadMetrics(
-    calculationType,
-    undefined,
-    athleteId,
-  );
-
   const chartData = useMemo(() => {
     if (!history) return [];
     return history
@@ -112,17 +104,7 @@ export function TrainingLoadChart({
                 />
                 <span className="text-muted-foreground">{m.fatigue_atl()}</span>
               </div>
-              {metrics?.recommendedLoadRange && (
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-muted" />
-                  <span className="text-muted-foreground">
-                    {m.recommended_zone_range()}
-                  </span>
-                </div>
-              )}
             </div>
-
-            {/* Chart */}
             <ChartContainer
               config={{
                 load: {
@@ -170,47 +152,6 @@ export function TrainingLoadChart({
                     stroke="hsl(var(--border))"
                   />
                   <YAxis stroke="hsl(var(--border))" />
-                  {metrics?.recommendedLoadRange && (
-                    <ReferenceArea
-                      y1={metrics.recommendedLoadRange.min}
-                      y2={metrics.recommendedLoadRange.max}
-                      fill="hsl(var(--muted))"
-                      fillOpacity={0.15}
-                      label={{
-                        value: m.recommended_zone_range(),
-                        position: 'insideRight',
-                        fill: 'hsl(var(--muted-foreground))',
-                        fontSize: 11,
-                        opacity: 0.6,
-                      }}
-                    />
-                  )}
-                  <ReferenceArea
-                    y1={-100}
-                    y2={-10}
-                    fill="hsl(var(--destructive))"
-                    fillOpacity={0.08}
-                    label={{
-                      value: m.overtraining(),
-                      position: 'insideTopLeft',
-                      fill: 'hsl(var(--muted-foreground))',
-                      fontSize: 11,
-                      opacity: 0.6,
-                    }}
-                  />
-                  <ReferenceArea
-                    y1={-10}
-                    y2={5}
-                    fill="hsl(var(--chart-3))"
-                    fillOpacity={0.08}
-                    label={{
-                      value: m.optimal_zone(),
-                      position: 'insideTopLeft',
-                      fill: 'hsl(var(--muted-foreground))',
-                      fontSize: 11,
-                      opacity: 0.6,
-                    }}
-                  />
 
                   <ChartTooltip
                     content={
@@ -253,7 +194,7 @@ export function TrainingLoadChart({
                   />
 
                   <Area
-                    type="monotone"
+                    type="linear"
                     dataKey="load"
                     stroke="none"
                     fill="#a855f7"
@@ -262,7 +203,7 @@ export function TrainingLoadChart({
                   />
 
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="ctl"
                     stroke="#3b82f6"
                     strokeWidth={2.5}
@@ -272,7 +213,7 @@ export function TrainingLoadChart({
                   />
 
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="atl"
                     stroke="#f97316"
                     strokeWidth={2.5}
