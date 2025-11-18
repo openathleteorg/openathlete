@@ -1,7 +1,16 @@
+import { useDuplicateEventMutation } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useDroppable } from '@dnd-kit/core';
-import { Activity, Award, FileText, Sparkles, StickyNote } from 'lucide-react';
+import {
+  Activity,
+  Award,
+  ClipboardPaste,
+  FileText,
+  Sparkles,
+  StickyNote,
+} from 'lucide-react';
+import { toast } from 'sonner';
 
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 
@@ -12,8 +21,10 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '../ui/context-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { CalendarCycleSegment } from './calendar-cycle-segment';
 import { CalendarEvent } from './calendar-event';
+import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { CycleDaySegment } from './utils/cycle-day-layout';
 
@@ -36,6 +47,15 @@ export function CalendarDay({ day, events, cycleSegments = [] }: P) {
     cycleResize,
     setCycleResize,
   } = useCalendarContext();
+  const { clipboard, hasClipboard } = useEventClipboard();
+  const duplicateEventMutation = useDuplicateEventMutation({
+    onSuccess: () => {
+      toast.success(m.event_created_successfully());
+    },
+    onError: () => {
+      toast.error(m.failed_to_create_event());
+    },
+  });
   const dayOfMonth = day.getDate();
   const isToday = day.toDateString() === new Date().toDateString();
   const isCurrentMonth = day.getMonth() === displayedMonth.getMonth();
@@ -198,6 +218,49 @@ export function CalendarDay({ day, events, cycleSegments = [] }: P) {
         </ContextMenuTrigger>
         {allowCreate && (
           <ContextMenuContent className="w-64">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <ContextMenuItem
+                    disabled={!hasClipboard}
+                    onClick={() => {
+                      if (!clipboard) return;
+                      const originalStartDate = new Date(clipboard.startDate);
+                      const originalEndDate = new Date(clipboard.endDate);
+                      const duration =
+                        originalEndDate.getTime() - originalStartDate.getTime();
+
+                      const newStartDate = new Date(day);
+                      newStartDate.setHours(
+                        originalStartDate.getHours(),
+                        originalStartDate.getMinutes(),
+                        originalStartDate.getSeconds(),
+                        originalStartDate.getMilliseconds(),
+                      );
+
+                      const newEndDate = new Date(
+                        newStartDate.getTime() + duration,
+                      );
+
+                      duplicateEventMutation.mutate({
+                        eventId: clipboard.eventId,
+                        body: {
+                          startDate: newStartDate,
+                          endDate: newEndDate,
+                        },
+                      });
+                    }}
+                  >
+                    <ClipboardPaste className="w-4 h-4 mr-2" />
+                    {m.paste()}
+                  </ContextMenuItem>
+                </div>
+              </TooltipTrigger>
+              {!hasClipboard && (
+                <TooltipContent>{m.nothing_to_paste()}</TooltipContent>
+              )}
+            </Tooltip>
+            <ContextMenuSeparator />
             <ContextMenuItem onClick={() => createEventWithAI(day)}>
               <Sparkles className="w-4 h-4 mr-2" />
               {m.create_with_ai()}

@@ -31,6 +31,7 @@ import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
 import { CalendarHeader } from './calendar-header';
 import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
 import { CalendarContext } from './contexts/calendar-context';
+import { EventClipboardProvider } from './contexts/event-clipboard-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType, SummaryType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
@@ -430,7 +431,8 @@ export function Calendar({
 
   return (
     <div className="flex flex-col gap-3">
-      <CalendarContext.Provider value={memoizedValue}>
+      <EventClipboardProvider>
+        <CalendarContext.Provider value={memoizedValue}>
         <CalendarHeader />
         <div className="relative">
           <div className={isLoading ? 'opacity-50 transition-opacity' : ''}>
@@ -524,7 +526,8 @@ export function Calendar({
             setEditCycleDialog(cycleId);
           }}
         />
-      </CalendarContext.Provider>
+        </CalendarContext.Provider>
+      </EventClipboardProvider>
     </div>
   );
 }

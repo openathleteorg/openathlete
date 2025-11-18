@@ -28,8 +28,10 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from '../ui/context-menu';
+import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY } from './types/filter';
 
@@ -104,6 +106,7 @@ export function CalendarEvent({ event, wrapped }: P) {
     onSuccess: () => toast.success(m.template_saved_successfully()),
   });
   const isValidated = useIsEventValidated(event, athleteId);
+  const { copyEvent } = useEventClipboard();
 
   const eventColor = useMemo(() => {
     switch (coloredBy || COLORED_BY.TYPE) {
@@ -230,16 +233,29 @@ export function CalendarEvent({ event, wrapped }: P) {
             </ContextMenuItem>
           )}
           {event.type !== EVENT_TYPE.ACTIVITY && (
-            <ContextMenuItem
-              onClick={(e) => {
-                duplicateEventMutation.mutate({ eventId: event.eventId });
-                e.stopPropagation();
-              }}
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              {m.duplicate()}
-            </ContextMenuItem>
+            <>
+              <ContextMenuItem
+                onClick={(e) => {
+                  duplicateEventMutation.mutate({ eventId: event.eventId });
+                  e.stopPropagation();
+                }}
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                {m.duplicate()}
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onClick={(e) => {
+                  copyEvent(event);
+                  e.stopPropagation();
+                }}
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                {m.copy()}
+              </ContextMenuItem>
+            </>
           )}
+          <ContextMenuSeparator />
           <ContextMenuItem
             variant="destructive"
             onClick={(e) => {
