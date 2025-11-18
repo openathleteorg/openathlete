@@ -5,12 +5,24 @@ import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
 // Base schema for all event types
 export const baseEventFormSchema = z.object({
-  startDate: z.date({
-    required_error: m.required(),
-  }),
-  endDate: z.date({
-    required_error: m.required(),
-  }),
+  startDate: z
+    .union([z.date(), z.string()])
+    .transform((val) => (val instanceof Date ? val : new Date(val)))
+    .pipe(
+      z.date({
+        required_error: m.required(),
+      }),
+    )
+    .optional(),
+  endDate: z
+    .union([z.date(), z.string()])
+    .transform((val) => (val instanceof Date ? val : new Date(val)))
+    .pipe(
+      z.date({
+        required_error: m.required(),
+      }),
+    )
+    .optional(),
   name: z.string().min(1, m.required()).max(100),
   description: z.string().optional(),
   saveAsTemplate: z.boolean().optional(),

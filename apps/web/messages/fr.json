@@ -39,6 +39,7 @@
   "failed_to_modify_event": "Échec de la modification de l'événement",
   "imported_from": "Importé depuis {provider}",
   "edit": "Modifier",
+  "edit_template": "Modifier un modèle",
   "save_as_template": "Enregistrer comme modèle",
   "save": "Enregistrer",
   "duplicate": "Dupliquer",

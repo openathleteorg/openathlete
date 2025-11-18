@@ -451,6 +451,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
             refetchTemplates();
           }}
           event={editingTemplate.event}
+          isTemplate={true}
         />
       )}
 

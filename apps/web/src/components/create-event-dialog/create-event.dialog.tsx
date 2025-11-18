@@ -45,6 +45,7 @@ type P =
       open: boolean;
       onClose: () => void;
       event?: Event;
+      isTemplate?: boolean;
     };
 
 export function CreateEventDialog({ open, onClose, ...rest }: P) {
@@ -255,7 +256,12 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         <DialogHeader>
           <DialogTitle className="flex items-start justify-center gap-2">
             <div className="flex items-center gap-2 grow">
-              {edit ? m.edit() : m.plan()} {m.a()}{' '}
+              {edit && 'isTemplate' in rest && rest.isTemplate
+                ? m.edit_template()
+                : edit
+                  ? m.edit()
+                  : m.plan()}{' '}
+              {edit && 'isTemplate' in rest && rest.isTemplate ? '' : m.a()}{' '}
               {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
             </div>
             {type === EVENT_TYPE.TRAINING && (
@@ -283,8 +289,8 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             startDateValue={startDateValue}
             goalDistanceValue={goalDistanceValue}
             goalDurationValue={goalDurationValue}
-            watch={watch}
             setValue={setValue}
+            isTemplate={edit && 'isTemplate' in rest && rest.isTemplate}
           />
 
           <WorkoutSection

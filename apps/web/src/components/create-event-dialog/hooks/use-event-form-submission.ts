@@ -67,43 +67,30 @@ export function useEventFormSubmission(
 
   const onSubmit = useCallback(
     (handleSubmit: UseFormHandleSubmit<EventFormValues>) =>
-      handleSubmit(async (data: EventFormValues) => {
-        const { saveAsTemplate, ...eventData } = data;
-        const shouldSaveAsTemplate = saveAsTemplate === true;
+      handleSubmit(
+        async (data: EventFormValues) => {
+          const { saveAsTemplate, startDate, endDate, ...eventData } = data;
+          const shouldSaveAsTemplate = saveAsTemplate === true;
 
-        if (data.type === EVENT_TYPE.TRAINING && workoutSteps.length > 0) {
-          const eventWithWorkout = {
+          // Prepare event data, only include dates if they exist
+          const baseEventData = {
             ...eventData,
-            athleteId,
-            workout: {
-              steps: workoutSteps,
-            },
+            ...(startDate && { startDate }),
+            ...(endDate && { endDate }),
           };
 
-          if (create) {
-            createEventMutation.mutate(eventWithWorkout as CreateEventDto, {
-              onSuccess: (createdEvent) => {
-                if (shouldSaveAsTemplate && createdEvent.eventId) {
-                  createEventTemplateMutation.mutate({
-                    eventId: createdEvent.eventId,
-                  });
-                }
+          // For training events, always include workout (even if empty)
+          if (data.type === EVENT_TYPE.TRAINING) {
+            const eventWithWorkout = {
+              ...baseEventData,
+              athleteId,
+              workout: {
+                steps: workoutSteps,
               },
-            });
-          } else if (edit && 'event' in props && props.event) {
-            updateEventMutation.mutate({
-              eventId: props.event.eventId,
-              body: eventWithWorkout as UpdateEventDto,
-            });
-          }
-        } else {
-          if (create) {
-            createEventMutation.mutate(
-              {
-                ...(eventData as CreateEventDto),
-                athleteId,
-              },
-              {
+            };
+
+            if (create) {
+              createEventMutation.mutate(eventWithWorkout as CreateEventDto, {
                 onSuccess: (createdEvent) => {
                   if (shouldSaveAsTemplate && createdEvent.eventId) {
                     createEventTemplateMutation.mutate({
@@ -111,16 +98,43 @@ export function useEventFormSubmission(
                     });
                   }
                 },
-              },
-            );
-          } else if (edit && 'event' in props && props.event) {
-            updateEventMutation.mutate({
-              eventId: props.event.eventId,
-              body: eventData as UpdateEventDto,
-            });
+              });
+            } else if (edit && 'event' in props && props.event) {
+              updateEventMutation.mutate({
+                eventId: props.event.eventId,
+                body: eventWithWorkout as UpdateEventDto,
+              });
+            }
+          } else {
+            // For non-training events, no workout
+            if (create) {
+              createEventMutation.mutate(
+                {
+                  ...(baseEventData as CreateEventDto),
+                  athleteId,
+                },
+                {
+                  onSuccess: (createdEvent) => {
+                    if (shouldSaveAsTemplate && createdEvent.eventId) {
+                      createEventTemplateMutation.mutate({
+                        eventId: createdEvent.eventId,
+                      });
+                    }
+                  },
+                },
+              );
+            } else if (edit && 'event' in props && props.event) {
+              updateEventMutation.mutate({
+                eventId: props.event.eventId,
+                body: baseEventData as UpdateEventDto,
+              });
+            }
           }
-        }
-      }),
+        },
+        (_) => {
+          // Form validation failed
+        },
+      ),
     [
       workoutSteps,
       athleteId,

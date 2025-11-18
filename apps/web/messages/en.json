@@ -39,6 +39,7 @@
   "failed_to_modify_event": "Failed to modify event",
   "imported_from": "Imported from {provider}",
   "edit": "Edit",
+  "edit_template": "Edit template",
   "save_as_template": "Save as template",
   "duplicate": "Duplicate",
   "copy": "Copy",

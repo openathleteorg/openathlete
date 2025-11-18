@@ -1,7 +1,7 @@
 import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
-import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { UseFormSetValue } from 'react-hook-form';
 
 import { EVENT_TYPE, SPORT_TYPE, formatSpeed } from '@openathlete/shared';
 
@@ -11,6 +11,7 @@ import {
   RHFSelect,
   RHFTextField,
 } from '../../hook-form';
+import { RHFDateTimePicker } from '../../hook-form/rhf-datetime-picker';
 import { RHFElevation } from '../../hook-form/rhf-elevation';
 import { RHFRpe } from '../../hook-form/rhf-rpe';
 import { RHFTextarea } from '../../hook-form/rhf-textarea';
@@ -20,11 +21,11 @@ import type { EventFormValues } from '../utils/event-form-schemas';
 type Props = {
   type: EVENT_TYPE;
   hasStepsWithDuration: boolean;
-  startDateValue: Date;
+  startDateValue?: Date;
   goalDistanceValue?: number | null;
   goalDurationValue?: number | null;
-  watch: UseFormWatch<EventFormValues>;
   setValue: UseFormSetValue<EventFormValues>;
+  isTemplate?: boolean;
 };
 
 export function EventFormFields({
@@ -34,6 +35,7 @@ export function EventFormFields({
   goalDistanceValue,
   goalDurationValue,
   setValue,
+  isTemplate,
 }: Props) {
   return (
     <div className="grid grid-cols-2 gap-6">
@@ -62,6 +64,19 @@ export function EventFormFields({
       ) : (
         <div />
       )}
+      {!isTemplate &&
+        (type === EVENT_TYPE.TRAINING ||
+          type === EVENT_TYPE.COMPETITION ||
+          type === EVENT_TYPE.ACTIVITY) && (
+          <>
+            <RHFDateTimePicker
+              name="startDate"
+              type="start"
+              label={m.start_time()}
+            />
+            <RHFDateTimePicker name="endDate" type="end" label={m.end_time()} />
+          </>
+        )}
       <div className="col-span-2">
         <RHFTextarea
           name="description"
@@ -78,7 +93,7 @@ export function EventFormFields({
             label={m.goal_duration()}
             disabled={hasStepsWithDuration}
             onChange={(value) => {
-              if (!hasStepsWithDuration) {
+              if (!hasStepsWithDuration && startDateValue) {
                 const start = new Date(startDateValue);
                 const duration = value || 0;
                 const end = new Date(start);

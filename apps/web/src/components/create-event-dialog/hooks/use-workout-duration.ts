@@ -22,7 +22,7 @@ export function useWorkoutDuration(
 
   // Update goalDuration when calculated duration changes
   useEffect(() => {
-    if (hasStepsWithDuration && calculatedDuration !== null) {
+    if (hasStepsWithDuration && calculatedDuration !== null && startDateValue) {
       setValue('goalDuration', calculatedDuration);
       // Update endDate based on calculated duration
       const start = new Date(startDateValue);
