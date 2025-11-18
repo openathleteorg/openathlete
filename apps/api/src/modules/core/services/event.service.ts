@@ -1190,6 +1190,47 @@ export class EventService {
       }
     }
 
+    // Get the final duplicated event with updated dates
+    const finalDuplicatedEvent = await this.prisma.event.findUnique({
+      where: { event_id: duplicatedEvent.event_id },
+      include: EVENT_INCLUDES,
+    });
+
+    // Schedule training load estimation for future training events
+    if (
+      originalEvent.type === 'TRAINING' &&
+      finalDuplicatedEvent?.training &&
+      finalDuplicatedEvent.start_date > new Date() &&
+      this.trainingLoadEstimationService
+    ) {
+      this.trainingLoadEstimationService
+        .scheduleEstimation(
+          duplicatedEvent.event_id,
+          finalDuplicatedEvent.training.event_training_id,
+          originalEvent.athlete_id!,
+        )
+        .catch((error) => {
+          // Log but don't fail the request
+          console.error(
+            `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
+    }
+
+    // Notify websocket for training load reload (same as updateEvent)
+    if (
+      originalEvent.type === 'TRAINING' &&
+      originalEvent.athlete_id
+    ) {
+      this.calendarWebSocketService?.notifyWeeklyLoadUpdated(
+        originalEvent.athlete_id,
+        {
+          eventId: duplicatedEvent.event_id,
+          reason: 'event_updated',
+        },
+      );
+    }
+
     return this.getEventById(user, duplicatedEvent.event_id);
   }
 

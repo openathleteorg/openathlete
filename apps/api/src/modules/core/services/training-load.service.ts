@@ -1188,9 +1188,13 @@ export class TrainingLoadService {
       const weeklyLoads: number[] = [];
       for (let offset = 0; offset < 4; offset++) {
         const sourceIndex = index - offset;
-        weeklyLoads.push(
-          sourceIndex >= 0 ? sortedSummaries[sourceIndex].actual : 0,
-        );
+        if (sourceIndex >= 0) {
+          const summary = sortedSummaries[sourceIndex];
+          // Include both actual and estimated loads
+          weeklyLoads.push(summary.actual + summary.estimated);
+        } else {
+          weeklyLoads.push(0);
+        }
       }
       const recommendedRange = this.calculateRecommendedRangeFromWeeklyLoads(
         weeklyLoads,
@@ -1217,8 +1221,10 @@ export class TrainingLoadService {
     }
 
     if (!recommendations[0] && sortedSummaries.length > 0) {
+      const firstSummary = sortedSummaries[0];
+      // Include both actual and estimated loads
       const initialRange = this.calculateRecommendedRangeFromWeeklyLoads([
-        sortedSummaries[0].actual,
+        firstSummary.actual + firstSummary.estimated,
       ]);
       recommendations[0] = initialRange;
     }
