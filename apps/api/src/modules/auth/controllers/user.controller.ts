@@ -1,4 +1,5 @@
 import { ZodValidationPipe } from 'nestjs-zod';
+import { z } from 'zod';
 
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -45,6 +46,16 @@ export class UserController {
   @Get('me')
   getMe(@JwtUser() user: AuthUser) {
     return this.userService.getMe(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch('language')
+  updateLanguage(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(z.object({ language: z.enum(['FR', 'EN']) })))
+    body: { language: 'FR' | 'EN' },
+  ) {
+    return this.userService.updateLanguage(user, body.language);
   }
 
   @Post('password-reset/request')

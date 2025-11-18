@@ -85,9 +85,18 @@ export class UserService {
           gender: true,
           roles: true,
           onboarding_completed: true,
+          language: true,
         },
       }),
     );
+  };
+
+  public updateLanguage = async (user: AuthUser, language: 'FR' | 'EN') => {
+    await this.prisma.user.update({
+      where: { user_id: user.user_id },
+      data: { language },
+    });
+    return { success: true };
   };
 
   public createAccount = async ({
