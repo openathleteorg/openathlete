@@ -3,13 +3,14 @@ model user {
   user_id Int @id @default(autoincrement())
 
   // fields
-  email                String      @unique
+  email                String        @unique
   password             String
   roles                user_role[]
   first_name           String
   last_name            String
   gender               gender?
-  onboarding_completed Boolean     @default(false)
+  onboarding_completed Boolean       @default(false)
+  language             user_language @default(FR)
 
   // relationships
   athlete                     athlete?

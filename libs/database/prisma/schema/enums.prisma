@@ -240,3 +240,8 @@ enum availability_priority {
   MEDIUM
   HIGH
 }
+
+enum user_language {
+  FR
+  EN
+}
