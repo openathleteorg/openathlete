@@ -391,7 +391,7 @@ export class EventService {
     return this.getEventById(user, created.event_id);
   }
 
-  private emitWorkoutPlannedChanged(
+  emitWorkoutPlannedChanged(
     eventId: number,
     athleteId: number,
     workoutId: number | null,
@@ -438,6 +438,11 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    // Check if this event is a template
+    const isTemplate = await this.prisma.event_template.findUnique({
+      where: { event_id: eventId },
+    });
 
     const workout =
       data.type === EVENT_TYPE.TRAINING ? data.workout : undefined;
@@ -524,14 +529,16 @@ export class EventService {
             },
           });
 
-          // Emit event for workout export sync if within 7 days
-          this.emitWorkoutPlannedChanged(
-            eventId,
-            event.athlete_id!,
-            existingWorkout.workout_id,
-            updatedEvent.start_date,
-            event.training.sport,
-          );
+          // Emit event for workout export sync if within 7 days (skip for templates)
+          if (!isTemplate) {
+            this.emitWorkoutPlannedChanged(
+              eventId,
+              event.athlete_id!,
+              existingWorkout.workout_id,
+              updatedEvent.start_date,
+              event.training.sport,
+            );
+          }
         }
       } else if (workout && workout.steps && workout.steps.length > 0) {
         const parsedUpdate = updateWorkoutSchema.safeParse(workout);
@@ -573,19 +580,22 @@ export class EventService {
           },
         });
 
-        // Emit event for workout export sync if within 7 days
-        this.emitWorkoutPlannedChanged(
-          eventId,
-          event.athlete_id!,
-          newWorkout.workout_id,
-          updatedEvent.start_date,
-          event.training.sport,
-        );
+        // Emit event for workout export sync if within 7 days (skip for templates)
+        if (!isTemplate) {
+          this.emitWorkoutPlannedChanged(
+            eventId,
+            event.athlete_id!,
+            newWorkout.workout_id,
+            updatedEvent.start_date,
+            event.training.sport,
+          );
+        }
       }
     }
 
-    // Schedule training load estimation for future training events
+    // Schedule training load estimation for future training events (skip for templates)
     if (
+      !isTemplate &&
       event.type === 'TRAINING' &&
       event.training &&
       updatedEvent.start_date > new Date() &&
@@ -605,8 +615,9 @@ export class EventService {
         });
     }
 
-    // If date changed and there's a workout, emit event for new date too
+    // If date changed and there's a workout, emit event for new date too (skip for templates)
     if (
+      !isTemplate &&
       event.type === 'TRAINING' &&
       event.training?.workout &&
       (start_date || end_date) &&
@@ -622,8 +633,8 @@ export class EventService {
       );
     }
 
-    // If RPE was updated on an activity, trigger training load recalculation
-    if (isRpeUpdate && event.activity) {
+    // If RPE was updated on an activity, trigger training load recalculation (skip for templates)
+    if (!isTemplate && isRpeUpdate && event.activity) {
       this.eventEmitter.emit(
         ActivityImportedEvent.SLUG,
         new ActivityImportedEvent({
@@ -734,8 +745,14 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    // Emit event for workout deletion if within 7 days (but listener will skip deletion on provider)
+    // Check if this event is a template
+    const isTemplate = await this.prisma.event_template.findUnique({
+      where: { event_id: eventId },
+    });
+
+    // Emit event for workout deletion if within 7 days (but listener will skip deletion on provider) (skip for templates)
     if (
+      !isTemplate &&
       event.type === 'TRAINING' &&
       event.training?.workout &&
       event.athlete_id

@@ -1,10 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Optional, forwardRef } from '@nestjs/common';
 
 import { event_template } from '@openathlete/database';
 import { CreateEventTemplateDto, keysToCamel } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { TrainingLoadEstimationService } from 'src/modules/queue';
 
 import { EVENT_INCLUDES, EventService } from './event.service';
 
@@ -13,6 +15,11 @@ export class EventTemplateService {
   constructor(
     private prisma: PrismaService,
     private eventService: EventService,
+    @Optional()
+    @Inject(forwardRef(() => TrainingLoadEstimationService))
+    private trainingLoadEstimationService?: TrainingLoadEstimationService,
+    @Optional()
+    private readonly calendarWebSocketService?: CalendarWebSocketService,
   ) {}
 
   async getMyEventTemplates(user: AuthUser, search?: string) {
@@ -320,7 +327,7 @@ export class EventTemplateService {
       });
 
       if (templateWorkout && newEvent.training) {
-        await this.prisma.workout.create({
+        const createdWorkout = await this.prisma.workout.create({
           data: {
             estimated_duration: templateWorkout.estimated_duration,
             total_distance: templateWorkout.total_distance,
@@ -378,7 +385,40 @@ export class EventTemplateService {
             },
           },
         });
+
+        // Emit event for workout export sync if within 7 days
+        if (newEvent.athlete_id && newEvent.training) {
+          this.eventService.emitWorkoutPlannedChanged(
+            newEvent.event_id,
+            newEvent.athlete_id,
+            createdWorkout.workout_id,
+            newEvent.start_date,
+            newEvent.training.sport,
+          );
+        }
       }
+    }
+
+    // Schedule training load estimation for future training events
+    if (
+      newEvent.type === 'TRAINING' &&
+      newEvent.training &&
+      newEvent.start_date > new Date() &&
+      this.trainingLoadEstimationService &&
+      newEvent.athlete_id
+    ) {
+      this.trainingLoadEstimationService
+        .scheduleEstimation(
+          newEvent.event_id,
+          newEvent.training.event_training_id,
+          newEvent.athlete_id,
+        )
+        .catch((error) => {
+          // Log but don't fail the request
+          console.error(
+            `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        });
     }
 
     // Return the complete event
