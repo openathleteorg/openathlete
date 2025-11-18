@@ -1,3 +1,4 @@
+import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
@@ -54,7 +55,7 @@ export function EventFormFields({
         >
           {Object.values(SPORT_TYPE).map((sport) => (
             <SelectItem key={sport} value={sport}>
-              {sportTypeLabelMap[sport]}
+              <SportIcon sport={sport} /> {sportTypeLabelMap[sport]}
             </SelectItem>
           ))}
         </RHFSelect>
