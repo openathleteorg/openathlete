@@ -1,5 +1,3 @@
-import { json, urlencoded } from 'express';
-
 import { NestFactory } from '@nestjs/core';
 
 import { AppModule } from './modules/app.module';
@@ -9,12 +7,6 @@ async function bootstrap() {
     bodyParser: false, // Disable default body parser to configure it manually
     rawBody: false,
   });
-
-  // Increase body size limit for Garmin webhooks (activity details can be large)
-  // Default is 100KB, we increase to 10MB to handle large activity payloads
-  // Must be configured before other middleware
-  app.use(json({ limit: '10mb' }));
-  app.use(urlencoded({ limit: '10mb', extended: true }));
 
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
