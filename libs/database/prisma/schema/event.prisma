@@ -118,6 +118,7 @@ model event_activity {
   normalization         event_activity_normalization?
   training_load_entries training_load_entry[]
   message_thread        message_thread?               @relation("ActivityCommentThread") // comment thread for this activity
+  segments              activity_segment[]
 
   @@unique([external_id]) // Index for fast lookup by external provider ID
 }

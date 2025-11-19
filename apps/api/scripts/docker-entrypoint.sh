@@ -72,10 +72,9 @@ if [ -n "$REDIS_URL" ]; then
   fi
 fi
 
-# decode_secret "STRAVA_CLIENT_SECRET"
-# decode_secret "STRAVA_WEBHOOK_TOKEN"
 decode_secret "OPENAI_API_KEY"
 decode_secret "BREVO_API_KEY"
+decode_secret "GARMIN_CLIENT_SECRET"
 
 cd /app/libs/database
 

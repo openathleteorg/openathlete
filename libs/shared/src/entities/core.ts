@@ -20,7 +20,12 @@ import {
   workout_step,
 } from '@openathlete/database';
 
-import { EQUIPMENT_TYPE, EVENT_TYPE, SPORT_TYPE } from '../types/misc';
+import {
+  ACTIVITY_SEGMENT_TYPE,
+  EQUIPMENT_TYPE,
+  EVENT_TYPE,
+  SPORT_TYPE,
+} from '../types/misc';
 import { ConvertKeysToCamelCase } from '../utils/data.mapper';
 
 export type UserRole = ConvertKeysToCamelCase<user_role>;
@@ -75,6 +80,35 @@ export interface NoteEvent extends ConvertKeysToCamelCase<event_note & event> {
   type: EVENT_TYPE.NOTE;
 }
 
+// ActivitySegment type - will be properly typed after Prisma client generation
+export interface ActivitySegment {
+  activitySegmentId: number;
+  segmentType: ACTIVITY_SEGMENT_TYPE;
+  name?: string | null;
+  orderIndex: number;
+  startTimeSeconds: number;
+  endTimeSeconds: number;
+  distance?: number | null;
+  elevationGain?: number | null;
+  movingTime?: number | null;
+  averageSpeed?: number | null;
+  maxSpeed?: number | null;
+  averageCadence?: number | null;
+  averageWatts?: number | null;
+  maxWatts?: number | null;
+  weightedAverageWatts?: number | null;
+  averageHeartrate?: number | null;
+  maxHeartrate?: number | null;
+  kilojoules?: number | null;
+  averageGapSpeed?: number | null;
+  averageNormalizedSpeed?: number | null;
+  eventActivityId: number;
+  workoutStepId?: number | null;
+  workoutStep?: WorkoutStepEntity;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ActivityEvent
   extends ConvertKeysToCamelCase<event & event_activity> {
   type: EVENT_TYPE.ACTIVITY;
@@ -83,6 +117,7 @@ export interface ActivityEvent
   equipment?: Equipment;
   averageGapSpeed: number | null;
   averageNormalizedSpeed: number | null;
+  segments?: ActivitySegment[];
 }
 
 export type Event =

@@ -287,3 +287,10 @@ enum user_language {
   FR
   EN
 }
+
+enum activity_segment_type {
+  LAP // automatic or manual lap from device
+  WORKOUT_STEP // segment from a planned workout
+  MANUAL // manually created segment
+  AUTO_SPLIT // automatically detected split (e.g., by distance)
+}

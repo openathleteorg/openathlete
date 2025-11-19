@@ -6,6 +6,8 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
+  Prisma,
+  activity_segment_type,
   connector_provider,
   event_activity,
   event_type,
@@ -15,7 +17,11 @@ import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { QueueService } from 'src/modules/queue';
 
-import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
+import {
+  compressActivityStream,
+  uncompressActivityStream,
+} from '../../core/helpers/activity-stream';
 import { mapGarminActivityType } from '../../core/helpers/garmin';
 import {
   parseFitFile,
@@ -30,6 +36,7 @@ import {
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
 import {
+  GarminActivityDetail,
   GarminActivityFilePingWebhook,
   GarminActivityPingWebhook,
   GarminActivitySummary,
@@ -638,23 +645,7 @@ export class GarminProviderService
     activity: GarminActivitySummary,
   ): Promise<event_activity> {
     const activityStream: ActivityStream = {};
-    let activityDetail: {
-      activityId: number;
-      summary: GarminActivitySummary;
-      samples?: Array<{
-        startTimeInSeconds: number;
-        latitudeInDegree?: number;
-        longitudeInDegree?: number;
-        elevationInMeters?: number;
-        heartRate?: number;
-        bikeCadenceInRPM?: number;
-        stepsPerMinute?: number;
-        swimCadenceInStrokesPerMinute?: number;
-        powerInWatts?: number;
-        totalDistanceInMeters?: number;
-        movingDurationInSeconds?: number;
-      }>;
-    } | null = null;
+    let activityDetail: GarminActivityDetail | null = null;
 
     if (!activity.manual) {
       const uploadStartTime = activity.startTimeInSeconds - 12 * 60 * 60;
@@ -662,52 +653,21 @@ export class GarminProviderService
 
       try {
         const activityDetails = await this.makeAuthenticatedRequest<
-          Array<{
-            activityId: number;
-            summary: GarminActivitySummary;
-            samples?: Array<{
-              startTimeInSeconds: number;
-              latitudeInDegree?: number;
-              longitudeInDegree?: number;
-              elevationInMeters?: number;
-              heartRate?: number;
-              bikeCadenceInRPM?: number;
-              stepsPerMinute?: number;
-              swimCadenceInStrokesPerMinute?: number;
-              powerInWatts?: number;
-              totalDistanceInMeters?: number;
-              movingDurationInSeconds?: number;
-            }>;
-          }>
+          GarminActivityDetail[]
         >(account, async (accessToken) => {
-          const response = await axios.get<
-            Array<{
-              activityId: number;
-              summary: GarminActivitySummary;
-              samples?: Array<{
-                startTimeInSeconds: number;
-                latitudeInDegree?: number;
-                longitudeInDegree?: number;
-                elevationInMeters?: number;
-                heartRate?: number;
-                bikeCadenceInRPM?: number;
-                stepsPerMinute?: number;
-                swimCadenceInStrokesPerMinute?: number;
-                powerInWatts?: number;
-                totalDistanceInMeters?: number;
-                movingDurationInSeconds?: number;
-              }>;
-            }>
-          >('https://apis.garmin.com/wellness-api/rest/activityDetails', {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
+          const response = await axios.get<GarminActivityDetail[]>(
+            'https://apis.garmin.com/wellness-api/rest/activityDetails',
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+              params: {
+                uploadStartTimeInSeconds: uploadStartTime,
+                uploadEndTimeInSeconds: uploadEndTime,
+              },
+              timeout: 45000,
             },
-            params: {
-              uploadStartTimeInSeconds: uploadStartTime,
-              uploadEndTimeInSeconds: uploadEndTime,
-            },
-            timeout: 45000,
-          });
+          );
           return response.data;
         });
 
@@ -839,6 +799,62 @@ export class GarminProviderService
         },
       },
     });
+
+    // Extract and store laps/segments if available
+    if (
+      activityDetail?.laps &&
+      activityDetail.laps.length > 0 &&
+      activityStream.time &&
+      activityStream.time.length > 0
+    ) {
+      const laps = activityDetail.laps;
+      const activityStartTime = activity.startTimeInSeconds;
+      const totalDuration = summary.durationInSeconds;
+
+      // Uncompress stream to calculate segment metrics
+      const uncompressedStream = uncompressActivityStream(
+        compressedActivityStream,
+      );
+
+      const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
+      for (let i = 0; i < laps.length; i++) {
+        const lap = laps[i];
+        const lapStartTimeSeconds = lap.startTimeInSeconds - activityStartTime;
+        const lapEndTimeSeconds =
+          i < laps.length - 1
+            ? laps[i + 1].startTimeInSeconds - activityStartTime
+            : totalDuration;
+
+        // Only create segment if it has valid time range
+        if (
+          lapStartTimeSeconds >= 0 &&
+          lapEndTimeSeconds > lapStartTimeSeconds
+        ) {
+          const metrics = calculateSegmentMetrics(
+            uncompressedStream,
+            lapStartTimeSeconds,
+            lapEndTimeSeconds,
+          );
+
+          segmentsData.push({
+            segment_type: activity_segment_type.LAP,
+            name: `Lap ${i + 1}`,
+            order_index: i,
+            start_time_seconds: Math.round(lapStartTimeSeconds),
+            end_time_seconds: Math.round(lapEndTimeSeconds),
+            ...metrics,
+            event_activity_id: savedActivity.event_activity_id,
+          });
+        }
+      }
+
+      // Create segments in batch
+      if (segmentsData.length > 0) {
+        await this.prisma.activity_segment.createMany({
+          data: segmentsData,
+        });
+      }
+    }
 
     return savedActivity;
   }

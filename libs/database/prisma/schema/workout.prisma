@@ -55,12 +55,13 @@ model workout_step {
   duration_target Float? // optional target for LAP_BUTTON type
 
   // relationships
-  workout          workout?              @relation(fields: [workout_id], references: [workout_id], onDelete: Cascade)
-  workout_id       Int?
-  repeat_parent    workout_repeat?       @relation("ParentRepeat", fields: [repeat_parent_id], references: [workout_repeat_id], onDelete: Cascade)
-  repeat_parent_id Int?
-  repeat_block     workout_repeat?       @relation("RepeatBlock")
-  targets          workout_step_target[]
+  workout           workout?              @relation(fields: [workout_id], references: [workout_id], onDelete: Cascade)
+  workout_id        Int?
+  repeat_parent     workout_repeat?       @relation("ParentRepeat", fields: [repeat_parent_id], references: [workout_repeat_id], onDelete: Cascade)
+  repeat_parent_id  Int?
+  repeat_block      workout_repeat?       @relation("RepeatBlock")
+  targets           workout_step_target[]
+  activity_segments activity_segment[]
 
   // timestamps
   created_at DateTime @default(now())
