@@ -3,10 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './modules/app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    bodyParser: false, // Disable default body parser to configure it manually
-    rawBody: false,
-  });
+  const app = await NestFactory.create(AppModule);
 
   const allowedOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
