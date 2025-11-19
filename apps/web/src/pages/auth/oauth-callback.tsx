@@ -33,9 +33,30 @@ export function OAuthCallbackPage() {
     const finalProvider = (provider || '').toUpperCase();
     const validProviders = ['STRAVA', 'GARMIN', 'SUUNTO', 'COROS'];
     if (code && provider && validProviders.includes(finalProvider)) {
+      // For Garmin (PKCE), retrieve codeVerifier from localStorage
+      // Using localStorage instead of sessionStorage to persist across OAuth redirects
+      const storageKey = `oauth_code_verifier_${finalProvider}`;
+      const codeVerifier = localStorage.getItem(storageKey);
+
+      // Garmin requires codeVerifier for PKCE flow
+      if (finalProvider === 'GARMIN' && !codeVerifier) {
+        console.error('Garmin OAuth: codeVerifier not found in localStorage');
+        toast.error(
+          'Garmin OAuth error: codeVerifier not found. Please try connecting again.',
+        );
+        nav(getPath(['dashboard', 'settings']));
+        return;
+      }
+
+      // Clean up localStorage after retrieving
+      if (codeVerifier) {
+        localStorage.removeItem(storageKey);
+      }
+
       setOAuthTokenMutation.mutate({
         provider: finalProvider as ConnectorProvider,
         code,
+        ...(codeVerifier && { codeVerifier }),
       });
     } else {
       nav(getPath(['dashboard', 'settings']));

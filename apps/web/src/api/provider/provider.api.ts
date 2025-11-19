@@ -8,20 +8,32 @@ export interface ConnectedProvider {
   connectedAt: string;
 }
 
+export interface GetOAuthUriResponse {
+  uri: string;
+  codeVerifier?: string; // For PKCE providers like Garmin
+}
+
 export class ProviderAPI {
-  static async getOAuthUri(provider: ConnectorProvider): Promise<string> {
+  static async getOAuthUri(
+    provider: ConnectorProvider,
+  ): Promise<GetOAuthUriResponse> {
     const res = await client.get(routes.provider.getOAuthUri(provider));
-    return res.data.uri;
+    return res.data;
   }
 
   static async setOAuthToken({
     provider,
     code,
+    codeVerifier,
   }: {
     provider: ConnectorProvider;
     code: string;
+    codeVerifier?: string;
   }): Promise<void> {
-    await client.post(routes.provider.setOAuthToken(provider), { code });
+    await client.post(routes.provider.setOAuthToken(provider), {
+      code,
+      ...(codeVerifier && { codeVerifier }),
+    });
   }
 
   static async disconnect(

@@ -37,8 +37,16 @@ export function ConnectorsList({
     useGetConnectedProvidersQuery();
 
   const getOAuthUriMutation = useGetOAuthUriMutation({
-    onSuccess: async (uri) => {
-      await openOAuthUrl(uri);
+    onSuccess: async (response, provider) => {
+      // For PKCE providers (like Garmin), store codeVerifier in localStorage
+      // Using localStorage instead of sessionStorage to persist across OAuth redirects
+      if (response.codeVerifier) {
+        const storageKey = `oauth_code_verifier_${provider.toUpperCase()}`;
+        localStorage.setItem(storageKey, response.codeVerifier);
+      } else if (provider.toUpperCase() === 'GARMIN') {
+        console.error('Garmin OAuth: codeVerifier not found in response');
+      }
+      await openOAuthUrl(response.uri);
     },
     onError: (error) => {
       toast.error(error.message || m.failed_to_initiate_connection());
