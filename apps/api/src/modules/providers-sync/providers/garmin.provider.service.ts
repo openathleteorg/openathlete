@@ -1,126 +1,140 @@
 import axios, { isAxiosError } from 'axios';
+import Redis from 'ioredis';
 import { createHash, randomBytes } from 'node:crypto';
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { connector_provider } from '@openathlete/database';
-import { ApiEnvSchemaType } from '@openathlete/shared';
+import {
+  connector_provider,
+  event_activity,
+  event_type,
+  provider_account,
+} from '@openathlete/database';
+import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
+import { QueueService } from 'src/modules/queue';
+
+import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { mapGarminActivityType } from '../../core/helpers/garmin';
+import {
+  parseFitFile,
+  parseGpxFile,
+} from '../../core/helpers/garmin-file-parser';
+import {
+  roundCadence,
+  roundDistance,
+  roundElevation,
+  roundEnergy,
+  roundHeartrate,
+  roundSpeed,
+} from '../../core/helpers/round-activity-values';
+import {
+  GarminActivityFilePingWebhook,
+  GarminActivityPingWebhook,
+  GarminActivitySummary,
+  GarminDeregistrationWebhook,
+} from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import {
   BaseProviderService,
   OAuthConfig,
   OAuthTokenResponse,
 } from '../base/base-provider.service';
+import {
+  ImportOptions,
+  ImportedActivity,
+  ProviderImportCapability,
+} from '../base/provider-import.interface';
 
-/**
- * Garmin Connect Developer Program API uses OAuth 2.0 with PKCE (Proof Key for Code Exchange)
- *
- * Documentation: https://developerportal.garmin.com/
- * Note: Exact token endpoint URL not publicly available - requires Garmin Developer Program approval
- *
- * OAuth 2.0 PKCE Flow:
- * 1. Generate code_verifier (random string)
- * 2. Generate code_challenge = BASE64URL(SHA256(code_verifier))
- * 3. Include code_challenge in authorization URL
- * 4. Exchange code with code_verifier (not client_secret for PKCE)
- */
 @Injectable()
-export class GarminProviderService extends BaseProviderService {
+export class GarminProviderService
+  extends BaseProviderService
+  implements ProviderImportCapability
+{
   protected readonly provider = connector_provider.GARMIN;
 
   protected get oauthConfig(): OAuthConfig {
     return {
-      // Based on Garmin OAuth 2.0 PKCE documentation (2024)
-      authorizationUrl: 'https://apis.garmin.com/tools/oauth2/authorizeUser',
-      // Token URL not publicly documented - requires Garmin Developer Program approval
-      // Placeholder: will need to be confirmed with Garmin upon application approval
-      // Default URL based on Garmin API patterns - to be confirmed with official documentation
-      tokenUrl: 'https://apis.garmin.com/tools/oauth2/token',
+      authorizationUrl: 'https://connect.garmin.com/oauth2Confirm',
+      tokenUrl: 'https://diauth.garmin.com/di-oauth2-service/oauth/token',
       clientId: this.configService.get('GARMIN_CLIENT_ID') || '',
-      clientSecret: this.configService.get('GARMIN_CLIENT_SECRET') || '', // May not be required for PKCE
+      clientSecret: this.configService.get('GARMIN_CLIENT_SECRET') || '',
       redirectUri: this.configService.get('GARMIN_REDIRECT_URI') || '',
-      // Scopes to be confirmed with Garmin upon Developer Program approval
-      // Placeholder scopes for activity read and workout write
-      scopes: ['activity:read', 'workout:write'],
+      scopes: [],
     };
   }
+
+  private redis: Redis | null = null;
 
   constructor(
     prisma: PrismaService,
     configService: ConfigService<ApiEnvSchemaType, true>,
+    @Inject(forwardRef(() => QueueService))
+    private readonly queueService: QueueService,
   ) {
     super(prisma, configService);
+    this.initRedis();
   }
 
-  /**
-   * Generate PKCE code verifier and challenge
-   * Code verifier: random URL-safe string, 43-128 characters
-   * Code challenge: BASE64URL(SHA256(code_verifier))
-   */
+  private async initRedis() {
+    try {
+      const redisUrl = process.env.REDIS_URL;
+      if (!redisUrl) {
+        this.redis = new Redis({
+          host: 'localhost',
+          port: 6379,
+        });
+      } else {
+        this.redis = new Redis(redisUrl);
+      }
+    } catch {
+      this.redis = null;
+    }
+  }
+
   private generatePKCE(): { verifier: string; challenge: string } {
-    // Generate random code verifier (43-128 characters, URL-safe)
     const verifier = randomBytes(32).toString('base64url');
-
-    // Generate code challenge: BASE64URL(SHA256(code_verifier))
     const challenge = createHash('sha256').update(verifier).digest('base64url');
-
     return { verifier, challenge };
   }
 
-  /**
-   * Get authorization URI with PKCE parameters
-   * Returns both URI and code_verifier (client must store and send back during token exchange)
-   * This is the recommended method for Garmin OAuth
-   */
   getAuthorizationUriWithPKCE(state?: string): {
     uri: string;
     codeVerifier: string;
   } {
     const { verifier, challenge } = this.generatePKCE();
-
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.oauthConfig.clientId,
-      redirect_uri: this.oauthConfig.redirectUri,
       code_challenge: challenge,
       code_challenge_method: 'S256',
-      scope: this.oauthConfig.scopes.join(','),
+      ...(this.oauthConfig.redirectUri && {
+        redirect_uri: this.oauthConfig.redirectUri,
+      }),
       ...(state && { state }),
     });
-
     return {
       uri: `${this.oauthConfig.authorizationUrl}?${params.toString()}`,
       codeVerifier: verifier,
     };
   }
 
-  /**
-   * Standard getAuthorizationUri for compatibility
-   * Note: For Garmin PKCE, use getAuthorizationUriWithPKCE instead to get code_verifier
-   */
   override getAuthorizationUri(state?: string): string {
     const { challenge } = this.generatePKCE();
-
     const params = new URLSearchParams({
       response_type: 'code',
       client_id: this.oauthConfig.clientId,
-      redirect_uri: this.oauthConfig.redirectUri,
       code_challenge: challenge,
       code_challenge_method: 'S256',
-      scope: this.oauthConfig.scopes.join(','),
+      ...(this.oauthConfig.redirectUri && {
+        redirect_uri: this.oauthConfig.redirectUri,
+      }),
       ...(state && { state }),
     });
-
     return `${this.oauthConfig.authorizationUrl}?${params.toString()}`;
   }
 
-  /**
-   * Override token exchange to use PKCE (code_verifier instead of client_secret)
-   * Note: Garmin PKCE flow uses code_verifier, not client_secret
-   * The code_verifier must match the code_challenge sent in authorization
-   */
   override async exchangeCodeForTokens(
     code: string,
     codeVerifier?: string,
@@ -131,74 +145,960 @@ export class GarminProviderService extends BaseProviderService {
       );
     }
 
-    try {
-      // Garmin PKCE token exchange uses form-urlencoded (not JSON)
-      const params = new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
+    const params = new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: this.oauthConfig.clientId,
+      client_secret: this.oauthConfig.clientSecret,
+      code,
+      code_verifier: codeVerifier,
+      ...(this.oauthConfig.redirectUri && {
         redirect_uri: this.oauthConfig.redirectUri,
-        client_id: this.oauthConfig.clientId,
-        code_verifier: codeVerifier,
-      });
+      }),
+    });
 
-      const { data } = await axios.post<OAuthTokenResponse>(
-        this.oauthConfig.tokenUrl,
-        params.toString(),
+    const { data } = await axios.post<OAuthTokenResponse>(
+      this.oauthConfig.tokenUrl,
+      params.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+
+    return data;
+  }
+
+  override async refreshAccessToken(
+    refreshToken: string,
+  ): Promise<OAuthTokenResponse> {
+    const params = new URLSearchParams({
+      grant_type: 'refresh_token',
+      client_id: this.oauthConfig.clientId,
+      client_secret: this.oauthConfig.clientSecret,
+      refresh_token: refreshToken,
+    });
+
+    const { data } = await axios.post<OAuthTokenResponse>(
+      this.oauthConfig.tokenUrl,
+      params.toString(),
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      },
+    );
+
+    return data;
+  }
+
+  async getUserId(accessToken: string): Promise<string> {
+    try {
+      const { data } = await axios.get<{ userId: string }>(
+        'https://apis.garmin.com/wellness-api/rest/user/id',
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Bearer ${accessToken}`,
           },
         },
       );
-
-      return data;
+      return data.userId;
     } catch (error) {
-      if (isAxiosError(error)) {
-        this.logger.error(
-          `Garmin OAuth token exchange failed: ${JSON.stringify(error.response?.data)}`,
-          error.stack,
-        );
+      if (
+        isAxiosError(error) &&
+        (error.response?.status === 404 ||
+          error.response?.data?.errorType === 'partner_registration_not_found')
+      ) {
+        return '';
       }
       throw error;
     }
   }
 
-  /**
-   * Note: Garmin refresh token endpoint and flow to be confirmed
-   * May require PKCE or may use standard refresh token flow
-   */
-  override async refreshAccessToken(
-    refreshToken: string,
-  ): Promise<OAuthTokenResponse> {
+  async getUserPermissions(accessToken: string): Promise<string[]> {
     try {
-      // Refresh token format to be confirmed with Garmin
-      // May require form-urlencoded similar to token exchange
-      const params = new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: this.oauthConfig.clientId,
-        // Note: May or may not require client_secret for refresh
-      });
-
-      const { data } = await axios.post<OAuthTokenResponse>(
-        this.oauthConfig.tokenUrl,
-        params.toString(),
+      const { data } = await axios.get<unknown>(
+        'https://apis.garmin.com/wellness-api/rest/user/permissions',
         {
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            Authorization: `Bearer ${accessToken}`,
           },
         },
       );
 
-      return data;
+      if (Array.isArray(data)) {
+        return data;
+      }
+
+      if (
+        typeof data === 'object' &&
+        data !== null &&
+        'permissions' in data &&
+        Array.isArray((data as { permissions: unknown }).permissions)
+      ) {
+        return (data as { permissions: string[] }).permissions;
+      }
+
+      return [];
     } catch (error) {
-      if (isAxiosError(error)) {
-        this.logger.error(
-          `Garmin token refresh failed: ${JSON.stringify(error.response?.data)}`,
-          error.stack,
-        );
+      if (
+        isAxiosError(error) &&
+        (error.response?.status === 404 ||
+          error.response?.data?.errorType === 'partner_registration_not_found')
+      ) {
+        return [];
       }
       throw error;
     }
+  }
+
+  async deleteUserRegistration(accessToken: string): Promise<void> {
+    await axios.delete(
+      'https://apis.garmin.com/wellness-api/rest/user/registration',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+  }
+
+  override async saveProviderAccount(params: {
+    athleteId: number;
+    accessToken: string;
+    refreshToken: string;
+    expiresIn?: number;
+    scopes?: string;
+    externalUserId?: string;
+  }): Promise<provider_account> {
+    const adjustedExpiresIn = params.expiresIn
+      ? Math.max(0, params.expiresIn - 600)
+      : undefined;
+
+    return super.saveProviderAccount({
+      ...params,
+      expiresIn: adjustedExpiresIn,
+    });
+  }
+
+  override async getValidAccessToken(
+    account: provider_account,
+  ): Promise<string> {
+    if (
+      account.access_token &&
+      account.expires_at &&
+      new Date() < account.expires_at
+    ) {
+      return account.access_token;
+    }
+
+    if (!account.refresh_token) {
+      throw new Error(`No refresh token available for ${this.provider}`);
+    }
+
+    const tokenResponse = await this.refreshAccessToken(account.refresh_token);
+    const expiresAt = tokenResponse.expires_in
+      ? new Date(Date.now() + (tokenResponse.expires_in - 600) * 1000)
+      : null;
+
+    await this.prisma.provider_account.update({
+      where: {
+        provider_account_id: account.provider_account_id,
+      },
+      data: {
+        access_token: tokenResponse.access_token,
+        refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
+        expires_at: expiresAt,
+      },
+    });
+
+    return tokenResponse.access_token;
+  }
+
+  async connect(
+    code: string,
+    codeVerifier: string,
+    athleteId: number,
+  ): Promise<provider_account> {
+    const tokenResponse = await this.exchangeCodeForTokens(code, codeVerifier);
+    const userId = await this.getUserId(tokenResponse.access_token);
+
+    const account = await this.saveProviderAccount({
+      athleteId,
+      accessToken: tokenResponse.access_token,
+      refreshToken: tokenResponse.refresh_token || '',
+      expiresIn: tokenResponse.expires_in,
+      scopes: tokenResponse.scope,
+      externalUserId: userId,
+    });
+
+    this.fetchInitialGarminData(account).catch(() => {});
+
+    return account;
+  }
+
+  private async requestActivityBackfill(
+    account: provider_account,
+    summaryStartTimeInSeconds: number,
+    summaryEndTimeInSeconds: number,
+  ): Promise<void> {
+    const accessToken = await this.getValidAccessToken(account);
+
+    await axios.get(
+      'https://apis.garmin.com/wellness-api/rest/backfill/activities',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        params: {
+          summaryStartTimeInSeconds,
+          summaryEndTimeInSeconds,
+        },
+        timeout: 10000,
+      },
+    );
+  }
+
+  private async isUserRegistrationComplete(
+    account: provider_account,
+  ): Promise<boolean> {
+    try {
+      const accessToken = await this.getValidAccessToken(account);
+      const userId = await this.getUserId(accessToken);
+      return !!userId;
+    } catch {
+      return false;
+    }
+  }
+
+  private async hasActivityExportPermission(
+    account: provider_account,
+  ): Promise<boolean | null> {
+    try {
+      const accessToken = await this.getValidAccessToken(account);
+      const permissions = await this.getUserPermissions(accessToken);
+      if (!Array.isArray(permissions) || permissions.length === 0) {
+        return null;
+      }
+      return permissions.includes('ACTIVITY_EXPORT');
+    } catch {
+      return null;
+    }
+  }
+
+  private async fetchInitialGarminData(
+    account: provider_account,
+  ): Promise<void> {
+    const hasPermission = await this.hasActivityExportPermission(account);
+    if (hasPermission === false) {
+      return;
+    }
+
+    const activities = await this.importActivities(account);
+
+    if (activities.length === 0) {
+      const isComplete = await this.isUserRegistrationComplete(account);
+      if (!isComplete) {
+        setTimeout(() => {
+          this.fetchInitialGarminData(account).catch(() => {});
+        }, 5000);
+        return;
+      }
+
+      const now = Math.floor(Date.now() / 1000);
+      const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
+      await this.requestActivityBackfill(account, thirtyDaysAgo, now).catch(
+        () => {},
+      );
+      return;
+    }
+
+    const existingExternalIds = await this.prisma.event_activity.findMany({
+      where: {
+        external_id: {
+          in: activities.map((a) => a.externalId),
+        },
+      },
+      select: {
+        external_id: true,
+      },
+    });
+
+    const existingIdsSet = new Set(
+      existingExternalIds.map((a) => a.external_id),
+    );
+
+    const newActivities = activities.filter(
+      (a) => !existingIdsSet.has(a.externalId),
+    );
+
+    if (newActivities.length === 0) {
+      return;
+    }
+
+    await this.queueService.addActivityImportJobs(account, newActivities, true);
+  }
+
+  private async makeAuthenticatedRequest<T>(
+    account: provider_account,
+    requestFn: (accessToken: string) => Promise<T>,
+  ): Promise<T> {
+    let accessToken = await this.getValidAccessToken(account);
+
+    try {
+      return await requestFn(accessToken);
+    } catch (error) {
+      if (
+        isAxiosError(error) &&
+        error.response?.status === 401 &&
+        account.refresh_token
+      ) {
+        const tokenResponse = await this.refreshAccessToken(
+          account.refresh_token,
+        );
+        const expiresAt = tokenResponse.expires_in
+          ? new Date(Date.now() + (tokenResponse.expires_in - 600) * 1000)
+          : null;
+
+        const updatedAccount = await this.prisma.provider_account.update({
+          where: {
+            provider_account_id: account.provider_account_id,
+          },
+          data: {
+            access_token: tokenResponse.access_token,
+            refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
+            expires_at: expiresAt,
+          },
+        });
+
+        account.access_token = updatedAccount.access_token;
+        account.refresh_token = updatedAccount.refresh_token;
+        account.expires_at = updatedAccount.expires_at;
+
+        accessToken = tokenResponse.access_token;
+        return await requestFn(accessToken);
+      }
+
+      throw error;
+    }
+  }
+
+  async importActivities(
+    account: provider_account,
+    options?: ImportOptions,
+  ): Promise<ImportedActivity[]> {
+    const hasPermission = await this.hasActivityExportPermission(account);
+    if (hasPermission === false) {
+      return [];
+    }
+
+    const limit = options?.limit ?? 100;
+    const activities: ImportedActivity[] = [];
+
+    const endTime = options?.endDate
+      ? Math.floor(options.endDate.getTime() / 1000)
+      : Math.floor(Date.now() / 1000);
+    const startTime = options?.startDate
+      ? Math.floor(options.startDate.getTime() / 1000)
+      : endTime - 30 * 24 * 60 * 60;
+
+    if (startTime >= endTime) {
+      return [];
+    }
+
+    const chunkSize = 24 * 60 * 60;
+    let currentStart = startTime;
+
+    while (activities.length < limit && currentStart < endTime) {
+      const currentEnd = Math.min(currentStart + chunkSize, endTime);
+
+      const data = await this.makeAuthenticatedRequest<GarminActivitySummary[]>(
+        account,
+        async (accessToken) => {
+          try {
+            const response = await axios.get<GarminActivitySummary[]>(
+              'https://apis.garmin.com/wellness-api/rest/activities',
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`,
+                },
+                params: {
+                  uploadStartTimeInSeconds: currentStart,
+                  uploadEndTimeInSeconds: currentEnd,
+                },
+                timeout: 15000,
+              },
+            );
+            return response.data;
+          } catch (error) {
+            if (
+              isAxiosError(error) &&
+              (error.response?.status === 403 || error.response?.status === 400)
+            ) {
+              return [];
+            }
+            throw error;
+          }
+        },
+      );
+
+      if (data.length === 0) {
+        currentStart = currentEnd;
+        continue;
+      }
+
+      for (const activity of data) {
+        if (activities.length >= limit) break;
+
+        const startDate = new Date(
+          (activity.startTimeInSeconds + activity.startTimeOffsetInSeconds) *
+            1000,
+        );
+        const endDate = new Date(
+          startDate.getTime() + activity.durationInSeconds * 1000,
+        );
+
+        if (options?.startDate && startDate < options.startDate) continue;
+        if (options?.endDate && startDate > options.endDate) continue;
+
+        activities.push({
+          externalId: String(activity.activityId),
+          name: activity.activityName,
+          startDate,
+          endDate,
+          sport: mapGarminActivityType(activity.activityType),
+          distance: activity.distanceInMeters,
+          duration: activity.durationInSeconds,
+          raw: activity,
+        });
+      }
+
+      currentStart = currentEnd;
+    }
+
+    return activities;
+  }
+
+  async importActivity(
+    account: provider_account,
+    activity: ImportedActivity,
+  ): Promise<event_activity> {
+    const existing = await this.prisma.event_activity.findFirst({
+      where: {
+        external_id: activity.externalId,
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { athlete_id: account.athlete_id },
+      select: { athlete_id: true },
+    });
+
+    if (!athlete) {
+      throw new Error('Athlete not found');
+    }
+
+    const event = await this.prisma.event.create({
+      data: {
+        athlete_id: athlete.athlete_id,
+        name: activity.name,
+        type: event_type.ACTIVITY,
+        start_date: activity.startDate,
+        end_date: activity.endDate,
+      },
+    });
+
+    const garminActivity = activity.raw as GarminActivitySummary;
+    const savedActivity = await this.fetchGarminActivityData(
+      account,
+      event,
+      garminActivity,
+    );
+
+    const pendingFile = await this.getPendingFile(activity.externalId);
+    if (pendingFile) {
+      await this.processActivityFile(
+        account,
+        savedActivity,
+        pendingFile.callbackURL,
+        pendingFile.fileType as 'FIT' | 'GPX',
+      );
+    }
+
+    return savedActivity;
+  }
+
+  private async fetchGarminActivityData(
+    account: provider_account,
+    event: { event_id: number },
+    activity: GarminActivitySummary,
+  ): Promise<event_activity> {
+    const activityStream: ActivityStream = {};
+    let activityDetail: {
+      activityId: number;
+      summary: GarminActivitySummary;
+      samples?: Array<{
+        startTimeInSeconds: number;
+        latitudeInDegree?: number;
+        longitudeInDegree?: number;
+        elevationInMeters?: number;
+        heartRate?: number;
+        bikeCadenceInRPM?: number;
+        stepsPerMinute?: number;
+        swimCadenceInStrokesPerMinute?: number;
+        powerInWatts?: number;
+        totalDistanceInMeters?: number;
+        movingDurationInSeconds?: number;
+      }>;
+    } | null = null;
+
+    if (!activity.manual) {
+      const uploadStartTime = activity.startTimeInSeconds - 12 * 60 * 60;
+      const uploadEndTime = activity.startTimeInSeconds + 12 * 60 * 60;
+
+      try {
+        const activityDetails = await this.makeAuthenticatedRequest<
+          Array<{
+            activityId: number;
+            summary: GarminActivitySummary;
+            samples?: Array<{
+              startTimeInSeconds: number;
+              latitudeInDegree?: number;
+              longitudeInDegree?: number;
+              elevationInMeters?: number;
+              heartRate?: number;
+              bikeCadenceInRPM?: number;
+              stepsPerMinute?: number;
+              swimCadenceInStrokesPerMinute?: number;
+              powerInWatts?: number;
+              totalDistanceInMeters?: number;
+              movingDurationInSeconds?: number;
+            }>;
+          }>
+        >(account, async (accessToken) => {
+          const response = await axios.get<
+            Array<{
+              activityId: number;
+              summary: GarminActivitySummary;
+              samples?: Array<{
+                startTimeInSeconds: number;
+                latitudeInDegree?: number;
+                longitudeInDegree?: number;
+                elevationInMeters?: number;
+                heartRate?: number;
+                bikeCadenceInRPM?: number;
+                stepsPerMinute?: number;
+                swimCadenceInStrokesPerMinute?: number;
+                powerInWatts?: number;
+                totalDistanceInMeters?: number;
+                movingDurationInSeconds?: number;
+              }>;
+            }>
+          >('https://apis.garmin.com/wellness-api/rest/activityDetails', {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+            params: {
+              uploadStartTimeInSeconds: uploadStartTime,
+              uploadEndTimeInSeconds: uploadEndTime,
+            },
+            timeout: 45000,
+          });
+          return response.data;
+        });
+
+        activityDetail =
+          activityDetails.find(
+            (detail) =>
+              String(detail.activityId) === String(activity.activityId),
+          ) || null;
+      } catch {
+        // Activity will be saved without stream data
+      }
+
+      if (activityDetail?.samples && activityDetail.samples.length > 0) {
+        const samples = activityDetail.samples;
+        const activityStartTime = activity.startTimeInSeconds;
+
+        const time: number[] = [];
+        const latlng: number[][] = [];
+        const altitude: number[] = [];
+        const heartrate: number[] = [];
+        const cadence: number[] = [];
+        const power: number[] = [];
+        const distance: number[] = [];
+
+        for (const sample of samples) {
+          const sampleTime = sample.startTimeInSeconds - activityStartTime;
+          time.push(sampleTime);
+
+          if (
+            sample.latitudeInDegree !== undefined &&
+            sample.longitudeInDegree !== undefined
+          ) {
+            latlng.push([sample.latitudeInDegree, sample.longitudeInDegree]);
+          }
+
+          if (sample.elevationInMeters !== undefined) {
+            altitude.push(sample.elevationInMeters);
+          }
+
+          if (sample.heartRate !== undefined) {
+            heartrate.push(sample.heartRate);
+          }
+
+          if (sample.bikeCadenceInRPM !== undefined) {
+            cadence.push(sample.bikeCadenceInRPM);
+          } else if (sample.stepsPerMinute !== undefined) {
+            cadence.push(sample.stepsPerMinute);
+          } else if (sample.swimCadenceInStrokesPerMinute !== undefined) {
+            cadence.push(sample.swimCadenceInStrokesPerMinute);
+          }
+
+          if (sample.powerInWatts !== undefined) {
+            power.push(sample.powerInWatts);
+          }
+
+          if (sample.totalDistanceInMeters !== undefined) {
+            distance.push(sample.totalDistanceInMeters);
+          }
+        }
+
+        if (time.length > 0) {
+          activityStream.time = time;
+        }
+        if (latlng.length > 0) {
+          activityStream.latlng = latlng;
+        }
+        if (altitude.length > 0) {
+          activityStream.altitude = altitude;
+        }
+        if (heartrate.length > 0) {
+          activityStream.heartrate = heartrate;
+        }
+        if (cadence.length > 0) {
+          activityStream.cadence = cadence;
+        }
+        if (power.length > 0) {
+          activityStream.watts = power;
+        }
+        if (distance.length > 0) {
+          activityStream.distance = distance;
+        }
+      }
+    }
+
+    const summary = activityDetail?.summary || activity;
+    const compressedActivityStream = compressActivityStream(activityStream);
+    const sport = mapGarminActivityType(summary.activityType);
+
+    let averageCadence: number | undefined;
+    if (summary.averageBikeCadenceInRoundsPerMinute !== undefined) {
+      averageCadence =
+        roundCadence(summary.averageBikeCadenceInRoundsPerMinute) ?? undefined;
+    } else if (summary.averageRunCadenceInStepsPerMinute !== undefined) {
+      averageCadence =
+        roundCadence(summary.averageRunCadenceInStepsPerMinute) ?? undefined;
+    } else if (summary.averageSwimCadenceInStrokesPerMinute !== undefined) {
+      averageCadence =
+        roundCadence(summary.averageSwimCadenceInStrokesPerMinute) ?? undefined;
+    }
+
+    const movingTime =
+      activityDetail?.samples?.[activityDetail.samples.length - 1]
+        ?.movingDurationInSeconds || summary.durationInSeconds;
+
+    const savedActivity = await this.prisma.event_activity.create({
+      data: {
+        provider: connector_provider.GARMIN,
+        distance: roundDistance(summary.distanceInMeters || 0),
+        elevation_gain: roundElevation(summary.totalElevationGainInMeters || 0),
+        moving_time: movingTime,
+        average_speed:
+          roundSpeed(summary.averageSpeedInMetersPerSecond || 0) ?? 0,
+        max_speed: roundSpeed(summary.maxSpeedInMetersPerSecond || 0) ?? 0,
+        average_cadence: averageCadence,
+        average_heartrate: roundHeartrate(
+          summary.averageHeartRateInBeatsPerMinute,
+        ),
+        max_heartrate: roundHeartrate(summary.maxHeartRateInBeatsPerMinute),
+        kilojoules: summary.activeKilocalories
+          ? roundEnergy(summary.activeKilocalories * 4.184)
+          : undefined,
+        sport,
+        stream: compressedActivityStream as object,
+        external_id: activity.activityId.toString(),
+        event: {
+          connect: {
+            event_id: event.event_id,
+          },
+        },
+      },
+    });
+
+    return savedActivity;
+  }
+
+  async handleActivityPingWebhook(
+    payload: GarminActivityPingWebhook,
+  ): Promise<void> {
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        provider: connector_provider.GARMIN,
+        external_user_id: payload.userId,
+        status: 'active',
+      },
+      include: {
+        athlete: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!account || !account.athlete || !account.athlete.user) {
+      return;
+    }
+
+    try {
+      const accessToken = await this.getValidAccessToken(account);
+
+      const response = await axios.get<GarminActivitySummary[]>(
+        payload.callbackURL,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          timeout: 30000,
+        },
+      );
+
+      const activities = response.data || [];
+      if (activities.length === 0) {
+        return;
+      }
+
+      const activityIds = activities.map((a) => String(a.activityId));
+      const existingExternalIds = await this.prisma.event_activity.findMany({
+        where: {
+          external_id: {
+            in: activityIds,
+          },
+        },
+        select: {
+          external_id: true,
+        },
+      });
+
+      const existingIdsSet = new Set(
+        existingExternalIds.map((a) => a.external_id),
+      );
+
+      const newActivities: ImportedActivity[] = activities
+        .filter((a) => !existingIdsSet.has(String(a.activityId)))
+        .map((activity) => {
+          const startDate = new Date(
+            (activity.startTimeInSeconds + activity.startTimeOffsetInSeconds) *
+              1000,
+          );
+          const endDate = new Date(
+            startDate.getTime() + activity.durationInSeconds * 1000,
+          );
+
+          return {
+            externalId: String(activity.activityId),
+            name: activity.activityName,
+            startDate,
+            endDate,
+            sport: mapGarminActivityType(activity.activityType),
+            raw: activity,
+          };
+        });
+
+      if (newActivities.length === 0) {
+        return;
+      }
+
+      await this.queueService.addActivityImportJobs(
+        account,
+        newActivities,
+        false,
+      );
+    } catch {
+      // Webhook should return 200 even if processing fails
+    }
+  }
+
+  private async storePendingFile(
+    activityId: string,
+    payload: GarminActivityFilePingWebhook,
+  ): Promise<void> {
+    if (!this.redis) {
+      await this.initRedis();
+    }
+    if (!this.redis) return;
+
+    const key = `garmin:file:${activityId}`;
+    await this.redis.setex(
+      key,
+      3600,
+      JSON.stringify({
+        callbackURL: payload.callbackURL,
+        userId: payload.userId,
+        fileType: payload.fileType,
+      }),
+    );
+  }
+
+  private async getPendingFile(
+    activityId: string,
+  ): Promise<{ callbackURL: string; userId: string; fileType: string } | null> {
+    if (!this.redis) {
+      await this.initRedis();
+    }
+    if (!this.redis) return null;
+
+    const key = `garmin:file:${activityId}`;
+    const data = await this.redis.get(key);
+    if (!data) return null;
+
+    await this.redis.del(key);
+    return JSON.parse(data);
+  }
+
+  async handleActivityFilePingWebhook(
+    payload: GarminActivityFilePingWebhook,
+  ): Promise<void> {
+    if (payload.fileType !== 'FIT' && payload.fileType !== 'GPX') {
+      return;
+    }
+
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        provider: connector_provider.GARMIN,
+        external_user_id: payload.userId,
+        status: 'active',
+      },
+      include: {
+        athlete: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!account || !account.athlete || !account.athlete.user) {
+      return;
+    }
+
+    const activity = await this.prisma.event_activity.findFirst({
+      where: {
+        external_id: String(payload.activityId),
+        provider: connector_provider.GARMIN,
+      },
+      include: {
+        event: true,
+      },
+    });
+
+    if (!activity) {
+      await this.storePendingFile(String(payload.activityId), payload);
+      return;
+    }
+
+    await this.processActivityFile(
+      account,
+      activity,
+      payload.callbackURL,
+      payload.fileType,
+    );
+  }
+
+  private async processActivityFile(
+    account: provider_account,
+    activity: event_activity,
+    callbackURL: string,
+    fileType: 'FIT' | 'GPX',
+  ): Promise<void> {
+    try {
+      const accessToken = await this.getValidAccessToken(account);
+
+      const response = await axios.get(callbackURL, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        responseType: 'arraybuffer',
+        timeout: 60000,
+      });
+
+      const activityStream =
+        fileType === 'FIT'
+          ? await parseFitFile(response.data)
+          : await parseGpxFile(response.data);
+      const compressedStream = compressActivityStream(activityStream);
+
+      await this.prisma.event_activity.update({
+        where: {
+          event_activity_id: activity.event_activity_id,
+        },
+        data: {
+          stream: compressedStream as object,
+        },
+      });
+
+      const activityWithEvent = await this.prisma.event_activity.findUnique({
+        where: { event_activity_id: activity.event_activity_id },
+        select: {
+          event: { select: { athlete_id: true } },
+          stream: true,
+          event_id: true,
+        },
+      });
+
+      if (
+        activityWithEvent?.stream &&
+        activityWithEvent.event &&
+        activityWithEvent.event_id
+      ) {
+        await this.queueService.addActivityProcessingJob(
+          activity.event_activity_id,
+          activityWithEvent.event_id,
+          false,
+        );
+      }
+    } catch {
+      // Failed to download/parse file, activity remains without stream
+    }
+  }
+
+  async handleDeregistrationWebhook(
+    payload: GarminDeregistrationWebhook,
+  ): Promise<void> {
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        provider: connector_provider.GARMIN,
+        external_user_id: payload.userId,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      return;
+    }
+
+    await this.prisma.provider_account.update({
+      where: {
+        provider_account_id: account.provider_account_id,
+      },
+      data: {
+        status: 'revoked',
+      },
+    });
   }
 }

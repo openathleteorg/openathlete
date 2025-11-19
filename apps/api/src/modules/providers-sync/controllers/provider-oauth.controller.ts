@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
-
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  Logger,
   Param,
   Post,
   Req,
@@ -12,21 +12,20 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { connector_provider } from '@openathlete/database';
+import { connector_provider, event_type } from '@openathlete/database';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
-import { PrismaService } from '../../prisma/services/prisma.service';
-import {
-  CorosProviderService,
-  GarminProviderService,
-  StravaProviderService,
-  SuuntoProviderService,
-} from '../providers';
+import { CorosProviderService, SuuntoProviderService } from '../providers';
+import { GarminProviderService } from '../providers/garmin.provider.service';
+import { StravaProviderService } from '../providers/strava.provider.service';
 
 @Controller('provider')
 export class ProviderOAuthController {
+  private readonly logger = new Logger(ProviderOAuthController.name);
+
   constructor(
     private readonly stravaProviderService: StravaProviderService,
     private readonly garminProviderService: GarminProviderService,
@@ -94,18 +93,11 @@ export class ProviderOAuthController {
             'codeVerifier is required for Garmin OAuth (PKCE flow)',
           );
         }
-        const tokenResponse =
-          await this.garminProviderService.exchangeCodeForTokens(
-            code,
-            codeVerifier,
-          );
-        return this.garminProviderService.saveProviderAccount({
-          athleteId: athlete.athlete_id,
-          accessToken: tokenResponse.access_token,
-          refreshToken: tokenResponse.refresh_token || '',
-          expiresIn: tokenResponse.expires_in,
-          scopes: tokenResponse.scope,
-        });
+        return this.garminProviderService.connect(
+          code,
+          codeVerifier,
+          athlete.athlete_id,
+        );
       }
       case connector_provider.SUUNTO: {
         const tokenResponse =
@@ -164,6 +156,19 @@ export class ProviderOAuthController {
       throw new Error('Provider account not found');
     }
 
+    // For Garmin, call deleteUserRegistration API before revoking
+    if (providerEnum === connector_provider.GARMIN && account.access_token) {
+      try {
+        await this.garminProviderService.deleteUserRegistration(
+          account.access_token,
+        );
+      } catch (error) {
+        // Log error but continue with revocation
+        // Token might already be expired or invalid
+        console.error('Failed to delete Garmin user registration:', error);
+      }
+    }
+
     // Update status to revoked instead of deleting
     await this.prisma.provider_account.update({
       where: {
@@ -209,7 +214,7 @@ export class ProviderOAuthController {
    * Strava webhook verification (GET)
    */
   @Get('strava/webhook')
-  async stravaWebhookGet(@Req() request: Request, @Res() response: Response) {
+  async stravaWebhookGet(@Req() request, @Res() response) {
     const mode = request.query['hub.mode'];
     const token = request.query['hub.verify_token'];
     const challenge = request.query['hub.challenge'];
@@ -235,5 +240,179 @@ export class ProviderOAuthController {
     },
   ) {
     await this.stravaProviderService.handleWebhook(body);
+  }
+
+  @Post('garmin/webhook/activity-ping')
+  async garminActivityPingWebhook(@Body() body: unknown) {
+    const payload = body as {
+      activities?: Array<{ userId?: string; callbackURL?: string }>;
+    };
+
+    if (!payload.activities || !Array.isArray(payload.activities)) {
+      return {
+        success: false,
+        error: 'Invalid payload: missing activities array',
+      };
+    }
+
+    for (const activityPing of payload.activities) {
+      const userId = activityPing.userId;
+      const callbackURL = activityPing.callbackURL;
+
+      if (!userId || !callbackURL) {
+        continue;
+      }
+
+      try {
+        await this.garminProviderService.handleActivityPingWebhook({
+          userId,
+          callbackURL,
+        });
+      } catch {
+        // Continue processing other pings even if one fails
+      }
+    }
+
+    return { success: true };
+  }
+
+  @Post('garmin/webhook/activity-files')
+  async garminActivityFilesWebhook(@Body() body: unknown) {
+    const payload = body as {
+      activityFiles?: Array<{
+        userId?: string;
+        summaryId?: string;
+        fileType?: string;
+        callbackURL?: string;
+        activityType?: string;
+        deviceName?: string;
+        startTimeInSeconds?: number;
+        activityId?: number;
+        activityName?: string;
+        manual?: boolean;
+        activityDescription?: string;
+      }>;
+    };
+
+    if (!payload.activityFiles || !Array.isArray(payload.activityFiles)) {
+      return {
+        success: false,
+        error: 'Invalid payload: missing activityFiles array',
+      };
+    }
+
+    for (const filePing of payload.activityFiles) {
+      const userId = filePing.userId;
+      const callbackURL = filePing.callbackURL;
+      const fileType = filePing.fileType;
+      const activityId = filePing.activityId;
+
+      if (!userId || !callbackURL || !fileType || !activityId) {
+        continue;
+      }
+
+      if (fileType !== 'FIT' && fileType !== 'GPX') {
+        continue;
+      }
+
+      try {
+        await this.garminProviderService.handleActivityFilePingWebhook({
+          userId,
+          summaryId: filePing.summaryId || '',
+          fileType: fileType as 'FIT' | 'GPX',
+          callbackURL,
+          activityType: filePing.activityType || '',
+          deviceName: filePing.deviceName || '',
+          startTimeInSeconds: filePing.startTimeInSeconds || 0,
+          activityId,
+          activityName: filePing.activityName || '',
+          manual: filePing.manual || false,
+          activityDescription: filePing.activityDescription,
+        });
+      } catch {
+        // Continue processing other files even if one fails
+      }
+    }
+
+    return { success: true };
+  }
+
+  @Post('garmin/webhook/deregistration')
+  async garminDeregistrationWebhook(
+    @Body()
+    body: {
+      userId: string;
+    },
+  ) {
+    await this.garminProviderService.handleDeregistrationWebhook(body);
+    return { success: true };
+  }
+
+  @Delete('test/activities/:userId')
+  async deleteAllActivitiesForUser(@Param('userId') userId: string) {
+    const userIdNum = parseInt(userId, 10);
+    if (isNaN(userIdNum)) {
+      return { success: false, error: 'Invalid user ID' };
+    }
+
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { user_id: userIdNum },
+      include: {
+        events: {
+          where: {
+            type: event_type.ACTIVITY,
+          },
+          select: {
+            event_id: true,
+          },
+        },
+      },
+    });
+
+    if (!athlete) {
+      return { success: false, error: 'Athlete not found for user' };
+    }
+
+    const eventIds = athlete.events.map((e) => e.event_id);
+
+    if (eventIds.length === 0) {
+      return {
+        success: true,
+        deletedCount: 0,
+        message: `No activities found for user ${userIdNum}`,
+      };
+    }
+
+    await this.prisma.event_activity_weather.deleteMany({
+      where: { event_activity: { event_id: { in: eventIds } } },
+    });
+
+    await this.prisma.event_activity_normalization_factor.deleteMany({
+      where: {
+        normalization: { event_activity: { event_id: { in: eventIds } } },
+      },
+    });
+
+    await this.prisma.event_activity_normalization.deleteMany({
+      where: { event_activity: { event_id: { in: eventIds } } },
+    });
+
+    await this.prisma.record.deleteMany({
+      where: { event_activity: { event_id: { in: eventIds } } },
+    });
+
+    await this.prisma.event_activity.deleteMany({
+      where: { event_id: { in: eventIds } },
+    });
+
+    await this.prisma.event.deleteMany({
+      where: { event_id: { in: eventIds } },
+    });
+
+    return {
+      success: true,
+      deletedCount: eventIds.length,
+      message: `Deleted ${eventIds.length} activities for user ${userIdNum}`,
+    };
   }
 }

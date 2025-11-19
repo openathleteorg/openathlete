@@ -14,7 +14,10 @@ import { CompressedActivityStream } from '@openathlete/shared';
 import { uncompressActivityStream } from '../../core/helpers/activity-stream';
 import { computeRecords } from '../../core/helpers/record';
 import { PrismaService } from '../../prisma/services/prisma.service';
-import { StravaProviderService } from '../../providers-sync/providers';
+import {
+  GarminProviderService,
+  StravaProviderService,
+} from '../../providers-sync/providers';
 import { ActivityImportJobData, QueueService } from '../queue.service';
 
 @Processor('activity-import', {
@@ -27,6 +30,8 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly prisma: PrismaService,
     @Inject(forwardRef(() => StravaProviderService))
     private readonly stravaProviderService: StravaProviderService,
+    @Inject(forwardRef(() => GarminProviderService))
+    private readonly garminProviderService: GarminProviderService,
     private readonly queueService: QueueService,
     @InjectQueue('activity-import')
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
@@ -64,24 +69,34 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       }
 
-      if (account.provider !== connector_provider.STRAVA) {
+      await job.updateProgress(30);
+
+      let savedActivity;
+      if (account.provider === connector_provider.STRAVA) {
+        savedActivity = await this.stravaProviderService.importActivity(
+          account,
+          activity,
+        );
+      } else if (account.provider === connector_provider.GARMIN) {
+        savedActivity = await this.garminProviderService.importActivity(
+          account,
+          activity,
+        );
+      } else {
         throw new Error(
           `Provider ${account.provider} does not support activity import yet`,
         );
       }
 
-      await job.updateProgress(30);
-
-      const savedActivity = await this.stravaProviderService.importActivity(
-        account,
-        activity,
-      );
-
       await job.updateProgress(60);
 
       const activityWithStream = await this.prisma.event_activity.findUnique({
         where: { event_activity_id: savedActivity.event_activity_id },
-        select: { stream: true, event: { select: { athlete_id: true } } },
+        select: {
+          stream: true,
+          event: { select: { athlete_id: true } },
+          provider: true,
+        },
       });
 
       if (activityWithStream?.stream && activityWithStream.event) {
@@ -107,6 +122,18 @@ export class ActivityImportProcessor extends WorkerHost {
       }
 
       await job.updateProgress(90);
+
+      if (
+        account.provider === connector_provider.GARMIN &&
+        !activityWithStream?.stream
+      ) {
+        return {
+          success: true,
+          eventActivityId: savedActivity.event_activity_id,
+          eventId: savedActivity.event_id,
+          waitingForStream: true,
+        };
+      }
 
       await this.queueService.addActivityProcessingJob(
         savedActivity.event_activity_id,

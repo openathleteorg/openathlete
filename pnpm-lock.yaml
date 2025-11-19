@@ -32,6 +32,9 @@ importers:
       '@casl/prisma':
         specifier: ^1.5.1
         version: 1.5.2(@casl/ability@6.7.3)(@prisma/client@6.4.1(prisma@6.15.0(typescript@5.1.6))(typescript@5.1.6))
+      '@garmin/fitsdk':
+        specifier: 21.178.0
+        version: 21.178.0
       '@getbrevo/brevo':
         specifier: ^2.2.0
         version: 2.5.0
@@ -95,6 +98,12 @@ importers:
       '@socket.io/redis-adapter':
         specifier: ^8.3.0
         version: 8.3.0(socket.io-adapter@2.5.5)
+      '@sports-alliance/sports-lib':
+        specifier: ^5.4.24
+        version: 5.4.24
+      '@we-gold/gpxjs':
+        specifier: ^1.1.0
+        version: 1.1.0
       argon2:
         specifier: ^0.41.1
         version: 0.41.1
@@ -116,6 +125,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.6.1
+      fast-xml-parser:
+        specifier: ^5.3.2
+        version: 5.3.2
       ical-generator:
         specifier: ^8.1.1
         version: 8.1.1(@types/luxon@3.7.1)(@types/node@22.13.10)(luxon@3.7.2)
@@ -143,6 +155,9 @@ importers:
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
+      xmldom-qsa:
+        specifier: ^1.1.3
+        version: 1.1.3
       zod:
         specifier: 3.25.76
         version: 3.25.76
@@ -635,11 +650,11 @@ importers:
     dependencies:
       prettier:
         specifier: 3.0.0
-        version: 3.6.2
+        version: 3.0.0
     devDependencies:
       '@trivago/prettier-plugin-sort-imports':
         specifier: 6.0.0
-        version: 6.0.0(prettier@3.6.2)
+        version: 6.0.0(prettier@3.0.0)
 
   libs/database:
     dependencies:
@@ -1307,6 +1322,9 @@ packages:
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
+
+  '@garmin/fitsdk@21.178.0':
+    resolution: {integrity: sha512-FK+gWvGbWiLg683IosRwLuv56eXD5b2QE7AwT7h6II5Ck7qRlwGbYCw0C6dVyJCZ5LDdhk5CbhiZ2zHGi6jjAw==}
 
   '@getbrevo/brevo@2.5.0':
     resolution: {integrity: sha512-0V+EpMX3pcPQb7XC+kkNwA1N/ka/z5aOElll4WFRkUq8utrGs/vHaeLYg8d+L2P572S+6rWjfLoZqyKnO/q4/Q==}
@@ -5372,6 +5390,10 @@ packages:
     resolution: {integrity: sha512-FTFVjYoBOZTJekiUsawGsSYV9QL0A+zDYCRj7y34IO6Jg+2IMYEtQa+bbictpdpV8dHxXywqU7C0gRDEOFtBFg==}
     hasBin: true
 
+  fast-xml-parser@5.3.2:
+    resolution: {integrity: sha512-n8v8b6p4Z1sMgqRmqLJm3awW4NX7NkaKPfb3uJIBTSH7Pdvufi3PQ3/lJLQrvxcMYl7JI2jnDO90siPEpD8JBA==}
+    hasBin: true
+
   fastq@1.19.1:
     resolution: {integrity: sha512-GwLTyxkCXjXbxqIhTsMI2Nui8huMPtnxg7krajPJAjnEG/iiOS7i+zCtWGZR9G0NBKbXKh6X9m9UIsYX/N6vvQ==}
 
@@ -7186,6 +7208,11 @@ packages:
     resolution: {integrity: sha512-GbK2cP9nraSSUF9N2XwUwqfzlAFlMNYYl+ShE/V+H8a9uNl/oUqB1w2EL54Jh0OlyRSd8RfWYJ3coVS4TROP2w==}
     engines: {node: '>=6.0.0'}
 
+  prettier@3.0.0:
+    resolution: {integrity: sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==}
+    engines: {node: '>=14'}
+    hasBin: true
+
   prettier@3.6.2:
     resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
     engines: {node: '>=14'}
@@ -7836,6 +7863,9 @@ packages:
 
   strnum@1.1.2:
     resolution: {integrity: sha512-vrN+B7DBIoTTZjnPNewwhx6cBA/H+IS7rfW68n7XxC1y7uoiGQBxaKzqucGUgavX15dJgiGztLJ8vxuEzwqBdA==}
+
+  strnum@2.1.1:
+    resolution: {integrity: sha512-7ZvoFTiCnGxBtDqJ//Cu6fWtZtc7Y3x+QOirG15wztbdngGSkht27o2pyGWrVy0b4WAy3jbKmnoK6g5VlVNUUw==}
 
   strtok3@10.3.4:
     resolution: {integrity: sha512-KIy5nylvC5le1OdaaoCJ07L+8iQzJHGH6pWDuzS+d07Cu7n1MZ2x26P8ZKIWfbK02+XIL8Mp4RkWeqdUCrDMfg==}
@@ -9170,6 +9200,8 @@ snapshots:
       react-dom: 19.2.0(react@19.2.0)
 
   '@floating-ui/utils@0.2.10': {}
+
+  '@garmin/fitsdk@21.178.0': {}
 
   '@getbrevo/brevo@2.5.0':
     dependencies:
@@ -11779,6 +11811,20 @@ snapshots:
 
   '@tokenizer/token@0.3.0': {}
 
+  '@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.0.0)':
+    dependencies:
+      '@babel/generator': 7.28.3
+      '@babel/parser': 7.28.4
+      '@babel/traverse': 7.28.4
+      '@babel/types': 7.28.4
+      javascript-natural-sort: 0.7.1
+      lodash-es: 4.17.21
+      minimatch: 9.0.5
+      parse-imports-exports: 0.2.4
+      prettier: 3.0.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@trivago/prettier-plugin-sort-imports@6.0.0(prettier@3.6.2)':
     dependencies:
       '@babel/generator': 7.28.3
@@ -13844,6 +13890,10 @@ snapshots:
   fast-xml-parser@3.21.1:
     dependencies:
       strnum: 1.1.2
+
+  fast-xml-parser@5.3.2:
+    dependencies:
+      strnum: 2.1.1
 
   fastq@1.19.1:
     dependencies:
@@ -15963,6 +16013,8 @@ snapshots:
     dependencies:
       fast-diff: 1.3.0
 
+  prettier@3.0.0: {}
+
   prettier@3.6.2: {}
 
   pretty-format@29.7.0:
@@ -16766,6 +16818,8 @@ snapshots:
   strip-json-comments@5.0.3: {}
 
   strnum@1.1.2: {}
+
+  strnum@2.1.1: {}
 
   strtok3@10.3.4:
     dependencies:

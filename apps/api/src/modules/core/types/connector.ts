@@ -68,3 +68,119 @@ export interface StravaSteam {
   type: string;
   data: (number | number[])[];
 }
+
+// Garmin Activity API Types
+export interface GarminActivitySummary {
+  summaryId: string;
+  activityId: string;
+  activityType: string;
+  activityName: string;
+  startTimeInSeconds: number;
+  startTimeOffsetInSeconds: number;
+  durationInSeconds: number;
+  averageSpeedInMetersPerSecond?: number;
+  distanceInMeters?: number;
+  activeKilocalories?: number;
+  deviceName?: string;
+  averagePaceInMinutesPerKilometer?: number;
+  averageBikeCadenceInRoundsPerMinute?: number;
+  averageHeartRateInBeatsPerMinute?: number;
+  averageRunCadenceInStepsPerMinute?: number;
+  averageSwimCadenceInStrokesPerMinute?: number;
+  maxBikeCadenceInRoundsPerMinute?: number;
+  maxHeartRateInBeatsPerMinute?: number;
+  maxPaceInMinutesPerKilometer?: number;
+  maxRunCadenceInStepsPerMinute?: number;
+  maxSpeedInMetersPerSecond?: number;
+  numberOfActiveLengths?: number;
+  startingLatitudeInDegree?: number;
+  startingLongitudeInDegree?: number;
+  steps?: number;
+  totalElevationGainInMeters?: number;
+  totalElevationLossInMeters?: number;
+  isParent?: boolean;
+  parentSummaryId?: string;
+  manual?: boolean;
+  isWebUpload?: boolean;
+}
+
+export interface GarminActivityDetailSample {
+  startTimeInSeconds: number;
+  latitudeInDegree?: number;
+  longitudeInDegree?: number;
+  elevationInMeters?: number;
+  airTemperatureCelcius?: number;
+  heartRate?: number;
+  speedMetersPerSecond?: number;
+  stepsPerMinute?: number;
+  totalDistanceInMeters?: number;
+  timerDurationInSeconds?: number;
+  clockDurationInSeconds?: number;
+  movingDurationInSeconds?: number;
+  powerInWatts?: number;
+  bikeCadenceInRPM?: number;
+  directWheelchairCadence?: number;
+  swimCadenceInStrokesPerMinute?: number;
+}
+
+export interface GarminActivityDetail {
+  summaryId: string;
+  activityId: string;
+  summary: {
+    startTimeInSeconds: number;
+    startTimeOffsetInSeconds: number;
+    activityType: string;
+    activityName: string;
+    durationInSeconds: number;
+    averageSpeedInMetersPerSecond?: number;
+    distanceInMeters?: number;
+    activeKilocalories?: number;
+    deviceName?: string;
+    averagePaceInMinutesPerKilometer?: number;
+    averageBikeCadenceInRoundsPerMinute?: number;
+    averageHeartRateInBeatsPerMinute?: number;
+    averageRunCadenceInStepsPerMinute?: number;
+    averageSwimCadenceInStrokesPerMinute?: number;
+    maxBikeCadenceInRoundsPerMinute?: number;
+    maxHeartRateInBeatsPerMinute?: number;
+    maxPaceInMinutesPerKilometer?: number;
+    maxRunCadenceInStepsPerMinute?: number;
+    maxSpeedInMetersPerSecond?: number;
+    numberOfActiveLengths?: number;
+    startingLatitudeInDegree?: number;
+    startingLongitudeInDegree?: number;
+    steps?: number;
+    totalElevationGainInMeters?: number;
+    totalElevationLossInMeters?: number;
+    isParent?: boolean;
+    parentSummaryId?: string;
+    manual?: boolean;
+  };
+  samples?: GarminActivityDetailSample[];
+  laps?: Array<{ startTimeInSeconds: number }>;
+}
+
+// Garmin Webhook Types
+export interface GarminActivityPingWebhook {
+  userId: string;
+  callbackURL: string; // URL to call to fetch activities (contains Pull Token)
+}
+
+export interface GarminDeregistrationWebhook {
+  userId: string;
+}
+
+// Garmin Activity Files Webhook (for FIT/TCX/GPX files)
+export interface GarminActivityFilePingWebhook {
+  userId: string;
+  summaryId: string;
+  fileType: 'FIT' | 'GPX';
+  callbackURL: string;
+  activityType: string;
+  deviceName: string;
+  startTimeInSeconds: number;
+  activityId: number;
+  activityName: string;
+  manual: boolean;
+  activityDescription?: string;
+}
