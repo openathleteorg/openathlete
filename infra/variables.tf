@@ -109,3 +109,9 @@ variable "brevo_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "garmin_client_secret" {
+  description = "Garmin client secret for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

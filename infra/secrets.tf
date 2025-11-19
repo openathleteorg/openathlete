@@ -71,3 +71,13 @@ resource "scaleway_secret_version" "brevo_api_key_v" {
   secret_id = scaleway_secret.brevo_api_key.id
   data      = var.brevo_api_key
 }
+
+resource "scaleway_secret" "garmin_client_secret" {
+  name        = "${var.app_name}-GARMIN_CLIENT_SECRET"
+  description = "Garmin client secret for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "garmin_client_secret_v" {
+  secret_id = scaleway_secret.garmin_client_secret.id
+  data      = var.garmin_client_secret
+}
