@@ -7,6 +7,7 @@ import {
   LoginDto,
   RefreshTokenDto,
   loginDtoSchema,
+  refreshTokenDtoSchema,
 } from '@openathlete/shared';
 
 import { AuthService, UserService } from '../services';
@@ -28,7 +29,9 @@ export class AuthController {
   }
 
   @Post('refresh-token')
-  async refreshToken(@Body() body: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refreshToken(
+    @Body(new ZodValidationPipe(refreshTokenDtoSchema)) body: RefreshTokenDto,
+  ): Promise<AuthResponseDto> {
     return this.authService.refresh(body.refreshToken);
   }
 
