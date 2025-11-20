@@ -6,6 +6,7 @@ import { CalendarModule } from '../calendar/calendar.module';
 import { MessagesModule } from '../messages/messages.module';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { QueueModule } from '../queue';
+import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
 import { BetaAccessController } from './controllers/beta-access.controller';
@@ -52,6 +53,7 @@ import { WeatherService } from './services/weather/weather.service';
     forwardRef(() => CalendarModule),
     forwardRef(() => MessagesModule),
     forwardRef(() => QueueModule),
+    forwardRef(() => ProvidersSyncModule),
   ],
   controllers: [
     EventController,

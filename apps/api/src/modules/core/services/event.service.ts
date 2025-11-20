@@ -54,8 +54,9 @@ import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar
 import { MessageThreadService } from 'src/modules/messages/services/message-thread.service';
 import { MessageService } from 'src/modules/messages/services/message.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
-import { TrainingLoadEstimationService } from 'src/modules/queue';
 
+import { ProviderExportService } from '../../providers-sync/export.service';
+import { TrainingLoadEstimationService } from '../../queue/services/training-load-estimation.service';
 import {
   reductActivityStreamToResolution,
   uncompressActivityStream,
@@ -152,6 +153,7 @@ export class EventService {
     private eventEmitter: EventEmitter2,
     private messageThreadService: MessageThreadService,
     private messageService: MessageService,
+    private readonly providerExportService: ProviderExportService,
     @Optional()
     @Inject(forwardRef(() => TrainingLoadEstimationService))
     private trainingLoadEstimationService?: TrainingLoadEstimationService,
@@ -439,10 +441,11 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    // Check if this event is a template
-    const isTemplate = await this.prisma.event_template.findUnique({
-      where: { event_id: eventId },
-    });
+    const isTemplate = Boolean(
+      await this.prisma.event_template.findUnique({
+        where: { event_id: eventId },
+      }),
+    );
 
     const workout =
       data.type === EVENT_TYPE.TRAINING ? data.workout : undefined;
@@ -745,27 +748,22 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    // Check if this event is a template
-    const isTemplate = await this.prisma.event_template.findUnique({
-      where: { event_id: eventId },
-    });
-
-    // Emit event for workout deletion if within 7 days (but listener will skip deletion on provider) (skip for templates)
-    if (
-      !isTemplate &&
-      event.type === 'TRAINING' &&
-      event.training?.workout &&
-      event.athlete_id
-    ) {
-      this.emitWorkoutPlannedChanged(
-        eventId,
-        event.athlete_id,
-        null, // workout deleted
-        event.start_date,
-        event.training.sport,
-      );
+    if (event.training?.workout?.workout_id) {
+      await this.providerExportService.deleteExportsForWorkout({
+        workoutId: event.training.workout.workout_id,
+      });
     }
 
+    await this.prisma.provider_workout_export.deleteMany({
+      where: {
+        workout: {
+          event_training_id: eventId,
+        },
+      },
+    });
+    await this.prisma.workout.deleteMany({
+      where: { event_training_id: eventId },
+    });
     await this.prisma.event_training.deleteMany({
       where: { event_id: eventId },
     });

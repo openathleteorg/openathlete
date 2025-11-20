@@ -12,7 +12,6 @@ import {
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
-import { QueueService } from 'src/modules/queue';
 
 import { compressActivityStream } from '../../core/helpers/activity-stream';
 import {
@@ -27,6 +26,7 @@ import {
 import { mapStravaSportType } from '../../core/helpers/strava';
 import { StravaSteam, StravaSummaryActivity } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
   OAuthConfig,

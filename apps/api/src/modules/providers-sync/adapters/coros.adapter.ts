@@ -32,4 +32,8 @@ export class CorosAdapter implements ProviderAdapter {
 
     return { externalId };
   }
+
+  async deletePlannedWorkout(): Promise<void> {
+    this.logger.debug('[MOCK] Coros delete planned workout no-op');
+  }
 }

@@ -6,8 +6,8 @@ import { CreateEventTemplateDto, keysToCamel } from '@openathlete/shared';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
-import { TrainingLoadEstimationService } from 'src/modules/queue';
 
+import { TrainingLoadEstimationService } from '../../queue/services/training-load-estimation.service';
 import { EVENT_INCLUDES, EventService } from './event.service';
 
 @Injectable()

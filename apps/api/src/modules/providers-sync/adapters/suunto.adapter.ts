@@ -32,4 +32,8 @@ export class SuuntoAdapter implements ProviderAdapter {
 
     return { externalId };
   }
+
+  async deletePlannedWorkout(): Promise<void> {
+    this.logger.debug('[MOCK] Suunto delete planned workout no-op');
+  }
 }

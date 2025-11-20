@@ -15,8 +15,6 @@ import {
 } from '@openathlete/database';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
-import { QueueService } from 'src/modules/queue';
-
 import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
 import {
   compressActivityStream,
@@ -43,6 +41,7 @@ import {
   GarminDeregistrationWebhook,
 } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
   OAuthConfig,

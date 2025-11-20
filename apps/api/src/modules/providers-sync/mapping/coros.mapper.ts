@@ -1,4 +1,4 @@
-import type { NormalizedWorkout } from '@openathlete/shared/src/types/workout-normalized';
+import type { NormalizedWorkout } from '@openathlete/shared';
 
 import type { ProviderMapper, ProviderPlannedWorkoutPayload } from './index';
 
