@@ -6,6 +6,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  OnModuleInit,
   forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,9 +17,14 @@ import {
   connector_provider,
   event_activity,
   event_type,
+  metric_type,
   provider_account,
 } from '@openathlete/database';
-import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
+import {
+  ActivityStream,
+  ApiEnvSchemaType,
+  METRIC_TYPE,
+} from '@openathlete/shared';
 
 import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
 import {
@@ -43,7 +49,19 @@ import {
   GarminActivityFilePingWebhook,
   GarminActivityPingWebhook,
   GarminActivitySummary,
+  GarminBloodPressureSummary,
+  GarminBodyCompositionSummary,
+  GarminDailySummary,
   GarminDeregistrationWebhook,
+  GarminHealthPingPayload,
+  GarminHealthSnapshotSummary,
+  GarminHealthSummaryType,
+  GarminHrvSummary,
+  GarminPulseOxSummary,
+  GarminRespirationSummary,
+  GarminSkinTempSummary,
+  GarminSleepSummary,
+  GarminUserMetricsSummary,
 } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -59,10 +77,16 @@ import {
   ProviderImportCapability,
 } from '../base/provider-import.interface';
 
+type MetricRecord = {
+  type: METRIC_TYPE;
+  date: Date;
+  value: number;
+};
+
 @Injectable()
 export class GarminProviderService
   extends BaseProviderService
-  implements ProviderImportCapability
+  implements ProviderImportCapability, OnModuleInit
 {
   protected readonly provider = connector_provider.GARMIN;
   private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000;
@@ -87,7 +111,10 @@ export class GarminProviderService
     private readonly queueService: QueueService,
   ) {
     super(prisma, configService);
-    this.initRedis();
+  }
+
+  async onModuleInit() {
+    await this.initRedis();
   }
 
   private async initRedis() {
@@ -97,11 +124,17 @@ export class GarminProviderService
         this.redis = new Redis({
           host: 'localhost',
           port: 6379,
+          maxRetriesPerRequest: null,
         });
       } else {
-        this.redis = new Redis(redisUrl);
+        this.redis = new Redis(redisUrl, {
+          maxRetriesPerRequest: null,
+        });
       }
-    } catch {
+    } catch (error) {
+      this.logger.error(
+        `Failed to initialize Redis: ${error instanceof Error ? error.message : String(error)}`,
+      );
       this.redis = null;
     }
   }
@@ -1043,6 +1076,915 @@ export class GarminProviderService
 
     await this.redis.del(key);
     return JSON.parse(data);
+  }
+
+  async handleHealthPingWebhook(
+    payload: GarminHealthPingPayload | undefined,
+  ): Promise<void> {
+    if (!payload) {
+      return;
+    }
+
+    const summaryTypes = Object.keys(payload) as GarminHealthSummaryType[];
+    for (const summaryType of summaryTypes) {
+      const notifications = payload[summaryType];
+      if (!Array.isArray(notifications)) {
+        continue;
+      }
+
+      for (const notification of notifications) {
+        if (!notification?.userId || !notification.callbackURL) {
+          continue;
+        }
+
+        const account = await this.prisma.provider_account.findFirst({
+          where: {
+            provider: connector_provider.GARMIN,
+            external_user_id: notification.userId,
+            status: 'active',
+          },
+        });
+
+        if (!account) {
+          continue;
+        }
+
+        if (!account.import_metrics_enabled) {
+          this.logger.debug(
+            `Metric import disabled for Garmin account ${account.provider_account_id}, skipping ${summaryType} summary`,
+          );
+          continue;
+        }
+
+        try {
+          await this.processHealthSummary(
+            account,
+            summaryType,
+            notification.callbackURL,
+          );
+        } catch (error) {
+          this.logger.error(
+            `Failed to process Garmin ${summaryType} summary for account ${account.provider_account_id}`,
+            error instanceof Error ? error.message : error,
+          );
+        }
+      }
+    }
+  }
+
+  private async processHealthSummary(
+    account: provider_account,
+    summaryType: GarminHealthSummaryType,
+    callbackURL: string,
+  ): Promise<void> {
+    switch (summaryType) {
+      case 'dailies': {
+        const data = await this.fetchHealthSummaries<GarminDailySummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapDailySummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'sleeps': {
+        const data = await this.fetchHealthSummaries<GarminSleepSummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapSleepSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'bodyComps': {
+        const data =
+          await this.fetchHealthSummaries<GarminBodyCompositionSummary>(
+            account,
+            callbackURL,
+          );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapBodyCompSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'userMetrics': {
+        const data = await this.fetchHealthSummaries<GarminUserMetricsSummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapUserMetricsSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'pulseox': {
+        const data = await this.fetchHealthSummaries<GarminPulseOxSummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapPulseOxSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'allDayRespiration': {
+        const data = await this.fetchHealthSummaries<GarminRespirationSummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapRespirationSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'healthSnapshot': {
+        const data =
+          await this.fetchHealthSummaries<GarminHealthSnapshotSummary>(
+            account,
+            callbackURL,
+          );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapHealthSnapshotSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'hrv': {
+        const data = await this.fetchHealthSummaries<GarminHrvSummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapHrvSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'bloodPressures': {
+        const data =
+          await this.fetchHealthSummaries<GarminBloodPressureSummary>(
+            account,
+            callbackURL,
+          );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapBloodPressureSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'skinTemp': {
+        const data = await this.fetchHealthSummaries<GarminSkinTempSummary>(
+          account,
+          callbackURL,
+        );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapSkinTempSummariesToMetrics(data),
+        );
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  private async fetchHealthSummaries<T>(
+    account: provider_account,
+    callbackURL: string,
+  ): Promise<T[]> {
+    return this.makeAuthenticatedRequest<T[]>(account, async (accessToken) => {
+      try {
+        const response = await axios.get<T[] | T>(callbackURL, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          timeout: 45000,
+        });
+
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+        if (response.data) {
+          return [response.data as T];
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    });
+  }
+
+  private async saveMetrics(
+    athleteId: number,
+    metrics: MetricRecord[],
+  ): Promise<void> {
+    const validMetrics = metrics.filter(
+      (metric) =>
+        metric.date instanceof Date &&
+        !Number.isNaN(metric.date.getTime()) &&
+        Number.isFinite(metric.value),
+    );
+
+    if (validMetrics.length === 0) {
+      return;
+    }
+
+    await this.prisma.$transaction(
+      validMetrics.map((metric) =>
+        this.prisma.athlete_metric.upsert({
+          where: {
+            athlete_id_type_date: {
+              athlete_id: athleteId,
+              type: metric.type as unknown as metric_type,
+              date: metric.date,
+            },
+          },
+          create: {
+            athlete_id: athleteId,
+            type: metric.type as unknown as metric_type,
+            date: metric.date,
+            value: metric.value,
+          },
+          update: {
+            value: metric.value,
+          },
+        }),
+      ),
+    );
+  }
+
+  private mapDailySummariesToMetrics(
+    summaries: GarminDailySummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.parseCalendarDate(summary.calendarDate);
+      if (!date) continue;
+
+      const totalCalories =
+        (summary.activeKilocalories ?? 0) + (summary.bmrKilocalories ?? 0);
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_CALORIES,
+        date,
+        totalCalories,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_ACTIVE_CALORIES,
+        date,
+        summary.activeKilocalories,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_BMR_CALORIES,
+        date,
+        summary.bmrKilocalories,
+        0,
+      );
+      this.pushMetric(metrics, METRIC_TYPE.DAILY_STEPS, date, summary.steps, 0);
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_DISTANCE,
+        date,
+        this.metersToKilometers(summary.distanceInMeters),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_ACTIVE_MINUTES,
+        date,
+        this.secondsToMinutes(summary.activeTimeInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_MODERATE_MINUTES,
+        date,
+        this.secondsToMinutes(summary.moderateIntensityDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_VIGOROUS_MINUTES,
+        date,
+        this.secondsToMinutes(summary.vigorousIntensityDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.DAILY_FLOORS,
+        date,
+        summary.floorsClimbed,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HR_MIN_DAILY,
+        date,
+        summary.minHeartRateInBeatsPerMinute,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HR_AVG_DAILY,
+        date,
+        summary.averageHeartRateInBeatsPerMinute,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HR_MAX_DAILY,
+        date,
+        summary.maxHeartRateInBeatsPerMinute,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HR_REST,
+        date,
+        summary.restingHeartRateInBeatsPerMinute,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_AVERAGE,
+        date,
+        summary.averageStressLevel,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_MAX,
+        date,
+        summary.maxStressLevel,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_DURATION,
+        date,
+        this.secondsToMinutes(summary.stressDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_REST_DURATION,
+        date,
+        this.secondsToMinutes(summary.restStressDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_ACTIVITY_DURATION,
+        date,
+        this.secondsToMinutes(summary.activityStressDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_LOW_DURATION,
+        date,
+        this.secondsToMinutes(summary.lowStressDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_MEDIUM_DURATION,
+        date,
+        this.secondsToMinutes(summary.mediumStressDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.STRESS_HIGH_DURATION,
+        date,
+        this.secondsToMinutes(summary.highStressDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BODY_BATTERY_CHARGED,
+        date,
+        summary.bodyBatteryChargedValue,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BODY_BATTERY_DRAINED,
+        date,
+        summary.bodyBatteryDrainedValue,
+        0,
+      );
+    }
+
+    return metrics;
+  }
+
+  private mapSleepSummariesToMetrics(
+    summaries: GarminSleepSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.parseCalendarDate(summary.calendarDate);
+      if (!date) continue;
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_DURATION,
+        date,
+        this.secondsToHours(summary.durationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_REM_DURATION,
+        date,
+        this.secondsToHours(summary.remSleepInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_DEEP_DURATION,
+        date,
+        this.secondsToHours(summary.deepSleepDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_LIGHT_DURATION,
+        date,
+        this.secondsToHours(summary.lightSleepDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_AWAKE_DURATION,
+        date,
+        this.secondsToHours(summary.awakeDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.NAP_DURATION,
+        date,
+        this.secondsToHours(summary.totalNapDurationInSeconds),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_SCORE,
+        date,
+        summary.overallSleepScore?.value,
+        0,
+      );
+
+      const respirationAvg = this.average(
+        this.extractNumericValues(summary.timeOffsetSleepRespiration),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_RESPIRATION_AVG,
+        date,
+        respirationAvg,
+      );
+
+      const spo2Avg = this.average(
+        this.extractNumericValues(summary.timeOffsetSleepSpo2),
+      );
+      this.pushMetric(metrics, METRIC_TYPE.SLEEP_SPO2_AVG, date, spo2Avg);
+    }
+
+    return metrics;
+  }
+
+  private mapBodyCompSummariesToMetrics(
+    summaries: GarminBodyCompositionSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.dateFromTimestamp(
+        summary.measurementTimeInSeconds,
+        summary.measurementTimeOffsetInSeconds,
+      );
+      if (!date) continue;
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.WEIGHT,
+        date,
+        this.gramsToKilograms(summary.weightInGrams),
+      );
+      this.pushMetric(metrics, METRIC_TYPE.BMI, date, summary.bodyMassIndex);
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BODY_FAT,
+        date,
+        summary.bodyFatInPercent,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BODY_WATER,
+        date,
+        summary.bodyWaterInPercent,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.MUSCLE_MASS,
+        date,
+        this.gramsToKilograms(summary.muscleMassInGrams),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BONE_MASS,
+        date,
+        this.gramsToKilograms(summary.boneMassInGrams),
+      );
+    }
+
+    return metrics;
+  }
+
+  private mapUserMetricsSummariesToMetrics(
+    summaries: GarminUserMetricsSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.parseCalendarDate(summary.calendarDate);
+      if (!date) continue;
+
+      this.pushMetric(metrics, METRIC_TYPE.VO2MAX, date, summary.vo2Max);
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.VO2MAX_CYCLING,
+        date,
+        summary.vo2MaxCycling,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.FITNESS_AGE,
+        date,
+        summary.fitnessAge,
+        0,
+      );
+    }
+
+    return metrics;
+  }
+
+  private mapPulseOxSummariesToMetrics(
+    summaries: GarminPulseOxSummary[],
+  ): MetricRecord[] {
+    const stats = new Map<
+      string,
+      { sum: number; count: number; min: number }
+    >();
+
+    for (const summary of summaries) {
+      const date =
+        this.parseCalendarDate(summary.calendarDate) ??
+        this.dateFromTimestamp(
+          summary.startTimeInSeconds,
+          summary.startTimeOffsetInSeconds,
+        );
+      if (!date) continue;
+
+      const values = this.extractNumericValues(summary.timeOffsetSpo2Values);
+      if (values.length === 0) continue;
+
+      const key = date.toISOString();
+      const current = stats.get(key) ?? {
+        sum: 0,
+        count: 0,
+        min: Number.POSITIVE_INFINITY,
+      };
+
+      for (const value of values) {
+        current.sum += value;
+        current.count += 1;
+        current.min = Math.min(current.min, value);
+      }
+
+      stats.set(key, current);
+    }
+
+    const metrics: MetricRecord[] = [];
+
+    for (const [key, value] of stats.entries()) {
+      if (value.count === 0) continue;
+      const date = new Date(key);
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.PULSE_OX_AVG,
+        date,
+        value.sum / value.count,
+      );
+
+      if (Number.isFinite(value.min)) {
+        this.pushMetric(metrics, METRIC_TYPE.PULSE_OX_MIN, date, value.min);
+      }
+    }
+
+    return metrics;
+  }
+
+  private mapRespirationSummariesToMetrics(
+    summaries: GarminRespirationSummary[],
+  ): MetricRecord[] {
+    const stats = new Map<string, { sum: number; count: number }>();
+
+    for (const summary of summaries) {
+      const date = this.dateFromTimestamp(
+        summary.startTimeInSeconds,
+        summary.startTimeOffsetInSeconds,
+      );
+      if (!date) continue;
+
+      const values = this.extractNumericValues(
+        summary.timeOffsetEpochToBreaths,
+      );
+      if (values.length === 0) continue;
+
+      const avg = this.average(values);
+      if (avg === undefined) continue;
+
+      const key = date.toISOString();
+      const current = stats.get(key) ?? { sum: 0, count: 0 };
+      current.sum += avg;
+      current.count += 1;
+      stats.set(key, current);
+    }
+
+    const metrics: MetricRecord[] = [];
+    for (const [key, value] of stats.entries()) {
+      if (value.count === 0) continue;
+      const date = new Date(key);
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.RESPIRATION_RATE_AVG,
+        date,
+        value.sum / value.count,
+      );
+    }
+    return metrics;
+  }
+
+  private mapHealthSnapshotSummariesToMetrics(
+    summaries: GarminHealthSnapshotSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date =
+        this.parseCalendarDate(summary.calendarDate) ??
+        this.dateFromTimestamp(
+          summary.startTimeInSeconds,
+          summary.startTimeOffsetInSeconds,
+        );
+      if (!date) continue;
+
+      for (const item of summary.summaries ?? []) {
+        switch (item.summaryType) {
+          case 'heart_rate':
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.SNAPSHOT_HEART_RATE_AVG,
+              date,
+              item.avgValue,
+            );
+            break;
+          case 'stress':
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.SNAPSHOT_STRESS_AVG,
+              date,
+              item.avgValue,
+            );
+            break;
+          case 'respiration':
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.SNAPSHOT_RESPIRATION_AVG,
+              date,
+              item.avgValue,
+            );
+            break;
+          case 'spo2':
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.SNAPSHOT_SPO2_AVG,
+              date,
+              item.avgValue,
+            );
+            break;
+          case 'rmssd_hrv':
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.SNAPSHOT_RMSSD,
+              date,
+              item.avgValue,
+            );
+            break;
+          case 'sdrr_hrv':
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.SNAPSHOT_SDNN,
+              date,
+              item.avgValue,
+            );
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    return metrics;
+  }
+
+  private mapHrvSummariesToMetrics(
+    summaries: GarminHrvSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.parseCalendarDate(summary.calendarDate);
+      if (!date) continue;
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HRV_LAST_NIGHT_AVG,
+        date,
+        summary.lastNightAvg,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HRV_LAST_NIGHT_5MIN_HIGH,
+        date,
+        summary.lastNight5MinHigh,
+      );
+    }
+
+    return metrics;
+  }
+
+  private mapBloodPressureSummariesToMetrics(
+    summaries: GarminBloodPressureSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.dateFromTimestamp(
+        summary.measurementTimeInSeconds,
+        summary.measurementTimeOffsetInSeconds,
+      );
+      if (!date) continue;
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BLOOD_PRESSURE_SYSTOLIC,
+        date,
+        summary.systolic,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BLOOD_PRESSURE_DIASTOLIC,
+        date,
+        summary.diastolic,
+        0,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.BLOOD_PRESSURE_PULSE,
+        date,
+        summary.pulse,
+        0,
+      );
+    }
+
+    return metrics;
+  }
+
+  private mapSkinTempSummariesToMetrics(
+    summaries: GarminSkinTempSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date = this.parseCalendarDate(summary.calendarDate);
+      if (!date) continue;
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SKIN_TEMP_DEVIATION,
+        date,
+        summary.avgDeviationCelsius,
+      );
+    }
+
+    return metrics;
+  }
+
+  private pushMetric(
+    target: MetricRecord[],
+    type: METRIC_TYPE,
+    date: Date | null,
+    value?: number | null,
+    precision?: number,
+  ): void {
+    if (!date) return;
+    if (value === undefined || value === null) return;
+    if (!Number.isFinite(value)) return;
+
+    const normalized =
+      precision === undefined ? value : this.round(value, precision);
+
+    target.push({
+      type,
+      date,
+      value: normalized,
+    });
+  }
+
+  private parseCalendarDate(calendarDate?: string): Date | null {
+    if (!calendarDate) {
+      return null;
+    }
+    const date = new Date(`${calendarDate}T00:00:00.000Z`);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    return this.startOfDay(date);
+  }
+
+  private dateFromTimestamp(
+    timestampSeconds?: number,
+    offsetSeconds?: number,
+  ): Date | null {
+    if (timestampSeconds === undefined) {
+      return null;
+    }
+    const offset = offsetSeconds ?? 0;
+    const date = new Date((timestampSeconds + offset) * 1000);
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+    return this.startOfDay(date);
+  }
+
+  private startOfDay(date: Date): Date {
+    return new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    );
+  }
+
+  private secondsToHours(seconds?: number | null): number | undefined {
+    if (seconds === undefined || seconds === null) {
+      return undefined;
+    }
+    return this.round(seconds / 3600, 2);
+  }
+
+  private secondsToMinutes(seconds?: number | null): number | undefined {
+    if (seconds === undefined || seconds === null) {
+      return undefined;
+    }
+    return this.round(seconds / 60, 2);
+  }
+
+  private metersToKilometers(meters?: number | null): number | undefined {
+    if (meters === undefined || meters === null) {
+      return undefined;
+    }
+    return this.round(meters / 1000, 2);
+  }
+
+  private gramsToKilograms(grams?: number | null): number | undefined {
+    if (grams === undefined || grams === null) {
+      return undefined;
+    }
+    return this.round(grams / 1000, 2);
+  }
+
+  private extractNumericValues(data?: Record<string, number>): number[] {
+    if (!data) {
+      return [];
+    }
+    return Object.values(data).filter((value) => Number.isFinite(value));
+  }
+
+  private average(values: number[]): number | undefined {
+    if (!values || values.length === 0) {
+      return undefined;
+    }
+    const sum = values.reduce((acc, value) => acc + value, 0);
+    return sum / values.length;
+  }
+
+  private round(value: number, precision = 2): number {
+    const factor = Math.pow(10, precision);
+    return Math.round(value * factor) / factor;
   }
 
   async handleActivityFilePingWebhook(

@@ -184,3 +184,137 @@ export interface GarminActivityFilePingWebhook {
   manual: boolean;
   activityDescription?: string;
 }
+
+// Garmin Health Summary Types
+export interface GarminDailySummary {
+  summaryId: string;
+  calendarDate: string;
+  steps?: number;
+  distanceInMeters?: number;
+  activeTimeInSeconds?: number;
+  moderateIntensityDurationInSeconds?: number;
+  vigorousIntensityDurationInSeconds?: number;
+  floorsClimbed?: number;
+  activeKilocalories?: number;
+  bmrKilocalories?: number;
+  averageHeartRateInBeatsPerMinute?: number;
+  maxHeartRateInBeatsPerMinute?: number;
+  minHeartRateInBeatsPerMinute?: number;
+  restingHeartRateInBeatsPerMinute?: number;
+  averageStressLevel?: number;
+  maxStressLevel?: number;
+  stressDurationInSeconds?: number;
+  restStressDurationInSeconds?: number;
+  activityStressDurationInSeconds?: number;
+  lowStressDurationInSeconds?: number;
+  mediumStressDurationInSeconds?: number;
+  highStressDurationInSeconds?: number;
+  bodyBatteryChargedValue?: number;
+  bodyBatteryDrainedValue?: number;
+}
+
+export interface GarminSleepSummary {
+  summaryId: string;
+  calendarDate: string;
+  durationInSeconds?: number;
+  totalNapDurationInSeconds?: number;
+  deepSleepDurationInSeconds?: number;
+  lightSleepDurationInSeconds?: number;
+  remSleepInSeconds?: number;
+  awakeDurationInSeconds?: number;
+  overallSleepScore?: {
+    value?: number;
+  };
+  timeOffsetSleepRespiration?: Record<string, number>;
+  timeOffsetSleepSpo2?: Record<string, number>;
+}
+
+export interface GarminBodyCompositionSummary {
+  summaryId: string;
+  measurementTimeInSeconds: number;
+  measurementTimeOffsetInSeconds?: number;
+  weightInGrams?: number;
+  bodyFatInPercent?: number;
+  bodyWaterInPercent?: number;
+  bodyMassIndex?: number;
+  muscleMassInGrams?: number;
+  boneMassInGrams?: number;
+}
+
+export interface GarminUserMetricsSummary {
+  summaryId: string;
+  calendarDate: string;
+  vo2Max?: number;
+  vo2MaxCycling?: number;
+  fitnessAge?: number;
+}
+
+export interface GarminPulseOxSummary {
+  summaryId: string;
+  calendarDate: string;
+  startTimeInSeconds: number;
+  startTimeOffsetInSeconds?: number;
+  timeOffsetSpo2Values?: Record<string, number>;
+}
+
+export interface GarminRespirationSummary {
+  summaryId: string;
+  startTimeInSeconds: number;
+  startTimeOffsetInSeconds?: number;
+  durationInSeconds?: number;
+  timeOffsetEpochToBreaths?: Record<string, number>;
+}
+
+export interface GarminHealthSnapshotSummary {
+  summaryId: string;
+  calendarDate: string;
+  startTimeInSeconds: number;
+  startTimeOffsetInSeconds?: number;
+  summaries: Array<{
+    summaryType: string;
+    avgValue?: number;
+  }>;
+}
+
+export interface GarminHrvSummary {
+  summaryId: string;
+  calendarDate: string;
+  lastNightAvg?: number;
+  lastNight5MinHigh?: number;
+}
+
+export interface GarminBloodPressureSummary {
+  summaryId: string;
+  measurementTimeInSeconds: number;
+  measurementTimeOffsetInSeconds?: number;
+  systolic?: number;
+  diastolic?: number;
+  pulse?: number;
+}
+
+export interface GarminSkinTempSummary {
+  summaryId: string;
+  calendarDate: string;
+  avgDeviationCelsius?: number;
+}
+
+export type GarminHealthSummaryType =
+  | 'dailies'
+  | 'sleeps'
+  | 'bodyComps'
+  | 'userMetrics'
+  | 'pulseox'
+  | 'allDayRespiration'
+  | 'healthSnapshot'
+  | 'hrv'
+  | 'bloodPressures'
+  | 'skinTemp';
+
+export interface GarminHealthNotification {
+  userId: string;
+  callbackURL: string;
+}
+
+export type GarminHealthPingPayload = Partial<
+  Record<GarminHealthSummaryType, GarminHealthNotification[]>
+>;

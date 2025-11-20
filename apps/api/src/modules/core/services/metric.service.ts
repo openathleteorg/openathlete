@@ -9,6 +9,7 @@ import {
 import { athlete, athlete_metric, metric_type } from '@openathlete/database';
 import {
   CreateMetricDto,
+  METRIC_TYPE,
   UpdateMetricDto,
   keysToCamel,
   metricCalculationMap,
@@ -431,18 +432,19 @@ export class MetricService {
     type: metric_type,
     athleteId?: athlete['athlete_id'],
   ): Promise<number | null> {
-    const config = metricCalculationMap[type];
-
-    if (!config.canAutoCalculate || !config.dependencies || !config.calculate) {
+    const config = metricCalculationMap[type as METRIC_TYPE];
+    if (
+      !config ||
+      !config.canAutoCalculate ||
+      !config.dependencies ||
+      !config.calculate
+    ) {
       return null;
     }
 
     // Get latest values for dependencies
     const latestMetrics = await this.getLatestMetrics(user, athleteId);
-    const values: Record<metric_type, number> = {} as Record<
-      metric_type,
-      number
-    >;
+    const values: Partial<Record<METRIC_TYPE, number>> = {};
 
     // Check if all dependencies are available
     for (const dep of config.dependencies) {

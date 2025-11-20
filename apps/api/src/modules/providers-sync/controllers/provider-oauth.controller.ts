@@ -28,6 +28,7 @@ import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { GarminHealthPingPayload } from '../../core/types/connector';
 import { FullImportResult } from '../base/base-provider.service';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
 import { GarminProviderService } from '../providers/garmin.provider.service';
@@ -463,6 +464,14 @@ export class ProviderOAuthController {
       }
     }
 
+    return { success: true };
+  }
+
+  @Post('garmin/webhook/health-ping')
+  async garminHealthPingWebhook(
+    @Body() body: GarminHealthPingPayload | undefined,
+  ) {
+    await this.garminProviderService.handleHealthPingWebhook(body);
     return { success: true };
   }
 
