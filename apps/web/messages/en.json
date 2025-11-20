@@ -671,6 +671,7 @@
   "import_metrics_toggle_description": "Store health and wellness metrics from {provider}.",
   "full_import_title": "Import history",
   "full_import_description": "Trigger a one-time historical import to fetch every past activity from {provider}.",
+  "full_import_garmin_hint": "Garmin only permits importing roughly the last 30 days of data per request.",
   "full_import_cta": "Import all activities",
   "full_import_in_progress": "Import in progress...",
   "full_import_completed": "Historical import already completed.",

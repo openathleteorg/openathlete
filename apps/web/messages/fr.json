@@ -673,6 +673,7 @@
   "import_metrics_toggle_description": "Enregistrer les métriques santé provenant de {provider}.",
   "full_import_title": "Importer l'historique",
   "full_import_description": "Lancer une importation historique pour récupérer toutes les activités passées depuis {provider}.",
+  "full_import_garmin_hint": "Garmin ne permet d'importer qu'environ le dernier mois d'activités par requête.",
   "full_import_cta": "Importer toutes les activités",
   "full_import_in_progress": "Importation en cours...",
   "full_import_completed": "Importation historique déjà effectuée.",

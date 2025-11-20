@@ -65,11 +65,7 @@ export class GarminProviderService
   implements ProviderImportCapability
 {
   protected readonly provider = connector_provider.GARMIN;
-  private readonly backfillWindowSeconds = 30 * 24 * 60 * 60;
-  private readonly fullImportMonths: number;
-  private readonly backfillDelayMs: number;
-  private readonly maxBackfillDaysPerMinute: number;
-  private readonly effectiveBackfillDelayMs: number;
+  private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000;
 
   protected get oauthConfig(): OAuthConfig {
     return {
@@ -91,39 +87,6 @@ export class GarminProviderService
     private readonly queueService: QueueService,
   ) {
     super(prisma, configService);
-    const monthsConfig =
-      this.configService.get('GARMIN_FULL_IMPORT_MONTHS') ?? '24';
-    const delayConfig =
-      this.configService.get('GARMIN_BACKFILL_DELAY_MS') ?? '750';
-    const maxDaysConfig =
-      this.configService.get('GARMIN_BACKFILL_MAX_DAYS_PER_MINUTE') ?? '100';
-
-    const parsedMonths = Number(monthsConfig);
-    this.fullImportMonths = Number.isFinite(parsedMonths)
-      ? Math.max(1, parsedMonths)
-      : 120;
-
-    const parsedDelay = Number(delayConfig);
-    this.backfillDelayMs = Number.isFinite(parsedDelay)
-      ? Math.max(100, parsedDelay)
-      : 750;
-
-    const parsedMaxDays = Number(maxDaysConfig);
-    this.maxBackfillDaysPerMinute = Number.isFinite(parsedMaxDays)
-      ? Math.max(1, parsedMaxDays)
-      : 100;
-
-    const windowDays = this.backfillWindowSeconds / (24 * 60 * 60);
-    const maxWindowsPerMinute = Math.max(
-      1,
-      Math.floor(this.maxBackfillDaysPerMinute / windowDays),
-    );
-    const computedDelay = Math.ceil(60000 / maxWindowsPerMinute);
-    this.effectiveBackfillDelayMs = Math.max(
-      this.backfillDelayMs,
-      computedDelay,
-    );
-
     this.initRedis();
   }
 
@@ -385,47 +348,6 @@ export class GarminProviderService
     return account;
   }
 
-  async requestActivityBackfillWindow(
-    account: provider_account,
-    summaryStartTimeInSeconds: number,
-    summaryEndTimeInSeconds: number,
-  ): Promise<void> {
-    const accessToken = await this.getValidAccessToken(account);
-
-    try {
-      await axios.get(
-        'https://apis.garmin.com/wellness-api/rest/backfill/activities',
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          params: {
-            summaryStartTimeInSeconds,
-            summaryEndTimeInSeconds,
-          },
-          timeout: 10000,
-        },
-      );
-    } catch (error) {
-      if (isAxiosError(error) && error.response) {
-        const status = error.response.status;
-        if (status === 429) {
-          this.logger.warn(
-            `Garmin backfill throttled for account ${account.provider_account_id} window ${summaryStartTimeInSeconds}-${summaryEndTimeInSeconds}: ${error.message}`,
-          );
-          throw error;
-        }
-        if (status === 400) {
-          this.logger.warn(
-            `Garmin backfill rejected (400) for account ${account.provider_account_id} window ${summaryStartTimeInSeconds}-${summaryEndTimeInSeconds}: ${error.message}`,
-          );
-          return;
-        }
-      }
-      throw error;
-    }
-  }
-
   private async isUserRegistrationComplete(
     account: provider_account,
   ): Promise<boolean> {
@@ -461,25 +383,60 @@ export class GarminProviderService
       );
     }
 
-    const activities = await this.importActivities(account);
+    const endDate = new Date();
+    const startDate = new Date(endDate.getTime() - this.importWindowMs);
 
-    if (activities.length === 0) {
-      const isComplete = await this.isUserRegistrationComplete(account);
-      if (!isComplete) {
-        setTimeout(() => {
-          this.queueFullImport(account).catch(() => {});
-        }, 5000);
-        return { queuedActivities: 0 };
+    try {
+      const accessToken = await this.getValidAccessToken(account);
+      const summaryStartTime = Math.floor(startDate.getTime() / 1000);
+      const summaryEndTime = Math.floor(endDate.getTime() / 1000);
+
+      const response = await axios.get(
+        'https://apis.garmin.com/wellness-api/rest/backfill/activities',
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          params: {
+            summaryStartTimeInSeconds: summaryStartTime,
+            summaryEndTimeInSeconds: summaryEndTime,
+          },
+          timeout: 15000,
+        },
+      );
+      if (response.status === 202) {
+        return {
+          queuedActivities: 0, // Will be processed via ping/push notifications
+          backfillRequested: true,
+        };
       }
+
+      throw new Error(
+        `Unexpected backfill response status: ${response.status}`,
+      );
+    } catch {
+      const activities = await this.importActivities(account, {
+        startDate,
+        endDate,
+      });
+
+      if (activities.length === 0) {
+        const isComplete = await this.isUserRegistrationComplete(account);
+        if (!isComplete) {
+          setTimeout(() => {
+            this.queueFullImport(account).catch(() => {});
+          }, 5000);
+          return { queuedActivities: 0 };
+        }
+      }
+
+      const queued = await this.enqueueActivities(account, activities);
+
+      return {
+        queuedActivities: queued,
+        backfillRequested: false,
+      };
     }
-
-    const queued = await this.enqueueActivities(account, activities);
-    const backfillJobs = await this.scheduleBackfillWindows(account);
-
-    return {
-      queuedActivities: queued,
-      backfillRequested: backfillJobs > 0,
-    };
   }
 
   private async makeAuthenticatedRequest<T>(
@@ -521,7 +478,6 @@ export class GarminProviderService
         accessToken = tokenResponse.access_token;
         return await requestFn(accessToken);
       }
-
       throw error;
     }
   }
@@ -658,55 +614,6 @@ export class GarminProviderService
 
     await this.queueService.addActivityImportJobs(account, newActivities, true);
     return newActivities.length;
-  }
-
-  private buildBackfillWindows(
-    account: provider_account,
-    nowSeconds: number,
-  ): Array<{
-    start: number;
-    end: number;
-  }> {
-    const totalRangeSeconds =
-      this.fullImportMonths * this.backfillWindowSeconds;
-    const earliestByConfig = Math.max(0, nowSeconds - totalRangeSeconds);
-    const earliest = Math.max(0, earliestByConfig);
-
-    // Skip the most recent window (already covered by importActivities)
-    let cursorEnd = nowSeconds - this.backfillWindowSeconds;
-    const windows: Array<{ start: number; end: number }> = [];
-
-    while (cursorEnd > earliest) {
-      const start = Math.max(earliest, cursorEnd - this.backfillWindowSeconds);
-      const end = cursorEnd;
-
-      if (end <= start) {
-        break;
-      }
-
-      windows.push({ start, end });
-      cursorEnd -= this.backfillWindowSeconds;
-    }
-
-    return windows.reverse();
-  }
-
-  private async scheduleBackfillWindows(
-    account: provider_account,
-  ): Promise<number> {
-    const windows = this.buildBackfillWindows(
-      account,
-      Math.floor(Date.now() / 1000),
-    );
-    if (windows.length === 0) {
-      return 0;
-    }
-
-    return this.queueService.addGarminBackfillJobs(
-      account,
-      windows,
-      this.effectiveBackfillDelayMs,
-    );
   }
 
   async importActivity(

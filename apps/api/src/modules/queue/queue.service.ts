@@ -19,12 +19,6 @@ export interface ActivityProcessingJobData {
   skipWeather?: boolean;
 }
 
-export interface GarminBackfillJobData {
-  providerAccountId: number;
-  start: number;
-  end: number;
-}
-
 @Injectable()
 export class QueueService {
   private readonly logger = new Logger(QueueService.name);
@@ -34,8 +28,6 @@ export class QueueService {
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
     @InjectQueue('activity-processing')
     private readonly activityProcessingQueue: Queue<ActivityProcessingJobData>,
-    @InjectQueue('garmin-backfill')
-    private readonly garminBackfillQueue: Queue<GarminBackfillJobData>,
   ) {}
 
   private calculatePriority(startDate: string | Date): number {
@@ -212,68 +204,5 @@ export class QueueService {
       'activity-import': importStats,
       'activity-processing': processingStats,
     };
-  }
-
-  async addGarminBackfillJobs(
-    account: provider_account,
-    windows: Array<{ start: number; end: number }>,
-    delayBetweenMs: number,
-  ): Promise<number> {
-    if (!this.garminBackfillQueue || windows.length === 0) {
-      return 0;
-    }
-
-    const jobsToAdd: Array<{
-      name: string;
-      data: GarminBackfillJobData;
-      opts: { jobId: string; delay: number };
-    }> = [];
-
-    for (const [index, window] of windows.entries()) {
-      const jobId = `garmin-backfill-${account.provider_account_id}-${window.start}-${window.end}`;
-
-      try {
-        const existingJob = await this.garminBackfillQueue.getJob(jobId);
-        if (existingJob) {
-          const state = await existingJob.getState();
-          if (state === 'completed') {
-            continue;
-          }
-          if (state === 'failed') {
-            await existingJob.remove();
-          } else {
-            continue;
-          }
-        }
-      } catch (error) {
-        this.logger.error(
-          `Failed to inspect existing Garmin backfill job ${jobId}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-        continue;
-      }
-
-      jobsToAdd.push({
-        name: 'backfill',
-        data: {
-          providerAccountId: account.provider_account_id,
-          start: window.start,
-          end: window.end,
-        },
-        opts: {
-          jobId,
-          delay: index * delayBetweenMs,
-        },
-      });
-    }
-
-    if (jobsToAdd.length === 0) {
-      return 0;
-    }
-
-    await this.garminBackfillQueue.addBulk(jobsToAdd);
-    this.logger.log(
-      `Scheduled ${jobsToAdd.length} Garmin backfill windows for provider_account ${account.provider_account_id}`,
-    );
-    return jobsToAdd.length;
   }
 }

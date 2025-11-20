@@ -391,6 +391,11 @@ export function ConnectorsTab() {
                                   provider: connectorProviderLabelMap[provider],
                                 })}
                               </p>
+                              {provider === 'GARMIN' && (
+                                <p className="text-xs text-muted-foreground">
+                                  {m.full_import_garmin_hint()}
+                                </p>
+                              )}
                               {fullImportCompleted ? (
                                 <p className="text-sm text-muted-foreground">
                                   {m.full_import_completed()}
