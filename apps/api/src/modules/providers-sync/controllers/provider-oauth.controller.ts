@@ -1,10 +1,14 @@
+import { ZodValidationPipe } from 'nestjs-zod';
+
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
   Logger,
   Param,
+  Patch,
   Post,
   Req,
   Res,
@@ -13,6 +17,12 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 
 import { connector_provider, event_type } from '@openathlete/database';
+import {
+  ConnectorProvider,
+  ProviderPreferencesDto,
+  getProviderSyncCapabilities,
+  providerPreferencesSchema,
+} from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -21,6 +31,10 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
 import { GarminProviderService } from '../providers/garmin.provider.service';
 import { StravaProviderService } from '../providers/strava.provider.service';
+
+function toConnectorProvider(provider: connector_provider): ConnectorProvider {
+  return provider as unknown as ConnectorProvider;
+}
 
 @Controller('provider')
 export class ProviderOAuthController {
@@ -33,6 +47,39 @@ export class ProviderOAuthController {
     private readonly corosProviderService: CorosProviderService,
     private readonly prisma: PrismaService,
   ) {}
+
+  private async getAthleteForUser(user: AuthUser) {
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { user_id: user.user_id },
+    });
+
+    if (!athlete) {
+      throw new Error('Athlete not found');
+    }
+
+    return athlete;
+  }
+
+  private async getProviderAccountForUser(
+    user: AuthUser,
+    providerEnum: connector_provider,
+  ) {
+    const athlete = await this.getAthleteForUser(user);
+
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        athlete_id: athlete.athlete_id,
+        provider: providerEnum,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      throw new Error('Provider account not found');
+    }
+
+    return { athlete, account };
+  }
 
   /**
    * Get OAuth authorization URI for a provider
@@ -73,14 +120,7 @@ export class ProviderOAuthController {
     const { code } = body;
     const providerEnum = provider.toUpperCase() as connector_provider;
 
-    // Get athlete
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: user.user_id },
-    });
-
-    if (!athlete) {
-      throw new Error('Athlete not found');
-    }
+    const athlete = await this.getAthleteForUser(user);
 
     switch (providerEnum) {
       case connector_provider.STRAVA:
@@ -137,24 +177,10 @@ export class ProviderOAuthController {
   ) {
     const providerEnum = provider.toUpperCase() as connector_provider;
 
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: user.user_id },
-    });
-
-    if (!athlete) {
-      throw new Error('Athlete not found');
-    }
-
-    const account = await this.prisma.provider_account.findFirst({
-      where: {
-        athlete_id: athlete.athlete_id,
-        provider: providerEnum,
-      },
-    });
-
-    if (!account) {
-      throw new Error('Provider account not found');
-    }
+    const { account } = await this.getProviderAccountForUser(
+      user,
+      providerEnum,
+    );
 
     // For Garmin, call deleteUserRegistration API before revoking
     if (providerEnum === connector_provider.GARMIN && account.access_token) {
@@ -207,7 +233,166 @@ export class ProviderOAuthController {
       provider: account.provider,
       status: account.status,
       connectedAt: account.created_at,
+      importActivitiesEnabled: account.import_activities_enabled,
+      exportWorkoutsEnabled: account.export_workouts_enabled,
+      importMetricsEnabled: account.import_metrics_enabled,
+      fullImportRequestedAt: account.full_import_requested_at,
+      fullImportCompletedAt: account.full_import_completed_at,
     }));
+  }
+
+  /**
+   * Update provider synchronization preferences
+   */
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch(':provider/preferences')
+  async updateProviderPreferences(
+    @JwtUser() user: AuthUser,
+    @Param('provider') provider: string,
+    @Body(new ZodValidationPipe(providerPreferencesSchema))
+    body: ProviderPreferencesDto,
+  ) {
+    const providerEnum = provider.toUpperCase() as connector_provider;
+    const { account } = await this.getProviderAccountForUser(
+      user,
+      providerEnum,
+    );
+
+    const connectorProviderKey = toConnectorProvider(providerEnum);
+    const capabilities = getProviderSyncCapabilities(connectorProviderKey);
+
+    const data: Record<string, unknown> = {};
+
+    if (body.importActivitiesEnabled !== undefined) {
+      if (!capabilities.importActivities) {
+        throw new BadRequestException(
+          `Importing activities is not available for ${provider}`,
+        );
+      }
+      data.import_activities_enabled = body.importActivitiesEnabled;
+    }
+
+    if (body.exportWorkoutsEnabled !== undefined) {
+      if (!capabilities.exportWorkouts) {
+        throw new BadRequestException(
+          `Exporting workouts is not available for ${provider}`,
+        );
+      }
+      data.export_workouts_enabled = body.exportWorkoutsEnabled;
+    }
+
+    if (body.importMetricsEnabled !== undefined) {
+      if (!capabilities.importMetrics) {
+        throw new BadRequestException(
+          `Importing metrics is not available for ${provider}`,
+        );
+      }
+      data.import_metrics_enabled = body.importMetricsEnabled;
+    }
+
+    await this.prisma.provider_account.update({
+      where: {
+        provider_account_id: account.provider_account_id,
+      },
+      data,
+    });
+
+    return { success: true };
+  }
+
+  /**
+   * Trigger historical import for a provider
+   */
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post(':provider/import-all')
+  async importAllActivities(
+    @JwtUser() user: AuthUser,
+    @Param('provider') provider: string,
+  ) {
+    const providerEnum = provider.toUpperCase() as connector_provider;
+    const { account } = await this.getProviderAccountForUser(
+      user,
+      providerEnum,
+    );
+
+    if (!account.import_activities_enabled) {
+      throw new BadRequestException(
+        `Importing activities is disabled for ${provider}`,
+      );
+    }
+
+    const connectorProviderKey = toConnectorProvider(providerEnum);
+    const capabilities = getProviderSyncCapabilities(connectorProviderKey);
+
+    if (!capabilities.supportsFullImport || !capabilities.importActivities) {
+      throw new BadRequestException(
+        `Historical import is not available for ${provider}`,
+      );
+    }
+
+    if (account.full_import_completed_at) {
+      return { success: true, message: 'Full import already completed' };
+    }
+
+    if (account.full_import_requested_at && !account.full_import_completed_at) {
+      throw new BadRequestException(
+        'A historical import is already in progress',
+      );
+    }
+
+    const now = new Date();
+
+    await this.prisma.provider_account.update({
+      where: {
+        provider_account_id: account.provider_account_id,
+      },
+      data: {
+        full_import_requested_at: now,
+        full_import_completed_at: null,
+      },
+    });
+
+    try {
+      let queuedCount = 0;
+      switch (providerEnum) {
+        case connector_provider.STRAVA:
+          queuedCount =
+            await this.stravaProviderService.queueFullImport(account);
+          break;
+        case connector_provider.GARMIN:
+          queuedCount =
+            await this.garminProviderService.queueFullImport(account);
+          break;
+        default:
+          throw new BadRequestException(
+            `Historical import is not available for ${provider}`,
+          );
+      }
+
+      await this.prisma.provider_account.update({
+        where: {
+          provider_account_id: account.provider_account_id,
+        },
+        data: {
+          full_import_completed_at: new Date(),
+        },
+      });
+
+      return {
+        success: true,
+        message: `Queued ${queuedCount} activities for import`,
+      };
+    } catch (error) {
+      await this.prisma.provider_account.update({
+        where: {
+          provider_account_id: account.provider_account_id,
+        },
+        data: {
+          full_import_requested_at: null,
+        },
+      });
+      throw error;
+    }
   }
 
   /**

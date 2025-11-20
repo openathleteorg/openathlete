@@ -5,6 +5,7 @@ import {
   SPORT_TYPE,
   mapPrismaWorkoutToDto,
   normalizeWorkoutForExport,
+  startOfDay,
 } from '@openathlete/shared';
 
 import { WorkoutPlannedChangedEvent } from 'src/events';
@@ -27,7 +28,7 @@ export class WorkoutSyncListener {
     const { eventId, athleteId, workoutId, startDate, sport } = event.payload;
 
     // Check if date is within next 7 days (UTC)
-    const now = new Date();
+    const now = startOfDay(new Date());
     const endDate = new Date(now);
     endDate.setUTCDate(endDate.getUTCDate() + 7);
     endDate.setUTCHours(23, 59, 59, 999);
@@ -62,6 +63,7 @@ export class WorkoutSyncListener {
         athlete_id: athleteId,
         provider: { in: ['GARMIN', 'SUUNTO', 'COROS'] },
         status: 'active',
+        export_workouts_enabled: true,
       },
     });
 

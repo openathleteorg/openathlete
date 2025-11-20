@@ -1,7 +1,11 @@
 import { Inject, Injectable, Optional, forwardRef } from '@nestjs/common';
 
 import { event_template } from '@openathlete/database';
-import { CreateEventTemplateDto, keysToCamel } from '@openathlete/shared';
+import {
+  CreateEventTemplateDto,
+  keysToCamel,
+  startOfDay,
+} from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
@@ -403,7 +407,7 @@ export class EventTemplateService {
     if (
       newEvent.type === 'TRAINING' &&
       newEvent.training &&
-      newEvent.start_date > new Date() &&
+      newEvent.start_date > startOfDay(new Date()) &&
       this.trainingLoadEstimationService &&
       newEvent.athlete_id
     ) {

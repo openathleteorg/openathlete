@@ -69,6 +69,13 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       }
 
+      if (!account.import_activities_enabled) {
+        this.logger.debug(
+          `Skipping import for provider account ${providerAccountId}: import disabled`,
+        );
+        return;
+      }
+
       await job.updateProgress(30);
 
       let savedActivity;

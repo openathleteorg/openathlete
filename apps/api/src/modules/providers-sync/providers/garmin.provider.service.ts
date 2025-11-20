@@ -338,8 +338,6 @@ export class GarminProviderService
       externalUserId: userId,
     });
 
-    this.fetchInitialGarminData(account).catch(() => {});
-
     return account;
   }
 
@@ -392,12 +390,10 @@ export class GarminProviderService
     }
   }
 
-  private async fetchInitialGarminData(
-    account: provider_account,
-  ): Promise<void> {
+  async queueFullImport(account: provider_account): Promise<number> {
     const hasPermission = await this.hasActivityExportPermission(account);
     if (hasPermission === false) {
-      return;
+      return 0;
     }
 
     const activities = await this.importActivities(account);
@@ -406,9 +402,9 @@ export class GarminProviderService
       const isComplete = await this.isUserRegistrationComplete(account);
       if (!isComplete) {
         setTimeout(() => {
-          this.fetchInitialGarminData(account).catch(() => {});
+          this.queueFullImport(account).catch(() => {});
         }, 5000);
-        return;
+        return 0;
       }
 
       const now = Math.floor(Date.now() / 1000);
@@ -416,7 +412,7 @@ export class GarminProviderService
       await this.requestActivityBackfill(account, thirtyDaysAgo, now).catch(
         () => {},
       );
-      return;
+      return 0;
     }
 
     const existingExternalIds = await this.prisma.event_activity.findMany({
@@ -439,10 +435,12 @@ export class GarminProviderService
     );
 
     if (newActivities.length === 0) {
-      return;
+      return 0;
     }
 
     await this.queueService.addActivityImportJobs(account, newActivities, true);
+
+    return newActivities.length;
   }
 
   private async makeAuthenticatedRequest<T>(
@@ -498,7 +496,7 @@ export class GarminProviderService
       return [];
     }
 
-    const limit = options?.limit ?? 100;
+    const limit = options?.limit ?? Number.POSITIVE_INFINITY;
     const activities: ImportedActivity[] = [];
 
     const endTime = options?.endDate
@@ -880,6 +878,13 @@ export class GarminProviderService
       return;
     }
 
+    if (!account.import_activities_enabled) {
+      this.logger.debug(
+        `Import disabled for Garmin account ${account.provider_account_id}, skipping activity ping`,
+      );
+      return;
+    }
+
     try {
       const accessToken = await this.getValidAccessToken(account);
 
@@ -1009,6 +1014,13 @@ export class GarminProviderService
     });
 
     if (!account || !account.athlete || !account.athlete.user) {
+      return;
+    }
+
+    if (!account.import_activities_enabled) {
+      this.logger.debug(
+        `Import disabled for Garmin account ${account.provider_account_id}, skipping activity file ping`,
+      );
       return;
     }
 

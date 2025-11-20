@@ -76,6 +76,7 @@ export class ProviderExportScheduler {
       where: {
         provider: { in: ['GARMIN', 'SUUNTO', 'COROS'] },
         status: 'active',
+        export_workouts_enabled: true,
         ...(athleteId && { athlete_id: athleteId }),
       },
       select: {

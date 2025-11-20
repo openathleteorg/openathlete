@@ -223,30 +223,6 @@ export class StravaProviderService
       externalUserId,
     });
 
-    // Import initial activities using queue (skip weather for bulk import)
-    this.fetchInitialStravaData(account).catch((error) => {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const errorName = error instanceof Error ? error.name : 'UnknownError';
-
-      this.logger.error(
-        `Failed to queue initial Strava activities for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-
-      // Check if it's a Redis connection error
-      if (
-        errorName === 'MaxRetriesPerRequestError' ||
-        errorMessage.includes('ECONNREFUSED') ||
-        errorMessage.includes('Redis') ||
-        errorMessage.includes('Connection')
-      ) {
-        this.logger.error(
-          `CRITICAL: Redis connection error detected during Strava account connection. Activities will NOT be synchronized until Redis is available. Please check: 1) Redis is running, 2) REDIS_URL environment variable is correctly set, 3) Network connectivity between API container and Redis server.`,
-        );
-      }
-    });
-
     return account;
   }
 
@@ -258,7 +234,7 @@ export class StravaProviderService
     options?: ImportOptions,
   ): Promise<ImportedActivity[]> {
     let page = 1;
-    const limit = options?.limit ?? 100;
+    const limit = options?.limit ?? Number.POSITIVE_INFINITY;
     const activities: ImportedActivity[] = [];
 
     while (activities.length < limit) {
@@ -458,11 +434,9 @@ export class StravaProviderService
    * Import initial activities from Strava when connecting
    * Fetches activities and adds them to the import queue
    */
-  private async fetchInitialStravaData(
-    account: provider_account,
-  ): Promise<void> {
+  async queueFullImport(account: provider_account): Promise<number> {
     this.logger.log(
-      `Fetching initial Strava activities for account ${account.provider_account_id}`,
+      `Queueing Strava historical import for account ${account.provider_account_id}`,
     );
 
     try {
@@ -475,7 +449,7 @@ export class StravaProviderService
 
       if (activities.length === 0) {
         this.logger.log('No new activities to import');
-        return;
+        return 0;
       }
 
       // Filter out activities that already exist
@@ -500,7 +474,7 @@ export class StravaProviderService
 
       if (newActivities.length === 0) {
         this.logger.log('All activities already imported');
-        return;
+        return 0;
       }
 
       this.logger.log(
@@ -517,13 +491,15 @@ export class StravaProviderService
       this.logger.log(
         `Successfully queued ${newActivities.length} activities for import (out of ${activities.length} total)`,
       );
+
+      return newActivities.length;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       const errorName = error instanceof Error ? error.name : 'UnknownError';
 
       this.logger.error(
-        `Error in fetchInitialStravaData for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
+        `Error in queueFullImport for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
         error instanceof Error ? error.stack : undefined,
       );
 
@@ -564,6 +540,13 @@ export class StravaProviderService
       if (!account || !account.athlete || !account.athlete.user) {
         this.logger.warn(
           `No active Strava account found for owner_id ${payload.owner_id}`,
+        );
+        return;
+      }
+
+      if (!account.import_activities_enabled) {
+        this.logger.debug(
+          `Import disabled for Strava account ${account.provider_account_id}, skipping webhook activity ${payload.object_id}`,
         );
         return;
       }

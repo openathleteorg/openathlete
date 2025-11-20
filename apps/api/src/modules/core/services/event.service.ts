@@ -43,6 +43,7 @@ import {
   keysToSnake,
   mapPrismaWorkoutToDto,
   mapWorkoutDtoToPrisma,
+  startOfDay,
   updateWorkoutSchema,
 } from '@openathlete/shared';
 
@@ -373,7 +374,7 @@ export class EventService {
     if (
       type === 'TRAINING' &&
       created.training &&
-      created.start_date > new Date() &&
+      created.start_date > startOfDay(new Date()) &&
       this.trainingLoadEstimationService
     ) {
       this.trainingLoadEstimationService
@@ -593,7 +594,7 @@ export class EventService {
       !isTemplate &&
       event.type === 'TRAINING' &&
       event.training &&
-      updatedEvent.start_date > new Date() &&
+      updatedEvent.start_date > startOfDay(new Date()) &&
       this.trainingLoadEstimationService
     ) {
       this.trainingLoadEstimationService
@@ -1207,7 +1208,7 @@ export class EventService {
     if (
       originalEvent.type === 'TRAINING' &&
       finalDuplicatedEvent?.training &&
-      finalDuplicatedEvent.start_date > new Date() &&
+      finalDuplicatedEvent.start_date > startOfDay(new Date()) &&
       this.trainingLoadEstimationService
     ) {
       this.trainingLoadEstimationService
