@@ -830,7 +830,6 @@ export class GarminProviderService
       },
     });
 
-    // Extract and store laps/segments if available
     if (
       activityDetail?.laps &&
       activityDetail.laps.length > 0 &&
@@ -838,15 +837,37 @@ export class GarminProviderService
       activityStream.time.length > 0
     ) {
       const laps = activityDetail.laps;
-      const activityStartTime = activity.startTimeInSeconds;
+      const activityStartTime = activityDetail.summary.startTimeInSeconds;
       const totalDuration = summary.durationInSeconds;
 
-      // Uncompress stream to calculate segment metrics
       const uncompressedStream = uncompressActivityStream(
         compressedActivityStream,
       );
 
       const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
+      let segmentIndex = 0;
+
+      const firstLapStartTimeSeconds =
+        laps[0].startTimeInSeconds - activityStartTime;
+      if (firstLapStartTimeSeconds > 0) {
+        const metrics = calculateSegmentMetrics(
+          uncompressedStream,
+          0,
+          firstLapStartTimeSeconds,
+        );
+
+        segmentsData.push({
+          segment_type: activity_segment_type.LAP,
+          name: `Lap ${segmentIndex + 1}`,
+          order_index: segmentIndex,
+          start_time_seconds: 0,
+          end_time_seconds: Math.round(firstLapStartTimeSeconds),
+          ...metrics,
+          event_activity_id: savedActivity.event_activity_id,
+        });
+        segmentIndex++;
+      }
+
       for (let i = 0; i < laps.length; i++) {
         const lap = laps[i];
         const lapStartTimeSeconds = lap.startTimeInSeconds - activityStartTime;
@@ -855,10 +876,10 @@ export class GarminProviderService
             ? laps[i + 1].startTimeInSeconds - activityStartTime
             : totalDuration;
 
-        // Only create segment if it has valid time range
         if (
           lapStartTimeSeconds >= 0 &&
-          lapEndTimeSeconds > lapStartTimeSeconds
+          lapEndTimeSeconds > lapStartTimeSeconds &&
+          lapEndTimeSeconds <= totalDuration
         ) {
           const metrics = calculateSegmentMetrics(
             uncompressedStream,
@@ -868,17 +889,17 @@ export class GarminProviderService
 
           segmentsData.push({
             segment_type: activity_segment_type.LAP,
-            name: `Lap ${i + 1}`,
-            order_index: i,
+            name: `Lap ${segmentIndex + 1}`,
+            order_index: segmentIndex,
             start_time_seconds: Math.round(lapStartTimeSeconds),
             end_time_seconds: Math.round(lapEndTimeSeconds),
             ...metrics,
             event_activity_id: savedActivity.event_activity_id,
           });
+          segmentIndex++;
         }
       }
 
-      // Create segments in batch
       if (segmentsData.length > 0) {
         await this.prisma.activity_segment.createMany({
           data: segmentsData,
