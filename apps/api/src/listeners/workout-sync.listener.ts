@@ -39,6 +39,20 @@ export class WorkoutSyncListener {
       this.logger.debug(
         `Skipping workout sync: event date ${eventDate.toISOString()} is outside 7-day window`,
       );
+
+      if (workoutId) {
+        try {
+          await this.exportService.deleteExportsForWorkout({ workoutId });
+          this.logger.debug(
+            `Deleted planned exports for workout ${workoutId} that moved outside window`,
+          );
+        } catch (err) {
+          this.logger.warn(
+            `Failed to delete planned exports for workout ${workoutId}: ${err instanceof Error ? err.message : String(err)}`,
+          );
+        }
+      }
+
       return;
     }
 

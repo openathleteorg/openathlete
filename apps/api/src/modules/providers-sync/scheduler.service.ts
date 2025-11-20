@@ -11,6 +11,7 @@ import { PrismaService } from '../prisma/services/prisma.service';
 import { ProviderExportService } from './export.service';
 
 type ProviderKey = 'garmin' | 'suunto' | 'coros';
+type ProviderEnum = 'GARMIN' | 'SUUNTO' | 'COROS';
 
 function providerEnumToKey(provider: string): ProviderKey | null {
   switch (provider) {
@@ -22,6 +23,17 @@ function providerEnumToKey(provider: string): ProviderKey | null {
       return 'coros';
     default:
       return null;
+  }
+}
+
+function providerKeyToEnum(provider: ProviderKey): ProviderEnum {
+  switch (provider) {
+    case 'garmin':
+      return 'GARMIN';
+    case 'suunto':
+      return 'SUUNTO';
+    case 'coros':
+      return 'COROS';
   }
 }
 
@@ -135,6 +147,55 @@ export class ProviderExportScheduler {
             },
           },
         });
+
+        const workoutIdsInWindow = new Set(
+          events
+            .map((event) => event.training?.workout?.workout_id)
+            .filter((id): id is number => typeof id === 'number'),
+        );
+
+        const providerEnums = Array.from(providers).map((provider) =>
+          providerKeyToEnum(provider),
+        );
+
+        if (providerEnums.length > 0) {
+          const orphanExports =
+            await this.prisma.provider_workout_export.findMany({
+              where: {
+                athlete_id: athleteId,
+                provider: { in: providerEnums },
+                planned_date: {
+                  gte: windowStart,
+                  lte: windowEnd,
+                },
+                ...(workoutIdsInWindow.size > 0 && {
+                  workout_id: {
+                    notIn: Array.from(workoutIdsInWindow),
+                  },
+                }),
+              },
+              select: {
+                workout_id: true,
+              },
+            });
+
+          const workoutsToDelete = new Set(
+            orphanExports.map((exp) => exp.workout_id),
+          );
+
+          for (const workoutId of workoutsToDelete) {
+            try {
+              await this.exportService.deleteExportsForWorkout({ workoutId });
+              this.logger.debug(
+                `Deleted planned exports for workout ${workoutId} outside 7-day window for athlete ${athleteId}`,
+              );
+            } catch (err) {
+              this.logger.warn(
+                `Failed to delete planned exports for workout ${workoutId}: ${err instanceof Error ? err.message : String(err)}`,
+              );
+            }
+          }
+        }
 
         for (const event of events) {
           if (!event.training?.workout) continue;

@@ -400,27 +400,19 @@ export class EventService {
     startDate: Date,
     sport: string,
   ) {
-    // Check if date is within next 7 days (UTC)
-    const now = new Date();
-    const endDate = new Date(now);
-    endDate.setUTCDate(endDate.getUTCDate() + 7);
-    endDate.setUTCHours(23, 59, 59, 999);
-
     const eventDate = new Date(startDate);
     eventDate.setUTCHours(0, 0, 0, 0);
 
-    if (eventDate <= endDate && eventDate >= now) {
-      this.eventEmitter.emit(
-        WorkoutPlannedChangedEvent.SLUG,
-        new WorkoutPlannedChangedEvent({
-          eventId,
-          athleteId,
-          workoutId: workoutId ?? null,
-          startDate: eventDate,
-          sport,
-        }),
-      );
-    }
+    this.eventEmitter.emit(
+      WorkoutPlannedChangedEvent.SLUG,
+      new WorkoutPlannedChangedEvent({
+        eventId,
+        athleteId,
+        workoutId: workoutId ?? null,
+        startDate: eventDate,
+        sport,
+      }),
+    );
   }
 
   async updateEvent(
