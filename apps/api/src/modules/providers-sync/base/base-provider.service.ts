@@ -8,6 +8,11 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 
+export interface FullImportResult {
+  queuedActivities: number;
+  backfillRequested?: boolean;
+}
+
 export interface OAuthTokenResponse {
   access_token: string;
   refresh_token?: string;

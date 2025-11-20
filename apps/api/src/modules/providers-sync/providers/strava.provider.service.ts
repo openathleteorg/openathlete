@@ -29,6 +29,7 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
+  FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
 } from '../base/base-provider.service';
@@ -434,7 +435,7 @@ export class StravaProviderService
    * Import initial activities from Strava when connecting
    * Fetches activities and adds them to the import queue
    */
-  async queueFullImport(account: provider_account): Promise<number> {
+  async queueFullImport(account: provider_account): Promise<FullImportResult> {
     this.logger.log(
       `Queueing Strava historical import for account ${account.provider_account_id}`,
     );
@@ -449,50 +450,16 @@ export class StravaProviderService
 
       if (activities.length === 0) {
         this.logger.log('No new activities to import');
-        return 0;
+        return { queuedActivities: 0 };
       }
 
-      // Filter out activities that already exist
-      const existingExternalIds = await this.prisma.event_activity.findMany({
-        where: {
-          external_id: {
-            in: activities.map((a) => a.externalId),
-          },
-        },
-        select: {
-          external_id: true,
-        },
-      });
-
-      const existingIdsSet = new Set(
-        existingExternalIds.map((a) => a.external_id),
-      );
-
-      const newActivities = activities.filter(
-        (a) => !existingIdsSet.has(a.externalId),
-      );
-
-      if (newActivities.length === 0) {
-        this.logger.log('All activities already imported');
-        return 0;
-      }
+      const queued = await this.enqueueActivities(account, activities);
 
       this.logger.log(
-        `Found ${newActivities.length} new activities to import (out of ${activities.length} total)`,
+        `Successfully queued ${queued} activities for import (out of ${activities.length} total)`,
       );
 
-      // Add all activities to the import queue (skip weather for bulk import)
-      await this.queueService.addActivityImportJobs(
-        account,
-        newActivities,
-        true,
-      );
-
-      this.logger.log(
-        `Successfully queued ${newActivities.length} activities for import (out of ${activities.length} total)`,
-      );
-
-      return newActivities.length;
+      return { queuedActivities: queued };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
@@ -506,6 +473,42 @@ export class StravaProviderService
       // Re-throw to be caught by the caller
       throw error;
     }
+  }
+
+  private async enqueueActivities(
+    account: provider_account,
+    activities: ImportedActivity[],
+  ): Promise<number> {
+    if (activities.length === 0) {
+      return 0;
+    }
+
+    const existingExternalIds = await this.prisma.event_activity.findMany({
+      where: {
+        external_id: {
+          in: activities.map((a) => a.externalId),
+        },
+      },
+      select: {
+        external_id: true,
+      },
+    });
+
+    const existingIdsSet = new Set(
+      existingExternalIds.map((a) => a.external_id),
+    );
+
+    const newActivities = activities.filter(
+      (a) => !existingIdsSet.has(a.externalId),
+    );
+
+    if (newActivities.length === 0) {
+      this.logger.log('All activities already imported');
+      return 0;
+    }
+
+    await this.queueService.addActivityImportJobs(account, newActivities, true);
+    return newActivities.length;
   }
 
   /**

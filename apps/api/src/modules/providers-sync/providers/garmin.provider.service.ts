@@ -2,7 +2,12 @@ import axios, { isAxiosError } from 'axios';
 import Redis from 'ioredis';
 import { createHash, randomBytes } from 'node:crypto';
 
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
@@ -44,6 +49,7 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
+  FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
 } from '../base/base-provider.service';
@@ -390,10 +396,12 @@ export class GarminProviderService
     }
   }
 
-  async queueFullImport(account: provider_account): Promise<number> {
+  async queueFullImport(account: provider_account): Promise<FullImportResult> {
     const hasPermission = await this.hasActivityExportPermission(account);
     if (hasPermission === false) {
-      return 0;
+      throw new BadRequestException(
+        'Garmin does not allow exporting activities for this account. Please re-authorize with activity access enabled.',
+      );
     }
 
     const activities = await this.importActivities(account);
@@ -404,43 +412,18 @@ export class GarminProviderService
         setTimeout(() => {
           this.queueFullImport(account).catch(() => {});
         }, 5000);
-        return 0;
+        return { queuedActivities: 0 };
       }
-
-      const now = Math.floor(Date.now() / 1000);
-      const thirtyDaysAgo = now - 30 * 24 * 60 * 60;
-      await this.requestActivityBackfill(account, thirtyDaysAgo, now).catch(
-        () => {},
-      );
-      return 0;
     }
 
-    const existingExternalIds = await this.prisma.event_activity.findMany({
-      where: {
-        external_id: {
-          in: activities.map((a) => a.externalId),
-        },
-      },
-      select: {
-        external_id: true,
-      },
-    });
+    const queued = await this.enqueueActivities(account, activities);
 
-    const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.external_id),
-    );
+    const backfillRequests = await this.requestFullHistoricalBackfill(account);
 
-    const newActivities = activities.filter(
-      (a) => !existingIdsSet.has(a.externalId),
-    );
-
-    if (newActivities.length === 0) {
-      return 0;
-    }
-
-    await this.queueService.addActivityImportJobs(account, newActivities, true);
-
-    return newActivities.length;
+    return {
+      queuedActivities: queued,
+      backfillRequested: backfillRequests > 0,
+    };
   }
 
   private async makeAuthenticatedRequest<T>(
@@ -581,6 +564,85 @@ export class GarminProviderService
     }
 
     return activities;
+  }
+
+  private async enqueueActivities(
+    account: provider_account,
+    activities: ImportedActivity[],
+  ): Promise<number> {
+    if (activities.length === 0) {
+      return 0;
+    }
+
+    const existingExternalIds = await this.prisma.event_activity.findMany({
+      where: {
+        external_id: {
+          in: activities.map((a) => a.externalId),
+        },
+      },
+      select: {
+        external_id: true,
+      },
+    });
+
+    const existingIdsSet = new Set(
+      existingExternalIds.map((a) => a.external_id),
+    );
+
+    const newActivities = activities.filter(
+      (a) => !existingIdsSet.has(a.externalId),
+    );
+
+    if (newActivities.length === 0) {
+      this.logger.log(
+        `No new Garmin activities to queue for account ${account.provider_account_id}`,
+      );
+      return 0;
+    }
+
+    await this.queueService.addActivityImportJobs(account, newActivities, true);
+    return newActivities.length;
+  }
+
+  private async requestFullHistoricalBackfill(
+    account: provider_account,
+  ): Promise<number> {
+    const windowSeconds = 30 * 24 * 60 * 60;
+    const configuredMonths = Number(
+      this.configService.get('GARMIN_FULL_IMPORT_MONTHS'),
+    );
+    const maxMonths = Number.isNaN(configuredMonths)
+      ? 120
+      : Math.max(1, configuredMonths);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const totalRangeSeconds = maxMonths * windowSeconds;
+
+    let cursor = Math.max(0, nowSeconds - totalRangeSeconds);
+    // Skip the most recent window to avoid duplicating the manual pull we just performed
+    const backfillEnd = Math.max(cursor, nowSeconds - windowSeconds);
+    let requests = 0;
+
+    while (cursor < backfillEnd) {
+      const chunkEnd = Math.min(cursor + windowSeconds, backfillEnd);
+      try {
+        await this.requestActivityBackfill(account, cursor, chunkEnd);
+        requests += 1;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.logger.warn(
+          `Failed to request Garmin backfill for window ${cursor}-${chunkEnd}: ${message}`,
+        );
+      }
+      cursor = chunkEnd;
+    }
+
+    if (requests > 0) {
+      this.logger.log(
+        `Requested Garmin backfill in ${requests} window(s) for account ${account.provider_account_id}`,
+      );
+    }
+
+    return requests;
   }
 
   async importActivity(

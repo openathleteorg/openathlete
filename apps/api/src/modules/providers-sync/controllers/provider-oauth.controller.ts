@@ -28,6 +28,7 @@ import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { FullImportResult } from '../base/base-provider.service';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
 import { GarminProviderService } from '../providers/garmin.provider.service';
 import { StravaProviderService } from '../providers/strava.provider.service';
@@ -353,14 +354,14 @@ export class ProviderOAuthController {
     });
 
     try {
-      let queuedCount = 0;
+      let importResult: FullImportResult | null = null;
       switch (providerEnum) {
         case connector_provider.STRAVA:
-          queuedCount =
+          importResult =
             await this.stravaProviderService.queueFullImport(account);
           break;
         case connector_provider.GARMIN:
-          queuedCount =
+          importResult =
             await this.garminProviderService.queueFullImport(account);
           break;
         default:
@@ -374,13 +375,17 @@ export class ProviderOAuthController {
           provider_account_id: account.provider_account_id,
         },
         data: {
-          full_import_completed_at: new Date(),
+          full_import_completed_at:
+            importResult?.backfillRequested === true ? null : new Date(),
         },
       });
 
+      const queuedCount = importResult?.queuedActivities ?? 0;
+
       return {
         success: true,
-        message: `Queued ${queuedCount} activities for import`,
+        queuedActivities: queuedCount,
+        backfillRequested: importResult?.backfillRequested ?? false,
       };
     } catch (error) {
       await this.prisma.provider_account.update({
