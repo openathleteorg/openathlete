@@ -36,13 +36,18 @@ model provider_account {
   provider_account_id Int @id @default(autoincrement())
 
   // fields
-  provider         connector_provider
-  access_token     String
-  refresh_token    String?
-  expires_at       DateTime?
-  scopes           String?
-  status           provider_account_status @default(active)
-  external_user_id String?
+  provider                  connector_provider
+  access_token              String
+  refresh_token             String?
+  expires_at                DateTime?
+  scopes                    String?
+  status                    provider_account_status @default(active)
+  external_user_id          String?
+  import_activities_enabled Boolean                 @default(true)
+  export_workouts_enabled   Boolean                 @default(true)
+  import_metrics_enabled    Boolean                 @default(false)
+  full_import_requested_at  DateTime?
+  full_import_completed_at  DateTime?
 
   // relationships
   athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
