@@ -21,3 +21,4 @@ export * from './update-cycle.dto';
 export * from './training-load.dto';
 export * from './workout.dto';
 export * from './athlete-settings.dto';
+export * from './provider-preferences.dto';
