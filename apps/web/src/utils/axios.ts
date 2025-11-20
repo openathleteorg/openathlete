@@ -90,6 +90,10 @@ export const routes = {
     disconnect: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/disconnect`,
     getConnected: '/provider/connected',
+    updatePreferences: (provider: ConnectorProvider) =>
+      `/provider/${provider.toLowerCase()}/preferences`,
+    importAllActivities: (provider: ConnectorProvider) =>
+      `/provider/${provider.toLowerCase()}/import-all`,
   },
   athlete: {
     getMyAthlete: '/athlete/me',

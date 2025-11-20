@@ -1,11 +1,16 @@
 import client, { routes } from '@/utils/axios';
 
-import { ConnectorProvider } from '@openathlete/shared';
+import { ConnectorProvider, ProviderPreferencesDto } from '@openathlete/shared';
 
 export interface ConnectedProvider {
   provider: ConnectorProvider;
   status: string;
   connectedAt: string;
+  importActivitiesEnabled: boolean;
+  exportWorkoutsEnabled: boolean;
+  importMetricsEnabled: boolean;
+  fullImportRequestedAt: string | null;
+  fullImportCompletedAt: string | null;
 }
 
 export interface GetOAuthUriResponse {
@@ -45,6 +50,26 @@ export class ProviderAPI {
 
   static async getConnectedProviders(): Promise<ConnectedProvider[]> {
     const res = await client.get(routes.provider.getConnected);
+    return res.data;
+  }
+
+  static async updatePreferences(
+    provider: ConnectorProvider,
+    payload: ProviderPreferencesDto,
+  ): Promise<{ success: boolean }> {
+    const res = await client.patch(
+      routes.provider.updatePreferences(provider),
+      payload,
+    );
+    return res.data;
+  }
+
+  static async importAllActivities(
+    provider: ConnectorProvider,
+  ): Promise<{ success: boolean; message?: string }> {
+    const res = await client.post(
+      routes.provider.importAllActivities(provider),
+    );
     return res.data;
   }
 }
