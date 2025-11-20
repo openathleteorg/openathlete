@@ -18,6 +18,13 @@ export interface GetOAuthUriResponse {
   codeVerifier?: string; // For PKCE providers like Garmin
 }
 
+export interface ImportAllActivitiesResponse {
+  success: boolean;
+  message?: string;
+  queuedActivities?: number;
+  backfillRequested?: boolean;
+}
+
 export class ProviderAPI {
   static async getOAuthUri(
     provider: ConnectorProvider,
@@ -66,7 +73,7 @@ export class ProviderAPI {
 
   static async importAllActivities(
     provider: ConnectorProvider,
-  ): Promise<{ success: boolean; message?: string }> {
+  ): Promise<ImportAllActivitiesResponse> {
     const res = await client.post(
       routes.provider.importAllActivities(provider),
     );

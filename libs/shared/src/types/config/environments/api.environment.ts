@@ -20,6 +20,7 @@ export const ApiEnvSchema = z.object({
   GARMIN_CLIENT_ID: z.string().optional(),
   GARMIN_CLIENT_SECRET: z.string().optional(),
   GARMIN_REDIRECT_URI: z.string().optional(),
+  GARMIN_FULL_IMPORT_MONTHS: z.string().optional(),
 
   SUUNTO_CLIENT_ID: z.string().optional(),
   SUUNTO_CLIENT_SECRET: z.string().optional(),

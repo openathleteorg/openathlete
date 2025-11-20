@@ -124,11 +124,10 @@ export function ConnectorsTab() {
     onMutate: (provider) => {
       setImportingProvider(provider);
     },
-    onSuccess: (response, provider) => {
+    onSuccess: (_, provider) => {
       toast.success(
         m.full_import_started({
           provider: connectorProviderLabelMap[provider],
-          details: response.message ? ` ${response.message}` : '',
         }),
       );
     },

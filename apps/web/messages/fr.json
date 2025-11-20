@@ -677,7 +677,7 @@
   "full_import_in_progress": "Importation en cours...",
   "full_import_completed": "Importation historique déjà effectuée.",
   "full_import_disabled": "Activez l'import des séances pour lancer cette action.",
-  "full_import_started": "Importation historique demandée pour {provider}.{details}",
+  "full_import_started": "Importation historique demandée pour {provider}.",
   "full_import_failed": "Impossible de lancer l'importation historique pour {provider}",
   "connected_and_syncing": "Connecté et synchronisation",
   "not_connected": "Non connecté",
