@@ -60,12 +60,9 @@ export function MetricsView({ athleteId }: P) {
   };
 
   // Display metrics in organized categories - showing first 5 from each category
-  const healthMetrics = metricsByCategory.health_composition.slice(0, 5);
+  const healthMetrics = metricsByCategory.health_composition;
   const cardiacMetrics = metricsByCategory.cardiac;
-  const performanceMetrics = metricsByCategory.performance_physiology.slice(
-    0,
-    4,
-  );
+  const performanceMetrics = metricsByCategory.performance_physiology;
 
   const pageTitle = isCurrentUser
     ? m.my_metrics()
@@ -88,7 +85,7 @@ export function MetricsView({ athleteId }: P) {
       {/* Health & Body Composition Section */}
       <div>
         <h2 className="text-xl font-semibold mb-4">{m.health_composition()}</h2>
-        <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {healthMetrics.map((type) => (
             <MetricCard
               key={type}
