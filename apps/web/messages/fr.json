@@ -678,6 +678,8 @@
   "full_import_completed": "Importation historique déjà effectuée.",
   "full_import_disabled": "Activez l'import des séances pour lancer cette action.",
   "full_import_started": "Importation historique demandée pour {provider}.",
+  "full_import_jobs_count_single": "{count} activité en file d'attente",
+  "full_import_jobs_count_plural": "{count} activités en file d'attente",
   "full_import_failed": "Impossible de lancer l'importation historique pour {provider}",
   "connected_and_syncing": "Connecté et synchronisation",
   "not_connected": "Non connecté",

@@ -676,6 +676,8 @@
   "full_import_completed": "Historical import already completed.",
   "full_import_disabled": "Enable session imports to trigger this action.",
   "full_import_started": "Historical import requested for {provider}.",
+  "full_import_jobs_count_single": "{count} activity queued",
+  "full_import_jobs_count_plural": "{count} activities queued",
   "full_import_failed": "Unable to start the historical import for {provider}",
   "connected_and_syncing": "Connected and syncing",
   "not_connected": "Not connected",

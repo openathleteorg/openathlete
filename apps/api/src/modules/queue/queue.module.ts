@@ -9,6 +9,7 @@ import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
+import { GarminBackfillProcessor } from './processors/garmin-backfill.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { QueueService } from './queue.service';
 import { TrainingLoadEstimationService } from './services/training-load-estimation.service';
@@ -265,13 +266,30 @@ function parseRedisUrl(redisUrl: string): {
         },
       },
     }),
+    BullModule.registerQueue({
+      name: 'garmin-backfill',
+      defaultJobOptions: {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 15000,
+        },
+        removeOnComplete: {
+          age: 24 * 3600,
+          count: 1000,
+        },
+        removeOnFail: {
+          age: 7 * 24 * 3600,
+        },
+      },
+    }),
   ],
   providers: [
     PrismaService,
     QueueService,
     TrainingLoadEstimationService,
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
-      ? [ActivityImportProcessor]
+      ? [ActivityImportProcessor, GarminBackfillProcessor]
       : []),
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
       ? [ActivityProcessingProcessor]
