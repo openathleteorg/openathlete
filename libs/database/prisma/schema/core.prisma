@@ -73,6 +73,7 @@ model provider_workout_export {
   error_code    String?
   error_message String?
   raw_payload   Json?
+  schedule_id   String?
 
   // relationships
   athlete athlete @relation(fields: [athlete_id], references: [athlete_id])
