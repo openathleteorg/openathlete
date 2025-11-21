@@ -970,5 +970,13 @@
   "onboarding_next": "Suivant",
   "onboarding_previous": "Précédent",
   "onboarding_saving": "Enregistrement...",
-  "onboarding_error": "Une erreur s'est produite. Veuillez réessayer."
+  "onboarding_error": "Une erreur s'est produite. Veuillez réessayer.",
+  "dashboard_header_upcoming_competitions": "Prochaines Compétitions",
+  "dashboard_header_fitness_status": "État de Forme",
+  "dashboard_header_recent_metrics": "Métriques Récentes",
+  "dashboard_header_no_upcoming_competitions": "Aucune compétition à venir",
+  "dashboard_header_no_recent_metrics": "Aucune métrique récente",
+  "dashboard_header_days_until": "dans {days} jours",
+  "dashboard_header_today": "Aujourd'hui",
+  "dashboard_header_tomorrow": "Demain"
 }

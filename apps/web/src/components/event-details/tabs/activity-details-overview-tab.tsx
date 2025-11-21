@@ -87,21 +87,181 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
       {!(stream?.latlng && stream.time && fullDomain) && (
         <ActivityQuickEditCard event={event} />
       )}
-      {stream?.latlng && stream.time && fullDomain && (
-        <>
-          <ActivityDetailsSelectionProvider fullDomain={fullDomain}>
-            {stream?.latlng && (
-              <ActivityDetailsMap
-                className="col-span-1 rounded-xl shadow-sm border"
-                polyline={stream.latlng}
-                pins={hoverPin}
-                distance={stream.distance}
-                time={stream.time}
-              />
-            )}
-            {isMyActivity && <ActivityQuickEditCard event={event} />}
-            {stream?.heartrate && (
-              <Card className={isMyActivity ? 'col-span-1' : 'col-span-2'}>
+      {stream?.time &&
+        (stream.latlng && fullDomain ? (
+          <>
+            <ActivityDetailsSelectionProvider fullDomain={fullDomain}>
+              {stream?.latlng && (
+                <ActivityDetailsMap
+                  className="col-span-1 rounded-xl shadow-sm border"
+                  polyline={stream.latlng}
+                  pins={hoverPin}
+                  distance={stream.distance}
+                  time={stream.time}
+                />
+              )}
+              {isMyActivity && <ActivityQuickEditCard event={event} />}
+              {stream?.heartrate && (
+                <Card className={isMyActivity ? 'col-span-1' : 'col-span-2'}>
+                  <CardHeader>
+                    <CardTitle>{m.heart_rate_distribution()}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <HeartrateDistributionChart
+                      heartrateStream={stream.heartrate}
+                      sport={event.sport}
+                      duration={event.movingTime}
+                    />
+                  </CardContent>
+                </Card>
+              )}
+              {(() => {
+                function ZoomResetButton() {
+                  const { reset, domain } = useActivityDetailsSelection();
+                  if (!domain) return null;
+                  return (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      title={m.reset_zoom()}
+                      onClick={reset}
+                    >
+                      <ZoomOut className="size-4" />
+                    </Button>
+                  );
+                }
+                return (
+                  <>
+                    <Card className="col-span-2">
+                      <CardHeader className="flex flex-row items-center justify-between">
+                        <CardTitle>
+                          {speedConfig.speedLabel === 'pace'
+                            ? m.pace()
+                            : m.speed()}
+                        </CardTitle>
+                        <div className="absolute right-10">
+                          <ZoomResetButton />
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <SpeedChart
+                          latLngStream={stream.latlng}
+                          timeStream={stream.time}
+                          distanceStream={stream.distance}
+                          sport={event.sport}
+                          onHover={setHover}
+                        />
+                      </CardContent>
+                    </Card>
+                    {stream && stream.gap && (
+                      <Card className="col-span-2">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <CardTitle>{m.gap()}</CardTitle>
+                          <div className="absolute right-10">
+                            <ZoomResetButton />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <GapChart
+                            gapStream={stream.gap as number[]}
+                            timeStream={stream.time}
+                            distanceStream={stream.distance}
+                            sport={event.sport}
+                            onHover={setHover}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
+                    {stream?.altitude && (
+                      <Card className="col-span-2">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <CardTitle>{m.altitude()}</CardTitle>
+                          <div className="absolute right-10">
+                            <ZoomResetButton />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <AltitudeChart
+                            altitudeStream={stream.altitude}
+                            timeStream={stream.time}
+                            distanceStream={stream.distance}
+                            onHover={setHover}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
+                    {stream?.watts && (
+                      <Card className="col-span-2">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <CardTitle>{m.power()}</CardTitle>
+                          <div className="absolute right-10">
+                            <ZoomResetButton />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <PowerChart
+                            wattsStream={stream.watts}
+                            timeStream={stream.time}
+                            distanceStream={stream.distance}
+                            onHover={setHover}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
+                    {stream?.heartrate && (
+                      <Card className="col-span-2">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <CardTitle>{m.heart_rate()}</CardTitle>
+                          <div className="absolute right-10">
+                            <ZoomResetButton />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <HeartrateChart
+                            heartrateStream={stream.heartrate}
+                            sport={event.sport}
+                            timeStream={stream.time}
+                            distanceStream={stream.distance}
+                            onHover={setHover}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
+                    {event.records && !!event.records.length && (
+                      <>
+                        <Card className="col-span-2">
+                          <CardHeader>
+                            <CardTitle>{m.records()}</CardTitle>
+                          </CardHeader>
+                          <CardContent className="p-0">
+                            <RecordsChart records={event.records} />
+                          </CardContent>
+                        </Card>
+                      </>
+                    )}
+                  </>
+                );
+              })()}
+            </ActivityDetailsSelectionProvider>
+          </>
+        ) : (
+          stream.heartrate && (
+            <>
+              <Card className="col-span-2">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle>{m.heart_rate()}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <HeartrateChart
+                    heartrateStream={stream.heartrate}
+                    sport={event.sport}
+                    timeStream={stream.time}
+                    distanceStream={stream.distance}
+                    onHover={setHover}
+                  />
+                </CardContent>
+              </Card>
+              <Card className="col-span-2">
                 <CardHeader>
                   <CardTitle>{m.heart_rate_distribution()}</CardTitle>
                 </CardHeader>
@@ -113,137 +273,9 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                   />
                 </CardContent>
               </Card>
-            )}
-            {(() => {
-              function ZoomResetButton() {
-                const { reset, domain } = useActivityDetailsSelection();
-                if (!domain) return null;
-                return (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    title={m.reset_zoom()}
-                    onClick={reset}
-                  >
-                    <ZoomOut className="size-4" />
-                  </Button>
-                );
-              }
-              return (
-                <>
-                  <Card className="col-span-2">
-                    <CardHeader className="flex flex-row items-center justify-between">
-                      <CardTitle>
-                        {speedConfig.speedLabel === 'pace'
-                          ? m.pace()
-                          : m.speed()}
-                      </CardTitle>
-                      <div className="absolute right-10">
-                        <ZoomResetButton />
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                      <SpeedChart
-                        latLngStream={stream.latlng}
-                        timeStream={stream.time}
-                        distanceStream={stream.distance}
-                        sport={event.sport}
-                        onHover={setHover}
-                      />
-                    </CardContent>
-                  </Card>
-                  {stream && stream.gap && (
-                    <Card className="col-span-2">
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>{m.gap()}</CardTitle>
-                        <div className="absolute right-10">
-                          <ZoomResetButton />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <GapChart
-                          gapStream={stream.gap as number[]}
-                          timeStream={stream.time}
-                          distanceStream={stream.distance}
-                          sport={event.sport}
-                          onHover={setHover}
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                  {stream?.altitude && (
-                    <Card className="col-span-2">
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>{m.altitude()}</CardTitle>
-                        <div className="absolute right-10">
-                          <ZoomResetButton />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <AltitudeChart
-                          altitudeStream={stream.altitude}
-                          timeStream={stream.time}
-                          distanceStream={stream.distance}
-                          onHover={setHover}
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                  {stream?.watts && (
-                    <Card className="col-span-2">
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>{m.power()}</CardTitle>
-                        <div className="absolute right-10">
-                          <ZoomResetButton />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <PowerChart
-                          wattsStream={stream.watts}
-                          timeStream={stream.time}
-                          distanceStream={stream.distance}
-                          onHover={setHover}
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                  {stream?.heartrate && (
-                    <Card className="col-span-2">
-                      <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>{m.heart_rate()}</CardTitle>
-                        <div className="absolute right-10">
-                          <ZoomResetButton />
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-0">
-                        <HeartrateChart
-                          heartrateStream={stream.heartrate}
-                          sport={event.sport}
-                          timeStream={stream.time}
-                          distanceStream={stream.distance}
-                          onHover={setHover}
-                        />
-                      </CardContent>
-                    </Card>
-                  )}
-                  {event.records && !!event.records.length && (
-                    <>
-                      <Card className="col-span-2">
-                        <CardHeader>
-                          <CardTitle>{m.records()}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                          <RecordsChart records={event.records} />
-                        </CardContent>
-                      </Card>
-                    </>
-                  )}
-                </>
-              );
-            })()}
-          </ActivityDetailsSelectionProvider>
-        </>
-      )}
+            </>
+          )
+        ))}
       {normalization && !!normalization.factors.length && (
         <Card className="col-span-2">
           <CardHeader>

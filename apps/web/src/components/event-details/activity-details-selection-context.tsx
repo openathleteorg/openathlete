@@ -41,9 +41,12 @@ export function ActivityDetailsSelectionProvider({ fullDomain, children }: P) {
 export function useActivityDetailsSelection() {
   const ctx = useContext(ActivityDetailsSelectionContext);
   if (!ctx) {
-    throw new Error(
-      'useActivityDetailsSelection must be used within ActivityDetailsSelectionProvider',
-    );
+    return {
+      domain: undefined,
+      setDomain: () => {},
+      reset: () => {},
+      fullDomain: undefined,
+    };
   }
   return ctx;
 }

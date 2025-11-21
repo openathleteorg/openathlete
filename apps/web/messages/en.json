@@ -968,5 +968,13 @@
   "onboarding_next": "Next",
   "onboarding_previous": "Previous",
   "onboarding_saving": "Saving...",
-  "onboarding_error": "An error occurred. Please try again."
+  "onboarding_error": "An error occurred. Please try again.",
+  "dashboard_header_upcoming_competitions": "Upcoming Competitions",
+  "dashboard_header_fitness_status": "Fitness Status",
+  "dashboard_header_recent_metrics": "Recent Metrics",
+  "dashboard_header_no_upcoming_competitions": "No upcoming competitions",
+  "dashboard_header_no_recent_metrics": "No recent metrics",
+  "dashboard_header_days_until": "in {days} days",
+  "dashboard_header_today": "Today",
+  "dashboard_header_tomorrow": "Tomorrow"
 }

@@ -41,6 +41,9 @@ export function CalendarView() {
 
   return (
     <div className="p-8">
+      {/* {space === 'ATHLETE' && (
+        <AthleteDashboardHeader events={data} athleteId={athlete?.athleteId} />
+      )} */}
       <Calendar
         events={data}
         athleteId={space === 'ATHLETE' ? athlete?.athleteId : undefined}
