@@ -125,9 +125,10 @@ export function formatTarget(target: WorkoutStepTarget): string {
   ) {
     switch (targetType) {
       case 'PACE': {
-        const minSecPerKm = targetMin > 0 ? 1000 / targetMin : 0;
-        const maxSecPerKm = targetMax > 0 ? 1000 / targetMax : 0;
-        return `${formatPace(minSecPerKm)} - ${formatPace(maxSecPerKm)} /km`;
+        if (unit === 'MIN_PER_KM') {
+          return `${formatPace(targetMin * 60)} - ${formatPace(targetMax * 60)} min/km`;
+        }
+        return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || ''}`;
       }
 
       case 'HEARTRATE':
@@ -161,8 +162,10 @@ export function formatTarget(target: WorkoutStepTarget): string {
         return `${targetValue} ${unit?.toLowerCase() || 'kg'}`;
 
       case 'PACE': {
-        const secPerKm = targetValue > 0 ? 1000 / targetValue : 0;
-        return `${formatPace(secPerKm)} /km`;
+        if (unit === 'MIN_PER_KM') {
+          return `${formatPace(targetValue * 60)} min/km`;
+        }
+        return `${targetValue} ${unit?.toLowerCase() || ''}`;
       }
 
       case 'HEARTRATE':

@@ -8,4 +8,5 @@ export { TargetBadge } from './target-badge';
 export { TargetForm } from './target-form';
 export { TypeIcon } from './type-icon';
 export { WorkoutBuilder } from './workout-builder';
+export { WorkoutGraph } from './workout-graph';
 export { WorkoutSummary } from './workout-summary';

@@ -21,7 +21,7 @@ import {
 import { SelectEvent } from '../select-event';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { WorkoutSummary } from '../workout';
+import { WorkoutGraph, WorkoutSummary } from '../workout';
 
 interface P {
   event: CompetitionEvent | TrainingEvent;
@@ -163,7 +163,13 @@ export function TrainingCompetitionDetails({ event }: P) {
             <CardHeader>
               <CardTitle>{m.workout()}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              <WorkoutGraph
+                workout={event.workout}
+                sport={(event as TrainingEvent).sport}
+                maxHeight={80}
+                athleteId={event.athleteId ?? undefined}
+              />
               <WorkoutSummary workout={event.workout} />
             </CardContent>
           </Card>
