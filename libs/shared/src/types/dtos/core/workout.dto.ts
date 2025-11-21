@@ -154,31 +154,54 @@ export type CreateWorkoutStepTarget = z.infer<
   typeof createWorkoutStepTargetSchema
 >;
 
-export const createWorkoutStepDtoSchema = z.object({
-  stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
-  name: z.string().nullable().optional(),
-  durationType: z.nativeEnum(WORKOUT_DURATION_TYPE).nullable().optional(),
-  durationValue: z.number().nullable().optional(),
-  repeatTimes: z.number().nullable().optional(),
-  restTime: z.number().nullable().optional(),
-  notes: z.string().nullable().optional(),
-  targets: z.array(createWorkoutStepTargetSchema).default([]),
-  // Recursive type for REPEAT steps that contain child steps
-  childSteps: z
-    .union([
-      z.array(z.lazy(() => z.undefined())),
-      z.lazy(() => z.array(createWorkoutStepDtoSchema)).default([]),
-    ])
-    .optional(),
-  // Alternative format: repeatBlock with repetitions and childSteps
-  repeatBlock: z
-    .object({
-      repetitions: z.number().min(1).max(99),
-      childSteps: z.lazy(() => z.array(createWorkoutStepDtoSchema)).default([]),
-    })
-    .nullable()
-    .optional(),
-}) as z.ZodSchema<CreateWorkoutStepDto>;
+export const createWorkoutStepDtoSchema = z
+  .lazy(() =>
+    z.object({
+      stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
+      name: z.string().nullable().optional(),
+      durationType: z.nativeEnum(WORKOUT_DURATION_TYPE).nullable().optional(),
+      durationValue: z.number().nullable().optional(),
+      repeatTimes: z.number().nullable().optional(),
+      restTime: z.number().nullable().optional(),
+      notes: z.string().nullable().optional(),
+      targets: z.array(createWorkoutStepTargetSchema).default([]),
+      // Recursive type for REPEAT steps that contain child steps
+      childSteps: z
+        .union([
+          z.array(z.lazy(() => z.undefined())),
+          z.lazy(() => z.array(createWorkoutStepDtoSchema)).default([]),
+        ])
+        .optional(),
+      // Alternative format: repeatBlock with repetitions and childSteps
+      repeatBlock: z
+        .object({
+          repetitions: z.number().min(1).max(99),
+          childSteps: z
+            .lazy(() => z.array(createWorkoutStepDtoSchema))
+            .default([]),
+        })
+        .nullable()
+        .optional(),
+    }),
+  )
+  .refine(
+    (step) => {
+      // If this step has a repeatBlock, check that child steps don't contain repeat blocks
+      if (step.repeatBlock && step.repeatBlock.childSteps) {
+        return !step.repeatBlock.childSteps.some(
+          (childStep) =>
+            childStep.stepType === WORKOUT_STEP_TYPE.REPEAT &&
+            childStep.repeatBlock,
+        );
+      }
+      return true;
+    },
+    {
+      message:
+        'Repeat blocks cannot be nested. A repeat block cannot contain another repeat block (max depth of 1).',
+      path: ['repeatBlock', 'childSteps'],
+    },
+  ) as z.ZodSchema<CreateWorkoutStepDto>;
 
 export type CreateWorkoutStepDto = {
   stepType: WorkoutStepType;

@@ -202,6 +202,21 @@ export function validateWorkoutStructure(
             message: 'Repeat block must contain at least one child step',
             stepIndex: index,
           });
+        } else {
+          // Validate that child steps do not contain repeat blocks (max depth of 1)
+          step.repeatBlock.childSteps.forEach((childStep: WorkoutStepDto) => {
+            if (
+              childStep.stepType === WORKOUT_STEP_TYPE.REPEAT &&
+              childStep.repeatBlock
+            ) {
+              errors.push({
+                field: 'repeatBlock',
+                message:
+                  'Repeat blocks cannot be nested. A repeat block cannot contain another repeat block (max depth of 1).',
+                stepIndex: index,
+              });
+            }
+          });
         }
       }
     }
