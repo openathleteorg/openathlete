@@ -23,6 +23,7 @@ import {
   getLatestMetrics,
   validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
+  withRetry,
 } from './event-ai-helpers';
 
 @Injectable()
@@ -172,21 +173,33 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
       undefined, // existingEventContext is only used for JSON stringification in prompt, not for runtime context
     );
 
-    const response = await eventModificationAgent.generate(fullPrompt, {
-      runtimeContext,
-      structuredOutput: {
-        schema: trainingEventSchema,
-      },
+    const zoneIdMap = createZoneIdMap(zones);
+
+    const response = await withRetry(async () => {
+      const result = await eventModificationAgent.generate(fullPrompt, {
+        runtimeContext,
+        structuredOutput: {
+          schema: trainingEventSchema,
+        },
+      });
+
+      if (!result.object) {
+        throw new Error(
+          'Failed to modify event: no structured output received',
+        );
+      }
+
+      // Validate the modified event - if validation fails, retry
+      if (result.object.workout) {
+        validateNoNestedRepeatBlocks(result.object.workout);
+        validateWorkoutZoneTargets(result.object.workout, zoneIdMap, zones);
+      }
+
+      return result;
     });
 
     if (!response.object) {
       throw new Error('Failed to modify event: no structured output received');
-    }
-
-    const zoneIdMap = createZoneIdMap(zones);
-    if (response.object.workout) {
-      validateNoNestedRepeatBlocks(response.object.workout);
-      validateWorkoutZoneTargets(response.object.workout, zoneIdMap, zones);
     }
 
     return response.object;

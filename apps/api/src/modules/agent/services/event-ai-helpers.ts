@@ -330,3 +330,37 @@ export function buildWorkoutTargetsInstructions(): string {
 - IMPORTANT: Match the zone type to the target context (HEARTRATE zones for heartrate targets, POWER zones for power targets, PACE zones for pace targets)
 - For other targets: specify targetMin/targetMax for ranges, or targetValue for single values, with appropriate unit`;
 }
+
+/**
+ * Retry a function with exponential backoff
+ * @param fn - The async function to retry
+ * @param maxRetries - Maximum number of retry attempts (default: 3)
+ * @param baseDelayMs - Base delay in milliseconds for exponential backoff (default: 1000)
+ * @returns The result of the function
+ * @throws The last error if all retries fail
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3,
+  baseDelayMs = 1000,
+): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+
+      // Don't retry on the last attempt
+      if (attempt < maxRetries - 1) {
+        // Exponential backoff: delay = baseDelayMs * 2^attempt
+        const delay = baseDelayMs * Math.pow(2, attempt);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  // All retries failed, throw the last error
+  throw lastError;
+}

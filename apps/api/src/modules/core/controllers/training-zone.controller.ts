@@ -32,7 +32,7 @@ export class TrainingZoneController {
   @Get('athlete/:athleteId')
   getAllForAthlete(
     @JwtUser() user: AuthUser,
-    @Param('athleteId') athleteId: number,
+    @Param('athleteId', ParseIntPipe) athleteId: number,
   ) {
     return this.trainingZoneService.getAllForAthlete(user, athleteId);
   }
