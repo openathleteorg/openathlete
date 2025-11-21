@@ -1,3 +1,4 @@
+import type { BubblePosition } from '@/hooks/useDraggableBubble';
 import React, {
   createContext,
   useCallback,
@@ -21,11 +22,6 @@ interface ChatConversation {
   updatedAt: Date;
 }
 
-interface ChatbotPosition {
-  x: number; // Percentage
-  y: number; // Percentage
-}
-
 interface ChatbotContextType {
   // Chat window state
   isOpen: boolean;
@@ -34,8 +30,8 @@ interface ChatbotContextType {
   toggleChat: () => void;
 
   // Bubble position
-  bubblePosition: ChatbotPosition;
-  setBubblePosition: (position: ChatbotPosition) => void;
+  bubblePosition: BubblePosition;
+  setBubblePosition: (position: BubblePosition) => void;
 
   // Chat window width
   chatWidth: number;
@@ -74,7 +70,10 @@ const STORAGE_KEYS = {
   ACTIVE_CONVERSATION_ID: 'chatbot-active-conversation-id',
 };
 
-const DEFAULT_BUBBLE_POSITION: ChatbotPosition = { x: 100, y: 100 }; // Bottom right (snapped)
+const DEFAULT_BUBBLE_POSITION: BubblePosition = {
+  edge: 'bottom-right',
+  percentage: 0,
+};
 const DEFAULT_CHAT_WIDTH = 450;
 const DEFAULT_CHAT_SIDE: 'left' | 'right' = 'left';
 
@@ -85,12 +84,27 @@ function generateId(): string {
 export function ChatbotProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const [bubblePosition, setBubblePositionState] = useState<ChatbotPosition>(
+  const [bubblePosition, setBubblePositionState] = useState<BubblePosition>(
     () => {
       const stored = localStorage.getItem(STORAGE_KEYS.BUBBLE_POSITION);
       if (stored) {
         try {
-          return JSON.parse(stored);
+          const parsed = JSON.parse(stored);
+          // Migration: convert old format (x, y) to new format (edge, percentage)
+          if ('x' in parsed && 'y' in parsed && !('edge' in parsed)) {
+            // Old format detected - convert to bottom-right corner as default
+            return DEFAULT_BUBBLE_POSITION;
+          }
+          // Validate new format
+          if (
+            'edge' in parsed &&
+            'percentage' in parsed &&
+            typeof parsed.edge === 'string' &&
+            typeof parsed.percentage === 'number'
+          ) {
+            return parsed as BubblePosition;
+          }
+          return DEFAULT_BUBBLE_POSITION;
         } catch {
           return DEFAULT_BUBBLE_POSITION;
         }
@@ -144,7 +158,7 @@ export function ChatbotProvider({ children }: { children: React.ReactNode }) {
     return localStorage.getItem(STORAGE_KEYS.ACTIVE_CONVERSATION_ID) || null;
   });
 
-  const setBubblePosition = useCallback((position: ChatbotPosition) => {
+  const setBubblePosition = useCallback((position: BubblePosition) => {
     setBubblePositionState(position);
     localStorage.setItem(
       STORAGE_KEYS.BUBBLE_POSITION,
