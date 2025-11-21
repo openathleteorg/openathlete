@@ -564,6 +564,18 @@ export class ProviderOAuthController {
     return { success: true };
   }
 
+  @Post('garmin/webhook/user-permissions-change')
+  async garminUserPermissionsChangeWebhook(
+    @Body()
+    body: {
+      userId: string;
+      permissions: string[];
+    },
+  ) {
+    await this.garminProviderService.handleUserPermissionsChangeWebhook(body);
+    return { success: true };
+  }
+
   /**
    * Polar webhook handler (POST)
    * Handles all Polar webhook events (EXERCISE, SLEEP, etc.)

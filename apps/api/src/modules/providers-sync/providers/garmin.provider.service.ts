@@ -62,6 +62,7 @@ import {
   GarminSkinTempSummary,
   GarminSleepSummary,
   GarminUserMetricsSummary,
+  GarminUserPermissionsChangeWebhook,
 } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -2123,5 +2124,36 @@ export class GarminProviderService
         status: 'revoked',
       },
     });
+  }
+
+  async handleUserPermissionsChangeWebhook(
+    payload: GarminUserPermissionsChangeWebhook,
+  ): Promise<void> {
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        provider: connector_provider.GARMIN,
+        external_user_id: payload.userId,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      this.logger.debug(
+        `User permissions change webhook received for unknown user: ${payload.userId}`,
+      );
+      return;
+    }
+
+    const hasWorkoutImport = payload.permissions.includes('WORKOUT_IMPORT');
+
+    this.logger.log(
+      `Garmin user permissions changed for account ${account.provider_account_id}. Permissions: ${payload.permissions.join(', ')}`,
+    );
+
+    if (!hasWorkoutImport) {
+      this.logger.warn(
+        `WORKOUT_IMPORT permission revoked for Garmin account ${account.provider_account_id}. Future workout syncs will fail.`,
+      );
+    }
   }
 }

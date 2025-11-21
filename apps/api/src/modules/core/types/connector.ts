@@ -170,6 +170,11 @@ export interface GarminDeregistrationWebhook {
   userId: string;
 }
 
+export interface GarminUserPermissionsChangeWebhook {
+  userId: string;
+  permissions: string[];
+}
+
 // Garmin Activity Files Webhook (for FIT/TCX/GPX files)
 export interface GarminActivityFilePingWebhook {
   userId: string;
