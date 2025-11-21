@@ -75,6 +75,8 @@ fi
 decode_secret "OPENAI_API_KEY"
 decode_secret "BREVO_API_KEY"
 decode_secret "GARMIN_CLIENT_SECRET"
+decode_secret "POLAR_CLIENT_SECRET"
+decode_secret "POLAR_WEBHOOK_SECRET_KEY"
 
 cd /app/libs/database
 
