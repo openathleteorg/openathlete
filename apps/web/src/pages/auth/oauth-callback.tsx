@@ -31,7 +31,7 @@ export function OAuthCallbackPage() {
 
     const code = searchParams.get('code');
     const finalProvider = (provider || '').toUpperCase();
-    const validProviders = ['STRAVA', 'GARMIN', 'SUUNTO', 'COROS'];
+    const validProviders = ['STRAVA', 'GARMIN', 'SUUNTO', 'COROS', 'POLAR'];
     if (code && provider && validProviders.includes(finalProvider)) {
       // For Garmin (PKCE), retrieve codeVerifier from localStorage
       // Using localStorage instead of sessionStorage to persist across OAuth redirects

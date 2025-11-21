@@ -41,6 +41,7 @@ import {
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
   'GARMIN',
+  'POLAR',
   // 'SUUNTO',
   // 'COROS',
 ];

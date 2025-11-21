@@ -7,4 +7,5 @@ export const connectorProviderLabelMap: Record<ConnectorProvider, string> = {
   APPLE_HEALTH: 'Apple Health',
   SUUNTO: 'Suunto',
   COROS: 'Coros',
+  POLAR: 'Polar',
 };
