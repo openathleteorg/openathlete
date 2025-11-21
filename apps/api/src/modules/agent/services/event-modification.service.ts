@@ -21,6 +21,7 @@ import {
   fetchAthleteZones,
   formatZonesByType,
   getLatestMetrics,
+  validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
 } from './event-ai-helpers';
 
@@ -184,6 +185,7 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
 
     const zoneIdMap = createZoneIdMap(zones);
     if (response.object.workout) {
+      validateNoNestedRepeatBlocks(response.object.workout);
       validateWorkoutZoneTargets(response.object.workout, zoneIdMap, zones);
     }
 

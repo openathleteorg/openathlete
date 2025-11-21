@@ -73,6 +73,9 @@ REPEAT BLOCKS:
       ]
     }
   }
+- CRITICAL: Repeat blocks CANNOT be nested. A repeat block cannot contain another repeat block (max depth of 1).
+  The childSteps inside a repeatBlock must be simple steps (WARMUP, STEADY, INTERVAL_ACTIVE, INTERVAL_REST, COOLDOWN, FREE).
+  They CANNOT be REPEAT steps with a repeatBlock.
 
 DURATIONS:
 - TIME: Duration in seconds (e.g., 600 = 10 minutes)

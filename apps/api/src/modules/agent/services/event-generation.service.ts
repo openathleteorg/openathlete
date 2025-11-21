@@ -17,6 +17,7 @@ import {
   fetchAthleteZones,
   formatZonesByType,
   getLatestMetrics,
+  validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
 } from './event-ai-helpers';
 
@@ -76,6 +77,7 @@ ${buildWorkoutTargetsInstructions()}`;
 
     const zoneIdMap = createZoneIdMap(zones);
     if (response.object.workout) {
+      validateNoNestedRepeatBlocks(response.object.workout);
       validateWorkoutZoneTargets(response.object.workout, zoneIdMap, zones);
     }
 

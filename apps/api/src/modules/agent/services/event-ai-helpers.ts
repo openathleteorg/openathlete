@@ -1,7 +1,11 @@
 import { RuntimeContext } from '@mastra/core/runtime-context';
 import { z } from 'zod';
 
-import { WorkoutStepDto, trainingEventSchema } from '@openathlete/shared';
+import {
+  WORKOUT_STEP_TYPE,
+  WorkoutStepDto,
+  trainingEventSchema,
+} from '@openathlete/shared';
 
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -249,6 +253,44 @@ export function validateWorkoutZoneTargets(
     );
   }
   return workout;
+}
+
+/**
+ * Validate that repeat blocks are not nested (max depth of 1)
+ * Throws an error if nested repeat blocks are found
+ */
+export function validateNoNestedRepeatBlocks(
+  workout: { steps: WorkoutStepDto[] } | null | undefined,
+): void {
+  if (!workout?.steps) {
+    return;
+  }
+
+  const checkStep = (step: WorkoutStepDto, depth = 0): void => {
+    if (step.stepType === WORKOUT_STEP_TYPE.REPEAT && step.repeatBlock) {
+      if (depth > 0) {
+        throw new Error(
+          'Repeat blocks cannot be nested. A repeat block cannot contain another repeat block (max depth of 1).',
+        );
+      }
+
+      // Check child steps - they should not contain repeat blocks
+      if (step.repeatBlock.childSteps) {
+        step.repeatBlock.childSteps.forEach((childStep) => {
+          if (
+            childStep.stepType === WORKOUT_STEP_TYPE.REPEAT &&
+            childStep.repeatBlock
+          ) {
+            throw new Error(
+              'Repeat blocks cannot be nested. A repeat block cannot contain another repeat block (max depth of 1).',
+            );
+          }
+        });
+      }
+    }
+  };
+
+  workout.steps.forEach((step) => checkStep(step));
 }
 
 /**
