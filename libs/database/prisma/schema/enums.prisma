@@ -23,6 +23,7 @@ enum connector_provider {
   APPLE_HEALTH
   SUUNTO
   COROS
+  POLAR
 }
 
 enum sport_type {
