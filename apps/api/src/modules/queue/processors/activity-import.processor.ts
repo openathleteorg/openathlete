@@ -16,6 +16,7 @@ import { computeRecords } from '../../core/helpers/record';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import {
   GarminProviderService,
+  PolarProviderService,
   StravaProviderService,
 } from '../../providers-sync/providers';
 import { ActivityImportJobData, QueueService } from '../queue.service';
@@ -32,6 +33,8 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly stravaProviderService: StravaProviderService,
     @Inject(forwardRef(() => GarminProviderService))
     private readonly garminProviderService: GarminProviderService,
+    @Inject(forwardRef(() => PolarProviderService))
+    private readonly polarProviderService: PolarProviderService,
     private readonly queueService: QueueService,
     @InjectQueue('activity-import')
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
@@ -86,6 +89,11 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       } else if (account.provider === connector_provider.GARMIN) {
         savedActivity = await this.garminProviderService.importActivity(
+          account,
+          activity,
+        );
+      } else if (account.provider === connector_provider.POLAR) {
+        savedActivity = await this.polarProviderService.importActivity(
           account,
           activity,
         );

@@ -14,9 +14,11 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 
 import { connector_provider, event_type } from '@openathlete/database';
+import type { ApiEnvSchemaType } from '@openathlete/shared';
 import {
   ConnectorProvider,
   ProviderPreferencesDto,
@@ -28,10 +30,14 @@ import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
-import { GarminHealthPingPayload } from '../../core/types/connector';
+import {
+  GarminHealthPingPayload,
+  PolarWebhookPayload,
+} from '../../core/types/connector';
 import { FullImportResult } from '../base/base-provider.service';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
 import { GarminProviderService } from '../providers/garmin.provider.service';
+import { PolarProviderService } from '../providers/polar.provider.service';
 import { StravaProviderService } from '../providers/strava.provider.service';
 
 function toConnectorProvider(provider: connector_provider): ConnectorProvider {
@@ -43,10 +49,12 @@ export class ProviderOAuthController {
   private readonly logger = new Logger(ProviderOAuthController.name);
 
   constructor(
+    private readonly configService: ConfigService<ApiEnvSchemaType, true>,
     private readonly stravaProviderService: StravaProviderService,
     private readonly garminProviderService: GarminProviderService,
     private readonly suuntoProviderService: SuuntoProviderService,
     private readonly corosProviderService: CorosProviderService,
+    private readonly polarProviderService: PolarProviderService,
     private readonly prisma: PrismaService,
   ) {}
 
@@ -104,6 +112,8 @@ export class ProviderOAuthController {
         return { uri: this.suuntoProviderService.getAuthorizationUri() };
       case connector_provider.COROS:
         return { uri: this.corosProviderService.getAuthorizationUri() };
+      case connector_provider.POLAR:
+        return { uri: this.polarProviderService.getAuthorizationUri() };
       default:
         throw new Error(`Provider ${provider} not supported`);
     }
@@ -162,6 +172,9 @@ export class ProviderOAuthController {
           expiresIn: tokenResponse.expires_in,
           scopes: tokenResponse.scope,
         });
+      }
+      case connector_provider.POLAR: {
+        return this.polarProviderService.connect(code, athlete.athlete_id);
       }
       default:
         throw new Error(`Provider ${provider} not supported`);
@@ -365,6 +378,10 @@ export class ProviderOAuthController {
           importResult =
             await this.garminProviderService.queueFullImport(account);
           break;
+        case connector_provider.POLAR:
+          importResult =
+            await this.polarProviderService.queueFullImport(account);
+          break;
         default:
           throw new BadRequestException(
             `Historical import is not available for ${provider}`,
@@ -545,6 +562,170 @@ export class ProviderOAuthController {
   ) {
     await this.garminProviderService.handleDeregistrationWebhook(body);
     return { success: true };
+  }
+
+  /**
+   * Polar webhook handler (POST)
+   * Handles all Polar webhook events (EXERCISE, SLEEP, etc.)
+   */
+  @Post('polar/webhook')
+  async polarWebhook(
+    @Body() body: PolarWebhookPayload,
+    @Req() request: { headers: Record<string, string | string[]> },
+  ) {
+    this.logger.log(
+      `Received Polar webhook request: event=${body.event}, user_id=${body.user_id}`,
+    );
+
+    // Extract signature from headers (can be string or string[])
+    const signatureHeader = request.headers['polar-webhook-signature'];
+    const signature =
+      typeof signatureHeader === 'string'
+        ? signatureHeader
+        : Array.isArray(signatureHeader)
+          ? signatureHeader[0]
+          : undefined;
+
+    const eventHeader = request.headers['polar-webhook-event'];
+    const event =
+      typeof eventHeader === 'string'
+        ? eventHeader
+        : Array.isArray(eventHeader)
+          ? eventHeader[0]
+          : undefined;
+
+    this.logger.debug(
+      `Polar webhook headers - Event: ${event}, Signature: ${signature ? 'present' : 'missing'}`,
+    );
+
+    try {
+      await this.polarProviderService.handleWebhook(body, signature);
+      this.logger.log(
+        `Polar webhook processed successfully: event=${body.event}`,
+      );
+      return { success: true };
+    } catch (error) {
+      this.logger.error(
+        `Polar webhook processing failed: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Test endpoint: Simulate Polar webhook
+   * POST /provider/polar/webhook/test
+   * Body: { event: 'EXERCISE' | 'SLEEP' | 'ACTIVITY_SUMMARY', user_id: number, entity_id?: string, skip_signature?: boolean }
+   *
+   * Example:
+   * curl -X POST http://localhost:3000/api/provider/polar/webhook/test \
+   *   -H "Content-Type: application/json" \
+   *   -d '{"event": "EXERCISE", "user_id": 63661436, "entity_id": "test-exercise-123"}'
+   */
+  @Post('polar/webhook/test')
+  async testPolarWebhook(
+    @Body()
+    body: {
+      event: PolarWebhookPayload['event'];
+      user_id: number;
+      entity_id?: string;
+      skip_signature?: boolean;
+    },
+  ) {
+    this.logger.log(
+      `[TEST] Simulating Polar webhook: event=${body.event}, user_id=${body.user_id}`,
+    );
+
+    const payload: PolarWebhookPayload = {
+      event: body.event,
+      user_id: body.user_id,
+      entity_id: body.entity_id,
+      timestamp: new Date().toISOString(),
+      url: body.entity_id
+        ? `https://www.polaraccesslink.com/v3/exercises/${body.entity_id}`
+        : undefined,
+    };
+
+    // Generate signature if secret key is available and not skipped
+    let signature: string | undefined;
+    if (!body.skip_signature) {
+      const secretKey = this.configService.get('POLAR_WEBHOOK_SECRET_KEY');
+      if (secretKey) {
+        const crypto = await import('crypto');
+        const hmac = crypto.createHmac('sha256', secretKey);
+        hmac.update(JSON.stringify(payload));
+        signature = hmac.digest('hex');
+        this.logger.debug(`[TEST] Generated webhook signature: ${signature}`);
+      } else {
+        this.logger.warn(
+          '[TEST] POLAR_WEBHOOK_SECRET_KEY not configured, skipping signature',
+        );
+      }
+    } else {
+      this.logger.debug(
+        '[TEST] Skipping signature verification (skip_signature=true)',
+      );
+    }
+
+    try {
+      await this.polarProviderService.handleWebhook(payload, signature);
+      return {
+        success: true,
+        message: `Polar webhook ${body.event} processed successfully`,
+        payload,
+      };
+    } catch (error) {
+      this.logger.error(
+        `[TEST] Polar webhook test failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
+  }
+
+  /**
+   * Test endpoint: Trigger manual import for Polar account
+   * POST /provider/polar/test/import
+   * Body: { athlete_id: number }
+   *
+   * Example:
+   * curl -X POST http://localhost:3000/api/provider/polar/test/import \
+   *   -H "Content-Type: application/json" \
+   *   -d '{"athlete_id": 1}'
+   */
+  @Post('polar/test/import')
+  async testPolarImport(@Body() body: { athlete_id: number }) {
+    this.logger.log(
+      `[TEST] Triggering manual Polar import for athlete ${body.athlete_id}`,
+    );
+
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        athlete_id: body.athlete_id,
+        provider: connector_provider.POLAR,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      throw new BadRequestException(
+        `No active Polar account found for athlete ${body.athlete_id}`,
+      );
+    }
+
+    try {
+      const result = await this.polarProviderService.queueFullImport(account);
+      return {
+        success: true,
+        message: 'Polar import triggered successfully',
+        result,
+      };
+    } catch (error) {
+      this.logger.error(
+        `[TEST] Polar import test failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
+    }
   }
 
   @Delete('test/activities/:userId')

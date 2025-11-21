@@ -318,3 +318,134 @@ export interface GarminHealthNotification {
 export type GarminHealthPingPayload = Partial<
   Record<GarminHealthSummaryType, GarminHealthNotification[]>
 >;
+
+// Polar API Types
+export interface PolarOAuthTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  x_user_id: number; // Polar Ecosystem user id
+}
+
+export interface PolarUser {
+  'polar-user-id': number;
+  'member-id': string;
+  'registration-date': string;
+  'polar-user-id-uri': string;
+}
+
+export interface PolarExerciseTransaction {
+  'transaction-id': number;
+  'resource-uri': string;
+}
+
+export interface PolarExerciseTransactionResponse {
+  'transaction-id': number;
+  exercises?: string[]; // Array of exercise URLs (may be in resource-uri format)
+}
+
+export interface PolarExercise {
+  'exercise-id': string;
+  'upload-time': string;
+  'polar-user': string;
+  device: string;
+  'device-id': string;
+  'start-time': string;
+  'start-time-utc-offset': number;
+  duration: string; // ISO 8601 duration
+  calories?: number;
+  distance?: number;
+  'heart-rate'?: {
+    average?: number;
+    maximum?: number;
+  };
+  'training-load'?: number;
+  sport?: string;
+  'has-route'?: boolean;
+  'club-id'?: number;
+  'club-name'?: string;
+  notes?: string;
+  'resource-uri': string;
+}
+
+export interface PolarActivityTransaction {
+  'transaction-id': number;
+  'resource-uri': string;
+}
+
+export interface PolarActivityTransactionResponse {
+  'transaction-id': number;
+  activities: string[]; // Array of activity URLs
+}
+
+export interface PolarActivitySummary {
+  date: string; // ISO date
+  calories?: number;
+  'active-calories'?: number;
+  steps?: number;
+  'daily-activity'?: number; // seconds
+  'low-activity'?: number; // seconds
+  'medium-activity'?: number; // seconds
+  'high-activity'?: number; // seconds
+  'heart-rate'?: {
+    average?: number;
+    maximum?: number;
+    minimum?: number;
+  };
+  'resource-uri': string;
+}
+
+export interface PolarWebhookPayload {
+  event:
+    | 'PING'
+    | 'EXERCISE'
+    | 'SLEEP'
+    | 'CONTINUOUS_HEART_RATE'
+    | 'ACTIVITY_SUMMARY'
+    | 'PHYSICAL_INFORMATION'
+    | 'NIGHTLY_RECHARGE'
+    | 'SLEEPWISE';
+  user_id?: number; // AccessLink user id (not present for PING)
+  entity_id?: string;
+  timestamp: string; // ISO 8601
+  url?: string; // Resource URL
+}
+
+export interface PolarWebhookCreateRequest {
+  events: string[];
+  url: string;
+}
+
+export interface PolarWebhookCreateResponse {
+  'webhook-id': number;
+  'signature-secret-key': string; // IMPORTANT: Save this, only returned once
+  events: string[];
+  url: string;
+  'resource-uri': string;
+}
+
+export interface PolarSleep {
+  'polar-user': string;
+  date: string;
+  'sleep-start-time'?: string;
+  'sleep-end-time'?: string;
+  continuity?: number;
+  'continuity-class'?: number;
+  'light-sleep'?: number; // seconds
+  'deep-sleep'?: number; // seconds
+  'rem-sleep'?: number; // seconds
+  'sleep-cycles'?: number;
+  'total-sleep-time'?: number; // seconds
+  'sleep-score'?: number;
+  'resource-uri': string;
+}
+
+export interface PolarContinuousHeartRate {
+  'polar-user': string;
+  date: string;
+  'heart-rate-samples'?: Array<{
+    'heart-rate': number;
+    'recording-time': string;
+  }>;
+  'resource-uri': string;
+}
