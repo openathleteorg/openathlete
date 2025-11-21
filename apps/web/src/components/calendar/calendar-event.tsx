@@ -31,6 +31,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from '../ui/context-menu';
+import { CalendarEventTooltipWrapper } from './calendar-event-tooltip-wrapper';
 import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY } from './types/filter';
@@ -143,71 +144,76 @@ export function CalendarEvent({ event, wrapped }: P) {
     <>
       <ContextMenu>
         <ContextMenuTrigger className="w-full">
-          <div
-            className={cn(
-              'calendar-event rounded-sm cursor-pointer text-left flex flex-col items-start justify-center py-0.5 px-1 overflow-hidden w-full',
-              eventColor,
-              isDragging ? 'z-50' : '',
-              wrapped ? 'border-2' : '',
-              !isValidated ? 'opacity-60' : '',
-            )}
-            style={{
-              transform: draggable
-                ? `translate3d(${transform?.x || 0}px, ${transform?.y || 0}px, 0)`
-                : '',
-            }}
-            {...listeners}
-            {...attributes}
-            onClick={(e) => {
-              openEventDetails(event.eventId);
-              e.stopPropagation();
-            }}
-            ref={draggable ? setNodeRef : undefined}
-          >
-            <div className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis px-1">
-              {event.type !== EVENT_TYPE.NOTE && (
-                <SportIcon sport={event.sport} className="inline-block mr-1" />
+          <CalendarEventTooltipWrapper event={event} disabled={isDragging}>
+            <div
+              className={cn(
+                'calendar-event rounded-sm cursor-pointer text-left flex flex-col items-start justify-center py-0.5 px-1 overflow-hidden w-full',
+                eventColor,
+                isDragging ? 'z-50' : '',
+                wrapped ? 'border-2' : '',
+                !isValidated ? 'opacity-60' : '',
               )}
-              {event.type === EVENT_TYPE.ACTIVITY && event.rpe !== null && (
-                <div
-                  className={cn(
-                    'h-2 w-2 rounded-full inline-block mr-1',
-                    getHighSaturatedRpeColor(event.rpe),
-                  )}
-                />
-              )}
-              {(event.type === EVENT_TYPE.TRAINING ||
-                event.type === EVENT_TYPE.COMPETITION) &&
-                event.goalRpe !== null && (
+              style={{
+                transform: draggable
+                  ? `translate3d(${transform?.x || 0}px, ${transform?.y || 0}px, 0)`
+                  : '',
+              }}
+              {...listeners}
+              {...attributes}
+              onClick={(e) => {
+                openEventDetails(event.eventId);
+                e.stopPropagation();
+              }}
+              ref={draggable ? setNodeRef : undefined}
+            >
+              <div className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis px-1">
+                {event.type !== EVENT_TYPE.NOTE && (
+                  <SportIcon
+                    sport={event.sport}
+                    className="inline-block mr-1"
+                  />
+                )}
+                {event.type === EVENT_TYPE.ACTIVITY && event.rpe !== null && (
                   <div
                     className={cn(
                       'h-2 w-2 rounded-full inline-block mr-1',
-                      getHighSaturatedRpeColor(event.goalRpe),
+                      getHighSaturatedRpeColor(event.rpe),
                     )}
                   />
                 )}
-              {event.type === EVENT_TYPE.TRAINING &&
-                'workout' in event &&
-                event.workout && (
-                  <ActivityIcon className="inline-block w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
-                )}
-              {event.name}
-            </div>
-            <div className="px-1 w-full">
-              <EventSecondLine event={event} />
-            </div>
-            {relatedEvents.length > 0 && (
-              <div className="flex flex-col gap-1 mt-1 w-full mb-0.5">
-                {relatedEvents.map((relatedEvent) => (
-                  <CalendarEvent
-                    key={relatedEvent.eventId}
-                    event={relatedEvent}
-                    wrapped
-                  />
-                ))}
+                {(event.type === EVENT_TYPE.TRAINING ||
+                  event.type === EVENT_TYPE.COMPETITION) &&
+                  event.goalRpe !== null && (
+                    <div
+                      className={cn(
+                        'h-2 w-2 rounded-full inline-block mr-1',
+                        getHighSaturatedRpeColor(event.goalRpe),
+                      )}
+                    />
+                  )}
+                {event.type === EVENT_TYPE.TRAINING &&
+                  'workout' in event &&
+                  event.workout && (
+                    <ActivityIcon className="inline-block w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
+                  )}
+                {event.name}
               </div>
-            )}
-          </div>
+              <div className="px-1 w-full">
+                <EventSecondLine event={event} />
+              </div>
+              {relatedEvents.length > 0 && (
+                <div className="flex flex-col gap-1 mt-1 w-full mb-0.5">
+                  {relatedEvents.map((relatedEvent) => (
+                    <CalendarEvent
+                      key={relatedEvent.eventId}
+                      event={relatedEvent}
+                      wrapped
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </CalendarEventTooltipWrapper>
         </ContextMenuTrigger>
         <ContextMenuContent>
           <ContextMenuItem
