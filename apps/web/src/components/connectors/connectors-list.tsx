@@ -3,7 +3,8 @@ import {
   useGetConnectedProvidersQuery,
   useGetOAuthUriMutation,
 } from '@/api/provider';
-import { StravaIcon } from '@/assets/icons';
+import { GarminLogo, StravaIcon } from '@/assets/icons';
+import { PolarLogo } from '@/assets/icons/providers';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -86,6 +87,10 @@ export function ConnectorsList({
     switch (provider) {
       case 'STRAVA':
         return <StravaIcon />;
+      case 'GARMIN':
+        return <GarminLogo className="h-6 w-auto" />;
+      case 'POLAR':
+        return <PolarLogo className="h-6 w-auto" />;
       default:
         return <Link2 className="h-5 w-5" />;
     }

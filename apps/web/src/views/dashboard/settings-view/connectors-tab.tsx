@@ -7,6 +7,7 @@ import {
   useUpdateProviderPreferencesMutation,
 } from '@/api/provider';
 import { GarminLogo, StravaIcon } from '@/assets/icons';
+import { PolarLogo } from '@/assets/icons/providers';
 import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
 import {
@@ -170,6 +171,8 @@ export function ConnectorsTab() {
         return <StravaIcon />;
       case 'GARMIN':
         return <GarminLogo className="h-6 w-auto" />;
+      case 'POLAR':
+        return <PolarLogo className="h-6 w-auto" />;
       default:
         return <Link2 className="h-5 w-5" />;
     }
