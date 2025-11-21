@@ -32,6 +32,12 @@ export const ApiEnvSchema = z.object({
   BREVO_API_KEY: z.string().nonempty(),
   BREVO_FROM_EMAIL: z.string().email().nonempty(),
 
+  POLAR_CLIENT_ID: z.string().nonempty(),
+  POLAR_CLIENT_SECRET: z.string().nonempty(),
+  POLAR_REDIRECT_URI: z.string().nonempty(),
+  POLAR_WEBHOOK_URL: z.string().nonempty(),
+  POLAR_WEBHOOK_SECRET_KEY: z.string().nonempty(),
+
   NOTION_TOKEN: z.string().nonempty(),
   NOTION_DATABASE_ID: z.string().nonempty(),
 

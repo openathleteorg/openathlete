@@ -53,6 +53,12 @@ const providerSpecificCapabilities: Partial<
     importMetrics: false,
     supportsFullImport: false,
   },
+  POLAR: {
+    importActivities: true,
+    exportWorkouts: false,
+    importMetrics: true,
+    supportsFullImport: true,
+  },
 };
 
 export function getProviderSyncCapabilities(
