@@ -26,7 +26,11 @@ interface ConnectorsListProps {
   onSkip?: () => void;
 }
 
-const DEFAULT_SUPPORTED_PROVIDERS: ConnectorProvider[] = ['STRAVA', 'GARMIN'];
+const DEFAULT_SUPPORTED_PROVIDERS: ConnectorProvider[] = [
+  'STRAVA',
+  'GARMIN',
+  'POLAR',
+];
 
 export function ConnectorsList({
   supportedProviders = DEFAULT_SUPPORTED_PROVIDERS,
