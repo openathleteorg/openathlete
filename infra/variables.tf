@@ -115,3 +115,15 @@ variable "garmin_client_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "polar_client_secret" {
+  description = "Polar client secret for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "polar_webhook_secret_key" {
+  description = "Polar webhook secret key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

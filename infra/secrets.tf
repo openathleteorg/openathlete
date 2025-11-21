@@ -81,3 +81,23 @@ resource "scaleway_secret_version" "garmin_client_secret_v" {
   secret_id = scaleway_secret.garmin_client_secret.id
   data      = var.garmin_client_secret
 }
+
+resource "scaleway_secret" "polar_client_secret" {
+  name        = "${var.app_name}-POLAR_CLIENT_SECRET"
+  description = "Polar client secret for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "polar_client_secret_v" {
+  secret_id = scaleway_secret.polar_client_secret.id
+  data      = var.polar_client_secret
+}
+
+resource "scaleway_secret" "polar_webhook_secret_key" {
+  name        = "${var.app_name}-POLAR_WEBHOOK_SECRET_KEY"
+  description = "Polar webhook secret key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "polar_webhook_secret_key_v" {
+  secret_id = scaleway_secret.polar_webhook_secret_key.id
+  data      = var.polar_webhook_secret_key
+}

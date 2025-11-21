@@ -46,6 +46,11 @@ resource "scaleway_container" "api" {
     GARMIN_CLIENT_ID = "a5347106-9dc8-4f96-bb36-ab940816d6c3"
     GARMIN_CLIENT_SECRET = scaleway_secret_version.garmin_client_secret_v.data
     GARMIN_REDIRECT_URI = "https://openathlete.org/auth/callback/garmin"
+    POLAR_CLIENT_ID = "e014176c-9427-4120-8748-0acbde340ba7"
+    POLAR_CLIENT_SECRET = scaleway_secret_version.polar_client_secret_v.data
+    POLAR_REDIRECT_URI = "https://openathlete.org/auth/callback/polar"
+    POLAR_WEBHOOK_URL = "https://api.openathlete.org/provider/polar/webhook"
+    POLAR_WEBHOOK_SECRET_KEY = scaleway_secret_version.polar_webhook_secret_key_v.data
     ENABLE_ACTIVITY_IMPORT = "false"
     ENABLE_ACTIVITY_PROCESSING = "false"
     ENABLE_TRAINING_LOAD_ESTIMATION = "false"
@@ -59,7 +64,9 @@ resource "scaleway_container" "api" {
     scaleway_secret_version.strava_webhook_token_v,
     scaleway_secret_version.openai_api_key_v,
     scaleway_secret_version.brevo_api_key_v,
-    scaleway_secret_version.garmin_client_secret_v
+    scaleway_secret_version.garmin_client_secret_v,
+    scaleway_secret_version.polar_client_secret_v,
+    scaleway_secret_version.polar_webhook_secret_key_v
   ]
 }
 
@@ -98,6 +105,11 @@ resource "scaleway_container" "import_worker" {
     GARMIN_CLIENT_ID = "a5347106-9dc8-4f96-bb36-ab940816d6c3"
     GARMIN_CLIENT_SECRET = scaleway_secret_version.garmin_client_secret_v.data
     GARMIN_REDIRECT_URI = "https://openathlete.org/auth/callback/garmin"
+    POLAR_CLIENT_ID = "e014176c-9427-4120-8748-0acbde340ba7"
+    POLAR_CLIENT_SECRET = scaleway_secret_version.polar_client_secret_v.data
+    POLAR_REDIRECT_URI = "https://openathlete.org/auth/callback/polar"
+    POLAR_WEBHOOK_URL = "https://api.openathlete.org/provider/polar/webhook"
+    POLAR_WEBHOOK_SECRET_KEY = scaleway_secret_version.polar_webhook_secret_key_v.data
   }
 
   depends_on = [
@@ -108,6 +120,8 @@ resource "scaleway_container" "import_worker" {
     // Explicitly depend on Redis cluster to ensure it's ready on private network
     scaleway_redis_cluster.redis,
     scaleway_secret_version.garmin_client_secret_v,
+    scaleway_secret_version.polar_client_secret_v,
+    scaleway_secret_version.polar_webhook_secret_key_v
   ]
 }
 
