@@ -385,4 +385,38 @@ export class AthleteInvitationService {
       }),
     );
   }
+
+  async getSentInvitationsForCoach(coachUserId: number) {
+    return keysToCamel(
+      await this.prisma.athlete_invitation.findMany({
+        where: {
+          user_id: coachUserId,
+          OR: [{ status: invitation_status.PENDING }, { status: null }],
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+    );
+  }
+
+  async cancelInvitation(coachUserId: number, invitationId: number) {
+    const invitation = await this.prisma.athlete_invitation.findUnique({
+      where: { athlete_invitation_id: invitationId },
+    });
+
+    if (!invitation || invitation.user_id !== coachUserId) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.status && invitation.status !== invitation_status.PENDING) {
+      throw new BadRequestException(
+        'This invitation can no longer be cancelled',
+      );
+    }
+
+    await this.prisma.athlete_invitation.delete({
+      where: { athlete_invitation_id: invitationId },
+    });
+  }
 }

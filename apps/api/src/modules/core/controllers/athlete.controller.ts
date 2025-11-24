@@ -74,6 +74,42 @@ export class AthleteController {
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get('invitations/athletes/sent')
+  getSentAthleteInvitations(@JwtUser() user: AuthUser) {
+    return this.athleteService.getSentAthleteInvitations(user.user_id);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Delete('invitations/athletes/:invitationId')
+  cancelAthleteInvitation(
+    @JwtUser() user: AuthUser,
+    @Param('invitationId', ParseIntPipe) invitationId: number,
+  ) {
+    return this.athleteService.cancelAthleteInvitation(
+      user.user_id,
+      invitationId,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get('invitations/coaches/sent')
+  getSentCoachInvitations(@JwtUser() user: AuthUser) {
+    return this.athleteService.getSentCoachInvitations(user.user_id);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Delete('invitations/coaches/:invitationId')
+  cancelCoachInvitation(
+    @JwtUser() user: AuthUser,
+    @Param('invitationId', ParseIntPipe) invitationId: number,
+  ) {
+    return this.athleteService.cancelCoachInvitation(
+      user.user_id,
+      invitationId,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @Delete(':athleteId')
   removeAthlete(
     @JwtUser() user: AuthUser,

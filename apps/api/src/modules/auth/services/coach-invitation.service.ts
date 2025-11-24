@@ -353,4 +353,38 @@ export class CoachInvitationService {
       }),
     );
   }
+
+  async getSentInvitationsForAthlete(athleteUserId: number) {
+    return keysToCamel(
+      await this.prisma.coach_invitation.findMany({
+        where: {
+          athlete_user_id: athleteUserId,
+          status: invitation_status.PENDING,
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      }),
+    );
+  }
+
+  async cancelInvitationByAthlete(athleteUserId: number, invitationId: number) {
+    const invitation = await this.prisma.coach_invitation.findUnique({
+      where: { coach_invitation_id: invitationId },
+    });
+
+    if (!invitation || invitation.athlete_user_id !== athleteUserId) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.status !== invitation_status.PENDING) {
+      throw new BadRequestException(
+        'This invitation can no longer be cancelled',
+      );
+    }
+
+    await this.prisma.coach_invitation.delete({
+      where: { coach_invitation_id: invitationId },
+    });
+  }
 }

@@ -186,6 +186,31 @@ export class AthleteService {
     await this.athleteInvitationService.createInvitation(userId, email);
   }
 
+  async getSentAthleteInvitations(userId: AuthUser['user_id']) {
+    return this.athleteInvitationService.getSentInvitationsForCoach(userId);
+  }
+
+  async cancelAthleteInvitation(
+    userId: AuthUser['user_id'],
+    invitationId: number,
+  ) {
+    await this.athleteInvitationService.cancelInvitation(userId, invitationId);
+  }
+
+  async getSentCoachInvitations(userId: AuthUser['user_id']) {
+    return this.coachInvitationService.getSentInvitationsForAthlete(userId);
+  }
+
+  async cancelCoachInvitation(
+    userId: AuthUser['user_id'],
+    invitationId: number,
+  ) {
+    await this.coachInvitationService.cancelInvitationByAthlete(
+      userId,
+      invitationId,
+    );
+  }
+
   async removeAthlete(
     userId: AuthUser['user_id'],
     athleteId: athlete['athlete_id'],
