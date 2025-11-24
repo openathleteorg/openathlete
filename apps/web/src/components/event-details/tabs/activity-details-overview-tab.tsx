@@ -20,6 +20,7 @@ import { HeartrateChart } from '../../charts/heartrate-chart';
 import { HeartrateDistributionChart } from '../../charts/heartrate-distribution-chart';
 import { PowerChart } from '../../charts/power-chart';
 import { RecordsChart } from '../../charts/records-chart';
+import { SegmentsChart } from '../../charts/segments-chart';
 import { SpeedChart } from '../../charts/speed-chart';
 import { Button } from '../../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
@@ -65,6 +66,7 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
 
   const { data: normalization } = useGetEventNormalizationQuery(event.eventId);
   const speedConfig = getSportConfig(event.sport);
+  const hasSegments = Boolean(event.segments?.length);
 
   const normLabel = (factor: string) => {
     const key = `normalization_${factor.toLowerCase()}` as keyof typeof m;
@@ -132,6 +134,19 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                 }
                 return (
                   <>
+                    {hasSegments && (
+                      <Card className="col-span-2">
+                        <CardHeader>
+                          <CardTitle>{m.segments()}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0">
+                          <SegmentsChart
+                            segments={event.segments!}
+                            sport={event.sport}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
                     <Card className="col-span-2">
                       <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>
