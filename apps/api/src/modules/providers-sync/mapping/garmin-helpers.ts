@@ -3,7 +3,6 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
-  WORKOUT_TARGET_UNIT,
 } from '@openathlete/shared';
 import type { NormalizedWorkoutStep } from '@openathlete/shared';
 
@@ -154,23 +153,19 @@ export function mapTargetValue(
   let targetValueType: string | null = null;
 
   if (target.targetType === WORKOUT_TARGET_TYPE.PACE) {
-    if (target.unit === WORKOUT_TARGET_UNIT.MIN_PER_KM && targetValue) {
+    if (targetValue) {
       targetValue = convertPaceToMetersPerSecond(targetValue);
     }
-    if (target.unit === WORKOUT_TARGET_UNIT.MIN_PER_KM && targetValueLow) {
+    if (targetValueLow) {
       targetValueLow = convertPaceToMetersPerSecond(targetValueLow);
     }
-    if (target.unit === WORKOUT_TARGET_UNIT.MIN_PER_KM && targetValueHigh) {
+    if (targetValueHigh) {
       targetValueHigh = convertPaceToMetersPerSecond(targetValueHigh);
     }
   } else if (target.targetType === WORKOUT_TARGET_TYPE.HEARTRATE) {
-    if (target.unit === WORKOUT_TARGET_UNIT.PERCENT_MAX_HR) {
-      targetValueType = 'PERCENT';
-    }
+    targetValueType = 'PERCENT';
   } else if (target.targetType === WORKOUT_TARGET_TYPE.POWER) {
-    if (target.unit === WORKOUT_TARGET_UNIT.PERCENT_FTP) {
-      targetValueType = 'PERCENT';
-    }
+    targetValueType = 'PERCENT';
   }
 
   if (target.targetType === WORKOUT_TARGET_TYPE.ZONE) {

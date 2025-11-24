@@ -27,7 +27,6 @@ function simplifyStep(
       max: t.targetMax ?? null,
       value: t.targetValue ?? null,
       zone: t.targetType === 'ZONE' ? (t.targetValue ?? null) : null,
-      unit: t.unit ?? null,
     },
   };
 }

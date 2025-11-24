@@ -6,10 +6,11 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/utils/shadcn';
-import { formatTarget, getTargetTypeLabel } from '@/utils/workout';
+import { getTargetTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
 
 import type { WorkoutStepTarget } from '@openathlete/shared';
+import { formatTarget } from '@openathlete/shared';
 import { SPORT_TYPE } from '@openathlete/shared';
 
 interface TargetBadgeProps {

@@ -2,10 +2,14 @@ import { Separator } from '@/components/ui/separator';
 import * as m from '@/paraglide/messages';
 import { getStepTypeLabel } from '@/utils/workout';
 
-import type {
-  WorkoutDto,
-  WorkoutStepDto,
-  WorkoutStepTarget,
+import {
+  type WorkoutDto,
+  type WorkoutStepDto,
+  type WorkoutStepTarget,
+  calculateWorkoutDistance,
+  calculateWorkoutDuration,
+  formatDistance,
+  formatDuration,
 } from '@openathlete/shared';
 
 import { DurationDisplay } from './duration-display';
@@ -17,6 +21,9 @@ interface WorkoutSummaryProps {
 }
 
 export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
+  const estimatedDuration = calculateWorkoutDuration(workout);
+  const totalDistance = calculateWorkoutDistance(workout);
+
   const renderStep = (step: WorkoutStepDto, index: number, isChild = false) => {
     const isRepeat = step.stepType === 'REPEAT' && step.repeatBlock;
 
@@ -113,23 +120,23 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
         <>
           <Separator className="my-4" />
           <div className="grid grid-cols-2 gap-4 text-sm">
-            {workout.estimatedDuration && (
+            {estimatedDuration && (
               <div>
                 <span className="text-muted-foreground">
                   {m.workout_estimated_duration()}:
                 </span>
                 <span className="ml-2 font-medium">
-                  {Math.floor(workout.estimatedDuration / 60)}min
+                  {formatDuration(estimatedDuration)}
                 </span>
               </div>
             )}
-            {workout.totalDistance && (
+            {totalDistance && (
               <div>
                 <span className="text-muted-foreground">
                   {m.workout_estimated_distance()}:
                 </span>
                 <span className="ml-2 font-medium">
-                  {(workout.totalDistance / 1000).toFixed(2)}km
+                  {formatDistance(totalDistance, 'km')}
                 </span>
               </div>
             )}

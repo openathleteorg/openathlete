@@ -3,6 +3,7 @@ import {
   type WorkoutDto,
   type WorkoutStepDto,
   type WorkoutStepTarget,
+  formatTarget,
 } from '@openathlete/shared';
 
 import { fetchAthleteZones } from '../../agent/services/event-ai-helpers';
@@ -27,22 +28,6 @@ const METRIC_UNITS: Record<string, string> = {
   FTP_CYCLING: 'w',
   VMA: 'km/h',
   WEIGHT: 'kg',
-};
-
-const TARGET_UNIT_LABELS: Record<string, string> = {
-  MIN_PER_KM: 'min/km',
-  M_PER_S: 'm/s',
-  KM_PER_H: 'km/h',
-  BPM: 'bpm',
-  PERCENT_MAX_HR: '% max HR',
-  WATTS: 'w',
-  PERCENT_FTP: '% FTP',
-  RPM: 'rpm',
-  SPM: 'spm',
-  RPE_SCALE: 'RPE',
-  KG: 'kg',
-  LBS: 'lbs',
-  REPS: 'reps',
 };
 
 export interface ZoneSummary {
@@ -249,30 +234,9 @@ function describeTarget(
     }
   }
 
-  const formattedRange = formatTargetRange(target);
+  const formattedRange = formatTarget(target);
   if (formattedRange) {
     return `${target.targetType}: ${formattedRange}`;
-  }
-
-  return undefined;
-}
-
-function formatTargetRange(target: WorkoutStepTarget): string | undefined {
-  const label = target.unit ? TARGET_UNIT_LABELS[target.unit] : undefined;
-
-  const hasMin = target.targetMin !== null && target.targetMin !== undefined;
-  const hasMax = target.targetMax !== null && target.targetMax !== undefined;
-
-  if (hasMin && hasMax) {
-    return `${formatNumber(target.targetMin as number)}-${formatNumber(
-      target.targetMax as number,
-    )}${label ? ` ${label}` : ''}`;
-  }
-
-  if (target.targetValue !== null && target.targetValue !== undefined) {
-    return `${formatNumber(target.targetValue as number)}${
-      label ? ` ${label}` : ''
-    }`;
   }
 
   return undefined;
@@ -364,13 +328,6 @@ function isValueRelevantForSport(
 
 function formatStepType(stepType: string): string {
   return stepType.replace(/_/g, ' ');
-}
-
-function formatNumber(value: number, precision = 2): string {
-  if (Number.isInteger(value)) {
-    return value.toString();
-  }
-  return value.toFixed(precision);
 }
 
 function round(value: number, precision = 0): number {

@@ -68,7 +68,6 @@ export class AIFeaturesController {
                 targetMin: target.targetMin ?? null,
                 targetMax: target.targetMax ?? null,
                 targetValue: target.targetValue ?? null,
-                unit: target.unit ?? null,
               })),
             };
 
@@ -89,7 +88,6 @@ export class AIFeaturesController {
                         targetMin: target.targetMin ?? null,
                         targetMax: target.targetMax ?? null,
                         targetValue: target.targetValue ?? null,
-                        unit: target.unit ?? null,
                       })),
                     }),
                   ),
@@ -149,7 +147,6 @@ export class AIFeaturesController {
                 targetMin: target.targetMin ?? null,
                 targetMax: target.targetMax ?? null,
                 targetValue: target.targetValue ?? null,
-                unit: target.unit ?? null,
               })),
             };
 
@@ -170,7 +167,6 @@ export class AIFeaturesController {
                         targetMin: target.targetMin ?? null,
                         targetMax: target.targetMax ?? null,
                         targetValue: target.targetValue ?? null,
-                        unit: target.unit ?? null,
                       })),
                     }),
                   ),

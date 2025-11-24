@@ -42,7 +42,6 @@ import {
 } from '@openathlete/shared';
 import type { WorkoutStepDto, WorkoutStepTarget } from '@openathlete/shared';
 
-import { ExercisePicker } from './exercise-picker';
 import { TargetBadge } from './target-badge';
 import { TargetForm } from './target-form';
 import { TypeIcon } from './type-icon';
@@ -66,7 +65,6 @@ const DURATION_TYPE_VALUES = [
 const stepFormSchema = z.object({
   stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
   name: z.string().nullable().optional(),
-  exerciseName: z.string().nullable().optional(),
   durationType: z.nativeEnum(WORKOUT_DURATION_TYPE),
   durationValue: z.number().nullable().optional(),
   notes: z.string().nullable().optional(),
@@ -115,7 +113,6 @@ export function StepForm({
     defaultValues: {
       stepType: initialValues?.stepType || 'STEADY',
       name: initialValues?.name || null,
-      exerciseName: initialValues?.exerciseName || null,
       durationType: initialValues?.durationType || 'TIME',
       durationValue: initialValues?.durationValue || null,
       notes: initialValues?.notes || null,
@@ -123,9 +120,6 @@ export function StepForm({
   });
 
   const selectedDurationType = form.watch('durationType');
-
-  const isStrength =
-    sport === 'STRENGTH' || sport === 'CROSSFIT' || sport === 'YOGA';
 
   const handleAddTarget = (targetValues: Partial<Omit<TargetWithId, 'id'>>) => {
     setTargets([
@@ -240,27 +234,6 @@ export function StepForm({
             )}
           />
         </div>
-
-        {isStrength && (
-          <FormField
-            control={form.control}
-            name="exerciseName"
-            render={({ field }) => (
-              <FormItem>
-                <ExercisePicker
-                  value={field.value ?? ''}
-                  onChange={field.onChange}
-                  label={m.step_form_exercise()}
-                  placeholder={m.step_form_exercise_placeholder()}
-                />
-                <FormDescription>
-                  {m.step_form_exercise_description()}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
 
         {selectedDurationType !== 'OPEN' && (
           <>

@@ -82,7 +82,6 @@ function mapNormalizedStepToGarmin(
     drillType: null,
     equipmentType: null,
     exerciseCategory: null,
-    exerciseName: null,
     weightValue: null,
     weightDisplayUnit: null,
   };
@@ -215,7 +214,6 @@ export function mapToGarmin(
               step.targets[0].targetType === 'ZONE'
                 ? (step.targets[0].targetValue ?? null)
                 : null,
-            unit: step.targets[0].unit ?? null,
           }
         : null,
     })),

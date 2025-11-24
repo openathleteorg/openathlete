@@ -5,7 +5,6 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
-  WORKOUT_TARGET_UNIT,
 } from '../core';
 
 /**
@@ -24,7 +23,6 @@ const workoutStepTargetSchema = z.object({
   targetMin: z.number().optional(),
   targetMax: z.number().optional(),
   targetValue: z.number().optional(),
-  unit: z.nativeEnum(WORKOUT_TARGET_UNIT).optional(),
 });
 
 // Simplified workout step - completely flat, no recursion at all

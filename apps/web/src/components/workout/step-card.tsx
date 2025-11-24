@@ -78,11 +78,6 @@ export function StepCard({
                 {step.name}
               </span>
             )}
-            {step.exerciseName && (
-              <span className="text-sm font-medium text-primary truncate">
-                · {step.exerciseName}
-              </span>
-            )}
           </div>
 
           {!isCompact && (

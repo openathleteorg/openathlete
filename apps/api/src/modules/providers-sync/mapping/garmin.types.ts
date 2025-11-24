@@ -43,7 +43,6 @@ export interface GarminWorkoutStep {
   drillType: string | null;
   equipmentType: string | null;
   exerciseCategory: string | null;
-  exerciseName: string | null;
   weightValue: number | null;
   weightDisplayUnit: string | null;
 }

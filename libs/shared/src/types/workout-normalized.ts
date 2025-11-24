@@ -4,7 +4,6 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
-  WORKOUT_TARGET_UNIT,
 } from './dtos/core/workout.dto';
 import { SPORT_TYPE } from './misc/core/sport-type.enum';
 
@@ -15,7 +14,6 @@ export const normalizedWorkoutStepTargetSchema = z.object({
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),
-  unit: z.nativeEnum(WORKOUT_TARGET_UNIT).nullable().optional(),
 });
 
 export type NormalizedWorkoutStepTarget = z.infer<

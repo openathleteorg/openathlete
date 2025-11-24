@@ -88,10 +88,17 @@ WORKOUT TARGETS:
 - The prompt will include athlete-specific training zones and metrics with their IDs
 - For ZONE targets: Use the zone ID (training_zone_id) provided in the context, NOT the index
 - Prefer ZONE targets when intensity is subjective (e.g., "easy pace", "tempo", "threshold")
-- For specific values: Use PACE, HEARTRATE, POWER, CADENCE, or RPE with appropriate units
+- For specific values: Use PACE, HEARTRATE, POWER, CADENCE, or RPE
 - When metrics are available (FTP, VMA, etc.), use them to calculate appropriate target values
 - IMPORTANT: Match the zone type to the target context (HEARTRATE zones for heartrate targets, POWER zones for power targets, PACE zones for pace targets)
 - Preserve existing targets unless the modification request explicitly changes them
+
+TARGET VALUES:
+- PACE: Pace in minutes per kilometer (e.g., 4.2 = 4:12 min/km)
+- HEARTRATE: Heartrate in beats per minute (e.g., 140 = 140 bpm)
+- POWER: Power in watts (e.g., 200 = 200 W)
+- CADENCE: Cadence in revolutions per minute (e.g., 80 = 80 rpm)
+- RPE: RPE (Rate of Perceived Exertion) (e.g., 6 = RPE 6)
 
 TARGET EXAMPLES:
 1. Easy run with heartrate zone (use the zone ID from context, e.g., if zone ID is 42):
@@ -110,7 +117,7 @@ TARGET EXAMPLES:
      "durationType": "DISTANCE",
      "durationValue": 5000,
      "targets": [
-       { "targetType": "PACE", "targetValue": 4.2, "unit": "MIN_PER_KM" }
+       { "targetType": "PACE", "targetValue": 4.2 }
      ]
    }
 
@@ -147,7 +154,7 @@ TARGET EXAMPLES:
      "durationType": "TIME",
      "durationValue": 1200,
      "targets": [
-       { "targetType": "POWER", "targetMin": 200, "targetMax": 250, "unit": "WATTS" }
+       { "targetType": "POWER", "targetMin": 200, "targetMax": 250 }
      ]
    }
 
@@ -157,7 +164,7 @@ TARGET EXAMPLES:
      "durationType": "TIME",
      "durationValue": 2400,
      "targets": [
-       { "targetType": "HEARTRATE", "targetMin": 140, "targetMax": 160, "unit": "BPM" }
+       { "targetType": "HEARTRATE", "targetMin": 140, "targetMax": 160 }
      ]
    }
 

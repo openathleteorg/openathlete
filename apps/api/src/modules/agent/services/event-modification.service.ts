@@ -67,7 +67,6 @@ export class EventModificationService {
                           targetMin: target.targetMin ?? undefined,
                           targetMax: target.targetMax ?? undefined,
                           targetValue: target.targetValue ?? undefined,
-                          unit: target.unit ?? undefined,
                         };
                       }
                       const entries = Object.entries(target);
@@ -104,7 +103,6 @@ export class EventModificationService {
                                   targetMin: target.targetMin ?? undefined,
                                   targetMax: target.targetMax ?? undefined,
                                   targetValue: target.targetValue ?? undefined,
-                                  unit: target.unit ?? undefined,
                                 };
                               }
                               const entries = Object.entries(target);

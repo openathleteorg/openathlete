@@ -45,25 +45,6 @@ export const WORKOUT_TARGET_TYPE = {
 export type WorkoutTargetType =
   (typeof WORKOUT_TARGET_TYPE)[keyof typeof WORKOUT_TARGET_TYPE];
 
-export const WORKOUT_TARGET_UNIT = {
-  MIN_PER_KM: 'MIN_PER_KM',
-  M_PER_S: 'M_PER_S',
-  KM_PER_H: 'KM_PER_H',
-  BPM: 'BPM',
-  PERCENT_MAX_HR: 'PERCENT_MAX_HR',
-  WATTS: 'WATTS',
-  PERCENT_FTP: 'PERCENT_FTP',
-  RPM: 'RPM',
-  SPM: 'SPM',
-  RPE_SCALE: 'RPE_SCALE',
-  KG: 'KG',
-  LBS: 'LBS',
-  REPS: 'REPS',
-} as const;
-
-export type WorkoutTargetUnit =
-  (typeof WORKOUT_TARGET_UNIT)[keyof typeof WORKOUT_TARGET_UNIT];
-
 // ============================================================================
 // Workout Schemas
 // ============================================================================
@@ -74,7 +55,6 @@ export const workoutStepTargetSchema = z.object({
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),
-  unit: z.nativeEnum(WORKOUT_TARGET_UNIT).nullable().optional(),
   stepId: z.number().optional(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
@@ -88,7 +68,6 @@ export const workoutStepSchema: z.ZodSchema = z.lazy(() =>
     orderIndex: z.number(),
     stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
     name: z.string().nullable().optional(),
-    exerciseName: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
     durationType: z.nativeEnum(WORKOUT_DURATION_TYPE),
     durationValue: z.number().nullable().optional(),
@@ -127,8 +106,6 @@ export type WorkoutRepeat = z.infer<typeof workoutRepeatSchema>;
 
 export const workoutSchema = z.object({
   workoutId: z.number().optional(),
-  estimatedDuration: z.number().nullable().optional(),
-  totalDistance: z.number().nullable().optional(),
   eventTrainingId: z.number(),
   steps: z.array(workoutStepSchema).default([]),
   createdAt: z.coerce.date().optional(),
@@ -226,8 +203,6 @@ export const createWorkoutSchema = z.object({
 export type CreateWorkoutDto = z.infer<typeof createWorkoutSchema>;
 
 export const updateWorkoutSchema = z.object({
-  estimatedDuration: z.number().nullable().optional(),
-  totalDistance: z.number().nullable().optional(),
   steps: z.array(createWorkoutStepDtoSchema).optional(),
 });
 

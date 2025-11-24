@@ -28,3 +28,4 @@ export {
   mapWorkoutDtoToPrisma,
   mapPrismaWorkoutToDto,
 } from './workout.mappers';
+export { formatTarget } from './workout.formatters';

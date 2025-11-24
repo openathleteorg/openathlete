@@ -3,7 +3,6 @@ import { m } from '@/paraglide/messages';
 import type {
   WorkoutDto,
   WorkoutDurationType,
-  WorkoutStepTarget,
   WorkoutStepType,
   WorkoutTargetType,
 } from '@openathlete/shared';
@@ -76,120 +75,6 @@ export function formatDuration(
     default:
       return `${durationValue}`;
   }
-}
-
-/**
- * Format pace from seconds to min:sec
- * @param seconds - Pace in seconds per km
- * @returns Formatted pace (e.g., "4:30")
- */
-function formatPace(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
-  const totalSeconds = Math.round(seconds);
-  const minutes = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60; // avoids cases like 5:60
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
-}
-
-/**
- * Format a workout target for display
- * @param target - Target object with type, unit, and values
- * @param sport - Optional sport to determine zone type
- * @returns Human-readable formatted target
- */
-export function formatTarget(target: WorkoutStepTarget): string {
-  const { targetType, unit, targetMin, targetMax, targetValue } = target;
-
-  // Open target (no specific goal)
-  if (targetType === 'OPEN') {
-    return 'Open';
-  }
-
-  // ZONE target (single value) - zone name should be resolved in component
-  // This function will be called with zone name already resolved in TargetBadge
-  if (
-    targetType === 'ZONE' &&
-    targetValue !== null &&
-    targetValue !== undefined
-  ) {
-    // Fallback: if zone name not provided, show ID
-    return `Zone ${targetValue}`;
-  }
-
-  // Range target (min-max)
-  if (
-    targetMin !== null &&
-    targetMin !== undefined &&
-    targetMax !== null &&
-    targetMax !== undefined
-  ) {
-    switch (targetType) {
-      case 'PACE': {
-        if (unit === 'MIN_PER_KM') {
-          return `${formatPace(targetMin * 60)} - ${formatPace(targetMax * 60)} min/km`;
-        }
-        return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || ''}`;
-      }
-
-      case 'HEARTRATE':
-        return unit === 'PERCENT_MAX_HR'
-          ? `${targetMin} - ${targetMax}% max HR`
-          : `${targetMin} - ${targetMax} bpm`;
-
-      case 'POWER':
-        return unit === 'PERCENT_FTP'
-          ? `${targetMin} - ${targetMax}% FTP`
-          : `${targetMin} - ${targetMax} W`;
-
-      case 'CADENCE':
-        return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || 'rpm'}`;
-
-      case 'RPE':
-        return `RPE ${targetMin} - ${targetMax}`;
-
-      case 'WEIGHT':
-        return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || 'kg'}`;
-
-      default:
-        return `${targetMin} - ${targetMax} ${unit?.toLowerCase() || ''}`;
-    }
-  }
-
-  // Single value target
-  if (targetValue !== null && targetValue !== undefined) {
-    switch (targetType) {
-      case 'WEIGHT':
-        return `${targetValue} ${unit?.toLowerCase() || 'kg'}`;
-
-      case 'PACE': {
-        if (unit === 'MIN_PER_KM') {
-          return `${formatPace(targetValue * 60)} min/km`;
-        }
-        return `${targetValue} ${unit?.toLowerCase() || ''}`;
-      }
-
-      case 'HEARTRATE':
-        return unit === 'PERCENT_MAX_HR'
-          ? `${targetValue}% max HR`
-          : `${targetValue} bpm`;
-
-      case 'POWER':
-        return unit === 'PERCENT_FTP'
-          ? `${targetValue}% FTP`
-          : `${targetValue} W`;
-
-      case 'CADENCE':
-        return `${targetValue} ${unit?.toLowerCase() || 'rpm'}`;
-
-      case 'RPE':
-        return `RPE ${targetValue}`;
-
-      default:
-        return `${targetValue} ${unit?.toLowerCase() || ''}`;
-    }
-  }
-
-  return 'Open';
 }
 
 /**

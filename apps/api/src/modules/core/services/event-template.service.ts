@@ -105,15 +105,12 @@ export class EventTemplateService {
         // Duplicate workout to the template training
         await this.prisma.workout.create({
           data: {
-            estimated_duration: originalWorkout.estimated_duration,
-            total_distance: originalWorkout.total_distance,
             event_training_id: eventWithIncludes.training.event_training_id,
             steps: {
               create: originalWorkout.steps.map((step) => ({
                 order_index: step.order_index,
                 step_type: step.step_type,
                 name: step.name,
-                exercise_name: step.exercise_name,
                 notes: step.notes,
                 duration_type: step.duration_type,
                 duration_value: step.duration_value,
@@ -124,7 +121,6 @@ export class EventTemplateService {
                     target_min: t.target_min,
                     target_max: t.target_max,
                     target_value: t.target_value,
-                    unit: t.unit,
                   })),
                 },
                 repeat_block: step.repeat_block
@@ -137,7 +133,6 @@ export class EventTemplateService {
                               order_index: childStep.order_index,
                               step_type: childStep.step_type,
                               name: childStep.name,
-                              exercise_name: childStep.exercise_name,
                               notes: childStep.notes,
                               duration_type: childStep.duration_type,
                               duration_value: childStep.duration_value,
@@ -148,7 +143,6 @@ export class EventTemplateService {
                                   target_min: t.target_min,
                                   target_max: t.target_max,
                                   target_value: t.target_value,
-                                  unit: t.unit,
                                 })),
                               },
                             }),
@@ -333,15 +327,12 @@ export class EventTemplateService {
       if (templateWorkout && newEvent.training) {
         const createdWorkout = await this.prisma.workout.create({
           data: {
-            estimated_duration: templateWorkout.estimated_duration,
-            total_distance: templateWorkout.total_distance,
             event_training_id: newEvent.training.event_training_id,
             steps: {
               create: templateWorkout.steps.map((step) => ({
                 order_index: step.order_index,
                 step_type: step.step_type,
                 name: step.name,
-                exercise_name: step.exercise_name,
                 notes: step.notes,
                 duration_type: step.duration_type,
                 duration_value: step.duration_value,
@@ -352,7 +343,6 @@ export class EventTemplateService {
                     target_min: t.target_min,
                     target_max: t.target_max,
                     target_value: t.target_value,
-                    unit: t.unit,
                   })),
                 },
                 repeat_block: step.repeat_block
@@ -365,7 +355,6 @@ export class EventTemplateService {
                               order_index: childStep.order_index,
                               step_type: childStep.step_type,
                               name: childStep.name,
-                              exercise_name: childStep.exercise_name,
                               notes: childStep.notes,
                               duration_type: childStep.duration_type,
                               duration_value: childStep.duration_value,
@@ -376,7 +365,6 @@ export class EventTemplateService {
                                   target_min: t.target_min,
                                   target_max: t.target_max,
                                   target_value: t.target_value,
-                                  unit: t.unit,
                                 })),
                               },
                             }),

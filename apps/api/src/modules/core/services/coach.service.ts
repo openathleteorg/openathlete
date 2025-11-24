@@ -76,7 +76,7 @@ export class CoachService {
         athlete_id: true,
         training: {
           select: {
-            workout: { select: { estimated_duration: true } },
+            goal_duration: true,
           },
         },
       },
@@ -85,7 +85,7 @@ export class CoachService {
     const plannedTimeByAthlete = plannedTimeByAthleteRaw.reduce(
       (acc, e) => {
         const aid = e.athlete_id as number;
-        const duration = e.training?.workout?.estimated_duration ?? 0;
+        const duration = e.training?.goal_duration ?? 0;
         acc[aid] = (acc[aid] || 0) + duration;
         return acc;
       },

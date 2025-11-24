@@ -36,7 +36,6 @@ function normalizeTarget(
     targetMin: target.targetMin ?? null,
     targetMax: target.targetMax ?? null,
     targetValue: target.targetValue ?? null,
-    unit: target.unit ?? null,
     stepId: target.stepId,
     createdAt: target.createdAt,
     updatedAt: target.updatedAt,
@@ -108,36 +107,17 @@ const SUPPORTED_TARGET_TYPES = new Set([
   'WEIGHT',
   'ZONE',
 ]);
-const SUPPORTED_UNITS = new Set([
-  'MIN_PER_KM',
-  'M_PER_S',
-  'KM_PER_H',
-  'BPM',
-  'PERCENT_MAX_HR',
-  'WATTS',
-  'PERCENT_FTP',
-  'RPM',
-  'SPM',
-  'RPE_SCALE',
-  'KG',
-  'LBS',
-]);
 
 function mapTargetToPrismaCreate(target: WorkoutStepTarget) {
   if (!SUPPORTED_TARGET_TYPES.has(target.targetType)) {
     return null;
   }
-  const unit =
-    target.targetType === 'ZONE' || !SUPPORTED_UNITS.has(target.unit || '')
-      ? null
-      : target.unit;
   const toNum = (v: number | null | undefined | string): number | null =>
     v === null || v === undefined || v === '' || Number.isNaN(Number(v))
       ? null
       : Number(v);
   return {
     target_type: target.targetType,
-    unit: unit,
     target_min: toNum(target.targetMin),
     target_max: toNum(target.targetMax),
     target_value: toNum(target.targetValue),
@@ -198,7 +178,6 @@ function mapPrismaTargetToDto(target: workout_step_target): WorkoutStepTarget {
     targetMin: target.target_min ?? null,
     targetMax: target.target_max ?? null,
     targetValue: target.target_value ?? null,
-    unit: target.unit ?? null,
     stepId: target.step_id,
     createdAt: target.created_at ? new Date(target.created_at) : undefined,
     updatedAt: target.updated_at ? new Date(target.updated_at) : undefined,
@@ -216,7 +195,6 @@ function mapPrismaStepToDto(
     orderIndex: step.order_index,
     stepType: step.step_type,
     name: step.name ?? null,
-    exerciseName: step.exercise_name ?? null,
     notes: step.notes ?? null,
     durationType: step.duration_type,
     durationValue: step.duration_value ?? null,
@@ -252,8 +230,6 @@ export function mapPrismaWorkoutToDto(
 ): WorkoutDto {
   return {
     workoutId: prismaWorkout.workout_id,
-    estimatedDuration: prismaWorkout.estimated_duration ?? null,
-    totalDistance: prismaWorkout.total_distance ?? null,
     eventTrainingId: prismaWorkout.event_training_id,
     steps: (prismaWorkout.steps || []).map((s) => mapPrismaStepToDto(s)),
     createdAt: prismaWorkout.created_at
@@ -289,7 +265,6 @@ function flattenStep(
       targetMin: t.targetMin ?? null,
       targetMax: t.targetMax ?? null,
       targetValue: t.targetValue ?? null,
-      unit: t.unit ?? null,
     }),
   );
 

@@ -281,22 +281,6 @@ enum workout_target_type {
   ZONE // training zone (1-5 typically for HR/power zones)
 }
 
-enum workout_target_unit {
-  MIN_PER_KM // pace in min/km
-  M_PER_S // speed in m/s
-  KM_PER_H // speed in km/h
-  BPM // heart rate in beats per minute
-  PERCENT_MAX_HR // percentage of max heart rate
-  WATTS // power in watts
-  PERCENT_FTP // percentage of functional threshold power
-  RPM // cadence in revolutions per minute
-  SPM // cadence in steps per minute
-  RPE_SCALE // RPE on 1-10 scale
-  KG // weight in kilograms
-  LBS // weight in pounds
-  REPS // number of repetitions
-}
-
 enum provider_account_status {
   active
   revoked

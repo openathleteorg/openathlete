@@ -37,8 +37,6 @@ import {
   EVENT_TYPE,
   ReorderWorkoutStepsDto,
   UpdateEventDto,
-  calculateWorkoutDistance,
-  calculateWorkoutDuration,
   createWorkoutSchema,
   keysToCamel,
   keysToSnake,
@@ -383,19 +381,6 @@ export class EventService {
         },
       });
 
-      // Calculate and update estimated metrics
-      const workoutDto = mapPrismaWorkoutToDto(workoutData);
-      const estimatedDuration = calculateWorkoutDuration(workoutDto);
-      const totalDistance = calculateWorkoutDistance(workoutDto);
-
-      await this.prisma.workout.update({
-        where: { workout_id: workoutData.workout_id },
-        data: {
-          estimated_duration: estimatedDuration,
-          total_distance: totalDistance,
-        },
-      });
-
       // Emit event for workout export sync if within 7 days
       this.emitWorkoutPlannedChanged(
         created.event_id,
@@ -525,7 +510,7 @@ export class EventService {
             where: { workout_id: existingWorkout.workout_id },
           });
 
-          const updatedWorkout = await this.prisma.workout.update({
+          await this.prisma.workout.update({
             where: { workout_id: existingWorkout.workout_id },
             data: {
               ...mapWorkoutDtoToPrisma({ steps: workout.steps }),
@@ -545,19 +530,6 @@ export class EventService {
                 },
                 orderBy: { order_index: 'asc' },
               },
-            },
-          });
-
-          // Recalculate metrics
-          const workoutDto = mapPrismaWorkoutToDto(updatedWorkout);
-          const estimatedDuration = calculateWorkoutDuration(workoutDto);
-          const totalDistance = calculateWorkoutDistance(workoutDto);
-
-          await this.prisma.workout.update({
-            where: { workout_id: existingWorkout.workout_id },
-            data: {
-              estimated_duration: estimatedDuration,
-              total_distance: totalDistance,
             },
           });
 
@@ -597,18 +569,6 @@ export class EventService {
               },
               orderBy: { order_index: 'asc' },
             },
-          },
-        });
-
-        const workoutDto = mapPrismaWorkoutToDto(newWorkout);
-        const estimatedDuration = calculateWorkoutDuration(workoutDto);
-        const totalDistance = calculateWorkoutDistance(workoutDto);
-
-        await this.prisma.workout.update({
-          where: { workout_id: newWorkout.workout_id },
-          data: {
-            estimated_duration: estimatedDuration,
-            total_distance: totalDistance,
           },
         });
 
@@ -1223,8 +1183,6 @@ export class EventService {
           const originalDto = mapPrismaWorkoutToDto(originalWorkout);
           await this.prisma.workout.create({
             data: {
-              estimated_duration: originalWorkout.estimated_duration,
-              total_distance: originalWorkout.total_distance,
               event_training_id:
                 duplicatedEventWithIncludes.training.event_training_id,
               ...mapWorkoutDtoToPrisma({ steps: originalDto.steps }),
@@ -1393,8 +1351,7 @@ export class EventService {
     const sourceWorkout = sourceEvent.training.workout;
     const sourceDto = mapPrismaWorkoutToDto(sourceWorkout);
 
-    // Create workout for target training
-    const duplicatedWorkout = await this.prisma.workout.create({
+    await this.prisma.workout.create({
       data: {
         event_training_id: targetEvent.training.event_training_id,
         ...mapWorkoutDtoToPrisma({ steps: sourceDto.steps }),
@@ -1414,19 +1371,6 @@ export class EventService {
           },
           orderBy: { order_index: 'asc' },
         },
-      },
-    });
-
-    // Calculate and update metrics
-    const workoutDto = mapPrismaWorkoutToDto(duplicatedWorkout);
-    const estimatedDuration = calculateWorkoutDuration(workoutDto);
-    const totalDistance = calculateWorkoutDistance(workoutDto);
-
-    await this.prisma.workout.update({
-      where: { workout_id: duplicatedWorkout.workout_id },
-      data: {
-        estimated_duration: estimatedDuration,
-        total_distance: totalDistance,
       },
     });
 

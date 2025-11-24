@@ -1,16 +1,3 @@
-// ============================================================================
-// Training Plan Models
-// ============================================================================
-// Hierarchical structure for training plan management:
-// - training_plan: Overall training program for a goal/race
-// - cycle: Meso-blocks within a plan (base, specific, taper phases)
-// - training_week: Individual weeks within a cycle
-// - event_training: Training sessions scheduled in weeks
-//
-// This allows the AI coach to generate and manage structured training plans
-// with proper periodization and progression
-// ============================================================================
-
 model training_plan {
   // primary key
   training_plan_id Int @id @default(autoincrement())

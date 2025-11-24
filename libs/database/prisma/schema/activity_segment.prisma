@@ -1,33 +1,13 @@
-// ============================================================================
-// Activity Segment Models
-// ============================================================================
-// Segments represent laps, workout steps, or manual splits within an activity.
-// Each segment references a time range in the activity stream and stores
-// aggregated metrics for that portion of the activity.
-//
-// Architecture:
-// - activity_segment: Individual segment (lap, workout step, manual split)
-//   - Uses time indices (start_time_seconds, end_time_seconds) to reference
-//     the portion of the stream data
-//   - Stores aggregated metrics (distance, speed, HR, power, etc.) for the segment
-//   - Can optionally link to a workout_step if the activity was based on a
-//     planned workout
-// ============================================================================
-
 model activity_segment {
   // primary key
   activity_segment_id Int @id @default(autoincrement())
 
   // fields
-  segment_type activity_segment_type
-  name         String? // optional label (e.g., "Lap 1", "Warmup", "Interval 1")
-  order_index  Int // position in the activity sequence (0-based)
-
-  // Time range in the activity stream (in seconds from activity start)
-  start_time_seconds Int // inclusive start time
-  end_time_seconds   Int // exclusive end time (or inclusive for last segment)
-
-  // Aggregated metrics for this segment
+  segment_type             activity_segment_type
+  name                     String? // optional label (e.g., "Lap 1", "Warmup", "Interval 1")
+  order_index              Int // position in the activity sequence (0-based)
+  start_time_seconds       Int // inclusive start time
+  end_time_seconds         Int // exclusive end time (or inclusive for last segment)
   distance                 Float? // in meters
   elevation_gain           Float? // in meters
   moving_time              Int? // in seconds

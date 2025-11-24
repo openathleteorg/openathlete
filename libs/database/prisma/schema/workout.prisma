@@ -1,31 +1,6 @@
-// ============================================================================
-// Workout Builder Models
-// ============================================================================
-// Structured workout builder allowing complex training sessions with blocks
-// Compatible with FIT file format, Garmin, Suunto, Apple Watch exports
-//
-// Architecture:
-// - workout: Main workout definition (linked to event_training)
-// - workout_step: Individual steps (warmup, intervals, cooldown, etc.)
-// - workout_step_target: Goals for each step (pace, HR, power, RPE)
-// - workout_repeat: Repetition blocks containing multiple steps
-//
-// Compatible target types match industry standards:
-// - OPEN: No specific target
-// - PACE: Target pace/speed (min/km or m/s)
-// - HEARTRATE: Target HR (bpm or % of max)
-// - POWER: Target power (watts)
-// - CADENCE: Target cadence (rpm/spm)
-// - RPE: Rate of Perceived Exertion (1-10)
-// ============================================================================
-
 model workout {
   // primary key
   workout_id Int @id @default(autoincrement())
-
-  // fields
-  estimated_duration Int? // in seconds, calculated from steps
-  total_distance     Float? // in meters, if applicable
 
   // relationships
   event_training           event_training            @relation(fields: [event_training_id], references: [event_training_id], onDelete: Cascade)
@@ -43,13 +18,10 @@ model workout_step {
   workout_step_id Int @id @default(autoincrement())
 
   // fields
-  order_index   Int // position in the workout sequence
-  step_type     workout_step_type
-  name          String? // optional label (e.g., "Warmup", "Tempo intervals")
-  exercise_name String? // exercise name for strength training (e.g., "Bench Press", "Squat")
-  notes         String?           @default("") // additional instructions/comments
-
-  // Duration can be defined in multiple ways (only one should be set)
+  order_index     Int // position in the workout sequence
+  step_type       workout_step_type
+  name            String? // optional label (e.g., "Warmup", "Tempo intervals")
+  notes           String?               @default("") // additional instructions/comments
   duration_type   workout_duration_type
   duration_value  Float? // value depends on duration_type
   duration_target Float? // optional target for LAP_BUTTON type
@@ -96,15 +68,7 @@ model workout_step_target {
   target_min   Float? // minimum value for range targets
   target_max   Float? // maximum value for range targets
   target_value Float? // single value target (for ZONE, this is the zone number 1-5)
-
-  // Unit depends on target_type:
-  // PACE: min/km or m/s (stored as m/s)
-  // HEARTRATE: bpm or % max HR
-  // POWER: watts or % FTP
-  // CADENCE: rpm/spm
-  // RPE: 1-10 scale
-  // ZONE: not used (zone number is in target_value)
-  unit workout_target_unit?
+  metric_type  metric_type?
 
   // relationships
   step    workout_step @relation(fields: [step_id], references: [workout_step_id], onDelete: Cascade)

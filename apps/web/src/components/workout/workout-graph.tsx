@@ -8,13 +8,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { m } from '@/paraglide/messages';
-import {
-  formatDuration,
-  formatTarget,
-  getStepTypeLabel,
-} from '@/utils/workout';
+import { formatDuration, getStepTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
 
+import { formatTarget } from '@openathlete/shared';
 import type {
   TrainingZone,
   TrainingZoneValue,
@@ -538,11 +535,9 @@ export function WorkoutGraph({
       segments.reduce(
         (acc: number, seg: StepSegment) => acc + seg.duration,
         0,
-      ) ||
-      workout.estimatedDuration ||
-      3600
+      ) || 3600
     );
-  }, [segments, workout.estimatedDuration]);
+  }, [segments]);
 
   // Calculate widths for all segments and normalize to ensure they sum to 100%
   const segmentWidths = useMemo(() => {
