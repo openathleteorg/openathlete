@@ -107,6 +107,12 @@ export const routes = {
     updateAthleteSettings: (athleteId: number) =>
       `/athlete/${athleteId}/settings`,
     getPendingInvitations: '/athlete/invitations/pending',
+    getSentAthleteInvitations: '/athlete/invitations/athletes/sent',
+    cancelAthleteInvitation: (invitationId: number) =>
+      `/athlete/invitations/athletes/${invitationId}`,
+    getSentCoachInvitations: '/athlete/invitations/coaches/sent',
+    cancelCoachInvitation: (invitationId: number) =>
+      `/athlete/invitations/coaches/${invitationId}`,
     acceptInvitation: (invitationId: number) =>
       `/athlete/invitations/${invitationId}/accept`,
     rejectInvitation: (invitationId: number) =>

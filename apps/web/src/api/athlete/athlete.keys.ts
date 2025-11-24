@@ -12,4 +12,6 @@ export const athleteKeys = {
     athleteId,
   ],
   getPendingInvitations: 'AthleteAPI.getPendingInvitations',
+  getSentAthleteInvitations: 'AthleteAPI.getSentAthleteInvitations',
+  getSentCoachInvitations: 'AthleteAPI.getSentCoachInvitations',
 } as const;

@@ -1,5 +1,7 @@
 import {
+  useCancelAthleteInvitationMutation,
   useGetMyCoachedAthletesQuery,
+  useGetSentAthleteInvitationsQuery,
   useInviteAthleteMutation,
   useRemoveAthleteMutation,
 } from '@/api/athlete';
@@ -23,6 +25,8 @@ import { toast } from 'sonner';
 export function AthletesTab() {
   const { data: athletes } = useGetMyCoachedAthletesQuery();
   const nav = useNavigate();
+  const { data: sentInvitations, isLoading: sentInvitationsLoading } =
+    useGetSentAthleteInvitationsQuery({ enabled: true });
   const [deleteAthleteDialog, setDeleteAthleteDialog] = useState<number | null>(
     null,
   );
@@ -34,11 +38,26 @@ export function AthletesTab() {
       toast.success(m.athlete_invited_successfully());
     },
   });
+  const cancelInvitationMutation = useCancelAthleteInvitationMutation({
+    onSuccess: () => {
+      toast.success(m.invitation_cancelled());
+    },
+    onError: () => {
+      toast.error(m.failed_to_cancel_invitation());
+    },
+  });
+  const formatDate = (date: string) =>
+    new Date(date).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={() => setInviteAthleteDialog(true)}>
+      <div className="my-4 flex justify-between">
+        <div className="text-lg font-semibold mb-4">{m.athletes()}</div>
+        <Button size="sm" onClick={() => setInviteAthleteDialog(true)}>
           {m.invite_athlete()}
         </Button>
       </div>
@@ -90,6 +109,49 @@ export function AthletesTab() {
         onInvite={(email) => inviteAthleteMutation.mutate({ email })}
         isLoading={inviteAthleteMutation.isPending}
       />
+      {sentInvitationsLoading ? (
+        <div className="mt-12 text-sm text-muted-foreground">{m.loading()}</div>
+      ) : (
+        sentInvitations &&
+        sentInvitations.length > 0 && (
+          <div className="mt-12">
+            <h3 className="text-md font-semibold mb-3">
+              {m.sent_invitations_to_athletes()}
+            </h3>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{m.email()}</TableHead>
+                  <TableHead>{m.invitation_sent_at()}</TableHead>
+                  <TableHead className="text-right">{m.actions()}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {sentInvitations.map((invitation) => (
+                  <TableRow key={invitation.athleteInvitationId}>
+                    <TableCell>{invitation.email}</TableCell>
+                    <TableCell>{formatDate(invitation.createdAt)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          cancelInvitationMutation.mutate(
+                            invitation.athleteInvitationId,
+                          )
+                        }
+                        disabled={cancelInvitationMutation.isPending}
+                      >
+                        {m.cancel_invitation()}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )
+      )}
       <ConfirmAction
         open={!!deleteAthleteDialog}
         onClose={() => setDeleteAthleteDialog(null)}

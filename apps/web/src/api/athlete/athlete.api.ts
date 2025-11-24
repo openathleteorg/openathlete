@@ -91,6 +91,42 @@ export class AthleteAPI {
     return res.data;
   }
 
+  static async getSentAthleteInvitations(): Promise<
+    Array<{
+      athleteInvitationId: number;
+      email: string;
+      token: string | null;
+      status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null;
+      createdAt: string;
+      updatedAt: string;
+    }>
+  > {
+    const res = await client.get(routes.athlete.getSentAthleteInvitations);
+    return res.data;
+  }
+
+  static async cancelAthleteInvitation(invitationId: number): Promise<void> {
+    await client.delete(routes.athlete.cancelAthleteInvitation(invitationId));
+  }
+
+  static async getSentCoachInvitations(): Promise<
+    Array<{
+      coachInvitationId: number;
+      email: string;
+      token: string | null;
+      status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+      createdAt: string;
+      updatedAt: string;
+    }>
+  > {
+    const res = await client.get(routes.athlete.getSentCoachInvitations);
+    return res.data;
+  }
+
+  static async cancelCoachInvitation(invitationId: number): Promise<void> {
+    await client.delete(routes.athlete.cancelCoachInvitation(invitationId));
+  }
+
   static async acceptInvitation(invitationId: number): Promise<void> {
     await client.post(routes.athlete.acceptInvitation(invitationId));
   }
