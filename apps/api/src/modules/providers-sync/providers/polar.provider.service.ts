@@ -1242,7 +1242,8 @@ export class PolarProviderService
           );
 
           if (type === 'fit') {
-            activityStream = await parseFitFile(data);
+            const fitParseResult = await parseFitFile(data);
+            activityStream = fitParseResult.stream;
           } else if (type === 'gpx') {
             activityStream = await parseGpxFile(data);
           }

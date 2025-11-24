@@ -27,12 +27,10 @@ import {
 } from '@openathlete/shared';
 
 import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
-import {
-  compressActivityStream,
-  uncompressActivityStream,
-} from '../../core/helpers/activity-stream';
+import { compressActivityStream } from '../../core/helpers/activity-stream';
 import { mapGarminActivityType } from '../../core/helpers/garmin';
 import {
+  FitFileSegment,
   parseFitFile,
   parseGpxFile,
 } from '../../core/helpers/garmin-file-parser';
@@ -45,7 +43,6 @@ import {
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
 import {
-  GarminActivityDetail,
   GarminActivityFilePingWebhook,
   GarminActivityPingWebhook,
   GarminActivitySummary,
@@ -685,7 +682,6 @@ export class GarminProviderService
 
     const garminActivity = activity.raw as GarminActivitySummary;
     const savedActivity = await this.fetchGarminActivityData(
-      account,
       event,
       garminActivity,
     );
@@ -704,119 +700,12 @@ export class GarminProviderService
   }
 
   private async fetchGarminActivityData(
-    account: provider_account,
     event: { event_id: number },
     activity: GarminActivitySummary,
   ): Promise<event_activity> {
     const activityStream: ActivityStream = {};
-    let activityDetail: GarminActivityDetail | null = null;
 
-    if (!activity.manual) {
-      const uploadStartTime = activity.startTimeInSeconds - 12 * 60 * 60;
-      const uploadEndTime = activity.startTimeInSeconds + 12 * 60 * 60;
-
-      try {
-        const activityDetails = await this.makeAuthenticatedRequest<
-          GarminActivityDetail[]
-        >(account, async (accessToken) => {
-          const response = await axios.get<GarminActivityDetail[]>(
-            'https://apis.garmin.com/wellness-api/rest/activityDetails',
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-              params: {
-                uploadStartTimeInSeconds: uploadStartTime,
-                uploadEndTimeInSeconds: uploadEndTime,
-              },
-              timeout: 45000,
-            },
-          );
-          return response.data;
-        });
-
-        activityDetail =
-          activityDetails.find(
-            (detail) =>
-              String(detail.activityId) === String(activity.activityId),
-          ) || null;
-      } catch {
-        // Activity will be saved without stream data
-      }
-
-      if (activityDetail?.samples && activityDetail.samples.length > 0) {
-        const samples = activityDetail.samples;
-        const activityStartTime = activity.startTimeInSeconds;
-
-        const time: number[] = [];
-        const latlng: number[][] = [];
-        const altitude: number[] = [];
-        const heartrate: number[] = [];
-        const cadence: number[] = [];
-        const power: number[] = [];
-        const distance: number[] = [];
-
-        for (const sample of samples) {
-          const sampleTime = sample.startTimeInSeconds - activityStartTime;
-          time.push(sampleTime);
-
-          if (
-            sample.latitudeInDegree !== undefined &&
-            sample.longitudeInDegree !== undefined
-          ) {
-            latlng.push([sample.latitudeInDegree, sample.longitudeInDegree]);
-          }
-
-          if (sample.elevationInMeters !== undefined) {
-            altitude.push(sample.elevationInMeters);
-          }
-
-          if (sample.heartRate !== undefined) {
-            heartrate.push(sample.heartRate);
-          }
-
-          if (sample.bikeCadenceInRPM !== undefined) {
-            cadence.push(sample.bikeCadenceInRPM);
-          } else if (sample.stepsPerMinute !== undefined) {
-            cadence.push(sample.stepsPerMinute);
-          } else if (sample.swimCadenceInStrokesPerMinute !== undefined) {
-            cadence.push(sample.swimCadenceInStrokesPerMinute);
-          }
-
-          if (sample.powerInWatts !== undefined) {
-            power.push(sample.powerInWatts);
-          }
-
-          if (sample.totalDistanceInMeters !== undefined) {
-            distance.push(sample.totalDistanceInMeters);
-          }
-        }
-
-        if (time.length > 0) {
-          activityStream.time = time;
-        }
-        if (latlng.length > 0) {
-          activityStream.latlng = latlng;
-        }
-        if (altitude.length > 0) {
-          activityStream.altitude = altitude;
-        }
-        if (heartrate.length > 0) {
-          activityStream.heartrate = heartrate;
-        }
-        if (cadence.length > 0) {
-          activityStream.cadence = cadence;
-        }
-        if (power.length > 0) {
-          activityStream.watts = power;
-        }
-        if (distance.length > 0) {
-          activityStream.distance = distance;
-        }
-      }
-    }
-
-    const summary = activityDetail?.summary || activity;
+    const summary = activity;
     const compressedActivityStream = compressActivityStream(activityStream);
     const sport = mapGarminActivityType(summary.activityType);
 
@@ -832,9 +721,7 @@ export class GarminProviderService
         roundCadence(summary.averageSwimCadenceInStrokesPerMinute) ?? undefined;
     }
 
-    const movingTime =
-      activityDetail?.samples?.[activityDetail.samples.length - 1]
-        ?.movingDurationInSeconds || summary.durationInSeconds;
+    const movingTime = summary.durationInSeconds;
 
     const savedActivity = await this.prisma.event_activity.create({
       data: {
@@ -863,83 +750,6 @@ export class GarminProviderService
         },
       },
     });
-
-    if (
-      activityDetail?.laps &&
-      activityDetail.laps.length > 0 &&
-      activityStream.time &&
-      activityStream.time.length > 0
-    ) {
-      const laps = activityDetail.laps;
-      const activityStartTime = activityDetail.summary.startTimeInSeconds;
-      const totalDuration = summary.durationInSeconds;
-
-      const uncompressedStream = uncompressActivityStream(
-        compressedActivityStream,
-      );
-
-      const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
-      let segmentIndex = 0;
-
-      const firstLapStartTimeSeconds =
-        laps[0].startTimeInSeconds - activityStartTime;
-      if (firstLapStartTimeSeconds > 0) {
-        const metrics = calculateSegmentMetrics(
-          uncompressedStream,
-          0,
-          firstLapStartTimeSeconds,
-        );
-
-        segmentsData.push({
-          segment_type: activity_segment_type.LAP,
-          name: `Lap ${segmentIndex + 1}`,
-          order_index: segmentIndex,
-          start_time_seconds: 0,
-          end_time_seconds: Math.round(firstLapStartTimeSeconds),
-          ...metrics,
-          event_activity_id: savedActivity.event_activity_id,
-        });
-        segmentIndex++;
-      }
-
-      for (let i = 0; i < laps.length; i++) {
-        const lap = laps[i];
-        const lapStartTimeSeconds = lap.startTimeInSeconds - activityStartTime;
-        const lapEndTimeSeconds =
-          i < laps.length - 1
-            ? laps[i + 1].startTimeInSeconds - activityStartTime
-            : totalDuration;
-
-        if (
-          lapStartTimeSeconds >= 0 &&
-          lapEndTimeSeconds > lapStartTimeSeconds &&
-          lapEndTimeSeconds <= totalDuration
-        ) {
-          const metrics = calculateSegmentMetrics(
-            uncompressedStream,
-            lapStartTimeSeconds,
-            lapEndTimeSeconds,
-          );
-
-          segmentsData.push({
-            segment_type: activity_segment_type.LAP,
-            name: `Lap ${segmentIndex + 1}`,
-            order_index: segmentIndex,
-            start_time_seconds: Math.round(lapStartTimeSeconds),
-            end_time_seconds: Math.round(lapEndTimeSeconds),
-            ...metrics,
-            event_activity_id: savedActivity.event_activity_id,
-          });
-          segmentIndex++;
-        }
-      }
-
-      if (segmentsData.length > 0) {
-        await this.prisma.activity_segment.createMany({
-          data: segmentsData,
-        });
-      }
-    }
 
     return savedActivity;
   }
@@ -2061,9 +1871,11 @@ export class GarminProviderService
         timeout: 60000,
       });
 
+      const fitParseResult =
+        fileType === 'FIT' ? await parseFitFile(response.data) : null;
       const activityStream =
         fileType === 'FIT'
-          ? await parseFitFile(response.data)
+          ? (fitParseResult?.stream ?? {})
           : await parseGpxFile(response.data);
       const compressedStream = compressActivityStream(activityStream);
 
@@ -2075,6 +1887,17 @@ export class GarminProviderService
           stream: compressedStream as object,
         },
       });
+
+      if (
+        fitParseResult?.segments?.length &&
+        Object.keys(activityStream).length > 0
+      ) {
+        await this.syncSegmentsFromFit(
+          activity.event_activity_id,
+          fitParseResult.segments,
+          activityStream,
+        );
+      }
 
       const activityWithEvent = await this.prisma.event_activity.findUnique({
         where: { event_activity_id: activity.event_activity_id },
@@ -2099,6 +1922,53 @@ export class GarminProviderService
     } catch {
       // Failed to download/parse file, activity remains without stream
     }
+  }
+
+  private async syncSegmentsFromFit(
+    eventActivityId: number,
+    segments: FitFileSegment[],
+    stream: ActivityStream,
+  ): Promise<void> {
+    if (!segments.length || !stream?.time?.length) {
+      return;
+    }
+
+    const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
+
+    segments.forEach((segment, index) => {
+      if (segment.endTimeSeconds <= segment.startTimeSeconds) {
+        return;
+      }
+
+      const metrics = calculateSegmentMetrics(
+        stream,
+        segment.startTimeSeconds,
+        segment.endTimeSeconds,
+      );
+
+      segmentsData.push({
+        segment_type: activity_segment_type.LAP,
+        name: segment.name ?? `Lap ${index + 1}`,
+        order_index: index,
+        start_time_seconds: Math.round(segment.startTimeSeconds),
+        end_time_seconds: Math.round(segment.endTimeSeconds),
+        ...metrics,
+        event_activity_id: eventActivityId,
+      });
+    });
+
+    if (!segmentsData.length) {
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.activity_segment.deleteMany({
+        where: { event_activity_id: eventActivityId },
+      });
+      await tx.activity_segment.createMany({
+        data: segmentsData,
+      });
+    });
   }
 
   async handleDeregistrationWebhook(

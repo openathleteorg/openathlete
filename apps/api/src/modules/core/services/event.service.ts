@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
+  activity_segment,
   event,
   event_activity,
   event_competition,
@@ -140,6 +141,37 @@ export const EVENT_INCLUDES = {
           type: true,
         },
       },
+      segments: {
+        orderBy: {
+          order_index: 'asc' as const,
+        },
+        select: {
+          activity_segment_id: true,
+          segment_type: true,
+          name: true,
+          order_index: true,
+          start_time_seconds: true,
+          end_time_seconds: true,
+          event_activity_id: true,
+          distance: true,
+          elevation_gain: true,
+          moving_time: true,
+          average_speed: true,
+          max_speed: true,
+          average_cadence: true,
+          average_watts: true,
+          max_watts: true,
+          weighted_average_watts: true,
+          average_heartrate: true,
+          max_heartrate: true,
+          kilojoules: true,
+          average_gap_speed: true,
+          average_normalized_speed: true,
+          workout_step_id: true,
+          created_at: true,
+          updated_at: true,
+        },
+      },
     },
   },
 };
@@ -171,7 +203,11 @@ export class EventService {
       competition: event_competition | null;
       training: event_training | null;
       note: event_note | null;
-      activity: Omit<event_activity, 'stream'> | null;
+      activity:
+        | (Omit<event_activity, 'stream'> & {
+            segments?: activity_segment[];
+          })
+        | null;
     },
   ) {
     const { competition, training, note, activity, ...rest } = event;

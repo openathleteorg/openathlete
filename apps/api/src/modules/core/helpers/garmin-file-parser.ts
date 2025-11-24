@@ -241,19 +241,31 @@ function calculateDistance(
   return R * c;
 }
 
+export interface FitFileSegment {
+  startTimeSeconds: number;
+  endTimeSeconds: number;
+  orderIndex: number;
+  name?: string;
+}
+
+export interface FitFileParseResult {
+  stream: ActivityStream;
+  segments: FitFileSegment[];
+}
+
 export async function parseFitFile(
   fileBuffer: ArrayBuffer,
-): Promise<ActivityStream> {
+): Promise<FitFileParseResult> {
   const buffer = Buffer.from(fileBuffer);
   const stream = Stream.fromBuffer(buffer);
   const decoder = new Decoder(stream);
 
   if (!decoder.isFIT()) {
-    return {};
+    return { stream: {}, segments: [] };
   }
 
   if (!decoder.checkIntegrity()) {
-    return {};
+    return { stream: {}, segments: [] };
   }
 
   const { messages, errors } = decoder.read({
@@ -275,7 +287,7 @@ export async function parseFitFile(
     Record<string, unknown>
   >;
   if (!records.length) {
-    return {};
+    return { stream: {}, segments: [] };
   }
 
   const session = (messages.sessionMesgs?.[0] ?? null) as Record<
@@ -414,5 +426,163 @@ export async function parseFitFile(
     result.distance = distance;
   }
 
-  return result;
+  const totalDurationSeconds =
+    typeof session?.totalTimerTime === 'number'
+      ? session.totalTimerTime
+      : typeof session?.totalElapsedTime === 'number'
+        ? session.totalElapsedTime
+        : time.length > 0
+          ? time[time.length - 1]
+          : null;
+
+  const lapMessages = (messages.lapMesgs ?? []) as Array<
+    Record<string, unknown>
+  >;
+  const segments = buildFitSegments(
+    lapMessages,
+    startTimestamp,
+    totalDurationSeconds,
+  );
+
+  return { stream: result, segments };
+}
+
+type RawLapMessage = Record<string, unknown>;
+type BaseLapSegment = {
+  startMs: number | null;
+  endMs: number | null;
+  durationSeconds: number | null;
+  name?: string;
+  order: number;
+};
+
+function buildFitSegments(
+  lapMessages: RawLapMessage[],
+  startTimestamp: number | null,
+  totalDurationSeconds: number | null,
+): FitFileSegment[] {
+  if (!lapMessages.length || startTimestamp === null) {
+    return [];
+  }
+
+  const baseSegments: BaseLapSegment[] = lapMessages.map((lap, index) => {
+    const startMs = toFitTimestamp(
+      lap.startTime ?? lap.start_time ?? lap.start_time_ms,
+    );
+    const endMs = toFitTimestamp(lap.endTime ?? lap.end_time);
+    const durationSeconds =
+      toNumber(lap.totalTimerTime ?? lap.total_timer_time) ??
+      toNumber(lap.totalElapsedTime ?? lap.total_elapsed_time);
+
+    return {
+      startMs,
+      endMs,
+      durationSeconds,
+      name:
+        typeof lap.name === 'string' && lap.name.trim().length > 0
+          ? lap.name.trim()
+          : undefined,
+      order: index,
+    };
+  });
+
+  const sanitizedSegments = baseSegments
+    .filter(
+      (lap): lap is BaseLapSegment & { startMs: number } =>
+        typeof lap.startMs === 'number',
+    )
+    .sort((a, b) => a.startMs - b.startMs);
+
+  if (!sanitizedSegments.length) {
+    return [];
+  }
+
+  const totalDurationMs =
+    typeof totalDurationSeconds === 'number'
+      ? totalDurationSeconds * 1000
+      : null;
+
+  const normalizedSegments: FitFileSegment[] = [];
+
+  for (let i = 0; i < sanitizedSegments.length; i++) {
+    const lap = sanitizedSegments[i];
+    let endMs = lap.endMs;
+
+    if (endMs === null && lap.durationSeconds !== null) {
+      endMs = lap.startMs + lap.durationSeconds * 1000;
+    }
+
+    if (endMs === null && sanitizedSegments[i + 1]) {
+      endMs = sanitizedSegments[i + 1].startMs;
+    }
+
+    if (endMs === null && totalDurationMs !== null) {
+      endMs = startTimestamp + totalDurationMs;
+    }
+
+    if (endMs === null || endMs <= lap.startMs) {
+      continue;
+    }
+
+    const startSeconds = Math.max(
+      0,
+      Math.round((lap.startMs - startTimestamp) / 1000),
+    );
+    const endSeconds = Math.max(
+      startSeconds + 1,
+      Math.round((endMs - startTimestamp) / 1000),
+    );
+
+    normalizedSegments.push({
+      startTimeSeconds: startSeconds,
+      endTimeSeconds: endSeconds,
+      orderIndex: normalizedSegments.length,
+      name: lap.name,
+    });
+  }
+
+  // Ensure last segment covers entire duration if we know it
+  if (
+    normalizedSegments.length > 0 &&
+    totalDurationSeconds !== null &&
+    normalizedSegments[normalizedSegments.length - 1].endTimeSeconds <
+      Math.round(totalDurationSeconds)
+  ) {
+    const last = normalizedSegments[normalizedSegments.length - 1];
+    normalizedSegments[normalizedSegments.length - 1] = {
+      ...last,
+      endTimeSeconds: Math.round(totalDurationSeconds),
+    };
+  }
+
+  return normalizedSegments;
+}
+
+function toFitTimestamp(value: unknown): number | null {
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+
+    // Values coming from FIT files are usually seconds since epoch
+    // Treat values that look like seconds and convert to ms
+    if (value < 10_000_000_000) {
+      return value * 1000;
+    }
+
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      return date.getTime();
+    }
+  }
+
+  return null;
 }
