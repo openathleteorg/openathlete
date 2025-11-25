@@ -16,6 +16,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
+import { addDays, startOfMonth } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -100,6 +101,20 @@ export function Calendar({
       {} as CalendarContextType['weeklyLoadSummary'],
     );
   }, [weeklyLoadSummary]);
+
+  const hasScheduledActivitiesWithinSixtyDays = useMemo(() => {
+    if (!calendarData.events.length) {
+      return false;
+    }
+
+    const rangeStart = startOfMonth(calendarData.displayedMonth);
+    const rangeEnd = addDays(rangeStart, 60);
+
+    return calendarData.events.some((event) => {
+      const eventStart = new Date(event.startDate);
+      return eventStart >= rangeStart && eventStart <= rangeEnd;
+    });
+  }, [calendarData.displayedMonth, calendarData.events]);
 
   useEffect(() => {
     if (onMonthChange) {
@@ -454,6 +469,7 @@ export function Calendar({
             displayedMonth={calendarData.displayedMonth}
             weeklyLoadSummary={weeklyLoadSummaryMap}
             isLoading={weeklyLoadSummaryLoading}
+            hasScheduledActivities={hasScheduledActivitiesWithinSixtyDays}
           />
           <CreateEventDialog
             key={createEventDialog?.date?.toDateString()}

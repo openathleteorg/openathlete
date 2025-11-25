@@ -33,6 +33,7 @@ interface CalendarWeeklyLoadChartProps {
   displayedMonth: Date;
   weeklyLoadSummary: Record<string, CalendarWeekLoadSummary>;
   isLoading: boolean;
+  hasScheduledActivities: boolean;
 }
 
 interface ChartWeekRow {
@@ -49,6 +50,7 @@ export function CalendarWeeklyLoadChart({
   displayedMonth,
   weeklyLoadSummary,
   isLoading,
+  hasScheduledActivities,
 }: CalendarWeeklyLoadChartProps) {
   const targetMonth = displayedMonth.getMonth();
   const targetYear = displayedMonth.getFullYear();
@@ -107,7 +109,7 @@ export function CalendarWeeklyLoadChart({
       .filter((week): week is ChartWeekRow => Boolean(week));
   }, [weeks, weeklyLoadSummary, targetMonth, targetYear]);
 
-  if (!weeks?.length) {
+  if (!hasScheduledActivities || !weeks?.length) {
     return null;
   }
 
