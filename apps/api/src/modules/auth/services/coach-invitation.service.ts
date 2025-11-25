@@ -28,9 +28,29 @@ export class CoachInvitationService {
   }
 
   async createInvitation(athleteUserId: number, email: string) {
+    const normalizedEmail = email.toLowerCase();
+
+    const athleteUser = await this.prisma.user.findUnique({
+      where: { user_id: athleteUserId },
+      select: {
+        user_id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+      },
+    });
+
+    if (!athleteUser) {
+      throw new NotFoundException('Athlete not found');
+    }
+
+    if (athleteUser.email.toLowerCase() === normalizedEmail) {
+      throw new BadRequestException('You cannot invite yourself');
+    }
+
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -57,7 +77,7 @@ export class CoachInvitationService {
       // Check if there's already a pending invitation for this email from this athlete
       const existingInvitation = await this.prisma.coach_invitation.findFirst({
         where: {
-          email: email.toLowerCase(),
+          email: normalizedEmail,
           athlete_user_id: athleteUserId,
           status: invitation_status.PENDING,
         },
@@ -72,25 +92,12 @@ export class CoachInvitationService {
       // Create invitation with PENDING status (user exists, needs to accept)
       const invitation = await this.prisma.coach_invitation.create({
         data: {
-          email: email.toLowerCase(),
+          email: normalizedEmail,
           athlete_user_id: athleteUserId,
           coach_user_id: existingUser.user_id,
           status: invitation_status.PENDING,
         },
       });
-
-      // Get athlete info for email
-      const athleteUser = await this.prisma.user.findUnique({
-        where: { user_id: athleteUserId },
-        select: {
-          first_name: true,
-          last_name: true,
-        },
-      });
-
-      if (!athleteUser) {
-        throw new NotFoundException('Athlete not found');
-      }
 
       const invitationUrl = `${this.configService.get('APP_URL')}/dashboard/settings?tab=invitations`;
 
@@ -99,7 +106,7 @@ export class CoachInvitationService {
         SendEmailEvent.SLUG,
         new SendEmailEvent({
           type: 'coach-invitation-existing',
-          to: email.toLowerCase(),
+          to: normalizedEmail,
           params: {
             athleteName: `${athleteUser.first_name} ${athleteUser.last_name}`,
             url: invitationUrl,
@@ -113,7 +120,7 @@ export class CoachInvitationService {
       // Check if there's already a pending invitation for this email from this athlete
       const existingInvitation = await this.prisma.coach_invitation.findFirst({
         where: {
-          email: email.toLowerCase(),
+          email: normalizedEmail,
           athlete_user_id: athleteUserId,
           status: invitation_status.PENDING,
         },
@@ -144,25 +151,12 @@ export class CoachInvitationService {
 
       const invitation = await this.prisma.coach_invitation.create({
         data: {
-          email: email.toLowerCase(),
+          email: normalizedEmail,
           token,
           athlete_user_id: athleteUserId,
           status: invitation_status.PENDING,
         },
       });
-
-      // Get athlete info for email
-      const athleteUser = await this.prisma.user.findUnique({
-        where: { user_id: athleteUserId },
-        select: {
-          first_name: true,
-          last_name: true,
-        },
-      });
-
-      if (!athleteUser) {
-        throw new NotFoundException('Athlete not found');
-      }
 
       const invitationUrl = `${this.configService.get('APP_URL')}/auth/create-account?coach-invitation=${token}`;
 
@@ -171,7 +165,7 @@ export class CoachInvitationService {
         SendEmailEvent.SLUG,
         new SendEmailEvent({
           type: 'coach-invitation-new',
-          to: email.toLowerCase(),
+          to: normalizedEmail,
           params: {
             athleteName: `${athleteUser.first_name} ${athleteUser.last_name}`,
             url: invitationUrl,

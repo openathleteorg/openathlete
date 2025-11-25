@@ -28,9 +28,29 @@ export class AthleteInvitationService {
   }
 
   async createInvitation(coachUserId: number, email: string) {
+    const normalizedEmail = email.toLowerCase();
+
+    const coachUser = await this.prisma.user.findUnique({
+      where: { user_id: coachUserId },
+      select: {
+        user_id: true,
+        email: true,
+        first_name: true,
+        last_name: true,
+      },
+    });
+
+    if (!coachUser) {
+      throw new NotFoundException('Coach not found');
+    }
+
+    if (coachUser.email.toLowerCase() === normalizedEmail) {
+      throw new BadRequestException('You cannot invite yourself');
+    }
+
     // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
@@ -55,7 +75,7 @@ export class AthleteInvitationService {
         const existingInvitation =
           await this.prisma.athlete_invitation.findFirst({
             where: {
-              email: email.toLowerCase(),
+              email: normalizedEmail,
               user_id: coachUserId,
               status: invitation_status.PENDING,
             },
@@ -70,24 +90,11 @@ export class AthleteInvitationService {
         // Create invitation with PENDING status (user exists, needs to accept)
         const invitation = await this.prisma.athlete_invitation.create({
           data: {
-            email: email.toLowerCase(),
+            email: normalizedEmail,
             user_id: coachUserId,
             status: invitation_status.PENDING,
           },
         });
-
-        // Get coach info for email
-        const coach = await this.prisma.user.findUnique({
-          where: { user_id: coachUserId },
-          select: {
-            first_name: true,
-            last_name: true,
-          },
-        });
-
-        if (!coach) {
-          throw new NotFoundException('Coach not found');
-        }
 
         const invitationUrl = `${this.configService.get('APP_URL')}/dashboard/settings?tab=invitations`;
 
@@ -96,9 +103,9 @@ export class AthleteInvitationService {
           SendEmailEvent.SLUG,
           new SendEmailEvent({
             type: 'athlete-invitation-existing',
-            to: email.toLowerCase(),
+            to: normalizedEmail,
             params: {
-              coachName: `${coach.first_name} ${coach.last_name}`,
+              coachName: `${coachUser.first_name} ${coachUser.last_name}`,
               url: invitationUrl,
             },
           }),
@@ -112,7 +119,7 @@ export class AthleteInvitationService {
     // Check if there's already a pending invitation for this email from this coach
     const existingInvitation = await this.prisma.athlete_invitation.findFirst({
       where: {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         user_id: coachUserId,
       },
     });
@@ -142,25 +149,12 @@ export class AthleteInvitationService {
 
     const invitation = await this.prisma.athlete_invitation.create({
       data: {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         token,
         user_id: coachUserId,
         // status is null = auto-accept on account creation
       },
     });
-
-    // Get coach info for email
-    const coach = await this.prisma.user.findUnique({
-      where: { user_id: coachUserId },
-      select: {
-        first_name: true,
-        last_name: true,
-      },
-    });
-
-    if (!coach) {
-      throw new NotFoundException('Coach not found');
-    }
 
     const invitationUrl = `${this.configService.get('APP_URL')}/auth/create-account?invitation=${token}`;
 
@@ -169,9 +163,9 @@ export class AthleteInvitationService {
       SendEmailEvent.SLUG,
       new SendEmailEvent({
         type: 'athlete-invitation',
-        to: email.toLowerCase(),
+        to: normalizedEmail,
         params: {
-          coachName: `${coach.first_name} ${coach.last_name}`,
+          coachName: `${coachUser.first_name} ${coachUser.last_name}`,
           url: invitationUrl,
         },
       }),
