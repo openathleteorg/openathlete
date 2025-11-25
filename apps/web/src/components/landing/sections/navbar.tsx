@@ -3,6 +3,7 @@ import { Container } from '@/components/landing/container';
 import { LanguageSwitcher } from '@/components/landing/language-switcher';
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
+import { getPath } from '@/routes/paths';
 import { Link } from 'react-router-dom';
 
 export function Navbar() {
@@ -17,9 +18,12 @@ export function Navbar() {
             </span>
           </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
               <a href="#how-it-works">{m.landing_hero_cta_secondary()}</a>
+            </Button>
+            <Button asChild>
+              <Link to={getPath(['auth', 'login'])}>{m.login()}</Link>
             </Button>
             <LanguageSwitcher />
           </div>
