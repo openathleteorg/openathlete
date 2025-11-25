@@ -3,6 +3,7 @@ import { useCompleteOnboardingMutation, useGetMeQuery } from '@/api/user';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
 import { ConnectorsList } from '@/components/connectors/connectors-list';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -649,6 +650,9 @@ export function OnboardingView() {
             </div>
           </motion.div>
         </AnimatePresence>
+        <div className="mt-4 flex justify-center">
+          <LanguageSwitcher buttonVariant="secondary" showLabelOnMobile />
+        </div>
       </div>
     </div>
   );
