@@ -5,6 +5,7 @@ import { buildAthleteInvitationEmail } from './templates/athlete-invitation.temp
 import { buildCoachInvitationExistingEmail } from './templates/coach-invitation-existing.template';
 import { buildCoachInvitationNewEmail } from './templates/coach-invitation-new.template';
 import { buildPasswordResetEmail } from './templates/password-reset.template';
+import { buildSignupNotificationEmail } from './templates/signup-notification.template';
 import { buildWelcomeEmail } from './templates/welcome.template';
 
 export const emailTemplates = {
@@ -23,5 +24,8 @@ export const emailTemplates = {
   ) => string,
   'coach-invitation-existing': buildCoachInvitationExistingEmail as (
     props: EmailPropsFromId<'coach-invitation-existing'>,
+  ) => string,
+  'signup-notification': buildSignupNotificationEmail as (
+    props: EmailPropsFromId<'signup-notification'>,
   ) => string,
 };

@@ -7,6 +7,7 @@ const emailSubjects: {
   'athlete-invitation-existing': Record<EmailLanguage, string>;
   'coach-invitation-new': Record<EmailLanguage, string>;
   'coach-invitation-existing': Record<EmailLanguage, string>;
+  'signup-notification': Record<EmailLanguage, string>;
 } = {
   'password-reset': {
     FR: 'Réinitialisation de votre mot de passe',
@@ -31,6 +32,10 @@ const emailSubjects: {
   'coach-invitation-existing': {
     FR: 'Nouvelle invitation de coach',
     EN: 'New coach invitation',
+  },
+  'signup-notification': {
+    FR: 'Nouvelle inscription utilisateur',
+    EN: 'New user signup',
   },
 } as const;
 
@@ -58,6 +63,10 @@ export const emailLibrary = {
   'coach-invitation-existing': {
     defaultSubject: emailSubjects['coach-invitation-existing'],
     props: {} as { athleteName: string; url: string },
+  },
+  'signup-notification': {
+    defaultSubject: emailSubjects['signup-notification'],
+    props: {} as { email: string; firstName?: string; lastName?: string },
   },
 } as const;
 

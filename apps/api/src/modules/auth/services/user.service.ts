@@ -196,7 +196,6 @@ export class UserService {
       },
     });
 
-    // If invitation token is provided, link athlete to coach
     if (invitationToken) {
       await this.invitationService.consumeInvitation(
         invitationToken,
@@ -204,7 +203,6 @@ export class UserService {
       );
     }
 
-    // If coach invitation token is provided, link coach to athlete
     if (coachInvitationToken) {
       await this.coachInvitationService.consumeInvitation(
         coachInvitationToken,
@@ -212,7 +210,6 @@ export class UserService {
       );
     }
 
-    // Fire and forget welcome email
     this.eventEmitter.emit(
       SendEmailEvent.SLUG,
       new SendEmailEvent({
@@ -221,6 +218,19 @@ export class UserService {
         params: {
           name: firstName,
           dashboard_url: `${this.configService.get('APP_URL')}/dashboard`,
+        },
+      }),
+    );
+
+    this.eventEmitter.emit(
+      SendEmailEvent.SLUG,
+      new SendEmailEvent({
+        type: 'signup-notification',
+        to: 'contact@openathlete.org',
+        params: {
+          email,
+          firstName,
+          lastName,
         },
       }),
     );
