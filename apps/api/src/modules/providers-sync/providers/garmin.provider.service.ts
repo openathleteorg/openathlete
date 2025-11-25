@@ -58,6 +58,7 @@ import {
   GarminRespirationSummary,
   GarminSkinTempSummary,
   GarminSleepSummary,
+  GarminStressDetailsSummary,
   GarminUserMetricsSummary,
   GarminUserPermissionsChangeWebhook,
 } from '../../core/types/connector';
@@ -896,6 +897,20 @@ export class GarminProviderService
       return;
     }
 
+    // Process callbacks asynchronously after returning HTTP 200
+    // This is required by Garmin to avoid timeouts
+    setImmediate(() => {
+      this.processHealthPingPayload(payload).catch((error) => {
+        this.logger.error(
+          `Failed to process Garmin health ping payload: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      });
+    });
+  }
+
+  private async processHealthPingPayload(
+    payload: GarminHealthPingPayload,
+  ): Promise<void> {
     const summaryTypes = Object.keys(payload) as GarminHealthSummaryType[];
     for (const summaryType of summaryTypes) {
       const notifications = payload[summaryType];
@@ -1062,7 +1077,31 @@ export class GarminProviderService
         );
         break;
       }
+      case 'stressDetails': {
+        const data =
+          await this.fetchHealthSummaries<GarminStressDetailsSummary>(
+            account,
+            callbackURL,
+          );
+        await this.saveMetrics(
+          account.athlete_id,
+          this.mapStressDetailsSummariesToMetrics(data),
+        );
+        break;
+      }
+      case 'epochs': {
+        // Epochs are 15-minute wellness data slices
+        // We can skip processing epochs as they're already aggregated in dailies
+        // But we'll log that we received them for debugging
+        this.logger.debug(
+          `Received epochs ping for account ${account.provider_account_id}, skipping (data aggregated in dailies)`,
+        );
+        break;
+      }
       default:
+        this.logger.warn(
+          `Unhandled Garmin health summary type: ${summaryType}`,
+        );
         break;
     }
   }
@@ -1692,6 +1731,83 @@ export class GarminProviderService
         date,
         summary.avgDeviationCelsius,
       );
+    }
+
+    return metrics;
+  }
+
+  private mapStressDetailsSummariesToMetrics(
+    summaries: GarminStressDetailsSummary[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const summary of summaries) {
+      const date =
+        this.parseCalendarDate(summary.calendarDate) ??
+        this.dateFromTimestamp(
+          summary.startTimeInSeconds,
+          summary.startTimeOffsetInSeconds,
+        );
+      if (!date) continue;
+
+      // Extract stress level values and calculate statistics
+      const stressValues = this.extractNumericValues(
+        summary.timeOffsetStressLevelValues,
+      );
+      if (stressValues.length > 0) {
+        const validStressValues = stressValues.filter((v) => v > 0 && v <= 100);
+        if (validStressValues.length > 0) {
+          const avg = this.average(validStressValues);
+          const max = Math.max(...validStressValues);
+          if (avg !== undefined) {
+            this.pushMetric(metrics, METRIC_TYPE.STRESS_AVERAGE, date, avg, 0);
+          }
+          if (Number.isFinite(max)) {
+            this.pushMetric(metrics, METRIC_TYPE.STRESS_MAX, date, max, 0);
+          }
+        }
+      }
+
+      // Extract body battery values and calculate statistics
+      const bodyBatteryValues = this.extractNumericValues(
+        summary.timeOffsetBodyBatteryValues,
+      );
+      if (bodyBatteryValues.length > 0) {
+        const validBatteryValues = bodyBatteryValues.filter(
+          (v) => v >= 0 && v <= 100,
+        );
+        if (validBatteryValues.length > 0) {
+          // Calculate charged/drained from changes in body battery
+          let charged = 0;
+          let drained = 0;
+          for (let i = 1; i < validBatteryValues.length; i++) {
+            const diff = validBatteryValues[i] - validBatteryValues[i - 1];
+            if (diff > 0) {
+              charged += diff;
+            } else if (diff < 0) {
+              drained += Math.abs(diff);
+            }
+          }
+          if (charged > 0) {
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.BODY_BATTERY_CHARGED,
+              date,
+              charged,
+              0,
+            );
+          }
+          if (drained > 0) {
+            this.pushMetric(
+              metrics,
+              METRIC_TYPE.BODY_BATTERY_DRAINED,
+              date,
+              drained,
+              0,
+            );
+          }
+        }
+      }
     }
 
     return metrics;

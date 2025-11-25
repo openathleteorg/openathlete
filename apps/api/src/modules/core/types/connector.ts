@@ -303,10 +303,51 @@ export interface GarminSkinTempSummary {
   avgDeviationCelsius?: number;
 }
 
+export interface GarminStressDetailsSummary {
+  summaryId: string;
+  startTimeInSeconds: number;
+  startTimeOffsetInSeconds?: number;
+  durationInSeconds?: number;
+  calendarDate?: string;
+  timeOffsetStressLevelValues?: Record<string, number>;
+  timeOffsetBodyBatteryValues?: Record<string, number>;
+  bodyBatteryDynamicFeedbackEvent?: {
+    eventStartTimeInSeconds?: number;
+    bodyBatteryLevel?: string;
+  };
+  bodyBatteryActivityEventList?: Array<{
+    eventType?: string;
+    eventStartTimeInSeconds?: number;
+    eventStartTimeOffsetInSeconds?: number;
+    duration?: number;
+    bodyBatteryImpact?: number;
+  }>;
+}
+
+export interface GarminEpochSummary {
+  summaryId: string;
+  startTimeInSeconds: number;
+  startTimeOffsetInSeconds?: number;
+  activityType?: string;
+  durationInSeconds?: number;
+  activeTimeInSeconds?: number;
+  steps?: number;
+  pushes?: number;
+  distanceInMeters?: number;
+  pushDistanceInMeters?: number;
+  activeKilocalories?: number;
+  met?: number;
+  intensity?: string;
+  meanMotionIntensity?: number;
+  maxMotionIntensity?: number;
+}
+
 export type GarminHealthSummaryType =
   | 'dailies'
+  | 'epochs'
   | 'sleeps'
   | 'bodyComps'
+  | 'stressDetails'
   | 'userMetrics'
   | 'pulseox'
   | 'allDayRespiration'
