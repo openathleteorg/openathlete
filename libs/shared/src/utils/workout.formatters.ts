@@ -1,16 +1,18 @@
 import { WorkoutStepTarget } from '../types';
 import { formatSpeed } from './numeric-stats.formatter';
+import { getTargetIntensity } from './target-intensity';
 
 /**
  * Format a workout target for display
  * @param target - Target object with type, unit, and values
- * @param sport - Optional sport to determine zone type
  * @param getMetricLabel - Optional function to get metric label (for i18n)
+ * @param metrics - Optional record of metric types to their values for calculating absolute values
  * @returns Human-readable formatted target
  */
 export function formatTarget(
   target: WorkoutStepTarget,
   getMetricLabel?: (metricType: string) => string,
+  metrics?: Record<string, { value: number } | number>,
 ): string {
   const { targetType, targetMin, targetMax, targetValue, metricType } = target;
 
@@ -53,7 +55,37 @@ export function formatTarget(
     targetMax !== undefined
   ) {
     if (isPercentage && metricName) {
-      return `${formatPercent(targetMin)} - ${formatPercent(targetMax)} de ${metricName}`;
+      // Get absolute values if metrics are provided
+      const absoluteValues = getTargetIntensity(target, metrics);
+      const percentageStr = `${formatPercent(targetMin)} - ${formatPercent(targetMax)} de ${metricName}`;
+
+      // Format absolute values based on target type
+      if (
+        absoluteValues.min !== null &&
+        absoluteValues.max !== null &&
+        metrics
+      ) {
+        let absoluteStr = '';
+        switch (targetType) {
+          case 'PACE':
+            absoluteStr = `${formatSpeed(absoluteValues.min)} - ${formatSpeed(absoluteValues.max)} min/km`;
+            break;
+          case 'HEARTRATE':
+            absoluteStr = `${Math.round(absoluteValues.min)} - ${Math.round(absoluteValues.max)} bpm`;
+            break;
+          case 'POWER':
+            absoluteStr = `${Math.round(absoluteValues.min)} - ${Math.round(absoluteValues.max)} W`;
+            break;
+          case 'CADENCE':
+            absoluteStr = `${Math.round(absoluteValues.min)} - ${Math.round(absoluteValues.max)} rpm`;
+            break;
+          default:
+            absoluteStr = `${absoluteValues.min} - ${absoluteValues.max}`;
+        }
+        return `${percentageStr} - ${absoluteStr}`;
+      }
+
+      return percentageStr;
     }
 
     switch (targetType) {
@@ -87,7 +119,33 @@ export function formatTarget(
   // Single value target
   if (targetValue !== null && targetValue !== undefined) {
     if (isPercentage && metricName) {
-      return `${formatPercent(targetValue)} de ${metricName}`;
+      // Get absolute value if metrics are provided
+      const absoluteValues = getTargetIntensity(target, metrics);
+      const percentageStr = `${formatPercent(targetValue)} de ${metricName}`;
+
+      // Format absolute value based on target type
+      if (absoluteValues.value !== null && metrics) {
+        let absoluteStr = '';
+        switch (targetType) {
+          case 'PACE':
+            absoluteStr = `${formatSpeed(absoluteValues.value)}`;
+            break;
+          case 'HEARTRATE':
+            absoluteStr = `${Math.round(absoluteValues.value)} bpm`;
+            break;
+          case 'POWER':
+            absoluteStr = `${Math.round(absoluteValues.value)} W`;
+            break;
+          case 'CADENCE':
+            absoluteStr = `${Math.round(absoluteValues.value)} rpm`;
+            break;
+          default:
+            absoluteStr = `${absoluteValues.value}`;
+        }
+        return `${percentageStr} - ${absoluteStr}`;
+      }
+
+      return percentageStr;
     }
 
     switch (targetType) {

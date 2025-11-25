@@ -66,7 +66,11 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
                 <div className="flex flex-wrap gap-2">
                   {step.targets.map(
                     (target: WorkoutStepTarget, idx: number) => (
-                      <TargetBadge key={idx} target={target} />
+                      <TargetBadge
+                        key={idx}
+                        target={target}
+                        showAbsoluteValues={true}
+                      />
                     ),
                   )}
                 </div>

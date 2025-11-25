@@ -1,4 +1,5 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import {
   Tooltip,
   TooltipContent,
@@ -19,14 +20,19 @@ interface TargetBadgeProps {
   className?: string;
   showTooltip?: boolean;
   sport?: SPORT_TYPE;
+  showAbsoluteValues?: boolean;
 }
 
 export function TargetBadge({
   target,
   className,
   showTooltip = true,
+  showAbsoluteValues = false,
 }: TargetBadgeProps) {
   const { data: athlete } = useGetMyAthleteQuery();
+  const { data: latestMetrics = {} } = useGetLatestMetricsQuery(
+    showAbsoluteValues ? athlete?.athleteId : undefined,
+  );
 
   // Get zone name if target is a ZONE type
   // Since zone IDs are unique, we can search across all zone types
@@ -44,17 +50,32 @@ export function TargetBadge({
     return null;
   }, [target, athlete]);
 
+  // Convert metrics format from Record<string, AthleteMetric> to Record<string, { value: number }>
+  const metricsForFormat = useMemo(() => {
+    const converted: Record<string, { value: number }> = {};
+    Object.entries(latestMetrics).forEach(([key, metric]) => {
+      if (metric && typeof metric === 'object' && 'value' in metric) {
+        converted[key] = { value: metric.value };
+      }
+    });
+    return converted;
+  }, [latestMetrics]);
+
   const formatted = useMemo(() => {
     if (target.targetType === 'ZONE' && zoneName) {
       return zoneName;
     }
-    return formatTarget(target, (metricType) => {
-      return (
-        metricTypeLabelMap[metricType as keyof typeof metricTypeLabelMap] ||
-        metricType
-      );
-    });
-  }, [target, zoneName]);
+    return formatTarget(
+      target,
+      (metricType) => {
+        return (
+          metricTypeLabelMap[metricType as keyof typeof metricTypeLabelMap] ||
+          metricType
+        );
+      },
+      showAbsoluteValues ? metricsForFormat : undefined,
+    );
+  }, [target, zoneName, metricsForFormat, showAbsoluteValues]);
 
   const label = getTargetTypeLabel(target.targetType);
 

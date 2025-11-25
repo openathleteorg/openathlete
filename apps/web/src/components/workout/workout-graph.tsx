@@ -418,9 +418,11 @@ function WarmupCooldownShape({
 function StepBar({
   segment,
   maxHeight,
+  metrics,
 }: {
   segment: StepSegment;
   maxHeight: number;
+  metrics?: Record<string, { value: number }>;
 }) {
   const height = Math.max(
     MIN_BAR_HEIGHT,
@@ -478,7 +480,7 @@ function StepBar({
                     (target: WorkoutStepTarget, idx: number) => (
                       <span key={idx}>
                         {idx > 0 && ', '}
-                        {formatTarget(target)}
+                        {formatTarget(target, undefined, metrics)}
                       </span>
                     ),
                   )}
@@ -641,7 +643,11 @@ export function WorkoutGraph({
                   minWidth: '1px',
                 }}
               >
-                <StepBar segment={segment} maxHeight={maxHeight} />
+                <StepBar
+                  segment={segment}
+                  maxHeight={maxHeight}
+                  metrics={metrics}
+                />
               </div>
             );
           })}
