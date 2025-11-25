@@ -39,6 +39,7 @@
     "@nestjs/websockets": "^11.1.6",
     "@openathlete/database": "workspace:*",
     "@openathlete/shared": "workspace:*",
+    "@sentry/nestjs": "^8.55.0",
     "@prisma/client": "6.4.1",
     "@socket.io/redis-adapter": "^8.3.0",
     "@sports-alliance/sports-lib": "^5.4.24",
