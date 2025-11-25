@@ -29,3 +29,9 @@ export {
   mapPrismaWorkoutToDto,
 } from './workout.mappers';
 export { formatTarget } from './workout.formatters';
+export {
+  getCompatibleMetrics,
+  isMetricCompatibleWithTarget,
+  targetMetricMap,
+} from './target-metric.map';
+export { getTargetIntensity } from './target-intensity';

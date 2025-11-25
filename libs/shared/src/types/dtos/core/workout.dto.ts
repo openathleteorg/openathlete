@@ -55,6 +55,7 @@ export const workoutStepTargetSchema = z.object({
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),
+  metricType: z.string().nullable().optional(),
   stepId: z.number().optional(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),

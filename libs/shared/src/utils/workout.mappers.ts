@@ -36,6 +36,7 @@ function normalizeTarget(
     targetMin: target.targetMin ?? null,
     targetMax: target.targetMax ?? null,
     targetValue: target.targetValue ?? null,
+    metricType: target.metricType ?? null,
     stepId: target.stepId,
     createdAt: target.createdAt,
     updatedAt: target.updatedAt,
@@ -121,6 +122,7 @@ function mapTargetToPrismaCreate(target: WorkoutStepTarget) {
     target_min: toNum(target.targetMin),
     target_max: toNum(target.targetMax),
     target_value: toNum(target.targetValue),
+    metric_type: target.metricType || null,
   };
 }
 
@@ -178,6 +180,7 @@ function mapPrismaTargetToDto(target: workout_step_target): WorkoutStepTarget {
     targetMin: target.target_min ?? null,
     targetMax: target.target_max ?? null,
     targetValue: target.target_value ?? null,
+    metricType: target.metric_type ?? null,
     stepId: target.step_id,
     createdAt: target.created_at ? new Date(target.created_at) : undefined,
     updatedAt: target.updated_at ? new Date(target.updated_at) : undefined,

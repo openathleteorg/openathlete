@@ -14,6 +14,7 @@ export const normalizedWorkoutStepTargetSchema = z.object({
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),
+  metricType: z.string().nullable().optional(),
 });
 
 export type NormalizedWorkoutStepTarget = z.infer<
