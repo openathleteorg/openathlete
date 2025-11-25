@@ -28,6 +28,7 @@
     "dev": "pnpm --parallel --aggregate-output dev",
     "find:untranslated": "node scripts/find-untranslated.js",
     "check:locale-parity": "node scripts/check-locale-parity.js",
+    "find:unused-translations": "node scripts/find-unused-translations.js",
     "list:repos": "pnpm m ls --json | jq -r \".[] | {name, path, version}\""
   },
   "pnpm": {

@@ -26,7 +26,7 @@ export function WeatherWindChart({ samples }: P) {
   return (
     <div className="flex flex-col gap-2">
       <div className="text-sm font-medium text-muted-foreground">
-        {m.wind?.() ?? 'Wind'}
+        {m.wind() ?? 'Wind'}
       </div>
       <ChartContainer config={{}} className="h-[140px] w-full">
         <LineChart data={data} syncId="weather">
