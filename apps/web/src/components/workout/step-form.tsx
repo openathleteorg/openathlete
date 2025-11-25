@@ -40,7 +40,7 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
 } from '@openathlete/shared';
-import type { WorkoutStepDto, WorkoutStepTarget } from '@openathlete/shared';
+import type { WorkoutStepDto, WorkoutStepTargetDto } from '@openathlete/shared';
 
 import { TargetBadge } from './target-badge';
 import { TargetForm } from './target-form';
@@ -74,11 +74,11 @@ type StepFormValues = z.infer<typeof stepFormSchema>;
 
 type TargetWithId = {
   id: string;
-  targetType: WorkoutStepTarget['targetType'];
-  targetMin: WorkoutStepTarget['targetMin'];
-  targetMax: WorkoutStepTarget['targetMax'];
-  targetValue: WorkoutStepTarget['targetValue'];
-  metricType: WorkoutStepTarget['metricType'];
+  targetType: WorkoutStepTargetDto['targetType'];
+  targetMin: WorkoutStepTargetDto['targetMin'];
+  targetMax: WorkoutStepTargetDto['targetMax'];
+  targetValue: WorkoutStepTargetDto['targetValue'];
+  metricType: WorkoutStepTargetDto['metricType'];
 };
 
 interface StepFormProps {
@@ -99,7 +99,7 @@ export function StepForm({
   sport = 'RUNNING',
 }: StepFormProps) {
   const [targets, setTargets] = useState<TargetWithId[]>(
-    initialValues?.targets?.map((t: WorkoutStepTarget, idx: number) => ({
+    initialValues?.targets?.map((t: WorkoutStepTargetDto, idx: number) => ({
       id: `existing-${idx}`,
       targetType: t.targetType,
       targetMin: t.targetMin,
@@ -339,7 +339,7 @@ export function StepForm({
                       ? m.step_form_save_target()
                       : m.step_form_add_target()
                   }
-                  sport={sport}
+                  sport={SPORT_TYPE[sport]}
                 />
               </DialogContent>
             </Dialog>
@@ -362,7 +362,7 @@ export function StepForm({
                           targetMax: target.targetMax,
                           targetValue: target.targetValue,
                           metricType: target.metricType,
-                        } as unknown as WorkoutStepTarget
+                        } as unknown as WorkoutStepTargetDto
                       }
                       sport={SPORT_TYPE[sport]}
                     />

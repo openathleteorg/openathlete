@@ -9,3 +9,6 @@ export * from './equipment-type.enum';
 export * from './training-load-calculation-type.enum';
 export * from './activity-segment-type.enum';
 export * from './provider-sync';
+export * from './workout-target-type.enum';
+export * from './workout-duration-type.enum';
+export * from './workout-step-type.enum';

@@ -1,4 +1,5 @@
 import {
+  activity_segment,
   athlete,
   athlete_settings,
   connector_provider,
@@ -17,15 +18,12 @@ import {
   user,
   user_role,
   workout,
+  workout_repeat,
   workout_step,
+  workout_step_target,
 } from '@openathlete/database';
 
-import {
-  ACTIVITY_SEGMENT_TYPE,
-  EQUIPMENT_TYPE,
-  EVENT_TYPE,
-  SPORT_TYPE,
-} from '../types/misc';
+import { EQUIPMENT_TYPE, EVENT_TYPE, SPORT_TYPE } from '../types/misc';
 import { ConvertKeysToCamelCase } from '../utils/data.mapper';
 
 export type UserRole = ConvertKeysToCamelCase<user_role>;
@@ -55,10 +53,25 @@ export interface Athlete extends ConvertKeysToCamelCase<athlete> {
 
 export type AthleteSettings = ConvertKeysToCamelCase<athlete_settings>;
 
-export type WorkoutStepEntity = ConvertKeysToCamelCase<workout_step>;
+export interface WorkoutStep extends ConvertKeysToCamelCase<workout_step> {
+  targets: WorkoutStepTarget[];
+  activitySegments: ActivitySegment[];
+  repeatParent?: WorkoutRepeat;
+  repeatBlock?: WorkoutRepeat;
+}
 
-export interface WorkoutEntity extends ConvertKeysToCamelCase<workout> {
-  steps: WorkoutStepEntity[];
+export interface WorkoutRepeat extends ConvertKeysToCamelCase<workout_repeat> {
+  step: WorkoutStep;
+  childSteps: WorkoutStep[];
+}
+
+export interface WorkoutStepTarget
+  extends ConvertKeysToCamelCase<workout_step_target> {
+  step: WorkoutStep;
+}
+
+export interface Workout extends ConvertKeysToCamelCase<workout> {
+  steps: WorkoutStep[];
 }
 
 export interface TrainingEvent
@@ -66,7 +79,7 @@ export interface TrainingEvent
   type: EVENT_TYPE.TRAINING;
   sport: SPORT_TYPE;
   relatedActivity?: ActivityEvent;
-  workout?: WorkoutEntity;
+  workout?: Workout;
 }
 
 export interface CompetitionEvent
@@ -80,33 +93,9 @@ export interface NoteEvent extends ConvertKeysToCamelCase<event_note & event> {
   type: EVENT_TYPE.NOTE;
 }
 
-// ActivitySegment type - will be properly typed after Prisma client generation
-export interface ActivitySegment {
-  activitySegmentId: number;
-  segmentType: ACTIVITY_SEGMENT_TYPE;
-  name?: string | null;
-  orderIndex: number;
-  startTimeSeconds: number;
-  endTimeSeconds: number;
-  distance?: number | null;
-  elevationGain?: number | null;
-  movingTime?: number | null;
-  averageSpeed?: number | null;
-  maxSpeed?: number | null;
-  averageCadence?: number | null;
-  averageWatts?: number | null;
-  maxWatts?: number | null;
-  weightedAverageWatts?: number | null;
-  averageHeartrate?: number | null;
-  maxHeartrate?: number | null;
-  kilojoules?: number | null;
-  averageGapSpeed?: number | null;
-  averageNormalizedSpeed?: number | null;
-  eventActivityId: number;
-  workoutStepId?: number | null;
-  workoutStep?: WorkoutStepEntity;
-  createdAt: Date;
-  updatedAt: Date;
+export interface ActivitySegment
+  extends ConvertKeysToCamelCase<activity_segment> {
+  workoutStep?: WorkoutStep;
 }
 
 export interface ActivityEvent

@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-import { EVENT_TYPE, SPORT_TYPE } from '../../misc';
 import {
+  EVENT_TYPE,
+  SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
-} from '../core';
+} from '../../misc';
 
 /**
  * Simplified schema for AI event generation

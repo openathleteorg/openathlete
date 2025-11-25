@@ -5,7 +5,7 @@ import { getStepTypeLabel } from '@/utils/workout';
 import {
   type WorkoutDto,
   type WorkoutStepDto,
-  type WorkoutStepTarget,
+  type WorkoutStepTargetDto,
   calculateWorkoutDistance,
   calculateWorkoutDuration,
   formatDistance,
@@ -65,7 +65,7 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
               {step.targets && step.targets.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {step.targets.map(
-                    (target: WorkoutStepTarget, idx: number) => (
+                    (target: WorkoutStepTargetDto, idx: number) => (
                       <TargetBadge
                         key={idx}
                         target={target}

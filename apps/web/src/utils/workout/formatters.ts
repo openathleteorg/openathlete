@@ -1,10 +1,10 @@
 import { m } from '@/paraglide/messages';
 
-import type {
-  WorkoutDto,
-  WorkoutDurationType,
-  WorkoutStepType,
-  WorkoutTargetType,
+import type { WorkoutDto } from '@openathlete/shared';
+import {
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_STEP_TYPE,
+  WORKOUT_TARGET_TYPE,
 } from '@openathlete/shared';
 import { calculateWorkoutDuration as sharedCalculateWorkoutDuration } from '@openathlete/shared';
 
@@ -15,12 +15,14 @@ import { calculateWorkoutDuration as sharedCalculateWorkoutDuration } from '@ope
  * @returns Human-readable formatted duration
  */
 export function formatDuration(
-  durationType: WorkoutDurationType,
+  durationType: WORKOUT_DURATION_TYPE,
   durationValue?: number | null,
 ): string {
   if (!durationValue) {
-    if (durationType === 'OPEN') return m.workout_duration_open();
-    if (durationType === 'LAP_BUTTON') return m.workout_duration_lap_button();
+    if (durationType === WORKOUT_DURATION_TYPE.OPEN)
+      return m.workout_duration_open();
+    if (durationType === WORKOUT_DURATION_TYPE.LAP_BUTTON)
+      return m.workout_duration_lap_button();
     return '-';
   }
 
@@ -82,8 +84,8 @@ export function formatDuration(
  * @param stepType - Type of step
  * @returns Short label (not i18n, use translation keys for display)
  */
-export function getStepTypeLabel(stepType: WorkoutStepType): string {
-  const labels: Record<WorkoutStepType, string> = {
+export function getStepTypeLabel(stepType: WORKOUT_STEP_TYPE): string {
+  const labels: Record<WORKOUT_STEP_TYPE, string> = {
     WARMUP: m.step_form_type_warmup(),
     COOLDOWN: m.step_form_type_cooldown(),
     INTERVAL_ACTIVE: m.step_form_type_interval_active(),
@@ -100,13 +102,13 @@ export function getStepTypeLabel(stepType: WorkoutStepType): string {
  * @param stepType - Type of step
  * @returns Tailwind color classes
  */
-export function getStepTypeColor(stepType: WorkoutStepType): {
+export function getStepTypeColor(stepType: WORKOUT_STEP_TYPE): {
   bg: string;
   text: string;
   border: string;
 } {
   const colors: Record<
-    WorkoutStepType,
+    WORKOUT_STEP_TYPE,
     { bg: string; text: string; border: string }
   > = {
     WARMUP: {
@@ -165,8 +167,8 @@ export const calculateWorkoutDuration = (
  * @param targetType - Target type
  * @returns Human-readable label
  */
-export function getTargetTypeLabel(targetType: WorkoutTargetType): string {
-  const labels: Record<WorkoutTargetType, string> = {
+export function getTargetTypeLabel(targetType: WORKOUT_TARGET_TYPE): string {
+  const labels: Record<WORKOUT_TARGET_TYPE, string> = {
     OPEN: m.workout_target_open(),
     PACE: m.workout_target_pace(),
     HEARTRATE: m.workout_target_heartrate(),

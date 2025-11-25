@@ -1,4 +1,4 @@
-import type { WorkoutStepTarget } from '../types/dtos/core/workout.dto';
+import type { WorkoutStepTargetDto } from '../types/dtos/core/workout.dto';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 import { kmhToSpeedMs } from './workout.utils';
 
@@ -21,7 +21,7 @@ const DEFAULT_METRIC_VALUES: Record<string, number> = {
  * @returns The absolute intensity value, or null if cannot be determined
  */
 export function getTargetIntensity(
-  target: WorkoutStepTarget,
+  target: WorkoutStepTargetDto,
   metrics: Record<string, { value: number } | number> | undefined,
 ): {
   value: number | null;

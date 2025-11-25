@@ -1,9 +1,7 @@
-import { workout_target_type } from '@openathlete/database';
-
-import { WORKOUT_TARGET_TYPE } from '../types/dtos/core/workout.dto';
+import { WORKOUT_TARGET_TYPE } from '../types/misc';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 
-export const targetMetricMap: Record<workout_target_type, METRIC_TYPE[]> = {
+export const targetMetricMap: Record<WORKOUT_TARGET_TYPE, METRIC_TYPE[]> = {
   [WORKOUT_TARGET_TYPE.HEARTRATE]: [
     METRIC_TYPE.HR_MAX,
     METRIC_TYPE.HR_REST,
@@ -26,14 +24,14 @@ export const targetMetricMap: Record<workout_target_type, METRIC_TYPE[]> = {
 };
 
 export function getCompatibleMetrics(
-  targetType: workout_target_type,
+  targetType: WORKOUT_TARGET_TYPE,
 ): METRIC_TYPE[] {
   return targetMetricMap[targetType] || [];
 }
 
 export function isMetricCompatibleWithTarget(
   metricType: METRIC_TYPE,
-  targetType: workout_target_type,
+  targetType: WORKOUT_TARGET_TYPE,
 ): boolean {
   const compatibleMetrics = getCompatibleMetrics(targetType);
   return compatibleMetrics.includes(metricType);

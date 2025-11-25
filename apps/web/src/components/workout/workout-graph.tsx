@@ -17,7 +17,7 @@ import type {
   TrainingZoneValue,
   WorkoutDto,
   WorkoutStepDto,
-  WorkoutStepTarget,
+  WorkoutStepTargetDto,
 } from '@openathlete/shared';
 import {
   METRIC_TYPE,
@@ -69,7 +69,7 @@ const MIN_BAR_HEIGHT = 8; // pixels
  * Calculate intensity (0-5) and color based on target type
  */
 function calculateIntensityFromTarget(
-  target: WorkoutStepTarget,
+  target: WorkoutStepTargetDto,
   zonesByType: Record<TRAINING_ZONE_TYPE, ZoneInfo[]>,
   metrics: Record<string, { value: number }> | undefined,
   sport?: SPORT_TYPE,
@@ -249,7 +249,7 @@ function getStepColor(
 }
 
 function getPaceSpeedFromTargets(
-  targets: WorkoutStepTarget[] | undefined,
+  targets: WorkoutStepTargetDto[] | undefined,
   metrics: Record<string, { value: number }> | undefined,
 ): number | null {
   if (!targets || targets.length === 0) {
@@ -477,7 +477,7 @@ function StepBar({
                     {m.workout_target_type()}:
                   </span>{' '}
                   {segment.step.targets.map(
-                    (target: WorkoutStepTarget, idx: number) => (
+                    (target: WorkoutStepTargetDto, idx: number) => (
                       <span key={idx}>
                         {idx > 0 && ', '}
                         {formatTarget(target, undefined, metrics)}

@@ -10,16 +10,16 @@ import {
   Zap,
 } from 'lucide-react';
 
-import type { WorkoutStepType } from '@openathlete/shared';
+import { WORKOUT_STEP_TYPE } from '@openathlete/shared';
 
 interface TypeIconProps {
-  stepType: WorkoutStepType;
+  stepType: WORKOUT_STEP_TYPE;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-function getStepTypeIcon(stepType: WorkoutStepType): LucideIcon {
-  const icons: Record<WorkoutStepType, LucideIcon> = {
+function getStepTypeIcon(stepType: WORKOUT_STEP_TYPE): LucideIcon {
+  const icons: Record<WORKOUT_STEP_TYPE, LucideIcon> = {
     WARMUP: Flame,
     COOLDOWN: Snowflake,
     INTERVAL_ACTIVE: Zap,

@@ -12,7 +12,7 @@ import { Edit2, MoreVertical, Trash2 } from 'lucide-react';
 
 import type {
   WorkoutStepDto as WorkoutStep,
-  WorkoutStepTarget,
+  WorkoutStepTargetDto,
 } from '@openathlete/shared';
 
 import { DurationDisplay } from './duration-display';
@@ -94,7 +94,7 @@ export function StepCard({
                   <span className="text-xs text-muted-foreground">·</span>
                   <div className="flex gap-1 flex-wrap">
                     {step.targets.map(
-                      (target: WorkoutStepTarget, idx: number) => (
+                      (target: WorkoutStepTargetDto, idx: number) => (
                         <TargetBadge key={idx} target={target} />
                       ),
                     )}

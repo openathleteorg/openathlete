@@ -10,12 +10,7 @@ import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type {
-  WorkoutDto,
-  WorkoutDurationType,
-  WorkoutStepDto,
-  WorkoutStepType,
-} from '@openathlete/shared';
+import type { WorkoutDto, WorkoutStepDto } from '@openathlete/shared';
 import {
   SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
@@ -131,8 +126,8 @@ export function WorkoutBuilder({
   const handleAddRepeatBlock = () => {
     const newRepeatStep: WorkoutStepDto = {
       orderIndex: steps.length,
-      stepType: WORKOUT_STEP_TYPE.REPEAT as WorkoutStepType,
-      durationType: WORKOUT_DURATION_TYPE.OPEN as WorkoutDurationType,
+      stepType: WORKOUT_STEP_TYPE.REPEAT as WORKOUT_STEP_TYPE,
+      durationType: WORKOUT_DURATION_TYPE.OPEN as WORKOUT_DURATION_TYPE,
       workoutStepId: generateTempId(),
       repeatBlock: {
         repetitions: 1,

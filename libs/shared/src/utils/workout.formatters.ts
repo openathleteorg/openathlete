@@ -1,4 +1,4 @@
-import { WorkoutStepTarget } from '../types';
+import { WorkoutStepTargetDto } from '../types';
 import { formatSpeed } from './numeric-stats.formatter';
 import { getTargetIntensity } from './target-intensity';
 
@@ -10,7 +10,7 @@ import { getTargetIntensity } from './target-intensity';
  * @returns Human-readable formatted target
  */
 export function formatTarget(
-  target: WorkoutStepTarget,
+  target: WorkoutStepTargetDto,
   getMetricLabel?: (metricType: string) => string,
   metrics?: Record<string, { value: number } | number>,
 ): string {

@@ -29,43 +29,44 @@ import type { ControllerRenderProps } from 'react-hook-form';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-import type { WorkoutStepTarget, WorkoutTargetType } from '@openathlete/shared';
+import type { WorkoutStepTargetDto } from '@openathlete/shared';
 import {
   SPORT_TYPE,
   WORKOUT_TARGET_TYPE,
   getCompatibleMetrics,
 } from '@openathlete/shared';
 
-const TARGET_TYPES: { value: WorkoutTargetType; getLabelFn: () => string }[] = [
-  {
-    value: WORKOUT_TARGET_TYPE.PACE,
-    getLabelFn: () => m.target_form_type_pace(),
-  },
-  {
-    value: WORKOUT_TARGET_TYPE.HEARTRATE,
-    getLabelFn: () => m.target_form_type_heartrate(),
-  },
-  {
-    value: WORKOUT_TARGET_TYPE.POWER,
-    getLabelFn: () => m.target_form_type_power(),
-  },
-  {
-    value: WORKOUT_TARGET_TYPE.CADENCE,
-    getLabelFn: () => m.target_form_type_cadence(),
-  },
-  {
-    value: WORKOUT_TARGET_TYPE.WEIGHT,
-    getLabelFn: () => m.target_form_type_weight(),
-  },
-  {
-    value: WORKOUT_TARGET_TYPE.ZONE,
-    getLabelFn: () => m.target_form_type_zone(),
-  },
-  {
-    value: WORKOUT_TARGET_TYPE.RPE,
-    getLabelFn: () => m.target_form_type_rpe(),
-  },
-];
+const TARGET_TYPES: { value: WORKOUT_TARGET_TYPE; getLabelFn: () => string }[] =
+  [
+    {
+      value: WORKOUT_TARGET_TYPE.PACE,
+      getLabelFn: () => m.target_form_type_pace(),
+    },
+    {
+      value: WORKOUT_TARGET_TYPE.HEARTRATE,
+      getLabelFn: () => m.target_form_type_heartrate(),
+    },
+    {
+      value: WORKOUT_TARGET_TYPE.POWER,
+      getLabelFn: () => m.target_form_type_power(),
+    },
+    {
+      value: WORKOUT_TARGET_TYPE.CADENCE,
+      getLabelFn: () => m.target_form_type_cadence(),
+    },
+    {
+      value: WORKOUT_TARGET_TYPE.WEIGHT,
+      getLabelFn: () => m.target_form_type_weight(),
+    },
+    {
+      value: WORKOUT_TARGET_TYPE.ZONE,
+      getLabelFn: () => m.target_form_type_zone(),
+    },
+    {
+      value: WORKOUT_TARGET_TYPE.RPE,
+      getLabelFn: () => m.target_form_type_rpe(),
+    },
+  ];
 
 const targetFormSchema = z.object({
   targetType: z.nativeEnum(WORKOUT_TARGET_TYPE),
@@ -118,12 +119,12 @@ function RpeFieldAdapter({
 }
 
 interface TargetFormProps {
-  initialValues?: Partial<WorkoutStepTarget>;
+  initialValues?: Partial<WorkoutStepTargetDto>;
   onSubmit: (values: TargetFormValues & { metricType?: string | null }) => void;
   onCancel?: () => void;
   submitLabel?: string;
   cancelLabel?: string;
-  sport?: keyof typeof SPORT_TYPE;
+  sport?: SPORT_TYPE;
 }
 
 /**
@@ -174,7 +175,7 @@ export function TargetForm({
   const form = useForm<TargetFormValues>({
     resolver: zodResolver(targetFormSchema),
     defaultValues: {
-      targetType: initialValues?.targetType || 'HEARTRATE',
+      targetType: initialValues?.targetType || WORKOUT_TARGET_TYPE.HEARTRATE,
       targetMin: hasInitialMetric
         ? convertFromStoredPercentage(
             initialValues?.targetMin,

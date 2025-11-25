@@ -11,12 +11,11 @@ import { cn } from '@/utils/shadcn';
 import { getTargetTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
 
-import type { WorkoutStepTarget } from '@openathlete/shared';
-import { formatTarget } from '@openathlete/shared';
-import { SPORT_TYPE } from '@openathlete/shared';
+import type { WorkoutStepTargetDto } from '@openathlete/shared';
+import { SPORT_TYPE, formatTarget } from '@openathlete/shared';
 
 interface TargetBadgeProps {
-  target: WorkoutStepTarget;
+  target: WorkoutStepTargetDto;
   className?: string;
   showTooltip?: boolean;
   sport?: SPORT_TYPE;

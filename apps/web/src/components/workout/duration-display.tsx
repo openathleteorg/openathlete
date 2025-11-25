@@ -1,9 +1,9 @@
 import { formatDuration } from '@/utils/workout';
 
-import type { WorkoutDurationType } from '@openathlete/shared';
+import type { WORKOUT_DURATION_TYPE } from '@openathlete/shared';
 
 interface DurationDisplayProps {
-  durationType: WorkoutDurationType;
+  durationType: WORKOUT_DURATION_TYPE;
   durationValue?: number | null;
   className?: string;
 }

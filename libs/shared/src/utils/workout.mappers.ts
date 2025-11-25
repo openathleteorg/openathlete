@@ -9,14 +9,16 @@ import {
   type CreateWorkoutDto,
   type CreateWorkoutStepDto,
   type UpdateWorkoutDto,
+  type WorkoutDto,
+  type WorkoutRepeatDto,
+  type WorkoutStepDto,
+  type WorkoutStepTargetDto,
+} from '../types/dtos/core/workout.dto';
+import {
+  SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
-  type WorkoutDto,
-  type WorkoutRepeat,
-  type WorkoutStepDto,
-  type WorkoutStepTarget,
-} from '../types/dtos/core/workout.dto';
-import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
+} from '../types/misc';
 import type {
   NormalizedWorkout,
   NormalizedWorkoutStep,
@@ -28,8 +30,8 @@ import type {
 // ----------------------------------------------------------------------------
 
 function normalizeTarget(
-  target: Partial<WorkoutStepTarget>,
-): WorkoutStepTarget {
+  target: Partial<WorkoutStepTargetDto>,
+): WorkoutStepTargetDto {
   return {
     workoutStepTargetId: target.workoutStepTargetId,
     targetType: target.targetType!,
@@ -54,7 +56,7 @@ function normalizeStepForCreate(
     repeatTimes: null,
     restTime: null,
     notes: step.notes ?? null,
-    targets: (step.targets || []).map((t: Partial<WorkoutStepTarget>) =>
+    targets: (step.targets || []).map((t: Partial<WorkoutStepTargetDto>) =>
       normalizeTarget(t),
     ),
     childSteps: undefined,
@@ -78,7 +80,7 @@ function normalizeStepForCreate(
       childSteps: (step.childSteps || []).map((c: Partial<WorkoutStepDto>) =>
         normalizeStepForCreate(c),
       ),
-    } as WorkoutRepeat;
+    } as WorkoutRepeatDto;
   }
 
   return base;
@@ -109,7 +111,7 @@ const SUPPORTED_TARGET_TYPES = new Set([
   'ZONE',
 ]);
 
-function mapTargetToPrismaCreate(target: WorkoutStepTarget) {
+function mapTargetToPrismaCreate(target: WorkoutStepTargetDto) {
   if (!SUPPORTED_TARGET_TYPES.has(target.targetType)) {
     return null;
   }
@@ -173,7 +175,9 @@ export function mapWorkoutDtoToPrisma(
 // Prisma → DTO mapping (snake_case → camelCase)
 // ----------------------------------------------------------------------------
 
-function mapPrismaTargetToDto(target: workout_step_target): WorkoutStepTarget {
+function mapPrismaTargetToDto(
+  target: workout_step_target,
+): WorkoutStepTargetDto {
   return {
     workoutStepTargetId: target.workout_step_target_id,
     targetType: target.target_type,
@@ -184,7 +188,7 @@ function mapPrismaTargetToDto(target: workout_step_target): WorkoutStepTarget {
     stepId: target.step_id,
     createdAt: target.created_at ? new Date(target.created_at) : undefined,
     updatedAt: target.updated_at ? new Date(target.updated_at) : undefined,
-  } as WorkoutStepTarget;
+  } as WorkoutStepTargetDto;
 }
 
 function mapPrismaStepToDto(
@@ -263,7 +267,7 @@ function flattenStep(
   }
 
   const targets: NormalizedWorkoutStepTarget[] = (step.targets || []).map(
-    (t: WorkoutStepTarget) => ({
+    (t: WorkoutStepTargetDto) => ({
       targetType: t.targetType,
       targetMin: t.targetMin ?? null,
       targetMax: t.targetMax ?? null,

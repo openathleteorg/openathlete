@@ -1,11 +1,13 @@
 import {
+  WorkoutDto,
+  WorkoutStepDto,
+  WorkoutStepTargetDto,
+} from '../types/dtos/core/workout.dto';
+import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
-  WorkoutDto,
-  WorkoutStepDto,
-  WorkoutStepTarget,
-} from '../types/dtos/core/workout.dto';
+} from '../types/misc';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 
 // ============================================================================
@@ -63,7 +65,7 @@ function getMetricValue(
  * This is a simplified version that avoids circular dependency with target-intensity.ts
  */
 function extractPaceSpeed(
-  target: WorkoutStepTarget,
+  target: WorkoutStepTargetDto,
   metrics?: Record<string, { value: number } | number>,
 ): number | null {
   const { targetValue, targetMin, targetMax, metricType } = target;
@@ -143,7 +145,7 @@ export function estimateStepDurationFromDistance(
 
   // Try to find a PACE target
   const paceTarget = step.targets?.find(
-    (target: WorkoutStepTarget) =>
+    (target: WorkoutStepTargetDto) =>
       target.targetType === WORKOUT_TARGET_TYPE.PACE,
   );
 
@@ -400,23 +402,25 @@ export function validateWorkoutStructure(
     }
 
     if (step.targets && step.targets.length > 0) {
-      step.targets.forEach((target: WorkoutStepTarget, targetIndex: number) => {
-        if (
-          target.targetMin !== null &&
-          target.targetMin !== undefined &&
-          target.targetMax !== null &&
-          target.targetMax !== undefined
-        ) {
-          if (target.targetMin >= target.targetMax) {
-            errors.push({
-              field: 'targetRange',
-              message: 'Target min must be less than target max',
-              stepIndex: index,
-              targetIndex,
-            });
+      step.targets.forEach(
+        (target: WorkoutStepTargetDto, targetIndex: number) => {
+          if (
+            target.targetMin !== null &&
+            target.targetMin !== undefined &&
+            target.targetMax !== null &&
+            target.targetMax !== undefined
+          ) {
+            if (target.targetMin >= target.targetMax) {
+              errors.push({
+                field: 'targetRange',
+                message: 'Target min must be less than target max',
+                stepIndex: index,
+                targetIndex,
+              });
+            }
           }
-        }
-      });
+        },
+      );
     }
   });
 

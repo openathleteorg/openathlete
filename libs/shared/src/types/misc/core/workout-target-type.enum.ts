@@ -1,0 +1,10 @@
+export enum WORKOUT_TARGET_TYPE {
+  OPEN = 'OPEN',
+  PACE = 'PACE',
+  HEARTRATE = 'HEARTRATE',
+  POWER = 'POWER',
+  CADENCE = 'CADENCE',
+  RPE = 'RPE',
+  WEIGHT = 'WEIGHT',
+  ZONE = 'ZONE',
+}

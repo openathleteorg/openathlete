@@ -4,7 +4,7 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
-} from './dtos/core/workout.dto';
+} from './misc';
 import { SPORT_TYPE } from './misc/core/sport-type.enum';
 
 // Normalized structure for provider exports (repeat blocks are flattened)

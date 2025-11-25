@@ -2,7 +2,7 @@ import { sport_type } from '@openathlete/database';
 import {
   type WorkoutDto,
   type WorkoutStepDto,
-  type WorkoutStepTarget,
+  type WorkoutStepTargetDto,
   formatTarget,
 } from '@openathlete/shared';
 
@@ -209,7 +209,7 @@ function describeStep(
 }
 
 function describeTargets(
-  targets: WorkoutStepTarget[],
+  targets: WorkoutStepTargetDto[],
   zoneLookup: Map<number, ZoneSummary>,
 ): string | undefined {
   if (!targets.length) {
@@ -224,7 +224,7 @@ function describeTargets(
 }
 
 function describeTarget(
-  target: WorkoutStepTarget,
+  target: WorkoutStepTargetDto,
   zoneLookup: Map<number, ZoneSummary>,
 ): string | undefined {
   if (target.targetType === 'ZONE' && target.targetValue) {

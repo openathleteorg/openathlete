@@ -1,53 +1,10 @@
 import { z } from 'zod';
 
-// ============================================================================
-// Workout Builder Enums
-// ============================================================================
-
-export const WORKOUT_STEP_TYPE = {
-  WARMUP: 'WARMUP',
-  COOLDOWN: 'COOLDOWN',
-  INTERVAL_ACTIVE: 'INTERVAL_ACTIVE',
-  INTERVAL_REST: 'INTERVAL_REST',
-  STEADY: 'STEADY',
-  REPEAT: 'REPEAT',
-  FREE: 'FREE',
-} as const;
-
-export type WorkoutStepType =
-  (typeof WORKOUT_STEP_TYPE)[keyof typeof WORKOUT_STEP_TYPE];
-
-export const WORKOUT_DURATION_TYPE = {
-  TIME: 'TIME',
-  DISTANCE: 'DISTANCE',
-  CALORIES: 'CALORIES',
-  HR_BELOW: 'HR_BELOW',
-  HR_ABOVE: 'HR_ABOVE',
-  LAP_BUTTON: 'LAP_BUTTON',
-  OPEN: 'OPEN',
-  REPS: 'REPS',
-} as const;
-
-export type WorkoutDurationType =
-  (typeof WORKOUT_DURATION_TYPE)[keyof typeof WORKOUT_DURATION_TYPE];
-
-export const WORKOUT_TARGET_TYPE = {
-  OPEN: 'OPEN',
-  PACE: 'PACE',
-  HEARTRATE: 'HEARTRATE',
-  POWER: 'POWER',
-  CADENCE: 'CADENCE',
-  RPE: 'RPE',
-  WEIGHT: 'WEIGHT',
-  ZONE: 'ZONE',
-} as const;
-
-export type WorkoutTargetType =
-  (typeof WORKOUT_TARGET_TYPE)[keyof typeof WORKOUT_TARGET_TYPE];
-
-// ============================================================================
-// Workout Schemas
-// ============================================================================
+import {
+  WORKOUT_DURATION_TYPE,
+  WORKOUT_STEP_TYPE,
+  WORKOUT_TARGET_TYPE,
+} from '../../misc';
 
 export const workoutStepTargetSchema = z.object({
   workoutStepTargetId: z.number().optional(),
@@ -61,7 +18,7 @@ export const workoutStepTargetSchema = z.object({
   updatedAt: z.coerce.date().optional(),
 });
 
-export type WorkoutStepTarget = z.infer<typeof workoutStepTargetSchema>;
+export type WorkoutStepTargetDto = z.infer<typeof workoutStepTargetSchema>;
 
 export const workoutStepSchema: z.ZodSchema = z.lazy(() =>
   z.object({
@@ -103,7 +60,7 @@ export const workoutRepeatSchema = z.object({
   updatedAt: z.coerce.date().optional(),
 });
 
-export type WorkoutRepeat = z.infer<typeof workoutRepeatSchema>;
+export type WorkoutRepeatDto = z.infer<typeof workoutRepeatSchema>;
 
 export const workoutSchema = z.object({
   workoutId: z.number().optional(),
@@ -182,9 +139,9 @@ export const createWorkoutStepDtoSchema = z
   ) as z.ZodSchema<CreateWorkoutStepDto>;
 
 export type CreateWorkoutStepDto = {
-  stepType: WorkoutStepType;
+  stepType: WORKOUT_STEP_TYPE;
   name?: string | null;
-  durationType?: WorkoutDurationType | null;
+  durationType?: WORKOUT_DURATION_TYPE | null;
   durationValue?: number | null;
   repeatTimes?: number | null;
   restTime?: number | null;
