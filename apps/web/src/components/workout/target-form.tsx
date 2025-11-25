@@ -357,7 +357,6 @@ export function TargetForm({
                   label={m.target_form_min_value()}
                   unit={hasMetric ? '%' : m.bpm()}
                   min={0}
-                  max={hasMetric ? 100 : undefined}
                 />
               ) : (
                 <RHFVelocityPace
@@ -371,7 +370,6 @@ export function TargetForm({
                   label={m.target_form_max_value()}
                   unit={hasMetric ? '%' : m.bpm()}
                   min={0}
-                  max={hasMetric ? 100 : undefined}
                 />
               ) : (
                 <RHFVelocityPace
@@ -386,7 +384,6 @@ export function TargetForm({
               label={m.target_form_single_value()}
               unit={hasMetric ? '%' : m.bpm()}
               min={0}
-              max={hasMetric ? 100 : undefined}
             />
           ) : (
             <RHFVelocityPace
@@ -402,14 +399,12 @@ export function TargetForm({
                 label={m.target_form_min_value()}
                 unit={hasMetric ? '%' : m.bpm()}
                 min={0}
-                max={hasMetric ? 100 : undefined}
               />
               <RHFNumberWithUnit
                 name="targetMax"
                 label={m.target_form_max_value()}
                 unit={hasMetric ? '%' : m.bpm()}
                 min={0}
-                max={hasMetric ? 100 : undefined}
               />
             </div>
           ) : (
@@ -418,7 +413,6 @@ export function TargetForm({
               label={m.target_form_single_value()}
               unit={hasMetric ? '%' : m.bpm()}
               min={0}
-              max={hasMetric ? 100 : undefined}
             />
           )
         ) : selectedTargetType === 'POWER' ? (
@@ -429,14 +423,12 @@ export function TargetForm({
                 label={m.target_form_min_value()}
                 unit={hasMetric ? '%' : m.watts()}
                 min={0}
-                max={hasMetric ? 100 : undefined}
               />
               <RHFNumberWithUnit
                 name="targetMax"
                 label={m.target_form_max_value()}
                 unit={hasMetric ? '%' : m.watts()}
                 min={0}
-                max={hasMetric ? 100 : undefined}
               />
             </div>
           ) : (
@@ -445,7 +437,6 @@ export function TargetForm({
               label={m.target_form_single_value()}
               unit={hasMetric ? '%' : m.watts()}
               min={0}
-              max={hasMetric ? 100 : undefined}
             />
           )
         ) : selectedTargetType === 'CADENCE' ? (

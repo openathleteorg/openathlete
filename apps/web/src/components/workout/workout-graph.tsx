@@ -23,6 +23,7 @@ import {
   METRIC_TYPE,
   SPORT_TYPE,
   TRAINING_ZONE_TYPE,
+  WORKOUT_TARGET_TYPE,
   kmhToSpeedMs,
 } from '@openathlete/shared';
 
@@ -247,15 +248,58 @@ function getStepColor(
   return { color: defaultColor, intensity: 0 };
 }
 
-function calculateStepDuration(step: WorkoutStepDto): number {
+function getPaceSpeedFromTargets(
+  targets: WorkoutStepTarget[] | undefined,
+  metrics: Record<string, { value: number }> | undefined,
+): number | null {
+  if (!targets || targets.length === 0) {
+    return null;
+  }
+
+  for (const target of targets) {
+    if (target.targetType !== WORKOUT_TARGET_TYPE.PACE) {
+      continue;
+    }
+
+    const { value, min, max } = getTargetIntensity(target, metrics);
+    const absoluteSpeed =
+      value ??
+      (min !== null && min !== undefined && max !== null && max !== undefined
+        ? (min + max) / 2
+        : null);
+
+    if (absoluteSpeed && absoluteSpeed > 0) {
+      return absoluteSpeed;
+    }
+  }
+
+  return null;
+}
+
+function calculateStepDuration(
+  step: WorkoutStepDto,
+  metrics: Record<string, { value: number }> | undefined,
+): number {
   if (step.durationType === 'TIME' && step.durationValue) {
     return step.durationValue;
   }
+
+  if (
+    step.durationType === 'DISTANCE' &&
+    step.durationValue &&
+    step.durationValue > 0
+  ) {
+    const estimatedSpeed = getPaceSpeedFromTargets(step.targets, metrics);
+    if (estimatedSpeed) {
+      return step.durationValue / estimatedSpeed;
+    }
+  }
+
   // For other duration types, we'll use a default or calculate from repeat blocks
   if (step.repeatBlock) {
     const childDuration = step.repeatBlock.childSteps.reduce(
       (acc: number, child: WorkoutStepDto) =>
-        acc + calculateStepDuration(child),
+        acc + calculateStepDuration(child, metrics),
       0,
     );
     return childDuration * step.repeatBlock.repetitions;
@@ -277,7 +321,7 @@ function flattenSteps(
       // Expand repeat blocks
       for (let rep = 0; rep < step.repeatBlock.repetitions; rep++) {
         for (const childStep of step.repeatBlock.childSteps) {
-          const duration = calculateStepDuration(childStep);
+          const duration = calculateStepDuration(childStep, metrics);
           const { color, intensity } = getStepColor(
             childStep,
             zonesByType,
@@ -297,7 +341,7 @@ function flattenSteps(
         }
       }
     } else {
-      const duration = calculateStepDuration(step);
+      const duration = calculateStepDuration(step, metrics);
       if (duration > 0) {
         const { color, intensity } = getStepColor(
           step,
@@ -386,7 +430,7 @@ function StepBar({
   const content = (
     <div
       className="relative transition-opacity hover:opacity-80 cursor-pointer w-full h-full flex items-end"
-      style={{ minWidth: '2px' }}
+      style={{ minWidth: '1px' }}
     >
       {segment.isWarmup || segment.isCooldown ? (
         <WarmupCooldownShape
@@ -420,7 +464,10 @@ function StepBar({
             <div className="text-sm space-y-1">
               <div>
                 <span className="font-medium">{m.workout_duration()}:</span>{' '}
-                {formatDuration(segment.step.durationType, segment.duration)}
+                {formatDuration(
+                  segment.step.durationType,
+                  segment.step.durationValue ?? segment.duration,
+                )}
               </div>
               {segment.step.targets && segment.step.targets.length > 0 && (
                 <div>
