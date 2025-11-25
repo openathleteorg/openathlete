@@ -95,7 +95,7 @@ export function MetricChart({
           config={{
             value: {
               label: metricTypeLabelMap[selectedType],
-              color: 'hsl(var(--primary))',
+              color: 'var(--chart-1)',
             },
           }}
           className="h-[400px] w-full"
@@ -127,17 +127,17 @@ export function MetricChart({
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="hsl(var(--primary))"
+                stroke="var(--chart-1)"
                 strokeWidth={3}
                 dot={{
                   r: 6,
-                  fill: 'hsl(var(--primary))',
+                  fill: 'var(--chart-1)',
                   stroke: 'hsl(var(--background))',
                   strokeWidth: 2,
                 }}
                 activeDot={{
                   r: 8,
-                  fill: 'hsl(var(--primary))',
+                  fill: 'var(--chart-1)',
                   stroke: 'hsl(var(--background))',
                   strokeWidth: 2,
                 }}
