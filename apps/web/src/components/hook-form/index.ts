@@ -9,3 +9,4 @@ export { RHFDistance } from './rhf-distance';
 export { RHFCheckbox } from './rhf-checkbox';
 export { RHFRpe } from './rhf-rpe';
 export { RHFElevation } from './rhf-elevation';
+export { RHFMultiSportSelector } from './rhf-multi-sport-selector';

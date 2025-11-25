@@ -343,6 +343,8 @@
   "no_equipment": "No equipment",
   "add_equipment": "Add equipment",
   "edit_equipment": "Edit equipment",
+  "delete_equipment": "Delete Equipment",
+  "confirm_delete_equipment": "Are you sure you want to delete this equipment?",
   "total_distance": "Total distance",
   "settings_description": "Manage your account settings and preferences",
   "athletes_tab_description": "Manage the athletes you coach and send new invitations.",

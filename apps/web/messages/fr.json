@@ -344,6 +344,8 @@
   "equipment": "Équipement",
   "add_equipment": "Ajouter un équipement",
   "edit_equipment": "Modifier un équipement",
+  "delete_equipment": "Supprimer l'équipement",
+  "confirm_delete_equipment": "Êtes-vous sûr de vouloir supprimer cet équipement ?",
   "no_equipment": "Aucun équipement",
   "total_distance": "Distance totale",
   "settings_description": "Gérez les paramètres et préférences de votre compte",

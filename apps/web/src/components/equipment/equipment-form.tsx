@@ -1,18 +1,17 @@
 import { m } from '@/paraglide/messages';
-import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 
 import {
   CreateEquipmentDto,
   EQUIPMENT_TYPE,
-  SPORT_TYPE,
   createEquipmentDtoSchema,
 } from '@openathlete/shared';
 
 import {
   FormProvider,
   RHFCheckbox,
+  RHFMultiSportSelector,
   RHFSelect,
   RHFTextField,
 } from '../hook-form';
@@ -67,21 +66,7 @@ export function EquipmentForm({ onSubmit, defaultValues, className }: P) {
           <SelectItem value={EQUIPMENT_TYPE.BIKE}>{m.bike()}</SelectItem>
         </RHFSelect>
 
-        <div className="space-y-2">
-          <label className="text-sm font-medium leading-none">
-            {m.sports()}
-          </label>
-          <div className="space-y-2">
-            {Object.values(SPORT_TYPE).map((sport) => (
-              <RHFCheckbox
-                key={sport}
-                name="sports"
-                value={sport}
-                label={sportTypeLabelMap[sport]}
-              />
-            ))}
-          </div>
-        </div>
+        <RHFMultiSportSelector name="sports" label={m.sports()} />
 
         <RHFCheckbox name="isDefault" label={m.default_equipment()} />
 

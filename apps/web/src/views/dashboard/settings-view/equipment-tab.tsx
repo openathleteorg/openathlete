@@ -4,6 +4,7 @@ import {
   useGetMyEquipmentQuery,
   useUpdateEquipmentMutation,
 } from '@/api/equipment';
+import { ConfirmAction } from '@/components/confirm-action';
 import { EquipmentForm } from '@/components/equipment/equipment-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,10 @@ import { SettingsSection } from './settings-section';
 export function EquipmentTab() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingEquipment, setEditingEquipment] = useState<Equipment | null>(
+    null,
+  );
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [equipmentToDelete, setEquipmentToDelete] = useState<number | null>(
     null,
   );
 
@@ -52,8 +57,17 @@ export function EquipmentTab() {
     setEditingEquipment(null);
   };
 
-  const handleDelete = async (equipmentId: number) => {
-    await deleteEquipment.mutateAsync(equipmentId);
+  const handleDeleteClick = (equipmentId: number) => {
+    setEquipmentToDelete(equipmentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (equipmentToDelete !== null) {
+      await deleteEquipment.mutateAsync(equipmentToDelete);
+      setDeleteDialogOpen(false);
+      setEquipmentToDelete(null);
+    }
   };
 
   const handleEdit = (item: Equipment) => {
@@ -99,7 +113,7 @@ export function EquipmentTab() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => handleDelete(item.equipmentId)}
+                      onClick={() => handleDeleteClick(item.equipmentId)}
                     >
                       <Trash className="h-4 w-4" />
                     </Button>
@@ -159,6 +173,17 @@ export function EquipmentTab() {
           defaultValues={editingEquipment || undefined}
         />
       </DialogContent>
+      <ConfirmAction
+        open={deleteDialogOpen}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setEquipmentToDelete(null);
+        }}
+        onConfirm={handleDeleteConfirm}
+        title={m.delete_equipment()}
+        message={m.confirm_delete_equipment()}
+        isLoading={deleteEquipment.isPending}
+      />
     </Dialog>
   );
 }
