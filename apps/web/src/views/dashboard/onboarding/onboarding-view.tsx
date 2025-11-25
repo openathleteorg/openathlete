@@ -1,3 +1,4 @@
+import { useGetMyCoachesQuery } from '@/api/athlete';
 import { useCompleteOnboardingMutation, useGetMeQuery } from '@/api/user';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
@@ -127,6 +128,8 @@ export function OnboardingView() {
       }
     );
   });
+  const { data: coaches } = useGetMyCoachesQuery();
+  const hasCoach = (coaches?.length ?? 0) > 0;
 
   // Generate steps based on selected roles
   const steps = useMemo<OnboardingStep[]>(() => {
@@ -142,7 +145,7 @@ export function OnboardingView() {
     const roleBasedSteps: OnboardingStep[] = [];
 
     // If athlete only, add coach invitation step
-    if (isAthleteOnly) {
+    if (isAthleteOnly && !hasCoach) {
       roleBasedSteps.push('coach-invitation');
     }
 
@@ -158,7 +161,7 @@ export function OnboardingView() {
 
     // Always end with complete
     return [...baseSteps, ...roleBasedSteps, 'complete'];
-  }, [data.roles]);
+  }, [data.roles, hasCoach]);
 
   const currentStep = steps[currentStepIndex];
 

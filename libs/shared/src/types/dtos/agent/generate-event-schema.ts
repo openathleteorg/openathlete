@@ -23,7 +23,12 @@ const workoutStepTargetSchema = z.object({
   targetMin: z.number().optional(),
   targetMax: z.number().optional(),
   targetValue: z.number().optional(),
-  metricType: z.string().optional().describe('Metric type to use as percentage reference (e.g., "VMA", "HR_MAX", "FTP_CYCLING"). When set, target values are stored as 0-1 (percentage).'),
+  metricType: z
+    .string()
+    .optional()
+    .describe(
+      'Metric type to use as percentage reference (e.g., "VMA", "HR_MAX", "FTP_CYCLING"). When set, target values are stored as 0-1 (percentage).',
+    ),
 });
 
 // Simplified workout step - completely flat, no recursion at all
