@@ -70,6 +70,7 @@
   "day": "jour",
   "days": "jours",
   "calendar_of": "Calendrier de {month}",
+  "calendar_current_month": "Mois actuel",
   "error_page_403_title": "Accès refusé",
   "error_page_403_description": "Vous n'avez pas l'autorisation d'accéder à cette page.",
   "error_page_404_title": "Page introuvable",

@@ -26,6 +26,10 @@ export function useCalendarData({ defaultMonth, events }: CalendarData) {
     setDisplayedMonth(prevMonth);
   }, [displayedMonth]);
 
+  const goToCurrentMonth = useCallback(() => {
+    setDisplayedMonth(new Date());
+  }, []);
+
   const displayedWeeks = useMemo(() => {
     const weeks: Date[][] = [];
     const firstDay = new Date(
@@ -91,6 +95,7 @@ export function useCalendarData({ defaultMonth, events }: CalendarData) {
     displayedMonth,
     nextMonth,
     prevMonth,
+    goToCurrentMonth,
     displayedWeeks,
     events: events || [],
   };

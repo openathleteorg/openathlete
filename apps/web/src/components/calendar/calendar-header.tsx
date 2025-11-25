@@ -23,6 +23,7 @@ export function CalendarHeader() {
   const {
     nextMonth,
     prevMonth,
+    goToCurrentMonth,
     displayedMonth,
     setFilter,
     coloredBy,
@@ -92,6 +93,18 @@ export function CalendarHeader() {
         />
         <Button size="icon" onClick={() => prevMonth()}>
           <ChevronLeft />
+        </Button>
+        <Button
+          variant="outline"
+          size="default"
+          className="px-3"
+          disabled={
+            displayedMonth.getMonth() === new Date().getMonth() &&
+            displayedMonth.getFullYear() === new Date().getFullYear()
+          }
+          onClick={() => goToCurrentMonth()}
+        >
+          {m.calendar_current_month()}
         </Button>
         <Button onClick={() => nextMonth()} size="icon">
           <ChevronRight />

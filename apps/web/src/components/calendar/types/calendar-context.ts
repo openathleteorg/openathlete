@@ -15,6 +15,7 @@ export type CalendarContextType = {
   displayedMonth: Date;
   nextMonth: () => void;
   prevMonth: () => void;
+  goToCurrentMonth: () => void;
   displayedWeeks: Date[][];
   createEvent: (date: Date, type: EVENT_TYPE) => void;
   createEventFromTemplate: (date: Date) => void;
