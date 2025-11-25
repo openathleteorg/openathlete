@@ -46,7 +46,7 @@
   "copy": "Copier",
   "cut": "Couper",
   "paste": "Coller",
-  "nothing_to_paste": "Rien à coller. Copiez ou coupez d'abord un événement.",
+  "nothing_to_paste": "Rien à coller. Copiez d'abord un événement.",
   "delete_": "Supprimer",
   "delete_event": "Supprimer l'événement",
   "confirm_delete_event": "Êtes-vous sûr de vouloir supprimer cet événement ?",

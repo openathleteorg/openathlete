@@ -255,6 +255,11 @@ export function OnboardingView() {
   };
 
   const handleComplete = () => {
+    // Filter out empty emails before submitting
+    const validAthleteEmails = data.athleteEmails.filter(
+      (email) => email.length > 0,
+    );
+
     const payload: CompleteOnboardingDto = {
       roles: data.roles,
       gender: data.gender,
@@ -264,7 +269,7 @@ export function OnboardingView() {
       hrRest: data.hrRest,
       coachEmail: data.coachEmail || undefined,
       athleteEmails:
-        data.athleteEmails.length > 0 ? data.athleteEmails : undefined,
+        validAthleteEmails.length > 0 ? validAthleteEmails : undefined,
     };
 
     completeOnboardingMutation.mutate(payload);
@@ -556,8 +561,7 @@ export function OnboardingView() {
                       ...d,
                       athleteEmails: e.target.value
                         .split('\n')
-                        .map((email) => email.trim())
-                        .filter((email) => email.length > 0),
+                        .map((email) => email.trim()),
                     }))
                   }
                   className="mt-2 min-h-[120px]"
