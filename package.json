@@ -27,6 +27,7 @@
     "tsc:check": "pnpm --parallel --aggregate-output tsc:check",
     "dev": "pnpm --parallel --aggregate-output dev",
     "find:untranslated": "node scripts/find-untranslated.js",
+    "check:locale-parity": "node scripts/check-locale-parity.js",
     "list:repos": "pnpm m ls --json | jq -r \".[] | {name, path, version}\""
   },
   "pnpm": {

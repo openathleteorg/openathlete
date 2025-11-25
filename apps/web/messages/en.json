@@ -2,6 +2,8 @@
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "date_required_for_event_generation": "Date is required for event generation",
   "creating_message_thread": "Creating...",
+  "event_updated_successfully": "Event updated successfully",
+  "failed_to_update_event": "Failed to update event",
   "my_records": "My records",
   "records_of": "Records of {firstName} {lastName}",
   "my_summary": "My summary",
