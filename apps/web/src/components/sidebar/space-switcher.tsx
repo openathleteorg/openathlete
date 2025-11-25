@@ -59,7 +59,7 @@ export function SpaceSwitcher() {
 
   const activeSpace = spaces.find((s) => s.role === space);
 
-  const hasNoAthletes = !coachedAthletes || coachedAthletes.length === 0;
+  const hasNoAthletes = coachedAthletes?.length === 0;
 
   React.useEffect(() => {
     if (activeSpace?.role === 'COACH' && hasNoAthletes) {
