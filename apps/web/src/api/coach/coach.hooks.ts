@@ -1,3 +1,4 @@
+import { athleteKeys } from '@/api/athlete/athlete.keys';
 import {
   MutationOptions,
   QueryOptions,
@@ -56,6 +57,12 @@ export const useAcceptInvitationMutation = (
         opt.onSuccess(data, variables, onMutateResult, context);
       queryClient.invalidateQueries({
         queryKey: coachKeys.getPendingInvitations,
+      });
+      queryClient.invalidateQueries({
+        queryKey: [athleteKeys.getCoachedAthletes],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [athleteKeys.getMyCoaches],
       });
     },
   });

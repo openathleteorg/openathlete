@@ -221,6 +221,9 @@ export const useAcceptInvitationMutation = (
       queryClient.invalidateQueries({
         queryKey: [athleteKeys.getMyCoaches],
       });
+      queryClient.invalidateQueries({
+        queryKey: [athleteKeys.getCoachedAthletes],
+      });
     },
   });
 };
