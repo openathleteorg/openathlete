@@ -1,3 +1,5 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { useEffect, useMemo } from 'react';
 import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
@@ -12,11 +14,29 @@ export function useWorkoutDuration(
   setValue: UseFormSetValue<EventFormValues>,
 ) {
   const startDateValue = watch('startDate');
+  const { data: athlete } = useGetMyAthleteQuery();
+  const { data: latestMetrics = {} } = useGetLatestMetricsQuery(
+    athlete?.athleteId,
+  );
+
+  // Convert metrics format for calculateWorkoutDuration
+  const metricsForCalculation = useMemo(() => {
+    const formatted: Record<string, { value: number }> = {};
+    Object.entries(latestMetrics).forEach(([key, metric]) => {
+      if (metric?.value !== undefined && metric?.value !== null) {
+        formatted[key] = { value: metric.value };
+      }
+    });
+    return formatted;
+  }, [latestMetrics]);
 
   // Calculate total duration from workout steps
   const calculatedDuration = useMemo(() => {
-    return calculateWorkoutDurationFromSteps(workoutSteps);
-  }, [workoutSteps]);
+    return calculateWorkoutDurationFromSteps(
+      workoutSteps,
+      metricsForCalculation,
+    );
+  }, [workoutSteps, metricsForCalculation]);
 
   const hasStepsWithDuration = calculatedDuration !== null;
 

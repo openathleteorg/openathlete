@@ -2,6 +2,17 @@ import type { WorkoutStepTarget } from '../types/dtos/core/workout.dto';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 import { kmhToSpeedMs } from './workout.utils';
 
+const DEFAULT_METRIC_VALUES: Record<string, number> = {
+  [METRIC_TYPE.VMA]: 15.0, // km/h - average VMA (~4:00 min/km pace)
+  [METRIC_TYPE.FTP_RUNNING]: 275, // W - average running FTP
+  [METRIC_TYPE.FTP_CYCLING]: 225, // W - average cycling FTP
+  [METRIC_TYPE.CRITICAL_POWER_RUNNING]: 275, // W - same as FTP_RUNNING
+  [METRIC_TYPE.CRITICAL_POWER_CYCLING]: 225, // W - same as FTP_CYCLING
+  [METRIC_TYPE.HR_MAX]: 190, // bpm - average max heart rate
+  [METRIC_TYPE.HR_REST]: 60, // bpm - average resting heart rate
+  [METRIC_TYPE.HR_RESERVE]: 130, // bpm - average HR reserve (HR_MAX - HR_REST)
+};
+
 /**
  * Get the absolute intensity value for a target, converting from percentage if metricType is set
  * @param target - The workout step target
@@ -21,14 +32,27 @@ export function getTargetIntensity(
     return { value: null, min: null, max: null };
   }
 
-  // Helper to get metric value
+  // Helper to get metric value with fallback to defaults
   const getMetricValue = (
     metricType: string | null | undefined,
   ): number | null => {
-    if (!metricType || !metrics) return null;
-    const metric = metrics[metricType];
-    if (!metric) return null;
-    return typeof metric === 'number' ? metric : metric.value;
+    if (!metricType) return null;
+
+    // Try to get from provided metrics
+    if (metrics) {
+      const metric = metrics[metricType];
+      if (metric !== undefined && metric !== null) {
+        return typeof metric === 'number' ? metric : metric.value;
+      }
+    }
+
+    // Fallback to default value if available
+    const defaultValue = DEFAULT_METRIC_VALUES[metricType];
+    if (defaultValue !== undefined) {
+      return defaultValue;
+    }
+
+    return null;
   };
 
   // Helper to convert percentage (0-1) to absolute value

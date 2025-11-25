@@ -13,6 +13,7 @@ export {
   calculateWorkoutDistance,
   countWorkoutSteps,
   validateWorkoutStructure,
+  estimateStepDurationFromDistance,
   paceToSpeed,
   speedToPace,
   speedMsToKmh,

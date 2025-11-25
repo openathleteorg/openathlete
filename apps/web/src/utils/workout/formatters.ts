@@ -150,12 +150,15 @@ export function getStepTypeColor(stepType: WorkoutStepType): {
 
 /**
  * Calculate estimated total duration for a workout
- * Only counts TIME-based durations (ignores distance, calories, etc.)
+ * Counts both TIME-based durations and estimates DISTANCE-based durations using pace targets
  * @param workout - Workout object
+ * @param metrics - Optional athlete metrics for estimating distance-based durations
  * @returns Total duration in seconds
  */
-export const calculateWorkoutDuration = (workout: WorkoutDto): number =>
-  sharedCalculateWorkoutDuration(workout) ?? 0;
+export const calculateWorkoutDuration = (
+  workout: WorkoutDto,
+  metrics?: Record<string, { value: number } | number>,
+): number => sharedCalculateWorkoutDuration(workout, metrics) ?? 0;
 
 /**
  * Get target type label

@@ -1,52 +1,230 @@
 import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
+  WORKOUT_TARGET_TYPE,
   WorkoutDto,
   WorkoutStepDto,
   WorkoutStepTarget,
 } from '../types/dtos/core/workout.dto';
+import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 
 // ============================================================================
 // Workout Calculations
 // ============================================================================
 
 /**
- * Calculate total duration in seconds for a workout
- * Only counts TIME-based steps
+ * Default speed in m/s when no pace target is available
+ * ~5:00 min/km = 3.33 m/s (easy running pace)
  */
-export function calculateWorkoutDuration(workout: WorkoutDto): number | null {
+const DEFAULT_SPEED_MS = 3.33;
+
+/**
+ * Default metric values for average athletes when metrics are not available
+ */
+const DEFAULT_METRIC_VALUES: Record<string, number> = {
+  [METRIC_TYPE.VMA]: 15.0, // km/h - average VMA (~4:00 min/km pace)
+  [METRIC_TYPE.FTP_RUNNING]: 275, // W - average running FTP
+  [METRIC_TYPE.FTP_CYCLING]: 225, // W - average cycling FTP
+  [METRIC_TYPE.CRITICAL_POWER_RUNNING]: 275, // W - same as FTP_RUNNING
+  [METRIC_TYPE.CRITICAL_POWER_CYCLING]: 225, // W - same as FTP_CYCLING
+  [METRIC_TYPE.HR_MAX]: 190, // bpm - average max heart rate
+  [METRIC_TYPE.HR_REST]: 60, // bpm - average resting heart rate
+  [METRIC_TYPE.HR_RESERVE]: 130, // bpm - average HR reserve (HR_MAX - HR_REST)
+};
+
+/**
+ * Get metric value with fallback to defaults
+ */
+function getMetricValue(
+  metricType: string | null | undefined,
+  metrics?: Record<string, { value: number } | number>,
+): number | null {
+  if (!metricType) return null;
+
+  // Try to get from provided metrics
+  if (metrics) {
+    const metric = metrics[metricType];
+    if (metric !== undefined && metric !== null) {
+      return typeof metric === 'number' ? metric : metric.value;
+    }
+  }
+
+  // Fallback to default value if available
+  const defaultValue = DEFAULT_METRIC_VALUES[metricType];
+  if (defaultValue !== undefined) {
+    return defaultValue;
+  }
+
+  return null;
+}
+
+/**
+ * Extract speed in m/s from a pace target
+ * This is a simplified version that avoids circular dependency with target-intensity.ts
+ */
+function extractPaceSpeed(
+  target: WorkoutStepTarget,
+  metrics?: Record<string, { value: number } | number>,
+): number | null {
+  const { targetValue, targetMin, targetMax, metricType } = target;
+
+  // If metricType is set, convert percentage to absolute value
+  if (metricType) {
+    const metricValue = getMetricValue(metricType, metrics);
+    if (metricValue === null) return null;
+
+    // Convert percentage to absolute value
+    let absoluteValue: number | null = null;
+    if (targetValue !== null && targetValue !== undefined) {
+      absoluteValue = targetValue * metricValue;
+    } else if (
+      targetMin !== null &&
+      targetMin !== undefined &&
+      targetMax !== null &&
+      targetMax !== undefined
+    ) {
+      absoluteValue = ((targetMin + targetMax) / 2) * metricValue;
+    } else if (targetMin !== null && targetMin !== undefined) {
+      absoluteValue = targetMin * metricValue;
+    } else if (targetMax !== null && targetMax !== undefined) {
+      absoluteValue = targetMax * metricValue;
+    }
+
+    // Special handling for VMA: convert from km/h to m/s
+    if (metricType === METRIC_TYPE.VMA && absoluteValue !== null) {
+      return kmhToSpeedMs(absoluteValue);
+    }
+
+    // For other metrics, assume value is already in m/s
+    return absoluteValue;
+  }
+
+  // No metricType: value is already in m/s
+  if (targetValue !== null && targetValue !== undefined) {
+    return targetValue;
+  }
+  if (
+    targetMin !== null &&
+    targetMin !== undefined &&
+    targetMax !== null &&
+    targetMax !== undefined
+  ) {
+    return (targetMin + targetMax) / 2;
+  }
+  if (targetMin !== null && targetMin !== undefined) {
+    return targetMin;
+  }
+  if (targetMax !== null && targetMax !== undefined) {
+    return targetMax;
+  }
+
+  return null;
+}
+
+/**
+ * Estimate step duration from distance using pace targets
+ * @param step - Workout step with durationType === DISTANCE
+ * @param metrics - Optional athlete metrics for target intensity calculation
+ * @returns Estimated duration in seconds, or null if cannot estimate
+ */
+export function estimateStepDurationFromDistance(
+  step: WorkoutStepDto,
+  metrics?: Record<string, { value: number } | number>,
+): number | null {
+  if (
+    step.durationType !== WORKOUT_DURATION_TYPE.DISTANCE ||
+    !step.durationValue
+  ) {
+    return null;
+  }
+
+  const distanceMeters = step.durationValue;
+  let speedMs: number | null = null;
+
+  // Try to find a PACE target
+  const paceTarget = step.targets?.find(
+    (target: WorkoutStepTarget) =>
+      target.targetType === WORKOUT_TARGET_TYPE.PACE,
+  );
+
+  if (paceTarget) {
+    speedMs = extractPaceSpeed(paceTarget, metrics);
+  }
+
+  // If no pace target found or speed couldn't be determined, use default
+  if (speedMs === null || speedMs <= 0) {
+    speedMs = DEFAULT_SPEED_MS;
+  }
+
+  // Calculate duration: time = distance / speed
+  return distanceMeters / speedMs;
+}
+
+/**
+ * Calculate total duration in seconds for a workout
+ * Counts both TIME-based steps and estimates DISTANCE-based steps using pace targets
+ * @param workout - Workout to calculate duration for
+ * @param metrics - Optional athlete metrics for estimating distance-based durations
+ * @returns Total duration in seconds, or null if no calculable steps
+ */
+export function calculateWorkoutDuration(
+  workout: WorkoutDto,
+  metrics?: Record<string, { value: number } | number>,
+): number | null {
   if (!workout.steps || workout.steps.length === 0) {
     return null;
   }
 
   let totalSeconds = 0;
-  let hasTimeDuration = false;
+  let hasCalculableDuration = false;
 
-  const calculateStepDuration = (step: WorkoutStepDto): number => {
+  const calculateStepDuration = (step: WorkoutStepDto): number | null => {
+    // TIME-based steps: use durationValue directly
     if (
       step.durationType === WORKOUT_DURATION_TYPE.TIME &&
       step.durationValue
     ) {
-      hasTimeDuration = true;
+      hasCalculableDuration = true;
       return step.durationValue;
     }
-    return 0;
+
+    // DISTANCE-based steps: estimate using pace targets
+    if (step.durationType === WORKOUT_DURATION_TYPE.DISTANCE) {
+      const estimatedDuration = estimateStepDurationFromDistance(step, metrics);
+      if (estimatedDuration !== null) {
+        hasCalculableDuration = true;
+        return estimatedDuration;
+      }
+    }
+
+    return null;
   };
 
   for (const step of workout.steps) {
     if (step.stepType === WORKOUT_STEP_TYPE.REPEAT && step.repeatBlock) {
       // Calculate duration of child steps and multiply by repetitions
       let repeatDuration = 0;
+      let hasRepeatDuration = false;
       for (const childStep of step.repeatBlock.childSteps || []) {
-        repeatDuration += calculateStepDuration(childStep);
+        const childDuration = calculateStepDuration(childStep);
+        if (childDuration !== null) {
+          repeatDuration += childDuration;
+          hasRepeatDuration = true;
+        }
       }
-      totalSeconds += repeatDuration * step.repeatBlock.repetitions;
+      if (hasRepeatDuration) {
+        totalSeconds += repeatDuration * step.repeatBlock.repetitions;
+        hasCalculableDuration = true;
+      }
     } else {
-      totalSeconds += calculateStepDuration(step);
+      const stepDuration = calculateStepDuration(step);
+      if (stepDuration !== null) {
+        totalSeconds += stepDuration;
+      }
     }
   }
 
-  return hasTimeDuration ? totalSeconds : null;
+  return hasCalculableDuration ? totalSeconds : null;
 }
 
 /**

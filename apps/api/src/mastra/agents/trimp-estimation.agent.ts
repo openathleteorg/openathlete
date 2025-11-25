@@ -21,29 +21,38 @@ TARGET CONVERSION TO HR:
    - HRavg = HRmax × zone_%HR
 
 2. HEARTRATE targets:
-   - If unit is BPM: use value directly
-   - If unit is PERCENT_MAX_HR: HRavg = HRmax × (value / 100)
+   - If metricType is HR_MAX, HR_REST, or HR_RESERVE: target value is percentage (0-1) of the metric
+     * Convert percentage to absolute HR: HR_bpm = percentage × metric_value
+     * If metric not available, use defaults: HR_MAX = 190 bpm, HR_REST = 60 bpm, HR_RESERVE = 130 bpm
+   - If no metricType: target value is already in bpm
    - If range: use midpoint
 
 3. POWER targets:
-   - If unit is WATTS: estimate %HRmax from power/FTP ratio
+   - If metricType is FTP_RUNNING, FTP_CYCLING, or CRITICAL_POWER_CYCLING: target value is percentage (0-1) of the metric
+     * Convert percentage to absolute power: power_w = percentage × FTP
+     * If FTP not available, use defaults: FTP_RUNNING = 275W, FTP_CYCLING = 225W
+   - If no metricType: target value is already in watts
+   - Estimate %HRmax from power/FTP ratio:
      * <50% FTP → ~60% HRmax
      * 50-60% FTP → ~70% HRmax
      * 60-75% FTP → ~80% HRmax
      * 75-90% FTP → ~88% HRmax
      * >90% FTP → ~95% HRmax
-   - If unit is PERCENT_FTP: use same mapping
    - HRavg = HRmax × estimated_%HR
    - Use FTP_CYCLING for cycling, FTP_RUNNING for running if available
 
 4. PACE targets:
-   - If VMA available: estimate %HRmax from pace/VMA ratio
+   - IMPORTANT: Pace targets are stored in m/s (meters per second), NOT min/km
+   - If metricType is VMA or CRITICAL_POWER_RUNNING: target value is percentage (0-1) of the metric
+     * Convert percentage to absolute pace: pace_m/s = (percentage × VMA_kmh) / 3.6
+     * If VMA not available, use default VMA = 15 km/h (~4:00 min/km)
+   - If no metricType: target value is already in m/s
+   - Estimate %HRmax from pace/VMA ratio:
      * <70% VMA → ~65% HRmax
      * 70-80% VMA → ~75% HRmax
      * 80-90% VMA → ~85% HRmax
      * 90-100% VMA → ~92% HRmax
      * >100% VMA → ~97% HRmax
-   - Convert pace units: min/km, m/s, or km/h to relative intensity
    - HRavg = HRmax × estimated_%HR
 
 5. RPE targets:

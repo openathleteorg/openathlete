@@ -8,9 +8,13 @@ import { calculateWorkoutDuration } from '@openathlete/shared';
 
 /**
  * Calculate total duration from workout steps
+ * Estimates duration for DISTANCE-based steps using pace targets
+ * @param steps - Workout steps to calculate duration for
+ * @param metrics - Optional athlete metrics for estimating distance-based durations
  */
 export function calculateWorkoutDurationFromSteps(
   steps: CreateWorkoutStepDto[],
+  metrics?: Record<string, { value: number } | number>,
 ): number | null {
   if (steps.length === 0) {
     return null;
@@ -26,7 +30,7 @@ export function calculateWorkoutDurationFromSteps(
     eventTrainingId: 0, // Not used by calculateWorkoutDuration
   } as WorkoutDto;
 
-  return calculateWorkoutDuration(workout);
+  return calculateWorkoutDuration(workout, metrics);
 }
 
 /**
