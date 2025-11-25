@@ -1,4 +1,7 @@
+import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
+
 import { Module } from '@nestjs/common';
+import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import {
@@ -20,6 +23,7 @@ import { QueueModule } from './queue';
 
 @Module({
   imports: [
+    SentryModule.forRoot(),
     AuthModule,
     CoreModule,
     AgentModule,
@@ -32,6 +36,10 @@ import { QueueModule } from './queue';
   ],
   controllers: [AppController],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: SentryGlobalFilter,
+    },
     PrismaService,
     NotificationListener,
     // Only register TrainingLoadListener if ENABLE_ACTIVITY_PROCESSING is true
