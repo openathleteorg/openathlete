@@ -3,16 +3,10 @@ import {
   useUpdateAthleteSettingsMutation,
 } from '@/api/athlete';
 import { LoadingScreen } from '@/components/loading-screen';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { m } from '@/paraglide/messages';
+import { SettingsSection } from '@/views/dashboard/settings-view/settings-section';
 
 interface P {
   athleteId: number;
@@ -33,14 +27,11 @@ export function SessionValidationSettingsCard({ athleteId }: P) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{m.session_validation_settings()}</CardTitle>
-        <CardDescription>
-          Configure les conditions requises pour qu'une séance soit validée
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <SettingsSection
+      title={m.session_validation_settings()}
+      description={m.session_validation_settings_description()}
+    >
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
             <Label htmlFor="require-rpe">{m.require_rpe()}</Label>
@@ -69,7 +60,7 @@ export function SessionValidationSettingsCard({ athleteId }: P) {
             disabled={updateMutation.isPending}
           />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </SettingsSection>
   );
 }

@@ -21,6 +21,8 @@ import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { toast } from 'sonner';
 
+import { SettingsSection } from './settings-section';
+
 export function InvitationsTab() {
   const roles = useUserRoles();
   const isAthlete = roles?.includes('ATHLETE');
@@ -74,29 +76,42 @@ export function InvitationsTab() {
     },
   });
 
-  if (athleteInvitationsLoading || coachInvitationsLoading) {
-    return <div>{m.loading()}</div>;
-  }
-
+  const isLoading = athleteInvitationsLoading || coachInvitationsLoading;
   const hasInvitations =
     (athleteInvitations && athleteInvitations.length > 0) ||
     (coachInvitations && coachInvitations.length > 0);
 
+  if (isLoading) {
+    return (
+      <SettingsSection
+        title={m.invitations()}
+        description={m.pending_invitations_description()}
+      >
+        <div className="text-sm text-muted-foreground">{m.loading()}</div>
+      </SettingsSection>
+    );
+  }
+
   if (!hasInvitations) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        {m.no_pending_invitations()}
-      </div>
+      <SettingsSection
+        title={m.invitations()}
+        description={m.pending_invitations_description()}
+      >
+        <div className="text-center text-sm text-muted-foreground">
+          {m.no_pending_invitations()}
+        </div>
+      </SettingsSection>
     );
   }
 
   return (
     <div className="space-y-6">
       {isAthlete && athleteInvitations && athleteInvitations.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-4">
-            {m.invitations_from_coaches()}
-          </h2>
+        <SettingsSection
+          title={m.invitations_from_coaches()}
+          description={m.invitations_from_coaches_description()}
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -143,14 +158,14 @@ export function InvitationsTab() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </SettingsSection>
       )}
 
       {isCoach && coachInvitations && coachInvitations.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold mb-4">
-            {m.invitations_from_athletes()}
-          </h2>
+        <SettingsSection
+          title={m.invitations_from_athletes()}
+          description={m.invitations_from_athletes_description()}
+        >
           <Table>
             <TableHeader>
               <TableRow>
@@ -198,7 +213,7 @@ export function InvitationsTab() {
               ))}
             </TableBody>
           </Table>
-        </div>
+        </SettingsSection>
       )}
     </div>
   );

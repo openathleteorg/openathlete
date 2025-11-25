@@ -22,6 +22,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { SettingsSection } from './settings-section';
+
 export function AthletesTab() {
   const { data: athletes } = useGetMyCoachedAthletesQuery();
   const nav = useNavigate();
@@ -54,104 +56,113 @@ export function AthletesTab() {
     });
 
   return (
-    <>
-      <div className="my-4 flex justify-between">
-        <div className="text-lg font-semibold mb-4">{m.athletes()}</div>
-        <Button size="sm" onClick={() => setInviteAthleteDialog(true)}>
-          {m.invite_athlete()}
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{m.name()}</TableHead>
-            <TableHead>{m.email()}</TableHead>
-            <TableHead className="text-right">{m.actions()}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {athletes?.map((athlete) => (
-            <TableRow key={athlete.athleteId}>
-              <TableCell>
-                {athlete.user?.firstName} {athlete.user?.lastName}
-              </TableCell>
-              <TableCell>{athlete.user?.email}</TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() =>
-                    nav(
-                      getPath(['dashboard', 'calendar']) +
-                        `/${athlete.athleteId}`,
-                    )
-                  }
-                >
-                  {m.view_calendar()}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setDeleteAthleteDialog(athlete.athleteId);
-                  }}
-                >
-                  {m.delete_()}
-                </Button>
-              </TableCell>
+    <div className="space-y-6">
+      <SettingsSection
+        title={m.athletes()}
+        description={m.athletes_tab_description()}
+        action={
+          <Button size="sm" onClick={() => setInviteAthleteDialog(true)}>
+            {m.invite_athlete()}
+          </Button>
+        }
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{m.name()}</TableHead>
+              <TableHead>{m.email()}</TableHead>
+              <TableHead className="text-right">{m.actions()}</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {athletes?.map((athlete) => (
+              <TableRow key={athlete.athleteId}>
+                <TableCell>
+                  {athlete.user?.firstName} {athlete.user?.lastName}
+                </TableCell>
+                <TableCell>{athlete.user?.email}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={() =>
+                        nav(
+                          getPath(['dashboard', 'calendar']) +
+                            `/${athlete.athleteId}`,
+                        )
+                      }
+                    >
+                      {m.view_calendar()}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteAthleteDialog(athlete.athleteId);
+                      }}
+                    >
+                      {m.delete_()}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </SettingsSection>
+      {sentInvitationsLoading ? (
+        <SettingsSection
+          title={m.sent_invitations_to_athletes()}
+          description={m.sent_invitations_to_athletes_description()}
+        >
+          <div className="text-sm text-muted-foreground">{m.loading()}</div>
+        </SettingsSection>
+      ) : sentInvitations && sentInvitations.length > 0 ? (
+        <SettingsSection
+          title={m.sent_invitations_to_athletes()}
+          description={m.sent_invitations_to_athletes_description()}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{m.email()}</TableHead>
+                <TableHead>{m.invitation_sent_at()}</TableHead>
+                <TableHead className="text-right">{m.actions()}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sentInvitations.map((invitation) => (
+                <TableRow key={invitation.athleteInvitationId}>
+                  <TableCell>{invitation.email}</TableCell>
+                  <TableCell>{formatDate(invitation.createdAt)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        cancelInvitationMutation.mutate(
+                          invitation.athleteInvitationId,
+                        )
+                      }
+                      disabled={cancelInvitationMutation.isPending}
+                    >
+                      {m.cancel_invitation()}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </SettingsSection>
+      ) : null}
+
       <InviteAthleteDialog
         open={inviteAthleteDialog}
         onClose={() => setInviteAthleteDialog(false)}
         onInvite={(email) => inviteAthleteMutation.mutate({ email })}
         isLoading={inviteAthleteMutation.isPending}
       />
-      {sentInvitationsLoading ? (
-        <div className="mt-12 text-sm text-muted-foreground">{m.loading()}</div>
-      ) : (
-        sentInvitations &&
-        sentInvitations.length > 0 && (
-          <div className="mt-12">
-            <h3 className="text-md font-semibold mb-3">
-              {m.sent_invitations_to_athletes()}
-            </h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{m.email()}</TableHead>
-                  <TableHead>{m.invitation_sent_at()}</TableHead>
-                  <TableHead className="text-right">{m.actions()}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sentInvitations.map((invitation) => (
-                  <TableRow key={invitation.athleteInvitationId}>
-                    <TableCell>{invitation.email}</TableCell>
-                    <TableCell>{formatDate(invitation.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          cancelInvitationMutation.mutate(
-                            invitation.athleteInvitationId,
-                          )
-                        }
-                        disabled={cancelInvitationMutation.isPending}
-                      >
-                        {m.cancel_invitation()}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )
-      )}
       <ConfirmAction
         open={!!deleteAthleteDialog}
         onClose={() => setDeleteAthleteDialog(null)}
@@ -165,6 +176,6 @@ export function AthletesTab() {
         message={m.confirm_delete_athlete()}
         isLoading={removeAthleteMutation.isPending}
       />
-    </>
+    </div>
   );
 }

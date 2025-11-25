@@ -9,19 +9,24 @@ import { TrainingZoneList } from './training-zone-list';
 
 interface TrainingZoneEditorProps {
   athleteId: number;
+  showHeading?: boolean;
 }
 
-export function TrainingZoneEditor({ athleteId }: TrainingZoneEditorProps) {
+export function TrainingZoneEditor({
+  athleteId,
+  showHeading = true,
+}: TrainingZoneEditorProps) {
   const [selectedType, setSelectedType] = useState<TRAINING_ZONE_TYPE>(
     TRAINING_ZONE_TYPE.HEARTRATE,
   );
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">{m.training_zones()}</h2>
-      </div>
-
+      {showHeading && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">{m.training_zones()}</h2>
+        </div>
+      )}
       <Tabs
         value={selectedType}
         onValueChange={(value) => setSelectedType(value as TRAINING_ZONE_TYPE)}

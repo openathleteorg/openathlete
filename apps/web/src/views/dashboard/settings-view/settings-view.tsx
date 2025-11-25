@@ -29,25 +29,25 @@ export function SettingsView() {
           )}
           <TabsTrigger value="invitations">{m.invitations()}</TabsTrigger>
         </TabsList>
-        <TabsContent value="connectors">
+        <TabsContent value="connectors" className="mt-6">
           <ConnectorsTab />
         </TabsContent>
-        <TabsContent value="profile">
+        <TabsContent value="profile" className="mt-6">
           <ProfileTab />
         </TabsContent>
-        <TabsContent value="equipment">
+        <TabsContent value="equipment" className="mt-6">
           <EquipmentTab />
         </TabsContent>
-        <TabsContent value="training_zones">
+        <TabsContent value="training_zones" className="mt-6">
           <TrainingZonesTab />
         </TabsContent>
-        <TabsContent value="athletes">
+        <TabsContent value="athletes" className="mt-6">
           <AthletesTab />
         </TabsContent>
-        <TabsContent value="coaches">
+        <TabsContent value="coaches" className="mt-6">
           <CoachesTab />
         </TabsContent>
-        <TabsContent value="invitations">
+        <TabsContent value="invitations" className="mt-6">
           <InvitationsTab />
         </TabsContent>
       </Tabs>

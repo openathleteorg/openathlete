@@ -4,13 +4,6 @@ import { FormProvider, RHFTextField } from '@/components/hook-form';
 import { RHFSelect } from '@/components/hook-form/rhf-select';
 import { SessionValidationSettingsCard } from '@/components/session-validation-settings-card';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { SelectItem } from '@/components/ui/select';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
@@ -20,6 +13,8 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 import { updateAccountDtoSchema } from '@openathlete/shared';
+
+import { SettingsSection } from './settings-section';
 
 export function ProfileTab() {
   const { user } = useAuthContext();
@@ -45,48 +40,45 @@ export function ProfileTab() {
   );
   return (
     <div className="space-y-6">
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>{m.profile()}</CardTitle>
-          <CardDescription>{m.update_profile_information()}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <FormProvider methods={methods} onSubmit={onSubmit}>
-            <div className="flex flex-col gap-4 w-full max-w-md">
-              <RHFTextField
-                name="firstName"
-                type="text"
-                placeholder={m.first_name_placeholder()}
-                label={m.first_name()}
-                required
-              />
-              <RHFTextField
-                name="lastName"
-                type="text"
-                placeholder={m.last_name_placeholder()}
-                label={m.last_name()}
-                required
-              />
-              <RHFSelect
-                name="gender"
-                label={m.gender()}
-                placeholder={m.gender_placeholder()}
-              >
-                <SelectItem value="MALE">{m.gender_male()}</SelectItem>
-                <SelectItem value="FEMALE">{m.gender_female()}</SelectItem>
-                <SelectItem value="OTHER">{m.gender_other()}</SelectItem>
-              </RHFSelect>
-              <Button
-                type="submit"
-                className="w-fit"
-                isLoading={updateAccountMutation.isPending}
-              >
-                {m.update()}
-              </Button>
-            </div>
-          </FormProvider>
-        </CardContent>
-      </Card>
+      <SettingsSection
+        title={m.profile()}
+        description={m.update_profile_information()}
+      >
+        <FormProvider methods={methods} onSubmit={onSubmit}>
+          <div className="flex w-full max-w-md flex-col gap-4">
+            <RHFTextField
+              name="firstName"
+              type="text"
+              placeholder={m.first_name_placeholder()}
+              label={m.first_name()}
+              required
+            />
+            <RHFTextField
+              name="lastName"
+              type="text"
+              placeholder={m.last_name_placeholder()}
+              label={m.last_name()}
+              required
+            />
+            <RHFSelect
+              name="gender"
+              label={m.gender()}
+              placeholder={m.gender_placeholder()}
+            >
+              <SelectItem value="MALE">{m.gender_male()}</SelectItem>
+              <SelectItem value="FEMALE">{m.gender_female()}</SelectItem>
+              <SelectItem value="OTHER">{m.gender_other()}</SelectItem>
+            </RHFSelect>
+            <Button
+              type="submit"
+              className="w-fit"
+              isLoading={updateAccountMutation.isPending}
+            >
+              {m.update()}
+            </Button>
+          </div>
+        </FormProvider>
+      </SettingsSection>
       {athlete?.athleteId && (
         <SessionValidationSettingsCard athleteId={athlete.athleteId} />
       )}

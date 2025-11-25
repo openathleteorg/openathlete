@@ -19,6 +19,8 @@ import { m } from '@/paraglide/messages';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { SettingsSection } from './settings-section';
+
 export function CoachesTab() {
   const { data: coaches } = useGetMyCoachesQuery();
   const { data: sentInvitations, isLoading: sentInvitationsLoading } =
@@ -45,95 +47,103 @@ export function CoachesTab() {
     });
 
   return (
-    <>
-      <div className="my-4 flex justify-between">
-        <div className="text-lg font-semibold mb-4">{m.coaches()}</div>
-        <Button
-          size="sm"
-          onClick={() => {
-            setInviteCoachDialogOpen(true);
-          }}
-        >
-          {m.invite_a_coach()}
-        </Button>
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{m.name()}</TableHead>
-            <TableHead>{m.email()}</TableHead>
-            <TableHead className="text-right">{m.actions()}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {coaches?.map((coach) => (
-            <TableRow key={coach.userId}>
-              <TableCell>
-                {coach.firstName} {coach.lastName}
-              </TableCell>
-              <TableCell>{coach.email}</TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setDeleteEventDialog(coach.userId);
-                  }}
-                >
-                  {m.delete_()}
-                </Button>
-              </TableCell>
+    <div className="space-y-6">
+      <SettingsSection
+        title={m.coaches()}
+        description={m.coaches_tab_description()}
+        action={
+          <Button
+            size="sm"
+            onClick={() => {
+              setInviteCoachDialogOpen(true);
+            }}
+          >
+            {m.invite_a_coach()}
+          </Button>
+        }
+      >
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{m.name()}</TableHead>
+              <TableHead>{m.email()}</TableHead>
+              <TableHead className="text-right">{m.actions()}</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {coaches?.map((coach) => (
+              <TableRow key={coach.userId}>
+                <TableCell>
+                  {coach.firstName} {coach.lastName}
+                </TableCell>
+                <TableCell>{coach.email}</TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setDeleteEventDialog(coach.userId);
+                      }}
+                    >
+                      {m.delete_()}
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </SettingsSection>
       <InviteCoachDialog
         open={inviteCoachDialogOpen}
         onClose={() => setInviteCoachDialogOpen(false)}
       />
       {sentInvitationsLoading ? (
-        <div className="mt-12 text-sm text-muted-foreground">{m.loading()}</div>
-      ) : (
-        sentInvitations &&
-        sentInvitations.length > 0 && (
-          <div className="mt-12">
-            <h3 className="text-md font-semibold mb-3">
-              {m.sent_invitations_to_coaches()}
-            </h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{m.email()}</TableHead>
-                  <TableHead>{m.invitation_sent_at()}</TableHead>
-                  <TableHead className="text-right">{m.actions()}</TableHead>
+        <SettingsSection
+          title={m.sent_invitations_to_coaches()}
+          description={m.sent_invitations_to_coaches_description()}
+        >
+          <div className="text-sm text-muted-foreground">{m.loading()}</div>
+        </SettingsSection>
+      ) : sentInvitations && sentInvitations.length > 0 ? (
+        <SettingsSection
+          title={m.sent_invitations_to_coaches()}
+          description={m.sent_invitations_to_coaches_description()}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{m.email()}</TableHead>
+                <TableHead>{m.invitation_sent_at()}</TableHead>
+                <TableHead className="text-right">{m.actions()}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {sentInvitations.map((invitation) => (
+                <TableRow key={invitation.coachInvitationId}>
+                  <TableCell>{invitation.email}</TableCell>
+                  <TableCell>{formatDate(invitation.createdAt)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        cancelInvitationMutation.mutate(
+                          invitation.coachInvitationId,
+                        )
+                      }
+                      disabled={cancelInvitationMutation.isPending}
+                    >
+                      {m.cancel_invitation()}
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sentInvitations.map((invitation) => (
-                  <TableRow key={invitation.coachInvitationId}>
-                    <TableCell>{invitation.email}</TableCell>
-                    <TableCell>{formatDate(invitation.createdAt)}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          cancelInvitationMutation.mutate(
-                            invitation.coachInvitationId,
-                          )
-                        }
-                        disabled={cancelInvitationMutation.isPending}
-                      >
-                        {m.cancel_invitation()}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )
-      )}
+              ))}
+            </TableBody>
+          </Table>
+        </SettingsSection>
+      ) : null}
       <ConfirmAction
         open={!!deleteCoachDialog}
         onClose={() => setDeleteEventDialog(null)}
@@ -147,6 +157,6 @@ export function CoachesTab() {
         message={m.confirm_delete_coach()}
         isLoading={removeCoachMutation.isPending}
       />
-    </>
+    </div>
   );
 }
