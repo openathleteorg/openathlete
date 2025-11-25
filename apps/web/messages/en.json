@@ -1,5 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
+  "date_required_for_event_generation": "Date is required for event generation",
+  "creating_message_thread": "Creating...",
   "my_records": "My records",
   "records_of": "Records of {firstName} {lastName}",
   "my_summary": "My summary",
@@ -847,6 +849,8 @@
   "legal_notice_applicable_law_content": "These legal notices are governed by French law. In case of dispute and in the absence of an amicable agreement, the dispute will be brought before French courts in accordance with the rules of jurisdiction in force.",
   "legal_notice_dispute_resolution_title": "9. Dispute Resolution",
   "legal_notice_dispute_resolution_content": "In accordance with Article L.611-1 of the Consumer Code, if you are a consumer, you may use a consumer mediator free of charge for the amicable resolution of a dispute between us. For more information, you can consult the consumer mediation website: https://www.mediation-consommation.org/. As a sole proprietor, we are committed to seeking an amicable solution to any potential dispute.",
+  "landing_pricing_contact_us": "Contact us",
+  "landing_pricing_get_started": "Get started",
   "landing_topbar": "Plan faster. Analyze better. Prevent fatigue.",
   "landing_hero_title": "AI-assisted coaching platform.",
   "landing_hero_subtitle": "OpenAthlete helps coaches and athletes create, adapt and track their training plans more efficiently, while preventing fatigue and injuries.",

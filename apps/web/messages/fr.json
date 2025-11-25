@@ -1,5 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
+  "date_required_for_event_generation": "La date est requise pour la génération de l'événement",
+  "creating_message_thread": "Création en cours...",
   "my_records": "Mes records",
   "records_of": "Records de {firstName} {lastName}",
   "my_summary": "Mon résumé",
@@ -849,6 +851,8 @@
   "legal_notice_applicable_law_content": "Les présentes mentions légales sont régies par le droit français. En cas de litige et à défaut d'accord amiable, le litige sera porté devant les tribunaux français conformément aux règles de compétence en vigueur.",
   "legal_notice_dispute_resolution_title": "9. Règlement des litiges",
   "legal_notice_dispute_resolution_content": "Conformément à l'article L.611-1 du Code de la consommation, si vous êtes un consommateur, vous pouvez recourir gratuitement à un médiateur de la consommation en vue de la résolution amiable d'un litige qui nous opposerait. Pour plus d'informations, vous pouvez consulter le site de la médiation de la consommation : https://www.mediation-consommation.org/. En tant qu'auto-entrepreneur, nous nous engageons à rechercher une solution amiable à tout litige éventuel.",
+  "landing_pricing_contact_us": "Contactez-nous",
+  "landing_pricing_get_started": "Commencer",
   "landing_topbar": "Planifiez plus vite. Analysez mieux. Prévenez la fatigue.",
   "landing_hero_title": "La plateforme de coaching assistée par IA.",
   "landing_hero_subtitle": "OpenAthlete aide les coachs et les athlètes à créer, adapter et suivre leurs plans d’entraînement plus efficacement, tout en prévenant la fatigue et les blessures.",

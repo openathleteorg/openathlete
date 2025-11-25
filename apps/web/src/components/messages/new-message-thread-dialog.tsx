@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { m } from '@/paraglide/messages';
 import { Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -139,10 +140,10 @@ export function NewMessageThreadDialog({
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Création...
+                {m.creating_message_thread()}...
               </>
             ) : (
-              'Créer'
+              m.create()
             )}
           </Button>
         </DialogFooter>

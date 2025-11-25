@@ -1,4 +1,5 @@
 import { type PageAction, PageActionsProvider } from '@/hooks/use-page-actions';
+import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -22,13 +23,13 @@ interface MobileLayoutProps {
 function getPageTitle(pathname: string): string {
   // Map routes to titles
   const titleMap: Record<string, string> = {
-    [getPath(['dashboard', 'calendar'])]: 'Calendrier',
-    [getPath(['dashboard', 'profile'])]: 'Profil',
-    [getPath(['dashboard', 'messages'])]: 'Messages',
-    [getPath(['dashboard', 'statistics'])]: 'Statistiques',
-    [getPath(['dashboard', 'records'])]: 'Records',
-    [getPath(['dashboard', 'metrics'])]: 'Métriques',
-    [getPath(['dashboard', 'settings'])]: 'Paramètres',
+    [getPath(['dashboard', 'calendar'])]: m.calendar(),
+    [getPath(['dashboard', 'profile'])]: m.profile(),
+    [getPath(['dashboard', 'messages'])]: m.messages(),
+    [getPath(['dashboard', 'statistics'])]: m.statistics(),
+    [getPath(['dashboard', 'records'])]: m.records(),
+    [getPath(['dashboard', 'metrics'])]: m.metrics(),
+    [getPath(['dashboard', 'settings'])]: m.settings(),
   };
 
   return titleMap[pathname] || 'OpenAthlete';

@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 
 interface PricingCardProps {
@@ -64,8 +65,8 @@ export function PricingCard({
           onClick={onCtaClick}
         >
           {price === 'Contact us' || price === 'Sur devis'
-            ? 'Contact us'
-            : 'Get started'}
+            ? m.landing_pricing_contact_us()
+            : m.landing_pricing_get_started()}
         </Button>
       </CardFooter>
     </Card>

@@ -70,7 +70,7 @@ export function AIModifyEventDialog({
       if (isCreateMode) {
         // Generate new event
         if (!date) {
-          toast.error('Date is required for event generation');
+          toast.error(m.date_required_for_event_generation());
           return;
         }
         const generatedEvent = await generateEventMutation.mutateAsync({

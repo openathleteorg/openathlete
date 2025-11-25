@@ -266,10 +266,10 @@ export function Calendar({
         },
         {
           onSuccess: () => {
-            toast.success('Cycle updated successfully');
+            toast.success(m.cycle_updated_successfully());
           },
           onError: () => {
-            toast.error('Failed to update cycle');
+            toast.error(m.failed_to_update_cycle());
           },
         },
       );
