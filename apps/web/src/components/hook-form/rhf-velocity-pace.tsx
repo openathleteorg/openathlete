@@ -69,13 +69,12 @@ function VelocityPaceFieldAdapter({
   const [paceSeconds, setPaceSeconds] = useState<string>('');
   const [lastSyncedValue, setLastSyncedValue] = useState<
     number | null | undefined
-  >(field.value as number | null | undefined);
+  >(undefined);
 
-  // Initialize from field value (stored in m/s)
-  // Only sync when field.value changes externally (not from our own updates)
   useEffect(() => {
-    // Skip if value hasn't actually changed or if it's our own update
-    if (field.value === lastSyncedValue) return;
+    if (field.value === lastSyncedValue && lastSyncedValue !== undefined) {
+      return;
+    }
 
     if (field.value === undefined || field.value === null) {
       setValueInput('');
@@ -145,7 +144,6 @@ function VelocityPaceFieldAdapter({
     } else if (unit === 'min_per_km') {
       currentValueMs = field.value as number;
     } else {
-      // Try to parse current input, fallback to field value
       const currentInput =
         unit === 'km_per_h'
           ? kmhToMs(parseFloat(valueInput))

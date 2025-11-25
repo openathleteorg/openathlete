@@ -299,6 +299,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             workoutSteps={workoutSteps}
             setWorkoutSteps={setWorkoutSteps}
             sportValue={sportValue}
+            athleteId={athleteId ?? undefined}
           />
 
           <div className="flex items-center gap-4">

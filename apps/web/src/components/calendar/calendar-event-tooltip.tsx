@@ -2,6 +2,7 @@ import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { Separator } from '@/components/ui/separator';
 import { WorkoutGraph } from '@/components/workout/workout-graph';
 import { m } from '@/paraglide/messages';
+import { Fragment } from 'react/jsx-runtime';
 
 import {
   ActivityEvent,
@@ -32,7 +33,12 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
         </div>
         {event.description && (
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            {event.description}
+            {event.description.split('\n').map((line, index) => (
+              <Fragment key={index}>
+                {line}
+                <br />
+              </Fragment>
+            ))}
           </p>
         )}
       </div>
@@ -107,7 +113,12 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
         </div>
         {event.description && (
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            {event.description}
+            {event.description.split('\n').map((line, index) => (
+              <Fragment key={index}>
+                {line}
+                <br />
+              </Fragment>
+            ))}
           </p>
         )}
       </div>
@@ -185,7 +196,12 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
         </div>
         {event.description && (
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            {event.description}
+            {event.description.split('\n').map((line, index) => (
+              <Fragment key={index}>
+                {line}
+                <br />
+              </Fragment>
+            ))}
           </p>
         )}
       </div>
@@ -243,7 +259,12 @@ function NoteTooltipContent({ event }: { event: NoteEvent }) {
         <div className="font-semibold text-sm">{event.name}</div>
         {event.description && (
           <p className="text-xs text-gray-600 dark:text-gray-400">
-            {event.description}
+            {event.description.split('\n').map((line, index) => (
+              <Fragment key={index}>
+                {line}
+                <br />
+              </Fragment>
+            ))}
           </p>
         )}
       </div>

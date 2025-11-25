@@ -78,6 +78,7 @@ type TargetWithId = {
   targetMin: WorkoutStepTarget['targetMin'];
   targetMax: WorkoutStepTarget['targetMax'];
   targetValue: WorkoutStepTarget['targetValue'];
+  metricType: WorkoutStepTarget['metricType'];
 };
 
 interface StepFormProps {
@@ -93,8 +94,8 @@ export function StepForm({
   initialValues,
   onSubmit,
   onCancel,
-  submitLabel = 'Save Step',
-  cancelLabel = 'Cancel',
+  submitLabel = m.step_form_save(),
+  cancelLabel = m.step_form_cancel(),
   sport = 'RUNNING',
 }: StepFormProps) {
   const [targets, setTargets] = useState<TargetWithId[]>(
@@ -104,9 +105,11 @@ export function StepForm({
       targetMin: t.targetMin,
       targetMax: t.targetMax,
       targetValue: t.targetValue,
+      metricType: t.metricType ?? null,
     })) || [],
   );
   const [isTargetDialogOpen, setIsTargetDialogOpen] = useState(false);
+  const [editingTargetId, setEditingTargetId] = useState<string | null>(null);
 
   const form = useForm<StepFormValues>({
     resolver: zodResolver(stepFormSchema),
@@ -121,18 +124,48 @@ export function StepForm({
 
   const selectedDurationType = form.watch('durationType');
 
-  const handleAddTarget = (targetValues: Partial<Omit<TargetWithId, 'id'>>) => {
-    setTargets([
-      ...targets,
-      {
-        id: `temp-${Date.now()}`,
-        targetType: targetValues.targetType!,
-        targetMin: targetValues.targetMin ?? null,
-        targetMax: targetValues.targetMax ?? null,
-        targetValue: targetValues.targetValue ?? null,
-      },
-    ]);
+  const handleAddTarget = (
+    targetValues: Partial<Omit<TargetWithId, 'id'>> & {
+      metricType?: string | null;
+    },
+  ) => {
+    if (editingTargetId) {
+      // Update existing target
+      setTargets(
+        targets.map((t) =>
+          t.id === editingTargetId
+            ? {
+                ...t,
+                targetType: targetValues.targetType!,
+                targetMin: targetValues.targetMin ?? null,
+                targetMax: targetValues.targetMax ?? null,
+                targetValue: targetValues.targetValue ?? null,
+                metricType: targetValues.metricType ?? null,
+              }
+            : t,
+        ),
+      );
+      setEditingTargetId(null);
+    } else {
+      // Add new target
+      setTargets([
+        ...targets,
+        {
+          id: `temp-${Date.now()}`,
+          targetType: targetValues.targetType!,
+          targetMin: targetValues.targetMin ?? null,
+          targetMax: targetValues.targetMax ?? null,
+          targetValue: targetValues.targetValue ?? null,
+          metricType: targetValues.metricType ?? null,
+        },
+      ]);
+    }
     setIsTargetDialogOpen(false);
+  };
+
+  const handleEditTarget = (id: string) => {
+    setEditingTargetId(id);
+    setIsTargetDialogOpen(true);
   };
 
   const handleRemoveTarget = (id: string) => {
@@ -279,15 +312,33 @@ export function StepForm({
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>{m.step_form_add_target_title()}</DialogTitle>
+                  <DialogTitle>
+                    {editingTargetId
+                      ? m.step_form_edit_target_title()
+                      : m.step_form_add_target_title()}
+                  </DialogTitle>
                   <DialogDescription>
-                    {m.step_form_add_target_description()}
+                    {editingTargetId
+                      ? m.step_form_edit_target_description()
+                      : m.step_form_add_target_description()}
                   </DialogDescription>
                 </DialogHeader>
                 <TargetForm
+                  initialValues={
+                    editingTargetId
+                      ? targets.find((t) => t.id === editingTargetId)
+                      : undefined
+                  }
                   onSubmit={handleAddTarget}
-                  onCancel={() => setIsTargetDialogOpen(false)}
-                  submitLabel={m.step_form_add_target()}
+                  onCancel={() => {
+                    setIsTargetDialogOpen(false);
+                    setEditingTargetId(null);
+                  }}
+                  submitLabel={
+                    editingTargetId
+                      ? m.step_form_save_target()
+                      : m.step_form_add_target()
+                  }
                   sport={sport}
                 />
               </DialogContent>
@@ -298,22 +349,29 @@ export function StepForm({
             <div className="flex flex-wrap gap-2">
               {targets.map((target) => (
                 <div key={target.id} className="relative group">
-                  <TargetBadge
-                    target={
-                      {
-                        targetType: target.targetType,
-                        targetMin: target.targetMin,
-                        targetMax: target.targetMax,
-                        targetValue: target.targetValue,
-                      } as unknown as WorkoutStepTarget
-                    }
-                    sport={SPORT_TYPE[sport]}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => handleEditTarget(target.id)}
+                    className="cursor-pointer"
+                  >
+                    <TargetBadge
+                      target={
+                        {
+                          targetType: target.targetType,
+                          targetMin: target.targetMin,
+                          targetMax: target.targetMax,
+                          targetValue: target.targetValue,
+                          metricType: target.metricType,
+                        } as unknown as WorkoutStepTarget
+                      }
+                      sport={SPORT_TYPE[sport]}
+                    />
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleRemoveTarget(target.id)}
                     className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-destructive text-destructive-foreground opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-                    aria-label="Remove target"
+                    aria-label={m.step_form_remove_target()}
                   >
                     <X className="h-3 w-3" />
                   </button>

@@ -1,3 +1,5 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { RHFNumberWithUnit } from '@/components/hook-form/rhf-number-with-unit';
 import { RHFRpe } from '@/components/hook-form/rhf-rpe';
 import { RHFVelocityPace } from '@/components/hook-form/rhf-velocity-pace';
@@ -20,15 +22,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { m } from '@/paraglide/messages';
+import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { FormProvider } from 'react-hook-form';
+import { useEffect, useMemo, useState } from 'react';
 import type { ControllerRenderProps } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 import type { WorkoutStepTarget, WorkoutTargetType } from '@openathlete/shared';
-import { SPORT_TYPE, WORKOUT_TARGET_TYPE } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  WORKOUT_TARGET_TYPE,
+  getCompatibleMetrics,
+} from '@openathlete/shared';
 
 const TARGET_TYPES: { value: WorkoutTargetType; getLabelFn: () => string }[] = [
   {
@@ -66,6 +72,7 @@ const targetFormSchema = z.object({
   targetMin: z.number().nullable().optional(),
   targetMax: z.number().nullable().optional(),
   targetValue: z.number().nullable().optional(),
+  metricType: z.string().nullable().optional(),
 });
 
 type TargetFormValues = z.infer<typeof targetFormSchema>;
@@ -112,7 +119,7 @@ function RpeFieldAdapter({
 
 interface TargetFormProps {
   initialValues?: Partial<WorkoutStepTarget>;
-  onSubmit: (values: TargetFormValues) => void;
+  onSubmit: (values: TargetFormValues & { metricType?: string | null }) => void;
   onCancel?: () => void;
   submitLabel?: string;
   cancelLabel?: string;
@@ -131,33 +138,107 @@ export function TargetForm({
   cancelLabel = m.target_form_cancel(),
   sport,
 }: TargetFormProps) {
+  const { data: athlete } = useGetMyAthleteQuery();
+  const { data: latestMetrics = {} } = useGetLatestMetricsQuery(
+    athlete?.athleteId,
+  );
+
   const [useRange, setUseRange] = useState(
     !!(initialValues?.targetMin || initialValues?.targetMax),
   );
+
+  // Check if initial values have metricType (meaning values are in 0-1 range)
+  const initialMetricType = initialValues?.metricType || null;
+  const hasInitialMetric = !!initialMetricType;
+
+  // Convert initial values from percentage (0-1) to display format (0-100) if metricType exists
+  const convertFromStoredPercentage = (
+    value: number | null | undefined,
+    metricType: string | null | undefined,
+  ): number | null => {
+    if (!value || !metricType) return value ?? null;
+    // Value is stored as 0-1, convert to 0-100 for display
+    return value * 100;
+  };
+
+  // Convert display format (0-100) to stored format (0-1) if metricType exists
+  const convertToStoredPercentage = (
+    value: number | null | undefined,
+    metricType: string | null | undefined,
+  ): number | null => {
+    if (!value || !metricType) return value ?? null;
+    // Convert 0-100 to 0-1 range for storage
+    return value / 100;
+  };
 
   const form = useForm<TargetFormValues>({
     resolver: zodResolver(targetFormSchema),
     defaultValues: {
       targetType: initialValues?.targetType || 'HEARTRATE',
-      targetMin: initialValues?.targetMin || null,
-      targetMax: initialValues?.targetMax || null,
-      targetValue: initialValues?.targetValue || null,
+      targetMin: hasInitialMetric
+        ? convertFromStoredPercentage(
+            initialValues?.targetMin,
+            initialMetricType,
+          )
+        : initialValues?.targetMin || null,
+      targetMax: hasInitialMetric
+        ? convertFromStoredPercentage(
+            initialValues?.targetMax,
+            initialMetricType,
+          )
+        : initialValues?.targetMax || null,
+      targetValue: hasInitialMetric
+        ? convertFromStoredPercentage(
+            initialValues?.targetValue,
+            initialMetricType,
+          )
+        : initialValues?.targetValue || null,
+      metricType: initialMetricType,
     },
   });
 
   const selectedTargetType = form.watch('targetType');
+  const selectedMetricType = form.watch('metricType');
+
+  // Get compatible metrics for the selected target type
+  const compatibleMetrics = useMemo(() => {
+    return getCompatibleMetrics(selectedTargetType);
+  }, [selectedTargetType]);
+
+  // Filter to only show metrics that the athlete has
+  const availableMetrics = useMemo(() => {
+    return compatibleMetrics.filter(
+      (metricType) => latestMetrics[metricType]?.value,
+    );
+  }, [compatibleMetrics, latestMetrics]);
 
   // For ZONE type, use targetValue (not range)
   const isZoneType = selectedTargetType === 'ZONE';
   const showRange = useRange && !isZoneType;
+  const hasMetric = !!selectedMetricType;
 
   const handleSubmit = (values: TargetFormValues) => {
+    // Convert values from display format (0-100) to stored format (0-1) if metricType is set
+    let finalMin = values.targetMin;
+    let finalMax = values.targetMax;
+    let finalValue = values.targetValue;
+
+    if (values.metricType) {
+      finalMin = convertToStoredPercentage(values.targetMin, values.metricType);
+      finalMax = convertToStoredPercentage(values.targetMax, values.metricType);
+      finalValue = convertToStoredPercentage(
+        values.targetValue,
+        values.metricType,
+      );
+    }
+
     // Clear unused fields based on range toggle and type
     const cleanedValues = {
       ...values,
-      targetMin: showRange ? values.targetMin : null,
-      targetMax: showRange ? values.targetMax : null,
-      targetValue: !showRange || isZoneType ? values.targetValue : null,
+      targetMin: showRange ? finalMin : null,
+      targetMax: showRange ? finalMax : null,
+      targetValue: !showRange || isZoneType ? finalValue : null,
+      metricType: values.metricType || null,
     };
     onSubmit(cleanedValues);
   };
@@ -203,6 +284,47 @@ export function TargetForm({
           )}
         />
 
+        {/* Metric Type Selector - only for compatible target types */}
+        {availableMetrics.length > 0 && (
+          <FormField
+            control={form.control}
+            name="metricType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{m.target_form_metric_type()}</FormLabel>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value === 'none' ? null : value);
+                  }}
+                  value={field.value || 'none'}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={m.target_form_metric_type_placeholder()}
+                      />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      {m.target_form_metric_type_none()}
+                    </SelectItem>
+                    {availableMetrics.map((metricType) => (
+                      <SelectItem key={metricType} value={metricType}>
+                        {metricTypeLabelMap[metricType]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  {m.target_form_metric_type_description()}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
         {/* Range Toggle - hidden for ZONE */}
         {!isZoneType && (
           <div className="flex items-center gap-2">
@@ -229,15 +351,43 @@ export function TargetForm({
         ) : selectedTargetType === 'PACE' ? (
           showRange ? (
             <div className="grid grid-cols-1 gap-4">
-              <RHFVelocityPace
-                name="targetMin"
-                label={m.target_form_min_value()}
-              />
-              <RHFVelocityPace
-                name="targetMax"
-                label={m.target_form_max_value()}
-              />
+              {hasMetric ? (
+                <RHFNumberWithUnit
+                  name="targetMin"
+                  label={m.target_form_min_value()}
+                  unit={hasMetric ? '%' : m.bpm()}
+                  min={0}
+                  max={hasMetric ? 100 : undefined}
+                />
+              ) : (
+                <RHFVelocityPace
+                  name="targetMin"
+                  label={m.target_form_min_value()}
+                />
+              )}
+              {hasMetric ? (
+                <RHFNumberWithUnit
+                  name="targetMax"
+                  label={m.target_form_max_value()}
+                  unit={hasMetric ? '%' : m.bpm()}
+                  min={0}
+                  max={hasMetric ? 100 : undefined}
+                />
+              ) : (
+                <RHFVelocityPace
+                  name="targetMax"
+                  label={m.target_form_max_value()}
+                />
+              )}
             </div>
+          ) : hasMetric ? (
+            <RHFNumberWithUnit
+              name="targetValue"
+              label={m.target_form_single_value()}
+              unit={hasMetric ? '%' : m.bpm()}
+              min={0}
+              max={hasMetric ? 100 : undefined}
+            />
           ) : (
             <RHFVelocityPace
               name="targetValue"
@@ -250,22 +400,25 @@ export function TargetForm({
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
-                unit={m.bpm()}
+                unit={hasMetric ? '%' : m.bpm()}
                 min={0}
+                max={hasMetric ? 100 : undefined}
               />
               <RHFNumberWithUnit
                 name="targetMax"
                 label={m.target_form_max_value()}
-                unit={m.bpm()}
+                unit={hasMetric ? '%' : m.bpm()}
                 min={0}
+                max={hasMetric ? 100 : undefined}
               />
             </div>
           ) : (
             <RHFNumberWithUnit
               name="targetValue"
               label={m.target_form_single_value()}
-              unit={m.bpm()}
+              unit={hasMetric ? '%' : m.bpm()}
               min={0}
+              max={hasMetric ? 100 : undefined}
             />
           )
         ) : selectedTargetType === 'POWER' ? (
@@ -274,22 +427,25 @@ export function TargetForm({
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
-                unit={m.watts()}
+                unit={hasMetric ? '%' : m.watts()}
                 min={0}
+                max={hasMetric ? 100 : undefined}
               />
               <RHFNumberWithUnit
                 name="targetMax"
                 label={m.target_form_max_value()}
-                unit={m.watts()}
+                unit={hasMetric ? '%' : m.watts()}
                 min={0}
+                max={hasMetric ? 100 : undefined}
               />
             </div>
           ) : (
             <RHFNumberWithUnit
               name="targetValue"
               label={m.target_form_single_value()}
-              unit={m.watts()}
+              unit={hasMetric ? '%' : m.watts()}
               min={0}
+              max={hasMetric ? 100 : undefined}
             />
           )
         ) : selectedTargetType === 'CADENCE' ? (

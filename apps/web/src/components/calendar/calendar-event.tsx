@@ -193,7 +193,8 @@ export function CalendarEvent({ event, wrapped }: P) {
                   )}
                 {event.type === EVENT_TYPE.TRAINING &&
                   'workout' in event &&
-                  event.workout && (
+                  event.workout &&
+                  event.workout.steps.length > 0 && (
                     <ActivityIcon className="inline-block w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
                   )}
                 {event.name}

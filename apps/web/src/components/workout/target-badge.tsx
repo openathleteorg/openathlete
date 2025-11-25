@@ -5,6 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
 import { getTargetTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
@@ -47,7 +48,12 @@ export function TargetBadge({
     if (target.targetType === 'ZONE' && zoneName) {
       return zoneName;
     }
-    return formatTarget(target);
+    return formatTarget(target, (metricType) => {
+      return (
+        metricTypeLabelMap[metricType as keyof typeof metricTypeLabelMap] ||
+        metricType
+      );
+    });
   }, [target, zoneName]);
 
   const label = getTargetTypeLabel(target.targetType);

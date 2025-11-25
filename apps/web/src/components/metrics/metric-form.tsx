@@ -118,7 +118,7 @@ export function MetricForm({
           </RHFSelect>
         )}
 
-        <RHFDatePicker name="date" label="Date" required />
+        <RHFDatePicker name="date" label="Date" required max={new Date()} />
 
         <div className="space-y-2">
           <RHFTextField

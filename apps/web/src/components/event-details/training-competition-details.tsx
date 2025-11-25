@@ -158,7 +158,7 @@ export function TrainingCompetitionDetails({ event }: P) {
             </CardContent>
           </Card>
         )}
-        {isTraining && event.workout && (
+        {isTraining && event.workout && event.workout.steps.length > 0 && (
           <Card className="col-span-2">
             <CardHeader>
               <CardTitle>{m.workout()}</CardTitle>

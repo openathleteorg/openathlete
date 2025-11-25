@@ -11,7 +11,7 @@ import { m } from '@/paraglide/messages';
 import { formatDuration, getStepTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
 
-import { formatTarget } from '@openathlete/shared';
+import { formatTarget, getTargetIntensity } from '@openathlete/shared';
 import type {
   TrainingZone,
   TrainingZoneValue,
@@ -73,11 +73,13 @@ function calculateIntensityFromTarget(
   metrics: Record<string, { value: number }> | undefined,
   sport?: SPORT_TYPE,
 ): { intensity: number; color: string } | null {
-  const { targetType, targetValue, targetMin, targetMax } = target;
+  const intensityValues = getTargetIntensity(target, metrics);
+  const { targetType } = target;
+  const targetValue = intensityValues.value;
+  const targetMin = intensityValues.min;
+  const targetMax = intensityValues.max;
 
-  // ZONE target: use zone directly
   if (targetType === 'ZONE' && targetValue) {
-    // Try all zone types to find the zone
     for (const zoneType of [
       TRAINING_ZONE_TYPE.HEARTRATE,
       TRAINING_ZONE_TYPE.POWER,
@@ -93,7 +95,6 @@ function calculateIntensityFromTarget(
     }
   }
 
-  // HEARTRATE target: use heartrate zones
   if (targetType === 'HEARTRATE') {
     const hrZones = zonesByType[TRAINING_ZONE_TYPE.HEARTRATE] || [];
     const hrValue =
@@ -101,7 +102,6 @@ function calculateIntensityFromTarget(
       (targetMin && targetMax ? (targetMin + targetMax) / 2 : null);
 
     if (hrValue !== null && hrZones.length > 0) {
-      // Find which zone this HR falls into
       for (const zone of hrZones) {
         if (hrValue >= zone.min && hrValue <= zone.max) {
           const match = zone.name.match(/\d+/);
@@ -112,23 +112,22 @@ function calculateIntensityFromTarget(
     }
   }
 
-  // PACE target: use pace zones or VMA
   if (targetType === 'PACE') {
     const paceZones = zonesByType[TRAINING_ZONE_TYPE.PACE] || [];
-    // PACE is in min/km, convert to m/s for comparison
     let paceValue: number | null = null;
-    if (targetValue) {
-      paceValue = 1000 / (targetValue * 60); // m/s
-    } else if (targetMin && targetMax) {
-      const minPace = 1000 / (targetMin * 60);
-      const maxPace = 1000 / (targetMax * 60);
-      paceValue = (minPace + maxPace) / 2;
+    if (targetValue !== null && targetValue !== undefined) {
+      paceValue = targetValue;
+    } else if (
+      targetMin !== null &&
+      targetMin !== undefined &&
+      targetMax !== null &&
+      targetMax !== undefined
+    ) {
+      paceValue = (targetMin + targetMax) / 2;
     }
 
     if (paceValue !== null) {
-      // Try pace zones first
       if (paceZones.length > 0) {
-        // Convert zone min/max from min/km to m/s for comparison
         for (const zone of paceZones) {
           const zoneMinMs = 1000 / (zone.max * 60); // zone.max is slower (higher min/km)
           const zoneMaxMs = 1000 / (zone.min * 60); // zone.min is faster (lower min/km)

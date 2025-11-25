@@ -177,8 +177,20 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <RHFDatePicker name="startDate" label={m.start_date()} required />
-            <RHFDatePicker name="endDate" label={m.end_date()} required />
+            <RHFDatePicker
+              name="startDate"
+              label={m.start_date()}
+              required
+              max={watch('endDate') ? new Date(watch('endDate')) : undefined}
+            />
+            <RHFDatePicker
+              name="endDate"
+              label={m.end_date()}
+              required
+              min={
+                watch('startDate') ? new Date(watch('startDate')) : undefined
+              }
+            />
           </div>
 
           <div className="flex flex-col gap-2">

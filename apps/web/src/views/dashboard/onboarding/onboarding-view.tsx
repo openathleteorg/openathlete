@@ -613,7 +613,7 @@ export function OnboardingView() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="rounded-lg border bg-card p-8 shadow-sm"
+            className="rounded-lg border bg-card p-8 shadow-sm overflow-y-auto max-h-[calc(100vh-100px)]"
           >
             {renderStep()}
             <div className="mt-8 flex items-center justify-between">

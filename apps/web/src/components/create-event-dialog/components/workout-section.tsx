@@ -9,7 +9,7 @@ import type {
 } from '@openathlete/shared';
 import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
-import { WorkoutBuilder } from '../../workout';
+import { WorkoutBuilder, WorkoutGraph } from '../../workout';
 import { cleanWorkoutSteps } from '../utils/workout-helpers';
 
 type CreateProps = {
@@ -30,6 +30,7 @@ type WorkoutSectionProps = {
   workoutSteps: CreateWorkoutStepDto[];
   setWorkoutSteps: (steps: CreateWorkoutStepDto[]) => void;
   sportValue?: SPORT_TYPE;
+  athleteId?: number;
 };
 
 export function WorkoutSection({
@@ -38,6 +39,7 @@ export function WorkoutSection({
   workoutSteps,
   setWorkoutSteps,
   sportValue,
+  athleteId,
 }: WorkoutSectionProps) {
   const edit = 'event' in props;
   const create = 'type' in props && 'date' in props;
@@ -191,13 +193,26 @@ export function WorkoutSection({
 
   return (
     <div className="border-t pt-6">
-      <WorkoutBuilder
-        workout={existingWorkout}
-        hideMetadataForm={true}
-        hideActions={true}
-        onStepsChange={handleStepsChange}
-        sport={sportValue ?? SPORT_TYPE.RUNNING}
-      />
+      <div className="space-y-6">
+        {existingWorkout?.steps?.length ? (
+          <div className="bg-muted/40 border rounded-lg p-3">
+            <WorkoutGraph
+              workout={existingWorkout}
+              sport={sportValue ?? SPORT_TYPE.RUNNING}
+              athleteId={athleteId}
+              maxHeight={80}
+              className="w-full"
+            />
+          </div>
+        ) : null}
+        <WorkoutBuilder
+          workout={existingWorkout}
+          hideMetadataForm={true}
+          hideActions={true}
+          onStepsChange={handleStepsChange}
+          sport={sportValue ?? SPORT_TYPE.RUNNING}
+        />
+      </div>
     </div>
   );
 }

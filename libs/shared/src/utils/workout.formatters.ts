@@ -1,26 +1,29 @@
 import { WorkoutStepTarget } from '../types';
-
-/**
- * Format pace from seconds to min:sec
- * @param seconds - Pace in seconds per km
- * @returns Formatted pace (e.g., "4:30")
- */
-function formatPace(seconds: number): string {
-  if (!Number.isFinite(seconds) || seconds <= 0) return '0:00';
-  const totalSeconds = Math.round(seconds);
-  const minutes = Math.floor(totalSeconds / 60);
-  const secs = totalSeconds % 60; // avoids cases like 5:60
-  return `${minutes}:${secs.toString().padStart(2, '0')}`;
-}
+import { formatSpeed } from './numeric-stats.formatter';
 
 /**
  * Format a workout target for display
  * @param target - Target object with type, unit, and values
  * @param sport - Optional sport to determine zone type
+ * @param getMetricLabel - Optional function to get metric label (for i18n)
  * @returns Human-readable formatted target
  */
-export function formatTarget(target: WorkoutStepTarget): string {
-  const { targetType, targetMin, targetMax, targetValue } = target;
+export function formatTarget(
+  target: WorkoutStepTarget,
+  getMetricLabel?: (metricType: string) => string,
+): string {
+  const { targetType, targetMin, targetMax, targetValue, metricType } = target;
+
+  // Helper to format percentage
+  const formatPercent = (value: number): string => {
+    return `${Math.round(value * 100)}%`;
+  };
+
+  // Helper to get metric label
+  const getMetricName = (metric: string | null | undefined): string => {
+    if (!metric) return '';
+    return getMetricLabel ? getMetricLabel(metric) : metric;
+  };
 
   // Open target (no specific goal)
   if (targetType === 'OPEN') {
@@ -38,6 +41,10 @@ export function formatTarget(target: WorkoutStepTarget): string {
     return `Zone ${targetValue}`;
   }
 
+  // If metricType is set, values are percentages (0-1)
+  const isPercentage = !!metricType;
+  const metricName = getMetricName(metricType);
+
   // Range target (min-max)
   if (
     targetMin !== null &&
@@ -45,9 +52,16 @@ export function formatTarget(target: WorkoutStepTarget): string {
     targetMax !== null &&
     targetMax !== undefined
   ) {
+    if (isPercentage && metricName) {
+      return `${formatPercent(targetMin)} - ${formatPercent(targetMax)} de ${metricName}`;
+    }
+
     switch (targetType) {
       case 'PACE': {
-        return `${formatPace(targetMin * 60)} - ${formatPace(targetMax * 60)} min/km`;
+        if (targetMin === null || targetMax === null) {
+          return 'Open';
+        }
+        return `${formatSpeed(targetMin)} - ${formatSpeed(targetMax)}`;
       }
 
       case 'HEARTRATE':
@@ -72,12 +86,19 @@ export function formatTarget(target: WorkoutStepTarget): string {
 
   // Single value target
   if (targetValue !== null && targetValue !== undefined) {
+    if (isPercentage && metricName) {
+      return `${formatPercent(targetValue)} de ${metricName}`;
+    }
+
     switch (targetType) {
       case 'WEIGHT':
         return `${targetValue} kg`;
 
       case 'PACE': {
-        return `${formatPace(targetValue * 60)} min/km`;
+        if (targetValue === null) {
+          return 'Open';
+        }
+        return `${formatSpeed(targetValue)} min/km`;
       }
 
       case 'HEARTRATE':

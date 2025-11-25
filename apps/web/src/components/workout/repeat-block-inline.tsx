@@ -359,12 +359,12 @@ export function RepeatBlockInline({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingChildStep ? 'Edit Step' : 'Add Step'}
+              {editingChildStep ? m.workout_edit_step() : m.workout_add_step()}
             </DialogTitle>
             <DialogDescription>
               {editingChildStep
-                ? 'Modify the step inside the repeat block'
-                : 'Add a new step inside the repeat block'}
+                ? m.repeat_form_edit_step_description()
+                : m.repeat_form_add_step_description()}
             </DialogDescription>
           </DialogHeader>
           <StepForm
