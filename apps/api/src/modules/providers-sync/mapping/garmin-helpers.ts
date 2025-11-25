@@ -3,6 +3,7 @@ import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
+  getTargetIntensity,
 } from '@openathlete/shared';
 import type { NormalizedWorkoutStep } from '@openathlete/shared';
 
@@ -111,17 +112,39 @@ export function mapTargetTypeToGarmin(
   }
 }
 
-export function convertPaceToMetersPerSecond(paceMinPerKm: number): number {
-  return 1000 / (paceMinPerKm * 60);
-}
-
 export function convertSpeedToMetersPerSecond(speedKmPerH: number): number {
   return (speedKmPerH * 1000) / 3600;
+}
+
+function resolveMetricValue(
+  metrics: Record<string, { value: number } | number> | undefined,
+  metricType?: string | null,
+): number | null {
+  if (!metricType || !metrics) {
+    return null;
+  }
+
+  const metric = metrics[metricType];
+  if (metric === null || metric === undefined) {
+    return null;
+  }
+
+  return typeof metric === 'number' ? metric : metric.value;
+}
+
+function convertFractionToPercent(
+  value: number | null | undefined,
+): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  return value * 100;
 }
 
 export function mapTargetValue(
   target: NormalizedWorkoutStep['targets'][0],
   sport: SPORT_TYPE,
+  metrics?: Record<string, { value: number } | number>,
 ): {
   targetValue: number | null;
   targetValueLow: number | null;
@@ -147,40 +170,76 @@ export function mapTargetValue(
     };
   }
 
-  let targetValue: number | null = target.targetValue ?? null;
-  let targetValueLow: number | null = target.targetMin ?? null;
-  let targetValueHigh: number | null = target.targetMax ?? null;
-  let targetValueType: string | null = null;
+  const targetWithMetric = target as NormalizedWorkoutStep['targets'][0] & {
+    metricType?: string | null;
+  };
 
-  if (target.targetType === WORKOUT_TARGET_TYPE.PACE) {
-    if (targetValue) {
-      targetValue = convertPaceToMetersPerSecond(targetValue);
+  const metricValue = resolveMetricValue(metrics, targetWithMetric.metricType);
+  const hasMetricReference = Boolean(targetWithMetric.metricType);
+  const hasMetricValue = hasMetricReference && metricValue !== null;
+
+  if (hasMetricReference && !hasMetricValue) {
+    if (
+      target.targetType !== WORKOUT_TARGET_TYPE.HEARTRATE &&
+      target.targetType !== WORKOUT_TARGET_TYPE.POWER
+    ) {
+      throw new Error(
+        `Missing metric ${targetWithMetric.metricType} required for ${target.targetType} Garmin target`,
+      );
     }
-    if (targetValueLow) {
-      targetValueLow = convertPaceToMetersPerSecond(targetValueLow);
-    }
-    if (targetValueHigh) {
-      targetValueHigh = convertPaceToMetersPerSecond(targetValueHigh);
-    }
-  } else if (target.targetType === WORKOUT_TARGET_TYPE.HEARTRATE) {
-    targetValueType = 'PERCENT';
-  } else if (target.targetType === WORKOUT_TARGET_TYPE.POWER) {
-    targetValueType = 'PERCENT';
+
+    const percentValue = convertFractionToPercent(targetWithMetric.targetValue);
+    const percentLow = convertFractionToPercent(targetWithMetric.targetMin);
+    const percentHigh = convertFractionToPercent(targetWithMetric.targetMax);
+    const hasRange =
+      percentLow !== null &&
+      percentLow !== undefined &&
+      percentHigh !== null &&
+      percentHigh !== undefined;
+
+    return {
+      targetValue: hasRange ? null : percentValue,
+      targetValueLow: percentLow,
+      targetValueHigh: percentHigh,
+      targetValueType: 'PERCENT',
+    };
   }
+
+  const intensityValues = getTargetIntensity(
+    {
+      targetType: targetWithMetric.targetType,
+      targetValue: targetWithMetric.targetValue ?? null,
+      targetMin: targetWithMetric.targetMin ?? null,
+      targetMax: targetWithMetric.targetMax ?? null,
+      metricType: targetWithMetric.metricType ?? null,
+    },
+    metrics,
+  );
+
+  const targetValue: number | null = intensityValues.value;
+  const targetValueLow: number | null = intensityValues.min;
+  const targetValueHigh: number | null = intensityValues.max;
+  const targetValueType: string | null = null;
 
   if (target.targetType === WORKOUT_TARGET_TYPE.ZONE) {
     return {
-      targetValue: targetValue,
+      targetValue,
       targetValueLow: null,
       targetValueHigh: null,
       targetValueType: null,
     };
   }
 
+  const hasRange =
+    targetValueLow !== null &&
+    targetValueLow !== undefined &&
+    targetValueHigh !== null &&
+    targetValueHigh !== undefined;
+
   return {
-    targetValue: targetValueLow && targetValueHigh ? null : targetValue,
-    targetValueLow,
-    targetValueHigh,
+    targetValue: hasRange ? null : targetValue,
+    targetValueLow: targetValueLow ?? null,
+    targetValueHigh: targetValueHigh ?? null,
     targetValueType,
   };
 }

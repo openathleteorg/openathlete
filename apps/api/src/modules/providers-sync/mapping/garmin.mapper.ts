@@ -39,6 +39,7 @@ function mapNormalizedStepToGarmin(
   step: NormalizedWorkoutStep,
   stepOrder: number,
   sport: SPORT_TYPE,
+  metrics?: Record<string, { value: number } | number>,
 ): GarminWorkoutStep {
   const intensity = mapStepTypeToGarminIntensity(step.stepType, sport);
   const durationType = mapDurationTypeToGarmin(
@@ -48,7 +49,7 @@ function mapNormalizedStepToGarmin(
   );
   const primaryTarget = step.targets?.[0];
   const targetMapping = primaryTarget
-    ? mapTargetValue(primaryTarget, sport)
+    ? mapTargetValue(primaryTarget, sport, metrics)
     : {
         targetValue: null,
         targetValueLow: null,
@@ -93,6 +94,7 @@ export function mapWorkoutDtoToGarmin(
   sport: SPORT_TYPE,
   title: string | null = null,
   description: string | null = null,
+  metrics?: Record<string, { value: number } | number>,
 ): GarminWorkout {
   const garminSport = mapSportToGarmin(sport);
   const isSwimming = sport === SPORT_TYPE.SWIMMING;
@@ -121,12 +123,18 @@ export function mapWorkoutDtoToGarmin(
             targetMin: t.targetMin ?? null,
             targetMax: t.targetMax ?? null,
             targetValue: t.targetValue ?? null,
+            metricType: t.metricType ?? null,
             unit: t.unit ?? null,
           })),
         };
 
         repeatSteps.push(
-          mapNormalizedStepToGarmin(normalizedChild, repeatStepOrder, sport),
+          mapNormalizedStepToGarmin(
+            normalizedChild,
+            repeatStepOrder,
+            sport,
+            metrics,
+          ),
         );
         repeatStepOrder += 1;
       }
@@ -156,11 +164,14 @@ export function mapWorkoutDtoToGarmin(
           targetMin: t.targetMin ?? null,
           targetMax: t.targetMax ?? null,
           targetValue: t.targetValue ?? null,
+          metricType: t.metricType ?? null,
           unit: t.unit ?? null,
         })),
       };
 
-      steps.push(mapNormalizedStepToGarmin(normalizedStep, stepOrder, sport));
+      steps.push(
+        mapNormalizedStepToGarmin(normalizedStep, stepOrder, sport, metrics),
+      );
       stepOrder += 1;
     }
   }

@@ -88,17 +88,26 @@ WORKOUT TARGETS:
 - The prompt will include athlete-specific training zones and metrics with their IDs
 - For ZONE targets: Use the zone ID (training_zone_id) provided in the context, NOT the index
 - Prefer ZONE targets when intensity is subjective (e.g., "easy pace", "tempo", "threshold")
-- For specific values: Use PACE, HEARTRATE, POWER, CADENCE, or RPE
-- When metrics are available (FTP, VMA, etc.), use them to calculate appropriate target values
+- For specific values: Use PACE (minutes per kilometer), HEARTRATE (bpm), POWER (watts), CADENCE (rpm/spm), or RPE (1-10)
+- When metrics are available (FTP, VMA, etc.), you can use metricType to set targets as percentages of metrics (e.g., 80% of VMA, 90% of FTP)
 - IMPORTANT: Match the zone type to the target context (HEARTRATE zones for heartrate targets, POWER zones for power targets, PACE zones for pace targets)
 - Preserve existing targets unless the modification request explicitly changes them
 
 TARGET VALUES:
 - PACE: Pace in minutes per kilometer (e.g., 4.2 = 4:12 min/km)
+  * Can use metricType: VMA or CRITICAL_POWER_RUNNING (values stored as 0-1, e.g., 0.8 = 80% of VMA)
 - HEARTRATE: Heartrate in beats per minute (e.g., 140 = 140 bpm)
+  * Can use metricType: HR_MAX, HR_REST, or HR_RESERVE (values stored as 0-1, e.g., 0.85 = 85% of HR_MAX)
 - POWER: Power in watts (e.g., 200 = 200 W)
+  * Can use metricType: FTP_RUNNING, FTP_CYCLING, or CRITICAL_POWER_CYCLING (values stored as 0-1, e.g., 0.9 = 90% of FTP)
 - CADENCE: Cadence in revolutions per minute (e.g., 80 = 80 rpm)
 - RPE: RPE (Rate of Perceived Exertion) (e.g., 6 = RPE 6)
+
+METRIC-BASED TARGETS:
+- When using metricType, store target values as percentages in 0-1 range (e.g., 0.8 for 80%)
+- Example: For "80% of VMA" pace target: { targetType: "PACE", targetValue: 0.8, metricType: "VMA" }
+- Example: For "85% of HR_MAX" heartrate target: { targetType: "HEARTRATE", targetValue: 0.85, metricType: "HR_MAX" }
+- Example: For "90% of FTP" power target: { targetType: "POWER", targetValue: 0.9, metricType: "FTP_CYCLING" }
 
 TARGET EXAMPLES:
 1. Easy run with heartrate zone (use the zone ID from context, e.g., if zone ID is 42):
@@ -111,13 +120,23 @@ TARGET EXAMPLES:
      ]
    }
 
-2. Tempo run with pace target (if VMA is available, calculate from it):
+2. Tempo run with pace target (absolute value):
    {
      "stepType": "STEADY",
      "durationType": "DISTANCE",
      "durationValue": 5000,
      "targets": [
        { "targetType": "PACE", "targetValue": 4.2 }
+     ]
+   }
+
+2b. Tempo run with pace target using VMA (80% of VMA):
+   {
+     "stepType": "STEADY",
+     "durationType": "DISTANCE",
+     "durationValue": 5000,
+     "targets": [
+       { "targetType": "PACE", "targetValue": 0.8, "metricType": "VMA" }
      ]
    }
 
@@ -148,7 +167,7 @@ TARGET EXAMPLES:
      }
    }
 
-4. Power-based cycling workout (if FTP is available):
+4. Power-based cycling workout (absolute values):
    {
      "stepType": "STEADY",
      "durationType": "TIME",
@@ -158,13 +177,33 @@ TARGET EXAMPLES:
      ]
    }
 
-5. Heartrate range target:
+4b. Power-based cycling workout using FTP (85-95% of FTP):
+   {
+     "stepType": "STEADY",
+     "durationType": "TIME",
+     "durationValue": 1200,
+     "targets": [
+       { "targetType": "POWER", "targetMin": 0.85, "targetMax": 0.95, "metricType": "FTP_CYCLING" }
+     ]
+   }
+
+5. Heartrate range target (absolute values):
    {
      "stepType": "STEADY",
      "durationType": "TIME",
      "durationValue": 2400,
      "targets": [
        { "targetType": "HEARTRATE", "targetMin": 140, "targetMax": 160 }
+     ]
+   }
+
+5b. Heartrate range target using HR_MAX (75-85% of HR_MAX):
+   {
+     "stepType": "STEADY",
+     "durationType": "TIME",
+     "durationValue": 2400,
+     "targets": [
+       { "targetType": "HEARTRATE", "targetMin": 0.75, "targetMax": 0.85, "metricType": "HR_MAX" }
      ]
    }
 

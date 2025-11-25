@@ -26,6 +26,24 @@ export class GarminAdapter implements ProviderAdapter {
     private readonly garminProviderService: GarminProviderService,
   ) {}
 
+  private async getLatestMetricsMap(
+    athleteId: number,
+  ): Promise<Record<string, { value: number }>> {
+    const metrics = await this.prisma.athlete_metric.findMany({
+      where: { athlete_id: athleteId },
+      orderBy: [{ date: 'desc' }],
+    });
+
+    const latest: Record<string, { value: number }> = {};
+    for (const metric of metrics) {
+      if (!latest[metric.type]) {
+        latest[metric.type] = { value: metric.value };
+      }
+    }
+
+    return latest;
+  }
+
   getProvider(): 'garmin' {
     return 'garmin';
   }
@@ -82,6 +100,7 @@ export class GarminAdapter implements ProviderAdapter {
       throw new Error('Workout not found');
     }
 
+    const metrics = await this.getLatestMetricsMap(input.athleteId);
     const workoutDto = mapPrismaWorkoutToDto(workoutRecord);
     const garminWorkout = mapWorkoutDtoToGarmin(
       ownerId,
@@ -89,6 +108,7 @@ export class GarminAdapter implements ProviderAdapter {
       input.normalized.sport,
       input.normalized.title,
       input.normalized.description,
+      metrics,
     );
 
     this.validateWorkout(garminWorkout);

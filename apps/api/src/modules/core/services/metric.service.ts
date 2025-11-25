@@ -286,20 +286,15 @@ export class MetricService {
     return keysToCamel(metrics);
   }
 
-  /**
-   * Get the latest value for each metric type
-   */
   async getLatestMetrics(
     user: AuthUser,
     athleteId?: athlete['athlete_id'],
-  ): Promise<Record<string, athlete_metric>> {
+  ): Promise<Record<metric_type, athlete_metric>> {
     const ability = await this.abilities.getFor({ user });
 
-    // Determine which athlete's metrics to fetch
     let targetAthleteId: number;
 
     if (athleteId) {
-      // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
         where: { athlete_id: athleteId },
       });
@@ -314,7 +309,6 @@ export class MetricService {
 
       targetAthleteId = athleteId;
     } else {
-      // Use current user's athlete ID
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
@@ -342,7 +336,6 @@ export class MetricService {
       },
     });
 
-    // Group by type and keep only the latest (most recent date)
     const latestByType = metrics.reduce(
       (acc, metric) => {
         if (!acc[metric.type]) {
@@ -350,11 +343,13 @@ export class MetricService {
         }
         return acc;
       },
-      {} as Record<string, athlete_metric>,
+      {} as Record<metric_type, athlete_metric>,
     );
 
-    // Convert each metric object to camelCase, but keep the Record keys as-is
-    const result: Record<string, athlete_metric> = {};
+    const result: Record<metric_type, athlete_metric> = {} as Record<
+      metric_type,
+      athlete_metric
+    >;
     Object.entries(latestByType).forEach(([type, metric]) => {
       result[type] = keysToCamel(metric);
     });

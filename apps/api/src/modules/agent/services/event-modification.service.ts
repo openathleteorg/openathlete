@@ -15,6 +15,8 @@ import {
   buildMetricsContext,
   buildWorkoutTargetsInstructions,
   buildZonesContext,
+  convertWorkoutPaceTargetsToMinPerKm,
+  convertWorkoutPaceTargetsToMs,
   createRuntimeContext,
   createZoneIdMap,
   fetchAthleteMetrics,
@@ -38,6 +40,13 @@ export class EventModificationService {
     athleteId: number,
     eventData: TrainingEventSchema,
   ): Promise<TrainingEventSchema> {
+    const workoutForPrompt = eventData.workout
+      ? (JSON.parse(
+          JSON.stringify(eventData.workout),
+        ) as TrainingEventSchema['workout'])
+      : null;
+    convertWorkoutPaceTargetsToMinPerKm(workoutForPrompt);
+
     const existingEventContext = {
       name: eventData.name,
       description: eventData.description || '',
@@ -49,9 +58,9 @@ export class EventModificationService {
       goalDistance: eventData.goalDistance || undefined,
       goalElevationGain: eventData.goalElevationGain || undefined,
       goalRpe: eventData.goalRpe || undefined,
-      workout: eventData.workout
+      workout: workoutForPrompt
         ? {
-            steps: eventData.workout.steps.map((step: WorkoutStepDto) => {
+            steps: workoutForPrompt.steps.map((step: WorkoutStepDto) => {
               const baseStep = {
                 stepType: step.stepType,
                 name: step.name || undefined,
@@ -85,40 +94,46 @@ export class EventModificationService {
               if (step.repeatBlock) {
                 return {
                   ...baseStep,
-                  repeatBlock: {
-                    repetitions: step.repeatBlock.repetitions,
-                    childSteps: step.repeatBlock.childSteps.map(
-                      (childStep: WorkoutStepDto) => ({
-                        stepType: childStep.stepType,
-                        name: childStep.name || undefined,
-                        durationType: childStep.durationType || undefined,
-                        durationValue: childStep.durationValue || undefined,
-                        notes: childStep.notes || undefined,
-                        targets: (childStep.targets || []).map(
-                          (target: WorkoutStepTarget) => {
-                            if (typeof target === 'object' && target !== null) {
-                              if (target.targetType) {
-                                return {
-                                  targetType: target.targetType,
-                                  targetMin: target.targetMin ?? undefined,
-                                  targetMax: target.targetMax ?? undefined,
-                                  targetValue: target.targetValue ?? undefined,
-                                };
-                              }
-                              const entries = Object.entries(target);
-                              if (entries.length > 0) {
-                                return {
-                                  targetType: entries[0][0],
-                                  targetValue: entries[0][1] as number,
-                                };
-                              }
-                            }
-                            return {};
-                          },
+                  repeatBlock: step.repeatBlock
+                    ? {
+                        repetitions: step.repeatBlock.repetitions,
+                        childSteps: step.repeatBlock.childSteps.map(
+                          (childStep: WorkoutStepDto) => ({
+                            stepType: childStep.stepType,
+                            name: childStep.name || undefined,
+                            durationType: childStep.durationType || undefined,
+                            durationValue: childStep.durationValue || undefined,
+                            notes: childStep.notes || undefined,
+                            targets: (childStep.targets || []).map(
+                              (target: WorkoutStepTarget) => {
+                                if (
+                                  typeof target === 'object' &&
+                                  target !== null
+                                ) {
+                                  if (target.targetType) {
+                                    return {
+                                      targetType: target.targetType,
+                                      targetMin: target.targetMin ?? undefined,
+                                      targetMax: target.targetMax ?? undefined,
+                                      targetValue:
+                                        target.targetValue ?? undefined,
+                                    };
+                                  }
+                                  const entries = Object.entries(target);
+                                  if (entries.length > 0) {
+                                    return {
+                                      targetType: entries[0][0],
+                                      targetValue: entries[0][1] as number,
+                                    };
+                                  }
+                                }
+                                return {};
+                              },
+                            ),
+                          }),
                         ),
-                      }),
-                    ),
-                  },
+                      }
+                    : null,
                 };
               }
 
@@ -127,7 +142,6 @@ export class EventModificationService {
           }
         : null,
     };
-
     // Fetch athlete's training zones and metrics
     const zones = await fetchAthleteZones(this.prismaService, athleteId);
     const metrics = await fetchAthleteMetrics(this.prismaService, athleteId);
@@ -191,6 +205,7 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
       if (result.object.workout) {
         validateNoNestedRepeatBlocks(result.object.workout);
         validateWorkoutZoneTargets(result.object.workout, zoneIdMap, zones);
+        convertWorkoutPaceTargetsToMs(result.object.workout);
       }
 
       return result;

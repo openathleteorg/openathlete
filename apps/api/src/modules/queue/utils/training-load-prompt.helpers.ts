@@ -234,7 +234,10 @@ function describeTarget(
     }
   }
 
-  const formattedRange = formatTarget(target);
+  // Format target with metric label if metricType is set
+  const formattedRange = formatTarget(target, (metricType) => {
+    return METRIC_LABELS[metricType] || metricType.replace(/_/g, ' ');
+  });
   if (formattedRange) {
     return `${target.targetType}: ${formattedRange}`;
   }

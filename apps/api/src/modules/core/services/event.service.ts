@@ -20,6 +20,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
+  Prisma,
   activity_segment,
   event,
   event_activity,
@@ -1143,7 +1144,7 @@ export class EventService {
 
     // Override dates if provided
     if (dto?.startDate || dto?.endDate) {
-      const updateData: Record<string, unknown> = {};
+      const updateData: Prisma.eventUpdateInput = {};
       if (dto.startDate) updateData.start_date = dto.startDate;
       if (dto.endDate) updateData.end_date = dto.endDate;
 

@@ -11,6 +11,7 @@ import {
   buildMetricsContext,
   buildWorkoutTargetsInstructions,
   buildZonesContext,
+  convertWorkoutPaceTargetsToMs,
   createRuntimeContext,
   createZoneIdMap,
   fetchAthleteMetrics,
@@ -83,6 +84,7 @@ ${buildWorkoutTargetsInstructions()}`;
       if (result.object.workout) {
         validateNoNestedRepeatBlocks(result.object.workout);
         validateWorkoutZoneTargets(result.object.workout, zoneIdMap, zones);
+        convertWorkoutPaceTargetsToMs(result.object.workout);
       }
 
       return result;
