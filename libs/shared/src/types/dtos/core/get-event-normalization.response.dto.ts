@@ -1,7 +1,7 @@
-import { normalization_factor } from '@openathlete/database';
+import { NORMALIZATION_FACTOR } from '../../misc';
 
 export interface EventNormalizationFactorDto {
-  factor: normalization_factor;
+  factor: NORMALIZATION_FACTOR;
   timeSeconds: number; // > 0 means time lost, < 0 means time gained
   percent: number; // fraction in [0,1]
 }

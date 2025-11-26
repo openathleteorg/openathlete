@@ -8,6 +8,7 @@ import { useMemo, useState } from 'react';
 import {
   ActivityEvent,
   ActivityStream,
+  NORMALIZATION_FACTOR,
   formatDuration,
   formatSpeed,
   formatSpeedUnit,
@@ -68,10 +69,14 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
   const speedConfig = getSportConfig(event.sport);
   const hasSegments = Boolean(event.segments?.length);
 
-  const normLabel = (factor: string) => {
-    const key = `normalization_${factor.toLowerCase()}` as keyof typeof m;
-    const fn = (m as unknown as Record<string, () => string>)[key];
-    return typeof fn === 'function' ? fn() : factor;
+  const normLabel = (factor: NORMALIZATION_FACTOR) => {
+    if (factor === NORMALIZATION_FACTOR.SLOPE) return m.slope();
+    if (factor === NORMALIZATION_FACTOR.RADIATION) return m.radiation();
+    if (factor === NORMALIZATION_FACTOR.TEMPERATURE) return m.temperature();
+    if (factor === NORMALIZATION_FACTOR.ALTITUDE) return m.altitude();
+    if (factor === NORMALIZATION_FACTOR.WIND) return m.wind();
+    if (factor === NORMALIZATION_FACTOR.HUMIDITY) return m.humidity();
+    return factor;
   };
 
   return (
@@ -334,7 +339,7 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                       f: GetEventNormalizationResponseDto['factors'][number],
                     ) => (
                       <TableRow key={f.factor}>
-                        <TableCell>{normLabel(String(f.factor))}</TableCell>
+                        <TableCell>{normLabel(f.factor)}</TableCell>
                         <TableCell className="text-right">
                           {formatDuration(
                             Math.max(0, Math.round(f.timeSeconds)),

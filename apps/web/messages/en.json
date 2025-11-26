@@ -240,6 +240,8 @@
   "weather": "Weather",
   "temperature": "Temperature",
   "humidity": "Humidity",
+  "slope": "Slope",
+  "radiation": "Radiation",
   "device": "Device",
   "wind": "Wind",
   "precipitation": "Precipitation",

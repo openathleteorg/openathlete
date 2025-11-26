@@ -240,6 +240,8 @@
   "precipitation": "Précipitations",
   "cloud_cover": "Couverture nuageuse",
   "shortwave_radiation": "Rayonnement solaire (SW)",
+  "slope": "Pente",
+  "radiation": "Radiation",
   "competition": "Compétition",
   "note": "Note",
   "zone_1": "Zone 1",

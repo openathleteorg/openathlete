@@ -6,6 +6,7 @@ import {
   DuplicateEventDto,
   DuplicateWorkoutDto,
   Event,
+  EventNormalizationFactorDto,
   GetEventWeatherResponseDto,
   ReorderWorkoutStepsDto,
   UpdateEventDto,
@@ -13,7 +14,7 @@ import {
 
 export type GetEventNormalizationResponseDto = {
   averageNormalizedSpeed: number | null;
-  factors: { factor: string; timeSeconds: number; percent: number }[];
+  factors: EventNormalizationFactorDto[];
 };
 
 const mapEvent = (event: Event): Event => {
