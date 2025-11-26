@@ -7,6 +7,7 @@ import { WebSocketModule } from '../websocket/websocket.module';
 import { MessagesController } from './controllers/messages.controller';
 import { MessagesGateway } from './gateways/messages.gateway';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
+import { MessageNotificationScheduler } from './services/message-notification.scheduler';
 import { MessageThreadService } from './services/message-thread.service';
 import { MessageService } from './services/message.service';
 
@@ -19,6 +20,7 @@ import { MessageService } from './services/message.service';
     MessagesGateway,
     WsJwtAuthGuard,
     PrismaService,
+    MessageNotificationScheduler,
   ],
   exports: [MessageThreadService, MessageService],
 })

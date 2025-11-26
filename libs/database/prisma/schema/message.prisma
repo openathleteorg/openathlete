@@ -48,7 +48,8 @@ model message_thread_participant {
 
   // fields
   // Last time this user read messages in this thread
-  last_read_at DateTime?
+  last_read_at         DateTime?
+  last_notification_at DateTime?
 
   // relationships
   thread            message_thread @relation(fields: [message_thread_id], references: [message_thread_id], onDelete: Cascade)
