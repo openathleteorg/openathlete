@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
-import { Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { useState } from 'react';
 
 import {
@@ -35,6 +35,9 @@ export function MetricsView({ athleteId }: P) {
     type: METRIC_TYPE;
     data: AthleteMetric | null;
   } | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<
+    Record<string, boolean>
+  >({});
 
   const { data: latestMetrics = {} } = useGetLatestMetricsQuery(athleteId);
   const createMetric = useCreateMetricMutation();
@@ -59,10 +62,58 @@ export function MetricsView({ athleteId }: P) {
     setSelectedMetric(null);
   };
 
-  // Display metrics in organized categories - showing first 5 from each category
-  const healthMetrics = metricsByCategory.health_composition;
-  const cardiacMetrics = metricsByCategory.cardiac;
-  const performanceMetrics = metricsByCategory.performance_physiology;
+  // Sort metrics: non-null first, then by original order
+  const sortMetrics = (
+    metrics: METRIC_TYPE[],
+    latestMetrics: Record<string, AthleteMetric | null>,
+  ): METRIC_TYPE[] => {
+    return [...metrics].sort((a, b) => {
+      const aHasData =
+        latestMetrics[a] !== null && latestMetrics[a] !== undefined;
+      const bHasData =
+        latestMetrics[b] !== null && latestMetrics[b] !== undefined;
+
+      // Non-null first
+      if (aHasData && !bHasData) return -1;
+      if (!aHasData && bHasData) return 1;
+
+      // Then maintain original order (by index in original array)
+      return metrics.indexOf(a) - metrics.indexOf(b);
+    });
+  };
+
+  // Get sorted and limited metrics for each category
+  const getMetricsForCategory = (
+    categoryKey: string,
+    allMetrics: METRIC_TYPE[],
+  ) => {
+    const sorted = sortMetrics(allMetrics, latestMetrics);
+    const isExpanded = expandedCategories[categoryKey] || false;
+    const displayed = isExpanded ? sorted : sorted.slice(0, 8);
+    const hasMore = sorted.length > 8;
+
+    return { sorted, displayed, hasMore };
+  };
+
+  const healthMetricsData = getMetricsForCategory(
+    'health_composition',
+    metricsByCategory.health_composition,
+  );
+  const cardiacMetricsData = getMetricsForCategory(
+    'cardiac',
+    metricsByCategory.cardiac,
+  );
+  const performanceMetricsData = getMetricsForCategory(
+    'performance_physiology',
+    metricsByCategory.performance_physiology,
+  );
+
+  const toggleCategory = (categoryKey: string) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryKey]: !prev[categoryKey],
+    }));
+  };
 
   const pageTitle = isCurrentUser
     ? m.my_metrics()
@@ -84,9 +135,30 @@ export function MetricsView({ athleteId }: P) {
 
       {/* Health & Body Composition Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">{m.health_composition()}</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">{m.health_composition()}</h2>
+          {healthMetricsData.hasMore && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleCategory('health_composition')}
+            >
+              {expandedCategories['health_composition'] ? (
+                <>
+                  {m.show_less_metrics()}
+                  <ChevronUp className="h-4 w-4 ml-2" />
+                </>
+              ) : (
+                <>
+                  {m.show_all_metrics()}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {healthMetrics.map((type) => (
+          {healthMetricsData.displayed.map((type) => (
             <MetricCard
               key={type}
               type={type}
@@ -99,9 +171,30 @@ export function MetricsView({ athleteId }: P) {
 
       {/* Cardiac Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">{m.cardiac()}</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">{m.cardiac()}</h2>
+          {cardiacMetricsData.hasMore && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleCategory('cardiac')}
+            >
+              {expandedCategories['cardiac'] ? (
+                <>
+                  {m.show_less_metrics()}
+                  <ChevronUp className="h-4 w-4 ml-2" />
+                </>
+              ) : (
+                <>
+                  {m.show_all_metrics()}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {cardiacMetrics.map((type) => (
+          {cardiacMetricsData.displayed.map((type) => (
             <MetricCard
               key={type}
               type={type}
@@ -114,11 +207,32 @@ export function MetricsView({ athleteId }: P) {
 
       {/* Performance Section */}
       <div>
-        <h2 className="text-xl font-semibold mb-4">
-          {m.performance_physiology()}
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">
+            {m.performance_physiology()}
+          </h2>
+          {performanceMetricsData.hasMore && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleCategory('performance_physiology')}
+            >
+              {expandedCategories['performance_physiology'] ? (
+                <>
+                  {m.show_less_metrics()}
+                  <ChevronUp className="h-4 w-4 ml-2" />
+                </>
+              ) : (
+                <>
+                  {m.show_all_metrics()}
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {performanceMetrics.map((type) => (
+          {performanceMetricsData.displayed.map((type) => (
             <MetricCard
               key={type}
               type={type}

@@ -383,6 +383,8 @@
   "select_metric_type": "Sélectionner un type de métrique",
   "select_metric_to_view": "Sélectionnez une métrique pour voir son évolution",
   "no_data_for_metric": "Aucune donnée disponible pour cette métrique",
+  "show_all_metrics": "Voir tout",
+  "show_less_metrics": "Voir moins",
   "health_composition": "Santé & Composition Corporelle",
   "cardiac": "Cardiaque",
   "performance_physiology": "Performance & Physiologie",
