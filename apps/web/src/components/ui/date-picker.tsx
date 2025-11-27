@@ -5,8 +5,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
+import { getDateFnsLocale, getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
-import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 
 interface DatePickerProps {
@@ -22,12 +24,13 @@ interface DatePickerProps {
 export function DatePicker({
   date,
   onDateChange,
-  placeholder = 'Pick a date',
+  placeholder = m.date_picker_placeholder(),
   className,
   disabled,
   max,
   min,
 }: DatePickerProps) {
+  const locale = getLocale();
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -41,7 +44,15 @@ export function DatePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'PPP') : <span>{placeholder}</span>}
+          {date ? (
+            date.toLocaleDateString(getDateLocale(locale), {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            })
+          ) : (
+            <span>{placeholder}</span>
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">
@@ -49,6 +60,8 @@ export function DatePicker({
           mode="single"
           selected={date}
           onSelect={onDateChange}
+          locale={getDateFnsLocale(locale)}
+          weekStartsOn={1}
           initialFocus
           disabled={(date) => {
             if (!max && !min) {

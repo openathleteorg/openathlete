@@ -6,12 +6,12 @@ import { UseFormSetValue } from 'react-hook-form';
 import { EVENT_TYPE, SPORT_TYPE, formatSpeed } from '@openathlete/shared';
 
 import {
+  RHFDatePicker,
   RHFDistance,
   RHFDuration,
   RHFSelect,
   RHFTextField,
 } from '../../hook-form';
-import { RHFDateTimePicker } from '../../hook-form/rhf-datetime-picker';
 import { RHFElevation } from '../../hook-form/rhf-elevation';
 import { RHFRpe } from '../../hook-form/rhf-rpe';
 import { RHFTextarea } from '../../hook-form/rhf-textarea';
@@ -65,16 +65,14 @@ export function EventFormFields({
         <div />
       )}
       {!isTemplate &&
-        (type === EVENT_TYPE.TRAINING ||
-          type === EVENT_TYPE.COMPETITION ||
-          type === EVENT_TYPE.ACTIVITY) && (
+        (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION) && (
           <>
-            <RHFDateTimePicker
+            <RHFDatePicker
               name="startDate"
               type="start"
               label={m.start_time()}
             />
-            <RHFDateTimePicker name="endDate" type="end" label={m.end_time()} />
+            <RHFDatePicker name="endDate" type="end" label={m.end_time()} />
           </>
         )}
       <div className="col-span-2">

@@ -1,6 +1,7 @@
 {
   "$schema": "https://inlang.com/schema/inlang-message-format",
   "date_required_for_event_generation": "La date est requise pour la génération de l'événement",
+  "date_picker_placeholder": "Choisir une date",
   "creating_message_thread": "Création en cours...",
   "my_records": "Mes records",
   "records_of": "Records de {firstName} {lastName}",

@@ -1,10 +1,12 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { getLocale } from '@/paraglide/runtime';
+import { getDateFnsLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
-import * as React from 'react';
+import { useState } from 'react';
 
 import { Calendar } from './calendar';
 import { Popover, PopoverContent, PopoverTrigger } from './popover';
@@ -17,7 +19,8 @@ interface P {
 }
 
 export function DateTimePicker({ value, onChange, className }: P) {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const locale = getLocale();
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const handleDateSelect = (selectedDate: Date | undefined) => {
@@ -64,6 +67,7 @@ export function DateTimePicker({ value, onChange, className }: P) {
             selected={value}
             onSelect={handleDateSelect}
             initialFocus
+            locale={getDateFnsLocale(locale)}
           />
           <div className="flex flex-col sm:flex-row sm:h-[300px] divide-y sm:divide-y-0 sm:divide-x">
             <ScrollArea className="w-64 sm:w-auto">
