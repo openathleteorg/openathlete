@@ -64,6 +64,18 @@ const STEP_TYPE_COLORS: Record<string, string> = {
 };
 
 const MIN_BAR_HEIGHT = 8; // pixels
+const DEFAULT_CYCLING_BASE_SPEED_KMH = 34; // ~34 km/h at baseline FTP
+const MIN_HEART_RATE_INTENSITY_RATIO = 0.45;
+const MAX_HEART_RATE_INTENSITY_RATIO = 1.15;
+
+const DEFAULT_METRIC_VALUES: Partial<Record<METRIC_TYPE, number>> = {
+  [METRIC_TYPE.VMA]: 15.0, // km/h - average VMA (~4:00 min/km pace)
+  [METRIC_TYPE.FTP_RUNNING]: 275, // W - average running FTP
+  [METRIC_TYPE.FTP_CYCLING]: 225, // W - average cycling FTP
+  [METRIC_TYPE.HR_MAX]: 190, // bpm - average max HR
+  [METRIC_TYPE.HR_RESERVE]: 130, // bpm - average HR reserve
+  [METRIC_TYPE.HR_REST]: 60, // bpm - average rest HR
+};
 
 /**
  * Calculate intensity (0-5) and color based on target type
@@ -276,9 +288,167 @@ function getPaceSpeedFromTargets(
   return null;
 }
 
+function getMetricValueWithFallback(
+  metricType: METRIC_TYPE,
+  metrics?: Record<string, { value: number } | number>,
+): number | null {
+  if (!metricType) return null;
+
+  const metric = metrics?.[metricType];
+  if (metric !== undefined && metric !== null) {
+    return typeof metric === 'number' ? metric : metric.value;
+  }
+
+  const fallbackValue = DEFAULT_METRIC_VALUES[metricType];
+  return fallbackValue ?? null;
+}
+
+function resolveTargetNumericValue(
+  target: WorkoutStepTargetDto,
+): number | null {
+  if (target.targetValue !== null && target.targetValue !== undefined) {
+    return target.targetValue;
+  }
+
+  if (
+    target.targetMin !== null &&
+    target.targetMin !== undefined &&
+    target.targetMax !== null &&
+    target.targetMax !== undefined
+  ) {
+    return (target.targetMin + target.targetMax) / 2;
+  }
+
+  if (target.targetMin !== null && target.targetMin !== undefined) {
+    return target.targetMin;
+  }
+
+  if (target.targetMax !== null && target.targetMax !== undefined) {
+    return target.targetMax;
+  }
+
+  return null;
+}
+
+function getHeartRateIntensityRatio(
+  targets: WorkoutStepTargetDto[] | undefined,
+  metrics: Record<string, { value: number }> | undefined,
+  zonesByType?: Record<TRAINING_ZONE_TYPE, ZoneInfo[]>,
+): number | null {
+  if (!targets || targets.length === 0) {
+    return null;
+  }
+
+  const hrZones = zonesByType?.[TRAINING_ZONE_TYPE.HEARTRATE] || [];
+  const hrMax = getMetricValueWithFallback(METRIC_TYPE.HR_MAX, metrics);
+
+  for (const target of targets) {
+    if (target.targetType !== WORKOUT_TARGET_TYPE.HEARTRATE) {
+      if (
+        target.targetType === WORKOUT_TARGET_TYPE.ZONE &&
+        hrZones.length > 0 &&
+        target.targetValue
+      ) {
+        const zone = hrZones.find((z) => z.id === target.targetValue);
+        if (zone && hrMax && hrMax > 0) {
+          const zoneMid = (zone.min + zone.max) / 2;
+          return zoneMid / hrMax;
+        }
+      }
+      continue;
+    }
+
+    const rawValue = resolveTargetNumericValue(target);
+    if (rawValue === null) {
+      continue;
+    }
+
+    if (target.metricType) {
+      return rawValue;
+    }
+
+    if (hrMax && hrMax > 0) {
+      return rawValue / hrMax;
+    }
+  }
+
+  return null;
+}
+
+function getBaseSpeedFromPerformanceMetrics(
+  metrics: Record<string, { value: number }> | undefined,
+  sport?: SPORT_TYPE,
+): number | null {
+  if (sport === SPORT_TYPE.CYCLING) {
+    const ftpCycling = getMetricValueWithFallback(
+      METRIC_TYPE.FTP_CYCLING,
+      metrics,
+    );
+    const ftpBaseline = DEFAULT_METRIC_VALUES[METRIC_TYPE.FTP_CYCLING];
+    if (ftpCycling && ftpCycling > 0 && ftpBaseline && ftpBaseline > 0) {
+      const speedAtFtp =
+        DEFAULT_CYCLING_BASE_SPEED_KMH * (ftpCycling / ftpBaseline);
+      return kmhToSpeedMs(speedAtFtp);
+    }
+
+    // Cycling fallback: assume endurance pace ~30 km/h
+    return kmhToSpeedMs(DEFAULT_CYCLING_BASE_SPEED_KMH);
+  }
+
+  const vmaValue = getMetricValueWithFallback(METRIC_TYPE.VMA, metrics);
+  if (vmaValue && vmaValue > 0) {
+    return kmhToSpeedMs(vmaValue);
+  }
+
+  const ftpRunning = getMetricValueWithFallback(
+    METRIC_TYPE.FTP_RUNNING,
+    metrics,
+  );
+  const ftpBaseline = DEFAULT_METRIC_VALUES[METRIC_TYPE.FTP_RUNNING];
+  const baselineVma = DEFAULT_METRIC_VALUES[METRIC_TYPE.VMA];
+  if (
+    ftpRunning &&
+    ftpRunning > 0 &&
+    ftpBaseline &&
+    ftpBaseline > 0 &&
+    baselineVma
+  ) {
+    const vmaEquivalent = baselineVma * (ftpRunning / ftpBaseline);
+    return kmhToSpeedMs(vmaEquivalent);
+  }
+
+  return baselineVma ? kmhToSpeedMs(baselineVma) : null;
+}
+
+function getHeartRateBasedSpeedFromTargets(
+  targets: WorkoutStepTargetDto[] | undefined,
+  metrics: Record<string, { value: number }> | undefined,
+  sport?: SPORT_TYPE,
+  zonesByType?: Record<TRAINING_ZONE_TYPE, ZoneInfo[]>,
+): number | null {
+  const hrRatio = getHeartRateIntensityRatio(targets, metrics, zonesByType);
+  if (hrRatio === null) {
+    return null;
+  }
+
+  const baseSpeed = getBaseSpeedFromPerformanceMetrics(metrics, sport);
+  if (!baseSpeed) {
+    return null;
+  }
+
+  const boundedRatio = Math.min(
+    MAX_HEART_RATE_INTENSITY_RATIO,
+    Math.max(MIN_HEART_RATE_INTENSITY_RATIO, hrRatio),
+  );
+
+  return baseSpeed * boundedRatio;
+}
+
 function calculateStepDuration(
   step: WorkoutStepDto,
   metrics: Record<string, { value: number }> | undefined,
+  sport?: SPORT_TYPE,
+  zonesByType?: Record<TRAINING_ZONE_TYPE, ZoneInfo[]>,
 ): number {
   if (step.durationType === 'TIME' && step.durationValue) {
     return step.durationValue;
@@ -289,7 +459,14 @@ function calculateStepDuration(
     step.durationValue &&
     step.durationValue > 0
   ) {
-    const estimatedSpeed = getPaceSpeedFromTargets(step.targets, metrics);
+    const estimatedSpeed =
+      getPaceSpeedFromTargets(step.targets, metrics) ||
+      getHeartRateBasedSpeedFromTargets(
+        step.targets,
+        metrics,
+        sport,
+        zonesByType,
+      );
     if (estimatedSpeed) {
       return step.durationValue / estimatedSpeed;
     }
@@ -299,7 +476,7 @@ function calculateStepDuration(
   if (step.repeatBlock) {
     const childDuration = step.repeatBlock.childSteps.reduce(
       (acc: number, child: WorkoutStepDto) =>
-        acc + calculateStepDuration(child, metrics),
+        acc + calculateStepDuration(child, metrics, sport, zonesByType),
       0,
     );
     return childDuration * step.repeatBlock.repetitions;
@@ -321,7 +498,12 @@ function flattenSteps(
       // Expand repeat blocks
       for (let rep = 0; rep < step.repeatBlock.repetitions; rep++) {
         for (const childStep of step.repeatBlock.childSteps) {
-          const duration = calculateStepDuration(childStep, metrics);
+          const duration = calculateStepDuration(
+            childStep,
+            metrics,
+            sport,
+            zonesByType,
+          );
           const { color, intensity } = getStepColor(
             childStep,
             zonesByType,
@@ -341,7 +523,7 @@ function flattenSteps(
         }
       }
     } else {
-      const duration = calculateStepDuration(step, metrics);
+      const duration = calculateStepDuration(step, metrics, sport, zonesByType);
       if (duration > 0) {
         const { color, intensity } = getStepColor(
           step,
