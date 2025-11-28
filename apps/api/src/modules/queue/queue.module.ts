@@ -153,6 +153,7 @@ function parseRedisUrl(redisUrl: string): {
           enableReadyCheck: true,
           // maxRetriesPerRequest must be null for BullMQ
           maxRetriesPerRequest: null,
+          maxListeners: 20,
         };
 
         if (!redisUrl) {

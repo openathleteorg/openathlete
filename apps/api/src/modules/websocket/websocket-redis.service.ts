@@ -30,13 +30,11 @@ export class WebSocketRedisService implements OnModuleInit {
       const pubDb = (config.db ?? 0) + 1;
       const subDb = (config.db ?? 0) + 2;
 
-      this.pubClient = new Redis({
-        ...config,
-        db: pubDb,
+      const baseRedisOptions = {
         retryStrategy: (times: number) => {
           if (times > 3) {
             this.logger.error(
-              `Redis pub client connection failed after ${times} attempts`,
+              `Redis client connection failed after ${times} attempts`,
             );
             return null;
           }
@@ -47,12 +45,19 @@ export class WebSocketRedisService implements OnModuleInit {
         enableReadyCheck: true,
         // maxRetriesPerRequest must be null for Socket.IO adapter
         maxRetriesPerRequest: null,
-      });
+        maxListeners: 20,
+      };
 
-      this.subClient = this.pubClient.duplicate();
-      this.subClient.options.db = subDb;
-      // Ensure subClient also has maxRetriesPerRequest set to null
-      this.subClient.options.maxRetriesPerRequest = null;
+      this.pubClient = new Redis({
+        ...config,
+        db: pubDb,
+        ...baseRedisOptions,
+      });
+      this.subClient = new Redis({
+        ...config,
+        db: subDb,
+        ...baseRedisOptions,
+      });
 
       this.adapter = createAdapter(this.pubClient, this.subClient);
 
