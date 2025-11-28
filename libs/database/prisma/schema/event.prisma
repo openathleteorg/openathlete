@@ -37,7 +37,7 @@ model event_training {
   goal_elevation_gain Float? // in meters
   goal_duration       Int? // in seconds
   goal_rpe            Float? // in RPE (0-1)
-  estimated_load      Float? // estimated TRIMP Banister load for this training session
+  estimated_load      Float? // estimated TRIMP load for this training session
 
   // relationships
   event                            event           @relation(fields: [event_id], references: [event_id])

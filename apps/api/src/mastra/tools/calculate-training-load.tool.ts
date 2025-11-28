@@ -14,8 +14,7 @@ import { TrainingLoadService } from 'src/modules/core/services/training-load.ser
  *
  * METHODOLOGY:
  * - Uses TrainingLoadService which implements:
- *   - TRIMP Edwards (zone-based heart rate method)
- *   - TRIMP Banister (exponentially weighted)
+ *   - TRIMP (exponentially weighted)
  *   - Foster RPE (perceived exertion method)
  *
  * METRICS RETURNED:
@@ -47,9 +46,9 @@ export const calculateTrainingLoadTool = createTool({
     startDate: z.string().describe('ISO date string'),
     endDate: z.string().describe('ISO date string'),
     calculationType: z
-      .enum(['TRIMP_EDWARDS', 'TRIMP_BANISTER', 'FOSTER_RPE'])
+      .enum(['TRIMP', 'FOSTER_RPE'])
       .optional()
-      .default('TRIMP_EDWARDS')
+      .default('TRIMP')
       .describe('Type of training load calculation to use'),
   }),
   outputSchema: z.object({

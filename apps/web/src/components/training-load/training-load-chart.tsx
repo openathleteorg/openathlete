@@ -33,7 +33,7 @@ export function TrainingLoadChart({
   endDate,
   athleteId,
 }: TrainingLoadChartProps) {
-  const calculationType = TrainingLoadCalculationType.TRIMP_BANISTER;
+  const calculationType = TrainingLoadCalculationType.TRIMP;
 
   // Default to last 12 weeks
   const defaultStartDate = useMemo(() => {

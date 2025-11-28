@@ -3,8 +3,7 @@
 // ============================================================================
 // Manages training load calculations for athletes using various methods:
 // - Foster (RPE-based)
-// - TRIMP Edwards (HR-based with zones)
-// - TRIMP Banister (HR-based exponential)
+// - TRIMP (HR-based exponential)
 //
 // Each activity can have multiple training load entries (one per calculation type).
 // Training load accumulates over time to calculate:

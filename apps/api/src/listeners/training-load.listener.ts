@@ -136,39 +136,21 @@ export class TrainingLoadListener {
 
         // Only calculate TRIMP if we have both HR metrics
         if (hrMax && hrRest) {
-          // Try TRIMP Edwards
+          // Try TRIMP
           try {
             await this.trainingLoadService.calculateActivityLoad(
               authUser,
               eventId,
-              'TRIMP_EDWARDS' as training_load_calculation_type,
+              'TRIMP' as training_load_calculation_type,
             );
             this.logger.log(
-              `✓ TRIMP Edwards training load calculated for activity ${eventActivityId}`,
+              `✓ TRIMP training load calculated for activity ${eventActivityId}`,
             );
           } catch (error) {
             const message =
               error instanceof Error ? error.message : String(error);
             this.logger.error(
-              `Failed to calculate TRIMP Edwards for activity ${eventActivityId}: ${message}`,
-            );
-          }
-
-          // Try TRIMP Banister
-          try {
-            await this.trainingLoadService.calculateActivityLoad(
-              authUser,
-              eventId,
-              'TRIMP_BANISTER' as training_load_calculation_type,
-            );
-            this.logger.log(
-              `✓ TRIMP Banister training load calculated for activity ${eventActivityId}`,
-            );
-          } catch (error) {
-            const message =
-              error instanceof Error ? error.message : String(error);
-            this.logger.error(
-              `Failed to calculate TRIMP Banister for activity ${eventActivityId}: ${message}`,
+              `Failed to calculate TRIMP for activity ${eventActivityId}: ${message}`,
             );
           }
         } else {

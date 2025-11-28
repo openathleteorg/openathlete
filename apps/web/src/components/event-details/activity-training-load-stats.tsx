@@ -23,7 +23,7 @@ export function ActivityTrainingLoadStats({
     .filter(
       (load) =>
         load.metadata.calculationType ===
-        TrainingLoadCalculationType.TRIMP_BANISTER,
+        TrainingLoadCalculationType.TRIMP,
     )
     .map((load) => `${load.value.toFixed(0)}`)
     .join(' / ');

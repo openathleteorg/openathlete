@@ -47,7 +47,7 @@ export function AthleteDashboardHeader({
   // Get training load metrics
   const { data: trainingLoadMetrics, isLoading: isLoadingTrainingLoad } =
     useTrainingLoadMetrics(
-      TrainingLoadCalculationType.TRIMP_BANISTER,
+      TrainingLoadCalculationType.TRIMP,
       today,
       athleteId,
     );

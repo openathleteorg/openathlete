@@ -26,7 +26,7 @@ interface TrimpEstimationResult {
   duration_min: number;
   hr_avg: number;
   delta: number;
-  trimp_banister: number;
+  trimp: number;
   assumptions: string[];
   confidence: number;
   explanation: string;
@@ -173,11 +173,11 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
 
       // Validate result
       if (
-        typeof result.trimp_banister !== 'number' ||
-        isNaN(result.trimp_banister)
+        typeof result.trimp !== 'number' ||
+        isNaN(result.trimp)
       ) {
         throw new Error(
-          `Invalid TRIMP value in result: ${result.trimp_banister}`,
+          `Invalid TRIMP value in result: ${result.trimp}`,
         );
       }
 
@@ -185,12 +185,12 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
       await this.prisma.event_training.update({
         where: { event_training_id: eventTrainingId },
         data: {
-          estimated_load: result.trimp_banister,
+          estimated_load: result.trimp,
         },
       });
 
       this.logger.log(
-        `✓ Training load estimated for event ${eventId}: ${result.trimp_banister} TRIMP`,
+        `✓ Training load estimated for event ${eventId}: ${result.trimp} TRIMP`,
       );
 
       // Notify that estimation completed
@@ -198,7 +198,7 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         this.calendarWebSocketService.notifyTrainingLoadEstimationCompleted(
           eventId,
           athleteId,
-          result.trimp_banister,
+          result.trimp,
         );
       }
 
@@ -206,7 +206,7 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         success: true,
         eventId,
         eventTrainingId,
-        trimpBanister: result.trimp_banister,
+        trimp: result.trimp,
         confidence: result.confidence,
       };
     } catch (error) {

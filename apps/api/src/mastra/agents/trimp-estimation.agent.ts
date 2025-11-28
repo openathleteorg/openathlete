@@ -4,8 +4,8 @@ import { Agent } from '@mastra/core/agent';
 export const trimpEstimationAgent = new Agent({
   name: 'trimp-estimation',
   description:
-    'Estimates TRIMP Banister (sTRIMP) training load for planned training sessions based on workout structure, athlete metrics, and training zones.',
-  instructions: `Estimate Banister TRIMP (sTRIMP) from athlete data and training session structure.
+    'Estimates TRIMP (sTRIMP) training load for planned training sessions based on workout structure, athlete metrics, and training zones.',
+  instructions: `Estimate TRIMP (sTRIMP) from athlete data and training session structure.
 
 FORMULA:
 TRIMP = duration_min × Δ × 0.64 × exp(1.92 × Δ)
@@ -78,7 +78,7 @@ OUTPUT (JSON only):
   "duration_min": float,
   "hr_avg": float,
   "delta": float,
-  "trimp_banister": float,
+  "trimp": float,
   "assumptions": [string],
   "confidence": float,
   "explanation": string

@@ -323,80 +323,11 @@ export class TrainingLoadService {
   }
 
   /**
-   * Calculate TRIMP Edwards (zone-based)
-   * Formula: Sum of (Duration in zone × Zone coefficient)
-   * Zone coefficients: Z1=1, Z2=2, Z3=3, Z4=4, Z5=5
-   */
-  private calculateEdwardsTRIMP(
-    stream: ActivityStream,
-    hrMax: number,
-    hrRest: number,
-  ): { value: number; metadata: TrainingLoadMetadata } {
-    if (!stream.heartrate || !stream.time) {
-      throw new Error('Heart rate or time data not available');
-    }
-
-    // Define HR zones as percentages of HR max
-    const zones = [
-      { zone: 1, min: 0.5, max: 0.6, coefficient: 1 }, // 50-60% HR max
-      { zone: 2, min: 0.6, max: 0.7, coefficient: 2 }, // 60-70%
-      { zone: 3, min: 0.7, max: 0.8, coefficient: 3 }, // 70-80%
-      { zone: 4, min: 0.8, max: 0.9, coefficient: 4 }, // 80-90%
-      { zone: 5, min: 0.9, max: 1.0, coefficient: 5 }, // 90-100%
-    ];
-
-    // Calculate time in each zone
-    const zoneDurations = zones.map((z) => ({ ...z, duration: 0 }));
-
-    for (let i = 1; i < stream.time.length; i++) {
-      const hr = stream.heartrate[i];
-      const timeDelta = stream.time[i] - stream.time[i - 1];
-
-      if (hr && timeDelta > 0) {
-        const hrPercent = (hr - hrRest) / (hrMax - hrRest);
-
-        for (const zone of zoneDurations) {
-          if (hrPercent >= zone.min && hrPercent < zone.max) {
-            zone.duration += timeDelta;
-            break;
-          }
-        }
-      }
-    }
-
-    // Calculate TRIMP
-    const trimp = zoneDurations.reduce(
-      (sum, zone) => sum + (zone.duration / 60) * zone.coefficient,
-      0,
-    );
-
-    const avgHr =
-      stream.heartrate.reduce((sum, hr) => sum + (hr || 0), 0) /
-      stream.heartrate.length;
-
-    return {
-      value: trimp,
-      metadata: {
-        calculationType: 'TRIMP_EDWARDS',
-        duration: stream.time[stream.time.length - 1],
-        avgHr,
-        hrMax,
-        hrRest,
-        zones: zoneDurations.map((z) => ({
-          zone: z.zone,
-          duration: z.duration,
-          coefficient: z.coefficient,
-        })),
-      },
-    };
-  }
-
-  /**
-   * Calculate TRIMP Banister (exponential weighting)
+   * Calculate TRIMP (exponential weighting)
    * Formula: Duration × HR fraction × 0.64 × e^(1.92 × HR fraction)
    * where HR fraction = (HR - HR rest) / (HR max - HR rest)
    */
-  private calculateBanisterTRIMP(
+  private calculateTRIMP(
     stream: ActivityStream,
     hrMax: number,
     hrRest: number,
@@ -408,7 +339,7 @@ export class TrainingLoadService {
 
     const hrReserve = hrMax - hrRest;
 
-    // Gender-specific coefficients (Banister et al.)
+    // Gender-specific coefficients
     const k = gender === 'male' ? 1.92 : 1.67;
     const y = gender === 'male' ? 0.64 : 0.86;
 
@@ -424,7 +355,7 @@ export class TrainingLoadService {
         const hrFraction = (hr - hrRest) / hrReserve;
 
         if (hrFraction > 0) {
-          // Banister TRIMP formula
+          // TRIMP formula
           trimp += timeDelta * hrFraction * y * Math.exp(k * hrFraction);
           totalHr += hr;
           validPoints++;
@@ -437,7 +368,7 @@ export class TrainingLoadService {
     return {
       value: trimp,
       metadata: {
-        calculationType: 'TRIMP_BANISTER',
+        calculationType: 'TRIMP',
         duration: stream.time[stream.time.length - 1],
         avgHr,
         hrMax,
@@ -554,8 +485,7 @@ export class TrainingLoadService {
         result = this.calculateFosterLoad(activity.rpe, activity.moving_time);
         break;
 
-      case 'TRIMP_EDWARDS':
-      case 'TRIMP_BANISTER': {
+      case 'TRIMP': {
         // Get HR metrics
         const hrMax = await this.getLatestMetric(
           athlete.athlete_id,
@@ -581,14 +511,10 @@ export class TrainingLoadService {
           activity.stream as CompressedActivityStream,
         );
 
-        if (calculationType === 'TRIMP_EDWARDS') {
-          result = this.calculateEdwardsTRIMP(stream, hrMax, hrRest);
-        } else {
-          // Convert gender to 'male' | 'female' for TRIMP calculation
-          // Default to 'male' if not set or 'OTHER'
-          const gender = athlete.user.gender === 'FEMALE' ? 'female' : 'male';
-          result = this.calculateBanisterTRIMP(stream, hrMax, hrRest, gender);
-        }
+        // Convert gender to 'male' | 'female' for TRIMP calculation
+        // Default to 'male' if not set or 'OTHER'
+        const gender = athlete.user.gender === 'FEMALE' ? 'female' : 'male';
+        result = this.calculateTRIMP(stream, hrMax, hrRest, gender);
         break;
       }
 
@@ -1089,7 +1015,7 @@ export class TrainingLoadService {
         where: {
           athlete_id_type: {
             athlete_id: targetAthleteId,
-            type: 'TRIMP_BANISTER',
+            type: 'TRIMP',
           },
         },
         select: {

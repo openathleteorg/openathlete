@@ -245,8 +245,7 @@ enum metric_type {
 
 enum training_load_calculation_type {
   FOSTER_RPE // Foster method using RPE x duration
-  TRIMP_EDWARDS // Edwards TRIMP using HR zones
-  TRIMP_BANISTER // Banister TRIMP using exponential HR weighting
+  TRIMP // TRIMP using exponential HR weighting
 }
 
 enum workout_step_type {
