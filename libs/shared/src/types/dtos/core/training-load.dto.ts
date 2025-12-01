@@ -98,6 +98,11 @@ export const calendarWeekLoadSummarySchema = z.object({
   totalLoad: z.number(),
   recommendedMin: z.number(),
   recommendedMax: z.number(),
+  acwr: z.number().optional(),
+  acwrStatus: z
+    .enum(['safe', 'optimal', 'moderate_risk', 'high_risk'])
+    .optional(),
+  acwrAdjusted: z.boolean().optional(),
 });
 
 export type CalendarWeekLoadSummary = z.infer<

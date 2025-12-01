@@ -130,12 +130,79 @@ export class TrainingLoadService {
     return loads;
   }
 
+  /**
+   * Calculate ACWR (Acute:Chronic Workload Ratio) from weekly loads
+   * ACWR = ATL / CTL
+   * ATL = 7-day exponentially weighted average (acute)
+   * CTL = 42-day exponentially weighted average (chronic)
+   */
+  private calculateACWRFromWeeklyLoads(
+    weeklyLoads: number[],
+  ): { acwr: number; atl: number; ctl: number } | null {
+    if (weeklyLoads.length === 0) {
+      return null;
+    }
+
+    // We need at least 6 weeks of data for proper CTL calculation
+    // For ATL, we use the most recent week
+    const acuteWeek = weeklyLoads[0] ?? 0;
+
+    // Calculate CTL as exponentially weighted average of last 6 weeks
+    // Using the same alpha as in getTrainingLoadMetrics (2/43 for 42-day)
+    // But adapted for weekly data: alpha = 2 / (weeks + 1)
+    const weeksForCTL = Math.min(weeklyLoads.length - 1, 6);
+    if (weeksForCTL < 1) {
+      return null;
+    }
+
+    const alphaCTL = 2 / (weeksForCTL + 1);
+    let ctl = 0;
+
+    // Calculate CTL from historical weeks (skip the acute week)
+    for (let i = 1; i <= weeksForCTL; i++) {
+      const weekLoad = weeklyLoads[i] ?? 0;
+      ctl = alphaCTL * weekLoad + (1 - alphaCTL) * ctl;
+    }
+
+    // If CTL is 0, we can't calculate ACWR
+    if (ctl === 0) {
+      return null;
+    }
+
+    // ATL is the acute week load (7-day period)
+    // For weekly data, ATL ≈ acute week load
+    const atl = acuteWeek;
+
+    const acwr = atl / ctl;
+
+    return { acwr, atl, ctl };
+  }
+
+  /**
+   * Determine ACWR status based on ratio
+   */
+  private getACWRStatus(
+    acwr: number,
+  ): 'safe' | 'optimal' | 'moderate_risk' | 'high_risk' {
+    if (acwr < 0.8) {
+      return 'safe'; // Déconditionnement
+    }
+    if (acwr >= 0.8 && acwr <= 1.3) {
+      return 'optimal'; // Zone optimale
+    }
+    if (acwr > 1.3 && acwr <= 1.5) {
+      return 'moderate_risk'; // Risque modéré
+    }
+    return 'high_risk'; // Risque élevé (> 1.5)
+  }
+
   private calculateRecommendedRangeFromWeeklyLoads(
     weeklyLoads: number[],
     previousRecommendation?: { min: number; max: number },
+    acwr?: number,
   ) {
     if (weeklyLoads.length === 0) {
-      return { min: 0, max: 0 };
+      return { min: 0, max: 0, acwrAdjusted: false };
     }
 
     const acuteLoad = weeklyLoads[0] ?? 0;
@@ -238,15 +305,38 @@ export class TrainingLoadService {
           TREND_WEIGHT;
     }
 
-    const progressiveMin = Math.max(0, baseMin * weightedTrend);
-    const progressiveMax = Math.max(
-      progressiveMin + 1,
-      baseMax * weightedTrend,
-    );
+    let progressiveMin = Math.max(0, baseMin * weightedTrend);
+    let progressiveMax = Math.max(progressiveMin + 1, baseMax * weightedTrend);
+
+    // Adjust recommendations based on ACWR if provided
+    let acwrAdjusted = false;
+    if (acwr !== undefined && acwr > 0) {
+      if (acwr > 1.5) {
+        // High risk: reduce recommendations by 20% to prevent injury
+        progressiveMin = progressiveMin * 0.8;
+        progressiveMax = progressiveMax * 0.8;
+        acwrAdjusted = true;
+      } else if (acwr > 1.3) {
+        // Moderate risk: reduce recommendations by 10%
+        progressiveMin = progressiveMin * 0.9;
+        progressiveMax = progressiveMax * 0.9;
+        acwrAdjusted = true;
+      } else if (acwr < 0.8) {
+        // Safe/underconditioned: allow slightly more progression (5%)
+        progressiveMax = progressiveMax * 1.05;
+        // Don't mark as adjusted for underconditioned state
+      }
+
+      // Ensure min < max after adjustments
+      if (progressiveMax <= progressiveMin) {
+        progressiveMax = progressiveMin + 1;
+      }
+    }
 
     return {
       min: progressiveMin,
       max: progressiveMax,
+      acwrAdjusted,
     };
   }
 
@@ -792,8 +882,20 @@ export class TrainingLoadService {
       normalizedTargetDate,
     );
 
-    const recommendedLoadRange =
-      this.calculateRecommendedRangeFromWeeklyLoads(weeklyLoads);
+    // Calculate ACWR for recommendation adjustment
+    const acwrResult = this.calculateACWRFromWeeklyLoads(weeklyLoads);
+    const acwr = acwrResult?.acwr;
+
+    const recommendedLoadRangeResult =
+      this.calculateRecommendedRangeFromWeeklyLoads(
+        weeklyLoads,
+        undefined,
+        acwr,
+      );
+    const recommendedLoadRange = {
+      min: recommendedLoadRangeResult.min,
+      max: recommendedLoadRangeResult.max,
+    };
 
     return {
       atl,
@@ -1103,14 +1205,57 @@ export class TrainingLoadService {
       (a, b) => a.weekStart.getTime() - b.weekStart.getTime(),
     );
 
-    const recommendations: Array<{ min: number; max: number } | null> =
-      new Array(sortedSummaries.length).fill(null);
+    const recommendations: Array<{
+      min: number;
+      max: number;
+      acwrAdjusted: boolean;
+    } | null> = new Array(sortedSummaries.length).fill(null);
+
+    const acwrData: Array<{
+      acwr: number;
+      acwrStatus: 'safe' | 'optimal' | 'moderate_risk' | 'high_risk';
+    } | null> = new Array(sortedSummaries.length).fill(null);
 
     let projectedFutureWeek: CalendarWeekLoadSummary | null = null;
 
-    let recommendationForCurrentWeek: { min: number; max: number } | undefined;
+    let recommendationForCurrentWeek:
+      | {
+          min: number;
+          max: number;
+          acwrAdjusted: boolean;
+        }
+      | undefined;
 
     for (let index = 0; index < sortedSummaries.length; index++) {
+      // Get weekly loads for ACWR calculation (need at least 7 weeks for proper CTL)
+      const weeklyLoadsForACWR: number[] = [];
+      for (let offset = 0; offset < 7; offset++) {
+        const sourceIndex = index - offset;
+        if (sourceIndex >= 0) {
+          const summary = sortedSummaries[sourceIndex];
+          weeklyLoadsForACWR.push(summary.actual + summary.estimated);
+        } else {
+          weeklyLoadsForACWR.push(0);
+        }
+      }
+
+      // Calculate ACWR for this week
+      const acwrResult = this.calculateACWRFromWeeklyLoads(weeklyLoadsForACWR);
+      let acwr: number | undefined;
+      let acwrStatus:
+        | 'safe'
+        | 'optimal'
+        | 'moderate_risk'
+        | 'high_risk'
+        | undefined;
+
+      if (acwrResult) {
+        acwr = acwrResult.acwr;
+        acwrStatus = this.getACWRStatus(acwr);
+        acwrData[index] = { acwr, acwrStatus };
+      }
+
+      // Get weekly loads for recommendation calculation (4 weeks)
       const weeklyLoads: number[] = [];
       for (let offset = 0; offset < 4; offset++) {
         const sourceIndex = index - offset;
@@ -1122,9 +1267,11 @@ export class TrainingLoadService {
           weeklyLoads.push(0);
         }
       }
+
       const recommendedRange = this.calculateRecommendedRangeFromWeeklyLoads(
         weeklyLoads,
         recommendationForCurrentWeek,
+        acwr,
       );
       recommendationForCurrentWeek = recommendedRange;
       const targetIndex = index + 1;
@@ -1142,32 +1289,48 @@ export class TrainingLoadService {
           totalLoad: 0,
           recommendedMin: Number(recommendedRange.min.toFixed(2)),
           recommendedMax: Number(recommendedRange.max.toFixed(2)),
-        };
+          acwr: acwr ? Number(acwr.toFixed(2)) : undefined,
+          acwrStatus: acwrStatus,
+          acwrAdjusted: recommendedRange.acwrAdjusted,
+        } as CalendarWeekLoadSummary;
       }
     }
 
     if (!recommendations[0] && sortedSummaries.length > 0) {
       const firstSummary = sortedSummaries[0];
       // Include both actual and estimated loads
-      const initialRange = this.calculateRecommendedRangeFromWeeklyLoads([
-        firstSummary.actual + firstSummary.estimated,
-      ]);
+      const initialRange = this.calculateRecommendedRangeFromWeeklyLoads(
+        [firstSummary.actual + firstSummary.estimated],
+        undefined,
+        undefined,
+      );
       recommendations[0] = initialRange;
     }
 
-    const response = sortedSummaries.map((summary, index) => {
-      const range = recommendations[index];
+    const response: CalendarWeekLoadSummary[] = sortedSummaries.map(
+      (summary, index) => {
+        const range = recommendations[index];
+        const acwr = acwrData[index];
 
-      return {
-        weekStart: summary.weekStart,
-        weekEnd: summary.weekEnd,
-        actualLoad: Number(summary.actual.toFixed(2)),
-        estimatedLoad: Number(summary.estimated.toFixed(2)),
-        totalLoad: Number((summary.actual + summary.estimated).toFixed(2)),
-        recommendedMin: Number((range?.min ?? summary.actual).toFixed(2)),
-        recommendedMax: Number((range?.max ?? summary.actual).toFixed(2)),
-      };
-    });
+        const result: CalendarWeekLoadSummary = {
+          weekStart: summary.weekStart,
+          weekEnd: summary.weekEnd,
+          actualLoad: Number(summary.actual.toFixed(2)),
+          estimatedLoad: Number(summary.estimated.toFixed(2)),
+          totalLoad: Number((summary.actual + summary.estimated).toFixed(2)),
+          recommendedMin: Number((range?.min ?? summary.actual).toFixed(2)),
+          recommendedMax: Number((range?.max ?? summary.actual).toFixed(2)),
+          acwrAdjusted: range?.acwrAdjusted ?? false,
+        };
+
+        if (acwr) {
+          result.acwr = Number(acwr.acwr.toFixed(2));
+          result.acwrStatus = acwr.acwrStatus;
+        }
+
+        return result;
+      },
+    );
 
     let filteredResponse = response.filter(
       (week) =>
