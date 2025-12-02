@@ -1,5 +1,6 @@
 import { sport_type } from '@openathlete/database';
 import {
+  TrainingZone,
   type WorkoutDto,
   type WorkoutStepDto,
   type WorkoutStepTargetDto,
@@ -160,12 +161,15 @@ export function formatGoalSummary(
 export function describeWorkoutStructure(
   workout: WorkoutDto | null,
   zoneLookup: Map<number, ZoneSummary>,
+  trainingZones: TrainingZone[],
 ): string {
   if (!workout?.steps?.length) {
     return 'No structured workout.';
   }
 
-  const lines = workout.steps.map((step) => describeStep(step, zoneLookup, 0));
+  const lines = workout.steps.map((step) =>
+    describeStep(step, zoneLookup, 0, trainingZones),
+  );
 
   return lines.join('\n');
 }
@@ -174,6 +178,7 @@ function describeStep(
   step: WorkoutStepDto,
   zoneLookup: Map<number, ZoneSummary>,
   depth: number,
+  trainingZones: TrainingZone[],
 ): string {
   const indent = '  '.repeat(depth);
   const parts: string[] = [
@@ -185,7 +190,11 @@ function describeStep(
     parts.push(duration);
   }
 
-  const targets = describeTargets(step.targets || [], zoneLookup);
+  const targets = describeTargets(
+    step.targets || [],
+    zoneLookup,
+    trainingZones || [],
+  );
   if (targets) {
     parts.push(`Targets: ${targets}`);
   }
@@ -200,7 +209,7 @@ function describeStep(
     const repeatLabel = `Repeat x${step.repeatBlock.repetitions}`;
     lines.push(`${indent}  <${repeatLabel} START>`.trim());
     step.repeatBlock.childSteps.forEach((child) => {
-      lines.push(describeStep(child, zoneLookup, depth + 1));
+      lines.push(describeStep(child, zoneLookup, depth + 1, trainingZones));
     });
     lines.push(`${indent}  <${repeatLabel} END>`.trim());
   }
@@ -211,13 +220,14 @@ function describeStep(
 function describeTargets(
   targets: WorkoutStepTargetDto[],
   zoneLookup: Map<number, ZoneSummary>,
+  trainingZones: TrainingZone[],
 ): string | undefined {
   if (!targets.length) {
     return undefined;
   }
 
   const targetTexts = targets
-    .map((target) => describeTarget(target, zoneLookup))
+    .map((target) => describeTarget(target, zoneLookup, trainingZones))
     .filter((text): text is string => Boolean(text));
 
   return targetTexts.length ? targetTexts.join('; ') : undefined;
@@ -226,6 +236,7 @@ function describeTargets(
 function describeTarget(
   target: WorkoutStepTargetDto,
   zoneLookup: Map<number, ZoneSummary>,
+  trainingZones: TrainingZone[],
 ): string | undefined {
   if (target.targetType === 'ZONE' && target.targetValue) {
     const zoneInfo = zoneLookup.get(target.targetValue);
@@ -235,9 +246,14 @@ function describeTarget(
   }
 
   // Format target with metric label if metricType is set
-  const formattedRange = formatTarget(target, (metricType) => {
-    return METRIC_LABELS[metricType] || metricType.replace(/_/g, ' ');
-  });
+  const formattedRange = formatTarget(
+    target,
+    (metricType) => {
+      return METRIC_LABELS[metricType] || metricType.replace(/_/g, ' ');
+    },
+    undefined,
+    trainingZones,
+  );
   if (formattedRange) {
     return `${target.targetType}: ${formattedRange}`;
   }

@@ -1,3 +1,4 @@
+import { TrainingZone } from '../entities';
 import { WorkoutStepTargetDto } from '../types';
 import { formatSpeed } from './numeric-stats.formatter';
 import { getTargetIntensity } from './target-intensity';
@@ -13,6 +14,7 @@ export function formatTarget(
   target: WorkoutStepTargetDto,
   getMetricLabel?: (metricType: string) => string,
   metrics?: Record<string, { value: number } | number>,
+  trainingZones?: TrainingZone[],
 ): string {
   const { targetType, targetMin, targetMax, targetValue, metricType } = target;
 
@@ -32,14 +34,15 @@ export function formatTarget(
     return 'Open';
   }
 
-  // ZONE target (single value) - zone name should be resolved in component
-  // This function will be called with zone name already resolved in TargetBadge
   if (
     targetType === 'ZONE' &&
     targetValue !== null &&
     targetValue !== undefined
   ) {
-    // Fallback: if zone name not provided, show ID
+    const zone = trainingZones?.find((z) => z.trainingZoneId === targetValue);
+    if (zone) {
+      return zone.name;
+    }
     return `Zone ${targetValue}`;
   }
 

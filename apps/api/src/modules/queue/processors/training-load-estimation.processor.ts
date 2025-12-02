@@ -3,7 +3,7 @@ import { Job, Queue } from 'bullmq';
 import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 
-import { mapPrismaWorkoutToDto } from '@openathlete/shared';
+import { TrainingZone, mapPrismaWorkoutToDto } from '@openathlete/shared';
 
 import { trimpEstimationAgent } from 'src/mastra/agents/trimp-estimation.agent';
 
@@ -126,7 +126,11 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
       const { summary: trainingZonesSummary, zoneLookup } =
         buildTrainingZonesContext(zones, event.training.sport);
       const goalSummary = formatGoalSummary(event.training);
-      const workoutStructure = describeWorkoutStructure(workoutDto, zoneLookup);
+      const workoutStructure = describeWorkoutStructure(
+        workoutDto,
+        zoneLookup,
+        zones as unknown as TrainingZone[],
+      );
 
       const prompt = [
         'ATHLETE PROFILE:',
@@ -172,13 +176,8 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
       }
 
       // Validate result
-      if (
-        typeof result.trimp !== 'number' ||
-        isNaN(result.trimp)
-      ) {
-        throw new Error(
-          `Invalid TRIMP value in result: ${result.trimp}`,
-        );
+      if (typeof result.trimp !== 'number' || isNaN(result.trimp)) {
+        throw new Error(`Invalid TRIMP value in result: ${result.trimp}`);
       }
 
       // Save estimated_load to event_training

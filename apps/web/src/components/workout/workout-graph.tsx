@@ -11,7 +11,6 @@ import { m } from '@/paraglide/messages';
 import { formatDuration, getStepTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
 
-import { formatTarget, getTargetIntensity } from '@openathlete/shared';
 import type {
   TrainingZone,
   TrainingZoneValue,
@@ -24,6 +23,8 @@ import {
   SPORT_TYPE,
   TRAINING_ZONE_TYPE,
   WORKOUT_TARGET_TYPE,
+  formatTarget,
+  getTargetIntensity,
   kmhToSpeedMs,
 } from '@openathlete/shared';
 
@@ -51,6 +52,7 @@ interface ZoneInfo {
   color: string;
   min: number;
   max: number;
+  index: number;
 }
 
 // Default colors for step types when no zone is available
@@ -101,9 +103,7 @@ function calculateIntensityFromTarget(
       const zones = zonesByType[zoneType] || [];
       const zone = zones.find((z) => z.id === targetValue);
       if (zone) {
-        const match = zone.name.match(/\d+/);
-        const zoneNum = match ? parseInt(match[0], 10) : 1;
-        return { intensity: zoneNum, color: zone.color };
+        return { intensity: zone.index, color: zone.color };
       }
     }
   }
@@ -117,9 +117,7 @@ function calculateIntensityFromTarget(
     if (hrValue !== null && hrZones.length > 0) {
       for (const zone of hrZones) {
         if (hrValue >= zone.min && hrValue <= zone.max) {
-          const match = zone.name.match(/\d+/);
-          const zoneNum = match ? parseInt(match[0], 10) : 1;
-          return { intensity: zoneNum, color: zone.color };
+          return { intensity: zone.index, color: zone.color };
         }
       }
     }
@@ -145,9 +143,7 @@ function calculateIntensityFromTarget(
           const zoneMinMs = 1000 / (zone.max * 60); // zone.max is slower (higher min/km)
           const zoneMaxMs = 1000 / (zone.min * 60); // zone.min is faster (lower min/km)
           if (paceValue >= zoneMinMs && paceValue <= zoneMaxMs) {
-            const match = zone.name.match(/\d+/);
-            const zoneNum = match ? parseInt(match[0], 10) : 1;
-            return { intensity: zoneNum, color: zone.color };
+            return { intensity: zone.index, color: zone.color };
           }
         }
       }
@@ -181,9 +177,7 @@ function calculateIntensityFromTarget(
       if (powerZones.length > 0) {
         for (const zone of powerZones) {
           if (powerValue >= zone.min && powerValue <= zone.max) {
-            const match = zone.name.match(/\d+/);
-            const zoneNum = match ? parseInt(match[0], 10) : 1;
-            return { intensity: zoneNum, color: zone.color };
+            return { intensity: zone.index, color: zone.color };
           }
         }
       }
@@ -240,7 +234,6 @@ function getStepColor(
   metrics: Record<string, { value: number }> | undefined,
   sport?: SPORT_TYPE,
 ): { color: string; intensity: number } {
-  // Try to get intensity from targets
   if (step.targets && step.targets.length > 0) {
     for (const target of step.targets) {
       const intensityInfo = calculateIntensityFromTarget(
@@ -255,7 +248,6 @@ function getStepColor(
     }
   }
 
-  // Fallback to step type color
   const defaultColor = STEP_TYPE_COLORS[step.stepType] || STEP_TYPE_COLORS.FREE;
   return { color: defaultColor, intensity: 0 };
 }
@@ -606,6 +598,7 @@ function StepBar({
   maxHeight: number;
   metrics?: Record<string, { value: number }>;
 }) {
+  const { data: athlete } = useGetMyAthleteQuery();
   const height = Math.max(
     MIN_BAR_HEIGHT,
     (segment.intensity / 5) * maxHeight || MIN_BAR_HEIGHT,
@@ -662,7 +655,12 @@ function StepBar({
                     (target: WorkoutStepTargetDto, idx: number) => (
                       <span key={idx}>
                         {idx > 0 && ', '}
-                        {formatTarget(target, undefined, metrics)}
+                        {formatTarget(
+                          target,
+                          undefined,
+                          metrics,
+                          athlete?.trainingZones,
+                        )}
                       </span>
                     ),
                   )}
@@ -733,6 +731,7 @@ export function WorkoutGraph({
             color: zone.color,
             min: values[0].min,
             max: values[0].max,
+            index: zone.index,
           };
         })
         .filter((zone: ZoneInfo | null): zone is ZoneInfo => zone !== null);

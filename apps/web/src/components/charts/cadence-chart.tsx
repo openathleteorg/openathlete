@@ -28,7 +28,6 @@ export function CadenceChart({
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
 
-  // For running and trail running, convert rpm to ppm (steps per minute) by multiplying by 2
   const isRunningSport =
     sport === SPORT_TYPE.RUNNING || sport === SPORT_TYPE.TRAIL_RUNNING;
   const conversionFactor = isRunningSport ? 2 : 1;
@@ -38,7 +37,6 @@ export function CadenceChart({
     return cadenceStream.map((cadence, i) => {
       const time = timeStream ? timeStream[i] : i;
       const x = distanceStream ? distanceStream[i] : time;
-      // Convert cadence: multiply by 2 for running/trail to get steps per minute
       const convertedCadence = cadence * conversionFactor;
       return {
         cadence: convertedCadence,

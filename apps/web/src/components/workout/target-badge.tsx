@@ -73,8 +73,15 @@ export function TargetBadge({
         );
       },
       showAbsoluteValues ? metricsForFormat : undefined,
+      athlete?.trainingZones || [],
     );
-  }, [target, zoneName, metricsForFormat, showAbsoluteValues]);
+  }, [
+    target,
+    zoneName,
+    metricsForFormat,
+    showAbsoluteValues,
+    athlete?.trainingZones,
+  ]);
 
   const label = getTargetTypeLabel(target.targetType);
 
