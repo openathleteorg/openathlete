@@ -26,6 +26,10 @@ export function SessionValidationSettingsCard({ athleteId }: P) {
     updateMutation.mutate({ requireComment: checked });
   };
 
+  const handleToggleFeedbackQuestions = (checked: boolean) => {
+    updateMutation.mutate({ requireFeedbackQuestions: checked });
+  };
+
   return (
     <SettingsSection
       title={m.session_validation_settings()}
@@ -57,6 +61,22 @@ export function SessionValidationSettingsCard({ athleteId }: P) {
             id="require-comment"
             checked={settings?.requireComment ?? false}
             onCheckedChange={handleToggleComment}
+            disabled={updateMutation.isPending}
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label htmlFor="require-feedback-questions">
+              {m.require_feedback_questions()}
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              {m.require_feedback_questions_description()}
+            </p>
+          </div>
+          <Switch
+            id="require-feedback-questions"
+            checked={settings?.requireFeedbackQuestions ?? true}
+            onCheckedChange={handleToggleFeedbackQuestions}
             disabled={updateMutation.isPending}
           />
         </div>

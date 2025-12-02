@@ -1,10 +1,11 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetEventStreamQuery, useGetEventWeatherQuery } from '@/api/event';
 import { m } from '@/paraglide/messages';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ActivityEvent, getSportConfig } from '@openathlete/shared';
 
+import { ActivityFeedbackOverlay } from '../activity-feedback/activity-feedback-overlay';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ActivityDetailsOverviewTab } from './tabs/activity-details-overview-tab';
 import { ActivityDetailsSplitsTab } from './tabs/activity-details-splits-tab';
@@ -16,6 +17,8 @@ interface P {
 
 export function ActivityDetails({ event }: P) {
   const { data: athlete } = useGetMyAthleteQuery();
+  const [showNormalView, setShowNormalView] = useState(false);
+  const [showEditFeedback, setShowEditFeedback] = useState(false);
   const { data: stream } = useGetEventStreamQuery(event.eventId, 3000, [
     'altitude',
     'latlng',
@@ -38,29 +41,53 @@ export function ActivityDetails({ event }: P) {
   const { data: weather } = useGetEventWeatherQuery(event.eventId);
 
   return (
-    <Tabs defaultValue="overview" className="flex flex-col gap-4">
-      <TabsList>
-        <TabsTrigger value="overview">{m.overview()}</TabsTrigger>
-        {hasSplits && <TabsTrigger value="splits">{m.splits()}</TabsTrigger>}
-        {weather && <TabsTrigger value="weather">{m.weather()}</TabsTrigger>}
-      </TabsList>
-      <TabsContent value="overview">
-        <ActivityDetailsOverviewTab
+    <>
+      {(!showNormalView || showEditFeedback) && (
+        <ActivityFeedbackOverlay
           event={event}
-          stream={stream}
-          isMyActivity={athlete?.athleteId === event.athleteId}
+          onSkip={() => {
+            setShowNormalView(true);
+            setShowEditFeedback(false);
+          }}
+          isEditMode={showEditFeedback}
         />
-      </TabsContent>
-      {hasSplits && (
-        <TabsContent value="splits">
-          <ActivityDetailsSplitsTab stream={stream} sport={event.sport} />
-        </TabsContent>
       )}
-      {weather && (
-        <TabsContent value="weather">
-          <ActivityDetailsWeatherTab data={weather} stream={stream} />
-        </TabsContent>
+
+      {showNormalView && !showEditFeedback && (
+        <Tabs defaultValue="overview" className="flex flex-col gap-4">
+          <TabsList>
+            <TabsTrigger value="overview">{m.overview()}</TabsTrigger>
+            {hasSplits && (
+              <TabsTrigger value="splits">{m.splits()}</TabsTrigger>
+            )}
+            {weather && (
+              <TabsTrigger value="weather">{m.weather()}</TabsTrigger>
+            )}
+          </TabsList>
+          <TabsContent value="overview">
+            <ActivityDetailsOverviewTab
+              event={event}
+              stream={stream}
+              isMyActivity={athlete?.athleteId === event.athleteId}
+              onEditFeedback={() => setShowEditFeedback(true)}
+              onReopenFeedback={() => {
+                setShowNormalView(false);
+                setShowEditFeedback(false);
+              }}
+            />
+          </TabsContent>
+          {hasSplits && (
+            <TabsContent value="splits">
+              <ActivityDetailsSplitsTab stream={stream} sport={event.sport} />
+            </TabsContent>
+          )}
+          {weather && (
+            <TabsContent value="weather">
+              <ActivityDetailsWeatherTab data={weather} stream={stream} />
+            </TabsContent>
+          )}
+        </Tabs>
       )}
-    </Tabs>
+    </>
   );
 }

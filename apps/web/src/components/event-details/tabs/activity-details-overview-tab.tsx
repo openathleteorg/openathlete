@@ -45,9 +45,17 @@ interface P {
   event: ActivityEvent;
   stream: ActivityStream | undefined;
   isMyActivity: boolean;
+  onEditFeedback?: () => void;
+  onReopenFeedback?: () => void;
 }
 
-export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
+export function ActivityDetailsOverviewTab({
+  event,
+  stream,
+  isMyActivity,
+  onEditFeedback,
+  onReopenFeedback,
+}: P) {
   const [hover, setHover] = useState<
     undefined | { index: number; time: number }
   >();
@@ -92,7 +100,11 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
         </CardContent>
       </Card>
       {!(stream?.latlng && stream.time && fullDomain) && (
-        <ActivityQuickEditCard event={event} />
+        <ActivityQuickEditCard
+          event={event}
+          onEditFeedback={onEditFeedback}
+          onReopenFeedback={onReopenFeedback}
+        />
       )}
       {stream?.time &&
         (stream.latlng && fullDomain ? (
@@ -107,7 +119,13 @@ export function ActivityDetailsOverviewTab({ event, stream, isMyActivity }: P) {
                   time={stream.time}
                 />
               )}
-              {isMyActivity && <ActivityQuickEditCard event={event} />}
+              {isMyActivity && (
+                <ActivityQuickEditCard
+                  event={event}
+                  onEditFeedback={onEditFeedback}
+                  onReopenFeedback={onReopenFeedback}
+                />
+              )}
               {stream?.heartrate && (
                 <Card className={isMyActivity ? 'col-span-1' : 'col-span-2'}>
                   <CardHeader>

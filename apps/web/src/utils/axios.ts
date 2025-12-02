@@ -49,6 +49,14 @@ export const routes = {
       `/event/unvalidated/${athleteId}${
         startDate && endDate ? `?startDate=${startDate}&endDate=${endDate}` : ''
       }`,
+    getActivityFeedbackQuestions: (eventId: Event['eventId']) =>
+      `/event/${eventId}/activity/feedback-questions`,
+    submitQuestionAnswer: (eventId: Event['eventId'], questionId: number) =>
+      `/event/${eventId}/activity/feedback-questions/${questionId}/answer`,
+    skipFeedback: (eventId: Event['eventId']) =>
+      `/event/${eventId}/activity/feedback/skip`,
+    unskipFeedback: (eventId: Event['eventId']) =>
+      `/event/${eventId}/activity/feedback/unskip`,
   },
   eventTemplate: {
     getMyTemplates: '/event-template',

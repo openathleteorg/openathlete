@@ -1,0 +1,131 @@
+import {
+  useGetActivityFeedbackQuestionsQuery,
+  useSkipFeedbackMutation,
+} from '@/api/activity-feedback';
+import { Button } from '@/components/ui/button';
+import { m } from '@/paraglide/messages';
+import { Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+
+import { ActivityEvent } from '@openathlete/shared';
+
+import { ActivityFeedbackFlow } from './activity-feedback-flow';
+
+interface P {
+  event: ActivityEvent;
+  onSkip: () => void;
+  isEditMode?: boolean; // If true, skip intro screen and show flow directly
+}
+
+export function ActivityFeedbackOverlay({
+  event,
+  onSkip,
+  isEditMode = false,
+}: P) {
+  const { data: feedbackData, isLoading } =
+    useGetActivityFeedbackQuestionsQuery(event.eventId);
+  const skipMutation = useSkipFeedbackMutation(event.eventId);
+  const [showFlow, setShowFlow] = useState(isEditMode);
+
+  const questions = useMemo(
+    () => feedbackData?.questions ?? [],
+    [feedbackData],
+  );
+  const feedbackSkipped = feedbackData?.feedbackSkipped ?? false;
+
+  useEffect(() => {
+    if (!isLoading && !isEditMode) {
+      if (!questions || questions.length === 0) {
+        onSkip();
+        return;
+      }
+      if (feedbackSkipped) {
+        onSkip();
+        return;
+      }
+      const allAnswered = questions.every((q) => q.answerText !== null);
+      if (allAnswered) {
+        onSkip();
+      }
+    }
+  }, [questions, feedbackSkipped, isLoading, onSkip, isEditMode]);
+
+  const handleSkip = async () => {
+    try {
+      await skipMutation.mutateAsync();
+      onSkip();
+    } catch (error) {
+      console.error('Failed to skip feedback:', error);
+      // Still call onSkip to hide overlay
+      onSkip();
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            {m.loading_feedback_questions()}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isEditMode && questions.length > 0) {
+    return (
+      <ActivityFeedbackFlow
+        eventId={event.eventId}
+        questions={questions}
+        onComplete={onSkip}
+        isEditMode={true}
+      />
+    );
+  }
+
+  if (!questions || questions.length === 0 || feedbackSkipped) {
+    return null;
+  }
+
+  const allAnswered = questions.every((q) => q.answerText !== null);
+  if (allAnswered) {
+    return null;
+  }
+
+  if (!showFlow) {
+    return (
+      <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+        <div className="flex flex-col items-center justify-center gap-6 p-8 text-center max-w-md">
+          <h2 className="text-2xl font-semibold">
+            {m.activity_feedback_ready()}
+          </h2>
+          <div className="flex flex-col gap-3 w-full">
+            <Button onClick={() => setShowFlow(true)} size="lg">
+              {m.activity_feedback_start()}
+            </Button>
+            <Button
+              onClick={handleSkip}
+              variant="outline"
+              size="lg"
+              disabled={skipMutation.isPending}
+            >
+              {skipMutation.isPending
+                ? m.activity_feedback_skipping()
+                : m.activity_feedback_skip()}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <ActivityFeedbackFlow
+      eventId={event.eventId}
+      questions={questions}
+      onComplete={onSkip}
+    />
+  );
+}

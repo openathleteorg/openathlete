@@ -1,3 +1,4 @@
+import { useGetActivityFeedbackQuestionsQuery } from '@/api/activity-feedback';
 import { useGetAthleteSettingsQuery } from '@/api/athlete';
 import { useMemo } from 'react';
 
@@ -12,12 +13,28 @@ export function useIsEventValidated(event: Event, athleteId?: number): boolean {
     !!athleteId && event.type === EVENT_TYPE.ACTIVITY,
   );
 
+  const { data: feedbackData } = useGetActivityFeedbackQuestionsQuery(
+    event.eventId,
+  );
+
   return useMemo(() => {
     if (!athleteId || !settings) return true;
     if (!settings.requireRpe && !settings.requireComment) return true;
     if (event.startDate < new Date(Date.now() - 4 * 7 * 24 * 60 * 60 * 1000))
       return true;
     if (event.type === EVENT_TYPE.ACTIVITY) {
+      const questions = feedbackData?.questions ?? [];
+      const allQuestionsAnswered =
+        questions.length > 0 &&
+        questions.every((q) => q.answerText !== null && q.answerText !== '');
+
+      if (
+        allQuestionsAnswered &&
+        (settings.requireRpe || settings.requireComment)
+      ) {
+        return true;
+      }
+
       const hasRpe = event.rpe !== null && event.rpe !== undefined;
       const hasComment =
         event.description !== null &&
@@ -31,5 +48,5 @@ export function useIsEventValidated(event: Event, athleteId?: number): boolean {
     }
 
     return true;
-  }, [event, settings, athleteId]);
+  }, [event, settings, athleteId, feedbackData]);
 }
