@@ -29,12 +29,32 @@ model athlete_injury {
   status     injury_status
 
   // relationships
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int
+  athlete            athlete         @relation(fields: [athlete_id], references: [athlete_id])
+  athlete_id         Int
+  source_activity    event_activity? @relation(fields: [source_activity_id], references: [event_activity_id])
+  source_activity_id Int?
 
   // timestamps
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
   @@index([athlete_id])
+  @@index([source_activity_id])
+}
+
+model activity_feedback_embedding {
+  // primary key
+  activity_feedback_embedding_id Int @id @default(autoincrement())
+
+  // fields
+  text_content String // concatenated answers + comment for reference
+  embedding    Unsupported("vector(1536)") // pgvector embedding (1536 dimensions for text-embedding-3-small)
+
+  // relationships
+  activity          event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
+  event_activity_id Int            @unique
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
 }

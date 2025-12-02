@@ -121,6 +121,8 @@ model event_activity {
   message_thread        message_thread?               @relation("ActivityCommentThread") // comment thread for this activity
   segments              activity_segment[]
   feedback_questions    activity_feedback_question[]
+  extracted_injuries    athlete_injury[] // injuries extracted from feedback
+  feedback_embedding    activity_feedback_embedding? // vector embedding of feedback responses
 
   @@unique([external_id]) // Index for fast lookup by external provider ID
 }
