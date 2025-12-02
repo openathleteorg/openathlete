@@ -101,6 +101,7 @@
   "watts": "watts",
   "bpm": "bpm",
   "rpm": "rpm",
+  "ppm": "ppm",
   "m_per_hour": "m/hour",
   "meters_per_second": "m/s",
   "kilometers_per_hour": "km/h",

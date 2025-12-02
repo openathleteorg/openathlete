@@ -16,6 +16,7 @@ import {
 } from '@openathlete/shared';
 
 import { AltitudeChart } from '../../charts/altitude-chart';
+import { CadenceChart } from '../../charts/cadence-chart';
 import { GapChart } from '../../charts/gap-chart';
 import { HeartrateChart } from '../../charts/heartrate-chart';
 import { HeartrateDistributionChart } from '../../charts/heartrate-distribution-chart';
@@ -241,6 +242,25 @@ export function ActivityDetailsOverviewTab({
                         <CardContent className="p-0">
                           <PowerChart
                             wattsStream={stream.watts}
+                            timeStream={stream.time}
+                            distanceStream={stream.distance}
+                            onHover={setHover}
+                          />
+                        </CardContent>
+                      </Card>
+                    )}
+                    {stream?.cadence && (
+                      <Card className="col-span-2">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                          <CardTitle>{m.cadence()}</CardTitle>
+                          <div className="absolute right-10">
+                            <ZoomResetButton />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                          <CadenceChart
+                            cadenceStream={stream.cadence}
+                            sport={event.sport}
                             timeStream={stream.time}
                             distanceStream={stream.distance}
                             onHover={setHover}

@@ -29,6 +29,7 @@ export function ActivityDetails({ event }: P) {
     'watts',
     'gap',
     'temp',
+    'cadence',
   ]);
   const sportConfig = getSportConfig(event.sport);
   const hasSplits = useMemo(() => {
