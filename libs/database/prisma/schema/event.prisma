@@ -105,6 +105,7 @@ model event_activity {
   description              String              @default("")
   average_gap_speed        Float? // in m/s
   average_normalized_speed Float? // in m/s
+  feedback_skipped         Boolean             @default(false) // true if user skipped the feedback flow
 
   // relationships
   event                 event                         @relation(fields: [event_id], references: [event_id])

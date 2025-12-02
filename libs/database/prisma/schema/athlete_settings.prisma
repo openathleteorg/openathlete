@@ -4,8 +4,9 @@ model athlete_settings {
 
   // fields
   // Validation requirements for sessions
-  require_rpe     Boolean @default(false) // Require RPE to be set for session validation
-  require_comment Boolean @default(false) // Require comment/description to be set for session validation
+  require_rpe                Boolean @default(false) // Require RPE to be set for session validation
+  require_comment            Boolean @default(false) // Require comment/description to be set for session validation
+  require_feedback_questions Boolean @default(true) // Enable feedback questions after activity import
 
   // relationships
   athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
