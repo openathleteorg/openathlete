@@ -917,5 +917,14 @@
   "activity_feedback_reopen": "Reopen feedback",
   "activity_feedback_completed_via_questions": "Feedback provided via questions",
   "activity_feedback_edit": "Edit",
-  "failed_to_reopen_feedback": "Failed to reopen feedback"
+  "failed_to_reopen_feedback": "Failed to reopen feedback",
+  "start_recording": "Start recording",
+  "stop_recording": "Stop recording",
+  "grant_microphone_permission": "Grant microphone permission",
+  "microphone_permission_granted": "Microphone permission granted",
+  "microphone_permission_denied": "Microphone permission denied",
+  "failed_to_start_recording": "Failed to start recording",
+  "transcribing_audio": "Transcribing audio...",
+  "transcription_completed": "Transcription completed",
+  "failed_to_transcribe_audio": "Failed to transcribe audio"
 }

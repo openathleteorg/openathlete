@@ -230,18 +230,53 @@
 }
 
 /* Animated rotating brand border for AI generation states */
-.ai-rotating-brand-border {
+.ai-rotating-brand-border-dialog {
   position: relative;
   border-radius: var(--radius-lg);
   isolation: isolate;
 }
 
-.ai-rotating-brand-border::before {
+.ai-rotating-brand-border-dialog::before {
   content: "";
   position: absolute;
   /* Extend beyond dialog padding (p-6 = 24px) plus border thickness (3px) */
   inset: -28px;
   border-radius: 13px;
+  background: conic-gradient(
+    from var(--oa-rotation, 0deg),
+    var(--oa-brand-1),
+    var(--oa-brand-2),
+    var(--oa-brand-3),
+    var(--oa-brand-4),
+    var(--oa-brand-1)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 3px; /* 3-4px border thickness */
+  z-index: -1; /* derrière le contenu */
+  animation: oa-rotate-gradient 2.25s linear infinite;
+  will-change: background;
+  pointer-events: none;
+}
+
+.ai-rotating-brand-border-textarea {
+  position: relative;
+  border-radius: var(--radius-lg);
+  isolation: isolate;
+}
+
+.ai-rotating-brand-border-textarea::before {
+  content: "";
+  position: absolute;
+  /* Extend beyond dialog padding (p-6 = 24px) plus border thickness (3px) */
+  inset: -3px;
+  border-radius: 11px;
   background: conic-gradient(
     from var(--oa-rotation, 0deg),
     var(--oa-brand-1),

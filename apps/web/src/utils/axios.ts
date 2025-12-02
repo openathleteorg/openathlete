@@ -57,6 +57,7 @@ export const routes = {
       `/event/${eventId}/activity/feedback/skip`,
     unskipFeedback: (eventId: Event['eventId']) =>
       `/event/${eventId}/activity/feedback/unskip`,
+    transcribeAudio: '/activity-feedback/transcribe',
   },
   eventTemplate: {
     getMyTemplates: '/event-template',

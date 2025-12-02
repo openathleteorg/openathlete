@@ -77,7 +77,9 @@ export function AIGenerateEventDialog({
       >
         <div
           className={
-            generateEventMutation.isPending ? 'ai-rotating-brand-border' : ''
+            generateEventMutation.isPending
+              ? 'ai-rotating-brand-border-dialog'
+              : ''
           }
         >
           <DialogHeader>

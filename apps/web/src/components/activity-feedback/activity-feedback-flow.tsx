@@ -1,8 +1,10 @@
 import { useSubmitQuestionAnswerMutation } from '@/api/activity-feedback';
 import type { ActivityFeedbackQuestion } from '@/api/activity-feedback';
+import { AudioRecorder } from '@/components/activity-feedback/audio-recorder';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { m } from '@/paraglide/messages';
+import { cn } from '@/utils/shadcn';
 import { useState } from 'react';
 
 interface P {
@@ -37,6 +39,8 @@ export function ActivityFeedbackFlow({
   const [answers, setAnswers] =
     useState<Record<number, string>>(initialAnswers);
   const [useQcmForCurrent, setUseQcmForCurrent] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const submitMutation = useSubmitQuestionAnswerMutation(eventId);
 
   const handleNext = async (answerText: string) => {
@@ -104,10 +108,11 @@ export function ActivityFeedbackFlow({
     const currentAnswer = answers[currentQuestion.questionId] || '';
     const isQcmMode =
       answerMode === 'qcm' || (useQcmForCurrent && currentQuestion.qcmOptions);
-
     return (
       <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center justify-center gap-6 p-8 text-center max-w-2xl w-full">
+        <div
+          className={`flex flex-col items-center justify-center gap-6 p-8 text-center max-w-2xl w-full`}
+        >
           <div className="text-sm text-muted-foreground">
             {currentStep} / {questions.length}
           </div>
@@ -153,18 +158,39 @@ export function ActivityFeedbackFlow({
             </div>
           ) : (
             <div className="flex flex-col gap-4 w-full">
-              <Textarea
-                value={currentAnswer}
-                onChange={(e) =>
-                  setAnswers({
-                    ...answers,
-                    [currentQuestion.questionId]: e.target.value,
-                  })
-                }
-                placeholder={m.activity_feedback_free_text_recommended()}
-                className="min-h-[120px]"
-              />
-              {/* TODO: Add microphone button for Whisper transcription */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-center w-full">
+                  <AudioRecorder
+                    setIsRecording={setIsRecording}
+                    setIsTranscribing={setIsTranscribing}
+                    onTranscriptionComplete={(text) => {
+                      setAnswers({
+                        ...answers,
+                        [currentQuestion.questionId]: text,
+                      });
+                    }}
+                  />
+                </div>
+                <div
+                  className={cn(
+                    (isRecording || isTranscribing) &&
+                      'ai-rotating-brand-border-textarea',
+                  )}
+                >
+                  <Textarea
+                    value={currentAnswer}
+                    onChange={(e) =>
+                      setAnswers({
+                        ...answers,
+                        [currentQuestion.questionId]: e.target.value,
+                      })
+                    }
+                    placeholder={m.activity_feedback_free_text_recommended()}
+                    className="min-h-[120px]"
+                    disabled={isRecording || isTranscribing}
+                  />
+                </div>
+              </div>
               {currentQuestion.qcmOptions && (
                 <Button
                   onClick={() => setUseQcmForCurrent(true)}

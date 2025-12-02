@@ -110,7 +110,7 @@ export function AIModifyEventDialog({
       <DialogContent
         className={`sm:max-w-2xl ${isLoading ? 'overflow-visible' : ''}`}
       >
-        <div className={isLoading ? 'ai-rotating-brand-border' : ''}>
+        <div className={isLoading ? 'ai-rotating-brand-border-dialog' : ''}>
           <DialogHeader>
             <DialogTitle>
               {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
