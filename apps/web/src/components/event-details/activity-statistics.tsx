@@ -37,6 +37,7 @@ export function ActivityStatistics({ event, stream }: P) {
           label={m.average_speed()}
           speed={event.averageSpeed}
           unit={config.speedUnit}
+          athleteId={event.athleteId ?? undefined}
         />
       )}
       {config.showMaxSpeed && event.maxSpeed && (
@@ -44,6 +45,7 @@ export function ActivityStatistics({ event, stream }: P) {
           label={m.max_speed()}
           speed={event.maxSpeed}
           unit={config.speedUnit}
+          athleteId={event.athleteId ?? undefined}
         />
       )}
       {config.showGap && typeof event.averageGapSpeed === 'number' && (
@@ -51,6 +53,7 @@ export function ActivityStatistics({ event, stream }: P) {
           label={m.gap()}
           speed={event.averageGapSpeed}
           unit={config.speedUnit}
+          athleteId={event.athleteId ?? undefined}
         />
       )}
       <DurationStat
@@ -71,6 +74,7 @@ export function ActivityStatistics({ event, stream }: P) {
           label={m.average_heart_rate()}
           heartrate={event.averageHeartrate}
           sport={event.sport}
+          athleteId={event.athleteId ?? undefined}
         />
       )}
       {config.showHeartrate && event.maxHeartrate && (
@@ -78,6 +82,7 @@ export function ActivityStatistics({ event, stream }: P) {
           label={m.max_heart_rate()}
           heartrate={event.maxHeartrate}
           sport={event.sport}
+          athleteId={event.athleteId ?? undefined}
         />
       )}
       {event.equipmentId && <EquipmentStat equipmentId={event.equipmentId} />}

@@ -450,6 +450,8 @@
   "metric_body_battery_drained": "Body Battery Drained",
   "metric_skin_temp_deviation": "Skin Temp Deviation",
   "metric_vma": "VMA",
+  "percent_of_max_heart_rate": "% of Max Heart Rate",
+  "percent_of_vma": "% of VMA",
   "metric_critical_power_running": "Critical Power (Running)",
   "metric_critical_power_cycling": "Critical Power (Cycling)",
   "metric_vo2max": "VO₂max",
