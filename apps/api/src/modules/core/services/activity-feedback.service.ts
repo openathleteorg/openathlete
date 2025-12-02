@@ -56,7 +56,7 @@ export class ActivityFeedbackService {
         event_activity_id: eventActivityId,
       },
       orderBy: {
-        created_at: 'asc',
+        activity_feedback_question_id: 'asc',
       },
     });
 
