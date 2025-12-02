@@ -324,3 +324,10 @@ enum activity_segment_type {
   MANUAL // manually created segment
   AUTO_SPLIT // automatically detected split (e.g., by distance)
 }
+
+enum injury_status {
+  WORSENING
+  IMPROVING
+  STABLE
+  RESOLVED
+}

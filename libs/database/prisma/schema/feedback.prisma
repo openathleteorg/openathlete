@@ -1,0 +1,40 @@
+model activity_feedback_question {
+  // primary key
+  activity_feedback_question_id Int @id @default(autoincrement())
+
+  // fields
+  question_text String
+  qcm_options   Json?
+  answer_text   String?
+
+  // relationships
+  activity          event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
+  event_activity_id Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([event_activity_id])
+}
+
+model athlete_injury {
+  // primary key
+  athlete_injury_id Int @id @default(autoincrement())
+
+  // fields
+  location   String
+  pain_score Float
+  context    String
+  status     injury_status
+
+  // relationships
+  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
+  athlete_id Int
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([athlete_id])
+}

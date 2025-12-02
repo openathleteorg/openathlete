@@ -20,6 +20,7 @@ model athlete {
   provider_accounts          provider_account[]
   provider_workout_exports   provider_workout_export[]
   settings                   athlete_settings?
+  injuries                   athlete_injury[]
 
   // timestamps
   created_at DateTime @default(now())
@@ -88,7 +89,7 @@ model athlete_invitation {
 
   // fields
   email  String
-  token  String?  @unique
+  token  String?            @unique
   status invitation_status? // null = auto-accept on account creation, PENDING = user exists and needs to accept
 
   // relationships
@@ -110,11 +111,11 @@ model coach_invitation {
 
   // fields
   email  String
-  token  String?  @unique // null if user exists, set if user doesn't exist (for account creation)
+  token  String?           @unique // null if user exists, set if user doesn't exist (for account creation)
   status invitation_status @default(PENDING)
 
   // relationships
-  athlete_user    user @relation("CoachInvitationsSent", fields: [athlete_user_id], references: [user_id])
+  athlete_user    user  @relation("CoachInvitationsSent", fields: [athlete_user_id], references: [user_id])
   athlete_user_id Int
   coach_user      user? @relation("CoachInvitationsReceived", fields: [coach_user_id], references: [user_id])
   coach_user_id   Int?

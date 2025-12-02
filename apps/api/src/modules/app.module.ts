@@ -5,6 +5,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import {
+  ActivityFeedbackListener,
   NotificationListener,
   TrainingLoadListener,
   WorkoutSyncListener,
@@ -42,10 +43,10 @@ import { QueueModule } from './queue';
     },
     PrismaService,
     NotificationListener,
-    // Only register TrainingLoadListener if ENABLE_ACTIVITY_PROCESSING is true
-    // Training load is calculated after activity processing, so it should be on the same instances
+    // Only register listeners that depend on activity processing
+    // if ENABLE_ACTIVITY_PROCESSING is true so they run on the same instances.
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
-      ? [TrainingLoadListener]
+      ? [TrainingLoadListener, ActivityFeedbackListener]
       : []),
     WorkoutSyncListener,
   ],
