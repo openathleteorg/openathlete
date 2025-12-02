@@ -1,3 +1,5 @@
+import OpenAI, { Uploadable } from 'openai';
+
 import {
   ForbiddenException,
   Injectable,
@@ -13,11 +15,17 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class ActivityFeedbackService {
+  private readonly openai: OpenAI;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) {
+    this.openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
 
   async getActivityFeedbackQuestions(user: AuthUser, eventActivityId: number) {
     const ability = await this.abilities.getFor({ user });
@@ -287,5 +295,39 @@ export class ActivityFeedbackService {
     });
 
     return { success: true };
+  }
+
+  async transcribeAudio(file: {
+    buffer: Buffer;
+    mimetype: string;
+    originalname?: string;
+  }): Promise<{ text: string }> {
+    try {
+      let fileForOpenAI: File | Buffer;
+
+      if (typeof File !== 'undefined') {
+        fileForOpenAI = new File(
+          [file.buffer as unknown as ArrayBuffer],
+          file.originalname || 'audio.webm',
+          {
+            type: file.mimetype,
+          },
+        );
+      } else {
+        fileForOpenAI = file.buffer;
+      }
+
+      const transcription = await this.openai.audio.transcriptions.create({
+        file: fileForOpenAI as Uploadable,
+        model: 'whisper-1',
+        language: 'fr',
+      });
+
+      return { text: transcription.text };
+    } catch (error) {
+      throw new Error(
+        `Failed to transcribe audio: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 }
