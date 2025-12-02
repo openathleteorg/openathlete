@@ -176,6 +176,19 @@ export const EVENT_INCLUDES = {
           updated_at: true,
         },
       },
+      feedback_questions: {
+        orderBy: {
+          activity_feedback_question_id: 'asc' as const,
+        },
+        select: {
+          activity_feedback_question_id: true,
+          question_text: true,
+          qcm_options: true,
+          answer_text: true,
+          created_at: true,
+          updated_at: true,
+        },
+      },
     },
   },
 };
@@ -210,6 +223,14 @@ export class EventService {
       activity:
         | (Omit<event_activity, 'stream'> & {
             segments?: activity_segment[];
+            feedback_questions?: Array<{
+              activity_feedback_question_id: number;
+              question_text: string;
+              qcm_options: unknown;
+              answer_text: string | null;
+              created_at: Date;
+              updated_at: Date;
+            }>;
           })
         | null;
     },
