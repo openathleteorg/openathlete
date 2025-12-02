@@ -91,6 +91,9 @@ export const routes = {
     updateMetric: (metricId: number) => `/metric/${metricId}`,
     deleteMetric: (metricId: number) => `/metric/${metricId}`,
   },
+  injury: {
+    getInjuries: '/injury',
+  },
   provider: {
     getOAuthUri: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/uri`,

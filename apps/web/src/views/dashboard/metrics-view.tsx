@@ -3,6 +3,7 @@ import {
   useCreateMetricMutation,
   useGetLatestMetricsQuery,
 } from '@/api/metric';
+import { InjuryLogsTable } from '@/components/metrics/injury-logs-table';
 import { MetricCard } from '@/components/metrics/metric-card';
 import { MetricChart } from '@/components/metrics/metric-chart';
 import { MetricForm } from '@/components/metrics/metric-form';
@@ -252,6 +253,9 @@ export function MetricsView({ athleteId }: P) {
           <MetricChart athleteId={athleteId} />
         </CardContent>
       </Card>
+
+      {/* Injury Logs Section */}
+      <InjuryLogsTable athleteId={athleteId} />
 
       {/* Dialog for adding/editing metric */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

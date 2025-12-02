@@ -153,3 +153,19 @@ export const getEventTypeColor = (type: EVENT_TYPE) => {
       return 'bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-900 border-blue-200 dark:border-blue-800/50';
   }
 };
+
+export const getPainScoreColor = (
+  painScore: number,
+  border: boolean = true,
+) => {
+  // painScore is 0-1, similar to RPE
+  if (painScore <= 0.2)
+    return `bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-900 ${border ? `border-green-200 dark:border-green-800/50` : ''}`;
+  if (painScore <= 0.4)
+    return `bg-lime-100 hover:bg-lime-200 dark:bg-lime-900 dark:hover:bg-lime-900 ${border ? `border-lime-200 dark:border-lime-800/50` : ''}`;
+  if (painScore <= 0.6)
+    return `bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-900 ${border ? `border-yellow-200 dark:border-yellow-800/50` : ''}`;
+  if (painScore <= 0.8)
+    return `bg-orange-100 hover:bg-orange-200 dark:bg-orange-900 dark:hover:bg-orange-900 ${border ? `border-orange-200 dark:border-orange-800/50` : ''}`;
+  return `bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-900 ${border ? `border-red-200 dark:border-red-800/50` : ''}`;
+};
