@@ -1,3 +1,4 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import { m } from '@/paraglide/messages';
 import { getConnectorProviderActivityLink } from '@/utils/connector-provider';
 import {
@@ -30,6 +31,7 @@ export function CalendarEventDetailsDialog({
   onEditEvent,
 }: P) {
   const { athleteId } = useCalendarContext();
+  const { data: athlete } = useGetMyAthleteQuery();
 
   return (
     <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
@@ -80,9 +82,11 @@ export function CalendarEventDetailsDialog({
             </div>
           </DialogTitle>
         </DialogHeader>
-        {event && event.type === EVENT_TYPE.ACTIVITY && (
-          <ActivityValidationAlert event={event} athleteId={athleteId} />
-        )}
+        {event &&
+          event.type === EVENT_TYPE.ACTIVITY &&
+          athleteId === athlete?.athleteId && (
+            <ActivityValidationAlert event={event} athleteId={athleteId} />
+          )}
         {event && <EventDetails eventId={event.eventId} />}
       </DialogContent>
     </Dialog>

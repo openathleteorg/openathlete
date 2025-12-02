@@ -39,6 +39,7 @@ import {
   ActivityDetailsSelectionProvider,
   useActivityDetailsSelection,
 } from '../activity-details-selection-context';
+import { ActivityFeedbackDisplayCard } from '../activity-feedback-display-card';
 import { ActivityQuickEditCard } from '../activity-quick-edit-card';
 import { ActivityStatistics } from '../activity-statistics';
 
@@ -100,14 +101,17 @@ export function ActivityDetailsOverviewTab({
           </div>
         </CardContent>
       </Card>
-      {!(stream?.latlng && stream.time && fullDomain) && (
-        <ActivityQuickEditCard
-          event={event}
-          isMyActivity={isMyActivity}
-          onEditFeedback={onEditFeedback}
-          onReopenFeedback={onReopenFeedback}
-        />
-      )}
+      {!(stream?.latlng && stream.time && fullDomain) &&
+        (isMyActivity ? (
+          <ActivityQuickEditCard
+            event={event}
+            isMyActivity={isMyActivity}
+            onEditFeedback={onEditFeedback}
+            onReopenFeedback={onReopenFeedback}
+          />
+        ) : (
+          <ActivityFeedbackDisplayCard event={event} />
+        ))}
       {stream?.time &&
         (stream.latlng && fullDomain ? (
           <>
@@ -121,16 +125,18 @@ export function ActivityDetailsOverviewTab({
                   time={stream.time}
                 />
               )}
-              {isMyActivity && (
+              {isMyActivity ? (
                 <ActivityQuickEditCard
                   event={event}
                   isMyActivity={isMyActivity}
                   onEditFeedback={onEditFeedback}
                   onReopenFeedback={onReopenFeedback}
                 />
+              ) : (
+                <ActivityFeedbackDisplayCard event={event} />
               )}
               {stream?.heartrate && (
-                <Card className={isMyActivity ? 'col-span-1' : 'col-span-2'}>
+                <Card className="col-span-1">
                   <CardHeader>
                     <CardTitle>{m.heart_rate_distribution()}</CardTitle>
                   </CardHeader>

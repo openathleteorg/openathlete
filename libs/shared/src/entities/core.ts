@@ -1,4 +1,5 @@
 import {
+  activity_feedback_question,
   activity_segment,
   athlete,
   athlete_settings,
@@ -98,6 +99,9 @@ export interface ActivitySegment
   workoutStep?: WorkoutStep;
 }
 
+export interface ActivityFeedbackQuestion
+  extends ConvertKeysToCamelCase<activity_feedback_question> {}
+
 export interface ActivityEvent
   extends ConvertKeysToCamelCase<event & event_activity> {
   type: EVENT_TYPE.ACTIVITY;
@@ -107,6 +111,7 @@ export interface ActivityEvent
   averageGapSpeed: number | null;
   averageNormalizedSpeed: number | null;
   segments?: ActivitySegment[];
+  feedbackQuestions?: ActivityFeedbackQuestion[];
 }
 
 export type Event =

@@ -921,6 +921,7 @@
   "activity_feedback_completed_via_questions": "Feedback provided via questions",
   "activity_feedback_edit": "Edit",
   "activity_feedback_submitted": "Feedback submitted successfully",
+  "activity_feedback_no_feedback": "No feedback provided for this session",
   "failed_to_reopen_feedback": "Failed to reopen feedback",
   "start_recording": "Start recording",
   "stop_recording": "Stop recording",

@@ -1,8 +1,11 @@
-import { useGetActivityFeedbackQuestionsQuery } from '@/api/activity-feedback';
 import { useGetAthleteSettingsQuery } from '@/api/athlete';
 import { useMemo } from 'react';
 
-import { EVENT_TYPE, Event } from '@openathlete/shared';
+import {
+  ActivityFeedbackQuestion,
+  EVENT_TYPE,
+  Event,
+} from '@openathlete/shared';
 
 /**
  * Check if an event is validated based on athlete settings
@@ -13,21 +16,19 @@ export function useIsEventValidated(event: Event, athleteId?: number): boolean {
     !!athleteId && event.type === EVENT_TYPE.ACTIVITY,
   );
 
-  const { data: feedbackData } = useGetActivityFeedbackQuestionsQuery(
-    event.eventId,
-    true,
-  );
-
   return useMemo(() => {
     if (!athleteId || !settings) return true;
     if (!settings.requireRpe && !settings.requireComment) return true;
     if (event.startDate < new Date(Date.now() - 4 * 7 * 24 * 60 * 60 * 1000))
       return true;
     if (event.type === EVENT_TYPE.ACTIVITY) {
-      const questions = feedbackData?.questions ?? [];
+      const questions = event.feedbackQuestions ?? [];
       const allQuestionsAnswered =
         questions.length > 0 &&
-        questions.every((q) => q.answerText !== null && q.answerText !== '');
+        questions.every(
+          (q: ActivityFeedbackQuestion) =>
+            q.answerText !== null && q.answerText !== '',
+        );
 
       if (
         allQuestionsAnswered &&
@@ -49,5 +50,5 @@ export function useIsEventValidated(event: Event, athleteId?: number): boolean {
     }
 
     return true;
-  }, [event, settings, athleteId, feedbackData]);
+  }, [event, settings, athleteId]);
 }

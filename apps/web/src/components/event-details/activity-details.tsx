@@ -40,7 +40,9 @@ export function ActivityDetails({ event }: P) {
     return Math.floor(lastDistance / 1000) > 0;
   }, [stream?.distance, sportConfig.showSplits]);
 
-  const { data: weather } = useGetEventWeatherQuery(event.eventId);
+  const { data: weather } = useGetEventWeatherQuery(event.eventId, {
+    retry: 1,
+  });
 
   return (
     <>
@@ -55,7 +57,7 @@ export function ActivityDetails({ event }: P) {
         />
       )}
 
-      {showNormalView && !showEditFeedback && (
+      {(!isMyActivity || (showNormalView && !showEditFeedback)) && (
         <Tabs defaultValue="overview" className="flex flex-col gap-4">
           <TabsList>
             <TabsTrigger value="overview">{m.overview()}</TabsTrigger>
