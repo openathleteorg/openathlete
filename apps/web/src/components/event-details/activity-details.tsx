@@ -19,6 +19,7 @@ export function ActivityDetails({ event }: P) {
   const { data: athlete } = useGetMyAthleteQuery();
   const [showNormalView, setShowNormalView] = useState(false);
   const [showEditFeedback, setShowEditFeedback] = useState(false);
+  const isMyActivity = athlete?.athleteId === event.athleteId;
   const { data: stream } = useGetEventStreamQuery(event.eventId, 3000, [
     'altitude',
     'latlng',
@@ -42,7 +43,7 @@ export function ActivityDetails({ event }: P) {
 
   return (
     <>
-      {(!showNormalView || showEditFeedback) && (
+      {isMyActivity && (!showNormalView || showEditFeedback) && (
         <ActivityFeedbackOverlay
           event={event}
           onSkip={() => {

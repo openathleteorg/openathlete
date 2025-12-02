@@ -2,6 +2,7 @@ import {
   useGetActivityFeedbackQuestionsQuery,
   useSkipFeedbackMutation,
 } from '@/api/activity-feedback';
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 import { Loader2 } from 'lucide-react';
@@ -22,8 +23,10 @@ export function ActivityFeedbackOverlay({
   onSkip,
   isEditMode = false,
 }: P) {
+  const { data: athlete } = useGetMyAthleteQuery();
+  const isMyActivity = athlete?.athleteId === event.athleteId;
   const { data: feedbackData, isLoading } =
-    useGetActivityFeedbackQuestionsQuery(event.eventId);
+    useGetActivityFeedbackQuestionsQuery(event.eventId, isMyActivity);
   const skipMutation = useSkipFeedbackMutation(event.eventId);
   const [showFlow, setShowFlow] = useState(isEditMode);
 

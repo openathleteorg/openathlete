@@ -15,6 +15,7 @@ export function useIsEventValidated(event: Event, athleteId?: number): boolean {
 
   const { data: feedbackData } = useGetActivityFeedbackQuestionsQuery(
     event.eventId,
+    true,
   );
 
   return useMemo(() => {

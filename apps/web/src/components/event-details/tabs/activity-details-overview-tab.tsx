@@ -102,6 +102,7 @@ export function ActivityDetailsOverviewTab({
       {!(stream?.latlng && stream.time && fullDomain) && (
         <ActivityQuickEditCard
           event={event}
+          isMyActivity={isMyActivity}
           onEditFeedback={onEditFeedback}
           onReopenFeedback={onReopenFeedback}
         />
@@ -122,6 +123,7 @@ export function ActivityDetailsOverviewTab({
               {isMyActivity && (
                 <ActivityQuickEditCard
                   event={event}
+                  isMyActivity={isMyActivity}
                   onEditFeedback={onEditFeedback}
                   onReopenFeedback={onReopenFeedback}
                 />

@@ -8,11 +8,12 @@ import { activityFeedbackKeys } from './activity-feedback.keys';
 
 export function useGetActivityFeedbackQuestionsQuery(
   eventId: Event['eventId'],
+  enabled: boolean = true,
 ) {
   return useQuery({
     queryKey: activityFeedbackKeys.getFeedbackQuestions(eventId),
     queryFn: () => ActivityFeedbackAPI.getFeedbackQuestions(eventId),
-    enabled: !!eventId,
+    enabled: !!eventId && enabled,
   });
 }
 

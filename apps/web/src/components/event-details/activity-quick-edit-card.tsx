@@ -23,17 +23,20 @@ type QuickEditFormValues = z.infer<typeof quickEditSchema>;
 
 interface P {
   event: ActivityEvent;
+  isMyActivity?: boolean;
   onEditFeedback?: () => void;
   onReopenFeedback?: () => void;
 }
 
 export function ActivityQuickEditCard({
   event,
+  isMyActivity = false,
   onEditFeedback,
   onReopenFeedback,
 }: P) {
   const { data: feedbackData } = useGetActivityFeedbackQuestionsQuery(
     event.eventId,
+    isMyActivity,
   );
   const unskipMutation = useUnskipFeedbackMutation(event.eventId);
 
@@ -90,7 +93,7 @@ export function ActivityQuickEditCard({
         <CardTitle>{m.quick_edit()}</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
-        {hasQuestions && (
+        {isMyActivity && hasQuestions && (
           <div className="mb-4 pb-4 border-b">
             {feedbackSkipped ? (
               <div className="flex items-center justify-between">
