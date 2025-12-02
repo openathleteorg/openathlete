@@ -196,6 +196,10 @@ export function Calendar({
           queryClient.invalidateQueries({
             queryKey: [eventKeys.getMyEvents],
           });
+          // Invalidate the specific event query to update event details if open
+          queryClient.invalidateQueries({
+            queryKey: [eventKeys.getEvent, event.payload.eventId],
+          });
           // Also invalidate weekly load summary
           queryClient.invalidateQueries({
             queryKey: [trainingLoadKeys.getWeeklyLoadSummary],

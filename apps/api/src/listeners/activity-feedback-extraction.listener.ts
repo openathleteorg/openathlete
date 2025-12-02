@@ -5,6 +5,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { ActivityFeedbackCompletedEvent } from 'src/events';
 import { extractInjuryAgent, extractRpeAgent } from 'src/mastra/agents';
+import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
@@ -13,7 +14,10 @@ export class ActivityFeedbackExtractionListener {
   private readonly embedder = openai.embedding('text-embedding-3-small');
   private readonly MAX_RETRIES = 3;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly calendarWebSocketService: CalendarWebSocketService,
+  ) {}
 
   @OnEvent(ActivityFeedbackCompletedEvent.SLUG, { async: true })
   async handleActivityFeedbackCompleted(event: ActivityFeedbackCompletedEvent) {
@@ -30,6 +34,7 @@ export class ActivityFeedbackExtractionListener {
         include: {
           event: {
             select: {
+              event_id: true,
               athlete_id: true,
             },
           },
@@ -39,14 +44,19 @@ export class ActivityFeedbackExtractionListener {
         },
       });
 
-      if (!activity || !activity.event?.athlete_id) {
+      if (
+        !activity ||
+        !activity.event?.athlete_id ||
+        !activity.event?.event_id
+      ) {
         this.logger.warn(
-          `Activity ${eventActivityId} not found or has no athlete, skipping extraction`,
+          `Activity ${eventActivityId} not found or has no athlete/event, skipping extraction`,
         );
         return;
       }
 
       const athleteId = activity.event.athlete_id;
+      const eventId = activity.event.event_id;
 
       // Collect all answers and comment
       const questions = activity.feedback_questions;
@@ -235,6 +245,12 @@ export class ActivityFeedbackExtractionListener {
           });
           this.logger.log(
             `✓ Updated RPE to ${rpeResult} for activity ${eventActivityId}`,
+          );
+
+          // Notify calendar via WebSocket that activity was updated
+          this.calendarWebSocketService.notifyActivityProcessed(
+            eventId,
+            athleteId,
           );
         }
 
