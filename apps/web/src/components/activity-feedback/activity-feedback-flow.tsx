@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface P {
   eventId: number;
@@ -61,6 +62,7 @@ export function ActivityFeedbackFlow({
     if (isLastQuestion) {
       setCurrentStep(questions.length + 1);
       onComplete();
+      toast.success(m.activity_feedback_submitted());
     } else {
       setCurrentStep(currentStep + 1);
       setUseQcmForCurrent(false);

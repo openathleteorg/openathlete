@@ -920,6 +920,7 @@
   "activity_feedback_reopen": "Reopen feedback",
   "activity_feedback_completed_via_questions": "Feedback provided via questions",
   "activity_feedback_edit": "Edit",
+  "activity_feedback_submitted": "Feedback submitted successfully",
   "failed_to_reopen_feedback": "Failed to reopen feedback",
   "start_recording": "Start recording",
   "stop_recording": "Stop recording",
