@@ -77,6 +77,7 @@ decode_secret "BREVO_API_KEY"
 decode_secret "GARMIN_CLIENT_SECRET"
 decode_secret "POLAR_CLIENT_SECRET"
 decode_secret "POLAR_WEBHOOK_SECRET_KEY"
+decode_secret "GOOGLE_GENERATIVE_AI_API_KEY"
 
 cd /app/libs/database
 

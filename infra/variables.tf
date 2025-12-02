@@ -127,3 +127,9 @@ variable "polar_webhook_secret_key" {
   type        = string
   sensitive   = true
 }
+
+variable "google_generative_ai_api_key" {
+  description = "Google Generative AI API key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

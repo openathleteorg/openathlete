@@ -51,6 +51,7 @@ resource "scaleway_container" "api" {
     POLAR_REDIRECT_URI = "https://openathlete.org/auth/callback/polar"
     POLAR_WEBHOOK_URL = "https://api.openathlete.org/provider/polar/webhook"
     POLAR_WEBHOOK_SECRET_KEY = scaleway_secret_version.polar_webhook_secret_key_v.data
+    GOOGLE_GENERATIVE_AI_API_KEY = scaleway_secret_version.google_generative_ai_api_key_v.data
     ENABLE_ACTIVITY_IMPORT = "false"
     ENABLE_ACTIVITY_PROCESSING = "false"
     ENABLE_TRAINING_LOAD_ESTIMATION = "false"
@@ -66,7 +67,8 @@ resource "scaleway_container" "api" {
     scaleway_secret_version.brevo_api_key_v,
     scaleway_secret_version.garmin_client_secret_v,
     scaleway_secret_version.polar_client_secret_v,
-    scaleway_secret_version.polar_webhook_secret_key_v
+    scaleway_secret_version.polar_webhook_secret_key_v,
+    scaleway_secret_version.google_generative_ai_api_key_v
   ]
 }
 
@@ -110,6 +112,7 @@ resource "scaleway_container" "import_worker" {
     POLAR_REDIRECT_URI = "https://openathlete.org/auth/callback/polar"
     POLAR_WEBHOOK_URL = "https://api.openathlete.org/provider/polar/webhook"
     POLAR_WEBHOOK_SECRET_KEY = scaleway_secret_version.polar_webhook_secret_key_v.data
+    GOOGLE_GENERATIVE_AI_API_KEY = scaleway_secret_version.google_generative_ai_api_key_v.data
   }
 
   depends_on = [
@@ -121,7 +124,8 @@ resource "scaleway_container" "import_worker" {
     scaleway_redis_cluster.redis,
     scaleway_secret_version.garmin_client_secret_v,
     scaleway_secret_version.polar_client_secret_v,
-    scaleway_secret_version.polar_webhook_secret_key_v
+    scaleway_secret_version.polar_webhook_secret_key_v,
+    scaleway_secret_version.google_generative_ai_api_key_v
   ]
 }
 

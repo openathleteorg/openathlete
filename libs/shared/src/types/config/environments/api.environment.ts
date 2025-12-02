@@ -38,6 +38,8 @@ export const ApiEnvSchema = z.object({
   POLAR_WEBHOOK_URL: z.string().nonempty(),
   POLAR_WEBHOOK_SECRET_KEY: z.string().nonempty(),
 
+  GOOGLE_GENERATIVE_AI_API_KEY: z.string().nonempty(),
+
   NOTION_TOKEN: z.string().nonempty(),
   NOTION_DATABASE_ID: z.string().nonempty(),
 

@@ -101,3 +101,13 @@ resource "scaleway_secret_version" "polar_webhook_secret_key_v" {
   secret_id = scaleway_secret.polar_webhook_secret_key.id
   data      = var.polar_webhook_secret_key
 }
+
+resource "scaleway_secret" "google_generative_ai_api_key" {
+  name        = "${var.app_name}-GOOGLE_GENERATIVE_AI_API_KEY"
+  description = "Google Generative AI API key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "google_generative_ai_api_key_v" {
+  secret_id = scaleway_secret.google_generative_ai_api_key.id
+  data      = var.google_generative_ai_api_key
+}
