@@ -912,7 +912,7 @@
   "activity_feedback_close": "Quitter",
   "loading_feedback_questions": "Chargement des questions...",
   "activity_feedback_skipping": "Ignoration...",
-  "activity_feedback_answer_by_text": "Répondre par texte",
+  "activity_feedback_answer_by_text": "Répondre par audio ou texte",
   "activity_feedback_skipped": "Retour ignoré pour cette séance",
   "activity_feedback_reopen": "Réouvrir le retour",
   "activity_feedback_completed_via_questions": "Retour donné via questions",

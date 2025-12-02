@@ -9,21 +9,17 @@ interface P {
   eventId: number;
   questions: ActivityFeedbackQuestion[];
   onComplete: () => void;
-  isEditMode?: boolean; // If true, skip intro screen and preload answers
+  isEditMode?: boolean;
 }
 
 type AnswerMode = 'free' | 'qcm';
 
-/**
- * Main feedback flow component (typeform-style fullscreen)
- */
 export function ActivityFeedbackFlow({
   eventId,
   questions,
   onComplete,
   isEditMode = false,
 }: P) {
-  // Preload existing answers if in edit mode
   const initialAnswers = isEditMode
     ? questions.reduce(
         (acc, q) => {
@@ -36,7 +32,7 @@ export function ActivityFeedbackFlow({
       )
     : {};
 
-  const [currentStep, setCurrentStep] = useState(isEditMode ? 1 : 0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [answerMode, setAnswerMode] = useState<AnswerMode | null>(null);
   const [answers, setAnswers] =
     useState<Record<number, string>>(initialAnswers);
@@ -49,7 +45,6 @@ export function ActivityFeedbackFlow({
     const currentQuestion = questions[currentStep - 1];
     const isLastQuestion = currentStep === questions.length;
 
-    // Save current answer
     try {
       await submitMutation.mutateAsync({
         questionId: currentQuestion.questionId,
@@ -57,24 +52,18 @@ export function ActivityFeedbackFlow({
       });
     } catch (error) {
       console.error('Failed to save answer:', error);
-      // Continue anyway
     }
 
     if (isLastQuestion) {
-      // Move to completion screen (currentStep will be questions.length + 1)
       setCurrentStep(questions.length + 1);
-      // Auto-close after 3 seconds
-      setTimeout(() => {
-        onComplete();
-      }, 3000);
+      onComplete();
     } else {
       setCurrentStep(currentStep + 1);
-      setUseQcmForCurrent(false); // Reset QCM toggle for next question
+      setUseQcmForCurrent(false);
     }
   };
 
-  // Step 0: Choose answer mode (skip if edit mode)
-  if (currentStep === 0 && answerMode === null && !isEditMode) {
+  if (currentStep === 0 && answerMode === null) {
     return (
       <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background">
         <div className="flex flex-col items-center justify-center gap-6 p-8 text-center max-w-md">
@@ -108,7 +97,6 @@ export function ActivityFeedbackFlow({
     );
   }
 
-  // Step 1+: Questions
   const currentQuestion = questions[currentStep - 1];
   const isLastQuestion = currentStep === questions.length;
 
@@ -198,23 +186,6 @@ export function ActivityFeedbackFlow({
               </div>
             </div>
           )}
-        </div>
-      </div>
-    );
-  }
-
-  // Completion screen (currentStep === questions.length + 1)
-  if (currentStep > questions.length) {
-    return (
-      <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center justify-center gap-6 p-8 text-center max-w-md">
-          <h2 className="text-2xl font-semibold">
-            {m.activity_feedback_completed()}
-          </h2>
-          <p className="text-muted-foreground">
-            {m.activity_feedback_completed_message()}
-          </p>
-          <Button onClick={onComplete}>{m.activity_feedback_close()}</Button>
         </div>
       </div>
     );

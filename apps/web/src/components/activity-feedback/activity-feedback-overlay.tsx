@@ -74,14 +74,26 @@ export function ActivityFeedbackOverlay({
     );
   }
 
-  if (isEditMode && questions.length > 0) {
+  if (isEditMode) {
+    if (questions.length > 0) {
+      return (
+        <ActivityFeedbackFlow
+          eventId={event.eventId}
+          questions={questions}
+          onComplete={onSkip}
+          isEditMode={true}
+        />
+      );
+    }
     return (
-      <ActivityFeedbackFlow
-        eventId={event.eventId}
-        questions={questions}
-        onComplete={onSkip}
-        isEditMode={true}
-      />
+      <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
+        <div className="flex flex-col items-center justify-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            {m.loading_feedback_questions()}
+          </p>
+        </div>
+      </div>
     );
   }
 

@@ -912,7 +912,7 @@
   "activity_feedback_close": "Close",
   "loading_feedback_questions": "Loading questions...",
   "activity_feedback_skipping": "Skipping...",
-  "activity_feedback_answer_by_text": "Answer by text",
+  "activity_feedback_answer_by_text": "Answer by audio or text",
   "activity_feedback_skipped": "Feedback skipped for this session",
   "activity_feedback_reopen": "Reopen feedback",
   "activity_feedback_completed_via_questions": "Feedback provided via questions",

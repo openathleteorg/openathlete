@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Event } from '@openathlete/shared';
 
+import { eventKeys } from '../event/event.keys';
 import { ActivityFeedbackAPI } from './activity-feedback.api';
 import { activityFeedbackKeys } from './activity-feedback.keys';
 
@@ -31,6 +32,12 @@ export function useSubmitQuestionAnswerMutation(eventId: Event['eventId']) {
       queryClient.invalidateQueries({
         queryKey: activityFeedbackKeys.getFeedbackQuestions(eventId),
       });
+      queryClient.invalidateQueries({
+        queryKey: [eventKeys.getEvent, eventId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [eventKeys.getMyEvents],
+      });
     },
   });
 }
@@ -44,6 +51,12 @@ export function useSkipFeedbackMutation(eventId: Event['eventId']) {
       queryClient.invalidateQueries({
         queryKey: activityFeedbackKeys.getFeedbackQuestions(eventId),
       });
+      queryClient.invalidateQueries({
+        queryKey: [eventKeys.getEvent, eventId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [eventKeys.getMyEvents],
+      });
     },
   });
 }
@@ -56,6 +69,12 @@ export function useUnskipFeedbackMutation(eventId: Event['eventId']) {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: activityFeedbackKeys.getFeedbackQuestions(eventId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: [eventKeys.getEvent, eventId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [eventKeys.getMyEvents],
       });
     },
   });

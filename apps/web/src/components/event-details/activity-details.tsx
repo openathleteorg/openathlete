@@ -72,7 +72,7 @@ export function ActivityDetails({ event }: P) {
               onEditFeedback={() => setShowEditFeedback(true)}
               onReopenFeedback={() => {
                 setShowNormalView(false);
-                setShowEditFeedback(false);
+                setShowEditFeedback(true);
               }}
             />
           </TabsContent>
