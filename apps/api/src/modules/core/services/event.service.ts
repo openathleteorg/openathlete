@@ -47,7 +47,11 @@ import {
   updateWorkoutSchema,
 } from '@openathlete/shared';
 
-import { ActivityImportedEvent, WorkoutPlannedChangedEvent } from 'src/events';
+import {
+  ActivityFeedbackCompletedEvent,
+  ActivityImportedEvent,
+  WorkoutPlannedChangedEvent,
+} from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
@@ -712,6 +716,24 @@ export class EventService {
         console.error(
           '[EventService] Error creating/updating comment thread:',
           error,
+        );
+      }
+
+      if (
+        event.type === 'ACTIVITY' &&
+        event.activity &&
+        isRpeUpdate &&
+        description &&
+        description.trim() !== ''
+      ) {
+        const eventActivityId = event.activity.event_activity_id;
+        this.eventEmitter.emit(
+          ActivityFeedbackCompletedEvent.SLUG,
+          new ActivityFeedbackCompletedEvent({
+            eventActivityId,
+            eventId,
+            trigger: 'rpe_comment_updated',
+          }),
         );
       }
     }

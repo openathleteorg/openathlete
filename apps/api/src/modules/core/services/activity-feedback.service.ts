@@ -3,7 +3,9 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { ActivityFeedbackCompletedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
@@ -14,6 +16,7 @@ export class ActivityFeedbackService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   async getActivityFeedbackQuestions(user: AuthUser, eventActivityId: number) {
@@ -147,6 +150,25 @@ export class ActivityFeedbackService {
         answer_text: answerText,
       },
     });
+
+    const allQuestions = await this.prisma.activity_feedback_question.findMany({
+      where: {
+        event_activity_id: eventActivityId,
+      },
+    });
+
+    const allAnswered = allQuestions.every((q) => q.answer_text !== null);
+
+    if (allAnswered) {
+      this.eventEmitter.emit(
+        ActivityFeedbackCompletedEvent.SLUG,
+        new ActivityFeedbackCompletedEvent({
+          eventActivityId,
+          eventId: activity.event.event_id,
+          trigger: 'questions_completed',
+        }),
+      );
+    }
 
     return {
       questionId: updated.activity_feedback_question_id,

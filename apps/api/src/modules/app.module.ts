@@ -5,6 +5,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import {
+  ActivityFeedbackExtractionListener,
   ActivityFeedbackListener,
   NotificationListener,
   TrainingLoadListener,
@@ -48,6 +49,7 @@ import { QueueModule } from './queue';
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
       ? [TrainingLoadListener, ActivityFeedbackListener]
       : []),
+    ActivityFeedbackExtractionListener,
     WorkoutSyncListener,
   ],
 })
