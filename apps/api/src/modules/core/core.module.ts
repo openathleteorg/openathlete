@@ -5,8 +5,8 @@ import { AuthModule } from '../auth';
 import { CalendarModule } from '../calendar/calendar.module';
 import { MessagesModule } from '../messages/messages.module';
 import { PrismaService } from '../prisma/services/prisma.service';
-import { QueueModule } from '../queue';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
+import { QueueModule } from '../queue';
 import { EventController } from './controllers';
 import { AthleteController } from './controllers/athlete.controller';
 import { BetaAccessController } from './controllers/beta-access.controller';
@@ -23,6 +23,7 @@ import { TrainingLoadController } from './controllers/training-load.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
+import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
 import { BetaAccessService } from './services/beta-access.service';
@@ -89,6 +90,7 @@ import { WeatherService } from './services/weather/weather.service';
     BetaAccessService,
     CycleService,
     WeatherService,
+    ActivityFeedbackService,
     OpenMeteoWeatherProvider,
     ActivityDetailService,
     // Pipeline and processors

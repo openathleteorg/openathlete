@@ -42,6 +42,7 @@ export class ActivityFeedbackListener {
         include: {
           related_competition: true,
           related_training: true,
+          feedback_questions: true,
           event: {
             include: {
               athlete: {
@@ -70,6 +71,27 @@ export class ActivityFeedbackListener {
 
       const athleteId = activity.event.athlete_id;
       const userLanguage = activity.event.athlete.user?.language ?? 'FR';
+
+      const athleteSettings = await this.prisma.athlete_settings.findUnique({
+        where: { athlete_id: athleteId },
+      });
+
+      if (
+        !athleteSettings ||
+        athleteSettings.require_feedback_questions === false
+      ) {
+        this.logger.debug(
+          `Feedback questions disabled for athlete ${athleteId}, skipping question generation`,
+        );
+        return;
+      }
+
+      if (activity.feedback_questions.length > 0) {
+        this.logger.debug(
+          `Feedback questions already generated for activity ${eventActivityId}, skipping question generation`,
+        );
+        return;
+      }
 
       // Fetch last metrics & zones for context
       const [metrics, zones] = await Promise.all([

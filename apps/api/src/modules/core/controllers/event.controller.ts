@@ -5,6 +5,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseArrayPipe,
   ParseIntPipe,
@@ -35,10 +36,14 @@ import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { EventService } from '../services';
+import { ActivityFeedbackService } from '../services/activity-feedback.service';
 
 @Controller('event')
 export class EventController {
-  constructor(private eventService: EventService) {}
+  constructor(
+    private eventService: EventService,
+    private activityFeedbackService: ActivityFeedbackService,
+  ) {}
 
   @Get('ical')
   async getIcalCalendar(@Res() res, @Query('calendar') calendar: string) {
@@ -143,6 +148,96 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: event['event_id'],
   ) {
     return this.eventService.getEventNormalization(user, eventId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Get(':eventId/activity/feedback-questions')
+  async getActivityFeedbackQuestions(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+  ) {
+    // Get event_activity_id from event
+    const eventData = await this.eventService.getEventById(user, eventId);
+    if (eventData.type !== 'ACTIVITY') {
+      throw new NotFoundException('Activity not found for this event');
+    }
+    // Access event_activity_id (snake_case) or eventActivityId (camelCase after keysToCamel)
+    const eventActivityId =
+      (eventData as { eventActivityId?: number }).eventActivityId ??
+      (eventData as { event_activity_id?: number }).event_activity_id;
+    if (!eventActivityId) {
+      throw new NotFoundException('Activity ID not found');
+    }
+    return this.activityFeedbackService.getActivityFeedbackQuestions(
+      user,
+      eventActivityId,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch(':eventId/activity/feedback-questions/:questionId/answer')
+  async submitQuestionAnswer(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('questionId', ParseIntPipe) questionId: number,
+    @Body('answerText') answerText: string,
+  ) {
+    // Get event_activity_id from event
+    const eventData = await this.eventService.getEventById(user, eventId);
+    if (eventData.type !== 'ACTIVITY') {
+      throw new NotFoundException('Activity not found for this event');
+    }
+    // Access event_activity_id (snake_case) or eventActivityId (camelCase after keysToCamel)
+    const eventActivityId =
+      (eventData as { eventActivityId?: number }).eventActivityId ??
+      (eventData as { event_activity_id?: number }).event_activity_id;
+    if (!eventActivityId) {
+      throw new NotFoundException('Activity ID not found');
+    }
+    return this.activityFeedbackService.submitQuestionAnswer(
+      user,
+      eventActivityId,
+      questionId,
+      answerText,
+    );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post(':eventId/activity/feedback/skip')
+  async skipFeedback(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+  ) {
+    const eventData = await this.eventService.getEventById(user, eventId);
+    if (eventData.type !== 'ACTIVITY') {
+      throw new NotFoundException('Activity not found for this event');
+    }
+    const eventActivityId =
+      (eventData as { eventActivityId?: number }).eventActivityId ??
+      (eventData as { event_activity_id?: number }).event_activity_id;
+    if (!eventActivityId) {
+      throw new NotFoundException('Activity ID not found');
+    }
+    return this.activityFeedbackService.skipFeedback(user, eventActivityId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Post(':eventId/activity/feedback/unskip')
+  async unskipFeedback(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+  ) {
+    const eventData = await this.eventService.getEventById(user, eventId);
+    if (eventData.type !== 'ACTIVITY') {
+      throw new NotFoundException('Activity not found for this event');
+    }
+    const eventActivityId =
+      (eventData as { eventActivityId?: number }).eventActivityId ??
+      (eventData as { event_activity_id?: number }).event_activity_id;
+    if (!eventActivityId) {
+      throw new NotFoundException('Activity ID not found');
+    }
+    return this.activityFeedbackService.unskipFeedback(user, eventActivityId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

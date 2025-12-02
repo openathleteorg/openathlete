@@ -41,6 +41,7 @@ export class AthleteSettingsService {
           athlete_id: athleteId,
           require_rpe: false,
           require_comment: false,
+          require_feedback_questions: true, // Default to true
         },
       });
     }
@@ -70,11 +71,15 @@ export class AthleteSettingsService {
         athlete_id: athleteId,
         require_rpe: dto.requireRpe ?? false,
         require_comment: dto.requireComment ?? false,
+        require_feedback_questions: dto.requireFeedbackQuestions ?? true,
       },
       update: {
         ...(dto.requireRpe !== undefined && { require_rpe: dto.requireRpe }),
         ...(dto.requireComment !== undefined && {
           require_comment: dto.requireComment,
+        }),
+        ...(dto.requireFeedbackQuestions !== undefined && {
+          require_feedback_questions: dto.requireFeedbackQuestions,
         }),
       },
     });
