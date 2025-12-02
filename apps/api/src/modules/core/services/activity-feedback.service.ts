@@ -50,7 +50,6 @@ export class ActivityFeedbackService {
       throw new ForbiddenException('Access denied to this activity');
     }
 
-    // Get all questions for this activity
     const questions = await this.prisma.activity_feedback_question.findMany({
       where: {
         event_activity_id: eventActivityId,
@@ -121,6 +120,12 @@ export class ActivityFeedbackService {
       throw new ForbiddenException('Access denied to this activity');
     }
 
+    if (!user.athlete || user.athlete.athlete_id !== event.athlete_id) {
+      throw new ForbiddenException(
+        'Only the athlete who owns this activity can submit feedback answers',
+      );
+    }
+
     // Verify question exists and belongs to this activity
     const question = await this.prisma.activity_feedback_question.findFirst({
       where: {
@@ -184,6 +189,13 @@ export class ActivityFeedbackService {
       throw new ForbiddenException('Access denied to this activity');
     }
 
+    // Only the athlete who owns the activity can skip feedback
+    if (!user.athlete || user.athlete.athlete_id !== event.athlete_id) {
+      throw new ForbiddenException(
+        'Only the athlete who owns this activity can skip feedback',
+      );
+    }
+
     await this.prisma.event_activity.update({
       where: {
         event_activity_id: eventActivityId,
@@ -233,6 +245,13 @@ export class ActivityFeedbackService {
 
     if (!event) {
       throw new ForbiddenException('Access denied to this activity');
+    }
+
+    // Only the athlete who owns the activity can unskip feedback
+    if (!user.athlete || user.athlete.athlete_id !== event.athlete_id) {
+      throw new ForbiddenException(
+        'Only the athlete who owns this activity can unskip feedback',
+      );
     }
 
     // Update feedback_skipped to false
