@@ -81,6 +81,11 @@ const corsOriginValidator = (
   namespace: '/calendar',
   transports: ['polling', 'websocket'],
   allowEIO3: true,
+  // Improved connection stability settings
+  pingTimeout: 60000, // 60 seconds - time to wait for pong response
+  pingInterval: 25000, // 25 seconds - interval between pings
+  // Allow reconnection with exponential backoff
+  connectTimeout: 45000, // 45 seconds - connection timeout
 })
 export class CalendarGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
@@ -126,25 +131,32 @@ export class CalendarGateway
     @MessageBody() data: { athleteId?: number },
     @ConnectedSocket() client: Socket,
   ) {
-    const user = client.data.user as AuthUser;
-    if (!user) {
-      client.emit('error', { error: 'Unauthorized' });
-      return;
-    }
+    try {
+      const user = client.data.user as AuthUser;
+      if (!user) {
+        client.emit('error', { error: 'Unauthorized' });
+        return;
+      }
 
-    // Track user socket
-    if (!this.userSockets.has(user.user_id)) {
-      this.userSockets.set(user.user_id, new Set());
-    }
-    this.userSockets.get(user.user_id)!.add(client.id);
+      // Track user socket
+      if (!this.userSockets.has(user.user_id)) {
+        this.userSockets.set(user.user_id, new Set());
+      }
+      this.userSockets.get(user.user_id)!.add(client.id);
 
-    // Join room for athlete-specific updates
-    const athleteId = data.athleteId ?? user.athlete?.athlete_id;
-    if (athleteId) {
-      client.join(`athlete:${athleteId}`);
-      client.emit('subscribed', { athleteId });
-    } else {
-      client.emit('subscribed', {});
+      // Join room for athlete-specific updates
+      const athleteId = data.athleteId ?? user.athlete?.athlete_id;
+      if (athleteId) {
+        client.join(`athlete:${athleteId}`);
+        client.emit('subscribed', { athleteId });
+      } else {
+        client.emit('subscribed', {});
+      }
+    } catch (error) {
+      console.error('[CalendarGateway] Error in handleSubscribe:', error);
+      client.emit('error', {
+        error: 'Failed to subscribe',
+      });
     }
   }
 

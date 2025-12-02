@@ -63,10 +63,13 @@ export class CalendarAPI {
         autoConnect: false,
         reconnection: true,
         reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
+        reconnectionDelayMax: 10000, // Increased max delay to 10s for better stability
         reconnectionAttempts: Infinity,
         upgrade: true,
         rememberUpgrade: true,
+        // Improved connection stability settings
+        timeout: 45000, // Connection timeout (matches server)
+        // Socket.IO will handle ping/pong automatically
         auth: {
           token: token || '',
         },
@@ -105,6 +108,39 @@ export class CalendarAPI {
           }
           // Next getSocket() call will create a fresh socket
         }
+      });
+
+      // Handle connection errors (e.g., authentication failures)
+      this.socket.on('connect_error', async (error: Error) => {
+        console.error('[CalendarAPI] Connection error:', error.message);
+
+        // If authentication failed, try to refresh token
+        if (
+          error?.message?.includes('Unauthorized') ||
+          error?.message?.includes('jwt expired') ||
+          error?.message?.includes('Invalid token')
+        ) {
+          try {
+            const refreshed = await this.refreshSocketToken();
+            if (refreshed) {
+              // Update auth for the current socket instance
+              if (this.socket) {
+                this.socket.auth = {
+                  token: getItem(ACCESS_TOKEN) || '',
+                };
+                this.socket.io.opts.extraHeaders = {
+                  Authorization: `Bearer ${getItem(ACCESS_TOKEN) || ''}`,
+                };
+              }
+            }
+          } catch (refreshError) {
+            console.error(
+              '[CalendarAPI] Failed to refresh token on connection error:',
+              refreshError,
+            );
+          }
+        }
+        // Let Socket.IO's built-in reconnection handle retries
       });
 
       // Set up token refresh mechanism
@@ -184,6 +220,7 @@ export class CalendarAPI {
           console.error(
             '[CalendarAPI] No valid token available for connection',
           );
+          this.connectingPromise = null;
           return;
         }
 
@@ -191,18 +228,25 @@ export class CalendarAPI {
           setItem(ACCESS_TOKEN, tokenInfo.accessToken);
         }
 
+        // Update socket auth and headers
         socket.auth = {
           token: tokenInfo.accessToken,
         };
         socket.io.opts.extraHeaders = {
           Authorization: `Bearer ${tokenInfo.accessToken}`,
         };
+
+        // Connect the socket
         socket.connect();
+      } catch (error) {
+        console.error('[CalendarAPI] Error connecting socket:', error);
+        this.connectingPromise = null;
+        throw error;
       } finally {
-        // Clear the promise after a short delay to allow connection to establish
+        // Clear the promise after a delay to allow connection to establish
         setTimeout(() => {
           this.connectingPromise = null;
-        }, 1000);
+        }, 2000);
       }
     })();
 
