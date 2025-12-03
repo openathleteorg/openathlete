@@ -55,6 +55,16 @@ resource "scaleway_container" "api" {
     ENABLE_ACTIVITY_IMPORT = "false"
     ENABLE_ACTIVITY_PROCESSING = "false"
     ENABLE_TRAINING_LOAD_ESTIMATION = "false"
+    STRIPE_PUBLISHABLE_KEY = "pk_live_51SaEkf2MhXAJduIutC3AfHBfyIdlHw0wsS6qJVrNk5tOBLim2H2GFSPuxWhBHLPERUhmvzfsXi8c2mD9emyZiZHy00U5MeOWjy"
+    STRIPE_SECRET_KEY = scaleway_secret_version.stripe_secret_key_v.data
+    STRIPE_PRICE_IDS = jsonencode({
+      ATHLETE_PRO = "price_1SaHUn2MhXAJduIuQwsD5vj6"
+      COACH_PRO = "price_1SaHUq2MhXAJduIuZGSwvLrN"
+      COACH_ULTRA = "price_1SaHUs2MhXAJduIuOk014F3m"
+      CLUB_PRO = "price_1SaHUu2MhXAJduIu9JSB6s8n"
+      CLUB_ULTRA = "price_1SaHUv2MhXAJduIuwuocgqyX"
+    })
+    STRIPE_WEBHOOK_SECRET = scaleway_secret_version.stripe_webhook_secret_v.data
   }
 
   depends_on = [
@@ -68,7 +78,9 @@ resource "scaleway_container" "api" {
     scaleway_secret_version.garmin_client_secret_v,
     scaleway_secret_version.polar_client_secret_v,
     scaleway_secret_version.polar_webhook_secret_key_v,
-    scaleway_secret_version.google_generative_ai_api_key_v
+    scaleway_secret_version.google_generative_ai_api_key_v,
+    scaleway_secret_version.stripe_secret_key_v,
+    scaleway_secret_version.stripe_webhook_secret_v
   ]
 }
 
@@ -113,6 +125,8 @@ resource "scaleway_container" "import_worker" {
     POLAR_WEBHOOK_URL = "https://api.openathlete.org/provider/polar/webhook"
     POLAR_WEBHOOK_SECRET_KEY = scaleway_secret_version.polar_webhook_secret_key_v.data
     GOOGLE_GENERATIVE_AI_API_KEY = scaleway_secret_version.google_generative_ai_api_key_v.data
+    STRIPE_SECRET_KEY = scaleway_secret_version.stripe_secret_key_v.data
+    STRIPE_WEBHOOK_SECRET = scaleway_secret_version.stripe_webhook_secret_v.data
   }
 
   depends_on = [
@@ -125,7 +139,9 @@ resource "scaleway_container" "import_worker" {
     scaleway_secret_version.garmin_client_secret_v,
     scaleway_secret_version.polar_client_secret_v,
     scaleway_secret_version.polar_webhook_secret_key_v,
-    scaleway_secret_version.google_generative_ai_api_key_v
+    scaleway_secret_version.google_generative_ai_api_key_v,
+    scaleway_secret_version.stripe_secret_key_v,
+    scaleway_secret_version.stripe_webhook_secret_v
   ]
 }
 

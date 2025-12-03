@@ -133,3 +133,15 @@ variable "google_generative_ai_api_key" {
   type        = string
   sensitive   = true
 }
+
+variable "stripe_secret_key" {
+  description = "Stripe secret key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "stripe_webhook_secret" {
+  description = "Stripe webhook secret for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

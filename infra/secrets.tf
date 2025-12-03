@@ -111,3 +111,23 @@ resource "scaleway_secret_version" "google_generative_ai_api_key_v" {
   secret_id = scaleway_secret.google_generative_ai_api_key.id
   data      = var.google_generative_ai_api_key
 }
+
+resource "scaleway_secret" "stripe_secret_key" {
+  name        = "${var.app_name}-STRIPE_SECRET_KEY"
+  description = "Stripe secret key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "stripe_secret_key_v" {
+  secret_id = scaleway_secret.stripe_secret_key.id
+  data      = var.stripe_secret_key
+}
+
+resource "scaleway_secret" "stripe_webhook_secret" {
+  name        = "${var.app_name}-STRIPE_WEBHOOK_SECRET"
+  description = "Stripe webhook secret for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "stripe_webhook_secret_v" {
+  secret_id = scaleway_secret.stripe_webhook_secret.id
+  data      = var.stripe_webhook_secret
+}
