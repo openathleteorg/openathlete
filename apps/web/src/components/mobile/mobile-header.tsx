@@ -1,6 +1,8 @@
+import { useCurrentSubscription } from '@/api/subscription';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,6 +28,8 @@ import { ArrowLeft, CogIcon, LogOut, Menu, MoreVertical } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+import { SubscriptionPlan } from '@openathlete/shared';
+
 import { MobileSpaceSwitcher } from './mobile-space-switcher';
 
 interface MobileHeaderProps {
@@ -46,8 +50,18 @@ function isProfileSubPage(pathname: string): boolean {
   return profileSubPages.some((route) => pathname === route);
 }
 
+const planNameMap: Record<SubscriptionPlan, string> = {
+  [SubscriptionPlan.FREE]: m.plan_free_name(),
+  [SubscriptionPlan.ATHLETE_PRO]: m.plan_athlete_pro_name(),
+  [SubscriptionPlan.COACH_PRO]: m.plan_coach_pro_name(),
+  [SubscriptionPlan.COACH_ULTRA]: m.plan_coach_ultra_name(),
+  [SubscriptionPlan.CLUB_PRO]: m.plan_club_pro_name(),
+  [SubscriptionPlan.CLUB_ULTRA]: m.plan_club_ultra_name(),
+};
+
 export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
   const { logout, user } = useAuthContext();
+  const { data: subscription } = useCurrentSubscription();
   const { syncLanguage } = useLanguageSync();
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,6 +80,8 @@ export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
   };
 
   const fullName = user ? `${user.firstName || ''} ${user.lastName || ''}` : '';
+  const currentPlan = subscription?.plan as SubscriptionPlan | undefined;
+  const planName = currentPlan ? planNameMap[currentPlan] : null;
 
   return (
     <header className="sticky top-0 z-50 flex h-14 items-center gap-2 border-b bg-background px-4">
@@ -115,7 +131,14 @@ export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <p className="text-sm font-medium">{fullName}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium">{fullName}</p>
+                      {planName && (
+                        <Badge variant="secondary" className="text-xs">
+                          {planName}
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-xs text-muted-foreground">
                       {user.email}
                     </p>

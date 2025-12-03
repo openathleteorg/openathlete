@@ -1,10 +1,12 @@
+import { SparklesIcon } from '@/components/ui/sparkles-icon';
+import { useFeatureAccess } from '@/hooks/use-feature-access';
 import { m } from '@/paraglide/messages';
 import { eventTypeLabelMap } from '@/utils/label-map/core';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Sparkles } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
+import { FeatureName } from '@openathlete/shared';
 import type {
   CreateEventDto,
   CreateWorkoutStepDto,
@@ -17,6 +19,7 @@ import { EVENT_TYPE } from '@openathlete/shared';
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
 import { FormProvider } from '../hook-form';
 import { RHFCheckbox } from '../hook-form/rhf-checkbox';
+import { PaywallDialog } from '../paywall';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { AIModifyEventDialog } from './components/ai-modify-event-dialog';
@@ -118,6 +121,12 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   // AI modification/generation dialog state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
+
+  // Check AI feature access
+  const { hasAccess: hasAIAccess } = useFeatureAccess(
+    FeatureName.AI_GENERATION,
+  );
 
   // Determine if we're in create mode (empty form)
   const formName = watch('name');
@@ -267,11 +276,17 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             {type === EVENT_TYPE.TRAINING && (
               <div className="flex items-center gap-2 pr-4 -translate-y-4">
                 <Button
-                  onClick={() => setAiDialogOpen(true)}
+                  onClick={() => {
+                    if (hasAIAccess) {
+                      setAiDialogOpen(true);
+                    } else {
+                      setPaywallOpen(true);
+                    }
+                  }}
                   variant="outline"
                   size="sm"
                 >
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  <SparklesIcon className="w-4 h-4 mr-2" />
                   {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
                 </Button>
               </div>
@@ -327,6 +342,11 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           onEventModified={handleEventModified}
         />
       )}
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        reason="ai-feature"
+      />
     </Dialog>
   );
 }

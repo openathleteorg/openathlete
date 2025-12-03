@@ -309,3 +309,33 @@
 @keyframes oa-rotate-gradient {
   to { --oa-rotation: 360deg; }
 }
+
+/* Animated multicolor fill for Sparkles icon */
+.ai-sparkles-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  /* Create conic gradient background that rotates */
+  background: conic-gradient(
+    from var(--oa-rotation, 0deg),
+    var(--oa-brand-1),
+    var(--oa-brand-2),
+    var(--oa-brand-3),
+    var(--oa-brand-4),
+    var(--oa-brand-1)
+  );
+  animation: oa-rotate-gradient 2.25s linear infinite;
+  will-change: background;
+  /* Mask will be set via JavaScript to use the SVG */
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+}
+
+.ai-sparkles-icon {
+  /* Hide the original SVG - we only use it as a mask */
+  opacity: 0;
+  pointer-events: none;
+}

@@ -203,6 +203,16 @@ export const routes = {
   betaAccess: {
     request: '/beta-access',
   },
+  subscription: {
+    current: '/subscription/current',
+    checkout: '/subscription/checkout',
+    cancel: '/subscription/cancel',
+    resume: '/subscription/resume',
+    invoices: '/subscription/invoices',
+    portal: '/subscription/portal',
+    getAthleteFeatureAccess: (athleteId: number, featureName: string) =>
+      `/subscription/athlete/${athleteId}/feature-access/${featureName}`,
+  },
 } as const;
 
 const client = axios.create({

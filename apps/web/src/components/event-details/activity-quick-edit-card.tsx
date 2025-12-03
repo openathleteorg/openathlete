@@ -3,16 +3,21 @@ import {
   useUnskipFeedbackMutation,
 } from '@/api/activity-feedback';
 import { useUpdateEventMutation } from '@/api/event';
+import { useAthleteFeatureAccess } from '@/api/subscription';
 import { FormProvider, RHFRpe, RHFTextarea } from '@/components/hook-form';
+import { PaywallDialog } from '@/components/paywall';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { ActivityEvent } from '@openathlete/shared';
+import { ActivityEvent, FeatureName } from '@openathlete/shared';
 
 const quickEditSchema = z.object({
   description: z.string().optional(),
@@ -39,12 +44,22 @@ export function ActivityQuickEditCard({
     isMyActivity,
   );
   const unskipMutation = useUnskipFeedbackMutation(event.eventId);
+  const { data: featureAccess } = useAthleteFeatureAccess(
+    event.athleteId ?? undefined,
+    FeatureName.AI_RPE_QUESTIONS,
+  );
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   const questions = feedbackData?.questions ?? [];
   const feedbackSkipped = feedbackData?.feedbackSkipped ?? false;
   const allAnswered =
     questions.length > 0 && questions.every((q) => q.answerText !== null);
   const hasQuestions = questions.length > 0;
+
+  // Check if athlete or coach has access and no questions were generated
+  const hasNoAccess = featureAccess?.hasAccess === false;
+  const hasNoQuestions = questions.length === 0;
+  const showPaywallAlert = hasNoAccess && hasNoQuestions;
 
   const handleReopenFeedback = async () => {
     try {
@@ -88,66 +103,92 @@ export function ActivityQuickEditCard({
   };
 
   return (
-    <Card className="col-span-1 flex flex-col">
-      <CardHeader>
-        <CardTitle>{m.quick_edit()}</CardTitle>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
-        {isMyActivity && hasQuestions && (
-          <div className="mb-4 pb-4 border-b">
-            {feedbackSkipped ? (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  {m.activity_feedback_skipped()}
-                </p>
+    <>
+      <Card className="col-span-1 flex flex-col">
+        <CardHeader>
+          <CardTitle>{m.quick_edit()}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1 flex flex-col">
+          {showPaywallAlert && (
+            <Alert className="mb-4">
+              <SparklesIcon className="h-4 w-4" />
+              <AlertTitle>{m.rpe_questions_paywall_title()}</AlertTitle>
+              <AlertDescription className="mt-2 flex flex-col gap-3">
+                <span>{m.rpe_questions_paywall_description()}</span>
                 <Button
-                  onClick={handleReopenFeedback}
                   variant="outline"
                   size="sm"
-                  disabled={unskipMutation.isPending}
+                  className="w-fit"
+                  onClick={() => setPaywallOpen(true)}
                 >
-                  {m.activity_feedback_reopen()}
+                  {m.upgrade_now()}
                 </Button>
-              </div>
-            ) : allAnswered ? (
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  {m.activity_feedback_completed_via_questions()}
-                </p>
-                <Button
-                  onClick={handleEditFeedback}
-                  variant="outline"
-                  size="sm"
-                >
-                  {m.activity_feedback_edit()}
-                </Button>
-              </div>
-            ) : null}
-          </div>
-        )}
-
-        <FormProvider
-          methods={methods}
-          onSubmit={methods.handleSubmit(onSubmit)}
-          className="flex-1 flex flex-col"
-        >
-          <div className="space-y-4 flex-1 flex flex-col">
-            <RHFTextarea
-              name="description"
-              label={m.comment()}
-              placeholder={m.description()}
-              rows={3}
-              className="min-h-[70px]"
-            />
-            <RHFRpe name="rpe" label={m.rpe()} />
-            <div className="flex justify-end mt-auto">
-              <Button type="submit" disabled={updateEventMutation.isPending}>
-                {updateEventMutation.isPending ? m.save() + '...' : m.submit()}
-              </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+          {isMyActivity && hasQuestions && (
+            <div className="mb-4 pb-4 border-b">
+              {feedbackSkipped ? (
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {m.activity_feedback_skipped()}
+                  </p>
+                  <Button
+                    onClick={handleReopenFeedback}
+                    variant="outline"
+                    size="sm"
+                    disabled={unskipMutation.isPending}
+                  >
+                    {m.activity_feedback_reopen()}
+                  </Button>
+                </div>
+              ) : allAnswered ? (
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {m.activity_feedback_completed_via_questions()}
+                  </p>
+                  <Button
+                    onClick={handleEditFeedback}
+                    variant="outline"
+                    size="sm"
+                  >
+                    {m.activity_feedback_edit()}
+                  </Button>
+                </div>
+              ) : null}
             </div>
-          </div>
-        </FormProvider>
-      </CardContent>
-    </Card>
+          )}
+
+          <FormProvider
+            methods={methods}
+            onSubmit={methods.handleSubmit(onSubmit)}
+            className="flex-1 flex flex-col"
+          >
+            <div className="space-y-4 flex-1 flex flex-col">
+              <RHFTextarea
+                name="description"
+                label={m.comment()}
+                placeholder={m.description()}
+                rows={3}
+                className="min-h-[70px]"
+              />
+              <RHFRpe name="rpe" label={m.rpe()} />
+              <div className="flex justify-end mt-auto">
+                <Button type="submit" disabled={updateEventMutation.isPending}>
+                  {updateEventMutation.isPending
+                    ? m.save() + '...'
+                    : m.submit()}
+                </Button>
+              </div>
+            </div>
+          </FormProvider>
+        </CardContent>
+      </Card>
+      <PaywallDialog
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        reason="ai-feature"
+      />
+    </>
   );
 }

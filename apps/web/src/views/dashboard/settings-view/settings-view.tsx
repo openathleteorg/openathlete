@@ -1,6 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRoles } from '@/contexts/auth';
+import { SubscriptionSettingsPage } from '@/pages/dashboard/settings/subscription';
 import { m } from '@/paraglide/messages';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { AthletesTab } from './athletes-tab';
 import { CoachesTab } from './coaches-tab';
@@ -12,10 +15,27 @@ import { TrainingZonesTab } from './training-zones-tab';
 
 export function SettingsView() {
   const roles = useUserRoles();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'connectors');
+
+  // Update active tab when URL param changes
+  useEffect(() => {
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  // Update URL when tab changes
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setSearchParams({ tab: value });
+  };
+
   return (
     <div className="p-8">
       <h1 className="text-2xl font-semibold">{m.settings()}</h1>
-      <Tabs defaultValue="connectors" className="mt-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4">
         <TabsList>
           <TabsTrigger value="connectors">{m.connectors()}</TabsTrigger>
           <TabsTrigger value="profile">{m.profile()}</TabsTrigger>
@@ -28,6 +48,7 @@ export function SettingsView() {
             <TabsTrigger value="coaches">{m.coaches()}</TabsTrigger>
           )}
           <TabsTrigger value="invitations">{m.invitations()}</TabsTrigger>
+          <TabsTrigger value="subscription">{m.subscription()}</TabsTrigger>
         </TabsList>
         <TabsContent value="connectors" className="mt-6">
           <ConnectorsTab />
@@ -49,6 +70,9 @@ export function SettingsView() {
         </TabsContent>
         <TabsContent value="invitations" className="mt-6">
           <InvitationsTab />
+        </TabsContent>
+        <TabsContent value="subscription" className="mt-6">
+          <SubscriptionSettingsPage />
         </TabsContent>
       </Tabs>
     </div>
