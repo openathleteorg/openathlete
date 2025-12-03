@@ -14,9 +14,11 @@ import {
   generateEventDtoSchema,
   modifyEventDtoSchema,
 } from '@openathlete/shared';
+import { FeatureName } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { FeatureAccessGuard, RequireFeature } from 'src/modules/subscription';
 
 import { EventGenerationService } from '../services/event-generation.service';
 import { EventModificationService } from '../services/event-modification.service';
@@ -28,7 +30,8 @@ export class AIFeaturesController {
     private readonly eventModificationService: EventModificationService,
   ) {}
 
-  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard, FeatureAccessGuard)
+  @RequireFeature(FeatureName.AI_GENERATION)
   @Post('events/generate')
   async generateEvent(
     @JwtUser() user: AuthUser,
@@ -117,7 +120,8 @@ export class AIFeaturesController {
     return result;
   }
 
-  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard, FeatureAccessGuard)
+  @RequireFeature(FeatureName.AI_GENERATION)
   @Post('events/modify')
   async modifyEvent(
     @JwtUser() user: AuthUser,

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { Prisma } from '@openathlete/database';
+import { FeatureName } from '@openathlete/shared';
 
 import { ActivityImportedEvent } from 'src/events';
 import { postActivityFeedbackAgent } from 'src/mastra/agents';
@@ -14,12 +15,16 @@ import {
   getLatestMetrics,
 } from 'src/modules/agent/services/event-ai-helpers';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { FeatureAccessService } from 'src/modules/subscription';
 
 @Injectable()
 export class ActivityFeedbackListener {
   private readonly logger = new Logger(ActivityFeedbackListener.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly featureAccessService: FeatureAccessService,
+  ) {}
 
   @OnEvent(ActivityImportedEvent.SLUG, { async: true })
   async handleActivityImport(event: ActivityImportedEvent) {
@@ -71,6 +76,19 @@ export class ActivityFeedbackListener {
 
       const athleteId = activity.event.athlete_id;
       const userLanguage = activity.event.athlete.user?.language ?? 'FR';
+
+      const hasAIAccess =
+        await this.featureAccessService.canAccessFeatureForAthlete(
+          athleteId,
+          FeatureName.AI_RPE_QUESTIONS,
+        );
+
+      if (!hasAIAccess) {
+        this.logger.debug(
+          `Athlete ${athleteId} and their coaches do not have access to AI RPE questions feature, skipping question generation`,
+        );
+        return;
+      }
 
       const athleteSettings = await this.prisma.athlete_settings.findUnique({
         where: { athlete_id: athleteId },

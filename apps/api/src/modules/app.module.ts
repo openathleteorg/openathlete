@@ -22,6 +22,7 @@ import { NotificationModule } from './notification';
 import { PrismaService } from './prisma/services/prisma.service';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { QueueModule } from './queue';
+import { SubscriptionModule } from './subscription';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { QueueModule } from './queue';
     NotificationModule,
     ProvidersSyncModule,
     QueueModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [

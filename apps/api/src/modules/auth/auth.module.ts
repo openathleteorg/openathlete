@@ -1,10 +1,12 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 
 import { PrismaService } from '../prisma/services/prisma.service';
+import { SubscriptionModule } from '../subscription';
 import { AuthController, UserController } from './controllers';
+import { UserTypeGuard } from './guards';
 import { AuthService, CaslAbilityFactory, UserService } from './services';
 import { AthleteInvitationService } from './services/athlete-invitation.service';
 import { CoachInvitationService } from './services/coach-invitation.service';
@@ -19,6 +21,7 @@ import { JwtStrategy } from './strategies';
     JwtModule.register({
       secret: process.env.JWT_SECRET_KEY,
     }),
+    forwardRef(() => SubscriptionModule),
   ],
   controllers: [AuthController, UserController],
   providers: [
@@ -30,12 +33,14 @@ import { JwtStrategy } from './strategies';
     InvitationService,
     JwtStrategy,
     CaslAbilityFactory,
+    UserTypeGuard,
     PrismaService,
   ],
   exports: [
     CaslAbilityFactory,
     UserService,
     JwtModule,
+    UserTypeGuard,
     AthleteInvitationService,
     CoachInvitationService,
   ],

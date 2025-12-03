@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core/core.module';
 import { PrismaService } from '../prisma/services/prisma.service';
+import { SubscriptionModule } from '../subscription';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { AIFeaturesController } from './controllers/ai-features.controller';
 import { ChatAgentController } from './controllers/chat-agent.controller';
@@ -16,7 +17,7 @@ import { MessageService } from './services/message.service';
 import { ThreadService } from './services/thread.service';
 
 @Module({
-  imports: [AuthModule, CoreModule, WebSocketModule],
+  imports: [AuthModule, CoreModule, SubscriptionModule, WebSocketModule],
   controllers: [ChatAgentController, AIFeaturesController],
   providers: [
     ThreadService,
