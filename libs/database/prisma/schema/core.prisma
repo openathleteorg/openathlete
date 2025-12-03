@@ -25,6 +25,7 @@ model user {
   message_thread_participants message_thread_participant[]
   sent_messages               message[]
   message_read_receipts       message_read_receipt[]
+  subscription                subscription?
 
   // timestamps
   created_at DateTime @default(now())

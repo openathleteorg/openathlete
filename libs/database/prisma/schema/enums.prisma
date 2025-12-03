@@ -331,3 +331,22 @@ enum injury_status {
   STABLE
   RESOLVED
 }
+
+enum subscription_plan {
+  FREE
+  ATHLETE_PRO
+  COACH_PRO
+  COACH_ULTRA
+  CLUB_PRO
+  CLUB_ULTRA
+}
+
+enum subscription_status {
+  active
+  canceled
+  past_due
+  trialing
+  incomplete
+  incomplete_expired
+  unpaid
+}

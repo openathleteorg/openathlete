@@ -1,0 +1,27 @@
+model subscription {
+  // primary key
+  subscription_id Int @id @default(autoincrement())
+
+  // fields
+  plan                    subscription_plan
+  status                  subscription_status @default(active)
+  stripe_customer_id      String?             @unique
+  stripe_subscription_id  String?             @unique
+  current_period_start    DateTime?
+  current_period_end      DateTime?
+  cancel_at_period_end    Boolean             @default(false)
+
+  // relationships
+  user    user @relation(fields: [user_id], references: [user_id])
+  user_id Int  @unique
+
+  // timestamps
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([stripe_customer_id])
+  @@index([stripe_subscription_id])
+  @@index([status])
+}
+
