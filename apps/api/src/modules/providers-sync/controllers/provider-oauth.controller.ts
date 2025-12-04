@@ -155,9 +155,13 @@ export class ProviderOAuthController {
       case connector_provider.SUUNTO: {
         const tokenResponse =
           await this.suuntoProviderService.exchangeCodeForTokens(code);
-        // Try to get user ID from token (JWT decode)
+        // Try to get user ID or username from token (JWT decode)
+        // Prefer username as webhooks use username
         const externalUserId = await this.suuntoProviderService.getUserId(
           tokenResponse.access_token,
+        );
+        this.logger.log(
+          `Suunto OAuth: Extracted external_user_id: ${externalUserId || 'none'}`,
         );
         return this.suuntoProviderService.saveProviderAccount({
           athleteId: athlete.athlete_id,
@@ -657,8 +661,12 @@ export class ProviderOAuthController {
 
     const payload = body as SuuntoWebhookPayload;
 
-    if (!payload.workoutKey) {
-      this.logger.warn('Suunto webhook missing workoutKey');
+    // Extract workoutKey from nested structure or root level
+    const workoutKey = payload.workout?.workoutKey || payload.workoutKey;
+    if (!workoutKey) {
+      this.logger.warn(
+        `Suunto webhook missing workoutKey. Payload: ${JSON.stringify(payload)}`,
+      );
       return {
         success: false,
         error: 'Missing workoutKey in webhook payload',

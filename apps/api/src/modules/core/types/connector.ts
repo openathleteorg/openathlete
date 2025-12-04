@@ -560,8 +560,91 @@ export interface SuuntoWorkoutResponse {
 }
 
 export interface SuuntoWebhookPayload {
-  workoutKey: string;
-  userId?: string;
-  username?: string; // Suunto webhooks may use username instead of userId
+  type: string; // e.g., "WORKOUT_CREATED"
+  username?: string; // Suunto username
+  userId?: string; // Alternative user identifier
+  workout?: {
+    workoutKey: string;
+    activityId?: number;
+    startTime?: number;
+    totalTime?: number;
+    totalDistance?: number;
+    [key: string]: unknown;
+  };
+  workoutKey?: string; // Fallback: workoutKey can also be at root level
   timestamp?: number;
+}
+
+// Suunto 247 Data API Types
+export interface SuuntoActivitySample {
+  Value: string | number | null;
+  TimeISO8601: string;
+}
+
+export interface SuuntoActivityData {
+  Name: string; // Watch identifier
+  Samples: SuuntoActivitySample[];
+}
+
+export interface SuuntoAggregatedActivityData {
+  Name: 'energyconsumption' | 'stepcount';
+  Aggregation: 'sum' | 'avg';
+  Sources: SuuntoActivityData[];
+}
+
+export interface SuuntoDailyActivityEntryData {
+  HR?: number; // Average heart rate in BPM
+  StepCount?: number; // Accumulated steps
+  EnergyConsumption?: number; // Energy consumption in Joules
+  SpO2?: number; // SpO2 (Oxygen saturation) 0..1
+  Altitude?: number; // Altitude in meters
+  HRExt?: {
+    Min?: number;
+    Max?: number;
+  };
+  HRV?: number; // HRV in ms
+}
+
+export interface SuuntoDailyActivityEntry {
+  timestamp: string; // ISO8601 format
+  entryData: SuuntoDailyActivityEntryData;
+}
+
+export interface SuuntoSleepEntryData {
+  DeepSleepDuration?: number; // seconds
+  LightSleepDuration?: number; // seconds
+  REMSleepDuration?: number; // seconds
+  Duration?: number; // seconds (includes awake time)
+  Feeling?: number; // 1-5 (Poor to Excellent)
+  HRAvg?: number; // BPM
+  HRMin?: number; // BPM
+  SleepQualityScore?: number; // 0-100
+  BodyResourcesInsightId?: number;
+  SleepId?: number;
+  BedtimeStart?: string; // ISO8601
+  BedtimeEnd?: string; // ISO8601
+  MaxSpo2?: number; // 0..1
+  Altitude?: number; // meters
+  AvgHRV?: number; // ms
+  AvgHRVSampleCount?: number;
+  IsNap?: boolean;
+  SleepOnsetLatencyDuration?: number; // seconds
+  WakeAfterSleepOnsetDuration?: number; // seconds
+  WakeBeforeOffBedDuration?: number; // seconds
+  DateTime?: string; // ISO8601
+}
+
+export interface SuuntoSleepEntry {
+  timestamp: string; // ISO8601 format
+  entryData: SuuntoSleepEntryData;
+}
+
+export interface SuuntoRecoveryEntryData {
+  Balance?: number; // 0.0-1.0 (body's energy level)
+  StressState?: number; // 0=Invalid, 1=Relaxing, 2=Active, 3=Passive, 4=Stressful
+}
+
+export interface SuuntoRecoveryEntry {
+  timestamp: string; // ISO8601 format
+  entryData: SuuntoRecoveryEntryData;
 }

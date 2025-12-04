@@ -12,9 +12,14 @@ import {
   connector_provider,
   event_activity,
   event_type,
+  metric_type,
   provider_account,
 } from '@openathlete/database';
-import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
+import {
+  ActivityStream,
+  ApiEnvSchemaType,
+  METRIC_TYPE,
+} from '@openathlete/shared';
 
 import { compressActivityStream } from '../../core/helpers/activity-stream';
 import { parseFitFile } from '../../core/helpers/garmin-file-parser';
@@ -28,7 +33,11 @@ import {
 } from '../../core/helpers/round-activity-values';
 import { mapSuuntoWorkoutToSportType } from '../../core/helpers/suunto';
 import {
+  SuuntoAggregatedActivityData,
+  SuuntoDailyActivityEntry,
   SuuntoLimitedWorkout,
+  SuuntoRecoveryEntry,
+  SuuntoSleepEntry,
   SuuntoWebhookPayload,
   SuuntoWorkoutListResponse,
   SuuntoWorkoutResponse,
@@ -47,6 +56,12 @@ import {
   ProviderImportCapability,
 } from '../base/provider-import.interface';
 
+type MetricRecord = {
+  type: METRIC_TYPE;
+  date: Date;
+  value: number;
+};
+
 @Injectable()
 export class SuuntoProviderService
   extends BaseProviderService
@@ -54,6 +69,7 @@ export class SuuntoProviderService
 {
   protected readonly provider = connector_provider.SUUNTO;
   private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000; // 30 days
+  private readonly metricsSyncWindowDays = 28; // Maximum fetch interval per Suunto API
 
   private get subscriptionKey(): string {
     return this.configService.get('SUUNTO_SUBSCRIPTION_KEY') || '';
@@ -252,12 +268,15 @@ export class SuuntoProviderService
   }
 
   /**
-   * Decode JWT token to extract user ID
+   * Decode JWT token to extract user ID or username
    */
-  private decodeJwtUserId(token: string): string | null {
+  private decodeJwtUserInfo(token: string): {
+    userId?: string | null;
+    username?: string | null;
+  } {
     try {
       const parts = token.split('.');
-      if (parts.length !== 3) return null;
+      if (parts.length !== 3) return { userId: null, username: null };
 
       const payload = parts[1];
       const decoded = JSON.parse(
@@ -266,32 +285,59 @@ export class SuuntoProviderService
           'base64',
         ).toString(),
       );
-      // Suunto JWT might contain user_id, sub, or username
-      return (
-        decoded.user_id ||
-        decoded.sub ||
-        decoded.username ||
-        decoded.userId ||
-        null
+
+      // Log decoded token for debugging (remove sensitive data)
+      this.logger.debug(
+        `Suunto JWT decoded fields: ${Object.keys(decoded).join(', ')}`,
       );
-    } catch {
-      return null;
+
+      // Suunto JWT might contain user_id, sub, username, or other fields
+      const userId =
+        decoded.user_id || decoded.sub || decoded.userId || decoded.uid || null;
+      const username =
+        decoded.username ||
+        decoded.user_name ||
+        decoded.preferred_username ||
+        decoded.name ||
+        null;
+
+      return {
+        userId: userId ? userId.toString() : null,
+        username: username ? username.toString() : null,
+      };
+    } catch (error) {
+      this.logger.warn(
+        `Failed to decode Suunto JWT: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return { userId: null, username: null };
     }
   }
 
   /**
-   * Get user ID from access token (decode JWT)
+   * Get user ID or username from access token (decode JWT)
+   * Returns username if available, otherwise userId
    */
   async getUserId(accessToken: string): Promise<string | null> {
     // Try to decode from JWT token
-    const userId = this.decodeJwtUserId(accessToken);
-    if (userId) {
-      return userId.toString();
+    const userInfo = this.decodeJwtUserInfo(accessToken);
+
+    // Prefer username over userId as webhooks use username
+    if (userInfo.username) {
+      this.logger.debug(
+        `Extracted username from Suunto JWT: ${userInfo.username}`,
+      );
+      return userInfo.username;
     }
 
-    // If JWT doesn't contain user ID, try API endpoint (if available)
-    // Note: Suunto API might not have a user ID endpoint
+    if (userInfo.userId) {
+      this.logger.debug(`Extracted userId from Suunto JWT: ${userInfo.userId}`);
+      return userInfo.userId;
+    }
+
+    // If JWT doesn't contain user info, try API endpoint (if available)
+    // Note: Suunto API might not have a user info endpoint
     // In that case, we'll need to rely on webhook payload or workout ownership
+    this.logger.warn('No user ID or username found in Suunto JWT token');
     return null;
   }
 
@@ -759,8 +805,12 @@ export class SuuntoProviderService
    * Handle webhook from Suunto
    */
   async handleWebhook(payload: SuuntoWebhookPayload): Promise<void> {
-    if (!payload.workoutKey) {
-      this.logger.warn('Suunto webhook missing workoutKey');
+    // Extract workoutKey from nested structure or root level
+    const workoutKey = payload.workout?.workoutKey || payload.workoutKey;
+    if (!workoutKey) {
+      this.logger.warn(
+        `Suunto webhook missing workoutKey. Payload: ${JSON.stringify(payload)}`,
+      );
       return;
     }
 
@@ -770,6 +820,9 @@ export class SuuntoProviderService
 
     const userId = payload.userId || payload.username;
     if (userId) {
+      this.logger.debug(
+        `Suunto webhook: Looking for account with external_user_id: ${userId}`,
+      );
       account = await this.prisma.provider_account.findFirst({
         where: {
           provider: connector_provider.SUUNTO,
@@ -784,13 +837,23 @@ export class SuuntoProviderService
           },
         },
       });
+
+      if (account) {
+        this.logger.debug(
+          `Suunto webhook: Found account ${account.provider_account_id} for userId/username ${userId}`,
+        );
+      } else {
+        this.logger.warn(
+          `Suunto webhook: No account found with external_user_id: ${userId}. Make sure the username was saved during OAuth connection.`,
+        );
+      }
     }
 
     // If no account found by userId/username, try to find owner by testing workout access
     // This works by fetching the workout with each active account to see which one can access it
     if (!account) {
       this.logger.debug(
-        `Suunto webhook: No account found for userId/username ${userId || 'unknown'}, trying to find owner by testing workout access for workoutKey ${payload.workoutKey}`,
+        `Suunto webhook: No account found for userId/username ${userId || 'unknown'}, trying to find owner by testing workout access for workoutKey ${workoutKey}`,
       );
 
       // Get all active Suunto accounts with import enabled
@@ -817,7 +880,7 @@ export class SuuntoProviderService
               testAccount,
               async (accessToken) => {
                 const { data } = await axios.get<SuuntoWorkoutResponse>(
-                  `https://cloudapi.suunto.com/v3/workouts/${payload.workoutKey}`,
+                  `https://cloudapi.suunto.com/v3/workouts/${workoutKey}`,
                   {
                     headers: this.getWorkoutApiHeaders(accessToken),
                     timeout: 5000, // Short timeout for quick check
@@ -831,7 +894,7 @@ export class SuuntoProviderService
           if (workoutResponse.payload && !workoutResponse.error) {
             account = testAccount;
             this.logger.debug(
-              `Suunto webhook: Found workout owner - account ${account.provider_account_id} (athlete ${account.athlete_id}) for workoutKey ${payload.workoutKey}`,
+              `Suunto webhook: Found workout owner - account ${account.provider_account_id} (athlete ${account.athlete_id}) for workoutKey ${workoutKey}`,
             );
             break;
           }
@@ -844,7 +907,7 @@ export class SuuntoProviderService
 
     if (!account) {
       this.logger.warn(
-        `Suunto webhook: No account found for workoutKey ${payload.workoutKey}. userId/username: ${userId || 'not provided'}`,
+        `Suunto webhook: No account found for workoutKey ${workoutKey}. userId/username: ${userId || 'not provided'}`,
       );
       return;
     }
@@ -859,14 +922,12 @@ export class SuuntoProviderService
     // Check if activity already imported
     const existingActivity = await this.prisma.event_activity.findFirst({
       where: {
-        external_id: payload.workoutKey,
+        external_id: workoutKey,
       },
     });
 
     if (existingActivity) {
-      this.logger.debug(
-        `Activity ${payload.workoutKey} already imported, skipping`,
-      );
+      this.logger.debug(`Activity ${workoutKey} already imported, skipping`);
       return;
     }
 
@@ -877,7 +938,7 @@ export class SuuntoProviderService
           account,
           async (accessToken) => {
             const { data } = await axios.get<SuuntoWorkoutResponse>(
-              `https://cloudapi.suunto.com/v3/workouts/${payload.workoutKey}`,
+              `https://cloudapi.suunto.com/v3/workouts/${workoutKey}`,
               {
                 headers: this.getWorkoutApiHeaders(accessToken),
                 timeout: 15000,
@@ -889,7 +950,7 @@ export class SuuntoProviderService
 
       if (workoutResponse.error || !workoutResponse.payload) {
         this.logger.warn(
-          `Failed to fetch Suunto workout ${payload.workoutKey}: ${workoutResponse.error?.description || 'Unknown error'}`,
+          `Failed to fetch Suunto workout ${workoutKey}: ${workoutResponse.error?.description || 'Unknown error'}`,
         );
         return;
       }
@@ -919,8 +980,632 @@ export class SuuntoProviderService
       );
     } catch (error) {
       this.logger.error(
-        `Error processing Suunto webhook for workoutKey ${payload.workoutKey}: ${error instanceof Error ? error.message : String(error)}`,
+        `Error processing Suunto webhook for workoutKey ${workoutKey}: ${error instanceof Error ? error.message : String(error)}`,
       );
+    }
+  }
+
+  /**
+   * Get headers for Suunto 247 Data API requests
+   */
+  private get247ApiHeaders(accessToken: string): Record<string, string> {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    };
+
+    // Add subscription key if available
+    if (this.subscriptionKey) {
+      headers['Ocp-Apim-Subscription-Key'] = this.subscriptionKey;
+    }
+
+    return headers;
+  }
+
+  /**
+   * Fetch daily activity statistics (aggregated steps and energy)
+   */
+  private async fetchDailyActivityStatistics(
+    account: provider_account,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<SuuntoAggregatedActivityData[]> {
+    return this.makeAuthenticatedRequest<SuuntoAggregatedActivityData[]>(
+      account,
+      async (accessToken) => {
+        const startDateISO = startDate.toISOString();
+        const endDateISO = endDate.toISOString();
+
+        const { data } = await axios.get<SuuntoAggregatedActivityData[]>(
+          `https://cloudapi.suunto.com/247samples/daily-activity-statistics`,
+          {
+            headers: this.get247ApiHeaders(accessToken),
+            params: {
+              startdate: startDateISO,
+              enddate: endDateISO,
+            },
+            timeout: 30000,
+          },
+        );
+        return data;
+      },
+    );
+  }
+
+  /**
+   * Fetch daily activity samples (steps, energy, HR, SpO2)
+   */
+  private async fetchDailyActivitySamples(
+    account: provider_account,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<SuuntoDailyActivityEntry[]> {
+    return this.makeAuthenticatedRequest<SuuntoDailyActivityEntry[]>(
+      account,
+      async (accessToken) => {
+        const from = startDate.getTime();
+        const to = endDate.getTime();
+
+        const { data } = await axios.get<SuuntoDailyActivityEntry[]>(
+          `https://cloudapi.suunto.com/247samples/activity`,
+          {
+            headers: this.get247ApiHeaders(accessToken),
+            params: {
+              from,
+              to,
+            },
+            timeout: 30000,
+          },
+        );
+        return data;
+      },
+    );
+  }
+
+  /**
+   * Fetch sleep data
+   */
+  private async fetchSleepData(
+    account: provider_account,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<SuuntoSleepEntry[]> {
+    return this.makeAuthenticatedRequest<SuuntoSleepEntry[]>(
+      account,
+      async (accessToken) => {
+        const from = startDate.getTime();
+        const to = endDate.getTime();
+
+        const { data } = await axios.get<SuuntoSleepEntry[]>(
+          `https://cloudapi.suunto.com/247samples/sleep`,
+          {
+            headers: this.get247ApiHeaders(accessToken),
+            params: {
+              from,
+              to,
+            },
+            timeout: 30000,
+          },
+        );
+        return data;
+      },
+    );
+  }
+
+  /**
+   * Fetch recovery data
+   */
+  private async fetchRecoveryData(
+    account: provider_account,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<SuuntoRecoveryEntry[]> {
+    return this.makeAuthenticatedRequest<SuuntoRecoveryEntry[]>(
+      account,
+      async (accessToken) => {
+        const from = startDate.getTime();
+        const to = endDate.getTime();
+
+        const { data } = await axios.get<SuuntoRecoveryEntry[]>(
+          `https://cloudapi.suunto.com/247samples/recovery`,
+          {
+            headers: this.get247ApiHeaders(accessToken),
+            params: {
+              from,
+              to,
+            },
+            timeout: 30000,
+          },
+        );
+        return data;
+      },
+    );
+  }
+
+  /**
+   * Parse ISO8601 date string to Date object
+   */
+  private parseISO8601Date(dateString: string): Date | null {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return null;
+      }
+      return date;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Convert seconds to hours
+   */
+  private secondsToHours(seconds?: number | null): number | undefined {
+    if (seconds === undefined || seconds === null) {
+      return undefined;
+    }
+    return seconds / 3600;
+  }
+
+  /**
+   * Convert joules to kilocalories
+   */
+  private joulesToKilocalories(joules?: number | null): number | undefined {
+    if (joules === undefined || joules === null) {
+      return undefined;
+    }
+    // 1 kcal = 4184 J
+    return joules / 4184;
+  }
+
+  /**
+   * Convert SpO2 from 0..1 to percentage (0..100)
+   */
+  private spo2ToPercentage(spo2?: number | null): number | undefined {
+    if (spo2 === undefined || spo2 === null) {
+      return undefined;
+    }
+    return spo2 * 100;
+  }
+
+  /**
+   * Add metric if value is defined and finite
+   */
+  private pushMetric(
+    target: MetricRecord[],
+    type: METRIC_TYPE,
+    date: Date | null,
+    value: number | undefined | null,
+    defaultValue = 0,
+  ): void {
+    if (!date || date instanceof Date === false || isNaN(date.getTime())) {
+      return;
+    }
+
+    const numValue =
+      value !== undefined && value !== null
+        ? Number(value)
+        : defaultValue !== undefined
+          ? defaultValue
+          : undefined;
+
+    if (numValue === undefined || !Number.isFinite(numValue)) {
+      return;
+    }
+
+    // Set time to midnight UTC for date-only metrics
+    const dateOnly = new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()),
+    );
+
+    target.push({
+      type,
+      date: dateOnly,
+      value: numValue,
+    });
+  }
+
+  /**
+   * Map aggregated activity statistics to metrics
+   */
+  private mapAggregatedActivityToMetrics(
+    data: SuuntoAggregatedActivityData[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+    const dailyStats = new Map<string, { steps?: number; energy?: number }>();
+
+    for (const aggregated of data) {
+      if (
+        aggregated.Name === 'stepcount' ||
+        aggregated.Name === 'energyconsumption'
+      ) {
+        for (const source of aggregated.Sources) {
+          for (const sample of source.Samples) {
+            const date = this.parseISO8601Date(sample.TimeISO8601);
+            if (!date) continue;
+
+            const dateKey = date.toISOString().split('T')[0];
+            const stats = dailyStats.get(dateKey) || {};
+
+            if (sample.Value !== null && sample.Value !== undefined) {
+              const numValue = Number(sample.Value);
+              if (Number.isFinite(numValue)) {
+                if (aggregated.Name === 'stepcount') {
+                  stats.steps = (stats.steps || 0) + numValue;
+                } else if (aggregated.Name === 'energyconsumption') {
+                  stats.energy = (stats.energy || 0) + numValue;
+                }
+              }
+            }
+
+            dailyStats.set(dateKey, stats);
+          }
+        }
+      }
+    }
+
+    for (const [dateKey, stats] of dailyStats.entries()) {
+      const date = new Date(dateKey + 'T00:00:00.000Z');
+      this.pushMetric(metrics, METRIC_TYPE.DAILY_STEPS, date, stats.steps);
+      if (stats.energy !== undefined) {
+        const kcal = this.joulesToKilocalories(stats.energy);
+        this.pushMetric(metrics, METRIC_TYPE.DAILY_CALORIES, date, kcal);
+      }
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Map daily activity entries to metrics
+   */
+  private mapDailyActivityEntriesToMetrics(
+    entries: SuuntoDailyActivityEntry[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+    const dailyStats = new Map<
+      string,
+      {
+        hrSum: number;
+        hrCount: number;
+        hrMin?: number;
+        hrMax?: number;
+        steps?: number;
+        energy?: number;
+        spo2Sum: number;
+        spo2Count: number;
+        hrvSum: number;
+        hrvCount: number;
+      }
+    >();
+
+    for (const entry of entries) {
+      const date = this.parseISO8601Date(entry.timestamp);
+      if (!date) continue;
+
+      const dateKey = date.toISOString().split('T')[0];
+      const stats = dailyStats.get(dateKey) || {
+        hrSum: 0,
+        hrCount: 0,
+        spo2Sum: 0,
+        spo2Count: 0,
+        hrvSum: 0,
+        hrvCount: 0,
+      };
+
+      const data = entry.entryData;
+
+      if (data.HR !== undefined && data.HR !== null) {
+        stats.hrSum += data.HR;
+        stats.hrCount += 1;
+        if (stats.hrMin === undefined || data.HR < stats.hrMin) {
+          stats.hrMin = data.HR;
+        }
+        if (stats.hrMax === undefined || data.HR > stats.hrMax) {
+          stats.hrMax = data.HR;
+        }
+      }
+
+      if (data.StepCount !== undefined && data.StepCount !== null) {
+        stats.steps = (stats.steps || 0) + data.StepCount;
+      }
+
+      if (
+        data.EnergyConsumption !== undefined &&
+        data.EnergyConsumption !== null
+      ) {
+        stats.energy = (stats.energy || 0) + data.EnergyConsumption;
+      }
+
+      if (data.SpO2 !== undefined && data.SpO2 !== null) {
+        stats.spo2Sum += data.SpO2;
+        stats.spo2Count += 1;
+      }
+
+      if (data.HRV !== undefined && data.HRV !== null) {
+        stats.hrvSum += data.HRV;
+        stats.hrvCount += 1;
+      }
+
+      dailyStats.set(dateKey, stats);
+    }
+
+    for (const [dateKey, stats] of dailyStats.entries()) {
+      const date = new Date(dateKey + 'T00:00:00.000Z');
+
+      if (stats.hrCount > 0) {
+        this.pushMetric(
+          metrics,
+          METRIC_TYPE.HR_AVG_DAILY,
+          date,
+          stats.hrSum / stats.hrCount,
+        );
+        this.pushMetric(metrics, METRIC_TYPE.HR_MIN_DAILY, date, stats.hrMin);
+        this.pushMetric(metrics, METRIC_TYPE.HR_MAX_DAILY, date, stats.hrMax);
+      }
+
+      this.pushMetric(metrics, METRIC_TYPE.DAILY_STEPS, date, stats.steps);
+
+      if (stats.energy !== undefined) {
+        const kcal = this.joulesToKilocalories(stats.energy);
+        this.pushMetric(metrics, METRIC_TYPE.DAILY_CALORIES, date, kcal);
+      }
+
+      if (stats.spo2Count > 0) {
+        const spo2Avg = stats.spo2Sum / stats.spo2Count;
+        const spo2Percent = this.spo2ToPercentage(spo2Avg);
+        this.pushMetric(metrics, METRIC_TYPE.PULSE_OX_AVG, date, spo2Percent);
+      }
+
+      if (stats.hrvCount > 0) {
+        const hrvAvg = stats.hrvSum / stats.hrvCount;
+        this.pushMetric(metrics, METRIC_TYPE.HRV_LAST_NIGHT_AVG, date, hrvAvg);
+      }
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Map sleep entries to metrics
+   */
+  private mapSleepEntriesToMetrics(
+    entries: SuuntoSleepEntry[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const entry of entries) {
+      const date = this.parseISO8601Date(entry.timestamp);
+      if (!date) continue;
+
+      const data = entry.entryData;
+
+      // Use DateTime if available, otherwise use timestamp
+      const sleepDate = data.DateTime
+        ? this.parseISO8601Date(data.DateTime)
+        : date;
+      if (!sleepDate) continue;
+
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_DURATION,
+        sleepDate,
+        this.secondsToHours(data.Duration),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_DEEP_DURATION,
+        sleepDate,
+        this.secondsToHours(data.DeepSleepDuration),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_LIGHT_DURATION,
+        sleepDate,
+        this.secondsToHours(data.LightSleepDuration),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_REM_DURATION,
+        sleepDate,
+        this.secondsToHours(data.REMSleepDuration),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_AWAKE_DURATION,
+        sleepDate,
+        this.secondsToHours(
+          (data.SleepOnsetLatencyDuration || 0) +
+            (data.WakeAfterSleepOnsetDuration || 0) +
+            (data.WakeBeforeOffBedDuration || 0),
+        ),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.NAP_DURATION,
+        sleepDate,
+        data.IsNap ? this.secondsToHours(data.Duration) : undefined,
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.SLEEP_SCORE,
+        sleepDate,
+        data.SleepQualityScore,
+      );
+      this.pushMetric(metrics, METRIC_TYPE.HR_AVG_DAILY, sleepDate, data.HRAvg);
+      this.pushMetric(metrics, METRIC_TYPE.HR_MIN_DAILY, sleepDate, data.HRMin);
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.PULSE_OX_AVG,
+        sleepDate,
+        this.spo2ToPercentage(data.MaxSpo2),
+      );
+      this.pushMetric(
+        metrics,
+        METRIC_TYPE.HRV_LAST_NIGHT_AVG,
+        sleepDate,
+        data.AvgHRV,
+      );
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Map recovery entries to metrics
+   */
+  private mapRecoveryEntriesToMetrics(
+    entries: SuuntoRecoveryEntry[],
+  ): MetricRecord[] {
+    const metrics: MetricRecord[] = [];
+
+    for (const entry of entries) {
+      const date = this.parseISO8601Date(entry.timestamp);
+      if (!date) continue;
+
+      const data = entry.entryData;
+
+      // Map Balance (0.0-1.0) to a percentage-like metric
+      // Suunto Balance is similar to Body Battery, so we can map it
+      if (data.Balance !== undefined && data.Balance !== null) {
+        // Convert 0.0-1.0 to 0-100 scale
+        const balancePercent = data.Balance * 100;
+        // We don't have a direct equivalent, but we can use BODY_BATTERY_CHARGED as approximation
+        this.pushMetric(
+          metrics,
+          METRIC_TYPE.BODY_BATTERY_CHARGED,
+          date,
+          balancePercent,
+        );
+      }
+
+      // Map StressState (0=Invalid, 1=Relaxing, 2=Active, 3=Passive, 4=Stressful)
+      // We can map this to stress metrics, but Suunto doesn't provide stress levels like Garmin
+      // So we'll skip stress mapping for now
+    }
+
+    return metrics;
+  }
+
+  /**
+   * Save metrics to database
+   */
+  private async saveMetrics(
+    athleteId: number,
+    metrics: MetricRecord[],
+  ): Promise<void> {
+    const validMetrics = metrics.filter(
+      (metric) =>
+        metric.date instanceof Date &&
+        !Number.isNaN(metric.date.getTime()) &&
+        Number.isFinite(metric.value),
+    );
+
+    if (validMetrics.length === 0) {
+      return;
+    }
+
+    await this.prisma.$transaction(
+      validMetrics.map((metric) =>
+        this.prisma.athlete_metric.upsert({
+          where: {
+            athlete_id_type_date: {
+              athlete_id: athleteId,
+              type: metric.type as unknown as metric_type,
+              date: metric.date,
+            },
+          },
+          create: {
+            athlete_id: athleteId,
+            type: metric.type as unknown as metric_type,
+            date: metric.date,
+            value: metric.value,
+          },
+          update: {
+            value: metric.value,
+          },
+        }),
+      ),
+    );
+  }
+
+  /**
+   * Sync metrics from Suunto 247 Data API
+   */
+  async syncMetrics(
+    account: provider_account,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<void> {
+    if (!account.import_metrics_enabled) {
+      this.logger.debug(
+        `Metrics import disabled for Suunto account ${account.provider_account_id}`,
+      );
+      return;
+    }
+
+    const end = endDate || new Date();
+    const start =
+      startDate ||
+      new Date(
+        end.getTime() - this.metricsSyncWindowDays * 24 * 60 * 60 * 1000,
+      );
+
+    this.logger.log(
+      `Syncing Suunto metrics for account ${account.provider_account_id} from ${start.toISOString()} to ${end.toISOString()}`,
+    );
+
+    try {
+      // Fetch all metric types in parallel
+      const [aggregatedStats, activitySamples, sleepData, recoveryData] =
+        await Promise.all([
+          this.fetchDailyActivityStatistics(account, start, end).catch(
+            (err) => {
+              this.logger.warn(
+                `Failed to fetch aggregated activity statistics: ${err instanceof Error ? err.message : String(err)}`,
+              );
+              return [];
+            },
+          ),
+          this.fetchDailyActivitySamples(account, start, end).catch((err) => {
+            this.logger.warn(
+              `Failed to fetch activity samples: ${err instanceof Error ? err.message : String(err)}`,
+            );
+            return [];
+          }),
+          this.fetchSleepData(account, start, end).catch((err) => {
+            this.logger.warn(
+              `Failed to fetch sleep data: ${err instanceof Error ? err.message : String(err)}`,
+            );
+            return [];
+          }),
+          this.fetchRecoveryData(account, start, end).catch((err) => {
+            this.logger.warn(
+              `Failed to fetch recovery data: ${err instanceof Error ? err.message : String(err)}`,
+            );
+            return [];
+          }),
+        ]);
+
+      // Map all data to metrics
+      const allMetrics: MetricRecord[] = [
+        ...this.mapAggregatedActivityToMetrics(aggregatedStats),
+        ...this.mapDailyActivityEntriesToMetrics(activitySamples),
+        ...this.mapSleepEntriesToMetrics(sleepData),
+        ...this.mapRecoveryEntriesToMetrics(recoveryData),
+      ];
+
+      // Save metrics
+      await this.saveMetrics(account.athlete_id, allMetrics);
+
+      this.logger.log(
+        `Successfully synced ${allMetrics.length} Suunto metrics for account ${account.provider_account_id}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Error syncing Suunto metrics for account ${account.provider_account_id}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw error;
     }
   }
 }
