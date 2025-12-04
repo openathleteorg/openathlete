@@ -660,21 +660,27 @@ export class ProviderOAuthController {
     this.logger.log(`Received Suunto webhook request: ${JSON.stringify(body)}`);
 
     const payload = body as SuuntoWebhookPayload;
+    const eventType = payload.type;
 
-    // Check if this is a workout-related webhook
-    // Suunto sends various webhook types (SLEEP, etc.) but we only handle workouts
+    // Handle 247 Data API webhooks (metrics) - these are handled by the service
+    if (eventType?.startsWith('SUUNTO_247_')) {
+      try {
+        await this.suuntoProviderService.handleWebhook(payload);
+        return { success: true, message: '247 webhook processed' };
+      } catch (error) {
+        this.logger.error(
+          `Error processing Suunto 247 webhook: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }
+
+    // Handle workout webhooks
     const workoutKey = payload.workout?.workoutKey || payload.workoutKey;
     if (!workoutKey) {
-      // Check if this is a non-workout event (e.g., SLEEP)
-      const eventType = (payload as { type?: string }).type;
-      if (eventType && !eventType.includes('WORKOUT')) {
-        this.logger.debug(
-          `Suunto webhook for non-workout event (${eventType}), ignoring`,
-        );
-        return { success: true, message: 'Non-workout event ignored' };
-      }
-
-      // If no workoutKey and not a recognized non-workout event, log warning
       this.logger.warn(
         `Suunto webhook missing workoutKey. Payload: ${JSON.stringify(payload)}`,
       );

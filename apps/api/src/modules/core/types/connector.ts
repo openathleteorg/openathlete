@@ -560,7 +560,7 @@ export interface SuuntoWorkoutResponse {
 }
 
 export interface SuuntoWebhookPayload {
-  type: string; // e.g., "WORKOUT_CREATED"
+  type: string; // e.g., "WORKOUT_CREATED", "SUUNTO_247_ACTIVITY_CREATED", "SUUNTO_247_SLEEP_CREATED", "SUUNTO_247_RECOVERY_CREATED"
   username?: string; // Suunto username
   userId?: string; // Alternative user identifier
   workout?: {
@@ -573,6 +573,21 @@ export interface SuuntoWebhookPayload {
   };
   workoutKey?: string; // Fallback: workoutKey can also be at root level
   timestamp?: number;
+  // 247 Data API webhook payloads
+  samples?: Array<
+    | {
+        timestamp: string;
+        entryData: SuuntoDailyActivityEntryData;
+      }
+    | {
+        timestamp: string;
+        entryData: SuuntoSleepEntryData;
+      }
+    | {
+        timestamp: string;
+        entryData: SuuntoRecoveryEntryData;
+      }
+  >;
 }
 
 // Suunto 247 Data API Types

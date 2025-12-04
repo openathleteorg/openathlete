@@ -832,19 +832,17 @@ export class SuuntoProviderService
    * Handle webhook from Suunto
    */
   async handleWebhook(payload: SuuntoWebhookPayload): Promise<void> {
-    // Extract workoutKey from nested structure or root level
+    const eventType = payload.type;
+
+    // Handle 247 Data API webhooks (metrics)
+    if (eventType?.startsWith('SUUNTO_247_')) {
+      await this.handle247Webhook(payload);
+      return;
+    }
+
+    // Handle workout webhooks
     const workoutKey = payload.workout?.workoutKey || payload.workoutKey;
     if (!workoutKey) {
-      // Check if this is a non-workout event (e.g., SLEEP)
-      const eventType = (payload as { type?: string }).type;
-      if (eventType && !eventType.includes('WORKOUT')) {
-        this.logger.debug(
-          `Suunto webhook for non-workout event (${eventType}), ignoring`,
-        );
-        return;
-      }
-
-      // If no workoutKey and not a recognized non-workout event, log warning
       this.logger.warn(
         `Suunto webhook missing workoutKey. Payload: ${JSON.stringify(payload)}`,
       );
@@ -1018,6 +1016,110 @@ export class SuuntoProviderService
     } catch (error) {
       this.logger.error(
         `Error processing Suunto webhook for workoutKey ${workoutKey}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  /**
+   * Handle 247 Data API webhooks (activity, sleep, recovery)
+   */
+  private async handle247Webhook(payload: SuuntoWebhookPayload): Promise<void> {
+    const eventType = payload.type;
+    const userId = payload.userId || payload.username;
+
+    if (!userId) {
+      this.logger.warn(
+        `Suunto 247 webhook missing userId/username. Payload: ${JSON.stringify(payload)}`,
+      );
+      return;
+    }
+
+    // Find account by external_user_id
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        provider: connector_provider.SUUNTO,
+        external_user_id: userId,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      this.logger.warn(
+        `Suunto 247 webhook: No account found for userId/username ${userId}`,
+      );
+      return;
+    }
+
+    if (!account.import_metrics_enabled) {
+      this.logger.debug(
+        `Import metrics disabled for Suunto account ${account.provider_account_id}, skipping 247 webhook`,
+      );
+      return;
+    }
+
+    if (!payload.samples || payload.samples.length === 0) {
+      this.logger.debug(
+        `Suunto 247 webhook: No samples in payload for event ${eventType}`,
+      );
+      return;
+    }
+
+    try {
+      let metrics: MetricRecord[] = [];
+
+      if (eventType === 'SUUNTO_247_ACTIVITY_CREATED') {
+        // Map activity samples to metrics
+        const activityEntries: SuuntoDailyActivityEntry[] = payload.samples
+          .filter(
+            (s) =>
+              'HR' in s.entryData ||
+              'StepCount' in s.entryData ||
+              'EnergyConsumption' in s.entryData,
+          )
+          .map((s) => ({
+            timestamp: s.timestamp,
+            entryData: s.entryData,
+          })) as SuuntoDailyActivityEntry[];
+        metrics = this.mapDailyActivityEntriesToMetrics(activityEntries);
+      } else if (eventType === 'SUUNTO_247_SLEEP_CREATED') {
+        // Map sleep samples to metrics
+        const sleepEntries: SuuntoSleepEntry[] = payload.samples
+          .filter(
+            (s) =>
+              'Duration' in s.entryData || 'SleepQualityScore' in s.entryData,
+          )
+          .map((s) => ({
+            timestamp: s.timestamp,
+            entryData: s.entryData,
+          })) as SuuntoSleepEntry[];
+        metrics = this.mapSleepEntriesToMetrics(sleepEntries);
+      } else if (eventType === 'SUUNTO_247_RECOVERY_CREATED') {
+        // Map recovery samples to metrics
+        const recoveryEntries: SuuntoRecoveryEntry[] = payload.samples
+          .filter(
+            (s) => 'Balance' in s.entryData || 'StressState' in s.entryData,
+          )
+          .map((s) => ({
+            timestamp: s.timestamp,
+            entryData: s.entryData,
+          })) as SuuntoRecoveryEntry[];
+        metrics = this.mapRecoveryEntriesToMetrics(recoveryEntries);
+      } else {
+        this.logger.debug(
+          `Unhandled Suunto 247 webhook event type: ${eventType}`,
+        );
+        return;
+      }
+
+      if (metrics.length > 0) {
+        await this.saveMetrics(account.athlete_id, metrics);
+        this.logger.debug(
+          `Saved ${metrics.length} metrics from Suunto 247 webhook ${eventType} for athlete ${account.athlete_id}`,
+        );
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error processing Suunto 247 webhook ${eventType}: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }

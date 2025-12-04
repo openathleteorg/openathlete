@@ -106,12 +106,9 @@ export class WorkoutSyncListener {
       return;
     }
 
-    const eventEntity = await this.prisma.event.findFirst({
-      where: {
-        training: {
-          event_training_id: workoutRecord.event_training_id,
-        },
-      },
+    // Get event to retrieve name and description
+    const eventEntity = await this.prisma.event.findUnique({
+      where: { event_id: eventId },
       include: {
         training: true,
       },
