@@ -8,7 +8,7 @@ interface P {
 }
 
 export function AuthLayout({ children }: P) {
-  const websiteUrl = process.env.VITE_WEBSITE_URL || '/';
+  const websiteUrl = import.meta.env.VITE_WEBSITE_URL || '/';
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
