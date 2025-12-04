@@ -1,39 +1,269 @@
+import axios, { isAxiosError } from 'axios';
+
 import { Injectable, Logger } from '@nestjs/common';
 
+import { connector_provider, provider_account } from '@openathlete/database';
+
+import { PrismaService } from '../../prisma/services/prisma.service';
+import { createSuuntoGuideZip } from '../mapping/suunto-guide-zip';
+import { mapWorkoutToSuuntoGuide } from '../mapping/suunto-guide.mapper';
+import type { SuuntoGuideResponse } from '../mapping/suunto-guide.types';
 import type {
+  DeletePlannedWorkoutInput,
   ProviderAdapter,
   UpsertPlannedWorkoutInput,
   UpsertPlannedWorkoutResult,
 } from '../provider-adapter.interface';
+import { SuuntoProviderService } from '../providers/suunto.provider.service';
+
+const GUIDES_API_BASE_URL = 'https://cloudapi.suunto.com/v2/guides';
 
 @Injectable()
 export class SuuntoAdapter implements ProviderAdapter {
   private readonly logger = new Logger(SuuntoAdapter.name);
 
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly suuntoProviderService: SuuntoProviderService,
+  ) {}
+
   getProvider(): 'suunto' {
     return 'suunto';
+  }
+
+  /**
+   * Get latest metrics for an athlete
+   */
+  private async getLatestMetricsMap(
+    athleteId: number,
+  ): Promise<Record<string, { value: number }>> {
+    const metrics = await this.prisma.athlete_metric.findMany({
+      where: { athlete_id: athleteId },
+      orderBy: [{ date: 'desc' }],
+    });
+
+    const latest: Record<string, { value: number }> = {};
+    for (const metric of metrics) {
+      if (!latest[metric.type]) {
+        latest[metric.type] = { value: metric.value };
+      }
+    }
+
+    return latest;
   }
 
   async upsertPlannedWorkout(
     input: UpsertPlannedWorkoutInput,
   ): Promise<UpsertPlannedWorkoutResult> {
-    this.logger.debug(
-      `[MOCK] Upserting workout for athlete ${input.athleteId} on ${input.date}`,
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        athlete_id: input.athleteId,
+        provider: connector_provider.SUUNTO,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      throw new Error('No active Suunto account found for athlete');
+    }
+
+    // Get metrics for target calculations
+    const metrics = await this.getLatestMetricsMap(input.athleteId);
+
+    // Map workout to Suunto Guide format
+    const guide = mapWorkoutToSuuntoGuide(
+      input.normalized,
+      input.date,
+      input.workoutId,
+      metrics,
     );
 
-    // Mock implementation: generate a stable external ID based on inputs
-    // In real implementation, this would call Suunto Movescount/Moveslink API
-    const externalId = `suunto_${input.athleteId}_${input.date}_${Date.now()}`;
+    // Validate guide has at least one step (Suunto API requirement)
+    if (!guide.steps || guide.steps.length === 0) {
+      throw new Error('Workout must have at least one step');
+    }
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Create ZIP file
+    const zipBuffer = createSuuntoGuideZip(guide);
 
-    this.logger.debug(`[MOCK] Generated external ID: ${externalId}`);
+    // Create or update guide via API
+    const guideId = input.previousExternalId
+      ? await this.updateGuide(account, input.previousExternalId, zipBuffer)
+      : await this.createGuide(account, zipBuffer);
 
-    return { externalId };
+    return { externalId: guideId };
   }
 
-  async deletePlannedWorkout(): Promise<void> {
-    this.logger.debug('[MOCK] Suunto delete planned workout no-op');
+  /**
+   * Create a new guide via Suunto Guides API
+   */
+  private async createGuide(
+    account: provider_account,
+    zipBuffer: Buffer,
+  ): Promise<string> {
+    return this.suuntoProviderService.makeGuidesApiRequest(
+      account,
+      async (accessToken: string) => {
+        try {
+          const headers =
+            this.suuntoProviderService.getGuidesApiHeaders(accessToken);
+          headers['Content-Type'] = 'application/zip';
+
+          const { data } = await axios.post<SuuntoGuideResponse>(
+            `${GUIDES_API_BASE_URL}/files`,
+            zipBuffer,
+            {
+              headers,
+              maxBodyLength: Infinity,
+              maxContentLength: Infinity,
+            },
+          );
+
+          if (data.error) {
+            throw new Error(
+              `Suunto Guides API error: ${data.error.description || data.error.code}`,
+            );
+          }
+
+          if (!data.payload?.id) {
+            throw new Error('Suunto Guides API returned no guide ID');
+          }
+
+          this.logger.debug(
+            `Created Suunto guide ${data.payload.id} for account ${account.provider_account_id}`,
+          );
+
+          return data.payload.id;
+        } catch (error) {
+          if (isAxiosError(error)) {
+            this.logger.error(
+              `Failed to create Suunto guide: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`,
+            );
+          }
+          throw error;
+        }
+      },
+    );
+  }
+
+  /**
+   * Update an existing guide via Suunto Guides API
+   */
+  private async updateGuide(
+    account: provider_account,
+    guideId: string,
+    zipBuffer: Buffer,
+  ): Promise<string> {
+    return this.suuntoProviderService.makeGuidesApiRequest(
+      account,
+      async (accessToken: string) => {
+        try {
+          const headers =
+            this.suuntoProviderService.getGuidesApiHeaders(accessToken);
+          headers['Content-Type'] = 'application/zip';
+
+          const { data } = await axios.put<SuuntoGuideResponse>(
+            `${GUIDES_API_BASE_URL}/files/${guideId}`,
+            zipBuffer,
+            {
+              headers,
+              maxBodyLength: Infinity,
+              maxContentLength: Infinity,
+            },
+          );
+
+          if (data.error) {
+            throw new Error(
+              `Suunto Guides API error: ${data.error.description || data.error.code}`,
+            );
+          }
+
+          if (!data.payload?.id) {
+            throw new Error('Suunto Guides API returned no guide ID');
+          }
+
+          this.logger.debug(
+            `Updated Suunto guide ${data.payload.id} for account ${account.provider_account_id}`,
+          );
+
+          return data.payload.id;
+        } catch (error) {
+          if (isAxiosError(error)) {
+            // If guide not found, create a new one
+            if (error.response?.status === 404) {
+              this.logger.warn(
+                `Guide ${guideId} not found, creating new guide instead`,
+              );
+              return this.createGuide(account, zipBuffer);
+            }
+
+            this.logger.error(
+              `Failed to update Suunto guide: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`,
+            );
+          }
+          throw error;
+        }
+      },
+    );
+  }
+
+  async deletePlannedWorkout(input: DeletePlannedWorkoutInput): Promise<void> {
+    if (!input.externalId) {
+      this.logger.debug(
+        `No external ID provided for deletion, skipping for athlete ${input.athleteId}`,
+      );
+      return;
+    }
+
+    const account = await this.prisma.provider_account.findFirst({
+      where: {
+        athlete_id: input.athleteId,
+        provider: connector_provider.SUUNTO,
+        status: 'active',
+      },
+    });
+
+    if (!account) {
+      this.logger.warn(
+        `No active Suunto account found for athlete ${input.athleteId}, skipping deletion`,
+      );
+      return;
+    }
+
+    await this.suuntoProviderService.makeGuidesApiRequest(
+      account,
+      async (accessToken: string) => {
+        try {
+          const headers =
+            this.suuntoProviderService.getGuidesApiHeaders(accessToken);
+
+          await axios.delete(
+            `${GUIDES_API_BASE_URL}/files/${input.externalId}`,
+            {
+              headers,
+            },
+          );
+
+          this.logger.debug(
+            `Deleted Suunto guide ${input.externalId} for account ${account.provider_account_id}`,
+          );
+        } catch (error) {
+          if (isAxiosError(error)) {
+            // If guide not found, that's okay - it's already deleted
+            if (error.response?.status === 404) {
+              this.logger.debug(
+                `Guide ${input.externalId} not found, already deleted`,
+              );
+              return;
+            }
+
+            this.logger.error(
+              `Failed to delete Suunto guide ${input.externalId}: ${error.response?.status} ${error.response?.statusText} - ${JSON.stringify(error.response?.data)}`,
+            );
+          }
+          throw error;
+        }
+      },
+    );
   }
 }

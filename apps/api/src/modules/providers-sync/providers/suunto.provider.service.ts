@@ -92,6 +92,33 @@ export class SuuntoProviderService
     return headers;
   }
 
+  /**
+   * Get headers for Suunto Guides API requests
+   * Includes Authorization and Subscription Key (can be in header or query)
+   */
+  getGuidesApiHeaders(accessToken: string): Record<string, string> {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${accessToken}`,
+    };
+
+    // Add subscription key if available (required for Guides API)
+    if (this.subscriptionKey) {
+      headers['Ocp-Apim-Subscription-Key'] = this.subscriptionKey;
+    }
+
+    return headers;
+  }
+
+  /**
+   * Make authenticated request to Suunto Guides API with automatic token refresh
+   */
+  async makeGuidesApiRequest<T>(
+    account: provider_account,
+    requestFn: (accessToken: string) => Promise<T>,
+  ): Promise<T> {
+    return this.makeAuthenticatedRequest(account, requestFn);
+  }
+
   protected get oauthConfig(): OAuthConfig {
     return {
       // Note: Use cloudapi-oauth.suunto.com instead of cloudapi.suunto.com
