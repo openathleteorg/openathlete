@@ -1,3 +1,4 @@
+import { APP_URL } from '@/config';
 import { NextRequest, NextResponse } from 'next/server';
 
 const SUPPORTED_LOCALES = ['en', 'fr'] as const;
@@ -25,6 +26,19 @@ export function middleware(request: NextRequest) {
     SUPPORTED_LOCALES.includes(
       firstSegment as (typeof SUPPORTED_LOCALES)[number],
     );
+
+  // Check if path is /auth/login (with or without locale)
+  const isAuthLogin =
+    pathname === '/auth/login' ||
+    (pathnameHasLocale &&
+      pathSegments.length === 3 &&
+      pathSegments[1] === 'auth' &&
+      pathSegments[2] === 'login');
+
+  // Redirect /auth/login to the web app
+  if (isAuthLogin) {
+    return NextResponse.redirect(`${APP_URL}/auth/login`);
+  }
 
   if (pathnameHasLocale) {
     // Locale is already in path - pass through to [locale] route
