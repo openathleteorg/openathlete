@@ -22,7 +22,9 @@ import { notFound } from 'next/navigation';
 
 import { generateMetadata as generatePageMetadata } from '../metadata';
 
+/* eslint-disable react-refresh/only-export-components */
 export const metadata = generatePageMetadata();
+/* eslint-enable react-refresh/only-export-components */
 
 export default async function HomePage({
   params,

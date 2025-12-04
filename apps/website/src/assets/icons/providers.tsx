@@ -75,17 +75,16 @@ export function CorosLogo({ className }: { className?: string }) {
 
 export function PolarLogo({ className }: { className?: string }) {
   const { resolvedTheme } = useTheme();
+  const logo = resolvedTheme === 'dark' ? polarDarkLogo : polarLogo;
 
-  if (resolvedTheme === 'dark') {
-    return (
-      <img
-        src={polarDarkLogo}
-        alt="Polar"
-        className={className || 'h-6 w-auto'}
-      />
-    );
-  }
   return (
-    <img src={polarLogo} alt="Polar" className={className || 'h-6 w-auto'} />
+    <Image
+      src={logo}
+      alt="Polar"
+      className={className || 'h-6 w-auto'}
+      width={100}
+      height={24}
+      style={{ width: 'auto', height: '100%' }}
+    />
   );
 }

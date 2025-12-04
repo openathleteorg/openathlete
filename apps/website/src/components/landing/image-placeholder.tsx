@@ -13,7 +13,7 @@ interface ImagePlaceholderProps {
   /**
    * When image is ready, replace this component with: <img src="..." alt="..." className="..." />
    */
-  imageSrc?: string | any;
+  imageSrc?: string | { src: string; width?: number; height?: number };
   imageAlt?: string;
   className?: string;
 }

@@ -9,6 +9,7 @@ import './globals.css';
 
 const inter = Inter({ subsets: ['latin'] });
 
+/* eslint-disable react-refresh/only-export-components */
 export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || 'https://openathlete.org',
@@ -74,6 +75,7 @@ export const metadata: Metadata = {
     },
   },
 };
+/* eslint-enable react-refresh/only-export-components */
 
 export default function RootLayout({
   children,

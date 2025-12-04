@@ -4,6 +4,7 @@ import { m } from '@/paraglide/messages';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+/* eslint-disable react-refresh/only-export-components */
 export async function generateMetadata({
   params,
 }: {
@@ -27,6 +28,7 @@ export async function generateMetadata({
     },
   };
 }
+/* eslint-enable react-refresh/only-export-components */
 
 export default async function PrivacyPolicyPage({
   params,
