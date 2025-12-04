@@ -5,6 +5,7 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
+import nextPlugin from '@next/eslint-plugin-next';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -14,6 +15,7 @@ export default tseslint.config(
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
+      '@next/next': nextPlugin,
     },
     languageOptions: {
       parserOptions: {
@@ -33,6 +35,9 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Next.js rules
+      '@next/next/no-html-link-for-pages': 'error',
+      '@next/next/no-img-element': 'warn',
     },
     settings: {
       react: {

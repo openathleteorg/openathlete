@@ -167,7 +167,9 @@ export function RequestAccessModal({
               <Label htmlFor="type">{m.landing_request_access_type()}</Label>
               <Select
                 value={type}
-                onValueChange={(value) => setType(value as 'coach' | 'club')}
+                onValueChange={(value: string) =>
+                  setType(value as 'coach' | 'club')
+                }
                 disabled={isLoading}
               >
                 <SelectTrigger id="type" aria-required="true">

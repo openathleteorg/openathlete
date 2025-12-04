@@ -32,7 +32,7 @@ resource "scaleway_container" "api" {
     DATABASE_URL   = scaleway_secret_version.database_url_v.data
     REDIS_URL      = scaleway_secret_version.redis_url_managed_v.data
     JWT_SECRET_KEY = scaleway_secret_version.jwt_secret_v.data
-    APP_URL        = "https://openathlete.org"
+    APP_URL        = "https://app.openathlete.org"
     BREVO_FROM_EMAIL = "noreply@openathlete.org"
     CORS_ORIGINS    = "https://openathlete.org,https://www.openathlete.org,capacitor://localhost,http://localhost"
     HASH_PEPPER     = "do9721dof29721dof"
