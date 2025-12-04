@@ -38,4 +38,4 @@ next-env.d.ts
 
 # paraglide
 /src/paraglide
-project.inlang
+project.inlang/cache
