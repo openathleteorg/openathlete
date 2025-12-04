@@ -5,4 +5,3 @@ export const getLocaleName = (locale: string) => {
   };
   return localeMap[locale] || locale;
 };
-

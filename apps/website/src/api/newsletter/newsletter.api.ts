@@ -20,4 +20,3 @@ export const NewsletterAPI = {
     return response.data;
   },
 };
-

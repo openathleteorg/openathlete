@@ -9,8 +9,8 @@ import polarDarkLogo from '@/assets/providers/polar_dark.svg';
 import stravaLogo from '@/assets/providers/strava.svg';
 import suuntoLogo from '@/assets/providers/suunto.svg';
 import suuntoDarkLogo from '@/assets/providers/suunto_dark.svg';
-import Image from 'next/image';
 import { useTheme } from 'next-themes';
+import Image from 'next/image';
 
 export function StravaLogo({ className }: { className?: string }) {
   return (
@@ -89,4 +89,3 @@ export function PolarLogo({ className }: { className?: string }) {
     <img src={polarLogo} alt="Polar" className={className || 'h-6 w-auto'} />
   );
 }
-

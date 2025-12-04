@@ -9,8 +9,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const pages = [
     { path: '', priority: 1, changeFrequency: 'weekly' as const },
-    { path: '/privacy-policy', priority: 0.5, changeFrequency: 'monthly' as const },
-    { path: '/legal-notice', priority: 0.5, changeFrequency: 'monthly' as const },
+    {
+      path: '/privacy-policy',
+      priority: 0.5,
+      changeFrequency: 'monthly' as const,
+    },
+    {
+      path: '/legal-notice',
+      priority: 0.5,
+      changeFrequency: 'monthly' as const,
+    },
   ];
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
@@ -18,10 +26,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Generate entries for each page and locale
   for (const page of pages) {
     for (const locale of locales) {
-      const url = locale === 'en' 
-        ? `${baseUrl}${page.path}`
-        : `${baseUrl}/${locale}${page.path}`;
-      
+      const url =
+        locale === 'en'
+          ? `${baseUrl}${page.path}`
+          : `${baseUrl}/${locale}${page.path}`;
+
       sitemapEntries.push({
         url,
         lastModified: now,
@@ -31,10 +40,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
           languages: Object.fromEntries(
             locales.map((loc) => [
               loc,
-              loc === 'en' 
+              loc === 'en'
                 ? `${baseUrl}${page.path}`
                 : `${baseUrl}/${loc}${page.path}`,
-            ])
+            ]),
           ),
         },
       });
@@ -43,4 +52,3 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   return sitemapEntries;
 }
-

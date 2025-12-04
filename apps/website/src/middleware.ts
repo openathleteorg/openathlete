@@ -5,7 +5,7 @@ const DEFAULT_LOCALE = 'en';
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
-  
+
   // Skip middleware for static files, API routes, and Next.js internals
   if (
     pathname.startsWith('/_next') ||
@@ -20,9 +20,11 @@ export function middleware(request: NextRequest) {
   // Check if locale is already in path (must be first segment)
   const pathSegments = pathname.split('/').filter(Boolean);
   const firstSegment = pathSegments[0];
-  const pathnameHasLocale = firstSegment && SUPPORTED_LOCALES.includes(
-    firstSegment as typeof SUPPORTED_LOCALES[number]
-  );
+  const pathnameHasLocale =
+    firstSegment &&
+    SUPPORTED_LOCALES.includes(
+      firstSegment as (typeof SUPPORTED_LOCALES)[number],
+    );
 
   if (pathnameHasLocale) {
     // Locale is already in path - pass through to [locale] route
@@ -40,7 +42,9 @@ export function middleware(request: NextRequest) {
       .map((lang) => lang.split(';')[0].trim().toLowerCase())
       .find((lang) => {
         const langCode = lang.split('-')[0];
-        return SUPPORTED_LOCALES.includes(langCode as typeof SUPPORTED_LOCALES[number]);
+        return SUPPORTED_LOCALES.includes(
+          langCode as (typeof SUPPORTED_LOCALES)[number],
+        );
       });
 
     if (preferredLocale) {
@@ -68,4 +72,3 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
-

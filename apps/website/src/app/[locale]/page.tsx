@@ -1,4 +1,3 @@
-import { WebPageStructuredData } from '@/components/seo/structured-data';
 import {
   Benefits,
   FAQ,
@@ -17,9 +16,11 @@ import {
   Testimonials,
   TopBar,
 } from '@/components/landing/sections';
+import { WebPageStructuredData } from '@/components/seo/structured-data';
 import { SITE_URL } from '@/config';
-import { generateMetadata as generatePageMetadata } from '../metadata';
 import { notFound } from 'next/navigation';
+
+import { generateMetadata as generatePageMetadata } from '../metadata';
 
 export const metadata = generatePageMetadata();
 
@@ -65,4 +66,3 @@ export default async function HomePage({
     </>
   );
 }
-

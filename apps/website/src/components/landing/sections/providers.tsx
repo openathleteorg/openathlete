@@ -4,8 +4,8 @@ import { CorosLogo, GarminLogo, StravaLogo, SuuntoLogo } from '@/assets/icons';
 import { BrandLogo } from '@/components/landing/brand-logo';
 import { Container } from '@/components/landing/container';
 import { Section } from '@/components/landing/section';
-import { cn } from '@/utils/shadcn';
 import { m } from '@/paraglide/messages';
+import { cn } from '@/utils/shadcn';
 import { motion } from 'framer-motion';
 
 export function Providers() {

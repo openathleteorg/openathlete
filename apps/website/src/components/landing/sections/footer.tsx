@@ -10,13 +10,16 @@ import { usePathname } from 'next/navigation';
 export function Footer() {
   const pathname = usePathname();
   const locale = getLocale();
-  
+
   // Extract locale from pathname or use current locale
   const pathSegments = pathname.split('/').filter(Boolean);
-  const currentLocale = pathSegments[0] === 'fr' || pathSegments[0] === 'en' 
-    ? pathSegments[0] 
-    : (locale === 'fr' ? 'fr' : 'en');
-  
+  const currentLocale =
+    pathSegments[0] === 'fr' || pathSegments[0] === 'en'
+      ? pathSegments[0]
+      : locale === 'fr'
+        ? 'fr'
+        : 'en';
+
   // Build localized URLs - always use explicit locale to avoid middleware rewriting
   const getLocalizedPath = (path: string) => {
     return `/${currentLocale}${path}`;
@@ -27,7 +30,10 @@ export function Footer() {
       <Container>
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
           <div className="flex flex-col items-center gap-4 md:flex-row md:gap-6">
-            <Link href={getLocalizedPath('/')} className="flex items-center gap-2">
+            <Link
+              href={getLocalizedPath('/')}
+              className="flex items-center gap-2"
+            >
               <BrandLogo className="h-6 w-auto" />
               <span className="text-lg font-semibold tracking-tight">
                 OpenAthlete

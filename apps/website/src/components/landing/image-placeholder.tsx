@@ -27,7 +27,13 @@ export function ImagePlaceholder({
 }: ImagePlaceholderProps) {
   if (imageSrc) {
     return (
-      <div className={cn('w-full rounded-xl border shadow-lg overflow-hidden', className)} style={{ aspectRatio }}>
+      <div
+        className={cn(
+          'w-full rounded-xl border shadow-lg overflow-hidden',
+          className,
+        )}
+        style={{ aspectRatio }}
+      >
         <Image
           src={imageSrc}
           alt={imageAlt || description}
