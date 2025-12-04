@@ -1,6 +1,5 @@
 import { SITE_URL } from '@/config';
 import type { Metadata } from 'next';
-import { m } from '@/paraglide/messages';
 
 export function generateMetadata(): Metadata {
   return {
