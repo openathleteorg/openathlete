@@ -133,6 +133,13 @@ resource "scaleway_container" "import_worker" {
     GOOGLE_GENERATIVE_AI_API_KEY = scaleway_secret_version.google_generative_ai_api_key_v.data
     STRIPE_SECRET_KEY = scaleway_secret_version.stripe_secret_key_v.data
     STRIPE_WEBHOOK_SECRET = scaleway_secret_version.stripe_webhook_secret_v.data
+    STRIPE_PRICE_IDS = jsonencode({
+      ATHLETE_PRO = "price_1SaHUn2MhXAJduIuQwsD5vj6"
+      COACH_PRO = "price_1SaHUq2MhXAJduIuZGSwvLrN"
+      COACH_ULTRA = "price_1SaHUs2MhXAJduIuOk014F3m"
+      CLUB_PRO = "price_1SaHUu2MhXAJduIu9JSB6s8n"
+      CLUB_ULTRA = "price_1SaHUv2MhXAJduIuwuocgqyX"
+    })
     SUUNTO_CLIENT_ID = "a697bf3e-509b-40fd-9c11-06efb0bdad7d"
     SUUNTO_CLIENT_SECRET = scaleway_secret_version.suunto_client_secret_v.data
     SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
