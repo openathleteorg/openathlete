@@ -40,7 +40,7 @@ export function ActivityStatistics({ event, stream }: P) {
           athleteId={event.athleteId ?? undefined}
         />
       )}
-      {config.showMaxSpeed && event.maxSpeed && (
+      {config.showMaxSpeed && !!event.maxSpeed && (
         <SpeedStat
           label={m.max_speed()}
           speed={event.maxSpeed}
@@ -69,7 +69,7 @@ export function ActivityStatistics({ event, stream }: P) {
           distanceStream={stream?.distance}
         />
       )}
-      {config.showHeartrate && event.averageHeartrate && (
+      {config.showHeartrate && !!event.averageHeartrate && (
         <HeartrateStat
           label={m.average_heart_rate()}
           heartrate={event.averageHeartrate}
@@ -77,7 +77,7 @@ export function ActivityStatistics({ event, stream }: P) {
           athleteId={event.athleteId ?? undefined}
         />
       )}
-      {config.showHeartrate && event.maxHeartrate && (
+      {config.showHeartrate && !!event.maxHeartrate && (
         <HeartrateStat
           label={m.max_heart_rate()}
           heartrate={event.maxHeartrate}
