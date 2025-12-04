@@ -2,6 +2,7 @@
 
 import { BrandLogo } from '@/components/landing/brand-logo';
 import { Container } from '@/components/landing/container';
+import { APP_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import Link from 'next/link';
@@ -26,42 +27,116 @@ export function Footer() {
   };
 
   return (
-    <footer className="border-t bg-muted/30 py-12">
+    <footer className="border-t bg-muted/30 py-16">
       <Container>
-        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <div className="flex flex-col items-center gap-4 md:flex-row md:gap-6">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+          {/* Brand */}
+          <div className="lg:col-span-2">
             <Link
               href={getLocalizedPath('/')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 mb-4"
             >
               <BrandLogo className="h-6 w-auto" />
               <span className="text-lg font-semibold tracking-tight">
                 OpenAthlete
               </span>
             </Link>
-            <nav className="flex gap-4 text-sm text-muted-foreground">
-              <Link
-                href={getLocalizedPath('/legal-notice')}
-                className="hover:text-foreground transition-colors"
-              >
-                {m.landing_footer_legal().split(' · ')[0]}
-              </Link>
-              <Link
-                href={getLocalizedPath('/privacy-policy')}
-                className="hover:text-foreground transition-colors"
-              >
-                {m.landing_footer_legal().split(' · ')[1]}
-              </Link>
-              <a
-                href="mailto:contact@openathlete.org"
-                className="hover:text-foreground transition-colors"
-              >
-                {m.landing_footer_legal().split(' · ')[2]}
-              </a>
-            </nav>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              {m.footer_description()}
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} OpenAthlete. All rights reserved.
+
+          {/* Product */}
+          <div>
+            <h3 className="text-sm font-semibold mb-4">{m.footer_product()}</h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  href={`${APP_URL}/auth/login`}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.login()}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={`${APP_URL}/auth/create-account`}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.footer_signup()}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/#pricing')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.footer_pricing()}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Resources */}
+          <div>
+            <h3 className="text-sm font-semibold mb-4">
+              {m.footer_resources()}
+            </h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  href={getLocalizedPath('/blog')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.blog_title()}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/tools')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.footer_tools()}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
+          <div>
+            <h3 className="text-sm font-semibold mb-4">{m.footer_legal()}</h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  href={getLocalizedPath('/privacy-policy')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.footer_privacy()}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/legal-notice')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.footer_legal_notice()}
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:contact@openathlete.org"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {m.footer_contact()}
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-12 pt-8 border-t">
+          <p className="text-sm text-muted-foreground text-center">
+            © {new Date().getFullYear()} OpenAthlete. {m.footer_rights()}
           </p>
         </div>
       </Container>

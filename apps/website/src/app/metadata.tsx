@@ -3,10 +3,14 @@ import type { Metadata } from 'next';
 
 interface GenerateMetadataOptions {
   locale?: string;
+  title?: string;
+  description?: string;
+  path?: string;
+  keywords?: string[];
 }
 
 export function generateMetadata(options?: GenerateMetadataOptions): Metadata {
-  const { locale = 'en' } = options || {};
+  const { locale = 'en', title: customTitle, description: customDescription, path = '', keywords } = options || {};
 
   // Default metadata (English)
   const defaultTitle = 'OpenAthlete — AI-assisted endurance coaching platform';
@@ -19,15 +23,17 @@ export function generateMetadata(options?: GenerateMetadataOptions): Metadata {
   const frDescription =
     "OpenAthlete est la plateforme de coaching intelligente qui aide les coachs et les athlètes à planifier, analyser et prévenir la fatigue grâce à l'IA. Gagnez du temps, progressez en toute confiance.";
 
-  const title = locale === 'fr' ? frTitle : defaultTitle;
-  const description = locale === 'fr' ? frDescription : defaultDescription;
+  const title = customTitle || (locale === 'fr' ? frTitle : defaultTitle);
+  const description = customDescription || (locale === 'fr' ? frDescription : defaultDescription);
   const ogLocale = locale === 'fr' ? 'fr_FR' : 'en_US';
   const alternateLocale = locale === 'fr' ? 'en_US' : 'fr_FR';
-  const canonicalUrl = locale === 'fr' ? `${SITE_URL}/fr` : SITE_URL;
+  const localePath = locale === 'fr' ? '/fr' : '';
+  const canonicalUrl = `${SITE_URL}${localePath}${path}`;
 
   return {
     title,
     description,
+    ...(keywords && { keywords }),
     openGraph: {
       title,
       description,
