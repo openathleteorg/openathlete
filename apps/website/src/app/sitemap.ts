@@ -90,7 +90,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // Automatically discover all static routes
   // process.cwd() points to the Next.js app root (apps/website)
   const appDir = join(process.cwd(), 'src/app/[locale]');
-  const staticRoutes = scanRoutes(appDir);
+
+  let staticRoutes: string[] = [];
+  try {
+    staticRoutes = scanRoutes(appDir);
+  } catch (error) {
+    console.error('Error scanning routes for sitemap:', error);
+  }
 
   const sitemapEntries: MetadataRoute.Sitemap = [];
 
@@ -124,7 +130,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }
 
   // Add blog posts (dynamic routes)
-  const blogPosts = getAllPosts();
+  let blogPosts: ReturnType<typeof getAllPosts> = [];
+  try {
+    blogPosts = getAllPosts();
+  } catch (error) {
+    console.error('Error getting blog posts for sitemap:', error);
+  }
+
   for (const post of blogPosts) {
     for (const locale of locales) {
       const url =

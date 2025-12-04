@@ -1,7 +1,10 @@
 import { Footer } from '@/components/landing/sections/footer';
 import { Navbar } from '@/components/landing/sections/navbar';
 import { TopBar } from '@/components/landing/sections/topbar';
-import { WebPageStructuredData } from '@/components/seo/structured-data';
+import {
+  SoftwareApplicationStructuredData,
+  WebPageStructuredData,
+} from '@/components/seo/structured-data';
 import { VMACalculator } from '@/components/tools/vma-calculator';
 import { SITE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
@@ -65,6 +68,12 @@ export default async function VMACalculatorPage({
         title={m.tool_vma_title()}
         description={m.tool_vma_description()}
         url={`${SITE_URL}/${locale}/tools/vma`}
+      />
+      <SoftwareApplicationStructuredData
+        name={m.tool_vma_title()}
+        description={m.tool_vma_description()}
+        url={`${SITE_URL}/${locale}/tools/vma`}
+        applicationCategory="HealthApplication"
       />
       <div className="min-h-screen bg-background">
         <TopBar />

@@ -13,6 +13,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/api') ||
     pathname.startsWith('/favicon.ico') ||
     pathname.startsWith('/logo_') ||
+    pathname === '/sitemap.xml' ||
+    pathname === '/robots.txt' ||
     pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|avif)$/)
   ) {
     return NextResponse.next();

@@ -8,7 +8,8 @@ interface StructuredDataProps {
     | 'WebPage'
     | 'FAQPage'
     | 'BreadcrumbList'
-    | 'Article';
+    | 'Article'
+    | 'SoftwareApplication';
   data: Record<string, unknown>;
 }
 
@@ -196,6 +197,57 @@ export function ArticleStructuredData({
         mainEntityOfPage: {
           '@type': 'WebPage',
           '@id': url,
+        },
+        inLanguage: ['en', 'fr'],
+      }}
+    />
+  );
+}
+
+export function SoftwareApplicationStructuredData({
+  name,
+  description,
+  url,
+  applicationCategory = 'HealthApplication',
+  operatingSystem = 'Web',
+  offers = {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'EUR',
+  },
+  aggregateRating,
+}: {
+  name: string;
+  description: string;
+  url: string;
+  applicationCategory?: string;
+  operatingSystem?: string;
+  offers?: {
+    '@type': string;
+    price: string;
+    priceCurrency: string;
+  };
+  aggregateRating?: {
+    '@type': 'AggregateRating';
+    ratingValue: string;
+    ratingCount: string;
+  };
+}) {
+  return (
+    <StructuredData
+      type="SoftwareApplication"
+      data={{
+        name,
+        description,
+        url,
+        applicationCategory,
+        operatingSystem,
+        offers,
+        ...(aggregateRating && { aggregateRating }),
+        publisher: {
+          '@type': 'Organization',
+          name: 'OpenAthlete',
+          url: SITE_URL,
         },
         inLanguage: ['en', 'fr'],
       }}

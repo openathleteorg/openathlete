@@ -5,7 +5,7 @@ import {
   SoftwareApplicationStructuredData,
   WebPageStructuredData,
 } from '@/components/seo/structured-data';
-import { RacePredictor } from '@/components/tools/race-predictor';
+import { HeartRateZones } from '@/components/tools/heart-rate-zones';
 import { SITE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { notFound } from 'next/navigation';
@@ -26,30 +26,30 @@ export async function generateMetadata({
 
   return generatePageMetadata({
     locale,
-    title: m.tool_race_predictor_title(),
-    description: m.tool_race_predictor_description(),
-    path: '/tools/race-predictor',
+    title: m.tool_heart_rate_title(),
+    description: m.tool_heart_rate_description(),
+    path: '/tools/heart-rate-zones',
     keywords: [
-      'race time predictor',
-      'prédicteur temps course',
-      'Riegel formula',
-      'formule Riegel',
-      'marathon time predictor',
-      'prédicteur marathon',
-      'race pace calculator',
-      'calculateur allure course',
-      'running time prediction',
-      'prédiction temps course',
-      'marathon pace',
-      'allure marathon',
-      'half marathon predictor',
-      'prédicteur semi-marathon',
+      'heart rate zones',
+      'zones cardiaques',
+      'Karvonen formula',
+      'formule Karvonen',
+      'heart rate calculator',
+      'calculateur fréquence cardiaque',
+      'training zones',
+      "zones d'entraînement",
+      'target heart rate',
+      'fréquence cardiaque cible',
+      'aerobic base',
+      'endurance fondamentale',
+      'fat burning zone',
+      'zone brûlage graisses',
     ],
   });
 }
 /* eslint-enable react-refresh/only-export-components */
 
-export default async function RacePredictorPage({
+export default async function HeartRateZonesPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -64,21 +64,21 @@ export default async function RacePredictorPage({
   return (
     <>
       <WebPageStructuredData
-        title={m.tool_race_predictor_title()}
-        description={m.tool_race_predictor_description()}
-        url={`${SITE_URL}/${locale}/tools/race-predictor`}
+        title={m.tool_heart_rate_title()}
+        description={m.tool_heart_rate_description()}
+        url={`${SITE_URL}/${locale}/tools/heart-rate-zones`}
       />
       <SoftwareApplicationStructuredData
-        name={m.tool_race_predictor_title()}
-        description={m.tool_race_predictor_description()}
-        url={`${SITE_URL}/${locale}/tools/race-predictor`}
+        name={m.tool_heart_rate_title()}
+        description={m.tool_heart_rate_description()}
+        url={`${SITE_URL}/${locale}/tools/heart-rate-zones`}
         applicationCategory="HealthApplication"
       />
       <div className="min-h-screen bg-background">
         <TopBar />
         <Navbar />
         <main className="py-16">
-          <RacePredictor />
+          <HeartRateZones />
         </main>
         <Footer />
       </div>

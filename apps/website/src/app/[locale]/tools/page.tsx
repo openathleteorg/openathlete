@@ -57,6 +57,11 @@ export default async function ToolsPage({
       title: m.tool_race_predictor_title(),
       description: m.tool_race_predictor_description(),
     },
+    {
+      slug: 'heart-rate-zones',
+      title: m.tool_heart_rate_title(),
+      description: m.tool_heart_rate_description(),
+    },
   ];
 
   return (

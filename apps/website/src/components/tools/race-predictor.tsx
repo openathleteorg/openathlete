@@ -1,6 +1,7 @@
 'use client';
 
 import { Container } from '@/components/landing/container';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -10,11 +11,11 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { m } from '@/paraglide/messages';
+import { TimeInput } from '@/components/ui/time-input';
 import { APP_URL } from '@/config';
-import { useMemo, useState } from 'react';
+import { m } from '@/paraglide/messages';
 import { AlertCircle } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 function parseTime(timeStr: string): number {
   const parts = timeStr.split(':').map(Number);
@@ -79,7 +80,7 @@ function calculatePace(timeSeconds: number, distanceKm: number): number {
 
 export function RacePredictor() {
   const [referenceDistance, setReferenceDistance] = useState<string>('10');
-  const [referenceTime, setReferenceTime] = useState<string>('50:00');
+  const [referenceTime, setReferenceTime] = useState<string>('00:50:00');
   const [targetDistance, setTargetDistance] = useState<string>('42.2');
 
   const referenceTimeSeconds = useMemo(
@@ -142,6 +143,7 @@ export function RacePredictor() {
                 <Input
                   id="reference-distance"
                   type="number"
+                  inputMode="decimal"
                   value={referenceDistance}
                   onChange={(e) => setReferenceDistance(e.target.value)}
                   placeholder="10"
@@ -155,14 +157,11 @@ export function RacePredictor() {
                 <Label htmlFor="reference-time">
                   {m.tool_race_predictor_input_reference_time()}
                 </Label>
-                <Input
+                <TimeInput
                   id="reference-time"
-                  type="text"
                   value={referenceTime}
-                  onChange={(e) => setReferenceTime(e.target.value)}
-                  placeholder="50:00"
+                  onChange={setReferenceTime}
                   className="mt-2"
-                  pattern="[0-9]{1,2}:[0-5][0-9]:[0-5][0-9]"
                 />
               </div>
             </div>
@@ -174,6 +173,7 @@ export function RacePredictor() {
               <Input
                 id="target-distance"
                 type="number"
+                inputMode="decimal"
                 value={targetDistance}
                 onChange={(e) => setTargetDistance(e.target.value)}
                 placeholder="42.2"
@@ -299,4 +299,3 @@ export function RacePredictor() {
     </Container>
   );
 }
-

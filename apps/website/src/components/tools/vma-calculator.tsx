@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { TimeInput } from '@/components/ui/time-input';
 import { m } from '@/paraglide/messages';
 import { useMemo, useState } from 'react';
 
@@ -60,7 +61,7 @@ function calculateTrainingPace(vma: number, percentage: number): number {
 
 export function VMACalculator() {
   const [distance, setDistance] = useState<string>('1400');
-  const [time, setTime] = useState<string>('06:00');
+  const [time, setTime] = useState<string>('00:06:00');
   const [testType, setTestType] = useState<TestType>('demi-cooper');
 
   // Update default values when test type changes
@@ -69,9 +70,9 @@ export function VMACalculator() {
 
     // Set fixed time for time-based tests
     if (newTestType === 'demi-cooper') {
-      setTime('06:00');
+      setTime('00:06:00');
     } else if (newTestType === 'cooper') {
-      setTime('12:00');
+      setTime('00:12:00');
     }
 
     // Set fixed distance for race tests
@@ -151,6 +152,7 @@ export function VMACalculator() {
                 <Input
                   id="distance"
                   type="number"
+                  inputMode="decimal"
                   value={distance}
                   onChange={(e) => setDistance(e.target.value)}
                   placeholder={
@@ -178,20 +180,11 @@ export function VMACalculator() {
 
               <div>
                 <Label htmlFor="time">{m.tool_vma_input_time()}</Label>
-                <Input
+                <TimeInput
                   id="time"
-                  type="text"
                   value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  placeholder={
-                    testType === 'demi-cooper'
-                      ? '06:00'
-                      : testType === 'cooper'
-                        ? '12:00'
-                        : '00:00:00'
-                  }
+                  onChange={setTime}
                   className="mt-2"
-                  pattern="[0-9]{1,2}:[0-5][0-9]:[0-5][0-9]"
                   disabled={testType === 'demi-cooper' || testType === 'cooper'}
                 />
                 {testType === 'demi-cooper' && (
