@@ -422,7 +422,11 @@ export function mapWorkoutToSuuntoGuide(
 ): SuuntoGuide {
   const activityIds = mapSportToSuuntoActivityIds(workout.sport);
   const workoutName = truncateText(workout.title || 'Workout', 60);
-  const description = truncateText(workout.description, 256);
+  // Description is required (min 1 char), use workout name if description is empty
+  const description = truncateText(
+    workout.description || workout.title || 'Workout',
+    256,
+  );
   const shortDescription = truncateText(workout.title || 'Workout', 23);
   const richText = workout.description
     ? truncateText(workout.description, 100000)

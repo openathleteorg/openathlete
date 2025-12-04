@@ -106,11 +106,22 @@ export class WorkoutSyncListener {
       return;
     }
 
+    const eventEntity = await this.prisma.event.findFirst({
+      where: {
+        training: {
+          event_training_id: workoutRecord.event_training_id,
+        },
+      },
+      include: {
+        training: true,
+      },
+    });
+
     const workoutDto = mapPrismaWorkoutToDto(workoutRecord);
     const normalized = normalizeWorkoutForExport({
       sport: sport as SPORT_TYPE,
-      title: null, // We don't store title separately in event
-      description: null, // We don't store description separately
+      title: eventEntity?.name || null,
+      description: eventEntity?.training?.description || null,
       workout: workoutDto,
     });
 

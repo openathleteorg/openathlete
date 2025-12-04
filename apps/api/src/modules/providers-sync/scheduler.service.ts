@@ -204,8 +204,8 @@ export class ProviderExportScheduler {
           const workoutDto = mapPrismaWorkoutToDto(event.training.workout);
           const normalized = normalizeWorkoutForExport({
             sport: event.training.sport as SPORT_TYPE,
-            title: null,
-            description: null,
+            title: event.name,
+            description: event.training.description,
             workout: workoutDto,
           });
 

@@ -835,6 +835,16 @@ export class SuuntoProviderService
     // Extract workoutKey from nested structure or root level
     const workoutKey = payload.workout?.workoutKey || payload.workoutKey;
     if (!workoutKey) {
+      // Check if this is a non-workout event (e.g., SLEEP)
+      const eventType = (payload as { type?: string }).type;
+      if (eventType && !eventType.includes('WORKOUT')) {
+        this.logger.debug(
+          `Suunto webhook for non-workout event (${eventType}), ignoring`,
+        );
+        return;
+      }
+
+      // If no workoutKey and not a recognized non-workout event, log warning
       this.logger.warn(
         `Suunto webhook missing workoutKey. Payload: ${JSON.stringify(payload)}`,
       );
