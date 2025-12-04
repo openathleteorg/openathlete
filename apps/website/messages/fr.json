@@ -187,5 +187,15 @@
   "landing_providers_subtitle": "OpenAthlete importe automatiquement vos activités et exporte les séances sur votre montre ou votre compteur.",
   "landing_how_step_label": "Étape {num}",
   "login": "Connexion",
-  "language_switcher_label": "Changer de langue"
+  "language_switcher_label": "Changer de langue",
+  "blog_title": "Blog",
+  "blog_description": "Derniers articles sur le coaching d'endurance, l'IA et les insights d'entraînement",
+  "blog_read_more": "Lire la suite",
+  "blog_read_time": "{minutes} min de lecture",
+  "blog_published_on": "Publié le",
+  "blog_updated_on": "Mis à jour le",
+  "blog_back_to_blog": "Retour au blog",
+  "blog_related_articles": "Articles similaires",
+  "blog_no_articles": "Aucun article trouvé",
+  "blog_by_author": "Par {author}"
 }

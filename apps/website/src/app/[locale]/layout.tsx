@@ -1,3 +1,4 @@
+import { HtmlLang } from '@/components/seo/html-lang';
 import { setLocale } from '@/paraglide/runtime.js';
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
@@ -21,8 +22,25 @@ export default async function LocaleLayout({
   // Set locale for Paraglide (server-side)
   setLocale(locale);
 
+  // Map locale to HTML lang attribute
+  const htmlLang = locale === 'fr' ? 'fr' : 'en';
+
   return (
     <>
+      {/* Set HTML lang attribute synchronously before React renders */}
+      <Script
+        id="set-html-lang"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function() {
+              if (typeof document !== 'undefined') {
+                document.documentElement.lang = '${htmlLang}';
+              }
+            })();
+          `,
+        }}
+      />
       {/* Set locale synchronously before React renders */}
       <Script
         id="set-locale"
@@ -37,6 +55,8 @@ export default async function LocaleLayout({
           `,
         }}
       />
+      {/* Client-side fallback for lang attribute */}
+      <HtmlLang locale={locale} />
       <Providers locale={locale}>{children}</Providers>
     </>
   );

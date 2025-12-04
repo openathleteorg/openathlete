@@ -187,5 +187,15 @@
   "landing_providers_subtitle": "OpenAthlete automatically imports your activities and exports workouts to your watch or bike computer.",
   "landing_how_step_label": "Step {num}",
   "login": "Login",
-  "language_switcher_label": "Switch language"
+  "language_switcher_label": "Switch language",
+  "blog_title": "Blog",
+  "blog_description": "Latest articles about endurance coaching, AI, and training insights",
+  "blog_read_more": "Read more",
+  "blog_read_time": "{minutes} min read",
+  "blog_published_on": "Published on",
+  "blog_updated_on": "Updated on",
+  "blog_back_to_blog": "Back to blog",
+  "blog_related_articles": "Related articles",
+  "blog_no_articles": "No articles found",
+  "blog_by_author": "By {author}"
 }

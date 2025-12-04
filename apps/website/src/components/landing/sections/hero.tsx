@@ -56,7 +56,8 @@ export function Hero() {
           {/* Hero Image - Dashboard screenshot or platform overview */}
           <div className="mt-20">
             <ImagePlaceholder
-              description="Screenshot du tableau de bord principal OpenAthlete montrant un aperçu de la plateforme : calendrier d'entraînement, métriques de charge, alertes de fatigue. Vue d'ensemble moderne et claire, ton professionnel."
+              description="OpenAthlete dashboard showing training calendar, load metrics, and fatigue alerts"
+              imageAlt="OpenAthlete platform dashboard overview with training calendar, load metrics, and fatigue prevention alerts"
               aspectRatio="16/9"
               imageSrc={heroImage}
             />

@@ -23,7 +23,14 @@ import { notFound } from 'next/navigation';
 import { generateMetadata as generatePageMetadata } from '../metadata';
 
 /* eslint-disable react-refresh/only-export-components */
-export const metadata = generatePageMetadata();
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  return generatePageMetadata({ locale });
+}
 /* eslint-enable react-refresh/only-export-components */
 
 export default async function HomePage({
@@ -61,7 +68,7 @@ export default async function HomePage({
         <PilotResults />
         <Testimonials />
         <Pricing />
-        <FAQ />
+        <FAQ locale={locale} />
         <FinalCTA />
         <Footer />
       </div>

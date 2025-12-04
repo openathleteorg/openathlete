@@ -39,10 +39,17 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             <Button variant="ghost" asChild>
-              <a href="#how-it-works">{m.landing_hero_cta_secondary()}</a>
+              <Link href={`/${currentLocale}/blog`}>{m.blog_title()}</Link>
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link href={`/${currentLocale}/#how-it-works`}>
+                {m.landing_hero_cta_secondary()}
+              </Link>
             </Button>
             <Button asChild>
-              <Link href={`${APP_URL}/auth/login`}>{m.login()}</Link>
+              <Link href={`${APP_URL}/auth/login`} target="_self">
+                {m.login()}
+              </Link>
             </Button>
             <LanguageSwitcher />
           </div>

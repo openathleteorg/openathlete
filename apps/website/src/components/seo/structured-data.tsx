@@ -2,7 +2,13 @@ import { SITE_URL } from '@/config';
 import Script from 'next/script';
 
 interface StructuredDataProps {
-  type: 'Organization' | 'WebSite' | 'WebPage';
+  type:
+    | 'Organization'
+    | 'WebSite'
+    | 'WebPage'
+    | 'FAQPage'
+    | 'BreadcrumbList'
+    | 'Article';
   data: Record<string, unknown>;
 }
 
@@ -90,6 +96,108 @@ export function WebPageStructuredData({
           name: 'OpenAthlete',
           url: SITE_URL,
         },
+      }}
+    />
+  );
+}
+
+export function FAQPageStructuredData({
+  faqs,
+  url,
+}: {
+  faqs: Array<{ question: string; answer: string }>;
+  url: string;
+}) {
+  return (
+    <StructuredData
+      type="FAQPage"
+      data={{
+        mainEntity: faqs.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+        url,
+        inLanguage: ['en', 'fr'],
+      }}
+    />
+  );
+}
+
+export function BreadcrumbListStructuredData({
+  items,
+}: {
+  items: Array<{ name: string; url: string }>;
+}) {
+  return (
+    <StructuredData
+      type="BreadcrumbList"
+      data={{
+        itemListElement: items.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: item.url,
+        })),
+      }}
+    />
+  );
+}
+
+export function ArticleStructuredData({
+  title,
+  description,
+  url,
+  publishedAt,
+  updatedAt,
+  author,
+  image,
+}: {
+  title: string;
+  description: string;
+  url: string;
+  publishedAt: string;
+  updatedAt?: string;
+  author: { name: string; email?: string };
+  image?: string;
+}) {
+  return (
+    <StructuredData
+      type="Article"
+      data={{
+        headline: title,
+        description,
+        url,
+        datePublished: publishedAt,
+        dateModified: updatedAt || publishedAt,
+        author: {
+          '@type': 'Person',
+          name: author.name,
+          ...(author.email && { email: author.email }),
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'OpenAthlete',
+          url: SITE_URL,
+          logo: {
+            '@type': 'ImageObject',
+            url: `${SITE_URL}/logo_dark.png`,
+          },
+        },
+        ...(image && {
+          image: {
+            '@type': 'ImageObject',
+            url: image.startsWith('http') ? image : `${SITE_URL}${image}`,
+          },
+        }),
+        mainEntityOfPage: {
+          '@type': 'WebPage',
+          '@id': url,
+        },
+        inLanguage: ['en', 'fr'],
       }}
     />
   );
