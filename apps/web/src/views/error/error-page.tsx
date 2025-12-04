@@ -1,4 +1,3 @@
-import { BrandLogo } from '@/components/landing/brand-logo';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
@@ -30,7 +29,6 @@ export function ErrorPage({ code, title, description }: ErrorPageProps) {
   return (
     <section className="flex min-h-[60vh] flex-col items-center justify-center px-6 py-20">
       <div className="flex w-full max-w-md flex-col items-center gap-6 text-center">
-        <BrandLogo className="h-12 w-auto" />
         <div className="space-y-3">
           <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
             {code}

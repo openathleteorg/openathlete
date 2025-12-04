@@ -819,6 +819,12 @@ export class EventService {
     await this.prisma.record.deleteMany({
       where: { event_activity: { event: { event_id: eventId } } },
     });
+    await this.prisma.activity_feedback_question.deleteMany({
+      where: { activity: { event_id: eventId } },
+    });
+    await this.prisma.activity_feedback_embedding.deleteMany({
+      where: { activity: { event_id: eventId } },
+    });
     await this.prisma.event_activity.deleteMany({
       where: { event_id: eventId },
     });
