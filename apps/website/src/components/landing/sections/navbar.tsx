@@ -42,7 +42,7 @@ export function Navbar() {
               <a href="#how-it-works">{m.landing_hero_cta_secondary()}</a>
             </Button>
             <Button asChild>
-              <Link href={`${APP_URL}/login`}>{m.login()}</Link>
+              <Link href={`${APP_URL}/auth/login`}>{m.login()}</Link>
             </Button>
             <LanguageSwitcher />
           </div>
