@@ -131,3 +131,23 @@ resource "scaleway_secret_version" "stripe_webhook_secret_v" {
   secret_id = scaleway_secret.stripe_webhook_secret.id
   data      = var.stripe_webhook_secret
 }
+
+resource "scaleway_secret" "suunto_client_secret" {
+  name        = "${var.app_name}-SUUNTO_CLIENT_SECRET"
+  description = "Suunto client secret for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "suunto_client_secret_v" {
+  secret_id = scaleway_secret.suunto_client_secret.id
+  data      = var.suunto_client_secret
+}
+
+resource "scaleway_secret" "suunto_subscription_key" {
+  name        = "${var.app_name}-SUUNTO_SUBSCRIPTION_KEY"
+  description = "Suunto subscription key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "suunto_subscription_key_v" {
+  secret_id = scaleway_secret.suunto_subscription_key.id
+  data      = var.suunto_subscription_key
+}

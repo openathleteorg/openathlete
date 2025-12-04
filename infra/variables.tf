@@ -145,3 +145,15 @@ variable "stripe_webhook_secret" {
   type        = string
   sensitive   = true
 }
+
+variable "suunto_client_secret" {
+  description = "Suunto client secret for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "suunto_subscription_key" {
+  description = "Suunto subscription key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

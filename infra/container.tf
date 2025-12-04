@@ -65,6 +65,10 @@ resource "scaleway_container" "api" {
       CLUB_ULTRA = "price_1SaHUv2MhXAJduIuwuocgqyX"
     })
     STRIPE_WEBHOOK_SECRET = scaleway_secret_version.stripe_webhook_secret_v.data
+    SUUNTO_CLIENT_ID = "a697bf3e-509b-40fd-9c11-06efb0bdad7d"
+    SUUNTO_CLIENT_SECRET = scaleway_secret_version.suunto_client_secret_v.data
+    SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
+    SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
   }
 
   depends_on = [
@@ -80,7 +84,9 @@ resource "scaleway_container" "api" {
     scaleway_secret_version.polar_webhook_secret_key_v,
     scaleway_secret_version.google_generative_ai_api_key_v,
     scaleway_secret_version.stripe_secret_key_v,
-    scaleway_secret_version.stripe_webhook_secret_v
+    scaleway_secret_version.stripe_webhook_secret_v,
+    scaleway_secret_version.suunto_client_secret_v,
+    scaleway_secret_version.suunto_subscription_key_v
   ]
 }
 
@@ -127,6 +133,10 @@ resource "scaleway_container" "import_worker" {
     GOOGLE_GENERATIVE_AI_API_KEY = scaleway_secret_version.google_generative_ai_api_key_v.data
     STRIPE_SECRET_KEY = scaleway_secret_version.stripe_secret_key_v.data
     STRIPE_WEBHOOK_SECRET = scaleway_secret_version.stripe_webhook_secret_v.data
+    SUUNTO_CLIENT_ID = "a697bf3e-509b-40fd-9c11-06efb0bdad7d"
+    SUUNTO_CLIENT_SECRET = scaleway_secret_version.suunto_client_secret_v.data
+    SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
+    SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
   }
 
   depends_on = [
@@ -141,7 +151,9 @@ resource "scaleway_container" "import_worker" {
     scaleway_secret_version.polar_webhook_secret_key_v,
     scaleway_secret_version.google_generative_ai_api_key_v,
     scaleway_secret_version.stripe_secret_key_v,
-    scaleway_secret_version.stripe_webhook_secret_v
+    scaleway_secret_version.stripe_webhook_secret_v,
+    scaleway_secret_version.suunto_client_secret_v,
+    scaleway_secret_version.suunto_subscription_key_v
   ]
 }
 
