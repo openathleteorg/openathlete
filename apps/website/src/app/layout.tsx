@@ -74,6 +74,15 @@ export const metadata: Metadata = {
       'x-default': 'https://openathlete.org',
     },
   },
+  icons: {
+    icon: [
+      { url: '/favicon.png', type: 'image/png' },
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 /* eslint-enable react-refresh/only-export-components */
 
