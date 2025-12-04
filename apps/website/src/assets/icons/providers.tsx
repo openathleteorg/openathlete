@@ -20,7 +20,6 @@ export function StravaLogo({ className }: { className?: string }) {
       className={className || 'h-6 w-auto'}
       width={100}
       height={24}
-      style={{ width: 'auto', height: '100%' }}
     />
   );
 }
@@ -36,7 +35,6 @@ export function GarminLogo({ className }: { className?: string }) {
       className={className || 'h-6 w-auto'}
       width={100}
       height={24}
-      style={{ width: 'auto', height: '100%' }}
     />
   );
 }
@@ -52,7 +50,6 @@ export function SuuntoLogo({ className }: { className?: string }) {
       className={className || 'h-6 w-auto'}
       width={100}
       height={24}
-      style={{ width: 'auto', height: '100%' }}
     />
   );
 }
@@ -68,7 +65,7 @@ export function CorosLogo({ className }: { className?: string }) {
       className={className || 'h-6 w-auto'}
       width={100}
       height={40}
-      style={{ width: 'auto', height: '100%', objectFit: 'contain' }}
+      style={{ objectFit: 'contain' }}
     />
   );
 }
