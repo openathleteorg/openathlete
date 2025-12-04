@@ -11,6 +11,7 @@
   },
   "scripts": {
     "web": "pnpm --filter \"@openathlete/web\"",
+    "website": "pnpm --filter \"@openathlete/website\"",
     "api": "pnpm --filter \"@openathlete/api\"",
     "shared": "pnpm --filter \"@openathlete/shared\"",
     "database": "pnpm --filter \"@openathlete/database\"",
