@@ -1,5 +1,5 @@
 import { cn } from '@/utils/shadcn';
-import Image from 'next/image';
+import Image, { type StaticImageData } from 'next/image';
 
 interface ImagePlaceholderProps {
   /**
@@ -13,7 +13,7 @@ interface ImagePlaceholderProps {
   /**
    * When image is ready, replace this component with: <img src="..." alt="..." className="..." />
    */
-  imageSrc?: string | { src: string; width?: number; height?: number };
+  imageSrc?: string | StaticImageData;
   imageAlt?: string;
   className?: string;
 }
