@@ -13,6 +13,7 @@ import { cn } from '@/utils/shadcn';
 interface PricingCardProps {
   name: string;
   price: string;
+  priceLabel?: string;
   perks: string[];
   highlighted?: boolean;
   badge?: string;
@@ -23,17 +24,22 @@ interface PricingCardProps {
 export function PricingCard({
   name,
   price,
+  priceLabel,
   perks,
   highlighted = false,
   badge,
   onCtaClick,
   className,
 }: PricingCardProps) {
+  const isFree = price.toLowerCase() === 'free' || price.toLowerCase() === 'gratuit';
+  const isContact = price === 'Contact us' || price === 'Sur devis';
+
   return (
     <Card
       className={cn(
-        'h-full flex flex-col relative',
-        highlighted && 'border-primary shadow-lg',
+        'h-full flex flex-col relative transition-all',
+        highlighted && 'border-primary shadow-lg scale-105',
+        !highlighted && 'hover:shadow-md',
         className,
       )}
     >
@@ -45,14 +51,26 @@ export function PricingCard({
       <CardHeader>
         <CardTitle className="text-xl">{name}</CardTitle>
         <div className="mt-2">
-          <span className="text-3xl font-bold">{price}</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-bold">{price}</span>
+            {isFree && (
+              <span className="text-sm text-muted-foreground">
+                {m.landing_pricing_forever()}
+              </span>
+            )}
+            {priceLabel && !isFree && (
+              <span className="text-sm text-muted-foreground">
+                {priceLabel}
+              </span>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent className="flex-1">
         <ul className="space-y-3">
           {perks.map((perk, index) => (
             <li key={index} className="flex items-start gap-2">
-              <span className="text-primary -mt-0.5">✓</span>
+              <span className="text-primary -mt-0.5 font-bold">✓</span>
               <span className="text-sm text-muted-foreground">{perk}</span>
             </li>
           ))}
@@ -63,10 +81,13 @@ export function PricingCard({
           variant={highlighted ? 'default' : 'outline'}
           className="w-full"
           onClick={onCtaClick}
+          disabled={isContact}
         >
-          {price === 'Contact us' || price === 'Sur devis'
+          {isContact
             ? m.landing_pricing_contact_us()
-            : m.landing_pricing_get_started()}
+            : isFree
+              ? m.landing_pricing_get_started()
+              : m.landing_pricing_get_started()}
         </Button>
       </CardFooter>
     </Card>
