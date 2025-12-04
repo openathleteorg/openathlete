@@ -74,8 +74,9 @@ export const article1: BlogPost = {
         <p>
           We're currently in beta and working with select coaches and athletes
           to refine our platform. If you're interested in joining our beta
-          program, <a href="#request-access">request access</a> and help shape
-          the future of endurance coaching.
+          program,{' '}
+          <a href="https://app.openathlete.org/auth/create-account">sign up</a>{' '}
+          and help shape the future of endurance coaching.
         </p>
       </div>
     );
@@ -138,8 +139,10 @@ export const article1: BlogPost = {
           Nous sommes actuellement en phase bêta et travaillons avec des coachs
           et des athlètes sélectionnés pour affiner notre plateforme. Si vous
           êtes intéressé à rejoindre notre programme bêta,{' '}
-          <a href="#request-access">demandez l'accès</a> et aidez à façonner
-          l'avenir du coaching d'endurance.
+          <a href="https://app.openathlete.org/auth/create-account">
+            inscrivez-vous
+          </a>{' '}
+          et aidez à façonner l'avenir du coaching d'endurance.
         </p>
       </div>
     );

@@ -71,7 +71,6 @@ export async function generateMetadata({
     },
   };
 }
-/* eslint-enable react-refresh/only-export-components */
 
 export async function generateStaticParams() {
   const posts = getAllPosts();
@@ -161,112 +160,112 @@ export default async function BlogPostPage({
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="py-12">
-        <Container>
-          <div className="mx-auto max-w-3xl">
-            <Link
-              href={`/${locale}/blog`}
-              className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              {m.blog_back_to_blog()}
-            </Link>
+          <Container>
+            <div className="mx-auto max-w-3xl">
+              <Link
+                href={`/${locale}/blog`}
+                className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                {m.blog_back_to_blog()}
+              </Link>
 
-            <article>
-              <header className="mb-8">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                  {title}
-                </h1>
-                <p className="mt-4 text-xl text-muted-foreground">
-                  {description}
-                </p>
-                <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <time dateTime={post.metadata.publishedAt}>
-                      {m.blog_published_on()} {publishedDate}
-                    </time>
-                  </div>
-                  {updatedDate && (
+              <article>
+                <header className="mb-8">
+                  <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+                    {title}
+                  </h1>
+                  <p className="mt-4 text-xl text-muted-foreground">
+                    {description}
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      <time dateTime={post.metadata.updatedAt!}>
-                        {m.blog_updated_on()} {updatedDate}
+                      <time dateTime={post.metadata.publishedAt}>
+                        {m.blog_published_on()} {publishedDate}
                       </time>
                     </div>
-                  )}
-                  {post.metadata.readingTime && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
+                    {updatedDate && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <time dateTime={post.metadata.updatedAt!}>
+                          {m.blog_updated_on()} {updatedDate}
+                        </time>
+                      </div>
+                    )}
+                    {post.metadata.readingTime && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        <span>
+                          {m.blog_read_time({
+                            minutes: post.metadata.readingTime,
+                          })}
+                        </span>
+                      </div>
+                    )}
+                    {post.metadata.author && (
                       <span>
-                        {m.blog_read_time({
-                          minutes: post.metadata.readingTime,
+                        {m.blog_by_author({
+                          author: post.metadata.author.name,
                         })}
                       </span>
+                    )}
+                  </div>
+                  {post.metadata.tags && post.metadata.tags.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {post.metadata.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   )}
-                  {post.metadata.author && (
-                    <span>
-                      {m.blog_by_author({
-                        author: post.metadata.author.name,
-                      })}
-                    </span>
-                  )}
+                </header>
+
+                <div className="prose prose-neutral dark:prose-invert max-w-none">
+                  {locale === 'fr' ? <post.ContentFr /> : <post.ContentEn />}
                 </div>
-                {post.metadata.tags && post.metadata.tags.length > 0 && (
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {post.metadata.tags.map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+              </article>
+
+              {relatedPosts.length > 0 && (
+                <aside className="mt-16 border-t pt-12">
+                  <h2 className="text-2xl font-bold mb-6">
+                    {m.blog_related_articles()}
+                  </h2>
+                  <div className="space-y-4">
+                    {relatedPosts.map((relatedPost) => {
+                      const relatedTitle =
+                        locale === 'fr'
+                          ? relatedPost.metadata.title.fr
+                          : relatedPost.metadata.title.en;
+                      const relatedExcerpt =
+                        locale === 'fr'
+                          ? relatedPost.metadata.excerpt.fr
+                          : relatedPost.metadata.excerpt.en;
+
+                      return (
+                        <Link
+                          key={relatedPost.metadata.slug}
+                          href={`/${locale}/blog/${relatedPost.metadata.slug}`}
+                          className="block rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                        >
+                          <h3 className="font-semibold text-lg">
+                            {relatedTitle}
+                          </h3>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            {relatedExcerpt}
+                          </p>
+                        </Link>
+                      );
+                    })}
                   </div>
-                )}
-              </header>
-
-              <div className="prose prose-neutral dark:prose-invert max-w-none">
-                {locale === 'fr' ? <post.ContentFr /> : <post.ContentEn />}
-              </div>
-            </article>
-
-            {relatedPosts.length > 0 && (
-              <aside className="mt-16 border-t pt-12">
-                <h2 className="text-2xl font-bold mb-6">
-                  {m.blog_related_articles()}
-                </h2>
-                <div className="space-y-4">
-                  {relatedPosts.map((relatedPost) => {
-                    const relatedTitle =
-                      locale === 'fr'
-                        ? relatedPost.metadata.title.fr
-                        : relatedPost.metadata.title.en;
-                    const relatedExcerpt =
-                      locale === 'fr'
-                        ? relatedPost.metadata.excerpt.fr
-                        : relatedPost.metadata.excerpt.en;
-
-                    return (
-                      <Link
-                        key={relatedPost.metadata.slug}
-                        href={`/${locale}/blog/${relatedPost.metadata.slug}`}
-                        className="block rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
-                      >
-                        <h3 className="font-semibold text-lg">
-                          {relatedTitle}
-                        </h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {relatedExcerpt}
-                        </p>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </aside>
-            )}
-          </div>
-        </Container>
+                </aside>
+              )}
+            </div>
+          </Container>
         </div>
         <Footer />
       </div>
