@@ -44,8 +44,8 @@ const providerSpecificCapabilities: Partial<
   SUUNTO: {
     importActivities: true,
     exportWorkouts: true,
-    importMetrics: false,
-    supportsFullImport: false,
+    importMetrics: true,
+    supportsFullImport: true,
   },
   COROS: {
     importActivities: true,

@@ -33,6 +33,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import {
   GarminHealthPingPayload,
   PolarWebhookPayload,
+  SuuntoWebhookPayload,
 } from '../../core/types/connector';
 import { FullImportResult } from '../base/base-provider.service';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
@@ -154,12 +155,17 @@ export class ProviderOAuthController {
       case connector_provider.SUUNTO: {
         const tokenResponse =
           await this.suuntoProviderService.exchangeCodeForTokens(code);
+        // Try to get user ID from token (JWT decode)
+        const externalUserId = await this.suuntoProviderService.getUserId(
+          tokenResponse.access_token,
+        );
         return this.suuntoProviderService.saveProviderAccount({
           athleteId: athlete.athlete_id,
           accessToken: tokenResponse.access_token,
           refreshToken: tokenResponse.refresh_token || '',
           expiresIn: tokenResponse.expires_in,
           scopes: tokenResponse.scope,
+          externalUserId: externalUserId || undefined,
         });
       }
       case connector_provider.COROS: {
@@ -207,6 +213,17 @@ export class ProviderOAuthController {
         // Log error but continue with revocation
         // Token might already be expired or invalid
         console.error('Failed to delete Garmin user registration:', error);
+      }
+    }
+
+    // For Suunto, call deauthorize API before revoking
+    if (providerEnum === connector_provider.SUUNTO && account.access_token) {
+      try {
+        await this.suuntoProviderService.deauthorize(account.access_token);
+      } catch (error) {
+        // Log error but continue with revocation
+        // Token might already be expired or invalid
+        console.error('Failed to deauthorize Suunto:', error);
       }
     }
 
@@ -381,6 +398,10 @@ export class ProviderOAuthController {
         case connector_provider.POLAR:
           importResult =
             await this.polarProviderService.queueFullImport(account);
+          break;
+        case connector_provider.SUUNTO:
+          importResult =
+            await this.suuntoProviderService.queueFullImport(account);
           break;
         default:
           throw new BadRequestException(
@@ -622,6 +643,39 @@ export class ProviderOAuthController {
         error instanceof Error ? error.stack : undefined,
       );
       throw error;
+    }
+  }
+
+  /**
+   * Suunto webhook handler (POST)
+   * Handles workout notifications from Suunto
+   * Webhook URL: POST /provider/suunto/webhook
+   */
+  @Post('suunto/webhook')
+  async suuntoWebhook(@Body() body: unknown) {
+    this.logger.log(`Received Suunto webhook request: ${JSON.stringify(body)}`);
+
+    const payload = body as SuuntoWebhookPayload;
+
+    if (!payload.workoutKey) {
+      this.logger.warn('Suunto webhook missing workoutKey');
+      return {
+        success: false,
+        error: 'Missing workoutKey in webhook payload',
+      };
+    }
+
+    try {
+      await this.suuntoProviderService.handleWebhook(payload);
+      return { success: true };
+    } catch (error) {
+      this.logger.error(
+        `Error processing Suunto webhook: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
     }
   }
 

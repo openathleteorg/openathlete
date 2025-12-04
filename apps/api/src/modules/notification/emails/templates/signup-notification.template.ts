@@ -63,4 +63,3 @@ export function buildSignupNotificationEmail({
     contentHtml: content,
   });
 }
-

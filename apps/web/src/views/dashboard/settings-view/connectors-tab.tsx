@@ -7,7 +7,7 @@ import {
   useUpdateProviderPreferencesMutation,
 } from '@/api/provider';
 import { GarminLogo, StravaIcon } from '@/assets/icons';
-import { PolarLogo } from '@/assets/icons/providers';
+import { PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
 import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,8 +44,8 @@ import { SettingsSection } from './settings-section';
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
   'GARMIN',
+  'SUUNTO',
   'POLAR',
-  // 'SUUNTO',
   // 'COROS',
 ];
 
@@ -175,6 +175,8 @@ export function ConnectorsTab() {
         return <GarminLogo className="h-6 w-auto" />;
       case 'POLAR':
         return <PolarLogo className="h-6 w-auto" />;
+      case 'SUUNTO':
+        return <SuuntoLogo className="h-6 w-auto" />;
       default:
         return <Link2 className="h-5 w-5" />;
     }
@@ -200,63 +202,65 @@ export function ConnectorsTab() {
       >
         <div className="grid gap-4">
           {SUPPORTED_PROVIDERS.map((provider) => {
-          const connected = isConnected(provider);
-          const isLoading =
-            getOAuthUriMutation.isPending ||
-            disconnectMutation.isPending ||
-            isLoadingConnected;
-          const providerDetails = connectedProviders.find(
-            (p) => p.provider === provider,
-          );
-          const capabilities = getProviderSyncCapabilities(provider);
-          const preferenceToggles =
-            providerDetails && connected
-              ? ([
-                  capabilities.importActivities && {
-                    key: 'importActivitiesEnabled',
-                    label: m.import_sessions_toggle_label(),
-                    description: m.import_sessions_toggle_description({
-                      provider: connectorProviderLabelMap[provider],
-                    }),
-                    value: providerDetails.importActivitiesEnabled,
-                  },
-                  capabilities.exportWorkouts && {
-                    key: 'exportWorkoutsEnabled',
-                    label: m.export_workouts_toggle_label(),
-                    description: m.export_workouts_toggle_description({
-                      provider: connectorProviderLabelMap[provider],
-                    }),
-                    value: providerDetails.exportWorkoutsEnabled,
-                  },
-                  capabilities.importMetrics && {
-                    key: 'importMetricsEnabled',
-                    label: m.import_metrics_toggle_label(),
-                    description: m.import_metrics_toggle_description({
-                      provider: connectorProviderLabelMap[provider],
-                    }),
-                    value: providerDetails.importMetricsEnabled,
-                  },
-                ].filter(Boolean) as Array<{
-                  key: keyof ProviderPreferencesDto;
-                  label: string;
-                  description: string;
-                  value: boolean;
-                }>)
-              : [];
-          const hasSyncOptions =
-            preferenceToggles.length > 0 ||
-            (capabilities.supportsFullImport && !!providerDetails && connected);
-          const isUpdatingThisProvider =
-            updatingProvider === provider &&
-            updatePreferencesMutation.isPending;
-          const isImportingThisProvider =
-            importingProvider === provider &&
-            importAllActivitiesMutation.isPending;
-          const fullImportCompleted =
-            providerDetails?.fullImportCompletedAt != null;
-          const fullImportInProgress =
-            providerDetails?.fullImportRequestedAt != null &&
-            !providerDetails.fullImportCompletedAt;
+            const connected = isConnected(provider);
+            const isLoading =
+              getOAuthUriMutation.isPending ||
+              disconnectMutation.isPending ||
+              isLoadingConnected;
+            const providerDetails = connectedProviders.find(
+              (p) => p.provider === provider,
+            );
+            const capabilities = getProviderSyncCapabilities(provider);
+            const preferenceToggles =
+              providerDetails && connected
+                ? ([
+                    capabilities.importActivities && {
+                      key: 'importActivitiesEnabled',
+                      label: m.import_sessions_toggle_label(),
+                      description: m.import_sessions_toggle_description({
+                        provider: connectorProviderLabelMap[provider],
+                      }),
+                      value: providerDetails.importActivitiesEnabled,
+                    },
+                    capabilities.exportWorkouts && {
+                      key: 'exportWorkoutsEnabled',
+                      label: m.export_workouts_toggle_label(),
+                      description: m.export_workouts_toggle_description({
+                        provider: connectorProviderLabelMap[provider],
+                      }),
+                      value: providerDetails.exportWorkoutsEnabled,
+                    },
+                    capabilities.importMetrics && {
+                      key: 'importMetricsEnabled',
+                      label: m.import_metrics_toggle_label(),
+                      description: m.import_metrics_toggle_description({
+                        provider: connectorProviderLabelMap[provider],
+                      }),
+                      value: providerDetails.importMetricsEnabled,
+                    },
+                  ].filter(Boolean) as Array<{
+                    key: keyof ProviderPreferencesDto;
+                    label: string;
+                    description: string;
+                    value: boolean;
+                  }>)
+                : [];
+            const hasSyncOptions =
+              preferenceToggles.length > 0 ||
+              (capabilities.supportsFullImport &&
+                !!providerDetails &&
+                connected);
+            const isUpdatingThisProvider =
+              updatingProvider === provider &&
+              updatePreferencesMutation.isPending;
+            const isImportingThisProvider =
+              importingProvider === provider &&
+              importAllActivitiesMutation.isPending;
+            const fullImportCompleted =
+              providerDetails?.fullImportCompletedAt != null;
+            const fullImportInProgress =
+              providerDetails?.fullImportRequestedAt != null &&
+              !providerDetails.fullImportCompletedAt;
 
             return (
               <Card key={provider}>
@@ -393,7 +397,8 @@ export function ConnectorsTab() {
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {m.full_import_description({
-                                    provider: connectorProviderLabelMap[provider],
+                                    provider:
+                                      connectorProviderLabelMap[provider],
                                   })}
                                 </p>
                                 {provider === 'GARMIN' && (

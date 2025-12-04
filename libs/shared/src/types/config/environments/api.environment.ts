@@ -24,6 +24,7 @@ export const ApiEnvSchema = z.object({
   SUUNTO_CLIENT_ID: z.string().optional(),
   SUUNTO_CLIENT_SECRET: z.string().optional(),
   SUUNTO_REDIRECT_URI: z.string().optional(),
+  SUUNTO_SUBSCRIPTION_KEY: z.string().optional(),
 
   COROS_CLIENT_ID: z.string().optional(),
   COROS_CLIENT_SECRET: z.string().optional(),

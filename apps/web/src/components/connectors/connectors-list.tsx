@@ -4,7 +4,7 @@ import {
   useGetOAuthUriMutation,
 } from '@/api/provider';
 import { GarminLogo, StravaIcon } from '@/assets/icons';
-import { PolarLogo } from '@/assets/icons/providers';
+import { PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,6 +30,7 @@ interface ConnectorsListProps {
 const DEFAULT_SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
   'GARMIN',
+  'SUUNTO',
   'POLAR',
 ];
 
@@ -91,6 +92,8 @@ export function ConnectorsList({
         return <GarminLogo className="h-6 w-auto" />;
       case 'POLAR':
         return <PolarLogo className="h-6 w-auto" />;
+      case 'SUUNTO':
+        return <SuuntoLogo className="h-6 w-auto" />;
       default:
         return <Link2 className="h-5 w-5" />;
     }

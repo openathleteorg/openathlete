@@ -495,3 +495,73 @@ export interface PolarContinuousHeartRate {
   }>;
   'resource-uri': string;
 }
+
+// Suunto Workout API Types
+export interface SuuntoPoint {
+  x: number; // Longitude
+  y: number; // Latitude
+}
+
+export interface SuuntoHrdata {
+  userMaxHR: number;
+  workoutAvgHR: number;
+  workoutMaxHR: number;
+}
+
+export interface SuuntoCadence {
+  max?: number;
+  avg?: number;
+}
+
+export interface SuuntoLimitedWorkout {
+  activityId: number;
+  workoutKey: string;
+  workoutName?: string;
+  startTime: number; // milliseconds since epoch
+  stopTime?: number; // milliseconds since epoch
+  totalTime: number; // seconds
+  totalDistance: number; // meters
+  totalAscent?: number; // meters
+  totalDescent?: number; // meters
+  avgSpeed?: number; // km/h
+  maxSpeed?: number; // km/h
+  avgPace?: number; // minutes per km
+  energyConsumption?: number; // kcal
+  minAltitude?: number; // meters
+  maxAltitude?: number; // meters
+  startPosition?: SuuntoPoint;
+  stopPosition?: SuuntoPoint;
+  centerPosition?: SuuntoPoint;
+  hrdata?: SuuntoHrdata;
+  cadence?: SuuntoCadence;
+  extensionTypes?: string[];
+  extensions?: unknown[];
+}
+
+export interface SuuntoWorkoutListResponse {
+  error: {
+    code: string;
+    description: string;
+  } | null;
+  payload: SuuntoLimitedWorkout[];
+  metadata: {
+    workoutcount?: string;
+    until?: string;
+  };
+}
+
+export interface SuuntoWorkoutResponse {
+  error: {
+    code: string;
+    description: string;
+  } | null;
+  payload: SuuntoLimitedWorkout;
+  metadata: Record<string, string>;
+}
+
+export interface SuuntoWebhookPayload {
+  workoutKey: string;
+  userId?: string;
+  username?: string; // Suunto webhooks may use username instead of userId
+  timestamp?: number;
+}

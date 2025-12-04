@@ -18,6 +18,7 @@ import {
   GarminProviderService,
   PolarProviderService,
   StravaProviderService,
+  SuuntoProviderService,
 } from '../../providers-sync/providers';
 import { ActivityImportJobData, QueueService } from '../queue.service';
 
@@ -35,6 +36,8 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly garminProviderService: GarminProviderService,
     @Inject(forwardRef(() => PolarProviderService))
     private readonly polarProviderService: PolarProviderService,
+    @Inject(forwardRef(() => SuuntoProviderService))
+    private readonly suuntoProviderService: SuuntoProviderService,
     private readonly queueService: QueueService,
     @InjectQueue('activity-import')
     private readonly activityImportQueue: Queue<ActivityImportJobData>,
@@ -94,6 +97,11 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       } else if (account.provider === connector_provider.POLAR) {
         savedActivity = await this.polarProviderService.importActivity(
+          account,
+          activity,
+        );
+      } else if (account.provider === connector_provider.SUUNTO) {
+        savedActivity = await this.suuntoProviderService.importActivity(
           account,
           activity,
         );
