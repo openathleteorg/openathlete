@@ -34,11 +34,10 @@ export function generateMetadata(): Metadata {
     alternates: {
       canonical: SITE_URL,
       languages: {
-        'en': SITE_URL,
-        'fr': `${SITE_URL}/fr`,
+        en: SITE_URL,
+        fr: `${SITE_URL}/fr`,
         'x-default': SITE_URL,
       },
     },
   };
 }
-

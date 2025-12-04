@@ -566,6 +566,15 @@ importers:
       eslint:
         specifier: ^9.21.0
         version: 9.37.0(jiti@2.6.1)
+      eslint-plugin-react-hooks:
+        specifier: ^5.1.0
+        version: 5.2.0(eslint@9.37.0(jiti@2.6.1))
+      eslint-plugin-react-refresh:
+        specifier: ^0.4.19
+        version: 0.4.23(eslint@9.37.0(jiti@2.6.1))
+      globals:
+        specifier: ^15.15.0
+        version: 15.15.0
       postcss:
         specifier: ^8.4.49
         version: 8.5.6
