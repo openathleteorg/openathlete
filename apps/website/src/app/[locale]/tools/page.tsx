@@ -52,6 +52,11 @@ export default async function ToolsPage({
       title: m.tool_vma_title(),
       description: m.tool_vma_description(),
     },
+    {
+      slug: 'race-predictor',
+      title: m.tool_race_predictor_title(),
+      description: m.tool_race_predictor_description(),
+    },
   ];
 
   return (
