@@ -80,6 +80,8 @@ decode_secret "POLAR_WEBHOOK_SECRET_KEY"
 decode_secret "GOOGLE_GENERATIVE_AI_API_KEY"
 decode_secret "STRIPE_SECRET_KEY"
 decode_secret "STRIPE_WEBHOOK_SECRET"
+decode_secret "SUUNTO_CLIENT_SECRET"
+decode_secret "SUUNTO_WEBHOOK_SECRET_KEY"
 
 cd /app/libs/database
 
