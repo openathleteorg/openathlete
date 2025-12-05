@@ -98,3 +98,11 @@ export function roundEnergy(
 ): number | null | undefined {
   return round(value, 1);
 }
+
+/**
+ * Round metric values to 2 decimal places
+ * Used for all imported metrics from providers (Garmin, Polar, Suunto, etc.)
+ */
+export function roundMetricValue(value: number): number {
+  return roundRequired(value, 2);
+}

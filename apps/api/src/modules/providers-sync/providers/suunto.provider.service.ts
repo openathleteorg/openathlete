@@ -29,6 +29,7 @@ import {
   roundElevation,
   roundEnergy,
   roundHeartrate,
+  roundMetricValue,
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
 import { mapSuuntoWorkoutToSportType } from '../../core/helpers/suunto';
@@ -1658,10 +1659,10 @@ export class SuuntoProviderService
             athlete_id: athleteId,
             type: metric.type as unknown as metric_type,
             date: metric.date,
-            value: metric.value,
+            value: roundMetricValue(metric.value),
           },
           update: {
-            value: metric.value,
+            value: roundMetricValue(metric.value),
           },
         }),
       ),

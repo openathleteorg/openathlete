@@ -33,6 +33,7 @@ import {
   roundDistance,
   roundEnergy,
   roundHeartrate,
+  roundMetricValue,
 } from '../../core/helpers/round-activity-values';
 import {
   PolarActivitySummary,
@@ -1668,10 +1669,10 @@ export class PolarProviderService
             athlete_id: athleteId,
             type: metric.type as metric_type,
             date: metric.date,
-            value: metric.value,
+            value: roundMetricValue(metric.value),
           },
           update: {
-            value: metric.value,
+            value: roundMetricValue(metric.value),
           },
         });
       } catch (error) {
