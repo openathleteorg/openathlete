@@ -1,6 +1,8 @@
-import AdmZip from 'adm-zip';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const AdmZip = require('adm-zip');
 
 import type { SuuntoGuide } from './suunto-guide.types';
 
