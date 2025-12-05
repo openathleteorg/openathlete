@@ -56,6 +56,7 @@ RUN pnpm install --frozen-lockfile --filter ./apps/api... --prod
 # Copy built artifacts
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=build /app/apps/api/package.json ./apps/api/package.json
+COPY --from=build /app/apps/api/assets ./apps/api/assets
 COPY --from=build /app/libs/shared/dist ./libs/shared/dist
 COPY --from=build /app/libs/shared/package.json ./libs/shared/package.json
 COPY --from=build /app/libs/database/generated ./libs/database/generated

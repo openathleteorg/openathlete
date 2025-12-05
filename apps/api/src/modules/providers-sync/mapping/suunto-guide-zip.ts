@@ -1,10 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import type { SuuntoGuide } from './suunto-guide.types';
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const AdmZip = require('adm-zip');
-
-import type { SuuntoGuide } from './suunto-guide.types';
 
 // Cache the icon buffer to avoid reading from disk on every call
 let cachedIconBuffer: Buffer | null = null;
@@ -12,22 +12,36 @@ let cachedIconBuffer: Buffer | null = null;
 /**
  * Get the default icon PNG (300x300)
  * Reads from assets/300.png file
+ * Tries multiple paths to work in both dev and production
  */
 function getDefaultIcon(): Buffer {
   if (cachedIconBuffer) {
     return cachedIconBuffer;
   }
 
-  try {
-    // Path relative to this file: ../../../../assets/300.png
-    const iconPath = join(__dirname, '../../../../assets/300.png');
-    cachedIconBuffer = readFileSync(iconPath);
-    return cachedIconBuffer;
-  } catch (error) {
-    throw new Error(
-      `Failed to load default icon from assets/300.png: ${error instanceof Error ? error.message : String(error)}`,
-    );
+  // Try multiple paths:
+  // 1. Relative to compiled file (production: dist/modules/providers-sync/mapping)
+  // 2. Relative to process.cwd() (should be /app/apps/api in production)
+  // 3. Absolute path from process.cwd()
+  const possiblePaths = [
+    join(__dirname, '../../../../assets/300.png'), // Relative to compiled file
+    join(process.cwd(), 'assets/300.png'), // Relative to working directory
+    join(process.cwd(), 'apps/api/assets/300.png'), // Monorepo structure
+  ];
+
+  for (const iconPath of possiblePaths) {
+    try {
+      cachedIconBuffer = readFileSync(iconPath);
+      return cachedIconBuffer;
+    } catch {
+      // Try next path
+      continue;
+    }
   }
+
+  throw new Error(
+    `Failed to load default icon from assets/300.png. Tried paths: ${possiblePaths.join(', ')}`,
+  );
 }
 
 /**
