@@ -7,6 +7,7 @@ import { connector_provider, provider_account } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 
 export interface FullImportResult {
   queuedActivities: number;
@@ -134,6 +135,16 @@ export abstract class BaseProviderService {
    * Get valid access token (refresh if needed)
    */
   async getValidAccessToken(account: provider_account): Promise<string> {
+    // Don't refresh tokens for revoked accounts
+    if (account.status !== 'active') {
+      throw new InvalidRefreshTokenError(
+        this.provider,
+        account.provider_account_id,
+        account.athlete_id,
+        `Provider account is ${account.status}, cannot refresh token`,
+      );
+    }
+
     // If access token exists and not expired, return it
     if (
       account.access_token &&
@@ -152,26 +163,59 @@ export abstract class BaseProviderService {
       `Refreshing access token for ${this.provider} (athlete ${account.athlete_id})`,
     );
 
-    const tokenResponse = await this.refreshAccessToken(account.refresh_token);
+    try {
+      const tokenResponse = await this.refreshAccessToken(
+        account.refresh_token,
+      );
 
-    // Calculate expiration
-    const expiresAt = tokenResponse.expires_in
-      ? new Date(Date.now() + tokenResponse.expires_in * 1000)
-      : null;
+      // Calculate expiration
+      const expiresAt = tokenResponse.expires_in
+        ? new Date(Date.now() + tokenResponse.expires_in * 1000)
+        : null;
 
-    // Update stored tokens
-    await this.prisma.provider_account.update({
-      where: {
-        provider_account_id: account.provider_account_id,
-      },
-      data: {
-        access_token: tokenResponse.access_token,
-        refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
-        expires_at: expiresAt,
-      },
-    });
+      // Update stored tokens
+      await this.prisma.provider_account.update({
+        where: {
+          provider_account_id: account.provider_account_id,
+        },
+        data: {
+          access_token: tokenResponse.access_token,
+          refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
+          expires_at: expiresAt,
+        },
+      });
 
-    return tokenResponse.access_token;
+      return tokenResponse.access_token;
+    } catch (error) {
+      // If refresh token is invalid (401), mark account as revoked
+      if (
+        isAxiosError(error) &&
+        error.response?.status === 401 &&
+        account.status === 'active'
+      ) {
+        this.logger.warn(
+          `Refresh token invalid for ${this.provider} account ${account.provider_account_id} (athlete ${account.athlete_id}), marking as revoked`,
+        );
+
+        await this.prisma.provider_account.update({
+          where: {
+            provider_account_id: account.provider_account_id,
+          },
+          data: {
+            status: 'revoked',
+          },
+        });
+
+        throw new InvalidRefreshTokenError(
+          this.provider,
+          account.provider_account_id,
+          account.athlete_id,
+        );
+      }
+
+      // Re-throw other errors
+      throw error;
+    }
   }
 
   /**

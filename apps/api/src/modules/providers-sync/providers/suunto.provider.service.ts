@@ -56,6 +56,7 @@ import {
   ImportedActivity,
   ProviderImportCapability,
 } from '../base/provider-import.interface';
+import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 
 type MetricRecord = {
   type: METRIC_TYPE;
@@ -238,6 +239,8 @@ export class SuuntoProviderService
         this.logger.error(
           `Suunto token refresh failed: ${JSON.stringify(error.response?.data)}`,
         );
+        // If it's a 401, the refresh token is invalid - let BaseProviderService.handle it
+        // by throwing the error so it can mark the account as revoked
       }
       throw error;
     }
@@ -387,23 +390,71 @@ export class SuuntoProviderService
       );
     }
 
-    const accessToken = await this.getValidAccessToken(freshAccount);
+    let accessToken: string;
+    try {
+      accessToken = await this.getValidAccessToken(freshAccount);
+    } catch (error) {
+      // If refresh token is invalid, don't retry the request
+      if (error instanceof InvalidRefreshTokenError) {
+        this.logger.error(
+          `Cannot make authenticated request: refresh token invalid for Suunto account ${freshAccount.provider_account_id}`,
+        );
+        throw error;
+      }
+      throw error;
+    }
 
     try {
       return await requestFn(accessToken);
     } catch (error) {
+      // If it's an InvalidRefreshTokenError from refresh attempt, don't retry
+      if (error instanceof InvalidRefreshTokenError) {
+        throw error;
+      }
+
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
-        freshAccount.refresh_token
+        freshAccount.refresh_token &&
+        freshAccount.status === 'active'
       ) {
         this.logger.debug(
           `Suunto token expired, refreshing for account ${freshAccount.provider_account_id}`,
         );
 
-        const tokenResponse = await this.refreshAccessToken(
-          freshAccount.refresh_token,
-        );
+        let tokenResponse: OAuthTokenResponse;
+        try {
+          tokenResponse = await this.refreshAccessToken(
+            freshAccount.refresh_token,
+          );
+        } catch (refreshError) {
+          // If refresh fails with 401, mark account as revoked
+          if (
+            isAxiosError(refreshError) &&
+            refreshError.response?.status === 401 &&
+            freshAccount.status === 'active'
+          ) {
+            this.logger.warn(
+              `Refresh token invalid for Suunto account ${freshAccount.provider_account_id} (athlete ${freshAccount.athlete_id}), marking as revoked`,
+            );
+
+            await this.prisma.provider_account.update({
+              where: {
+                provider_account_id: freshAccount.provider_account_id,
+              },
+              data: {
+                status: 'revoked',
+              },
+            });
+
+            throw new InvalidRefreshTokenError(
+              'SUUNTO',
+              freshAccount.provider_account_id,
+              freshAccount.athlete_id,
+            );
+          }
+          throw refreshError;
+        }
 
         // Suunto tokens are JWT, decode to get expiration
         const expiresAtMs = tokenResponse.expires_in
