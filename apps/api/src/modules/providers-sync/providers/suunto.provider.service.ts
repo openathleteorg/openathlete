@@ -160,7 +160,7 @@ export class SuuntoProviderService
 
   /**
    * Exchange authorization code for tokens
-   * Suunto uses Basic Auth (client_id:client_secret) and query parameters
+   * Suunto uses Basic Auth (client_id:client_secret) in header and parameters in body
    */
   override async exchangeCodeForTokens(
     code: string,
@@ -178,8 +178,8 @@ export class SuuntoProviderService
       });
 
       const { data } = await axios.post<OAuthTokenResponse>(
-        `${this.oauthConfig.tokenUrl}?${params.toString()}`,
-        null, // No body, all params in query string
+        this.oauthConfig.tokenUrl,
+        params.toString(), // Parameters in body, not query string
         {
           headers: {
             Authorization: `Basic ${credentials}`,
@@ -188,11 +188,18 @@ export class SuuntoProviderService
         },
       );
 
+      this.logger.debug(
+        `Suunto OAuth token exchange successful: expires_in=${data.expires_in}, token_type=${data.token_type}`,
+      );
+
       return data;
     } catch (error) {
       if (isAxiosError(error)) {
         this.logger.error(
           `Suunto OAuth token exchange failed: ${JSON.stringify(error.response?.data)}`,
+        );
+        this.logger.error(
+          `Suunto OAuth token exchange error status: ${error.response?.status}, URL: ${this.oauthConfig.tokenUrl}`,
         );
       }
       throw error;
