@@ -192,10 +192,10 @@ export function WorkoutSection({
   }
 
   return (
-    <div className="border-t pt-6">
-      <div className="space-y-6">
+    <div className="border-t pt-4 md:pt-6">
+      <div className="space-y-4 md:space-y-6">
         {existingWorkout?.steps?.length ? (
-          <div className="bg-muted/40 border rounded-lg p-3">
+          <div className="bg-muted/40 border rounded-lg p-2 md:p-3">
             <WorkoutGraph
               workout={existingWorkout}
               sport={sportValue ?? SPORT_TYPE.RUNNING}

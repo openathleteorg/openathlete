@@ -261,10 +261,13 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent
+        mobileFullscreen
+        className="sm:max-w-4xl max-h-[90vh] overflow-y-auto"
+      >
         <DialogHeader>
-          <DialogTitle className="flex items-start justify-center gap-2">
-            <div className="flex items-center gap-2 grow">
+          <DialogTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-2">
+            <div className="flex items-center gap-2 grow text-sm md:text-base">
               {edit && 'isTemplate' in rest && rest.isTemplate
                 ? m.edit_template()
                 : edit
@@ -274,7 +277,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
               {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
             </div>
             {type === EVENT_TYPE.TRAINING && (
-              <div className="flex items-center gap-2 pr-4 -translate-y-4">
+              <div className="flex items-center gap-2 md:pr-4 md:-translate-y-4 w-full md:w-auto">
                 <Button
                   onClick={() => {
                     if (hasAIAccess) {
@@ -285,9 +288,13 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                   }}
                   variant="outline"
                   size="sm"
+                  className="flex-1 md:flex-none text-xs md:text-sm"
                 >
-                  <SparklesIcon className="w-4 h-4 mr-2" />
-                  {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
+                  <SparklesIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+                  <span className="hidden sm:inline">
+                    {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
+                  </span>
+                  <span className="sm:hidden">AI</span>
                 </Button>
               </div>
             )}
@@ -296,7 +303,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         <FormProvider
           methods={methods}
           onSubmit={onSubmit(handleSubmit)}
-          className="space-y-6 pt-3"
+          className="space-y-4 md:space-y-6 pt-3"
         >
           <EventFormFields
             type={type}
@@ -317,7 +324,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             athleteId={athleteId ?? undefined}
           />
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4">
             <Button type="submit" className="flex-1" isLoading={isSubmitting}>
               {edit ? m.edit() : m.create()} {m.the()}
               {eventTypeLabelMap[type as keyof typeof eventTypeLabelMap]}
@@ -326,6 +333,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
               <RHFCheckbox
                 name="saveAsTemplate"
                 label={m.save_event_as_template()}
+                className="md:w-auto"
               />
             )}
           </div>

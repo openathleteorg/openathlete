@@ -13,6 +13,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useSpaceContext } from '@/contexts/space';
 import { SIDEBAR_OPEN_STATES, getItem, setItem } from '@/utils/local-storage';
@@ -40,6 +41,7 @@ export function NavMain({
 }) {
   const { space } = useSpaceContext();
   const { pathname } = useLocation();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   const [openStates, setOpenStates] = useState<Record<string, boolean>>(() => {
     const stored = getItem(SIDEBAR_OPEN_STATES);
@@ -50,6 +52,13 @@ export function NavMain({
     const newStates = { ...openStates, [itemTitle]: isOpen };
     setOpenStates(newStates);
     setItem(SIDEBAR_OPEN_STATES, JSON.stringify(newStates));
+  };
+
+  const handleLinkClick = () => {
+    // Close sidebar on mobile when clicking a link
+    if (isMobile) {
+      setOpenMobile(false);
+    }
   };
 
   return (
@@ -84,6 +93,7 @@ export function NavMain({
                           <SidebarMenuSubButton asChild>
                             <Link
                               to={subItem.url}
+                              onClick={handleLinkClick}
                               className={
                                 pathname === subItem.url ? 'font-bold' : ''
                               }
@@ -103,6 +113,7 @@ export function NavMain({
                 <SidebarMenuButton asChild>
                   <Link
                     to={item.url || '#'}
+                    onClick={handleLinkClick}
                     className={`flex items-center gap-2 ${
                       pathname === item.url ? 'font-bold' : ''
                     }`}

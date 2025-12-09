@@ -34,7 +34,7 @@ export function ProfilePage() {
   ];
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="w-full p-4 md:p-8 space-y-4">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">{m.profile()}</h2>
         <p className="text-muted-foreground">

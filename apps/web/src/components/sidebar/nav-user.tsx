@@ -47,9 +47,17 @@ export function NavUser() {
   const { logout, user } = useAuthContext();
   const { data: subscription } = useCurrentSubscription();
   const navigate = useNavigate();
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
   const { syncLanguage } = useLanguageSync();
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    // Close sidebar on mobile when navigating
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   if (!user) {
     return null;
@@ -112,7 +120,9 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem
-                onClick={() => navigate(getPath(['dashboard', 'settings']))}
+                onClick={() =>
+                  handleNavigation(getPath(['dashboard', 'settings']))
+                }
               >
                 <CogIcon />
                 {m.settings()}

@@ -108,6 +108,7 @@ export function AIModifyEventDialog({
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
+        mobileFullscreen
         className={`sm:max-w-2xl ${isLoading ? 'overflow-visible' : ''}`}
       >
         <div className={isLoading ? 'ai-rotating-brand-border-dialog' : ''}>

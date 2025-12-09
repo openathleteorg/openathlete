@@ -2,7 +2,6 @@ import { useGetThreadMessagesQuery, useGetThreadQuery } from '@/api/messages';
 import { useMessagesWebSocket } from '@/api/messages/use-messages-websocket.hooks';
 import { useGetMeQuery } from '@/api/user';
 import { Loader } from '@/components/ui/loader';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowVisibility } from '@/hooks/use-window-visibility';
 import { cn } from '@/utils/shadcn';
 import { CheckCheck } from 'lucide-react';
@@ -195,7 +194,9 @@ export function MessageMessages({
   }, [messages, currentUser, messageThreadId, isVisibleAndFocused]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    });
   }, [messages]);
 
   const handleStartEdit = (messageId: number) => {
@@ -213,7 +214,7 @@ export function MessageMessages({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center min-h-[200px] p-4">
         <Loader size="md" />
       </div>
     );
@@ -221,7 +222,7 @@ export function MessageMessages({
 
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground p-4">
+      <div className="flex items-center justify-center min-h-[200px] text-muted-foreground p-4">
         <div className="text-center">
           <p className="text-sm">Aucun message</p>
           <p className="text-xs mt-2">Commencez la conversation</p>
@@ -231,24 +232,22 @@ export function MessageMessages({
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4" ref={scrollRef}>
-        {messages.map((message) => (
-          <MessageBubble
-            key={message.messageId}
-            message={message}
-            currentUserId={currentUser?.userId}
-            isEditing={editingMessageId === message.messageId}
-            onStartEdit={() => handleStartEdit(message.messageId)}
-            onCancelEdit={handleCancelEdit}
-            onSaveEdit={(content) => handleSaveEdit(message.messageId, content)}
-            totalParticipantCount={thread?.participants?.length}
-            isWindowMode={isWindowMode}
-          />
-        ))}
+    <div className="p-4" ref={scrollRef}>
+      {messages.map((message) => (
+        <MessageBubble
+          key={message.messageId}
+          message={message}
+          currentUserId={currentUser?.userId}
+          isEditing={editingMessageId === message.messageId}
+          onStartEdit={() => handleStartEdit(message.messageId)}
+          onCancelEdit={handleCancelEdit}
+          onSaveEdit={(content) => handleSaveEdit(message.messageId, content)}
+          totalParticipantCount={thread?.participants?.length}
+          isWindowMode={isWindowMode}
+        />
+      ))}
 
-        <div ref={messagesEndRef} />
-      </div>
-    </ScrollArea>
+      <div ref={messagesEndRef} />
+    </div>
   );
 }

@@ -35,22 +35,23 @@ export function StatisticsView({ athleteId }: P) {
       });
 
   return (
-    <div className="p-8 grid grid-cols-2 gap-4">
-      <h1 className="text-2xl font-semibold col-span-2">{pageTitle}</h1>
+    <div className="w-full p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h1 className="text-xl md:text-2xl font-semibold col-span-1 md:block hidden">
+        {pageTitle}
+      </h1>
       <StatisticsPeriodSelect
         onChange={(start, end) => setPeriod({ start, end })}
         period={period}
-        className="col-span-2"
+        className="col-span-1 md:col-span-2 p-0"
       />
       {isLoadingStatistics ? (
         <>
-          {/* Skeleton for StatisticsGlobals */}
-          <div className="col-span-2 grid grid-cols-4 gap-4">
+          <div className="col-span-1 md:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <Card key={i}>
-                <CardContent className="p-6">
-                  <Skeleton className="h-4 w-20 mb-2" />
-                  <Skeleton className="h-8 w-32" />
+                <CardContent className="p-4 md:p-6">
+                  <Skeleton className="h-3 md:h-4 w-16 md:w-20 mb-2" />
+                  <Skeleton className="h-6 md:h-8 w-24 md:w-32" />
                 </CardContent>
               </Card>
             ))}
@@ -58,17 +59,17 @@ export function StatisticsView({ athleteId }: P) {
           {/* Skeletons for charts */}
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i} className="col-span-1">
-              <CardHeader>
-                <Skeleton className="h-6 w-40" />
+              <CardHeader className="p-4 md:p-6">
+                <Skeleton className="h-5 md:h-6 w-32 md:w-40" />
               </CardHeader>
               <CardContent className="p-0">
-                <SkeletonChart className="h-[300px]" />
+                <SkeletonChart className="h-[250px] md:h-[300px]" />
               </CardContent>
             </Card>
           ))}
           {/* Skeleton for TrainingLoadChart */}
-          <div className="col-span-2">
-            <SkeletonChart className="h-[450px]" />
+          <div className="col-span-1 md:col-span-2">
+            <SkeletonChart className="h-[350px] md:h-[450px]" />
           </div>
         </>
       ) : statistics ? (
@@ -78,13 +79,15 @@ export function StatisticsView({ athleteId }: P) {
             distance={statistics?.distance || 0}
             elevationGain={statistics?.elevationGain || 0}
             count={statistics?.count || 0}
-            className="col-span-2"
+            className="col-span-1 md:col-span-2"
           />
           {statistics.sports.length !== 0 && (
             <>
               <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>{m.duration_for_each_sport()}</CardTitle>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-base md:text-lg">
+                    {m.duration_for_each_sport()}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <SportDistributionChart
@@ -95,8 +98,10 @@ export function StatisticsView({ athleteId }: P) {
                 </CardContent>
               </Card>
               <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>{m.distance_for_each_sport()}</CardTitle>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-base md:text-lg">
+                    {m.distance_for_each_sport()}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <SportDistributionChart
@@ -107,8 +112,10 @@ export function StatisticsView({ athleteId }: P) {
                 </CardContent>
               </Card>
               <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>{m.elevation_for_each_sport()}</CardTitle>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-base md:text-lg">
+                    {m.elevation_for_each_sport()}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <SportDistributionChart
@@ -119,8 +126,10 @@ export function StatisticsView({ athleteId }: P) {
                 </CardContent>
               </Card>
               <Card className="col-span-1">
-                <CardHeader>
-                  <CardTitle>{m.activities_for_each_sport()}</CardTitle>
+                <CardHeader className="p-4 md:p-6">
+                  <CardTitle className="text-base md:text-lg">
+                    {m.activities_for_each_sport()}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <SportDistributionChart
@@ -134,7 +143,7 @@ export function StatisticsView({ athleteId }: P) {
               </Card>
             </>
           )}
-          <div className="col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <TrainingLoadChart
               startDate={period.start}
               endDate={period.end}

@@ -47,7 +47,7 @@ export function AthleteCalendarView({ athleteId }: P) {
     return <Navigate to="/404" />;
   }
   return (
-    <div className="p-8">
+    <div className="w-full p-4 md:p-8">
       <Calendar
         events={data}
         athleteId={athleteId}

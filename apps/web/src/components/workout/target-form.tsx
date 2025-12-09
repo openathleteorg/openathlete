@@ -252,7 +252,7 @@ export function TargetForm({
           e.stopPropagation();
           form.handleSubmit(handleSubmit)(e);
         }}
-        className="space-y-4"
+        className="space-y-3 md:space-y-4"
       >
         {/* Target Type */}
         <FormField
@@ -394,7 +394,7 @@ export function TargetForm({
           )
         ) : selectedTargetType === 'HEARTRATE' ? (
           showRange ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
@@ -418,7 +418,7 @@ export function TargetForm({
           )
         ) : selectedTargetType === 'POWER' ? (
           showRange ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
@@ -442,7 +442,7 @@ export function TargetForm({
           )
         ) : selectedTargetType === 'CADENCE' ? (
           showRange ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
@@ -466,7 +466,7 @@ export function TargetForm({
           )
         ) : selectedTargetType === 'WEIGHT' ? (
           showRange ? (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <RHFNumberWithUnit
                 name="targetMin"
                 label={m.target_form_min_value()}
@@ -502,7 +502,7 @@ export function TargetForm({
           )
         ) : null}
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-col-reverse md:flex-row justify-end gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               {cancelLabel}

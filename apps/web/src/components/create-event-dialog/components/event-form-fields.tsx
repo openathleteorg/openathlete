@@ -38,7 +38,7 @@ export function EventFormFields({
   isTemplate,
 }: Props) {
   return (
-    <div className="grid grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
       <RHFTextField
         name="name"
         type="text"
@@ -62,7 +62,7 @@ export function EventFormFields({
           ))}
         </RHFSelect>
       ) : (
-        <div />
+        <div className="hidden md:block" />
       )}
       {!isTemplate &&
         (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION) && (
@@ -75,7 +75,7 @@ export function EventFormFields({
             <RHFDatePicker name="endDate" type="end" label={m.end_time()} />
           </>
         )}
-      <div className="col-span-2">
+      <div className="col-span-1 md:col-span-2">
         <RHFTextarea
           name="description"
           label={m.description()}
@@ -101,18 +101,23 @@ export function EventFormFields({
             }}
           />
           {!!goalDistanceValue && !!goalDurationValue && (
-            <div className="text-sm text-gray-500 flex items-center col-span-2">
-              {m.pace()}:{' '}
-              {formatSpeed(
-                Number(goalDistanceValue) / Number(goalDurationValue),
-                'min/km',
-              )}{' '}
-              {m.per_km()} -{' '}
-              {formatSpeed(
-                Number(goalDistanceValue) / Number(goalDurationValue),
-                'km/h',
-              )}{' '}
-              {m.kilometers_per_hour()}
+            <div className="text-xs md:text-sm text-gray-500 flex flex-col md:flex-row md:items-center gap-1 md:gap-0 col-span-1 md:col-span-2">
+              <span>
+                {m.pace()}:{' '}
+                {formatSpeed(
+                  Number(goalDistanceValue) / Number(goalDurationValue),
+                  'min/km',
+                )}{' '}
+                {m.per_km()}
+              </span>
+              <span className="hidden md:inline"> - </span>
+              <span>
+                {formatSpeed(
+                  Number(goalDistanceValue) / Number(goalDurationValue),
+                  'km/h',
+                )}{' '}
+                {m.kilometers_per_hour()}
+              </span>
             </div>
           )}
           <RHFElevation
@@ -123,7 +128,7 @@ export function EventFormFields({
         </>
       )}
       {type === EVENT_TYPE.ACTIVITY && (
-        <div className="col-span-2">
+        <div className="col-span-1 md:col-span-2">
           <RHFRpe name="rpe" label={m.rpe()} />
         </div>
       )}

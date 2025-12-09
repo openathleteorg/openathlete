@@ -1,4 +1,8 @@
-import { type PageAction, PageActionsProvider } from '@/hooks/use-page-actions';
+import {
+  type PageAction,
+  PageActionsProvider,
+  useSetPageActions,
+} from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { cn } from '@/utils/shadcn';
@@ -64,15 +68,21 @@ function isProfileSubPage(pathname: string): boolean {
  * Check if route should animate transitions
  */
 function shouldAnimate(pathname: string): boolean {
-  // Animate transitions from profile to sub-pages
-  const animatedRoutes = [
+  const profilePath = getPath(['dashboard', 'profile']);
+  const profileSubPages = [
     getPath(['dashboard', 'statistics']),
     getPath(['dashboard', 'records']),
     getPath(['dashboard', 'metrics']),
-    getPath(['dashboard', 'profile']),
   ];
 
-  return animatedRoutes.some((route) => pathname === route);
+  if (
+    pathname === profilePath ||
+    profileSubPages.some((route) => pathname === route)
+  ) {
+    return false;
+  }
+
+  return false;
 }
 
 /**
@@ -122,13 +132,12 @@ export function MobileLayout({
   // Track navigation direction
   useEffect(() => {
     if (previousPathRef.current !== location.pathname) {
-      // Check if we're going back to profile from a sub-page
       const profilePath = getPath(['dashboard', 'profile']);
       const isGoingToProfile = location.pathname === profilePath;
       const wasOnSubPage =
         previousPathRef.current && isProfileSubPage(previousPathRef.current);
 
-      // Also check if we're navigating back using the navigation function
+      // Determine direction: back if going to profile from sub-page, forward otherwise
       const goingBack =
         isNavigatingBack(location.pathname, previousPathRef.current) ||
         (isGoingToProfile && wasOnSubPage);
@@ -150,53 +159,63 @@ export function MobileLayout({
     navigate(getPath(['dashboard', 'profile']));
   };
 
+  // Component to set actions from props
+  // Note: Child components can override these actions by calling useSetPageActions themselves
+  function ActionsSetter({ actions: actionsProp }: { actions: PageAction[] }) {
+    useSetPageActions(actionsProp.length > 0 ? actionsProp : undefined);
+    return null;
+  }
+
   const content = (
-    <div className="flex min-h-screen flex-col">
-      <MobileHeader
-        title={pageTitle}
-        showBack={
-          shouldShowNavbar(location.pathname)
-            ? false
-            : isProfileSubPage(location.pathname)
-        }
-        onBack={handleBack}
-      />
-      <main
-        className={cn(
-          'flex-1 overflow-y-auto',
-          showNavbar && 'pb-16', // Add padding for navbar
-        )}
-      >
-        {shouldAnimateTransition ? (
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={location.pathname}
-              initial={
-                isBack
-                  ? { x: -300, opacity: 0 } // Slide from left when going back
-                  : { x: 300, opacity: 0 } // Slide from right when going forward
-              }
-              animate={{ x: 0, opacity: 1 }}
-              exit={
-                isBack
-                  ? { x: 300, opacity: 0 } // Exit to right when going back
-                  : { x: -300, opacity: 0 } // Exit to left when going forward
-              }
-              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            >
-              <PageActionsProvider actions={actions}>
+    <PageActionsProvider>
+      <ActionsSetter actions={actions} />
+      <div className="flex min-h-screen flex-col w-full">
+        <MobileHeader
+          title={pageTitle}
+          showBack={
+            shouldShowNavbar(location.pathname)
+              ? false
+              : isProfileSubPage(location.pathname)
+          }
+          onBack={handleBack}
+        />
+        <main
+          className={cn(
+            'flex-1 overflow-y-auto',
+            showNavbar && 'pb-16', // Add padding for navbar
+          )}
+        >
+          {shouldAnimateTransition ? (
+            <AnimatePresence mode="sync" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={
+                  isBack
+                    ? { x: '100%', opacity: 0 } // Profile enters from right when going back
+                    : { x: '-100%', opacity: 0 } // Sub-page enters from left when going forward
+                }
+                animate={{ x: 0, opacity: 1 }}
+                exit={
+                  isBack
+                    ? { x: '-100%', opacity: 0 } // Sub-page exits to left when going back
+                    : { x: '100%', opacity: 0 } // Profile exits to right when going forward
+                }
+                transition={{
+                  type: 'tween',
+                  duration: 0.2,
+                  ease: [0.4, 0, 0.2, 1],
+                }}
+              >
                 {children}
-              </PageActionsProvider>
-            </motion.div>
-          </AnimatePresence>
-        ) : (
-          <PageActionsProvider actions={actions}>
-            {children}
-          </PageActionsProvider>
-        )}
-      </main>
-      {showNavbar && <MobileNavbar />}
-    </div>
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            children
+          )}
+        </main>
+        {showNavbar && <MobileNavbar />}
+      </div>
+    </PageActionsProvider>
   );
 
   return content;

@@ -187,9 +187,9 @@ export function StepForm({
           e.stopPropagation();
           form.handleSubmit(handleSubmit)(e);
         }}
-        className="space-y-4"
+        className="space-y-3 md:space-y-4"
       >
-        <div className="flex items-center gap-4 w-full">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4 w-full">
           <FormField
             control={form.control}
             name="stepType"
@@ -298,7 +298,7 @@ export function StepForm({
         )}
 
         <div className="space-y-2 my-5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 md:gap-0">
             <FormLabel>{m.step_form_targets()}</FormLabel>
             <Dialog
               open={isTargetDialogOpen}
@@ -310,7 +310,7 @@ export function StepForm({
                   {m.step_form_add_target()}
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent mobileFullscreen>
                 <DialogHeader>
                   <DialogTitle>
                     {editingTargetId
@@ -423,7 +423,7 @@ export function StepForm({
           )}
         />
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-col-reverse md:flex-row justify-end gap-2">
           {onCancel && (
             <Button type="button" variant="outline" onClick={onCancel}>
               {cancelLabel}

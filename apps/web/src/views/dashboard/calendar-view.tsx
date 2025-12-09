@@ -40,7 +40,7 @@ export function CalendarView() {
   }, []);
 
   return (
-    <div className="p-8">
+    <div className="w-full p-4 md:p-8">
       {/* {space === 'ATHLETE' && (
         <AthleteDashboardHeader events={data} athleteId={athlete?.athleteId} />
       )} */}

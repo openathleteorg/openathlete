@@ -19,7 +19,7 @@ export function AthleteSettingsPage() {
   if (!athleteId) return null;
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="w-full p-4 md:p-8 space-y-6">
       <h1 className="text-2xl font-semibold">{pageTitle}</h1>
 
       <SessionValidationSettingsCard athleteId={parseInt(athleteId, 10)} />

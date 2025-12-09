@@ -207,7 +207,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden border-r shadow-xl select-none"
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
@@ -219,7 +219,9 @@ function Sidebar({
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div className="flex h-full w-full flex-col overflow-hidden select-none">
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     );
@@ -350,22 +352,32 @@ function SidebarInput({
 }
 
 function SidebarHeader({ className, ...props }: React.ComponentProps<'div'>) {
+  const { isMobile } = useSidebar();
   return (
     <div
       data-slot="sidebar-header"
       data-sidebar="header"
-      className={cn('flex flex-col gap-2 p-2', className)}
+      className={cn(
+        'flex flex-col gap-2 p-2',
+        isMobile && 'px-4 py-4 border-b select-none',
+        className,
+      )}
       {...props}
     />
   );
 }
 
 function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  const { isMobile } = useSidebar();
   return (
     <div
       data-slot="sidebar-footer"
       data-sidebar="footer"
-      className={cn('flex flex-col gap-2 p-2', className)}
+      className={cn(
+        'flex flex-col gap-2 p-2',
+        isMobile && 'px-4 py-3 border-t select-none',
+        className,
+      )}
       {...props}
     />
   );
@@ -386,12 +398,14 @@ function SidebarSeparator({
 }
 
 function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
+  const { isMobile } = useSidebar();
   return (
     <div
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
         'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+        isMobile && 'px-2 py-2 select-none',
         className,
       )}
       {...props}
@@ -400,11 +414,16 @@ function SidebarContent({ className, ...props }: React.ComponentProps<'div'>) {
 }
 
 function SidebarGroup({ className, ...props }: React.ComponentProps<'div'>) {
+  const { isMobile } = useSidebar();
   return (
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn('relative flex w-full min-w-0 flex-col p-2', className)}
+      className={cn(
+        'relative flex w-full min-w-0 flex-col p-2',
+        isMobile && 'px-2 py-1',
+        className,
+      )}
       {...props}
     />
   );
@@ -469,11 +488,16 @@ function SidebarGroupContent({
 }
 
 function SidebarMenu({ className, ...props }: React.ComponentProps<'ul'>) {
+  const { isMobile } = useSidebar();
   return (
     <ul
       data-slot="sidebar-menu"
       data-sidebar="menu"
-      className={cn('flex w-full min-w-0 flex-col gap-1', className)}
+      className={cn(
+        'flex w-full min-w-0 flex-col gap-1',
+        isMobile && 'gap-2',
+        className,
+      )}
       {...props}
     />
   );
@@ -491,7 +515,7 @@ function SidebarMenuItem({ className, ...props }: React.ComponentProps<'li'>) {
 }
 
 const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-sidebar-accent data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&[data-mobile=true]]:h-11 [&[data-mobile=true]]:rounded-lg [&[data-mobile=true]]:px-3',
   {
     variants: {
       variant: {
@@ -534,10 +558,12 @@ function SidebarMenuButton({
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
+      data-mobile={isMobile}
       className={cn(
         sidebarMenuButtonVariants({ variant, size }),
         className,
         'cursor-pointer',
+        isMobile && 'h-11 rounded-lg px-3 text-base select-none',
       )}
       {...props}
     />
@@ -659,6 +685,7 @@ function SidebarMenuSkeleton({
 }
 
 function SidebarMenuSub({ className, ...props }: React.ComponentProps<'ul'>) {
+  const { isMobile } = useSidebar();
   return (
     <ul
       data-slot="sidebar-menu-sub"
@@ -666,6 +693,7 @@ function SidebarMenuSub({ className, ...props }: React.ComponentProps<'ul'>) {
       className={cn(
         'border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5',
         'group-data-[collapsible=icon]:hidden',
+        isMobile && 'mx-2 gap-2 px-3 py-2',
         className,
       )}
       {...props}
@@ -699,6 +727,7 @@ function SidebarMenuSubButton({
   isActive?: boolean;
 }) {
   const Comp = asChild ? Slot : 'a';
+  const { isMobile } = useSidebar();
 
   return (
     <Comp
@@ -712,6 +741,7 @@ function SidebarMenuSubButton({
         size === 'sm' && 'text-xs',
         size === 'md' && 'text-sm',
         'group-data-[collapsible=icon]:hidden',
+        isMobile && 'h-10 rounded-lg px-3 text-base select-none',
         className,
       )}
       {...props}

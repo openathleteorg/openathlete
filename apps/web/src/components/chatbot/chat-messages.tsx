@@ -1,7 +1,6 @@
 import { useGetThreadMessagesQuery } from '@/api/agent';
 import { MessageChunk } from '@/api/agent/use-agent-websocket.hooks';
 import { Loader } from '@/components/ui/loader';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useEffect, useRef } from 'react';
@@ -143,12 +142,15 @@ export function ChatMessages({
   const { data: messages, isLoading } = useGetThreadMessagesQuery(threadId);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    });
   }, [messages, streamingBlocks]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full">
+      <div className="flex items-center justify-center min-h-[200px] p-4">
         <Loader size="md" />
       </div>
     );
@@ -156,7 +158,7 @@ export function ChatMessages({
 
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full text-muted-foreground p-4">
+      <div className="flex items-center justify-center min-h-[200px] text-muted-foreground p-4">
         <div className="text-center">
           <p className="text-sm">{m.chatbot_no_messages()}</p>
           <p className="text-xs mt-2">{m.chatbot_start_conversation()}</p>
@@ -166,31 +168,29 @@ export function ChatMessages({
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4" ref={scrollRef}>
-        {messages.map((message) => {
-          // Find streaming block for this message by checking all blocks in the map
-          let streamingBlock: MessageChunk | undefined;
-          if (streamingBlocks) {
-            for (const block of streamingBlocks.values()) {
-              if (block.messageId === message.messageId) {
-                streamingBlock = block;
-                break;
-              }
+    <div className="p-4" ref={scrollRef}>
+      {messages.map((message) => {
+        // Find streaming block for this message by checking all blocks in the map
+        let streamingBlock: MessageChunk | undefined;
+        if (streamingBlocks) {
+          for (const block of streamingBlocks.values()) {
+            if (block.messageId === message.messageId) {
+              streamingBlock = block;
+              break;
             }
           }
-          return (
-            <MessageBubble
-              key={message.messageId}
-              message={message}
-              streamingBlock={streamingBlock}
-              activeTools={activeTools}
-            />
-          );
-        })}
+        }
+        return (
+          <MessageBubble
+            key={message.messageId}
+            message={message}
+            streamingBlock={streamingBlock}
+            activeTools={activeTools}
+          />
+        );
+      })}
 
-        <div ref={messagesEndRef} />
-      </div>
-    </ScrollArea>
+      <div ref={messagesEndRef} />
+    </div>
   );
 }

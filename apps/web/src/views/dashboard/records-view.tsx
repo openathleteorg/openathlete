@@ -2,7 +2,6 @@ import { useGetRecordsQuery } from '@/api/record';
 import { RecordsChart } from '@/components/charts/records-chart';
 import { SportSelect } from '@/components/sport-select/sport-select';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader } from '@/components/ui/loader';
 import { SkeletonChart } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
@@ -41,8 +40,10 @@ export function RecordsView({ athleteId }: P) {
       });
 
   return (
-    <div className="p-8 grid grid-cols-2 gap-4">
-      <h1 className="text-2xl font-semibold col-span-2">{pageTitle}</h1>
+    <div className="w-full p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <h1 className="text-2xl font-semibold col-span-2 md:block hidden">
+        {pageTitle}
+      </h1>
       <Card className="col-span-2">
         <CardContent>
           <SportSelect selected={sport} onChange={handleChangeSportFilter} />
@@ -52,7 +53,7 @@ export function RecordsView({ athleteId }: P) {
         <CardContent>
           {isLoadingRecords ? (
             <SkeletonChart className="h-[500px]" />
-          ) : records && !!records.length ? (
+          ) : records && records.length > 0 ? (
             <RecordsChart records={records} className="h-[500px]" />
           ) : (
             <h1 className="text-2xl font-semibold">

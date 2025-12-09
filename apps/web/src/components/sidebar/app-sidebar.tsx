@@ -10,6 +10,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
@@ -33,6 +34,14 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const { space } = useSpaceContext();
   const { data: athletes } = useGetMyCoachedAthletesQuery();
   const { resolvedTheme } = useTheme();
+  const { isMobile, setOpenMobile } = useSidebar();
+
+  const handleLogoClick = () => {
+    // Close sidebar on mobile when clicking logo
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
 
   const sidebarNavigation = useMemo(() => {
     if (space === 'COACH') {
@@ -131,6 +140,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         <div className="flex items-center justify-between gap-2 px-0.5 py-1 w-full">
           <Link
             to={getPath(['dashboard'])}
+            onClick={handleLogoClick}
             className="flex items-center justify-center gap-2 w-full"
           >
             <img

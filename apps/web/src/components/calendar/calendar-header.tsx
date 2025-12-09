@@ -63,52 +63,58 @@ export function CalendarHeader() {
       });
 
   return (
-    <div className="flex justify-between">
-      <h1 className="text-2xl font-semibold">{calendarTitle}</h1>
-      <div className="flex gap-2">
-        <Select
-          value={coloredBy || ''}
-          onValueChange={(c) => {
-            if (c === '') {
-              setColoredBy(null);
-            } else {
-              setColoredBy(c as COLORED_BY);
+    <div className="flex flex-col md:flex-row md:justify-between gap-4">
+      <h1 className="text-xl md:text-2xl font-semibold">{calendarTitle}</h1>
+      <div className="flex flex-col md:flex-row gap-2">
+        {/* Filters row */}
+        <div className="flex gap-2">
+          <Select
+            value={coloredBy || ''}
+            onValueChange={(c) => {
+              if (c === '') {
+                setColoredBy(null);
+              } else {
+                setColoredBy(c as COLORED_BY);
+              }
+            }}
+          >
+            <SelectTrigger className="flex-1 md:flex-none">
+              <SelectValue placeholder={m.colored_by()} />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.values(COLORED_BY).map((colorProfile) => (
+                <SelectItem key={colorProfile} value={colorProfile}>
+                  {coloredByLabelMap[colorProfile]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <SportSelect
+            selected={sportFilter}
+            onChange={(sport) => handleChangeSportFilter(sport)}
+          />
+        </div>
+        {/* Navigation buttons */}
+        <div className="flex gap-2">
+          <Button size="icon" onClick={() => prevMonth()}>
+            <ChevronLeft />
+          </Button>
+          <Button
+            variant="outline"
+            size="default"
+            className="px-2 md:px-3 text-xs md:text-sm"
+            disabled={
+              displayedMonth.getMonth() === new Date().getMonth() &&
+              displayedMonth.getFullYear() === new Date().getFullYear()
             }
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={m.colored_by()} />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(COLORED_BY).map((colorProfile) => (
-              <SelectItem key={colorProfile} value={colorProfile}>
-                {coloredByLabelMap[colorProfile]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <SportSelect
-          selected={sportFilter}
-          onChange={(sport) => handleChangeSportFilter(sport)}
-        />
-        <Button size="icon" onClick={() => prevMonth()}>
-          <ChevronLeft />
-        </Button>
-        <Button
-          variant="outline"
-          size="default"
-          className="px-3"
-          disabled={
-            displayedMonth.getMonth() === new Date().getMonth() &&
-            displayedMonth.getFullYear() === new Date().getFullYear()
-          }
-          onClick={() => goToCurrentMonth()}
-        >
-          {m.calendar_current_month()}
-        </Button>
-        <Button onClick={() => nextMonth()} size="icon">
-          <ChevronRight />
-        </Button>
+            onClick={() => goToCurrentMonth()}
+          >
+            {m.calendar_current_month()}
+          </Button>
+          <Button onClick={() => nextMonth()} size="icon">
+            <ChevronRight />
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -11,25 +11,21 @@ interface P {
 }
 
 export function DashboardLayout({ children }: P) {
-  if (isCapacitor()) {
-    return (
-      <SpaceProvider>
-        <SpaceConsumer>
-          <MobileLayout>{children}</MobileLayout>
-        </SpaceConsumer>
-      </SpaceProvider>
-    );
-  }
-
-  // Desktop layout
+  // Use SidebarProvider for both desktop and mobile (Capacitor) modes
   return (
     <SpaceProvider>
       <SidebarProvider>
         <AppSidebar />
         <SpaceConsumer>
-          <SidebarInset>{children}</SidebarInset>
-          <ChatBubble />
-          <ChatWindow />
+          {isCapacitor() ? (
+            <MobileLayout>{children}</MobileLayout>
+          ) : (
+            <>
+              <SidebarInset>{children}</SidebarInset>
+              <ChatBubble />
+              <ChatWindow />
+            </>
+          )}
         </SpaceConsumer>
       </SidebarProvider>
     </SpaceProvider>

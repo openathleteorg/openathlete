@@ -172,6 +172,24 @@
   }
 }
 
+/* Prevent iOS zoom on input focus in Capacitor mode - force minimum 16px font size */
+@media screen and (max-width: 768px) {
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='number'],
+  input[type='search'],
+  input[type='tel'],
+  input[type='url'],
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
 /* Fix prose colors in user message bubbles (dark background) */
 .prose-user {
   color: var(--primary-foreground) !important;

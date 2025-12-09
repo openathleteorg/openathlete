@@ -19,7 +19,7 @@ export function SummaryView({ athleteId }: SummaryViewProps) {
       });
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="w-full p-4 md:p-8 space-y-6">
       <h1 className="text-2xl font-semibold">{pageTitle}</h1>
 
       <Card>

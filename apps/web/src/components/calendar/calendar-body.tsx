@@ -40,7 +40,8 @@ export function CalendarBody() {
 
   return (
     <div className="w-full border-1 rounded-lg shadow-sm">
-      <div className="grid grid-cols-8 border-b-1">
+      {/* Header row with days */}
+      <div className="grid grid-cols-7 md:grid-cols-8 border-b-1">
         {displayedWeeks[0].map((day, i) => (
           <div
             key={i}
@@ -51,7 +52,8 @@ export function CalendarBody() {
             })}
           </div>
         ))}
-        <div className="h-8 [&:not(:last-child)]:border-r-1">
+        {/* Summary type selector - hidden on mobile, shown on desktop */}
+        <div className="hidden md:block h-8 [&:not(:last-child)]:border-r-1">
           <Select value={summaryType} onValueChange={setSummaryType}>
             <SelectTrigger
               className="border-0 shadow-none py-0 w-full"
@@ -67,35 +69,65 @@ export function CalendarBody() {
           </Select>
         </div>
       </div>
+
+      {/* Summary selector for mobile - shown between header and weeks */}
+      <div className="md:hidden border-b-1 p-2">
+        <Select value={summaryType} onValueChange={setSummaryType}>
+          <SelectTrigger className="w-full">
+            <SelectValue className="font-bold" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="planned-done">{m.planned_done()}</SelectItem>
+            <SelectItem value="planned">{m.planned()}</SelectItem>
+            <SelectItem value="done">{m.done()}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Week rows */}
       {displayedWeeks.map((week, weekIndex) => (
-        <div
-          key={weekIndex}
-          className="grid grid-cols-8 [&:not(:last-child)]:border-b-1"
-        >
-          {week.map((day, i) => (
-            <CalendarDay
-              key={i}
-              day={day}
+        <div key={weekIndex}>
+          <div className="grid grid-cols-7 md:grid-cols-8 [&:not(:last-child)]:border-b-1">
+            {week.map((day, i) => (
+              <CalendarDay
+                key={i}
+                day={day}
+                events={events.filter(
+                  (event) =>
+                    event.startDate.toDateString() === day.toDateString() &&
+                    !(
+                      (event.type === EVENT_TYPE.COMPETITION ||
+                        event.type === EVENT_TYPE.TRAINING) &&
+                      event.relatedActivity
+                    ),
+                )}
+                cycleSegments={calculateCyclesForDay(displayedCycles, day)}
+              />
+            ))}
+            {/* Summary column - hidden on mobile, shown on desktop */}
+            <div className="hidden md:block">
+              <CalendarWeekSummary
+                week={week}
+                events={events.filter(
+                  (event) =>
+                    event.startDate.getTime() >=
+                      startOfDay(week[0]).getTime() &&
+                    event.startDate.getTime() <= endOfDay(week[6]).getTime(),
+                )}
+              />
+            </div>
+          </div>
+          {/* Summary row for mobile - shown after each week row */}
+          <div className="md:hidden border-b-1">
+            <CalendarWeekSummary
+              week={week}
               events={events.filter(
                 (event) =>
-                  event.startDate.toDateString() === day.toDateString() &&
-                  !(
-                    (event.type === EVENT_TYPE.COMPETITION ||
-                      event.type === EVENT_TYPE.TRAINING) &&
-                    event.relatedActivity
-                  ),
+                  event.startDate.getTime() >= startOfDay(week[0]).getTime() &&
+                  event.startDate.getTime() <= endOfDay(week[6]).getTime(),
               )}
-              cycleSegments={calculateCyclesForDay(displayedCycles, day)}
             />
-          ))}
-          <CalendarWeekSummary
-            week={week}
-            events={events.filter(
-              (event) =>
-                event.startDate.getTime() >= startOfDay(week[0]).getTime() &&
-                event.startDate.getTime() <= endOfDay(week[6]).getTime(),
-            )}
-          />
+          </div>
         </div>
       ))}
     </div>

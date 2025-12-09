@@ -33,23 +33,27 @@ export function SettingsView() {
   };
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-semibold">{m.settings()}</h1>
+    <div className="w-full p-4 md:p-8">
+      <h1 className="text-2xl font-semibold hidden md:block">{m.settings()}</h1>
       <Tabs value={activeTab} onValueChange={handleTabChange} className="mt-4">
-        <TabsList>
-          <TabsTrigger value="connectors">{m.connectors()}</TabsTrigger>
-          <TabsTrigger value="profile">{m.profile()}</TabsTrigger>
-          <TabsTrigger value="equipment">{m.equipment()}</TabsTrigger>
-          <TabsTrigger value="training_zones">{m.training_zones()}</TabsTrigger>
-          {roles?.includes('COACH') && (
-            <TabsTrigger value="athletes">{m.athletes()}</TabsTrigger>
-          )}
-          {roles?.includes('ATHLETE') && (
-            <TabsTrigger value="coaches">{m.coaches()}</TabsTrigger>
-          )}
-          <TabsTrigger value="invitations">{m.invitations()}</TabsTrigger>
-          <TabsTrigger value="subscription">{m.subscription()}</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
+          <TabsList className="w-max md:w-auto flex-nowrap md:flex-wrap min-w-full md:min-w-0">
+            <TabsTrigger value="connectors">{m.connectors()}</TabsTrigger>
+            <TabsTrigger value="profile">{m.profile()}</TabsTrigger>
+            <TabsTrigger value="equipment">{m.equipment()}</TabsTrigger>
+            <TabsTrigger value="training_zones">
+              {m.training_zones()}
+            </TabsTrigger>
+            {roles?.includes('COACH') && (
+              <TabsTrigger value="athletes">{m.athletes()}</TabsTrigger>
+            )}
+            {roles?.includes('ATHLETE') && (
+              <TabsTrigger value="coaches">{m.coaches()}</TabsTrigger>
+            )}
+            <TabsTrigger value="invitations">{m.invitations()}</TabsTrigger>
+            <TabsTrigger value="subscription">{m.subscription()}</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="connectors" className="mt-6">
           <ConnectorsTab />
         </TabsContent>

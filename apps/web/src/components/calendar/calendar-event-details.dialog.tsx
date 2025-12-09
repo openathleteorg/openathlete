@@ -36,19 +36,24 @@ export function CalendarEventDetailsDialog({
   return (
     <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
       <DialogContent
+        mobileFullscreen
         className={cn(
           'sm:max-w-4xl',
           event?.type === EVENT_TYPE.ACTIVITY && 'sm:max-w-6xl',
         )}
       >
         <DialogHeader>
-          <DialogTitle className="flex items-start justify-center gap-2">
-            <div className="flex items-center gap-2 grow">
+          <DialogTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-2">
+            <div className="flex flex-wrap items-center gap-2 grow text-sm md:text-base">
               {event?.type !== EVENT_TYPE.NOTE && event?.sport && (
                 <SportIcon sport={event.sport} />
               )}
-              {event?.name}{' '}
-              {event && <Badge>{eventTypeLabelMap[event.type]}</Badge>}
+              <span className="break-words">{event?.name}</span>
+              {event && (
+                <Badge className="text-xs">
+                  {eventTypeLabelMap[event.type]}
+                </Badge>
+              )}
               {event &&
                 event.type === EVENT_TYPE.ACTIVITY &&
                 event.externalId &&
@@ -59,7 +64,7 @@ export function CalendarEventDetailsDialog({
                 ) && (
                   <Badge
                     variant="outline"
-                    className="cursor-pointer hover:underline"
+                    className="cursor-pointer hover:underline text-xs"
                     onClick={() => {
                       const link = getConnectorProviderActivityLink(
                         event.provider!,
@@ -75,8 +80,13 @@ export function CalendarEventDetailsDialog({
                   </Badge>
                 )}
             </div>
-            <div className="flex items-center gap-2 pr-4 -translate-y-4">
-              <Button onClick={onEditEvent} variant="outline" size="sm">
+            <div className="flex items-center gap-2 md:pr-4 md:-translate-y-4 w-full md:w-auto">
+              <Button
+                onClick={onEditEvent}
+                variant="outline"
+                size="sm"
+                className="flex-1 md:flex-none text-xs md:text-sm"
+              >
                 {m.edit()}
               </Button>
             </div>

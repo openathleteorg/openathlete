@@ -17,9 +17,10 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
+import { useSetPageActions } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import {
   CreateMetricDto,
@@ -54,10 +55,10 @@ export function MetricsView({ athleteId }: P) {
     setIsDialogOpen(true);
   };
 
-  const handleAddNewMetric = () => {
+  const handleAddNewMetric = useCallback(() => {
     setSelectedMetric(null);
     setIsDialogOpen(true);
-  };
+  }, []);
 
   const handleSubmit = async (values: CreateMetricDto) => {
     await createMetric.mutateAsync({ body: values, athleteId });
@@ -125,12 +126,25 @@ export function MetricsView({ athleteId }: P) {
         lastName: athlete?.user?.lastName || '',
       });
 
+  // Actions for mobile header - memoized to prevent recreating on each render
+  const actions = useMemo(
+    () => [
+      {
+        label: m.add_metric(),
+        icon: Plus,
+        onClick: handleAddNewMetric,
+      },
+    ],
+    [handleAddNewMetric],
+  );
+
+  useSetPageActions(actions);
+
   return (
-    <div className="p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">{pageTitle}</h1>
-        <Button onClick={handleAddNewMetric}>
+    <div className="w-full p-4 md:p-8 space-y-6">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-2xl font-semibold hidden md:block">{pageTitle}</h1>
+        <Button onClick={handleAddNewMetric} className="hidden md:flex">
           <Plus className="h-4 w-4 mr-2" />
           {m.add_metric()}
         </Button>
