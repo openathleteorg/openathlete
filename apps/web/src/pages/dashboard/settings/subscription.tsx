@@ -94,7 +94,7 @@ export function SubscriptionSettingsPage() {
           <CardDescription>{m.subscription_current()}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <div className="text-sm text-muted-foreground">
                 {m.subscription_plan()}
@@ -135,11 +135,12 @@ export function SubscriptionSettingsPage() {
               )}
           </div>
 
-          <div className="flex gap-2 pt-4">
+          <div className="flex flex-col sm:flex-row gap-2 pt-4">
             {subscription.cancelAtPeriodEnd ? (
               <Button
                 onClick={handleResume}
                 disabled={resumeMutation.isPending}
+                className="w-full sm:w-auto"
               >
                 {m.subscription_resume()}
               </Button>
@@ -148,6 +149,7 @@ export function SubscriptionSettingsPage() {
                 variant="outline"
                 onClick={handleCancel}
                 disabled={cancelMutation.isPending}
+                className="w-full sm:w-auto"
               >
                 {m.subscription_cancel()}
               </Button>
@@ -156,6 +158,7 @@ export function SubscriptionSettingsPage() {
               variant="outline"
               onClick={handleManageBilling}
               disabled={isLoadingPortal}
+              className="w-full sm:w-auto"
             >
               <ExternalLink className="w-4 h-4 mr-2" />
               {m.subscription_manage_billing()}
@@ -178,10 +181,10 @@ export function SubscriptionSettingsPage() {
               {invoices.map((invoice) => (
                 <div
                   key={invoice.id}
-                  className="flex items-center justify-between p-3 border rounded-lg"
+                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <FileText className="w-5 h-5 text-muted-foreground" />
+                    <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                     <div>
                       <div className="font-medium">
                         €{invoice.amount.toFixed(2)}{' '}
@@ -193,7 +196,7 @@ export function SubscriptionSettingsPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     {invoice.invoiceUrl && (
                       <Button
                         variant="outline"
@@ -201,6 +204,7 @@ export function SubscriptionSettingsPage() {
                         onClick={() =>
                           window.open(invoice.invoiceUrl!, '_blank')
                         }
+                        className="w-full sm:w-auto"
                       >
                         <ExternalLink className="w-4 h-4 mr-2" />
                         {m.subscription_view_invoice()}
@@ -213,6 +217,7 @@ export function SubscriptionSettingsPage() {
                         onClick={() =>
                           window.open(invoice.invoicePdf!, '_blank')
                         }
+                        className="w-full sm:w-auto"
                       >
                         <Download className="w-4 h-4 mr-2" />
                         {m.subscription_download_invoice()}

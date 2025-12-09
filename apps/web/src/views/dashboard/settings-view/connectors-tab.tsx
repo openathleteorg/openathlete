@@ -285,9 +285,9 @@ export function ConnectorsTab() {
                 return (
                   <Card key={provider}>
                     <CardHeader>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center">
+                          <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
                             {getProviderIcon(provider)}
                           </div>
                           <div>
@@ -302,7 +302,7 @@ export function ConnectorsTab() {
                           </div>
                         </div>
                         {connected && (
-                          <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                          <div className="flex items-center gap-2 text-green-600 dark:text-green-400 flex-shrink-0">
                             <CheckCircle2 className="h-5 w-5" />
                             <span className="text-sm font-medium">
                               {m.connected()}
@@ -312,7 +312,7 @@ export function ConnectorsTab() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex-1">
                           {connected ? (
                             <p className="text-sm text-muted-foreground">
@@ -328,13 +328,14 @@ export function ConnectorsTab() {
                             </p>
                           )}
                         </div>
-                        <div className="ml-4">
+                        <div className="sm:ml-4 flex-shrink-0">
                           {connected ? (
                             <Button
                               variant="destructive"
                               size="sm"
                               onClick={() => handleDisconnect(provider)}
                               disabled={isLoading}
+                              className="w-full sm:w-auto"
                             >
                               <Link2Off className="mr-2 h-4 w-4" />
                               {m.disconnect()}
@@ -345,6 +346,7 @@ export function ConnectorsTab() {
                               size="sm"
                               onClick={() => handleConnect(provider)}
                               disabled={isLoading}
+                              className="w-full sm:w-auto"
                             >
                               <Link2 className="mr-2 h-4 w-4" />
                               {m.connect()}
@@ -360,7 +362,7 @@ export function ConnectorsTab() {
                               setOpenProvider(openState ? provider : null)
                             }
                           >
-                            <div className="flex items-center justify-between">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                               <p className="text-sm font-medium">
                                 {m.provider_sync_options_title()}
                               </p>
@@ -368,7 +370,7 @@ export function ConnectorsTab() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="flex items-center gap-2"
+                                  className="flex items-center gap-2 self-start sm:self-auto"
                                 >
                                   <ChevronDown
                                     className={cn(
@@ -386,9 +388,9 @@ export function ConnectorsTab() {
                               {preferenceToggles.map((toggle) => (
                                 <div
                                   key={toggle.key}
-                                  className="flex items-start justify-between gap-4 rounded-md border p-4"
+                                  className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between rounded-md border p-4"
                                 >
-                                  <div>
+                                  <div className="flex-1">
                                     <Label className="text-sm font-medium">
                                       {toggle.label}
                                     </Label>
@@ -406,6 +408,7 @@ export function ConnectorsTab() {
                                       )
                                     }
                                     disabled={isUpdatingThisProvider}
+                                    className="flex-shrink-0"
                                   />
                                 </div>
                               ))}
