@@ -122,23 +122,14 @@ export class SuuntoProviderService
   }
 
   protected get oauthConfig(): OAuthConfig {
-    // Trim whitespace from config values to avoid issues with secrets
-    const clientId = (this.configService.get('SUUNTO_CLIENT_ID') || '').trim();
-    const clientSecret = (
-      this.configService.get('SUUNTO_CLIENT_SECRET') || ''
-    ).trim();
-    const redirectUri = (
-      this.configService.get('SUUNTO_REDIRECT_URI') || ''
-    ).trim();
-
     return {
       // Note: Use cloudapi-oauth.suunto.com instead of cloudapi.suunto.com
       // as specified in Suunto API documentation
       authorizationUrl: 'https://cloudapi-oauth.suunto.com/oauth/authorize',
       tokenUrl: 'https://cloudapi-oauth.suunto.com/oauth/token',
-      clientId,
-      clientSecret,
-      redirectUri,
+      clientId: this.configService.get('SUUNTO_CLIENT_ID') || '',
+      clientSecret: this.configService.get('SUUNTO_CLIENT_SECRET') || '',
+      redirectUri: this.configService.get('SUUNTO_REDIRECT_URI') || '',
       scopes: [], // Suunto OAuth2 doesn't use scopes in authorization URL
     };
   }
@@ -169,68 +160,16 @@ export class SuuntoProviderService
 
   /**
    * Exchange authorization code for tokens
-   * Suunto uses Basic Auth (client_id:client_secret) in header and parameters in query string
-   * According to Suunto API docs: /oauth/token?grant_type=authorization_code&code=<code>&redirect_uri=<redirect_uri>
+   * Suunto uses Basic Auth (client_id:client_secret) and query parameters
    */
   override async exchangeCodeForTokens(
     code: string,
   ): Promise<OAuthTokenResponse> {
     try {
-      // Credentials are already trimmed in oauthConfig getter
-      const clientId = this.oauthConfig.clientId;
-      const clientSecret = this.oauthConfig.clientSecret;
-
-      if (!clientId || !clientSecret) {
-        throw new Error(
-          'SUUNTO_CLIENT_ID or SUUNTO_CLIENT_SECRET is missing or empty',
-        );
-      }
-
-      // Log lengths for debugging (without exposing actual values)
-      this.logger.debug(
-        `Suunto OAuth config: client_id length=${clientId.length}, client_secret length=${clientSecret.length}`,
-      );
-
-      // Verify client_id format (should be UUID)
-      if (
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          clientId,
-        )
-      ) {
-        this.logger.warn(
-          `Suunto client_id does not match UUID format: ${clientId.substring(0, 8)}...`,
-        );
-      }
-
       // Create Basic Auth header: Base64(client_id:client_secret)
-      // Format: Authorization: Basic Base64(username:password)
-      // For OAuth2, username:password = client_id:client_secret
-      // Use UTF-8 encoding explicitly to ensure consistent byte representation
-      const credentialsString = `${clientId}:${clientSecret}`;
-      const credentials = Buffer.from(credentialsString, 'utf8').toString(
-        'base64',
-      );
-
-      // Verify Base64 encoding by decoding and checking
-      try {
-        const decoded = Buffer.from(credentials, 'base64').toString('utf8');
-        const [decodedClientId, decodedClientSecret] = decoded.split(':');
-        if (
-          decodedClientId !== clientId ||
-          decodedClientSecret !== clientSecret
-        ) {
-          this.logger.error(
-            'Suunto credentials encoding verification failed: decoded values do not match original',
-          );
-        }
-      } catch {
-        this.logger.error('Failed to verify Base64 encoding of credentials');
-      }
-
-      // Log credential info for debugging (without exposing actual values)
-      this.logger.debug(
-        `Suunto OAuth credentials: combined length=${credentialsString.length}, base64 length=${credentials.length}, base64 starts with=${credentials.substring(0, 10)}...`,
-      );
+      const credentials = Buffer.from(
+        `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
+      ).toString('base64');
 
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
@@ -238,25 +177,15 @@ export class SuuntoProviderService
         redirect_uri: this.oauthConfig.redirectUri,
       });
 
-      const url = `${this.oauthConfig.tokenUrl}?${params.toString()}`;
-
-      this.logger.debug(
-        `Suunto OAuth token exchange: URL=${url.replace(/code=[^&]+/, 'code=***')}, client_id=${this.oauthConfig.clientId.substring(0, 8)}..., redirect_uri=${this.oauthConfig.redirectUri}`,
-      );
-
       const { data } = await axios.post<OAuthTokenResponse>(
-        url,
-        null, // No body, all params in query string as per Suunto API docs
+        `${this.oauthConfig.tokenUrl}?${params.toString()}`,
+        null, // No body, all params in query string
         {
           headers: {
             Authorization: `Basic ${credentials}`,
-            // Don't set Content-Type for query string parameters
+            'Content-Type': 'application/x-www-form-urlencoded',
           },
         },
-      );
-
-      this.logger.debug(
-        `Suunto OAuth token exchange successful: expires_in=${data.expires_in}, token_type=${data.token_type}`,
       );
 
       return data;
@@ -265,28 +194,8 @@ export class SuuntoProviderService
         this.logger.error(
           `Suunto OAuth token exchange failed: ${JSON.stringify(error.response?.data)}`,
         );
-        this.logger.error(
-          `Suunto OAuth token exchange error status: ${error.response?.status}, URL: ${this.oauthConfig.tokenUrl}`,
-        );
-        // Log request details for debugging (without exposing secrets)
-        if (error.config) {
-          this.logger.error(
-            `Request URL: ${error.config.url?.replace(/code=[^&]+/, 'code=***')}`,
-          );
-          this.logger.error(
-            `Has Authorization header: ${!!error.config.headers?.Authorization}`,
-          );
-          // Log first few chars of base64 to verify encoding (safe to log)
-          const authHeader = error.config.headers?.Authorization as string;
-          if (authHeader) {
-            const base64Part = authHeader.replace('Basic ', '');
-            this.logger.error(
-              `Authorization header base64 length=${base64Part.length}, starts with=${base64Part.substring(0, 10)}...`,
-            );
-          }
-        }
       }
-      throw new Error('Failed to exchange code for tokens');
+      throw error;
     }
   }
 
@@ -298,21 +207,9 @@ export class SuuntoProviderService
     refreshToken: string,
   ): Promise<OAuthTokenResponse> {
     try {
-      // Credentials are already trimmed in oauthConfig getter
-      const clientId = this.oauthConfig.clientId;
-      const clientSecret = this.oauthConfig.clientSecret;
-
-      if (!clientId || !clientSecret) {
-        throw new Error(
-          'SUUNTO_CLIENT_ID or SUUNTO_CLIENT_SECRET is missing or empty',
-        );
-      }
-
       // Create Basic Auth header: Base64(client_id:client_secret)
-      // Use UTF-8 encoding explicitly to ensure consistent byte representation
       const credentials = Buffer.from(
-        `${clientId}:${clientSecret}`,
-        'utf8',
+        `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
       ).toString('base64');
 
       const params = new URLSearchParams({
@@ -566,25 +463,22 @@ export class SuuntoProviderService
 
         const expiresAt = expiresAtMs ? new Date(expiresAtMs) : null;
 
-        // Determine which refresh token to store
-        // Suunto may or may not return a new refresh_token
-        const refreshTokenToStore =
-          tokenResponse.refresh_token ?? freshAccount.refresh_token;
-
         const updatedAccount = await this.prisma.provider_account.update({
           where: {
             provider_account_id: freshAccount.provider_account_id,
           },
           data: {
             access_token: tokenResponse.access_token,
-            refresh_token: refreshTokenToStore,
+            refresh_token:
+              tokenResponse.refresh_token ?? freshAccount.refresh_token,
             expires_at: expiresAt,
           },
         });
 
-        this.logger.debug(
-          `Suunto token refreshed and stored for account ${freshAccount.provider_account_id}: access_token length=${tokenResponse.access_token.length}, refresh_token ${tokenResponse.refresh_token ? 'updated' : 'kept existing'}, expires_at=${expiresAt?.toISOString() || 'null'}`,
-        );
+        // Update the account object passed in
+        account.access_token = updatedAccount.access_token;
+        account.refresh_token = updatedAccount.refresh_token;
+        account.expires_at = updatedAccount.expires_at;
 
         // Verify token format (should be a JWT with 3 parts separated by dots)
         const tokenParts = tokenResponse.access_token.split('.');
@@ -598,15 +492,12 @@ export class SuuntoProviderService
           `Suunto token refreshed successfully for account ${freshAccount.provider_account_id}, retrying request with new token (length: ${tokenResponse.access_token.length}, format: ${tokenParts.length === 3 ? 'JWT' : 'INVALID'})`,
         );
 
-        // Use the access token from the updated account (ensures we use what's in DB)
-        const finalAccessToken = updatedAccount.access_token;
-
         // Small delay to ensure token is propagated (some APIs need a moment)
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Use the access token from the database (what we just stored)
+        // Use the new access token from the refresh response
         try {
-          const result = await requestFn(finalAccessToken);
+          const result = await requestFn(tokenResponse.access_token);
           this.logger.debug(
             `Suunto request succeeded after token refresh for account ${freshAccount.provider_account_id}`,
           );
