@@ -173,19 +173,28 @@ export abstract class BaseProviderService {
         ? new Date(Date.now() + tokenResponse.expires_in * 1000)
         : null;
 
+      // Determine which refresh token to store
+      // Some providers return a new refresh_token, others don't
+      const refreshTokenToStore =
+        tokenResponse.refresh_token ?? account.refresh_token;
+
       // Update stored tokens
-      await this.prisma.provider_account.update({
+      const updatedAccount = await this.prisma.provider_account.update({
         where: {
           provider_account_id: account.provider_account_id,
         },
         data: {
           access_token: tokenResponse.access_token,
-          refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
+          refresh_token: refreshTokenToStore,
           expires_at: expiresAt,
         },
       });
 
-      return tokenResponse.access_token;
+      this.logger.debug(
+        `Token refreshed and stored for ${this.provider} account ${account.provider_account_id}: access_token length=${tokenResponse.access_token.length}, refresh_token ${tokenResponse.refresh_token ? 'updated' : 'kept existing'}, expires_at=${expiresAt?.toISOString() || 'null'}`,
+      );
+
+      return updatedAccount.access_token;
     } catch (error) {
       // If refresh token is invalid (401), mark account as revoked
       if (

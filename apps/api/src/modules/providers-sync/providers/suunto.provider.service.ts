@@ -463,22 +463,25 @@ export class SuuntoProviderService
 
         const expiresAt = expiresAtMs ? new Date(expiresAtMs) : null;
 
+        // Determine which refresh token to store
+        // Suunto may or may not return a new refresh_token
+        const refreshTokenToStore =
+          tokenResponse.refresh_token ?? freshAccount.refresh_token;
+
         const updatedAccount = await this.prisma.provider_account.update({
           where: {
             provider_account_id: freshAccount.provider_account_id,
           },
           data: {
             access_token: tokenResponse.access_token,
-            refresh_token:
-              tokenResponse.refresh_token ?? freshAccount.refresh_token,
+            refresh_token: refreshTokenToStore,
             expires_at: expiresAt,
           },
         });
 
-        // Update the account object passed in
-        account.access_token = updatedAccount.access_token;
-        account.refresh_token = updatedAccount.refresh_token;
-        account.expires_at = updatedAccount.expires_at;
+        this.logger.debug(
+          `Suunto token refreshed and stored for account ${freshAccount.provider_account_id}: access_token length=${tokenResponse.access_token.length}, refresh_token ${tokenResponse.refresh_token ? 'updated' : 'kept existing'}, expires_at=${expiresAt?.toISOString() || 'null'}`,
+        );
 
         // Verify token format (should be a JWT with 3 parts separated by dots)
         const tokenParts = tokenResponse.access_token.split('.');
@@ -492,12 +495,15 @@ export class SuuntoProviderService
           `Suunto token refreshed successfully for account ${freshAccount.provider_account_id}, retrying request with new token (length: ${tokenResponse.access_token.length}, format: ${tokenParts.length === 3 ? 'JWT' : 'INVALID'})`,
         );
 
+        // Use the access token from the updated account (ensures we use what's in DB)
+        const finalAccessToken = updatedAccount.access_token;
+
         // Small delay to ensure token is propagated (some APIs need a moment)
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Use the new access token from the refresh response
+        // Use the access token from the database (what we just stored)
         try {
-          const result = await requestFn(tokenResponse.access_token);
+          const result = await requestFn(finalAccessToken);
           this.logger.debug(
             `Suunto request succeeded after token refresh for account ${freshAccount.provider_account_id}`,
           );
