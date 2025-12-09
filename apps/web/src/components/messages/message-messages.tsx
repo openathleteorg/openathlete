@@ -1,10 +1,11 @@
 import { useGetThreadMessagesQuery, useGetThreadQuery } from '@/api/messages';
 import { useMessagesWebSocket } from '@/api/messages/use-messages-websocket.hooks';
 import { useGetMeQuery } from '@/api/user';
+import { Loader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useWindowVisibility } from '@/hooks/use-window-visibility';
 import { cn } from '@/utils/shadcn';
-import { CheckCheck, Loader2 } from 'lucide-react';
+import { CheckCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { Message } from '@openathlete/shared';
@@ -213,7 +214,7 @@ export function MessageMessages({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader size="md" />
       </div>
     );
   }

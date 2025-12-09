@@ -9,6 +9,7 @@ import {
   useRejectInvitationMutation as useCoachRejectInvitationMutation,
 } from '@/api/coach';
 import { Button } from '@/components/ui/button';
+import { SkeletonTableRow } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -87,7 +88,20 @@ export function InvitationsTab() {
         title={m.invitations()}
         description={m.pending_invitations_description()}
       >
-        <div className="text-sm text-muted-foreground">{m.loading()}</div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{m.coach()}</TableHead>
+              <TableHead>{m.email()}</TableHead>
+              <TableHead className="text-right">{m.actions()}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 2 }).map((_, i) => (
+              <SkeletonTableRow key={i} colCount={3} />
+            ))}
+          </TableBody>
+        </Table>
       </SettingsSection>
     );
   }

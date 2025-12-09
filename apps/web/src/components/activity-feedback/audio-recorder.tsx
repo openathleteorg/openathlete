@@ -1,9 +1,10 @@
 import { Button } from '@/components/ui/button';
+import { Loader } from '@/components/ui/loader';
 import { API_BASE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { getAccessToken } from '@/utils/auth';
 import { routes } from '@/utils/axios';
-import { Loader2, Mic, MicOff } from 'lucide-react';
+import { Mic, MicOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -181,7 +182,7 @@ export function AudioRecorder({
   if (isTranscribing) {
     return (
       <div className="flex items-center gap-2 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader size="sm" />
         <span className="text-sm">{m.transcribing_audio()}</span>
       </div>
     );

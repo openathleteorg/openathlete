@@ -8,6 +8,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Loader } from '@/components/ui/loader';
 import * as m from '@/paraglide/messages.js';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -78,7 +79,7 @@ export function TrainingLoadChart({
       <CardContent>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Loader size="lg" />
           </div>
         ) : chartData.length > 0 ? (
           <div className="space-y-4">

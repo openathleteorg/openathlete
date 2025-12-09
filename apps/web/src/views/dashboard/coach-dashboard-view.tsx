@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { Calendar } from 'lucide-react';
@@ -134,9 +135,23 @@ export function CoachDashboardView() {
             <div className="flex-1 min-h-0">
               <div className="grid grid-cols-[240px_200px_140px_140px_140px_140px_140px_140px_140px_140px]">
                 {isLoading && (
-                  <div className="col-span-10 py-10 flex items-center justify-center text-muted-foreground">
-                    {m.agent_processing()}
-                  </div>
+                  <>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <div key={i} className="contents">
+                        <div className="sticky left-0 z-[30] bg-background border-r border-b pl-4 pr-2 h-[57px] flex items-center">
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                        {Array.from({ length: 9 }).map((_, j) => (
+                          <div
+                            key={j}
+                            className="pl-6 pr-2 h-[57px] flex items-center border-b bg-background"
+                          >
+                            <Skeleton className="h-4 w-20" />
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </>
                 )}
 
                 {!isLoading &&

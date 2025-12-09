@@ -4,8 +4,8 @@ import {
 } from '@/api/activity-feedback';
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { Button } from '@/components/ui/button';
+import { Loader } from '@/components/ui/loader';
 import { m } from '@/paraglide/messages';
-import { Loader2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 import { ActivityEvent } from '@openathlete/shared';
@@ -68,7 +68,7 @@ export function ActivityFeedbackOverlay({
     return (
       <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
         <div className="flex flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader size="lg" />
           <p className="text-sm text-muted-foreground">
             {m.loading_feedback_questions()}
           </p>
@@ -91,7 +91,7 @@ export function ActivityFeedbackOverlay({
     return (
       <div className="min-h-[calc(100vh-140px)] inset-0 z-50 flex items-center justify-center bg-background/95 backdrop-blur-sm">
         <div className="flex flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader size="lg" />
           <p className="text-sm text-muted-foreground">
             {m.loading_feedback_questions()}
           </p>

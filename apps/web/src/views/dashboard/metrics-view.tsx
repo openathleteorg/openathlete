@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
@@ -40,7 +41,8 @@ export function MetricsView({ athleteId }: P) {
     Record<string, boolean>
   >({});
 
-  const { data: latestMetrics = {} } = useGetLatestMetricsQuery(athleteId);
+  const { data: latestMetrics = {}, isPending: isLoadingMetrics } =
+    useGetLatestMetricsQuery(athleteId);
   const createMetric = useCreateMetricMutation();
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
 
@@ -159,14 +161,18 @@ export function MetricsView({ athleteId }: P) {
           )}
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {healthMetricsData.displayed.map((type) => (
-            <MetricCard
-              key={type}
-              type={type}
-              metric={latestMetrics[type] || null}
-              onClick={() => handleMetricCardClick(type)}
-            />
-          ))}
+          {isLoadingMetrics
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-lg" />
+              ))
+            : healthMetricsData.displayed.map((type) => (
+                <MetricCard
+                  key={type}
+                  type={type}
+                  metric={latestMetrics[type] || null}
+                  onClick={() => handleMetricCardClick(type)}
+                />
+              ))}
         </div>
       </div>
 
@@ -195,14 +201,18 @@ export function MetricsView({ athleteId }: P) {
           )}
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {cardiacMetricsData.displayed.map((type) => (
-            <MetricCard
-              key={type}
-              type={type}
-              metric={latestMetrics[type] || null}
-              onClick={() => handleMetricCardClick(type)}
-            />
-          ))}
+          {isLoadingMetrics
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-lg" />
+              ))
+            : cardiacMetricsData.displayed.map((type) => (
+                <MetricCard
+                  key={type}
+                  type={type}
+                  metric={latestMetrics[type] || null}
+                  onClick={() => handleMetricCardClick(type)}
+                />
+              ))}
         </div>
       </div>
 
@@ -233,14 +243,18 @@ export function MetricsView({ athleteId }: P) {
           )}
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {performanceMetricsData.displayed.map((type) => (
-            <MetricCard
-              key={type}
-              type={type}
-              metric={latestMetrics[type] || null}
-              onClick={() => handleMetricCardClick(type)}
-            />
-          ))}
+          {isLoadingMetrics
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-lg" />
+              ))
+            : performanceMetricsData.displayed.map((type) => (
+                <MetricCard
+                  key={type}
+                  type={type}
+                  metric={latestMetrics[type] || null}
+                  onClick={() => handleMetricCardClick(type)}
+                />
+              ))}
         </div>
       </div>
 

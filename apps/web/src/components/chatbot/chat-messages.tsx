@@ -1,9 +1,9 @@
 import { useGetThreadMessagesQuery } from '@/api/agent';
 import { MessageChunk } from '@/api/agent/use-agent-websocket.hooks';
+import { Loader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
-import { Loader2 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
 import { AgentMessage, ToolExecutionState } from '@openathlete/shared';
@@ -62,7 +62,7 @@ function MessageBubble({
         {/* Show loading indicator if assistant message has no blocks yet */}
         {isWaitingForContent && (
           <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader size="sm" />
             <span className="text-sm text-muted-foreground italic">
               {activeTools && activeTools.length > 0
                 ? activeTools[0].toolName
@@ -149,7 +149,7 @@ export function ChatMessages({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <Loader size="md" />
       </div>
     );
   }

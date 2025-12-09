@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
+import { Loader } from '@/components/ui/loader';
 import { Textarea } from '@/components/ui/textarea';
 import { m } from '@/paraglide/messages';
-import { Loader2, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { KeyboardEvent, useCallback, useState } from 'react';
 
 interface ChatInputProps {
@@ -50,11 +51,7 @@ export function ChatInput({ onSendMessage, isStreaming }: ChatInputProps) {
         size="icon"
         className="h-[60px] w-[60px] flex-shrink-0"
       >
-        {isStreaming ? (
-          <Loader2 className="h-5 w-5 animate-spin" />
-        ) : (
-          <Send className="h-5 w-5" />
-        )}
+        {isStreaming ? <Loader size="sm" /> : <Send className="h-5 w-5" />}
       </Button>
     </div>
   );

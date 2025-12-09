@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Pencil, Trash } from 'lucide-react';
@@ -34,7 +35,8 @@ export function EquipmentTab() {
     null,
   );
 
-  const { data: equipment = [] } = useGetMyEquipmentQuery();
+  const { data: equipment = [], isPending: isLoadingEquipment } =
+    useGetMyEquipmentQuery();
   const createEquipment = useCreateEquipmentMutation();
   const updateEquipment = useUpdateEquipmentMutation();
   const deleteEquipment = useDeleteEquipmentMutation();
@@ -92,7 +94,28 @@ export function EquipmentTab() {
           </DialogTrigger>
         }
       >
-        {equipment.length === 0 ? (
+        {isLoadingEquipment ? (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-6 w-24" />
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : equipment.length === 0 ? (
           <div className="text-sm text-muted-foreground">
             {m.no_equipment()}
           </div>

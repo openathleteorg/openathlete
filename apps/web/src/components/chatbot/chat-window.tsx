@@ -13,6 +13,7 @@ import { useGetMeQuery } from '@/api/user';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
 import { Button } from '@/components/ui/button';
+import { Loader } from '@/components/ui/loader';
 import {
   Select,
   SelectContent,
@@ -27,7 +28,7 @@ import { m } from '@/paraglide/messages';
 import { calculateUnreadCount } from '@/utils/messages';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, Maximize2, Plus, X } from 'lucide-react';
+import { Maximize2, Plus, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -415,7 +416,7 @@ export function ChatWindow() {
                         ? createAgentThreadMutation.isPending
                         : createMessageThreadMutation.isPending
                     ) ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader size="sm" />
                     ) : (
                       <Plus className="h-4 w-4" />
                     )}

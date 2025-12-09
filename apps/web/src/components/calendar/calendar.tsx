@@ -6,6 +6,7 @@ import { eventKeys } from '@/api/event/event.keys';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
 import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
+import { Loader } from '@/components/ui/loader';
 import { m } from '@/paraglide/messages';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import {
@@ -18,7 +19,6 @@ import {
 } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { addDays, startOfMonth } from 'date-fns';
-import { Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -531,7 +531,7 @@ export function Calendar({
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-lg z-10">
                 <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  <Loader size="lg" />
                   <p className="text-sm text-muted-foreground">{m.loading()}</p>
                 </div>
               </div>

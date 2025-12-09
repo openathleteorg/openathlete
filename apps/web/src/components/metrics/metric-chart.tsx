@@ -4,6 +4,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { SkeletonChart } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
@@ -40,7 +41,7 @@ export function MetricChart({
     initialType || METRIC_TYPE.WEIGHT,
   );
 
-  const { data: history = [] } = useGetMetricHistoryQuery(
+  const { data: history = [], isPending: isLoading } = useGetMetricHistoryQuery(
     selectedType,
     athleteId,
   );
@@ -90,7 +91,9 @@ export function MetricChart({
         </Select>
       </div>
 
-      {chartData.length > 0 ? (
+      {isLoading ? (
+        <SkeletonChart />
+      ) : chartData.length > 0 ? (
         <ChartContainer
           config={{
             value: {

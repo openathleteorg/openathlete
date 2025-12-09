@@ -3,6 +3,7 @@ import { AthleteMetric } from '@/api/metric';
 import { useTrainingLoadMetrics } from '@/api/training-load';
 import { TrainingLoadCalculationType } from '@/api/training-load/training-load.api';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { format } from 'date-fns';
@@ -46,11 +47,7 @@ export function AthleteDashboardHeader({
   }, []);
   // Get training load metrics
   const { data: trainingLoadMetrics, isLoading: isLoadingTrainingLoad } =
-    useTrainingLoadMetrics(
-      TrainingLoadCalculationType.TRIMP,
-      today,
-      athleteId,
-    );
+    useTrainingLoadMetrics(TrainingLoadCalculationType.TRIMP, today, athleteId);
 
   // Get all metrics to find recent updates
   const { data: allMetrics = [], isLoading: isLoadingMetrics } =
@@ -150,7 +147,11 @@ export function AthleteDashboardHeader({
               {m.training_load()}
             </h3>
             {isLoadingTrainingLoad ? (
-              <p className="text-xs text-muted-foreground">{m.loading()}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 rounded-md" />
+                ))}
+              </div>
             ) : trainingLoadMetrics ? (
               <div className="grid grid-cols-3 gap-2">
                 <div className="rounded-md bg-gradient-to-br from-purple-50 to-blue-50 p-2 dark:from-purple-950/30 dark:to-blue-950/30">
@@ -216,7 +217,11 @@ export function AthleteDashboardHeader({
               {m.dashboard_header_recent_metrics()}
             </h3>
             {isLoadingMetrics ? (
-              <p className="text-xs text-muted-foreground">{m.loading()}</p>
+              <div className="grid grid-cols-3 gap-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <Skeleton key={i} className="h-16 rounded-md" />
+                ))}
+              </div>
             ) : recentMetrics.length === 0 ? (
               <p className="text-xs text-muted-foreground">
                 {m.dashboard_header_no_recent_metrics()}

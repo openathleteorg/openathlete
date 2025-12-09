@@ -9,6 +9,7 @@ import { ConfirmAction } from '@/components/confirm-action';
 import { InviteAthleteDialog } from '@/components/invite-athlete-dialog/invite-athlete.dialog';
 import { PaywallDialog } from '@/components/paywall';
 import { Button } from '@/components/ui/button';
+import { SkeletonTableRow } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -27,7 +28,8 @@ import { toast } from 'sonner';
 import { SettingsSection } from './settings-section';
 
 export function AthletesTab() {
-  const { data: athletes } = useGetMyCoachedAthletesQuery();
+  const { data: athletes, isPending: isLoadingAthletes } =
+    useGetMyCoachedAthletesQuery();
   const nav = useNavigate();
   const { data: sentInvitations, isLoading: sentInvitationsLoading } =
     useGetSentAthleteInvitationsQuery({ enabled: true });
@@ -94,39 +96,43 @@ export function AthletesTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {athletes?.map((athlete) => (
-              <TableRow key={athlete.athleteId}>
-                <TableCell>
-                  {athlete.user?.firstName} {athlete.user?.lastName}
-                </TableCell>
-                <TableCell>{athlete.user?.email}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="link"
-                      size="sm"
-                      onClick={() =>
-                        nav(
-                          getPath(['dashboard', 'calendar']) +
-                            `/${athlete.athleteId}`,
-                        )
-                      }
-                    >
-                      {m.view_calendar()}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDeleteAthleteDialog(athlete.athleteId);
-                      }}
-                    >
-                      {m.delete_()}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {isLoadingAthletes
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <SkeletonTableRow key={i} colCount={3} />
+                ))
+              : athletes?.map((athlete) => (
+                  <TableRow key={athlete.athleteId}>
+                    <TableCell>
+                      {athlete.user?.firstName} {athlete.user?.lastName}
+                    </TableCell>
+                    <TableCell>{athlete.user?.email}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() =>
+                            nav(
+                              getPath(['dashboard', 'calendar']) +
+                                `/${athlete.athleteId}`,
+                            )
+                          }
+                        >
+                          {m.view_calendar()}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setDeleteAthleteDialog(athlete.athleteId);
+                          }}
+                        >
+                          {m.delete_()}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </SettingsSection>
@@ -135,7 +141,20 @@ export function AthletesTab() {
           title={m.sent_invitations_to_athletes()}
           description={m.sent_invitations_to_athletes_description()}
         >
-          <div className="text-sm text-muted-foreground">{m.loading()}</div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{m.email()}</TableHead>
+                <TableHead>{m.invitation_sent_at()}</TableHead>
+                <TableHead className="text-right">{m.actions()}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <SkeletonTableRow key={i} colCount={3} />
+              ))}
+            </TableBody>
+          </Table>
         </SettingsSection>
       ) : sentInvitations && sentInvitations.length > 0 ? (
         <SettingsSection

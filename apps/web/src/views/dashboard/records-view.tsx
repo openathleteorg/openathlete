@@ -2,6 +2,8 @@ import { useGetRecordsQuery } from '@/api/record';
 import { RecordsChart } from '@/components/charts/records-chart';
 import { SportSelect } from '@/components/sport-select/sport-select';
 import { Card, CardContent } from '@/components/ui/card';
+import { Loader } from '@/components/ui/loader';
+import { SkeletonChart } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { useState } from 'react';
@@ -14,7 +16,11 @@ interface P {
 
 export function RecordsView({ athleteId }: P) {
   const [sport, setSport] = useState<SPORT_TYPE | null>(null);
-  const { data: records, refetch } = useGetRecordsQuery(
+  const {
+    data: records,
+    refetch,
+    isPending: isLoadingRecords,
+  } = useGetRecordsQuery(
     sport || (undefined as SPORT_TYPE | undefined),
     athleteId,
   );
@@ -44,10 +50,11 @@ export function RecordsView({ athleteId }: P) {
       </Card>
       <Card className="col-span-2">
         <CardContent>
-          {records && !!records.length && (
+          {isLoadingRecords ? (
+            <SkeletonChart className="h-[500px]" />
+          ) : records && !!records.length ? (
             <RecordsChart records={records} className="h-[500px]" />
-          )}
-          {!records?.length && (
+          ) : (
             <h1 className="text-2xl font-semibold">
               {m.no_records_found({ sport: sport ? m.for_this_sport() : '' })}
             </h1>

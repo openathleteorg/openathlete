@@ -4,6 +4,7 @@ import { StatisticsGlobals } from '@/components/statistics-globals/statistics-gl
 import { StatisticsPeriodSelect } from '@/components/statistics-period-select/statistics-period-select';
 import { TrainingLoadChart } from '@/components/training-load';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton, SkeletonChart } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { useState } from 'react';
@@ -22,11 +23,8 @@ export function StatisticsView({ athleteId }: P) {
   const [period, setPeriod] = useState<{ start: Date; end: Date }>(
     getWeekPeriod(new Date()),
   );
-  const { data: statistics } = useGetStatisticsForPeriodQuery(
-    athleteId,
-    period.start,
-    period.end,
-  );
+  const { data: statistics, isPending: isLoadingStatistics } =
+    useGetStatisticsForPeriodQuery(athleteId, period.start, period.end);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
 
   const pageTitle = isCurrentUser
@@ -44,7 +42,36 @@ export function StatisticsView({ athleteId }: P) {
         period={period}
         className="col-span-2"
       />
-      {statistics && (
+      {isLoadingStatistics ? (
+        <>
+          {/* Skeleton for StatisticsGlobals */}
+          <div className="col-span-2 grid grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-20 mb-2" />
+                  <Skeleton className="h-8 w-32" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          {/* Skeletons for charts */}
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i} className="col-span-1">
+              <CardHeader>
+                <Skeleton className="h-6 w-40" />
+              </CardHeader>
+              <CardContent className="p-0">
+                <SkeletonChart className="h-[300px]" />
+              </CardContent>
+            </Card>
+          ))}
+          {/* Skeleton for TrainingLoadChart */}
+          <div className="col-span-2">
+            <SkeletonChart className="h-[450px]" />
+          </div>
+        </>
+      ) : statistics ? (
         <>
           <StatisticsGlobals
             duration={statistics?.duration || 0}
@@ -118,7 +145,7 @@ export function StatisticsView({ athleteId }: P) {
             <TrainingLoadMetricsCard athleteId={athleteId} />
           </div> */}
         </>
-      )}
+      ) : null}
       {/* {statistics && (
         <>
           <div>Duration: {formatDuration(statistics.duration)}</div>

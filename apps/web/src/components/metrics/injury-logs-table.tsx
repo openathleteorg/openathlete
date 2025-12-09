@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { SkeletonTableRow } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -55,7 +56,22 @@ export function InjuryLogsTable({
           <CardTitle>{m.injury_logs()}</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-sm text-muted-foreground">{m.loading()}</div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{m.date()}</TableHead>
+                <TableHead>{m.location()}</TableHead>
+                <TableHead>{m.pain_score()}</TableHead>
+                <TableHead>{m.status()}</TableHead>
+                <TableHead>{m.context()}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonTableRow key={i} colCount={5} />
+              ))}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     );

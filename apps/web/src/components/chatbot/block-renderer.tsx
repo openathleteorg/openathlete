@@ -1,3 +1,4 @@
+import { Loader } from '@/components/ui/loader';
 import { cn } from '@/utils/shadcn';
 import { getToolMessage } from '@/utils/tool-messages';
 import {
@@ -11,7 +12,6 @@ import {
   FileIcon,
   Image as ImageIcon,
   LineChart,
-  Loader2,
   Map as MapIcon,
   PieChart,
   ScatterChart,
@@ -139,7 +139,7 @@ function ToolCallBlock({ block }: { block: AgentMessageBlock }) {
 
   return (
     <div className="flex items-center gap-2 text-sm text-muted-foreground italic py-1">
-      {isProcessing && <Loader2 className="h-3 w-3 animate-spin" />}
+      {isProcessing && <Loader size="sm" className="h-3 w-3" />}
       <span>{message}</span>
     </div>
   );

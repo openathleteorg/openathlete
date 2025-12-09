@@ -2,6 +2,7 @@ import {
   TrainingLoadCalculationType,
   useActivityTrainingLoads,
 } from '@/api/training-load';
+import { Loader } from '@/components/ui/loader';
 import * as m from '@/paraglide/messages.js';
 import { ActivityIcon } from 'lucide-react';
 
@@ -15,15 +16,25 @@ export function ActivityTrainingLoadStats({
   const { data: trainingLoads, isLoading } =
     useActivityTrainingLoads(activityId);
 
-  if (isLoading || !trainingLoads || trainingLoads.length === 0) {
+  if (isLoading) {
+    return (
+      <div className="text-left">
+        <div className="text-sm font-semibold">{m.training_load()}</div>
+        <div className="flex items-center gap-1.5">
+          <Loader size="sm" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!trainingLoads || trainingLoads.length === 0) {
     return null;
   }
 
   const loadsText = trainingLoads
     .filter(
       (load) =>
-        load.metadata.calculationType ===
-        TrainingLoadCalculationType.TRIMP,
+        load.metadata.calculationType === TrainingLoadCalculationType.TRIMP,
     )
     .map((load) => `${load.value.toFixed(0)}`)
     .join(' / ');

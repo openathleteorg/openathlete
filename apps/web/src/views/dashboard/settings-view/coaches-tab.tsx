@@ -7,6 +7,7 @@ import {
 import { ConfirmAction } from '@/components/confirm-action';
 import { InviteCoachDialog } from '@/components/invite-coach-dialog/invite-coach.dialog';
 import { Button } from '@/components/ui/button';
+import { SkeletonTableRow } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -22,7 +23,7 @@ import { toast } from 'sonner';
 import { SettingsSection } from './settings-section';
 
 export function CoachesTab() {
-  const { data: coaches } = useGetMyCoachesQuery();
+  const { data: coaches, isPending: isLoadingCoaches } = useGetMyCoachesQuery();
   const { data: sentInvitations, isLoading: sentInvitationsLoading } =
     useGetSentCoachInvitationsQuery({ enabled: true });
   const [inviteCoachDialogOpen, setInviteCoachDialogOpen] =
@@ -71,27 +72,31 @@ export function CoachesTab() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {coaches?.map((coach) => (
-              <TableRow key={coach.userId}>
-                <TableCell>
-                  {coach.firstName} {coach.lastName}
-                </TableCell>
-                <TableCell>{coach.email}</TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setDeleteEventDialog(coach.userId);
-                      }}
-                    >
-                      {m.delete_()}
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
+            {isLoadingCoaches
+              ? Array.from({ length: 2 }).map((_, i) => (
+                  <SkeletonTableRow key={i} colCount={3} />
+                ))
+              : coaches?.map((coach) => (
+                  <TableRow key={coach.userId}>
+                    <TableCell>
+                      {coach.firstName} {coach.lastName}
+                    </TableCell>
+                    <TableCell>{coach.email}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setDeleteEventDialog(coach.userId);
+                          }}
+                        >
+                          {m.delete_()}
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       </SettingsSection>
@@ -104,7 +109,20 @@ export function CoachesTab() {
           title={m.sent_invitations_to_coaches()}
           description={m.sent_invitations_to_coaches_description()}
         >
-          <div className="text-sm text-muted-foreground">{m.loading()}</div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{m.email()}</TableHead>
+                <TableHead>{m.invitation_sent_at()}</TableHead>
+                <TableHead className="text-right">{m.actions()}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 2 }).map((_, i) => (
+                <SkeletonTableRow key={i} colCount={3} />
+              ))}
+            </TableBody>
+          </Table>
         </SettingsSection>
       ) : sentInvitations && sentInvitations.length > 0 ? (
         <SettingsSection

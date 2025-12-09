@@ -17,6 +17,7 @@ import { ChatMessages } from '@/components/chatbot/chat-messages';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
 import { Button } from '@/components/ui/button';
+import { PageLoader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
@@ -267,14 +268,7 @@ export function MessagesPage() {
   );
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
