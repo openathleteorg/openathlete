@@ -246,7 +246,7 @@ export class SuuntoProviderService
           );
         }
       }
-      throw error;
+      throw new Error('Failed to exchange code for tokens');
     }
   }
 
