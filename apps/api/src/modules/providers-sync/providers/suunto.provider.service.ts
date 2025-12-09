@@ -191,6 +191,17 @@ export class SuuntoProviderService
         `Suunto OAuth config: client_id length=${clientId.length}, client_secret length=${clientSecret.length}`,
       );
 
+      // Verify client_id format (should be UUID)
+      if (
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          clientId,
+        )
+      ) {
+        this.logger.warn(
+          `Suunto client_id does not match UUID format: ${clientId.substring(0, 8)}...`,
+        );
+      }
+
       // Create Basic Auth header: Base64(client_id:client_secret)
       // Format: Authorization: Basic Base64(username:password)
       // For OAuth2, username:password = client_id:client_secret
@@ -199,6 +210,22 @@ export class SuuntoProviderService
       const credentials = Buffer.from(credentialsString, 'utf8').toString(
         'base64',
       );
+
+      // Verify Base64 encoding by decoding and checking
+      try {
+        const decoded = Buffer.from(credentials, 'base64').toString('utf8');
+        const [decodedClientId, decodedClientSecret] = decoded.split(':');
+        if (
+          decodedClientId !== clientId ||
+          decodedClientSecret !== clientSecret
+        ) {
+          this.logger.error(
+            'Suunto credentials encoding verification failed: decoded values do not match original',
+          );
+        }
+      } catch {
+        this.logger.error('Failed to verify Base64 encoding of credentials');
+      }
 
       // Log credential info for debugging (without exposing actual values)
       this.logger.debug(
