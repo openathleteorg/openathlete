@@ -122,14 +122,23 @@ export class SuuntoProviderService
   }
 
   protected get oauthConfig(): OAuthConfig {
+    // Trim whitespace from config values to avoid issues with secrets
+    const clientId = (this.configService.get('SUUNTO_CLIENT_ID') || '').trim();
+    const clientSecret = (
+      this.configService.get('SUUNTO_CLIENT_SECRET') || ''
+    ).trim();
+    const redirectUri = (
+      this.configService.get('SUUNTO_REDIRECT_URI') || ''
+    ).trim();
+
     return {
       // Note: Use cloudapi-oauth.suunto.com instead of cloudapi.suunto.com
       // as specified in Suunto API documentation
       authorizationUrl: 'https://cloudapi-oauth.suunto.com/oauth/authorize',
       tokenUrl: 'https://cloudapi-oauth.suunto.com/oauth/token',
-      clientId: this.configService.get('SUUNTO_CLIENT_ID') || '',
-      clientSecret: this.configService.get('SUUNTO_CLIENT_SECRET') || '',
-      redirectUri: this.configService.get('SUUNTO_REDIRECT_URI') || '',
+      clientId,
+      clientSecret,
+      redirectUri,
       scopes: [], // Suunto OAuth2 doesn't use scopes in authorization URL
     };
   }
@@ -167,11 +176,28 @@ export class SuuntoProviderService
     code: string,
   ): Promise<OAuthTokenResponse> {
     try {
+      // Credentials are already trimmed in oauthConfig getter
+      const clientId = this.oauthConfig.clientId;
+      const clientSecret = this.oauthConfig.clientSecret;
+
+      if (!clientId || !clientSecret) {
+        throw new Error(
+          'SUUNTO_CLIENT_ID or SUUNTO_CLIENT_SECRET is missing or empty',
+        );
+      }
+
+      // Log lengths for debugging (without exposing actual values)
+      this.logger.debug(
+        `Suunto OAuth config: client_id length=${clientId.length}, client_secret length=${clientSecret.length}`,
+      );
+
       // Create Basic Auth header: Base64(client_id:client_secret)
       // Format: Authorization: Basic Base64(username:password)
       // For OAuth2, username:password = client_id:client_secret
+      // Use UTF-8 encoding explicitly to ensure consistent byte representation
       const credentials = Buffer.from(
-        `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
+        `${clientId}:${clientSecret}`,
+        'utf8',
       ).toString('base64');
 
       const params = new URLSearchParams({
@@ -232,9 +258,21 @@ export class SuuntoProviderService
     refreshToken: string,
   ): Promise<OAuthTokenResponse> {
     try {
+      // Credentials are already trimmed in oauthConfig getter
+      const clientId = this.oauthConfig.clientId;
+      const clientSecret = this.oauthConfig.clientSecret;
+
+      if (!clientId || !clientSecret) {
+        throw new Error(
+          'SUUNTO_CLIENT_ID or SUUNTO_CLIENT_SECRET is missing or empty',
+        );
+      }
+
       // Create Basic Auth header: Base64(client_id:client_secret)
+      // Use UTF-8 encoding explicitly to ensure consistent byte representation
       const credentials = Buffer.from(
-        `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
+        `${clientId}:${clientSecret}`,
+        'utf8',
       ).toString('base64');
 
       const params = new URLSearchParams({
