@@ -15,7 +15,6 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { m } from '@/paraglide/messages';
-import { Loader2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { User } from '@openathlete/shared';
@@ -136,15 +135,9 @@ export function NewMessageThreadDialog({
           <Button
             onClick={handleConfirm}
             disabled={selectedUserIds.length === 0 || isLoading}
+            isLoading={isLoading}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {m.creating_message_thread()}...
-              </>
-            ) : (
-              m.create()
-            )}
+            {m.create()}
           </Button>
         </DialogFooter>
       </DialogContent>

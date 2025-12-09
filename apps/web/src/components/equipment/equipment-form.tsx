@@ -22,9 +22,15 @@ interface P {
   onSubmit: (values: CreateEquipmentDto) => void;
   defaultValues?: CreateEquipmentDto;
   className?: string;
+  isLoading?: boolean;
 }
 
-export function EquipmentForm({ onSubmit, defaultValues, className }: P) {
+export function EquipmentForm({
+  onSubmit,
+  defaultValues,
+  className,
+  isLoading,
+}: P) {
   const methods = useForm<CreateEquipmentDto>({
     resolver: zodResolver(createEquipmentDtoSchema),
     defaultValues: defaultValues || {
@@ -70,7 +76,7 @@ export function EquipmentForm({ onSubmit, defaultValues, className }: P) {
 
         <RHFCheckbox name="isDefault" label={m.default_equipment()} />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" isLoading={isLoading}>
           {defaultValues ? m.update() : m.create()}
         </Button>
       </div>

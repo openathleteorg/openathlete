@@ -30,6 +30,7 @@ interface MetricFormProps {
   defaultValues?: Partial<AthleteMetric>;
   className?: string;
   hideTypeSelector?: boolean;
+  isLoading?: boolean;
 }
 
 export function MetricForm({
@@ -37,6 +38,7 @@ export function MetricForm({
   defaultValues,
   className,
   hideTypeSelector = false,
+  isLoading,
 }: MetricFormProps) {
   const methods = useForm<CreateMetricDto>({
     resolver: zodResolver(createMetricDtoSchema),
@@ -150,7 +152,7 @@ export function MetricForm({
           className="min-h-[80px]"
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" isLoading={isLoading}>
           {m.save()}
         </Button>
       </div>

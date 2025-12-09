@@ -40,7 +40,12 @@ export function InviteCoachDialog({ open, onClose }: P) {
             onChange={(e) => setEmail(e.target.value)}
           />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={onClose}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              disabled={inviteCoachMutation.isPending}
+            >
               {m.cancel()}
             </Button>
             <Button
@@ -48,6 +53,7 @@ export function InviteCoachDialog({ open, onClose }: P) {
               onClick={() => {
                 inviteCoachMutation.mutate({ email });
               }}
+              isLoading={inviteCoachMutation.isPending}
             >
               {m.invite()}
             </Button>

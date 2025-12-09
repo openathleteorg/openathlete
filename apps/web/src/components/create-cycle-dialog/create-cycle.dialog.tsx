@@ -215,10 +215,24 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={
+                createCycleMutation.isPending || updateCycleMutation.isPending
+              }
+            >
               {m.cancel()}
             </Button>
-            <Button type="submit">{edit ? m.save() : m.create()}</Button>
+            <Button
+              type="submit"
+              isLoading={
+                createCycleMutation.isPending || updateCycleMutation.isPending
+              }
+            >
+              {edit ? m.save() : m.create()}
+            </Button>
           </div>
         </FormProvider>
       </DialogContent>

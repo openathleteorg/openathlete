@@ -93,7 +93,9 @@ export function EquipmentTab() {
         }
       >
         {equipment.length === 0 ? (
-          <div className="text-sm text-muted-foreground">{m.no_equipment()}</div>
+          <div className="text-sm text-muted-foreground">
+            {m.no_equipment()}
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {equipment.map((item) => (
@@ -126,7 +128,9 @@ export function EquipmentTab() {
                         {m.type()}
                       </span>
                       <span className="text-sm font-medium">
-                        {item.type === EQUIPMENT_TYPE.SHOE ? m.shoe() : m.bike()}
+                        {item.type === EQUIPMENT_TYPE.SHOE
+                          ? m.shoe()
+                          : m.bike()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -171,6 +175,7 @@ export function EquipmentTab() {
         <EquipmentForm
           onSubmit={handleSubmit}
           defaultValues={editingEquipment || undefined}
+          isLoading={createEquipment.isPending || updateEquipment.isPending}
         />
       </DialogContent>
       <ConfirmAction

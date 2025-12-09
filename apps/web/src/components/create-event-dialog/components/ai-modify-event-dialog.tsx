@@ -148,7 +148,7 @@ export function AIModifyEventDialog({
                 >
                   {m.cancel()}
                 </Button>
-                <Button type="submit" disabled={isLoading}>
+                <Button type="submit" isLoading={isLoading}>
                   {isLoading
                     ? isCreateMode
                       ? m.generating_event()

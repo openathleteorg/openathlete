@@ -109,7 +109,7 @@ export function AIGenerateEventDialog({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={generateEventMutation.isPending}
+                  isLoading={generateEventMutation.isPending}
                 >
                   {generateEventMutation.isPending
                     ? m.generating_event()

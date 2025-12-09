@@ -68,7 +68,7 @@ export function InviteAthleteDialog({ open, onClose, onInvite, isLoading }: P) {
               >
                 {m.cancel()}
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" isLoading={isLoading}>
                 {isLoading ? m.sending() : m.invite()}
               </Button>
             </div>

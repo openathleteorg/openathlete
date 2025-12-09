@@ -278,6 +278,7 @@ export function MetricsView({ athleteId }: P) {
                 : undefined
             }
             hideTypeSelector={!!selectedMetric}
+            isLoading={createMetric.isPending}
           />
         </DialogContent>
       </Dialog>
