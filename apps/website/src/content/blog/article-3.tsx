@@ -22,6 +22,8 @@ export const article3: BlogPost = {
     publishedAt: '2025-01-25',
     tags: ['Injury Prevention', 'Health', 'Training Load', 'Recovery'],
     readingTime: 6,
+    image:
+      'https://images.unsplash.com/photo-1727866241882-df87cd3aa9f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDE1NDF8MHwxfHNlYXJjaHwxfHxydW5uaW5nJTIwaW5qdXJ5JTIwcHJldmVudGlvbiUyMHN0cmVzcyUyMGZyYWN0dXJlJTIwd2FybmluZyUyMGFsZXJ0JTIwc3lzdGVtfGVufDB8MHx8fDE3NjUyODc0NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080',
   },
   ContentEn: () => {
     return (

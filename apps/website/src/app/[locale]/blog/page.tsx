@@ -7,6 +7,7 @@ import { getAllPosts } from '@/content/blog';
 import { m } from '@/paraglide/messages';
 import { Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -108,56 +109,69 @@ export default async function BlogPage({
                     return (
                       <article
                         key={post.metadata.slug}
-                        className="group rounded-lg border bg-card p-6 shadow-sm transition-shadow hover:shadow-md"
+                        className="group rounded-lg border bg-card overflow-hidden shadow-sm transition-shadow hover:shadow-md"
                       >
                         <Link
                           href={`/${locale}/blog/${post.metadata.slug}`}
-                          className="block"
+                          className="flex flex-row items-start"
                         >
-                          <h2 className="text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">
-                            {title}
-                          </h2>
-                          <p className="mt-2 text-muted-foreground">
-                            {excerpt}
-                          </p>
-                          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
-                              <time dateTime={post.metadata.publishedAt}>
-                                {publishedDate}
-                              </time>
+                          {post.metadata.image && (
+                            <div className="min-h-48 h-full w-48 flex-shrink-0 overflow-hidden sm:h-56 sm:w-64">
+                              <Image
+                                src={post.metadata.image}
+                                alt={title}
+                                width={400}
+                                height={300}
+                                className="h-full w-full object-cover object-center transition-transform group-hover:scale-105"
+                              />
                             </div>
-                            {post.metadata.readingTime && (
+                          )}
+                          <div className="flex-1 p-6 flex flex-col min-h-[192px] sm:min-h-[224px]">
+                            <h2 className="text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">
+                              {title}
+                            </h2>
+                            <p className="mt-2 text-muted-foreground">
+                              {excerpt}
+                            </p>
+                            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
+                                <Calendar className="h-4 w-4" />
+                                <time dateTime={post.metadata.publishedAt}>
+                                  {publishedDate}
+                                </time>
+                              </div>
+                              {post.metadata.readingTime && (
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  <span>
+                                    {m.blog_read_time({
+                                      minutes: post.metadata.readingTime,
+                                    })}
+                                  </span>
+                                </div>
+                              )}
+                              {post.metadata.author && (
                                 <span>
-                                  {m.blog_read_time({
-                                    minutes: post.metadata.readingTime,
+                                  {m.blog_by_author({
+                                    author: post.metadata.author.name,
                                   })}
                                 </span>
-                              </div>
-                            )}
-                            {post.metadata.author && (
-                              <span>
-                                {m.blog_by_author({
-                                  author: post.metadata.author.name,
-                                })}
-                              </span>
-                            )}
+                              )}
+                            </div>
+                            {post.metadata.tags &&
+                              post.metadata.tags.length > 0 && (
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                  {post.metadata.tags.map((tag) => (
+                                    <span
+                                      key={tag}
+                                      className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                           </div>
-                          {post.metadata.tags &&
-                            post.metadata.tags.length > 0 && (
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                {post.metadata.tags.map((tag) => (
-                                  <span
-                                    key={tag}
-                                    className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
-                                  >
-                                    {tag}
-                                  </span>
-                                ))}
-                              </div>
-                            )}
                         </Link>
                       </article>
                     );

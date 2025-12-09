@@ -22,6 +22,8 @@ export const article1: BlogPost = {
     publishedAt: '2025-01-15',
     tags: ['AI', 'Coaching', 'Endurance', 'Training'],
     readingTime: 5,
+    image:
+      'https://images.unsplash.com/photo-1614155128617-b563db770a55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDE1NDF8MHwxfHNlYXJjaHwxfHxlbmR1cmFuY2UlMjBhdGhsZXRlJTIwcnVubmluZyUyMHRyYWluaW5nJTIwQUklMjBjb2FjaGluZyUyMHBsYXRmb3JtJTIwdGVjaG5vbG9neXxlbnwwfDB8fHwxNzY1Mjg3NDU2fDA&ixlib=rb-4.1.0&q=80&w=1080',
   },
   ContentEn: () => {
     return (

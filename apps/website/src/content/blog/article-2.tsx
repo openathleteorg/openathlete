@@ -22,6 +22,8 @@ export const article2: BlogPost = {
     publishedAt: '2025-01-20',
     tags: ['AI', 'Science', 'Performance', 'Injury Prevention'],
     readingTime: 7,
+    image:
+      'https://images.unsplash.com/photo-1686061593213-98dad7c599b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w4NDE1NDF8MHwxfHNlYXJjaHwzfHx0cmFpbmluZyUyMG1ldHJpY3MlMjBkYXRhJTIwYW5hbHlzaXMlMjBjaGFydHMlMjBncmFwaHMlMjBwZXJmb3JtYW5jZXxlbnwwfDB8fHwxNzY1Mjg3MzgwfDA&ixlib=rb-4.1.0&q=80&w=1080',
   },
   ContentEn: () => {
     return (

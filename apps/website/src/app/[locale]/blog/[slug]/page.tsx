@@ -10,6 +10,7 @@ import { getAllPosts, getPostBySlug } from '@/content/blog';
 import { m } from '@/paraglide/messages';
 import { ArrowLeft, Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -55,11 +56,22 @@ export async function generateMetadata({
       modifiedTime: post.metadata.updatedAt,
       authors: [post.metadata.author.name],
       tags: post.metadata.tags,
+      images: post.metadata.image
+        ? [
+            {
+              url: post.metadata.image,
+              width: 1080,
+              height: 720,
+              alt: title,
+            },
+          ]
+        : undefined,
     },
     twitter: {
       ...metadata.twitter,
       title,
       description,
+      images: post.metadata.image ? [post.metadata.image] : undefined,
     },
     alternates: {
       canonical: postUrl,
@@ -172,6 +184,18 @@ export default async function BlogPostPage({
 
               <article>
                 <header className="mb-8">
+                  {post.metadata.image && (
+                    <div className="mb-8 aspect-video w-full overflow-hidden rounded-lg">
+                      <Image
+                        src={post.metadata.image}
+                        alt={title}
+                        width={1080}
+                        height={720}
+                        className="h-full w-full object-cover"
+                        priority
+                      />
+                    </div>
+                  )}
                   <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
                     {title}
                   </h1>
@@ -250,14 +274,27 @@ export default async function BlogPostPage({
                         <Link
                           key={relatedPost.metadata.slug}
                           href={`/${locale}/blog/${relatedPost.metadata.slug}`}
-                          className="block rounded-lg border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                          className="flex flex-row rounded-lg border bg-card overflow-hidden shadow-sm transition-shadow hover:shadow-md"
                         >
-                          <h3 className="font-semibold text-lg">
-                            {relatedTitle}
-                          </h3>
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            {relatedExcerpt}
-                          </p>
+                          {relatedPost.metadata.image && (
+                            <div className="relative h-32 w-32 flex-shrink-0 overflow-hidden sm:h-40 sm:w-40">
+                              <Image
+                                src={relatedPost.metadata.image}
+                                alt={relatedTitle}
+                                width={400}
+                                height={300}
+                                className="h-full w-full object-cover object-center transition-transform hover:scale-105"
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1 p-4 flex flex-col justify-center min-h-[128px] sm:min-h-[160px]">
+                            <h3 className="font-semibold text-lg">
+                              {relatedTitle}
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {relatedExcerpt}
+                            </p>
+                          </div>
                         </Link>
                       );
                     })}
