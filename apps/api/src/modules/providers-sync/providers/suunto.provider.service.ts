@@ -9,6 +9,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import {
+  Prisma,
+  activity_segment_type,
   connector_provider,
   event_activity,
   event_type,
@@ -21,8 +23,12 @@ import {
   METRIC_TYPE,
 } from '@openathlete/shared';
 
+import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
-import { parseFitFile } from '../../core/helpers/garmin-file-parser';
+import {
+  FitFileSegment,
+  parseFitFile,
+} from '../../core/helpers/garmin-file-parser';
 import {
   roundCadence,
   roundDistance,
@@ -793,6 +799,18 @@ export class SuuntoProviderService
           stream: compressedStream as object,
         },
       });
+
+      // Sync segments from FIT file if available
+      if (
+        fitParseResult.segments?.length &&
+        Object.keys(fitParseResult.stream).length > 0
+      ) {
+        await this.syncSegmentsFromFit(
+          activity.event_activity_id,
+          fitParseResult.segments,
+          fitParseResult.stream,
+        );
+      }
     } catch (error) {
       if (isAxiosError(error) && error.response?.status === 404) {
         // FIT file not available, skip
@@ -800,6 +818,57 @@ export class SuuntoProviderService
       }
       throw error;
     }
+  }
+
+  /**
+   * Sync activity segments from FIT file parsing results
+   * Similar to Garmin's implementation
+   */
+  private async syncSegmentsFromFit(
+    eventActivityId: number,
+    segments: FitFileSegment[],
+    stream: ActivityStream,
+  ): Promise<void> {
+    if (!segments.length || !stream?.time?.length) {
+      return;
+    }
+
+    const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
+
+    segments.forEach((segment, index) => {
+      if (segment.endTimeSeconds <= segment.startTimeSeconds) {
+        return;
+      }
+
+      const metrics = calculateSegmentMetrics(
+        stream,
+        segment.startTimeSeconds,
+        segment.endTimeSeconds,
+      );
+
+      segmentsData.push({
+        segment_type: activity_segment_type.LAP,
+        name: segment.name ?? `Lap ${index + 1}`,
+        order_index: index,
+        start_time_seconds: Math.round(segment.startTimeSeconds),
+        end_time_seconds: Math.round(segment.endTimeSeconds),
+        ...metrics,
+        event_activity_id: eventActivityId,
+      });
+    });
+
+    if (!segmentsData.length) {
+      return;
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.activity_segment.deleteMany({
+        where: { event_activity_id: eventActivityId },
+      });
+      await tx.activity_segment.createMany({
+        data: segmentsData,
+      });
+    });
   }
 
   /**
