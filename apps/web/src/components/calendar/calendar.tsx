@@ -1,5 +1,6 @@
 import { CalendarAPI } from '@/api/calendar/calendar.api';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
+import { cycleKeys } from '@/api/cycle/cycle.keys';
 import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
 import { eventKeys } from '@/api/event/event.keys';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
@@ -329,6 +330,23 @@ export function Calendar({
 
   const updateCycleDates = useCallback(
     (cycleId: number, startDate: Date, endDate: Date) => {
+      // Update optimistically immediately for instant UI feedback
+      queryClient.setQueriesData<Cycle[]>(
+        { queryKey: [cycleKeys.getMyCycles] },
+        (old) => {
+          if (!old) return old;
+          const updateIndex = old.findIndex((c) => c.cycleId === cycleId);
+          if (updateIndex === -1) return old;
+          const updated = [...old];
+          updated[updateIndex] = {
+            ...updated[updateIndex],
+            startDate,
+            endDate,
+          } as Cycle;
+          return updated;
+        },
+      );
+
       updateCycleMutation.mutate(
         {
           cycleId,
@@ -344,7 +362,7 @@ export function Calendar({
         },
       );
     },
-    [updateCycleMutation],
+    [updateCycleMutation, queryClient],
   );
 
   // Persist coloredBy to localStorage
