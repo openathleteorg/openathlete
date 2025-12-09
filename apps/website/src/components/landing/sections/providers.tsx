@@ -1,6 +1,6 @@
 'use client';
 
-import { CorosLogo, GarminLogo, StravaLogo, SuuntoLogo } from '@/assets/icons';
+import { GarminLogo, PolarLogo, StravaLogo, SuuntoLogo } from '@/assets/icons';
 import { BrandLogo } from '@/components/landing/brand-logo';
 import { Container } from '@/components/landing/container';
 import { Section } from '@/components/landing/section';
@@ -66,7 +66,7 @@ export function Providers() {
               transition={{ repeat: Infinity, ease: 'linear', duration: 24 }}
             >
               <LogoDot className="left-1/2 -translate-x-1/2 top-0 -translate-y-1/2">
-                <CorosLogo className="h-10 w-auto" />
+                <PolarLogo className="h-10 w-auto" />
               </LogoDot>
             </motion.div>
 

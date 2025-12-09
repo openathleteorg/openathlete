@@ -2,10 +2,10 @@ import type { BlogPost } from './types';
 
 export const articleSyncWorkouts: BlogPost = {
   metadata: {
-    slug: 'how-to-sync-workouts-to-garmin-coros-polar',
+    slug: 'how-to-sync-workouts-to-garmin-polar-polar',
     title: {
-      en: 'How to Sync Workouts to Garmin, Coros, and Polar',
-      fr: 'Comment Synchroniser les Entraînements vers Garmin, Coros et Polar',
+      en: 'How to Sync Workouts to Garmin, Polar, and Polar',
+      fr: 'Comment Synchroniser les Entraînements vers Garmin, Polar et Polar',
     },
     description: {
       en: 'Tutorial: "Gateway" article. Show how to sync manually, then show how OpenAthlete does it automatically.',
@@ -22,7 +22,7 @@ export const articleSyncWorkouts: BlogPost = {
     publishedAt: '2025-04-15',
     tags: [
       'Send Workout to Garmin',
-      'Coros Sync',
+      'Polar Sync',
       'Polar API',
       'Watch Integration',
     ],
@@ -43,7 +43,7 @@ export const articleSyncWorkouts: BlogPost = {
 
         <p>
           This guide shows you how to sync workouts to your watch—both manually
-          and automatically. Whether you use Garmin, Coros, or Polar, we'll
+          and automatically. Whether you use Garmin, Polar, or Polar, we'll
           cover the options.
         </p>
 
@@ -58,10 +58,10 @@ export const articleSyncWorkouts: BlogPost = {
         </ol>
 
         <p>
-          <strong>Coros:</strong>
+          <strong>Polar:</strong>
         </p>
         <ol>
-          <li>Use Coros Training Hub</li>
+          <li>Use Polar Training Hub</li>
           <li>Create workout plan</li>
           <li>Sync via app</li>
         </ol>
@@ -100,7 +100,7 @@ export const articleSyncWorkouts: BlogPost = {
             <strong>Error-free:</strong> No manual entry mistakes
           </li>
           <li>
-            <strong>Multi-device:</strong> Works with Garmin, Coros, Polar, and
+            <strong>Multi-device:</strong> Works with Garmin, Polar, Polar, and
             more
           </li>
         </ul>
@@ -146,7 +146,7 @@ export const articleSyncWorkouts: BlogPost = {
         <p>
           Ce guide vous montre comment synchroniser les entraînements sur votre
           montre—à la fois manuellement et automatiquement. Que vous utilisiez
-          Garmin, Coros ou Polar, nous couvrirons les options.
+          Garmin, Polar ou Polar, nous couvrirons les options.
         </p>
 
         <h2>Méthodes de Synchronisation Manuelle</h2>
@@ -160,10 +160,10 @@ export const articleSyncWorkouts: BlogPost = {
         </ol>
 
         <p>
-          <strong>Coros :</strong>
+          <strong>Polar :</strong>
         </p>
         <ol>
-          <li>Utiliser Coros Training Hub</li>
+          <li>Utiliser Polar Training Hub</li>
           <li>Créer plan d'entraînement</li>
           <li>Synchroniser via app</li>
         </ol>
@@ -202,7 +202,7 @@ export const articleSyncWorkouts: BlogPost = {
             <strong>Sans erreur :</strong> Pas d'erreurs de saisie manuelle
           </li>
           <li>
-            <strong>Multi-appareil :</strong> Fonctionne avec Garmin, Coros,
+            <strong>Multi-appareil :</strong> Fonctionne avec Garmin, Polar,
             Polar et plus
           </li>
         </ul>
