@@ -160,13 +160,16 @@ export class SuuntoProviderService
 
   /**
    * Exchange authorization code for tokens
-   * Suunto uses Basic Auth (client_id:client_secret) in header and parameters in body
+   * Suunto uses Basic Auth (client_id:client_secret) in header and parameters in query string
+   * According to Suunto API docs: /oauth/token?grant_type=authorization_code&code=<code>&redirect_uri=<redirect_uri>
    */
   override async exchangeCodeForTokens(
     code: string,
   ): Promise<OAuthTokenResponse> {
     try {
       // Create Basic Auth header: Base64(client_id:client_secret)
+      // Format: Authorization: Basic Base64(username:password)
+      // For OAuth2, username:password = client_id:client_secret
       const credentials = Buffer.from(
         `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
       ).toString('base64');
@@ -177,13 +180,19 @@ export class SuuntoProviderService
         redirect_uri: this.oauthConfig.redirectUri,
       });
 
+      const url = `${this.oauthConfig.tokenUrl}?${params.toString()}`;
+
+      this.logger.debug(
+        `Suunto OAuth token exchange: URL=${url.replace(/code=[^&]+/, 'code=***')}, client_id=${this.oauthConfig.clientId.substring(0, 8)}...`,
+      );
+
       const { data } = await axios.post<OAuthTokenResponse>(
-        this.oauthConfig.tokenUrl,
-        params.toString(), // Parameters in body, not query string
+        url,
+        null, // No body, all params in query string as per Suunto API docs
         {
           headers: {
             Authorization: `Basic ${credentials}`,
-            'Content-Type': 'application/x-www-form-urlencoded',
+            // Don't set Content-Type for query string parameters
           },
         },
       );
@@ -201,6 +210,15 @@ export class SuuntoProviderService
         this.logger.error(
           `Suunto OAuth token exchange error status: ${error.response?.status}, URL: ${this.oauthConfig.tokenUrl}`,
         );
+        // Log request details for debugging (without exposing secrets)
+        if (error.config) {
+          this.logger.error(
+            `Request URL: ${error.config.url?.replace(/code=[^&]+/, 'code=***')}`,
+          );
+          this.logger.error(
+            `Has Authorization header: ${!!error.config.headers?.Authorization}`,
+          );
+        }
       }
       throw error;
     }
