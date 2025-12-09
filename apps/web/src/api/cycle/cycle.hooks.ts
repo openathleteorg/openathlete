@@ -152,9 +152,66 @@ export const useDeleteCycleMutation = (
   return useMutation({
     ...opt,
     mutationFn: CycleAPI.deleteCycle,
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      queryClient.cancelQueries({
+        queryKey: [cycleKeys.getMyCycles],
+      });
+      queryClient.cancelQueries({
+        queryKey: [cycleKeys.getCycle, variables],
+      });
+
+      // Snapshot all previous query states for rollback
+      const previousQueries = new Map();
+      queryClient
+        .getQueriesData({ queryKey: [cycleKeys.getMyCycles] })
+        .forEach(([queryKey, data]) => {
+          previousQueries.set(queryKey, data);
+        });
+
+      const previousCycle = queryClient.getQueryData<Cycle>([
+        cycleKeys.getCycle,
+        variables,
+      ]);
+
+      // Optimistically remove the cycle from all getMyCycles queries
+      queryClient.setQueriesData<Cycle[]>(
+        { queryKey: [cycleKeys.getMyCycles] },
+        (old) => {
+          if (!old) return old;
+          return old.filter((c) => c.cycleId !== variables);
+        },
+      );
+
+      // Optimistically remove the single cycle query if it exists
+      if (previousCycle) {
+        queryClient.removeQueries({
+          queryKey: [cycleKeys.getCycle, variables],
+        });
+      }
+
+      // Return context with previous values for rollback
+      return { previousQueries, previousCycle };
+    },
+    onError: (_error, variables, context) => {
+      // Rollback on error - restore all previous query states
+      if (context?.previousQueries) {
+        context.previousQueries.forEach((data, queryKey) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      if (context?.previousCycle) {
+        queryClient.setQueryData(
+          [cycleKeys.getCycle, variables],
+          context.previousCycle,
+        );
+      }
+      // User's onError will be called via the spread ...opt
+    },
     onSuccess: (data, variables, onMutateResult, context) => {
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
+      // Invalidate to ensure we have the correct server data
       queryClient.invalidateQueries({ queryKey: [cycleKeys.getMyCycles] });
     },
   });

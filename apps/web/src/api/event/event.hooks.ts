@@ -223,9 +223,66 @@ export const useDeleteEventMutation = (
   return useMutation({
     ...opt,
     mutationFn: EventAPI.deleteEvent,
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      queryClient.cancelQueries({
+        queryKey: [eventKeys.getMyEvents],
+      });
+      queryClient.cancelQueries({
+        queryKey: [eventKeys.getEvent, variables],
+      });
+
+      // Snapshot all previous query states for rollback
+      const previousQueries = new Map();
+      queryClient
+        .getQueriesData({ queryKey: [eventKeys.getMyEvents] })
+        .forEach(([queryKey, data]) => {
+          previousQueries.set(queryKey, data);
+        });
+
+      const previousEvent = queryClient.getQueryData<Event>([
+        eventKeys.getEvent,
+        variables,
+      ]);
+
+      // Optimistically remove the event from all getMyEvents queries
+      queryClient.setQueriesData<Event[]>(
+        { queryKey: [eventKeys.getMyEvents] },
+        (old) => {
+          if (!old) return old;
+          return old.filter((e) => e.eventId !== variables);
+        },
+      );
+
+      // Optimistically remove the single event query if it exists
+      if (previousEvent) {
+        queryClient.removeQueries({
+          queryKey: [eventKeys.getEvent, variables],
+        });
+      }
+
+      // Return context with previous values for rollback
+      return { previousQueries, previousEvent };
+    },
+    onError: (_error, variables, context) => {
+      // Rollback on error - restore all previous query states
+      if (context?.previousQueries) {
+        context.previousQueries.forEach((data, queryKey) => {
+          queryClient.setQueryData(queryKey, data);
+        });
+      }
+      if (context?.previousEvent) {
+        queryClient.setQueryData(
+          [eventKeys.getEvent, variables],
+          context.previousEvent,
+        );
+      }
+      // User's onError will be called via the spread ...opt
+    },
     onSuccess: (data, variables, onMutateResult, context) => {
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
+      // Invalidate to ensure we have the correct server data
       queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
     },
   });
