@@ -195,10 +195,15 @@ export class SuuntoProviderService
       // Format: Authorization: Basic Base64(username:password)
       // For OAuth2, username:password = client_id:client_secret
       // Use UTF-8 encoding explicitly to ensure consistent byte representation
-      const credentials = Buffer.from(
-        `${clientId}:${clientSecret}`,
-        'utf8',
-      ).toString('base64');
+      const credentialsString = `${clientId}:${clientSecret}`;
+      const credentials = Buffer.from(credentialsString, 'utf8').toString(
+        'base64',
+      );
+
+      // Log credential info for debugging (without exposing actual values)
+      this.logger.debug(
+        `Suunto OAuth credentials: combined length=${credentialsString.length}, base64 length=${credentials.length}, base64 starts with=${credentials.substring(0, 10)}...`,
+      );
 
       const params = new URLSearchParams({
         grant_type: 'authorization_code',
@@ -209,7 +214,7 @@ export class SuuntoProviderService
       const url = `${this.oauthConfig.tokenUrl}?${params.toString()}`;
 
       this.logger.debug(
-        `Suunto OAuth token exchange: URL=${url.replace(/code=[^&]+/, 'code=***')}, client_id=${this.oauthConfig.clientId.substring(0, 8)}...`,
+        `Suunto OAuth token exchange: URL=${url.replace(/code=[^&]+/, 'code=***')}, client_id=${this.oauthConfig.clientId.substring(0, 8)}..., redirect_uri=${this.oauthConfig.redirectUri}`,
       );
 
       const { data } = await axios.post<OAuthTokenResponse>(
@@ -244,9 +249,18 @@ export class SuuntoProviderService
           this.logger.error(
             `Has Authorization header: ${!!error.config.headers?.Authorization}`,
           );
+          // Log first few chars of base64 to verify encoding (safe to log)
+          const authHeader = error.config.headers?.Authorization as string;
+          if (authHeader) {
+            const base64Part = authHeader.replace('Basic ', '');
+            this.logger.error(
+              `Authorization header base64 length=${base64Part.length}, starts with=${base64Part.substring(0, 10)}...`,
+            );
+          }
         }
       }
-      throw new Error('Failed to exchange code for tokens');
+      // Re-throw original error to preserve error details
+      throw error;
     }
   }
 
