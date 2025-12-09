@@ -129,7 +129,7 @@ export function ActivityQuickEditCard({
           {isMyActivity && hasQuestions && (
             <div className="mb-4 pb-4 border-b">
               {feedbackSkipped ? (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <p className="text-sm text-muted-foreground">
                     {m.activity_feedback_skipped()}
                   </p>
@@ -138,12 +138,13 @@ export function ActivityQuickEditCard({
                     variant="outline"
                     size="sm"
                     disabled={unskipMutation.isPending}
+                    className="w-full sm:w-auto"
                   >
                     {m.activity_feedback_reopen()}
                   </Button>
                 </div>
               ) : allAnswered ? (
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
                   <p className="text-sm text-muted-foreground">
                     {m.activity_feedback_completed_via_questions()}
                   </p>
@@ -151,6 +152,7 @@ export function ActivityQuickEditCard({
                     onClick={handleEditFeedback}
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                   >
                     {m.activity_feedback_edit()}
                   </Button>

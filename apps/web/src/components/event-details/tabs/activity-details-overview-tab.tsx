@@ -180,13 +180,13 @@ export function ActivityDetailsOverviewTab({
                       </Card>
                     )}
                     <Card className="col-span-2">
-                      <CardHeader className="flex flex-row items-center justify-between">
+                      <CardHeader className="flex flex-row items-center justify-between gap-2">
                         <CardTitle>
                           {speedConfig.speedLabel === 'pace'
                             ? m.pace()
                             : m.speed()}
                         </CardTitle>
-                        <div className="absolute right-10">
+                        <div className="flex-shrink-0">
                           <ZoomResetButton />
                         </div>
                       </CardHeader>
@@ -202,9 +202,9 @@ export function ActivityDetailsOverviewTab({
                     </Card>
                     {stream && stream.gap && (
                       <Card className="col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
                           <CardTitle>{m.gap()}</CardTitle>
-                          <div className="absolute right-10">
+                          <div className="flex-shrink-0">
                             <ZoomResetButton />
                           </div>
                         </CardHeader>
@@ -221,9 +221,9 @@ export function ActivityDetailsOverviewTab({
                     )}
                     {stream?.altitude && (
                       <Card className="col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
                           <CardTitle>{m.altitude()}</CardTitle>
-                          <div className="absolute right-10">
+                          <div className="flex-shrink-0">
                             <ZoomResetButton />
                           </div>
                         </CardHeader>
@@ -239,9 +239,9 @@ export function ActivityDetailsOverviewTab({
                     )}
                     {stream?.watts && (
                       <Card className="col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
                           <CardTitle>{m.power()}</CardTitle>
-                          <div className="absolute right-10">
+                          <div className="flex-shrink-0">
                             <ZoomResetButton />
                           </div>
                         </CardHeader>
@@ -257,9 +257,9 @@ export function ActivityDetailsOverviewTab({
                     )}
                     {stream?.cadence && (
                       <Card className="col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
                           <CardTitle>{m.cadence()}</CardTitle>
-                          <div className="absolute right-10">
+                          <div className="flex-shrink-0">
                             <ZoomResetButton />
                           </div>
                         </CardHeader>
@@ -276,9 +276,9 @@ export function ActivityDetailsOverviewTab({
                     )}
                     {stream?.heartrate && (
                       <Card className="col-span-2">
-                        <CardHeader className="flex flex-row items-center justify-between">
+                        <CardHeader className="flex flex-row items-center justify-between gap-2">
                           <CardTitle>{m.heart_rate()}</CardTitle>
-                          <div className="absolute right-10">
+                          <div className="flex-shrink-0">
                             <ZoomResetButton />
                           </div>
                         </CardHeader>
@@ -314,7 +314,7 @@ export function ActivityDetailsOverviewTab({
           stream.heartrate && (
             <>
               <Card className="col-span-2">
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader>
                   <CardTitle>{m.heart_rate()}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
@@ -358,48 +358,53 @@ export function ActivityDetailsOverviewTab({
                 {formatSpeedUnit(speedConfig.speedUnit)}
               </div>
             )}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{m.factor()}</TableHead>
-                  <TableHead className="text-right">{m.time_lost()}</TableHead>
-                  <TableHead className="text-right">{m.share()}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(
-                  normalization.factors as GetEventNormalizationResponseDto['factors']
-                )
-                  .filter(
-                    (f: GetEventNormalizationResponseDto['factors'][number]) =>
-                      (f.timeSeconds ?? 0) > 0,
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{m.factor()}</TableHead>
+                    <TableHead className="text-right">
+                      {m.time_lost()}
+                    </TableHead>
+                    <TableHead className="text-right">{m.share()}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(
+                    normalization.factors as GetEventNormalizationResponseDto['factors']
                   )
-                  .sort(
-                    (
-                      a: GetEventNormalizationResponseDto['factors'][number],
-                      b: GetEventNormalizationResponseDto['factors'][number],
-                    ) => (b.timeSeconds ?? 0) - (a.timeSeconds ?? 0),
-                  )
-                  .map(
-                    (
-                      f: GetEventNormalizationResponseDto['factors'][number],
-                    ) => (
-                      <TableRow key={f.factor}>
-                        <TableCell>{normLabel(f.factor)}</TableCell>
-                        <TableCell className="text-right">
-                          {formatDuration(
-                            Math.max(0, Math.round(f.timeSeconds)),
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {Math.round(Math.max(0, f.percent) * 100)}
-                          {m.percent_symbol()}
-                        </TableCell>
-                      </TableRow>
-                    ),
-                  )}
-              </TableBody>
-            </Table>
+                    .filter(
+                      (
+                        f: GetEventNormalizationResponseDto['factors'][number],
+                      ) => (f.timeSeconds ?? 0) > 0,
+                    )
+                    .sort(
+                      (
+                        a: GetEventNormalizationResponseDto['factors'][number],
+                        b: GetEventNormalizationResponseDto['factors'][number],
+                      ) => (b.timeSeconds ?? 0) - (a.timeSeconds ?? 0),
+                    )
+                    .map(
+                      (
+                        f: GetEventNormalizationResponseDto['factors'][number],
+                      ) => (
+                        <TableRow key={f.factor}>
+                          <TableCell>{normLabel(f.factor)}</TableCell>
+                          <TableCell className="text-right">
+                            {formatDuration(
+                              Math.max(0, Math.round(f.timeSeconds)),
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {Math.round(Math.max(0, f.percent) * 100)}
+                            {m.percent_symbol()}
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

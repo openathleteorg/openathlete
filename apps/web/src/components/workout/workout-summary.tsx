@@ -32,31 +32,34 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
         key={step.workoutStepId || index}
         className={`${isChild ? 'border-l-2 border-muted' : ''}`}
       >
-        <div className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/40">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-muted-foreground">
+        <div className="flex flex-col sm:flex-row items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-900/40">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
               {isChild ? `${index + 1}` : `${m.step()} ${index + 1}`}
             </span>
-            <TypeIcon stepType={step.stepType} className="h-8 w-8" />
+            <TypeIcon
+              stepType={step.stepType}
+              className="h-8 w-8 flex-shrink-0"
+            />
           </div>
 
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-sm">
+          <div className="flex-1 space-y-1 min-w-0">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+              <span className="font-medium text-sm break-words">
                 {getStepTypeLabel(step.stepType)}{' '}
                 {step.name ? `- ${step.name}` : ''}
               </span>
               {step.exerciseName && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
                   • {step.exerciseName}
                 </span>
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
               {!step.repeatBlock && (
                 <DurationDisplay
-                  className="text-sm text-muted-foreground"
+                  className="text-sm text-muted-foreground flex-shrink-0"
                   durationType={step.durationType}
                   durationValue={step.durationValue}
                 />
@@ -123,7 +126,7 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
       {workout.steps.length > 0 && (
         <>
           <Separator className="my-4" />
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             {estimatedDuration && (
               <div>
                 <span className="text-muted-foreground">

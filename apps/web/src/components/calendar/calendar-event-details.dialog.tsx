@@ -80,12 +80,12 @@ export function CalendarEventDetailsDialog({
                   </Badge>
                 )}
             </div>
-            <div className="flex items-center gap-2 md:pr-4 md:-translate-y-4 w-full md:w-auto">
+            <div className="flex items-center gap-2 md:pr-4 md:-translate-y-4 w-full md:w-auto mt-2 md:mt-0">
               <Button
                 onClick={onEditEvent}
                 variant="outline"
                 size="sm"
-                className="flex-1 md:flex-none text-xs md:text-sm"
+                className="w-full md:w-auto text-xs md:text-sm"
               >
                 {m.edit()}
               </Button>

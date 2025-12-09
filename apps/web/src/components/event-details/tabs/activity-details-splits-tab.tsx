@@ -36,63 +36,67 @@ export function ActivityDetailsSplitsTab({ stream, sport }: P) {
         <CardTitle>{m.splits()}</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{m.kilometers()}</TableHead>
-              <TableHead>{m.split()}</TableHead>
-              <TableHead>
-                {speedLabel} ({speedUnitLabel})
-              </TableHead>
-              {config.showElevation && (
-                <>
-                  <TableHead>
-                    {m.elevation_gain()} ({m.meters()})
-                  </TableHead>
-                  <TableHead>
-                    {m.elevation_loss()} ({m.meters()})
-                  </TableHead>
-                </>
-              )}
-              {config.showGap && (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{m.kilometers()}</TableHead>
+                <TableHead>{m.split()}</TableHead>
                 <TableHead>
-                  {m.gap()} ({speedUnitLabel})
+                  {speedLabel} ({speedUnitLabel})
                 </TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {splits.map((s) => (
-              <TableRow key={s.km}>
-                <TableCell>{s.km}</TableCell>
-                <TableCell>{formatSec(s.durationSec)}</TableCell>
-                <TableCell>
-                  {formatSpeed(
-                    s.paceSecPerKm > 0 ? 1000 / s.paceSecPerKm : 0,
-                    config.speedUnit,
-                  )}
-                </TableCell>
                 {config.showElevation && (
                   <>
-                    <TableCell>
-                      {s.ascentM !== undefined ? Math.round(s.ascentM) : '-'}
-                    </TableCell>
-                    <TableCell>
-                      {s.descentM !== undefined ? Math.round(s.descentM) : '-'}
-                    </TableCell>
+                    <TableHead>
+                      {m.elevation_gain()} ({m.meters()})
+                    </TableHead>
+                    <TableHead>
+                      {m.elevation_loss()} ({m.meters()})
+                    </TableHead>
                   </>
                 )}
                 {config.showGap && (
-                  <TableCell>
-                    {s.gapMps !== undefined
-                      ? formatSpeed(s.gapMps, config.speedUnit)
-                      : '-'}
-                  </TableCell>
+                  <TableHead>
+                    {m.gap()} ({speedUnitLabel})
+                  </TableHead>
                 )}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {splits.map((s) => (
+                <TableRow key={s.km}>
+                  <TableCell>{s.km}</TableCell>
+                  <TableCell>{formatSec(s.durationSec)}</TableCell>
+                  <TableCell>
+                    {formatSpeed(
+                      s.paceSecPerKm > 0 ? 1000 / s.paceSecPerKm : 0,
+                      config.speedUnit,
+                    )}
+                  </TableCell>
+                  {config.showElevation && (
+                    <>
+                      <TableCell>
+                        {s.ascentM !== undefined ? Math.round(s.ascentM) : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {s.descentM !== undefined
+                          ? Math.round(s.descentM)
+                          : '-'}
+                      </TableCell>
+                    </>
+                  )}
+                  {config.showGap && (
+                    <TableCell>
+                      {s.gapMps !== undefined
+                        ? formatSpeed(s.gapMps, config.speedUnit)
+                        : '-'}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </CardContent>
     </Card>
   );

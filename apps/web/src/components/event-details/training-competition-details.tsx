@@ -35,116 +35,119 @@ export function TrainingCompetitionDetails({ event }: P) {
   const isTraining = event.type === EVENT_TYPE.TRAINING;
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>{m.details()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {event.goalDuration && (
-                <DurationStat
-                  label={m.goal_duration()}
-                  duration={event.goalDuration}
-                />
-              )}
-              {event.goalDistance && (
-                <DistanceStat
-                  label={m.goal_distance()}
-                  distance={event.goalDistance}
-                />
-              )}
-              {event.goalElevationGain && (
-                <ElevationStat
-                  label={m.goal_elevation_gain()}
-                  elevation={event.goalElevationGain}
-                />
-              )}
-              {isTraining &&
-                (event as TrainingEvent).estimatedLoad !== null &&
-                (event as TrainingEvent).estimatedLoad !== undefined && (
-                  <EstimatedLoadStat
-                    label={m.estimated_training_load()}
-                    estimatedLoad={(event as TrainingEvent).estimatedLoad}
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>{m.details()}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {event.goalDuration && (
+                  <DurationStat
+                    label={m.goal_duration()}
+                    duration={event.goalDuration}
                   />
                 )}
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="col-span-1">
-          <CardHeader>
-            <CardTitle>{m.related_activity()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-2">
-                <SelectEvent
-                  data={events}
-                  value={event.relatedActivity?.eventId}
-                  onChange={(activityId) => {
-                    setRelatedActivityMutation.mutate({
-                      eventId: event.eventId,
-                      activityId,
-                    });
-                  }}
-                  className="flex-1 min-w-0"
-                  filter={(e, events) => {
-                    if (e.type !== EVENT_TYPE.ACTIVITY) return false;
-                    const startFilter = new Date(event.startDate);
-                    startFilter.setDate(startFilter.getDate() - 3);
-                    const endFilter = new Date(event.endDate);
-                    endFilter.setDate(endFilter.getDate() + 3);
-                    const isInRelatedActivity = events.some(
-                      (relatedEvent) =>
-                        (relatedEvent.type === EVENT_TYPE.TRAINING ||
-                          relatedEvent.type === EVENT_TYPE.COMPETITION) &&
-                        relatedEvent.relatedActivity?.eventId === e.eventId,
-                    );
-                    return (
-                      startFilter.getTime() < e.startDate.getTime() &&
-                      endFilter.getTime() > e.endDate.getTime() &&
-                      !isInRelatedActivity
-                    );
-                  }}
-                  displayRow={(e) => (
-                    <div>
-                      {e.name}{' '}
-                      {e.type === EVENT_TYPE.ACTIVITY
-                        ? `(${formatDistance(e.distance)} km)`
-                        : ''}
-                    </div>
+                {event.goalDistance && (
+                  <DistanceStat
+                    label={m.goal_distance()}
+                    distance={event.goalDistance}
+                  />
+                )}
+                {event.goalElevationGain && (
+                  <ElevationStat
+                    label={m.goal_elevation_gain()}
+                    elevation={event.goalElevationGain}
+                  />
+                )}
+                {isTraining &&
+                  (event as TrainingEvent).estimatedLoad !== null &&
+                  (event as TrainingEvent).estimatedLoad !== undefined && (
+                    <EstimatedLoadStat
+                      label={m.estimated_training_load()}
+                      estimatedLoad={(event as TrainingEvent).estimatedLoad}
+                    />
                   )}
-                />
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>{m.related_activity()}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <SelectEvent
+                    data={events}
+                    value={event.relatedActivity?.eventId}
+                    onChange={(activityId) => {
+                      setRelatedActivityMutation.mutate({
+                        eventId: event.eventId,
+                        activityId,
+                      });
+                    }}
+                    className="flex-1 min-w-0"
+                    filter={(e, events) => {
+                      if (e.type !== EVENT_TYPE.ACTIVITY) return false;
+                      const startFilter = new Date(event.startDate);
+                      startFilter.setDate(startFilter.getDate() - 3);
+                      const endFilter = new Date(event.endDate);
+                      endFilter.setDate(endFilter.getDate() + 3);
+                      const isInRelatedActivity = events.some(
+                        (relatedEvent) =>
+                          (relatedEvent.type === EVENT_TYPE.TRAINING ||
+                            relatedEvent.type === EVENT_TYPE.COMPETITION) &&
+                          relatedEvent.relatedActivity?.eventId === e.eventId,
+                      );
+                      return (
+                        startFilter.getTime() < e.startDate.getTime() &&
+                        endFilter.getTime() > e.endDate.getTime() &&
+                        !isInRelatedActivity
+                      );
+                    }}
+                    displayRow={(e) => (
+                      <div>
+                        {e.name}{' '}
+                        {e.type === EVENT_TYPE.ACTIVITY
+                          ? `(${formatDistance(e.distance)} km)`
+                          : ''}
+                      </div>
+                    )}
+                  />
+                  {!!event.relatedActivity?.eventId && (
+                    <Button
+                      onClick={() => {
+                        unsetRelatedActivityMutation.mutate(event.eventId);
+                      }}
+                      isLoading={
+                        unsetRelatedActivityMutation.isPending ||
+                        setRelatedActivityMutation.isPending
+                      }
+                      className="w-full sm:w-auto flex-shrink-0"
+                    >
+                      {m.remove()}
+                    </Button>
+                  )}
+                </div>
                 {!!event.relatedActivity?.eventId && (
                   <Button
                     onClick={() => {
-                      unsetRelatedActivityMutation.mutate(event.eventId);
+                      openEventDetails(event.relatedActivity!.eventId);
                     }}
-                    isLoading={
-                      unsetRelatedActivityMutation.isPending ||
-                      setRelatedActivityMutation.isPending
-                    }
+                    variant="outline"
+                    className="w-full"
                   >
-                    {m.remove()}
+                    {m.view_activity()}
                   </Button>
                 )}
               </div>
-              {!!event.relatedActivity?.eventId && (
-                <Button
-                  onClick={() => {
-                    openEventDetails(event.relatedActivity!.eventId);
-                  }}
-                  variant="outline"
-                  className="w-full"
-                >
-                  {m.view_activity()}
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
         {event.description && (
-          <Card className="col-span-2">
+          <Card>
             <CardHeader>
               <CardTitle>{m.description()}</CardTitle>
             </CardHeader>
@@ -159,7 +162,7 @@ export function TrainingCompetitionDetails({ event }: P) {
           </Card>
         )}
         {isTraining && event.workout && event.workout.steps.length > 0 && (
-          <Card className="col-span-2">
+          <Card>
             <CardHeader>
               <CardTitle>{m.workout()}</CardTitle>
             </CardHeader>
