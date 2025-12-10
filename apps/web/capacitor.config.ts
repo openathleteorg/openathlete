@@ -9,8 +9,8 @@ const config: CapacitorConfig = {
     androidScheme: 'https',
     iosScheme: 'https',
     // Uncomment for local development with live reload
-    url: 'http://localhost:5173',
-    cleartext: true,
+    // url: 'http://localhost:5173',
+    // cleartext: true,
   },
   plugins: {
     SplashScreen: {
