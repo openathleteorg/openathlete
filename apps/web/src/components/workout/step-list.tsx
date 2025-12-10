@@ -81,14 +81,14 @@ function SortableStepItem({
     <div ref={setNodeRef} style={style} className="flex items-start gap-2">
       <button
         type="button"
-        className="mt-3 cursor-grab active:cursor-grabbing touch-none"
+        className="mt-3 cursor-grab active:cursor-grabbing touch-none flex-shrink-0"
         {...attributes}
         {...listeners}
       >
         <GripVertical className="h-5 w-5 text-muted-foreground hover:text-foreground transition-colors" />
       </button>
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         {step.stepType === 'REPEAT' && step.repeatBlock ? (
           <RepeatBlockInline
             step={

@@ -33,7 +33,6 @@ export const RHFRpe = ({ name, label, ...other }: Props) => {
         name={name}
         control={control}
         render={({ field, fieldState: { error } }) => {
-          // Calculate which RPE button (1-10) should be selected based on the stored value (0-1)
           const selectedRpe = storedValueToRpe(field.value);
 
           return (
@@ -47,23 +46,17 @@ export const RHFRpe = ({ name, label, ...other }: Props) => {
                     key={rpeValue}
                     type="button"
                     onClick={() => {
-                      // If clicking on the already selected button, reset value to null
                       if (isSelected) {
                         field.onChange(undefined);
                       } else {
-                        // Otherwise set to the normalized value
                         field.onChange(rpeToStoredValue(rpeValue));
                       }
                     }}
                     className={cn(
-                      'flex-1 rounded-none border border-gray-200 text-white dark:border-gray-700',
-                      // First button has left border radius
+                      'flex-1 rounded-none border border-gray-200 text-white dark:border-gray-700 sm:px-3 px-2',
                       index === 0 ? 'rounded-l-md' : '',
-                      // Last button has right border radius
                       index === 9 ? 'rounded-r-md' : '',
-                      // Remove left border except for first button to avoid double borders
                       index !== 0 ? 'border-l-0' : '',
-                      // Selected button gets the RPE color
                       isSelected
                         ? getHighSaturatedRpeColor(rpeValue / 10, false)
                         : 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200',

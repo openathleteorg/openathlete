@@ -61,27 +61,29 @@ export function StepCard({
         className,
       )}
     >
-      <div className="flex items-center gap-3 p-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
-          {index}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted text-sm font-medium text-muted-foreground">
+            {index}
+          </div>
+
+          <TypeIcon stepType={step.stepType} />
         </div>
 
-        <TypeIcon stepType={step.stepType} />
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+        <div className="flex-1 min-w-0 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
             <span className="text-sm font-medium text-muted-foreground">
               {label}
             </span>
             {step.name && (
-              <span className="text-sm font-semibold truncate">
+              <span className="text-sm font-semibold break-words">
                 {step.name}
               </span>
             )}
           </div>
 
           {!isCompact && (
-            <div className="mt-1 flex items-center gap-2 flex-wrap">
+            <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-2">
               <span className="text-xs text-muted-foreground">
                 <DurationDisplay
                   durationType={step.durationType}
@@ -91,7 +93,9 @@ export function StepCard({
 
               {hasTargets && (
                 <>
-                  <span className="text-xs text-muted-foreground">·</span>
+                  <span className="hidden sm:inline text-xs text-muted-foreground">
+                    ·
+                  </span>
                   <div className="flex gap-1 flex-wrap">
                     {step.targets.map(
                       (target: WorkoutStepTargetDto, idx: number) => (
@@ -106,37 +110,39 @@ export function StepCard({
         </div>
 
         {!isReadOnly && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">Actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {onEdit && (
-                <DropdownMenuItem onClick={onEdit}>
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  {m.workout_step_edit()}
-                </DropdownMenuItem>
-              )}
-              {onDuplicate && (
-                <DropdownMenuItem onClick={onDuplicate}>
-                  <Edit2 className="mr-2 h-4 w-4" />
-                  {m.workout_step_duplicate()}
-                </DropdownMenuItem>
-              )}
-              {onDelete && (
-                <DropdownMenuItem
-                  onClick={onDelete}
-                  className="text-destructive"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {m.workout_step_delete()}
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex-shrink-0 self-start sm:self-auto">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical className="h-4 w-4" />
+                  <span className="sr-only">Actions</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {onEdit && (
+                  <DropdownMenuItem onClick={onEdit}>
+                    <Edit2 className="mr-2 h-4 w-4" />
+                    {m.workout_step_edit()}
+                  </DropdownMenuItem>
+                )}
+                {onDuplicate && (
+                  <DropdownMenuItem onClick={onDuplicate}>
+                    <Edit2 className="mr-2 h-4 w-4" />
+                    {m.workout_step_duplicate()}
+                  </DropdownMenuItem>
+                )}
+                {onDelete && (
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {m.workout_step_delete()}
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         )}
       </div>
 

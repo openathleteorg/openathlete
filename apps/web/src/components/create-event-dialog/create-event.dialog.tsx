@@ -263,7 +263,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent
         mobileFullscreen
-        className="sm:max-w-4xl max-h-[90vh] overflow-y-auto"
+        className="sm:max-w-4xl sm:max-h-[90vh] max-h-[100vh] overflow-y-auto"
       >
         <DialogHeader>
           <DialogTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-2">

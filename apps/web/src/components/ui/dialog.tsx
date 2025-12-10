@@ -1,3 +1,4 @@
+import { isCapacitor } from '@/utils/capacitor';
 import { cn } from '@/utils/shadcn';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
@@ -51,6 +52,7 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   mobileFullscreen?: boolean;
 }) {
+  const isMobile = isCapacitor();
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -59,15 +61,18 @@ function DialogContent({
         className={cn(
           'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed z-50 grid w-full gap-4 border shadow-lg duration-200 overflow-y-auto',
           // Default styles (centered, rounded, max-width)
-          !mobileFullscreen &&
-            'top-[50%] left-[50%] max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg p-6 sm:max-w-lg md:max-w-lg',
+          (!mobileFullscreen || !isMobile) &&
+            'top-[50%] left-[50%] max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] rounded-lg p-6 sm:max-w-lg',
           // Mobile fullscreen styles
           mobileFullscreen &&
-            'inset-0 h-[100dvh] w-full rounded-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:top-[50%] md:left-[50%] md:translate-x-[-50%] md:translate-y-[-50%] md:rounded-lg md:h-auto md:w-auto md:max-h-[calc(100vh-40px)] md:max-w-lg md:p-6 md:pb-6',
+            isMobile &&
+            'inset-0 h-[100dvh] w-full rounded-none p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:top-[50%] md:left-[50%] md:translate-x-[-50%] md:translate-y-[-50%] md:rounded-lg md:h-auto md:w-auto md:max-h-[calc(100vh-40px)] md:p-6 md:pb-6',
           className,
         )}
         style={
-          mobileFullscreen ? undefined : { maxHeight: 'calc(100vh - 40px)' }
+          mobileFullscreen && isMobile
+            ? undefined
+            : { maxHeight: 'calc(100vh - 40px)' }
         }
         {...props}
       >

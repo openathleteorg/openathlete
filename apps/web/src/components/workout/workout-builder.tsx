@@ -302,29 +302,33 @@ export function WorkoutBuilder({
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <h3 className="text-lg font-semibold">
             {m.workout_structured_training()}
           </h3>
           <div className="flex-1" />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddStep}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {m.workout_add_step()}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddRepeatBlock}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            {m.workout_add_repeat_block()}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddStep}
+              className="w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {m.workout_add_step()}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAddRepeatBlock}
+              className="w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {m.workout_add_repeat_block()}
+            </Button>
+          </div>
         </div>
         {steps.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed rounded-lg">
@@ -351,7 +355,10 @@ export function WorkoutBuilder({
           if (!open) setDialogState({ type: 'none' });
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent
+          mobileFullscreen
+          className="sm:max-w-2xl max-h-[90vh] overflow-y-auto"
+        >
           <DialogHeader>
             <DialogTitle>
               {dialogState.type === 'step' && dialogState.editing
