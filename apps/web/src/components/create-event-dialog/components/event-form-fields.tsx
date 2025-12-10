@@ -72,8 +72,6 @@ export function EventFormFields({
               label={m.start_date()}
               onChange={(date) => {
                 if (date && !hasStepsWithDuration) {
-                  // Calculate endDate based on startDate + duration (default 1 hour)
-                  // RHFDatePicker normalizes the date to noon (12:00), so we use that
                   const duration = goalDurationValue || 3600; // 1 hour default
                   const end = new Date(date);
                   end.setSeconds(end.getSeconds() + duration);
