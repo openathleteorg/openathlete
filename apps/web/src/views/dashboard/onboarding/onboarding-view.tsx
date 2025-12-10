@@ -294,11 +294,11 @@ export function OnboardingView() {
     switch (currentStep) {
       case 'welcome':
         return (
-          <div className="flex flex-col items-center gap-6 text-center">
-            <h1 className="text-3xl font-bold">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold">
               {m.onboarding_welcome_title()}
             </h1>
-            <p className="text-muted-foreground text-md">
+            <p className="text-muted-foreground text-sm sm:text-md">
               {m.onboarding_welcome_subtitle()}
             </p>
           </div>
@@ -306,16 +306,16 @@ export function OnboardingView() {
 
       case 'role-selection':
         return (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 {m.onboarding_role_selection_title()}
               </h2>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
                 {m.onboarding_role_selection_subtitle()}
               </p>
             </div>
-            <div className="grid gap-4">
+            <div className="grid gap-3 sm:gap-4">
               <button
                 onClick={() =>
                   setData((d) => ({
@@ -326,7 +326,7 @@ export function OnboardingView() {
                   }))
                 }
                 className={cn(
-                  'flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-colors',
+                  'flex items-center gap-2 sm:gap-3 rounded-lg border-2 p-3 sm:p-4 text-left transition-colors',
                   data.roles.includes('ATHLETE')
                     ? 'border-primary bg-primary/10'
                     : 'border-border hover:border-primary/50',
@@ -354,7 +354,7 @@ export function OnboardingView() {
                   }))
                 }
                 className={cn(
-                  'flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-colors',
+                  'flex items-center gap-2 sm:gap-3 rounded-lg border-2 p-3 sm:p-4 text-left transition-colors',
                   data.roles.includes('COACH')
                     ? 'border-primary bg-primary/10'
                     : 'border-border hover:border-primary/50',
@@ -376,12 +376,12 @@ export function OnboardingView() {
 
       case 'coach-invitation':
         return (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 {m.onboarding_coach_invitation_title()}
               </h2>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
                 {m.onboarding_coach_invitation_subtitle()}
               </p>
             </div>
@@ -410,12 +410,12 @@ export function OnboardingView() {
 
       case 'athlete-info':
         return (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 {m.onboarding_athlete_info_title()}
               </h2>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
                 {m.onboarding_athlete_info_subtitle()}
               </p>
             </div>
@@ -524,12 +524,12 @@ export function OnboardingView() {
 
       case 'connectors':
         return (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 {m.onboarding_connectors_title()}
               </h2>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
                 {m.onboarding_connectors_subtitle()}
               </p>
             </div>
@@ -539,12 +539,12 @@ export function OnboardingView() {
 
       case 'athlete-invitations':
         return (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold">
+              <h2 className="text-xl sm:text-2xl font-bold">
                 {m.onboarding_athlete_invitations_title()}
               </h2>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
                 {m.onboarding_athlete_invitations_subtitle()}
               </p>
             </div>
@@ -577,12 +577,12 @@ export function OnboardingView() {
 
       case 'complete':
         return (
-          <div className="flex flex-col items-center gap-6 text-center">
-            <CheckCircle2 className="h-16 w-16 text-green-600 dark:text-green-400" />
-            <h1 className="text-3xl font-bold">
+          <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
+            <CheckCircle2 className="h-12 w-12 sm:h-16 sm:w-16 text-green-600 dark:text-green-400" />
+            <h1 className="text-2xl sm:text-3xl font-bold">
               {m.onboarding_complete_title()}
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground text-base sm:text-lg">
               {m.onboarding_complete_subtitle()}
             </p>
           </div>
@@ -605,12 +605,12 @@ export function OnboardingView() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-6 fixed top-0 left-0 w-full h-full z-50">
-      <div className="mb-8">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-6 fixed top-0 left-0 w-full h-full z-50">
+      <div className="mb-4 sm:mb-8">
         <img
           src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}
           alt="OpenAthlete"
-          className="h-8"
+          className="h-6 sm:h-8"
         />
       </div>
       <div className="w-full max-w-lg">
@@ -621,14 +621,15 @@ export function OnboardingView() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
-            className="rounded-lg border bg-card p-8 shadow-sm overflow-y-auto max-h-[calc(100vh-100px)]"
+            className="rounded-lg border bg-card p-4 sm:p-8 shadow-sm overflow-y-auto max-h-[calc(100vh-80px)] sm:max-h-[calc(100vh-100px)]"
           >
             {renderStep()}
-            <div className="mt-8 flex items-center justify-between">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
               <Button
                 variant="ghost"
                 onClick={handlePrevious}
                 disabled={currentStepIndex === 0}
+                className="w-full sm:w-auto order-2 sm:order-1"
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 {m.onboarding_previous()}
@@ -637,6 +638,7 @@ export function OnboardingView() {
                 onClick={handleNext}
                 disabled={!canProceed() || completeOnboardingMutation.isPending}
                 isLoading={completeOnboardingMutation.isPending}
+                className="w-full sm:w-auto order-1 sm:order-2"
               >
                 {currentStep === 'complete'
                   ? m.onboarding_complete_continue()

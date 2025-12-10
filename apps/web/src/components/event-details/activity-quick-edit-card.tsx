@@ -104,7 +104,7 @@ export function ActivityQuickEditCard({
 
   return (
     <>
-      <Card className="col-span-1 flex flex-col">
+      <Card className="flex flex-col col-span-2 sm:col-span-1">
         <CardHeader>
           <CardTitle>{m.quick_edit()}</CardTitle>
         </CardHeader>
@@ -176,7 +176,11 @@ export function ActivityQuickEditCard({
               />
               <RHFRpe name="rpe" label={m.rpe()} />
               <div className="flex justify-end mt-auto">
-                <Button type="submit" disabled={updateEventMutation.isPending}>
+                <Button
+                  type="submit"
+                  disabled={updateEventMutation.isPending}
+                  className="w-full sm:w-auto"
+                >
                   {updateEventMutation.isPending
                     ? m.save() + '...'
                     : m.submit()}

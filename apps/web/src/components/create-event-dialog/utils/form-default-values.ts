@@ -108,13 +108,21 @@ export function getFormDefaultValues(
     return base;
   }
 
-  if (create && startDate && endDate) {
+  if (create && startDate) {
+    // Calculate endDate from startDate + 1 hour if not provided
+    const calculatedEndDate =
+      endDate ||
+      (() => {
+        const end = new Date(startDate);
+        end.setSeconds(end.getSeconds() + 3600); // Add 1 hour (3600 seconds)
+        return end;
+      })();
     return {
       type: props.type!,
       name: '',
       description: '',
       startDate,
-      endDate,
+      endDate: calculatedEndDate,
       sport: SPORT_TYPE.RUNNING,
       saveAsTemplate: false,
     };

@@ -91,7 +91,7 @@ export function ActivityDetailsOverviewTab({
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card className="col-span-1">
+      <Card className="col-span-2 sm:col-span-1">
         <CardHeader>
           <CardTitle>{m.statistics()}</CardTitle>
         </CardHeader>
@@ -118,7 +118,7 @@ export function ActivityDetailsOverviewTab({
             <ActivityDetailsSelectionProvider fullDomain={fullDomain}>
               {stream?.latlng && (
                 <ActivityDetailsMap
-                  className="col-span-1 rounded-xl shadow-sm border"
+                  className="col-span-2 sm:col-span-1 rounded-xl shadow-sm border w-full min-h-[300px]"
                   polyline={stream.latlng}
                   pins={hoverPin}
                   distance={stream.distance}
@@ -136,7 +136,7 @@ export function ActivityDetailsOverviewTab({
                 <ActivityFeedbackDisplayCard event={event} />
               )}
               {stream?.heartrate && (
-                <Card className="col-span-1">
+                <Card className="col-span-2 sm:col-span-1">
                   <CardHeader>
                     <CardTitle>{m.heart_rate_distribution()}</CardTitle>
                   </CardHeader>

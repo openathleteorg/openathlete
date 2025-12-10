@@ -3,7 +3,7 @@ import { useFeatureAccess } from '@/hooks/use-feature-access';
 import { m } from '@/paraglide/messages';
 import { eventTypeLabelMap } from '@/utils/label-map/core';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { FeatureName } from '@openathlete/shared';
@@ -73,7 +73,9 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
 
   const endDate = useMemo(() => {
     if (create) {
-      return getEndDate(rest.date);
+      // Calculate endDate from startDate + 1 hour
+      const calculatedStartDate = getStartDate(rest.date);
+      return getEndDate(rest.date, calculatedStartDate);
     } else if (edit) {
       return rest.event?.endDate;
     }
@@ -118,6 +120,21 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const goalDistanceValue = watch('goalDistance');
   const goalDurationValue = watch('goalDuration');
   const sportValue = watch('sport');
+
+  // Calculate endDate automatically when startDate or goalDuration changes
+  useEffect(() => {
+    if (
+      startDateValue &&
+      !hasStepsWithDuration &&
+      (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION)
+    ) {
+      const duration = goalDurationValue || 3600; // Default 1 hour
+      const start = new Date(startDateValue);
+      const end = new Date(start);
+      end.setSeconds(start.getSeconds() + duration);
+      setValue('endDate', end, { shouldValidate: false });
+    }
+  }, [startDateValue, goalDurationValue, hasStepsWithDuration, type, setValue]);
 
   // AI modification/generation dialog state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);

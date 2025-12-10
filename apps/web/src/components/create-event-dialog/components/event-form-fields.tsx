@@ -66,14 +66,22 @@ export function EventFormFields({
       )}
       {!isTemplate &&
         (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION) && (
-          <>
+          <div className="col-span-1 md:col-span-2">
             <RHFDatePicker
               name="startDate"
-              type="start"
-              label={m.start_time()}
+              label={m.start_date()}
+              onChange={(date) => {
+                if (date && !hasStepsWithDuration) {
+                  // Calculate endDate based on startDate + duration (default 1 hour)
+                  // RHFDatePicker normalizes the date to noon (12:00), so we use that
+                  const duration = goalDurationValue || 3600; // 1 hour default
+                  const end = new Date(date);
+                  end.setSeconds(end.getSeconds() + duration);
+                  setValue('endDate', end);
+                }
+              }}
             />
-            <RHFDatePicker name="endDate" type="end" label={m.end_time()} />
-          </>
+          </div>
         )}
       <div className="col-span-1 md:col-span-2">
         <RHFTextarea
@@ -93,7 +101,7 @@ export function EventFormFields({
             onChange={(value) => {
               if (!hasStepsWithDuration && startDateValue) {
                 const start = new Date(startDateValue);
-                const duration = value || 0;
+                const duration = value || 3600; // Default 1 hour
                 const end = new Date(start);
                 end.setSeconds(start.getSeconds() + duration);
                 setValue('endDate', end);

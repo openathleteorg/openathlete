@@ -36,7 +36,7 @@ export function ActivityFeedbackDisplayCard({ event }: P) {
 
   return (
     <>
-      <Card className="col-span-1 flex flex-col">
+      <Card className="flex flex-col col-span-2 sm:col-span-1">
         <CardHeader>
           <CardTitle>{m.activity_feedback_completed_via_questions()}</CardTitle>
         </CardHeader>
