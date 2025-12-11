@@ -58,6 +58,7 @@ function shouldShowNavbar(pathname: string): boolean {
 function isProfileSubPage(pathname: string): boolean {
   const profileSubPages = [
     getPath(['dashboard', 'statistics']),
+    getPath(['dashboard', 'progression']),
     getPath(['dashboard', 'records']),
     getPath(['dashboard', 'metrics']),
   ];

@@ -6,7 +6,7 @@ import {
 } from '@/components/ui/card';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { Activity, MedalIcon, PieChart } from 'lucide-react';
+import { Activity, MedalIcon, PieChart, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function ProfilePage() {
@@ -18,6 +18,12 @@ export function ProfilePage() {
       description: m.my_statistics(),
       icon: PieChart,
       path: getPath(['dashboard', 'statistics']),
+    },
+    {
+      title: m.progression(),
+      description: m.my_progression(),
+      icon: TrendingUp,
+      path: getPath(['dashboard', 'progression']),
     },
     {
       title: m.records(),

@@ -62,6 +62,18 @@ const AthleteMetricsPage = lazy(() =>
   })),
 );
 
+const ProgressionPage = lazy(() =>
+  import('@/pages/dashboard/progression').then((module) => ({
+    default: module.ProgressionPage,
+  })),
+);
+
+const AthleteProgressionPage = lazy(() =>
+  import('@/pages/dashboard/progression/athlete').then((module) => ({
+    default: module.AthleteProgressionPage,
+  })),
+);
+
 const AthleteSettingsPage = lazy(() =>
   import('@/pages/dashboard/settings/athlete').then((module) => ({
     default: module.AthleteSettingsPage,
@@ -133,6 +145,14 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'statistics', 'athleteId']),
         element: <AthleteStatisticsPage />,
+      },
+      {
+        path: getPath(['dashboard', 'progression']),
+        element: <ProgressionPage />,
+      },
+      {
+        path: getPath(['dashboard', 'progression', 'athleteId']),
+        element: <AthleteProgressionPage />,
       },
       {
         path: getPath(['dashboard', 'records']),

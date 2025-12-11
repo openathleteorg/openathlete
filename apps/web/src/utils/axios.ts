@@ -137,6 +137,21 @@ export const routes = {
       endDate: string,
     ) => `/statistics?athleteId=${athleteId}&start=${startDate}&end=${endDate}`,
   },
+  progression: {
+    getFirstActivityDate: (athleteId: number, sport?: string) =>
+      `/progression/first-activity-date?athleteId=${athleteId}${
+        sport ? `&sport=${sport}` : ''
+      }`,
+    getProgressionData: (
+      athleteId: number,
+      startDate: string,
+      endDate: string,
+      sport?: string,
+    ) =>
+      `/progression?athleteId=${athleteId}&start=${startDate}&end=${endDate}${
+        sport ? `&sport=${sport}` : ''
+      }`,
+  },
   coach: {
     dashboard: (start?: string, end?: string) =>
       `/coach/dashboard${start && end ? `?start=${start}&end=${end}` : ''}`,

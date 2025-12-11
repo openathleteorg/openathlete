@@ -22,6 +22,7 @@ import {
   MedalIcon,
   MessageCircle,
   PieChart,
+  TrendingUp,
   User,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -81,6 +82,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             icon: PieChart,
           },
           {
+            title: m.progression(),
+            url:
+              getPath(['dashboard', 'progression']) + `/${athlete.athleteId}`,
+            icon: TrendingUp,
+          },
+          {
             title: m.records(),
             url: getPath(['dashboard', 'records']) + `/${athlete.athleteId}`,
             icon: MedalIcon,
@@ -111,6 +118,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         title: m.statistics(),
         url: getPath(['dashboard', 'statistics']),
         icon: PieChart,
+        spaces: ['ATHLETE'] as UserRole[],
+      },
+      {
+        title: m.progression(),
+        url: getPath(['dashboard', 'progression']),
+        icon: TrendingUp,
         spaces: ['ATHLETE'] as UserRole[],
       },
       {
