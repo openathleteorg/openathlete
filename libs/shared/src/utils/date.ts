@@ -32,3 +32,10 @@ export const getYearPeriod = (date: Date): { start: Date; end: Date } => {
   const end = new Date(date.getFullYear() + 1, 0, 0);
   return { start: startOfDay(start), end: endOfDay(end) };
 };
+
+export const getQuarterPeriod = (date: Date): { start: Date; end: Date } => {
+  const quarter = Math.floor(date.getMonth() / 3);
+  const start = new Date(date.getFullYear(), quarter * 3, 1);
+  const end = new Date(date.getFullYear(), (quarter + 1) * 3, 0);
+  return { start: startOfDay(start), end: endOfDay(end) };
+};
