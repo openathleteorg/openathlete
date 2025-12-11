@@ -16,19 +16,21 @@ interface P {
   event: ActivityEvent;
   onSkip: () => void;
   isEditMode?: boolean; // If true, skip intro screen and show flow directly
+  skipIntroScreen?: boolean; // If true, skip the "ready" intro screen and go directly to flow
 }
 
 export function ActivityFeedbackOverlay({
   event,
   onSkip,
   isEditMode = false,
+  skipIntroScreen = false,
 }: P) {
   const { data: athlete } = useGetMyAthleteQuery();
   const isMyActivity = athlete?.athleteId === event.athleteId;
   const { data: feedbackData, isLoading } =
     useGetActivityFeedbackQuestionsQuery(event.eventId, isMyActivity);
   const skipMutation = useSkipFeedbackMutation(event.eventId);
-  const [showFlow, setShowFlow] = useState(isEditMode);
+  const [showFlow, setShowFlow] = useState(isEditMode || skipIntroScreen);
 
   const questions = useMemo(
     () => feedbackData?.questions ?? [],
@@ -37,7 +39,7 @@ export function ActivityFeedbackOverlay({
   const feedbackSkipped = feedbackData?.feedbackSkipped ?? false;
 
   useEffect(() => {
-    if (!isLoading && !isEditMode) {
+    if (!isLoading && !isEditMode && !skipIntroScreen) {
       if (!questions || questions.length === 0) {
         onSkip();
         return;
@@ -51,7 +53,14 @@ export function ActivityFeedbackOverlay({
         onSkip();
       }
     }
-  }, [questions, feedbackSkipped, isLoading, onSkip, isEditMode]);
+  }, [
+    questions,
+    feedbackSkipped,
+    isLoading,
+    onSkip,
+    isEditMode,
+    skipIntroScreen,
+  ]);
 
   const handleSkip = async () => {
     try {

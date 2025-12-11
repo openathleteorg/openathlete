@@ -38,7 +38,7 @@ export function AthleteDashboardHeader({
           new Date(event.startDate) >= now,
       )
       .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
-      .slice(0, 3);
+      .slice(0, 2);
   }, [events]);
 
   const today = useMemo(() => {

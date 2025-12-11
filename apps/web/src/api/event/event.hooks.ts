@@ -182,12 +182,12 @@ export const useGetEventStreamQuery = (
   eventId: number,
   resolution: number,
   keys?: string[],
-  opt?: QueryOptions<Awaited<ReturnType<typeof EventAPI.getEventStream>>>,
+  enabled?: boolean,
 ) =>
   useQuery({
-    ...opt,
     queryFn: () => EventAPI.getEventStream(eventId, resolution, keys),
     queryKey: [eventKeys.getEventStream, eventId, resolution, keys],
+    enabled,
   });
 
 export const useGetEventWeatherQuery = (

@@ -818,6 +818,7 @@
   "activity_feedback_edit": "Edit",
   "activity_feedback_submitted": "Feedback submitted successfully",
   "activity_feedback_no_feedback": "No feedback provided for this session",
+  "activity_feedback_context_title": "Rate this session",
   "failed_to_reopen_feedback": "Failed to reopen feedback",
   "start_recording": "Start recording",
   "stop_recording": "Stop recording",
