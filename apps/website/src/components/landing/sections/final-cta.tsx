@@ -8,7 +8,27 @@ import { m } from '@/paraglide/messages';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
+declare global {
+  interface Window {
+    gtag_report_conversion?: (url?: string) => boolean;
+  }
+}
+
 export function FinalCTA() {
+  const signupUrl = `${APP_URL}/auth/create-account`;
+
+  const handleSignupClick = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+      window.gtag_report_conversion(signupUrl);
+    } else {
+      // Fallback if gtag is not loaded yet
+      window.location.href = signupUrl;
+    }
+  };
+
   return (
     <Section className="bg-primary text-primary-foreground">
       <Container>
@@ -22,7 +42,7 @@ export function FinalCTA() {
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button size="lg" variant="secondary" asChild className="group">
-              <Link href={`${APP_URL}/auth/create-account`}>
+              <Link href={signupUrl} onClick={handleSignupClick}>
                 {m.landing_finalcta_primary()}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>

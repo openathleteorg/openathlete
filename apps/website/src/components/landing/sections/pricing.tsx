@@ -12,6 +12,12 @@ import { useState } from 'react';
 
 import { PLAN_CONFIGS, SubscriptionPlan } from '@openathlete/shared';
 
+declare global {
+  interface Window {
+    gtag_report_conversion?: (url?: string) => boolean;
+  }
+}
+
 type TargetType = 'athletes' | 'coaches' | 'clubs';
 
 function formatPrice(price: number, locale: string): string {
@@ -152,7 +158,13 @@ export function Pricing() {
   const [activeTarget, setActiveTarget] = useState<TargetType>('athletes');
 
   const handlePlanClick = (plan: SubscriptionPlan) => {
-    window.location.href = `${APP_URL}/auth/create-account?plan=${plan}`;
+    const signupUrl = `${APP_URL}/auth/create-account?plan=${plan}`;
+    if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+      window.gtag_report_conversion(signupUrl);
+    } else {
+      // Fallback if gtag is not loaded yet
+      window.location.href = signupUrl;
+    }
   };
 
   const currentConfig = TARGET_CONFIGS[activeTarget];

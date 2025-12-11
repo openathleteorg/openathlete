@@ -17,6 +17,12 @@ import { m } from '@/paraglide/messages';
 import { AlertCircle } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
+declare global {
+  interface Window {
+    gtag_report_conversion?: (url?: string) => boolean;
+  }
+}
+
 function parseTime(timeStr: string): number {
   const parts = timeStr.split(':').map(Number);
   if (parts.length === 3) {
@@ -111,6 +117,20 @@ export function RacePredictor() {
 
   const handleDistanceClick = (distance: string) => {
     setTargetDistance(distance);
+  };
+
+  const signupUrl = `${APP_URL}/auth/create-account`;
+
+  const handleSignupClick = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+      window.gtag_report_conversion(signupUrl);
+    } else {
+      // Fallback if gtag is not loaded yet
+      window.location.href = signupUrl;
+    }
   };
 
   return (
@@ -256,9 +276,10 @@ export function RacePredictor() {
                         className="border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-100 hover:bg-amber-100 dark:hover:bg-amber-900/30"
                       >
                         <a
-                          href={`${APP_URL}/auth/create-account`}
+                          href={signupUrl}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={handleSignupClick}
                         >
                           {m.tool_race_predictor_get_plan()}
                         </a>

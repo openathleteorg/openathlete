@@ -8,6 +8,12 @@ import { getLocale } from '@/paraglide/runtime';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+declare global {
+  interface Window {
+    gtag_report_conversion?: (url?: string) => boolean;
+  }
+}
+
 export function Footer() {
   const pathname = usePathname();
   const locale = getLocale();
@@ -24,6 +30,33 @@ export function Footer() {
   // Build localized URLs - always use explicit locale to avoid middleware rewriting
   const getLocalizedPath = (path: string) => {
     return `/${currentLocale}${path}`;
+  };
+
+  const loginUrl = `${APP_URL}/auth/login`;
+  const signupUrl = `${APP_URL}/auth/create-account`;
+
+  const handleLoginClick = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+      window.gtag_report_conversion(loginUrl);
+    } else {
+      // Fallback if gtag is not loaded yet
+      window.location.href = loginUrl;
+    }
+  };
+
+  const handleSignupClick = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+      window.gtag_report_conversion(signupUrl);
+    } else {
+      // Fallback if gtag is not loaded yet
+      window.location.href = signupUrl;
+    }
   };
 
   return (
@@ -52,16 +85,18 @@ export function Footer() {
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
-                  href={`${APP_URL}/auth/login`}
+                  href={loginUrl}
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={handleLoginClick}
                 >
                   {m.login()}
                 </Link>
               </li>
               <li>
                 <Link
-                  href={`${APP_URL}/auth/create-account`}
+                  href={signupUrl}
                   className="text-muted-foreground hover:text-foreground transition-colors"
+                  onClick={handleSignupClick}
                 >
                   {m.footer_signup()}
                 </Link>

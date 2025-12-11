@@ -10,7 +10,27 @@ import { m } from '@/paraglide/messages';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
+declare global {
+  interface Window {
+    gtag_report_conversion?: (url?: string) => boolean;
+  }
+}
+
 export function Hero() {
+  const signupUrl = `${APP_URL}/auth/create-account`;
+
+  const handleSignupClick = (
+    e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
+  ) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined' && window.gtag_report_conversion) {
+      window.gtag_report_conversion(signupUrl);
+    } else {
+      // Fallback if gtag is not loaded yet
+      window.location.href = signupUrl;
+    }
+  };
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-background to-muted/20 py-20 md:py-32">
       <div className="absolute inset-0 bg-grid-slate-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] dark:bg-grid-slate-800 dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))]" />
@@ -25,7 +45,7 @@ export function Hero() {
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button size="lg" asChild className="group">
-              <Link href={`${APP_URL}/auth/create-account`}>
+              <Link href={signupUrl} onClick={handleSignupClick}>
                 {m.landing_hero_cta_primary()}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
