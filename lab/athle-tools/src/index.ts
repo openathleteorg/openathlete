@@ -25,6 +25,7 @@ const DATASET_PATH = path.join(__dirname, "..", "athle.json");
 const DUPLICATE_FLAG = "--duplicate";
 const COUNT_FLAG = "--count";
 const MAIL_FLAG = "--mail";
+const CSV_FLAG = "--csv";
 
 async function readDataset(): Promise<AthleEntry[]> {
   const rawContent = await fs.readFile(DATASET_PATH, "utf-8");
@@ -227,6 +228,139 @@ async function handleMailFlag(): Promise<void> {
   );
 }
 
+function escapeCsvValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const str = String(value);
+  // If the value contains comma, quote, or newline, wrap it in quotes and escape quotes
+  if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+
+  return str;
+}
+
+function normalizeValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  const str = String(value).trim();
+  return str.toUpperCase() === "NULL" ? "" : str;
+}
+
+async function handleCsvFlag(): Promise<void> {
+  const entries = await readDataset();
+
+  if (entries.length === 0) {
+    console.log("No entries to export. CSV file not created.");
+    return;
+  }
+
+  // Structure optimized for lemlist import
+  // Email is required and should be first, then other important fields
+  const lemlistColumns = [
+    "email",
+    "nom",
+    "ville",
+    "code_postal",
+    "telephone",
+    "adresse",
+    "stade",
+    "id_club",
+    "piste",
+    "jeunes",
+    "haut_niveau",
+    "sante_loisir",
+    "hors_stade",
+    "latitude",
+    "longitude",
+  ];
+
+  // Build CSV content
+  const csvLines: string[] = [];
+
+  // Header row
+  csvLines.push(lemlistColumns.map(escapeCsvValue).join(","));
+
+  let exportedCount = 0;
+  let entriesWithoutEmail = 0;
+
+  // Data rows - extract emails and structure data
+  entries.forEach((entry) => {
+    const emails = extractEmailsFromContent(entry.contenu);
+
+    if (emails.length === 0) {
+      entriesWithoutEmail++;
+      // Still export the entry but with empty email
+      const row = buildLemlistRow(entry, "");
+      csvLines.push(row);
+      exportedCount++;
+      return;
+    }
+
+    // If multiple emails, create one row per email
+    emails.forEach((email) => {
+      const row = buildLemlistRow(entry, email);
+      csvLines.push(row);
+      exportedCount++;
+    });
+  });
+
+  const csvContent = csvLines.join("\n") + "\n";
+  const outputPath = path.join(__dirname, "..", "athle.csv");
+  await fs.writeFile(outputPath, csvContent, "utf-8");
+
+  console.log(
+    `Exported ${exportedCount} entr${exportedCount > 1 ? "ies" : "y"} to athle.csv`
+  );
+  if (entriesWithoutEmail > 0) {
+    console.log(
+      `Warning: ${entriesWithoutEmail} entr${
+        entriesWithoutEmail > 1 ? "ies" : "y"
+      } without email address`
+    );
+  }
+}
+
+function buildLemlistRow(entry: AthleEntry, email: string): string {
+  const nom = normalizeValue(entry.club ?? entry.nomstade ?? "");
+  const ville = normalizeValue(entry.ville);
+  const codePostal = normalizeValue(entry.cp);
+  const telephone = normalizeValue(entry.tel);
+  const adresse = normalizeValue(entry.adresse);
+  const stade = normalizeValue(entry.nomstade);
+  const idClub = normalizeValue(entry.id ?? entry.ID);
+  const piste = normalizeValue(entry.piste);
+  const jeunes = normalizeValue(entry.jeunes);
+  const hautNiveau = normalizeValue(entry.htniveau);
+  const santeLoisir = normalizeValue(entry.santeloisir);
+  const horsStade = normalizeValue(entry.horsstade);
+  const latitude = normalizeValue(entry.lat);
+  const longitude = normalizeValue(entry.lng);
+
+  const row = [
+    email,
+    nom,
+    ville,
+    codePostal,
+    telephone,
+    adresse,
+    stade,
+    idClub,
+    piste,
+    jeunes,
+    hautNiveau,
+    santeLoisir,
+    horsStade,
+    latitude,
+    longitude,
+  ];
+
+  return row.map(escapeCsvValue).join(",");
+}
+
 async function main(): Promise<void> {
   const [flag] = process.argv.slice(2);
 
@@ -240,11 +374,15 @@ async function main(): Promise<void> {
     case MAIL_FLAG:
       await handleMailFlag();
       break;
+    case CSV_FLAG:
+      await handleCsvFlag();
+      break;
     default:
       console.log("Usage:");
       console.log(`  pnpm start -- ${DUPLICATE_FLAG}`);
       console.log(`  pnpm start -- ${COUNT_FLAG}`);
       console.log(`  pnpm start -- ${MAIL_FLAG}`);
+      console.log(`  pnpm start -- ${CSV_FLAG}`);
       process.exit(flag ? 1 : 0);
   }
 }
