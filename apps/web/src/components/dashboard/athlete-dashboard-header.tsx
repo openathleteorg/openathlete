@@ -5,6 +5,7 @@ import { TrainingLoadCalculationType } from '@/api/training-load/training-load.a
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
+import { isCapacitor } from '@/utils/capacitor';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
@@ -26,6 +27,7 @@ export function AthleteDashboardHeader({
   events,
   athleteId,
 }: AthleteDashboardHeaderProps) {
+  const isMobile = isCapacitor();
   // Get upcoming competitions
   const upcomingCompetitions = useMemo(() => {
     if (!events) return [];
@@ -105,6 +107,9 @@ export function AthleteDashboardHeader({
     return 'balanced';
   };
 
+  if (isMobile) {
+    return null;
+  }
   return (
     <Card className="mb-6">
       <CardContent>
