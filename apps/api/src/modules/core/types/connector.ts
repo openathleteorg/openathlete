@@ -523,8 +523,8 @@ export interface SuuntoLimitedWorkout {
   totalDistance: number; // meters
   totalAscent?: number; // meters
   totalDescent?: number; // meters
-  avgSpeed?: number; // km/h
-  maxSpeed?: number; // km/h
+  avgSpeed?: number; // m/s (meters per second)
+  maxSpeed?: number; // m/s (meters per second)
   avgPace?: number; // minutes per km
   energyConsumption?: number; // kcal
   minAltitude?: number; // meters

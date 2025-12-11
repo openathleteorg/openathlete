@@ -712,13 +712,26 @@ export class SuuntoProviderService
     const compressedActivityStream = compressActivityStream(activityStream);
     const sport = mapSuuntoWorkoutToSportType(workout);
 
-    // Convert avgSpeed from km/h to m/s
-    const avgSpeedMps = workout.avgSpeed
-      ? (workout.avgSpeed * 1000) / 3600
-      : undefined;
-    const maxSpeedMps = workout.maxSpeed
-      ? (workout.maxSpeed * 1000) / 3600
-      : undefined;
+    // Suunto avgSpeed and maxSpeed are already in m/s (not km/h)
+    // If not available, calculate from distance and time
+    let avgSpeedMps: number | undefined = workout.avgSpeed;
+    let maxSpeedMps: number | undefined = workout.maxSpeed;
+
+    // Fallback: calculate average speed from distance and time if not provided
+    if (
+      !avgSpeedMps &&
+      workout.totalDistance &&
+      workout.totalTime &&
+      workout.totalTime > 0
+    ) {
+      avgSpeedMps = workout.totalDistance / workout.totalTime;
+    }
+
+    // If avgPace is available (in min/km), convert to m/s as fallback
+    if (!avgSpeedMps && workout.avgPace && workout.avgPace > 0) {
+      // Convert min/km to m/s: pace (min/km) -> speed (m/s) = 1000 / (pace * 60)
+      avgSpeedMps = 1000 / (workout.avgPace * 60);
+    }
 
     // Extract cadence (could be in extensions)
     let averageCadence: number | undefined;
