@@ -92,6 +92,12 @@ export class MessageNotificationScheduler {
     }
 
     const appUrl = this.configService.get('APP_URL');
+    if (!appUrl) {
+      this.logger.error(
+        'APP_URL is not configured. Cannot send message notifications.',
+      );
+      return;
+    }
     const inboxUrl = `${appUrl.replace(/\/$/, '')}/dashboard/messages`;
 
     for (const participant of participants) {
