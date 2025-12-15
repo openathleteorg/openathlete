@@ -48,6 +48,7 @@ export class SubscriptionController {
       status: subscription.status as CurrentSubscriptionDto['status'],
       currentPeriodStart: subscription.current_period_start,
       currentPeriodEnd: subscription.current_period_end,
+      trialEnd: subscription.trial_end,
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
     };
   }

@@ -85,6 +85,22 @@ export class StripeService {
     return customer;
   }
 
+  async hasUsedTrial(customerId: string): Promise<boolean> {
+    const subscriptions = await this.stripe.subscriptions.list({
+      customer: customerId,
+      limit: 100,
+      status: 'all', // Include all statuses (active, canceled, past_due, etc.)
+    });
+
+    for (const subscription of subscriptions.data) {
+      if (subscription.trial_end && subscription.trial_end > 0) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   /**
    * Create a checkout session for subscription
    */
@@ -99,7 +115,21 @@ export class StripeService {
       throw new Error(`Price ID not found for plan: ${plan}`);
     }
 
-    const session = await this.stripe.checkout.sessions.create({
+    // Check if plan is paid (not FREE)
+    const isPaidPlan = plan !== SubscriptionPlan.FREE;
+
+    // Check if customer has already used a trial
+    const hasUsedTrial = isPaidPlan
+      ? await this.hasUsedTrial(customerId)
+      : false;
+
+    // Calculate trial end date (15 days from now) if applicable
+    const trialEndDate =
+      isPaidPlan && !hasUsedTrial
+        ? Math.floor(Date.now() / 1000) + 15 * 24 * 60 * 60 // 15 days in seconds
+        : undefined;
+
+    const sessionConfig: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       mode: 'subscription',
       line_items: [
@@ -118,7 +148,16 @@ export class StripeService {
           plan,
         },
       },
-    });
+    };
+
+    if (trialEndDate) {
+      sessionConfig.subscription_data = {
+        ...sessionConfig.subscription_data,
+        trial_end: trialEndDate,
+      };
+    }
+
+    const session = await this.stripe.checkout.sessions.create(sessionConfig);
 
     return session;
   }

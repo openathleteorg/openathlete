@@ -94,6 +94,10 @@ export class SubscriptionService {
           ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
             new Date((stripeSubscription as any).current_period_end * 1000)
           : new Date(),
+      trial_end:
+        stripeSubscription.trial_end != null
+          ? new Date(stripeSubscription.trial_end * 1000)
+          : null,
       cancel_at_period_end: stripeSubscription.cancel_at_period_end ?? false,
     };
 
@@ -233,6 +237,13 @@ export class SubscriptionService {
           new Date((stripeSubscription as any).current_period_end * 1000)
         : subscription.current_period_end || new Date();
 
+    const trialEnd =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (stripeSubscription as any).trial_end != null
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          new Date((stripeSubscription as any).trial_end * 1000)
+        : null;
+
     return await this.prisma.subscription.update({
       where: { subscription_id: subscription.subscription_id },
       data: {
@@ -240,6 +251,7 @@ export class SubscriptionService {
         status: this.mapStatusToPrisma(stripeSubscription.status),
         current_period_start: currentPeriodStart,
         current_period_end: currentPeriodEnd,
+        trial_end: trialEnd,
         cancel_at_period_end: stripeSubscription.cancel_at_period_end ?? false,
       },
     });
@@ -300,6 +312,11 @@ export class SubscriptionService {
    */
   async getMaxAthletesForUser(userId: number): Promise<number | null> {
     const subscription = await this.getOrCreateSubscription(userId);
+
+    if (!this.isSubscriptionActive(subscription.status)) {
+      return getMaxAthletes(SubscriptionPlan.FREE);
+    }
+
     const plan = this.mapPrismaPlanToEnum(subscription.plan);
     return getMaxAthletes(plan);
   }
@@ -320,11 +337,23 @@ export class SubscriptionService {
     return currentCount < maxAthletes;
   }
 
+  private isSubscriptionActive(status: subscription_status): boolean {
+    return (
+      status === subscription_status.active ||
+      status === subscription_status.trialing
+    );
+  }
+
   /**
    * Check if user has access to AI features
    */
   async hasAIFeaturesAccess(userId: number): Promise<boolean> {
     const subscription = await this.getOrCreateSubscription(userId);
+
+    if (!this.isSubscriptionActive(subscription.status)) {
+      return false;
+    }
+
     const plan = this.mapPrismaPlanToEnum(subscription.plan);
     return planHasAIFeatures(plan);
   }
