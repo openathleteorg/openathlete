@@ -5,8 +5,19 @@ import {
   FeatureName,
   PLAN_CONFIGS,
   SubscriptionPlan,
+  SubscriptionStatus,
   planHasAIFeatures,
 } from '@openathlete/shared';
+
+/**
+ * Check if subscription status is active (active or trialing)
+ */
+function isSubscriptionActive(status: SubscriptionStatus): boolean {
+  return (
+    status === SubscriptionStatus.ACTIVE ||
+    status === SubscriptionStatus.TRIALING
+  );
+}
 
 /**
  * Hook to check if user has access to a specific feature
@@ -16,6 +27,11 @@ export function useFeatureAccess(featureName: FeatureName) {
 
   const hasAccess = useMemo(() => {
     if (!subscription) {
+      return false;
+    }
+
+    // Check if subscription is active (active or trialing)
+    if (!isSubscriptionActive(subscription.status as SubscriptionStatus)) {
       return false;
     }
 
@@ -47,6 +63,11 @@ export function useAthleteLimit() {
   const maxAthletes = useMemo(() => {
     if (!subscription) {
       return 3; // Default free plan limit
+    }
+
+    // If subscription is not active, return FREE plan limits
+    if (!isSubscriptionActive(subscription.status as SubscriptionStatus)) {
+      return PLAN_CONFIGS[SubscriptionPlan.FREE].maxAthletes;
     }
 
     const plan = subscription.plan as SubscriptionPlan;

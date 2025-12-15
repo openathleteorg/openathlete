@@ -31,6 +31,15 @@ const planNameMap: Record<SubscriptionPlan, string> = {
   [SubscriptionPlan.CLUB_ULTRA]: m.plan_club_ultra_name(),
 };
 
+const planDescriptionMap: Record<SubscriptionPlan, string> = {
+  [SubscriptionPlan.FREE]: m.plan_free_description(),
+  [SubscriptionPlan.ATHLETE_PRO]: m.plan_athlete_pro_description(),
+  [SubscriptionPlan.COACH_PRO]: m.plan_coach_pro_description(),
+  [SubscriptionPlan.COACH_ULTRA]: m.plan_coach_ultra_description(),
+  [SubscriptionPlan.CLUB_PRO]: m.plan_club_pro_description(),
+  [SubscriptionPlan.CLUB_ULTRA]: m.plan_club_ultra_description(),
+};
+
 export function PlanCard({
   plan,
   onSelect,
@@ -54,7 +63,7 @@ export function PlanCard({
   const priceDisplay =
     plan.price === 0
       ? m.plan_free_price()
-      : `€${plan.price.toFixed(2).replace('.', ',')}/mois`;
+      : `€${plan.price.toFixed(2).replace('.', ',')}${m.plan_price_per_month()}`;
 
   return (
     <Card
@@ -72,7 +81,7 @@ export function PlanCard({
             <SparklesIcon className="w-5 h-5 text-primary" />
           )}
         </div>
-        <CardDescription>{plan.description}</CardDescription>
+        <CardDescription>{planDescriptionMap[plan.plan]}</CardDescription>
       </CardHeader>
       <CardContent className="flex-grow">
         <div className="mb-4">

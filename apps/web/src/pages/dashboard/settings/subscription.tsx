@@ -19,7 +19,11 @@ import { Download, ExternalLink, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { PLAN_CONFIGS, SubscriptionPlan } from '@openathlete/shared';
+import {
+  PLAN_CONFIGS,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from '@openathlete/shared';
 
 const planNameMap: Record<SubscriptionPlan, string> = {
   [SubscriptionPlan.FREE]: m.plan_free_name(),
@@ -28,6 +32,25 @@ const planNameMap: Record<SubscriptionPlan, string> = {
   [SubscriptionPlan.COACH_ULTRA]: m.plan_coach_ultra_name(),
   [SubscriptionPlan.CLUB_PRO]: m.plan_club_pro_name(),
   [SubscriptionPlan.CLUB_ULTRA]: m.plan_club_ultra_name(),
+};
+
+const subscriptionStatusMap: Record<SubscriptionStatus, string> = {
+  [SubscriptionStatus.ACTIVE]: m.subscription_status_active(),
+  [SubscriptionStatus.TRIALING]: m.subscription_status_trialing(),
+  [SubscriptionStatus.CANCELED]: m.subscription_status_canceled(),
+  [SubscriptionStatus.PAST_DUE]: m.subscription_status_past_due(),
+  [SubscriptionStatus.INCOMPLETE]: m.subscription_status_incomplete(),
+  [SubscriptionStatus.INCOMPLETE_EXPIRED]:
+    m.subscription_status_incomplete_expired(),
+  [SubscriptionStatus.UNPAID]: m.subscription_status_unpaid(),
+};
+
+const invoiceStatusMap: Record<string, string> = {
+  paid: m.invoice_status_paid(),
+  open: m.invoice_status_open(),
+  draft: m.invoice_status_draft(),
+  void: m.invoice_status_void(),
+  uncollectible: m.invoice_status_uncollectible(),
 };
 
 export function SubscriptionSettingsPage() {
@@ -46,22 +69,18 @@ export function SubscriptionSettingsPage() {
       const { url } = await portalMutation.mutateAsync(returnUrl);
       window.location.href = url;
     } catch {
-      toast.error('Failed to open billing portal');
+      toast.error(m.subscription_portal_error());
       setIsLoadingPortal(false);
     }
   };
 
   const handleCancel = async () => {
-    if (
-      confirm(
-        'Are you sure you want to cancel your subscription? It will remain active until the end of the billing period.',
-      )
-    ) {
+    if (confirm(m.subscription_cancel_confirm())) {
       try {
         await cancelMutation.mutateAsync();
-        toast.success('Subscription will be canceled at the end of the period');
+        toast.success(m.subscription_cancel_success());
       } catch {
-        toast.error('Failed to cancel subscription');
+        toast.error(m.subscription_cancel_error());
       }
     }
   };
@@ -69,9 +88,9 @@ export function SubscriptionSettingsPage() {
   const handleResume = async () => {
     try {
       await resumeMutation.mutateAsync();
-      toast.success('Subscription resumed');
+      toast.success(m.subscription_resume_success());
     } catch {
-      toast.error('Failed to resume subscription');
+      toast.error(m.subscription_resume_error());
     }
   };
 
@@ -80,7 +99,7 @@ export function SubscriptionSettingsPage() {
   }
 
   if (!subscription) {
-    return <div>No subscription found</div>;
+    return <div>{m.subscription_not_found()}</div>;
   }
 
   const plan = subscription.plan as SubscriptionPlan;
@@ -101,15 +120,18 @@ export function SubscriptionSettingsPage() {
               </div>
               <div className="text-lg font-semibold">
                 {planNameMap[plan]} - €
-                {planConfig.price.toFixed(2).replace('.', ',')}/mois
+                {planConfig.price.toFixed(2).replace('.', ',')}
+                {m.plan_price_per_month()}
               </div>
             </div>
             <div>
               <div className="text-sm text-muted-foreground">
                 {m.subscription_status()}
               </div>
-              <div className="text-lg font-semibold capitalize">
-                {subscription.status}
+              <div className="text-lg font-semibold">
+                {subscriptionStatusMap[
+                  subscription.status as SubscriptionStatus
+                ] || subscription.status}
               </div>
             </div>
             {subscription.currentPeriodStart &&
@@ -192,7 +214,8 @@ export function SubscriptionSettingsPage() {
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {format(new Date(invoice.createdAt), 'PP')} -{' '}
-                        {invoice.status}
+                        {invoiceStatusMap[invoice.status.toLowerCase()] ||
+                          invoice.status}
                       </div>
                     </div>
                   </div>
