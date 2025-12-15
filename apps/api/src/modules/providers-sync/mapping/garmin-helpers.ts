@@ -33,6 +33,11 @@ export function mapSportToGarmin(sport: SPORT_TYPE): string {
       return 'YOGA';
     case SPORT_TYPE.PILATES:
       return 'PILATES';
+    case SPORT_TYPE.TRIATHLON:
+    case SPORT_TYPE.DUATHLON:
+    case SPORT_TYPE.AQUATHLON:
+    case SPORT_TYPE.AQUABIKE:
+      return 'GENERIC';
     default:
       return 'GENERIC';
   }

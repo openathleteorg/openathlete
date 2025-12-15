@@ -107,6 +107,10 @@ export const mapStravaSportType = (type: string): sport_type => {
       return sport_type.WINDSURF;
     case 'Workout':
       return sport_type.WORKOUT;
+    case 'Triathlon':
+      return sport_type.TRIATHLON;
+    case 'Duathlon':
+      return sport_type.DUATHLON;
     default:
       return sport_type.OTHER;
   }

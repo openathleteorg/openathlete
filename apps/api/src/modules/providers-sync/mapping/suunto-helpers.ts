@@ -117,6 +117,10 @@ export function mapSportToSuuntoActivityIds(sport: SPORT_TYPE): number[] {
       return [108]; // Wheelchair sport
 
     // Multisport - use generic activities
+    case SPORT_TYPE.TRIATHLON:
+    case SPORT_TYPE.DUATHLON:
+    case SPORT_TYPE.AQUATHLON:
+    case SPORT_TYPE.AQUABIKE:
     case SPORT_TYPE.WORKOUT:
     case SPORT_TYPE.OTHER:
     default:
