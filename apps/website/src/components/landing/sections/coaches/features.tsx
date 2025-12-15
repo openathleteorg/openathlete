@@ -7,7 +7,6 @@ import {
   MessageSquare,
   Sparkles,
   Upload,
-  Users,
 } from 'lucide-react';
 
 export function CoachesFeatures() {

@@ -1,14 +1,7 @@
 import { Container } from '@/components/landing/container';
 import { Section } from '@/components/landing/section';
 import { m } from '@/paraglide/messages';
-import {
-  AlertTriangle,
-  BarChart3,
-  Mic,
-  Sparkles,
-  Upload,
-  Users,
-} from 'lucide-react';
+import { AlertTriangle, BarChart3, Mic, Sparkles, Users } from 'lucide-react';
 
 export function ClubsFeatures() {
   const features = [
@@ -79,4 +72,3 @@ export function ClubsFeatures() {
     </Section>
   );
 }
-

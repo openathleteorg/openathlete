@@ -28,7 +28,7 @@ const itemVariants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      ease: [0.22, 1, 0.36, 1] as const,
     },
   },
 };
@@ -40,7 +40,7 @@ const titleVariants = {
     y: 0,
     transition: {
       duration: 0.8,
-      ease: [0.22, 1, 0.36, 1],
+      ease: [0.22, 1, 0.36, 1] as const,
     },
   },
 };
@@ -55,13 +55,13 @@ export function ClubsHero() {
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/10 py-20 md:py-32">
       {/* Fond avec quadrillage amélioré */}
       <div className="absolute inset-0 z-0 bg-grid-pattern-fine [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.4))] dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.2))]" />
-      
+
       {/* Boules colorées animées */}
       <AnimatedBlobs />
-      
+
       {/* Gradient overlay pour adoucir les bords */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-transparent to-background/60 pointer-events-none" />
-      
+
       <Container>
         <motion.div
           className="relative z-10 mx-auto max-w-4xl text-center"
@@ -75,7 +75,7 @@ export function ClubsHero() {
           >
             {m.clubs_hero_title()}
           </motion.h1>
-          
+
           <motion.p
             className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl"
             variants={itemVariants}
@@ -102,4 +102,3 @@ export function ClubsHero() {
     </section>
   );
 }
-
