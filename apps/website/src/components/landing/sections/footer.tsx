@@ -62,7 +62,7 @@ export function Footer() {
   return (
     <footer className="border-t bg-muted/30 py-16">
       <Container>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-6">
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link
@@ -132,6 +132,47 @@ export function Footer() {
                   className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {m.footer_tools()}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Connecteurs */}
+          <div>
+            <h3 className="text-sm font-semibold mb-4">
+              {m.footer_connectors()}
+            </h3>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <Link
+                  href={getLocalizedPath('/connect/garmin')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Garmin
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/connect/strava')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Strava
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/connect/suunto')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Suunto
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/connect/polar')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Polar
                 </Link>
               </li>
             </ul>
