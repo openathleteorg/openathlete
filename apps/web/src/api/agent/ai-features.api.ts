@@ -14,11 +14,14 @@ export class AIFeaturesAPI {
     prompt: string,
     date: Date,
   ): Promise<GenerateEventResponseDto> {
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(0, 0, 0, 0);
+
     const res = await client.post<GenerateEventResponseDto>(
       routes.aiFeatures.generateEvent,
       {
         prompt,
-        date: date.toISOString(),
+        date: normalizedDate.toISOString(),
       } as GenerateEventDto,
     );
     const event = res.data;

@@ -39,16 +39,20 @@ export class AIFeaturesController {
   ): Promise<GenerateEventResponseDto> {
     const athleteId = user.athlete?.athlete_id || user.user_id;
 
+    const parsedDate = new Date(dto.date);
+    const year = parsedDate.getFullYear();
+    const month = parsedDate.getMonth();
+    const day = parsedDate.getDate();
+    const eventDate = new Date(year, month, day, 0, 0, 0, 0);
+
     const generatedEvent =
       await this.eventGenerationService.generateTrainingEvent(
         dto.prompt,
-        new Date(dto.date),
+        eventDate,
         athleteId,
       );
 
-    const eventDate = new Date(dto.date);
-    const startDate = new Date(eventDate);
-    startDate.setHours(8, 0, 0, 0);
+    const startDate = new Date(year, month, day, 8, 0, 0, 0);
 
     const endDate = new Date(startDate);
     if (generatedEvent.goalDuration) {
