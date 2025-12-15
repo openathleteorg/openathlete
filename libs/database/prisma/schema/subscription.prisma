@@ -9,6 +9,7 @@ model subscription {
   stripe_subscription_id  String?             @unique
   current_period_start    DateTime?
   current_period_end      DateTime?
+  trial_end               DateTime?
   cancel_at_period_end    Boolean             @default(false)
 
   // relationships

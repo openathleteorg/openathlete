@@ -14,6 +14,7 @@ export const currentSubscriptionDtoSchema = z.object({
   status: subscriptionStatusSchema,
   currentPeriodStart: z.date().nullable(),
   currentPeriodEnd: z.date().nullable(),
+  trialEnd: z.date().nullable(),
   cancelAtPeriodEnd: z.boolean(),
 });
 
