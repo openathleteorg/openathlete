@@ -55,5 +55,9 @@ export const sportTypeLabelMap: Record<SPORT_TYPE, string> = {
   [SPORT_TYPE.WHEELCHAIR]: m.sport_wheelchair(),
   [SPORT_TYPE.WINDSURF]: m.sport_windsurf(),
   [SPORT_TYPE.WORKOUT]: m.sport_workout(),
+  [SPORT_TYPE.TRIATHLON]: m.sport_triathlon(),
+  [SPORT_TYPE.DUATHLON]: m.sport_duathlon(),
+  [SPORT_TYPE.AQUATHLON]: m.sport_aquathlon(),
+  [SPORT_TYPE.AQUABIKE]: m.sport_aquabike(),
   [SPORT_TYPE.OTHER]: m.sport_other(),
 };

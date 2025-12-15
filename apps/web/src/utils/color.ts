@@ -134,6 +134,14 @@ export const getSportColor = (sport: SPORT_TYPE) => {
       return 'bg-sky-100 hover:bg-sky-200 dark:bg-sky-900 dark:hover:bg-sky-900 border-sky-200 dark:border-sky-800/50';
     case SPORT_TYPE.WORKOUT:
       return 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-900 border-gray-200 dark:border-gray-800/50';
+    case SPORT_TYPE.TRIATHLON:
+      return 'bg-violet-100 hover:bg-violet-200 dark:bg-violet-900 dark:hover:bg-violet-900 border-violet-200 dark:border-violet-800/50';
+    case SPORT_TYPE.DUATHLON:
+      return 'bg-fuchsia-100 hover:bg-fuchsia-200 dark:bg-fuchsia-900 dark:hover:bg-fuchsia-900 border-fuchsia-200 dark:border-fuchsia-800/50';
+    case SPORT_TYPE.AQUATHLON:
+      return 'bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-900 dark:hover:bg-cyan-900 border-cyan-200 dark:border-cyan-800/50';
+    case SPORT_TYPE.AQUABIKE:
+      return 'bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900 dark:hover:bg-indigo-900 border-indigo-200 dark:border-indigo-800/50';
     case SPORT_TYPE.OTHER:
       return 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-900 dark:hover:bg-gray-900 border-gray-200 dark:border-gray-800/50';
     default:

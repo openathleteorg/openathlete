@@ -142,6 +142,14 @@ export function SportIcon({ sport, className }: P) {
         return surfing;
       case SPORT_TYPE.WORKOUT:
         return fitness;
+      case SPORT_TYPE.TRIATHLON:
+        return fitness;
+      case SPORT_TYPE.DUATHLON:
+        return run;
+      case SPORT_TYPE.AQUATHLON:
+        return swim;
+      case SPORT_TYPE.AQUABIKE:
+        return biking;
       case SPORT_TYPE.OTHER:
         return fitness;
       default:
