@@ -38,6 +38,14 @@ export function Navbar() {
 
   const navLinks = [
     {
+      href: `/${currentLocale}/coaches`,
+      label: m.coaches_nav_link(),
+    },
+    {
+      href: `/${currentLocale}/clubs`,
+      label: m.clubs_nav_link(),
+    },
+    {
       href: `/${currentLocale}/blog`,
       label: m.blog_title(),
     },
