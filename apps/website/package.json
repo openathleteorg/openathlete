@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide && next dev -p 3003",
     "build": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide && next build",
+    "translate": "paraglide-js compile --project ./project.inlang --outdir ./src/paraglide",
     "start": "next start",
     "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --max-warnings 0",
     "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix",
