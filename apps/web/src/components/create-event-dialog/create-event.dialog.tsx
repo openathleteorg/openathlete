@@ -350,7 +350,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
               <RHFCheckbox
                 name="saveAsTemplate"
                 label={m.save_event_as_template()}
-                className="md:w-auto"
               />
             )}
           </div>
