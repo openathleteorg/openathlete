@@ -4,7 +4,13 @@ import { Container } from '@/components/landing/container';
 import { Section } from '@/components/landing/section';
 import { m } from '@/paraglide/messages';
 import { motion } from 'framer-motion';
-import { ArrowUpRight, Clock, ShieldCheck, TrendingUp, Users } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Clock,
+  ShieldCheck,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
 
 const stats = [
   {
@@ -86,17 +92,21 @@ export function CoachesStats() {
                 className="group relative overflow-hidden rounded-2xl border bg-card p-8 shadow-sm transition-all hover:shadow-lg hover:border-primary/20"
               >
                 {/* Gradient background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`} />
-                
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 transition-opacity duration-300 group-hover:opacity-100`}
+                />
+
                 {/* Content */}
                 <div className="relative z-10">
                   <div className="mb-4 flex items-center justify-between">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-xl bg-background/80 backdrop-blur-sm border shadow-sm transition-transform group-hover:scale-110`}>
+                    <div
+                      className={`flex h-12 w-12 items-center justify-center rounded-xl bg-background/80 backdrop-blur-sm border shadow-sm transition-transform group-hover:scale-110`}
+                    >
                       <Icon className={`h-6 w-6 ${iconColor}`} />
                     </div>
                     <ArrowUpRight className="h-5 w-5 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                   </div>
-                  
+
                   <div className="text-3xl font-bold tracking-tight text-foreground leading-tight">
                     {value}
                   </div>
@@ -109,4 +119,3 @@ export function CoachesStats() {
     </Section>
   );
 }
-
