@@ -595,7 +595,7 @@ export function formatFewShotExamples(
       `Description: ${example.training.description || 'None'}`,
       `Workout Structure:`,
       workoutStructure,
-      `ACTUAL TRIMP RESULT: ${example.actualTrimp.toFixed(2)}`,
+      `\nACTUAL TRIMP RESULT: ${example.actualTrimp.toFixed(2)}`,
       '',
     ].join('\n');
   });
