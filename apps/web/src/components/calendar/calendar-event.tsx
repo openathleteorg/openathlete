@@ -33,6 +33,7 @@ import {
 } from '../ui/context-menu';
 import { CalendarEventTooltipWrapper } from './calendar-event-tooltip-wrapper';
 import { useEventClipboard } from './contexts/event-clipboard-context';
+import { useEventContextMenu } from './contexts/event-context-menu-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY } from './types/filter';
 
@@ -108,6 +109,7 @@ export function CalendarEvent({ event, wrapped }: P) {
   });
   const isValidated = useIsEventValidated(event, athleteId);
   const { copyEvent } = useEventClipboard();
+  const { isAnyContextMenuOpen, setContextMenuOpen } = useEventContextMenu();
 
   const eventColor = useMemo(() => {
     switch (coloredBy || COLORED_BY.TYPE) {
@@ -142,9 +144,16 @@ export function CalendarEvent({ event, wrapped }: P) {
   );
   return (
     <>
-      <ContextMenu>
+      <ContextMenu
+        onOpenChange={(open) => {
+          setContextMenuOpen(event.eventId, open);
+        }}
+      >
         <ContextMenuTrigger className="w-full">
-          <CalendarEventTooltipWrapper event={event} disabled={isDragging}>
+          <CalendarEventTooltipWrapper
+            event={event}
+            disabled={isDragging || isAnyContextMenuOpen}
+          >
             <div
               className={cn(
                 'calendar-event rounded-sm cursor-pointer text-left flex flex-col items-start justify-center py-0.5 px-1 overflow-hidden w-full',
@@ -163,6 +172,16 @@ export function CalendarEvent({ event, wrapped }: P) {
               onClick={(e) => {
                 openEventDetails(event.eventId);
                 e.stopPropagation();
+              }}
+              onMouseEnter={(e) => {
+                if (wrapped) {
+                  e.stopPropagation();
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (wrapped) {
+                  e.stopPropagation();
+                }
               }}
               ref={draggable ? setNodeRef : undefined}
             >

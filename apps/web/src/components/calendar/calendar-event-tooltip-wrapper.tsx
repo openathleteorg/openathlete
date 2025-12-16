@@ -15,9 +15,10 @@ interface CalendarEventTooltipWrapperProps {
 export function CalendarEventTooltipWrapper({
   event,
   children,
+  disabled = false,
 }: CalendarEventTooltipWrapperProps) {
   return (
-    <Tooltip>
+    <Tooltip open={disabled ? false : undefined}>
       <TooltipTrigger asChild>{children}</TooltipTrigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
