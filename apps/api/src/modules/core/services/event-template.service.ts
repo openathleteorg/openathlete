@@ -68,6 +68,17 @@ export class EventTemplateService {
       },
     });
 
+    if (event.type === 'TRAINING') {
+      await this.prisma.event_training.update({
+        where: {
+          event_id: event.event_id,
+        },
+        data: {
+          estimated_load: null,
+        },
+      });
+    }
+
     // Retrieve the duplicated event with includes to check for training
     const eventWithIncludes = await this.prisma.event.findUnique({
       where: { event_id: event.event_id },
@@ -283,9 +294,10 @@ export class EventTemplateService {
     delete subEntityData.related_activity_id;
     delete subEntityData.related_activity;
 
-    // Remove workout - will be duplicated separately
+    // Remove workout and estimated_load - will be duplicated/calculated separately
     if (templateEvent.type === 'TRAINING') {
       delete subEntityData.workout;
+      delete subEntityData.estimated_load; // Don't copy estimated_load from template
     }
 
     // Create the new event from template

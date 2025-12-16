@@ -1154,6 +1154,7 @@ export class EventService {
 
     if (type === 'TRAINING') {
       delete subEntityData.workout;
+      delete subEntityData.estimated_load;
     }
 
     return this.prisma.event.create({
