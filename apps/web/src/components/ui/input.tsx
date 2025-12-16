@@ -1,7 +1,45 @@
 import { cn } from '@/utils/shadcn';
 import * as React from 'react';
 
-function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
+function Input({
+  className,
+  type,
+  onChange,
+  onKeyDown,
+  ...props
+}: React.ComponentProps<'input'>) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      (type === 'number' || type === 'tel') &&
+      (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
+      e.shiftKey
+    ) {
+      e.preventDefault();
+      const step = e.key === 'ArrowUp' ? 10 : -10;
+      const currentValue = parseFloat(e.currentTarget.value) || 0;
+      const min = e.currentTarget.min
+        ? parseFloat(e.currentTarget.min)
+        : -Infinity;
+      const max = e.currentTarget.max
+        ? parseFloat(e.currentTarget.max)
+        : Infinity;
+      const newValue = Math.min(max, Math.max(min, currentValue + step));
+      e.currentTarget.value = newValue.toString();
+      // Call onChange directly to ensure React Hook Form detects the change
+      if (onChange) {
+        const syntheticEvent = {
+          ...e,
+          target: e.currentTarget,
+          currentTarget: e.currentTarget,
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(syntheticEvent);
+      }
+      e.currentTarget.dispatchEvent(new Event('input', { bubbles: true }));
+      e.currentTarget.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    onKeyDown?.(e);
+  };
+
   return (
     <input
       type={type}
@@ -12,26 +50,8 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
         'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
         className,
       )}
-      onKeyDown={(e) => {
-        if (
-          (type === 'number' || type === 'tel') &&
-          (e.key === 'ArrowUp' || e.key === 'ArrowDown') &&
-          e.shiftKey
-        ) {
-          e.preventDefault();
-          const step = e.key === 'ArrowUp' ? 10 : -10;
-          const currentValue = parseFloat(e.currentTarget.value) || 0;
-          const min = e.currentTarget.min
-            ? parseFloat(e.currentTarget.min)
-            : -Infinity;
-          const max = e.currentTarget.max
-            ? parseFloat(e.currentTarget.max)
-            : Infinity;
-          const newValue = Math.min(max, Math.max(min, currentValue + step));
-          e.currentTarget.value = newValue.toString();
-          e.currentTarget.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-      }}
+      onChange={onChange}
+      onKeyDown={handleKeyDown}
       {...props}
     />
   );
