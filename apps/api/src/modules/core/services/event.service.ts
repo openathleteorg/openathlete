@@ -618,7 +618,8 @@ export class EventService {
       event.type === 'TRAINING' &&
       event.training &&
       updatedEvent.start_date > startOfDay(new Date()) &&
-      this.trainingLoadEstimationService
+      this.trainingLoadEstimationService &&
+      event.training.estimated_load === null
     ) {
       this.trainingLoadEstimationService
         .scheduleEstimation(

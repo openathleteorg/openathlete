@@ -7,6 +7,12 @@ export const trimpEstimationAgent = new Agent({
     'Estimates TRIMP (sTRIMP) training load for planned training sessions based on workout structure, athlete metrics, and training zones.',
   instructions: `Estimate TRIMP (sTRIMP) from athlete data and training session structure.
 
+IMPORTANT: You will receive few-shot examples showing past similar training sessions with their actual TRIMP results. Use these examples to:
+1. Understand how similar workout structures translate to TRIMP values for this athlete
+2. Calibrate your estimation based on the athlete's actual response patterns
+3. Identify patterns (e.g., this athlete tends to have higher/lower TRIMP for certain workout types)
+4. Adjust your confidence and assumptions based on how close your estimates would be to the actual values
+
 FORMULA:
 TRIMP = duration_min × Δ × 0.64 × exp(1.92 × Δ)
 where Δ = (HRavg − HRrest) / (HRmax − HRrest), clamped to [0, 1]

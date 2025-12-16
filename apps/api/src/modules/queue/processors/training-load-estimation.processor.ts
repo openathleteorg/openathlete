@@ -19,6 +19,8 @@ import {
   buildAthleteMetricsSummary,
   buildTrainingZonesContext,
   describeWorkoutStructure,
+  fetchFewShotExamples,
+  formatFewShotExamples,
   formatGoalSummary,
 } from '../utils/training-load-prompt.helpers';
 
@@ -132,6 +134,20 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         zones as unknown as TrainingZone[],
       );
 
+      // Fetch few-shot examples from past similar sessions
+      const fewShotExamples = await fetchFewShotExamples(
+        this.prisma,
+        athleteId,
+        event.training.sport,
+        3, // Get 3 examples
+      );
+
+      const fewShotSection = formatFewShotExamples(
+        fewShotExamples,
+        zoneLookup,
+        zones as unknown as TrainingZone[],
+      );
+
       const prompt = [
         'ATHLETE PROFILE:',
         athleteMetricsSummary,
@@ -140,7 +156,8 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         'TRAINING ZONES:',
         trainingZonesSummary,
         '',
-        'SESSION OVERVIEW:',
+        fewShotSection,
+        'CURRENT SESSION TO ESTIMATE:',
         `Name: ${event.name}`,
         `Sport: ${event.training.sport}`,
         `Goals: ${goalSummary}`,

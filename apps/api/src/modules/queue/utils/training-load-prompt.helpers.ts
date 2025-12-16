@@ -1,13 +1,68 @@
-import { sport_type } from '@openathlete/database';
+import { Prisma, sport_type } from '@openathlete/database';
 import {
   TrainingZone,
   type WorkoutDto,
   type WorkoutStepDto,
   type WorkoutStepTargetDto,
   formatTarget,
+  mapPrismaWorkoutToDto,
 } from '@openathlete/shared';
 
 import { fetchAthleteZones } from '../../agent/services/event-ai-helpers';
+import { PrismaService } from '../../prisma/services/prisma.service';
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const FEW_SHOT_INCLUDES = {
+  related_training: {
+    include: {
+      event: {
+        select: {
+          name: true,
+          start_date: true,
+        },
+      },
+      workout: {
+        include: {
+          steps: {
+            include: {
+              targets: true,
+              repeat_block: {
+                include: {
+                  child_steps: {
+                    include: {
+                      targets: true,
+                    },
+                    orderBy: {
+                      order_index: 'asc' as const,
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: {
+              order_index: 'asc' as const,
+            },
+          },
+        },
+      },
+    },
+  },
+  training_load_entries: {
+    where: {
+      calculation_id: 0, // Will be replaced in query
+    },
+    take: 1,
+  },
+  event: {
+    select: {
+      start_date: true,
+    },
+  },
+} as const;
+
+type ActivityWithFewShotIncludes = Prisma.event_activityGetPayload<{
+  include: typeof FEW_SHOT_INCLUDES;
+}>;
 
 const METRIC_LABELS: Record<string, string> = {
   HR_MAX: 'Max HR',
@@ -352,4 +407,204 @@ function formatStepType(stepType: string): string {
 function round(value: number, precision = 0): number {
   const factor = Math.pow(10, precision);
   return Math.round(value * factor) / factor;
+}
+
+/**
+ * Fetch past activities linked to trainings with their actual TRIMP values
+ * Used for few-shot prompting to improve TRIMP estimation accuracy
+ */
+export async function fetchFewShotExamples(
+  prisma: PrismaService,
+  athleteId: number,
+  currentSport: sport_type,
+  limit = 3,
+): Promise<
+  Array<{
+    training: {
+      name: string;
+      sport: sport_type;
+      description: string;
+      goal_distance: number | null;
+      goal_duration: number | null;
+      goal_elevation_gain: number | null;
+      goal_rpe: number | null;
+      workout: WorkoutDto | null;
+    };
+    actualTrimp: number;
+    activityDate: Date;
+  }>
+> {
+  // Find TRIMP calculation for this athlete
+  const trimpCalculation = await prisma.training_load_calculation.findUnique({
+    where: {
+      athlete_id_type: {
+        athlete_id: athleteId,
+        type: 'TRIMP',
+      },
+    },
+  });
+
+  if (!trimpCalculation) {
+    return [];
+  }
+
+  // Find activities linked to trainings that have TRIMP entries
+  const activities = (await prisma.event_activity.findMany({
+    where: {
+      AND: [
+        {
+          related_training: {
+            isNot: null,
+          },
+        },
+        {
+          related_training: {
+            sport: currentSport, // Filter by same sport
+          },
+        },
+        {
+          related_training: {
+            event: {
+              athlete_id: athleteId,
+            },
+          },
+        },
+        {
+          training_load_entries: {
+            some: {
+              calculation_id: trimpCalculation.training_load_calculation_id,
+            },
+          },
+        },
+      ],
+    },
+    include: {
+      related_training: {
+        include: {
+          event: {
+            select: {
+              name: true,
+              start_date: true,
+            },
+          },
+          workout: {
+            include: {
+              steps: {
+                include: {
+                  targets: true,
+                  repeat_block: {
+                    include: {
+                      child_steps: {
+                        include: {
+                          targets: true,
+                        },
+                        orderBy: {
+                          order_index: 'asc' as const,
+                        },
+                      },
+                    },
+                  },
+                },
+                orderBy: {
+                  order_index: 'asc' as const,
+                },
+              },
+            },
+          },
+        },
+      },
+      training_load_entries: {
+        where: {
+          calculation_id: trimpCalculation.training_load_calculation_id,
+        },
+        take: 1,
+      },
+      event: {
+        select: {
+          start_date: true,
+        },
+      },
+    },
+    orderBy: {
+      event: {
+        start_date: 'desc',
+      },
+    },
+    take: limit,
+  })) as ActivityWithFewShotIncludes[];
+
+  return activities
+    .filter((activity) => {
+      return (
+        activity.related_training &&
+        activity.training_load_entries &&
+        activity.training_load_entries.length > 0 &&
+        activity.training_load_entries[0]?.value !== null &&
+        activity.training_load_entries[0]?.value !== undefined
+      );
+    })
+    .map((activity) => {
+      const training = activity.related_training!;
+      const trimpEntry = activity.training_load_entries![0]!;
+
+      return {
+        training: {
+          name: training.event.name,
+          sport: training.sport,
+          description: training.description,
+          goal_distance: training.goal_distance,
+          goal_duration: training.goal_duration,
+          goal_elevation_gain: training.goal_elevation_gain,
+          goal_rpe: training.goal_rpe,
+          workout: training.workout
+            ? mapPrismaWorkoutToDto(training.workout)
+            : null,
+        },
+        actualTrimp: trimpEntry.value,
+        activityDate: activity.event.start_date,
+      };
+    });
+}
+
+/**
+ * Format few-shot examples for the prompt
+ */
+export function formatFewShotExamples(
+  examples: Awaited<ReturnType<typeof fetchFewShotExamples>>,
+  zoneLookup: Map<number, ZoneSummary>,
+  trainingZones: TrainingZone[],
+): string {
+  if (examples.length === 0) {
+    return '';
+  }
+
+  const exampleSections = examples.map((example, index) => {
+    const goalSummary = formatGoalSummary(example.training);
+    const workoutStructure = describeWorkoutStructure(
+      example.training.workout,
+      zoneLookup,
+      trainingZones,
+    );
+
+    return [
+      `EXAMPLE ${index + 1}:`,
+      `Session: ${example.training.name}`,
+      `Sport: ${example.training.sport}`,
+      `Date: ${example.activityDate.toISOString().split('T')[0]}`,
+      `Goals: ${goalSummary}`,
+      `Description: ${example.training.description || 'None'}`,
+      `Workout Structure:`,
+      workoutStructure,
+      `ACTUAL TRIMP RESULT: ${example.actualTrimp.toFixed(2)}`,
+      '',
+    ].join('\n');
+  });
+
+  return [
+    '=== FEW-SHOT EXAMPLES (Past similar sessions with actual TRIMP results) ===',
+    '',
+    ...exampleSections,
+    '=== END OF EXAMPLES ===',
+    '',
+  ].join('\n');
 }
