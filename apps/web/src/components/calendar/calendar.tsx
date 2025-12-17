@@ -17,7 +17,13 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { CreateEventDto, Cycle, EVENT_TYPE, Event } from '@openathlete/shared';
+import {
+  CreateEventDto,
+  Cycle,
+  EVENT_TYPE,
+  Event,
+  EventTemplate,
+} from '@openathlete/shared';
 
 import { AIGenerateEventDialog } from '../ai-generate-event-dialog/ai-generate-event.dialog';
 import { CreateCycleDialog } from '../create-cycle-dialog';
@@ -446,6 +452,12 @@ export function Calendar({
         const eventTemplateId = parseInt(activeId.replace('template-', ''));
         if (isNaN(eventTemplateId) || !athleteId) return;
 
+        // Get the template from the drag data for optimistic update
+        const activeData = e.active.data.current as
+          | { type: string; template?: EventTemplate }
+          | undefined;
+        const template = activeData?.template;
+
         // Calculate start and end dates based on the template's default duration
         const startDate = new Date(day);
         startDate.setHours(8, 0, 0, 0);
@@ -459,6 +471,7 @@ export function Calendar({
             endDate,
             athleteId,
           },
+          template, // Pass template for optimistic update
         });
         return;
       }

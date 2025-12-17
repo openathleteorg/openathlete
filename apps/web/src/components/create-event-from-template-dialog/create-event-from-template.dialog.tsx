@@ -165,6 +165,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
         endDate,
         athleteId,
       },
+      template, // Pass template for optimistic update
     });
   };
 
