@@ -1,8 +1,9 @@
+import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 
 import { EVENT_TYPE, Event, SPORT_TYPE } from '@openathlete/shared';
@@ -16,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
+import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY, coloredByLabelMap } from './types/filter';
 
@@ -32,6 +34,9 @@ export function CalendarHeader() {
   } = useCalendarContext();
   const [sportFilter, setSportFilter] = useState<SPORT_TYPE | null>(null);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
+  const { open, setOpen, mainSidebarWasOpen, setMainSidebarWasOpen } =
+    useTemplateLibrarySidebar();
+  const { setOpen: setMainSidebarOpen, open: mainSidebarOpen } = useSidebar();
 
   const handleChangeSportFilter = (value: string | null) => {
     setSportFilter(value as SPORT_TYPE);
@@ -62,12 +67,47 @@ export function CalendarHeader() {
         month: displayedMonthString,
       });
 
+  const handleTemplateLibraryToggle = () => {
+    if (!open) {
+      // Opening: first fold main sidebar, then open library
+      if (mainSidebarOpen) {
+        setMainSidebarWasOpen(true);
+        setMainSidebarOpen(false);
+        // Wait for sidebar to fold before opening library
+        setTimeout(() => {
+          setOpen(true);
+        }, 200); // Match sidebar animation duration
+      } else {
+        setMainSidebarWasOpen(false);
+        setOpen(true);
+      }
+    } else {
+      // Closing: first close library, then unfold main sidebar
+      setOpen(false);
+      // Wait for library to close before unfolding main sidebar
+      setTimeout(() => {
+        if (mainSidebarWasOpen) {
+          setMainSidebarOpen(true);
+        }
+        setMainSidebarWasOpen(false);
+      }, 200); // Match sidebar animation duration
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row md:justify-between gap-4">
       <h1 className="text-xl md:text-2xl font-semibold">{calendarTitle}</h1>
       <div className="flex flex-col md:flex-row gap-2">
         {/* Filters row */}
         <div className="flex gap-2">
+          <Button
+            variant={open ? 'default' : 'outline'}
+            onClick={handleTemplateLibraryToggle}
+            className="flex items-center gap-2"
+          >
+            <BookOpen className="h-4 w-4" />
+            {m.template_library()}
+          </Button>
           <Select
             value={coloredBy || ''}
             onValueChange={(c) => {

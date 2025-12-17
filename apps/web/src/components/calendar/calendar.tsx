@@ -2,6 +2,7 @@ import { CalendarAPI } from '@/api/calendar/calendar.api';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { cycleKeys } from '@/api/cycle/cycle.keys';
 import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
+import { useUseEventTemplateMutation } from '@/api/event-template';
 import { eventKeys } from '@/api/event/event.keys';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
 import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
@@ -9,16 +10,10 @@ import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
 import { Loader } from '@/components/ui/loader';
 import { m } from '@/paraglide/messages';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
-import {
-  DndContext,
-  DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
+import { DragEndEvent } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { addDays, startOfMonth } from 'date-fns';
+import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -35,6 +30,7 @@ import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
 import { CalendarContext } from './contexts/calendar-context';
 import { EventClipboardProvider } from './contexts/event-clipboard-context';
 import { EventContextMenuProvider } from './contexts/event-context-menu-context';
+import { useSharedDnd } from './contexts/shared-dnd-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType, SummaryType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
@@ -328,6 +324,15 @@ export function Calendar({
   const updateEventMutation = useUpdateEventMutation();
   const duplicateEventMutation = useDuplicateEventMutation();
   const updateCycleMutation = useUpdateCycleMutation();
+  const useTemplateMutation = useUseEventTemplateMutation({
+    onSuccess: () => {
+      toast.success(m.event_created_successfully());
+    },
+    onError: () => {
+      toast.error(m.failed_to_create_event());
+    },
+  });
+  const { registerCalendarHandler } = useSharedDnd() || {};
 
   const updateCycleDates = useCallback(
     (cycleId: number, startDate: Date, endDate: Date) => {
@@ -429,50 +434,81 @@ export function Calendar({
     ],
   );
 
-  const dndOnDragEnd = async (e: DragEndEvent) => {
-    if (!e.over?.id) return;
-    const altKey = (e.activatorEvent as PointerEvent).altKey;
-    const day = new Date(e.over?.id);
-    const eventId = Number(e.active.id);
-    const event = events?.find((evt) => evt.eventId === eventId);
-    if (!event) return;
+  const dndOnDragEnd = React.useCallback(
+    async (e: DragEndEvent) => {
+      if (!e.over?.id) return;
+      const altKey = (e.activatorEvent as PointerEvent).altKey;
+      const day = new Date(e.over?.id);
+      const activeId = String(e.active.id);
 
-    const startDate = new Date(event.startDate);
-    const endDate = new Date(event.endDate);
-    startDate.setDate(day.getDate());
-    startDate.setMonth(day.getMonth());
-    startDate.setFullYear(day.getFullYear());
-    endDate.setDate(day.getDate());
-    endDate.setMonth(day.getMonth());
-    endDate.setFullYear(day.getFullYear());
+      // Check if it's a template (id starts with "template-")
+      if (activeId.startsWith('template-')) {
+        const eventTemplateId = parseInt(activeId.replace('template-', ''));
+        if (isNaN(eventTemplateId) || !athleteId) return;
 
-    if (!altKey) {
-      updateEventMutation.mutate({
-        eventId: event.eventId,
-        body: {
-          startDate,
-          endDate,
-        },
-      });
-    } else {
-      duplicateEventMutation.mutate({
-        eventId: event.eventId,
-        body: {
-          startDate,
-          endDate,
-        },
-      });
-    }
-  };
+        // Calculate start and end dates based on the template's default duration
+        const startDate = new Date(day);
+        startDate.setHours(8, 0, 0, 0);
+        const endDate = new Date(day);
+        endDate.setHours(9, 0, 0, 0);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor),
+        useTemplateMutation.mutate({
+          eventTemplateId,
+          body: {
+            startDate,
+            endDate,
+            athleteId,
+          },
+        });
+        return;
+      }
+
+      // Handle regular event drag
+      const eventId = Number(activeId);
+      const event = events?.find((evt) => evt.eventId === eventId);
+      if (!event) return;
+
+      const startDate = new Date(event.startDate);
+      const endDate = new Date(event.endDate);
+      startDate.setDate(day.getDate());
+      startDate.setMonth(day.getMonth());
+      startDate.setFullYear(day.getFullYear());
+      endDate.setDate(day.getDate());
+      endDate.setMonth(day.getMonth());
+      endDate.setFullYear(day.getFullYear());
+
+      if (!altKey) {
+        updateEventMutation.mutate({
+          eventId: event.eventId,
+          body: {
+            startDate,
+            endDate,
+          },
+        });
+      } else {
+        duplicateEventMutation.mutate({
+          eventId: event.eventId,
+          body: {
+            startDate,
+            endDate,
+          },
+        });
+      }
+    },
+    [
+      athleteId,
+      events,
+      useTemplateMutation,
+      updateEventMutation,
+      duplicateEventMutation,
+    ],
   );
+
+  // Register calendar handler with shared DnD context
+  React.useEffect(() => {
+    if (!registerCalendarHandler) return;
+    return registerCalendarHandler(dndOnDragEnd);
+  }, [registerCalendarHandler, dndOnDragEnd]);
 
   // Handle global mouse up to end drag selection and cycle resize
   useEffect(() => {
@@ -526,9 +562,7 @@ export function Calendar({
             <CalendarHeader />
             <div className="relative">
               <div className={isLoading ? 'opacity-50 transition-opacity' : ''}>
-                <DndContext onDragEnd={dndOnDragEnd} sensors={sensors}>
-                  <CalendarBody />
-                </DndContext>
+                <CalendarBody />
               </div>
               {isLoading && (
                 <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-lg z-10">

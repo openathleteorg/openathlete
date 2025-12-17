@@ -659,6 +659,7 @@
   "no_templates_yet": "No templates yet",
   "drop_here_to_add_to_root": "Drop here to add to root level",
   "create_folder_or_add_templates": "Create a folder or add templates to get started",
+  "template_library": "Template Library",
   "connect_activity_tracking_services": "Connect your activity tracking services to import activities and export workouts",
   "provider_preferences_updated": "Sync options updated for {provider}",
   "provider_preferences_failed": "Unable to update sync options for {provider}",

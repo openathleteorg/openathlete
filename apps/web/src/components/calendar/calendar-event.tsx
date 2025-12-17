@@ -90,10 +90,13 @@ function EventSecondLine({ event }: { event: Event }) {
 }
 
 export function CalendarEvent({ event, wrapped }: P) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: event.eventId,
-    });
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: event.eventId,
+    data: {
+      type: 'event',
+      event,
+    },
+  });
   const {
     openEventDetails,
     editEvent,
@@ -158,17 +161,12 @@ export function CalendarEvent({ event, wrapped }: P) {
               className={cn(
                 'calendar-event rounded-sm cursor-pointer text-left flex flex-col items-start justify-center py-0.5 px-1 overflow-hidden w-full',
                 eventColor,
-                isDragging ? 'z-50' : '',
                 wrapped ? 'border-2' : '',
                 !isValidated ? 'opacity-60' : '',
+                isDragging ? 'opacity-30' : '',
               )}
-              style={{
-                transform: draggable
-                  ? `translate3d(${transform?.x || 0}px, ${transform?.y || 0}px, 0)`
-                  : '',
-              }}
-              {...listeners}
-              {...attributes}
+              ref={draggable ? setNodeRef : undefined}
+              {...(draggable ? { ...listeners, ...attributes } : {})}
               onClick={(e) => {
                 openEventDetails(event.eventId);
                 e.stopPropagation();
@@ -183,7 +181,6 @@ export function CalendarEvent({ event, wrapped }: P) {
                   e.stopPropagation();
                 }
               }}
-              ref={draggable ? setNodeRef : undefined}
             >
               <div className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis px-1">
                 {event.type !== EVENT_TYPE.NOTE && (

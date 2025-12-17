@@ -332,7 +332,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
             {/* Search and Create Folder Bar */}
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder={m.search_templates()}
                   value={search}
@@ -365,7 +365,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
                     />
                   ))}
                   {templates?.length === 0 && (
-                    <div className="text-center text-gray-400 py-8">
+                    <div className="text-center text-muted-foreground py-8">
                       {m.no_templates_found()}
                     </div>
                   )}
@@ -414,7 +414,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
           {/* Drag Overlay */}
           <DragOverlay dropAnimation={null} style={{ cursor: 'grabbing' }}>
             {activeDragItem && (
-              <div className="bg-white p-3 rounded-lg shadow-2xl border-2 border-blue-400 opacity-90">
+              <div className="bg-card p-3 rounded-lg shadow-2xl border-2 border-primary opacity-95">
                 {activeId?.startsWith('folder-') ? (
                   <div className="flex items-center gap-2">
                     <Folder
@@ -431,7 +431,7 @@ export function CreateEventFromTemplateDialog({ open, onClose, ...rest }: P) {
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-400" />
+                    <FileText className="h-4 w-4 text-muted-foreground" />
                     <span className="font-medium">
                       {(activeDragItem as EventTemplate).event?.name}
                     </span>

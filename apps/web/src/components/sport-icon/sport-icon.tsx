@@ -160,5 +160,11 @@ export function SportIcon({ sport, className }: P) {
   if (!icon) {
     return null;
   }
-  return <img src={icon} alt={sport} className={cn('w-4 h-4', className)} />;
+  return (
+    <img
+      src={icon}
+      alt={sport}
+      className={cn('w-4 h-4 dark:invert dark:brightness-90', className)}
+    />
+  );
 }

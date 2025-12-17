@@ -28,8 +28,8 @@ export function CustomModal({ open, onClose, title, children }: Props) {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
-      <div className="relative z-10 bg-white rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col mx-4">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="relative z-10 bg-background rounded-lg shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col mx-4 border border-border">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-lg font-semibold">{title}</h2>
           <Button
             variant="ghost"

@@ -53,6 +53,7 @@ type Props = {
   depth?: number;
   activeId?: string | null;
   allFolders: EventTemplateFolder[];
+  showUseButton?: boolean;
 };
 
 export function DroppableFolder({
@@ -65,6 +66,7 @@ export function DroppableFolder({
   depth = 0,
   activeId,
   allFolders,
+  showUseButton = true,
 }: Props) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [renameFolderDialogOpen, setRenameFolderDialogOpen] = useState(false);
@@ -164,30 +166,30 @@ export function DroppableFolder({
       <div
         ref={setContentDropRef}
         className={`
-          group flex items-center gap-2 p-3 rounded-lg border
+          group flex items-center gap-2 p-2 rounded-lg border
           transition-all duration-200
           ${
             sortableFolder.isDragging
-              ? 'border-blue-400 shadow-lg scale-105 cursor-grabbing'
-              : 'border-gray-200 hover:border-gray-300'
+              ? 'border-primary shadow-lg scale-105 cursor-grabbing'
+              : 'border-border hover:border-border/80'
           }
           ${
             isOverContent || isOverEmpty
-              ? 'bg-blue-50 border-blue-400 border-2 shadow-md'
-              : 'bg-gray-50/50 hover:bg-gray-100/50'
+              ? 'bg-primary/10 border-primary border-2 shadow-md'
+              : 'bg-muted/30 hover:bg-muted/50'
           }
         `}
       >
         <button
           className="
             cursor-grab active:cursor-grabbing
-            hover:bg-gray-200 p-1.5 rounded
+            hover:bg-muted p-1.5 rounded
             transition-colors opacity-0 group-hover:opacity-100
           "
           {...sortableFolder.attributes}
           {...sortableFolder.listeners}
         >
-          <GripVertical className="h-4 w-4 text-gray-400" />
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
         </button>
 
         <Button
@@ -216,10 +218,6 @@ export function DroppableFolder({
         )}
 
         <span className="font-medium flex-1 truncate">{folder.name}</span>
-
-        <span className="text-sm text-gray-500 flex-shrink-0">
-          ({totalItems} {totalItems !== 1 ? m.items() : m.item()})
-        </span>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -269,6 +267,7 @@ export function DroppableFolder({
                 depth={depth + 1}
                 activeId={activeId}
                 allFolders={allFolders}
+                showUseButton={showUseButton}
               />
             ))}
 
@@ -280,6 +279,7 @@ export function DroppableFolder({
                 onCreate={() => onCreate(template)}
                 onEdit={() => onEdit(template)}
                 depth={depth + 1}
+                showUseButton={showUseButton}
               />
             ))}
 

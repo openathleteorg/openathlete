@@ -659,6 +659,7 @@
   "no_templates_yet": "Aucun modèle pour le moment",
   "drop_here_to_add_to_root": "Déposer ici pour ajouter au niveau racine",
   "create_folder_or_add_templates": "Créer un dossier ou ajouter des modèles pour commencer",
+  "template_library": "Bibliothèque de séances",
   "connect_activity_tracking_services": "Connectez vos services de suivi d'activités pour importer des activités et exporter des entraînements",
   "provider_preferences_updated": "Options de synchronisation mises à jour pour {provider}",
   "provider_preferences_failed": "Impossible de mettre à jour les options de synchronisation pour {provider}",

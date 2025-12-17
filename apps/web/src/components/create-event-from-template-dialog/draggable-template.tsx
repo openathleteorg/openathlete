@@ -3,7 +3,7 @@ import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Edit, FileText, GripVertical, Trash } from 'lucide-react';
+import { Edit, FileText, GripVertical, StickyNote, Trash } from 'lucide-react';
 import { useState } from 'react';
 
 import { EventTemplate } from '@openathlete/shared';
@@ -23,6 +23,7 @@ type Props = {
   onCreate: () => void;
   onEdit: () => void;
   depth?: number;
+  showUseButton?: boolean;
 };
 
 export function DraggableTemplate({
@@ -30,6 +31,7 @@ export function DraggableTemplate({
   onCreate,
   onEdit,
   depth = 0,
+  showUseButton = true,
 }: Props) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const deleteTemplateMutation = useDeleteEventTemplateMutation();
@@ -51,85 +53,123 @@ export function DraggableTemplate({
   });
 
   const style = {
-    transform: CSS.Transform.toString(transform),
+    transform: isDragging ? undefined : CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.3 : 1,
     marginLeft: `${depth * 24}px`,
   };
 
   if (!template.event) return null;
+
+  const isCompact = !showUseButton;
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={`
-        group flex items-center gap-3 p-3 rounded-lg border bg-white
+        group relative flex items-center gap-2 p-2 rounded-lg border bg-card overflow-hidden
         transition-all duration-200
         ${
           isDragging
-            ? 'border-blue-400 shadow-lg scale-105 cursor-grabbing'
-            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+            ? 'border-dashed border-muted-foreground/30 bg-muted/50'
+            : 'border-border hover:border-border/80 hover:shadow-sm'
         }
-        ${isOver ? 'border-blue-300 bg-blue-50' : ''}
+        ${isOver ? 'border-primary/50 bg-primary/10' : ''}
       `}
     >
       <button
         className="
           cursor-grab active:cursor-grabbing
-          hover:bg-gray-100 p-1.5 rounded
+          hover:bg-muted p-1.5 rounded
           transition-colors opacity-0 group-hover:opacity-100
         "
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-4 w-4 text-gray-400" />
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>
 
-      <FileText className="h-4 w-4 text-gray-400 flex-shrink-0" />
+      {isCompact ? (
+        template.event.type === EVENT_TYPE.TRAINING ||
+        template.event.type === EVENT_TYPE.COMPETITION ? (
+          <SportIcon
+            sport={template.event.sport}
+            className="h-4 w-4 flex-shrink-0"
+          />
+        ) : (
+          <StickyNote className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        )
+      ) : (
+        <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      )}
 
-      <div className="flex-1 flex items-center gap-4 min-w-0">
-        <span className="font-medium min-w-[200px] truncate">
+      <div className="flex-1 flex items-center gap-2 min-w-0 overflow-hidden">
+        <span className="font-medium truncate min-w-0">
           {template.event?.name}
         </span>
 
-        {template.event.type === EVENT_TYPE.TRAINING && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 min-w-[120px]">
-            <SportIcon sport={template.event.sport} />
-            <span>{sportTypeLabelMap[template.event.sport]}</span>
-          </div>
+        {!isCompact && (
+          <>
+            {template.event.type === EVENT_TYPE.TRAINING && (
+              <div className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 truncate">
+                <SportIcon
+                  sport={template.event.sport}
+                  className="flex-shrink-0"
+                />
+                <span className="truncate">
+                  {sportTypeLabelMap[template.event.sport]}
+                </span>
+              </div>
+            )}
+
+            {template.event.type === EVENT_TYPE.TRAINING &&
+              template.event.goalDuration && (
+                <span className="text-sm text-muted-foreground truncate min-w-0">
+                  {formatDuration(template.event.goalDuration)}
+                </span>
+              )}
+
+            {template.event.type === EVENT_TYPE.TRAINING &&
+              template.event.goalDistance && (
+                <span className="text-sm text-muted-foreground truncate min-w-0">
+                  {formatDistance(template.event.goalDistance)} km
+                </span>
+              )}
+          </>
         )}
-
-        {template.event.type === EVENT_TYPE.TRAINING &&
-          template.event.goalDuration && (
-            <span className="text-sm text-gray-600 min-w-[80px]">
-              {formatDuration(template.event.goalDuration)}
-            </span>
-          )}
-
-        {template.event.type === EVENT_TYPE.TRAINING &&
-          template.event.goalDistance && (
-            <span className="text-sm text-gray-600 min-w-[80px]">
-              {formatDistance(template.event.goalDistance)} km
-            </span>
-          )}
       </div>
 
-      <div className="flex gap-1 flex-shrink-0">
-        <Button variant="outline" onClick={onCreate}>
-          {m.use()}
-        </Button>
-        <Button variant="outline" size="icon" onClick={onEdit}>
-          <Edit className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setDeleteDialogOpen(true)}
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
-      </div>
+      {isCompact ? (
+        <div className="absolute inset-0 flex items-center justify-end gap-1 ml-10 pr-2 bg-gradient-to-l from-card via-card/95 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+          <Button variant="outline" size="icon" onClick={onEdit}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      ) : (
+        <div className="flex gap-1 flex-shrink-0">
+          <Button variant="outline" onClick={onCreate}>
+            {m.use()}
+          </Button>
+          <Button variant="outline" size="icon" onClick={onEdit}>
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <ConfirmAction
         open={deleteDialogOpen}
