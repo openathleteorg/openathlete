@@ -47,18 +47,19 @@ export function SharedDndProvider({ children }: { children: React.ReactNode }) {
     const overId = String(over.id);
     const overData = over.data.current as DroppableData | undefined;
 
-    // Check if drop is on a calendar day (ISO date string)
-    const isCalendarDay = !isNaN(Date.parse(overId));
+    // Check if drop is in sidebar FIRST (has DroppableData with type)
+    // This takes priority because sidebar drops have specific data attached
+    const isSidebarDrop = overData?.type !== undefined;
 
-    // Check if drop is in sidebar (has DroppableData)
-    const isSidebarDrop = !!overData;
+    // Check if drop is on a calendar day (ISO date string) only if not a sidebar drop
+    const isCalendarDay = !isSidebarDrop && !isNaN(Date.parse(overId));
 
-    if (isCalendarDay && calendarHandlerRef.current) {
-      // Drop on calendar - use calendar handler (handles templates and events)
-      calendarHandlerRef.current(event);
-    } else if (isSidebarDrop && sidebarHandlerRef.current) {
+    if (isSidebarDrop && sidebarHandlerRef.current) {
       // Drop in sidebar - use sidebar handler (handles template/folder reorganization)
       sidebarHandlerRef.current(event);
+    } else if (isCalendarDay && calendarHandlerRef.current) {
+      // Drop on calendar - use calendar handler (handles templates and events)
+      calendarHandlerRef.current(event);
     }
   }, []);
 
