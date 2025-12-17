@@ -103,7 +103,7 @@ export function CalendarHeader() {
           <Button
             variant={open ? 'default' : 'outline'}
             onClick={handleTemplateLibraryToggle}
-            className="flex items-center gap-2"
+            className="hidden md:flex items-center gap-2"
           >
             <BookOpen className="h-4 w-4" />
             {m.template_library()}
