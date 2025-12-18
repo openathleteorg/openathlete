@@ -13,7 +13,6 @@ import type {
   SuuntoField,
   SuuntoFieldsStep,
   SuuntoGuide,
-  SuuntoRepeatStep,
   SuuntoStep,
   SuuntoTargetCadenceField,
   SuuntoTargetHeartRateField,
@@ -161,6 +160,12 @@ function mapTargetToSuuntoField(
 
 /**
  * Map duration type to Suunto transition condition
+ *
+ * Per Suunto Guide docs: transitions define conditions to advance to the next step.
+ * If no transition is defined, the step continues until manually advanced via lap button.
+ *
+ * For time/distance conditions, we also add a manual lap fallback so users can skip
+ * if needed.
  */
 function mapDurationToCondition(
   step: NormalizedWorkoutStep,
@@ -170,10 +175,19 @@ function mapDurationToCondition(
   switch (step.durationType) {
     case WORKOUT_DURATION_TYPE.TIME:
       if (step.durationValue) {
+        // Use OR condition: auto-advance on duration OR allow manual skip
         transitions.push({
           condition: {
-            type: 'stepDuration',
-            value: step.durationValue,
+            type: 'or',
+            conditions: [
+              {
+                type: 'stepDuration',
+                value: step.durationValue,
+              },
+              {
+                type: 'manualLap',
+              },
+            ],
           },
         });
       }
@@ -181,16 +195,27 @@ function mapDurationToCondition(
 
     case WORKOUT_DURATION_TYPE.DISTANCE:
       if (step.durationValue) {
+        // Use OR condition: auto-advance on distance OR allow manual skip
         transitions.push({
           condition: {
-            type: 'stepDistance',
-            value: step.durationValue,
+            type: 'or',
+            conditions: [
+              {
+                type: 'stepDistance',
+                value: step.durationValue,
+              },
+              {
+                type: 'manualLap',
+              },
+            ],
           },
         });
       }
       break;
 
     case WORKOUT_DURATION_TYPE.LAP_BUTTON:
+    case WORKOUT_DURATION_TYPE.OPEN:
+      // Manual lap to advance to next step
       transitions.push({
         condition: {
           type: 'manualLap',
@@ -198,12 +223,13 @@ function mapDurationToCondition(
       });
       break;
 
-    case WORKOUT_DURATION_TYPE.OPEN:
-      // No transition, step continues until next step
-      break;
-
     default:
-      // Other duration types not directly supported
+      // Other duration types (REPS, HR_BELOW, HR_ABOVE, CALORIES) - use manual lap
+      transitions.push({
+        condition: {
+          type: 'manualLap',
+        },
+      });
       break;
   }
 
@@ -413,6 +439,12 @@ function mapStepToSuuntoFieldsStep(
 
 /**
  * Map normalized workout to Suunto Guide
+ *
+ * Note: The normalized workout format already has repeat blocks flattened
+ * (e.g., a 3x repeat of {Active, Rest} becomes 6 individual steps).
+ * We output flat FieldsSteps to match this structure. The Suunto watch
+ * will execute steps sequentially, which is the correct behavior for
+ * the already-expanded repeat structure.
  */
 export function mapWorkoutToSuuntoGuide(
   workout: NormalizedWorkout,
@@ -432,86 +464,11 @@ export function mapWorkoutToSuuntoGuide(
     ? truncateText(workout.description, 100000)
     : undefined;
 
-  // Map steps
-  const steps: SuuntoStep[] = [];
-  let currentRepeat: SuuntoRepeatStep | null = null;
-  let repeatSteps: SuuntoFieldsStep[] = [];
-
-  for (let i = 0; i < workout.steps.length; i += 1) {
-    const step = workout.steps[i];
-    const suuntoFieldsStep = mapStepToSuuntoFieldsStep(
-      step,
-      workout.sport,
-      i,
-      metrics,
-    );
-
-    // Handle repeat blocks
-    if (step.stepType === WORKOUT_STEP_TYPE.REPEAT) {
-      // Start a new repeat block
-      if (currentRepeat) {
-        // Finish previous repeat
-        currentRepeat.steps = repeatSteps;
-        steps.push(currentRepeat);
-        currentRepeat = null;
-        repeatSteps = [];
-      }
-
-      // Find the next steps that belong to this repeat
-      // Note: In normalized format, repeats are already flattened
-      // So we'll treat consecutive similar steps as a repeat group
-      // For now, we'll create individual steps
-      steps.push(suuntoFieldsStep);
-    } else {
-      // Check if we should group consecutive interval steps into a repeat
-      const isInterval =
-        step.stepType === WORKOUT_STEP_TYPE.INTERVAL_ACTIVE ||
-        step.stepType === WORKOUT_STEP_TYPE.INTERVAL_REST;
-
-      if (isInterval && !currentRepeat) {
-        // Start a repeat block
-        currentRepeat = {
-          type: 'repeat',
-          times: 1, // Will be determined by counting steps
-          steps: [],
-        };
-      }
-
-      if (currentRepeat) {
-        repeatSteps.push(suuntoFieldsStep);
-        // Check if next step is also an interval
-        const nextStep = workout.steps[i + 1];
-        if (
-          !nextStep ||
-          (nextStep.stepType !== WORKOUT_STEP_TYPE.INTERVAL_ACTIVE &&
-            nextStep.stepType !== WORKOUT_STEP_TYPE.INTERVAL_REST)
-        ) {
-          // End of interval block, finalize repeat
-          // Count work intervals
-          const workIntervals = repeatSteps.filter((s) =>
-            s.fields.some((f) => f.type !== 'text'),
-          ).length;
-          currentRepeat.times = Math.max(1, Math.floor(workIntervals / 2));
-          currentRepeat.steps = repeatSteps;
-          steps.push(currentRepeat);
-          currentRepeat = null;
-          repeatSteps = [];
-        }
-      } else {
-        steps.push(suuntoFieldsStep);
-      }
-    }
-  }
-
-  // Finalize any remaining repeat
-  if (currentRepeat) {
-    const workIntervals = repeatSteps.filter((s) =>
-      s.fields.some((f) => f.type !== 'text'),
-    ).length;
-    currentRepeat.times = Math.max(1, Math.floor(workIntervals / 2));
-    currentRepeat.steps = repeatSteps;
-    steps.push(currentRepeat);
-  }
+  // Map each step to a Suunto FieldsStep
+  // Steps are output in order - the normalized format already has repeats expanded
+  const steps: SuuntoStep[] = workout.steps.map((step, index) =>
+    mapStepToSuuntoFieldsStep(step, workout.sport, index, metrics),
+  );
 
   const guide: SuuntoGuide = {
     type: 'sequence',
