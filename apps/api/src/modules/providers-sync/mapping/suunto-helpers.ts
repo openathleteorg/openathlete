@@ -130,14 +130,52 @@ export function mapSportToSuuntoActivityIds(sport: SPORT_TYPE): number[] {
 }
 
 /**
- * Truncate text to max length
+ * Sanitize text for Suunto Guide API
+ *
+ * Removes or replaces characters that can cause issues with the Suunto API:
+ * - Quotes (", ', `, «, »)
+ * - Backslashes
+ * - Control characters
+ * - Normalizes Unicode to ASCII equivalents where possible
+ */
+function sanitizeText(text: string): string {
+  return (
+    text
+      // Replace various quote characters with safe alternatives
+      .replace(/[""„‟«»]/g, '') // Remove fancy double quotes
+      .replace(/[''‚‛]/g, '') // Remove fancy single quotes
+      .replace(/["'`]/g, '') // Remove standard quotes
+      // Replace special dashes with regular hyphen
+      .replace(/[–—―]/g, '-')
+      // Replace ellipsis with dots
+      .replace(/…/g, '...')
+      // Remove backslashes
+      .replace(/\\/g, '')
+      // Remove control characters (except newline for text fields)
+      // eslint-disable-next-line no-control-regex
+      .replace(/[\x00-\x09\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      // Normalize multiple spaces to single space
+      .replace(/\s+/g, ' ')
+      // Trim whitespace
+      .trim()
+  );
+}
+
+/**
+ * Truncate and sanitize text for Suunto Guide API
+ *
+ * Sanitizes special characters and truncates to max length.
+ * Use this for all text fields sent to Suunto (name, description, title, etc.)
  */
 export function truncateText(
   text: string | null | undefined,
   maxLength: number,
 ): string {
   if (!text) return '';
-  return text.length > maxLength ? text.substring(0, maxLength) : text;
+  const sanitized = sanitizeText(text);
+  return sanitized.length > maxLength
+    ? sanitized.substring(0, maxLength)
+    : sanitized;
 }
 
 /**
