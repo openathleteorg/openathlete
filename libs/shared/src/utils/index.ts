@@ -34,5 +34,6 @@ export {
   getCompatibleMetrics,
   isMetricCompatibleWithTarget,
   targetMetricMap,
+  defaultMetricForTarget,
 } from './target-metric.map';
-export { getTargetIntensity } from './target-intensity';
+export { getTargetIntensity, DEFAULT_METRIC_VALUES } from './target-intensity';

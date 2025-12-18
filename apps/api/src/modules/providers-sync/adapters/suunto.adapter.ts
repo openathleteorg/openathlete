@@ -3,10 +3,11 @@ import axios, { isAxiosError } from 'axios';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { connector_provider, provider_account } from '@openathlete/database';
+import { mapPrismaWorkoutToDto } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { createSuuntoGuideZip } from '../mapping/suunto-guide-zip';
-import { mapWorkoutToSuuntoGuide } from '../mapping/suunto-guide.mapper';
+import { mapWorkoutDtoToSuuntoGuide } from '../mapping/suunto-guide.mapper';
 import type { SuuntoGuideResponse } from '../mapping/suunto-guide.types';
 import type {
   DeletePlannedWorkoutInput,
@@ -67,12 +68,46 @@ export class SuuntoAdapter implements ProviderAdapter {
       throw new Error('No active Suunto account found for athlete');
     }
 
+    // Fetch workout with full structure (including repeat blocks)
+    // This preserves the repeat structure for proper Suunto RepeatStep mapping
+    const workoutRecord = await this.prisma.workout.findUnique({
+      where: { workout_id: input.workoutId },
+      include: {
+        steps: {
+          include: {
+            targets: true,
+            repeat_block: {
+              include: {
+                child_steps: {
+                  include: {
+                    targets: true,
+                  },
+                  orderBy: { order_index: 'asc' },
+                },
+              },
+            },
+          },
+          orderBy: { order_index: 'asc' },
+        },
+      },
+    });
+
+    if (!workoutRecord) {
+      throw new Error('Workout not found');
+    }
+
     // Get metrics for target calculations
     const metrics = await this.getLatestMetricsMap(input.athleteId);
 
-    // Map workout to Suunto Guide format
-    const guide = mapWorkoutToSuuntoGuide(
-      input.normalized,
+    // Convert to DTO format
+    const workoutDto = mapPrismaWorkoutToDto(workoutRecord);
+
+    // Map workout to Suunto Guide format (preserving repeat structure)
+    const guide = mapWorkoutDtoToSuuntoGuide(
+      workoutDto,
+      input.normalized.sport,
+      input.normalized.title ?? null,
+      input.normalized.description ?? null,
       input.date,
       input.workoutId,
       metrics,

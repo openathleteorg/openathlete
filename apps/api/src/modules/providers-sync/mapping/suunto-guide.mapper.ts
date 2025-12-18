@@ -1,18 +1,21 @@
 import type {
-  NormalizedWorkout,
-  NormalizedWorkoutStep,
+  WorkoutDto,
+  WorkoutStepDto,
+  WorkoutStepTargetDto,
 } from '@openathlete/shared';
 import {
   SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
+  getTargetIntensity,
 } from '@openathlete/shared';
 
 import type {
   SuuntoField,
   SuuntoFieldsStep,
   SuuntoGuide,
+  SuuntoRepeatStep,
   SuuntoStep,
   SuuntoTargetCadenceField,
   SuuntoTargetHeartRateField,
@@ -25,48 +28,33 @@ const GUIDE_OWNER = 'OpenAthlete';
 const GUIDE_URL = 'https://openathlete.org';
 
 /**
- * Get target value from metrics if metricType is specified
+ * Resolve target values to absolute values using getTargetIntensity.
  */
-function getTargetValue(
-  target: NormalizedWorkoutStep['targets'][0],
+function resolveTargetValues(
+  target: WorkoutStepTargetDto | undefined,
   metrics?: Record<string, { value: number } | number>,
 ): { value: number | null; min: number | null; max: number | null } {
   if (!target) {
     return { value: null, min: null, max: null };
   }
 
-  // If metricType is specified, target values are percentages (0-1)
-  if (target.metricType && metrics) {
-    const metric = metrics[target.metricType];
-    const metricValue = typeof metric === 'number' ? metric : metric?.value;
-
-    if (
-      metricValue !== null &&
-      metricValue !== undefined &&
-      typeof metricValue === 'number'
-    ) {
-      const value = target.targetValue
-        ? target.targetValue * metricValue
-        : null;
-      const min = target.targetMin ? target.targetMin * metricValue : null;
-      const max = target.targetMax ? target.targetMax * metricValue : null;
-      return { value, min, max };
-    }
-  }
-
-  // Otherwise, values are absolute
-  return {
-    value: target.targetValue ?? null,
-    min: target.targetMin ?? null,
-    max: target.targetMax ?? null,
-  };
+  return getTargetIntensity(
+    {
+      targetType: target.targetType,
+      targetValue: target.targetValue ?? null,
+      targetMin: target.targetMin ?? null,
+      targetMax: target.targetMax ?? null,
+      metricType: target.metricType ?? null,
+    },
+    metrics,
+  );
 }
 
 /**
  * Map target to Suunto target field
  */
 function mapTargetToSuuntoField(
-  target: NormalizedWorkoutStep['targets'][0],
+  target: WorkoutStepTargetDto | undefined,
   sport: SPORT_TYPE,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoField | null {
@@ -74,23 +62,36 @@ function mapTargetToSuuntoField(
     return null;
   }
 
-  const targetValues = getTargetValue(target, metrics);
+  const targetValues = resolveTargetValues(target, metrics);
 
   switch (target.targetType) {
     case WORKOUT_TARGET_TYPE.HEARTRATE:
     case WORKOUT_TARGET_TYPE.ZONE: {
-      // For ZONE, we need to resolve to actual HR values
-      // For now, we'll use the targetValue as HR if available
       const field: SuuntoTargetHeartRateField = {
         type: 'targetHeartRate',
         title: 'Target HR',
       };
 
+      const isValidHr = (v: number): boolean => v >= 30 && v <= 250;
+
       if (targetValues.min !== null && targetValues.max !== null) {
-        field.min = Math.round(targetValues.min);
-        field.max = Math.round(targetValues.max);
+        const rawMin = Math.round(targetValues.min);
+        const rawMax = Math.round(targetValues.max);
+        if (isValidHr(rawMin) && isValidHr(rawMax)) {
+          field.min = Math.min(rawMin, rawMax);
+          field.max = Math.max(rawMin, rawMax);
+        } else {
+          return null;
+        }
       } else if (targetValues.value !== null) {
-        field.value = Math.round(targetValues.value);
+        const value = Math.round(targetValues.value);
+        if (isValidHr(value)) {
+          field.value = value;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
       }
 
       return field;
@@ -102,12 +103,25 @@ function mapTargetToSuuntoField(
         title: 'Target Pace',
       };
 
-      // Pace is stored in m/s, Suunto expects m/s
+      const isValidPace = (v: number): boolean => v >= 1 && v <= 7;
+
       if (targetValues.min !== null && targetValues.max !== null) {
-        field.min = targetValues.min;
-        field.max = targetValues.max;
+        if (isValidPace(targetValues.min) && isValidPace(targetValues.max)) {
+          const paceMin = Math.min(targetValues.min, targetValues.max);
+          const paceMax = Math.max(targetValues.min, targetValues.max);
+          field.min = paceMin;
+          field.max = paceMax;
+        } else {
+          return null;
+        }
       } else if (targetValues.value !== null) {
-        field.value = targetValues.value;
+        if (isValidPace(targetValues.value)) {
+          field.value = targetValues.value;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
       }
 
       return field;
@@ -119,11 +133,23 @@ function mapTargetToSuuntoField(
         title: 'Target Power',
       };
 
+      const isValidPower = (v: number): boolean => v >= 50 && v <= 1000;
+
       if (targetValues.min !== null && targetValues.max !== null) {
-        field.min = targetValues.min;
-        field.max = targetValues.max;
+        if (isValidPower(targetValues.min) && isValidPower(targetValues.max)) {
+          field.min = Math.min(targetValues.min, targetValues.max);
+          field.max = Math.max(targetValues.min, targetValues.max);
+        } else {
+          return null;
+        }
       } else if (targetValues.value !== null) {
-        field.value = targetValues.value;
+        if (isValidPower(targetValues.value)) {
+          field.value = targetValues.value;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
       }
 
       return field;
@@ -135,19 +161,34 @@ function mapTargetToSuuntoField(
         title: 'Target Cad',
       };
 
-      // Cadence is in RPM, Suunto expects Hertz (RPM / 60)
+      const isValidCadence = (rpm: number): boolean => rpm >= 60 && rpm <= 200;
+
       if (targetValues.min !== null && targetValues.max !== null) {
-        field.min = targetValues.min / 60;
-        field.max = targetValues.max / 60;
+        if (
+          isValidCadence(targetValues.min) &&
+          isValidCadence(targetValues.max)
+        ) {
+          const cadMin = Math.min(targetValues.min, targetValues.max) / 60;
+          const cadMax = Math.max(targetValues.min, targetValues.max) / 60;
+          field.min = cadMin;
+          field.max = cadMax;
+        } else {
+          return null;
+        }
       } else if (targetValues.value !== null) {
-        field.value = targetValues.value / 60;
+        if (isValidCadence(targetValues.value)) {
+          field.value = targetValues.value / 60;
+        } else {
+          return null;
+        }
+      } else {
+        return null;
       }
 
       return field;
     }
 
     case WORKOUT_TARGET_TYPE.RPE:
-      // RPE not directly supported, convert to text guidance
       return {
         type: 'text',
         value: `RPE: ${targetValues.value ?? targetValues.min ?? '?'}-${targetValues.max ?? '?'}`,
@@ -160,33 +201,21 @@ function mapTargetToSuuntoField(
 
 /**
  * Map duration type to Suunto transition condition
- *
- * Per Suunto Guide docs: transitions define conditions to advance to the next step.
- * If no transition is defined, the step continues until manually advanced via lap button.
- *
- * For time/distance conditions, we also add a manual lap fallback so users can skip
- * if needed.
  */
 function mapDurationToCondition(
-  step: NormalizedWorkoutStep,
+  step: WorkoutStepDto,
 ): SuuntoFieldsStep['transitions'] {
   const transitions: SuuntoFieldsStep['transitions'] = [];
 
   switch (step.durationType) {
     case WORKOUT_DURATION_TYPE.TIME:
       if (step.durationValue) {
-        // Use OR condition: auto-advance on duration OR allow manual skip
         transitions.push({
           condition: {
             type: 'or',
             conditions: [
-              {
-                type: 'stepDuration',
-                value: step.durationValue,
-              },
-              {
-                type: 'manualLap',
-              },
+              { type: 'stepDuration', value: step.durationValue },
+              { type: 'manualLap' },
             ],
           },
         });
@@ -195,18 +224,12 @@ function mapDurationToCondition(
 
     case WORKOUT_DURATION_TYPE.DISTANCE:
       if (step.durationValue) {
-        // Use OR condition: auto-advance on distance OR allow manual skip
         transitions.push({
           condition: {
             type: 'or',
             conditions: [
-              {
-                type: 'stepDistance',
-                value: step.durationValue,
-              },
-              {
-                type: 'manualLap',
-              },
+              { type: 'stepDistance', value: step.durationValue },
+              { type: 'manualLap' },
             ],
           },
         });
@@ -215,21 +238,11 @@ function mapDurationToCondition(
 
     case WORKOUT_DURATION_TYPE.LAP_BUTTON:
     case WORKOUT_DURATION_TYPE.OPEN:
-      // Manual lap to advance to next step
-      transitions.push({
-        condition: {
-          type: 'manualLap',
-        },
-      });
+      transitions.push({ condition: { type: 'manualLap' } });
       break;
 
     default:
-      // Other duration types (REPS, HR_BELOW, HR_ABOVE, CALORIES) - use manual lap
-      transitions.push({
-        condition: {
-          type: 'manualLap',
-        },
-      });
+      transitions.push({ condition: { type: 'manualLap' } });
       break;
   }
 
@@ -240,13 +253,12 @@ function mapDurationToCondition(
  * Map step to Suunto fields based on sport and targets
  */
 function mapStepToFields(
-  step: NormalizedWorkoutStep,
+  step: WorkoutStepDto,
   sport: SPORT_TYPE,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoField[] {
   const fields: SuuntoField[] = [];
 
-  // Add target field if available
   const targetField = step.targets?.[0]
     ? mapTargetToSuuntoField(step.targets[0], sport, metrics)
     : null;
@@ -255,7 +267,6 @@ function mapStepToFields(
     fields.push(targetField);
   }
 
-  // Add relevant metrics based on sport and step type
   const isRunning = [
     SPORT_TYPE.RUNNING,
     SPORT_TYPE.TRAIL_RUNNING,
@@ -271,7 +282,7 @@ function mapStepToFields(
   ].includes(sport);
   const isSwimming = sport === SPORT_TYPE.SWIMMING;
 
-  // Add countdown field based on duration type
+  // Add countdown field
   if (step.durationType === WORKOUT_DURATION_TYPE.TIME && step.durationValue) {
     fields.push({
       type: 'stepDurationCountdown',
@@ -291,7 +302,6 @@ function mapStepToFields(
 
   // Add sport-specific fields
   if (isRunning) {
-    // For running: pace, heart rate, distance, duration
     if (!targetField || targetField.type !== 'targetPace') {
       fields.push({
         type: 'pace',
@@ -306,13 +316,8 @@ function mapStepToFields(
       aggregate: 'average',
       title: 'HR',
     });
-    fields.push({
-      type: 'distance',
-      window: 'step',
-      title: 'Dist',
-    });
+    fields.push({ type: 'distance', window: 'step', title: 'Dist' });
   } else if (isCycling) {
-    // For cycling: power, speed, heart rate, cadence
     if (!targetField || targetField.type !== 'targetPower') {
       fields.push({
         type: 'power',
@@ -342,7 +347,6 @@ function mapStepToFields(
       });
     }
   } else if (isSwimming) {
-    // For swimming: pace, stroke rate, distance
     if (!targetField || targetField.type !== 'targetPace') {
       fields.push({
         type: 'pace',
@@ -357,13 +361,8 @@ function mapStepToFields(
       aggregate: 'average',
       title: 'Rate',
     });
-    fields.push({
-      type: 'distance',
-      window: 'step',
-      title: 'Dist',
-    });
+    fields.push({ type: 'distance', window: 'step', title: 'Dist' });
   } else {
-    // Generic: heart rate, distance, duration
     if (!targetField || targetField.type !== 'targetHeartRate') {
       fields.push({
         type: 'heartRate',
@@ -372,44 +371,29 @@ function mapStepToFields(
         title: 'HR',
       });
     }
-    fields.push({
-      type: 'distance',
-      window: 'step',
-      title: 'Dist',
-    });
-    fields.push({
-      type: 'duration',
-      window: 'step',
-      title: 'Time',
-    });
+    fields.push({ type: 'distance', window: 'step', title: 'Dist' });
+    fields.push({ type: 'duration', window: 'step', title: 'Time' });
   }
 
-  // Add step notes/name as text if available
+  // Add step notes/name as text
   const stepText = step.notes || step.name;
   if (stepText && fields.length < 5) {
-    // Only add text if we have room (max 5 fields recommended)
-    fields.push({
-      type: 'text',
-      value: truncateText(stepText, 54),
-    });
+    fields.push({ type: 'text', value: truncateText(stepText, 54) });
   }
 
-  // Limit to 5 fields (recommended max for watch display)
   return fields.slice(0, 5);
 }
 
 /**
- * Map normalized step to Suunto FieldsStep
+ * Map WorkoutStepDto to Suunto FieldsStep
  */
 function mapStepToSuuntoFieldsStep(
-  step: NormalizedWorkoutStep,
+  step: WorkoutStepDto,
   sport: SPORT_TYPE,
-  stepIndex: number,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoFieldsStep {
   const fields = mapStepToFields(step, sport, metrics);
   const transitions = mapDurationToCondition(step);
-
   const stepTitle = truncateText(step.name || step.notes, 13);
 
   const suuntoStep: SuuntoFieldsStep = {
@@ -419,7 +403,7 @@ function mapStepToSuuntoFieldsStep(
     ...(transitions && transitions.length > 0 && { transitions }),
   };
 
-  // Add notification for interval steps
+  // Add notification for key step types
   if (
     step.stepType === WORKOUT_STEP_TYPE.INTERVAL_ACTIVE ||
     step.stepType === WORKOUT_STEP_TYPE.WARMUP ||
@@ -438,42 +422,59 @@ function mapStepToSuuntoFieldsStep(
 }
 
 /**
- * Map normalized workout to Suunto Guide
+ * Map WorkoutDto to Suunto Guide
  *
- * Note: The normalized workout format already has repeat blocks flattened
- * (e.g., a 3x repeat of {Active, Rest} becomes 6 individual steps).
- * We output flat FieldsSteps to match this structure. The Suunto watch
- * will execute steps sequentially, which is the correct behavior for
- * the already-expanded repeat structure.
+ * This function preserves the repeat structure from the WorkoutDto,
+ * mapping repeat blocks to Suunto's native RepeatStep type.
  */
-export function mapWorkoutToSuuntoGuide(
-  workout: NormalizedWorkout,
+export function mapWorkoutDtoToSuuntoGuide(
+  workout: WorkoutDto,
+  sport: SPORT_TYPE,
+  title: string | null,
+  description: string | null,
   date: string, // YYYY-MM-DD
   workoutId: number,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoGuide {
-  const activityIds = mapSportToSuuntoActivityIds(workout.sport);
-  const workoutName = truncateText(workout.title || 'Workout', 60);
-  // Description is required (min 1 char), use workout name if description is empty
-  const description = truncateText(
-    workout.description || workout.title || 'Workout',
-    256,
-  );
-  const shortDescription = truncateText(workout.title || 'Workout', 23);
-  const richText = workout.description
-    ? truncateText(workout.description, 100000)
-    : undefined;
+  const activityIds = mapSportToSuuntoActivityIds(sport);
+  const workoutName = truncateText(title || 'Workout', 60);
+  const desc = truncateText(description || title || 'Workout', 256);
+  const shortDescription = truncateText(title || 'Workout', 23);
+  const richText = description ? truncateText(description, 100000) : undefined;
 
-  // Map each step to a Suunto FieldsStep
-  // Steps are output in order - the normalized format already has repeats expanded
-  const steps: SuuntoStep[] = workout.steps.map((step, index) =>
-    mapStepToSuuntoFieldsStep(step, workout.sport, index, metrics),
+  // Sort steps by orderIndex
+  const sortedSteps = [...(workout.steps || [])].sort(
+    (a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0),
   );
+
+  const steps: SuuntoStep[] = [];
+
+  for (const step of sortedSteps) {
+    if (step.stepType === WORKOUT_STEP_TYPE.REPEAT && step.repeatBlock) {
+      // Map to Suunto RepeatStep
+      const childSteps = [...(step.repeatBlock.childSteps || [])].sort(
+        (a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0),
+      );
+
+      const repeatStep: SuuntoRepeatStep = {
+        type: 'repeat',
+        times: step.repeatBlock.repetitions || 1,
+        steps: childSteps.map((child) =>
+          mapStepToSuuntoFieldsStep(child, sport, metrics),
+        ),
+      };
+
+      steps.push(repeatStep);
+    } else {
+      // Map to Suunto FieldsStep
+      steps.push(mapStepToSuuntoFieldsStep(step, sport, metrics));
+    }
+  }
 
   const guide: SuuntoGuide = {
     type: 'sequence',
     name: workoutName,
-    description,
+    description: desc,
     ...(richText && { richText }),
     shortDescription,
     owner: GUIDE_OWNER,

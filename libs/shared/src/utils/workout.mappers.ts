@@ -258,8 +258,12 @@ function flattenStep(
 ): void {
   if (step.stepType === WORKOUT_STEP_TYPE.REPEAT && step.repeatBlock) {
     const reps = step.repeatBlock.repetitions || 1;
+    // Sort child steps by their orderIndex to ensure correct order within repeat block
+    const sortedChildren = [...(step.repeatBlock.childSteps || [])].sort(
+      (a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0),
+    );
     for (let i = 0; i < reps; i += 1) {
-      for (const child of step.repeatBlock.childSteps || []) {
+      for (const child of sortedChildren) {
         flattenStep(child as WorkoutStepDto, accumulator);
       }
     }
@@ -272,6 +276,7 @@ function flattenStep(
       targetMin: t.targetMin ?? null,
       targetMax: t.targetMax ?? null,
       targetValue: t.targetValue ?? null,
+      metricType: t.metricType ?? null,
     }),
   );
 
@@ -296,12 +301,18 @@ export function normalizeWorkoutForExport(input: {
   workout: WorkoutDto;
 }): NormalizedWorkout {
   const flatSteps: NormalizedWorkoutStep[] = [];
-  for (const step of input.workout.steps || []) {
+
+  // Sort top-level steps by orderIndex before flattening
+  const sortedSteps = [...(input.workout.steps || [])].sort(
+    (a, b) => (a.orderIndex ?? 0) - (b.orderIndex ?? 0),
+  );
+
+  for (const step of sortedSteps) {
     flattenStep(step as WorkoutStepDto, flatSteps);
   }
 
-  // Recompute orderIndex after flatten to ensure monotonic order
-  flatSteps.sort((a, b) => a.orderIndex - b.orderIndex);
+  // Assign new sequential orderIndex values (do NOT sort - flatten order is correct)
+  // The flattenStep function already pushes steps in the correct execution order
   flatSteps.forEach((s, idx) => {
     s.orderIndex = idx;
   });
