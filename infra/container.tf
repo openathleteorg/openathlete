@@ -69,6 +69,7 @@ resource "scaleway_container" "api" {
     SUUNTO_CLIENT_SECRET = scaleway_secret_version.suunto_client_secret_v.data
     SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
     SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
+    FIREBASE_FUNCTIONS_URL = "https://us-central1-openathlete-dfb6e.cloudfunctions.net/sendPushNotification"
   }
 
   depends_on = [
@@ -144,6 +145,7 @@ resource "scaleway_container" "import_worker" {
     SUUNTO_CLIENT_SECRET = scaleway_secret_version.suunto_client_secret_v.data
     SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
     SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
+    FIREBASE_FUNCTIONS_URL = "https://us-central1-openathlete-dfb6e.cloudfunctions.net/sendPushNotification"
   }
 
   depends_on = [
