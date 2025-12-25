@@ -1,3 +1,4 @@
+import { Request, Response } from 'express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
@@ -447,7 +448,7 @@ export class ProviderOAuthController {
    * Strava webhook verification (GET)
    */
   @Get('strava/webhook')
-  async stravaWebhookGet(@Req() request, @Res() response) {
+  async stravaWebhookGet(@Req() request: Request, @Res() response: Response) {
     const mode = request.query['hub.mode'];
     const token = request.query['hub.verify_token'];
     const challenge = request.query['hub.challenge'];

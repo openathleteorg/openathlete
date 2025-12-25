@@ -351,7 +351,7 @@ export class MetricService {
       athlete_metric
     >;
     Object.entries(latestByType).forEach(([type, metric]) => {
-      result[type] = keysToCamel(metric);
+      result[type as metric_type] = keysToCamel(metric);
     });
 
     return result;

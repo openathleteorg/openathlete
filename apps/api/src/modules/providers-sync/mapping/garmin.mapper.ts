@@ -1,10 +1,10 @@
-import type { WorkoutDto } from '@openathlete/shared';
-import { WORKOUT_STEP_TYPE } from '@openathlete/shared';
-import { SPORT_TYPE } from '@openathlete/shared';
 import type {
   NormalizedWorkout,
   NormalizedWorkoutStep,
+  NormalizedWorkoutStepTarget,
+  WorkoutDto,
 } from '@openathlete/shared';
+import { SPORT_TYPE, WORKOUT_STEP_TYPE } from '@openathlete/shared';
 
 import {
   mapDurationTypeToGarmin,
@@ -118,14 +118,15 @@ export function mapWorkoutDtoToGarmin(
           durationType: childStep.durationType,
           durationValue: childStep.durationValue ?? null,
           durationTarget: childStep.durationTarget ?? null,
-          targets: (childStep.targets || []).map((t) => ({
-            targetType: t.targetType,
-            targetMin: t.targetMin ?? null,
-            targetMax: t.targetMax ?? null,
-            targetValue: t.targetValue ?? null,
-            metricType: t.metricType ?? null,
-            unit: t.unit ?? null,
-          })),
+          targets: (childStep.targets || []).map(
+            (t: NormalizedWorkoutStepTarget) => ({
+              targetType: t.targetType,
+              targetMin: t.targetMin ?? null,
+              targetMax: t.targetMax ?? null,
+              targetValue: t.targetValue ?? null,
+              metricType: t.metricType ?? null,
+            }),
+          ),
         };
 
         repeatSteps.push(
@@ -159,13 +160,12 @@ export function mapWorkoutDtoToGarmin(
         durationType: step.durationType,
         durationValue: step.durationValue ?? null,
         durationTarget: step.durationTarget ?? null,
-        targets: (step.targets || []).map((t) => ({
+        targets: (step.targets || []).map((t: NormalizedWorkoutStepTarget) => ({
           targetType: t.targetType,
           targetMin: t.targetMin ?? null,
           targetMax: t.targetMax ?? null,
           targetValue: t.targetValue ?? null,
           metricType: t.metricType ?? null,
-          unit: t.unit ?? null,
         })),
       };
 

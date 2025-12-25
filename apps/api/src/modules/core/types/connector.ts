@@ -484,6 +484,7 @@ export interface PolarSleep {
   'total-sleep-time'?: number; // seconds
   'sleep-score'?: number;
   'resource-uri': string;
+  'awake-duration'?: number; // seconds
 }
 
 export interface PolarContinuousHeartRate {

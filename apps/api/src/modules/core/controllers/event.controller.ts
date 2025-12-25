@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
@@ -46,7 +47,10 @@ export class EventController {
   ) {}
 
   @Get('ical')
-  async getIcalCalendar(@Res() res, @Query('calendar') calendar: string) {
+  async getIcalCalendar(
+    @Res() res: Response,
+    @Query('calendar') calendar: string,
+  ) {
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="calendar.ics"');
     const ical = await this.eventService.getIcalCalendar(calendar);
