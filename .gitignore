@@ -37,9 +37,11 @@ scripts/**/assets
 
 # App
 **/.env
+!**/.env.example
 **/node_modules
 **/dist
 *.env
+!*.env.example
 *.env.build
 deploy/
 files/
