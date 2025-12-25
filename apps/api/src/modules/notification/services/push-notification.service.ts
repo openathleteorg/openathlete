@@ -57,15 +57,12 @@ export class PushNotificationService {
         return false;
       }
 
-      const response = await this.httpClient.post(
-        `${this.firebaseFunctionsUrl}/sendPushNotification`,
-        {
-          token: user.push_token,
-          title,
-          body,
-          data,
-        },
-      );
+      const response = await this.httpClient.post(this.firebaseFunctionsUrl, {
+        token: user.push_token,
+        title,
+        body,
+        data,
+      });
 
       if (response.data.success) {
         this.logger.log(
