@@ -99,8 +99,8 @@ export interface ActivitySegment
   workoutStep?: WorkoutStep;
 }
 
-export interface ActivityFeedbackQuestion
-  extends ConvertKeysToCamelCase<activity_feedback_question> {}
+export type ActivityFeedbackQuestion =
+  ConvertKeysToCamelCase<activity_feedback_question>;
 
 export interface ActivityEvent
   extends ConvertKeysToCamelCase<event & event_activity> {
