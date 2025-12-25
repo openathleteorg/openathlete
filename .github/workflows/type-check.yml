@@ -1,0 +1,20 @@
+name: Type Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  type-check:
+    name: TypeScript type checking
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Run type check
+        run: pnpm tsc:check
+        shell: bash
+
