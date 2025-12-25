@@ -47,6 +47,8 @@ export const ApiEnvSchema = z.object({
   OPENAI_API_KEY: z.string().nonempty(),
 
   REDIS_URL: z.string().default('redis://localhost:6379/0'),
+
+  FIREBASE_FUNCTIONS_URL: z.string().optional(),
 });
 
 export type ApiEnvSchemaType = z.infer<typeof ApiEnvSchema>;

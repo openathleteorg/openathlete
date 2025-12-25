@@ -11,6 +11,7 @@ model user {
   gender               gender?
   onboarding_completed Boolean       @default(false)
   language             user_language @default(FR)
+  push_token           String?
 
   // relationships
   athlete                     athlete?
