@@ -7,6 +7,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import {
   ActivityFeedbackExtractionListener,
   ActivityFeedbackListener,
+  ActivityPushNotificationListener,
   NotificationListener,
   TrainingLoadListener,
   WorkoutSyncListener,
@@ -49,7 +50,11 @@ import { SubscriptionModule } from './subscription';
     // Only register listeners that depend on activity processing
     // if ENABLE_ACTIVITY_PROCESSING is true so they run on the same instances.
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
-      ? [TrainingLoadListener, ActivityFeedbackListener]
+      ? [
+          TrainingLoadListener,
+          ActivityFeedbackListener,
+          ActivityPushNotificationListener,
+        ]
       : []),
     ActivityFeedbackExtractionListener,
     WorkoutSyncListener,

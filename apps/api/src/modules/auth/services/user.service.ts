@@ -99,6 +99,23 @@ export class UserService {
     return { success: true };
   };
 
+  public updatePushToken = async (user: AuthUser, pushToken: string) => {
+    const currentUser = await this.prisma.user.findUnique({
+      where: { user_id: user.user_id },
+      select: { push_token: true },
+    });
+
+    if (currentUser?.push_token !== pushToken) {
+      await this.prisma.user.update({
+        where: { user_id: user.user_id },
+        data: { push_token: pushToken },
+      });
+      this.logger.log(`Updated push token for user ${user.user_id}`);
+    }
+
+    return { success: true };
+  };
+
   public createAccount = async ({
     email,
     password,

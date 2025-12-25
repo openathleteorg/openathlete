@@ -82,4 +82,14 @@ export class UserController {
   ) {
     return this.userService.completeOnboarding(user, body);
   }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @Patch('push-token')
+  updatePushToken(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(z.object({ pushToken: z.string().min(1) })))
+    body: { pushToken: string },
+  ) {
+    return this.userService.updatePushToken(user, body.pushToken);
+  }
 }
