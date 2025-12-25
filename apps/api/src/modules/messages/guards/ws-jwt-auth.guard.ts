@@ -33,11 +33,15 @@ export class WsJwtAuthGuard implements CanActivate {
         if (jwtError instanceof TokenExpiredError) {
           console.error('[WsJwtAuthGuard] JWT expired');
           throw new WsException('Unauthorized: jwt expired');
-        } else if (jwtError instanceof JsonWebTokenError) {
-          console.error(
-            '[WsJwtAuthGuard] Invalid JWT token:',
-            jwtError.message,
-          );
+        }
+        if (jwtError instanceof JsonWebTokenError) {
+          const errorMessage =
+            jwtError instanceof Error ? jwtError.message : 'Invalid token';
+          console.error('[WsJwtAuthGuard] Invalid JWT token:', errorMessage);
+          throw new WsException('Unauthorized: Invalid token');
+        }
+        if (jwtError instanceof Error) {
+          console.error('[WsJwtAuthGuard] JWT error:', jwtError.message);
           throw new WsException('Unauthorized: Invalid token');
         }
         throw new WsException('Unauthorized: Invalid token');

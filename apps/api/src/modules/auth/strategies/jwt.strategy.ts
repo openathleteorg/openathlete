@@ -1,3 +1,4 @@
+import type { JwtPayload } from 'jsonwebtoken';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
@@ -8,11 +9,6 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { AuthUser } from '../decorators/user.decorator';
 import { AuthService } from '../services';
-
-export interface JwtPayload {
-  sub: string;
-  email: string;
-}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
