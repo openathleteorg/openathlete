@@ -21,6 +21,15 @@ jobs:
         run: pnpm database run db:generate
         shell: bash
 
+      - name: Generate Paraglide messages (web)
+        working-directory: apps/web
+        run: pnpm exec paraglide-js compile --project ./project.inlang --outdir ./src/paraglide
+        shell: bash
+
+      - name: Generate Paraglide messages (website)
+        run: pnpm website translate
+        shell: bash
+
       - name: Run type check
         run: pnpm tsc:check
         shell: bash
