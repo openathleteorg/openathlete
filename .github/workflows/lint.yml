@@ -17,6 +17,10 @@ jobs:
       - name: Setup environment
         uses: ./.github/actions/setup
 
+      - name: Generate Prisma client
+        run: pnpm database run db:generate
+        shell: bash
+
       - name: Run linter
         run: pnpm lint
         shell: bash
