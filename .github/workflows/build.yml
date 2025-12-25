@@ -11,6 +11,9 @@ jobs:
     name: Build API
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup environment
         uses: ./.github/actions/setup
 
@@ -26,6 +29,9 @@ jobs:
     name: Build Web
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Setup environment
         uses: ./.github/actions/setup
 
