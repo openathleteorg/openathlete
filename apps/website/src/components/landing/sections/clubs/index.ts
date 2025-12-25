@@ -5,4 +5,3 @@ export { ClubsFeatures } from './features';
 export { ClubsStats } from './stats';
 export { ClubsTestimonials } from './testimonials';
 export { ClubsCTA } from './cta';
-

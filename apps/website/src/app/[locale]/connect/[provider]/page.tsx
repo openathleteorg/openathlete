@@ -1,9 +1,14 @@
-import { ProviderCapabilities, ProviderHero, ProviderTutorial } from '@/components/connect';
+import {
+  ProviderCapabilities,
+  ProviderHero,
+  ProviderTutorial,
+} from '@/components/connect';
 import { Footer, Navbar, TopBar } from '@/components/landing/sections';
 import { WebPageStructuredData } from '@/components/seo/structured-data';
 import { SITE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { notFound } from 'next/navigation';
+
 import { generateMetadata as generatePageMetadata } from '../../../metadata';
 
 const VALID_PROVIDERS = ['garmin', 'strava', 'suunto', 'polar'] as const;
@@ -13,10 +18,13 @@ function isValidProvider(provider: string): provider is ProviderSlug {
   return VALID_PROVIDERS.includes(provider as ProviderSlug);
 }
 
-function toProviderEnum(provider: ProviderSlug): 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' {
+function toProviderEnum(
+  provider: ProviderSlug,
+): 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' {
   return provider.toUpperCase() as 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({
   params,
 }: {
@@ -64,8 +72,14 @@ export default async function ConnectProviderPage({
   return (
     <>
       <WebPageStructuredData
-        title={(m[`connect_${provider}_seo_title` as keyof typeof m] as () => string)()}
-        description={(m[`connect_${provider}_seo_description` as keyof typeof m] as () => string)()}
+        title={(
+          m[`connect_${provider}_seo_title` as keyof typeof m] as () => string
+        )()}
+        description={(
+          m[
+            `connect_${provider}_seo_description` as keyof typeof m
+          ] as () => string
+        )()}
         url={`${SITE_URL}${locale === 'en' ? '' : `/${locale}`}/connect/${provider}`}
       />
       <div className="min-h-screen bg-background">
@@ -79,4 +93,3 @@ export default async function ConnectProviderPage({
     </>
   );
 }
-

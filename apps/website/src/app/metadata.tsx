@@ -10,7 +10,13 @@ interface GenerateMetadataOptions {
 }
 
 export function generateMetadata(options?: GenerateMetadataOptions): Metadata {
-  const { locale = 'en', title: customTitle, description: customDescription, path = '', keywords } = options || {};
+  const {
+    locale = 'en',
+    title: customTitle,
+    description: customDescription,
+    path = '',
+    keywords,
+  } = options || {};
 
   // Default metadata (English)
   const defaultTitle = 'OpenAthlete — AI-assisted endurance coaching platform';
@@ -25,15 +31,19 @@ export function generateMetadata(options?: GenerateMetadataOptions): Metadata {
 
   // Coaches page metadata
   const coachesTitleEn = 'OpenAthlete — For Coaches';
-  const coachesDescriptionEn = 'Manage more athletes with less time. AI assists you in planning, fatigue detection, and injury prevention.';
+  const coachesDescriptionEn =
+    'Manage more athletes with less time. AI assists you in planning, fatigue detection, and injury prevention.';
   const coachesTitleFr = 'OpenAthlete — Pour les Coachs';
-  const coachesDescriptionFr = "Gérez plus d'athlètes avec moins de temps. L'IA vous assiste dans la planification, la détection de fatigue et la prévention des blessures.";
+  const coachesDescriptionFr =
+    "Gérez plus d'athlètes avec moins de temps. L'IA vous assiste dans la planification, la détection de fatigue et la prévention des blessures.";
 
   // Clubs page metadata
   const clubsTitleEn = 'OpenAthlete — For Clubs';
-  const clubsDescriptionEn = 'Manage your club efficiently. Offer personalized tracking to all your athletes. Your coaches save time, your club gains quality.';
+  const clubsDescriptionEn =
+    'Manage your club efficiently. Offer personalized tracking to all your athletes. Your coaches save time, your club gains quality.';
   const clubsTitleFr = 'OpenAthlete — Pour les Clubs';
-  const clubsDescriptionFr = "Gérez votre club efficacement. Offrez un suivi personnalisé à tous vos athlètes. Vos coachs gagnent du temps, votre club gagne en qualité.";
+  const clubsDescriptionFr =
+    'Gérez votre club efficacement. Offrez un suivi personnalisé à tous vos athlètes. Vos coachs gagnent du temps, votre club gagne en qualité.';
 
   // Determine title and description based on path
   let title: string;
@@ -41,13 +51,19 @@ export function generateMetadata(options?: GenerateMetadataOptions): Metadata {
 
   if (path === '/coaches') {
     title = customTitle || (locale === 'fr' ? coachesTitleFr : coachesTitleEn);
-    description = customDescription || (locale === 'fr' ? coachesDescriptionFr : coachesDescriptionEn);
+    description =
+      customDescription ||
+      (locale === 'fr' ? coachesDescriptionFr : coachesDescriptionEn);
   } else if (path === '/clubs') {
     title = customTitle || (locale === 'fr' ? clubsTitleFr : clubsTitleEn);
-    description = customDescription || (locale === 'fr' ? clubsDescriptionFr : clubsDescriptionEn);
+    description =
+      customDescription ||
+      (locale === 'fr' ? clubsDescriptionFr : clubsDescriptionEn);
   } else {
     title = customTitle || (locale === 'fr' ? frTitle : defaultTitle);
-    description = customDescription || (locale === 'fr' ? frDescription : defaultDescription);
+    description =
+      customDescription ||
+      (locale === 'fr' ? frDescription : defaultDescription);
   }
   const ogLocale = locale === 'fr' ? 'fr_FR' : 'en_US';
   const alternateLocale = locale === 'fr' ? 'en_US' : 'fr_FR';

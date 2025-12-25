@@ -31,7 +31,8 @@ export function PricingCard({
   onCtaClick,
   className,
 }: PricingCardProps) {
-  const isFree = price.toLowerCase() === 'free' || price.toLowerCase() === 'gratuit';
+  const isFree =
+    price.toLowerCase() === 'free' || price.toLowerCase() === 'gratuit';
   const isContact = price === 'Contact us' || price === 'Sur devis';
 
   return (

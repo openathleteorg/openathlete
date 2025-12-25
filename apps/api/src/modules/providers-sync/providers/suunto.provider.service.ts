@@ -715,7 +715,7 @@ export class SuuntoProviderService
     // Suunto avgSpeed and maxSpeed are already in m/s (not km/h)
     // If not available, calculate from distance and time
     let avgSpeedMps: number | undefined = workout.avgSpeed;
-    let maxSpeedMps: number | undefined = workout.maxSpeed;
+    const maxSpeedMps: number | undefined = workout.maxSpeed;
 
     // Fallback: calculate average speed from distance and time if not provided
     if (

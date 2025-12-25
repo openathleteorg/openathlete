@@ -181,8 +181,6 @@ export const mapSuuntoActivityId = (activityId: number): sport_type => {
     case 67: // Futsal
     case 69: // Aerobics
     case 73: // Circuit training
-    case 74: // Triathlon
-      return sport_type.TRIATHLON;
     case 75: // Padel
     case 76: // Cheerleading
     case 77: // Boxing

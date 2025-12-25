@@ -1,15 +1,11 @@
-import {
-  Footer,
-  Navbar,
-  TopBar,
-} from '@/components/landing/sections';
-import { CoachesHero } from '@/components/landing/sections/coaches/hero';
+import { Footer, Navbar, TopBar } from '@/components/landing/sections';
 import { CoachesBenefits } from '@/components/landing/sections/coaches/benefits';
+import { CoachesCTA } from '@/components/landing/sections/coaches/cta';
 import { CoachesFeatures } from '@/components/landing/sections/coaches/features';
+import { CoachesHero } from '@/components/landing/sections/coaches/hero';
 import { CoachesStats } from '@/components/landing/sections/coaches/stats';
 import { CoachesTestimonials } from '@/components/landing/sections/coaches/testimonials';
 import { CoachesWorkflow } from '@/components/landing/sections/coaches/workflow';
-import { CoachesCTA } from '@/components/landing/sections/coaches/cta';
 import { WebPageStructuredData } from '@/components/seo/structured-data';
 import { SITE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
@@ -62,4 +58,3 @@ export default async function CoachesPage({
     </>
   );
 }
-

@@ -43,12 +43,15 @@ const getCapabilityMessages = (
     .replace(/([A-Z])/g, '_$1')
     .toLowerCase()
     .replace(/^_/, '');
-  const messageKey = `connect_${key}_capability_${capabilityKey}` as keyof typeof m;
+  const messageKey =
+    `connect_${key}_capability_${capabilityKey}` as keyof typeof m;
   return (m[messageKey] as () => string)();
 };
 
 export function ProviderCapabilities({ provider }: ProviderCapabilitiesProps) {
-  const capabilities = getProviderSyncCapabilities(provider as ConnectorProvider);
+  const capabilities = getProviderSyncCapabilities(
+    provider as ConnectorProvider,
+  );
 
   const capabilityList = [
     {
@@ -74,14 +77,18 @@ export function ProviderCapabilities({ provider }: ProviderCapabilitiesProps) {
       <Container>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {(m[
-              `connect_${provider.toLowerCase()}_capabilities_title` as keyof typeof m
-            ] as () => string)()}
+            {(
+              m[
+                `connect_${provider.toLowerCase()}_capabilities_title` as keyof typeof m
+              ] as () => string
+            )()}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            {(m[
-              `connect_${provider.toLowerCase()}_capabilities_subtitle` as keyof typeof m
-            ] as () => string)()}
+            {(
+              m[
+                `connect_${provider.toLowerCase()}_capabilities_subtitle` as keyof typeof m
+              ] as () => string
+            )()}
           </p>
         </div>
 

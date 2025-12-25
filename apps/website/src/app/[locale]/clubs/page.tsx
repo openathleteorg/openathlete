@@ -1,15 +1,11 @@
-import {
-  Footer,
-  Navbar,
-  TopBar,
-} from '@/components/landing/sections';
-import { ClubsHero } from '@/components/landing/sections/clubs/hero';
+import { Footer, Navbar, TopBar } from '@/components/landing/sections';
 import { ClubsBenefits } from '@/components/landing/sections/clubs/benefits';
+import { ClubsCTA } from '@/components/landing/sections/clubs/cta';
 import { ClubsFeatures } from '@/components/landing/sections/clubs/features';
+import { ClubsHero } from '@/components/landing/sections/clubs/hero';
 import { ClubsStats } from '@/components/landing/sections/clubs/stats';
 import { ClubsTestimonials } from '@/components/landing/sections/clubs/testimonials';
 import { ClubsWorkflow } from '@/components/landing/sections/clubs/workflow';
-import { ClubsCTA } from '@/components/landing/sections/clubs/cta';
 import { WebPageStructuredData } from '@/components/seo/structured-data';
 import { SITE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
@@ -62,4 +58,3 @@ export default async function ClubsPage({
     </>
   );
 }
-

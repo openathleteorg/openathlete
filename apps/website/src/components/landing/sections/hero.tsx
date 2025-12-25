@@ -73,13 +73,13 @@ export function Hero() {
     <section className="relative overflow-hidden bg-gradient-to-b from-background via-background to-muted/10 py-20 md:py-32">
       {/* Fond avec quadrillage amélioré */}
       <div className="absolute inset-0 z-0 bg-grid-pattern-fine [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.4))] dark:[mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.2))]" />
-      
+
       {/* Boules colorées animées */}
       <AnimatedBlobs />
-      
+
       {/* Gradient overlay pour adoucir les bords */}
       <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-transparent to-background/60 pointer-events-none" />
-      
+
       <Container>
         <motion.div
           className="relative z-10 mx-auto max-w-3xl text-center"
@@ -93,7 +93,7 @@ export function Hero() {
           >
             {m.landing_hero_title()}
           </motion.h1>
-          
+
           <motion.p
             className="mt-6 text-lg leading-8 text-muted-foreground sm:text-xl"
             variants={itemVariants}
@@ -125,10 +125,7 @@ export function Hero() {
             <Stat value={m.landing_hero_proof_3()} />
           </motion.div>
 
-          <motion.div
-            className="mt-12"
-            variants={itemVariants}
-          >
+          <motion.div className="mt-12" variants={itemVariants}>
             <p className="text-sm text-muted-foreground">
               {m.landing_integrations_note()}
             </p>

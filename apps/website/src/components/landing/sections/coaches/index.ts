@@ -5,4 +5,3 @@ export { CoachesFeatures } from './features';
 export { CoachesStats } from './stats';
 export { CoachesTestimonials } from './testimonials';
 export { CoachesCTA } from './cta';
-

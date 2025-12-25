@@ -44,12 +44,16 @@ const getStepMessages = (provider: Provider, step: number) => {
     | 'suunto'
     | 'polar';
   return {
-    title: (m[
-      `connect_${key}_tutorial_step_${step}_title` as keyof typeof m
-    ] as () => string)(),
-    description: (m[
-      `connect_${key}_tutorial_step_${step}_description` as keyof typeof m
-    ] as () => string)(),
+    title: (
+      m[
+        `connect_${key}_tutorial_step_${step}_title` as keyof typeof m
+      ] as () => string
+    )(),
+    description: (
+      m[
+        `connect_${key}_tutorial_step_${step}_description` as keyof typeof m
+      ] as () => string
+    )(),
   };
 };
 
@@ -65,14 +69,18 @@ export function ProviderTutorial({ provider }: ProviderTutorialProps) {
       <Container>
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {(m[
-              `connect_${provider.toLowerCase()}_tutorial_title` as keyof typeof m
-            ] as () => string)()}
+            {(
+              m[
+                `connect_${provider.toLowerCase()}_tutorial_title` as keyof typeof m
+              ] as () => string
+            )()}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            {(m[
-              `connect_${provider.toLowerCase()}_tutorial_subtitle` as keyof typeof m
-            ] as () => string)()}
+            {(
+              m[
+                `connect_${provider.toLowerCase()}_tutorial_subtitle` as keyof typeof m
+              ] as () => string
+            )()}
           </p>
         </div>
 
@@ -116,9 +124,11 @@ export function ProviderTutorial({ provider }: ProviderTutorialProps) {
           >
             <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
             <h3 className="text-xl font-semibold">
-              {(m[
-                `connect_${provider.toLowerCase()}_tutorial_success` as keyof typeof m
-              ] as () => string)()}
+              {(
+                m[
+                  `connect_${provider.toLowerCase()}_tutorial_success` as keyof typeof m
+                ] as () => string
+              )()}
             </h3>
           </motion.div>
         </div>
