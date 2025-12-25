@@ -49,6 +49,7 @@ files/
 **/.terraform.lock.hcl
 **/terraform.tfstate.backup
 **/terraform.tfstate
+**/.terraform.tfstate.lock.info
 
 # Firebase
 GoogleService-Info.plist

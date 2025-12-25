@@ -24,8 +24,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
     Messaging.messaging().apnsToken = deviceToken
-    NotificationCenter.default.post(
-      name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
+    // Don't send APNs token to Capacitor plugin
+    // We'll wait for FCM token from MessagingDelegate instead
+    // NotificationCenter.default.post(
+    //   name: .capacitorDidRegisterForRemoteNotifications, object: deviceToken)
   }
 
   func application(
@@ -98,5 +100,20 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
 extension AppDelegate: MessagingDelegate {
   func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String?) {
     print("Firebase registration token: \(String(describing: fcmToken))")
+
+    guard let token = fcmToken else { return }
+
+    DispatchQueue.main.async {
+      // Send FCM token to JavaScript via Capacitor bridge
+      // Convert FCM token string to Data format that the plugin expects
+      // The plugin will receive this and trigger the 'registration' event in JavaScript
+      if let tokenData = token.data(using: .utf8) {
+        NotificationCenter.default.post(
+          name: .capacitorDidRegisterForRemoteNotifications,
+          object: tokenData,
+          userInfo: ["fcmToken": token]
+        )
+      }
+    }
   }
 }

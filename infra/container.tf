@@ -34,7 +34,7 @@ resource "scaleway_container" "api" {
     JWT_SECRET_KEY = scaleway_secret_version.jwt_secret_v.data
     APP_URL        = "https://app.openathlete.org"
     BREVO_FROM_EMAIL = "noreply@openathlete.org"
-    CORS_ORIGINS    = "https://openathlete.org,https://www.openathlete.org,https://app.openathlete.org,capacitor://localhost,http://localhost"
+    CORS_ORIGINS    = "https://openathlete.org,https://www.openathlete.org,https://app.openathlete.org,capacitor://localhost,http://localhost,https://localhost"
     HASH_PEPPER     = "do9721dof29721dof"
     NODE_VERSION    = "22.14.0"
     STRAVA_CLIENT_ID = "151078"
