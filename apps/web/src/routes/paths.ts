@@ -60,10 +60,6 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/settings`,
       athleteId: `${ROOTS.DASHBOARD}/settings/:athleteId`,
     },
-    racePlan: {
-      root: `${ROOTS.DASHBOARD}/race-plan`,
-      viewer: `${ROOTS.DASHBOARD}/race-plan/viewer`,
-    },
     messages: `${ROOTS.DASHBOARD}/messages`,
     profile: `${ROOTS.DASHBOARD}/profile`,
   },
