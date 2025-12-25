@@ -21,6 +21,10 @@ jobs:
         run: pnpm database run db:generate
         shell: bash
 
+      - name: Build shared library
+        run: pnpm shared build
+        shell: bash
+
       - name: Generate Paraglide messages (web)
         working-directory: apps/web
         run: pnpm exec paraglide-js compile --project ./project.inlang --outdir ./src/paraglide
