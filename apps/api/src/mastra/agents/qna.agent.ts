@@ -1,21 +1,6 @@
 import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
-import {
-  calculateTrainingLoadTool,
-  fetchActivitiesTool,
-  fetchAthleteAvailabilityTool,
-} from '../tools';
-
-/**
- * QNA Agent - PRIMARY agent for ALL athlete data queries
- *
- * Handles: activities, availability, progress, comparisons, training insights, plan explanations
- * Tools: fetch-activities, fetch-athlete-availability, calculate-training-load
- *
- * This agent MUST fetch real data using tools - NEVER invent or assume data exists.
- */
-
 export const qnaAgent = new Agent({
   name: 'qna',
   description:
@@ -66,9 +51,4 @@ REMEMBER:
 - Keywords "show", "what", "how many" = CALL TOOL IMMEDIATELY
 - Use real data only - be their supportive, data-driven coach!`,
   model: openai('gpt-4o'),
-  tools: {
-    fetchActivitiesTool,
-    fetchAthleteAvailabilityTool,
-    calculateTrainingLoadTool,
-  }, // TODO: Add fetch-current-plan, compare-sessions tools
 });

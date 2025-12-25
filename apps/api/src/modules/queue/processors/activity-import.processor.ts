@@ -8,7 +8,7 @@ import {
 } from '@nestjs/bullmq';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
 
-import { connector_provider } from '@openathlete/database';
+import { connector_provider, event_activity } from '@openathlete/database';
 import { CompressedActivityStream } from '@openathlete/shared';
 
 import { uncompressActivityStream } from '../../core/helpers/activity-stream';
@@ -84,7 +84,7 @@ export class ActivityImportProcessor extends WorkerHost {
 
       await job.updateProgress(30);
 
-      let savedActivity;
+      let savedActivity: event_activity;
       if (account.provider === connector_provider.STRAVA) {
         savedActivity = await this.stravaProviderService.importActivity(
           account,

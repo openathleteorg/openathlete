@@ -188,8 +188,11 @@ export function getLatestMetrics(
   };
 
   Object.entries(defaults).forEach(([key, value]) => {
-    if (latest[key] === undefined || latest[key] === null) {
-      latest[key] = value;
+    if (
+      latest[key as METRIC_TYPE] === undefined ||
+      latest[key as METRIC_TYPE] === null
+    ) {
+      latest[key as METRIC_TYPE] = value;
     }
   });
 
@@ -401,7 +404,7 @@ export function validateNoNestedRepeatBlocks(
 
       // Check child steps - they should not contain repeat blocks
       if (step.repeatBlock.childSteps) {
-        step.repeatBlock.childSteps.forEach((childStep) => {
+        step.repeatBlock.childSteps.forEach((childStep: WorkoutStepDto) => {
           if (
             childStep.stepType === WORKOUT_STEP_TYPE.REPEAT &&
             childStep.repeatBlock

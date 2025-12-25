@@ -60,7 +60,9 @@ export class ActivityFeedbackExtractionListener {
 
       // Collect all answers and comment
       const questions = activity.feedback_questions;
-      const allAnswered = questions.every((q) => q.answer_text !== null);
+      const allAnswered = questions.every(
+        (q: { answer_text: string | null }) => q.answer_text !== null,
+      );
 
       // Only process if all questions are answered OR if RPE+comment are present
       if (trigger === 'questions_completed' && !allAnswered) {
@@ -72,8 +74,11 @@ export class ActivityFeedbackExtractionListener {
 
       // Build feedback text: concatenate all answers + comment
       const answersText = questions
-        .filter((q) => q.answer_text)
-        .map((q) => `${q.question_text}\n${q.answer_text}`)
+        .filter((q: { answer_text: string | null }) => q.answer_text)
+        .map(
+          (q: { question_text: string; answer_text: string | null }) =>
+            `${q.question_text}\n${q.answer_text}`,
+        )
         .join('\n\n');
 
       const commentText = activity.description?.trim() || '';
@@ -108,7 +113,12 @@ export class ActivityFeedbackExtractionListener {
           ? 'No recent injuries logged in the last 2 weeks.'
           : recentInjuries
               .map(
-                (inj) =>
+                (inj: {
+                  location: string;
+                  pain_score: number;
+                  status: string;
+                  created_at: Date;
+                }) =>
                   `- ${inj.location} (pain: ${inj.pain_score.toFixed(2)}, status: ${inj.status}, date: ${inj.created_at.toISOString().split('T')[0]})`,
               )
               .join('\n');

@@ -263,7 +263,7 @@ function describeStep(
   if (step.repeatBlock?.childSteps?.length) {
     const repeatLabel = `Repeat x${step.repeatBlock.repetitions}`;
     lines.push(`${indent}  <${repeatLabel} START>`.trim());
-    step.repeatBlock.childSteps.forEach((child) => {
+    step.repeatBlock.childSteps.forEach((child: WorkoutStepDto) => {
       lines.push(describeStep(child, zoneLookup, depth + 1, trainingZones));
     });
     lines.push(`${indent}  <${repeatLabel} END>`.trim());

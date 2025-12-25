@@ -25,22 +25,11 @@ The athlete is already authenticated. Their ID is automatically available to all
 
 ROUTING RULES:
 
-1. "Create/Generate a training plan" → planGenerationWorkflow
-   - Keywords: "plan pour", "génère", "create plan", "new training plan"
-   - Requires: race name, date, distance (ask if missing)
-
-2. "Modify/Adapt existing plan" → adaptationAgent → planAdaptationWorkflow
-   - Keywords: "injury", "sick", "missed session", "change plan", "adjust"
-   - Use adaptationAgent first to analyze, then planAdaptationWorkflow to apply
-
-3. "Questions about MY data" → qnaAgent
+1. "Questions about MY data" → qnaAgent
    - Keywords: "my activities", "my runs", "how many km", "when can I train", "show me"
    - The qnaAgent fetches REAL data from database
 
-4. "Validate/Review a plan" → qaAgent
-   - Keywords: "review", "validate", "check plan"
-
-5. "General coaching education" → Answer directly
+2. "General coaching education" → Answer directly
    - Examples: "What is tempo?", "How to warm up?", "Explain zones"
    - BUT if they ask about THEIR data, use qnaAgent
 
