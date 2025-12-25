@@ -2,6 +2,7 @@ import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
 import { isValidToken } from '@/utils/auth';
 import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
+import { initializePushNotifications } from '@/utils/push-notifications';
 import { useCallback, useEffect, useMemo, useReducer } from 'react';
 
 import { User } from '@openathlete/shared';
@@ -62,7 +63,6 @@ export function AuthProvider({ children }: Props) {
 
         const user = await UserAPI.getMe();
 
-        // Update language if provided in URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlLang = urlParams.get('lang');
         if (urlLang && (urlLang === 'fr' || urlLang === 'en')) {
@@ -82,11 +82,24 @@ export function AuthProvider({ children }: Props) {
             user,
           },
         });
+
+        // Initialize push notifications and send any pending token
+        initializePushNotifications()
+          .then(() => {
+            // Import dynamically to avoid circular dependency
+            import('@/utils/push-notifications').then(
+              ({ sendPendingTokenIfAny }) => {
+                sendPendingTokenIfAny();
+              },
+            );
+          })
+          .catch((error) => {
+            console.error('Failed to initialize push notifications:', error);
+          });
       } else {
         try {
           const user = await UserAPI.getMe();
 
-          // Update language if provided in URL
           const urlParams = new URLSearchParams(window.location.search);
           const urlLang = urlParams.get('lang');
           if (urlLang && (urlLang === 'fr' || urlLang === 'en')) {
@@ -106,6 +119,20 @@ export function AuthProvider({ children }: Props) {
               user,
             },
           });
+
+          // Initialize push notifications and send any pending token
+          initializePushNotifications()
+            .then(() => {
+              // Import dynamically to avoid circular dependency
+              import('@/utils/push-notifications').then(
+                ({ sendPendingTokenIfAny }) => {
+                  sendPendingTokenIfAny();
+                },
+              );
+            })
+            .catch((error) => {
+              console.error('Failed to initialize push notifications:', error);
+            });
         } catch {
           dispatch({
             type: Types.INITIAL,

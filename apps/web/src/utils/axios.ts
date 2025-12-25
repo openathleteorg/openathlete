@@ -22,6 +22,7 @@ export const routes = {
     passwordReset: '/user/password-reset',
     passwordResetRequest: '/user/password-reset/request',
     completeOnboarding: '/user/complete-onboarding',
+    updatePushToken: '/user/push-token',
   },
   event: {
     create: '/event',

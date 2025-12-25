@@ -45,4 +45,11 @@ export class UserAPI {
     const res = await client.post(routes.user.completeOnboarding, body);
     return res.data;
   }
+
+  static async updatePushToken(
+    pushToken: string,
+  ): Promise<{ success: boolean }> {
+    const res = await client.patch(routes.user.updatePushToken, { pushToken });
+    return res.data;
+  }
 }

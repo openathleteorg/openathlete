@@ -11,6 +11,7 @@ const config: CapacitorConfig = {
     // Uncomment for local development with live reload
     // url: 'http://localhost:5173',
     // cleartext: true,
+    // End of local development configuration
   },
   plugins: {
     SplashScreen: {
