@@ -14,6 +14,18 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { ActivityFeedbackService } from '../services/activity-feedback.service';
 
+type MulterFile = {
+  fieldname: string;
+  originalname: string;
+  encoding: string;
+  mimetype: string;
+  size: number;
+  buffer: Buffer;
+  destination?: string;
+  filename?: string;
+  path?: string;
+};
+
 @Controller('activity-feedback')
 export class ActivityFeedbackController {
   constructor(
@@ -29,7 +41,10 @@ export class ActivityFeedbackController {
       },
     }),
   )
-  async transcribeAudio(@JwtUser() user: AuthUser, @UploadedFile() file) {
+  async transcribeAudio(
+    @JwtUser() user: AuthUser,
+    @UploadedFile() file: MulterFile,
+  ) {
     if (!file) {
       throw new BadRequestException('No audio file provided');
     }

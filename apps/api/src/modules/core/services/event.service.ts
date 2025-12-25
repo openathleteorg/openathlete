@@ -36,6 +36,7 @@ import {
   CreateEventDto,
   DuplicateWorkoutDto,
   EVENT_TYPE,
+  Event,
   ReorderWorkoutStepsDto,
   UpdateEventDto,
   createWorkoutSchema,
@@ -879,22 +880,23 @@ export class EventService {
       throw new NotFoundException('Stream not found');
     }
 
-    const selectedStreams = keys ? keys : Object.keys(stream);
+    const selectedStreams = keys
+      ? keys
+      : (Object.keys(stream) as (keyof ActivityStream)[]);
 
-    const compressedStreams: ActivityStream = {};
+    const compressedStreams: Partial<ActivityStream> = {};
 
     for (const key of selectedStreams) {
-      if (!stream[key as keyof typeof stream]) {
+      const streamValue = stream[key];
+      if (!streamValue) {
         continue;
       }
 
-      compressedStreams[key] = reductActivityStreamToResolution(
-        stream[key],
-        resolution,
-      );
+      const reduced = reductActivityStreamToResolution(streamValue, resolution);
+      (compressedStreams as Record<string, unknown>)[key] = reduced;
     }
 
-    return compressedStreams;
+    return compressedStreams as ActivityStream;
   }
 
   async getEventWeather(user: AuthUser, eventId: event['event_id']) {
@@ -1142,7 +1144,9 @@ export class EventService {
 
     const { start_date, end_date, name, type, athlete_id } = event;
 
-    const subEntityData = { ...event[type.toLocaleLowerCase()] };
+    const subEntityData: Record<string, unknown> = {
+      ...event[type.toLocaleLowerCase() as Lowercase<Event['type']>],
+    };
 
     delete subEntityData.event_training_id;
     delete subEntityData.event_competition_id;

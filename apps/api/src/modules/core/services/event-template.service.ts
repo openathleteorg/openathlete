@@ -3,6 +3,7 @@ import { Inject, Injectable, Optional, forwardRef } from '@nestjs/common';
 import { event_template } from '@openathlete/database';
 import {
   CreateEventTemplateDto,
+  Event,
   keysToCamel,
   startOfDay,
 } from '@openathlete/shared';
@@ -281,8 +282,10 @@ export class EventTemplateService {
     const templateEvent = template.event;
 
     // Prepare the event data from template
-    const subEntityData = {
-      ...templateEvent[templateEvent.type.toLocaleLowerCase()],
+    const subEntityData: Record<string, unknown> = {
+      ...templateEvent[
+        templateEvent.type.toLocaleLowerCase() as Lowercase<Event['type']>
+      ],
     };
 
     // Remove IDs and relations

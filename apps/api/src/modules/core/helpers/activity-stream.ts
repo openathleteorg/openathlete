@@ -125,23 +125,29 @@ const uncompressStream = (
 export const compressActivityStream = (
   stream: ActivityStream,
 ): CompressedActivityStream => {
-  const compressedStream: CompressedActivityStream = {};
+  const compressedStream: Partial<CompressedActivityStream> = {};
   for (const key in stream) {
-    if (stream[key] && stream[key].length > 0) {
-      compressedStream[key] = compressStream(stream[key]);
+    const typedKey = key as keyof ActivityStream;
+    const value = stream[typedKey];
+    if (value && value.length > 0) {
+      (compressedStream as Record<string, unknown>)[typedKey] =
+        compressStream(value);
     }
   }
-  return compressedStream;
+  return compressedStream as CompressedActivityStream;
 };
 
 export const uncompressActivityStream = (
   stream: CompressedActivityStream,
 ): ActivityStream => {
-  const uncompressedStream: ActivityStream = {};
+  const uncompressedStream: Partial<ActivityStream> = {};
   for (const key in stream) {
-    if (stream[key] && stream[key].length > 0) {
-      uncompressedStream[key] = uncompressStream(stream[key]);
+    const typedKey = key as keyof CompressedActivityStream;
+    const value = stream[typedKey];
+    if (value && value.length > 0) {
+      (uncompressedStream as Record<string, unknown>)[typedKey] =
+        uncompressStream(value);
     }
   }
-  return uncompressedStream;
+  return uncompressedStream as ActivityStream;
 };

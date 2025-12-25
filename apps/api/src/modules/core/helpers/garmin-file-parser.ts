@@ -283,6 +283,10 @@ export async function parseFitFile(
     console.error('[FIT Parser] Decode errors:', errors);
   }
 
+  if (!messages) {
+    return { stream: {}, segments: [] };
+  }
+
   const records = (messages.recordMesgs ?? []) as Array<
     Record<string, unknown>
   >;
