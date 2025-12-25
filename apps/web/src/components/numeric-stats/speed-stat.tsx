@@ -1,7 +1,12 @@
 import { useGetLatestMetricsQuery } from '@/api/metric';
 import { m } from '@/paraglide/messages';
 
-import { METRIC_TYPE, SpeedUnit, formatSpeed, formatSpeedUnit } from '@openathlete/shared';
+import {
+  METRIC_TYPE,
+  SpeedUnit,
+  formatSpeed,
+  formatSpeedUnit,
+} from '@openathlete/shared';
 
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 

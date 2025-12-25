@@ -127,21 +127,24 @@ export class MessagesAPI {
           : {},
       });
 
-      this.socket.io.on('error', (error: any) => {
-        if (
-          error?.message?.includes('Session ID unknown') ||
-          (error?.data &&
-            typeof error.data === 'object' &&
-            error.data.code === 1)
-        ) {
-          const oldSocket = this.socket;
-          this.socket = null;
-          if (oldSocket) {
-            oldSocket.disconnect();
-            oldSocket.removeAllListeners();
+      this.socket.io.on(
+        'error',
+        (error: Error & { data?: { code: number } }) => {
+          if (
+            error?.message?.includes('Session ID unknown') ||
+            (error?.data &&
+              typeof error.data === 'object' &&
+              error.data.code === 1)
+          ) {
+            const oldSocket = this.socket;
+            this.socket = null;
+            if (oldSocket) {
+              oldSocket.disconnect();
+              oldSocket.removeAllListeners();
+            }
           }
-        }
-      });
+        },
+      );
 
       this.setupTokenRefresh();
     }

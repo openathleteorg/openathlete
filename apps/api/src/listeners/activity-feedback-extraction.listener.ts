@@ -230,8 +230,7 @@ export class ActivityFeedbackExtractionListener {
                   | 'RESOLVED')
               : 'STABLE';
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await (tx as any).athlete_injury.create({
+            await tx.athlete_injury.create({
               data: {
                 athlete_id: athleteId,
                 source_activity_id: eventActivityId,

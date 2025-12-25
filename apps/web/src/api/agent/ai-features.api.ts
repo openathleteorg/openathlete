@@ -4,8 +4,8 @@ import {
   CreateEventDto,
   GenerateEventDto,
   GenerateEventResponseDto,
-  ModifyEventDto,
   ModifyEventResponseDto,
+  TrainingEvent,
   UpdateEventDto,
 } from '@openathlete/shared';
 
@@ -43,19 +43,19 @@ export class AIFeaturesAPI {
     prompt: string,
     eventData: CreateEventDto,
   ): Promise<ModifyEventResponseDto> {
-    const payload: ModifyEventDto = {
+    const payload = {
       prompt,
       eventData: {
         ...eventData,
         startDate:
           eventData.startDate instanceof Date
             ? eventData.startDate.toISOString()
-            : (eventData.startDate as any),
+            : (eventData.startDate as string),
         endDate:
           eventData.endDate instanceof Date
             ? eventData.endDate.toISOString()
-            : (eventData.endDate as any),
-      } as any,
+            : (eventData.endDate as string),
+      },
     };
 
     const res = await client.post<ModifyEventResponseDto>(
@@ -65,7 +65,7 @@ export class AIFeaturesAPI {
     const event = res.data;
     const workout =
       'workout' in event && event.type === 'TRAINING'
-        ? (event as any).workout
+        ? (event as TrainingEvent).workout
         : undefined;
 
     const mappedEvent: UpdateEventDto = {

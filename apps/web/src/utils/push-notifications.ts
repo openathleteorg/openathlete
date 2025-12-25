@@ -1,5 +1,4 @@
 import { UserAPI } from '@/api/user/user.api';
-import { Capacitor } from '@capacitor/core';
 import { PushNotifications } from '@capacitor/push-notifications';
 
 import { getAccessToken } from './auth';

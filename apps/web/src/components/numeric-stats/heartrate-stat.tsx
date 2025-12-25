@@ -2,7 +2,11 @@ import { useGetLatestMetricsQuery } from '@/api/metric';
 import { useTrainingZones } from '@/hooks/use-training-zones';
 import { m } from '@/paraglide/messages';
 
-import { METRIC_TYPE, SPORT_TYPE, TRAINING_ZONE_TYPE } from '@openathlete/shared';
+import {
+  METRIC_TYPE,
+  SPORT_TYPE,
+  TRAINING_ZONE_TYPE,
+} from '@openathlete/shared';
 
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 

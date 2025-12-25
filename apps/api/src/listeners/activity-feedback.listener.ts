@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
 import { Prisma } from '@openathlete/database';
+import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
 import { FeatureName } from '@openathlete/shared';
 
 import { ActivityImportedEvent } from 'src/events';
@@ -228,14 +229,13 @@ export class ActivityFeedbackListener {
 
       await this.prisma.$transaction(
         questionsToCreate.map((question) =>
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (this.prisma as any).activity_feedback_question.create({
+          this.prisma.activity_feedback_question.create({
             data: {
               event_activity_id: eventActivityId,
               question_text: question.text,
               qcm_options:
                 question.qcmOptions && question.qcmOptions.length > 0
-                  ? (question.qcmOptions as unknown as Prisma.JsonValue)
+                  ? (question.qcmOptions as unknown as InputJsonValue)
                   : Prisma.DbNull,
             },
           }),

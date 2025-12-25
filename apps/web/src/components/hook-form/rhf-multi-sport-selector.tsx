@@ -4,13 +4,21 @@ import { Controller, useFormContext } from 'react-hook-form';
 import { MultiSportSelector } from '../training-zone-editor/multi-sport-selector';
 import { Label } from '../ui/label';
 
-type Props = Omit<ComponentProps<typeof MultiSportSelector>, 'value' | 'onChange'> & {
+type Props = Omit<
+  ComponentProps<typeof MultiSportSelector>,
+  'value' | 'onChange'
+> & {
   name: string;
   label?: string;
   required?: boolean;
 };
 
-export const RHFMultiSportSelector = ({ name, label, required, ...other }: Props) => {
+export const RHFMultiSportSelector = ({
+  name,
+  label,
+  required,
+  ...other
+}: Props) => {
   const { control } = useFormContext();
 
   return (
@@ -41,4 +49,3 @@ export const RHFMultiSportSelector = ({ name, label, required, ...other }: Props
     </div>
   );
 };
-

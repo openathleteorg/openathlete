@@ -4,7 +4,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
 
-import { AgentMessage, ToolExecutionState } from '@openathlete/shared';
+import {
+  AgentMessage,
+  AgentThread,
+  ToolExecutionState,
+} from '@openathlete/shared';
 
 import { AgentAPI } from './agent.api';
 import { agentKeys } from './agent.keys';
@@ -72,43 +76,47 @@ export function useAgentWebSocket({
       // Let Socket.IO's built-in reconnection handle reconnection
     });
 
-    socket.on('connect_error', async (error: any) => {
-      setIsConnected(false);
+    socket.on(
+      'connect_error',
+      async (error: Error & { data?: { code: number } }) => {
+        setIsConnected(false);
 
-      // If authentication failed, try to refresh token
-      // Socket.IO will automatically retry connection with new token
-      if (
-        error?.message?.includes('Unauthorized') ||
-        error?.message?.includes('jwt expired') ||
-        error?.message?.includes('Invalid token')
-      ) {
-        try {
-          // Refresh token - this updates the socket auth for next connection attempt
-          // Don't call connectSocket() here - let Socket.IO's reconnection handle it
-          // The token will be updated and Socket.IO will use it on the next retry
-          const tokenInfo = await getAccessToken();
-          if (tokenInfo) {
-            if (tokenInfo.refreshToken) {
-              setItem(ACCESS_TOKEN, tokenInfo.accessToken);
+        // If authentication failed, try to refresh token
+        // Socket.IO will automatically retry connection with new token
+        if (
+          error?.message?.includes('Unauthorized') ||
+          error?.message?.includes('jwt expired') ||
+          error?.message?.includes('Invalid token')
+        ) {
+          try {
+            // Refresh token - this updates the socket auth for next connection attempt
+            // Don't call connectSocket() here - let Socket.IO's reconnection handle it
+            // The token will be updated and Socket.IO will use it on the next retry
+            const tokenInfo = await getAccessToken();
+            if (tokenInfo) {
+              if (tokenInfo.refreshToken) {
+                setItem(ACCESS_TOKEN, tokenInfo.accessToken);
+              }
+              const socket = AgentAPI.getSocket();
+              socket.auth = {
+                token: tokenInfo.accessToken,
+              };
+              socket.io.opts.extraHeaders = {
+                Authorization: `Bearer ${tokenInfo.accessToken}`,
+              };
             }
-            const socket = AgentAPI.getSocket();
-            socket.auth = {
-              token: tokenInfo.accessToken,
-            };
-            socket.io.opts.extraHeaders = {
-              Authorization: `Bearer ${tokenInfo.accessToken}`,
-            };
+          } catch (refreshError) {
+            console.error(
+              '[Agent WebSocket] Failed to refresh token:',
+              refreshError,
+            );
           }
-        } catch (refreshError) {
-          console.error(
-            '[Agent WebSocket] Failed to refresh token:',
-            refreshError,
-          );
         }
-      }
-      // Let Socket.IO's built-in reconnection handle retries
-    });
+        // Let Socket.IO's built-in reconnection handle retries
+      },
+    );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     socket.on('message_chunk', (chunk: any) => {
       if (chunk.type === 'user_message' && chunk.data) {
         if (threadId) {
@@ -213,6 +221,7 @@ export function useAgentWebSocket({
       }
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     socket.on('message_complete', (data: any) => {
       setIsStreaming(false);
       setActiveTools(new Map());
@@ -232,7 +241,7 @@ export function useAgentWebSocket({
       if (data.threadTitle && threadId) {
         queryClient.setQueryData(
           [agentKeys.getThread, threadId],
-          (oldThread: any) => {
+          (oldThread: AgentThread) => {
             if (!oldThread) return undefined;
             return {
               ...oldThread,
@@ -243,9 +252,9 @@ export function useAgentWebSocket({
 
         queryClient.setQueryData(
           [agentKeys.getUserThreads],
-          (oldThreads: any) => {
+          (oldThreads: AgentThread[]) => {
             if (!oldThreads) return undefined;
-            return oldThreads.map((thread: any) => {
+            return oldThreads.map((thread: AgentThread) => {
               if (thread.threadId === threadId) {
                 return {
                   ...thread,
@@ -274,7 +283,7 @@ export function useAgentWebSocket({
 
         queryClient.setQueryData(
           [agentKeys.getThread, updatedThreadId],
-          (oldThread: any) => {
+          (oldThread: AgentThread) => {
             if (!oldThread) return undefined;
             return {
               ...oldThread,
@@ -285,9 +294,9 @@ export function useAgentWebSocket({
 
         queryClient.setQueryData(
           [agentKeys.getUserThreads],
-          (oldThreads: any) => {
+          (oldThreads: AgentThread[]) => {
             if (!oldThreads) return undefined;
-            return oldThreads.map((thread: any) => {
+            return oldThreads.map((thread: AgentThread) => {
               if (thread.threadId === updatedThreadId) {
                 return {
                   ...thread,

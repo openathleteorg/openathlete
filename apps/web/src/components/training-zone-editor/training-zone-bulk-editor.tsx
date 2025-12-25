@@ -11,7 +11,12 @@ import { m } from '@/paraglide/messages';
 import { Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import { SPORT_TYPE, TRAINING_ZONE_TYPE } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  TRAINING_ZONE_TYPE,
+  TrainingZone,
+  TrainingZoneValue,
+} from '@openathlete/shared';
 
 import { ColorPicker } from './color-picker';
 import { MultiSportSelector } from './multi-sport-selector';
@@ -29,7 +34,7 @@ interface ZoneConfig {
 interface TrainingZoneBulkEditorProps {
   athleteId: number;
   type: TRAINING_ZONE_TYPE;
-  zones: any[];
+  zones: (TrainingZone & { values: TrainingZoneValue[] })[];
   onComplete: () => void;
 }
 
@@ -96,7 +101,7 @@ export function TrainingZoneBulkEditor({
           min: zone.values[0]?.min || 0,
           max: zone.values[0]?.max || 0,
           color: zone.color,
-          sports: zone.values[0]?.sports || ALL_SPORTS,
+          sports: (zone.values[0]?.sports as SPORT_TYPE[]) || ALL_SPORTS,
         })),
       );
     } else {
@@ -129,8 +134,8 @@ export function TrainingZoneBulkEditor({
   const handleZoneChange = (
     index: number,
     field: keyof ZoneConfig,
-    value: any,
-  ) => {
+    value: number | string | SPORT_TYPE[],
+  ): void => {
     const newZones = [...zones];
     newZones[index] = { ...newZones[index], [field]: value };
 
@@ -139,7 +144,8 @@ export function TrainingZoneBulkEditor({
 
     // Smart adjustment: if max changes, adjust next zone's min
     if (field === 'max' && index < zones.length - 1) {
-      const numValue = parseFloat(value);
+      const numValue =
+        typeof value === 'number' ? value : parseFloat(value as string);
       if (!isNaN(numValue)) {
         newZones[index + 1] = {
           ...newZones[index + 1],
@@ -150,7 +156,8 @@ export function TrainingZoneBulkEditor({
 
     // Smart adjustment: if min changes, adjust previous zone's max
     if (field === 'min' && index > 0) {
-      const numValue = parseFloat(value);
+      const numValue =
+        typeof value === 'number' ? value : parseFloat(value as string);
       if (!isNaN(numValue)) {
         newZones[index - 1] = {
           ...newZones[index - 1],

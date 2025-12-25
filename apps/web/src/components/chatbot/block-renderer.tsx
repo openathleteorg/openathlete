@@ -21,7 +21,11 @@ import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 
-import { AgentMessageBlock } from '@openathlete/shared';
+import {
+  ActivityEvent,
+  AgentMessageBlock,
+  getActivityDuration,
+} from '@openathlete/shared';
 
 interface BlockRendererProps {
   block: AgentMessageBlock;
@@ -357,7 +361,7 @@ function FileBlock({ block }: { block: AgentMessageBlock }) {
 
 // ==================== Activity List Block ====================
 function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
-  const activities = (block.metadata?.activities as any[]) || [];
+  const activities = (block.metadata?.activities as ActivityEvent[]) || [];
   const totalCount =
     (block.metadata?.totalCount as number) || activities.length;
 
@@ -378,7 +382,7 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
             No activities found
           </div>
         ) : (
-          activities.map((activity: any, index: number) => (
+          activities.map((activity: ActivityEvent, index: number) => (
             <div
               key={activity.eventId || index}
               className="p-4 hover:bg-muted/50 transition-colors"
@@ -398,10 +402,10 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
                     {activity.distance && (
                       <span>{(activity.distance / 1000).toFixed(2)} km</span>
                     )}
-                    {activity.duration && (
+                    {getActivityDuration(activity) && (
                       <span>
-                        {Math.floor(activity.duration / 60)}h
-                        {activity.duration % 60}min
+                        {Math.floor(getActivityDuration(activity) / 60)}h
+                        {getActivityDuration(activity) % 60}min
                       </span>
                     )}
                     {activity.elevationGain && (
@@ -440,7 +444,7 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
 
 // ==================== Activity Created Block ====================
 function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
-  const activity = block.metadata?.activity as any;
+  const activity = block.metadata?.activity as ActivityEvent;
 
   if (!activity) {
     return (
@@ -471,15 +475,16 @@ function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
               <span className="capitalize">{activity.sport.toLowerCase()}</span>
             )}
             {activity.sport &&
-              (activity.distance || activity.duration) &&
+              (activity.distance || getActivityDuration(activity)) &&
               ' • '}
             {activity.distance && (
               <span>{(activity.distance / 1000).toFixed(2)} km</span>
             )}
-            {activity.distance && activity.duration && ' • '}
-            {activity.duration && (
+            {activity.distance && getActivityDuration(activity) && ' • '}
+            {getActivityDuration(activity) && (
               <span>
-                {Math.floor(activity.duration / 60)}h{activity.duration % 60}min
+                {Math.floor(getActivityDuration(activity) / 60)}h
+                {getActivityDuration(activity) % 60}min
               </span>
             )}
           </p>

@@ -22,18 +22,13 @@ export function ChatBubble() {
       ? calculateTotalUnreadCount(messageThreads, currentUser.userId)
       : 0;
 
-  const {
-    springX,
-    springY,
-    isDragging,
-    handleMouseDown,
-    handleTouchStart,
-  } = useDraggableBubble({
-    position: bubblePosition,
-    onPositionChange: setBubblePosition,
-    onClick: openChat,
-    enabled: !isOpen && pathname !== getPath(['dashboard', 'messages']),
-  });
+  const { springX, springY, isDragging, handleMouseDown, handleTouchStart } =
+    useDraggableBubble({
+      position: bubblePosition,
+      onPositionChange: setBubblePosition,
+      onClick: openChat,
+      enabled: !isOpen && pathname !== getPath(['dashboard', 'messages']),
+    });
 
   // Don't show bubble if chat is open or on messages page
   if (isOpen || pathname === getPath(['dashboard', 'messages'])) {

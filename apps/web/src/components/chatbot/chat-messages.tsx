@@ -19,8 +19,9 @@ interface ChatMessagesProps {
  * Get translated agent name
  */
 function getAgentTranslation(agentName: string): string {
-  const agentKey = `agent_${agentName.toLocaleLowerCase()}_active`;
-  const translationFn = (m as any)[agentKey];
+  const agentKey =
+    `agent_${agentName.toLocaleLowerCase()}_active` as keyof typeof m;
+  const translationFn = m[agentKey] as () => string;
   if (translationFn && typeof translationFn === 'function') {
     return translationFn();
   }
@@ -99,7 +100,7 @@ function MessageBubble({
                 block={{
                   blockId: streamingBlock.blockId,
                   messageId: message.messageId,
-                  type: (streamingBlock.type as any) || 'TEXT',
+                  type: 'TEXT',
                   order: 0,
                   content: streamingBlock.content,
                   status: streamingBlock.status,
@@ -142,15 +143,12 @@ export function ChatMessages({
   const { data: messages, isLoading } = useGetThreadMessagesQuery(threadId);
 
   useEffect(() => {
-    // Use requestAnimationFrame to ensure DOM is ready
-    requestAnimationFrame(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-    });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
   }, [messages, streamingBlocks]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[200px] p-4">
+      <div className="flex items-center justify-center h-full">
         <Loader size="md" />
       </div>
     );
@@ -158,7 +156,7 @@ export function ChatMessages({
 
   if (!messages || messages.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-[200px] text-muted-foreground p-4">
+      <div className="flex items-center justify-center h-full text-muted-foreground p-4">
         <div className="text-center">
           <p className="text-sm">{m.chatbot_no_messages()}</p>
           <p className="text-xs mt-2">{m.chatbot_start_conversation()}</p>
@@ -168,29 +166,31 @@ export function ChatMessages({
   }
 
   return (
-    <div className="p-4" ref={scrollRef}>
-      {messages.map((message) => {
-        // Find streaming block for this message by checking all blocks in the map
-        let streamingBlock: MessageChunk | undefined;
-        if (streamingBlocks) {
-          for (const block of streamingBlocks.values()) {
-            if (block.messageId === message.messageId) {
-              streamingBlock = block;
-              break;
+    <div className="h-full">
+      <div className="p-4" ref={scrollRef}>
+        {messages.map((message) => {
+          // Find streaming block for this message by checking all blocks in the map
+          let streamingBlock: MessageChunk | undefined;
+          if (streamingBlocks) {
+            for (const block of streamingBlocks.values()) {
+              if (block.messageId === message.messageId) {
+                streamingBlock = block;
+                break;
+              }
             }
           }
-        }
-        return (
-          <MessageBubble
-            key={message.messageId}
-            message={message}
-            streamingBlock={streamingBlock}
-            activeTools={activeTools}
-          />
-        );
-      })}
+          return (
+            <MessageBubble
+              key={message.messageId}
+              message={message}
+              streamingBlock={streamingBlock}
+              activeTools={activeTools}
+            />
+          );
+        })}
 
-      <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} />
+      </div>
     </div>
   );
 }
