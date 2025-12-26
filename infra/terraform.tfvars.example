@@ -2,8 +2,41 @@
 # Copy this file to terraform.tfvars and fill in your values
 # terraform.tfvars is automatically ignored by git
 
+# Authentication & Security
 jwt_secret = "your-jwt-secret-here"
+hash_pepper = "your-hash-pepper-here"
+
+# Database & Cache (optional - will be auto-generated if not provided)
+# db_password = ""
+# redis_password = ""
+
+# Strava
 strava_client_secret = "your-strava-client-secret-here"
 strava_webhook_token = "your-strava-webhook-token-here"
+
+# Garmin
+garmin_client_secret = "your-garmin-client-secret-here"
+
+# Polar
+polar_client_secret = "your-polar-client-secret-here"
+polar_webhook_secret_key = "your-polar-webhook-secret-key-here"
+
+# Suunto
+suunto_client_secret = "your-suunto-client-secret-here"
+suunto_subscription_key = "your-suunto-subscription-key-here"
+
+# AI Services
 openai_api_key = "your-openai-api-key-here"
+google_generative_ai_api_key = "your-google-generative-ai-api-key-here"
+
+# Email
 brevo_api_key = "your-brevo-api-key-here"
+
+# Stripe
+stripe_secret_key = "your-stripe-secret-key-here"
+stripe_publishable_key = "your-stripe-publishable-key-here"
+stripe_webhook_secret = "your-stripe-webhook-secret-here"
+stripe_price_ids = "{\"ATHLETE_PRO\":\"price_xxx\",\"COACH_PRO\":\"price_xxx\",\"COACH_ULTRA\":\"price_xxx\",\"CLUB_PRO\":\"price_xxx\",\"CLUB_ULTRA\":\"price_xxx\"}"
+
+# Firebase
+firebase_functions_url = "https://your-project.cloudfunctions.net/sendPushNotification"

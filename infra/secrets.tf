@@ -151,3 +151,43 @@ resource "scaleway_secret_version" "suunto_subscription_key_v" {
   secret_id = scaleway_secret.suunto_subscription_key.id
   data      = var.suunto_subscription_key
 }
+
+resource "scaleway_secret" "hash_pepper" {
+  name        = "${var.app_name}-HASH_PEPPER"
+  description = "Hash pepper for password hashing for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "hash_pepper_v" {
+  secret_id = scaleway_secret.hash_pepper.id
+  data      = var.hash_pepper
+}
+
+resource "scaleway_secret" "stripe_publishable_key" {
+  name        = "${var.app_name}-STRIPE_PUBLISHABLE_KEY"
+  description = "Stripe publishable key for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "stripe_publishable_key_v" {
+  secret_id = scaleway_secret.stripe_publishable_key.id
+  data      = var.stripe_publishable_key
+}
+
+resource "scaleway_secret" "stripe_price_ids" {
+  name        = "${var.app_name}-STRIPE_PRICE_IDS"
+  description = "Stripe price IDs JSON for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "stripe_price_ids_v" {
+  secret_id = scaleway_secret.stripe_price_ids.id
+  data      = var.stripe_price_ids
+}
+
+resource "scaleway_secret" "firebase_functions_url" {
+  name        = "${var.app_name}-FIREBASE_FUNCTIONS_URL"
+  description = "Firebase Functions URL for push notifications for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "firebase_functions_url_v" {
+  secret_id = scaleway_secret.firebase_functions_url.id
+  data      = var.firebase_functions_url
+}

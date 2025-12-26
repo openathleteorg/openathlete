@@ -157,3 +157,27 @@ variable "suunto_subscription_key" {
   type        = string
   sensitive   = true
 }
+
+variable "hash_pepper" {
+  description = "Hash pepper for password hashing (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "stripe_publishable_key" {
+  description = "Stripe publishable key for the API (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "stripe_price_ids" {
+  description = "Stripe price IDs as JSON string (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
+
+variable "firebase_functions_url" {
+  description = "Firebase Functions URL for push notifications (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}
