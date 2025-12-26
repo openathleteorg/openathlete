@@ -24,10 +24,17 @@ export class StripeService {
       apiVersion: '2025-11-17.clover',
     });
 
-    // Parse price IDs from environment variable
     const priceIdsJson = process.env.STRIPE_PRICE_IDS;
     if (!priceIdsJson) {
-      throw new Error('STRIPE_PRICE_IDS is not set');
+      this.priceIds = {
+        [SubscriptionPlan.FREE]: '',
+        [SubscriptionPlan.ATHLETE_PRO]: '',
+        [SubscriptionPlan.COACH_PRO]: '',
+        [SubscriptionPlan.COACH_ULTRA]: '',
+        [SubscriptionPlan.CLUB_PRO]: '',
+        [SubscriptionPlan.CLUB_ULTRA]: '',
+      };
+      return;
     }
 
     try {
@@ -36,9 +43,18 @@ export class StripeService {
         string
       >;
     } catch (error) {
-      throw new Error(
+      this.logger.error(
         `Failed to parse STRIPE_PRICE_IDS: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
+      this.logger.error('Price IDs: %j', priceIdsJson);
+      this.priceIds = {
+        [SubscriptionPlan.FREE]: '',
+        [SubscriptionPlan.ATHLETE_PRO]: '',
+        [SubscriptionPlan.COACH_PRO]: '',
+        [SubscriptionPlan.COACH_ULTRA]: '',
+        [SubscriptionPlan.CLUB_PRO]: '',
+        [SubscriptionPlan.CLUB_ULTRA]: '',
+      };
     }
   }
 
