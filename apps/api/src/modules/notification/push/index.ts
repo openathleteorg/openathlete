@@ -3,4 +3,3 @@ export {
   type PushNotificationType,
   type PushNotificationTranslation,
 } from './translations';
-

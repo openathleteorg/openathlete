@@ -43,7 +43,8 @@ export class NotificationService {
         select: { language: true },
       });
 
-      const language: EmailLanguage = (user?.language || Language.FR) as EmailLanguage;
+      const language: EmailLanguage = (user?.language ||
+        Language.FR) as EmailLanguage;
 
       const sendSmtpEmail = new brevo.SendSmtpEmail();
       sendSmtpEmail.to = [{ email: payload.to }];
