@@ -216,9 +216,6 @@ export const routes = {
     weeklySummary: '/training-load/weekly-summary',
     recalculate: '/training-load/recalculate',
   },
-  betaAccess: {
-    request: '/beta-access',
-  },
   subscription: {
     current: '/subscription/current',
     checkout: '/subscription/checkout',

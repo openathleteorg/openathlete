@@ -10,12 +10,14 @@ import {
   RawBodyRequest,
   Req,
 } from '@nestjs/common';
+import { ApiHeader, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { SubscriptionPlan } from '@openathlete/shared';
 
 import { StripeService } from '../services/stripe.service';
 import { SubscriptionService } from '../services/subscription.service';
 
+@ApiTags('Subscription')
 @Controller('subscription/webhook')
 export class StripeWebhookController {
   private readonly logger = new Logger(StripeWebhookController.name);
@@ -27,6 +29,43 @@ export class StripeWebhookController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Stripe webhook endpoint',
+    description:
+      "Receives and processes webhook events from Stripe. This endpoint verifies the webhook signature using the Stripe webhook secret to ensure the request is authentic and hasn't been tampered with. The raw request body is required for signature verification. After verification, the event is processed based on its type:\n\n" +
+      '**Handled Events:**\n' +
+      '- `checkout.session.completed`: Creates a subscription in the database after a successful Stripe checkout. Extracts user ID from customer metadata, validates the plan, and creates the subscription record with all billing period information.\n' +
+      "- `customer.subscription.updated`: Updates the subscription status, plan, billing periods, trial end date, and cancellation status. The plan is extracted from the subscription's price ID (source of truth) rather than metadata.\n" +
+      '- `customer.subscription.deleted`: Marks the subscription as canceled when Stripe deletes it. Updates the subscription status to canceled.\n' +
+      '- `invoice.paid`: Logs payment confirmation. Currently only logs the event but can be extended for additional logic (e.g., sending confirmation emails).\n\n' +
+      '**Security:** The endpoint verifies the Stripe signature header to ensure requests are authentic. Invalid signatures are rejected and logged. The endpoint returns 200 OK to acknowledge receipt, even if the event type is unhandled, to prevent Stripe from retrying the webhook.',
+  })
+  @ApiHeader({
+    name: 'stripe-signature',
+    description:
+      'Stripe webhook signature header used to verify the request authenticity. Must be provided by Stripe when sending webhook events.',
+    required: true,
+    example: 't=1234567890,v1=abc123def456...',
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Webhook received and processed successfully (or event type unhandled)',
+    schema: {
+      type: 'object',
+      properties: {
+        received: {
+          type: 'boolean',
+          example: true,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad request - webhook payload missing or signature verification failed',
+  })
   async handleWebhook(
     @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,

@@ -9,7 +9,6 @@ import { QueueModule } from '../queue';
 import { EventController } from './controllers';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
 import { AthleteController } from './controllers/athlete.controller';
-import { BetaAccessController } from './controllers/beta-access.controller';
 import { CoachController } from './controllers/coach.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
@@ -28,7 +27,6 @@ import { ActivityDetailService } from './services/activity-detail.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
-import { BetaAccessService } from './services/beta-access.service';
 import { CoachService } from './services/coach.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
@@ -73,7 +71,6 @@ import { WeatherService } from './services/weather/weather.service';
     MetricController,
     TrainingZoneController,
     TrainingLoadController,
-    BetaAccessController,
     CycleController,
   ],
   providers: [
@@ -92,7 +89,6 @@ import { WeatherService } from './services/weather/weather.service';
     MetricService,
     TrainingZoneService,
     TrainingLoadService,
-    BetaAccessService,
     CycleService,
     WeatherService,
     ActivityFeedbackService,

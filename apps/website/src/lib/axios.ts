@@ -3,9 +3,6 @@ import axios from 'axios';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const routes = {
-  betaAccess: {
-    request: '/beta-access',
-  },
   newsletter: {
     subscribe: '/newsletter/subscribe',
   },

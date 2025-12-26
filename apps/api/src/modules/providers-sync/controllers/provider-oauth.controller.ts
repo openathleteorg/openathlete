@@ -5,7 +5,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   Logger,
   Param,
@@ -17,8 +16,17 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
-import { connector_provider, event_type } from '@openathlete/database';
+import { connector_provider } from '@openathlete/database';
 import type { ApiEnvSchemaType } from '@openathlete/shared';
 import {
   ConnectorProvider,
@@ -46,6 +54,7 @@ function toConnectorProvider(provider: connector_provider): ConnectorProvider {
   return provider as unknown as ConnectorProvider;
 }
 
+@ApiTags('Provider')
 @Controller('provider')
 export class ProviderOAuthController {
   private readonly logger = new Logger(ProviderOAuthController.name);
@@ -98,6 +107,45 @@ export class ProviderOAuthController {
    * For Garmin (PKCE), also returns code_verifier that must be sent back during token exchange
    */
   @Get(':provider/uri')
+  @ApiOperation({
+    summary: 'Get OAuth authorization URI for a provider',
+    description:
+      'Generates the OAuth authorization URI for connecting a fitness provider account. Supported providers: STRAVA, GARMIN, SUUNTO, COROS, POLAR. For Garmin (which uses PKCE flow), also returns a code_verifier that must be securely stored by the client and sent back during token exchange. The client should redirect the user to the returned URI to initiate the OAuth flow.',
+  })
+  @ApiParam({
+    name: 'provider',
+    type: String,
+    enum: Object.values(connector_provider),
+    description: 'Provider name (case-insensitive)',
+    example: 'strava',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Authorization URI generated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        uri: {
+          type: 'string',
+          format: 'uri',
+          example: 'https://www.strava.com/oauth/authorize?client_id=...',
+          description: 'OAuth authorization URL to redirect user to',
+        },
+        codeVerifier: {
+          type: 'string',
+          nullable: true,
+          description:
+            'PKCE code verifier (only for Garmin). Must be stored securely and sent back during token exchange.',
+          example: 'abc123def456...',
+        },
+      },
+      required: ['uri'],
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - provider not supported',
+  })
   getAuthorizationUri(@Param('provider') provider: string) {
     const providerEnum = provider.toUpperCase() as connector_provider;
 
@@ -125,7 +173,70 @@ export class ProviderOAuthController {
    * Exchange OAuth code for tokens and save provider account
    */
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Post(':provider/token')
+  @ApiOperation({
+    summary: 'Connect provider account via OAuth',
+    description:
+      "Exchanges the OAuth authorization code for access and refresh tokens, then saves the provider account linked to the authenticated user's athlete profile. For Garmin (PKCE flow), the codeVerifier parameter is required and must match the one returned during authorization URI generation. Each provider has specific handling: Strava extracts athlete information, Garmin uses PKCE verification, Suunto extracts external user ID from JWT token, Coros and Polar use standard OAuth flows.",
+  })
+  @ApiParam({
+    name: 'provider',
+    type: String,
+    enum: Object.values(connector_provider),
+    description: 'Provider name (case-insensitive)',
+    example: 'strava',
+  })
+  @ApiBody({
+    description: 'OAuth token exchange data',
+    schema: {
+      type: 'object',
+      properties: {
+        code: {
+          type: 'string',
+          description: 'OAuth authorization code received from provider',
+          example: 'abc123def456...',
+        },
+        codeVerifier: {
+          type: 'string',
+          description:
+            'PKCE code verifier (required for Garmin, optional for others)',
+          example: 'xyz789uvw012...',
+        },
+      },
+      required: ['code'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Provider account connected successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        providerAccountId: { type: 'number', example: 1 },
+        provider: {
+          type: 'string',
+          enum: Object.values(connector_provider),
+          example: 'STRAVA',
+        },
+        status: { type: 'string', example: 'active' },
+        athleteId: { type: 'number', example: 1 },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad request - provider not supported, codeVerifier missing for Garmin, or invalid OAuth code',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found - athlete not found for user',
+  })
   async connectProvider(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
@@ -196,7 +307,42 @@ export class ProviderOAuthController {
    * Disconnect a provider account
    */
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Post(':provider/disconnect')
+  @ApiOperation({
+    summary: 'Disconnect provider account',
+    description:
+      "Disconnects a connected provider account by revoking access and marking the account as revoked. For Garmin, calls the deleteUserRegistration API before revoking. For Suunto, calls the deauthorize API before revoking. The provider account status is updated to 'revoked' instead of being deleted, preserving historical data.",
+  })
+  @ApiParam({
+    name: 'provider',
+    type: String,
+    enum: Object.values(connector_provider),
+    description: 'Provider name (case-insensitive)',
+    example: 'strava',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Provider account disconnected successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: {
+          type: 'string',
+          example: 'Disconnected from strava',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found - provider account not found for user',
+  })
   async disconnectProvider(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
@@ -255,7 +401,74 @@ export class ProviderOAuthController {
    * Get connected providers for current user
    */
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('connected')
+  @ApiOperation({
+    summary: 'Get all connected provider accounts',
+    description:
+      "Retrieves a list of all active provider accounts connected to the authenticated user's athlete profile. Returns provider information including connection status, preferences (import/export settings), and full import status.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of connected providers retrieved successfully',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          provider: {
+            type: 'string',
+            enum: Object.values(connector_provider),
+            example: 'STRAVA',
+          },
+          status: {
+            type: 'string',
+            example: 'active',
+            description: 'Account status (active, revoked, etc.)',
+          },
+          connectedAt: {
+            type: 'string',
+            format: 'date-time',
+            example: '2024-01-01T00:00:00.000Z',
+            description: 'When the account was connected',
+          },
+          importActivitiesEnabled: {
+            type: 'boolean',
+            example: true,
+            description: 'Whether activity import is enabled',
+          },
+          exportWorkoutsEnabled: {
+            type: 'boolean',
+            example: false,
+            description: 'Whether workout export is enabled',
+          },
+          importMetricsEnabled: {
+            type: 'boolean',
+            example: false,
+            description: 'Whether metrics import is enabled',
+          },
+          fullImportRequestedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: '2024-01-01T00:00:00.000Z',
+            description: 'When full historical import was requested',
+          },
+          fullImportCompletedAt: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: '2024-01-02T00:00:00.000Z',
+            description: 'When full historical import was completed',
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
   async getConnectedProviders(@JwtUser() user: AuthUser) {
     const athlete = await this.prisma.athlete.findUnique({
       where: { user_id: user.user_id },
@@ -288,7 +501,68 @@ export class ProviderOAuthController {
    * Update provider synchronization preferences
    */
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Patch(':provider/preferences')
+  @ApiOperation({
+    summary: 'Update provider synchronization preferences',
+    description:
+      "Updates the synchronization preferences for a connected provider account. Only provided fields will be updated. The preferences are validated against the provider's capabilities (e.g., not all providers support exporting workouts or importing metrics). At least one preference must be provided.",
+  })
+  @ApiParam({
+    name: 'provider',
+    type: String,
+    enum: Object.values(connector_provider),
+    description: 'Provider name (case-insensitive)',
+    example: 'strava',
+  })
+  @ApiBody({
+    description: 'Provider preferences to update',
+    schema: {
+      type: 'object',
+      properties: {
+        importActivitiesEnabled: {
+          type: 'boolean',
+          description: 'Enable/disable automatic activity import from provider',
+          example: true,
+        },
+        exportWorkoutsEnabled: {
+          type: 'boolean',
+          description:
+            'Enable/disable workout export to provider (not all providers support this)',
+          example: false,
+        },
+        importMetricsEnabled: {
+          type: 'boolean',
+          description:
+            'Enable/disable metrics import from provider (not all providers support this)',
+          example: false,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Provider preferences updated successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad request - feature not available for provider, no preferences provided, or invalid provider',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found - provider account not found for user',
+  })
   async updateProviderPreferences(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
@@ -347,7 +621,61 @@ export class ProviderOAuthController {
    * Trigger historical import for a provider
    */
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Post(':provider/import-all')
+  @ApiOperation({
+    summary: 'Trigger full historical activity import',
+    description:
+      'Initiates a full historical import of all activities from a connected provider. The import is queued and processed asynchronously. Only providers that support full import (Strava, Garmin, Polar, Suunto) can use this endpoint. Activity import must be enabled for the provider. If a full import is already in progress, the request will be rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
+  })
+  @ApiParam({
+    name: 'provider',
+    type: String,
+    enum: Object.values(connector_provider),
+    description: 'Provider name (case-insensitive). Must support full import.',
+    example: 'strava',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Historical import triggered successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        queuedActivities: {
+          type: 'number',
+          description: 'Number of activities queued for import',
+          example: 150,
+        },
+        backfillRequested: {
+          type: 'boolean',
+          description:
+            'Whether a backfill was requested (import will complete later)',
+          example: false,
+        },
+        message: {
+          type: 'string',
+          nullable: true,
+          description: 'Informational message (e.g., if already completed)',
+          example: 'Full import already completed',
+        },
+      },
+      required: ['success'],
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad request - activity import disabled, provider does not support full import, or import already in progress',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found - provider account not found for user',
+  })
   async importAllActivities(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
@@ -454,6 +782,46 @@ export class ProviderOAuthController {
    * Strava webhook verification (GET)
    */
   @Get('strava/webhook')
+  @ApiOperation({
+    summary: 'Strava webhook verification',
+    description:
+      "Handles Strava webhook subscription verification (GET request). Strava sends a GET request with hub.mode='subscribe', hub.verify_token, and hub.challenge to verify the webhook endpoint. Returns the challenge if the verify token matches the configured STRAVA_WEBHOOK_TOKEN.",
+  })
+  @ApiQuery({
+    name: 'hub.mode',
+    type: String,
+    description: 'Webhook mode (should be "subscribe")',
+    example: 'subscribe',
+  })
+  @ApiQuery({
+    name: 'hub.verify_token',
+    type: String,
+    description: 'Verification token from Strava',
+    example: 'your-verify-token',
+  })
+  @ApiQuery({
+    name: 'hub.challenge',
+    type: String,
+    description: 'Challenge string from Strava to echo back',
+    example: 'challenge-string-123',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook verified successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        'hub.challenge': {
+          type: 'string',
+          example: 'challenge-string-123',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - verification token mismatch',
+  })
   async stravaWebhookGet(@Req() request: Request, @Res() response: Response) {
     const mode = request.query['hub.mode'];
     const token = request.query['hub.verify_token'];
@@ -471,6 +839,40 @@ export class ProviderOAuthController {
    * Strava webhook handler (POST)
    */
   @Post('strava/webhook')
+  @ApiOperation({
+    summary: 'Strava webhook event handler',
+    description:
+      'Receives and processes webhook events from Strava. Handles activity creation and deletion events. When an activity is created, it triggers an import if activity import is enabled for the connected account. The webhook payload includes the activity object_id, owner_id, and aspect_type (create or delete).',
+  })
+  @ApiBody({
+    description: 'Strava webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        object_id: {
+          type: 'number',
+          description: 'Strava activity ID',
+          example: 123456789,
+        },
+        owner_id: {
+          type: 'number',
+          description: 'Strava athlete ID',
+          example: 987654321,
+        },
+        aspect_type: {
+          type: 'string',
+          enum: ['create', 'delete'],
+          description: 'Type of event (create or delete)',
+          example: 'create',
+        },
+      },
+      required: ['object_id', 'owner_id', 'aspect_type'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Webhook event processed successfully',
+  })
   async stravaWebhookPost(
     @Body()
     body: {
@@ -483,6 +885,53 @@ export class ProviderOAuthController {
   }
 
   @Post('garmin/webhook/activity-ping')
+  @ApiOperation({
+    summary: 'Garmin activity ping webhook',
+    description:
+      'Receives activity ping notifications from Garmin when new activities are available. Processes multiple activity pings in a batch. Each ping contains a userId and callbackURL. The webhook triggers activity import for the corresponding Garmin account. Invalid pings (missing userId or callbackURL) are skipped without failing the entire batch.',
+  })
+  @ApiBody({
+    description: 'Garmin activity ping payload',
+    schema: {
+      type: 'object',
+      properties: {
+        activities: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              userId: {
+                type: 'string',
+                description: 'Garmin user ID',
+                example: 'garmin-user-123',
+              },
+              callbackURL: {
+                type: 'string',
+                format: 'uri',
+                description: 'URL to fetch activity data from',
+                example: 'https://connectapi.garmin.com/...',
+              },
+            },
+          },
+        },
+      },
+      required: ['activities'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Activity pings processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid payload or missing activities array',
+  })
   async garminActivityPingWebhook(@Body() body: unknown) {
     const payload = body as {
       activities?: Array<{ userId?: string; callbackURL?: string }>;
@@ -517,6 +966,34 @@ export class ProviderOAuthController {
   }
 
   @Post('garmin/webhook/health-ping')
+  @ApiOperation({
+    summary: 'Garmin health ping webhook',
+    description:
+      "Receives health ping notifications from Garmin. Health pings are used to verify the webhook endpoint is operational and to receive health-related data updates. The payload structure may vary based on Garmin's webhook configuration.",
+  })
+  @ApiBody({
+    description: 'Garmin health ping payload',
+    schema: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'Garmin user ID',
+          example: 'garmin-user-123',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Health ping processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
   async garminHealthPingWebhook(
     @Body() body: GarminHealthPingPayload | undefined,
   ) {
@@ -525,6 +1002,101 @@ export class ProviderOAuthController {
   }
 
   @Post('garmin/webhook/activity-files')
+  @ApiOperation({
+    summary: 'Garmin activity files webhook',
+    description:
+      'Receives notifications from Garmin when activity files (FIT or GPX) are available for download. Processes multiple file notifications in a batch. Only FIT and GPX file types are processed. Each notification includes activity metadata (ID, name, type, device, start time) and a callbackURL to download the file. Invalid notifications (missing required fields) are skipped without failing the entire batch.',
+  })
+  @ApiBody({
+    description: 'Garmin activity files webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        activityFiles: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              userId: {
+                type: 'string',
+                description: 'Garmin user ID',
+                example: 'garmin-user-123',
+              },
+              summaryId: {
+                type: 'string',
+                description: 'Activity summary ID',
+                example: 'summary-123',
+              },
+              fileType: {
+                type: 'string',
+                enum: ['FIT', 'GPX'],
+                description: 'File type (only FIT and GPX are processed)',
+                example: 'FIT',
+              },
+              callbackURL: {
+                type: 'string',
+                format: 'uri',
+                description: 'URL to download the activity file',
+                example: 'https://connectapi.garmin.com/...',
+              },
+              activityType: {
+                type: 'string',
+                description: 'Type of activity',
+                example: 'running',
+              },
+              deviceName: {
+                type: 'string',
+                description: 'Device name that recorded the activity',
+                example: 'Forerunner 945',
+              },
+              startTimeInSeconds: {
+                type: 'number',
+                description: 'Activity start time (Unix timestamp)',
+                example: 1704067200,
+              },
+              activityId: {
+                type: 'number',
+                description: 'Garmin activity ID',
+                example: 123456789,
+              },
+              activityName: {
+                type: 'string',
+                description: 'Activity name',
+                example: 'Morning Run',
+              },
+              manual: {
+                type: 'boolean',
+                description: 'Whether activity was manually entered',
+                example: false,
+              },
+              activityDescription: {
+                type: 'string',
+                nullable: true,
+                description: 'Activity description',
+                example: 'Easy recovery run',
+              },
+            },
+            required: ['userId', 'callbackURL', 'fileType', 'activityId'],
+          },
+        },
+      },
+      required: ['activityFiles'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Activity files webhook processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - invalid payload or missing activityFiles array',
+  })
   async garminActivityFilesWebhook(@Body() body: unknown) {
     const payload = body as {
       activityFiles?: Array<{
@@ -586,6 +1158,35 @@ export class ProviderOAuthController {
   }
 
   @Post('garmin/webhook/deregistration')
+  @ApiOperation({
+    summary: 'Garmin user deregistration webhook',
+    description:
+      'Receives notifications from Garmin when a user deregisters their account from Garmin Connect. This webhook is triggered when a user disconnects their Garmin account from the Garmin Connect platform. The system should handle this by marking the provider account as revoked.',
+  })
+  @ApiBody({
+    description: 'Garmin deregistration webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'Garmin user ID being deregistered',
+          example: 'garmin-user-123',
+        },
+      },
+      required: ['userId'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Deregistration webhook processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
   async garminDeregistrationWebhook(
     @Body()
     body: {
@@ -597,6 +1198,41 @@ export class ProviderOAuthController {
   }
 
   @Post('garmin/webhook/user-permissions-change')
+  @ApiOperation({
+    summary: 'Garmin user permissions change webhook',
+    description:
+      'Receives notifications from Garmin when a user changes their permissions or revokes access to the application. This webhook is triggered when permissions are modified in Garmin Connect settings. The system should handle this by updating the provider account status accordingly.',
+  })
+  @ApiBody({
+    description: 'Garmin permissions change webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        userId: {
+          type: 'string',
+          description: 'Garmin user ID',
+          example: 'garmin-user-123',
+        },
+        permissions: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Updated permissions list',
+          example: ['activity.read', 'health.read'],
+        },
+      },
+      required: ['userId', 'permissions'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Permissions change webhook processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
   async garminUserPermissionsChangeWebhook(
     @Body()
     body: {
@@ -613,6 +1249,70 @@ export class ProviderOAuthController {
    * Handles all Polar webhook events (EXERCISE, SLEEP, etc.)
    */
   @Post('polar/webhook')
+  @ApiOperation({
+    summary: 'Polar webhook event handler',
+    description:
+      "Receives and processes webhook events from Polar AccessLink. Handles multiple event types: EXERCISE (new activity available), SLEEP (sleep data available), ACTIVITY_SUMMARY (activity summary data), CONTINUOUS_HEART_RATE (heart rate data). The webhook signature is verified using the polar-webhook-signature header. Events are processed based on the account's import preferences (activities, metrics). Only events matching enabled import types are processed.",
+  })
+  @ApiBody({
+    description: 'Polar webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        event: {
+          type: 'string',
+          enum: [
+            'EXERCISE',
+            'SLEEP',
+            'ACTIVITY_SUMMARY',
+            'CONTINUOUS_HEART_RATE',
+          ],
+          description: 'Type of Polar webhook event',
+          example: 'EXERCISE',
+        },
+        user_id: {
+          type: 'number',
+          description: 'Polar user ID',
+          example: 63661436,
+        },
+        entity_id: {
+          type: 'string',
+          nullable: true,
+          description: 'Entity ID (e.g., exercise ID for EXERCISE events)',
+          example: '123456789',
+        },
+        timestamp: {
+          type: 'string',
+          format: 'date-time',
+          description: 'Event timestamp',
+          example: '2024-01-01T00:00:00.000Z',
+        },
+        url: {
+          type: 'string',
+          format: 'uri',
+          nullable: true,
+          description: 'URL to fetch entity data from Polar API',
+          example: 'https://www.polaraccesslink.com/v3/exercises/123456789',
+        },
+      },
+      required: ['event', 'user_id'],
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Polar webhook event processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad request - invalid payload or signature verification failed',
+  })
   async polarWebhook(
     @Body() body: PolarWebhookPayload,
     @Req() request: { headers: Record<string, string | string[]> },
@@ -663,6 +1363,70 @@ export class ProviderOAuthController {
    * Webhook URL: POST /provider/suunto/webhook
    */
   @Post('suunto/webhook')
+  @ApiOperation({
+    summary: 'Suunto webhook event handler',
+    description:
+      "Receives and processes webhook events from Suunto. Handles two types of events: workout notifications (when a new workout is available) and 247 Data API webhooks (for metrics data). Workout webhooks require a workoutKey to identify the workout. 247 webhooks are prefixed with 'SUUNTO_247_' and are handled separately. Invalid webhooks (missing workoutKey for workout events) return an error response.",
+  })
+  @ApiBody({
+    description: 'Suunto webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        type: {
+          type: 'string',
+          description: 'Event type (workout event or SUUNTO_247_* for metrics)',
+          example: 'workout',
+        },
+        workoutKey: {
+          type: 'string',
+          nullable: true,
+          description: 'Suunto workout key (required for workout events)',
+          example: 'workout-123-abc',
+        },
+        workout: {
+          type: 'object',
+          nullable: true,
+          properties: {
+            workoutKey: {
+              type: 'string',
+              example: 'workout-123-abc',
+            },
+          },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Suunto webhook processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: true },
+        message: {
+          type: 'string',
+          nullable: true,
+          example: '247 webhook processed',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Bad request - missing workoutKey for workout events or processing error',
+    schema: {
+      type: 'object',
+      properties: {
+        success: { type: 'boolean', example: false },
+        error: {
+          type: 'string',
+          example: 'Missing workoutKey in webhook payload',
+        },
+      },
+    },
+  })
   async suuntoWebhook(@Body() body: unknown) {
     this.logger.log(`Received Suunto webhook request: ${JSON.stringify(body)}`);
 
@@ -709,188 +1473,5 @@ export class ProviderOAuthController {
         error: error instanceof Error ? error.message : String(error),
       };
     }
-  }
-
-  /**
-   * Test endpoint: Simulate Polar webhook
-   * POST /provider/polar/webhook/test
-   * Body: { event: 'EXERCISE' | 'SLEEP' | 'ACTIVITY_SUMMARY', user_id: number, entity_id?: string, skip_signature?: boolean }
-   *
-   * Example:
-   * curl -X POST http://localhost:3000/api/provider/polar/webhook/test \
-   *   -H "Content-Type: application/json" \
-   *   -d '{"event": "EXERCISE", "user_id": 63661436, "entity_id": "test-exercise-123"}'
-   */
-  @Post('polar/webhook/test')
-  async testPolarWebhook(
-    @Body()
-    body: {
-      event: PolarWebhookPayload['event'];
-      user_id: number;
-      entity_id?: string;
-      skip_signature?: boolean;
-    },
-  ) {
-    this.logger.log(
-      `[TEST] Simulating Polar webhook: event=${body.event}, user_id=${body.user_id}`,
-    );
-
-    const payload: PolarWebhookPayload = {
-      event: body.event,
-      user_id: body.user_id,
-      entity_id: body.entity_id,
-      timestamp: new Date().toISOString(),
-      url: body.entity_id
-        ? `https://www.polaraccesslink.com/v3/exercises/${body.entity_id}`
-        : undefined,
-    };
-
-    // Generate signature if secret key is available and not skipped
-    let signature: string | undefined;
-    if (!body.skip_signature) {
-      const secretKey = this.configService.get('POLAR_WEBHOOK_SECRET_KEY');
-      if (secretKey) {
-        const crypto = await import('crypto');
-        const hmac = crypto.createHmac('sha256', secretKey);
-        hmac.update(JSON.stringify(payload));
-        signature = hmac.digest('hex');
-        this.logger.debug(`[TEST] Generated webhook signature: ${signature}`);
-      } else {
-        this.logger.warn(
-          '[TEST] POLAR_WEBHOOK_SECRET_KEY not configured, skipping signature',
-        );
-      }
-    } else {
-      this.logger.debug(
-        '[TEST] Skipping signature verification (skip_signature=true)',
-      );
-    }
-
-    try {
-      await this.polarProviderService.handleWebhook(payload, signature);
-      return {
-        success: true,
-        message: `Polar webhook ${body.event} processed successfully`,
-        payload,
-      };
-    } catch (error) {
-      this.logger.error(
-        `[TEST] Polar webhook test failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      throw error;
-    }
-  }
-
-  /**
-   * Test endpoint: Trigger manual import for Polar account
-   * POST /provider/polar/test/import
-   * Body: { athlete_id: number }
-   *
-   * Example:
-   * curl -X POST http://localhost:3000/api/provider/polar/test/import \
-   *   -H "Content-Type: application/json" \
-   *   -d '{"athlete_id": 1}'
-   */
-  @Post('polar/test/import')
-  async testPolarImport(@Body() body: { athlete_id: number }) {
-    this.logger.log(
-      `[TEST] Triggering manual Polar import for athlete ${body.athlete_id}`,
-    );
-
-    const account = await this.prisma.provider_account.findFirst({
-      where: {
-        athlete_id: body.athlete_id,
-        provider: connector_provider.POLAR,
-        status: 'active',
-      },
-    });
-
-    if (!account) {
-      throw new BadRequestException(
-        `No active Polar account found for athlete ${body.athlete_id}`,
-      );
-    }
-
-    try {
-      const result = await this.polarProviderService.queueFullImport(account);
-      return {
-        success: true,
-        message: 'Polar import triggered successfully',
-        result,
-      };
-    } catch (error) {
-      this.logger.error(
-        `[TEST] Polar import test failed: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      throw error;
-    }
-  }
-
-  @Delete('test/activities/:userId')
-  async deleteAllActivitiesForUser(@Param('userId') userId: string) {
-    const userIdNum = parseInt(userId, 10);
-    if (isNaN(userIdNum)) {
-      return { success: false, error: 'Invalid user ID' };
-    }
-
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: userIdNum },
-      include: {
-        events: {
-          where: {
-            type: event_type.ACTIVITY,
-          },
-          select: {
-            event_id: true,
-          },
-        },
-      },
-    });
-
-    if (!athlete) {
-      return { success: false, error: 'Athlete not found for user' };
-    }
-
-    const eventIds = athlete.events.map((e) => e.event_id);
-
-    if (eventIds.length === 0) {
-      return {
-        success: true,
-        deletedCount: 0,
-        message: `No activities found for user ${userIdNum}`,
-      };
-    }
-
-    await this.prisma.event_activity_weather.deleteMany({
-      where: { event_activity: { event_id: { in: eventIds } } },
-    });
-
-    await this.prisma.event_activity_normalization_factor.deleteMany({
-      where: {
-        normalization: { event_activity: { event_id: { in: eventIds } } },
-      },
-    });
-
-    await this.prisma.event_activity_normalization.deleteMany({
-      where: { event_activity: { event_id: { in: eventIds } } },
-    });
-
-    await this.prisma.record.deleteMany({
-      where: { event_activity: { event_id: { in: eventIds } } },
-    });
-
-    await this.prisma.event_activity.deleteMany({
-      where: { event_id: { in: eventIds } },
-    });
-
-    await this.prisma.event.deleteMany({
-      where: { event_id: { in: eventIds } },
-    });
-
-    return {
-      success: true,
-      deletedCount: eventIds.length,
-      message: `Deleted ${eventIds.length} activities for user ${userIdNum}`,
-    };
   }
 }
