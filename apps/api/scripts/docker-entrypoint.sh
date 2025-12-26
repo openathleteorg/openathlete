@@ -82,10 +82,10 @@ decode_secret "STRIPE_SECRET_KEY"
 decode_secret "STRIPE_WEBHOOK_SECRET"
 # decode_secret "SUUNTO_CLIENT_SECRET"
 # decode_secret "SUUNTO_SUBSCRIPTION_KEY"
-decode_secret "HASH_PEPPER"
-decode_secret "STRIPE_PUBLISHABLE_KEY"
-decode_secret "STRIPE_PRICE_IDS"
-decode_secret "FIREBASE_FUNCTIONS_URL"
+# decode_secret "HASH_PEPPER"
+# decode_secret "STRIPE_PUBLISHABLE_KEY"
+# decode_secret "STRIPE_PRICE_IDS"
+# decode_secret "FIREBASE_FUNCTIONS_URL"
 
 cd /app/libs/database
 
