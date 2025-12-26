@@ -177,19 +177,3 @@ export function truncateText(
     ? sanitized.substring(0, maxLength)
     : sanitized;
 }
-
-/**
- * Convert pace from m/s to min/km format for display
- */
-export function paceMpsToMinPerKm(mps: number): number {
-  // 1 m/s = 1000m / (m/s * 60) = min/km
-  if (mps <= 0) return 0;
-  return 1000 / (mps * 60);
-}
-
-/**
- * Convert speed from m/s to km/h
- */
-export function speedMpsToKmh(mps: number): number {
-  return mps * 3.6;
-}

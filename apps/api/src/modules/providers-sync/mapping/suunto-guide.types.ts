@@ -278,13 +278,13 @@ export interface SuuntoSwolfField extends SuuntoFieldBase {
 }
 
 // AscentTimeField
-export interface SuuntoAscentTimeField extends SuuntoFieldBase {
+interface SuuntoAscentTimeField extends SuuntoFieldBase {
   type: 'ascentTime';
   window?: SuuntoWindow;
 }
 
 // DescentTimeField
-export interface SuuntoDescentTimeField extends SuuntoFieldBase {
+interface SuuntoDescentTimeField extends SuuntoFieldBase {
   type: 'descentTime';
   window?: SuuntoWindow;
 }
@@ -297,7 +297,7 @@ export interface SuuntoTargetHeartRateField extends SuuntoFieldBase {
   max?: number; // BPM
 }
 
-export interface SuuntoTargetSpeedField extends SuuntoFieldBase {
+interface SuuntoTargetSpeedField extends SuuntoFieldBase {
   type: 'targetSpeed';
   value?: number; // m/s
   min?: number; // m/s
@@ -335,7 +335,7 @@ export interface SuuntoGuideResponse {
   metadata: Record<string, string>;
 }
 
-export interface SuuntoGuidePayload {
+interface SuuntoGuidePayload {
   id: string;
   username: string;
   modificationTime: number; // Unix Epoch milliseconds

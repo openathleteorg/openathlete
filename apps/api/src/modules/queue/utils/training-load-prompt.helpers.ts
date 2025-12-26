@@ -86,7 +86,7 @@ const METRIC_UNITS: Record<string, string> = {
   WEIGHT: 'kg',
 };
 
-export interface ZoneSummary {
+interface ZoneSummary {
   id: number;
   label: string;
   range: string;

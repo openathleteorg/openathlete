@@ -5,7 +5,7 @@ import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 
 import { TrainingZone, mapPrismaWorkoutToDto } from '@openathlete/shared';
 
-import { trimpEstimationAgent } from 'src/mastra/agents/trimp-estimation.agent';
+import { trimpEstimationAgent } from 'src/mastra/agents';
 
 import {
   fetchAthleteMetrics,
