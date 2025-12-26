@@ -66,7 +66,7 @@ export const envValidationSchema = z
     APP_URL: z
       .string()
       .url('APP_URL must be a valid URL')
-      .min(1, 'APP_URL is required for generating absolute URLs')
+      .optional()
       .describe(
         'Base URL of the application (e.g., https://app.openathlete.org)',
       ),

@@ -28,6 +28,7 @@ resource "scaleway_container" "api" {
   // Note: PORT is reserved by Scaleway containers and is automatically set from the port attribute
   // We use secret version resources directly to get the actual values (not IDs)
   environment_variables = {
+    ENV            = "production"
     NODE_ENV       = "production"
     DATABASE_URL   = scaleway_secret_version.database_url_v.data
     REDIS_URL      = scaleway_secret_version.redis_url_managed_v.data
@@ -110,6 +111,7 @@ resource "scaleway_container" "import_worker" {
   // Environment variables - minimal set for import processing
   environment_variables = {
     NODE_ENV       = "production"
+    ENV            = "production"
     DATABASE_URL   = scaleway_secret_version.database_url_v.data
     REDIS_URL      = scaleway_secret_version.redis_url_managed_v.data
     JWT_SECRET_KEY = scaleway_secret_version.jwt_secret_v.data
@@ -120,7 +122,11 @@ resource "scaleway_container" "import_worker" {
     ENABLE_ACTIVITY_IMPORT = "true"
     ENABLE_ACTIVITY_PROCESSING = "true"
     ENABLE_TRAINING_LOAD_ESTIMATION = "true"
+    BREVO_FROM_EMAIL = "noreply@openathlete.org"
+    HASH_PEPPER = scaleway_secret_version.hash_pepper_v.data
+    BREVO_API_KEY = scaleway_secret_version.brevo_api_key_v.data
     OPENAI_API_KEY = scaleway_secret_version.openai_api_key_v.data
+    STRAVA_WEBHOOK_TOKEN = scaleway_secret_version.strava_webhook_token_v.data
     GARMIN_CLIENT_ID = "a5347106-9dc8-4f96-bb36-ab940816d6c3"
     GARMIN_CLIENT_SECRET = scaleway_secret_version.garmin_client_secret_v.data
     GARMIN_REDIRECT_URI = "https://app.openathlete.org/auth/callback/garmin"
@@ -147,9 +153,12 @@ resource "scaleway_container" "import_worker" {
     scaleway_secret_version.strava_client_secret_v,
     // Explicitly depend on Redis cluster to ensure it's ready on private network
     scaleway_redis_cluster.redis,
+    scaleway_secret_version.brevo_api_key_v,
+    scaleway_secret_version.hash_pepper_v,
     scaleway_secret_version.garmin_client_secret_v,
     scaleway_secret_version.polar_client_secret_v,
     scaleway_secret_version.polar_webhook_secret_key_v,
+    scaleway_secret_version.strava_webhook_token_v,
     scaleway_secret_version.google_generative_ai_api_key_v,
     scaleway_secret_version.stripe_secret_key_v,
     scaleway_secret_version.stripe_webhook_secret_v,
