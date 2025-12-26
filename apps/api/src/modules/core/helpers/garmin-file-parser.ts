@@ -2,7 +2,11 @@ import { Decoder, Stream } from '@garmin/fitsdk';
 import { parseGPXWithCustomParser } from '@we-gold/gpxjs';
 import { DOMParser } from 'xmldom-qsa';
 
+import { Logger } from '@nestjs/common';
+
 import { ActivityStream } from '@openathlete/shared';
+
+const logger = new Logger('GarminFileParser');
 
 type ParsedGpxPoint = {
   latitude?: number | string;
@@ -280,7 +284,7 @@ export async function parseFitFile(
   });
 
   if (errors && errors.length > 0) {
-    console.error('[FIT Parser] Decode errors:', errors);
+    logger.warn(`FIT file decode errors detected: ${errors.length} error(s)`, errors);
   }
 
   if (!messages) {

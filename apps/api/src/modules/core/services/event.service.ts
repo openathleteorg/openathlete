@@ -11,6 +11,7 @@ import {
   ForbiddenException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   Optional,
   UnauthorizedException,
@@ -195,6 +196,7 @@ export const EVENT_INCLUDES = {
 };
 @Injectable()
 export class EventService {
+  private readonly logger = new Logger(EventService.name);
   HASH_PEPPER: Buffer | undefined;
 
   constructor(
@@ -434,8 +436,9 @@ export class EventService {
         )
         .catch((error) => {
           // Log but don't fail the request
-          console.error(
+          this.logger.error(
             `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
           );
         });
     }
@@ -630,8 +633,9 @@ export class EventService {
         )
         .catch((error) => {
           // Log but don't fail the request
-          console.error(
+          this.logger.error(
             `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
           );
         });
     }
@@ -736,9 +740,9 @@ export class EventService {
           }
         }
       } catch (error) {
-        console.error(
-          '[EventService] Error creating/updating comment thread:',
-          error,
+        this.logger.error(
+          `Error creating/updating comment thread: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
         );
       }
 
@@ -1270,8 +1274,9 @@ export class EventService {
         )
         .catch((error) => {
           // Log but don't fail the request
-          console.error(
+          this.logger.error(
             `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
           );
         });
     }

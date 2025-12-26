@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -91,6 +91,7 @@ const corsOriginValidator = (
 export class AgentGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
+  private readonly logger = new Logger(AgentGateway.name);
   @WebSocketServer()
   server!: Server;
 
@@ -130,7 +131,7 @@ export class AgentGateway
       const user = client.data.user as AuthUser;
 
       if (!user) {
-        console.error('[AgentGateway] User not authenticated');
+        this.logger.error('User not authenticated for agent message');
         client.emit('message_error', {
           error: 'Unauthorized: User not authenticated',
           threadId,
@@ -164,7 +165,10 @@ export class AgentGateway
         threadId,
       });
     } catch (error) {
-      console.error('[AgentGateway] Error processing message:', error);
+      this.logger.error(
+        `Error processing agent message: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       client.emit('message_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         threadId,

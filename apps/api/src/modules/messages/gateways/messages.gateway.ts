@@ -1,8 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import { z } from 'zod';
 
-import { UseGuards } from '@nestjs/common';
-import { OnModuleInit } from '@nestjs/common';
+import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -106,6 +105,7 @@ const corsOriginValidator = (
 export class MessagesGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
+  private readonly logger = new Logger(MessagesGateway.name);
   @WebSocketServer()
   server!: Server;
 
@@ -173,7 +173,7 @@ export class MessagesGateway
       const user = client.data.user as AuthUser;
 
       if (!user) {
-        console.error('[MessagesGateway] User not authenticated');
+        this.logger.error('User not authenticated for message send');
         client.emit('message_error', {
           error: 'Unauthorized: User not authenticated',
           messageThreadId,
@@ -247,7 +247,10 @@ export class MessagesGateway
         messageId: createdMessage.message_id,
       });
     } catch (error) {
-      console.error('[MessagesGateway] Error sending message:', error);
+      this.logger.error(
+        `Error sending message: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       client.emit('message_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         messageThreadId,
@@ -354,7 +357,10 @@ export class MessagesGateway
         messageId: message.message_id,
       });
     } catch (error) {
-      console.error('[MessagesGateway] Error updating message:', error);
+      this.logger.error(
+        `Error updating message: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       client.emit('message_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
@@ -414,7 +420,10 @@ export class MessagesGateway
         messageThreadId,
       });
     } catch (error) {
-      console.error('[MessagesGateway] Error marking as read:', error);
+      this.logger.error(
+        `Error marking messages as read: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       client.emit('message_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
       });
@@ -449,7 +458,10 @@ export class MessagesGateway
       client.join(`thread:${data.messageThreadId}`);
       client.emit('joined_thread', { messageThreadId: data.messageThreadId });
     } catch (error) {
-      console.error('[MessagesGateway] Error joining thread:', error);
+      this.logger.error(
+        `Error joining thread: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       client.emit('error', {
         message:
           error instanceof Error ? error.message : 'Failed to join thread',

@@ -1,6 +1,6 @@
 import * as brevo from '@getbrevo/brevo';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
@@ -18,6 +18,7 @@ import { SendEmail } from '../types';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
   private apiInstance: brevo.TransactionalEmailsApi;
   private apiKey: string;
 
@@ -64,7 +65,10 @@ export class NotificationService {
 
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
     } catch (error) {
-      console.error('Error sending email', error);
+      this.logger.error(
+        `Error sending email: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
     }
   }
 }

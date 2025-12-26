@@ -1,6 +1,6 @@
 import * as brevo from '@getbrevo/brevo';
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { BetaAccessRequestDto } from '@openathlete/shared';
@@ -8,6 +8,7 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 @Injectable()
 export class BetaAccessService {
+  private readonly logger = new Logger(BetaAccessService.name);
   private apiInstance: brevo.TransactionalEmailsApi;
   private apiKey: string;
   private fromEmail: string;
@@ -49,9 +50,11 @@ export class BetaAccessService {
 
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
     } catch (error: unknown) {
-      console.error(
-        'Error sending beta access request email',
-        (error as { response?: { body?: unknown } })?.response?.body,
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorResponse = (error as { response?: { body?: unknown } })?.response?.body;
+      this.logger.error(
+        `Error sending beta access request email: ${errorMessage}${errorResponse ? ` - Response: ${JSON.stringify(errorResponse)}` : ''}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw error;
     }

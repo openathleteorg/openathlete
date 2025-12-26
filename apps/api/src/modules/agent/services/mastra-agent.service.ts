@@ -3,7 +3,7 @@ import { RuntimeContext } from '@mastra/core/runtime-context';
 import { Memory } from '@mastra/memory';
 import { PostgresStore } from '@mastra/pg';
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
@@ -56,6 +56,7 @@ interface BlockData {
 
 @Injectable()
 export class MastraAgentService implements OnModuleInit {
+  private readonly logger = new Logger(MastraAgentService.name);
   private coachAgent!: Agent;
   private memory!: Memory;
   private storage!: PostgresStore;
@@ -111,9 +112,9 @@ export class MastraAgentService implements OnModuleInit {
 
         await new Promise((resolve) => setTimeout(resolve, delayMs));
       } catch (error) {
-        console.error(
-          `[MastraAgentService] Error updating thread title from Mastra (attempt ${attempt}/${maxAttempts}):`,
-          error,
+        this.logger.error(
+          `Failed to update thread title from Mastra (attempt ${attempt}/${maxAttempts}): ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
         );
 
         if (attempt === maxAttempts) {
@@ -324,9 +325,9 @@ export class MastraAgentService implements OnModuleInit {
           });
         }
       } catch (streamError) {
-        console.error(
-          '[MastraAgentService] Error reading stream:',
-          streamError,
+        this.logger.error(
+          `Error reading message stream: ${streamError instanceof Error ? streamError.message : String(streamError)}`,
+          streamError instanceof Error ? streamError.stack : undefined,
         );
 
         if (!textBlock) {
@@ -380,7 +381,10 @@ export class MastraAgentService implements OnModuleInit {
         },
       });
     } catch (error) {
-      console.error('[MastraAgentService] Error processing message:', error);
+      this.logger.error(
+        `Error processing message: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
 
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';

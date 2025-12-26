@@ -217,7 +217,10 @@ export class ProviderOAuthController {
       } catch (error) {
         // Log error but continue with revocation
         // Token might already be expired or invalid
-        console.error('Failed to delete Garmin user registration:', error);
+        this.logger.error(
+          `Failed to delete Garmin user registration: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
+        );
       }
     }
 
@@ -228,7 +231,10 @@ export class ProviderOAuthController {
       } catch (error) {
         // Log error but continue with revocation
         // Token might already be expired or invalid
-        console.error('Failed to deauthorize Suunto:', error);
+        this.logger.error(
+          `Failed to deauthorize Suunto: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
+        );
       }
     }
 

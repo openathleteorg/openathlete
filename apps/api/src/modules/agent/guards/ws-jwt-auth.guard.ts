@@ -1,6 +1,11 @@
 import { Socket } from 'socket.io';
 
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 
@@ -8,6 +13,8 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {
+  private readonly logger = new Logger(WsJwtAuthGuard.name);
+
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
@@ -19,7 +26,7 @@ export class WsJwtAuthGuard implements CanActivate {
       const token = this.extractTokenFromHandshake(client);
 
       if (!token) {
-        console.error('[WsJwtAuthGuard] No token provided');
+        this.logger.error('WebSocket authentication failed: No token provided');
         throw new WsException('Unauthorized: No token provided');
       }
 
@@ -39,7 +46,7 @@ export class WsJwtAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        console.error('[WsJwtAuthGuard] User not found:', payload.userId);
+        this.logger.error(`WebSocket authentication failed: User not found (userId: ${payload.userId})`);
         throw new WsException('Unauthorized: User not found');
       }
 

@@ -3,6 +3,7 @@ import { subject } from '@casl/ability';
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 
@@ -76,6 +77,8 @@ export interface DailyTrainingLoad {
 
 @Injectable()
 export class TrainingLoadService {
+  private readonly logger = new Logger(TrainingLoadService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
@@ -1385,9 +1388,9 @@ export class TrainingLoadService {
         await this.calculateActivityLoad(user, event.event_id, calculationType);
         processed++;
       } catch (error) {
-        console.error(
-          `Failed to calculate load for activity ${event.event_id}:`,
-          error,
+        this.logger.error(
+          `Failed to calculate load for activity ${event.event_id}: ${error instanceof Error ? error.message : String(error)}`,
+          error instanceof Error ? error.stack : undefined,
         );
         errors++;
       }

@@ -1,4 +1,10 @@
-import { Inject, Injectable, Optional, forwardRef } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  Optional,
+  forwardRef,
+} from '@nestjs/common';
 
 import { event_template } from '@openathlete/database';
 import {
@@ -17,6 +23,8 @@ import { EVENT_INCLUDES, EventService } from './event.service';
 
 @Injectable()
 export class EventTemplateService {
+  private readonly logger = new Logger(EventTemplateService.name);
+
   constructor(
     private prisma: PrismaService,
     private eventService: EventService,
@@ -422,8 +430,9 @@ export class EventTemplateService {
         )
         .catch((error) => {
           // Log but don't fail the request
-          console.error(
+          this.logger.error(
             `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
+            error instanceof Error ? error.stack : undefined,
           );
         });
     }

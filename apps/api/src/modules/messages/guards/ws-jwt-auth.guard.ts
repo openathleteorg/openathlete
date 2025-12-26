@@ -1,6 +1,11 @@
 import { Socket } from 'socket.io';
 
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
 import { WsException } from '@nestjs/websockets';
 
@@ -8,6 +13,8 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class WsJwtAuthGuard implements CanActivate {
+  private readonly logger = new Logger(WsJwtAuthGuard.name);
+
   constructor(
     private jwtService: JwtService,
     private prisma: PrismaService,
@@ -19,7 +26,7 @@ export class WsJwtAuthGuard implements CanActivate {
       const token = this.extractTokenFromHandshake(client);
 
       if (!token) {
-        console.error('[WsJwtAuthGuard] No token provided');
+        this.logger.error('WebSocket authentication failed: No token provided');
         throw new WsException('Unauthorized: No token provided');
       }
 
@@ -31,17 +38,17 @@ export class WsJwtAuthGuard implements CanActivate {
         }>(token);
       } catch (jwtError: unknown) {
         if (jwtError instanceof TokenExpiredError) {
-          console.error('[WsJwtAuthGuard] JWT expired');
+          this.logger.error('WebSocket authentication failed: JWT token expired');
           throw new WsException('Unauthorized: jwt expired');
         }
         if (jwtError instanceof JsonWebTokenError) {
           const errorMessage =
             jwtError instanceof Error ? jwtError.message : 'Invalid token';
-          console.error('[WsJwtAuthGuard] Invalid JWT token:', errorMessage);
+          this.logger.error(`WebSocket authentication failed: Invalid JWT token - ${errorMessage}`);
           throw new WsException('Unauthorized: Invalid token');
         }
         if (jwtError instanceof Error) {
-          console.error('[WsJwtAuthGuard] JWT error:', jwtError.message);
+          this.logger.error(`WebSocket authentication failed: JWT verification error - ${jwtError.message}`);
           throw new WsException('Unauthorized: Invalid token');
         }
         throw new WsException('Unauthorized: Invalid token');
@@ -53,7 +60,7 @@ export class WsJwtAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        console.error('[WsJwtAuthGuard] User not found:', payload.userId);
+        this.logger.error(`WebSocket authentication failed: User not found (userId: ${payload.userId})`);
         throw new WsException('Unauthorized: User not found');
       }
 
@@ -65,9 +72,9 @@ export class WsJwtAuthGuard implements CanActivate {
       if (error instanceof WsException) {
         throw error;
       }
-      console.error(
-        '[WsJwtAuthGuard] Authentication failed:',
-        error instanceof Error ? error.message : error,
+      this.logger.error(
+        `WebSocket authentication failed: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new WsException('Unauthorized: Invalid token');
     }

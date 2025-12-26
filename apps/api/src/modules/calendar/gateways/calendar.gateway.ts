@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 
-import { OnModuleInit, UseGuards } from '@nestjs/common';
+import { Logger, OnModuleInit, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -90,6 +90,7 @@ const corsOriginValidator = (
 export class CalendarGateway
   implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit
 {
+  private readonly logger = new Logger(CalendarGateway.name);
   @WebSocketServer()
   server!: Server;
 
@@ -153,7 +154,10 @@ export class CalendarGateway
         client.emit('subscribed', {});
       }
     } catch (error) {
-      console.error('[CalendarGateway] Error in handleSubscribe:', error);
+      this.logger.error(
+        `Error in handleSubscribe: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       client.emit('error', {
         error: 'Failed to subscribe',
       });
