@@ -91,7 +91,7 @@ if [ -n "$STRIPE_PRICE_IDS" ]; then
     export STRIPE_PRICE_IDS
   fi
 fi
-# decode_secret "FIREBASE_FUNCTIONS_URL"
+decode_secret "FIREBASE_FUNCTIONS_URL"
 
 cd /app/libs/database
 

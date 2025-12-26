@@ -63,7 +63,7 @@ resource "scaleway_container" "api" {
     SUUNTO_CLIENT_SECRET = scaleway_secret_version.suunto_client_secret_v.data
     SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
     SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
-    FIREBASE_FUNCTIONS_URL = "https://us-central1-openathlete-dfb6e.cloudfunctions.net/sendPushNotification"
+    FIREBASE_FUNCTIONS_URL = scaleway_secret_version.firebase_functions_url_v.data
   }
 
   depends_on = [
