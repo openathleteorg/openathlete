@@ -31,7 +31,7 @@ export class AuthService {
   ): string {
     return sign(
       { userId: userId, email },
-      this.configService.get('JWT_SECRET_KEY') || 'secret',
+      this.configService.getOrThrow('JWT_SECRET_KEY'),
       {
         expiresIn: isRefresh ? '30d' : '1h',
       },
@@ -69,7 +69,7 @@ export class AuthService {
   async refresh(refreshToken: string): Promise<AuthResponseDto> {
     const payload = verify(
       refreshToken,
-      this.configService.get('JWT_SECRET_KEY') ?? '',
+      this.configService.getOrThrow('JWT_SECRET_KEY'),
     ) as JwtPayload & Partial<{ userId: number }>;
     if (!payload.userId) throw new UnauthorizedException();
     const user = await this.prisma.user.findFirst({

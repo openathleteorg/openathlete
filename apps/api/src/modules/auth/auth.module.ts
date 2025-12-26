@@ -1,7 +1,9 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../prisma/services/prisma.service';
 import { SubscriptionModule } from '../subscription';
@@ -18,8 +20,11 @@ import { JwtStrategy } from './strategies';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET_KEY,
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<ApiEnvSchemaType, true>) => ({
+        secret: configService.getOrThrow('JWT_SECRET_KEY'),
+      }),
     }),
     forwardRef(() => SubscriptionModule),
   ],
