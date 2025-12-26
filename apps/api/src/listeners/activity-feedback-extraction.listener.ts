@@ -3,6 +3,8 @@ import { openai } from '@ai-sdk/openai';
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
+import { Prisma } from '@openathlete/database';
+
 import { ActivityFeedbackCompletedEvent } from 'src/events';
 import { extractInjuryAgent, extractRpeAgent } from 'src/mastra/agents';
 import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
@@ -263,21 +265,19 @@ export class ActivityFeedbackExtractionListener {
           );
         }
 
-        // Store embedding using raw SQL (Prisma doesn't support vector type directly)
         if (embedding && Array.isArray(embedding) && embedding.length > 0) {
-          await tx.$executeRawUnsafe(
-            `
+          const embeddingVector = `[${embedding.join(',')}]`;
+
+          await tx.$executeRaw(
+            Prisma.sql`
             INSERT INTO activity_feedback_embedding (event_activity_id, text_content, embedding, created_at, updated_at)
-            VALUES ($1, $2, $3::vector, NOW(), NOW())
+            VALUES (${eventActivityId}, ${feedbackText}, ${Prisma.raw(`${embeddingVector}::vector`)}, NOW(), NOW())
             ON CONFLICT (event_activity_id) 
             DO UPDATE SET 
               text_content = EXCLUDED.text_content,
               embedding = EXCLUDED.embedding,
               updated_at = NOW()
             `,
-            eventActivityId,
-            feedbackText,
-            `[${embedding.join(',')}]`,
           );
           this.logger.log(`✓ Stored embedding for activity ${eventActivityId}`);
         } else {
