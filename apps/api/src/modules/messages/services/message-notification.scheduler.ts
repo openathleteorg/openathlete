@@ -34,6 +34,9 @@ export class MessageNotificationScheduler {
   // Run every minute to evaluate which threads need a grouped notification
   @Cron('* * * * *')
   async sendBatchedMessageNotifications() {
+    const appUrl = this.configService.get('APP_URL');
+    if (!appUrl) return;
+
     const now = new Date();
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000); // safety window
 
@@ -91,13 +94,6 @@ export class MessageNotificationScheduler {
       return;
     }
 
-    const appUrl = this.configService.get('APP_URL');
-    if (!appUrl) {
-      this.logger.error(
-        'APP_URL is not configured. Cannot send message notifications.',
-      );
-      return;
-    }
     const inboxUrl = `${appUrl.replace(/\/$/, '')}/dashboard/messages`;
 
     for (const participant of participants) {
