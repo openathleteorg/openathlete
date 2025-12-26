@@ -11,65 +11,11 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 
+import { corsOriginValidator } from 'src/common/utils/cors.util';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { WsJwtAuthGuard } from '../../agent/guards/ws-jwt-auth.guard';
 import { WebSocketRedisService } from '../../websocket/websocket-redis.service';
-
-// Helper function to get allowed origins (same as main.ts)
-const getAllowedOrigins = (): string[] => {
-  if (process.env.CORS_ORIGINS) {
-    return process.env.CORS_ORIGINS.split(',').map((origin) => origin.trim());
-  }
-  return process.env.APP_URL
-    ? [process.env.APP_URL]
-    : ['http://localhost:5173'];
-};
-
-// CORS validation function for Socket.IO
-const corsOriginValidator = (
-  origin: string | undefined,
-  callback?: (err: Error | null, allow?: boolean) => void,
-): boolean | void => {
-  const allowedOrigins = getAllowedOrigins();
-
-  if (!origin) {
-    if (callback) {
-      return callback(null, true);
-    }
-    return true;
-  }
-
-  if (allowedOrigins.includes(origin)) {
-    if (callback) {
-      return callback(null, true);
-    }
-    return true;
-  }
-
-  try {
-    const originUrl = new URL(origin);
-    const isAllowed = allowedOrigins.some((allowedOrigin) => {
-      try {
-        const allowedUrl = new URL(allowedOrigin);
-        return originUrl.origin === allowedUrl.origin;
-      } catch {
-        return origin === allowedOrigin;
-      }
-    });
-
-    if (callback) {
-      return callback(null, isAllowed);
-    }
-    return isAllowed;
-  } catch {
-    const isAllowed = allowedOrigins.includes(origin);
-    if (callback) {
-      return callback(null, isAllowed);
-    }
-    return isAllowed;
-  }
-};
 
 @WebSocketGateway({
   cors: {
