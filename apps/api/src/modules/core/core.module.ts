@@ -1,5 +1,4 @@
 import { Module, forwardRef } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 
 import { AuthModule } from '../auth';
 import { CalendarModule } from '../calendar/calendar.module';
@@ -12,7 +11,6 @@ import { ActivityFeedbackController } from './controllers/activity-feedback.cont
 import { AthleteController } from './controllers/athlete.controller';
 import { BetaAccessController } from './controllers/beta-access.controller';
 import { CoachController } from './controllers/coach.controller';
-import { ContactController } from './controllers/contact.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateFolderController } from './controllers/event-template-folder.controller';
@@ -32,7 +30,6 @@ import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
 import { BetaAccessService } from './services/beta-access.service';
 import { CoachService } from './services/coach.service';
-import { ContactService } from './services/contact.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
@@ -55,7 +52,6 @@ import { WeatherService } from './services/weather/weather.service';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
     AuthModule,
     forwardRef(() => CalendarModule),
     forwardRef(() => MessagesModule),
@@ -77,7 +73,6 @@ import { WeatherService } from './services/weather/weather.service';
     MetricController,
     TrainingZoneController,
     TrainingLoadController,
-    ContactController,
     BetaAccessController,
     CycleController,
   ],
@@ -97,7 +92,6 @@ import { WeatherService } from './services/weather/weather.service';
     MetricService,
     TrainingZoneService,
     TrainingLoadService,
-    ContactService,
     BetaAccessService,
     CycleService,
     WeatherService,

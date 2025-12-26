@@ -1,6 +1,7 @@
 import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
 
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
@@ -13,6 +14,7 @@ import {
   WorkoutSyncListener,
 } from 'src/listeners';
 
+import { envValidationSchema } from '../config/env.validation';
 import { AgentModule } from './agent/agent.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
@@ -27,6 +29,26 @@ import { SubscriptionModule } from './subscription';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: (config) => {
+        const result = envValidationSchema.safeParse(config);
+        if (!result.success) {
+          const errors = result.error.errors.map((err) => {
+            const path = err.path.join('.');
+            return `  - ${path}: ${err.message}`;
+          });
+          throw new Error(
+            `Environment validation failed:\n${errors.join('\n')}\n\nPlease check your .env file and ensure all required variables are set.`,
+          );
+        }
+        return result.data;
+      },
+      validationOptions: {
+        allowUnknown: false,
+        abortEarly: false,
+      },
+    }),
     SentryModule.forRoot(),
     AuthModule,
     CoreModule,

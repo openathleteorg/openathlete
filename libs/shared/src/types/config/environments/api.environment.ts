@@ -41,9 +41,6 @@ export const ApiEnvSchema = z.object({
 
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().nonempty(),
 
-  NOTION_TOKEN: z.string().nonempty(),
-  NOTION_DATABASE_ID: z.string().nonempty(),
-
   OPENAI_API_KEY: z.string().nonempty(),
 
   REDIS_URL: z.string().default('redis://localhost:6379/0'),

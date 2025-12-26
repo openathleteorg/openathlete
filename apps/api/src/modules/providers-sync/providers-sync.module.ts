@@ -24,7 +24,7 @@ import { ProviderExportScheduler } from './scheduler.service';
   imports: [
     ScheduleModule.forRoot(),
     AuthModule,
-    CoreModule,
+    forwardRef(() => CoreModule),
     EventEmitterModule,
     forwardRef(() => QueueModule),
   ],
