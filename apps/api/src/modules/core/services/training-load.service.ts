@@ -19,6 +19,25 @@ import {
   keysToCamel,
 } from '@openathlete/shared';
 
+import {
+  ACWR_HIGH_RISK_THRESHOLD,
+  ACWR_MODERATE_RISK_THRESHOLD,
+  ACWR_OPTIMAL_MAX,
+  ACWR_RECOMMENDATION_ADJUSTMENTS,
+  ACWR_SAFE_THRESHOLD,
+  CURRENT_LOAD_ANCHORING,
+  EWMA_ALPHA_ATL,
+  EWMA_ALPHA_CTL,
+  LOAD_SLOPE_CLAMP,
+  RECOMMENDATION_ADJUSTMENTS,
+  RECOMMENDATION_BASE_RATIOS,
+  TRIMP_COEFFICIENT_K_FEMALE,
+  TRIMP_COEFFICIENT_K_MALE,
+  TRIMP_COEFFICIENT_Y_FEMALE,
+  TRIMP_COEFFICIENT_Y_MALE,
+  TSB_DETRAINING_THRESHOLD,
+  TSB_OVERREACHING_THRESHOLD,
+} from 'src/common/constants/training-formulas.constants';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -187,13 +206,13 @@ export class TrainingLoadService {
   private getACWRStatus(
     acwr: number,
   ): 'safe' | 'optimal' | 'moderate_risk' | 'high_risk' {
-    if (acwr < 0.8) {
+    if (acwr < ACWR_SAFE_THRESHOLD) {
       return 'safe'; // Déconditionnement
     }
-    if (acwr >= 0.8 && acwr <= 1.3) {
+    if (acwr >= ACWR_SAFE_THRESHOLD && acwr <= ACWR_OPTIMAL_MAX) {
       return 'optimal'; // Zone optimale
     }
-    if (acwr > 1.3 && acwr <= 1.5) {
+    if (acwr > ACWR_OPTIMAL_MAX && acwr <= ACWR_MODERATE_RISK_THRESHOLD) {
       return 'moderate_risk'; // Risque modéré
     }
     return 'high_risk'; // Risque élevé (> 1.5)
@@ -219,25 +238,28 @@ export class TrainingLoadService {
     const previousWeek = weeklyLoads[1] ?? acuteLoad;
     const loadSlope =
       chronicBaseline > 0 ? (acuteLoad - previousWeek) / chronicBaseline : 0;
-    const clampedSlope = this.clamp(loadSlope, -0.2, 0.2);
-
-    const BASE_MIN_RATIO = 0.75;
-    const BASE_MAX_RATIO = 1.3;
-    const ABS_MIN_RATIO = 0.7;
-    const ABS_MAX_RATIO = 1.4;
+    const clampedSlope = this.clamp(
+      loadSlope,
+      LOAD_SLOPE_CLAMP.MIN,
+      LOAD_SLOPE_CLAMP.MAX,
+    );
 
     const adjustedMinRatio = this.clamp(
-      BASE_MIN_RATIO + clampedSlope * 0.5,
-      ABS_MIN_RATIO,
+      RECOMMENDATION_BASE_RATIOS.MIN +
+        clampedSlope * RECOMMENDATION_ADJUSTMENTS.SLOPE_MULTIPLIER,
+      RECOMMENDATION_BASE_RATIOS.ABS_MIN,
       1,
     );
     const adjustedMaxRatio = this.clamp(
-      BASE_MAX_RATIO + clampedSlope,
+      RECOMMENDATION_BASE_RATIOS.MAX + clampedSlope,
       1,
-      ABS_MAX_RATIO,
+      RECOMMENDATION_BASE_RATIOS.ABS_MAX,
     );
 
-    const safeMinRatio = Math.min(adjustedMinRatio, adjustedMaxRatio - 0.1);
+    const safeMinRatio = Math.min(
+      adjustedMinRatio,
+      adjustedMaxRatio - RECOMMENDATION_ADJUSTMENTS.SAFE_MIN_OFFSET,
+    );
 
     const previousWeekLoad = weeklyLoads[1] ?? chronicBaseline;
     const baselineReference =
@@ -254,25 +276,37 @@ export class TrainingLoadService {
       baseMax = baseMin + 1;
     }
 
-    const ANCHOR_BLEND = 0.5;
-    const ZERO_WEEK_DECAY = 0.5;
-
     if (acuteLoad > 0) {
-      baseMin = Math.max(0, this.lerp(baseMin, acuteLoad * 0.85, ANCHOR_BLEND));
+      baseMin = Math.max(
+        0,
+        this.lerp(
+          baseMin,
+          acuteLoad * CURRENT_LOAD_ANCHORING.MIN_FACTOR,
+          RECOMMENDATION_ADJUSTMENTS.ANCHOR_BLEND,
+        ),
+      );
       baseMax = Math.max(
         baseMin + 1,
-        this.lerp(baseMax, acuteLoad * 1.15, ANCHOR_BLEND),
+        this.lerp(
+          baseMax,
+          acuteLoad * CURRENT_LOAD_ANCHORING.MAX_FACTOR,
+          RECOMMENDATION_ADJUSTMENTS.ANCHOR_BLEND,
+        ),
       );
     } else {
-      baseMin *= ZERO_WEEK_DECAY;
-      baseMax = Math.max(baseMin + 1, baseMax * ZERO_WEEK_DECAY);
+      baseMin *= RECOMMENDATION_ADJUSTMENTS.ZERO_WEEK_DECAY;
+      baseMax = Math.max(
+        baseMin + 1,
+        baseMax * RECOMMENDATION_ADJUSTMENTS.ZERO_WEEK_DECAY,
+      );
     }
 
     const normalizedPrevious = Math.max(1, baselineReference);
 
     let trendRatio = acuteLoad / normalizedPrevious;
     if (!isFinite(trendRatio) || trendRatio <= 0) {
-      trendRatio = acuteLoad > 0 ? 1 : ZERO_WEEK_DECAY;
+      trendRatio =
+        acuteLoad > 0 ? 1 : RECOMMENDATION_ADJUSTMENTS.ZERO_WEEK_DECAY;
     }
 
     let weightedTrend: number;
@@ -280,9 +314,6 @@ export class TrainingLoadService {
     const previousRecommendationCenter = previousRecommendation
       ? (previousRecommendation.min + previousRecommendation.max) / 2
       : undefined;
-
-    const SHORTFALL_DECAY = 0.3;
-    const ZERO_WEEK_SHORTFALL_DECAY = 0.5;
 
     if (
       previousRecommendationCenter &&
@@ -295,17 +326,20 @@ export class TrainingLoadService {
           : (previousRecommendationCenter - acuteLoad) /
             previousRecommendationCenter;
       const decayFactor =
-        acuteLoad === 0 ? ZERO_WEEK_SHORTFALL_DECAY : SHORTFALL_DECAY;
+        acuteLoad === 0
+          ? RECOMMENDATION_ADJUSTMENTS.ZERO_WEEK_SHORTFALL_DECAY
+          : RECOMMENDATION_ADJUSTMENTS.SHORTFALL_DECAY;
       weightedTrend = Math.max(0.4, 1 - deficit * decayFactor);
     } else {
-      const TREND_CLAMP_MIN = 0.6;
-      const TREND_CLAMP_MAX = 1.4;
-      const TREND_WEIGHT = 0.6;
-
       weightedTrend =
         1 +
-        (this.clamp(trendRatio, TREND_CLAMP_MIN, TREND_CLAMP_MAX) - 1) *
-          TREND_WEIGHT;
+        (this.clamp(
+          trendRatio,
+          RECOMMENDATION_ADJUSTMENTS.TREND_CLAMP_MIN,
+          RECOMMENDATION_ADJUSTMENTS.TREND_CLAMP_MAX,
+        ) -
+          1) *
+          RECOMMENDATION_ADJUSTMENTS.TREND_WEIGHT;
     }
 
     let progressiveMin = Math.max(0, baseMin * weightedTrend);
@@ -314,19 +348,27 @@ export class TrainingLoadService {
     // Adjust recommendations based on ACWR if provided
     let acwrAdjusted = false;
     if (acwr !== undefined && acwr > 0) {
-      if (acwr > 1.5) {
+      if (acwr > ACWR_HIGH_RISK_THRESHOLD) {
         // High risk: reduce recommendations by 20% to prevent injury
-        progressiveMin = progressiveMin * 0.8;
-        progressiveMax = progressiveMax * 0.8;
+        progressiveMin =
+          progressiveMin * ACWR_RECOMMENDATION_ADJUSTMENTS.HIGH_RISK_MULTIPLIER;
+        progressiveMax =
+          progressiveMax * ACWR_RECOMMENDATION_ADJUSTMENTS.HIGH_RISK_MULTIPLIER;
         acwrAdjusted = true;
-      } else if (acwr > 1.3) {
+      } else if (acwr > ACWR_OPTIMAL_MAX) {
         // Moderate risk: reduce recommendations by 10%
-        progressiveMin = progressiveMin * 0.9;
-        progressiveMax = progressiveMax * 0.9;
+        progressiveMin =
+          progressiveMin *
+          ACWR_RECOMMENDATION_ADJUSTMENTS.MODERATE_RISK_MULTIPLIER;
+        progressiveMax =
+          progressiveMax *
+          ACWR_RECOMMENDATION_ADJUSTMENTS.MODERATE_RISK_MULTIPLIER;
         acwrAdjusted = true;
-      } else if (acwr < 0.8) {
+      } else if (acwr < ACWR_SAFE_THRESHOLD) {
         // Safe/underconditioned: allow slightly more progression (5%)
-        progressiveMax = progressiveMax * 1.05;
+        progressiveMax =
+          progressiveMax *
+          ACWR_RECOMMENDATION_ADJUSTMENTS.SAFE_PROGRESSION_MULTIPLIER;
         // Don't mark as adjusted for underconditioned state
       }
 
@@ -433,8 +475,10 @@ export class TrainingLoadService {
     const hrReserve = hrMax - hrRest;
 
     // Gender-specific coefficients
-    const k = gender === 'male' ? 1.92 : 1.67;
-    const y = gender === 'male' ? 0.64 : 0.86;
+    const k =
+      gender === 'male' ? TRIMP_COEFFICIENT_K_MALE : TRIMP_COEFFICIENT_K_FEMALE;
+    const y =
+      gender === 'male' ? TRIMP_COEFFICIENT_Y_MALE : TRIMP_COEFFICIENT_Y_FEMALE;
 
     let trimp = 0;
     let totalHr = 0;
@@ -851,13 +895,10 @@ export class TrainingLoadService {
     let atl = 0;
     let ctl = 0;
 
-    const alphaATL = 2 / 8; // 7-day EWMA
-    const alphaCTL = 2 / 43; // 42-day EWMA
-
     for (const day of allDays) {
       // Update EWMA (even for days with 0 load - this causes fitness decay)
-      atl = alphaATL * day.load + (1 - alphaATL) * atl;
-      ctl = alphaCTL * day.load + (1 - alphaCTL) * ctl;
+      atl = EWMA_ALPHA_ATL * day.load + (1 - EWMA_ALPHA_ATL) * atl;
+      ctl = EWMA_ALPHA_CTL * day.load + (1 - EWMA_ALPHA_CTL) * ctl;
     }
 
     const tsb = ctl - atl;
@@ -868,9 +909,9 @@ export class TrainingLoadService {
 
     // Determine training status based on TSB
     let status: 'overreaching' | 'optimal' | 'detraining';
-    if (tsb < -10) {
+    if (tsb < TSB_OVERREACHING_THRESHOLD) {
       status = 'overreaching';
-    } else if (tsb > 25) {
+    } else if (tsb > TSB_DETRAINING_THRESHOLD) {
       status = 'detraining';
     } else {
       status = 'optimal';
@@ -1018,13 +1059,10 @@ export class TrainingLoadService {
     let atl = 0;
     let ctl = 0;
 
-    const alphaATL = 2 / 8; // 7-day EWMA
-    const alphaCTL = 2 / 43; // 42-day EWMA
-
     for (const day of allDays) {
       // Update EWMA (even for days with 0 load - this causes fitness decay)
-      atl = alphaATL * day.load + (1 - alphaATL) * atl;
-      ctl = alphaCTL * day.load + (1 - alphaCTL) * ctl;
+      atl = EWMA_ALPHA_ATL * day.load + (1 - EWMA_ALPHA_ATL) * atl;
+      ctl = EWMA_ALPHA_CTL * day.load + (1 - EWMA_ALPHA_CTL) * ctl;
       const tsb = ctl - atl;
 
       // Only include dates within the requested range
