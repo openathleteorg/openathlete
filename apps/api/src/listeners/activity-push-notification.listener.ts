@@ -20,9 +20,9 @@ export class ActivityPushNotificationListener {
 
   @OnEvent(ActivityImportedEvent.SLUG, { async: true })
   async handleActivityImported(event: ActivityImportedEvent) {
-    const { eventActivityId, eventId, skipWeather } = event.payload;
+    const { eventActivityId, eventId, bulkImport } = event.payload;
 
-    if (skipWeather) {
+    if (bulkImport) {
       return;
     }
 

@@ -10,13 +10,13 @@ import { ImportedActivity } from '../providers-sync/base/provider-import.interfa
 export interface ActivityImportJobData {
   providerAccountId: number;
   activity: ImportedActivity;
-  skipWeather?: boolean;
+  bulkImport?: boolean;
 }
 
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
-  skipWeather?: boolean;
+  bulkImport?: boolean;
 }
 
 @Injectable()
@@ -45,7 +45,7 @@ export class QueueService {
   async addActivityImportJob(
     account: provider_account,
     activity: ImportedActivity,
-    skipWeather = false,
+    bulkImport = false,
   ): Promise<void> {
     try {
       const priority = this.calculatePriority(activity.startDate);
@@ -82,7 +82,7 @@ export class QueueService {
         {
           providerAccountId: account.provider_account_id,
           activity,
-          skipWeather,
+          bulkImport,
         },
         {
           priority,
@@ -101,7 +101,7 @@ export class QueueService {
   async addActivityImportJobs(
     account: provider_account,
     activities: ImportedActivity[],
-    skipWeather = false,
+    bulkImport = false,
   ): Promise<void> {
     try {
       const sortedActivities = [...activities].sort(
@@ -147,7 +147,7 @@ export class QueueService {
           data: {
             providerAccountId: account.provider_account_id,
             activity,
-            skipWeather,
+            bulkImport,
           },
           opts: {
             priority,
@@ -177,13 +177,13 @@ export class QueueService {
   async addActivityProcessingJob(
     eventActivityId: number,
     eventId: number,
-    skipWeather = false,
+    bulkImport = false,
   ): Promise<void> {
     try {
       await this.activityProcessingQueue.add('process', {
         eventActivityId,
         eventId,
-        skipWeather,
+        bulkImport,
       });
     } catch (error) {
       this.logger.error(

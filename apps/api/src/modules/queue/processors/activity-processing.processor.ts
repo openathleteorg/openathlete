@@ -31,7 +31,7 @@ export class ActivityProcessingProcessor extends WorkerHost {
   }
 
   async process(job: Job<ActivityProcessingJobData>) {
-    const { eventActivityId, eventId, skipWeather } = job.data;
+    const { eventActivityId, eventId, bulkImport } = job.data;
 
     try {
       // Get athleteId from event before processing
@@ -45,7 +45,7 @@ export class ActivityProcessingProcessor extends WorkerHost {
       await this.pipeline.run({
         eventActivityId,
         eventId,
-        skipWeather,
+        bulkImport,
       });
 
       this.eventEmitter.emit(
@@ -53,7 +53,7 @@ export class ActivityProcessingProcessor extends WorkerHost {
         new ActivityImportedEvent({
           eventActivityId,
           eventId,
-          skipWeather,
+          bulkImport,
         }),
       );
 

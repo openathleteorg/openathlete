@@ -54,7 +54,7 @@ export class ActivityImportProcessor extends WorkerHost {
   }
 
   async process(job: Job<ActivityImportJobData>) {
-    const { providerAccountId, activity, skipWeather } = job.data;
+    const { providerAccountId, activity, bulkImport } = job.data;
 
     try {
       await job.updateProgress(10);
@@ -161,7 +161,7 @@ export class ActivityImportProcessor extends WorkerHost {
       await this.queueService.addActivityProcessingJob(
         savedActivity.event_activity_id,
         savedActivity.event_id,
-        skipWeather,
+        bulkImport,
       );
 
       return {

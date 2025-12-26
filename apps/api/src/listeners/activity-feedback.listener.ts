@@ -29,12 +29,12 @@ export class ActivityFeedbackListener {
 
   @OnEvent(ActivityImportedEvent.SLUG, { async: true })
   async handleActivityImport(event: ActivityImportedEvent) {
-    const { eventActivityId, skipWeather } = event.payload;
+    const { eventActivityId, bulkImport } = event.payload;
 
     try {
-      if (skipWeather) {
+      if (bulkImport) {
         this.logger.debug(
-          `Skipping post-activity feedback generation for activity ${eventActivityId} (bulk import / skipWeather).`,
+          `Skipping post-activity feedback generation for activity ${eventActivityId} (bulk import / bulkImport).`,
         );
         return;
       }
