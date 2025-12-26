@@ -1,5 +1,7 @@
 import { EmailLanguage } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
+
 import { h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
@@ -36,7 +38,7 @@ export function buildSignupNotificationEmail({
   email,
   firstName,
   lastName,
-  language = 'FR',
+  language = Language.FR,
 }: {
   email: string;
   firstName?: string;

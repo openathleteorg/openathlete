@@ -1,5 +1,7 @@
 import { EmailLanguage } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
+
 import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
@@ -29,7 +31,7 @@ const translations = {
 
 export function buildPasswordResetEmail({
   url,
-  language = 'FR',
+  language = Language.FR,
 }: {
   url: string;
   language?: EmailLanguage;

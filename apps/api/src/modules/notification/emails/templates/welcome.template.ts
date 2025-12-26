@@ -1,5 +1,7 @@
 import { EmailLanguage } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
+
 import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
@@ -37,7 +39,7 @@ const translations = {
 export function buildWelcomeEmail({
   name,
   dashboard_url,
-  language = 'FR',
+  language = Language.FR,
 }: {
   name?: string;
   dashboard_url?: string;

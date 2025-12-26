@@ -30,6 +30,7 @@ import {
   keysToCamel,
 } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
 import { SendEmailEvent } from 'src/events';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -91,7 +92,7 @@ export class UserService {
     );
   };
 
-  public updateLanguage = async (user: AuthUser, language: 'FR' | 'EN') => {
+  public updateLanguage = async (user: AuthUser, language: Language) => {
     await this.prisma.user.update({
       where: { user_id: user.user_id },
       data: { language },

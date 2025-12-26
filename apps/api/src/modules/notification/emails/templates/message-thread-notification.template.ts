@@ -1,5 +1,7 @@
 import { EmailLanguage } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
+
 import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
@@ -40,7 +42,7 @@ export function buildMessageThreadNotificationEmail({
   threadTitle,
   messages,
   inboxUrl,
-  language = 'FR',
+  language = Language.FR,
 }: {
   threadTitle?: string | null;
   messages: {
@@ -61,7 +63,7 @@ export function buildMessageThreadNotificationEmail({
     .map((message) => {
       const createdAt = new Date(message.createdAtIso);
       const timeLabel = createdAt.toLocaleString(
-        language === 'FR' ? 'fr-FR' : 'en-US',
+        language === Language.FR ? 'fr-FR' : 'en-US',
         {
           hour: '2-digit',
           minute: '2-digit',

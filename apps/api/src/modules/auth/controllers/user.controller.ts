@@ -17,6 +17,8 @@ import {
   updateAccountDtoSchema,
 } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
+
 import { JwtUser } from '../decorators';
 import { AuthUser } from '../decorators/user.decorator';
 import { UserTypeGuard } from '../guards';
@@ -52,8 +54,8 @@ export class UserController {
   @Patch('language')
   updateLanguage(
     @JwtUser() user: AuthUser,
-    @Body(new ZodValidationPipe(z.object({ language: z.enum(['FR', 'EN']) })))
-    body: { language: 'FR' | 'EN' },
+    @Body(new ZodValidationPipe(z.object({ language: z.nativeEnum(Language) })))
+    body: { language: Language },
   ) {
     return this.userService.updateLanguage(user, body.language);
   }

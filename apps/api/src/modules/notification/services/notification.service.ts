@@ -11,6 +11,7 @@ import {
   emailLibrary,
 } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { emailTemplates } from '../emails/templates';
@@ -42,7 +43,7 @@ export class NotificationService {
         select: { language: true },
       });
 
-      const language: EmailLanguage = (user?.language || 'FR') as EmailLanguage;
+      const language: EmailLanguage = (user?.language || Language.FR) as EmailLanguage;
 
       const sendSmtpEmail = new brevo.SendSmtpEmail();
       sendSmtpEmail.to = [{ email: payload.to }];

@@ -5,6 +5,7 @@ import { Prisma } from '@openathlete/database';
 import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
 import { FeatureName } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
 import { ActivityImportedEvent } from 'src/events';
 import { postActivityFeedbackAgent } from 'src/mastra/agents';
 import {
@@ -76,7 +77,7 @@ export class ActivityFeedbackListener {
       }
 
       const athleteId = activity.event.athlete_id;
-      const userLanguage = activity.event.athlete.user?.language ?? 'FR';
+      const userLanguage = activity.event.athlete.user?.language ?? Language.FR;
 
       const hasAIAccess =
         await this.featureAccessService.canAccessFeatureForAthlete(
@@ -166,7 +167,8 @@ export class ActivityFeedbackListener {
         `- Average HR: ${activity.average_heartrate ?? 'n/a'} bpm`,
       ].join('\n');
 
-      const targetLanguage = userLanguage === 'FR' ? 'French' : 'English';
+      const targetLanguage =
+        userLanguage === Language.FR ? 'French' : 'English';
 
       const context = [
         '=== ATHLETE PROFILE & CURRENT LOAD ===',

@@ -3,7 +3,9 @@ import { OnEvent } from '@nestjs/event-emitter';
 
 import { FeatureName } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
 import { ActivityImportedEvent } from 'src/events';
+import { getPushNotificationTranslation } from 'src/modules/notification/push';
 import { PushNotificationService } from 'src/modules/notification/services/push-notification.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { FeatureAccessService } from 'src/modules/subscription';
@@ -91,28 +93,19 @@ export class ActivityPushNotificationListener {
 
       const hasQuestions = activity.feedback_questions.length > 0;
 
-      const language = user.language ?? 'FR';
-      let title: string;
-      let body: string;
-
-      if (feedbackQuestionsEnabled && hasQuestions) {
-        title = language === 'FR' ? 'Activité traitée' : 'Activity processed';
-        body =
-          language === 'FR'
-            ? 'Votre activité a été analysée et des questions de feedback sont disponibles.'
-            : 'Your activity has been analyzed and feedback questions are available.';
-      } else {
-        title = language === 'FR' ? 'Activité traitée' : 'Activity processed';
-        body =
-          language === 'FR'
-            ? 'Votre activité a été analysée avec succès.'
-            : 'Your activity has been successfully analyzed.';
-      }
+      const language = (user.language ?? Language.FR) as Language;
+      const translation = getPushNotificationTranslation(
+        'activity_processed',
+        language,
+        {
+          hasQuestions: feedbackQuestionsEnabled && hasQuestions,
+        },
+      );
 
       await this.pushNotificationService.sendPushNotification({
         userId: user.user_id,
-        title,
-        body,
+        title: translation.title,
+        body: translation.body,
         data: {
           type: 'activity_processed',
           eventId: String(eventId),
