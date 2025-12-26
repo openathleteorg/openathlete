@@ -85,12 +85,8 @@ decode_secret "STRIPE_WEBHOOK_SECRET"
 decode_secret "HASH_PEPPER"
 decode_secret "STRIPE_PUBLISHABLE_KEY"
 decode_secret "STRIPE_PRICE_IDS"
-# Fix invalid JSON format (keys/values without quotes) to valid JSON
 if [ -n "$STRIPE_PRICE_IDS" ]; then
-  # Check if JSON is already valid (starts with {" and ends with })
   if ! echo "$STRIPE_PRICE_IDS" | grep -qE '^\{".*"\}$'; then
-    # Transform invalid format {KEY:value,KEY:value} to valid JSON {"KEY":"value","KEY":"value"}
-    # Remove outer braces, transform, then add them back
     STRIPE_PRICE_IDS=$(echo "$STRIPE_PRICE_IDS" | sed 's/^{//;s/}$//' | sed -E 's/([A-Z_]+):([^,}]+)/"\1":"\2"/g' | sed 's/^/{/;s/$/}/')
     export STRIPE_PRICE_IDS
   fi

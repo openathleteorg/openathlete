@@ -133,7 +133,7 @@ function parseRedisUrl(redisUrl: string): {
 
         const redisOptions = {
           retryStrategy: (times: number) => {
-            const maxRetries = isWorker ? 20 : 3;
+            const maxRetries = 3;
             if (times > maxRetries) {
               logger.error(
                 `Redis connection failed after ${times} attempts, giving up`,
@@ -149,9 +149,8 @@ function parseRedisUrl(redisUrl: string): {
           },
           lazyConnect: false,
           connectTimeout: isWorker ? 30000 : 10000,
-          commandTimeout: isWorker ? 60000 : 15000, // Increased from 5000 to 15000 for local dev
+          commandTimeout: isWorker ? 60000 : 15000,
           enableReadyCheck: true,
-          // maxRetriesPerRequest must be null for BullMQ
           maxRetriesPerRequest: null,
           maxListeners: 20,
         };
