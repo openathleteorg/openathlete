@@ -38,17 +38,23 @@ export class WsJwtAuthGuard implements CanActivate {
         }>(token);
       } catch (jwtError: unknown) {
         if (jwtError instanceof TokenExpiredError) {
-          this.logger.error('WebSocket authentication failed: JWT token expired');
+          this.logger.error(
+            'WebSocket authentication failed: JWT token expired',
+          );
           throw new WsException('Unauthorized: jwt expired');
         }
         if (jwtError instanceof JsonWebTokenError) {
           const errorMessage =
             jwtError instanceof Error ? jwtError.message : 'Invalid token';
-          this.logger.error(`WebSocket authentication failed: Invalid JWT token - ${errorMessage}`);
+          this.logger.error(
+            `WebSocket authentication failed: Invalid JWT token - ${errorMessage}`,
+          );
           throw new WsException('Unauthorized: Invalid token');
         }
         if (jwtError instanceof Error) {
-          this.logger.error(`WebSocket authentication failed: JWT verification error - ${jwtError.message}`);
+          this.logger.error(
+            `WebSocket authentication failed: JWT verification error - ${jwtError.message}`,
+          );
           throw new WsException('Unauthorized: Invalid token');
         }
         throw new WsException('Unauthorized: Invalid token');
@@ -60,7 +66,9 @@ export class WsJwtAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        this.logger.error(`WebSocket authentication failed: User not found (userId: ${payload.userId})`);
+        this.logger.error(
+          `WebSocket authentication failed: User not found (userId: ${payload.userId})`,
+        );
         throw new WsException('Unauthorized: User not found');
       }
 

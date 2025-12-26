@@ -50,8 +50,10 @@ export class BetaAccessService {
 
       await this.apiInstance.sendTransacEmail(sendSmtpEmail);
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorResponse = (error as { response?: { body?: unknown } })?.response?.body;
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorResponse = (error as { response?: { body?: unknown } })
+        ?.response?.body;
       this.logger.error(
         `Error sending beta access request email: ${errorMessage}${errorResponse ? ` - Response: ${JSON.stringify(errorResponse)}` : ''}`,
         error instanceof Error ? error.stack : undefined,

@@ -46,7 +46,9 @@ export class WsJwtAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        this.logger.error(`WebSocket authentication failed: User not found (userId: ${payload.userId})`);
+        this.logger.error(
+          `WebSocket authentication failed: User not found (userId: ${payload.userId})`,
+        );
         throw new WsException('Unauthorized: User not found');
       }
 

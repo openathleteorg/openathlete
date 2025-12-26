@@ -284,7 +284,10 @@ export async function parseFitFile(
   });
 
   if (errors && errors.length > 0) {
-    logger.warn(`FIT file decode errors detected: ${errors.length} error(s)`, errors);
+    logger.warn(
+      `FIT file decode errors detected: ${errors.length} error(s)`,
+      errors,
+    );
   }
 
   if (!messages) {
