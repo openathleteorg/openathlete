@@ -23,12 +23,10 @@ import {
   METRIC_TYPE,
 } from '@openathlete/shared';
 
+import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
+import { FitFileSegment } from '../../core/helpers/activity-parser.interface';
 import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
-import {
-  FitFileSegment,
-  parseFitFile,
-} from '../../core/helpers/garmin-file-parser';
 import {
   roundCadence,
   roundDistance,
@@ -145,6 +143,7 @@ export class SuuntoProviderService
     configService: ConfigService<ApiEnvSchemaType, true>,
     @Inject(forwardRef(() => QueueService))
     private readonly queueService: QueueService,
+    private readonly activityFileParserService: ActivityFileParserService,
   ) {
     super(prisma, configService);
   }
@@ -797,12 +796,15 @@ export class SuuntoProviderService
         },
       );
 
-      const fitParseResult = await parseFitFile(response.data);
-      if (!fitParseResult.stream) {
+      const parseResult = await this.activityFileParserService.parseByFileType(
+        response.data,
+        'FIT',
+      );
+      if (!parseResult.stream) {
         return;
       }
 
-      const compressedStream = compressActivityStream(fitParseResult.stream);
+      const compressedStream = compressActivityStream(parseResult.stream);
 
       await this.prisma.event_activity.update({
         where: {
@@ -815,13 +817,13 @@ export class SuuntoProviderService
 
       // Sync segments from FIT file if available
       if (
-        fitParseResult.segments?.length &&
-        Object.keys(fitParseResult.stream).length > 0
+        parseResult.segments?.length &&
+        Object.keys(parseResult.stream).length > 0
       ) {
         await this.syncSegmentsFromFit(
           activity.event_activity_id,
-          fitParseResult.segments,
-          fitParseResult.stream,
+          parseResult.segments,
+          parseResult.stream,
         );
       }
     } catch (error) {

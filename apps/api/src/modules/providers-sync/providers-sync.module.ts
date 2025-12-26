@@ -3,6 +3,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from '../auth';
+import { CoreModule } from '../core';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { QueueModule } from '../queue';
 import { CorosAdapter } from './adapters/coros.adapter';
@@ -23,6 +24,7 @@ import { ProviderExportScheduler } from './scheduler.service';
   imports: [
     ScheduleModule.forRoot(),
     AuthModule,
+    CoreModule,
     EventEmitterModule,
     forwardRef(() => QueueModule),
   ],

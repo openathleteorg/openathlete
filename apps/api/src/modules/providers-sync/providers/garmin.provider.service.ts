@@ -26,14 +26,11 @@ import {
   METRIC_TYPE,
 } from '@openathlete/shared';
 
+import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
+import { FitFileSegment } from '../../core/helpers/activity-parser.interface';
 import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
 import { mapGarminActivityType } from '../../core/helpers/garmin';
-import {
-  FitFileSegment,
-  parseFitFile,
-  parseGpxFile,
-} from '../../core/helpers/garmin-file-parser';
 import {
   roundCadence,
   roundDistance,
@@ -109,6 +106,7 @@ export class GarminProviderService
     configService: ConfigService<ApiEnvSchemaType, true>,
     @Inject(forwardRef(() => QueueService))
     private readonly queueService: QueueService,
+    private readonly activityFileParserService: ActivityFileParserService,
   ) {
     super(prisma, configService);
   }
@@ -1988,12 +1986,11 @@ export class GarminProviderService
         timeout: 60000,
       });
 
-      const fitParseResult =
-        fileType === 'FIT' ? await parseFitFile(response.data) : null;
-      const activityStream =
-        fileType === 'FIT'
-          ? (fitParseResult?.stream ?? {})
-          : await parseGpxFile(response.data);
+      const parseResult = await this.activityFileParserService.parseByFileType(
+        response.data,
+        fileType,
+      );
+      const activityStream = parseResult.stream;
       const compressedStream = compressActivityStream(activityStream);
 
       await this.prisma.event_activity.update({
@@ -2006,12 +2003,12 @@ export class GarminProviderService
       });
 
       if (
-        fitParseResult?.segments?.length &&
+        parseResult.segments?.length &&
         Object.keys(activityStream).length > 0
       ) {
         await this.syncSegmentsFromFit(
           activity.event_activity_id,
-          fitParseResult.segments,
+          parseResult.segments,
           activityStream,
         );
       }

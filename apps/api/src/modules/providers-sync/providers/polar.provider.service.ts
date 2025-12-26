@@ -24,11 +24,8 @@ import {
   METRIC_TYPE,
 } from '@openathlete/shared';
 
+import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
-import {
-  parseFitFile,
-  parseGpxFile,
-} from '../../core/helpers/garmin-file-parser';
 import {
   roundDistance,
   roundEnergy,
@@ -98,6 +95,7 @@ export class PolarProviderService
     configService: ConfigService<ApiEnvSchemaType, true>,
     @Inject(forwardRef(() => QueueService))
     private readonly queueService: QueueService,
+    private readonly activityFileParserService: ActivityFileParserService,
   ) {
     super(prisma, configService);
   }
@@ -1243,10 +1241,13 @@ export class PolarProviderService
           );
 
           if (type === 'fit') {
-            const fitParseResult = await parseFitFile(data);
-            activityStream = fitParseResult.stream;
+            const parseResult =
+              await this.activityFileParserService.parseByFileType(data, 'FIT');
+            activityStream = parseResult.stream;
           } else if (type === 'gpx') {
-            activityStream = await parseGpxFile(data);
+            const parseResult =
+              await this.activityFileParserService.parseByFileType(data, 'GPX');
+            activityStream = parseResult.stream;
           }
           // TCX parsing not implemented yet, skip for now
 

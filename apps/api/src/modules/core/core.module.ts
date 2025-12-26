@@ -24,6 +24,7 @@ import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
+import { ActivityFileParserService } from './helpers/activity-file-parser.service';
 import { CycleService, EventService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
@@ -103,6 +104,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityFeedbackService,
     OpenMeteoWeatherProvider,
     ActivityDetailService,
+    ActivityFileParserService,
     // Pipeline and processors
     GapProcessor,
     WeatherProcessor,
@@ -138,6 +140,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityDetailService,
     TrainingLoadService,
     CycleService,
+    ActivityFileParserService,
   ],
 })
 export class CoreModule {}
