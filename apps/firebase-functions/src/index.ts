@@ -33,12 +33,6 @@ export const sendPushNotification = functions.https.onRequest(
     response.set("Access-Control-Allow-Methods", "POST, OPTIONS");
     response.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-    console.log("Received push notification request:", {
-      method: request.method,
-      body: request.body,
-      headers: request.headers,
-    });
-
     try {
       const { token, title, body, data } =
         request.body as SendPushNotificationPayload;

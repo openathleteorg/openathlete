@@ -150,12 +150,6 @@ export function Calendar({
 
     const handleDisconnect = (reason: string) => {
       isSubscribed = false;
-      // Log disconnection for debugging (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[Calendar] WebSocket disconnected:', reason);
-      }
-
       // If disconnected due to server closing or transport close, try to reconnect
       // Socket.IO will handle reconnection automatically, but we ensure subscription
       if (
@@ -176,16 +170,6 @@ export function Calendar({
       }
     };
 
-    const handleReconnect = (attemptNumber: number) => {
-      // Log reconnection for debugging (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log(
-          `[Calendar] WebSocket reconnecting (attempt ${attemptNumber})...`,
-        );
-      }
-    };
-
     const handleReconnectError = (error: Error) => {
       console.error('[Calendar] WebSocket reconnection error:', error);
     };
@@ -200,7 +184,6 @@ export function Calendar({
     // Set up connection/disconnection handlers
     socket.on('connect', handleConnect);
     socket.on('disconnect', handleDisconnect);
-    socket.on('reconnect', handleReconnect);
     socket.on('reconnect_error', handleReconnectError);
 
     // Subscribe immediately if already connected
@@ -271,7 +254,6 @@ export function Calendar({
       cleanup();
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
-      socket.off('reconnect', handleReconnect);
       socket.off('reconnect_error', handleReconnectError);
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
