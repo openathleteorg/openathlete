@@ -110,8 +110,7 @@ export class ChatAgentController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(createThreadDtoSchema)) dto: CreateThreadDto,
   ) {
-    const thread = await this.threadService.createThread(user, dto);
-    return keysToCamel(thread);
+    return this.threadService.createThread(user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

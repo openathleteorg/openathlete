@@ -31,39 +31,35 @@ export class ActivityFeedbackExtractionListener {
       );
 
       // Fetch activity with questions, answers, and comment
-      const activity = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: eventActivityId },
+      const activity = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: eventActivityId },
         include: {
           event: {
             select: {
-              event_id: true,
-              athlete_id: true,
+              eventId: true,
+              athleteId: true,
             },
           },
-          feedback_questions: {
-            orderBy: { created_at: 'asc' },
+          feedbackQuestions: {
+            orderBy: { createdAt: 'asc' },
           },
         },
       });
 
-      if (
-        !activity ||
-        !activity.event?.athlete_id ||
-        !activity.event?.event_id
-      ) {
+      if (!activity || !activity.event?.athleteId || !activity.event?.eventId) {
         this.logger.warn(
           `Activity ${eventActivityId} not found or has no athlete/event, skipping extraction`,
         );
         return;
       }
 
-      const athleteId = activity.event.athlete_id;
-      const eventId = activity.event.event_id;
+      const athleteId = activity.event.athleteId;
+      const eventId = activity.event.eventId;
 
       // Collect all answers and comment
-      const questions = activity.feedback_questions;
+      const questions = activity.feedbackQuestions;
       const allAnswered = questions.every(
-        (q: { answer_text: string | null }) => q.answer_text !== null,
+        (q: { answerText: string | null }) => q.answerText !== null,
       );
 
       // Only process if all questions are answered OR if RPE+comment are present
@@ -76,10 +72,10 @@ export class ActivityFeedbackExtractionListener {
 
       // Build feedback text: concatenate all answers + comment
       const answersText = questions
-        .filter((q: { answer_text: string | null }) => q.answer_text)
+        .filter((q: { answerText: string | null }) => q.answerText)
         .map(
-          (q: { question_text: string; answer_text: string | null }) =>
-            `${q.question_text}\n${q.answer_text}`,
+          (q: { questionText: string; answerText: string | null }) =>
+            `${q.questionText}\n${q.answerText}`,
         )
         .join('\n\n');
 
@@ -99,14 +95,14 @@ export class ActivityFeedbackExtractionListener {
       const twoWeeksAgo = new Date();
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-      const recentInjuries = await this.prisma.athlete_injury.findMany({
+      const recentInjuries = await this.prisma.athleteInjury.findMany({
         where: {
-          athlete_id: athleteId,
-          created_at: {
+          athleteId: athleteId,
+          createdAt: {
             gte: twoWeeksAgo,
           },
         },
-        orderBy: { created_at: 'desc' },
+        orderBy: { createdAt: 'desc' },
         take: 20,
       });
 
@@ -117,11 +113,11 @@ export class ActivityFeedbackExtractionListener {
               .map(
                 (inj: {
                   location: string;
-                  pain_score: number;
+                  painScore: number;
                   status: string;
-                  created_at: Date;
+                  createdAt: Date;
                 }) =>
-                  `- ${inj.location} (pain: ${inj.pain_score.toFixed(2)}, status: ${inj.status}, date: ${inj.created_at.toISOString().split('T')[0]})`,
+                  `- ${inj.location} (pain: ${inj.painScore.toFixed(2)}, status: ${inj.status}, date: ${inj.createdAt.toISOString().split('T')[0]})`,
               )
               .join('\n');
 
@@ -232,12 +228,12 @@ export class ActivityFeedbackExtractionListener {
                   | 'RESOLVED')
               : 'STABLE';
 
-            await tx.athlete_injury.create({
+            await tx.athleteInjury.create({
               data: {
-                athlete_id: athleteId,
-                source_activity_id: eventActivityId,
+                athleteId: athleteId,
+                sourceActivityId: eventActivityId,
                 location: injury.location,
-                pain_score: Math.max(0, Math.min(1, injury.painScore)),
+                painScore: Math.max(0, Math.min(1, injury.painScore)),
                 context: injury.context,
                 status: status,
               },
@@ -250,8 +246,8 @@ export class ActivityFeedbackExtractionListener {
 
         // Update RPE if extracted
         if (rpeResult !== null && rpeResult >= 0 && rpeResult <= 1) {
-          await tx.event_activity.update({
-            where: { event_activity_id: eventActivityId },
+          await tx.eventActivity.update({
+            where: { eventActivityId: eventActivityId },
             data: { rpe: rpeResult },
           });
           this.logger.log(

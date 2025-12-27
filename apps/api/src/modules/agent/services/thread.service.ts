@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Prisma, agent_thread } from '@openathlete/database';
+import { AgentThread, Prisma } from '@openathlete/database';
 import { CreateThreadDto, UpdateThreadDto } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -20,7 +20,7 @@ const THREAD_INCLUDES = {
         orderBy: { order: 'asc' as const },
       },
     },
-    orderBy: { created_at: 'asc' as const },
+    orderBy: { createdAt: 'asc' as const },
   },
 };
 
@@ -34,10 +34,10 @@ export class ThreadService {
   async createThread(
     user: AuthUser,
     dto: CreateThreadDto,
-  ): Promise<agent_thread> {
-    const thread = await this.prisma.agent_thread.create({
+  ): Promise<AgentThread> {
+    const thread = await this.prisma.agentThread.create({
       data: {
-        user_id: user.user_id,
+        userId: user.userId,
         title: dto.title,
         metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
       },
@@ -47,11 +47,11 @@ export class ThreadService {
     return thread;
   }
 
-  async getThreadById(user: AuthUser, threadId: number): Promise<agent_thread> {
+  async getThreadById(user: AuthUser, threadId: number): Promise<AgentThread> {
     const ability = await this.abilities.getFor({ user });
 
-    const thread = await this.prisma.agent_thread.findUnique({
-      where: { thread_id: threadId },
+    const thread = await this.prisma.agentThread.findUnique({
+      where: { threadId: threadId },
       include: THREAD_INCLUDES,
     });
 
@@ -66,11 +66,11 @@ export class ThreadService {
     return thread;
   }
 
-  async getUserThreads(user: AuthUser): Promise<agent_thread[]> {
-    const threads = await this.prisma.agent_thread.findMany({
-      where: { user_id: user.user_id },
+  async getUserThreads(user: AuthUser): Promise<AgentThread[]> {
+    const threads = await this.prisma.agentThread.findMany({
+      where: { userId: user.userId },
       include: THREAD_INCLUDES,
-      orderBy: { updated_at: 'desc' },
+      orderBy: { updatedAt: 'desc' },
     });
 
     return threads;
@@ -80,11 +80,11 @@ export class ThreadService {
     user: AuthUser,
     threadId: number,
     dto: UpdateThreadDto,
-  ): Promise<agent_thread> {
+  ): Promise<AgentThread> {
     await this.getThreadById(user, threadId);
 
-    const thread = await this.prisma.agent_thread.update({
-      where: { thread_id: threadId },
+    const thread = await this.prisma.agentThread.update({
+      where: { threadId: threadId },
       data: {
         title: dto.title,
         metadata: dto.metadata
@@ -100,8 +100,8 @@ export class ThreadService {
   async deleteThread(user: AuthUser, threadId: number): Promise<void> {
     await this.getThreadById(user, threadId);
 
-    await this.prisma.agent_thread.delete({
-      where: { thread_id: threadId },
+    await this.prisma.agentThread.delete({
+      where: { threadId: threadId },
     });
   }
 }

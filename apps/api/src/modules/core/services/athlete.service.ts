@@ -6,8 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { athlete, sport_type } from '@openathlete/database';
-import { keysToCamel } from '@openathlete/shared';
+import { Athlete, SportType } from '@openathlete/database';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -16,7 +15,7 @@ import { CoachInvitationService } from 'src/modules/auth/services/coach-invitati
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 const ATHLETE_INCLUDES = {
-  training_zones: {
+  trainingZones: {
     include: {
       values: true,
     },
@@ -24,9 +23,9 @@ const ATHLETE_INCLUDES = {
   },
   user: {
     select: {
-      user_id: true,
-      first_name: true,
-      last_name: true,
+      userId: true,
+      firstName: true,
+      lastName: true,
       email: true,
     },
   },
@@ -42,8 +41,8 @@ export class AthleteService {
   ) {}
 
   private async seedDefaultHeartrateZonesIfEmpty(athleteId: number) {
-    const count = await this.prisma.training_zone.count({
-      where: { athlete_id: athleteId },
+    const count = await this.prisma.trainingZone.count({
+      where: { athleteId: athleteId },
     });
     if (count > 0) return;
 
@@ -85,17 +84,17 @@ export class AthleteService {
       },
     ];
 
-    const allSports = Object.values(sport_type) as sport_type[];
+    const allSports = Object.values(SportType) as SportType[];
     for (let i = 0; i < DEFAULT_HR_ZONES.length; i++) {
       const z = DEFAULT_HR_ZONES[i];
-      await this.prisma.training_zone.create({
+      await this.prisma.trainingZone.create({
         data: {
           name: z.name,
           description: z.description,
           index: i,
           type: 'HEARTRATE',
           color: z.color,
-          athlete_id: athleteId,
+          athleteId: athleteId,
           values: {
             create: [
               {
@@ -110,9 +109,9 @@ export class AthleteService {
     }
   }
 
-  async getAthleteById(id: athlete['athlete_id'], user: AuthUser) {
+  async getAthleteById(id: Athlete['athleteId'], user: AuthUser) {
     let athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: id },
+      where: { athleteId: id },
       include: ATHLETE_INCLUDES,
     });
 
@@ -125,20 +124,20 @@ export class AthleteService {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
-    if (athlete.training_zones.length === 0) {
-      await this.seedDefaultHeartrateZonesIfEmpty(athlete.athlete_id);
+    if (athlete.trainingZones.length === 0) {
+      await this.seedDefaultHeartrateZonesIfEmpty(athlete.athleteId);
       athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: id },
+        where: { athleteId: id },
         include: ATHLETE_INCLUDES,
       });
     }
 
-    return keysToCamel(athlete);
+    return athlete;
   }
 
   async getAthleteByUserId(user: AuthUser) {
     let athlete = await this.prisma.athlete.findFirst({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
       include: ATHLETE_INCLUDES,
     });
 
@@ -151,58 +150,58 @@ export class AthleteService {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
-    if (athlete.training_zones.length === 0) {
-      await this.seedDefaultHeartrateZonesIfEmpty(athlete.athlete_id);
+    if (athlete.trainingZones.length === 0) {
+      await this.seedDefaultHeartrateZonesIfEmpty(athlete.athleteId);
       athlete = await this.prisma.athlete.findFirst({
-        where: { user_id: user.user_id },
+        where: { userId: user.userId },
         include: ATHLETE_INCLUDES,
       });
     }
 
-    return keysToCamel(athlete);
+    return athlete;
   }
 
-  async getMyCoachedAthletes(userId: AuthUser['user_id']) {
+  async getMyCoachedAthletes(userId: AuthUser['userId']) {
     const athletes = await this.prisma.athlete.findMany({
-      where: { coach_athletes: { some: { user_id: userId } } },
+      where: { coachAthletes: { some: { userId: userId } } },
       include: ATHLETE_INCLUDES,
     });
 
-    return athletes.map((athlete) => keysToCamel(athlete));
+    return athletes;
   }
 
-  async getMyCoaches(userId: AuthUser['user_id']) {
+  async getMyCoaches(userId: AuthUser['userId']) {
     const users = await this.prisma.user.findMany({
-      where: { coach_athletes: { some: { athlete_id: userId } } },
+      where: { coachAthletes: { some: { athleteId: userId } } },
     });
-    return users.map((user) => keysToCamel(user));
+    return users;
   }
 
-  async inviteCoach(userId: AuthUser['user_id'], email: string) {
+  async inviteCoach(userId: AuthUser['userId'], email: string) {
     await this.coachInvitationService.createInvitation(userId, email);
   }
 
-  async inviteAthlete(userId: AuthUser['user_id'], email: string) {
+  async inviteAthlete(userId: AuthUser['userId'], email: string) {
     await this.athleteInvitationService.createInvitation(userId, email);
   }
 
-  async getSentAthleteInvitations(userId: AuthUser['user_id']) {
+  async getSentAthleteInvitations(userId: AuthUser['userId']) {
     return this.athleteInvitationService.getSentInvitationsForCoach(userId);
   }
 
   async cancelAthleteInvitation(
-    userId: AuthUser['user_id'],
+    userId: AuthUser['userId'],
     invitationId: number,
   ) {
     await this.athleteInvitationService.cancelInvitation(userId, invitationId);
   }
 
-  async getSentCoachInvitations(userId: AuthUser['user_id']) {
+  async getSentCoachInvitations(userId: AuthUser['userId']) {
     return this.coachInvitationService.getSentInvitationsForAthlete(userId);
   }
 
   async cancelCoachInvitation(
-    userId: AuthUser['user_id'],
+    userId: AuthUser['userId'],
     invitationId: number,
   ) {
     await this.coachInvitationService.cancelInvitationByAthlete(
@@ -212,25 +211,25 @@ export class AthleteService {
   }
 
   async removeAthlete(
-    userId: AuthUser['user_id'],
-    athleteId: athlete['athlete_id'],
+    userId: AuthUser['userId'],
+    athleteId: Athlete['athleteId'],
   ) {
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: athleteId },
+      where: { athleteId: athleteId },
     });
 
     if (!athlete) {
       throw new NotFoundException('Athlete not found');
     }
 
-    await this.prisma.coach_athlete.deleteMany({
-      where: { athlete_id: athleteId, user_id: userId },
+    await this.prisma.coachAthlete.deleteMany({
+      where: { athleteId: athleteId, userId: userId },
     });
   }
 
-  async removeCoach(userId: AuthUser['user_id'], coachId: athlete['user_id']) {
+  async removeCoach(userId: AuthUser['userId'], coachId: Athlete['userId']) {
     const user = await this.prisma.user.findUnique({
-      where: { user_id: coachId },
+      where: { userId: coachId },
     });
 
     if (!user) {
@@ -238,15 +237,15 @@ export class AthleteService {
     }
 
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: userId },
+      where: { userId: userId },
     });
 
     if (!athlete) {
       throw new NotFoundException('Athlete not found');
     }
 
-    await this.prisma.coach_athlete.deleteMany({
-      where: { athlete_id: athlete.athlete_id, user_id: user.user_id },
+    await this.prisma.coachAthlete.deleteMany({
+      where: { athleteId: athlete.athleteId, userId: user.userId },
     });
   }
 }

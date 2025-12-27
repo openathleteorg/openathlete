@@ -1,8 +1,8 @@
 import {
-  workout,
-  workout_repeat,
-  workout_step,
-  workout_step_target,
+  Workout,
+  WorkoutRepeat,
+  WorkoutStep,
+  WorkoutStepTarget,
 } from '@openathlete/database';
 
 import {
@@ -175,75 +175,73 @@ export function mapWorkoutDtoToPrisma(
 // Prisma → DTO mapping (snake_case → camelCase)
 // ----------------------------------------------------------------------------
 
-function mapPrismaTargetToDto(
-  target: workout_step_target,
-): WorkoutStepTargetDto {
+function mapPrismaTargetToDto(target: WorkoutStepTarget): WorkoutStepTargetDto {
   return {
-    workoutStepTargetId: target.workout_step_target_id,
-    targetType: target.target_type,
-    targetMin: target.target_min ?? null,
-    targetMax: target.target_max ?? null,
-    targetValue: target.target_value ?? null,
-    metricType: target.metric_type ?? null,
-    stepId: target.step_id,
-    createdAt: target.created_at ? new Date(target.created_at) : undefined,
-    updatedAt: target.updated_at ? new Date(target.updated_at) : undefined,
+    workoutStepTargetId: target.workoutStepTargetId,
+    targetType: target.targetType,
+    targetMin: target.targetMin ?? null,
+    targetMax: target.targetMax ?? null,
+    targetValue: target.targetValue ?? null,
+    metricType: target.metricType ?? null,
+    stepId: target.stepId,
+    createdAt: target.createdAt ? new Date(target.createdAt) : undefined,
+    updatedAt: target.updatedAt ? new Date(target.updatedAt) : undefined,
   } as WorkoutStepTargetDto;
 }
 
 function mapPrismaStepToDto(
-  step: workout_step & {
-    targets?: workout_step_target[];
-    repeat_block?: workout_repeat & { child_steps: workout_step[] };
+  step: WorkoutStep & {
+    targets?: WorkoutStepTarget[];
+    repeatBlock?: WorkoutRepeat & { childSteps: WorkoutStep[] };
   },
 ): WorkoutStepDto {
   const dto: WorkoutStepDto = {
-    workoutStepId: step.workout_step_id,
-    orderIndex: step.order_index,
-    stepType: step.step_type,
+    workoutStepId: step.workoutStepId,
+    orderIndex: step.orderIndex,
+    stepType: step.stepType,
     name: step.name ?? null,
     notes: step.notes ?? null,
-    durationType: step.duration_type,
-    durationValue: step.duration_value ?? null,
-    durationTarget: step.duration_target ?? null,
-    workoutId: step.workout_id ?? undefined,
-    repeatParentId: step.repeat_parent_id ?? undefined,
+    durationType: step.durationType,
+    durationValue: step.durationValue ?? null,
+    durationTarget: step.durationTarget ?? null,
+    workoutId: step.workoutId ?? undefined,
+    repeatParentId: step.repeatParentId ?? undefined,
     targets: (step.targets || []).map(mapPrismaTargetToDto),
-    repeatBlock: step.repeat_block
+    repeatBlock: step.repeatBlock
       ? {
-          workoutRepeatId: step.repeat_block.workout_repeat_id,
-          repetitions: step.repeat_block.repetitions,
-          stepId: step.repeat_block.step_id,
-          childSteps: (step.repeat_block.child_steps || []).map(
+          workoutRepeatId: step.repeatBlock.workoutRepeatId,
+          repetitions: step.repeatBlock.repetitions,
+          stepId: step.repeatBlock.stepId,
+          childSteps: (step.repeatBlock.childSteps || []).map(
             mapPrismaStepToDto,
           ),
-          createdAt: step.repeat_block.created_at
-            ? new Date(step.repeat_block.created_at)
+          createdAt: step.repeatBlock.createdAt
+            ? new Date(step.repeatBlock.createdAt)
             : undefined,
-          updatedAt: step.repeat_block.updated_at
-            ? new Date(step.repeat_block.updated_at)
+          updatedAt: step.repeatBlock.updatedAt
+            ? new Date(step.repeatBlock.updatedAt)
             : undefined,
         }
       : null,
-    createdAt: step.created_at ? new Date(step.created_at) : undefined,
-    updatedAt: step.updated_at ? new Date(step.updated_at) : undefined,
+    createdAt: step.createdAt ? new Date(step.createdAt) : undefined,
+    updatedAt: step.updatedAt ? new Date(step.updatedAt) : undefined,
   } as WorkoutStepDto;
 
   return dto;
 }
 
 export function mapPrismaWorkoutToDto(
-  prismaWorkout: workout & { steps: workout_step[] },
+  prismaWorkout: Workout & { steps: WorkoutStep[] },
 ): WorkoutDto {
   return {
-    workoutId: prismaWorkout.workout_id,
-    eventTrainingId: prismaWorkout.event_training_id,
+    workoutId: prismaWorkout.workoutId,
+    eventTrainingId: prismaWorkout.eventTrainingId,
     steps: (prismaWorkout.steps || []).map((s) => mapPrismaStepToDto(s)),
-    createdAt: prismaWorkout.created_at
-      ? new Date(prismaWorkout.created_at)
+    createdAt: prismaWorkout.createdAt
+      ? new Date(prismaWorkout.createdAt)
       : undefined,
-    updatedAt: prismaWorkout.updated_at
-      ? new Date(prismaWorkout.updated_at)
+    updatedAt: prismaWorkout.updatedAt
+      ? new Date(prismaWorkout.updatedAt)
       : undefined,
   } as WorkoutDto;
 }

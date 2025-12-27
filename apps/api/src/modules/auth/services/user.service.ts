@@ -12,13 +12,13 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
+  Gender,
+  MetricType,
   Prisma,
-  gender,
-  metric_type,
-  sport_type,
-  token_type,
-  user,
-  user_role,
+  SportType,
+  TokenType,
+  User,
+  UserRole,
 } from '@openathlete/database';
 import {
   ApiEnvSchemaType,
@@ -27,7 +27,6 @@ import {
   PasswordResetDto,
   PasswordResetRequestDto,
   UpdateAccountDto,
-  keysToCamel,
 } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
@@ -57,15 +56,15 @@ export class UserService {
       : undefined;
   }
 
-  async findOneOrFail(where: Prisma.userWhereInput): Promise<user> {
+  async findOneOrFail(where: Prisma.UserWhereInput): Promise<User> {
     return this.prisma.user.findFirstOrThrow({ where });
   }
 
-  async findOne(where: Prisma.userWhereInput): Promise<user | null> {
+  async findOne(where: Prisma.UserWhereInput): Promise<User | null> {
     return this.prisma.user.findFirst({ where });
   }
 
-  async exists(where: Prisma.userWhereInput): Promise<boolean> {
+  async exists(where: Prisma.UserWhereInput): Promise<boolean> {
     return this.prisma.user.findFirst({ where }).then((user) => !!user);
   }
 
@@ -75,26 +74,24 @@ export class UserService {
     });
 
   public getMe = async (user: AuthUser) => {
-    return keysToCamel(
-      await this.prisma.user.findUniqueOrThrow({
-        where: { user_id: user.user_id },
-        select: {
-          user_id: true,
-          email: true,
-          first_name: true,
-          last_name: true,
-          gender: true,
-          roles: true,
-          onboarding_completed: true,
-          language: true,
-        },
-      }),
-    );
+    return await this.prisma.user.findUniqueOrThrow({
+      where: { userId: user.userId },
+      select: {
+        userId: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        gender: true,
+        roles: true,
+        onboardingCompleted: true,
+        language: true,
+      },
+    });
   };
 
   public updateLanguage = async (user: AuthUser, language: Language) => {
     await this.prisma.user.update({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
       data: { language },
     });
     return { success: true };
@@ -102,16 +99,16 @@ export class UserService {
 
   public updatePushToken = async (user: AuthUser, pushToken: string) => {
     const currentUser = await this.prisma.user.findUnique({
-      where: { user_id: user.user_id },
-      select: { push_token: true },
+      where: { userId: user.userId },
+      select: { pushToken: true },
     });
 
-    if (currentUser?.push_token !== pushToken) {
+    if (currentUser?.pushToken !== pushToken) {
       await this.prisma.user.update({
-        where: { user_id: user.user_id },
-        data: { push_token: pushToken },
+        where: { userId: user.userId },
+        data: { pushToken: pushToken },
       });
-      this.logger.log(`Updated push token for user ${user.user_id}`);
+      this.logger.log(`Updated push token for user ${user.userId}`);
     }
 
     return { success: true };
@@ -177,18 +174,18 @@ export class UserService {
       },
     ];
 
-    const allSports = Object.values(sport_type) as sport_type[];
+    const allSports = Object.values(SportType) as SportType[];
 
     const created = await this.prisma.user.create({
       data: {
         email,
         password: hashedPassword,
-        first_name: firstName,
-        last_name: lastName,
-        roles: [user_role.ATHLETE, user_role.COACH],
+        firstName: firstName,
+        lastName: lastName,
+        roles: [UserRole.ATHLETE, UserRole.COACH],
         athlete: {
           create: {
-            training_zones: {
+            trainingZones: {
               create: DEFAULT_HR_ZONES.map((z, idx) => ({
                 name: z.name,
                 description: z.description,
@@ -210,21 +207,21 @@ export class UserService {
         },
       },
       select: {
-        user_id: true,
+        userId: true,
       },
     });
 
     if (invitationToken) {
       await this.invitationService.consumeInvitation(
         invitationToken,
-        created.user_id,
+        created.userId,
       );
     }
 
     if (coachInvitationToken) {
       await this.coachInvitationService.consumeInvitation(
         coachInvitationToken,
-        created.user_id,
+        created.userId,
       );
     }
 
@@ -253,25 +250,23 @@ export class UserService {
       }),
     );
 
-    return keysToCamel(created);
+    return created;
   };
 
   public updateAccount = async (user: AuthUser, data: UpdateAccountDto) => {
-    return keysToCamel(
-      await this.prisma.user.update({
-        where: { user_id: user.user_id },
-        data: {
-          first_name: data.firstName,
-          last_name: data.lastName,
-          gender: data.gender,
-        },
-        select: {
-          first_name: true,
-          last_name: true,
-          gender: true,
-        },
-      }),
-    );
+    return await this.prisma.user.update({
+      where: { userId: user.userId },
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        gender: data.gender,
+      },
+      select: {
+        firstName: true,
+        lastName: true,
+        gender: true,
+      },
+    });
   };
 
   async comparePasswords(
@@ -302,8 +297,8 @@ export class UserService {
     }
 
     const token = await this.tokenService.createToken(
-      { user_id: user.user_id },
-      token_type.PASSWORD_RESET,
+      { user_id: user.userId },
+      TokenType.PASSWORD_RESET,
     );
 
     this.eventEmitter.emit(
@@ -333,7 +328,7 @@ export class UserService {
     }
 
     await this.prisma.user.update({
-      where: { user_id: user.user_id },
+      where: { userId: user.user_id },
       data: { password: hashedPassword },
     });
   };
@@ -347,16 +342,16 @@ export class UserService {
 
     // Update user roles, gender, and mark onboarding as completed
     await this.prisma.user.update({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
       data: {
-        gender: data.gender as gender | undefined,
-        onboarding_completed: true,
+        gender: data.gender as Gender | undefined,
+        onboardingCompleted: true,
       },
     });
 
     // Get athlete record
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
     });
 
     if (!athlete) {
@@ -365,7 +360,7 @@ export class UserService {
 
     // Create metrics if provided
     const metricsToCreate: Array<{
-      type: metric_type;
+      type: MetricType;
       date: Date;
       value: number;
     }> = [];
@@ -404,16 +399,16 @@ export class UserService {
 
     // Create metrics (upsert to avoid duplicates)
     for (const metric of metricsToCreate) {
-      await this.prisma.athlete_metric.upsert({
+      await this.prisma.athleteMetric.upsert({
         where: {
-          athlete_id_type_date: {
-            athlete_id: athlete.athlete_id,
+          athleteId_type_date: {
+            athleteId: athlete.athleteId,
             type: metric.type,
             date: metric.date,
           },
         },
         create: {
-          athlete_id: athlete.athlete_id,
+          athleteId: athlete.athleteId,
           type: metric.type,
           date: metric.date,
           value: metric.value,
@@ -427,7 +422,7 @@ export class UserService {
     // Invite coach if provided
     if (data.coachEmail && data.roles.includes('ATHLETE')) {
       await this.coachInvitationService.createInvitation(
-        user.user_id,
+        user.userId,
         data.coachEmail,
       );
     }
@@ -440,7 +435,7 @@ export class UserService {
     ) {
       for (const email of data.athleteEmails) {
         try {
-          await this.invitationService.createInvitation(user.user_id, email);
+          await this.invitationService.createInvitation(user.userId, email);
         } catch (error) {
           // Log but don't fail the entire onboarding if one invitation fails
           this.logger.warn(`Failed to invite athlete ${email}: ${error}`);

@@ -44,12 +44,12 @@ export class ActivityFeedbackListener {
         `Generating post-activity feedback questions for activity ${eventActivityId}...`,
       );
 
-      const activity = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: eventActivityId },
+      const activity = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: eventActivityId },
         include: {
-          related_competition: true,
-          related_training: true,
-          feedback_questions: true,
+          relatedCompetition: true,
+          relatedTraining: true,
+          feedbackQuestions: true,
           event: {
             include: {
               athlete: {
@@ -69,14 +69,14 @@ export class ActivityFeedbackListener {
         },
       });
 
-      if (!activity || !activity.event?.athlete_id || !activity.event.athlete) {
+      if (!activity || !activity.event?.athleteId || !activity.event.athlete) {
         this.logger.warn(
           `Activity ${eventActivityId} not found or has no athlete, skipping feedback question generation`,
         );
         return;
       }
 
-      const athleteId = activity.event.athlete_id;
+      const athleteId = activity.event.athleteId;
       const userLanguage = activity.event.athlete.user?.language ?? Language.FR;
 
       const hasAIAccess =
@@ -92,13 +92,13 @@ export class ActivityFeedbackListener {
         return;
       }
 
-      const athleteSettings = await this.prisma.athlete_settings.findUnique({
-        where: { athlete_id: athleteId },
+      const athleteSettings = await this.prisma.athleteSettings.findUnique({
+        where: { athleteId: athleteId },
       });
 
       if (
         !athleteSettings ||
-        athleteSettings.require_feedback_questions === false
+        athleteSettings.requireFeedbackQuestions === false
       ) {
         this.logger.debug(
           `Feedback questions disabled for athlete ${athleteId}, skipping question generation`,
@@ -106,7 +106,7 @@ export class ActivityFeedbackListener {
         return;
       }
 
-      if (activity.feedback_questions.length > 0) {
+      if (activity.feedbackQuestions.length > 0) {
         this.logger.debug(
           `Feedback questions already generated for activity ${eventActivityId}, skipping question generation`,
         );
@@ -121,9 +121,9 @@ export class ActivityFeedbackListener {
 
       // Fetch active injuries separately (new Prisma model)
       const injuries =
-        (await this.prisma.athlete_injury?.findMany({
-          where: { athlete_id: athleteId },
-          orderBy: { created_at: 'desc' },
+        (await this.prisma.athleteInjury?.findMany({
+          where: { athleteId: athleteId },
+          orderBy: { createdAt: 'desc' },
           take: 20,
         })) ?? [];
 
@@ -132,12 +132,12 @@ export class ActivityFeedbackListener {
       const zonesByType = formatZonesByType(zones);
       const trainingZonesSummary = buildZonesContext(zonesByType);
 
-      const training = activity.related_training;
-      const competition = activity.related_competition;
+      const training = activity.relatedTraining;
+      const competition = activity.relatedCompetition;
       const goalSummary = training
-        ? `Target distance: ${training.goal_distance ?? 'n/a'} m, Target elevation gain: ${training.goal_elevation_gain ?? 'n/a'} m, Target duration: ${training.goal_duration ?? 'n/a'} s, Target RPE: ${training.goal_rpe ?? 'n/a'}`
+        ? `Target distance: ${training.goalDistance ?? 'n/a'} m, Target elevation gain: ${training.goalElevationGain ?? 'n/a'} m, Target duration: ${training.goalDuration ?? 'n/a'} s, Target RPE: ${training.goalRpe ?? 'n/a'}`
         : competition
-          ? `Target distance: ${competition.goal_distance ?? 'n/a'} m, Target elevation gain: ${competition.goal_elevation_gain ?? 'n/a'} m, Target duration: ${competition.goal_duration ?? 'n/a'} s, Target RPE: ${competition.goal_rpe ?? 'n/a'}`
+          ? `Target distance: ${competition.goalDistance ?? 'n/a'} m, Target elevation gain: ${competition.goalElevationGain ?? 'n/a'} m, Target duration: ${competition.goalDuration ?? 'n/a'} s, Target RPE: ${competition.goalRpe ?? 'n/a'}`
           : 'No goals specified';
 
       const injuriesSummary =
@@ -145,8 +145,12 @@ export class ActivityFeedbackListener {
           ? 'No active injuries reported.'
           : injuries
               .map(
-                (injury) =>
-                  `- ${injury.location} (pain score: ${injury.pain_score.toFixed(2)}, status: ${injury.status})`,
+                (injury: {
+                  location: string;
+                  painScore: number;
+                  status: string;
+                }) =>
+                  `- ${injury.location} (pain score: ${injury.painScore.toFixed(2)}, status: ${injury.status})`,
               )
               .join('\n');
 
@@ -156,15 +160,15 @@ export class ActivityFeedbackListener {
         '',
         'PLANNED (if available):',
         training
-          ? `- Target distance: ${training.goal_distance ?? 'n/a'} m\n- Target elevation gain: ${training.goal_elevation_gain ?? 'n/a'} m\n- Target duration: ${training.goal_duration ?? 'n/a'} s\n- Target RPE: ${training.goal_rpe ?? 'n/a'}`
+          ? `- Target distance: ${training.goalDistance ?? 'n/a'} m\n- Target elevation gain: ${training.goalElevationGain ?? 'n/a'} m\n- Target duration: ${training.goalDuration ?? 'n/a'} s\n- Target RPE: ${training.goalRpe ?? 'n/a'}`
           : 'No planned training linked to this activity.',
         '',
         'COMPLETED:',
         `- Distance: ${activity.distance} m`,
-        `- Elevation gain: ${activity.elevation_gain} m`,
-        `- Duration (moving_time): ${activity.moving_time} s`,
+        `- Elevation gain: ${activity.elevationGain} m`,
+        `- Duration (moving_time): ${activity.movingTime} s`,
         `- Actual RPE: ${activity.rpe ?? 'n/a'}`,
-        `- Average HR: ${activity.average_heartrate ?? 'n/a'} bpm`,
+        `- Average HR: ${activity.averageHeartrate ?? 'n/a'} bpm`,
       ].join('\n');
 
       const targetLanguage =
@@ -231,11 +235,11 @@ export class ActivityFeedbackListener {
 
       await this.prisma.$transaction(
         questionsToCreate.map((question) =>
-          this.prisma.activity_feedback_question.create({
+          this.prisma.activityFeedbackQuestion.create({
             data: {
-              event_activity_id: eventActivityId,
-              question_text: question.text,
-              qcm_options:
+              eventActivityId: eventActivityId,
+              questionText: question.text,
+              qcmOptions:
                 question.qcmOptions && question.qcmOptions.length > 0
                   ? (question.qcmOptions as unknown as InputJsonValue)
                   : Prisma.DbNull,

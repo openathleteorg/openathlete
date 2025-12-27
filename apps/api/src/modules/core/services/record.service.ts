@@ -6,8 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { athlete, record, sport_type } from '@openathlete/database';
-import { keysToCamel } from '@openathlete/shared';
+import {
+  Athlete,
+  Record as PrismaRecord,
+  RecordType,
+  SportType,
+} from '@openathlete/database';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -22,9 +26,9 @@ export class RecordService {
 
   async getRecords(
     user: AuthUser,
-    sport?: sport_type,
-    athleteId?: athlete['athlete_id'],
-  ): Promise<record[]> {
+    sport?: SportType,
+    athleteId?: Athlete['athleteId'],
+  ): Promise<PrismaRecord[]> {
     const ability = await this.abilities.getFor({ user });
 
     // Determine which athlete's records to fetch
@@ -33,7 +37,7 @@ export class RecordService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -47,17 +51,17 @@ export class RecordService {
       targetAthleteId = athleteId;
     } else {
       // Use current user's athlete ID
-      if (!user.athlete?.athlete_id) {
+      if (!user.athlete?.athleteId) {
         throw new NotFoundException('Athlete not found');
       }
-      targetAthleteId = user.athlete.athlete_id;
+      targetAthleteId = user.athlete.athleteId;
     }
 
     const records = await this.prisma.record.findMany({
       where: {
-        athlete_id: targetAthleteId,
+        athleteId: targetAthleteId,
         ...(sport && {
-          event_activity: {
+          eventActivity: {
             sport,
           },
         }),
@@ -85,13 +89,13 @@ export class RecordService {
         }
         return acc;
       },
-      {} as Record<string, Record<string, record>>,
+      {} as Record<RecordType, Record<string, PrismaRecord>>,
     );
 
     const bestRecordsArray = Object.values(bestRecords).flatMap((type) =>
       Object.values(type),
     );
 
-    return keysToCamel(bestRecordsArray);
+    return bestRecordsArray;
   }
 }
