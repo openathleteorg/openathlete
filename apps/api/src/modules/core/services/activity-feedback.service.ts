@@ -5,7 +5,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFeedbackCompletedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -21,9 +24,10 @@ export class ActivityFeedbackService {
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
     private readonly eventEmitter: EventEmitter2,
+    private readonly configService: ConfigService<ApiEnvSchemaType, true>,
   ) {
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: this.configService.get('OPENAI_API_KEY') ?? '',
     });
   }
 

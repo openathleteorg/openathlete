@@ -5,6 +5,8 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
+import { ApiEnvSchema } from '@openathlete/shared';
+
 import {
   ActivityFeedbackExtractionListener,
   ActivityFeedbackListener,
@@ -14,7 +16,6 @@ import {
   WorkoutSyncListener,
 } from 'src/listeners';
 
-import { envValidationSchema } from '../config/env.validation';
 import { AgentModule } from './agent/agent.module';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
@@ -32,7 +33,7 @@ import { SubscriptionModule } from './subscription';
     ConfigModule.forRoot({
       isGlobal: true,
       validate: (config) => {
-        const result = envValidationSchema.safeParse(config);
+        const result = ApiEnvSchema.safeParse(config);
         if (!result.success) {
           const errors = result.error.errors.map((err) => {
             const path = err.path.join('.');
@@ -71,6 +72,8 @@ import { SubscriptionModule } from './subscription';
     NotificationListener,
     // Only register listeners that depend on activity processing
     // if ENABLE_ACTIVITY_PROCESSING is true so they run on the same instances.
+    // Note: We use process.env here because ConfigService is not available
+    // at module definition time. The value is validated by envValidationSchema.
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
       ? [
           TrainingLoadListener,

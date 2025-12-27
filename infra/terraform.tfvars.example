@@ -40,3 +40,6 @@ stripe_price_ids = "{\"ATHLETE_PRO\":\"price_xxx\",\"COACH_PRO\":\"price_xxx\",\
 
 # Firebase
 firebase_functions_url = "https://your-project.cloudfunctions.net/sendPushNotification"
+
+# Monitoring & Error Tracking
+better_stack_dsn = "https://your-better-stack-dsn-here"

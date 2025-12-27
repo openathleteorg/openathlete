@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { normalization_factor, sport_type } from '@openathlete/database';
 import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
-import { ActivityStream } from '@openathlete/shared';
+import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -64,7 +65,10 @@ const altitudeFilter: NormFilter = {
 export class NormalizationProcessor implements ActivityProcessor {
   name = 'normalization';
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService<ApiEnvSchemaType, true>,
+  ) {}
 
   async run(ctx: ActivityPipelineContext) {
     const activity = await this.prisma.event_activity.findUnique({
@@ -86,10 +90,10 @@ export class NormalizationProcessor implements ActivityProcessor {
 
     // Thresholds to prevent pathological deltas when paused/very slow
     const MIN_MOVING_SPEED_MS = Number.parseFloat(
-      process.env.NORMALIZATION_MIN_MOVING_SPEED_MS ?? '0.3',
+      this.configService.get('NORMALIZATION_MIN_MOVING_SPEED_MS') ?? '0.3',
     ); // ~1.08 km/h
     const MIN_SPEED_DEN_MS = Number.parseFloat(
-      process.env.NORMALIZATION_MIN_SPEED_DEN_MS ?? '0.3',
+      this.configService.get('NORMALIZATION_MIN_SPEED_DEN_MS') ?? '0.3',
     ); // denominator clamp
 
     const stream = uncompressActivityStream(activity.stream as ActivityStream);

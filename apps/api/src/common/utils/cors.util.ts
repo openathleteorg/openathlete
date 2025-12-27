@@ -1,5 +1,9 @@
 /**
  * CORS utility functions for WebSocket gateways
+ *
+ * Note: These functions use process.env because they are used in WebSocket gateway
+ * decorators where ConfigService is not directly available. The values are validated
+ * by envValidationSchema in the ConfigModule.
  */
 
 /**

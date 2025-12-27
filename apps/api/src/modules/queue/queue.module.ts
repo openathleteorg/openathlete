@@ -1,7 +1,9 @@
 import { BullModule } from '@nestjs/bullmq';
 import { Logger, Module, forwardRef } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { CalendarModule } from '../calendar/calendar.module';
 import { CoreModule } from '../core';
@@ -124,12 +126,13 @@ function parseRedisUrl(redisUrl: string): {
     forwardRef(() => CalendarModule),
     BullModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: () => {
-        const redisUrl = process.env.REDIS_URL;
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<ApiEnvSchemaType, true>) => {
+        const redisUrl = configService.get('REDIS_URL');
         const logger = new Logger('QueueModule');
         const isWorker =
-          process.env.ENABLE_ACTIVITY_IMPORT === 'true' ||
-          process.env.ENABLE_ACTIVITY_PROCESSING === 'true';
+          configService.get('ENABLE_ACTIVITY_IMPORT') === true ||
+          configService.get('ENABLE_ACTIVITY_PROCESSING') === true;
 
         const redisOptions = {
           retryStrategy: (times: number) => {
@@ -272,6 +275,8 @@ function parseRedisUrl(redisUrl: string): {
     PrismaService,
     QueueService,
     TrainingLoadEstimationService,
+    // Note: We use process.env here because ConfigService is not available
+    // at module definition time. The value is validated by envValidationSchema.
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
       ? [ActivityImportProcessor]
       : []),

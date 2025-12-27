@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
@@ -22,6 +23,7 @@ import {
 
 import { subscription_plan, subscription_status } from '@openathlete/database';
 import {
+  ApiEnvSchemaType,
   CreateCheckoutSessionDto,
   CurrentSubscriptionDto,
   FeatureName,
@@ -44,6 +46,7 @@ export class SubscriptionController {
     private readonly subscriptionService: SubscriptionService,
     private readonly stripeService: StripeService,
     private readonly featureAccessService: FeatureAccessService,
+    private readonly configService: ConfigService<ApiEnvSchemaType, true>,
   ) {}
 
   @Get('current')
@@ -469,7 +472,7 @@ export class SubscriptionController {
       throw new Error('No Stripe customer found');
     }
 
-    const defaultReturnUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard/settings/subscription`;
+    const defaultReturnUrl = `${this.configService.get('APP_URL')}/dashboard/settings/subscription`;
     const session = await this.stripeService.createCustomerPortalSession(
       subscription.stripe_customer_id,
       returnUrl || defaultReturnUrl,

@@ -1,6 +1,6 @@
-import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 
+import { TRIMP_ESTIMATION_MODEL } from 'src/common/constants/ai-models.constant';
 import {
   DEFAULT_FTP_CYCLING,
   DEFAULT_FTP_RUNNING,
@@ -106,5 +106,5 @@ OUTPUT (JSON only):
   "confidence": float,
   "explanation": string
 }`,
-  model: openai('gpt-5.1'),
+  model: TRIMP_ESTIMATION_MODEL,
 });

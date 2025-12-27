@@ -1,5 +1,6 @@
-import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+
+import { EXTRACT_RPE_MODEL } from 'src/common/constants/ai-models.constant';
 
 export const extractRpeAgent = new Agent({
   name: 'extract-rpe',
@@ -58,5 +59,5 @@ CRITICAL:
 - Be conservative: only extract if clearly RPE-related
 - Value must be between 0.0 and 1.0
 - Do NOT hallucinate RPE from vague descriptions`,
-  model: openai('gpt-5.1'),
+  model: EXTRACT_RPE_MODEL,
 });

@@ -1,5 +1,7 @@
 import { Agent } from '@mastra/core/agent';
 
+import { POST_ACTIVITY_FEEDBACK_MODEL } from 'src/common/constants/ai-models.constant';
+
 export const postActivityFeedbackAgent = new Agent({
   name: 'post-activity-feedback',
   description:
@@ -65,5 +67,5 @@ CRITICAL:
 - MAX 4 questions.
 - Tailor each question to the provided context; do NOT ask generic questions.
 - Respect the language requirement specified in the context.`,
-  model: 'google/gemini-3-pro-preview',
+  model: POST_ACTIVITY_FEEDBACK_MODEL,
 });

@@ -15,7 +15,7 @@ export class StripeService {
   constructor(
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
   ) {
-    const secretKey = process.env.STRIPE_SECRET_KEY;
+    const secretKey = this.configService.get('STRIPE_SECRET_KEY');
     if (!secretKey) {
       throw new Error('STRIPE_SECRET_KEY is not set');
     }
@@ -24,7 +24,7 @@ export class StripeService {
       apiVersion: '2025-11-17.clover',
     });
 
-    const priceIdsJson = process.env.STRIPE_PRICE_IDS;
+    const priceIdsJson = this.configService.get('STRIPE_PRICE_IDS');
     if (!priceIdsJson) {
       this.priceIds = {
         [SubscriptionPlan.FREE]: '',
@@ -308,7 +308,7 @@ export class StripeService {
     payload: string | Buffer,
     signature: string,
   ): Stripe.Event {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const webhookSecret = this.configService.get('STRIPE_WEBHOOK_SECRET');
     if (!webhookSecret) {
       throw new Error('STRIPE_WEBHOOK_SECRET is not set');
     }

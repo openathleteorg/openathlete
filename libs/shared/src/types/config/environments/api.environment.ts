@@ -3,49 +3,339 @@ import { z } from 'zod';
 import { ENV } from '../environment.enum';
 import { NODE_ENV } from '../node-environment.enum';
 
-export const ApiEnvSchema = z.object({
-  ENV: z.nativeEnum(ENV),
-  NODE_ENV: z.nativeEnum(NODE_ENV),
-  SERVER_PORT: z.string().nonempty(),
-  HASH_PEPPER: z.string().nonempty(),
-  JWT_SECRET_KEY: z.string().nonempty(),
-  DATABASE_URL: z.string().nonempty(),
-  APP_URL: z.string().nonempty(),
+/**
+ * Environment variable validation schema for the API application.
+ * This schema ensures all required environment variables are present and valid
+ * before the application starts. Missing or invalid variables will cause
+ * the application to fail with clear error messages.
+ */
+export const ApiEnvSchema = z
+  .object({
+    // Core application configuration
+    ENV: z
+      .nativeEnum(ENV, {
+        required_error:
+          'ENV is required. Must be one of: development, staging, production',
+        invalid_type_error: 'ENV must be a valid environment enum value',
+      })
+      .describe('Application environment (development, staging, production)'),
 
-  STRAVA_CLIENT_ID: z.string().nonempty(),
-  STRAVA_CLIENT_SECRET: z.string().nonempty(),
-  STRAVA_REDIRECT_URI: z.string().nonempty(),
-  STRAVA_WEBHOOK_TOKEN: z.string().nonempty(),
+    NODE_ENV: z
+      .nativeEnum(NODE_ENV, {
+        required_error:
+          'NODE_ENV is required. Must be one of: development, test, production',
+        invalid_type_error:
+          'NODE_ENV must be a valid Node.js environment enum value',
+      })
+      .describe('Node.js environment'),
 
-  GARMIN_CLIENT_ID: z.string().optional(),
-  GARMIN_CLIENT_SECRET: z.string().optional(),
-  GARMIN_REDIRECT_URI: z.string().optional(),
+    PORT: z
+      .string()
+      .regex(/^\d+$/, 'PORT must be a valid port number')
+      .optional()
+      .default('3000')
+      .describe('Port number on which the server will listen'),
 
-  SUUNTO_CLIENT_ID: z.string().optional(),
-  SUUNTO_CLIENT_SECRET: z.string().optional(),
-  SUUNTO_REDIRECT_URI: z.string().optional(),
-  SUUNTO_SUBSCRIPTION_KEY: z.string().optional(),
+    SERVER_PORT: z
+      .string()
+      .regex(/^\d+$/, 'SERVER_PORT must be a valid port number')
+      .optional()
+      .describe('Server port (alternative to PORT)'),
 
-  COROS_CLIENT_ID: z.string().optional(),
-  COROS_CLIENT_SECRET: z.string().optional(),
-  COROS_REDIRECT_URI: z.string().optional(),
+    // Security & Authentication
+    HASH_PEPPER: z
+      .string()
+      .min(1, 'HASH_PEPPER is required for password hashing security')
+      .describe('Secret pepper value used for password hashing'),
 
-  BREVO_API_KEY: z.string().nonempty(),
-  BREVO_FROM_EMAIL: z.string().email().nonempty(),
+    JWT_SECRET_KEY: z
+      .string()
+      .min(
+        32,
+        'JWT_SECRET_KEY must be at least 32 characters long for security',
+      )
+      .describe('Secret key used to sign and verify JWT tokens'),
 
-  POLAR_CLIENT_ID: z.string().nonempty(),
-  POLAR_CLIENT_SECRET: z.string().nonempty(),
-  POLAR_REDIRECT_URI: z.string().nonempty(),
-  POLAR_WEBHOOK_URL: z.string().nonempty(),
-  POLAR_WEBHOOK_SECRET_KEY: z.string().nonempty(),
+    // Database
+    DATABASE_URL: z
+      .string()
+      .url('DATABASE_URL must be a valid database connection URL')
+      .min(1, 'DATABASE_URL is required for database connectivity')
+      .describe('PostgreSQL database connection URL'),
 
-  GOOGLE_GENERATIVE_AI_API_KEY: z.string().nonempty(),
+    // Application URLs
+    APP_URL: z
+      .string()
+      .url('APP_URL must be a valid URL')
+      .optional()
+      .describe(
+        'Base URL of the application (e.g., https://app.openathlete.org)',
+      ),
 
-  OPENAI_API_KEY: z.string().nonempty(),
+    FRONTEND_URL: z
+      .string()
+      .url('FRONTEND_URL must be a valid URL')
+      .optional()
+      .default('http://localhost:5173')
+      .describe('Frontend application URL for redirects'),
 
-  REDIS_URL: z.string().default('redis://localhost:6379/0'),
+    CORS_ORIGINS: z
+      .string()
+      .optional()
+      .describe('Comma-separated list of allowed CORS origins'),
 
-  FIREBASE_FUNCTIONS_URL: z.string().optional(),
-});
+    // Strava OAuth
+    STRAVA_CLIENT_ID: z
+      .string()
+      .min(1, 'STRAVA_CLIENT_ID is required for Strava integration')
+      .describe('Strava OAuth client ID'),
+
+    STRAVA_CLIENT_SECRET: z
+      .string()
+      .min(1, 'STRAVA_CLIENT_SECRET is required for Strava integration')
+      .describe('Strava OAuth client secret'),
+
+    STRAVA_REDIRECT_URI: z
+      .string()
+      .url('STRAVA_REDIRECT_URI must be a valid URL')
+      .min(1, 'STRAVA_REDIRECT_URI is required for Strava OAuth callback')
+      .describe('Strava OAuth redirect URI'),
+
+    STRAVA_WEBHOOK_TOKEN: z
+      .string()
+      .min(
+        1,
+        'STRAVA_WEBHOOK_TOKEN is required for Strava webhook verification',
+      )
+      .describe('Token for verifying Strava webhook requests'),
+
+    // Garmin OAuth (optional)
+    GARMIN_CLIENT_ID: z
+      .string()
+      .optional()
+      .describe('Garmin OAuth client ID (optional)'),
+
+    GARMIN_CLIENT_SECRET: z
+      .string()
+      .optional()
+      .describe('Garmin OAuth client secret (optional)'),
+
+    GARMIN_REDIRECT_URI: z
+      .string()
+      .url('GARMIN_REDIRECT_URI must be a valid URL')
+      .optional()
+      .describe('Garmin OAuth redirect URI (optional)'),
+
+    // Suunto OAuth (optional)
+    SUUNTO_CLIENT_ID: z
+      .string()
+      .optional()
+      .describe('Suunto OAuth client ID (optional)'),
+
+    SUUNTO_CLIENT_SECRET: z
+      .string()
+      .optional()
+      .describe('Suunto OAuth client secret (optional)'),
+
+    SUUNTO_REDIRECT_URI: z
+      .string()
+      .url('SUUNTO_REDIRECT_URI must be a valid URL')
+      .optional()
+      .describe('Suunto OAuth redirect URI (optional)'),
+
+    SUUNTO_SUBSCRIPTION_KEY: z
+      .string()
+      .optional()
+      .describe('Suunto subscription key for API access (optional)'),
+
+    // Coros OAuth (optional)
+    COROS_CLIENT_ID: z
+      .string()
+      .optional()
+      .describe('Coros OAuth client ID (optional)'),
+
+    COROS_CLIENT_SECRET: z
+      .string()
+      .optional()
+      .describe('Coros OAuth client secret (optional)'),
+
+    COROS_REDIRECT_URI: z
+      .string()
+      .url('COROS_REDIRECT_URI must be a valid URL')
+      .optional()
+      .describe('Coros OAuth redirect URI (optional)'),
+
+    // Polar OAuth
+    POLAR_CLIENT_ID: z
+      .string()
+      .min(1, 'POLAR_CLIENT_ID is required for Polar integration')
+      .describe('Polar OAuth client ID'),
+
+    POLAR_CLIENT_SECRET: z
+      .string()
+      .min(1, 'POLAR_CLIENT_SECRET is required for Polar integration')
+      .describe('Polar OAuth client secret'),
+
+    POLAR_REDIRECT_URI: z
+      .string()
+      .url('POLAR_REDIRECT_URI must be a valid URL')
+      .min(1, 'POLAR_REDIRECT_URI is required for Polar OAuth callback')
+      .describe('Polar OAuth redirect URI'),
+
+    POLAR_WEBHOOK_URL: z
+      .string()
+      .url('POLAR_WEBHOOK_URL must be a valid URL')
+      .min(1, 'POLAR_WEBHOOK_URL is required for Polar webhook configuration')
+      .describe('URL where Polar webhooks will be received'),
+
+    POLAR_WEBHOOK_SECRET_KEY: z
+      .string()
+      .min(
+        1,
+        'POLAR_WEBHOOK_SECRET_KEY is required for Polar webhook verification',
+      )
+      .describe('Secret key for verifying Polar webhook requests'),
+
+    // Email service (Brevo)
+    BREVO_API_KEY: z
+      .string()
+      .min(1, 'BREVO_API_KEY is required for sending emails')
+      .describe('Brevo (formerly Sendinblue) API key for email service'),
+
+    BREVO_FROM_EMAIL: z
+      .string()
+      .email('BREVO_FROM_EMAIL must be a valid email address')
+      .min(1, 'BREVO_FROM_EMAIL is required for sending emails')
+      .describe('Default sender email address for Brevo emails'),
+
+    // AI Services
+    OPENAI_API_KEY: z
+      .string()
+      .min(1, 'OPENAI_API_KEY is required for AI features')
+      .describe('OpenAI API key for AI-powered features'),
+
+    GOOGLE_GENERATIVE_AI_API_KEY: z
+      .string()
+      .min(1, 'GOOGLE_GENERATIVE_AI_API_KEY is required for Google AI features')
+      .describe('Google Generative AI API key'),
+
+    // AI Model Configuration (optional, uses defaults if not provided)
+    AI_MODEL_EVENT_GENERATION: z
+      .string()
+      .optional()
+      .describe('AI model for event generation agent (e.g., gpt-4o, gpt-5.1)'),
+    AI_MODEL_EVENT_MODIFICATION: z
+      .string()
+      .optional()
+      .describe(
+        'AI model for event modification agent (e.g., gpt-4o, gpt-5.1)',
+      ),
+    AI_MODEL_EXTRACT_INJURY: z
+      .string()
+      .optional()
+      .describe('AI model for injury extraction agent (e.g., gpt-4o, gpt-5.1)'),
+    AI_MODEL_EXTRACT_RPE: z
+      .string()
+      .optional()
+      .describe('AI model for RPE extraction agent (e.g., gpt-4o, gpt-5.1)'),
+    AI_MODEL_POST_ACTIVITY_FEEDBACK: z
+      .string()
+      .optional()
+      .describe(
+        'AI model for post-activity feedback agent (e.g., google/gemini-2.0-flash-exp, google/gemini-3-pro-preview)',
+      ),
+    AI_MODEL_QNA: z
+      .string()
+      .optional()
+      .describe('AI model for QnA agent (e.g., gpt-4o)'),
+    AI_MODEL_TRIMP_ESTIMATION: z
+      .string()
+      .optional()
+      .describe('AI model for TRIMP estimation agent (e.g., gpt-4o, gpt-5.1)'),
+
+    // Redis
+    REDIS_URL: z
+      .string()
+      .url('REDIS_URL must be a valid Redis connection URL')
+      .optional()
+      .default('redis://localhost:6379/0')
+      .describe('Redis connection URL for queue and caching'),
+
+    // Stripe (optional, required for subscription features)
+    STRIPE_SECRET_KEY: z
+      .string()
+      .optional()
+      .describe('Stripe secret key for payment processing (optional)'),
+
+    STRIPE_PRICE_IDS: z
+      .string()
+      .optional()
+      .describe(
+        'JSON string of Stripe price IDs mapped to subscription plans (optional)',
+      ),
+
+    STRIPE_WEBHOOK_SECRET: z
+      .string()
+      .optional()
+      .describe(
+        'Stripe webhook secret for verifying webhook requests (optional)',
+      ),
+
+    // Firebase
+    FIREBASE_FUNCTIONS_URL: z
+      .string()
+      .url('FIREBASE_FUNCTIONS_URL must be a valid URL')
+      .optional()
+      .describe('Firebase Cloud Functions URL (optional)'),
+
+    // Feature flags
+    ENABLE_ACTIVITY_IMPORT: z
+      .string()
+      .optional()
+      .default('false')
+      .transform((val) => val === 'true')
+      .describe('Enable activity import queue processing'),
+
+    ENABLE_ACTIVITY_PROCESSING: z
+      .string()
+      .optional()
+      .default('false')
+      .transform((val) => val === 'true')
+      .describe('Enable activity processing queue'),
+
+    ENABLE_TRAINING_LOAD_ESTIMATION: z
+      .string()
+      .optional()
+      .default('false')
+      .transform((val) => val === 'true')
+      .describe('Enable training load estimation processing'),
+
+    // Monitoring & Error Tracking
+    BETTER_STACK_DSN: z
+      .string()
+      .url('BETTER_STACK_DSN must be a valid URL')
+      .optional()
+      .describe('Better Stack (Sentry) DSN for error tracking and monitoring'),
+
+    // Normalization processor configuration (optional)
+    NORMALIZATION_MIN_MOVING_SPEED_MS: z
+      .string()
+      .optional()
+      .describe('Minimum moving speed in m/s for normalization processor'),
+    NORMALIZATION_MIN_SPEED_DEN_MS: z
+      .string()
+      .optional()
+      .describe('Minimum speed denominator in m/s for normalization processor'),
+  })
+  .refine(
+    (data) => {
+      // Ensure either PORT or SERVER_PORT is provided (PORT has a default, so this should always pass)
+      return data.PORT || data.SERVER_PORT;
+    },
+    {
+      message: 'Either PORT or SERVER_PORT must be provided',
+      path: ['PORT'],
+    },
+  );
 
 export type ApiEnvSchemaType = z.infer<typeof ApiEnvSchema>;

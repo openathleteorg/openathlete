@@ -1,5 +1,6 @@
-import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+
+import { EVENT_GENERATION_MODEL } from 'src/common/constants/ai-models.constant';
 
 export const eventGenerationAgent = new Agent({
   name: 'event-generation',
@@ -199,5 +200,5 @@ CONTEXT:
 - Pay attention to the training zones and metrics provided in the prompt
 
 Remember: Generate appropriate workouts with proper targets!`,
-  model: openai('gpt-5.1'),
+  model: EVENT_GENERATION_MODEL,
 });

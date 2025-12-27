@@ -117,7 +117,7 @@ export class GarminProviderService
 
   private async initRedis() {
     try {
-      const redisUrl = process.env.REDIS_URL;
+      const redisUrl = this.configService.get('REDIS_URL');
       if (!redisUrl) {
         this.redis = new Redis({
           host: 'localhost',

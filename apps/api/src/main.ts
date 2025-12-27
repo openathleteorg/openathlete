@@ -1,5 +1,8 @@
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import './instrument';
 import { AppModule } from './modules/app.module';
@@ -9,8 +12,10 @@ async function bootstrap() {
     rawBody: true,
   });
 
-  const allowedOrigins = process.env.CORS_ORIGINS
-    ? process.env.CORS_ORIGINS.split(',')
+  const configService = app.get(ConfigService<ApiEnvSchemaType, true>);
+  const corsOrigins = configService.get('CORS_ORIGINS');
+  const allowedOrigins = corsOrigins
+    ? corsOrigins.split(',')
     : ['http://localhost:5173'];
 
   app.enableCors({
@@ -30,6 +35,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(process.env.PORT ?? 3000);
+  const port = configService.get('PORT') ?? '3000';
+  await app.listen(Number.parseInt(port, 10));
 }
 bootstrap();

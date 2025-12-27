@@ -2,6 +2,9 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import { Redis } from 'ioredis';
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 @Injectable()
 export class WebSocketRedisService implements OnModuleInit {
@@ -10,12 +13,16 @@ export class WebSocketRedisService implements OnModuleInit {
   private subClient: Redis | null = null;
   private adapter: ReturnType<typeof createAdapter> | null = null;
 
+  constructor(
+    private readonly configService: ConfigService<ApiEnvSchemaType, true>,
+  ) {}
+
   async onModuleInit() {
     await this.initializeRedisClients();
   }
 
   private async initializeRedisClients() {
-    const redisUrl = process.env.REDIS_URL;
+    const redisUrl = this.configService.get('REDIS_URL');
 
     if (!redisUrl) {
       this.logger.warn(

@@ -1,5 +1,6 @@
-import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+
+import { EXTRACT_INJURY_MODEL } from 'src/common/constants/ai-models.constant';
 
 export const extractInjuryAgent = new Agent({
   name: 'extract-injury',
@@ -56,5 +57,5 @@ CRITICAL:
 - Be conservative: only extract if clearly injury/pain related
 - Location must be specific body part, not vague terms
 - Pain score must be between 0.0 and 1.0`,
-  model: openai('gpt-5.1'),
+  model: EXTRACT_INJURY_MODEL,
 });

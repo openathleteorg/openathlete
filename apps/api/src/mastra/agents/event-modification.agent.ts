@@ -1,5 +1,6 @@
-import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+
+import { EVENT_MODIFICATION_MODEL } from 'src/common/constants/ai-models.constant';
 
 export const eventModificationAgent = new Agent({
   name: 'event-modification',
@@ -224,5 +225,5 @@ CRITICAL RULES:
 - Count the steps in the current event and make sure you return at least that many (unless explicitly asked to remove some)
 
 REMEMBER: This is a FULL UPDATE. Return the COMPLETE event with ALL workout steps, not just the first few!`,
-  model: openai('gpt-5.1'),
+  model: EVENT_MODIFICATION_MODEL,
 });

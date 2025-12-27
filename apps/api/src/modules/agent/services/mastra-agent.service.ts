@@ -69,7 +69,12 @@ export class MastraAgentService implements OnModuleInit {
     private prismaService: PrismaService,
     private trainingLoadService: TrainingLoadService,
   ) {
-    process.env.OPENAI_API_KEY = this.configService.get('OPENAI_API_KEY');
+    // Note: Some libraries may still require OPENAI_API_KEY in process.env
+    // This is a temporary workaround until those libraries support ConfigService
+    const openaiKey = this.configService.get('OPENAI_API_KEY');
+    if (openaiKey) {
+      process.env.OPENAI_API_KEY = openaiKey;
+    }
   }
 
   async onModuleInit() {

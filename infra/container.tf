@@ -65,6 +65,7 @@ resource "scaleway_container" "api" {
     SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
     SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
     FIREBASE_FUNCTIONS_URL = scaleway_secret_version.firebase_functions_url_v.data
+    BETTER_STACK_DSN = scaleway_secret_version.better_stack_dsn_v.data
   }
 
   depends_on = [
@@ -86,7 +87,8 @@ resource "scaleway_container" "api" {
     scaleway_secret_version.suunto_client_secret_v,
     scaleway_secret_version.suunto_subscription_key_v,
     scaleway_secret_version.hash_pepper_v,
-    scaleway_secret_version.firebase_functions_url_v
+    scaleway_secret_version.firebase_functions_url_v,
+    scaleway_secret_version.better_stack_dsn_v
   ]
 }
 
@@ -144,6 +146,7 @@ resource "scaleway_container" "import_worker" {
     SUUNTO_REDIRECT_URI = "https://app.openathlete.org/auth/callback/suunto"
     SUUNTO_SUBSCRIPTION_KEY = scaleway_secret_version.suunto_subscription_key_v.data
     FIREBASE_FUNCTIONS_URL = scaleway_secret_version.firebase_functions_url_v.data
+    BETTER_STACK_DSN = scaleway_secret_version.better_stack_dsn_v.data
   }
 
   depends_on = [
@@ -165,7 +168,8 @@ resource "scaleway_container" "import_worker" {
     scaleway_secret_version.stripe_price_ids_v,
     scaleway_secret_version.suunto_client_secret_v,
     scaleway_secret_version.suunto_subscription_key_v,
-    scaleway_secret_version.firebase_functions_url_v
+    scaleway_secret_version.firebase_functions_url_v,
+    scaleway_secret_version.better_stack_dsn_v
   ]
 }
 

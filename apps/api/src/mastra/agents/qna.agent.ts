@@ -1,5 +1,6 @@
-import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
+
+import { QNA_MODEL } from 'src/common/constants/ai-models.constant';
 
 export const qnaAgent = new Agent({
   name: 'qna',
@@ -50,5 +51,5 @@ REMEMBER:
 - Tool returns empty? = "No data yet" (not fake examples)
 - Keywords "show", "what", "how many" = CALL TOOL IMMEDIATELY
 - Use real data only - be their supportive, data-driven coach!`,
-  model: openai('gpt-4o'),
+  model: QNA_MODEL,
 });

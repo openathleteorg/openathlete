@@ -181,3 +181,9 @@ variable "firebase_functions_url" {
   type        = string
   sensitive   = true
 }
+
+variable "better_stack_dsn" {
+  description = "Better Stack (Sentry) DSN for error tracking and monitoring (stored in Secret Manager)."
+  type        = string
+  sensitive   = true
+}

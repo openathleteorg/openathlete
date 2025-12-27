@@ -191,3 +191,13 @@ resource "scaleway_secret_version" "firebase_functions_url_v" {
   secret_id = scaleway_secret.firebase_functions_url.id
   data      = var.firebase_functions_url
 }
+
+resource "scaleway_secret" "better_stack_dsn" {
+  name        = "${var.app_name}-BETTER_STACK_DSN"
+  description = "Better Stack (Sentry) DSN for error tracking and monitoring for ${var.app_name}"
+}
+
+resource "scaleway_secret_version" "better_stack_dsn_v" {
+  secret_id = scaleway_secret.better_stack_dsn.id
+  data      = var.better_stack_dsn
+}
