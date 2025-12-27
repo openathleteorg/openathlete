@@ -1,112 +1,118 @@
-model user {
+model User {
   // primary key
-  user_id Int @id @default(autoincrement())
+  userId Int @id @default(autoincrement()) @map("user_id")
 
   // fields
-  email                String        @unique
-  password             String
-  roles                user_role[]
-  first_name           String
-  last_name            String
-  gender               gender?
-  onboarding_completed Boolean       @default(false)
-  language             user_language @default(FR)
-  push_token           String?
+  email               String       @unique
+  password            String
+  roles               UserRole[]
+  firstName           String       @map("first_name")
+  lastName            String       @map("last_name")
+  gender              Gender?
+  onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
+  language            UserLanguage @default(FR)
+  pushToken           String?      @map("push_token")
 
   // relationships
-  athlete                     athlete?
-  coach_athletes              coach_athlete[]
-  tokens                      token[]
-  templates                   event_template[]
-  agent_threads               agent_thread[]
-  event_template_folder       event_template_folder[]
-  athlete_invitations         athlete_invitation[]
-  coach_invitations_sent      coach_invitation[]           @relation("CoachInvitationsSent")
-  coach_invitations_received  coach_invitation[]           @relation("CoachInvitationsReceived")
-  message_thread_participants message_thread_participant[]
-  sent_messages               message[]
-  message_read_receipts       message_read_receipt[]
-  subscription                subscription?
+  athlete                   Athlete?
+  coachAthletes             CoachAthlete[]
+  tokens                    Token[]
+  templates                 EventTemplate[]
+  agentThreads              AgentThread[]
+  eventTemplateFolder       EventTemplateFolder[]
+  athleteInvitations        AthleteInvitation[]
+  coachInvitationsSent      CoachInvitation[]          @relation("CoachInvitationsSent")
+  coachInvitationsReceived  CoachInvitation[]          @relation("CoachInvitationsReceived")
+  messageThreadParticipants MessageThreadParticipant[]
+  sentMessages              Message[]
+  messageReadReceipts       MessageReadReceipt[]
+  subscription              Subscription?
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user")
 }
 
-model provider_account {
+model ProviderAccount {
   // primary key
-  provider_account_id Int @id @default(autoincrement())
+  providerAccountId Int @id @default(autoincrement()) @map("provider_account_id")
 
   // fields
-  provider                  connector_provider
-  access_token              String
-  refresh_token             String?
-  expires_at                DateTime?
-  scopes                    String?
-  status                    provider_account_status @default(active)
-  external_user_id          String?
-  import_activities_enabled Boolean                 @default(true)
-  export_workouts_enabled   Boolean                 @default(true)
-  import_metrics_enabled    Boolean                 @default(false)
-  full_import_requested_at  DateTime?
-  full_import_completed_at  DateTime?
+  provider                ConnectorProvider
+  accessToken             String                @map("access_token")
+  refreshToken            String?               @map("refresh_token")
+  expiresAt               DateTime?             @map("expires_at")
+  scopes                  String?
+  status                  ProviderAccountStatus @default(active)
+  externalUserId          String?               @map("external_user_id")
+  importActivitiesEnabled Boolean               @default(true) @map("import_activities_enabled")
+  exportWorkoutsEnabled   Boolean               @default(true) @map("export_workouts_enabled")
+  importMetricsEnabled    Boolean               @default(false) @map("import_metrics_enabled")
+  fullImportRequestedAt   DateTime?             @map("full_import_requested_at")
+  fullImportCompletedAt   DateTime?             @map("full_import_completed_at")
 
   // relationships
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int
+  athlete   Athlete @relation(fields: [athleteId], references: [athleteId])
+  athleteId Int     @map("athlete_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([athlete_id, provider])
-  @@index([external_user_id])
+  @@index([athleteId, provider])
+  @@index([externalUserId])
+  @@map("provider_account")
 }
 
-model provider_workout_export {
+model ProviderWorkoutExport {
   // primary key
-  provider_workout_export_id Int @id @default(autoincrement())
+  providerWorkoutExportId Int @id @default(autoincrement()) @map("provider_workout_export_id")
 
   // fields
-  athlete_id    Int
-  provider      connector_provider
-  workout_id    Int
-  planned_date  DateTime // store as date-only; convention: midnight UTC
-  external_id   String?
-  status        provider_workout_export_status @default(pending)
-  last_sync_at  DateTime?
-  attempt_count Int                            @default(0)
-  content_hash  String
-  error_code    String?
-  error_message String?
-  raw_payload   Json?
-  schedule_id   String?
+  athleteId    Int                         @map("athlete_id")
+  provider     ConnectorProvider
+  workoutId    Int                         @map("workout_id")
+  plannedDate  DateTime                    @map("planned_date") // store as date-only; convention: midnight UTC
+  externalId   String?                     @map("external_id")
+  status       ProviderWorkoutExportStatus @default(pending)
+  lastSyncAt   DateTime?                   @map("last_sync_at")
+  attemptCount Int                         @default(0) @map("attempt_count")
+  contentHash  String                      @map("content_hash")
+  errorCode    String?                     @map("error_code")
+  errorMessage String?                     @map("error_message")
+  rawPayload   Json?                       @map("raw_payload")
+  scheduleId   String?                     @map("schedule_id")
 
   // relationships
-  athlete athlete @relation(fields: [athlete_id], references: [athlete_id])
-  workout workout @relation(fields: [workout_id], references: [workout_id])
+  athlete Athlete @relation(fields: [athleteId], references: [athleteId])
+  workout Workout @relation(fields: [workoutId], references: [workoutId])
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([athlete_id, provider, workout_id, planned_date])
-  @@index([status, planned_date])
+  @@unique([athleteId, provider, workoutId, plannedDate])
+  @@index([status, plannedDate])
+  @@map("provider_workout_export")
 }
 
-model token {
+model Token {
   // primary key
-  token_id Int @id @default(autoincrement())
+  tokenId Int @id @default(autoincrement()) @map("token_id")
 
   // fields
-  token String     @unique
-  type  token_type
+  token String    @unique
+  type  TokenType
 
   // relationships
-  user    user @relation(fields: [user_id], references: [user_id])
-  user_id Int
+  user   User @relation(fields: [userId], references: [userId])
+  userId Int  @map("user_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("token")
 }

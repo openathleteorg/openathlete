@@ -1,230 +1,256 @@
-model event {
+model Event {
+
   // primary key
-  event_id Int @id @default(autoincrement())
+  eventId Int @id @default(autoincrement()) @map("event_id")
 
   // fields
-  start_date DateTime
-  end_date   DateTime
-  name       String
-  type       event_type
+  startDate DateTime  @map("start_date")
+  endDate   DateTime  @map("end_date")
+  name      String
+  type      EventType
 
   // relationships
-  training         event_training?
-  competition      event_competition?
-  note             event_note?
-  activity         event_activity?
-  athlete          athlete?           @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id       Int?
-  templates        event_template[]
-  training_week    training_week?     @relation(fields: [training_week_id], references: [training_week_id])
-  training_week_id Int?
+  training       EventTraining?
+  competition    EventCompetition?
+  note           EventNote?
+  activity       EventActivity?
+  athlete        Athlete?          @relation(fields: [athleteId], references: [athleteId])
+  athleteId      Int?              @map("athlete_id")
+  templates      EventTemplate[]
+  trainingWeek   TrainingWeek?     @relation(fields: [trainingWeekId], references: [trainingWeekId])
+  trainingWeekId Int?              @map("training_week_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([training_week_id])
+  @@index([trainingWeekId])
+  @@map("event")
 }
 
-model event_training {
+model EventTraining {
+
   // primary key
-  event_training_id Int @id @default(autoincrement())
+  eventTrainingId Int @id @default(autoincrement()) @map("event_training_id")
 
   // fields
-  sport               sport_type
-  description         String     @default("")
-  goal_distance       Float? // in meters
-  goal_elevation_gain Float? // in meters
-  goal_duration       Int? // in seconds
-  goal_rpe            Float? // in RPE (0-1)
-  estimated_load      Float? // estimated TRIMP load for this training session
+  sport             SportType
+  description       String    @default("")
+  goalDistance      Float?    @map("goal_distance") // in meters
+  goalElevationGain Float?    @map("goal_elevation_gain") // in meters
+  goalDuration      Int?      @map("goal_duration") // in seconds
+  goalRpe           Float?    @map("goal_rpe") // in RPE (0-1)
+  estimatedLoad     Float?    @map("estimated_load") // estimated TRIMP load for this training session
 
   // relationships
-  event                            event           @relation(fields: [event_id], references: [event_id])
-  event_id                         Int             @unique
-  related_activity                 event_activity? @relation(fields: [related_activity_id], references: [event_activity_id])
-  related_activity_id              Int?            @unique
-  workout                          workout? // structured workout definition
-  message_thread                   message_thread? @relation("TrainingCommentThread", fields: [message_thread_message_thread_id], references: [message_thread_id])
-  message_thread_message_thread_id Int?            @unique
+  event             Event          @relation(fields: [eventId], references: [eventId])
+  eventId           Int            @unique @map("event_id")
+  relatedActivity   EventActivity? @relation(fields: [relatedActivityId], references: [eventActivityId])
+  relatedActivityId Int?           @unique @map("related_activity_id")
+  workout           Workout? // structured workout definition
+  messageThread     MessageThread? @relation("TrainingCommentThread", fields: [messageThreadId], references: [messageThreadId])
+  messageThreadId   Int?           @unique @map("message_thread_message_thread_id")
+
+  @@map("event_training")
 }
 
-model event_competition {
+model EventCompetition {
+
   // primary key
-  event_competition_id Int @id @default(autoincrement())
+  eventCompetitionId Int @id @default(autoincrement()) @map("event_competition_id")
 
   // fields
-  sport               sport_type
-  description         String     @default("")
-  goal_distance       Float? // in meters
-  goal_elevation_gain Float? // in meters
-  goal_duration       Int? // in seconds
-  goal_rpe            Float? // in RPE (0-1)
+  sport             SportType
+  description       String    @default("")
+  goalDistance      Float?    @map("goal_distance") // in meters
+  goalElevationGain Float?    @map("goal_elevation_gain") // in meters
+  goalDuration      Int?      @map("goal_duration") // in seconds
+  goalRpe           Float?    @map("goal_rpe") // in RPE (0-1)
 
   // relationships
-  event               event           @relation(fields: [event_id], references: [event_id])
-  event_id            Int             @unique
-  related_activity    event_activity? @relation(fields: [related_activity_id], references: [event_activity_id])
-  related_activity_id Int?            @unique
+  event             Event          @relation(fields: [eventId], references: [eventId])
+  eventId           Int            @unique @map("event_id")
+  relatedActivity   EventActivity? @relation(fields: [relatedActivityId], references: [eventActivityId])
+  relatedActivityId Int?           @unique @map("related_activity_id")
+
+  @@map("event_competition")
 }
 
-model event_note {
+model EventNote {
+
   // primary key
-  event_note_id Int @id @default(autoincrement())
+  eventNoteId Int @id @default(autoincrement()) @map("event_note_id")
 
   // fields
   description String @default("")
 
   // relationships
-  event    event @relation(fields: [event_id], references: [event_id])
-  event_id Int   @unique
+  event   Event @relation(fields: [eventId], references: [eventId])
+  eventId Int   @unique @map("event_id")
+
+  @@map("event_note")
 }
 
-model event_activity {
+model EventActivity {
+
   // primary key
-  event_activity_id Int @id @default(autoincrement())
+  eventActivityId Int @id @default(autoincrement()) @map("event_activity_id")
 
   // fields
-  provider                 connector_provider?
-  distance                 Float // in meters
-  elevation_gain           Float // in meters
-  moving_time              Int // in seconds
-  average_speed            Float // in m/s
-  max_speed                Float // in m/s
-  average_cadence          Float? // in rpm
-  average_watts            Float? // in watts
-  max_watts                Float? // in watts
-  weighted_average_watts   Float? // in watts
-  average_heartrate        Float? // in bpm
-  max_heartrate            Float? // in bpm
-  kilojoules               Float? // in kJ
-  rpe                      Float? // in RPE (0-1)
-  external_id              String
-  sport                    sport_type
-  stream                   Json?
-  description              String              @default("")
-  average_gap_speed        Float? // in m/s
-  average_normalized_speed Float? // in m/s
-  feedback_skipped         Boolean             @default(false) // true if user skipped the feedback flow
+  provider               ConnectorProvider?
+  distance               Float // in meters
+  elevationGain          Float              @map("elevation_gain") // in meters
+  movingTime             Int                @map("moving_time") // in seconds
+  averageSpeed           Float              @map("average_speed") // in m/s
+  maxSpeed               Float              @map("max_speed") // in m/s
+  averageCadence         Float?             @map("average_cadence") // in rpm
+  averageWatts           Float?             @map("average_watts") // in watts
+  maxWatts               Float?             @map("max_watts") // in watts
+  weightedAverageWatts   Float?             @map("weighted_average_watts") // in watts
+  averageHeartrate       Float?             @map("average_heartrate") // in bpm
+  maxHeartrate           Float?             @map("max_heartrate") // in bpm
+  kilojoules             Float? // in kJ
+  rpe                    Float? // in RPE (0-1)
+  externalId             String             @map("external_id")
+  sport                  SportType
+  stream                 Json?
+  description            String             @default("")
+  averageGapSpeed        Float?             @map("average_gap_speed") // in m/s
+  averageNormalizedSpeed Float?             @map("average_normalized_speed") // in m/s
+  feedbackSkipped        Boolean            @default(false) @map("feedback_skipped") // true if user skipped the feedback flow
 
   // relationships
-  event                 event                         @relation(fields: [event_id], references: [event_id])
-  event_id              Int                           @unique
-  related_training      event_training?
-  related_competition   event_competition?
-  records               record[]
-  equipment             equipment?                    @relation(fields: [equipment_id], references: [equipment_id])
-  equipment_id          Int?
-  weather               event_activity_weather?
-  normalization         event_activity_normalization?
-  training_load_entries training_load_entry[]
-  message_thread        message_thread?               @relation("ActivityCommentThread") // comment thread for this activity
-  segments              activity_segment[]
-  feedback_questions    activity_feedback_question[]
-  extracted_injuries    athlete_injury[] // injuries extracted from feedback
-  feedback_embedding    activity_feedback_embedding? // vector embedding of feedback responses
+  event               Event                       @relation(fields: [eventId], references: [eventId])
+  eventId             Int                         @unique @map("event_id")
+  relatedTraining     EventTraining?
+  relatedCompetition  EventCompetition?
+  records             Record[]
+  equipment           Equipment?                  @relation(fields: [equipmentId], references: [equipmentId])
+  equipmentId         Int?                        @map("equipment_id")
+  weather             EventActivityWeather?
+  normalization       EventActivityNormalization?
+  trainingLoadEntries TrainingLoadEntry[]
+  messageThread       MessageThread?              @relation("ActivityCommentThread") // comment thread for this activity
+  segments            ActivitySegment[]
+  feedbackQuestions   ActivityFeedbackQuestion[]
+  extractedInjuries   AthleteInjury[] // injuries extracted from feedback
+  feedbackEmbedding   ActivityFeedbackEmbedding? // vector embedding of feedback responses
 
-  @@unique([external_id]) // Index for fast lookup by external provider ID
+  @@unique([externalId]) // Index for fast lookup by external provider ID
+  @@map("event_activity")
 }
 
-model event_activity_weather {
+model EventActivityWeather {
+
   // primary key
-  event_activity_weather_id Int @id @default(autoincrement())
+  eventActivityWeatherId Int @id @default(autoincrement()) @map("event_activity_weather_id")
 
   // fields
-  resolution_m Int     @default(500)
-  provider     String?
-  samples      Json // JSON array of samples with per-distance weather
+  resolutionM Int     @default(500) @map("resolution_m")
+  provider    String?
+  samples     Json // JSON array of samples with per-distance weather
 
   // relationships
-  event_activity    event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
-  event_activity_id Int            @unique
+  eventActivity   EventActivity @relation(fields: [eventActivityId], references: [eventActivityId])
+  eventActivityId Int           @unique @map("event_activity_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("event_activity_weather")
 }
 
-model event_activity_normalization {
+model EventActivityNormalization {
+
   // primary key
-  event_activity_normalization_id Int @id @default(autoincrement())
+  eventActivityNormalizationId Int @id @default(autoincrement()) @map("event_activity_normalization_id")
 
   // fields
-  average_normalized_speed Float? // in m/s, duplicate for quick access; also stored on event_activity
+  averageNormalizedSpeed Float? @map("average_normalized_speed") // in m/s, duplicate for quick access; also stored on event_activity
 
   // relationships
-  event_activity    event_activity                        @relation(fields: [event_activity_id], references: [event_activity_id])
-  event_activity_id Int                                   @unique
-  factors           event_activity_normalization_factor[]
+  eventActivity   EventActivity                      @relation(fields: [eventActivityId], references: [eventActivityId])
+  eventActivityId Int                                @unique @map("event_activity_id")
+  factors         EventActivityNormalizationFactor[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("event_activity_normalization")
 }
 
-model event_activity_normalization_factor {
+model EventActivityNormalizationFactor {
+
   // primary key
-  event_activity_normalization_factor_id Int @id @default(autoincrement())
+  eventActivityNormalizationFactorId Int @id @default(autoincrement()) @map("event_activity_normalization_factor_id")
 
   // fields
-  factor       normalization_factor
+  factor      NormalizationFactor
   // Signed contribution to time vs flat/no-condition baseline over activity
   // Store both absolute seconds and fraction for flexible analytics
-  time_seconds Float // >0 cost, <0 benefit
-  percent      Float // fraction of baseline moving time [0,1]
+  timeSeconds Float               @map("time_seconds") // >0 cost, <0 benefit
+  percent     Float // fraction of baseline moving time [0,1]
 
   // relationships
-  normalization                   event_activity_normalization @relation(fields: [event_activity_normalization_id], references: [event_activity_normalization_id])
-  event_activity_normalization_id Int
+  normalization                EventActivityNormalization @relation(fields: [eventActivityNormalizationId], references: [eventActivityNormalizationId])
+  eventActivityNormalizationId Int                        @map("event_activity_normalization_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("event_activity_normalization_factor")
 }
 
-model event_template {
+model EventTemplate {
+
   // primary key
-  event_template_id Int @id @default(autoincrement())
+  eventTemplateId Int @id @default(autoincrement()) @map("event_template_id")
 
   // fields
 
   // relationships
-  event     event                  @relation(fields: [event_id], references: [event_id])
-  event_id  Int                    @unique
-  user      user                   @relation(fields: [user_id], references: [user_id])
-  user_id   Int
-  folder    event_template_folder? @relation(fields: [folder_id], references: [event_template_folder_id])
-  folder_id Int?
+  event    Event                @relation(fields: [eventId], references: [eventId])
+  eventId  Int                  @unique @map("event_id")
+  user     User                 @relation(fields: [userId], references: [userId])
+  userId   Int                  @map("user_id")
+  folder   EventTemplateFolder? @relation(fields: [folderId], references: [eventTemplateFolderId])
+  folderId Int?                 @map("folder_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([folder_id])
+  @@index([folderId])
+  @@map("event_template")
 }
 
-model cycle {
+model Cycle {
+
   // primary key
-  cycle_id Int @id @default(autoincrement())
+  cycleId Int @id @default(autoincrement()) @map("cycle_id")
 
   // fields
   name        String
-  description String       @default("")
-  start_date  DateTime
-  end_date    DateTime
+  description String      @default("")
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
   color       String? // hex color code (e.g., "#FF5733")
-  phase       cycle_phase? // training phase type (BASE, SPECIFIC, TAPER, etc.)
+  phase       CyclePhase? // training phase type (BASE, SPECIFIC, TAPER, etc.)
 
   // relationships
-  athlete          athlete?        @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id       Int?
-  training_plan    training_plan?  @relation(fields: [training_plan_id], references: [training_plan_id])
-  training_plan_id Int?
-  weeks            training_week[]
+  athlete        Athlete?       @relation(fields: [athleteId], references: [athleteId])
+  athleteId      Int?           @map("athlete_id")
+  trainingPlan   TrainingPlan?  @relation(fields: [trainingPlanId], references: [trainingPlanId])
+  trainingPlanId Int?           @map("training_plan_id")
+  weeks          TrainingWeek[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([training_plan_id])
+  @@index([trainingPlanId])
+  @@map("cycle")
 }

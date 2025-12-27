@@ -12,32 +12,35 @@
 // - TSB (Training Stress Balance): CTL - ATL (fatigue vs fitness)
 // ============================================================================
 
-model training_load_calculation {
+model TrainingLoadCalculation {
+
   // primary key
-  training_load_calculation_id Int @id @default(autoincrement())
+  trainingLoadCalculationId Int @id @default(autoincrement()) @map("training_load_calculation_id")
 
   // fields
-  type        training_load_calculation_type
+  type        TrainingLoadCalculationType
   description String?
-  is_active   Boolean                        @default(true)
+  isActive    Boolean                     @default(true) @map("is_active")
 
   // relationships
-  athlete    athlete               @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
-  athlete_id Int
-  entries    training_load_entry[]
+  athlete   Athlete             @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId Int                 @map("athlete_id")
+  entries   TrainingLoadEntry[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // indexes
-  @@unique([athlete_id, type])
-  @@index([athlete_id, type])
+  @@unique([athleteId, type])
+  @@index([athleteId, type])
+  @@map("training_load_calculation")
 }
 
-model training_load_entry {
+model TrainingLoadEntry {
+
   // primary key
-  training_load_entry_id Int @id @default(autoincrement())
+  trainingLoadEntryId Int @id @default(autoincrement()) @map("training_load_entry_id")
 
   // fields
   date  DateTime @db.Date // Date of the training session
@@ -47,17 +50,18 @@ model training_load_entry {
   metadata Json? // Stores calculation details: { rpe, duration, avg_hr, hr_max, hr_rest, zones, etc. }
 
   // relationships
-  calculation    training_load_calculation @relation(fields: [calculation_id], references: [training_load_calculation_id], onDelete: Cascade)
-  calculation_id Int
-  activity       event_activity            @relation(fields: [activity_id], references: [event_activity_id], onDelete: Cascade)
-  activity_id    Int
+  calculation   TrainingLoadCalculation @relation(fields: [calculationId], references: [trainingLoadCalculationId], onDelete: Cascade)
+  calculationId Int                     @map("calculation_id")
+  activity      EventActivity           @relation(fields: [activityId], references: [eventActivityId], onDelete: Cascade)
+  activityId    Int                     @map("activity_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // indexes
-  @@unique([calculation_id, activity_id]) // One entry per calculation per activity
-  @@index([calculation_id, date])
-  @@index([activity_id])
+  @@unique([calculationId, activityId]) // One entry per calculation per activity
+  @@index([calculationId, date])
+  @@index([activityId])
+  @@map("training_load_entry")
 }

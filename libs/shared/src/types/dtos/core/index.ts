@@ -13,7 +13,6 @@ export * from './coach-dashboard.dto';
 export * from './equipment.dto';
 export * from './metric.dto';
 export * from './create-training-zone.dto';
-export * from './contact.dto';
 export * from './get-event-weather.response.dto';
 export * from './get-event-normalization.response.dto';
 export * from './create-cycle.dto';

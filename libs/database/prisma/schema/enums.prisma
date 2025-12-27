@@ -1,22 +1,28 @@
-enum user_role {
+enum UserRole {
   ATHLETE
   COACH
+
+  @@map("user_role")
 }
 
-enum gender {
+enum Gender {
   MALE
   FEMALE
   OTHER
+
+  @@map("gender")
 }
 
-enum event_type {
+enum EventType {
   TRAINING
   COMPETITION
   NOTE
   ACTIVITY
+
+  @@map("event_type")
 }
 
-enum connector_provider {
+enum ConnectorProvider {
   STRAVA
   GARMIN
   FITBIT
@@ -24,9 +30,11 @@ enum connector_provider {
   SUUNTO
   COROS
   POLAR
+
+  @@map("connector_provider")
 }
 
-enum sport_type {
+enum SportType {
   RUNNING
   TRAIL_RUNNING
   CYCLING
@@ -83,50 +91,64 @@ enum sport_type {
   AQUATHLON
   AQUABIKE
   OTHER
+
+  @@map("sport_type")
 }
 
-enum training_zone_type {
+enum TrainingZoneType {
   HEARTRATE
   POWER
   PACE
+
+  @@map("training_zone_type")
 }
 
-enum token_type {
+enum TokenType {
   PASSWORD_RESET
   ATHLETE_INVITATION
   COACH_INVITATION
+
+  @@map("token_type")
 }
 
-enum invitation_status {
+enum InvitationStatus {
   PENDING
   ACCEPTED
   REJECTED
+
+  @@map("invitation_status")
 }
 
-enum record_type {
+enum RecordType {
   SPEED
   HEARTRATE
   POWER
   ELEVATION_GAIN
   ELEVATION_LOSS
   CADENCE
+
+  @@map("record_type")
 }
 
-enum agent_message_role {
+enum AgentMessageRole {
   USER
   ASSISTANT
   SYSTEM
   TOOL
+
+  @@map("agent_message_role")
 }
 
-enum agent_message_status {
+enum AgentMessageStatus {
   pending
   processing
   completed
   error
+
+  @@map("agent_message_status")
 }
 
-enum agent_block_type {
+enum AgentBlockType {
   TEXT
   THINKING
   TOOL_CALL
@@ -146,31 +168,39 @@ enum agent_block_type {
   ERROR
   IMAGE
   FILE
+
+  @@map("agent_block_type")
 }
 
-enum agent_block_status {
+enum AgentBlockStatus {
   pending
   processing
   completed
   error
   cancelled
+
+  @@map("agent_block_status")
 }
 
-enum equipment_type {
+enum EquipmentType {
   SHOE
   BIKE
+
+  @@map("equipment_type")
 }
 
-enum normalization_factor {
+enum NormalizationFactor {
   SLOPE
   TEMPERATURE
   ALTITUDE
   WIND
   HUMIDITY
   RADIATION
+
+  @@map("normalization_factor")
 }
 
-enum metric_type {
+enum MetricType {
   // Santé & composition corporelle
   WEIGHT
   HEIGHT
@@ -245,14 +275,18 @@ enum metric_type {
   VERTICAL_SPEED_MAX
   FITNESS_INDEX
   FITNESS_AGE
+
+  @@map("metric_type")
 }
 
-enum training_load_calculation_type {
+enum TrainingLoadCalculationType {
   FOSTER_RPE // Foster method using RPE x duration
   TRIMP // TRIMP using exponential HR weighting
+
+  @@map("training_load_calculation_type")
 }
 
-enum workout_step_type {
+enum WorkoutStepType {
   WARMUP
   COOLDOWN
   INTERVAL_ACTIVE // work interval
@@ -260,9 +294,11 @@ enum workout_step_type {
   STEADY // steady pace/effort
   REPEAT // container for repeated steps
   FREE // open/unstructured
+
+  @@map("workout_step_type")
 }
 
-enum workout_duration_type {
+enum WorkoutDurationType {
   TIME // duration in seconds
   DISTANCE // distance in meters
   CALORIES // calories to burn
@@ -271,9 +307,11 @@ enum workout_duration_type {
   LAP_BUTTON // manual lap press
   OPEN // no defined duration
   REPS // number of repetitions (for strength training)
+
+  @@map("workout_duration_type")
 }
 
-enum workout_target_type {
+enum WorkoutTargetType {
   OPEN // no specific target
   PACE // pace/speed target (stored as m/s, can display in min/km)
   HEARTRATE // heart rate target
@@ -282,70 +320,90 @@ enum workout_target_type {
   RPE // rate of perceived exertion
   WEIGHT // weight/load target (for strength training)
   ZONE // training zone (1-5 typically for HR/power zones)
+
+  @@map("workout_target_type")
 }
 
-enum provider_account_status {
+enum ProviderAccountStatus {
   active
   revoked
+
+  @@map("provider_account_status")
 }
 
-enum provider_workout_export_status {
+enum ProviderWorkoutExportStatus {
   pending
   success
   failed
   skipped
+
+  @@map("provider_workout_export_status")
 }
 
-enum plan_status {
+enum PlanStatus {
   DRAFT
   ACTIVE
   COMPLETED
   ARCHIVED
+
+  @@map("plan_status")
 }
 
-enum cycle_phase {
+enum CyclePhase {
   BASE
   SPECIFIC
   TAPER
   RECOVERY
   COMPETITION
+
+  @@map("cycle_phase")
 }
 
-enum availability_priority {
+enum AvailabilityPriority {
   LOW
   MEDIUM
   HIGH
+
+  @@map("availability_priority")
 }
 
-enum user_language {
+enum UserLanguage {
   FR
   EN
+
+  @@map("user_language")
 }
 
-enum activity_segment_type {
+enum ActivitySegmentType {
   LAP // automatic or manual lap from device
   WORKOUT_STEP // segment from a planned workout
   MANUAL // manually created segment
   AUTO_SPLIT // automatically detected split (e.g., by distance)
+
+  @@map("activity_segment_type")
 }
 
-enum injury_status {
+enum InjuryStatus {
   WORSENING
   IMPROVING
   STABLE
   RESOLVED
+
+  @@map("injury_status")
 }
 
-enum subscription_plan {
+enum SubscriptionPlan {
   FREE
   ATHLETE_PRO
   COACH_PRO
   COACH_ULTRA
   CLUB_PRO
   CLUB_ULTRA
+
+  @@map("subscription_plan")
 }
 
-enum subscription_status {
+enum SubscriptionStatus {
   active
   canceled
   past_due
@@ -353,4 +411,6 @@ enum subscription_status {
   incomplete
   incomplete_expired
   unpaid
+
+  @@map("subscription_status")
 }

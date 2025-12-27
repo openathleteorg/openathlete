@@ -1,69 +1,74 @@
-model agent_thread {
+model AgentThread {
   // primary key
-  thread_id Int @id @default(autoincrement())
+  threadId Int @id @default(autoincrement()) @map("thread_id")
 
   // fields
   title    String?
   metadata Json?
 
   // relationships
-  user     user            @relation(fields: [user_id], references: [user_id])
-  user_id  Int
-  messages agent_message[]
+  user     User           @relation(fields: [userId], references: [userId])
+  userId   Int            @map("user_id")
+  messages AgentMessage[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("agent_thread")
 }
 
-model agent_message {
+model AgentMessage {
   // primary key
-  message_id Int @id @default(autoincrement())
+  messageId Int @id @default(autoincrement()) @map("message_id")
 
   // fields
-  role     agent_message_role
+  role     AgentMessageRole
   metadata Json?
-  status   agent_message_status @default(pending)
+  status   AgentMessageStatus @default(pending)
 
   // relationships
-  thread            agent_thread          @relation(fields: [thread_id], references: [thread_id], onDelete: Cascade)
-  thread_id         Int
-  parent_message    agent_message?        @relation("MessageThread", fields: [parent_message_id], references: [message_id])
-  parent_message_id Int?
-  child_messages    agent_message[]       @relation("MessageThread")
-  blocks            agent_message_block[]
+  thread          AgentThread         @relation(fields: [threadId], references: [threadId], onDelete: Cascade)
+  threadId        Int                 @map("thread_id")
+  parentMessage   AgentMessage?       @relation("MessageThread", fields: [parentMessageId], references: [messageId])
+  parentMessageId Int?                @map("parent_message_id")
+  childMessages   AgentMessage[]      @relation("MessageThread")
+  blocks          AgentMessageBlock[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("agent_message")
 }
 
-model agent_message_block {
+model AgentMessageBlock {
   // primary key
-  block_id Int @id @default(autoincrement())
+  blockId Int @id @default(autoincrement()) @map("block_id")
 
   // fields
-  type     agent_block_type
+  type     AgentBlockType
   order    Int
   content  String
   metadata Json?
-  status   agent_block_status @default(completed)
+  status   AgentBlockStatus @default(completed)
   error    String?
 
-  tool_name   String?
-  tool_input  Json?
-  tool_output Json?
+  toolName   String? @map("tool_name")
+  toolInput  Json?   @map("tool_input")
+  toolOutput Json?   @map("tool_output")
 
-  chart_type String?
-  chart_data Json?
+  chartType String? @map("chart_type")
+  chartData Json?   @map("chart_data")
 
   // relationships
-  message    agent_message @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
-  message_id Int
+  message   AgentMessage @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+  messageId Int          @map("message_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([message_id, order])
+  @@index([messageId, order])
+  @@map("agent_message_block")
 }

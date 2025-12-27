@@ -7,21 +7,6 @@ type CamelToSnakeCase<S extends string> = S extends `${infer T}${infer U}`
   ? `${T extends Capitalize<T> ? '_' : ''}${RemoveUnderscoreFirstLetter<Lowercase<T>>}${CamelToSnakeCase<U>}`
   : S;
 
-type SnakeToCamelCase<S extends string> = S extends `${infer T}_${infer U}`
-  ? `${T}${Capitalize<SnakeToCamelCase<U>>}`
-  : S;
-
-export type ConvertKeysToCamelCase<T> =
-  T extends Record<string, unknown>
-    ? {
-        [K in keyof T as SnakeToCamelCase<K & string>]: ConvertKeysToCamelCase<
-          T[K]
-        >;
-      }
-    : T extends Array<Record<string, unknown>>
-      ? Array<ConvertKeysToCamelCase<T[number]>>
-      : T;
-
 export type ConvertKeysToSnakeCase<T> =
   T extends Record<string, unknown>
     ? {
@@ -43,34 +28,6 @@ export type ConvertKeysToLowerCase<T> =
     : T extends Array<Record<string, unknown>>
       ? Array<ConvertKeysToLowerCase<T[number]>>
       : T;
-
-function toCamel(s: string): string {
-  return s.replace(/([-_][a-z])/gi, ($1) => {
-    return $1.toUpperCase().replace('-', '').replace('_', '');
-  });
-}
-
-export function keysToCamel<T>(obj: ConvertKeysToSnakeCase<T>): T {
-  if (
-    obj === Object(obj) &&
-    !Array.isArray(obj) &&
-    typeof obj !== 'function' &&
-    !(obj instanceof Date)
-  ) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const n: { [key: string]: any } = {};
-    Object.keys(obj as object).forEach((k) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      n[toCamel(k)] = keysToCamel((obj as any)[k]);
-    });
-    return n as T;
-  } else if (Array.isArray(obj)) {
-    return obj.map((i) => {
-      return keysToCamel(i);
-    }) as T;
-  }
-  return obj as T;
-}
 
 export function keysToSnake<T>(obj: T): ConvertKeysToSnakeCase<T> {
   if (

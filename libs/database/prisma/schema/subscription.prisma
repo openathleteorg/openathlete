@@ -1,28 +1,29 @@
-model subscription {
+model Subscription {
+
   // primary key
-  subscription_id Int @id @default(autoincrement())
+  subscriptionId Int @id @default(autoincrement()) @map("subscription_id")
 
   // fields
-  plan                    subscription_plan
-  status                  subscription_status @default(active)
-  stripe_customer_id      String?             @unique
-  stripe_subscription_id  String?             @unique
-  current_period_start    DateTime?
-  current_period_end      DateTime?
-  trial_end               DateTime?
-  cancel_at_period_end    Boolean             @default(false)
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus @default(active)
+  stripeCustomerId     String?            @unique @map("stripe_customer_id")
+  stripeSubscriptionId String?            @unique @map("stripe_subscription_id")
+  currentPeriodStart   DateTime?          @map("current_period_start")
+  currentPeriodEnd     DateTime?          @map("current_period_end")
+  trialEnd             DateTime?          @map("trial_end")
+  cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
 
   // relationships
-  user    user @relation(fields: [user_id], references: [user_id])
-  user_id Int  @unique
+  user   User @relation(fields: [userId], references: [userId])
+  userId Int  @unique @map("user_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([user_id])
-  @@index([stripe_customer_id])
-  @@index([stripe_subscription_id])
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
   @@index([status])
+  @@map("subscription")
 }
-

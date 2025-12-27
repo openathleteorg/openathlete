@@ -1,38 +1,39 @@
-model activity_segment {
+model ActivitySegment {
   // primary key
-  activity_segment_id Int @id @default(autoincrement())
+  activitySegmentId Int @id @default(autoincrement()) @map("activity_segment_id")
 
   // fields
-  segment_type             activity_segment_type
-  name                     String? // optional label (e.g., "Lap 1", "Warmup", "Interval 1")
-  order_index              Int // position in the activity sequence (0-based)
-  start_time_seconds       Int // inclusive start time
-  end_time_seconds         Int // exclusive end time (or inclusive for last segment)
-  distance                 Float? // in meters
-  elevation_gain           Float? // in meters
-  moving_time              Int? // in seconds
-  average_speed            Float? // in m/s
-  max_speed                Float? // in m/s
-  average_cadence          Float? // in rpm/spm
-  average_watts            Float? // in watts
-  max_watts                Float? // in watts
-  weighted_average_watts   Float? // in watts
-  average_heartrate        Float? // in bpm
-  max_heartrate            Float? // in bpm
-  kilojoules               Float? // in kJ
-  average_gap_speed        Float? // in m/s
-  average_normalized_speed Float? // in m/s
+  segmentType            ActivitySegmentType @map("segment_type")
+  name                   String? // optional label (e.g., "Lap 1", "Warmup", "Interval 1")
+  orderIndex             Int                 @map("order_index") // position in the activity sequence (0-based)
+  startTimeSeconds       Int                 @map("start_time_seconds") // inclusive start time
+  endTimeSeconds         Int                 @map("end_time_seconds") // exclusive end time (or inclusive for last segment)
+  distance               Float? // in meters
+  elevationGain          Float?              @map("elevation_gain") // in meters
+  movingTime             Int?                @map("moving_time") // in seconds
+  averageSpeed           Float?              @map("average_speed") // in m/s
+  maxSpeed               Float?              @map("max_speed") // in m/s
+  averageCadence         Float?              @map("average_cadence") // in rpm/spm
+  averageWatts           Float?              @map("average_watts") // in watts
+  maxWatts               Float?              @map("max_watts") // in watts
+  weightedAverageWatts   Float?              @map("weighted_average_watts") // in watts
+  averageHeartrate       Float?              @map("average_heartrate") // in bpm
+  maxHeartrate           Float?              @map("max_heartrate") // in bpm
+  kilojoules             Float? // in kJ
+  averageGapSpeed        Float?              @map("average_gap_speed") // in m/s
+  averageNormalizedSpeed Float?              @map("average_normalized_speed") // in m/s
 
   // relationships
-  event_activity    event_activity @relation(fields: [event_activity_id], references: [event_activity_id], onDelete: Cascade)
-  event_activity_id Int
-  workout_step      workout_step?  @relation(fields: [workout_step_id], references: [workout_step_id], onDelete: SetNull)
-  workout_step_id   Int?
+  eventActivity   EventActivity @relation(fields: [eventActivityId], references: [eventActivityId], onDelete: Cascade)
+  eventActivityId Int           @map("event_activity_id")
+  workoutStep     WorkoutStep?  @relation(fields: [workoutStepId], references: [workoutStepId], onDelete: SetNull)
+  workoutStepId   Int?          @map("workout_step_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([event_activity_id, order_index])
-  @@index([workout_step_id])
+  @@index([eventActivityId, orderIndex])
+  @@index([workoutStepId])
+  @@map("activity_segment")
 }

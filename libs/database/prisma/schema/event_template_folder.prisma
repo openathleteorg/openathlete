@@ -1,6 +1,7 @@
-model event_template_folder {
+model EventTemplateFolder {
+
   // primary key
-  event_template_folder_id Int @id @default(autoincrement())
+  eventTemplateFolderId Int @id @default(autoincrement()) @map("event_template_folder_id")
 
   // fields
   name        String
@@ -8,17 +9,18 @@ model event_template_folder {
   description String  @default("")
 
   // relationships
-  user             user                    @relation(fields: [user_id], references: [user_id])
-  user_id          Int
-  parent_folder    event_template_folder?  @relation("FolderHierarchy", fields: [parent_folder_id], references: [event_template_folder_id])
-  parent_folder_id Int?
-  child_folders    event_template_folder[] @relation("FolderHierarchy")
-  event_templates  event_template[]
+  user           User                  @relation(fields: [userId], references: [userId])
+  userId         Int                   @map("user_id")
+  parentFolder   EventTemplateFolder?  @relation("FolderHierarchy", fields: [parentFolderId], references: [eventTemplateFolderId])
+  parentFolderId Int?                  @map("parent_folder_id")
+  childFolders   EventTemplateFolder[] @relation("FolderHierarchy")
+  eventTemplates EventTemplate[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([user_id])
-  @@index([parent_folder_id])
+  @@index([userId])
+  @@index([parentFolderId])
+  @@map("event_template_folder")
 }

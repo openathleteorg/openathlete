@@ -1,20 +1,23 @@
-model equipment {
+model Equipment {
+
   // primary key
-  equipment_id Int @id @default(autoincrement())
+  equipmentId Int @id @default(autoincrement()) @map("equipment_id")
 
   // fields
-  name           String
-  type           equipment_type
-  total_distance Float          @default(0) // in meters
-  is_default     Boolean        @default(false)
-  sports         sport_type[]
+  name          String
+  type          EquipmentType
+  totalDistance Float         @default(0) @map("total_distance") // in meters
+  isDefault     Boolean       @default(false) @map("is_default")
+  sports        SportType[]
 
   // relationships
-  athlete    athlete          @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int
-  activities event_activity[]
+  athlete    Athlete         @relation(fields: [athleteId], references: [athleteId])
+  athleteId  Int             @map("athlete_id")
+  activities EventActivity[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("equipment")
 }

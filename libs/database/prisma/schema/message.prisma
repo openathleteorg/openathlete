@@ -12,99 +12,107 @@
 // Threads can be linked to training sessions (event_training) for comments
 // ============================================================================
 
-model message_thread {
+model MessageThread {
+
   // primary key
-  message_thread_id Int @id @default(autoincrement())
+  messageThreadId Int @id @default(autoincrement()) @map("message_thread_id")
 
   // fields
   title String?
 
   // Thread type: can be a general conversation or linked to an activity
   // If linked to event_activity, this is a comment thread for that activity
-  event_activity_id Int? @unique
+  eventActivityId Int? @unique @map("event_activity_id")
 
   // relationships
   // Participants: users who are part of this thread
   // For athlete-coach threads: one athlete + one or more coaches
-  participants message_thread_participant[]
-  messages     message[]
+  participants MessageThreadParticipant[]
+  messages     Message[]
 
   // Link to activity if this is a comment thread
-  event_activity event_activity? @relation("ActivityCommentThread", fields: [event_activity_id], references: [event_activity_id], onDelete: Cascade)
+  eventActivity EventActivity? @relation("ActivityCommentThread", fields: [eventActivityId], references: [eventActivityId], onDelete: Cascade)
 
   // Link to training session if this is a comment thread (legacy, prefer eventActivity)
-  event_training event_training? @relation("TrainingCommentThread")
+  eventTraining EventTraining? @relation("TrainingCommentThread")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([event_activity_id])
+  @@index([eventActivityId])
+  @@map("message_thread")
 }
 
-model message_thread_participant {
+model MessageThreadParticipant {
+
   // primary key
-  message_thread_participant_id Int @id @default(autoincrement())
+  messageThreadParticipantId Int @id @default(autoincrement()) @map("message_thread_participant_id")
 
   // fields
   // Last time this user read messages in this thread
-  last_read_at         DateTime?
-  last_notification_at DateTime?
+  lastReadAt         DateTime? @map("last_read_at")
+  lastNotificationAt DateTime? @map("last_notification_at")
 
   // relationships
-  thread            message_thread @relation(fields: [message_thread_id], references: [message_thread_id], onDelete: Cascade)
-  message_thread_id Int
-  user              user           @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  user_id           Int
+  thread          MessageThread @relation(fields: [messageThreadId], references: [messageThreadId], onDelete: Cascade)
+  messageThreadId Int           @map("message_thread_id")
+  user            User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId          Int           @map("user_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([message_thread_id, user_id])
-  @@index([user_id])
-  @@index([message_thread_id])
+  @@unique([messageThreadId, userId])
+  @@index([userId])
+  @@index([messageThreadId])
+  @@map("message_thread_participant")
 }
 
-model message {
+model Message {
+
   // primary key
-  message_id Int @id @default(autoincrement())
+  messageId Int @id @default(autoincrement()) @map("message_id")
 
   // fields
-  content   String
-  edited_at DateTime? // When the message was edited (null if never edited)
+  content  String
+  editedAt DateTime? @map("edited_at") // When the message was edited (null if never edited)
 
   // relationships
-  thread            message_thread         @relation(fields: [message_thread_id], references: [message_thread_id], onDelete: Cascade)
-  message_thread_id Int
-  sender            user                   @relation(fields: [sender_id], references: [user_id], onDelete: Cascade)
-  sender_id         Int
-  read_receipts     message_read_receipt[]
+  thread          MessageThread        @relation(fields: [messageThreadId], references: [messageThreadId], onDelete: Cascade)
+  messageThreadId Int                  @map("message_thread_id")
+  sender          User                 @relation(fields: [senderId], references: [userId], onDelete: Cascade)
+  senderId        Int                  @map("sender_id")
+  readReceipts    MessageReadReceipt[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([message_thread_id, created_at])
-  @@index([sender_id])
+  @@index([messageThreadId, createdAt])
+  @@index([senderId])
+  @@map("message")
 }
 
-model message_read_receipt {
+model MessageReadReceipt {
+
   // primary key
-  message_read_receipt_id Int @id @default(autoincrement())
+  messageReadReceiptId Int @id @default(autoincrement()) @map("message_read_receipt_id")
 
   // fields
 
   // relationships
-  message    message @relation(fields: [message_id], references: [message_id], onDelete: Cascade)
-  message_id Int
-  user       user    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
-  user_id    Int
+  message   Message @relation(fields: [messageId], references: [messageId], onDelete: Cascade)
+  messageId Int     @map("message_id")
+  user      User    @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId    Int     @map("user_id")
 
   // timestamps
-  read_at DateTime @default(now())
+  readAt DateTime @default(now()) @map("read_at")
 
-  @@unique([message_id, user_id])
-  @@index([user_id])
-  @@index([message_id])
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([messageId])
+  @@map("message_read_receipt")
 }

@@ -1,68 +1,71 @@
-model training_plan {
+model TrainingPlan {
   // primary key
-  training_plan_id Int @id @default(autoincrement())
+  trainingPlanId Int @id @default(autoincrement()) @map("training_plan_id")
 
   // fields
   name        String
   description String?
   goal        String // ex: "Finish UTMB 2025", "Sub-3:30 marathon"
-  start_date  DateTime
-  end_date    DateTime
-  status      plan_status @default(DRAFT)
+  startDate   DateTime   @map("start_date")
+  endDate     DateTime   @map("end_date")
+  status      PlanStatus @default(DRAFT)
 
   // relationships
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
-  athlete_id Int
-  cycles     cycle[]
+  athlete   Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId Int     @map("athlete_id")
+  cycles    Cycle[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([athlete_id, status])
+  @@index([athleteId, status])
+  @@map("training_plan")
 }
 
-model training_week {
+model TrainingWeek {
   // primary key
-  training_week_id Int @id @default(autoincrement())
+  trainingWeekId Int @id @default(autoincrement()) @map("training_week_id")
 
   // fields
-  week_number   Int // position in the cycle (1, 2, 3, ...)
-  start_date    DateTime
-  end_date      DateTime
-  theme         String? // ex: "VO2 intervals", "Base building", "Taper week"
-  target_volume Int? // target volume in seconds
-  target_load   Float? // target training load (TRIMP)
+  weekNumber   Int      @map("week_number") // position in the cycle (1, 2, 3, ...)
+  startDate    DateTime @map("start_date")
+  endDate      DateTime @map("end_date")
+  theme        String? // ex: "VO2 intervals", "Base building", "Taper week"
+  targetVolume Int?     @map("target_volume") // target volume in seconds
+  targetLoad   Float?   @map("target_load") // target training load (TRIMP)
 
   // relationships
-  cycle    cycle   @relation(fields: [cycle_id], references: [cycle_id], onDelete: Cascade)
-  cycle_id Int
-  sessions event[] // training sessions scheduled in this week
+  cycle    Cycle   @relation(fields: [cycleId], references: [cycleId], onDelete: Cascade)
+  cycleId  Int     @map("cycle_id")
+  sessions Event[] // training sessions scheduled in this week
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([cycle_id, week_number])
+  @@index([cycleId, weekNumber])
+  @@map("training_week")
 }
 
-model athlete_availability {
+model AthleteAvailability {
   // primary key
-  athlete_availability_id Int @id @default(autoincrement())
+  athleteAvailabilityId Int @id @default(autoincrement()) @map("athlete_availability_id")
 
   // fields
-  day_of_week Int // 0=Sunday, 1=Monday, ..., 6=Saturday
-  start_time  String // format "HH:mm" (24h format), ex: "08:00"
-  end_time    String // format "HH:mm" (24h format), ex: "12:00"
-  priority    availability_priority @default(MEDIUM)
+  dayOfWeek Int                  @map("day_of_week") // 0=Sunday, 1=Monday, ..., 6=Saturday
+  startTime String               @map("start_time") // format "HH:mm" (24h format), ex: "08:00"
+  endTime   String               @map("end_time") // format "HH:mm" (24h format), ex: "12:00"
+  priority  AvailabilityPriority @default(MEDIUM)
 
   // relationships
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
-  athlete_id Int
+  athlete   Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId Int     @map("athlete_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([athlete_id, day_of_week])
+  @@index([athleteId, dayOfWeek])
+  @@map("athlete_availability")
 }

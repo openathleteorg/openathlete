@@ -1,18 +1,20 @@
-model athlete_settings {
+model AthleteSettings {
   // primary key
-  athlete_settings_id Int @id @default(autoincrement())
+  athleteSettingsId Int @id @default(autoincrement()) @map("athlete_settings_id")
 
   // fields
   // Validation requirements for sessions
-  require_rpe                Boolean @default(false) // Require RPE to be set for session validation
-  require_comment            Boolean @default(false) // Require comment/description to be set for session validation
-  require_feedback_questions Boolean @default(true) // Enable feedback questions after activity import
+  requireRpe               Boolean @default(false) @map("require_rpe") // Require RPE to be set for session validation
+  requireComment           Boolean @default(false) @map("require_comment") // Require comment/description to be set for session validation
+  requireFeedbackQuestions Boolean @default(true) @map("require_feedback_questions") // Enable feedback questions after activity import
 
   // relationships
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int     @unique
+  athlete   Athlete @relation(fields: [athleteId], references: [athleteId])
+  athleteId Int     @unique @map("athlete_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("athlete_settings")
 }

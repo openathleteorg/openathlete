@@ -1,60 +1,64 @@
-model activity_feedback_question {
+model ActivityFeedbackQuestion {
   // primary key
-  activity_feedback_question_id Int @id @default(autoincrement())
+  activityFeedbackQuestionId Int @id @default(autoincrement()) @map("activity_feedback_question_id")
 
   // fields
-  question_text String
-  qcm_options   Json?
-  answer_text   String?
+  questionText String  @map("question_text")
+  qcmOptions   Json?   @map("qcm_options")
+  answerText   String? @map("answer_text")
 
   // relationships
-  activity          event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
-  event_activity_id Int
+  activity        EventActivity @relation(fields: [eventActivityId], references: [eventActivityId])
+  eventActivityId Int           @map("event_activity_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([event_activity_id])
+  @@index([eventActivityId])
+  @@map("activity_feedback_question")
 }
 
-model athlete_injury {
+model AthleteInjury {
   // primary key
-  athlete_injury_id Int @id @default(autoincrement())
+  athleteInjuryId Int @id @default(autoincrement()) @map("athlete_injury_id")
 
   // fields
-  location   String
-  pain_score Float
-  context    String
-  status     injury_status
+  location  String
+  painScore Float        @map("pain_score")
+  context   String
+  status    InjuryStatus
 
   // relationships
-  athlete            athlete         @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id         Int
-  source_activity    event_activity? @relation(fields: [source_activity_id], references: [event_activity_id])
-  source_activity_id Int?
+  athlete          Athlete        @relation(fields: [athleteId], references: [athleteId])
+  athleteId        Int            @map("athlete_id")
+  sourceActivity   EventActivity? @relation(fields: [sourceActivityId], references: [eventActivityId])
+  sourceActivityId Int?           @map("source_activity_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([athlete_id])
-  @@index([source_activity_id])
+  @@index([athleteId])
+  @@index([sourceActivityId])
+  @@map("athlete_injury")
 }
 
-model activity_feedback_embedding {
+model ActivityFeedbackEmbedding {
   // primary key
-  activity_feedback_embedding_id Int @id @default(autoincrement())
+  activityFeedbackEmbeddingId Int @id @default(autoincrement()) @map("activity_feedback_embedding_id")
 
   // fields
-  text_content String // concatenated answers + comment for reference
-  embedding    Unsupported("vector(1536)") // pgvector embedding (1536 dimensions for text-embedding-3-small)
+  textContent String                      @map("text_content") // concatenated answers + comment for reference
+  embedding   Unsupported("vector(1536)") // pgvector embedding (1536 dimensions for text-embedding-3-small)
 
   // relationships
-  activity          event_activity @relation(fields: [event_activity_id], references: [event_activity_id])
-  event_activity_id Int            @unique
+  activity        EventActivity @relation(fields: [eventActivityId], references: [eventActivityId])
+  eventActivityId Int           @unique @map("event_activity_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("activity_feedback_embedding")
 }

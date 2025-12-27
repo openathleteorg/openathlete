@@ -1,82 +1,88 @@
-model workout {
+model Workout {
   // primary key
-  workout_id Int @id @default(autoincrement())
+  workoutId Int @id @default(autoincrement()) @map("workout_id")
 
   // relationships
-  event_training           event_training            @relation(fields: [event_training_id], references: [event_training_id], onDelete: Cascade)
-  event_training_id        Int                       @unique
-  steps                    workout_step[]
-  provider_workout_exports provider_workout_export[]
+  eventTraining          EventTraining           @relation(fields: [eventTrainingId], references: [eventTrainingId], onDelete: Cascade)
+  eventTrainingId        Int                     @unique @map("event_training_id")
+  steps                  WorkoutStep[]
+  providerWorkoutExports ProviderWorkoutExport[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("workout")
 }
 
-model workout_step {
+model WorkoutStep {
   // primary key
-  workout_step_id Int @id @default(autoincrement())
+  workoutStepId Int @id @default(autoincrement()) @map("workout_step_id")
 
   // fields
-  order_index     Int // position in the workout sequence
-  step_type       workout_step_type
-  name            String? // optional label (e.g., "Warmup", "Tempo intervals")
-  notes           String?               @default("") // additional instructions/comments
-  duration_type   workout_duration_type
-  duration_value  Float? // value depends on duration_type
-  duration_target Float? // optional target for LAP_BUTTON type
+  orderIndex     Int                 @map("order_index") // position in the workout sequence
+  stepType       WorkoutStepType     @map("step_type")
+  name           String? // optional label (e.g., "Warmup", "Tempo intervals")
+  notes          String?             @default("") // additional instructions/comments
+  durationType   WorkoutDurationType @map("duration_type")
+  durationValue  Float?              @map("duration_value") // value depends on duration_type
+  durationTarget Float?              @map("duration_target") // optional target for LAP_BUTTON type
 
   // relationships
-  workout           workout?              @relation(fields: [workout_id], references: [workout_id], onDelete: Cascade)
-  workout_id        Int?
-  repeat_parent     workout_repeat?       @relation("ParentRepeat", fields: [repeat_parent_id], references: [workout_repeat_id], onDelete: Cascade)
-  repeat_parent_id  Int?
-  repeat_block      workout_repeat?       @relation("RepeatBlock")
-  targets           workout_step_target[]
-  activity_segments activity_segment[]
+  workout          Workout?            @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
+  workoutId        Int?                @map("workout_id")
+  repeatParent     WorkoutRepeat?      @relation("ParentRepeat", fields: [repeatParentId], references: [workoutRepeatId], onDelete: Cascade)
+  repeatParentId   Int?                @map("repeat_parent_id")
+  repeatBlock      WorkoutRepeat?      @relation("RepeatBlock")
+  targets          WorkoutStepTarget[]
+  activitySegments ActivitySegment[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([workout_id, order_index])
+  @@index([workoutId, orderIndex])
+  @@map("workout_step")
 }
 
-model workout_repeat {
+model WorkoutRepeat {
   // primary key
-  workout_repeat_id Int @id @default(autoincrement())
+  workoutRepeatId Int @id @default(autoincrement()) @map("workout_repeat_id")
 
   // fields
   repetitions Int // number of times to repeat
 
   // relationships
-  step        workout_step   @relation("RepeatBlock", fields: [step_id], references: [workout_step_id], onDelete: Cascade)
-  step_id     Int            @unique
-  child_steps workout_step[] @relation("ParentRepeat")
+  step       WorkoutStep   @relation("RepeatBlock", fields: [stepId], references: [workoutStepId], onDelete: Cascade)
+  stepId     Int           @unique @map("step_id")
+  childSteps WorkoutStep[] @relation("ParentRepeat")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("workout_repeat")
 }
 
-model workout_step_target {
+model WorkoutStepTarget {
   // primary key
-  workout_step_target_id Int @id @default(autoincrement())
+  workoutStepTargetId Int @id @default(autoincrement()) @map("workout_step_target_id")
 
   // fields
-  target_type  workout_target_type
-  target_min   Float? // minimum value for range targets
-  target_max   Float? // maximum value for range targets
-  target_value Float? // single value target (for ZONE, this is the zone number 1-5)
-  metric_type  metric_type?
+  targetType  WorkoutTargetType @map("target_type")
+  targetMin   Float?            @map("target_min") // minimum value for range targets
+  targetMax   Float?            @map("target_max") // maximum value for range targets
+  targetValue Float?            @map("target_value") // single value target (for ZONE, this is the zone number 1-5)
+  metricType  MetricType?       @map("metric_type")
 
   // relationships
-  step    workout_step @relation(fields: [step_id], references: [workout_step_id], onDelete: Cascade)
-  step_id Int
+  step   WorkoutStep @relation(fields: [stepId], references: [workoutStepId], onDelete: Cascade)
+  stepId Int         @map("step_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([step_id])
+  @@index([stepId])
+  @@map("workout_step_target")
 }

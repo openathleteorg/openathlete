@@ -1,23 +1,25 @@
-model athlete_metric {
+model AthleteMetric {
+
   // primary key
-  athlete_metric_id Int @id @default(autoincrement())
+  athleteMetricId Int @id @default(autoincrement()) @map("athlete_metric_id")
 
   // fields
-  type  metric_type
-  date  DateTime    @db.Date
+  type  MetricType
+  date  DateTime   @db.Date
   value Float
   notes String?
 
   // relationships
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id], onDelete: Cascade)
-  athlete_id Int
+  athlete   Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId Int     @map("athlete_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // indexes
-  @@unique([athlete_id, type, date])
-  @@index([athlete_id, type])
-  @@index([athlete_id, date])
+  @@unique([athleteId, type, date])
+  @@index([athleteId, type])
+  @@index([athleteId, date])
+  @@map("athlete_metric")
 }

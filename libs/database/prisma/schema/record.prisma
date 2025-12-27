@@ -1,22 +1,24 @@
-model record {
+model Record {
   // primary key
-  record_id Int @id @default(autoincrement())
+  recordId Int @id @default(autoincrement()) @map("record_id")
 
   // fields
-  distance       Float // in meters
-  date           DateTime
-  start_duration Int? // in seconds
-  end_duration   Int? // in seconds
-  type           record_type
-  value          Float // unit depends on type
+  distance      Float // in meters
+  date          DateTime
+  startDuration Int?       @map("start_duration") // in seconds
+  endDuration   Int?       @map("end_duration") // in seconds
+  type          RecordType
+  value         Float // unit depends on type
 
   // relationships
-  event_activity    event_activity? @relation(fields: [event_activity_id], references: [event_activity_id])
-  event_activity_id Int?
-  athlete           athlete         @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id        Int
+  eventActivity   EventActivity? @relation(fields: [eventActivityId], references: [eventActivityId])
+  eventActivityId Int?           @map("event_activity_id")
+  athlete         Athlete        @relation(fields: [athleteId], references: [athleteId])
+  athleteId       Int            @map("athlete_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("record")
 }

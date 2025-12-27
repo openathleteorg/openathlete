@@ -1,131 +1,141 @@
-model athlete {
+model Athlete {
   // primary key
-  athlete_id Int @id @default(autoincrement())
+  athleteId Int @id @default(autoincrement()) @map("athlete_id")
 
   // fields
 
   // relationships
-  user                       user                        @relation(fields: [user_id], references: [user_id])
-  user_id                    Int                         @unique
-  coach_athletes             coach_athlete[]
-  events                     event[]
-  training_zones             training_zone[]
-  records                    record[]
-  equipment                  equipment[]
-  cycles                     cycle[]
-  metrics                    athlete_metric[]
-  training_load_calculations training_load_calculation[]
-  training_plans             training_plan[]
-  availability               athlete_availability[]
-  provider_accounts          provider_account[]
-  provider_workout_exports   provider_workout_export[]
-  settings                   athlete_settings?
-  injuries                   athlete_injury[]
+  user                     User                      @relation(fields: [userId], references: [userId])
+  userId                   Int                       @unique @map("user_id")
+  coachAthletes            CoachAthlete[]
+  events                   Event[]
+  trainingZones            TrainingZone[]
+  records                  Record[]
+  equipment                Equipment[]
+  cycles                   Cycle[]
+  metrics                  AthleteMetric[]
+  trainingLoadCalculations TrainingLoadCalculation[]
+  trainingPlans            TrainingPlan[]
+  availability             AthleteAvailability[]
+  providerAccounts         ProviderAccount[]
+  providerWorkoutExports   ProviderWorkoutExport[]
+  settings                 AthleteSettings?
+  injuries                 AthleteInjury[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("athlete")
 }
 
-model coach_athlete {
+model CoachAthlete {
   // primary key
-  coach_athlete_id Int @id @default(autoincrement())
+  coachAthleteId Int @id @default(autoincrement()) @map("coach_athlete_id")
 
   // fields
 
   // relationships
-  user       user    @relation(fields: [user_id], references: [user_id])
-  user_id    Int
-  athlete    athlete @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int
+  user      User    @relation(fields: [userId], references: [userId])
+  userId    Int     @map("user_id")
+  athlete   Athlete @relation(fields: [athleteId], references: [athleteId])
+  athleteId Int     @map("athlete_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("coach_athlete")
 }
 
-model training_zone_value {
+model TrainingZoneValue {
   // primary key
-  training_zone_value_id Int @id @default(autoincrement())
+  trainingZoneValueId Int @id @default(autoincrement()) @map("training_zone_value_id")
 
   // fields
   min    Float
   max    Float
-  sports sport_type[]
+  sports SportType[]
 
   // relationships
-  training_zone    training_zone @relation(fields: [training_zone_id], references: [training_zone_id])
-  training_zone_id Int
+  trainingZone   TrainingZone @relation(fields: [trainingZoneId], references: [trainingZoneId])
+  trainingZoneId Int          @map("training_zone_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("training_zone_value")
 }
 
-model training_zone {
+model TrainingZone {
   // primary key
-  training_zone_id Int @id @default(autoincrement())
+  trainingZoneId Int @id @default(autoincrement()) @map("training_zone_id")
 
   // fields
   name        String
   description String
   index       Int
-  type        training_zone_type
+  type        TrainingZoneType
   color       String
 
   // relationships
-  athlete    athlete               @relation(fields: [athlete_id], references: [athlete_id])
-  athlete_id Int
-  values     training_zone_value[]
+  athlete   Athlete             @relation(fields: [athleteId], references: [athleteId])
+  athleteId Int                 @map("athlete_id")
+  values    TrainingZoneValue[]
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("training_zone")
 }
 
-model athlete_invitation {
+model AthleteInvitation {
   // primary key
-  athlete_invitation_id Int @id @default(autoincrement())
+  athleteInvitationId Int @id @default(autoincrement()) @map("athlete_invitation_id")
 
   // fields
   email  String
-  token  String?            @unique
-  status invitation_status? // null = auto-accept on account creation, PENDING = user exists and needs to accept
+  token  String?           @unique
+  status InvitationStatus? // null = auto-accept on account creation, PENDING = user exists and needs to accept
 
   // relationships
-  user    user @relation(fields: [user_id], references: [user_id])
-  user_id Int
+  user   User @relation(fields: [userId], references: [userId])
+  userId Int  @map("user_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([token])
   @@index([email])
   @@index([status])
+  @@map("athlete_invitation")
 }
 
-model coach_invitation {
+model CoachInvitation {
   // primary key
-  coach_invitation_id Int @id @default(autoincrement())
+  coachInvitationId Int @id @default(autoincrement()) @map("coach_invitation_id")
 
   // fields
   email  String
-  token  String?           @unique // null if user exists, set if user doesn't exist (for account creation)
-  status invitation_status @default(PENDING)
+  token  String?          @unique // null if user exists, set if user doesn't exist (for account creation)
+  status InvitationStatus @default(PENDING)
 
   // relationships
-  athlete_user    user  @relation("CoachInvitationsSent", fields: [athlete_user_id], references: [user_id])
-  athlete_user_id Int
-  coach_user      user? @relation("CoachInvitationsReceived", fields: [coach_user_id], references: [user_id])
-  coach_user_id   Int?
+  athleteUser   User  @relation("CoachInvitationsSent", fields: [athleteUserId], references: [userId])
+  athleteUserId Int   @map("athlete_user_id")
+  coachUser     User? @relation("CoachInvitationsReceived", fields: [coachUserId], references: [userId])
+  coachUserId   Int?  @map("coach_user_id")
 
   // timestamps
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([token])
   @@index([email])
   @@index([status])
-  @@index([coach_user_id])
+  @@index([coachUserId])
+  @@map("coach_invitation")
 }
