@@ -1,10 +1,9 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
-  forwardRef,
 } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 
 import { Event } from '@openathlete/database';
 import {
@@ -26,8 +25,7 @@ export class WorkoutService {
   constructor(
     private prisma: PrismaService,
     private abilities: CaslAbilityFactory,
-    @Inject(forwardRef(() => EventService))
-    private eventService: EventService,
+    private moduleRef: ModuleRef,
   ) {}
 
   /**
@@ -68,7 +66,8 @@ export class WorkoutService {
     await Promise.all(updatePromises);
 
     // Return updated event with workout
-    return this.eventService.getEventById(user, eventId);
+    const eventService = this.moduleRef.get(EventService, { strict: false });
+    return eventService.getEventById(user, eventId);
   }
 
   /**
@@ -168,6 +167,7 @@ export class WorkoutService {
     });
 
     // Return updated target event
-    return this.eventService.getEventById(user, data.targetTrainingId);
+    const eventService = this.moduleRef.get(EventService, { strict: false });
+    return eventService.getEventById(user, data.targetTrainingId);
   }
 }
