@@ -63,12 +63,12 @@ import {
   FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
-} from '../base/base-provider.service';
+} from '../base';
 import {
   ImportOptions,
   ImportedActivity,
   ProviderImportCapability,
-} from '../base/provider-import.interface';
+} from '../base';
 
 type MetricRecord = {
   type: MetricType;

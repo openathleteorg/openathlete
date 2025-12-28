@@ -49,7 +49,7 @@ import {
   FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
-} from '../base/base-provider.service';
+} from '../base';
 import {
   ImportOptions,
   ImportedActivity,

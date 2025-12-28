@@ -7,9 +7,7 @@ import { Prisma } from '@openathlete/database';
 import type { NormalizedWorkout } from '@openathlete/shared';
 
 import { PrismaService } from '../prisma/services/prisma.service';
-import { CorosAdapter } from './adapters/coros.adapter';
-import { GarminAdapter } from './adapters/garmin.adapter';
-import { SuuntoAdapter } from './adapters/suunto.adapter';
+import { CorosAdapter, GarminAdapter, SuuntoAdapter } from './adapters';
 import { mapToCoros, mapToGarmin, mapToSuunto } from './mapping';
 import type { ProviderAdapter } from './provider-adapter.interface';
 

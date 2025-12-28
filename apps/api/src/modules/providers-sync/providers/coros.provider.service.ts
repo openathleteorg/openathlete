@@ -5,10 +5,7 @@ import { ConnectorProvider } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
-import {
-  BaseProviderService,
-  OAuthConfig,
-} from '../base/base-provider.service';
+import { BaseProviderService, OAuthConfig } from '../base';
 
 @Injectable()
 export class CorosProviderService extends BaseProviderService {

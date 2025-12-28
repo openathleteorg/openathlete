@@ -36,7 +36,7 @@ export interface DraggableFolderData {
 /**
  * Data attached to folder drop zones
  */
-export interface DroppableFolderData {
+interface DroppableFolderData {
   type: DroppableType.FOLDER;
   folderId: number | null;
   folder?: EventTemplateFolder;
@@ -45,14 +45,14 @@ export interface DroppableFolderData {
 /**
  * Data attached to root drop zone (for items without folder)
  */
-export interface DroppableRootData {
+interface DroppableRootData {
   type: DroppableType.ROOT_ZONE;
 }
 
 /**
  * Data attached to folder content drop zones
  */
-export interface DroppableFolderContentData {
+interface DroppableFolderContentData {
   type: DroppableType.FOLDER_CONTENT;
   folderId: number;
   folder: EventTemplateFolder;
