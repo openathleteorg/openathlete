@@ -29,7 +29,7 @@ export class TrainingZoneService {
       where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('read', subject('athlete', athlete))) {
+    if (!ability.can('read', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
     const zones = await this.prisma.trainingZone.findMany({
@@ -47,7 +47,7 @@ export class TrainingZoneService {
       where: { athleteId: dto.athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('update', subject('athlete', athlete))) {
+    if (!ability.can('update', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
     const existingCount = await this.prisma.trainingZone.count({
@@ -85,7 +85,7 @@ export class TrainingZoneService {
       where: { athleteId: zone.athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('update', subject('athlete', athlete))) {
+    if (!ability.can('update', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
     // For now, update only the first value
@@ -124,7 +124,7 @@ export class TrainingZoneService {
       where: { athleteId: zone.athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('update', subject('athlete', athlete))) {
+    if (!ability.can('update', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
     await this.prisma.trainingZoneValue.deleteMany({

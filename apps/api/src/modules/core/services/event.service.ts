@@ -234,7 +234,7 @@ export class EventService {
     if (
       !ability.can(
         'create',
-        subject('event', { athleteId: finalAthleteId } as Event),
+        subject('Event', { athleteId: finalAthleteId } as Event),
       )
     ) {
       throw new ForbiddenException('You are not allowed to create this event');
@@ -1307,7 +1307,7 @@ export class EventService {
       where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('read', subject('athlete', athlete))) {
+    if (!ability.can('read', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 

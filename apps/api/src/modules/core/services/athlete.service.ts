@@ -120,7 +120,7 @@ export class AthleteService {
     }
 
     const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', subject('athlete', athlete))) {
+    if (!ability.can('read', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
@@ -146,7 +146,7 @@ export class AthleteService {
     }
 
     const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', subject('athlete', athlete))) {
+    if (!ability.can('read', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 

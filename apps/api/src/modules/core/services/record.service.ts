@@ -44,7 +44,7 @@ export class RecordService {
         throw new NotFoundException('Athlete not found');
       }
 
-      if (!ability.can('read', subject('athlete', athlete))) {
+      if (!ability.can('read', subject('Athlete', athlete))) {
         throw new ForbiddenException('Not allowed to access this athlete');
       }
 

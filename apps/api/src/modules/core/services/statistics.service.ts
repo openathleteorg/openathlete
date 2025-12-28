@@ -63,7 +63,7 @@ export class StatisticsService {
     endDate: Date,
   ): Promise<GetStatisticsForPeriodDto> {
     const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', 'athlete')) {
+    if (!ability.can('read', 'Athlete')) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 

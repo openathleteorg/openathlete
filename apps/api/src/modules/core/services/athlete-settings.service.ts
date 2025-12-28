@@ -26,7 +26,7 @@ export class AthleteSettingsService {
       where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('read', subject('athlete', athlete))) {
+    if (!ability.can('read', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
@@ -60,7 +60,7 @@ export class AthleteSettingsService {
       where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
-    if (!ability.can('update', subject('athlete', athlete))) {
+    if (!ability.can('update', subject('Athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
 

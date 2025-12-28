@@ -27,7 +27,7 @@ export class ProgressionService {
     sport?: SportType,
   ): Promise<Date | null> {
     const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', 'athlete')) {
+    if (!ability.can('read', 'Athlete')) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
@@ -69,7 +69,7 @@ export class ProgressionService {
     sport?: SportType,
   ): Promise<GetProgressionDataResponseDto> {
     const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', 'athlete')) {
+    if (!ability.can('read', 'Athlete')) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
     const daysDiff = Math.ceil(

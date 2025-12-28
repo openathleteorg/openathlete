@@ -88,7 +88,7 @@ export class CycleService {
     if (
       !ability.can(
         'create',
-        subject('cycle', { athleteId: finalAthleteId } as Cycle),
+        subject('Cycle', { athleteId: finalAthleteId } as Cycle),
       )
     ) {
       throw new ForbiddenException('You are not allowed to create this cycle');
