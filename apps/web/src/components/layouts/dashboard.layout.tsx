@@ -159,7 +159,7 @@ function LayoutContent({ children }: P) {
           <MobileLayout>{children}</MobileLayout>
         ) : (
           <>
-            <div className="flex">
+            <div className="flex w-full">
               <TemplateLibrarySidebar />
               <SidebarInset className="flex-1">{children}</SidebarInset>
             </div>
