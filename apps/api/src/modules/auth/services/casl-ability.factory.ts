@@ -21,12 +21,12 @@ import { PrismaQuery, createPrismaAbility } from './casl-prisma';
 export type CRUD = 'manage' | 'create' | 'read' | 'update' | 'delete';
 
 export type Subjects = CASLSubjects<{
-  user: User;
-  athlete: Athlete;
+  User: User;
+  Athlete: Athlete;
   AthleteMetric: AthleteMetric;
-  event: Event;
-  cycle: Cycle;
-  workout: Workout;
+  Event: Event;
+  Cycle: Cycle;
+  Workout: Workout;
   AgentThread: AgentThread;
   AgentMessage: AgentMessage;
   AgentMessageBlock: AgentMessageBlock;
@@ -48,29 +48,29 @@ export class CaslAbilityFactory {
 
     if (!user) return;
 
-    can('manage', 'user', { userId: user.userId });
-    can('manage', 'athlete', { userId: user.userId });
+    can('manage', 'User', { userId: user.userId });
+    can('manage', 'Athlete', { userId: user.userId });
 
-    can('manage', 'event', { templates: { some: { userId: user.userId } } });
+    can('manage', 'Event', { templates: { some: { userId: user.userId } } });
 
     if (user.athlete) {
-      can('manage', 'event', { athleteId: user.athlete.athleteId });
-      can('manage', 'cycle', { athleteId: user.athlete.athleteId });
+      can('manage', 'Event', { athleteId: user.athlete.athleteId });
+      can('manage', 'Cycle', { athleteId: user.athlete.athleteId });
       can('manage', 'AthleteMetric', { athleteId: user.athlete.athleteId });
-      can('manage', 'workout', {
+      can('manage', 'Workout', {
         eventTraining: { event: { athleteId: user.athlete.athleteId } },
       });
     }
 
     if (user.coachAthletes) {
       user.coachAthletes.forEach((coachAthlete) => {
-        can('manage', 'athlete', { athleteId: coachAthlete.athleteId });
+        can('manage', 'Athlete', { athleteId: coachAthlete.athleteId });
         can('manage', 'AthleteMetric', {
           athleteId: coachAthlete.athleteId,
         });
-        can('manage', 'event', { athleteId: coachAthlete.athleteId });
-        can('manage', 'cycle', { athleteId: coachAthlete.athleteId });
-        can('manage', 'workout', {
+        can('manage', 'Event', { athleteId: coachAthlete.athleteId });
+        can('manage', 'Cycle', { athleteId: coachAthlete.athleteId });
+        can('manage', 'Workout', {
           eventTraining: { event: { athleteId: coachAthlete.athleteId } },
         });
       });
