@@ -17,6 +17,8 @@
     "noImplicitAny": true,
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
+    "noUnusedParameters": true,
+    "noUnusedLocals": true,
     "noImplicitThis": true,
     "alwaysStrict": true,
     "strictBindCallApply": false,

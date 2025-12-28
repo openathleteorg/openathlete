@@ -11,7 +11,6 @@ import type {
   UpdateMessageThreadDto,
 } from '@openathlete/shared';
 
-import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -57,10 +56,7 @@ const THREAD_INCLUDES = {
 
 @Injectable()
 export class MessageThreadService {
-  constructor(
-    private prisma: PrismaService,
-    private readonly abilities: CaslAbilityFactory,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   async createThread(
     user: AuthUser,

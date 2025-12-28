@@ -13,7 +13,8 @@ import { AuthService } from '../services';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    private configService: ConfigService<ApiEnvSchemaType, true>,
+    //@ts-ignore
+    private readonly configService: ConfigService<ApiEnvSchemaType, true>,
     private readonly authService: AuthService,
   ) {
     super({

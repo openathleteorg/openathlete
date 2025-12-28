@@ -235,12 +235,10 @@ export class AIFeaturesController {
     const year = parsedDate.getFullYear();
     const month = parsedDate.getMonth();
     const day = parsedDate.getDate();
-    const eventDate = new Date(year, month, day, 0, 0, 0, 0);
 
     const generatedEvent =
       await this.eventGenerationService.generateTrainingEvent(
         dto.prompt,
-        eventDate,
         athleteId,
       );
 

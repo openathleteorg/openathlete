@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 
 import { CalendarWebSocketService } from '../../calendar/services/calendar-websocket.service';
-import { PrismaService } from '../../prisma/services/prisma.service';
 
 export interface TrainingLoadEstimationJobData {
   eventId: number;
@@ -25,7 +24,6 @@ export class TrainingLoadEstimationService {
   constructor(
     @InjectQueue('training-load-estimation')
     private readonly trainingLoadEstimationQueue: Queue<TrainingLoadEstimationJobData>,
-    private readonly prisma: PrismaService,
     @Optional()
     @Inject(forwardRef(() => CalendarWebSocketService))
     private readonly calendarWebSocketService?: CalendarWebSocketService,

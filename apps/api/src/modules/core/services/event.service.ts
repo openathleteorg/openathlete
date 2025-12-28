@@ -65,132 +65,9 @@ import {
   reductActivityStreamToResolution,
   uncompressActivityStream,
 } from '../helpers/activity-stream';
+import { EVENT_INCLUDES } from './event-includes';
+import { WorkoutService } from './workout.service';
 
-export const EVENT_INCLUDES = {
-  training: {
-    include: {
-      relatedActivity: {
-        select: {
-          eventId: true,
-        },
-      },
-      workout: {
-        include: {
-          steps: {
-            include: {
-              targets: true,
-              repeatBlock: {
-                include: {
-                  childSteps: {
-                    include: {
-                      targets: true,
-                    },
-                    orderBy: {
-                      orderIndex: 'asc' as const,
-                    },
-                  },
-                },
-              },
-            },
-            orderBy: {
-              orderIndex: 'asc' as const,
-            },
-          },
-        },
-      },
-    },
-  },
-  competition: {
-    include: {
-      relatedActivity: {
-        select: {
-          eventId: true,
-        },
-      },
-    },
-  },
-  note: true,
-  activity: {
-    // select all fields except stream
-    select: {
-      eventActivityId: true,
-      eventId: true,
-      distance: true,
-      elevationGain: true,
-      movingTime: true,
-      averageSpeed: true,
-      maxSpeed: true,
-      averageCadence: true,
-      averageWatts: true,
-      maxWatts: true,
-      weightedAverageWatts: true,
-      averageHeartrate: true,
-      maxHeartrate: true,
-      kilojoules: true,
-      averageGapSpeed: true,
-      averageNormalizedSpeed: true,
-      rpe: true,
-      externalId: true,
-      sport: true,
-      provider: true,
-      description: true,
-      records: true,
-      equipmentId: true,
-      feedbackSkipped: true,
-      equipment: {
-        select: {
-          equipmentId: true,
-          name: true,
-          type: true,
-        },
-      },
-      segments: {
-        orderBy: {
-          orderIndex: 'asc' as const,
-        },
-        select: {
-          activitySegmentId: true,
-          segmentType: true,
-          name: true,
-          orderIndex: true,
-          startTimeSeconds: true,
-          endTimeSeconds: true,
-          eventActivityId: true,
-          distance: true,
-          elevationGain: true,
-          movingTime: true,
-          averageSpeed: true,
-          maxSpeed: true,
-          averageCadence: true,
-          averageWatts: true,
-          maxWatts: true,
-          weightedAverageWatts: true,
-          averageHeartrate: true,
-          maxHeartrate: true,
-          kilojoules: true,
-          averageGapSpeed: true,
-          averageNormalizedSpeed: true,
-          workoutStepId: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
-      feedbackQuestions: {
-        orderBy: {
-          activityFeedbackQuestionId: 'asc' as const,
-        },
-        select: {
-          activityFeedbackQuestionId: true,
-          questionText: true,
-          qcmOptions: true,
-          answerText: true,
-          createdAt: true,
-          updatedAt: true,
-        },
-      },
-    },
-  },
-};
 @Injectable()
 export class EventService {
   private readonly logger = new Logger(EventService.name);
@@ -204,6 +81,8 @@ export class EventService {
     private messageThreadService: MessageThreadService,
     private messageService: MessageService,
     private readonly providerExportService: ProviderExportService,
+    @Inject(forwardRef(() => WorkoutService))
+    private workoutService: WorkoutService,
     @Optional()
     @Inject(forwardRef(() => TrainingLoadEstimationService))
     private trainingLoadEstimationService?: TrainingLoadEstimationService,
@@ -1288,7 +1167,7 @@ export class EventService {
   }
 
   // ============================================================================
-  // Workout-specific methods
+  // Workout-specific methods (delegated to WorkoutService)
   // ============================================================================
 
   /**
@@ -1299,37 +1178,7 @@ export class EventService {
     eventId: Event['eventId'],
     data: ReorderWorkoutStepsDto,
   ) {
-    const ability = await this.abilities.getFor({ user });
-
-    const event = await this.prisma.event.findFirst({
-      where: {
-        AND: [{ eventId: eventId }, accessibleBy(ability, 'update').Event],
-      },
-      include: {
-        training: {
-          include: {
-            workout: true,
-          },
-        },
-      },
-    });
-
-    if (!event || !event.training?.workout) {
-      throw new NotFoundException('Training event with workout not found');
-    }
-
-    // Reorder steps based on the provided order
-    const updatePromises = data.stepOrders.map(({ stepId, order }) =>
-      this.prisma.workoutStep.update({
-        where: { workoutStepId: stepId },
-        data: { orderIndex: order },
-      }),
-    );
-
-    await Promise.all(updatePromises);
-
-    // Return updated event with workout
-    return this.getEventById(user, eventId);
+    return this.workoutService.reorderWorkoutSteps(user, eventId, data);
   }
 
   /**
@@ -1340,96 +1189,7 @@ export class EventService {
     sourceEventId: Event['eventId'],
     data: DuplicateWorkoutDto,
   ) {
-    const ability = await this.abilities.getFor({ user });
-
-    // Get source event with workout
-    const sourceEvent = await this.prisma.event.findFirst({
-      where: {
-        AND: [{ eventId: sourceEventId }, accessibleBy(ability, 'read').Event],
-      },
-      include: {
-        training: {
-          include: {
-            workout: {
-              include: {
-                steps: {
-                  include: {
-                    targets: true,
-                    repeatBlock: {
-                      include: {
-                        childSteps: {
-                          include: { targets: true },
-                          orderBy: { orderIndex: 'asc' },
-                        },
-                      },
-                    },
-                  },
-                  orderBy: { orderIndex: 'asc' },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!sourceEvent || !sourceEvent.training?.workout) {
-      throw new NotFoundException(
-        'Source training event with workout not found',
-      );
-    }
-
-    // Get target event
-    const targetEvent = await this.prisma.event.findFirst({
-      where: {
-        AND: [
-          { eventId: data.targetTrainingId },
-          accessibleBy(ability, 'update').Event,
-        ],
-      },
-      include: {
-        training: {
-          include: { workout: true },
-        },
-      },
-    });
-
-    if (!targetEvent || !targetEvent.training) {
-      throw new NotFoundException('Target training event not found');
-    }
-
-    if (targetEvent.training.workout) {
-      throw new BadRequestException('Target training already has a workout');
-    }
-
-    const sourceWorkout = sourceEvent.training.workout;
-    const sourceDto = mapPrismaWorkoutToDto(sourceWorkout);
-
-    await this.prisma.workout.create({
-      data: {
-        eventTrainingId: targetEvent.training.eventTrainingId,
-        ...mapWorkoutDtoToPrisma({ steps: sourceDto.steps }),
-      },
-      include: {
-        steps: {
-          include: {
-            targets: true,
-            repeatBlock: {
-              include: {
-                childSteps: {
-                  include: { targets: true },
-                  orderBy: { orderIndex: 'asc' },
-                },
-              },
-            },
-          },
-          orderBy: { orderIndex: 'asc' },
-        },
-      },
-    });
-
-    // Return updated target event
-    return this.getEventById(user, data.targetTrainingId);
+    return this.workoutService.duplicateWorkout(user, sourceEventId, data);
   }
 
   /**

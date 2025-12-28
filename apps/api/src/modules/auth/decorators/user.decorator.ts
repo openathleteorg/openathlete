@@ -8,7 +8,7 @@ export type AuthUser = Pick<User, 'userId' | 'email'> & {
 };
 
 export const JwtUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext): User => {
+  (_data: unknown, ctx: ExecutionContext): User => {
     const request = ctx.switchToHttp().getRequest();
     return request.user;
   },

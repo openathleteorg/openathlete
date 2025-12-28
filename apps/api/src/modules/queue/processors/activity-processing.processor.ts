@@ -1,6 +1,6 @@
-import { Job, Queue } from 'bullmq';
+import { Job } from 'bullmq';
 
-import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -21,8 +21,6 @@ export class ActivityProcessingProcessor extends WorkerHost {
     private readonly pipeline: ActivityPipelineService,
     private readonly eventEmitter: EventEmitter2,
     private readonly prisma: PrismaService,
-    @InjectQueue('activity-processing')
-    private readonly activityProcessingQueue: Queue<ActivityProcessingJobData>,
     @Optional()
     @Inject(forwardRef(() => CalendarWebSocketService))
     private readonly calendarWebSocketService?: CalendarWebSocketService,

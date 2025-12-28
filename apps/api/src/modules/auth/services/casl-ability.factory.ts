@@ -17,7 +17,6 @@ import {
 
 import { AuthUser } from '../decorators/user.decorator';
 import { PrismaQuery, createPrismaAbility } from './casl-prisma';
-import { UserService } from './user.service';
 
 export type CRUD = 'manage' | 'create' | 'read' | 'update' | 'delete';
 
@@ -37,7 +36,7 @@ export type AppAbility = PureAbility<[CRUD, Subjects | 'all'], PrismaQuery>;
 
 @Injectable()
 export class CaslAbilityFactory {
-  constructor(private readonly userService: UserService) {}
+  constructor() {}
 
   private _userFactory(
     params: {

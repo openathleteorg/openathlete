@@ -11,6 +11,7 @@ export class NotificationListener {
   constructor(private readonly notificationService: NotificationService) {}
 
   @OnEvent(SendEmailEvent.SLUG, { async: true })
+  //@ts-ignore
   private async handleSendEmail<T extends EmailId>(event: SendEmailEvent<T>) {
     await this.notificationService.sendEmail(event.payload);
   }

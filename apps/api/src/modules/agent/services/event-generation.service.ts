@@ -32,7 +32,6 @@ export class EventGenerationService {
 
   async generateTrainingEvent(
     prompt: string,
-    date: Date,
     athleteId: number,
   ): Promise<TrainingEventSchema> {
     const zones = await fetchAthleteZones(this.prismaService, athleteId);

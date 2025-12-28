@@ -55,7 +55,6 @@ function resolveTargetValues(
  */
 function mapTargetToSuuntoField(
   target: WorkoutStepTargetDto | undefined,
-  sport: SportType,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoField | null {
   if (!target || target.targetType === WORKOUT_TARGET_TYPE.OPEN) {
@@ -260,7 +259,7 @@ function mapStepToFields(
   const fields: SuuntoField[] = [];
 
   const targetField = step.targets?.[0]
-    ? mapTargetToSuuntoField(step.targets[0], sport, metrics)
+    ? mapTargetToSuuntoField(step.targets[0], metrics)
     : null;
 
   if (targetField) {

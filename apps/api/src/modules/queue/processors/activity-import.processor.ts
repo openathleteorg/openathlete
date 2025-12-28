@@ -1,11 +1,6 @@
-import { Job, Queue } from 'bullmq';
+import { Job } from 'bullmq';
 
-import {
-  InjectQueue,
-  OnWorkerEvent,
-  Processor,
-  WorkerHost,
-} from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
 
 import { ConnectorProvider, EventActivity } from '@openathlete/database';
@@ -39,8 +34,6 @@ export class ActivityImportProcessor extends WorkerHost {
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
     private readonly queueService: QueueService,
-    @InjectQueue('activity-import')
-    private readonly activityImportQueue: Queue<ActivityImportJobData>,
   ) {
     super();
   }

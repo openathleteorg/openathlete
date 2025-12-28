@@ -17,8 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { JwtUser, UserTypeGuard } from 'src/modules/auth';
-import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { UserTypeGuard } from 'src/modules/auth';
 
 import { ActivityFeedbackService } from '../services/activity-feedback.service';
 
@@ -126,10 +125,7 @@ export class ActivityFeedbackController {
       },
     },
   })
-  async transcribeAudio(
-    @JwtUser() user: AuthUser,
-    @UploadedFile() file: MulterFile,
-  ) {
+  async transcribeAudio(@UploadedFile() file: MulterFile) {
     if (!file) {
       throw new BadRequestException('No audio file provided');
     }

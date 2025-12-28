@@ -1,17 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { PrismaService } from 'src/modules/prisma/services/prisma.service';
-
 import { ActivityPipelineContext, ActivityProcessor } from './types';
 
 @Injectable()
 export class ActivityPipelineService {
   private readonly logger = new Logger(ActivityPipelineService.name);
 
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly processors: ActivityProcessor[],
-  ) {}
+  constructor(private readonly processors: ActivityProcessor[]) {}
 
   async run(ctx: ActivityPipelineContext) {
     for (const processor of this.processors) {

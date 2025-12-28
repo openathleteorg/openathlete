@@ -1,6 +1,6 @@
-import { Job, Queue } from 'bullmq';
+import { Job } from 'bullmq';
 
-import { InjectQueue, Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 
 import { TrainingZone, mapPrismaWorkoutToDto } from '@openathlete/shared';
@@ -42,8 +42,6 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
 
   constructor(
     private readonly prisma: PrismaService,
-    @InjectQueue('training-load-estimation')
-    private readonly trainingLoadEstimationQueue: Queue<TrainingLoadEstimationJobData>,
     @Optional()
     @Inject(forwardRef(() => CalendarWebSocketService))
     private readonly calendarWebSocketService?: CalendarWebSocketService,

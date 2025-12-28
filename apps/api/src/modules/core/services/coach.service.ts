@@ -7,16 +7,12 @@ import {
   coachDashboardResponseSchema,
 } from '@openathlete/shared';
 
-import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class CoachService {
-  constructor(
-    private prisma: PrismaService,
-    private readonly abilities: CaslAbilityFactory,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   private defaultPeriod(): { start: Date; end: Date } {
     const end = new Date();

@@ -22,7 +22,7 @@ import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
 import { ActivityFileParserService } from './helpers/activity-file-parser.service';
-import { CycleService, EventService } from './services';
+import { CycleService, EventService, WorkoutService } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
@@ -75,6 +75,7 @@ import { WeatherService } from './services/weather/weather.service';
   ],
   providers: [
     EventService,
+    WorkoutService,
     EventTemplateService,
     EventTemplateFolderService,
     AthleteService,
@@ -103,13 +104,12 @@ import { WeatherService } from './services/weather/weather.service';
     {
       provide: ActivityPipelineService,
       useFactory: (
-        prisma: PrismaService,
         gap: GapProcessor,
         weather: WeatherProcessor,
         normalization: NormalizationProcessor,
         trainingMatch: TrainingMatchProcessor,
       ) =>
-        new ActivityPipelineService(prisma, [
+        new ActivityPipelineService([
           gap,
           weather,
           normalization,

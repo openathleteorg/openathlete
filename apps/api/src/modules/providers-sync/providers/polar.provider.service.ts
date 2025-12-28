@@ -1141,11 +1141,7 @@ export class PolarProviderService
     });
 
     const polarExercise = activity.raw as PolarExercise;
-    const savedActivity = await this.saveActivityData(
-      account,
-      event,
-      polarExercise,
-    );
+    const savedActivity = await this.saveActivityData(event, polarExercise);
 
     // Try to fetch and process FIT file
     try {
@@ -1168,7 +1164,6 @@ export class PolarProviderService
    * Save activity data
    */
   private async saveActivityData(
-    account: ProviderAccount,
     event: { eventId: number },
     exercise: PolarExercise,
   ): Promise<EventActivity> {

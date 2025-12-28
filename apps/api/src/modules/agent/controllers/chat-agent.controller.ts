@@ -39,7 +39,6 @@ import {
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
-import { MastraAgentService } from '../services/mastra-agent.service';
 import { MessageService } from '../services/message.service';
 import { ThreadService } from '../services/thread.service';
 
@@ -49,7 +48,6 @@ export class ChatAgentController {
   constructor(
     private threadService: ThreadService,
     private messageService: MessageService,
-    private mastraAgentService: MastraAgentService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

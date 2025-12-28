@@ -673,7 +673,6 @@ export class SuuntoProviderService
 
     const suuntoWorkout = activity.raw as SuuntoLimitedWorkout;
     const savedActivity = await this.fetchSuuntoActivityData(
-      account,
       event,
       suuntoWorkout,
     );
@@ -699,7 +698,6 @@ export class SuuntoProviderService
    * Fetch and save Suunto activity data
    */
   private async fetchSuuntoActivityData(
-    account: ProviderAccount,
     event: { eventId: number },
     workout: SuuntoLimitedWorkout,
   ): Promise<EventActivity> {
