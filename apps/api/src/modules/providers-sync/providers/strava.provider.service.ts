@@ -293,8 +293,6 @@ export class StravaProviderService
     account: ProviderAccount,
     activity: ImportedActivity,
   ): Promise<EventActivity> {
-    // Check if already imported
-    // TODO: After migration, use findUnique with external_id unique index
     const existing = await this.prisma.eventActivity.findFirst({
       where: {
         externalId: activity.externalId,
