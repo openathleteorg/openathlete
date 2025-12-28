@@ -12,19 +12,15 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import {
+  ActivitySegmentType,
+  ConnectorProvider,
+  EventActivity,
+  EventType,
+  MetricType,
   Prisma,
-  activity_segment_type,
-  connector_provider,
-  event_activity,
-  event_type,
-  metric_type,
-  provider_account,
+  ProviderAccount,
 } from '@openathlete/database';
-import {
-  ActivityStream,
-  ApiEnvSchemaType,
-  METRIC_TYPE,
-} from '@openathlete/shared';
+import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
 import { FitFileSegment } from '../../core/helpers/activity-parser.interface';
@@ -75,7 +71,7 @@ import {
 } from '../base/provider-import.interface';
 
 type MetricRecord = {
-  type: METRIC_TYPE;
+  type: MetricType;
   date: Date;
   value: number;
 };
@@ -85,7 +81,7 @@ export class GarminProviderService
   extends BaseProviderService
   implements ProviderImportCapability, OnModuleInit
 {
-  protected readonly provider = connector_provider.GARMIN;
+  protected readonly provider = ConnectorProvider.GARMIN;
   private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000;
 
   protected get oauthConfig(): OAuthConfig {
@@ -314,7 +310,7 @@ export class GarminProviderService
     expiresIn?: number;
     scopes?: string;
     externalUserId?: string;
-  }): Promise<provider_account> {
+  }): Promise<ProviderAccount> {
     const adjustedExpiresIn = params.expiresIn
       ? Math.max(0, params.expiresIn - 600)
       : undefined;
@@ -326,33 +322,33 @@ export class GarminProviderService
   }
 
   override async getValidAccessToken(
-    account: provider_account,
+    account: ProviderAccount,
   ): Promise<string> {
     if (
-      account.access_token &&
-      account.expires_at &&
-      new Date() < account.expires_at
+      account.accessToken &&
+      account.expiresAt &&
+      new Date() < account.expiresAt
     ) {
-      return account.access_token;
+      return account.accessToken;
     }
 
-    if (!account.refresh_token) {
+    if (!account.refreshToken) {
       throw new Error(`No refresh token available for ${this.provider}`);
     }
 
-    const tokenResponse = await this.refreshAccessToken(account.refresh_token);
+    const tokenResponse = await this.refreshAccessToken(account.refreshToken);
     const expiresAt = tokenResponse.expires_in
       ? new Date(Date.now() + (tokenResponse.expires_in - 600) * 1000)
       : null;
 
-    await this.prisma.provider_account.update({
+    await this.prisma.providerAccount.update({
       where: {
-        provider_account_id: account.provider_account_id,
+        providerAccountId: account.providerAccountId,
       },
       data: {
-        access_token: tokenResponse.access_token,
-        refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
-        expires_at: expiresAt,
+        accessToken: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token ?? account.refreshToken,
+        expiresAt: expiresAt,
       },
     });
 
@@ -363,7 +359,7 @@ export class GarminProviderService
     code: string,
     codeVerifier: string,
     athleteId: number,
-  ): Promise<provider_account> {
+  ): Promise<ProviderAccount> {
     const tokenResponse = await this.exchangeCodeForTokens(code, codeVerifier);
     const userId = await this.getUserId(tokenResponse.access_token);
 
@@ -380,7 +376,7 @@ export class GarminProviderService
   }
 
   private async isUserRegistrationComplete(
-    account: provider_account,
+    account: ProviderAccount,
   ): Promise<boolean> {
     try {
       const accessToken = await this.getValidAccessToken(account);
@@ -392,7 +388,7 @@ export class GarminProviderService
   }
 
   private async hasActivityExportPermission(
-    account: provider_account,
+    account: ProviderAccount,
   ): Promise<boolean | null> {
     try {
       const accessToken = await this.getValidAccessToken(account);
@@ -406,7 +402,7 @@ export class GarminProviderService
     }
   }
 
-  async queueFullImport(account: provider_account): Promise<FullImportResult> {
+  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
     const hasPermission = await this.hasActivityExportPermission(account);
     if (hasPermission === false) {
       throw new BadRequestException(
@@ -471,7 +467,7 @@ export class GarminProviderService
   }
 
   private async makeAuthenticatedRequest<T>(
-    account: provider_account,
+    account: ProviderAccount,
     requestFn: (accessToken: string) => Promise<T>,
   ): Promise<T> {
     let accessToken = await this.getValidAccessToken(account);
@@ -482,29 +478,29 @@ export class GarminProviderService
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
-        account.refresh_token
+        account.refreshToken
       ) {
         const tokenResponse = await this.refreshAccessToken(
-          account.refresh_token,
+          account.refreshToken,
         );
         const expiresAt = tokenResponse.expires_in
           ? new Date(Date.now() + (tokenResponse.expires_in - 600) * 1000)
           : null;
 
-        const updatedAccount = await this.prisma.provider_account.update({
+        const updatedAccount = await this.prisma.providerAccount.update({
           where: {
-            provider_account_id: account.provider_account_id,
+            providerAccountId: account.providerAccountId,
           },
           data: {
-            access_token: tokenResponse.access_token,
-            refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
-            expires_at: expiresAt,
+            accessToken: tokenResponse.access_token,
+            refreshToken: tokenResponse.refresh_token ?? account.refreshToken,
+            expiresAt: expiresAt,
           },
         });
 
-        account.access_token = updatedAccount.access_token;
-        account.refresh_token = updatedAccount.refresh_token;
-        account.expires_at = updatedAccount.expires_at;
+        account.accessToken = updatedAccount.accessToken;
+        account.refreshToken = updatedAccount.refreshToken;
+        account.expiresAt = updatedAccount.expiresAt;
 
         accessToken = tokenResponse.access_token;
         return await requestFn(accessToken);
@@ -514,7 +510,7 @@ export class GarminProviderService
   }
 
   async importActivities(
-    account: provider_account,
+    account: ProviderAccount,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]> {
     const hasPermission = await this.hasActivityExportPermission(account);
@@ -610,26 +606,26 @@ export class GarminProviderService
   }
 
   private async enqueueActivities(
-    account: provider_account,
+    account: ProviderAccount,
     activities: ImportedActivity[],
   ): Promise<number> {
     if (activities.length === 0) {
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.event_activity.findMany({
+    const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
-        external_id: {
+        externalId: {
           in: activities.map((a) => a.externalId),
         },
       },
       select: {
-        external_id: true,
+        externalId: true,
       },
     });
 
     const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.external_id),
+      existingExternalIds.map((a) => a.externalId),
     );
 
     const newActivities = activities.filter(
@@ -638,7 +634,7 @@ export class GarminProviderService
 
     if (newActivities.length === 0) {
       this.logger.log(
-        `No new Garmin activities to queue for account ${account.provider_account_id}`,
+        `No new Garmin activities to queue for account ${account.providerAccountId}`,
       );
       return 0;
     }
@@ -648,12 +644,12 @@ export class GarminProviderService
   }
 
   async importActivity(
-    account: provider_account,
+    account: ProviderAccount,
     activity: ImportedActivity,
-  ): Promise<event_activity> {
-    const existing = await this.prisma.event_activity.findFirst({
+  ): Promise<EventActivity> {
+    const existing = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: activity.externalId,
+        externalId: activity.externalId,
       },
     });
 
@@ -662,8 +658,8 @@ export class GarminProviderService
     }
 
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: account.athlete_id },
-      select: { athlete_id: true },
+      where: { athleteId: account.athleteId },
+      select: { athleteId: true },
     });
 
     if (!athlete) {
@@ -672,11 +668,11 @@ export class GarminProviderService
 
     const event = await this.prisma.event.create({
       data: {
-        athlete_id: athlete.athlete_id,
+        athleteId: athlete.athleteId,
         name: activity.name,
-        type: event_type.ACTIVITY,
-        start_date: activity.startDate,
-        end_date: activity.endDate,
+        type: EventType.ACTIVITY,
+        startDate: activity.startDate,
+        endDate: activity.endDate,
       },
     });
 
@@ -700,9 +696,9 @@ export class GarminProviderService
   }
 
   private async fetchGarminActivityData(
-    event: { event_id: number },
+    event: { eventId: number },
     activity: GarminActivitySummary,
-  ): Promise<event_activity> {
+  ): Promise<EventActivity> {
     const activityStream: ActivityStream = {};
 
     const summary = activity;
@@ -723,29 +719,29 @@ export class GarminProviderService
 
     const movingTime = summary.durationInSeconds;
 
-    const savedActivity = await this.prisma.event_activity.create({
+    const savedActivity = await this.prisma.eventActivity.create({
       data: {
-        provider: connector_provider.GARMIN,
+        provider: ConnectorProvider.GARMIN,
         distance: roundDistance(summary.distanceInMeters || 0),
-        elevation_gain: roundElevation(summary.totalElevationGainInMeters || 0),
-        moving_time: movingTime,
-        average_speed:
+        elevationGain: roundElevation(summary.totalElevationGainInMeters || 0),
+        movingTime: movingTime,
+        averageSpeed:
           roundSpeed(summary.averageSpeedInMetersPerSecond || 0) ?? 0,
-        max_speed: roundSpeed(summary.maxSpeedInMetersPerSecond || 0) ?? 0,
-        average_cadence: averageCadence,
-        average_heartrate: roundHeartrate(
+        maxSpeed: roundSpeed(summary.maxSpeedInMetersPerSecond || 0) ?? 0,
+        averageCadence: averageCadence,
+        averageHeartrate: roundHeartrate(
           summary.averageHeartRateInBeatsPerMinute,
         ),
-        max_heartrate: roundHeartrate(summary.maxHeartRateInBeatsPerMinute),
+        maxHeartrate: roundHeartrate(summary.maxHeartRateInBeatsPerMinute),
         kilojoules: summary.activeKilocalories
           ? roundEnergy(summary.activeKilocalories * 4.184)
           : undefined,
         sport,
         stream: compressedActivityStream as object,
-        external_id: activity.activityId.toString(),
+        externalId: activity.activityId.toString(),
         event: {
           connect: {
-            event_id: event.event_id,
+            eventId: event.eventId,
           },
         },
       },
@@ -757,10 +753,10 @@ export class GarminProviderService
   async handleActivityPingWebhook(
     payload: GarminActivityPingWebhook,
   ): Promise<void> {
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        provider: connector_provider.GARMIN,
-        external_user_id: payload.userId,
+        provider: ConnectorProvider.GARMIN,
+        externalUserId: payload.userId,
         status: 'active',
       },
       include: {
@@ -776,9 +772,9 @@ export class GarminProviderService
       return;
     }
 
-    if (!account.import_activities_enabled) {
+    if (!account.importActivitiesEnabled) {
       this.logger.debug(
-        `Import disabled for Garmin account ${account.provider_account_id}, skipping activity ping`,
+        `Import disabled for Garmin account ${account.providerAccountId}, skipping activity ping`,
       );
       return;
     }
@@ -802,19 +798,19 @@ export class GarminProviderService
       }
 
       const activityIds = activities.map((a) => String(a.activityId));
-      const existingExternalIds = await this.prisma.event_activity.findMany({
+      const existingExternalIds = await this.prisma.eventActivity.findMany({
         where: {
-          external_id: {
+          externalId: {
             in: activityIds,
           },
         },
         select: {
-          external_id: true,
+          externalId: true,
         },
       });
 
       const existingIdsSet = new Set(
-        existingExternalIds.map((a) => a.external_id),
+        existingExternalIds.map((a) => a.externalId),
       );
 
       const newActivities: ImportedActivity[] = activities
@@ -922,10 +918,10 @@ export class GarminProviderService
           continue;
         }
 
-        const account = await this.prisma.provider_account.findFirst({
+        const account = await this.prisma.providerAccount.findFirst({
           where: {
-            provider: connector_provider.GARMIN,
-            external_user_id: notification.userId,
+            provider: ConnectorProvider.GARMIN,
+            externalUserId: notification.userId,
             status: 'active',
           },
         });
@@ -934,9 +930,9 @@ export class GarminProviderService
           continue;
         }
 
-        if (!account.import_metrics_enabled) {
+        if (!account.importMetricsEnabled) {
           this.logger.debug(
-            `Metric import disabled for Garmin account ${account.provider_account_id}, skipping ${summaryType} summary`,
+            `Metric import disabled for Garmin account ${account.providerAccountId}, skipping ${summaryType} summary`,
           );
           continue;
         }
@@ -949,7 +945,7 @@ export class GarminProviderService
           );
         } catch (error) {
           this.logger.error(
-            `Failed to process Garmin ${summaryType} summary for account ${account.provider_account_id}`,
+            `Failed to process Garmin ${summaryType} summary for account ${account.providerAccountId}`,
             error instanceof Error ? error.message : error,
           );
         }
@@ -958,7 +954,7 @@ export class GarminProviderService
   }
 
   private async processHealthSummary(
-    account: provider_account,
+    account: ProviderAccount,
     summaryType: GarminHealthSummaryType,
     callbackURL: string,
   ): Promise<void> {
@@ -969,7 +965,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapDailySummariesToMetrics(data),
         );
         break;
@@ -980,7 +976,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapSleepSummariesToMetrics(data),
         );
         break;
@@ -992,7 +988,7 @@ export class GarminProviderService
             callbackURL,
           );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapBodyCompSummariesToMetrics(data),
         );
         break;
@@ -1003,7 +999,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapUserMetricsSummariesToMetrics(data),
         );
         break;
@@ -1014,7 +1010,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapPulseOxSummariesToMetrics(data),
         );
         break;
@@ -1025,7 +1021,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapRespirationSummariesToMetrics(data),
         );
         break;
@@ -1037,7 +1033,7 @@ export class GarminProviderService
             callbackURL,
           );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapHealthSnapshotSummariesToMetrics(data),
         );
         break;
@@ -1048,7 +1044,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapHrvSummariesToMetrics(data),
         );
         break;
@@ -1060,7 +1056,7 @@ export class GarminProviderService
             callbackURL,
           );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapBloodPressureSummariesToMetrics(data),
         );
         break;
@@ -1071,7 +1067,7 @@ export class GarminProviderService
           callbackURL,
         );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapSkinTempSummariesToMetrics(data),
         );
         break;
@@ -1083,7 +1079,7 @@ export class GarminProviderService
             callbackURL,
           );
         await this.saveMetrics(
-          account.athlete_id,
+          account.athleteId,
           this.mapStressDetailsSummariesToMetrics(data),
         );
         break;
@@ -1093,7 +1089,7 @@ export class GarminProviderService
         // We can skip processing epochs as they're already aggregated in dailies
         // But we'll log that we received them for debugging
         this.logger.debug(
-          `Received epochs ping for account ${account.provider_account_id}, skipping (data aggregated in dailies)`,
+          `Received epochs ping for account ${account.providerAccountId}, skipping (data aggregated in dailies)`,
         );
         break;
       }
@@ -1106,7 +1102,7 @@ export class GarminProviderService
   }
 
   private async fetchHealthSummaries<T>(
-    account: provider_account,
+    account: ProviderAccount,
     callbackURL: string,
   ): Promise<T[]> {
     return this.makeAuthenticatedRequest<T[]>(account, async (accessToken) => {
@@ -1148,17 +1144,17 @@ export class GarminProviderService
 
     await this.prisma.$transaction(
       validMetrics.map((metric) =>
-        this.prisma.athlete_metric.upsert({
+        this.prisma.athleteMetric.upsert({
           where: {
-            athlete_id_type_date: {
-              athlete_id: athleteId,
-              type: metric.type as unknown as metric_type,
+            athleteId_type_date: {
+              athleteId: athleteId,
+              type: metric.type as unknown as MetricType,
               date: metric.date,
             },
           },
           create: {
-            athlete_id: athleteId,
-            type: metric.type as unknown as metric_type,
+            athleteId: athleteId,
+            type: metric.type as unknown as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
           },
@@ -1184,145 +1180,145 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_CALORIES,
+        MetricType.DAILY_CALORIES,
         date,
         totalCalories,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_ACTIVE_CALORIES,
+        MetricType.DAILY_ACTIVE_CALORIES,
         date,
         summary.activeKilocalories,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_BMR_CALORIES,
+        MetricType.DAILY_BMR_CALORIES,
         date,
         summary.bmrKilocalories,
         0,
       );
-      this.pushMetric(metrics, METRIC_TYPE.DAILY_STEPS, date, summary.steps, 0);
+      this.pushMetric(metrics, MetricType.DAILY_STEPS, date, summary.steps, 0);
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_DISTANCE,
+        MetricType.DAILY_DISTANCE,
         date,
         this.metersToKilometers(summary.distanceInMeters),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_ACTIVE_MINUTES,
+        MetricType.DAILY_ACTIVE_MINUTES,
         date,
         this.secondsToMinutes(summary.activeTimeInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_MODERATE_MINUTES,
+        MetricType.DAILY_MODERATE_MINUTES,
         date,
         this.secondsToMinutes(summary.moderateIntensityDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_VIGOROUS_MINUTES,
+        MetricType.DAILY_VIGOROUS_MINUTES,
         date,
         this.secondsToMinutes(summary.vigorousIntensityDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.DAILY_FLOORS,
+        MetricType.DAILY_FLOORS,
         date,
         summary.floorsClimbed,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HR_MIN_DAILY,
+        MetricType.HR_MIN_DAILY,
         date,
         summary.minHeartRateInBeatsPerMinute,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HR_AVG_DAILY,
+        MetricType.HR_AVG_DAILY,
         date,
         summary.averageHeartRateInBeatsPerMinute,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HR_MAX_DAILY,
+        MetricType.HR_MAX_DAILY,
         date,
         summary.maxHeartRateInBeatsPerMinute,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HR_REST,
+        MetricType.HR_REST,
         date,
         summary.restingHeartRateInBeatsPerMinute,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_AVERAGE,
+        MetricType.STRESS_AVERAGE,
         date,
         summary.averageStressLevel,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_MAX,
+        MetricType.STRESS_MAX,
         date,
         summary.maxStressLevel,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_DURATION,
+        MetricType.STRESS_DURATION,
         date,
         this.secondsToMinutes(summary.stressDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_REST_DURATION,
+        MetricType.STRESS_REST_DURATION,
         date,
         this.secondsToMinutes(summary.restStressDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_ACTIVITY_DURATION,
+        MetricType.STRESS_ACTIVITY_DURATION,
         date,
         this.secondsToMinutes(summary.activityStressDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_LOW_DURATION,
+        MetricType.STRESS_LOW_DURATION,
         date,
         this.secondsToMinutes(summary.lowStressDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_MEDIUM_DURATION,
+        MetricType.STRESS_MEDIUM_DURATION,
         date,
         this.secondsToMinutes(summary.mediumStressDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.STRESS_HIGH_DURATION,
+        MetricType.STRESS_HIGH_DURATION,
         date,
         this.secondsToMinutes(summary.highStressDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BODY_BATTERY_CHARGED,
+        MetricType.BODY_BATTERY_CHARGED,
         date,
         summary.bodyBatteryChargedValue,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BODY_BATTERY_DRAINED,
+        MetricType.BODY_BATTERY_DRAINED,
         date,
         summary.bodyBatteryDrainedValue,
         0,
@@ -1343,43 +1339,43 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_DURATION,
+        MetricType.SLEEP_DURATION,
         date,
         this.secondsToHours(summary.durationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_REM_DURATION,
+        MetricType.SLEEP_REM_DURATION,
         date,
         this.secondsToHours(summary.remSleepInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_DEEP_DURATION,
+        MetricType.SLEEP_DEEP_DURATION,
         date,
         this.secondsToHours(summary.deepSleepDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_LIGHT_DURATION,
+        MetricType.SLEEP_LIGHT_DURATION,
         date,
         this.secondsToHours(summary.lightSleepDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_AWAKE_DURATION,
+        MetricType.SLEEP_AWAKE_DURATION,
         date,
         this.secondsToHours(summary.awakeDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.NAP_DURATION,
+        MetricType.NAP_DURATION,
         date,
         this.secondsToHours(summary.totalNapDurationInSeconds),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_SCORE,
+        MetricType.SLEEP_SCORE,
         date,
         summary.overallSleepScore?.value,
         0,
@@ -1390,7 +1386,7 @@ export class GarminProviderService
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_RESPIRATION_AVG,
+        MetricType.SLEEP_RESPIRATION_AVG,
         date,
         respirationAvg,
       );
@@ -1398,7 +1394,7 @@ export class GarminProviderService
       const spo2Avg = this.average(
         this.extractNumericValues(summary.timeOffsetSleepSpo2),
       );
-      this.pushMetric(metrics, METRIC_TYPE.SLEEP_SPO2_AVG, date, spo2Avg);
+      this.pushMetric(metrics, MetricType.SLEEP_SPO2_AVG, date, spo2Avg);
     }
 
     return metrics;
@@ -1418,32 +1414,32 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.WEIGHT,
+        MetricType.WEIGHT,
         date,
         this.gramsToKilograms(summary.weightInGrams),
       );
-      this.pushMetric(metrics, METRIC_TYPE.BMI, date, summary.bodyMassIndex);
+      this.pushMetric(metrics, MetricType.BMI, date, summary.bodyMassIndex);
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BODY_FAT,
+        MetricType.BODY_FAT,
         date,
         summary.bodyFatInPercent,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BODY_WATER,
+        MetricType.BODY_WATER,
         date,
         summary.bodyWaterInPercent,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.MUSCLE_MASS,
+        MetricType.MUSCLE_MASS,
         date,
         this.gramsToKilograms(summary.muscleMassInGrams),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BONE_MASS,
+        MetricType.BONE_MASS,
         date,
         this.gramsToKilograms(summary.boneMassInGrams),
       );
@@ -1461,16 +1457,16 @@ export class GarminProviderService
       const date = this.parseCalendarDate(summary.calendarDate);
       if (!date) continue;
 
-      this.pushMetric(metrics, METRIC_TYPE.VO2MAX, date, summary.vo2Max);
+      this.pushMetric(metrics, MetricType.VO2MAX, date, summary.vo2Max);
       this.pushMetric(
         metrics,
-        METRIC_TYPE.VO2MAX_CYCLING,
+        MetricType.VO2MAX_CYCLING,
         date,
         summary.vo2MaxCycling,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.FITNESS_AGE,
+        MetricType.FITNESS_AGE,
         date,
         summary.fitnessAge,
         0,
@@ -1524,13 +1520,13 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.PULSE_OX_AVG,
+        MetricType.PULSE_OX_AVG,
         date,
         value.sum / value.count,
       );
 
       if (Number.isFinite(value.min)) {
-        this.pushMetric(metrics, METRIC_TYPE.PULSE_OX_MIN, date, value.min);
+        this.pushMetric(metrics, MetricType.PULSE_OX_MIN, date, value.min);
       }
     }
 
@@ -1570,7 +1566,7 @@ export class GarminProviderService
       const date = new Date(key);
       this.pushMetric(
         metrics,
-        METRIC_TYPE.RESPIRATION_RATE_AVG,
+        MetricType.RESPIRATION_RATE_AVG,
         date,
         value.sum / value.count,
       );
@@ -1597,7 +1593,7 @@ export class GarminProviderService
           case 'heart_rate':
             this.pushMetric(
               metrics,
-              METRIC_TYPE.SNAPSHOT_HEART_RATE_AVG,
+              MetricType.SNAPSHOT_HEART_RATE_AVG,
               date,
               item.avgValue,
             );
@@ -1605,7 +1601,7 @@ export class GarminProviderService
           case 'stress':
             this.pushMetric(
               metrics,
-              METRIC_TYPE.SNAPSHOT_STRESS_AVG,
+              MetricType.SNAPSHOT_STRESS_AVG,
               date,
               item.avgValue,
             );
@@ -1613,7 +1609,7 @@ export class GarminProviderService
           case 'respiration':
             this.pushMetric(
               metrics,
-              METRIC_TYPE.SNAPSHOT_RESPIRATION_AVG,
+              MetricType.SNAPSHOT_RESPIRATION_AVG,
               date,
               item.avgValue,
             );
@@ -1621,7 +1617,7 @@ export class GarminProviderService
           case 'spo2':
             this.pushMetric(
               metrics,
-              METRIC_TYPE.SNAPSHOT_SPO2_AVG,
+              MetricType.SNAPSHOT_SPO2_AVG,
               date,
               item.avgValue,
             );
@@ -1629,7 +1625,7 @@ export class GarminProviderService
           case 'rmssd_hrv':
             this.pushMetric(
               metrics,
-              METRIC_TYPE.SNAPSHOT_RMSSD,
+              MetricType.SNAPSHOT_RMSSD,
               date,
               item.avgValue,
             );
@@ -1637,7 +1633,7 @@ export class GarminProviderService
           case 'sdrr_hrv':
             this.pushMetric(
               metrics,
-              METRIC_TYPE.SNAPSHOT_SDNN,
+              MetricType.SNAPSHOT_SDNN,
               date,
               item.avgValue,
             );
@@ -1662,13 +1658,13 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HRV_LAST_NIGHT_AVG,
+        MetricType.HRV_LAST_NIGHT_AVG,
         date,
         summary.lastNightAvg,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HRV_LAST_NIGHT_5MIN_HIGH,
+        MetricType.HRV_LAST_NIGHT_5MIN_HIGH,
         date,
         summary.lastNight5MinHigh,
       );
@@ -1691,21 +1687,21 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BLOOD_PRESSURE_SYSTOLIC,
+        MetricType.BLOOD_PRESSURE_SYSTOLIC,
         date,
         summary.systolic,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BLOOD_PRESSURE_DIASTOLIC,
+        MetricType.BLOOD_PRESSURE_DIASTOLIC,
         date,
         summary.diastolic,
         0,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.BLOOD_PRESSURE_PULSE,
+        MetricType.BLOOD_PRESSURE_PULSE,
         date,
         summary.pulse,
         0,
@@ -1726,7 +1722,7 @@ export class GarminProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SKIN_TEMP_DEVIATION,
+        MetricType.SKIN_TEMP_DEVIATION,
         date,
         summary.avgDeviationCelsius,
       );
@@ -1759,10 +1755,10 @@ export class GarminProviderService
           const avg = this.average(validStressValues);
           const max = Math.max(...validStressValues);
           if (avg !== undefined) {
-            this.pushMetric(metrics, METRIC_TYPE.STRESS_AVERAGE, date, avg, 0);
+            this.pushMetric(metrics, MetricType.STRESS_AVERAGE, date, avg, 0);
           }
           if (Number.isFinite(max)) {
-            this.pushMetric(metrics, METRIC_TYPE.STRESS_MAX, date, max, 0);
+            this.pushMetric(metrics, MetricType.STRESS_MAX, date, max, 0);
           }
         }
       }
@@ -1790,7 +1786,7 @@ export class GarminProviderService
           if (charged > 0) {
             this.pushMetric(
               metrics,
-              METRIC_TYPE.BODY_BATTERY_CHARGED,
+              MetricType.BODY_BATTERY_CHARGED,
               date,
               charged,
               0,
@@ -1799,7 +1795,7 @@ export class GarminProviderService
           if (drained > 0) {
             this.pushMetric(
               metrics,
-              METRIC_TYPE.BODY_BATTERY_DRAINED,
+              MetricType.BODY_BATTERY_DRAINED,
               date,
               drained,
               0,
@@ -1814,7 +1810,7 @@ export class GarminProviderService
 
   private pushMetric(
     target: MetricRecord[],
-    type: METRIC_TYPE,
+    type: MetricType,
     date: Date | null,
     value?: number | null,
     precision?: number,
@@ -1920,10 +1916,10 @@ export class GarminProviderService
       return;
     }
 
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        provider: connector_provider.GARMIN,
-        external_user_id: payload.userId,
+        provider: ConnectorProvider.GARMIN,
+        externalUserId: payload.userId,
         status: 'active',
       },
       include: {
@@ -1939,17 +1935,17 @@ export class GarminProviderService
       return;
     }
 
-    if (!account.import_activities_enabled) {
+    if (!account.importActivitiesEnabled) {
       this.logger.debug(
-        `Import disabled for Garmin account ${account.provider_account_id}, skipping activity file ping`,
+        `Import disabled for Garmin account ${account.providerAccountId}, skipping activity file ping`,
       );
       return;
     }
 
-    const activity = await this.prisma.event_activity.findFirst({
+    const activity = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: String(payload.activityId),
-        provider: connector_provider.GARMIN,
+        externalId: String(payload.activityId),
+        provider: ConnectorProvider.GARMIN,
       },
       include: {
         event: true,
@@ -1970,8 +1966,8 @@ export class GarminProviderService
   }
 
   private async processActivityFile(
-    account: provider_account,
-    activity: event_activity,
+    account: ProviderAccount,
+    activity: EventActivity,
     callbackURL: string,
     fileType: 'FIT' | 'GPX',
   ): Promise<void> {
@@ -1993,12 +1989,12 @@ export class GarminProviderService
       const activityStream = parseResult.stream;
       const compressedStream = compressActivityStream(activityStream);
 
-      await this.prisma.event_activity.update({
+      await this.prisma.eventActivity.update({
         where: {
-          event_activity_id: activity.event_activity_id,
+          eventActivityId: activity.eventActivityId,
         },
         data: {
-          stream: compressedStream as object,
+          stream: compressedStream as unknown as object,
         },
       });
 
@@ -2007,29 +2003,29 @@ export class GarminProviderService
         Object.keys(activityStream).length > 0
       ) {
         await this.syncSegmentsFromFit(
-          activity.event_activity_id,
+          activity.eventActivityId,
           parseResult.segments,
           activityStream,
         );
       }
 
-      const activityWithEvent = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: activity.event_activity_id },
+      const activityWithEvent = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: activity.eventActivityId },
         select: {
-          event: { select: { athlete_id: true } },
+          event: { select: { athleteId: true } },
           stream: true,
-          event_id: true,
+          eventId: true,
         },
       });
 
       if (
         activityWithEvent?.stream &&
         activityWithEvent.event &&
-        activityWithEvent.event_id
+        activityWithEvent.eventId
       ) {
         await this.queueService.addActivityProcessingJob(
-          activity.event_activity_id,
-          activityWithEvent.event_id,
+          activity.eventActivityId,
+          activityWithEvent.eventId,
           false,
         );
       }
@@ -2047,7 +2043,7 @@ export class GarminProviderService
       return;
     }
 
-    const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
+    const segmentsData: Prisma.ActivitySegmentCreateManyInput[] = [];
 
     segments.forEach((segment, index) => {
       if (segment.endTimeSeconds <= segment.startTimeSeconds) {
@@ -2061,13 +2057,13 @@ export class GarminProviderService
       );
 
       segmentsData.push({
-        segment_type: activity_segment_type.LAP,
+        segmentType: ActivitySegmentType.LAP,
         name: segment.name ?? `Lap ${index + 1}`,
-        order_index: index,
-        start_time_seconds: Math.round(segment.startTimeSeconds),
-        end_time_seconds: Math.round(segment.endTimeSeconds),
+        orderIndex: index,
+        startTimeSeconds: Math.round(segment.startTimeSeconds),
+        endTimeSeconds: Math.round(segment.endTimeSeconds),
         ...metrics,
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       });
     });
 
@@ -2076,10 +2072,10 @@ export class GarminProviderService
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.activity_segment.deleteMany({
-        where: { event_activity_id: eventActivityId },
+      await tx.activitySegment.deleteMany({
+        where: { eventActivityId: eventActivityId },
       });
-      await tx.activity_segment.createMany({
+      await tx.activitySegment.createMany({
         data: segmentsData,
       });
     });
@@ -2088,10 +2084,10 @@ export class GarminProviderService
   async handleDeregistrationWebhook(
     payload: GarminDeregistrationWebhook,
   ): Promise<void> {
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        provider: connector_provider.GARMIN,
-        external_user_id: payload.userId,
+        provider: ConnectorProvider.GARMIN,
+        externalUserId: payload.userId,
         status: 'active',
       },
     });
@@ -2100,9 +2096,9 @@ export class GarminProviderService
       return;
     }
 
-    await this.prisma.provider_account.update({
+    await this.prisma.providerAccount.update({
       where: {
-        provider_account_id: account.provider_account_id,
+        providerAccountId: account.providerAccountId,
       },
       data: {
         status: 'revoked',
@@ -2113,10 +2109,10 @@ export class GarminProviderService
   async handleUserPermissionsChangeWebhook(
     payload: GarminUserPermissionsChangeWebhook,
   ): Promise<void> {
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        provider: connector_provider.GARMIN,
-        external_user_id: payload.userId,
+        provider: ConnectorProvider.GARMIN,
+        externalUserId: payload.userId,
         status: 'active',
       },
     });
@@ -2131,12 +2127,12 @@ export class GarminProviderService
     const hasWorkoutImport = payload.permissions.includes('WORKOUT_IMPORT');
 
     this.logger.log(
-      `Garmin user permissions changed for account ${account.provider_account_id}. Permissions: ${payload.permissions.join(', ')}`,
+      `Garmin user permissions changed for account ${account.providerAccountId}. Permissions: ${payload.permissions.join(', ')}`,
     );
 
     if (!hasWorkoutImport) {
       this.logger.warn(
-        `WORKOUT_IMPORT permission revoked for Garmin account ${account.provider_account_id}. Future workout syncs will fail.`,
+        `WORKOUT_IMPORT permission revoked for Garmin account ${account.providerAccountId}. Future workout syncs will fail.`,
       );
     }
   }

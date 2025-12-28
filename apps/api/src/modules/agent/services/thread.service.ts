@@ -59,7 +59,7 @@ export class ThreadService {
       throw new NotFoundException(`Thread with ID ${threadId} not found`);
     }
 
-    if (!ability.can('read', subject('agent_thread', thread))) {
+    if (!ability.can('read', subject('AgentThread', thread))) {
       throw new ForbiddenException('You cannot access this thread');
     }
 

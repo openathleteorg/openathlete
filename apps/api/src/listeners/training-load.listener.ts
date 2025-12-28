@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 
-import { training_load_calculation_type } from '@openathlete/database';
+import { TrainingLoadCalculationType } from '@openathlete/database';
 
 import { ActivityImportedEvent } from 'src/events';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -33,41 +33,41 @@ export class TrainingLoadListener {
     );
 
     try {
-      // Get the activity with event to get athlete_id
-      const activity = await this.prisma.event_activity.findUnique({
+      // Get the activity with event to get athleteId
+      const activity = await this.prisma.eventActivity.findUnique({
         where: {
-          event_activity_id: eventActivityId,
+          eventActivityId: eventActivityId,
         },
         include: {
           event: {
             select: {
-              athlete_id: true,
+              athleteId: true,
             },
           },
         },
       });
 
-      if (!activity || !activity.event?.athlete_id) {
+      if (!activity || !activity.event?.athleteId) {
         this.logger.warn(
           `Activity ${eventActivityId} not found or has no athlete`,
         );
         return;
       }
 
-      const athleteId = activity.event.athlete_id;
+      const athleteId = activity.event.athleteId;
 
       // Get athlete's user to create AuthUser context
       const athlete = await this.prisma.athlete.findUnique({
         where: {
-          athlete_id: athleteId,
+          athleteId: athleteId,
         },
         include: {
           user: {
             select: {
-              user_id: true,
+              userId: true,
               email: true,
-              first_name: true,
-              last_name: true,
+              firstName: true,
+              lastName: true,
               roles: true,
             },
           },
@@ -81,13 +81,10 @@ export class TrainingLoadListener {
 
       // Create AuthUser context
       const authUser = {
-        user_id: athlete.user.user_id,
+        userId: athlete.user.userId,
         email: athlete.user.email,
-        first_name: athlete.user.first_name,
-        last_name: athlete.user.last_name,
-        roles: athlete.user.roles,
         athlete: {
-          athlete_id: athleteId,
+          athleteId: athleteId,
         },
       };
 
@@ -97,7 +94,7 @@ export class TrainingLoadListener {
           await this.trainingLoadService.calculateActivityLoad(
             authUser,
             eventId,
-            'FOSTER_RPE' as training_load_calculation_type,
+            'FOSTER_RPE' as TrainingLoadCalculationType,
           );
           this.logger.log(
             `✓ Foster RPE training load calculated for activity ${eventActivityId}`,
@@ -112,11 +109,11 @@ export class TrainingLoadListener {
       }
 
       // Calculate TRIMP if heart rate data is available
-      if (activity.stream && activity.average_heartrate) {
+      if (activity.stream && activity.averageHeartrate) {
         // Get athlete's HR metrics
-        const hrMax = await this.prisma.athlete_metric.findFirst({
+        const hrMax = await this.prisma.athleteMetric.findFirst({
           where: {
-            athlete_id: athleteId,
+            athleteId: athleteId,
             type: 'HR_MAX',
           },
           orderBy: {
@@ -124,9 +121,9 @@ export class TrainingLoadListener {
           },
         });
 
-        const hrRest = await this.prisma.athlete_metric.findFirst({
+        const hrRest = await this.prisma.athleteMetric.findFirst({
           where: {
-            athlete_id: athleteId,
+            athleteId: athleteId,
             type: 'HR_REST',
           },
           orderBy: {
@@ -141,7 +138,7 @@ export class TrainingLoadListener {
             await this.trainingLoadService.calculateActivityLoad(
               authUser,
               eventId,
-              'TRIMP' as training_load_calculation_type,
+              'TRIMP' as TrainingLoadCalculationType,
             );
             this.logger.log(
               `✓ TRIMP training load calculated for activity ${eventActivityId}`,

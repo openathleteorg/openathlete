@@ -1,11 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { equipment, equipment_type, sport_type } from '@openathlete/database';
-import {
-  CreateEquipmentDto,
-  UpdateEquipmentDto,
-  keysToCamel,
-} from '@openathlete/shared';
+import { Equipment, EquipmentType, SportType } from '@openathlete/database';
+import { CreateEquipmentDto, UpdateEquipmentDto } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -17,15 +13,15 @@ export class EquipmentService {
   async createEquipment(
     user: AuthUser,
     dto: CreateEquipmentDto,
-  ): Promise<equipment> {
+  ): Promise<Equipment> {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
       select: {
-        athlete_id: true,
+        athleteId: true,
       },
     });
 
@@ -36,48 +32,46 @@ export class EquipmentService {
     if (dto.isDefault) {
       await this.prisma.equipment.updateMany({
         where: {
-          athlete_id: athlete.athlete_id,
+          athleteId: athlete.athleteId,
           sports: {
             hasSome: dto.sports,
           },
-          is_default: true,
+          isDefault: true,
         },
         data: {
-          is_default: false,
+          isDefault: false,
         },
       });
     }
 
-    return keysToCamel(
-      await this.prisma.equipment.create({
-        data: {
-          name: dto.name,
-          type: dto.type as equipment_type,
-          sports: dto.sports as sport_type[],
-          is_default: dto.isDefault,
-          athlete: {
-            connect: {
-              athlete_id: athlete.athlete_id,
-            },
+    return await this.prisma.equipment.create({
+      data: {
+        name: dto.name,
+        type: dto.type as EquipmentType,
+        sports: dto.sports as SportType[],
+        isDefault: dto.isDefault,
+        athlete: {
+          connect: {
+            athleteId: athlete.athleteId,
           },
         },
-      }),
-    );
+      },
+    });
   }
 
   async updateEquipment(
     user: AuthUser,
     equipmentId: number,
     dto: UpdateEquipmentDto,
-  ): Promise<equipment> {
+  ): Promise<Equipment> {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
       select: {
-        athlete_id: true,
+        athleteId: true,
       },
     });
 
@@ -87,8 +81,8 @@ export class EquipmentService {
 
     const equipment = await this.prisma.equipment.findFirst({
       where: {
-        equipment_id: equipmentId,
-        athlete_id: athlete.athlete_id,
+        equipmentId: equipmentId,
+        athleteId: athlete.athleteId,
       },
     });
 
@@ -99,45 +93,43 @@ export class EquipmentService {
     if (dto.isDefault) {
       await this.prisma.equipment.updateMany({
         where: {
-          athlete_id: athlete.athlete_id,
-          equipment_id: {
+          athleteId: athlete.athleteId,
+          equipmentId: {
             not: equipmentId,
           },
           sports: {
             hasSome: dto.sports || equipment.sports,
           },
-          is_default: true,
+          isDefault: true,
         },
         data: {
-          is_default: false,
+          isDefault: false,
         },
       });
     }
 
-    return keysToCamel(
-      await this.prisma.equipment.update({
-        where: {
-          equipment_id: equipmentId,
-        },
-        data: {
-          name: dto.name,
-          type: dto.type as equipment_type,
-          sports: dto.sports as sport_type[],
-          is_default: dto.isDefault,
-        },
-      }),
-    );
+    return await this.prisma.equipment.update({
+      where: {
+        equipmentId: equipmentId,
+      },
+      data: {
+        name: dto.name,
+        type: dto.type as EquipmentType,
+        sports: dto.sports as SportType[],
+        isDefault: dto.isDefault,
+      },
+    });
   }
 
   async deleteEquipment(user: AuthUser, equipmentId: number): Promise<void> {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
       select: {
-        athlete_id: true,
+        athleteId: true,
       },
     });
 
@@ -147,8 +139,8 @@ export class EquipmentService {
 
     const equipment = await this.prisma.equipment.findFirst({
       where: {
-        equipment_id: equipmentId,
-        athlete_id: athlete.athlete_id,
+        equipmentId: equipmentId,
+        athleteId: athlete.athleteId,
       },
     });
 
@@ -158,20 +150,20 @@ export class EquipmentService {
 
     await this.prisma.equipment.delete({
       where: {
-        equipment_id: equipmentId,
+        equipmentId: equipmentId,
       },
     });
   }
 
-  async getMyEquipment(user: AuthUser): Promise<equipment[]> {
+  async getMyEquipment(user: AuthUser): Promise<Equipment[]> {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
       select: {
-        athlete_id: true,
+        athleteId: true,
       },
     });
 
@@ -179,30 +171,28 @@ export class EquipmentService {
       throw new NotFoundException('Athlete not found');
     }
 
-    return keysToCamel(
-      await this.prisma.equipment.findMany({
-        where: {
-          athlete_id: athlete.athlete_id,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-      }),
-    );
+    return await this.prisma.equipment.findMany({
+      where: {
+        athleteId: athlete.athleteId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   async getDefaultEquipmentForSport(
     user: AuthUser,
-    sport: sport_type,
-  ): Promise<equipment | null> {
+    sport: SportType,
+  ): Promise<Equipment | null> {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
       select: {
-        athlete_id: true,
+        athleteId: true,
       },
     });
 
@@ -210,16 +200,14 @@ export class EquipmentService {
       throw new NotFoundException('Athlete not found');
     }
 
-    return keysToCamel(
-      await this.prisma.equipment.findFirst({
-        where: {
-          athlete_id: athlete.athlete_id,
-          sports: {
-            has: sport,
-          },
-          is_default: true,
+    return await this.prisma.equipment.findFirst({
+      where: {
+        athleteId: athlete.athleteId,
+        sports: {
+          has: sport,
         },
-      }),
-    );
+        isDefault: true,
+      },
+    });
   }
 }

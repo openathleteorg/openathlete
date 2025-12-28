@@ -45,7 +45,7 @@ export class AuthService {
         email: email.toLowerCase(),
       },
       select: {
-        user_id: true,
+        userId: true,
         password: true,
         email: true,
       },
@@ -61,8 +61,8 @@ export class AuthService {
     );
 
     return {
-      accessToken: this.createToken(user.user_id, user.email, false),
-      refreshToken: this.createToken(user.user_id, user.email, true),
+      accessToken: this.createToken(user.userId, user.email, false),
+      refreshToken: this.createToken(user.userId, user.email, true),
     };
   }
 
@@ -74,18 +74,18 @@ export class AuthService {
     if (!payload.userId) throw new UnauthorizedException();
     const user = await this.prisma.user.findFirst({
       where: {
-        user_id: payload.userId,
+        userId: payload.userId,
       },
       select: {
-        user_id: true,
+        userId: true,
         email: true,
       },
     });
     if (!user) throw new UnauthorizedException();
 
     return {
-      accessToken: this.createToken(user.user_id, user.email, false),
-      refreshToken: this.createToken(user.user_id, user.email, true),
+      accessToken: this.createToken(user.userId, user.email, false),
+      refreshToken: this.createToken(user.userId, user.email, true),
     };
   }
 
@@ -102,16 +102,16 @@ export class AuthService {
           email: payload.email,
         },
         select: {
-          user_id: true,
+          userId: true,
           email: true,
           athlete: {
             select: {
-              athlete_id: true,
+              athleteId: true,
             },
           },
-          coach_athletes: {
+          coachAthletes: {
             select: {
-              athlete_id: true,
+              athleteId: true,
             },
           },
         },
@@ -121,11 +121,17 @@ export class AuthService {
         throw new Error(`User not found for email ${payload.email}`);
       }
 
-      if (user.user_id !== payload.userId) {
+      if (user.userId !== payload.userId) {
         throw new Error(`Invalid id for email ${user.email}`);
       }
 
-      return user;
+      return {
+        ...user,
+        userId: user.userId,
+        athlete: user.athlete ? { athleteId: user.athlete.athleteId } : null,
+        coachAthletes:
+          user.coachAthletes?.map((ca) => ({ athleteId: ca.athleteId })) || [],
+      };
     } catch (error) {
       this.logger.error('Error in validateUser', error);
       throw error;

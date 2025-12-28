@@ -20,7 +20,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { athlete, training_load_calculation_type } from '@openathlete/database';
+import { Athlete, TrainingLoadCalculationType } from '@openathlete/database';
 import { DailyTrainingLoad, TrainingLoadMetrics } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
@@ -57,7 +57,7 @@ export class TrainingLoadController {
       properties: {
         calculationType: {
           type: 'string',
-          enum: Object.values(training_load_calculation_type),
+          enum: Object.values(TrainingLoadCalculationType),
           description:
             'Training load calculation method. FOSTER_RPE uses RPE × duration. TRIMP uses exponential HR weighting with gender-specific coefficients.',
           example: 'TRIMP',
@@ -91,7 +91,7 @@ export class TrainingLoadController {
           properties: {
             calculationType: {
               type: 'string',
-              enum: Object.values(training_load_calculation_type),
+              enum: Object.values(TrainingLoadCalculationType),
             },
             rpe: { type: 'number', nullable: true },
             duration: { type: 'number', nullable: true },
@@ -117,12 +117,12 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete or activity not found',
+    description: 'Not found - Athlete or activity not found',
   })
   async calculateActivityLoad(
     @JwtUser() user: AuthUser,
     @Param('activityId', ParseIntPipe) activityId: number,
-    @Body('calculationType') calculationType: training_load_calculation_type,
+    @Body('calculationType') calculationType: TrainingLoadCalculationType,
   ) {
     return this.trainingLoadService.calculateActivityLoad(
       user,
@@ -140,12 +140,12 @@ export class TrainingLoadController {
   @ApiOperation({
     summary: 'Get daily training load entries for a period',
     description:
-      "Retrieves daily training load entries aggregated by date for a specific period. Returns one entry per day with total load and activity count. If no athleteId is provided, uses the authenticated user's athlete. Uses CASL authorization to verify access to the athlete.",
+      "Retrieves daily training load entries aggregated by date for a specific period. Returns one entry per day with total load and activity count. If no athleteId is provided, uses the authenticated user's Athlete. Uses CASL authorization to verify access to the Athlete.",
   })
   @ApiQuery({
     name: 'calculationType',
     type: String,
-    enum: Object.values(training_load_calculation_type),
+    enum: Object.values(TrainingLoadCalculationType),
     description: 'Training load calculation method to filter by',
     example: 'TRIMP',
     required: true,
@@ -170,7 +170,7 @@ export class TrainingLoadController {
     name: 'athleteId',
     type: Number,
     description:
-      "Optional athlete ID. If not provided, uses authenticated user's athlete.",
+      "Optional Athlete ID. If not provided, uses authenticated user's Athlete.",
     example: 1,
     required: false,
   })
@@ -209,18 +209,18 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - user does not have read access to this athlete',
+    description: 'Forbidden - user does not have read access to this Athlete',
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete not found',
+    description: 'Not found - Athlete not found',
   })
   async getTrainingLoadByPeriod(
     @JwtUser() user: AuthUser,
-    @Query('calculationType') calculationType: training_load_calculation_type,
+    @Query('calculationType') calculationType: TrainingLoadCalculationType,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ): Promise<DailyTrainingLoad[]> {
     return this.trainingLoadService.getTrainingLoadByPeriod(
       user,
@@ -240,12 +240,12 @@ export class TrainingLoadController {
   @ApiOperation({
     summary: 'Get current training load metrics (ATL, CTL, TSB)',
     description:
-      'Retrieves current training load metrics for a specific date (defaults to today). Calculates ATL (Acute Training Load - 7-day exponentially weighted moving average), CTL (Chronic Training Load - 42-day exponentially weighted moving average), and TSB (Training Stress Balance = CTL - ATL). Also provides recommended load range for the next week based on 10% progression rule and training status (overreaching, optimal, or detraining) based on TSB thresholds. Uses data from the last 42 days for CTL calculation. Uses CASL authorization to verify access to the athlete.',
+      'Retrieves current training load metrics for a specific date (defaults to today). Calculates ATL (Acute Training Load - 7-day exponentially weighted moving average), CTL (Chronic Training Load - 42-day exponentially weighted moving average), and TSB (Training Stress Balance = CTL - ATL). Also provides recommended load range for the next week based on 10% progression rule and training status (overreaching, optimal, or detraining) based on TSB thresholds. Uses data from the last 42 days for CTL calculation. Uses CASL authorization to verify access to the Athlete.',
   })
   @ApiQuery({
     name: 'calculationType',
     type: String,
-    enum: Object.values(training_load_calculation_type),
+    enum: Object.values(TrainingLoadCalculationType),
     description: 'Training load calculation method',
     example: 'TRIMP',
     required: true,
@@ -262,7 +262,7 @@ export class TrainingLoadController {
     name: 'athleteId',
     type: Number,
     description:
-      "Optional athlete ID. If not provided, uses authenticated user's athlete.",
+      "Optional Athlete ID. If not provided, uses authenticated user's Athlete.",
     example: 1,
     required: false,
   })
@@ -334,17 +334,17 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - user does not have read access to this athlete',
+    description: 'Forbidden - user does not have read access to this Athlete',
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete not found',
+    description: 'Not found - Athlete not found',
   })
   async getTrainingLoadMetrics(
     @JwtUser() user: AuthUser,
-    @Query('calculationType') calculationType: training_load_calculation_type,
+    @Query('calculationType') calculationType: TrainingLoadCalculationType,
     @Query('targetDate') targetDate?: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ): Promise<TrainingLoadMetrics> {
     const date = targetDate ? new Date(targetDate) : new Date();
     return this.trainingLoadService.getTrainingLoadMetrics(
@@ -364,12 +364,12 @@ export class TrainingLoadController {
   @ApiOperation({
     summary: 'Get historical training load with ATL/CTL/TSB over time',
     description:
-      'Retrieves historical training load data with rolling ATL, CTL, and TSB calculations for each day in the specified period. Data is fetched starting 42 days before startDate to ensure accurate CTL calculations. Includes all days in the period, even those without activities (0 load). ATL and CTL are calculated using exponentially weighted moving averages (EWMA) that decay even on rest days, simulating fitness decay. Uses CASL authorization to verify access to the athlete.',
+      'Retrieves historical training load data with rolling ATL, CTL, and TSB calculations for each day in the specified period. Data is fetched starting 42 days before startDate to ensure accurate CTL calculations. Includes all days in the period, even those without activities (0 load). ATL and CTL are calculated using exponentially weighted moving averages (EWMA) that decay even on rest days, simulating fitness decay. Uses CASL authorization to verify access to the Athlete.',
   })
   @ApiQuery({
     name: 'calculationType',
     type: String,
-    enum: Object.values(training_load_calculation_type),
+    enum: Object.values(TrainingLoadCalculationType),
     description: 'Training load calculation method',
     example: 'TRIMP',
     required: true,
@@ -394,7 +394,7 @@ export class TrainingLoadController {
     name: 'athleteId',
     type: Number,
     description:
-      "Optional athlete ID. If not provided, uses authenticated user's athlete.",
+      "Optional Athlete ID. If not provided, uses authenticated user's Athlete.",
     example: 1,
     required: false,
   })
@@ -443,18 +443,18 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - user does not have read access to this athlete',
+    description: 'Forbidden - user does not have read access to this Athlete',
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete not found',
+    description: 'Not found - Athlete not found',
   })
   async getTrainingLoadHistory(
     @JwtUser() user: AuthUser,
-    @Query('calculationType') calculationType: training_load_calculation_type,
+    @Query('calculationType') calculationType: TrainingLoadCalculationType,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     const history = await this.trainingLoadService.getTrainingLoadHistory(
       user,
@@ -476,7 +476,7 @@ export class TrainingLoadController {
   @ApiOperation({
     summary: 'Get weekly TRIMP summary with actual and estimated loads',
     description:
-      'Retrieves weekly TRIMP load summaries for a period, including actual loads (from completed activities) and estimated loads (from planned training sessions). Each week includes ACWR (Acute:Chronic Workload Ratio) calculation and status, recommended load range, and whether recommendations were adjusted based on ACWR. Includes a projected future week if applicable. Weeks are normalized to start on Monday. Uses CASL authorization to verify access to the athlete.',
+      'Retrieves weekly TRIMP load summaries for a period, including actual loads (from completed activities) and estimated loads (from planned training sessions). Each week includes ACWR (Acute:Chronic Workload Ratio) calculation and status, recommended load range, and whether recommendations were adjusted based on ACWR. Includes a projected future week if applicable. Weeks are normalized to start on Monday. Uses CASL authorization to verify access to the Athlete.',
   })
   @ApiQuery({
     name: 'startDate',
@@ -498,7 +498,7 @@ export class TrainingLoadController {
     name: 'athleteId',
     type: Number,
     description:
-      "Optional athlete ID. If not provided, uses authenticated user's athlete.",
+      "Optional Athlete ID. If not provided, uses authenticated user's Athlete.",
     example: 1,
     required: false,
   })
@@ -589,17 +589,17 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - user does not have read access to this athlete',
+    description: 'Forbidden - user does not have read access to this Athlete',
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete not found',
+    description: 'Not found - Athlete not found',
   })
   async getWeeklyTrimpSummary(
     @JwtUser() user: AuthUser,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     if (!startDate || !endDate) {
       throw new BadRequestException('startDate and endDate are required');
@@ -622,7 +622,7 @@ export class TrainingLoadController {
   @ApiOperation({
     summary: 'Get all training load entries for a specific activity',
     description:
-      "Retrieves all training load entries (across all calculation types) for a specific activity. An activity can have multiple training load entries if it has been calculated using different methods (e.g., both FOSTER_RPE and TRIMP). Verifies that the activity belongs to the authenticated user's athlete.",
+      "Retrieves all training load entries (across all calculation types) for a specific activity. An activity can have multiple training load entries if it has been calculated using different methods (e.g., both FOSTER_RPE and TRIMP). Verifies that the activity belongs to the authenticated user's Athlete.",
   })
   @ApiParam({
     name: 'activityId',
@@ -652,7 +652,7 @@ export class TrainingLoadController {
             properties: {
               calculationType: {
                 type: 'string',
-                enum: Object.values(training_load_calculation_type),
+                enum: Object.values(TrainingLoadCalculationType),
               },
               rpe: { type: 'number', nullable: true },
               duration: { type: 'number', nullable: true },
@@ -674,7 +674,7 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete or activity not found',
+    description: 'Not found - Athlete or activity not found',
   })
   async getActivityTrainingLoads(
     @JwtUser() user: AuthUser,
@@ -684,15 +684,15 @@ export class TrainingLoadController {
   }
 
   /**
-   * Recalculate all training loads for the athlete
+   * Recalculate all training loads for the Athlete
    */
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Post('recalculate')
   @ApiOperation({
-    summary: 'Recalculate all training loads for the athlete',
+    summary: 'Recalculate all training loads for the Athlete',
     description:
-      'Recalculates training loads for all activities of the authenticated athlete using the specified calculation method. Useful when HR metrics (HR_MAX, HR_REST) are updated or for bulk recalculation. Processes all activities and returns the count of successfully processed entries and errors. Errors are logged but do not stop the process.',
+      'Recalculates training loads for all activities of the authenticated Athlete using the specified calculation method. Useful when HR metrics (HR_MAX, HR_REST) are updated or for bulk recalculation. Processes all activities and returns the count of successfully processed entries and errors. Errors are logged but do not stop the process.',
   })
   @ApiBody({
     description: 'Calculation type',
@@ -701,7 +701,7 @@ export class TrainingLoadController {
       properties: {
         calculationType: {
           type: 'string',
-          enum: Object.values(training_load_calculation_type),
+          enum: Object.values(TrainingLoadCalculationType),
           description:
             'Training load calculation method to use for recalculation',
           example: 'TRIMP',
@@ -736,11 +736,11 @@ export class TrainingLoadController {
   })
   @ApiResponse({
     status: 404,
-    description: 'Not found - athlete not found',
+    description: 'Not found - Athlete not found',
   })
   async recalculateAllLoads(
     @JwtUser() user: AuthUser,
-    @Body('calculationType') calculationType: training_load_calculation_type,
+    @Body('calculationType') calculationType: TrainingLoadCalculationType,
   ) {
     return this.trainingLoadService.recalculateAllLoads(user, calculationType);
   }

@@ -11,18 +11,14 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import {
-  connector_provider,
-  event_activity,
-  event_type,
-  metric_type,
-  provider_account,
-  sport_type,
+  ConnectorProvider,
+  EventActivity,
+  EventType,
+  MetricType,
+  ProviderAccount,
+  SportType,
 } from '@openathlete/database';
-import {
-  ActivityStream,
-  ApiEnvSchemaType,
-  METRIC_TYPE,
-} from '@openathlete/shared';
+import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
@@ -65,7 +61,7 @@ const POLAR_OAUTH_AUTHORIZE = 'https://flow.polar.com/oauth2/authorization';
 const POLAR_OAUTH_TOKEN = 'https://polarremote.com/v2/oauth2/token';
 
 type MetricRecord = {
-  type: METRIC_TYPE;
+  type: MetricType;
   date: Date;
   value: number;
 };
@@ -75,7 +71,7 @@ export class PolarProviderService
   extends BaseProviderService
   implements ProviderImportCapability, OnModuleInit
 {
-  protected readonly provider = connector_provider.POLAR;
+  protected readonly provider = ConnectorProvider.POLAR;
   private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000;
   private webhookSecretKey: string | null = null;
 
@@ -214,7 +210,7 @@ export class PolarProviderService
       // Polar requires XML body for user registration
       // According to Polar API docs, the body must contain <register> with <member-id>
       // member-id is a partner's custom identifier for the user
-      // Use stable member-id based on athlete_id so we can reuse it
+      // Use stable member-id based on athleteId so we can reuse it
       const memberId = `oa_athlete_${athleteId}`;
       const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
 <register>
@@ -361,7 +357,7 @@ export class PolarProviderService
   /**
    * Connect user: exchange code, register user, save account
    */
-  async connect(code: string, athleteId: number): Promise<provider_account> {
+  async connect(code: string, athleteId: number): Promise<ProviderAccount> {
     this.logger.log(`Starting Polar connection flow for athlete ${athleteId}`);
 
     this.logger.log('Step 1: Exchanging OAuth code for token');
@@ -388,17 +384,17 @@ export class PolarProviderService
         );
 
         // Check if we have an existing account for this athlete
-        const existingAccount = await this.prisma.provider_account.findFirst({
+        const existingAccount = await this.prisma.providerAccount.findFirst({
           where: {
-            athlete_id: athleteId,
-            provider: connector_provider.POLAR,
+            athleteId: athleteId,
+            provider: ConnectorProvider.POLAR,
             status: 'active',
           },
         });
 
-        if (existingAccount?.external_user_id) {
+        if (existingAccount?.externalUserId) {
           // Use existing external_user_id (which should be the AccessLink user-id)
-          accessLinkUserId = parseInt(existingAccount.external_user_id, 10);
+          accessLinkUserId = parseInt(existingAccount.externalUserId, 10);
           this.logger.log(
             `Found existing Polar account with AccessLink user-id: ${accessLinkUserId}`,
           );
@@ -406,7 +402,7 @@ export class PolarProviderService
           userInfo = {
             'polar-user-id': accessLinkUserId,
             'member-id': `oa_athlete_${athleteId}`,
-            'registration-date': existingAccount.created_at.toISOString(),
+            'registration-date': existingAccount.createdAt.toISOString(),
           } as PolarUser;
         } else {
           // Try to extract from error message (registerUser should have done this, but just in case)
@@ -449,7 +445,7 @@ export class PolarProviderService
       externalUserId: accessLinkUserId.toString(),
     });
     this.logger.log(
-      `Step 3 completed: Provider account saved with ID ${account.provider_account_id}, external_user_id: ${account.external_user_id}`,
+      `Step 3 completed: Provider account saved with ID ${account.providerAccountId}, external_user_id: ${account.externalUserId}`,
     );
 
     // Create webhook if not exists (one per client)
@@ -458,7 +454,7 @@ export class PolarProviderService
     this.logger.log('Step 4 completed: Webhook check completed');
 
     this.logger.log(
-      `Polar connection flow completed successfully for athlete ${athleteId}, account ${account.provider_account_id}`,
+      `Polar connection flow completed successfully for athlete ${athleteId}, account ${account.providerAccountId}`,
     );
 
     return account;
@@ -623,10 +619,10 @@ export class PolarProviderService
       return;
     }
 
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        provider: connector_provider.POLAR,
-        external_user_id: payload.user_id.toString(),
+        provider: ConnectorProvider.POLAR,
+        externalUserId: payload.user_id.toString(),
         status: 'active',
       },
       include: {
@@ -646,7 +642,7 @@ export class PolarProviderService
     }
 
     this.logger.log(
-      `Processing Polar webhook for account ${account.provider_account_id}, athlete ${account.athlete_id}`,
+      `Processing Polar webhook for account ${account.providerAccountId}, athlete ${account.athleteId}`,
     );
 
     switch (payload.event) {
@@ -654,41 +650,41 @@ export class PolarProviderService
         this.logger.log(
           `Handling EXERCISE webhook for exercise_id: ${payload.entity_id}`,
         );
-        if (account.import_activities_enabled && payload.entity_id) {
+        if (account.importActivitiesEnabled && payload.entity_id) {
           await this.handleExerciseWebhook(account, payload.entity_id);
         } else {
           this.logger.debug(
-            `Skipping EXERCISE webhook: import_activities_enabled=${account.import_activities_enabled}, entity_id=${payload.entity_id}`,
+            `Skipping EXERCISE webhook: importActivitiesEnabled=${account.importActivitiesEnabled}, entity_id=${payload.entity_id}`,
           );
         }
         break;
       case 'ACTIVITY_SUMMARY':
         this.logger.log('Handling ACTIVITY_SUMMARY webhook');
-        if (account.import_metrics_enabled) {
+        if (account.importMetricsEnabled) {
           await this.handleActivitySummaryWebhook(account);
         } else {
           this.logger.debug(
-            'Skipping ACTIVITY_SUMMARY webhook: import_metrics_enabled=false',
+            'Skipping ACTIVITY_SUMMARY webhook: importMetricsEnabled=false',
           );
         }
         break;
       case 'CONTINUOUS_HEART_RATE':
         this.logger.log('Handling CONTINUOUS_HEART_RATE webhook');
-        if (account.import_metrics_enabled) {
+        if (account.importMetricsEnabled) {
           await this.handleContinuousHeartRateWebhook();
         } else {
           this.logger.debug(
-            'Skipping CONTINUOUS_HEART_RATE webhook: import_metrics_enabled=false',
+            'Skipping CONTINUOUS_HEART_RATE webhook: importMetricsEnabled=false',
           );
         }
         break;
       case 'SLEEP':
         this.logger.log('Handling SLEEP webhook');
-        if (account.import_metrics_enabled) {
+        if (account.importMetricsEnabled) {
           await this.handleSleepWebhook(account);
         } else {
           this.logger.debug(
-            'Skipping SLEEP webhook: import_metrics_enabled=false',
+            'Skipping SLEEP webhook: importMetricsEnabled=false',
           );
         }
         break;
@@ -702,18 +698,18 @@ export class PolarProviderService
   }
 
   private async handleExerciseWebhook(
-    account: provider_account,
+    account: ProviderAccount,
     exerciseId: string,
   ): Promise<void> {
     this.logger.log(
-      `Processing EXERCISE webhook for exercise_id: ${exerciseId}, account: ${account.provider_account_id}`,
+      `Processing EXERCISE webhook for exercise_id: ${exerciseId}, account: ${account.providerAccountId}`,
     );
 
     // Check if already imported
-    const existing = await this.prisma.event_activity.findFirst({
+    const existing = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: exerciseId,
-        provider: connector_provider.POLAR,
+        externalId: exerciseId,
+        provider: ConnectorProvider.POLAR,
       },
     });
 
@@ -748,10 +744,10 @@ export class PolarProviderService
   }
 
   private async handleActivitySummaryWebhook(
-    account: provider_account,
+    account: ProviderAccount,
   ): Promise<void> {
     this.logger.log(
-      `Processing ACTIVITY_SUMMARY webhook for account ${account.provider_account_id}`,
+      `Processing ACTIVITY_SUMMARY webhook for account ${account.providerAccountId}`,
     );
     // Fetch latest activity summaries
     try {
@@ -776,9 +772,9 @@ export class PolarProviderService
     }
   }
 
-  private async handleSleepWebhook(account: provider_account): Promise<void> {
+  private async handleSleepWebhook(account: ProviderAccount): Promise<void> {
     this.logger.log(
-      `Processing SLEEP webhook for account ${account.provider_account_id}`,
+      `Processing SLEEP webhook for account ${account.providerAccountId}`,
     );
     // Fetch latest sleep data
     try {
@@ -796,10 +792,10 @@ export class PolarProviderService
    * Make authenticated request with automatic token refresh
    */
   private async makeAuthenticatedRequest<T>(
-    account: provider_account,
+    account: ProviderAccount,
     requestFn: (accessToken: string) => Promise<{ data: T }>,
   ): Promise<T> {
-    const accessToken = account.access_token;
+    const accessToken = account.accessToken;
     if (!accessToken) {
       throw new Error('No access token available');
     }
@@ -821,16 +817,16 @@ export class PolarProviderService
    * Import activities using transactions
    */
   async importActivities(
-    account: provider_account,
+    account: ProviderAccount,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]> {
     this.logger.log(
-      `Starting Polar activities import for account ${account.provider_account_id}`,
+      `Starting Polar activities import for account ${account.providerAccountId}`,
     );
 
-    const userId = parseInt(account.external_user_id || '0', 10);
+    const userId = parseInt(account.externalUserId || '0', 10);
     if (!userId) {
-      this.logger.error(`Invalid Polar user ID: ${account.external_user_id}`);
+      this.logger.error(`Invalid Polar user ID: ${account.externalUserId}`);
       throw new Error('Invalid Polar user ID');
     }
 
@@ -929,7 +925,7 @@ export class PolarProviderService
    * Create exercise transaction
    */
   private async createExerciseTransaction(
-    account: provider_account,
+    account: ProviderAccount,
     userId: number,
   ): Promise<PolarExerciseTransaction | null> {
     try {
@@ -963,7 +959,7 @@ export class PolarProviderService
    * Get exercise transaction details
    */
   private async getExerciseTransaction(
-    account: provider_account,
+    account: ProviderAccount,
     userId: number,
     transactionId: number,
   ): Promise<PolarExerciseTransactionResponse | null> {
@@ -996,7 +992,7 @@ export class PolarProviderService
    * Fetch exercise by ID
    */
   private async fetchExercise(
-    account: provider_account,
+    account: ProviderAccount,
     exerciseId: string,
   ): Promise<PolarExercise | null> {
     try {
@@ -1028,7 +1024,7 @@ export class PolarProviderService
    * Fetch exercise by URL
    */
   private async fetchExerciseByUrl(
-    account: provider_account,
+    account: ProviderAccount,
     exerciseUrl: string,
   ): Promise<PolarExercise | null> {
     try {
@@ -1072,7 +1068,7 @@ export class PolarProviderService
     }
     const endDate = new Date(startDate.getTime() + durationSeconds * 1000);
 
-    // Map Polar sport to our sport_type (basic mapping)
+    // Map Polar sport to our SportType (basic mapping)
     const sport = this.mapPolarSportToSportType(exercise.sport || 'OTHER');
 
     return {
@@ -1088,9 +1084,9 @@ export class PolarProviderService
   }
 
   /**
-   * Map Polar sport to sport_type
+   * Map Polar sport to SportType
    */
-  private mapPolarSportToSportType(polarSport: string): sport_type {
+  private mapPolarSportToSportType(polarSport: string): SportType {
     // Basic mapping - can be extended
     const upper = polarSport.toUpperCase();
     if (upper.includes('RUNNING') || upper.includes('RUN')) {
@@ -1112,12 +1108,12 @@ export class PolarProviderService
    * Import a single activity
    */
   async importActivity(
-    account: provider_account,
+    account: ProviderAccount,
     activity: ImportedActivity,
-  ): Promise<event_activity> {
-    const existing = await this.prisma.event_activity.findFirst({
+  ): Promise<EventActivity> {
+    const existing = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: activity.externalId,
+        externalId: activity.externalId,
       },
     });
 
@@ -1126,8 +1122,8 @@ export class PolarProviderService
     }
 
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: account.athlete_id },
-      select: { athlete_id: true },
+      where: { athleteId: account.athleteId },
+      select: { athleteId: true },
     });
 
     if (!athlete) {
@@ -1136,11 +1132,11 @@ export class PolarProviderService
 
     const event = await this.prisma.event.create({
       data: {
-        athlete_id: athlete.athlete_id,
+        athleteId: athlete.athleteId,
         name: activity.name,
-        type: event_type.ACTIVITY,
-        start_date: activity.startDate,
-        end_date: activity.endDate,
+        type: EventType.ACTIVITY,
+        startDate: activity.startDate,
+        endDate: activity.endDate,
       },
     });
 
@@ -1172,10 +1168,10 @@ export class PolarProviderService
    * Save activity data
    */
   private async saveActivityData(
-    account: provider_account,
-    event: { event_id: number },
+    account: ProviderAccount,
+    event: { eventId: number },
     exercise: PolarExercise,
-  ): Promise<event_activity> {
+  ): Promise<EventActivity> {
     const durationMatch = exercise.duration.match(
       /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/,
     );
@@ -1187,21 +1183,21 @@ export class PolarProviderService
       durationSeconds = hours * 3600 + minutes * 60 + seconds;
     }
 
-    return this.prisma.event_activity.create({
+    return this.prisma.eventActivity.create({
       data: {
-        event_id: event.event_id,
-        provider: connector_provider.POLAR,
-        external_id: exercise['exercise-id'],
+        eventId: event.eventId,
+        provider: ConnectorProvider.POLAR,
+        externalId: exercise['exercise-id'],
         distance: exercise.distance ? roundDistance(exercise.distance) : 0,
-        moving_time: durationSeconds,
-        average_speed: 0,
-        max_speed: 0,
-        elevation_gain: 0, // Polar doesn't provide this in exercise summary
+        movingTime: durationSeconds,
+        averageSpeed: 0,
+        maxSpeed: 0,
+        elevationGain: 0, // Polar doesn't provide this in exercise summary
         kilojoules: exercise.calories ? roundEnergy(exercise.calories) : null,
-        average_heartrate: exercise['heart-rate']?.average
+        averageHeartrate: exercise['heart-rate']?.average
           ? roundHeartrate(exercise['heart-rate'].average)
           : null,
-        max_heartrate: exercise['heart-rate']?.maximum
+        maxHeartrate: exercise['heart-rate']?.maximum
           ? roundHeartrate(exercise['heart-rate'].maximum)
           : null,
         sport: this.mapPolarSportToSportType(exercise.sport || 'OTHER'),
@@ -1213,8 +1209,8 @@ export class PolarProviderService
    * Process activity file (FIT/TCX/GPX)
    */
   private async processActivityFile(
-    account: provider_account,
-    activity: event_activity,
+    account: ProviderAccount,
+    activity: EventActivity,
     exerciseId: string,
   ): Promise<void> {
     try {
@@ -1266,32 +1262,32 @@ export class PolarProviderService
 
       const compressedStream = compressActivityStream(activityStream);
 
-      await this.prisma.event_activity.update({
+      await this.prisma.eventActivity.update({
         where: {
-          event_activity_id: activity.event_activity_id,
+          eventActivityId: activity.eventActivityId,
         },
         data: {
           stream: compressedStream as object,
         },
       });
 
-      const activityWithEvent = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: activity.event_activity_id },
+      const activityWithEvent = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: activity.eventActivityId },
         select: {
-          event: { select: { athlete_id: true } },
+          event: { select: { athleteId: true } },
           stream: true,
-          event_id: true,
+          eventId: true,
         },
       });
 
       if (
         activityWithEvent?.stream &&
         activityWithEvent.event &&
-        activityWithEvent.event_id
+        activityWithEvent.eventId
       ) {
         await this.queueService.addActivityProcessingJob(
-          activity.event_activity_id,
-          activityWithEvent.event_id,
+          activity.eventActivityId,
+          activityWithEvent.eventId,
           false,
         );
       }
@@ -1306,9 +1302,9 @@ export class PolarProviderService
   /**
    * Queue full import
    */
-  async queueFullImport(account: provider_account): Promise<FullImportResult> {
+  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
     this.logger.log(
-      `Starting Polar full import for account ${account.provider_account_id}`,
+      `Starting Polar full import for account ${account.providerAccountId} athlete ${account.athleteId}`,
     );
 
     const endDate = new Date();
@@ -1343,26 +1339,26 @@ export class PolarProviderService
    * Enqueue activities for import
    */
   private async enqueueActivities(
-    account: provider_account,
+    account: ProviderAccount,
     activities: ImportedActivity[],
   ): Promise<number> {
     if (activities.length === 0) {
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.event_activity.findMany({
+    const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
-        external_id: {
+        externalId: {
           in: activities.map((a) => a.externalId),
         },
       },
       select: {
-        external_id: true,
+        externalId: true,
       },
     });
 
     const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.external_id),
+      existingExternalIds.map((a) => a.externalId),
     );
 
     const newActivities = activities.filter(
@@ -1371,7 +1367,7 @@ export class PolarProviderService
 
     if (newActivities.length === 0) {
       this.logger.log(
-        `No new Polar activities to queue for account ${account.provider_account_id}`,
+        `No new Polar activities to queue for account ${account.providerAccountId}`,
       );
       return 0;
     }
@@ -1384,9 +1380,9 @@ export class PolarProviderService
    * Import activity summaries (daily metrics)
    */
   private async importActivitySummaries(
-    account: provider_account,
+    account: ProviderAccount,
   ): Promise<void> {
-    const userId = parseInt(account.external_user_id || '0', 10);
+    const userId = parseInt(account.externalUserId || '0', 10);
     if (!userId) {
       return;
     }
@@ -1426,43 +1422,43 @@ export class PolarProviderService
           const date = new Date(data.date);
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.DAILY_STEPS,
+            MetricType.DAILY_STEPS,
             date,
             data.steps,
           );
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.DAILY_DISTANCE,
+            MetricType.DAILY_DISTANCE,
             date,
             data['daily-activity'] ? data['daily-activity'] / 1000 : undefined, // Convert to km
           );
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.DAILY_CALORIES,
+            MetricType.DAILY_CALORIES,
             date,
             data.calories,
           );
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.DAILY_ACTIVE_CALORIES,
+            MetricType.DAILY_ACTIVE_CALORIES,
             date,
             data['active-calories'],
           );
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.DAILY_ACTIVE_MINUTES,
+            MetricType.DAILY_ACTIVE_MINUTES,
             date,
             data['daily-activity'] ? data['daily-activity'] / 60 : undefined, // Convert to minutes
           );
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.HR_AVG_DAILY,
+            MetricType.HR_AVG_DAILY,
             date,
             data['heart-rate']?.average,
           );
           this.addMetricIfDefined(
             metrics,
-            METRIC_TYPE.HR_MAX_DAILY,
+            MetricType.HR_MAX_DAILY,
             date,
             data['heart-rate']?.maximum,
           );
@@ -1474,7 +1470,7 @@ export class PolarProviderService
       }
 
       if (metrics.length > 0) {
-        await this.saveMetrics(account.athlete_id, metrics);
+        await this.saveMetrics(account.athleteId, metrics);
       }
     } catch (error) {
       this.logger.error(
@@ -1495,8 +1491,8 @@ export class PolarProviderService
   /**
    * Import sleep data
    */
-  private async importSleep(account: provider_account): Promise<void> {
-    const userId = parseInt(account.external_user_id || '0', 10);
+  private async importSleep(account: ProviderAccount): Promise<void> {
+    const userId = parseInt(account.externalUserId || '0', 10);
     if (!userId) {
       return;
     }
@@ -1531,7 +1527,7 @@ export class PolarProviderService
         const date = new Date(sleep.date);
         this.addMetricIfDefined(
           metrics,
-          METRIC_TYPE.SLEEP_DURATION,
+          MetricType.SLEEP_DURATION,
           date,
           sleep['total-sleep-time']
             ? sleep['total-sleep-time'] / 3600
@@ -1539,38 +1535,38 @@ export class PolarProviderService
         );
         this.addMetricIfDefined(
           metrics,
-          METRIC_TYPE.SLEEP_DEEP_DURATION,
+          MetricType.SLEEP_DEEP_DURATION,
           date,
           sleep['deep-sleep'] ? sleep['deep-sleep'] / 3600 : undefined,
         );
         this.addMetricIfDefined(
           metrics,
-          METRIC_TYPE.SLEEP_LIGHT_DURATION,
+          MetricType.SLEEP_LIGHT_DURATION,
           date,
           sleep['light-sleep'] ? sleep['light-sleep'] / 3600 : undefined,
         );
         this.addMetricIfDefined(
           metrics,
-          METRIC_TYPE.SLEEP_REM_DURATION,
+          MetricType.SLEEP_REM_DURATION,
           date,
           sleep['rem-sleep'] ? sleep['rem-sleep'] / 3600 : undefined,
         );
         this.addMetricIfDefined(
           metrics,
-          METRIC_TYPE.SLEEP_AWAKE_DURATION,
+          MetricType.SLEEP_AWAKE_DURATION,
           date,
           sleep['awake-duration'] ? sleep['awake-duration'] / 3600 : undefined,
         );
         this.addMetricIfDefined(
           metrics,
-          METRIC_TYPE.SLEEP_SCORE,
+          MetricType.SLEEP_SCORE,
           date,
           sleep['sleep-score'],
         );
       }
 
       if (metrics.length > 0) {
-        await this.saveMetrics(account.athlete_id, metrics);
+        await this.saveMetrics(account.athleteId, metrics);
       }
     } catch (error) {
       this.logger.error(
@@ -1583,7 +1579,7 @@ export class PolarProviderService
    * Create activity transaction
    */
   private async createActivityTransaction(
-    account: provider_account,
+    account: ProviderAccount,
     userId: number,
   ): Promise<PolarActivityTransaction | null> {
     try {
@@ -1616,7 +1612,7 @@ export class PolarProviderService
    * Get activity transaction details
    */
   private async getActivityTransaction(
-    account: provider_account,
+    account: ProviderAccount,
     userId: number,
     transactionId: number,
   ): Promise<PolarActivityTransactionResponse | null> {
@@ -1658,17 +1654,17 @@ export class PolarProviderService
 
     for (const metric of metrics) {
       try {
-        await this.prisma.athlete_metric.upsert({
+        await this.prisma.athleteMetric.upsert({
           where: {
-            athlete_id_type_date: {
-              athlete_id: athleteId,
-              type: metric.type as metric_type,
+            athleteId_type_date: {
+              athleteId: athleteId,
+              type: metric.type as MetricType,
               date: metric.date,
             },
           },
           create: {
-            athlete_id: athleteId,
-            type: metric.type as metric_type,
+            athleteId: athleteId,
+            type: metric.type as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
           },
@@ -1689,7 +1685,7 @@ export class PolarProviderService
    */
   private addMetricIfDefined(
     target: MetricRecord[],
-    type: METRIC_TYPE,
+    type: MetricType,
     date: Date,
     value: number | undefined | null,
   ): void {

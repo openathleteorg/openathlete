@@ -4,10 +4,10 @@ import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
-  connector_provider,
-  event_activity,
-  event_type,
-  provider_account,
+  ConnectorProvider,
+  EventActivity,
+  EventType,
+  ProviderAccount,
 } from '@openathlete/database';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
@@ -44,7 +44,7 @@ export class StravaProviderService
   extends BaseProviderService
   implements ProviderImportCapability
 {
-  protected readonly provider = connector_provider.STRAVA;
+  protected readonly provider = ConnectorProvider.STRAVA;
 
   protected get oauthConfig(): OAuthConfig {
     return {
@@ -103,34 +103,34 @@ export class StravaProviderService
    * Strava-specific: Override getValidAccessToken (Strava doesn't provide expires_in)
    */
   override async getValidAccessToken(
-    account: provider_account,
+    account: ProviderAccount,
   ): Promise<string> {
     // Strava access tokens don't expire (or expire very rarely)
     // So we can use stored token if it exists
-    if (account.access_token) {
-      return account.access_token;
+    if (account.accessToken) {
+      return account.accessToken;
     }
 
     // Otherwise refresh (will generate new access token)
-    if (!account.refresh_token) {
+    if (!account.refreshToken) {
       throw new Error('No refresh token available for Strava');
     }
 
     this.logger.debug(
-      `Refreshing Strava access token for athlete ${account.athlete_id}`,
+      `Refreshing Strava access token for athlete ${account.athleteId}`,
     );
 
-    const tokenResponse = await this.refreshAccessToken(account.refresh_token);
+    const tokenResponse = await this.refreshAccessToken(account.refreshToken);
 
     // Strava doesn't provide expires_in, so we set expires_at to null
-    await this.prisma.provider_account.update({
+    await this.prisma.providerAccount.update({
       where: {
-        provider_account_id: account.provider_account_id,
+        providerAccountId: account.providerAccountId,
       },
       data: {
-        access_token: tokenResponse.access_token,
-        refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
-        expires_at: null, // Strava tokens don't expire
+        accessToken: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token ?? account.refreshToken,
+        expiresAt: null, // Strava tokens don't expire
       },
     });
 
@@ -144,7 +144,7 @@ export class StravaProviderService
    * @returns The response data
    */
   private async makeAuthenticatedRequest<T>(
-    account: provider_account,
+    account: ProviderAccount,
     requestFn: (accessToken: string) => Promise<T>,
   ): Promise<T> {
     let accessToken = await this.getValidAccessToken(account);
@@ -156,33 +156,33 @@ export class StravaProviderService
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
-        account.refresh_token
+        account.refreshToken
       ) {
         this.logger.warn(
-          `Access token invalid for Strava account ${account.provider_account_id}, refreshing...`,
+          `Access token invalid for Strava account ${account.providerAccountId}, refreshing...`,
         );
 
         // Refresh the token
         const tokenResponse = await this.refreshAccessToken(
-          account.refresh_token,
+          account.refreshToken,
         );
 
         // Update the account in database
-        const updatedAccount = await this.prisma.provider_account.update({
+        const updatedAccount = await this.prisma.providerAccount.update({
           where: {
-            provider_account_id: account.provider_account_id,
+            providerAccountId: account.providerAccountId,
           },
           data: {
-            access_token: tokenResponse.access_token,
-            refresh_token: tokenResponse.refresh_token ?? account.refresh_token,
-            expires_at: null, // Strava tokens don't expire
+            accessToken: tokenResponse.access_token,
+            refreshToken: tokenResponse.refresh_token ?? account.refreshToken,
+            expiresAt: null, // Strava tokens don't expire
           },
         });
 
         // Update the account object for potential retry and subsequent calls
-        account.access_token = updatedAccount.access_token;
-        account.refresh_token = updatedAccount.refresh_token;
-        account.expires_at = updatedAccount.expires_at;
+        account.accessToken = updatedAccount.accessToken;
+        account.refreshToken = updatedAccount.refreshToken;
+        account.expiresAt = updatedAccount.expiresAt;
 
         // Retry the request with the new token
         accessToken = tokenResponse.access_token;
@@ -197,12 +197,12 @@ export class StravaProviderService
   /**
    * Complete OAuth flow and save account
    */
-  async connect(user: AuthUser, code: string): Promise<provider_account> {
+  async connect(user: AuthUser, code: string): Promise<ProviderAccount> {
     const tokenResponse = await this.exchangeCodeForTokens(code);
 
     // Get athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
       include: { user: true },
     });
 
@@ -217,7 +217,7 @@ export class StravaProviderService
 
     // Save provider account
     const account = await this.saveProviderAccount({
-      athleteId: athlete.athlete_id,
+      athleteId: athlete.athleteId,
       accessToken: tokenResponse.access_token,
       refreshToken: tokenResponse.refresh_token ?? '',
       scopes: tokenResponse.scope,
@@ -231,7 +231,7 @@ export class StravaProviderService
    * Import activities from Strava
    */
   async importActivities(
-    account: provider_account,
+    account: ProviderAccount,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]> {
     let page = 1;
@@ -290,14 +290,14 @@ export class StravaProviderService
    * Import and save a single activity
    */
   async importActivity(
-    account: provider_account,
+    account: ProviderAccount,
     activity: ImportedActivity,
-  ): Promise<event_activity> {
+  ): Promise<EventActivity> {
     // Check if already imported
     // TODO: After migration, use findUnique with external_id unique index
-    const existing = await this.prisma.event_activity.findFirst({
+    const existing = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: activity.externalId,
+        externalId: activity.externalId,
       },
     });
 
@@ -305,10 +305,10 @@ export class StravaProviderService
       return existing;
     }
 
-    // Get athlete (only need athlete_id, no need for user relation)
+    // Get athlete (only need athleteId, no need for user relation)
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: account.athlete_id },
-      select: { athlete_id: true },
+      where: { athleteId: account.athleteId },
+      select: { athleteId: true },
     });
 
     if (!athlete) {
@@ -318,11 +318,11 @@ export class StravaProviderService
     // Create event
     const event = await this.prisma.event.create({
       data: {
-        athlete_id: athlete.athlete_id,
+        athleteId: athlete.athleteId,
         name: activity.name,
-        type: event_type.ACTIVITY,
-        start_date: activity.startDate,
-        end_date: activity.endDate,
+        type: EventType.ACTIVITY,
+        startDate: activity.startDate,
+        endDate: activity.endDate,
       },
     });
 
@@ -341,10 +341,10 @@ export class StravaProviderService
    * Fetch full activity data with streams (from original StravaConnectorService)
    */
   private async fetchStravaActivityData(
-    account: provider_account,
-    event: { event_id: number },
+    account: ProviderAccount,
+    event: { eventId: number },
     activity: StravaSummaryActivity,
-  ): Promise<event_activity> {
+  ): Promise<EventActivity> {
     const shouldFetchStreams = !activity.manual;
 
     let streams: StravaSteam[] = [];
@@ -402,27 +402,27 @@ export class StravaProviderService
 
     const sport = mapStravaSportType(activity.type);
 
-    const savedActivity = await this.prisma.event_activity.create({
+    const savedActivity = await this.prisma.eventActivity.create({
       data: {
-        provider: connector_provider.STRAVA,
+        provider: ConnectorProvider.STRAVA,
         distance: roundDistance(activity.distance),
-        elevation_gain: roundElevation(activity.total_elevation_gain),
-        moving_time: activity.moving_time,
-        average_speed: roundSpeed(activity.average_speed) ?? 0,
-        max_speed: roundSpeed(activity.max_speed) ?? 0,
-        average_cadence: roundCadence(activity.average_cadence),
-        average_watts: roundPower(activity.average_watts),
-        max_watts: roundPower(activity.max_watts),
-        weighted_average_watts: roundPower(activity.weighted_average_watts),
-        average_heartrate: roundHeartrate(activity.average_heartrate),
-        max_heartrate: roundHeartrate(activity.max_heartrate),
+        elevationGain: roundElevation(activity.total_elevation_gain),
+        movingTime: activity.moving_time,
+        averageSpeed: roundSpeed(activity.average_speed) ?? 0,
+        maxSpeed: roundSpeed(activity.max_speed) ?? 0,
+        averageCadence: roundCadence(activity.average_cadence),
+        averageWatts: roundPower(activity.average_watts),
+        maxWatts: roundPower(activity.max_watts),
+        weightedAverageWatts: roundPower(activity.weighted_average_watts),
+        averageHeartrate: roundHeartrate(activity.average_heartrate),
+        maxHeartrate: roundHeartrate(activity.max_heartrate),
         kilojoules: roundEnergy(activity.kilojoules),
         sport,
         stream: compressedActivityStream as object,
-        external_id: activity.id.toString(),
+        externalId: activity.id.toString(),
         event: {
           connect: {
-            event_id: event.event_id,
+            eventId: event.eventId,
           },
         },
       },
@@ -435,9 +435,9 @@ export class StravaProviderService
    * Import initial activities from Strava when connecting
    * Fetches activities and adds them to the import queue
    */
-  async queueFullImport(account: provider_account): Promise<FullImportResult> {
+  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
     this.logger.log(
-      `Queueing Strava historical import for account ${account.provider_account_id}`,
+      `Queueing Strava historical import for account ${account.providerAccountId}`,
     );
 
     try {
@@ -445,7 +445,7 @@ export class StravaProviderService
       const activities = await this.importActivities(account);
 
       this.logger.log(
-        `Fetched ${activities.length} activities from Strava for account ${account.provider_account_id}`,
+        `Fetched ${activities.length} activities from Strava for account ${account.providerAccountId}`,
       );
 
       if (activities.length === 0) {
@@ -466,7 +466,7 @@ export class StravaProviderService
       const errorName = error instanceof Error ? error.name : 'UnknownError';
 
       this.logger.error(
-        `Error in queueFullImport for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
+        `Error in queueFullImport for account ${account.providerAccountId}: ${errorName}: ${errorMessage}`,
         error instanceof Error ? error.stack : undefined,
       );
 
@@ -476,26 +476,26 @@ export class StravaProviderService
   }
 
   private async enqueueActivities(
-    account: provider_account,
+    account: ProviderAccount,
     activities: ImportedActivity[],
   ): Promise<number> {
     if (activities.length === 0) {
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.event_activity.findMany({
+    const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
-        external_id: {
+        externalId: {
           in: activities.map((a) => a.externalId),
         },
       },
       select: {
-        external_id: true,
+        externalId: true,
       },
     });
 
     const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.external_id),
+      existingExternalIds.map((a) => a.externalId),
     );
 
     const newActivities = activities.filter(
@@ -515,20 +515,20 @@ export class StravaProviderService
    * Handle Strava webhook
    */
   async handleWebhook(payload: {
-    object_id: number;
-    owner_id: number;
-    aspect_type: 'create' | 'delete';
+    objectId: number;
+    ownerId: number;
+    aspectType: 'create' | 'delete';
   }): Promise<void> {
     if (
-      payload.aspect_type === 'create' &&
-      payload.object_id &&
-      payload.owner_id
+      payload.aspectType === 'create' &&
+      payload.objectId &&
+      payload.ownerId
     ) {
       // Find account by external_user_id (Strava athlete ID)
-      const account = await this.prisma.provider_account.findFirst({
+      const account = await this.prisma.providerAccount.findFirst({
         where: {
-          provider: connector_provider.STRAVA,
-          external_user_id: payload.owner_id.toString(),
+          provider: ConnectorProvider.STRAVA,
+          externalUserId: payload.ownerId.toString(),
           status: 'active',
         },
         include: {
@@ -542,28 +542,28 @@ export class StravaProviderService
 
       if (!account || !account.athlete || !account.athlete.user) {
         this.logger.warn(
-          `No active Strava account found for owner_id ${payload.owner_id}`,
+          `No active Strava account found for owner_id ${payload.ownerId}`,
         );
         return;
       }
 
-      if (!account.import_activities_enabled) {
+      if (!account.importActivitiesEnabled) {
         this.logger.debug(
-          `Import disabled for Strava account ${account.provider_account_id}, skipping webhook activity ${payload.object_id}`,
+          `Import disabled for Strava account ${account.providerAccountId}, skipping webhook activity ${payload.objectId}`,
         );
         return;
       }
 
       // Check if activity already imported
-      const existingActivity = await this.prisma.event_activity.findFirst({
+      const existingActivity = await this.prisma.eventActivity.findFirst({
         where: {
-          external_id: payload.object_id.toString(),
+          externalId: payload.objectId.toString(),
         },
       });
 
       if (existingActivity) {
         this.logger.debug(
-          `Activity ${payload.object_id} already imported, skipping`,
+          `Activity ${payload.objectId} already imported, skipping`,
         );
         return;
       }
@@ -574,7 +574,7 @@ export class StravaProviderService
           account,
           async (accessToken) => {
             const response = await axios.get<StravaSummaryActivity>(
-              `https://www.strava.com/api/v3/activities/${payload.object_id}`,
+              `https://www.strava.com/api/v3/activities/${payload.objectId}`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`,
@@ -607,7 +607,7 @@ export class StravaProviderService
       );
 
       this.logger.log(
-        `Queued activity ${payload.object_id} from webhook for import`,
+        `Queued activity ${payload.objectId} from webhook for import`,
       );
     }
   }

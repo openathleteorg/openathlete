@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma, agent_message_block } from '@openathlete/database';
+import { AgentMessageBlock, Prisma } from '@openathlete/database';
 import { CreateBlockDto, UpdateBlockDto } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -19,27 +19,27 @@ export class BlockService {
     user: AuthUser,
     messageId: number,
     dto: CreateBlockDto,
-  ): Promise<agent_message_block> {
+  ): Promise<AgentMessageBlock> {
     await this.messageService.getMessageById(user, messageId);
 
-    const block = await this.prisma.agent_message_block.create({
+    const block = await this.prisma.agentMessageBlock.create({
       data: {
-        message_id: messageId,
+        messageId: messageId,
         type: dto.type,
         order: dto.order,
         content: dto.content,
         metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
         status: dto.status || 'completed',
         error: dto.error,
-        tool_name: dto.toolName,
-        tool_input: dto.toolInput
+        toolName: dto.toolName,
+        toolInput: dto.toolInput
           ? (dto.toolInput as Prisma.InputJsonValue)
           : undefined,
-        tool_output: dto.toolOutput
+        toolOutput: dto.toolOutput
           ? (dto.toolOutput as Prisma.InputJsonValue)
           : undefined,
-        chart_type: dto.chartType,
-        chart_data: dto.chartData
+        chartType: dto.chartType,
+        chartData: dto.chartData
           ? (dto.chartData as Prisma.InputJsonValue)
           : undefined,
       },
@@ -51,9 +51,9 @@ export class BlockService {
   async getBlockById(
     user: AuthUser,
     blockId: number,
-  ): Promise<agent_message_block> {
-    const block = await this.prisma.agent_message_block.findUnique({
-      where: { block_id: blockId },
+  ): Promise<AgentMessageBlock> {
+    const block = await this.prisma.agentMessageBlock.findUnique({
+      where: { blockId: blockId },
       include: {
         message: {
           include: {
@@ -67,7 +67,7 @@ export class BlockService {
       throw new NotFoundException(`Block with ID ${blockId} not found`);
     }
 
-    await this.messageService.getMessageById(user, block.message_id);
+    await this.messageService.getMessageById(user, block.messageId);
 
     return block;
   }
@@ -76,11 +76,11 @@ export class BlockService {
     user: AuthUser,
     blockId: number,
     dto: UpdateBlockDto,
-  ): Promise<agent_message_block> {
+  ): Promise<AgentMessageBlock> {
     await this.getBlockById(user, blockId);
 
-    const block = await this.prisma.agent_message_block.update({
-      where: { block_id: blockId },
+    const block = await this.prisma.agentMessageBlock.update({
+      where: { blockId: blockId },
       data: {
         type: dto.type,
         content: dto.content,
@@ -89,15 +89,15 @@ export class BlockService {
           : undefined,
         status: dto.status,
         error: dto.error,
-        tool_name: dto.toolName,
-        tool_input: dto.toolInput
+        toolName: dto.toolName,
+        toolInput: dto.toolInput
           ? (dto.toolInput as Prisma.InputJsonValue)
           : undefined,
-        tool_output: dto.toolOutput
+        toolOutput: dto.toolOutput
           ? (dto.toolOutput as Prisma.InputJsonValue)
           : undefined,
-        chart_type: dto.chartType,
-        chart_data: dto.chartData
+        chartType: dto.chartType,
+        chartData: dto.chartData
           ? (dto.chartData as Prisma.InputJsonValue)
           : undefined,
       },
@@ -109,8 +109,8 @@ export class BlockService {
   async deleteBlock(user: AuthUser, blockId: number): Promise<void> {
     await this.getBlockById(user, blockId);
 
-    await this.prisma.agent_message_block.delete({
-      where: { block_id: blockId },
+    await this.prisma.agentMessageBlock.delete({
+      where: { blockId: blockId },
     });
   }
 }

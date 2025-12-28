@@ -1,4 +1,4 @@
-import { record, record_type } from '@openathlete/database';
+import { Record as PrismaRecord, RecordType } from '@openathlete/database';
 import { ActivityStream } from '@openathlete/shared';
 
 // Target distances for all record types (in meters)
@@ -194,11 +194,11 @@ const computeDistanceBasedRecords = (
   timeStream: number[],
   cumulativeDistances: number[],
   valueStream: number[],
-  recordType: record_type,
+  recordType: RecordType,
   computeMax: boolean = false, // true for max average, false for min average
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (
     !timeStream ||
@@ -212,8 +212,8 @@ const computeDistanceBasedRecords = (
   }
 
   const records: Pick<
-    record,
-    'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+    PrismaRecord,
+    'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
   >[] = [];
 
   const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
@@ -252,8 +252,8 @@ const computeDistanceBasedRecords = (
           value: segment.value,
           type: 'SPEED',
           distance: targetDistance,
-          start_duration: segment.start,
-          end_duration: segment.end,
+          startDuration: segment.start,
+          endDuration: segment.end,
         });
       }
     } else {
@@ -293,8 +293,8 @@ const computeDistanceBasedRecords = (
           value: segment.value,
           type: recordType,
           distance: targetDistance,
-          start_duration: segment.start,
-          end_duration: segment.end,
+          startDuration: segment.start,
+          endDuration: segment.end,
         });
       }
     }
@@ -307,8 +307,8 @@ const computeSpeedRecords = (
   timeStream: number[],
   cumulativeDistances: number[],
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (!timeStream || timeStream.length === 0) {
     return [];
@@ -328,8 +328,8 @@ const computePowerRecords = (
   cumulativeDistances: number[],
   watts: number[],
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (!timeStream || !watts || timeStream.length === 0 || watts.length === 0) {
     return [];
@@ -349,8 +349,8 @@ const computeHeartRateRecords = (
   cumulativeDistances: number[],
   heartrate: number[],
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (
     !timeStream ||
@@ -375,8 +375,8 @@ const computeCadenceRecords = (
   cumulativeDistances: number[],
   cadence: number[],
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (
     !timeStream ||
@@ -434,8 +434,8 @@ const computeElevationGainRecords = (
   cumulativeDistances: number[],
   altitude: number[],
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (
     !timeStream ||
@@ -452,8 +452,8 @@ const computeElevationGainRecords = (
   const { cumulativeGains } = calculateElevationChanges(altitude);
 
   const records: Pick<
-    record,
-    'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+    PrismaRecord,
+    'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
   >[] = [];
 
   const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
@@ -539,8 +539,8 @@ const computeElevationGainRecords = (
         value: bestGain,
         type: 'ELEVATION_GAIN',
         distance: targetDistance,
-        start_duration: bestStart,
-        end_duration: bestEnd,
+        startDuration: bestStart,
+        endDuration: bestEnd,
       });
     }
   }
@@ -557,8 +557,8 @@ const computeElevationLossRecords = (
   cumulativeDistances: number[],
   altitude: number[],
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   if (
     !timeStream ||
@@ -575,8 +575,8 @@ const computeElevationLossRecords = (
   const { cumulativeLosses } = calculateElevationChanges(altitude);
 
   const records: Pick<
-    record,
-    'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+    PrismaRecord,
+    'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
   >[] = [];
 
   const totalDistance = cumulativeDistances[cumulativeDistances.length - 1];
@@ -662,8 +662,8 @@ const computeElevationLossRecords = (
         value: bestLoss,
         type: 'ELEVATION_LOSS',
         distance: targetDistance,
-        start_duration: bestStart,
-        end_duration: bestEnd,
+        startDuration: bestStart,
+        endDuration: bestEnd,
       });
     }
   }
@@ -682,8 +682,8 @@ const computeElevationLossRecords = (
 export const computeRecords = (
   stream: ActivityStream,
 ): Pick<
-  record,
-  'distance' | 'value' | 'start_duration' | 'end_duration' | 'type'
+  PrismaRecord,
+  'distance' | 'value' | 'startDuration' | 'endDuration' | 'type'
 >[] => {
   const { time, latlng, altitude, heartrate, cadence, watts } = stream;
 

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/bullmq';
 import { Inject, Logger, forwardRef } from '@nestjs/common';
 
-import { connector_provider, event_activity } from '@openathlete/database';
+import { ConnectorProvider, EventActivity } from '@openathlete/database';
 import { CompressedActivityStream } from '@openathlete/shared';
 
 import { uncompressActivityStream } from '../../core/helpers/activity-stream';
@@ -59,9 +59,9 @@ export class ActivityImportProcessor extends WorkerHost {
     try {
       await job.updateProgress(10);
 
-      const account = await this.prisma.provider_account.findUnique({
+      const account = await this.prisma.providerAccount.findUnique({
         where: {
-          provider_account_id: providerAccountId,
+          providerAccountId: providerAccountId,
         },
       });
 
@@ -75,7 +75,7 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       }
 
-      if (!account.import_activities_enabled) {
+      if (!account.importActivitiesEnabled) {
         this.logger.debug(
           `Skipping import for provider account ${providerAccountId}: import disabled`,
         );
@@ -84,23 +84,23 @@ export class ActivityImportProcessor extends WorkerHost {
 
       await job.updateProgress(30);
 
-      let savedActivity: event_activity;
-      if (account.provider === connector_provider.STRAVA) {
+      let savedActivity: EventActivity;
+      if (account.provider === ConnectorProvider.STRAVA) {
         savedActivity = await this.stravaProviderService.importActivity(
           account,
           activity,
         );
-      } else if (account.provider === connector_provider.GARMIN) {
+      } else if (account.provider === ConnectorProvider.GARMIN) {
         savedActivity = await this.garminProviderService.importActivity(
           account,
           activity,
         );
-      } else if (account.provider === connector_provider.POLAR) {
+      } else if (account.provider === ConnectorProvider.POLAR) {
         savedActivity = await this.polarProviderService.importActivity(
           account,
           activity,
         );
-      } else if (account.provider === connector_provider.SUUNTO) {
+      } else if (account.provider === ConnectorProvider.SUUNTO) {
         savedActivity = await this.suuntoProviderService.importActivity(
           account,
           activity,
@@ -113,11 +113,11 @@ export class ActivityImportProcessor extends WorkerHost {
 
       await job.updateProgress(60);
 
-      const activityWithStream = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: savedActivity.event_activity_id },
+      const activityWithStream = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: savedActivity.eventActivityId },
         select: {
           stream: true,
-          event: { select: { athlete_id: true } },
+          event: { select: { athleteId: true } },
           provider: true,
         },
       });
@@ -130,12 +130,12 @@ export class ActivityImportProcessor extends WorkerHost {
         if (stream) {
           const records = computeRecords(stream);
 
-          if (records.length > 0 && activityWithStream.event.athlete_id) {
+          if (records.length > 0 && activityWithStream.event.athleteId) {
             await this.prisma.record.createMany({
               data: records.map((record) => ({
                 ...record,
-                event_activity_id: savedActivity.event_activity_id,
-                athlete_id: activityWithStream.event.athlete_id!,
+                eventActivityId: savedActivity.eventActivityId,
+                athleteId: activityWithStream.event.athleteId!,
                 date: new Date(),
               })),
               skipDuplicates: true,
@@ -147,27 +147,27 @@ export class ActivityImportProcessor extends WorkerHost {
       await job.updateProgress(90);
 
       if (
-        account.provider === connector_provider.GARMIN &&
+        account.provider === ConnectorProvider.GARMIN &&
         !activityWithStream?.stream
       ) {
         return {
           success: true,
-          eventActivityId: savedActivity.event_activity_id,
-          eventId: savedActivity.event_id,
+          eventActivityId: savedActivity.eventActivityId,
+          eventId: savedActivity.eventId,
           waitingForStream: true,
         };
       }
 
       await this.queueService.addActivityProcessingJob(
-        savedActivity.event_activity_id,
-        savedActivity.event_id,
+        savedActivity.eventActivityId,
+        savedActivity.eventId,
         bulkImport,
       );
 
       return {
         success: true,
-        eventActivityId: savedActivity.event_activity_id,
-        eventId: savedActivity.event_id,
+        eventActivityId: savedActivity.eventActivityId,
+        eventId: savedActivity.eventId,
       };
     } catch (error) {
       this.logger.error(

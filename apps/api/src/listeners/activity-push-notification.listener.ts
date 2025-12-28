@@ -31,8 +31,8 @@ export class ActivityPushNotificationListener {
     try {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      const activity = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: eventActivityId },
+      const activity = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: eventActivityId },
         include: {
           event: {
             include: {
@@ -40,18 +40,18 @@ export class ActivityPushNotificationListener {
                 include: {
                   user: {
                     select: {
-                      user_id: true,
+                      userId: true,
                       language: true,
-                      push_token: true,
+                      pushToken: true,
                     },
                   },
                 },
               },
             },
           },
-          feedback_questions: {
+          feedbackQuestions: {
             select: {
-              activity_feedback_question_id: true,
+              activityFeedbackQuestionId: true,
             },
           },
         },
@@ -59,7 +59,7 @@ export class ActivityPushNotificationListener {
 
       if (
         !activity ||
-        !activity.event?.athlete_id ||
+        !activity.event?.athleteId ||
         !activity.event.athlete?.user
       ) {
         this.logger.debug(
@@ -69,11 +69,11 @@ export class ActivityPushNotificationListener {
       }
 
       const user = activity.event.athlete.user;
-      const athleteId = activity.event.athlete_id;
+      const athleteId = activity.event.athleteId;
 
-      if (!user.push_token) {
+      if (!user.pushToken) {
         this.logger.debug(
-          `User ${user.user_id} does not have a push token, skipping notification`,
+          `User ${user.userId} does not have a push token, skipping notification`,
         );
         return;
       }
@@ -84,14 +84,14 @@ export class ActivityPushNotificationListener {
           FeatureName.AI_RPE_QUESTIONS,
         );
 
-      const athleteSettings = await this.prisma.athlete_settings.findUnique({
-        where: { athlete_id: athleteId },
+      const athleteSettings = await this.prisma.athleteSettings.findUnique({
+        where: { athleteId: athleteId },
       });
 
       const feedbackQuestionsEnabled =
-        hasAIAccess && athleteSettings?.require_feedback_questions !== false;
+        hasAIAccess && athleteSettings?.requireFeedbackQuestions !== false;
 
-      const hasQuestions = activity.feedback_questions.length > 0;
+      const hasQuestions = activity.feedbackQuestions.length > 0;
 
       const language = (user.language ?? Language.FR) as Language;
       const translation = getPushNotificationTranslation(
@@ -103,7 +103,7 @@ export class ActivityPushNotificationListener {
       );
 
       await this.pushNotificationService.sendPushNotification({
-        userId: user.user_id,
+        userId: user.userId,
         title: translation.title,
         body: translation.body,
         data: {
@@ -115,7 +115,7 @@ export class ActivityPushNotificationListener {
       });
 
       this.logger.log(
-        `Push notification sent for activity ${eventActivityId} to user ${user.user_id}`,
+        `Push notification sent for activity ${eventActivityId} to user ${user.userId}`,
       );
     } catch (error) {
       this.logger.error(

@@ -6,12 +6,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { athlete, athlete_metric, metric_type } from '@openathlete/database';
+import { Athlete, AthleteMetric, MetricType } from '@openathlete/database';
 import {
   CreateMetricDto,
-  METRIC_TYPE,
   UpdateMetricDto,
-  keysToCamel,
   metricCalculationMap,
 } from '@openathlete/shared';
 
@@ -32,8 +30,8 @@ export class MetricService {
   async createMetric(
     user: AuthUser,
     dto: CreateMetricDto,
-    athleteId?: athlete['athlete_id'],
-  ): Promise<athlete_metric> {
+    athleteId?: Athlete['athleteId'],
+  ): Promise<AthleteMetric> {
     const ability = await this.abilities.getFor({ user });
 
     // Determine which athlete's metric to create
@@ -42,7 +40,7 @@ export class MetricService {
     if (athleteId) {
       // Check if user can manage this athlete's metrics
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -52,9 +50,9 @@ export class MetricService {
       if (
         !ability.can(
           'manage',
-          subject('athlete_metric', {
-            athlete_id: athleteId,
-          } as athlete_metric),
+          subject('AthleteMetric', {
+            athleteId: athleteId,
+          } as AthleteMetric),
         )
       ) {
         throw new ForbiddenException(
@@ -68,11 +66,11 @@ export class MetricService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
         select: {
-          athlete_id: true,
+          athleteId: true,
         },
       });
 
@@ -80,18 +78,18 @@ export class MetricService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
     // Convert date to Date object if it's a string
     const date = typeof dto.date === 'string' ? new Date(dto.date) : dto.date;
 
     // Check if a metric already exists for this type and date
-    const existingMetric = await this.prisma.athlete_metric.findUnique({
+    const existingMetric = await this.prisma.athleteMetric.findUnique({
       where: {
-        athlete_id_type_date: {
-          athlete_id: targetAthleteId,
-          type: dto.type as metric_type,
+        athleteId_type_date: {
+          athleteId: targetAthleteId,
+          type: dto.type as MetricType,
           date,
         },
       },
@@ -99,34 +97,30 @@ export class MetricService {
 
     if (existingMetric) {
       // Update existing metric instead of creating a new one
-      return keysToCamel(
-        await this.prisma.athlete_metric.update({
-          where: {
-            athlete_metric_id: existingMetric.athlete_metric_id,
-          },
-          data: {
-            value: dto.value,
-            notes: dto.notes,
-          },
-        }),
-      );
-    }
-
-    return keysToCamel(
-      await this.prisma.athlete_metric.create({
+      return await this.prisma.athleteMetric.update({
+        where: {
+          athleteMetricId: existingMetric.athleteMetricId,
+        },
         data: {
-          type: dto.type as metric_type,
-          date,
           value: dto.value,
           notes: dto.notes,
-          athlete: {
-            connect: {
-              athlete_id: targetAthleteId,
-            },
+        },
+      });
+    }
+
+    return await this.prisma.athleteMetric.create({
+      data: {
+        type: dto.type as MetricType,
+        date,
+        value: dto.value,
+        notes: dto.notes,
+        athlete: {
+          connect: {
+            athleteId: targetAthleteId,
           },
         },
-      }),
-    );
+      },
+    });
   }
 
   /**
@@ -136,14 +130,14 @@ export class MetricService {
     user: AuthUser,
     metricId: number,
     dto: UpdateMetricDto,
-    athleteId?: athlete['athlete_id'],
-  ): Promise<athlete_metric> {
+    athleteId?: Athlete['athleteId'],
+  ): Promise<AthleteMetric> {
     const ability = await this.abilities.getFor({ user });
 
     // Get the metric first to check ownership
-    const metric = await this.prisma.athlete_metric.findUnique({
+    const metric = await this.prisma.athleteMetric.findUnique({
       where: {
-        athlete_metric_id: metricId,
+        athleteMetricId: metricId,
       },
     });
 
@@ -152,7 +146,7 @@ export class MetricService {
     }
 
     // If athleteId is provided, verify it matches the metric's athlete
-    if (athleteId && metric.athlete_id !== athleteId) {
+    if (athleteId && metric.athleteId !== athleteId) {
       throw new ForbiddenException('Metric does not belong to this athlete');
     }
 
@@ -160,25 +154,23 @@ export class MetricService {
     if (
       !ability.can(
         'manage',
-        subject('athlete_metric', {
-          athlete_id: metric.athlete_id,
-        } as athlete_metric),
+        subject('AthleteMetric', {
+          athleteId: metric.athleteId,
+        } as AthleteMetric),
       )
     ) {
       throw new ForbiddenException('Not allowed to update this metric');
     }
 
-    return keysToCamel(
-      await this.prisma.athlete_metric.update({
-        where: {
-          athlete_metric_id: metricId,
-        },
-        data: {
-          ...(dto.value !== undefined && { value: dto.value }),
-          ...(dto.notes !== undefined && { notes: dto.notes }),
-        },
-      }),
-    );
+    return await this.prisma.athleteMetric.update({
+      where: {
+        athleteMetricId: metricId,
+      },
+      data: {
+        ...(dto.value !== undefined && { value: dto.value }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+      },
+    });
   }
 
   /**
@@ -187,14 +179,14 @@ export class MetricService {
   async deleteMetric(
     user: AuthUser,
     metricId: number,
-    athleteId?: athlete['athlete_id'],
+    athleteId?: Athlete['athleteId'],
   ): Promise<void> {
     const ability = await this.abilities.getFor({ user });
 
     // Get the metric first to check ownership
-    const metric = await this.prisma.athlete_metric.findUnique({
+    const metric = await this.prisma.athleteMetric.findUnique({
       where: {
-        athlete_metric_id: metricId,
+        athleteMetricId: metricId,
       },
     });
 
@@ -203,7 +195,7 @@ export class MetricService {
     }
 
     // If athleteId is provided, verify it matches the metric's athlete
-    if (athleteId && metric.athlete_id !== athleteId) {
+    if (athleteId && metric.athleteId !== athleteId) {
       throw new ForbiddenException('Metric does not belong to this athlete');
     }
 
@@ -211,17 +203,17 @@ export class MetricService {
     if (
       !ability.can(
         'manage',
-        subject('athlete_metric', {
-          athlete_id: metric.athlete_id,
-        } as athlete_metric),
+        subject('AthleteMetric', {
+          athleteId: metric.athleteId,
+        } as AthleteMetric),
       )
     ) {
       throw new ForbiddenException('Not allowed to delete this metric');
     }
 
-    await this.prisma.athlete_metric.delete({
+    await this.prisma.athleteMetric.delete({
       where: {
-        athlete_metric_id: metricId,
+        athleteMetricId: metricId,
       },
     });
   }
@@ -232,9 +224,9 @@ export class MetricService {
    */
   async getMetrics(
     user: AuthUser,
-    type?: metric_type,
-    athleteId?: athlete['athlete_id'],
-  ): Promise<athlete_metric[]> {
+    type?: MetricType,
+    athleteId?: Athlete['athleteId'],
+  ): Promise<AthleteMetric[]> {
     const ability = await this.abilities.getFor({ user });
 
     // Determine which athlete's metrics to fetch
@@ -243,7 +235,7 @@ export class MetricService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -260,11 +252,11 @@ export class MetricService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
         select: {
-          athlete_id: true,
+          athleteId: true,
         },
       });
 
@@ -272,31 +264,31 @@ export class MetricService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
-    const metrics = await this.prisma.athlete_metric.findMany({
+    const metrics = await this.prisma.athleteMetric.findMany({
       where: {
-        athlete_id: targetAthleteId,
+        athleteId: targetAthleteId,
         ...(type && { type }),
       },
       orderBy: [{ type: 'asc' }, { date: 'desc' }],
     });
 
-    return keysToCamel(metrics);
+    return metrics;
   }
 
   async getLatestMetrics(
     user: AuthUser,
-    athleteId?: athlete['athlete_id'],
-  ): Promise<Record<metric_type, athlete_metric>> {
+    athleteId?: Athlete['athleteId'],
+  ): Promise<Record<MetricType, AthleteMetric>> {
     const ability = await this.abilities.getFor({ user });
 
     let targetAthleteId: number;
 
     if (athleteId) {
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -312,11 +304,11 @@ export class MetricService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
         select: {
-          athlete_id: true,
+          athleteId: true,
         },
       });
 
@@ -324,12 +316,12 @@ export class MetricService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
-    const metrics = await this.prisma.athlete_metric.findMany({
+    const metrics = await this.prisma.athleteMetric.findMany({
       where: {
-        athlete_id: targetAthleteId,
+        athleteId: targetAthleteId,
       },
       orderBy: {
         date: 'desc',
@@ -343,18 +335,10 @@ export class MetricService {
         }
         return acc;
       },
-      {} as Record<metric_type, athlete_metric>,
+      {} as Record<MetricType, AthleteMetric>,
     );
 
-    const result: Record<metric_type, athlete_metric> = {} as Record<
-      metric_type,
-      athlete_metric
-    >;
-    Object.entries(latestByType).forEach(([type, metric]) => {
-      result[type as metric_type] = keysToCamel(metric);
-    });
-
-    return result;
+    return latestByType as Record<MetricType, AthleteMetric>;
   }
 
   /**
@@ -362,9 +346,9 @@ export class MetricService {
    */
   async getMetricHistory(
     user: AuthUser,
-    type: metric_type,
-    athleteId?: athlete['athlete_id'],
-  ): Promise<athlete_metric[]> {
+    type: MetricType,
+    athleteId?: Athlete['athleteId'],
+  ): Promise<AthleteMetric[]> {
     const ability = await this.abilities.getFor({ user });
 
     // Determine which athlete's metrics to fetch
@@ -373,7 +357,7 @@ export class MetricService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -390,11 +374,11 @@ export class MetricService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
         select: {
-          athlete_id: true,
+          athleteId: true,
         },
       });
 
@@ -402,12 +386,12 @@ export class MetricService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
-    const metrics = await this.prisma.athlete_metric.findMany({
+    const metrics = await this.prisma.athleteMetric.findMany({
       where: {
-        athlete_id: targetAthleteId,
+        athleteId: targetAthleteId,
         type,
       },
       orderBy: {
@@ -415,7 +399,7 @@ export class MetricService {
       },
     });
 
-    return keysToCamel(metrics);
+    return metrics;
   }
 
   /**
@@ -424,10 +408,10 @@ export class MetricService {
    */
   async calculateMetric(
     user: AuthUser,
-    type: metric_type,
-    athleteId?: athlete['athlete_id'],
+    type: MetricType,
+    athleteId?: Athlete['athleteId'],
   ): Promise<number | null> {
-    const config = metricCalculationMap[type as METRIC_TYPE];
+    const config = metricCalculationMap[type as MetricType];
     if (
       !config ||
       !config.canAutoCalculate ||
@@ -439,7 +423,7 @@ export class MetricService {
 
     // Get latest values for dependencies
     const latestMetrics = await this.getLatestMetrics(user, athleteId);
-    const values: Partial<Record<METRIC_TYPE, number>> = {};
+    const values: Partial<Record<MetricType, number>> = {};
 
     // Check if all dependencies are available
     for (const dep of config.dependencies) {

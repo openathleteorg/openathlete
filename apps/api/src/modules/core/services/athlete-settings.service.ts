@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { UpdateAthleteSettingsDto, keysToCamel } from '@openathlete/shared';
+import { UpdateAthleteSettingsDto } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -23,7 +23,7 @@ export class AthleteSettingsService {
     const ability = await this.abilities.getFor({ user });
     // Check access to athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: athleteId },
+      where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('read', subject('athlete', athlete))) {
@@ -31,22 +31,22 @@ export class AthleteSettingsService {
     }
 
     // Get or create settings
-    let settings = await this.prisma.athlete_settings.findUnique({
-      where: { athlete_id: athleteId },
+    let settings = await this.prisma.athleteSettings.findUnique({
+      where: { athleteId: athleteId },
     });
 
     if (!settings) {
-      settings = await this.prisma.athlete_settings.create({
+      settings = await this.prisma.athleteSettings.create({
         data: {
-          athlete_id: athleteId,
-          require_rpe: false,
-          require_comment: false,
-          require_feedback_questions: true, // Default to true
+          athleteId: athleteId,
+          requireRpe: false,
+          requireComment: false,
+          requireFeedbackQuestions: true, // Default to true
         },
       });
     }
 
-    return keysToCamel(settings);
+    return settings;
   }
 
   async updateSettings(
@@ -57,7 +57,7 @@ export class AthleteSettingsService {
     const ability = await this.abilities.getFor({ user });
     // Check access to athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: athleteId },
+      where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('update', subject('athlete', athlete))) {
@@ -65,25 +65,25 @@ export class AthleteSettingsService {
     }
 
     // Upsert settings
-    const settings = await this.prisma.athlete_settings.upsert({
-      where: { athlete_id: athleteId },
+    const settings = await this.prisma.athleteSettings.upsert({
+      where: { athleteId: athleteId },
       create: {
-        athlete_id: athleteId,
-        require_rpe: dto.requireRpe ?? false,
-        require_comment: dto.requireComment ?? false,
-        require_feedback_questions: dto.requireFeedbackQuestions ?? true,
+        athleteId: athleteId,
+        requireRpe: dto.requireRpe ?? false,
+        requireComment: dto.requireComment ?? false,
+        requireFeedbackQuestions: dto.requireFeedbackQuestions ?? true,
       },
       update: {
-        ...(dto.requireRpe !== undefined && { require_rpe: dto.requireRpe }),
+        ...(dto.requireRpe !== undefined && { requireRpe: dto.requireRpe }),
         ...(dto.requireComment !== undefined && {
-          require_comment: dto.requireComment,
+          requireComment: dto.requireComment,
         }),
         ...(dto.requireFeedbackQuestions !== undefined && {
-          require_feedback_questions: dto.requireFeedbackQuestions,
+          requireFeedbackQuestions: dto.requireFeedbackQuestions,
         }),
       },
     });
 
-    return keysToCamel(settings);
+    return settings;
   }
 }

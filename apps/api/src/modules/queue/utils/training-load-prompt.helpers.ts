@@ -1,4 +1,4 @@
-import { Prisma, sport_type } from '@openathlete/database';
+import { Prisma, SportType } from '@openathlete/database';
 import {
   TrainingZone,
   type WorkoutDto,
@@ -13,12 +13,12 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const FEW_SHOT_INCLUDES = {
-  related_training: {
+  relatedTraining: {
     include: {
       event: {
         select: {
           name: true,
-          start_date: true,
+          startDate: true,
         },
       },
       workout: {
@@ -26,41 +26,41 @@ const FEW_SHOT_INCLUDES = {
           steps: {
             include: {
               targets: true,
-              repeat_block: {
+              repeatBlock: {
                 include: {
-                  child_steps: {
+                  childSteps: {
                     include: {
                       targets: true,
                     },
                     orderBy: {
-                      order_index: 'asc' as const,
+                      orderIndex: 'asc' as const,
                     },
                   },
                 },
               },
             },
             orderBy: {
-              order_index: 'asc' as const,
+              orderIndex: 'asc' as const,
             },
           },
         },
       },
     },
   },
-  training_load_entries: {
+  trainingLoadEntries: {
     where: {
-      calculation_id: 0, // Will be replaced in query
+      calculationId: 0, // Will be replaced in query
     },
     take: 1,
   },
   event: {
     select: {
-      start_date: true,
+      startDate: true,
     },
   },
 } as const;
 
-type ActivityWithFewShotIncludes = Prisma.event_activityGetPayload<{
+type ActivityWithFewShotIncludes = Prisma.EventActivityGetPayload<{
   include: typeof FEW_SHOT_INCLUDES;
 }>;
 
@@ -109,20 +109,20 @@ export function buildAthleteMetricsSummary(
 }
 
 type ZoneWithFilteredValues = {
-  training_zone_id: number;
+  trainingZoneId: number;
   type: string;
   name: string;
   index: number;
   values: Array<{
     min: number;
     max: number;
-    sports: sport_type[] | null;
+    sports: SportType[] | null;
   }>;
 };
 
 export function buildTrainingZonesContext(
   zones: Awaited<ReturnType<typeof fetchAthleteZones>>,
-  sport: sport_type,
+  sport: SportType,
 ): { summary: string; zoneLookup: Map<number, ZoneSummary> } {
   const relevantZones: ZoneWithFilteredValues[] = [];
 
@@ -132,7 +132,7 @@ export function buildTrainingZonesContext(
       .map((value) => ({
         min: value.min,
         max: value.max,
-        sports: (value.sports as sport_type[] | null | undefined) ?? null,
+        sports: (value.sports as SportType[] | null | undefined) ?? null,
       }));
 
     if (!valuesForSport.length) {
@@ -140,7 +140,7 @@ export function buildTrainingZonesContext(
     }
 
     relevantZones.push({
-      training_zone_id: zone.training_zone_id,
+      trainingZoneId: zone.trainingZoneId,
       type: zone.type,
       name: zone.name,
       index: zone.index,
@@ -162,8 +162,8 @@ export function buildTrainingZonesContext(
       .join(', ');
 
     const label = `Z${zone.index + 1} ${zone.name}`;
-    zoneLookup.set(zone.training_zone_id, {
-      id: zone.training_zone_id,
+    zoneLookup.set(zone.trainingZoneId, {
+      id: zone.trainingZoneId,
       label,
       range: valueRanges,
       type: zone.type,
@@ -183,10 +183,10 @@ export function buildTrainingZonesContext(
 export function formatGoalSummary(
   training:
     | {
-        goal_distance?: number | null;
-        goal_duration?: number | null;
-        goal_elevation_gain?: number | null;
-        goal_rpe?: number | null;
+        goalDistance?: number | null;
+        goalDuration?: number | null;
+        goalElevationGain?: number | null;
+        goalRpe?: number | null;
       }
     | null
     | undefined,
@@ -196,18 +196,18 @@ export function formatGoalSummary(
   }
 
   const parts: string[] = [];
-  if (typeof training.goal_distance === 'number') {
-    parts.push(`Distance: ${(training.goal_distance / 1000).toFixed(1)} km`);
+  if (typeof training.goalDistance === 'number') {
+    parts.push(`Distance: ${(training.goalDistance / 1000).toFixed(1)} km`);
   }
-  if (typeof training.goal_duration === 'number') {
-    const minutes = Math.round(training.goal_duration / 60);
+  if (typeof training.goalDuration === 'number') {
+    const minutes = Math.round(training.goalDuration / 60);
     parts.push(`Duration: ${minutes} min`);
   }
-  if (typeof training.goal_elevation_gain === 'number') {
-    parts.push(`Elevation Gain: ${Math.round(training.goal_elevation_gain)} m`);
+  if (typeof training.goalElevationGain === 'number') {
+    parts.push(`Elevation Gain: ${Math.round(training.goalElevationGain)} m`);
   }
-  if (typeof training.goal_rpe === 'number') {
-    parts.push(`Target RPE: ${training.goal_rpe}`);
+  if (typeof training.goalRpe === 'number') {
+    parts.push(`Target RPE: ${training.goalRpe}`);
   }
 
   return parts.length ? parts.join(' | ') : 'No numeric goals specified.';
@@ -387,12 +387,12 @@ function inferZoneUnit(type: string): string {
 
 function isValueRelevantForSport(
   sports:
-    | readonly sport_type[]
+    | readonly SportType[]
     | readonly string[]
-    | (sport_type | string)[]
+    | (SportType | string)[]
     | null
     | undefined,
-  targetSport: sport_type,
+  targetSport: SportType,
 ): boolean {
   if (!sports || sports.length === 0) {
     return true;
@@ -416,18 +416,18 @@ function round(value: number, precision = 0): number {
 export async function fetchFewShotExamples(
   prisma: PrismaService,
   athleteId: number,
-  currentSport: sport_type,
+  currentSport: SportType,
   limit = 3,
 ): Promise<
   Array<{
     training: {
       name: string;
-      sport: sport_type;
+      sport: SportType;
       description: string;
-      goal_distance: number | null;
-      goal_duration: number | null;
-      goal_elevation_gain: number | null;
-      goal_rpe: number | null;
+      goalDistance: number | null;
+      goalDuration: number | null;
+      goalElevationGain: number | null;
+      goalRpe: number | null;
       workout: WorkoutDto | null;
     };
     actualTrimp: number;
@@ -435,10 +435,10 @@ export async function fetchFewShotExamples(
   }>
 > {
   // Find TRIMP calculation for this athlete
-  const trimpCalculation = await prisma.training_load_calculation.findUnique({
+  const trimpCalculation = await prisma.trainingLoadCalculation.findUnique({
     where: {
-      athlete_id_type: {
-        athlete_id: athleteId,
+      athleteId_type: {
+        athleteId: athleteId,
         type: 'TRIMP',
       },
     },
@@ -449,42 +449,42 @@ export async function fetchFewShotExamples(
   }
 
   // Find activities linked to trainings that have TRIMP entries
-  const activities = (await prisma.event_activity.findMany({
+  const activities = (await prisma.eventActivity.findMany({
     where: {
       AND: [
         {
-          related_training: {
+          relatedTraining: {
             isNot: null,
           },
         },
         {
-          related_training: {
+          relatedTraining: {
             sport: currentSport, // Filter by same sport
           },
         },
         {
-          related_training: {
+          relatedTraining: {
             event: {
-              athlete_id: athleteId,
+              athleteId: athleteId,
             },
           },
         },
         {
-          training_load_entries: {
+          trainingLoadEntries: {
             some: {
-              calculation_id: trimpCalculation.training_load_calculation_id,
+              calculationId: trimpCalculation.trainingLoadCalculationId,
             },
           },
         },
       ],
     },
     include: {
-      related_training: {
+      relatedTraining: {
         include: {
           event: {
             select: {
               name: true,
-              start_date: true,
+              startDate: true,
             },
           },
           workout: {
@@ -492,42 +492,42 @@ export async function fetchFewShotExamples(
               steps: {
                 include: {
                   targets: true,
-                  repeat_block: {
+                  repeatBlock: {
                     include: {
-                      child_steps: {
+                      childSteps: {
                         include: {
                           targets: true,
                         },
                         orderBy: {
-                          order_index: 'asc' as const,
+                          orderIndex: 'asc' as const,
                         },
                       },
                     },
                   },
                 },
                 orderBy: {
-                  order_index: 'asc' as const,
+                  orderIndex: 'asc' as const,
                 },
               },
             },
           },
         },
       },
-      training_load_entries: {
+      trainingLoadEntries: {
         where: {
-          calculation_id: trimpCalculation.training_load_calculation_id,
+          calculationId: trimpCalculation.trainingLoadCalculationId,
         },
         take: 1,
       },
       event: {
         select: {
-          start_date: true,
+          startDate: true,
         },
       },
     },
     orderBy: {
       event: {
-        start_date: 'desc',
+        startDate: 'desc',
       },
     },
     take: limit,
@@ -536,32 +536,32 @@ export async function fetchFewShotExamples(
   return activities
     .filter((activity) => {
       return (
-        activity.related_training &&
-        activity.training_load_entries &&
-        activity.training_load_entries.length > 0 &&
-        activity.training_load_entries[0]?.value !== null &&
-        activity.training_load_entries[0]?.value !== undefined
+        activity.relatedTraining &&
+        activity.trainingLoadEntries &&
+        activity.trainingLoadEntries.length > 0 &&
+        activity.trainingLoadEntries[0]?.value !== null &&
+        activity.trainingLoadEntries[0]?.value !== undefined
       );
     })
     .map((activity) => {
-      const training = activity.related_training!;
-      const trimpEntry = activity.training_load_entries![0]!;
+      const training = activity.relatedTraining!;
+      const trimpEntry = activity.trainingLoadEntries![0]!;
 
       return {
         training: {
           name: training.event.name,
           sport: training.sport,
           description: training.description,
-          goal_distance: training.goal_distance,
-          goal_duration: training.goal_duration,
-          goal_elevation_gain: training.goal_elevation_gain,
-          goal_rpe: training.goal_rpe,
+          goalDistance: training.goalDistance,
+          goalDuration: training.goalDuration,
+          goalElevationGain: training.goalElevationGain,
+          goalRpe: training.goalRpe,
           workout: training.workout
             ? mapPrismaWorkoutToDto(training.workout)
             : null,
         },
         actualTrimp: trimpEntry.value,
-        activityDate: activity.event.start_date,
+        activityDate: activity.event.startDate,
       };
     });
 }

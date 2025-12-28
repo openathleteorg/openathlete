@@ -18,20 +18,20 @@ export class TrainingMatchProcessor implements ActivityProcessor {
     );
 
     // Load the imported activity
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_activity_id: ctx.eventActivityId },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventActivityId: ctx.eventActivityId },
       include: {
         event: {
           select: {
-            event_id: true,
-            start_date: true,
-            end_date: true,
-            athlete_id: true,
+            eventId: true,
+            startDate: true,
+            endDate: true,
+            athleteId: true,
           },
         },
-        related_training: {
+        relatedTraining: {
           select: {
-            event_training_id: true,
+            eventTrainingId: true,
           },
         },
       },
@@ -45,36 +45,36 @@ export class TrainingMatchProcessor implements ActivityProcessor {
     }
 
     // Skip if activity is already linked to a training
-    if (activity.related_training) {
+    if (activity.relatedTraining) {
       this.logger.debug(
         `Activity ${ctx.eventActivityId} is already linked to a training`,
       );
       return;
     }
 
-    const activityDate = new Date(activity.event.start_date);
+    const activityDate = new Date(activity.event.startDate);
     const dayStart = new Date(activityDate);
     dayStart.setHours(0, 0, 0, 0);
     const dayEnd = new Date(activityDate);
     dayEnd.setHours(23, 59, 59, 999);
 
     // Find all training sessions scheduled for the same day
-    const trainingSessions = await this.prisma.event_training.findMany({
+    const trainingSessions = await this.prisma.eventTraining.findMany({
       where: {
         event: {
-          athlete_id: activity.event.athlete_id,
-          start_date: {
+          athleteId: activity.event.athleteId,
+          startDate: {
             gte: dayStart,
             lte: dayEnd,
           },
         },
-        related_activity_id: null, // Not already linked to an activity
+        relatedActivityId: null, // Not already linked to an activity
       },
       include: {
         event: {
           select: {
-            event_id: true,
-            start_date: true,
+            eventId: true,
+            startDate: true,
             name: true,
           },
         },
@@ -98,7 +98,7 @@ export class TrainingMatchProcessor implements ActivityProcessor {
       const score = this.calculateMatchScore(activity, training);
 
       this.logger.debug(
-        `Training ${training.event_training_id} (${training.event.name}) match score: ${score}%`,
+        `Training ${training.eventTrainingId} (${training.event.name}) match score: ${score}%`,
       );
 
       if (score >= TRAINING_MATCH_THRESHOLD) {
@@ -110,12 +110,12 @@ export class TrainingMatchProcessor implements ActivityProcessor {
 
     // Link activity to best matching training
     if (bestMatch) {
-      await this.prisma.event_training.update({
+      await this.prisma.eventTraining.update({
         where: {
-          event_training_id: bestMatch.training.event_training_id,
+          eventTrainingId: bestMatch.training.eventTrainingId,
         },
         data: {
-          related_activity_id: ctx.eventActivityId,
+          relatedActivityId: ctx.eventActivityId,
         },
       });
 
@@ -144,12 +144,12 @@ export class TrainingMatchProcessor implements ActivityProcessor {
     activity: {
       sport: string;
       distance: number;
-      moving_time: number;
+      movingTime: number;
     },
     training: {
       sport: string;
-      goal_distance: number | null;
-      goal_duration: number | null;
+      goalDistance: number | null;
+      goalDuration: number | null;
     },
   ): number {
     let totalWeight = 0;
@@ -164,22 +164,22 @@ export class TrainingMatchProcessor implements ActivityProcessor {
 
     // Duration matching (30% weight if specified)
     const durationWeight = 30;
-    if (training.goal_duration !== null && training.goal_duration > 0) {
+    if (training.goalDuration !== null && training.goalDuration > 0) {
       totalWeight += durationWeight;
       const durationRatio = Math.min(
-        activity.moving_time / training.goal_duration,
-        training.goal_duration / activity.moving_time,
+        activity.movingTime / training.goalDuration,
+        training.goalDuration / activity.movingTime,
       );
       achievedScore += durationRatio * durationWeight;
     }
 
     // Distance matching (30% weight if specified)
     const distanceWeight = 30;
-    if (training.goal_distance !== null && training.goal_distance > 0) {
+    if (training.goalDistance !== null && training.goalDistance > 0) {
       totalWeight += distanceWeight;
       const distanceRatio = Math.min(
-        activity.distance / training.goal_distance,
-        training.goal_distance / activity.distance,
+        activity.distance / training.goalDistance,
+        training.goalDistance / activity.distance,
       );
       achievedScore += distanceRatio * distanceWeight;
     }

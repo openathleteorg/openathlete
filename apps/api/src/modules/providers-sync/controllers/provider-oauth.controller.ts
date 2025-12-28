@@ -26,10 +26,9 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { connector_provider } from '@openathlete/database';
+import { ConnectorProvider } from '@openathlete/database';
 import type { ApiEnvSchemaType } from '@openathlete/shared';
 import {
-  ConnectorProvider,
   ProviderPreferencesDto,
   getProviderSyncCapabilities,
   providerPreferencesSchema,
@@ -50,7 +49,7 @@ import { GarminProviderService } from '../providers/garmin.provider.service';
 import { PolarProviderService } from '../providers/polar.provider.service';
 import { StravaProviderService } from '../providers/strava.provider.service';
 
-function toConnectorProvider(provider: connector_provider): ConnectorProvider {
+function toConnectorProvider(provider: ConnectorProvider): ConnectorProvider {
   return provider as unknown as ConnectorProvider;
 }
 
@@ -71,7 +70,7 @@ export class ProviderOAuthController {
 
   private async getAthleteForUser(user: AuthUser) {
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
     });
 
     if (!athlete) {
@@ -83,13 +82,13 @@ export class ProviderOAuthController {
 
   private async getProviderAccountForUser(
     user: AuthUser,
-    providerEnum: connector_provider,
+    providerEnum: ConnectorProvider,
   ) {
     const athlete = await this.getAthleteForUser(user);
 
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        athlete_id: athlete.athlete_id,
+        athleteId: athlete.athleteId,
         provider: providerEnum,
         status: 'active',
       },
@@ -115,7 +114,7 @@ export class ProviderOAuthController {
   @ApiParam({
     name: 'provider',
     type: String,
-    enum: Object.values(connector_provider),
+    enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive)',
     example: 'strava',
   })
@@ -147,22 +146,22 @@ export class ProviderOAuthController {
     description: 'Bad request - provider not supported',
   })
   getAuthorizationUri(@Param('provider') provider: string) {
-    const providerEnum = provider.toUpperCase() as connector_provider;
+    const providerEnum = provider.toUpperCase() as ConnectorProvider;
 
     switch (providerEnum) {
-      case connector_provider.STRAVA:
+      case ConnectorProvider.STRAVA:
         return { uri: this.stravaProviderService.getAuthorizationUri() };
-      case connector_provider.GARMIN:
+      case ConnectorProvider.GARMIN:
         // Garmin uses PKCE - return both URI and code_verifier
         // Client must store code_verifier and send it back during token exchange
         // Note: In production, code_verifier should be stored server-side (session/Redis)
         // For now, returning it to client - they must store it securely and send it back
         return this.garminProviderService.getAuthorizationUriWithPKCE();
-      case connector_provider.SUUNTO:
+      case ConnectorProvider.SUUNTO:
         return { uri: this.suuntoProviderService.getAuthorizationUri() };
-      case connector_provider.COROS:
+      case ConnectorProvider.COROS:
         return { uri: this.corosProviderService.getAuthorizationUri() };
-      case connector_provider.POLAR:
+      case ConnectorProvider.POLAR:
         return { uri: this.polarProviderService.getAuthorizationUri() };
       default:
         throw new Error(`Provider ${provider} not supported`);
@@ -183,7 +182,7 @@ export class ProviderOAuthController {
   @ApiParam({
     name: 'provider',
     type: String,
-    enum: Object.values(connector_provider),
+    enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive)',
     example: 'strava',
   })
@@ -216,7 +215,7 @@ export class ProviderOAuthController {
         providerAccountId: { type: 'number', example: 1 },
         provider: {
           type: 'string',
-          enum: Object.values(connector_provider),
+          enum: Object.values(ConnectorProvider),
           example: 'STRAVA',
         },
         status: { type: 'string', example: 'active' },
@@ -243,14 +242,14 @@ export class ProviderOAuthController {
     @Body() body: { code: string; codeVerifier?: string },
   ) {
     const { code } = body;
-    const providerEnum = provider.toUpperCase() as connector_provider;
+    const providerEnum = provider.toUpperCase() as ConnectorProvider;
 
     const athlete = await this.getAthleteForUser(user);
 
     switch (providerEnum) {
-      case connector_provider.STRAVA:
+      case ConnectorProvider.STRAVA:
         return this.stravaProviderService.connect(user, code);
-      case connector_provider.GARMIN: {
+      case ConnectorProvider.GARMIN: {
         // Garmin PKCE requires code_verifier
         const codeVerifier = body.codeVerifier;
         if (!codeVerifier) {
@@ -261,10 +260,10 @@ export class ProviderOAuthController {
         return this.garminProviderService.connect(
           code,
           codeVerifier,
-          athlete.athlete_id,
+          athlete.athleteId,
         );
       }
-      case connector_provider.SUUNTO: {
+      case ConnectorProvider.SUUNTO: {
         const tokenResponse =
           await this.suuntoProviderService.exchangeCodeForTokens(code);
         // Try to get user ID or username from token (JWT decode)
@@ -273,10 +272,10 @@ export class ProviderOAuthController {
           tokenResponse.access_token,
         );
         this.logger.log(
-          `Suunto OAuth: Extracted external_user_id: ${externalUserId || 'none'}`,
+          `Suunto OAuth: Extracted external_userId: ${externalUserId || 'none'}`,
         );
         return this.suuntoProviderService.saveProviderAccount({
-          athleteId: athlete.athlete_id,
+          athleteId: athlete.athleteId,
           accessToken: tokenResponse.access_token,
           refreshToken: tokenResponse.refresh_token || '',
           expiresIn: tokenResponse.expires_in,
@@ -284,19 +283,19 @@ export class ProviderOAuthController {
           externalUserId: externalUserId || undefined,
         });
       }
-      case connector_provider.COROS: {
+      case ConnectorProvider.COROS: {
         const tokenResponse =
           await this.corosProviderService.exchangeCodeForTokens(code);
         return this.corosProviderService.saveProviderAccount({
-          athleteId: athlete.athlete_id,
+          athleteId: athlete.athleteId,
           accessToken: tokenResponse.access_token,
           refreshToken: tokenResponse.refresh_token || '',
           expiresIn: tokenResponse.expires_in,
           scopes: tokenResponse.scope,
         });
       }
-      case connector_provider.POLAR: {
-        return this.polarProviderService.connect(code, athlete.athlete_id);
+      case ConnectorProvider.POLAR: {
+        return this.polarProviderService.connect(code, athlete.athleteId);
       }
       default:
         throw new Error(`Provider ${provider} not supported`);
@@ -317,7 +316,7 @@ export class ProviderOAuthController {
   @ApiParam({
     name: 'provider',
     type: String,
-    enum: Object.values(connector_provider),
+    enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive)',
     example: 'strava',
   })
@@ -347,7 +346,7 @@ export class ProviderOAuthController {
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
   ) {
-    const providerEnum = provider.toUpperCase() as connector_provider;
+    const providerEnum = provider.toUpperCase() as ConnectorProvider;
 
     const { account } = await this.getProviderAccountForUser(
       user,
@@ -355,10 +354,10 @@ export class ProviderOAuthController {
     );
 
     // For Garmin, call deleteUserRegistration API before revoking
-    if (providerEnum === connector_provider.GARMIN && account.access_token) {
+    if (providerEnum === ConnectorProvider.GARMIN && account.accessToken) {
       try {
         await this.garminProviderService.deleteUserRegistration(
-          account.access_token,
+          account.accessToken,
         );
       } catch (error) {
         // Log error but continue with revocation
@@ -371,9 +370,9 @@ export class ProviderOAuthController {
     }
 
     // For Suunto, call deauthorize API before revoking
-    if (providerEnum === connector_provider.SUUNTO && account.access_token) {
+    if (providerEnum === ConnectorProvider.SUUNTO && account.accessToken) {
       try {
-        await this.suuntoProviderService.deauthorize(account.access_token);
+        await this.suuntoProviderService.deauthorize(account.accessToken);
       } catch (error) {
         // Log error but continue with revocation
         // Token might already be expired or invalid
@@ -385,9 +384,9 @@ export class ProviderOAuthController {
     }
 
     // Update status to revoked instead of deleting
-    await this.prisma.provider_account.update({
+    await this.prisma.providerAccount.update({
       where: {
-        provider_account_id: account.provider_account_id,
+        providerAccountId: account.providerAccountId,
       },
       data: {
         status: 'revoked',
@@ -418,7 +417,7 @@ export class ProviderOAuthController {
         properties: {
           provider: {
             type: 'string',
-            enum: Object.values(connector_provider),
+            enum: Object.values(ConnectorProvider),
             example: 'STRAVA',
           },
           status: {
@@ -471,9 +470,9 @@ export class ProviderOAuthController {
   })
   async getConnectedProviders(@JwtUser() user: AuthUser) {
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: user.user_id },
+      where: { userId: user.userId },
       include: {
-        provider_accounts: {
+        providerAccounts: {
           where: {
             status: 'active',
           },
@@ -485,15 +484,15 @@ export class ProviderOAuthController {
       return [];
     }
 
-    return athlete.provider_accounts.map((account) => ({
+    return athlete.providerAccounts.map((account) => ({
       provider: account.provider,
       status: account.status,
-      connectedAt: account.created_at,
-      importActivitiesEnabled: account.import_activities_enabled,
-      exportWorkoutsEnabled: account.export_workouts_enabled,
-      importMetricsEnabled: account.import_metrics_enabled,
-      fullImportRequestedAt: account.full_import_requested_at,
-      fullImportCompletedAt: account.full_import_completed_at,
+      connectedAt: account.createdAt,
+      importActivitiesEnabled: account.importActivitiesEnabled,
+      exportWorkoutsEnabled: account.exportWorkoutsEnabled,
+      importMetricsEnabled: account.importMetricsEnabled,
+      fullImportRequestedAt: account.fullImportRequestedAt,
+      fullImportCompletedAt: account.fullImportCompletedAt,
     }));
   }
 
@@ -511,7 +510,7 @@ export class ProviderOAuthController {
   @ApiParam({
     name: 'provider',
     type: String,
-    enum: Object.values(connector_provider),
+    enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive)',
     example: 'strava',
   })
@@ -569,7 +568,7 @@ export class ProviderOAuthController {
     @Body(new ZodValidationPipe(providerPreferencesSchema))
     body: ProviderPreferencesDto,
   ) {
-    const providerEnum = provider.toUpperCase() as connector_provider;
+    const providerEnum = provider.toUpperCase() as ConnectorProvider;
     const { account } = await this.getProviderAccountForUser(
       user,
       providerEnum,
@@ -586,7 +585,7 @@ export class ProviderOAuthController {
           `Importing activities is not available for ${provider}`,
         );
       }
-      data.import_activities_enabled = body.importActivitiesEnabled;
+      data.importActivitiesEnabled = body.importActivitiesEnabled;
     }
 
     if (body.exportWorkoutsEnabled !== undefined) {
@@ -595,7 +594,7 @@ export class ProviderOAuthController {
           `Exporting workouts is not available for ${provider}`,
         );
       }
-      data.export_workouts_enabled = body.exportWorkoutsEnabled;
+      data.exportWorkoutsEnabled = body.exportWorkoutsEnabled;
     }
 
     if (body.importMetricsEnabled !== undefined) {
@@ -604,12 +603,12 @@ export class ProviderOAuthController {
           `Importing metrics is not available for ${provider}`,
         );
       }
-      data.import_metrics_enabled = body.importMetricsEnabled;
+      data.importMetricsEnabled = body.importMetricsEnabled;
     }
 
-    await this.prisma.provider_account.update({
+    await this.prisma.providerAccount.update({
       where: {
-        provider_account_id: account.provider_account_id,
+        providerAccountId: account.providerAccountId,
       },
       data,
     });
@@ -631,7 +630,7 @@ export class ProviderOAuthController {
   @ApiParam({
     name: 'provider',
     type: String,
-    enum: Object.values(connector_provider),
+    enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive). Must support full import.',
     example: 'strava',
   })
@@ -680,13 +679,13 @@ export class ProviderOAuthController {
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
   ) {
-    const providerEnum = provider.toUpperCase() as connector_provider;
+    const providerEnum = provider.toUpperCase() as ConnectorProvider;
     const { account } = await this.getProviderAccountForUser(
       user,
       providerEnum,
     );
 
-    if (!account.import_activities_enabled) {
+    if (!account.importActivitiesEnabled) {
       throw new BadRequestException(
         `Importing activities is disabled for ${provider}`,
       );
@@ -701,11 +700,11 @@ export class ProviderOAuthController {
       );
     }
 
-    if (account.full_import_completed_at) {
+    if (account.fullImportCompletedAt) {
       return { success: true, message: 'Full import already completed' };
     }
 
-    if (account.full_import_requested_at && !account.full_import_completed_at) {
+    if (account.fullImportRequestedAt && !account.fullImportCompletedAt) {
       throw new BadRequestException(
         'A historical import is already in progress',
       );
@@ -713,32 +712,32 @@ export class ProviderOAuthController {
 
     const now = new Date();
 
-    await this.prisma.provider_account.update({
+    await this.prisma.providerAccount.update({
       where: {
-        provider_account_id: account.provider_account_id,
+        providerAccountId: account.providerAccountId,
       },
       data: {
-        full_import_requested_at: now,
-        full_import_completed_at: null,
+        fullImportRequestedAt: now,
+        fullImportCompletedAt: null,
       },
     });
 
     try {
       let importResult: FullImportResult | null = null;
       switch (providerEnum) {
-        case connector_provider.STRAVA:
+        case ConnectorProvider.STRAVA:
           importResult =
             await this.stravaProviderService.queueFullImport(account);
           break;
-        case connector_provider.GARMIN:
+        case ConnectorProvider.GARMIN:
           importResult =
             await this.garminProviderService.queueFullImport(account);
           break;
-        case connector_provider.POLAR:
+        case ConnectorProvider.POLAR:
           importResult =
             await this.polarProviderService.queueFullImport(account);
           break;
-        case connector_provider.SUUNTO:
+        case ConnectorProvider.SUUNTO:
           importResult =
             await this.suuntoProviderService.queueFullImport(account);
           break;
@@ -748,12 +747,12 @@ export class ProviderOAuthController {
           );
       }
 
-      await this.prisma.provider_account.update({
+      await this.prisma.providerAccount.update({
         where: {
-          provider_account_id: account.provider_account_id,
+          providerAccountId: account.providerAccountId,
         },
         data: {
-          full_import_completed_at:
+          fullImportCompletedAt:
             importResult?.backfillRequested === true ? null : new Date(),
         },
       });
@@ -766,12 +765,12 @@ export class ProviderOAuthController {
         backfillRequested: importResult?.backfillRequested ?? false,
       };
     } catch (error) {
-      await this.prisma.provider_account.update({
+      await this.prisma.providerAccount.update({
         where: {
-          provider_account_id: account.provider_account_id,
+          providerAccountId: account.providerAccountId,
         },
         data: {
-          full_import_requested_at: null,
+          fullImportRequestedAt: null,
         },
       });
       throw error;
@@ -876,9 +875,9 @@ export class ProviderOAuthController {
   async stravaWebhookPost(
     @Body()
     body: {
-      object_id: number;
-      owner_id: number;
-      aspect_type: 'create' | 'delete';
+      objectId: number;
+      ownerId: number;
+      aspectType: 'create' | 'delete';
     },
   ) {
     await this.stravaProviderService.handleWebhook(body);
@@ -1270,7 +1269,7 @@ export class ProviderOAuthController {
           description: 'Type of Polar webhook event',
           example: 'EXERCISE',
         },
-        user_id: {
+        userId: {
           type: 'number',
           description: 'Polar user ID',
           example: 63661436,
@@ -1295,7 +1294,7 @@ export class ProviderOAuthController {
           example: 'https://www.polaraccesslink.com/v3/exercises/123456789',
         },
       },
-      required: ['event', 'user_id'],
+      required: ['event', 'userId'],
     },
   })
   @ApiResponse({
@@ -1318,7 +1317,7 @@ export class ProviderOAuthController {
     @Req() request: { headers: Record<string, string | string[]> },
   ) {
     this.logger.log(
-      `Received Polar webhook request: event=${body.event}, user_id=${body.user_id}`,
+      `Received Polar webhook request: event=${body.event}, userId=${body.user_id}`,
     );
 
     // Extract signature from headers (can be string or string[])

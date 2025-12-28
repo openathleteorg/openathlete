@@ -39,11 +39,11 @@ export class PushNotificationService {
 
     try {
       const user = await this.prisma.user.findUnique({
-        where: { user_id: userId },
-        select: { push_token: true, user_id: true },
+        where: { userId: userId },
+        select: { pushToken: true, userId: true },
       });
 
-      if (!user || !user.push_token) {
+      if (!user || !user.pushToken) {
         this.logger.debug(
           `User ${userId} does not have a push token registered`,
         );
@@ -58,7 +58,7 @@ export class PushNotificationService {
       }
 
       const response = await this.httpClient.post(this.firebaseFunctionsUrl, {
-        token: user.push_token,
+        token: user.pushToken,
         title,
         body,
         data,

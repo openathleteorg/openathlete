@@ -9,19 +9,15 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import {
+  ActivitySegmentType,
+  ConnectorProvider,
+  EventActivity,
+  EventType,
+  MetricType,
   Prisma,
-  activity_segment_type,
-  connector_provider,
-  event_activity,
-  event_type,
-  metric_type,
-  provider_account,
+  ProviderAccount,
 } from '@openathlete/database';
-import {
-  ActivityStream,
-  ApiEnvSchemaType,
-  METRIC_TYPE,
-} from '@openathlete/shared';
+import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
 import { FitFileSegment } from '../../core/helpers/activity-parser.interface';
@@ -63,7 +59,7 @@ import {
 import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 
 type MetricRecord = {
-  type: METRIC_TYPE;
+  type: MetricType;
   date: Date;
   value: number;
 };
@@ -73,7 +69,7 @@ export class SuuntoProviderService
   extends BaseProviderService
   implements ProviderImportCapability
 {
-  protected readonly provider = connector_provider.SUUNTO;
+  protected readonly provider = ConnectorProvider.SUUNTO;
   private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000; // 30 days
   private readonly metricsSyncWindowDays = 28; // Maximum fetch interval per Suunto API
 
@@ -119,7 +115,7 @@ export class SuuntoProviderService
    * Make authenticated request to Suunto Guides API with automatic token refresh
    */
   async makeGuidesApiRequest<T>(
-    account: provider_account,
+    account: ProviderAccount,
     requestFn: (accessToken: string) => Promise<T>,
   ): Promise<T> {
     return this.makeAuthenticatedRequest(account, requestFn);
@@ -381,17 +377,17 @@ export class SuuntoProviderService
    * Make authenticated request with automatic token refresh
    */
   private async makeAuthenticatedRequest<T>(
-    account: provider_account,
+    account: ProviderAccount,
     requestFn: (accessToken: string) => Promise<T>,
   ): Promise<T> {
     // Always get fresh token from DB to ensure we have the latest
-    const freshAccount = await this.prisma.provider_account.findUnique({
-      where: { provider_account_id: account.provider_account_id },
+    const freshAccount = await this.prisma.providerAccount.findUnique({
+      where: { providerAccountId: account.providerAccountId },
     });
 
     if (!freshAccount) {
       throw new Error(
-        `Provider account ${account.provider_account_id} not found`,
+        `Provider account ${account.providerAccountId} not found`,
       );
     }
 
@@ -402,7 +398,7 @@ export class SuuntoProviderService
       // If refresh token is invalid, don't retry the request
       if (error instanceof InvalidRefreshTokenError) {
         this.logger.error(
-          `Cannot make authenticated request: refresh token invalid for Suunto account ${freshAccount.provider_account_id}`,
+          `Cannot make authenticated request: refresh token invalid for Suunto account ${freshAccount.providerAccountId}`,
         );
         throw error;
       }
@@ -420,17 +416,17 @@ export class SuuntoProviderService
       if (
         isAxiosError(error) &&
         error.response?.status === 401 &&
-        freshAccount.refresh_token &&
+        freshAccount.refreshToken &&
         freshAccount.status === 'active'
       ) {
         this.logger.debug(
-          `Suunto token expired, refreshing for account ${freshAccount.provider_account_id}`,
+          `Suunto token expired, refreshing for account ${freshAccount.providerAccountId}`,
         );
 
         let tokenResponse: OAuthTokenResponse;
         try {
           tokenResponse = await this.refreshAccessToken(
-            freshAccount.refresh_token,
+            freshAccount.refreshToken,
           );
         } catch (refreshError) {
           // If refresh fails with 401, mark account as revoked
@@ -440,12 +436,12 @@ export class SuuntoProviderService
             freshAccount.status === 'active'
           ) {
             this.logger.warn(
-              `Refresh token invalid for Suunto account ${freshAccount.provider_account_id} (athlete ${freshAccount.athlete_id}), marking as revoked`,
+              `Refresh token invalid for Suunto account ${freshAccount.providerAccountId} (athlete ${freshAccount.athleteId}), marking as revoked`,
             );
 
-            await this.prisma.provider_account.update({
+            await this.prisma.providerAccount.update({
               where: {
-                provider_account_id: freshAccount.provider_account_id,
+                providerAccountId: freshAccount.providerAccountId,
               },
               data: {
                 status: 'revoked',
@@ -454,8 +450,8 @@ export class SuuntoProviderService
 
             throw new InvalidRefreshTokenError(
               'SUUNTO',
-              freshAccount.provider_account_id,
-              freshAccount.athlete_id,
+              freshAccount.providerAccountId,
+              freshAccount.athleteId,
             );
           }
           throw refreshError;
@@ -468,22 +464,22 @@ export class SuuntoProviderService
 
         const expiresAt = expiresAtMs ? new Date(expiresAtMs) : null;
 
-        const updatedAccount = await this.prisma.provider_account.update({
+        const updatedAccount = await this.prisma.providerAccount.update({
           where: {
-            provider_account_id: freshAccount.provider_account_id,
+            providerAccountId: freshAccount.providerAccountId,
           },
           data: {
-            access_token: tokenResponse.access_token,
-            refresh_token:
-              tokenResponse.refresh_token ?? freshAccount.refresh_token,
-            expires_at: expiresAt,
+            accessToken: tokenResponse.access_token,
+            refreshToken:
+              tokenResponse.refresh_token ?? freshAccount.refreshToken,
+            expiresAt: expiresAt,
           },
         });
 
         // Update the account object passed in
-        account.access_token = updatedAccount.access_token;
-        account.refresh_token = updatedAccount.refresh_token;
-        account.expires_at = updatedAccount.expires_at;
+        account.accessToken = updatedAccount.accessToken;
+        account.refreshToken = updatedAccount.refreshToken;
+        account.expiresAt = updatedAccount.expiresAt;
 
         // Verify token format (should be a JWT with 3 parts separated by dots)
         const tokenParts = tokenResponse.access_token.split('.');
@@ -494,7 +490,7 @@ export class SuuntoProviderService
         }
 
         this.logger.debug(
-          `Suunto token refreshed successfully for account ${freshAccount.provider_account_id}, retrying request with new token (length: ${tokenResponse.access_token.length}, format: ${tokenParts.length === 3 ? 'JWT' : 'INVALID'})`,
+          `Suunto token refreshed successfully for account ${freshAccount.providerAccountId}, retrying request with new token (length: ${tokenResponse.access_token.length}, format: ${tokenParts.length === 3 ? 'JWT' : 'INVALID'})`,
         );
 
         // Small delay to ensure token is propagated (some APIs need a moment)
@@ -504,7 +500,7 @@ export class SuuntoProviderService
         try {
           const result = await requestFn(tokenResponse.access_token);
           this.logger.debug(
-            `Suunto request succeeded after token refresh for account ${freshAccount.provider_account_id}`,
+            `Suunto request succeeded after token refresh for account ${freshAccount.providerAccountId}`,
           );
           return result;
         } catch (retryError) {
@@ -535,7 +531,7 @@ export class SuuntoProviderService
    * Import activities from Suunto
    */
   async importActivities(
-    account: provider_account,
+    account: ProviderAccount,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]> {
     const limit = options?.limit ?? Number.POSITIVE_INFINITY;
@@ -643,12 +639,12 @@ export class SuuntoProviderService
    * Import and save a single activity
    */
   async importActivity(
-    account: provider_account,
+    account: ProviderAccount,
     activity: ImportedActivity,
-  ): Promise<event_activity> {
-    const existing = await this.prisma.event_activity.findFirst({
+  ): Promise<EventActivity> {
+    const existing = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: activity.externalId,
+        externalId: activity.externalId,
       },
     });
 
@@ -657,8 +653,8 @@ export class SuuntoProviderService
     }
 
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: account.athlete_id },
-      select: { athlete_id: true },
+      where: { athleteId: account.athleteId },
+      select: { athleteId: true },
     });
 
     if (!athlete) {
@@ -667,11 +663,11 @@ export class SuuntoProviderService
 
     const event = await this.prisma.event.create({
       data: {
-        athlete_id: athlete.athlete_id,
+        athleteId: athlete.athleteId,
         name: activity.name,
-        type: event_type.ACTIVITY,
-        start_date: activity.startDate,
-        end_date: activity.endDate,
+        type: EventType.ACTIVITY,
+        startDate: activity.startDate,
+        endDate: activity.endDate,
       },
     });
 
@@ -703,10 +699,10 @@ export class SuuntoProviderService
    * Fetch and save Suunto activity data
    */
   private async fetchSuuntoActivityData(
-    account: provider_account,
-    event: { event_id: number },
+    account: ProviderAccount,
+    event: { eventId: number },
     workout: SuuntoLimitedWorkout,
-  ): Promise<event_activity> {
+  ): Promise<EventActivity> {
     const activityStream: ActivityStream = {};
     const compressedActivityStream = compressActivityStream(activityStream);
     const sport = mapSuuntoWorkoutToSportType(workout);
@@ -738,19 +734,19 @@ export class SuuntoProviderService
       averageCadence = roundCadence(workout.cadence.avg) ?? undefined;
     }
 
-    const savedActivity = await this.prisma.event_activity.create({
+    const savedActivity = await this.prisma.eventActivity.create({
       data: {
-        provider: connector_provider.SUUNTO,
+        provider: ConnectorProvider.SUUNTO,
         distance: roundDistance(workout.totalDistance || 0),
-        elevation_gain: roundElevation(workout.totalAscent || 0),
-        moving_time: workout.totalTime,
-        average_speed: avgSpeedMps ? (roundSpeed(avgSpeedMps) ?? 0) : 0,
-        max_speed: maxSpeedMps ? (roundSpeed(maxSpeedMps) ?? 0) : 0,
-        average_cadence: averageCadence,
-        average_heartrate: workout.hrdata
+        elevationGain: roundElevation(workout.totalAscent || 0),
+        movingTime: workout.totalTime,
+        averageSpeed: avgSpeedMps ? (roundSpeed(avgSpeedMps) ?? 0) : 0,
+        maxSpeed: maxSpeedMps ? (roundSpeed(maxSpeedMps) ?? 0) : 0,
+        averageCadence: averageCadence,
+        averageHeartrate: workout.hrdata
           ? roundHeartrate(workout.hrdata.workoutAvgHR)
           : undefined,
-        max_heartrate: workout.hrdata
+        maxHeartrate: workout.hrdata
           ? roundHeartrate(workout.hrdata.workoutMaxHR)
           : undefined,
         kilojoules: workout.energyConsumption
@@ -758,10 +754,10 @@ export class SuuntoProviderService
           : undefined,
         sport,
         stream: compressedActivityStream as object,
-        external_id: workout.workoutKey,
+        externalId: workout.workoutKey,
         event: {
           connect: {
-            event_id: event.event_id,
+            eventId: event.eventId,
           },
         },
       },
@@ -774,8 +770,8 @@ export class SuuntoProviderService
    * Process activity file (FIT format) and update stream data
    */
   private async processActivityFile(
-    account: provider_account,
-    activity: event_activity,
+    account: ProviderAccount,
+    activity: EventActivity,
     workoutKey: string,
   ): Promise<void> {
     try {
@@ -806,9 +802,9 @@ export class SuuntoProviderService
 
       const compressedStream = compressActivityStream(parseResult.stream);
 
-      await this.prisma.event_activity.update({
+      await this.prisma.eventActivity.update({
         where: {
-          event_activity_id: activity.event_activity_id,
+          eventActivityId: activity.eventActivityId,
         },
         data: {
           stream: compressedStream as object,
@@ -821,7 +817,7 @@ export class SuuntoProviderService
         Object.keys(parseResult.stream).length > 0
       ) {
         await this.syncSegmentsFromFit(
-          activity.event_activity_id,
+          activity.eventActivityId,
           parseResult.segments,
           parseResult.stream,
         );
@@ -848,7 +844,7 @@ export class SuuntoProviderService
       return;
     }
 
-    const segmentsData: Prisma.activity_segmentCreateManyInput[] = [];
+    const segmentsData: Prisma.ActivitySegmentCreateManyInput[] = [];
 
     segments.forEach((segment, index) => {
       if (segment.endTimeSeconds <= segment.startTimeSeconds) {
@@ -862,13 +858,13 @@ export class SuuntoProviderService
       );
 
       segmentsData.push({
-        segment_type: activity_segment_type.LAP,
+        segmentType: ActivitySegmentType.LAP,
         name: segment.name ?? `Lap ${index + 1}`,
-        order_index: index,
-        start_time_seconds: Math.round(segment.startTimeSeconds),
-        end_time_seconds: Math.round(segment.endTimeSeconds),
+        orderIndex: index,
+        startTimeSeconds: Math.round(segment.startTimeSeconds),
+        endTimeSeconds: Math.round(segment.endTimeSeconds),
         ...metrics,
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       });
     });
 
@@ -877,10 +873,10 @@ export class SuuntoProviderService
     }
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.activity_segment.deleteMany({
-        where: { event_activity_id: eventActivityId },
+      await tx.activitySegment.deleteMany({
+        where: { eventActivityId: eventActivityId },
       });
-      await tx.activity_segment.createMany({
+      await tx.activitySegment.createMany({
         data: segmentsData,
       });
     });
@@ -890,26 +886,26 @@ export class SuuntoProviderService
    * Queue activities for import
    */
   private async enqueueActivities(
-    account: provider_account,
+    account: ProviderAccount,
     activities: ImportedActivity[],
   ): Promise<number> {
     if (activities.length === 0) {
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.event_activity.findMany({
+    const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
-        external_id: {
+        externalId: {
           in: activities.map((a) => a.externalId),
         },
       },
       select: {
-        external_id: true,
+        externalId: true,
       },
     });
 
     const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.external_id),
+      existingExternalIds.map((a) => a.externalId),
     );
 
     const newActivities = activities.filter(
@@ -918,7 +914,7 @@ export class SuuntoProviderService
 
     if (newActivities.length === 0) {
       this.logger.log(
-        `No new Suunto activities to queue for account ${account.provider_account_id}`,
+        `No new Suunto activities to queue for account ${account.providerAccountId}`,
       );
       return 0;
     }
@@ -930,7 +926,7 @@ export class SuuntoProviderService
   /**
    * Queue full import of activities
    */
-  async queueFullImport(account: provider_account): Promise<FullImportResult> {
+  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
     const endDate = new Date();
     const startDate = new Date(endDate.getTime() - this.importWindowMs);
 
@@ -956,7 +952,7 @@ export class SuuntoProviderService
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       this.logger.error(
-        `Error in queueFullImport for account ${account.provider_account_id}: ${errorName}: ${errorMessage}`,
+        `Error in queueFullImport for account ${account.providerAccountId}: ${errorName}: ${errorMessage}`,
       );
       throw new BadRequestException(
         `Failed to queue Suunto activities: ${errorMessage}`,
@@ -987,17 +983,17 @@ export class SuuntoProviderService
 
     // Find account by external_user_id if provided
     // Suunto webhooks may use userId or username
-    let account: provider_account | null = null;
+    let account: ProviderAccount | null = null;
 
     const userId = payload.userId || payload.username;
     if (userId) {
       this.logger.debug(
         `Suunto webhook: Looking for account with external_user_id: ${userId}`,
       );
-      account = await this.prisma.provider_account.findFirst({
+      account = await this.prisma.providerAccount.findFirst({
         where: {
-          provider: connector_provider.SUUNTO,
-          external_user_id: userId,
+          provider: ConnectorProvider.SUUNTO,
+          externalUserId: userId,
           status: 'active',
         },
         include: {
@@ -1011,7 +1007,7 @@ export class SuuntoProviderService
 
       if (account) {
         this.logger.debug(
-          `Suunto webhook: Found account ${account.provider_account_id} for userId/username ${userId}`,
+          `Suunto webhook: Found account ${account.providerAccountId} for userId/username ${userId}`,
         );
       } else {
         this.logger.warn(
@@ -1028,11 +1024,11 @@ export class SuuntoProviderService
       );
 
       // Get all active Suunto accounts with import enabled
-      const activeAccounts = await this.prisma.provider_account.findMany({
+      const activeAccounts = await this.prisma.providerAccount.findMany({
         where: {
-          provider: connector_provider.SUUNTO,
+          provider: ConnectorProvider.SUUNTO,
           status: 'active',
-          import_activities_enabled: true,
+          importActivitiesEnabled: true,
         },
         include: {
           athlete: {
@@ -1065,7 +1061,7 @@ export class SuuntoProviderService
           if (workoutResponse.payload && !workoutResponse.error) {
             account = testAccount;
             this.logger.debug(
-              `Suunto webhook: Found workout owner - account ${account.provider_account_id} (athlete ${account.athlete_id}) for workoutKey ${workoutKey}`,
+              `Suunto webhook: Found workout owner - account ${account.providerAccountId} (athlete ${account.athleteId}) for workoutKey ${workoutKey}`,
             );
             break;
           }
@@ -1083,17 +1079,17 @@ export class SuuntoProviderService
       return;
     }
 
-    if (!account.import_activities_enabled) {
+    if (!account.importActivitiesEnabled) {
       this.logger.debug(
-        `Import disabled for Suunto account ${account.provider_account_id}, skipping webhook`,
+        `Import disabled for Suunto account ${account.providerAccountId}, skipping webhook`,
       );
       return;
     }
 
     // Check if activity already imported
-    const existingActivity = await this.prisma.event_activity.findFirst({
+    const existingActivity = await this.prisma.eventActivity.findFirst({
       where: {
-        external_id: workoutKey,
+        externalId: workoutKey,
       },
     });
 
@@ -1171,10 +1167,10 @@ export class SuuntoProviderService
     }
 
     // Find account by external_user_id
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        provider: connector_provider.SUUNTO,
-        external_user_id: userId,
+        provider: ConnectorProvider.SUUNTO,
+        externalUserId: userId,
         status: 'active',
       },
     });
@@ -1186,9 +1182,9 @@ export class SuuntoProviderService
       return;
     }
 
-    if (!account.import_metrics_enabled) {
+    if (!account.importMetricsEnabled) {
       this.logger.debug(
-        `Import metrics disabled for Suunto account ${account.provider_account_id}, skipping 247 webhook`,
+        `Import metrics disabled for Suunto account ${account.providerAccountId} for athlete ${account.athleteId}, skipping 247 webhook`,
       );
       return;
     }
@@ -1248,9 +1244,9 @@ export class SuuntoProviderService
       }
 
       if (metrics.length > 0) {
-        await this.saveMetrics(account.athlete_id, metrics);
+        await this.saveMetrics(account.athleteId, metrics);
         this.logger.debug(
-          `Saved ${metrics.length} metrics from Suunto 247 webhook ${eventType} for athlete ${account.athlete_id}`,
+          `Saved ${metrics.length} metrics from Suunto 247 webhook ${eventType} for athlete ${account.athleteId}`,
         );
       }
     } catch (error) {
@@ -1281,7 +1277,7 @@ export class SuuntoProviderService
    * Fetch daily activity statistics (aggregated steps and energy)
    */
   private async fetchDailyActivityStatistics(
-    account: provider_account,
+    account: ProviderAccount,
     startDate: Date,
     endDate: Date,
   ): Promise<SuuntoAggregatedActivityData[]> {
@@ -1311,7 +1307,7 @@ export class SuuntoProviderService
    * Fetch daily activity samples (steps, energy, HR, SpO2)
    */
   private async fetchDailyActivitySamples(
-    account: provider_account,
+    account: ProviderAccount,
     startDate: Date,
     endDate: Date,
   ): Promise<SuuntoDailyActivityEntry[]> {
@@ -1341,7 +1337,7 @@ export class SuuntoProviderService
    * Fetch sleep data
    */
   private async fetchSleepData(
-    account: provider_account,
+    account: ProviderAccount,
     startDate: Date,
     endDate: Date,
   ): Promise<SuuntoSleepEntry[]> {
@@ -1371,7 +1367,7 @@ export class SuuntoProviderService
    * Fetch recovery data
    */
   private async fetchRecoveryData(
-    account: provider_account,
+    account: ProviderAccount,
     startDate: Date,
     endDate: Date,
   ): Promise<SuuntoRecoveryEntry[]> {
@@ -1448,7 +1444,7 @@ export class SuuntoProviderService
    */
   private pushMetric(
     target: MetricRecord[],
-    type: METRIC_TYPE,
+    type: MetricType,
     date: Date | null,
     value: number | undefined | null,
     defaultValue = 0,
@@ -1521,10 +1517,10 @@ export class SuuntoProviderService
 
     for (const [dateKey, stats] of dailyStats.entries()) {
       const date = new Date(dateKey + 'T00:00:00.000Z');
-      this.pushMetric(metrics, METRIC_TYPE.DAILY_STEPS, date, stats.steps);
+      this.pushMetric(metrics, MetricType.DAILY_STEPS, date, stats.steps);
       if (stats.energy !== undefined) {
         const kcal = this.joulesToKilocalories(stats.energy);
-        this.pushMetric(metrics, METRIC_TYPE.DAILY_CALORIES, date, kcal);
+        this.pushMetric(metrics, MetricType.DAILY_CALORIES, date, kcal);
       }
     }
 
@@ -1611,30 +1607,30 @@ export class SuuntoProviderService
       if (stats.hrCount > 0) {
         this.pushMetric(
           metrics,
-          METRIC_TYPE.HR_AVG_DAILY,
+          MetricType.HR_AVG_DAILY,
           date,
           stats.hrSum / stats.hrCount,
         );
-        this.pushMetric(metrics, METRIC_TYPE.HR_MIN_DAILY, date, stats.hrMin);
-        this.pushMetric(metrics, METRIC_TYPE.HR_MAX_DAILY, date, stats.hrMax);
+        this.pushMetric(metrics, MetricType.HR_MIN_DAILY, date, stats.hrMin);
+        this.pushMetric(metrics, MetricType.HR_MAX_DAILY, date, stats.hrMax);
       }
 
-      this.pushMetric(metrics, METRIC_TYPE.DAILY_STEPS, date, stats.steps);
+      this.pushMetric(metrics, MetricType.DAILY_STEPS, date, stats.steps);
 
       if (stats.energy !== undefined) {
         const kcal = this.joulesToKilocalories(stats.energy);
-        this.pushMetric(metrics, METRIC_TYPE.DAILY_CALORIES, date, kcal);
+        this.pushMetric(metrics, MetricType.DAILY_CALORIES, date, kcal);
       }
 
       if (stats.spo2Count > 0) {
         const spo2Avg = stats.spo2Sum / stats.spo2Count;
         const spo2Percent = this.spo2ToPercentage(spo2Avg);
-        this.pushMetric(metrics, METRIC_TYPE.PULSE_OX_AVG, date, spo2Percent);
+        this.pushMetric(metrics, MetricType.PULSE_OX_AVG, date, spo2Percent);
       }
 
       if (stats.hrvCount > 0) {
         const hrvAvg = stats.hrvSum / stats.hrvCount;
-        this.pushMetric(metrics, METRIC_TYPE.HRV_LAST_NIGHT_AVG, date, hrvAvg);
+        this.pushMetric(metrics, MetricType.HRV_LAST_NIGHT_AVG, date, hrvAvg);
       }
     }
 
@@ -1663,31 +1659,31 @@ export class SuuntoProviderService
 
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_DURATION,
+        MetricType.SLEEP_DURATION,
         sleepDate,
         this.secondsToHours(data.Duration),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_DEEP_DURATION,
+        MetricType.SLEEP_DEEP_DURATION,
         sleepDate,
         this.secondsToHours(data.DeepSleepDuration),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_LIGHT_DURATION,
+        MetricType.SLEEP_LIGHT_DURATION,
         sleepDate,
         this.secondsToHours(data.LightSleepDuration),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_REM_DURATION,
+        MetricType.SLEEP_REM_DURATION,
         sleepDate,
         this.secondsToHours(data.REMSleepDuration),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_AWAKE_DURATION,
+        MetricType.SLEEP_AWAKE_DURATION,
         sleepDate,
         this.secondsToHours(
           (data.SleepOnsetLatencyDuration || 0) +
@@ -1697,27 +1693,27 @@ export class SuuntoProviderService
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.NAP_DURATION,
+        MetricType.NAP_DURATION,
         sleepDate,
         data.IsNap ? this.secondsToHours(data.Duration) : undefined,
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.SLEEP_SCORE,
+        MetricType.SLEEP_SCORE,
         sleepDate,
         data.SleepQualityScore,
       );
-      this.pushMetric(metrics, METRIC_TYPE.HR_AVG_DAILY, sleepDate, data.HRAvg);
-      this.pushMetric(metrics, METRIC_TYPE.HR_MIN_DAILY, sleepDate, data.HRMin);
+      this.pushMetric(metrics, MetricType.HR_AVG_DAILY, sleepDate, data.HRAvg);
+      this.pushMetric(metrics, MetricType.HR_MIN_DAILY, sleepDate, data.HRMin);
       this.pushMetric(
         metrics,
-        METRIC_TYPE.PULSE_OX_AVG,
+        MetricType.PULSE_OX_AVG,
         sleepDate,
         this.spo2ToPercentage(data.MaxSpo2),
       );
       this.pushMetric(
         metrics,
-        METRIC_TYPE.HRV_LAST_NIGHT_AVG,
+        MetricType.HRV_LAST_NIGHT_AVG,
         sleepDate,
         data.AvgHRV,
       );
@@ -1748,7 +1744,7 @@ export class SuuntoProviderService
         // We don't have a direct equivalent, but we can use BODY_BATTERY_CHARGED as approximation
         this.pushMetric(
           metrics,
-          METRIC_TYPE.BODY_BATTERY_CHARGED,
+          MetricType.BODY_BATTERY_CHARGED,
           date,
           balancePercent,
         );
@@ -1782,17 +1778,17 @@ export class SuuntoProviderService
 
     await this.prisma.$transaction(
       validMetrics.map((metric) =>
-        this.prisma.athlete_metric.upsert({
+        this.prisma.athleteMetric.upsert({
           where: {
-            athlete_id_type_date: {
-              athlete_id: athleteId,
-              type: metric.type as unknown as metric_type,
+            athleteId_type_date: {
+              athleteId: athleteId,
+              type: metric.type as unknown as MetricType,
               date: metric.date,
             },
           },
           create: {
-            athlete_id: athleteId,
-            type: metric.type as unknown as metric_type,
+            athleteId: athleteId,
+            type: metric.type as unknown as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
           },
@@ -1808,13 +1804,13 @@ export class SuuntoProviderService
    * Sync metrics from Suunto 247 Data API
    */
   async syncMetrics(
-    account: provider_account,
+    account: ProviderAccount,
     startDate?: Date,
     endDate?: Date,
   ): Promise<void> {
-    if (!account.import_metrics_enabled) {
+    if (!account.importMetricsEnabled) {
       this.logger.debug(
-        `Metrics import disabled for Suunto account ${account.provider_account_id}`,
+        `Metrics import disabled for Suunto account ${account.providerAccountId}`,
       );
       return;
     }
@@ -1827,7 +1823,7 @@ export class SuuntoProviderService
       );
 
     this.logger.log(
-      `Syncing Suunto metrics for account ${account.provider_account_id} from ${start.toISOString()} to ${end.toISOString()}`,
+      `Syncing Suunto metrics for account ${account.providerAccountId} from ${start.toISOString()} to ${end.toISOString()}`,
     );
 
     try {
@@ -1871,14 +1867,14 @@ export class SuuntoProviderService
       ];
 
       // Save metrics
-      await this.saveMetrics(account.athlete_id, allMetrics);
+      await this.saveMetrics(account.athleteId, allMetrics);
 
       this.logger.log(
-        `Successfully synced ${allMetrics.length} Suunto metrics for account ${account.provider_account_id}`,
+        `Successfully synced ${allMetrics.length} Suunto metrics for account ${account.providerAccountId}`,
       );
     } catch (error) {
       this.logger.error(
-        `Error syncing Suunto metrics for account ${account.provider_account_id}: ${error instanceof Error ? error.message : String(error)}`,
+        `Error syncing Suunto metrics for account ${account.providerAccountId}: ${error instanceof Error ? error.message : String(error)}`,
       );
       throw error;
     }

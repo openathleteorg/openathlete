@@ -3,7 +3,7 @@ type WorkoutPlannedChangedPayload = {
   athleteId: number;
   workoutId?: number | null; // null if workout was deleted
   startDate: Date;
-  sport: string; // sport_type enum value
+  sport: string; // SportType enum value
 };
 
 export class WorkoutPlannedChangedEvent {

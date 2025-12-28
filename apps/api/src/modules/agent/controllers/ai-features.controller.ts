@@ -10,6 +10,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { SportType } from '@openathlete/database';
 import {
   CreateWorkoutStepDto,
   EVENT_TYPE,
@@ -18,7 +19,6 @@ import {
   GenerateEventResponseDto,
   ModifyEventDto,
   ModifyEventResponseDto,
-  SPORT_TYPE,
   UpdateEventDto,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
@@ -112,7 +112,7 @@ export class AIFeaturesController {
         },
         sport: {
           type: 'string',
-          enum: Object.values(SPORT_TYPE),
+          enum: Object.values(SportType),
           example: 'RUNNING',
         },
         goalDuration: {
@@ -229,7 +229,7 @@ export class AIFeaturesController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(generateEventDtoSchema)) dto: GenerateEventDto,
   ): Promise<GenerateEventResponseDto> {
-    const athleteId = user.athlete?.athlete_id || user.user_id;
+    const athleteId = user.athlete?.athleteId || user.userId;
 
     const parsedDate = new Date(dto.date);
     const year = parsedDate.getFullYear();
@@ -354,7 +354,7 @@ export class AIFeaturesController {
             },
             sport: {
               type: 'string',
-              enum: Object.values(SPORT_TYPE),
+              enum: Object.values(SportType),
               example: 'RUNNING',
             },
             startDate: {
@@ -451,7 +451,7 @@ export class AIFeaturesController {
         },
         sport: {
           type: 'string',
-          enum: Object.values(SPORT_TYPE),
+          enum: Object.values(SportType),
           example: 'RUNNING',
         },
         goalDuration: {
@@ -562,7 +562,7 @@ export class AIFeaturesController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(modifyEventDtoSchema)) dto: ModifyEventDto,
   ): Promise<ModifyEventResponseDto> {
-    const athleteId = user.athlete?.athlete_id || user.user_id;
+    const athleteId = user.athlete?.athleteId || user.userId;
 
     const modifiedEvent =
       await this.eventModificationService.modifyTrainingEvent(

@@ -12,8 +12,8 @@ import { BadRequestException as BadRequestException2 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { invitation_status } from '@openathlete/database';
-import { ApiEnvSchemaType, keysToCamel } from '@openathlete/shared';
+import { InvitationStatus } from '@openathlete/database';
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -37,12 +37,12 @@ export class AthleteInvitationService {
     const normalizedEmail = email.toLowerCase();
 
     const coachUser = await this.prisma.user.findUnique({
-      where: { user_id: coachUserId },
+      where: { userId: coachUserId },
       select: {
-        user_id: true,
+        userId: true,
         email: true,
-        first_name: true,
-        last_name: true,
+        firstName: true,
+        lastName: true,
       },
     });
 
@@ -62,14 +62,14 @@ export class AthleteInvitationService {
     if (existingUser) {
       // Check if athlete is already linked to this coach
       const athlete = await this.prisma.athlete.findUnique({
-        where: { user_id: existingUser.user_id },
+        where: { userId: existingUser.userId },
       });
 
       if (athlete) {
-        const existingLink = await this.prisma.coach_athlete.findFirst({
+        const existingLink = await this.prisma.coachAthlete.findFirst({
           where: {
-            athlete_id: athlete.athlete_id,
-            user_id: coachUserId,
+            athleteId: athlete.athleteId,
+            userId: coachUserId,
           },
         });
 
@@ -79,11 +79,11 @@ export class AthleteInvitationService {
 
         // Check if there's already a pending invitation for this email from this coach
         const existingInvitation =
-          await this.prisma.athlete_invitation.findFirst({
+          await this.prisma.athleteInvitation.findFirst({
             where: {
               email: normalizedEmail,
-              user_id: coachUserId,
-              status: invitation_status.PENDING,
+              userId: coachUserId,
+              status: InvitationStatus.PENDING,
             },
           });
 
@@ -94,11 +94,11 @@ export class AthleteInvitationService {
         }
 
         // Create invitation with PENDING status (user exists, needs to accept)
-        const invitation = await this.prisma.athlete_invitation.create({
+        const invitation = await this.prisma.athleteInvitation.create({
           data: {
             email: normalizedEmail,
-            user_id: coachUserId,
-            status: invitation_status.PENDING,
+            userId: coachUserId,
+            status: InvitationStatus.PENDING,
           },
         });
 
@@ -111,7 +111,7 @@ export class AthleteInvitationService {
             type: 'athlete-invitation-existing',
             to: normalizedEmail,
             params: {
-              coachName: `${coachUser.first_name} ${coachUser.last_name}`,
+              coachName: `${coachUser.firstName} ${coachUser.lastName}`,
               url: invitationUrl,
             },
           }),
@@ -123,17 +123,17 @@ export class AthleteInvitationService {
 
     // User doesn't exist or is not an athlete, create invitation with token for account creation
     // Check if there's already a pending invitation for this email from this coach
-    const existingInvitation = await this.prisma.athlete_invitation.findFirst({
+    const existingInvitation = await this.prisma.athleteInvitation.findFirst({
       where: {
         email: normalizedEmail,
-        user_id: coachUserId,
+        userId: coachUserId,
       },
     });
 
     if (existingInvitation) {
       // Check if invitation is still valid (7 days)
       const now = new Date();
-      const invitationDate = new Date(existingInvitation.created_at);
+      const invitationDate = new Date(existingInvitation.createdAt);
       const diff = now.getTime() - invitationDate.getTime();
       const sevenDays = 60 * 60 * 24 * 7 * 1000;
 
@@ -143,9 +143,9 @@ export class AthleteInvitationService {
         );
       } else {
         // Delete expired invitation
-        await this.prisma.athlete_invitation.delete({
+        await this.prisma.athleteInvitation.delete({
           where: {
-            athlete_invitation_id: existingInvitation.athlete_invitation_id,
+            athleteInvitationId: existingInvitation.athleteInvitationId,
           },
         });
       }
@@ -153,11 +153,11 @@ export class AthleteInvitationService {
 
     const token = await this.generateInvitationToken();
 
-    const invitation = await this.prisma.athlete_invitation.create({
+    const invitation = await this.prisma.athleteInvitation.create({
       data: {
         email: normalizedEmail,
         token,
-        user_id: coachUserId,
+        userId: coachUserId,
         // status is null = auto-accept on account creation
       },
     });
@@ -171,7 +171,7 @@ export class AthleteInvitationService {
         type: 'athlete-invitation',
         to: normalizedEmail,
         params: {
-          coachName: `${coachUser.first_name} ${coachUser.last_name}`,
+          coachName: `${coachUser.firstName} ${coachUser.lastName}`,
           url: invitationUrl,
         },
       }),
@@ -202,14 +202,14 @@ export class AthleteInvitationService {
   }
 
   async verifyInvitationToken(token: string) {
-    const invitation = await this.prisma.athlete_invitation.findUnique({
+    const invitation = await this.prisma.athleteInvitation.findUnique({
       where: { token },
       include: {
         user: {
           select: {
-            user_id: true,
-            first_name: true,
-            last_name: true,
+            userId: true,
+            firstName: true,
+            lastName: true,
           },
         },
       },
@@ -221,14 +221,14 @@ export class AthleteInvitationService {
 
     // Check if invitation is still valid (7 days)
     const now = new Date();
-    const invitationDate = new Date(invitation.created_at);
+    const invitationDate = new Date(invitation.createdAt);
     const diff = now.getTime() - invitationDate.getTime();
     const sevenDays = 60 * 60 * 24 * 7 * 1000;
 
     if (diff > sevenDays) {
-      await this.prisma.athlete_invitation.delete({
+      await this.prisma.athleteInvitation.delete({
         where: {
-          athlete_invitation_id: invitation.athlete_invitation_id,
+          athleteInvitationId: invitation.athleteInvitationId,
         },
       });
       return null;
@@ -246,7 +246,7 @@ export class AthleteInvitationService {
 
     // Get athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: athleteUserId },
+      where: { userId: athleteUserId },
     });
 
     if (!athlete) {
@@ -255,7 +255,7 @@ export class AthleteInvitationService {
 
     // Check athlete limit for coach
     const canAdd = await this.featureAccessService.checkAthleteLimit(
-      invitation.user_id,
+      invitation.userId,
     );
     if (!canAdd) {
       throw new BadRequestException2(
@@ -264,24 +264,24 @@ export class AthleteInvitationService {
     }
 
     // Create coach-athlete link
-    await this.prisma.coach_athlete.create({
+    await this.prisma.coachAthlete.create({
       data: {
-        athlete_id: athlete.athlete_id,
-        user_id: invitation.user_id,
+        athleteId: athlete.athleteId,
+        userId: invitation.userId,
       },
     });
 
     // Delete invitation (one-time use)
-    await this.prisma.athlete_invitation.delete({
+    await this.prisma.athleteInvitation.delete({
       where: {
-        athlete_invitation_id: invitation.athlete_invitation_id,
+        athleteInvitationId: invitation.athleteInvitationId,
       },
     });
   }
 
   async acceptInvitation(athleteUserId: number, invitationId: number) {
-    const invitation = await this.prisma.athlete_invitation.findUnique({
-      where: { athlete_invitation_id: invitationId },
+    const invitation = await this.prisma.athleteInvitation.findUnique({
+      where: { athleteInvitationId: invitationId },
     });
 
     if (!invitation) {
@@ -290,7 +290,7 @@ export class AthleteInvitationService {
 
     // Verify the invitation is for this athlete's email
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: athleteUserId },
+      where: { userId: athleteUserId },
       include: { user: true },
     });
 
@@ -302,13 +302,13 @@ export class AthleteInvitationService {
       throw new BadRequestException('This invitation is not for you');
     }
 
-    if (invitation.status !== invitation_status.PENDING) {
+    if (invitation.status !== InvitationStatus.PENDING) {
       throw new BadRequestException('This invitation is no longer pending');
     }
 
     // Check athlete limit for coach
     const canAdd = await this.featureAccessService.checkAthleteLimit(
-      invitation.user_id,
+      invitation.userId,
     );
     if (!canAdd) {
       throw new BadRequestException2(
@@ -317,27 +317,27 @@ export class AthleteInvitationService {
     }
 
     // Create coach-athlete link
-    await this.prisma.coach_athlete.create({
+    await this.prisma.coachAthlete.create({
       data: {
-        athlete_id: athlete.athlete_id,
-        user_id: invitation.user_id,
+        athleteId: athlete.athleteId,
+        userId: invitation.userId,
       },
     });
 
     // Update invitation status to ACCEPTED
-    await this.prisma.athlete_invitation.update({
+    await this.prisma.athleteInvitation.update({
       where: {
-        athlete_invitation_id: invitation.athlete_invitation_id,
+        athleteInvitationId: invitation.athleteInvitationId,
       },
       data: {
-        status: invitation_status.ACCEPTED,
+        status: InvitationStatus.ACCEPTED,
       },
     });
   }
 
   async rejectInvitation(athleteUserId: number, invitationId: number) {
-    const invitation = await this.prisma.athlete_invitation.findUnique({
-      where: { athlete_invitation_id: invitationId },
+    const invitation = await this.prisma.athleteInvitation.findUnique({
+      where: { athleteInvitationId: invitationId },
     });
 
     if (!invitation) {
@@ -346,7 +346,7 @@ export class AthleteInvitationService {
 
     // Verify the invitation is for this athlete's email
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: athleteUserId },
+      where: { userId: athleteUserId },
       include: { user: true },
     });
 
@@ -358,24 +358,24 @@ export class AthleteInvitationService {
       throw new BadRequestException('This invitation is not for you');
     }
 
-    if (invitation.status !== invitation_status.PENDING) {
+    if (invitation.status !== InvitationStatus.PENDING) {
       throw new BadRequestException('This invitation is no longer pending');
     }
 
     // Update invitation status to REJECTED
-    await this.prisma.athlete_invitation.update({
+    await this.prisma.athleteInvitation.update({
       where: {
-        athlete_invitation_id: invitation.athlete_invitation_id,
+        athleteInvitationId: invitation.athleteInvitationId,
       },
       data: {
-        status: invitation_status.REJECTED,
+        status: InvitationStatus.REJECTED,
       },
     });
   }
 
   async getPendingInvitationsForAthlete(athleteUserId: number) {
     const athlete = await this.prisma.athlete.findUnique({
-      where: { user_id: athleteUserId },
+      where: { userId: athleteUserId },
       include: { user: true },
     });
 
@@ -383,60 +383,56 @@ export class AthleteInvitationService {
       throw new NotFoundException('Athlete not found');
     }
 
-    return keysToCamel(
-      await this.prisma.athlete_invitation.findMany({
-        where: {
-          email: athlete.user.email.toLowerCase(),
-          status: invitation_status.PENDING,
-        },
-        include: {
-          user: {
-            select: {
-              user_id: true,
-              first_name: true,
-              last_name: true,
-              email: true,
-            },
+    return await this.prisma.athleteInvitation.findMany({
+      where: {
+        email: athlete.user.email.toLowerCase(),
+        status: InvitationStatus.PENDING,
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            firstName: true,
+            lastName: true,
+            email: true,
           },
         },
-        orderBy: {
-          created_at: 'desc',
-        },
-      }),
-    );
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   async getSentInvitationsForCoach(coachUserId: number) {
-    return keysToCamel(
-      await this.prisma.athlete_invitation.findMany({
-        where: {
-          user_id: coachUserId,
-          OR: [{ status: invitation_status.PENDING }, { status: null }],
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-      }),
-    );
+    return await this.prisma.athleteInvitation.findMany({
+      where: {
+        userId: coachUserId,
+        OR: [{ status: InvitationStatus.PENDING }, { status: null }],
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
   }
 
   async cancelInvitation(coachUserId: number, invitationId: number) {
-    const invitation = await this.prisma.athlete_invitation.findUnique({
-      where: { athlete_invitation_id: invitationId },
+    const invitation = await this.prisma.athleteInvitation.findUnique({
+      where: { athleteInvitationId: invitationId },
     });
 
-    if (!invitation || invitation.user_id !== coachUserId) {
+    if (!invitation || invitation.userId !== coachUserId) {
       throw new NotFoundException('Invitation not found');
     }
 
-    if (invitation.status && invitation.status !== invitation_status.PENDING) {
+    if (invitation.status && invitation.status !== InvitationStatus.PENDING) {
       throw new BadRequestException(
         'This invitation can no longer be cancelled',
       );
     }
 
-    await this.prisma.athlete_invitation.delete({
-      where: { athlete_invitation_id: invitationId },
+    await this.prisma.athleteInvitation.delete({
+      where: { athleteInvitationId: invitationId },
     });
   }
 }

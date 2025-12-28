@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { cycle } from '@openathlete/database';
+import { Cycle } from '@openathlete/database';
 import {
   CreateCycleDto,
   UpdateCycleDto,
@@ -294,7 +294,7 @@ export class CycleController {
   })
   getCycle(
     @JwtUser() user: AuthUser,
-    @Param('cycleId', ParseIntPipe) cycleId: cycle['cycle_id'],
+    @Param('cycleId', ParseIntPipe) cycleId: Cycle['cycleId'],
   ) {
     return this.cycleService.getCycleById(user, cycleId);
   }
@@ -621,7 +621,7 @@ export class CycleController {
   })
   updateCycle(
     @JwtUser() user: AuthUser,
-    @Param('cycleId', ParseIntPipe) cycleId: cycle['cycle_id'],
+    @Param('cycleId', ParseIntPipe) cycleId: Cycle['cycleId'],
     @Body(new ZodValidationPipe(updateCycleDtoSchema)) body: UpdateCycleDto,
   ) {
     return this.cycleService.updateCycle(user, cycleId, body);
@@ -669,7 +669,7 @@ export class CycleController {
   })
   deleteCycle(
     @JwtUser() user: AuthUser,
-    @Param('cycleId', ParseIntPipe) cycleId: cycle['cycle_id'],
+    @Param('cycleId', ParseIntPipe) cycleId: Cycle['cycleId'],
   ) {
     return this.cycleService.deleteCycle(user, cycleId);
   }

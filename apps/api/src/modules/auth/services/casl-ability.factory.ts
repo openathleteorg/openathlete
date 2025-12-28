@@ -4,15 +4,15 @@ import { Subjects as CASLSubjects } from '@casl/prisma';
 import { Injectable } from '@nestjs/common';
 
 import {
-  agent_message,
-  agent_message_block,
-  agent_thread,
-  athlete,
-  athlete_metric,
-  cycle,
-  event,
-  user,
-  workout,
+  AgentMessage,
+  AgentMessageBlock,
+  AgentThread,
+  Athlete,
+  AthleteMetric,
+  Cycle,
+  Event,
+  User,
+  Workout,
 } from '@openathlete/database';
 
 import { AuthUser } from '../decorators/user.decorator';
@@ -22,15 +22,15 @@ import { UserService } from './user.service';
 export type CRUD = 'manage' | 'create' | 'read' | 'update' | 'delete';
 
 export type Subjects = CASLSubjects<{
-  user: user;
-  athlete: athlete;
-  athlete_metric: athlete_metric;
-  event: event;
-  cycle: cycle;
-  workout: workout;
-  agent_thread: agent_thread;
-  agent_message: agent_message;
-  agent_message_block: agent_message_block;
+  user: User;
+  athlete: Athlete;
+  AthleteMetric: AthleteMetric;
+  event: Event;
+  cycle: Cycle;
+  workout: Workout;
+  AgentThread: AgentThread;
+  AgentMessage: AgentMessage;
+  AgentMessageBlock: AgentMessageBlock;
 }>;
 
 export type AppAbility = PureAbility<[CRUD, Subjects | 'all'], PrismaQuery>;
@@ -49,41 +49,41 @@ export class CaslAbilityFactory {
 
     if (!user) return;
 
-    can('manage', 'user', { user_id: user.user_id });
-    can('manage', 'athlete', { user_id: user.user_id });
+    can('manage', 'user', { userId: user.userId });
+    can('manage', 'athlete', { userId: user.userId });
 
-    can('manage', 'event', { templates: { some: { user_id: user.user_id } } });
+    can('manage', 'event', { templates: { some: { userId: user.userId } } });
 
     if (user.athlete) {
-      can('manage', 'event', { athlete_id: user.athlete.athlete_id });
-      can('manage', 'cycle', { athlete_id: user.athlete.athlete_id });
-      can('manage', 'athlete_metric', { athlete_id: user.athlete.athlete_id });
+      can('manage', 'event', { athleteId: user.athlete.athleteId });
+      can('manage', 'cycle', { athleteId: user.athlete.athleteId });
+      can('manage', 'AthleteMetric', { athleteId: user.athlete.athleteId });
       can('manage', 'workout', {
-        event_training: { event: { athlete_id: user.athlete.athlete_id } },
+        eventTraining: { event: { athleteId: user.athlete.athleteId } },
       });
     }
 
-    if (user.coach_athletes) {
-      user.coach_athletes.forEach((coachAthlete) => {
-        can('manage', 'athlete', { athlete_id: coachAthlete.athlete_id });
-        can('manage', 'athlete_metric', {
-          athlete_id: coachAthlete.athlete_id,
+    if (user.coachAthletes) {
+      user.coachAthletes.forEach((coachAthlete) => {
+        can('manage', 'athlete', { athleteId: coachAthlete.athleteId });
+        can('manage', 'AthleteMetric', {
+          athleteId: coachAthlete.athleteId,
         });
-        can('manage', 'event', { athlete_id: coachAthlete.athlete_id });
-        can('manage', 'cycle', { athlete_id: coachAthlete.athlete_id });
+        can('manage', 'event', { athleteId: coachAthlete.athleteId });
+        can('manage', 'cycle', { athleteId: coachAthlete.athleteId });
         can('manage', 'workout', {
-          event_training: { event: { athlete_id: coachAthlete.athlete_id } },
+          eventTraining: { event: { athleteId: coachAthlete.athleteId } },
         });
       });
     }
 
     // Agent permissions: users can manage their own threads, messages, and blocks
-    can('manage', 'agent_thread', { user_id: user.user_id });
-    can('manage', 'agent_message', {
-      thread: { user_id: user.user_id },
+    can('manage', 'AgentThread', { userId: user.userId });
+    can('manage', 'AgentMessage', {
+      thread: { userId: user.userId },
     });
-    can('manage', 'agent_message_block', {
-      message: { thread: { user_id: user.user_id } },
+    can('manage', 'AgentMessageBlock', {
+      message: { thread: { userId: user.userId } },
     });
   }
 

@@ -41,8 +41,8 @@ export class WsJwtAuthGuard implements CanActivate {
       }
 
       const user = await this.prisma.user.findUnique({
-        where: { user_id: payload.userId },
-        select: { user_id: true, email: true },
+        where: { userId: payload.userId },
+        select: { userId: true, email: true },
       });
 
       if (!user) {

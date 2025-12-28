@@ -21,7 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { subscription_plan, subscription_status } from '@openathlete/database';
+import { SubscriptionPlan, SubscriptionStatus } from '@openathlete/database';
 import {
   ApiEnvSchemaType,
   CreateCheckoutSessionDto,
@@ -68,13 +68,13 @@ export class SubscriptionController {
         },
         plan: {
           type: 'string',
-          enum: Object.values(subscription_plan),
+          enum: Object.values(SubscriptionPlan),
           example: 'COACH_PRO',
           description: 'Subscription plan name',
         },
         status: {
           type: 'string',
-          enum: Object.values(subscription_status),
+          enum: Object.values(SubscriptionStatus),
           example: 'active',
           description: 'Subscription status from Stripe',
         },
@@ -117,17 +117,17 @@ export class SubscriptionController {
     @JwtUser() user: AuthUser,
   ): Promise<CurrentSubscriptionDto> {
     const subscription = await this.subscriptionService.getOrCreateSubscription(
-      user.user_id,
+      user.userId,
     );
 
     return {
-      subscriptionId: subscription.subscription_id,
+      subscriptionId: subscription.subscriptionId,
       plan: subscription.plan as CurrentSubscriptionDto['plan'],
       status: subscription.status as CurrentSubscriptionDto['status'],
-      currentPeriodStart: subscription.current_period_start,
-      currentPeriodEnd: subscription.current_period_end,
-      trialEnd: subscription.trial_end,
-      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      currentPeriodStart: subscription.currentPeriodStart,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+      trialEnd: subscription.trialEnd,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
     };
   }
 
@@ -144,7 +144,7 @@ export class SubscriptionController {
       properties: {
         plan: {
           type: 'string',
-          enum: Object.values(subscription_plan),
+          enum: Object.values(SubscriptionPlan),
           example: 'COACH_PRO',
           description: 'Subscription plan to subscribe to',
         },
@@ -211,7 +211,7 @@ export class SubscriptionController {
     // Get user email
     const userRecord = await this.subscriptionService['prisma'].user.findUnique(
       {
-        where: { user_id: user.user_id },
+        where: { userId: user.userId },
         select: { email: true },
       },
     );
@@ -222,24 +222,24 @@ export class SubscriptionController {
 
     // Get or create Stripe customer
     const customer = await this.stripeService.getOrCreateCustomer(
-      user.user_id,
+      user.userId,
       userRecord.email,
     );
 
     // Check if user has an active subscription
     const currentSubscription =
-      await this.subscriptionService.getCurrentSubscription(user.user_id);
+      await this.subscriptionService.getCurrentSubscription(user.userId);
 
     // If user has an active subscription with Stripe, update it instead of creating a new one
     if (
-      currentSubscription?.stripe_subscription_id &&
-      (currentSubscription.status === 'active' ||
-        currentSubscription.status === 'trialing')
+      currentSubscription?.stripeSubscriptionId &&
+      (currentSubscription.status === SubscriptionStatus.active ||
+        currentSubscription.status === SubscriptionStatus.trialing)
     ) {
       // Update existing subscription
       const updatedSubscription =
         await this.stripeService.updateSubscriptionPlan(
-          currentSubscription.stripe_subscription_id,
+          currentSubscription.stripeSubscriptionId,
           dto.plan,
         );
 
@@ -297,7 +297,7 @@ export class SubscriptionController {
     description: 'Not found - subscription or Stripe subscription ID not found',
   })
   async cancelSubscription(@JwtUser() user: AuthUser) {
-    await this.subscriptionService.cancelSubscription(user.user_id);
+    await this.subscriptionService.cancelSubscription(user.userId);
     return { success: true };
   }
 
@@ -329,7 +329,7 @@ export class SubscriptionController {
     description: 'Not found - subscription or Stripe subscription ID not found',
   })
   async resumeSubscription(@JwtUser() user: AuthUser) {
-    await this.subscriptionService.resumeSubscription(user.user_id);
+    await this.subscriptionService.resumeSubscription(user.userId);
     return { success: true };
   }
 
@@ -400,15 +400,15 @@ export class SubscriptionController {
   })
   async getInvoices(@JwtUser() user: AuthUser): Promise<InvoiceDto[]> {
     const subscription = await this.subscriptionService.getCurrentSubscription(
-      user.user_id,
+      user.userId,
     );
 
-    if (!subscription?.stripe_customer_id) {
+    if (!subscription?.stripeCustomerId) {
       return [];
     }
 
     const invoices = await this.stripeService.getCustomerInvoices(
-      subscription.stripe_customer_id,
+      subscription.stripeCustomerId,
     );
 
     return invoices.map((invoice) => ({
@@ -465,16 +465,16 @@ export class SubscriptionController {
     @Query('returnUrl') returnUrl?: string,
   ) {
     const subscription = await this.subscriptionService.getCurrentSubscription(
-      user.user_id,
+      user.userId,
     );
 
-    if (!subscription?.stripe_customer_id) {
+    if (!subscription?.stripeCustomerId) {
       throw new Error('No Stripe customer found');
     }
 
     const defaultReturnUrl = `${this.configService.get('APP_URL')}/dashboard/settings/subscription`;
     const session = await this.stripeService.createCustomerPortalSession(
-      subscription.stripe_customer_id,
+      subscription.stripeCustomerId,
       returnUrl || defaultReturnUrl,
     );
 

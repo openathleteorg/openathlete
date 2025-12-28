@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Prisma, message } from '@openathlete/database';
+import { Message, Prisma } from '@openathlete/database';
 import type {
   CreateMessageThreadMessageDto,
   MarkMessagesAsReadDto,
@@ -19,19 +19,19 @@ import { MessageThreadService } from './message-thread.service';
 const MESSAGE_INCLUDES = {
   sender: {
     select: {
-      user_id: true,
-      first_name: true,
-      last_name: true,
+      userId: true,
+      firstName: true,
+      lastName: true,
       email: true,
     },
   },
-  read_receipts: {
+  readReceipts: {
     include: {
       user: {
         select: {
-          user_id: true,
-          first_name: true,
-          last_name: true,
+          userId: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -39,7 +39,7 @@ const MESSAGE_INCLUDES = {
   },
 };
 
-type MessageWithIncludes = Prisma.messageGetPayload<{
+type MessageWithIncludes = Prisma.MessageGetPayload<{
   include: typeof MESSAGE_INCLUDES;
 }>;
 
@@ -55,9 +55,9 @@ export class MessageService {
     dto: CreateMessageThreadMessageDto,
   ): Promise<MessageWithIncludes> {
     // Get thread to check if it's linked to a training session
-    const thread = await this.prisma.message_thread.findUnique({
-      where: { message_thread_id: dto.messageThreadId },
-      select: { event_activity_id: true },
+    const thread = await this.prisma.messageThread.findUnique({
+      where: { messageThreadId: dto.messageThreadId },
+      select: { eventActivityId: true },
     });
 
     if (!thread) {
@@ -68,7 +68,7 @@ export class MessageService {
 
     // If thread is linked to a training session, ensure it exists
     // (should already exist, but double-check for safety)
-    if (thread.event_activity_id) {
+    if (thread.eventActivityId) {
       // Verify thread access (this will also mark as read if needed)
       await this.threadService.getThreadById(user, dto.messageThreadId);
     } else {
@@ -78,17 +78,17 @@ export class MessageService {
 
     const message = await this.prisma.message.create({
       data: {
-        message_thread_id: dto.messageThreadId,
-        sender_id: user.user_id,
+        messageThreadId: dto.messageThreadId,
+        senderId: user.userId,
         content: dto.content,
       },
       include: MESSAGE_INCLUDES,
     });
 
     // Update thread updated_at
-    await this.prisma.message_thread.update({
-      where: { message_thread_id: dto.messageThreadId },
-      data: { updated_at: new Date() },
+    await this.prisma.messageThread.update({
+      where: { messageThreadId: dto.messageThreadId },
+      data: { updatedAt: new Date() },
     });
 
     return message;
@@ -99,7 +99,7 @@ export class MessageService {
     messageId: number,
   ): Promise<MessageWithIncludes> {
     const message = await this.prisma.message.findUnique({
-      where: { message_id: messageId },
+      where: { messageId: messageId },
       include: {
         ...MESSAGE_INCLUDES,
         thread: {
@@ -116,7 +116,7 @@ export class MessageService {
 
     // Verify thread access
     const isParticipant = message.thread.participants.some(
-      (p) => p.user_id === user.user_id,
+      (p) => p.userId === user.userId,
     );
 
     if (!isParticipant) {
@@ -131,14 +131,14 @@ export class MessageService {
   async getThreadMessages(
     user: AuthUser,
     threadId: number,
-  ): Promise<message[]> {
+  ): Promise<Message[]> {
     // Verify thread access
     await this.threadService.getThreadById(user, threadId);
 
     const messages = await this.prisma.message.findMany({
-      where: { message_thread_id: threadId },
+      where: { messageThreadId: threadId },
       include: MESSAGE_INCLUDES,
-      orderBy: { created_at: 'asc' },
+      orderBy: { createdAt: 'asc' },
     });
 
     return messages;
@@ -152,15 +152,15 @@ export class MessageService {
     const message = await this.getMessageById(user, messageId);
 
     // Only sender can edit
-    if (message.sender_id !== user.user_id) {
+    if (message.senderId !== user.userId) {
       throw new ForbiddenException('You can only edit your own messages');
     }
 
     const updated = await this.prisma.message.update({
-      where: { message_id: messageId },
+      where: { messageId: messageId },
       data: {
         content: dto.content,
-        edited_at: new Date(),
+        editedAt: new Date(),
       },
       include: MESSAGE_INCLUDES,
     });
@@ -172,12 +172,12 @@ export class MessageService {
     const message = await this.getMessageById(user, messageId);
 
     // Only sender can delete
-    if (message.sender_id !== user.user_id) {
+    if (message.senderId !== user.userId) {
       throw new ForbiddenException('You can only delete your own messages');
     }
 
     await this.prisma.message.delete({
-      where: { message_id: messageId },
+      where: { messageId: messageId },
     });
   }
 
@@ -187,37 +187,37 @@ export class MessageService {
   ): Promise<void> {
     await this.threadService.getThreadById(user, dto.messageThreadId);
 
-    const whereClause: Prisma.messageWhereInput = {
-      message_thread_id: dto.messageThreadId,
-      sender_id: { not: user.user_id },
+    const whereClause: Prisma.MessageWhereInput = {
+      messageThreadId: dto.messageThreadId,
+      senderId: { not: user.userId },
     };
 
     if (dto.messageIds && dto.messageIds.length > 0) {
-      whereClause.message_id = { in: dto.messageIds };
+      whereClause.messageId = { in: dto.messageIds };
     }
 
     const messages = await this.prisma.message.findMany({
       where: whereClause,
-      select: { message_id: true },
+      select: { messageId: true },
     });
 
     if (messages.length > 0) {
-      await this.prisma.message_read_receipt.createMany({
+      await this.prisma.messageReadReceipt.createMany({
         data: messages.map((m) => ({
-          message_id: m.message_id,
-          user_id: user.user_id,
+          messageId: m.messageId,
+          userId: user.userId,
         })),
         skipDuplicates: true,
       });
     }
 
-    await this.prisma.message_thread_participant.updateMany({
+    await this.prisma.messageThreadParticipant.updateMany({
       where: {
-        message_thread_id: dto.messageThreadId,
-        user_id: user.user_id,
+        messageThreadId: dto.messageThreadId,
+        userId: user.userId,
       },
       data: {
-        last_read_at: new Date(),
+        lastReadAt: new Date(),
       },
     });
   }

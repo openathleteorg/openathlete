@@ -11,7 +11,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { gender, user_language, user_role } from '@openathlete/database';
+import { Gender, UserLanguage, UserRole } from '@openathlete/database';
 import {
   CompleteOnboardingDto,
   CreateAccountDto,
@@ -130,7 +130,7 @@ export class UserController {
         },
         gender: {
           type: 'string',
-          enum: Object.values(gender),
+          enum: Object.values(Gender),
           example: 'FEMALE',
         },
       },
@@ -152,7 +152,7 @@ export class UserController {
         },
         gender: {
           type: 'string',
-          enum: Object.values(gender),
+          enum: Object.values(Gender),
           example: 'FEMALE',
         },
       },
@@ -202,7 +202,7 @@ export class UserController {
         },
         gender: {
           type: 'string',
-          enum: Object.values(gender),
+          enum: Object.values(Gender),
           nullable: true,
           example: 'MALE',
         },
@@ -210,7 +210,7 @@ export class UserController {
           type: 'array',
           items: {
             type: 'string',
-            enum: Object.values(user_role),
+            enum: Object.values(UserRole),
           },
           example: ['ATHLETE', 'COACH'],
         },
@@ -220,7 +220,7 @@ export class UserController {
         },
         language: {
           type: 'string',
-          enum: Object.values(user_language),
+          enum: Object.values(UserLanguage),
           example: 'EN',
         },
       },
@@ -249,7 +249,7 @@ export class UserController {
       properties: {
         language: {
           type: 'string',
-          enum: Object.values(user_language),
+          enum: Object.values(UserLanguage),
           example: 'FR',
         },
       },
@@ -396,7 +396,7 @@ export class UserController {
           type: 'array',
           items: {
             type: 'string',
-            enum: Object.values(user_role),
+            enum: Object.values(UserRole),
           },
           description: 'User roles (at least one required)',
           example: ['ATHLETE', 'COACH'],
@@ -404,7 +404,7 @@ export class UserController {
         },
         gender: {
           type: 'string',
-          enum: Object.values(gender),
+          enum: Object.values(Gender),
           example: 'MALE',
         },
         weight: {

@@ -15,7 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { athlete, sport_type } from '@openathlete/database';
+import { Athlete, SportType } from '@openathlete/database';
 
 import { UserTypeGuard } from 'src/modules/auth';
 import { AuthUser, JwtUser } from 'src/modules/auth/decorators/user.decorator';
@@ -45,7 +45,7 @@ export class ProgressionController {
   @ApiQuery({
     name: 'sport',
     type: String,
-    enum: Object.values(sport_type),
+    enum: Object.values(SportType),
     description: 'Optional sport type to filter by',
     example: 'RUNNING',
     required: false,
@@ -71,13 +71,13 @@ export class ProgressionController {
   })
   getFirstActivityDate(
     @JwtUser() user: AuthUser,
-    @Query('athleteId', ParseIntPipe) athleteId: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId: Athlete['athleteId'],
     @Query('sport') sport?: string,
   ) {
     return this.progressionService.getFirstActivityDate(
       user,
       athleteId,
-      sport as sport_type | undefined,
+      sport as SportType | undefined,
     );
   }
 
@@ -115,7 +115,7 @@ export class ProgressionController {
   @ApiQuery({
     name: 'sport',
     type: String,
-    enum: Object.values(sport_type),
+    enum: Object.values(SportType),
     description: 'Optional sport type to filter activities by',
     example: 'RUNNING',
     required: false,
@@ -239,7 +239,7 @@ export class ProgressionController {
   })
   getProgressionData(
     @JwtUser() user: AuthUser,
-    @Query('athleteId', ParseIntPipe) athleteId: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId: Athlete['athleteId'],
     @Query('start') start: string,
     @Query('end') end: string,
     @Query('sport') sport?: string,
@@ -259,7 +259,7 @@ export class ProgressionController {
       athleteId,
       startDate,
       endDate,
-      sport as sport_type | undefined,
+      sport as SportType | undefined,
     );
   }
 }

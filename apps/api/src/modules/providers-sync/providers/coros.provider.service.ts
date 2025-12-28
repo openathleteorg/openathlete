@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { connector_provider } from '@openathlete/database';
+import { ConnectorProvider } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -12,7 +12,7 @@ import {
 
 @Injectable()
 export class CorosProviderService extends BaseProviderService {
-  protected readonly provider = connector_provider.COROS;
+  protected readonly provider = ConnectorProvider.COROS;
 
   protected get oauthConfig(): OAuthConfig {
     return {

@@ -38,10 +38,10 @@ export class FeatureAccessService {
   ): Promise<boolean> {
     // First check if athlete has access
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: athleteId },
+      where: { athleteId: athleteId },
       include: {
         user: true,
-        coach_athletes: {
+        coachAthletes: {
           include: {
             user: true,
           },
@@ -55,7 +55,7 @@ export class FeatureAccessService {
 
     // Check athlete's subscription
     const athleteHasAccess = await this.canAccessFeature(
-      athlete.user_id,
+      athlete.userId,
       featureName,
     );
 
@@ -64,9 +64,9 @@ export class FeatureAccessService {
     }
 
     // Check all coaches' subscriptions
-    for (const coachAthlete of athlete.coach_athletes) {
+    for (const coachAthlete of athlete.coachAthletes) {
       const coachHasAccess = await this.canAccessFeature(
-        coachAthlete.user_id,
+        coachAthlete.userId,
         featureName,
       );
       if (coachHasAccess) {

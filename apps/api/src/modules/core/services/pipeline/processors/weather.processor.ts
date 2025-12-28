@@ -32,8 +32,8 @@ export class WeatherProcessor implements ActivityProcessor {
     );
 
     // Load activity and event
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_activity_id: ctx.eventActivityId },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventActivityId: ctx.eventActivityId },
       include: { event: true },
     });
     if (!activity || !activity.stream || !activity.event) return;
@@ -71,23 +71,23 @@ export class WeatherProcessor implements ActivityProcessor {
 
     // Call provider
     const samples = await this.weather.fetch({
-      startDate: activity.event.start_date,
+      startDate: activity.event.startDate,
       points,
     });
 
-    // Persist in event_activity_weather (upsert 1-1)
-    await this.prisma.event_activity_weather.upsert({
-      where: { event_activity_id: activity.event_activity_id },
+    // Persist in eventActivityWeather (upsert 1-1)
+    await this.prisma.eventActivityWeather.upsert({
+      where: { eventActivityId: activity.eventActivityId },
       update: {
-        resolution_m: resolutionM,
+        resolutionM: resolutionM,
         provider: this.weather.providerName,
         samples: samples,
       },
       create: {
-        event_activity: {
-          connect: { event_activity_id: activity.event_activity_id },
+        eventActivity: {
+          connect: { eventActivityId: activity.eventActivityId },
         },
-        resolution_m: resolutionM,
+        resolutionM: resolutionM,
         provider: this.weather.providerName,
         samples: samples,
       },

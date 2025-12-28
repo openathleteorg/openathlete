@@ -15,7 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { athlete, sport_type } from '@openathlete/database';
+import { Athlete, SportType } from '@openathlete/database';
 
 import { UserTypeGuard } from 'src/modules/auth';
 import { AuthUser, JwtUser } from 'src/modules/auth/decorators/user.decorator';
@@ -92,7 +92,7 @@ export class StatisticsController {
             properties: {
               sport: {
                 type: 'string',
-                enum: Object.values(sport_type),
+                enum: Object.values(SportType),
                 example: 'RUNNING',
               },
               duration: {
@@ -144,7 +144,7 @@ export class StatisticsController {
   })
   getStatisticsForPeriod(
     @JwtUser() user: AuthUser,
-    @Query('athleteId', ParseIntPipe) athleteId: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId: Athlete['athleteId'],
     @Query('start') start: string,
     @Query('end') end: string,
   ) {

@@ -158,7 +158,7 @@ export class AthleteController {
     description: 'Unauthorized - invalid or missing authentication token',
   })
   getMyCoachedAthletes(@JwtUser() user: AuthUser) {
-    return this.athleteService.getMyCoachedAthletes(user.user_id);
+    return this.athleteService.getMyCoachedAthletes(user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -190,7 +190,7 @@ export class AthleteController {
     description: 'Unauthorized - invalid or missing authentication token',
   })
   getMyCoaches(@JwtUser() user: AuthUser) {
-    return this.athleteService.getMyCoaches(user.user_id);
+    return this.athleteService.getMyCoaches(user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -250,7 +250,7 @@ export class AthleteController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(inviteCoachSchema)) body: InviteCoachDto,
   ) {
-    return this.athleteService.inviteCoach(user.user_id, body.email);
+    return this.athleteService.inviteCoach(user.userId, body.email);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -312,7 +312,7 @@ export class AthleteController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(inviteAthleteSchema)) body: InviteAthleteDto,
   ) {
-    return this.athleteService.inviteAthlete(user.user_id, body.email);
+    return this.athleteService.inviteAthlete(user.userId, body.email);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -346,7 +346,7 @@ export class AthleteController {
     description: 'Unauthorized - invalid or missing authentication token',
   })
   getSentAthleteInvitations(@JwtUser() user: AuthUser) {
-    return this.athleteService.getSentAthleteInvitations(user.user_id);
+    return this.athleteService.getSentAthleteInvitations(user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -384,7 +384,7 @@ export class AthleteController {
     @Param('invitationId', ParseIntPipe) invitationId: number,
   ) {
     return this.athleteService.cancelAthleteInvitation(
-      user.user_id,
+      user.userId,
       invitationId,
     );
   }
@@ -420,7 +420,7 @@ export class AthleteController {
     description: 'Unauthorized - invalid or missing authentication token',
   })
   getSentCoachInvitations(@JwtUser() user: AuthUser) {
-    return this.athleteService.getSentCoachInvitations(user.user_id);
+    return this.athleteService.getSentCoachInvitations(user.userId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -457,10 +457,7 @@ export class AthleteController {
     @JwtUser() user: AuthUser,
     @Param('invitationId', ParseIntPipe) invitationId: number,
   ) {
-    return this.athleteService.cancelCoachInvitation(
-      user.user_id,
-      invitationId,
-    );
+    return this.athleteService.cancelCoachInvitation(user.userId, invitationId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -493,7 +490,7 @@ export class AthleteController {
     @JwtUser() user: AuthUser,
     @Param('athleteId', ParseIntPipe) athleteId: number,
   ) {
-    return this.athleteService.removeAthlete(user.user_id, athleteId);
+    return this.athleteService.removeAthlete(user.userId, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -526,7 +523,7 @@ export class AthleteController {
     @JwtUser() user: AuthUser,
     @Param('coachId', ParseIntPipe) coachId: number,
   ) {
-    return this.athleteService.removeCoach(user.user_id, coachId);
+    return this.athleteService.removeCoach(user.userId, coachId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -704,7 +701,7 @@ export class AthleteController {
   })
   getPendingInvitations(@JwtUser() user: AuthUser) {
     return this.athleteInvitationService.getPendingInvitationsForAthlete(
-      user.user_id,
+      user.userId,
     );
   }
 
@@ -744,7 +741,7 @@ export class AthleteController {
     @Param('invitationId', ParseIntPipe) invitationId: number,
   ) {
     return this.athleteInvitationService.acceptInvitation(
-      user.user_id,
+      user.userId,
       invitationId,
     );
   }
@@ -785,7 +782,7 @@ export class AthleteController {
     @Param('invitationId', ParseIntPipe) invitationId: number,
   ) {
     return this.athleteInvitationService.rejectInvitation(
-      user.user_id,
+      user.userId,
       invitationId,
     );
   }

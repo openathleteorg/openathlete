@@ -21,7 +21,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { sport_type, training_zone_type } from '@openathlete/database';
+import { SportType, TrainingZoneType } from '@openathlete/database';
 import {
   CreateTrainingZoneDto,
   UpdateTrainingZoneDto,
@@ -74,7 +74,7 @@ export class TrainingZoneController {
           },
           type: {
             type: 'string',
-            enum: Object.values(training_zone_type),
+            enum: Object.values(TrainingZoneType),
             description: 'Type of training zone',
             example: 'HEARTRATE',
           },
@@ -164,7 +164,7 @@ export class TrainingZoneController {
         },
         type: {
           type: 'string',
-          enum: Object.values(training_zone_type),
+          enum: Object.values(TrainingZoneType),
           description: 'Type of training zone',
           example: 'HEARTRATE',
         },
@@ -189,7 +189,7 @@ export class TrainingZoneController {
           type: 'array',
           items: {
             type: 'string',
-            enum: Object.values(sport_type),
+            enum: Object.values(SportType),
           },
           description: 'Array of sports this zone applies to',
           example: ['RUNNING', 'TRAIL_RUNNING'],
@@ -221,7 +221,7 @@ export class TrainingZoneController {
         },
         type: {
           type: 'string',
-          enum: Object.values(training_zone_type),
+          enum: Object.values(TrainingZoneType),
           example: 'HEARTRATE',
         },
         color: { type: 'string', example: '#00FF00' },
@@ -300,7 +300,7 @@ export class TrainingZoneController {
         },
         type: {
           type: 'string',
-          enum: Object.values(training_zone_type),
+          enum: Object.values(TrainingZoneType),
           description: 'Updated zone type (optional)',
           example: 'HEARTRATE',
         },
@@ -325,7 +325,7 @@ export class TrainingZoneController {
           type: 'array',
           items: {
             type: 'string',
-            enum: Object.values(sport_type),
+            enum: Object.values(SportType),
           },
           description: 'Updated array of sports',
           example: ['RUNNING'],
@@ -347,7 +347,7 @@ export class TrainingZoneController {
         index: { type: 'number', example: 0 },
         type: {
           type: 'string',
-          enum: Object.values(training_zone_type),
+          enum: Object.values(TrainingZoneType),
           example: 'HEARTRATE',
         },
         color: { type: 'string', example: '#00FF00' },

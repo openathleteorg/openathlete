@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { normalization_factor, sport_type } from '@openathlete/database';
+import { NormalizationFactor, SportType } from '@openathlete/database';
 import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
@@ -27,7 +27,7 @@ type FilterContext = {
 };
 
 type NormFilter = {
-  name: normalization_factor;
+  name: NormalizationFactor;
   // Returns multiplicative factor to convert observed speed into flat-equivalent
   // Example: 1.02 means +2% speed when removing the factor penalty
   factorAt: (i: number, ctx: FilterContext) => number;
@@ -35,7 +35,7 @@ type NormFilter = {
 
 // Temperature filter: simplistic polynomial around 10-12C as optimal
 const temperatureFilter: NormFilter = {
-  name: normalization_factor.TEMPERATURE,
+  name: NormalizationFactor.TEMPERATURE,
   factorAt: (i, ctx) => {
     const t = ctx.temp?.[i];
     if (t == null || !Number.isFinite(t)) return 1;
@@ -49,7 +49,7 @@ const temperatureFilter: NormFilter = {
 
 // Altitude filter: crude reduction with altitude assuming aerobic impact
 const altitudeFilter: NormFilter = {
-  name: normalization_factor.ALTITUDE,
+  name: NormalizationFactor.ALTITUDE,
   factorAt: (i, ctx) => {
     const a = ctx.alt?.[i];
     if (a == null || !Number.isFinite(a)) return 1;
@@ -71,8 +71,8 @@ export class NormalizationProcessor implements ActivityProcessor {
   ) {}
 
   async run(ctx: ActivityPipelineContext) {
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_activity_id: ctx.eventActivityId },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventActivityId: ctx.eventActivityId },
       include: {
         event: true,
         weather: true,
@@ -82,8 +82,8 @@ export class NormalizationProcessor implements ActivityProcessor {
     if (!activity || !activity.stream) return;
 
     if (
-      activity.sport !== sport_type.RUNNING &&
-      activity.sport !== sport_type.TRAIL_RUNNING
+      activity.sport !== SportType.RUNNING &&
+      activity.sport !== SportType.TRAIL_RUNNING
     ) {
       return;
     }
@@ -168,7 +168,7 @@ export class NormalizationProcessor implements ActivityProcessor {
       temp: tempByIndex,
       gap,
       base,
-      movingTimeSec: activity.moving_time,
+      movingTimeSec: activity.movingTime,
     };
 
     // Start from GAP if available (already slope-normalized), otherwise windowed observed speed
@@ -275,38 +275,38 @@ export class NormalizationProcessor implements ActivityProcessor {
     // Upsert normalization with factors breakdown
     const factorsData = (
       [
-        [normalization_factor.SLOPE, slopeSeconds],
-        [normalization_factor.TEMPERATURE, tempSeconds],
-        [normalization_factor.ALTITUDE, altSeconds],
-      ] as Array<[normalization_factor, number]>
+        [NormalizationFactor.SLOPE, slopeSeconds],
+        [NormalizationFactor.TEMPERATURE, tempSeconds],
+        [NormalizationFactor.ALTITUDE, altSeconds],
+      ] as Array<[NormalizationFactor, number]>
     ).map(([factor, seconds]) => {
-      const raw = activity.moving_time > 0 ? seconds / activity.moving_time : 0;
+      const raw = activity.movingTime > 0 ? seconds / activity.movingTime : 0;
       const percent = Math.max(0, Math.min(1, raw));
-      return { factor, time_seconds: seconds, percent };
+      return { factor, timeSeconds: seconds, percent };
     });
 
-    await this.prisma.event_activity_normalization.upsert({
-      where: { event_activity_id: ctx.eventActivityId },
+    await this.prisma.eventActivityNormalization.upsert({
+      where: { eventActivityId: ctx.eventActivityId },
       update: {
-        average_normalized_speed: roundSpeed(avgNorm) ?? undefined,
+        averageNormalizedSpeed: roundSpeed(avgNorm) ?? undefined,
         factors: {
           deleteMany: {},
           create: factorsData,
         },
       },
       create: {
-        event_activity: { connect: { event_activity_id: ctx.eventActivityId } },
-        average_normalized_speed: roundSpeed(avgNorm) ?? undefined,
+        eventActivity: { connect: { eventActivityId: ctx.eventActivityId } },
+        averageNormalizedSpeed: roundSpeed(avgNorm) ?? undefined,
         factors: { create: factorsData },
       },
       include: { factors: true },
     });
 
-    await this.prisma.event_activity.update({
-      where: { event_activity_id: ctx.eventActivityId },
+    await this.prisma.eventActivity.update({
+      where: { eventActivityId: ctx.eventActivityId },
       data: {
         stream: compressed as InputJsonValue,
-        average_normalized_speed: roundSpeed(avgNorm) ?? undefined,
+        averageNormalizedSpeed: roundSpeed(avgNorm) ?? undefined,
       },
     });
   }

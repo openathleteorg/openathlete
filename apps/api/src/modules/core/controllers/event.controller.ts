@@ -28,7 +28,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { event } from '@openathlete/database';
+import { Event } from '@openathlete/database';
 import {
   ActivityStream,
   CreateEventDto,
@@ -313,7 +313,7 @@ export class EventController {
   })
   getEvent(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.getEventById(user, eventId);
   }
@@ -410,7 +410,7 @@ export class EventController {
   })
   updateEvent(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
     @Body(new ZodValidationPipe(updateEventDtoSchema)) body: UpdateEventDto,
   ) {
     return this.eventService.updateEvent(user, eventId, body);
@@ -469,7 +469,7 @@ export class EventController {
   })
   getEventStream(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
     @Query('resolution', ParseIntPipe) resolution: number,
     @Query('keys', ParseArrayPipe) keys?: (keyof ActivityStream)[],
   ) {
@@ -530,7 +530,7 @@ export class EventController {
   })
   getEventWeather(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.getEventWeather(user, eventId);
   }
@@ -602,7 +602,7 @@ export class EventController {
   })
   getEventNormalization(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.getEventNormalization(user, eventId);
   }
@@ -668,17 +668,15 @@ export class EventController {
   })
   async getActivityFeedbackQuestions(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
-    // Get event_activity_id from event
+    // Get eventActivityId from event
     const eventData = await this.eventService.getEventById(user, eventId);
     if (eventData.type !== 'ACTIVITY') {
       throw new NotFoundException('Activity not found for this event');
     }
-    // Access event_activity_id (snake_case) or eventActivityId (camelCase after keysToCamel)
-    const eventActivityId =
-      (eventData as { eventActivityId?: number }).eventActivityId ??
-      (eventData as { event_activity_id?: number }).event_activity_id;
+    const eventActivityId = (eventData as { eventActivityId?: number })
+      .eventActivityId;
     if (!eventActivityId) {
       throw new NotFoundException('Activity ID not found');
     }
@@ -752,19 +750,17 @@ export class EventController {
   })
   async submitQuestionAnswer(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
     @Param('questionId', ParseIntPipe) questionId: number,
     @Body('answerText') answerText: string,
   ) {
-    // Get event_activity_id from event
+    // Get eventActivityId from event
     const eventData = await this.eventService.getEventById(user, eventId);
     if (eventData.type !== 'ACTIVITY') {
       throw new NotFoundException('Activity not found for this event');
     }
-    // Access event_activity_id (snake_case) or eventActivityId (camelCase after keysToCamel)
-    const eventActivityId =
-      (eventData as { eventActivityId?: number }).eventActivityId ??
-      (eventData as { event_activity_id?: number }).event_activity_id;
+    const eventActivityId = (eventData as { eventActivityId?: number })
+      .eventActivityId;
     if (!eventActivityId) {
       throw new NotFoundException('Activity ID not found');
     }
@@ -815,15 +811,14 @@ export class EventController {
   })
   async skipFeedback(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     const eventData = await this.eventService.getEventById(user, eventId);
     if (eventData.type !== 'ACTIVITY') {
       throw new NotFoundException('Activity not found for this event');
     }
-    const eventActivityId =
-      (eventData as { eventActivityId?: number }).eventActivityId ??
-      (eventData as { event_activity_id?: number }).event_activity_id;
+    const eventActivityId = (eventData as { eventActivityId?: number })
+      .eventActivityId;
     if (!eventActivityId) {
       throw new NotFoundException('Activity ID not found');
     }
@@ -869,15 +864,14 @@ export class EventController {
   })
   async unskipFeedback(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     const eventData = await this.eventService.getEventById(user, eventId);
     if (eventData.type !== 'ACTIVITY') {
       throw new NotFoundException('Activity not found for this event');
     }
-    const eventActivityId =
-      (eventData as { eventActivityId?: number }).eventActivityId ??
-      (eventData as { event_activity_id?: number }).event_activity_id;
+    const eventActivityId = (eventData as { eventActivityId?: number })
+      .eventActivityId;
     if (!eventActivityId) {
       throw new NotFoundException('Activity ID not found');
     }
@@ -920,7 +914,7 @@ export class EventController {
   })
   deleteEvent(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.deleteEvent(user, eventId);
   }
@@ -982,7 +976,7 @@ export class EventController {
   })
   duplicateEventComplete(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
     @Body(new ZodValidationPipe(duplicateEventDtoSchema))
     dto: DuplicateEventDto,
   ) {
@@ -1033,8 +1027,8 @@ export class EventController {
   })
   setRelatedActivity(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
-    @Param('activityId', ParseIntPipe) activityId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
+    @Param('activityId', ParseIntPipe) activityId: Event['eventId'],
   ) {
     return this.eventService.setRelatedActivity(user, eventId, activityId);
   }
@@ -1075,7 +1069,7 @@ export class EventController {
   })
   unsetRelatedActivity(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.unsetRelatedActivity(user, eventId);
   }
@@ -1157,7 +1151,7 @@ export class EventController {
   })
   reorderWorkoutSteps(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
     @Body(new ZodValidationPipe(reorderWorkoutStepsSchema))
     dto: ReorderWorkoutStepsDto,
   ) {
@@ -1225,7 +1219,7 @@ export class EventController {
   })
   duplicateWorkout(
     @JwtUser() user: AuthUser,
-    @Param('eventId', ParseIntPipe) eventId: event['event_id'],
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
     @Body(new ZodValidationPipe(duplicateWorkoutSchema))
     dto: DuplicateWorkoutDto,
   ) {

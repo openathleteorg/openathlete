@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { sport_type } from '@openathlete/database';
+import { SportType } from '@openathlete/database';
 import { InputJsonValue } from '@openathlete/database/generated/client/runtime/library';
 import { ActivityStream } from '@openathlete/shared';
 
@@ -31,15 +31,15 @@ export class GapProcessor implements ActivityProcessor {
   constructor(private readonly prisma: PrismaService) {}
 
   async run(ctx: ActivityPipelineContext) {
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_activity_id: ctx.eventActivityId },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventActivityId: ctx.eventActivityId },
       include: { event: true },
     });
     if (!activity || !activity.stream) return;
 
     if (
-      activity.sport !== sport_type.RUNNING &&
-      activity.sport !== sport_type.TRAIL_RUNNING
+      activity.sport !== SportType.RUNNING &&
+      activity.sport !== SportType.TRAIL_RUNNING
     ) {
       return;
     }
@@ -109,11 +109,11 @@ export class GapProcessor implements ActivityProcessor {
     const newStream = { ...stream, gap: gapStream } as ActivityStream;
     const compressed = compressActivityStream(newStream);
 
-    await this.prisma.event_activity.update({
-      where: { event_activity_id: ctx.eventActivityId },
+    await this.prisma.eventActivity.update({
+      where: { eventActivityId: ctx.eventActivityId },
       data: {
         stream: compressed as InputJsonValue,
-        average_gap_speed: roundSpeed(avgGap) ?? undefined,
+        averageGapSpeed: roundSpeed(avgGap) ?? undefined,
       },
     });
   }

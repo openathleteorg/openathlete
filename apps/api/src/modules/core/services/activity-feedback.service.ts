@@ -34,15 +34,15 @@ export class ActivityFeedbackService {
   async getActivityFeedbackQuestions(user: AuthUser, eventActivityId: number) {
     const ability = await this.abilities.getFor({ user });
 
-    const activity = await this.prisma.event_activity.findUnique({
+    const activity = await this.prisma.eventActivity.findUnique({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       include: {
         event: {
           select: {
-            event_id: true,
-            athlete_id: true,
+            eventId: true,
+            athleteId: true,
           },
         },
       },
@@ -55,8 +55,8 @@ export class ActivityFeedbackService {
     const event = await this.prisma.event.findFirst({
       where: {
         AND: [
-          { event_id: activity.event.event_id },
-          accessibleBy(ability, 'read').event,
+          { eventId: activity.event.eventId },
+          accessibleBy(ability, 'read').Event,
         ],
       },
     });
@@ -65,32 +65,32 @@ export class ActivityFeedbackService {
       throw new ForbiddenException('Access denied to this activity');
     }
 
-    const questions = await this.prisma.activity_feedback_question.findMany({
+    const questions = await this.prisma.activityFeedbackQuestion.findMany({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       orderBy: {
-        activity_feedback_question_id: 'asc',
+        activityFeedbackQuestionId: 'asc',
       },
     });
 
-    const activityWithSkip = await this.prisma.event_activity.findUnique({
+    const activityWithSkip = await this.prisma.eventActivity.findUnique({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       select: {
-        feedback_skipped: true,
+        feedbackSkipped: true,
       },
     });
 
     return {
       questions: questions.map((q) => ({
-        questionId: q.activity_feedback_question_id,
-        questionText: q.question_text,
-        qcmOptions: q.qcm_options as Array<{ label: string }> | null,
-        answerText: q.answer_text,
+        questionId: q.activityFeedbackQuestionId,
+        questionText: q.questionText,
+        qcmOptions: q.qcmOptions as Array<{ label: string }> | null,
+        answerText: q.answerText,
       })),
-      feedbackSkipped: activityWithSkip?.feedback_skipped ?? false,
+      feedbackSkipped: activityWithSkip?.feedbackSkipped ?? false,
     };
   }
 
@@ -103,15 +103,15 @@ export class ActivityFeedbackService {
     const ability = await this.abilities.getFor({ user });
 
     // Verify activity exists and get its event
-    const activity = await this.prisma.event_activity.findUnique({
+    const activity = await this.prisma.eventActivity.findUnique({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       include: {
         event: {
           select: {
-            event_id: true,
-            athlete_id: true,
+            eventId: true,
+            athleteId: true,
           },
         },
       },
@@ -125,8 +125,8 @@ export class ActivityFeedbackService {
     const event = await this.prisma.event.findFirst({
       where: {
         AND: [
-          { event_id: activity.event.event_id },
-          accessibleBy(ability, 'update').event,
+          { eventId: activity.event.eventId },
+          accessibleBy(ability, 'update').Event,
         ],
       },
     });
@@ -135,17 +135,17 @@ export class ActivityFeedbackService {
       throw new ForbiddenException('Access denied to this activity');
     }
 
-    if (!user.athlete || user.athlete.athlete_id !== event.athlete_id) {
+    if (!user.athlete || user.athlete.athleteId !== event.athleteId) {
       throw new ForbiddenException(
         'Only the athlete who owns this activity can submit feedback answers',
       );
     }
 
     // Verify question exists and belongs to this activity
-    const question = await this.prisma.activity_feedback_question.findFirst({
+    const question = await this.prisma.activityFeedbackQuestion.findFirst({
       where: {
-        activity_feedback_question_id: questionId,
-        event_activity_id: eventActivityId,
+        activityFeedbackQuestionId: questionId,
+        eventActivityId: eventActivityId,
       },
     });
 
@@ -154,52 +154,52 @@ export class ActivityFeedbackService {
     }
 
     // Update the answer
-    const updated = await this.prisma.activity_feedback_question.update({
+    const updated = await this.prisma.activityFeedbackQuestion.update({
       where: {
-        activity_feedback_question_id: questionId,
+        activityFeedbackQuestionId: questionId,
       },
       data: {
-        answer_text: answerText,
+        answerText: answerText,
       },
     });
 
-    const allQuestions = await this.prisma.activity_feedback_question.findMany({
+    const allQuestions = await this.prisma.activityFeedbackQuestion.findMany({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
     });
 
-    const allAnswered = allQuestions.every((q) => q.answer_text !== null);
+    const allAnswered = allQuestions.every((q) => q.answerText !== null);
 
     if (allAnswered) {
       this.eventEmitter.emit(
         ActivityFeedbackCompletedEvent.SLUG,
         new ActivityFeedbackCompletedEvent({
           eventActivityId,
-          eventId: activity.event.event_id,
+          eventId: activity.event.eventId,
           trigger: 'questions_completed',
         }),
       );
     }
 
     return {
-      questionId: updated.activity_feedback_question_id,
-      answerText: updated.answer_text,
+      questionId: updated.activityFeedbackQuestionId,
+      answerText: updated.answerText,
     };
   }
 
   async skipFeedback(user: AuthUser, eventActivityId: number) {
     const ability = await this.abilities.getFor({ user });
 
-    const activity = await this.prisma.event_activity.findUnique({
+    const activity = await this.prisma.eventActivity.findUnique({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       include: {
         event: {
           select: {
-            event_id: true,
-            athlete_id: true,
+            eventId: true,
+            athleteId: true,
           },
         },
       },
@@ -213,8 +213,8 @@ export class ActivityFeedbackService {
     const event = await this.prisma.event.findFirst({
       where: {
         AND: [
-          { event_id: activity.event.event_id },
-          accessibleBy(ability, 'update').event,
+          { eventId: activity.event.eventId },
+          accessibleBy(ability, 'update').Event,
         ],
       },
     });
@@ -224,18 +224,18 @@ export class ActivityFeedbackService {
     }
 
     // Only the athlete who owns the activity can skip feedback
-    if (!user.athlete || user.athlete.athlete_id !== event.athlete_id) {
+    if (!user.athlete || user.athlete.athleteId !== event.athleteId) {
       throw new ForbiddenException(
         'Only the athlete who owns this activity can skip feedback',
       );
     }
 
-    await this.prisma.event_activity.update({
+    await this.prisma.eventActivity.update({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       data: {
-        feedback_skipped: true,
+        feedbackSkipped: true,
       },
     });
 
@@ -249,15 +249,15 @@ export class ActivityFeedbackService {
     const ability = await this.abilities.getFor({ user });
 
     // Verify activity exists and get its event
-    const activity = await this.prisma.event_activity.findUnique({
+    const activity = await this.prisma.eventActivity.findUnique({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       include: {
         event: {
           select: {
-            event_id: true,
-            athlete_id: true,
+            eventId: true,
+            athleteId: true,
           },
         },
       },
@@ -271,8 +271,8 @@ export class ActivityFeedbackService {
     const event = await this.prisma.event.findFirst({
       where: {
         AND: [
-          { event_id: activity.event.event_id },
-          accessibleBy(ability, 'update').event,
+          { eventId: activity.event.eventId },
+          accessibleBy(ability, 'update').Event,
         ],
       },
     });
@@ -282,19 +282,19 @@ export class ActivityFeedbackService {
     }
 
     // Only the athlete who owns the activity can unskip feedback
-    if (!user.athlete || user.athlete.athlete_id !== event.athlete_id) {
+    if (!user.athlete || user.athlete.athleteId !== event.athleteId) {
       throw new ForbiddenException(
         'Only the athlete who owns this activity can unskip feedback',
       );
     }
 
     // Update feedback_skipped to false
-    await this.prisma.event_activity.update({
+    await this.prisma.eventActivity.update({
       where: {
-        event_activity_id: eventActivityId,
+        eventActivityId: eventActivityId,
       },
       data: {
-        feedback_skipped: false,
+        feedbackSkipped: false,
       },
     });
 

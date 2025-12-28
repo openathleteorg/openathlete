@@ -82,12 +82,12 @@ export class ProviderExportService {
     const contentHash = this.computeHash(date, normalized);
     const payload = this.mapPayload(provider, date, normalized);
 
-    const staleExports = await this.prisma.provider_workout_export.findMany({
+    const staleExports = await this.prisma.providerWorkoutExport.findMany({
       where: {
-        athlete_id: athleteId,
+        athleteId: athleteId,
         provider: providerEnum,
-        workout_id: workoutId,
-        NOT: { planned_date: plannedDate },
+        workoutId: workoutId,
+        NOT: { plannedDate: { not: plannedDate } },
       },
     });
 
@@ -96,9 +96,9 @@ export class ProviderExportService {
         try {
           await adapter.deletePlannedWorkout({
             athleteId,
-            externalId: stale.external_id,
-            scheduleId: stale.schedule_id,
-            date: stale.planned_date.toISOString().split('T')[0],
+            externalId: stale.externalId,
+            scheduleId: stale.scheduleId,
+            date: stale.plannedDate.toISOString().split('T')[0],
           });
         } catch (err) {
           this.logger.warn(
@@ -107,52 +107,52 @@ export class ProviderExportService {
         }
       }
 
-      await this.prisma.provider_workout_export.delete({
+      await this.prisma.providerWorkoutExport.delete({
         where: {
-          provider_workout_export_id: stale.provider_workout_export_id,
+          providerWorkoutExportId: stale.providerWorkoutExportId,
         },
       });
     }
 
-    const record = await this.prisma.provider_workout_export.upsert({
+    const record = await this.prisma.providerWorkoutExport.upsert({
       where: {
-        athlete_id_provider_workout_id_planned_date: {
-          athlete_id: athleteId,
+        athleteId_provider_workoutId_plannedDate: {
+          athleteId: athleteId,
           provider: providerEnum,
-          workout_id: workoutId,
-          planned_date: plannedDate,
+          workoutId: workoutId,
+          plannedDate: plannedDate,
         },
       },
       create: {
-        athlete_id: athleteId,
+        athleteId: athleteId,
         provider: providerEnum,
-        workout_id: workoutId,
-        planned_date: plannedDate,
+        workoutId: workoutId,
+        plannedDate: plannedDate,
         status: 'pending',
-        content_hash: contentHash,
-        raw_payload: payload as object,
+        contentHash: contentHash,
+        rawPayload: payload as object,
       },
       update: {
-        content_hash: contentHash,
-        raw_payload: payload as object,
+        contentHash: contentHash,
+        rawPayload: payload as object,
         status: 'pending',
-        last_sync_at: null,
-        error_code: null,
-        error_message: null,
+        lastSyncAt: null,
+        errorCode: null,
+        errorMessage: null,
       },
     });
 
     // Idempotency check: if unchanged and success, skip
-    if (record.status === 'success' && record.content_hash === contentHash) {
+    if (record.status === 'success' && record.contentHash === contentHash) {
       this.logger.debug(
         `Skip export (unchanged) athlete=${athleteId} provider=${provider} workout=${workoutId} date=${date}`,
       );
-      return { skipped: true, externalId: record.external_id ?? undefined };
+      return { skipped: true, externalId: record.externalId ?? undefined };
     }
 
     try {
       const previousScheduleId =
-        (record as unknown as { schedule_id?: string | null }).schedule_id ??
+        (record as unknown as { scheduleId?: string | null }).scheduleId ??
         undefined;
 
       const result = await adapter.upsertPlannedWorkout({
@@ -160,37 +160,37 @@ export class ProviderExportService {
         workoutId,
         date,
         normalized,
-        previousExternalId: record.external_id ?? params.previousExternalId,
+        previousExternalId: record.externalId ?? params.previousExternalId,
         previousScheduleId,
       });
 
-      await this.prisma.provider_workout_export.update({
+      await this.prisma.providerWorkoutExport.update({
         where: {
-          provider_workout_export_id: record.provider_workout_export_id,
+          providerWorkoutExportId: record.providerWorkoutExportId,
         },
         data: {
-          external_id: result.externalId,
+          externalId: result.externalId,
           status: 'success',
-          last_sync_at: new Date(),
-          attempt_count: { increment: 1 },
+          lastSyncAt: new Date(),
+          attemptCount: { increment: 1 },
           ...(result.scheduleId !== undefined && {
-            schedule_id: result.scheduleId,
+            scheduleId: result.scheduleId,
           }),
-        } as Prisma.provider_workout_exportUpdateInput,
+        } as Prisma.ProviderWorkoutExportUpdateInput,
       });
 
       return { skipped: false, externalId: result.externalId };
     } catch (err) {
-      await this.prisma.provider_workout_export.update({
+      await this.prisma.providerWorkoutExport.update({
         where: {
-          provider_workout_export_id: record.provider_workout_export_id,
+          providerWorkoutExportId: record.providerWorkoutExportId,
         },
         data: {
           status: 'failed',
-          last_sync_at: new Date(),
-          attempt_count: { increment: 1 },
-          error_code: err instanceof AxiosError ? err.code : null,
-          error_message: err instanceof Error ? err.message : 'Unknown error',
+          lastSyncAt: new Date(),
+          attemptCount: { increment: 1 },
+          errorCode: err instanceof AxiosError ? err.code : null,
+          errorMessage: err instanceof Error ? err.message : 'Unknown error',
         },
       });
       throw err;
@@ -198,8 +198,8 @@ export class ProviderExportService {
   }
 
   async deleteExportsForWorkout(params: { workoutId: number }): Promise<void> {
-    const exports = await this.prisma.provider_workout_export.findMany({
-      where: { workout_id: params.workoutId },
+    const exports = await this.prisma.providerWorkoutExport.findMany({
+      where: { workoutId: params.workoutId },
     });
 
     for (const exp of exports) {
@@ -209,21 +209,21 @@ export class ProviderExportService {
       if (adapter?.deletePlannedWorkout) {
         try {
           await adapter.deletePlannedWorkout({
-            athleteId: exp.athlete_id,
-            externalId: exp.external_id,
-            scheduleId: exp.schedule_id,
-            date: exp.planned_date.toISOString().split('T')[0],
+            athleteId: exp.athleteId,
+            externalId: exp.externalId,
+            scheduleId: exp.scheduleId,
+            date: exp.plannedDate.toISOString().split('T')[0],
           });
         } catch (err) {
           this.logger.warn(
-            `Failed to delete planned workout for provider ${exp.provider} workout ${exp.workout_id}: ${err instanceof Error ? err.message : String(err)}`,
+            `Failed to delete planned workout for provider ${exp.provider} workout ${exp.workoutId}: ${err instanceof Error ? err.message : String(err)}`,
           );
         }
       }
     }
 
-    await this.prisma.provider_workout_export.deleteMany({
-      where: { workout_id: params.workoutId },
+    await this.prisma.providerWorkoutExport.deleteMany({
+      where: { workoutId: params.workoutId },
     });
   }
 }

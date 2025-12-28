@@ -3,9 +3,9 @@ import Stripe from 'stripe';
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 
 import {
-  subscription,
-  subscription_plan,
-  subscription_status,
+  SubscriptionPlan as PrismaSubscriptionPlan,
+  Subscription,
+  SubscriptionStatus,
 } from '@openathlete/database';
 import {
   SubscriptionPlan,
@@ -28,25 +28,25 @@ export class SubscriptionService {
   /**
    * Get current subscription for a user
    */
-  async getCurrentSubscription(userId: number): Promise<subscription | null> {
+  async getCurrentSubscription(userId: number): Promise<Subscription | null> {
     return await this.prisma.subscription.findUnique({
-      where: { user_id: userId },
+      where: { userId: userId },
     });
   }
 
   /**
    * Get or create subscription (defaults to FREE)
    */
-  async getOrCreateSubscription(userId: number): Promise<subscription> {
+  async getOrCreateSubscription(userId: number): Promise<Subscription> {
     let subscription = await this.getCurrentSubscription(userId);
 
     if (!subscription) {
       // Create free subscription by default
       subscription = await this.prisma.subscription.create({
         data: {
-          user_id: userId,
-          plan: subscription_plan.FREE,
-          status: subscription_status.active,
+          userId: userId,
+          plan: SubscriptionPlan.FREE,
+          status: SubscriptionStatus.active,
         },
       });
     }
@@ -62,7 +62,7 @@ export class SubscriptionService {
     customerId: string,
     subscriptionId: string,
     plan: SubscriptionPlan,
-  ): Promise<subscription> {
+  ): Promise<Subscription> {
     const stripeSubscription =
       await this.stripeService.getSubscription(subscriptionId);
     if (!stripeSubscription) {
@@ -71,11 +71,11 @@ export class SubscriptionService {
 
     // Check if subscription already exists
     const existing = await this.prisma.subscription.findUnique({
-      where: { user_id: userId },
+      where: { userId: userId },
     });
 
     const subscriptionData = {
-      user_id: userId,
+      userId: userId,
       plan: this.mapPlanToPrisma(plan),
       status: this.mapStatusToPrisma(
         stripeSubscription.status as Stripe.Subscription.Status,
@@ -103,7 +103,7 @@ export class SubscriptionService {
 
     if (existing) {
       return await this.prisma.subscription.update({
-        where: { subscription_id: existing.subscription_id },
+        where: { subscriptionId: existing.subscriptionId },
         data: subscriptionData,
       });
     }
@@ -118,10 +118,10 @@ export class SubscriptionService {
    */
   async updateSubscriptionFromWebhook(
     stripeSubscription: Stripe.Subscription,
-  ): Promise<subscription> {
+  ): Promise<Subscription> {
     let subscription = await this.prisma.subscription.findUnique({
       where: {
-        stripe_subscription_id: stripeSubscription.id,
+        stripeSubscriptionId: stripeSubscription.id,
       },
     });
 
@@ -228,14 +228,14 @@ export class SubscriptionService {
       (stripeSubscription as any).current_period_start != null
         ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
           new Date((stripeSubscription as any).current_period_start * 1000)
-        : subscription.current_period_start || new Date();
+        : subscription.currentPeriodStart || new Date();
 
     const currentPeriodEnd =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (stripeSubscription as any).current_period_end != null
         ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
           new Date((stripeSubscription as any).current_period_end * 1000)
-        : subscription.current_period_end || new Date();
+        : subscription.currentPeriodEnd || new Date();
 
     const trialEnd =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -245,14 +245,14 @@ export class SubscriptionService {
         : null;
 
     return await this.prisma.subscription.update({
-      where: { subscription_id: subscription.subscription_id },
+      where: { subscriptionId: subscription.subscriptionId },
       data: {
         plan: this.mapPlanToPrisma(plan),
         status: this.mapStatusToPrisma(stripeSubscription.status),
-        current_period_start: currentPeriodStart,
-        current_period_end: currentPeriodEnd,
-        trial_end: trialEnd,
-        cancel_at_period_end: stripeSubscription.cancel_at_period_end ?? false,
+        currentPeriodStart: currentPeriodStart,
+        currentPeriodEnd: currentPeriodEnd,
+        trialEnd: trialEnd,
+        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end ?? false,
       },
     });
   }
@@ -260,24 +260,24 @@ export class SubscriptionService {
   /**
    * Cancel subscription (at period end)
    */
-  async cancelSubscription(userId: number): Promise<subscription> {
+  async cancelSubscription(userId: number): Promise<Subscription> {
     const subscription = await this.getCurrentSubscription(userId);
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (!subscription.stripe_subscription_id) {
+    if (!subscription.stripeSubscriptionId) {
       throw new NotFoundException('Stripe subscription ID not found');
     }
 
     await this.stripeService.cancelSubscriptionAtPeriodEnd(
-      subscription.stripe_subscription_id,
+      subscription.stripeSubscriptionId,
     );
 
     return await this.prisma.subscription.update({
-      where: { subscription_id: subscription.subscription_id },
+      where: { subscriptionId: subscription.subscriptionId },
       data: {
-        cancel_at_period_end: true,
+        cancelAtPeriodEnd: true,
       },
     });
   }
@@ -285,24 +285,24 @@ export class SubscriptionService {
   /**
    * Resume subscription
    */
-  async resumeSubscription(userId: number): Promise<subscription> {
+  async resumeSubscription(userId: number): Promise<Subscription> {
     const subscription = await this.getCurrentSubscription(userId);
     if (!subscription) {
       throw new NotFoundException('Subscription not found');
     }
 
-    if (!subscription.stripe_subscription_id) {
+    if (!subscription.stripeSubscriptionId) {
       throw new NotFoundException('Stripe subscription ID not found');
     }
 
     await this.stripeService.resumeSubscription(
-      subscription.stripe_subscription_id,
+      subscription.stripeSubscriptionId,
     );
 
     return await this.prisma.subscription.update({
-      where: { subscription_id: subscription.subscription_id },
+      where: { subscriptionId: subscription.subscriptionId },
       data: {
-        cancel_at_period_end: false,
+        cancelAtPeriodEnd: false,
       },
     });
   }
@@ -330,17 +330,17 @@ export class SubscriptionService {
       return true; // Unlimited
     }
 
-    const currentCount = await this.prisma.coach_athlete.count({
-      where: { user_id: userId },
+    const currentCount = await this.prisma.coachAthlete.count({
+      where: { userId: userId },
     });
 
     return currentCount < maxAthletes;
   }
 
-  private isSubscriptionActive(status: subscription_status): boolean {
+  private isSubscriptionActive(status: SubscriptionStatus): boolean {
     return (
-      status === subscription_status.active ||
-      status === subscription_status.trialing
+      status === SubscriptionStatus.active ||
+      status === SubscriptionStatus.trialing
     );
   }
 
@@ -367,8 +367,8 @@ export class SubscriptionService {
       return false; // Unlimited
     }
 
-    const currentCount = await this.prisma.coach_athlete.count({
-      where: { user_id: userId },
+    const currentCount = await this.prisma.coachAthlete.count({
+      where: { userId: userId },
     });
 
     return currentCount > maxAthletes;
@@ -379,63 +379,63 @@ export class SubscriptionService {
    */
   private mapStatusToPrisma(
     status: Stripe.Subscription.Status,
-  ): subscription_status {
+  ): SubscriptionStatus {
     switch (status) {
       case 'active':
-        return subscription_status.active;
+        return SubscriptionStatus.active;
       case 'canceled':
-        return subscription_status.canceled;
+        return SubscriptionStatus.canceled;
       case 'past_due':
-        return subscription_status.past_due;
+        return SubscriptionStatus.past_due;
       case 'trialing':
-        return subscription_status.trialing;
+        return SubscriptionStatus.trialing;
       case 'incomplete':
-        return subscription_status.incomplete;
+        return SubscriptionStatus.incomplete;
       case 'incomplete_expired':
-        return subscription_status.incomplete_expired;
+        return SubscriptionStatus.incomplete_expired;
       case 'unpaid':
-        return subscription_status.unpaid;
+        return SubscriptionStatus.unpaid;
       default:
-        return subscription_status.active;
+        return SubscriptionStatus.active;
     }
   }
 
   /**
    * Map SubscriptionPlan enum to Prisma enum
    */
-  private mapPlanToPrisma(plan: SubscriptionPlan): subscription_plan {
+  private mapPlanToPrisma(plan: SubscriptionPlan): PrismaSubscriptionPlan {
     switch (plan) {
       case SubscriptionPlan.FREE:
-        return subscription_plan.FREE;
+        return PrismaSubscriptionPlan.FREE;
       case SubscriptionPlan.ATHLETE_PRO:
-        return subscription_plan.ATHLETE_PRO;
+        return PrismaSubscriptionPlan.ATHLETE_PRO;
       case SubscriptionPlan.COACH_PRO:
-        return subscription_plan.COACH_PRO;
+        return PrismaSubscriptionPlan.COACH_PRO;
       case SubscriptionPlan.COACH_ULTRA:
-        return subscription_plan.COACH_ULTRA;
+        return PrismaSubscriptionPlan.COACH_ULTRA;
       case SubscriptionPlan.CLUB_PRO:
-        return subscription_plan.CLUB_PRO;
+        return PrismaSubscriptionPlan.CLUB_PRO;
       case SubscriptionPlan.CLUB_ULTRA:
-        return subscription_plan.CLUB_ULTRA;
+        return PrismaSubscriptionPlan.CLUB_ULTRA;
     }
   }
 
   /**
    * Map Prisma enum to SubscriptionPlan enum
    */
-  private mapPrismaPlanToEnum(plan: subscription_plan): SubscriptionPlan {
+  private mapPrismaPlanToEnum(plan: PrismaSubscriptionPlan): SubscriptionPlan {
     switch (plan) {
-      case subscription_plan.FREE:
+      case PrismaSubscriptionPlan.FREE:
         return SubscriptionPlan.FREE;
-      case subscription_plan.ATHLETE_PRO:
+      case PrismaSubscriptionPlan.ATHLETE_PRO:
         return SubscriptionPlan.ATHLETE_PRO;
-      case subscription_plan.COACH_PRO:
+      case PrismaSubscriptionPlan.COACH_PRO:
         return SubscriptionPlan.COACH_PRO;
-      case subscription_plan.COACH_ULTRA:
+      case PrismaSubscriptionPlan.COACH_ULTRA:
         return SubscriptionPlan.COACH_ULTRA;
-      case subscription_plan.CLUB_PRO:
+      case PrismaSubscriptionPlan.CLUB_PRO:
         return SubscriptionPlan.CLUB_PRO;
-      case subscription_plan.CLUB_ULTRA:
+      case PrismaSubscriptionPlan.CLUB_ULTRA:
         return SubscriptionPlan.CLUB_ULTRA;
     }
   }

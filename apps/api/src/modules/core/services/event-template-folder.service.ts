@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 
-import { event_template_folder } from '@openathlete/database';
-import { keysToCamel } from '@openathlete/shared';
+import { EventTemplateFolder } from '@openathlete/database';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -11,15 +10,15 @@ export class EventTemplateFolderService {
   constructor(private prisma: PrismaService) {}
 
   async getMyFolders(user: AuthUser) {
-    const folders = await this.prisma.event_template_folder.findMany({
+    const folders = await this.prisma.eventTemplateFolder.findMany({
       where: {
-        user_id: user.user_id,
+        userId: user.userId,
       },
       include: {
         _count: {
           select: {
-            event_templates: true,
-            child_folders: true,
+            eventTemplates: true,
+            childFolders: true,
           },
         },
       },
@@ -27,7 +26,7 @@ export class EventTemplateFolderService {
         name: 'asc',
       },
     });
-    return folders.map((f) => keysToCamel(f));
+    return folders;
   }
 
   async createFolder(
@@ -39,29 +38,29 @@ export class EventTemplateFolderService {
       parentFolderId?: number | null;
     },
   ) {
-    const folder = await this.prisma.event_template_folder.create({
+    const folder = await this.prisma.eventTemplateFolder.create({
       data: {
-        user_id: user.user_id,
+        userId: user.userId,
         name: data.name,
         color: data.color,
         description: data.description,
-        parent_folder_id: data.parentFolderId,
+        parentFolderId: data.parentFolderId,
       },
       include: {
         _count: {
           select: {
-            event_templates: true,
-            child_folders: true,
+            eventTemplates: true,
+            childFolders: true,
           },
         },
       },
     });
-    return keysToCamel(folder);
+    return folder;
   }
 
   async updateFolder(
     user: AuthUser,
-    folderId: event_template_folder['event_template_folder_id'],
+    folderId: EventTemplateFolder['eventTemplateFolderId'],
     data: {
       name?: string;
       color?: string;
@@ -69,9 +68,9 @@ export class EventTemplateFolderService {
       parentFolderId?: number | null;
     },
   ) {
-    const folder = await this.prisma.event_template_folder.findUnique({
+    const folder = await this.prisma.eventTemplateFolder.findUnique({
       where: {
-        event_template_folder_id: folderId,
+        eventTemplateFolderId: folderId,
       },
     });
 
@@ -79,39 +78,39 @@ export class EventTemplateFolderService {
       throw new Error('Folder not found');
     }
 
-    if (folder.user_id !== user.user_id) {
+    if (folder.userId !== user.userId) {
       throw new Error('Unauthorized');
     }
 
-    const updated = await this.prisma.event_template_folder.update({
+    const updated = await this.prisma.eventTemplateFolder.update({
       where: {
-        event_template_folder_id: folderId,
+        eventTemplateFolderId: folderId,
       },
       data: {
         name: data.name,
         color: data.color,
         description: data.description,
-        parent_folder_id: data.parentFolderId,
+        parentFolderId: data.parentFolderId,
       },
       include: {
         _count: {
           select: {
-            event_templates: true,
-            child_folders: true,
+            eventTemplates: true,
+            childFolders: true,
           },
         },
       },
     });
-    return keysToCamel(updated);
+    return updated;
   }
 
   async deleteFolder(
     user: AuthUser,
-    folderId: event_template_folder['event_template_folder_id'],
+    folderId: EventTemplateFolder['eventTemplateFolderId'],
   ) {
-    const folder = await this.prisma.event_template_folder.findUnique({
+    const folder = await this.prisma.eventTemplateFolder.findUnique({
       where: {
-        event_template_folder_id: folderId,
+        eventTemplateFolderId: folderId,
       },
     });
 
@@ -119,13 +118,13 @@ export class EventTemplateFolderService {
       throw new Error('Folder not found');
     }
 
-    if (folder.user_id !== user.user_id) {
+    if (folder.userId !== user.userId) {
       throw new Error('Unauthorized');
     }
 
-    await this.prisma.event_template_folder.delete({
+    await this.prisma.eventTemplateFolder.delete({
       where: {
-        event_template_folder_id: folderId,
+        eventTemplateFolderId: folderId,
       },
     });
   }

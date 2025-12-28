@@ -58,12 +58,12 @@ export class WorkoutSyncListener {
     }
 
     // Get connected providers for this athlete
-    const providerAccounts = await this.prisma.provider_account.findMany({
+    const providerAccounts = await this.prisma.providerAccount.findMany({
       where: {
-        athlete_id: athleteId,
+        athleteId: athleteId,
         provider: { in: ['GARMIN', 'SUUNTO', 'COROS'] },
         status: 'active',
-        export_workouts_enabled: true,
+        exportWorkoutsEnabled: true,
       },
     });
 
@@ -82,21 +82,21 @@ export class WorkoutSyncListener {
 
     // Load workout and normalize
     const workoutRecord = await this.prisma.workout.findUnique({
-      where: { workout_id: workoutId },
+      where: { workoutId: workoutId },
       include: {
         steps: {
           include: {
             targets: true,
-            repeat_block: {
+            repeatBlock: {
               include: {
-                child_steps: {
+                childSteps: {
                   include: { targets: true },
-                  orderBy: { order_index: 'asc' },
+                  orderBy: { orderIndex: 'asc' },
                 },
               },
             },
           },
-          orderBy: { order_index: 'asc' },
+          orderBy: { orderIndex: 'asc' },
         },
       },
     });
@@ -108,7 +108,7 @@ export class WorkoutSyncListener {
 
     // Get event to retrieve name and description
     const eventEntity = await this.prisma.event.findUnique({
-      where: { event_id: eventId },
+      where: { eventId: eventId },
       include: {
         training: true,
       },

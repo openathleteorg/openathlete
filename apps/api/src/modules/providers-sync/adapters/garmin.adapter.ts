@@ -2,7 +2,7 @@ import axios, { AxiosError, isAxiosError } from 'axios';
 
 import { Injectable, Logger } from '@nestjs/common';
 
-import { connector_provider } from '@openathlete/database';
+import { ConnectorProvider } from '@openathlete/database';
 import { mapPrismaWorkoutToDto } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -29,8 +29,8 @@ export class GarminAdapter implements ProviderAdapter {
   private async getLatestMetricsMap(
     athleteId: number,
   ): Promise<Record<string, { value: number }>> {
-    const metrics = await this.prisma.athlete_metric.findMany({
-      where: { athlete_id: athleteId },
+    const metrics = await this.prisma.athleteMetric.findMany({
+      where: { athleteId: athleteId },
       orderBy: [{ date: 'desc' }],
     });
 
@@ -51,10 +51,10 @@ export class GarminAdapter implements ProviderAdapter {
   async upsertPlannedWorkout(
     input: UpsertPlannedWorkoutInput,
   ): Promise<UpsertPlannedWorkoutResult> {
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        athlete_id: input.athleteId,
-        provider: connector_provider.GARMIN,
+        athleteId: input.athleteId,
+        provider: ConnectorProvider.GARMIN,
         status: 'active',
       },
     });
@@ -72,26 +72,26 @@ export class GarminAdapter implements ProviderAdapter {
       throw new Error('User has not granted WORKOUT_IMPORT permission');
     }
 
-    const ownerId = this.getNumericUserId(account.external_user_id);
+    const ownerId = this.getNumericUserId(account.externalUserId);
 
     const workoutRecord = await this.prisma.workout.findUnique({
-      where: { workout_id: input.workoutId },
+      where: { workoutId: input.workoutId },
       include: {
         steps: {
           include: {
             targets: true,
-            repeat_block: {
+            repeatBlock: {
               include: {
-                child_steps: {
+                childSteps: {
                   include: {
                     targets: true,
                   },
-                  orderBy: { order_index: 'asc' },
+                  orderBy: { orderIndex: 'asc' },
                 },
               },
             },
           },
-          orderBy: { order_index: 'asc' },
+          orderBy: { orderIndex: 'asc' },
         },
       },
     });
@@ -318,10 +318,10 @@ export class GarminAdapter implements ProviderAdapter {
   }
 
   async deletePlannedWorkout(input: DeletePlannedWorkoutInput): Promise<void> {
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        athlete_id: input.athleteId,
-        provider: connector_provider.GARMIN,
+        athleteId: input.athleteId,
+        provider: ConnectorProvider.GARMIN,
         status: 'active',
       },
     });

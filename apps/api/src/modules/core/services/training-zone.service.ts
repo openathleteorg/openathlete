@@ -9,7 +9,6 @@ import {
 import {
   CreateTrainingZoneDto,
   UpdateTrainingZoneDto,
-  keysToCamel,
 } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -27,48 +26,48 @@ export class TrainingZoneService {
     const ability = await this.abilities.getFor({ user });
     // Check access to athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: athleteId },
+      where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('read', subject('athlete', athlete))) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
-    const zones = await this.prisma.training_zone.findMany({
-      where: { athlete_id: athleteId },
+    const zones = await this.prisma.trainingZone.findMany({
+      where: { athleteId: athleteId },
       include: { values: true },
       orderBy: { index: 'asc' },
     });
-    return zones.map(keysToCamel);
+    return zones;
   }
 
   async create(user: AuthUser, dto: CreateTrainingZoneDto) {
     const ability = await this.abilities.getFor({ user });
     // Check access to athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: dto.athleteId },
+      where: { athleteId: dto.athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('update', subject('athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
-    const existingCount = await this.prisma.training_zone.count({
-      where: { athlete_id: dto.athleteId, type: dto.type },
+    const existingCount = await this.prisma.trainingZone.count({
+      where: { athleteId: dto.athleteId, type: dto.type },
     });
-    const zone = await this.prisma.training_zone.create({
+    const zone = await this.prisma.trainingZone.create({
       data: {
         name: dto.name,
         description: dto.description ?? '',
         index: existingCount,
         type: dto.type,
         color: dto.color,
-        athlete_id: dto.athleteId,
+        athleteId: dto.athleteId,
         values: {
           create: [{ min: dto.min, max: dto.max, sports: dto.sports }],
         },
       },
       include: { values: true },
     });
-    return keysToCamel(zone);
+    return zone;
   }
 
   async update(
@@ -77,21 +76,21 @@ export class TrainingZoneService {
     dto: UpdateTrainingZoneDto,
   ) {
     const ability = await this.abilities.getFor({ user });
-    const zone = await this.prisma.training_zone.findUnique({
-      where: { training_zone_id: trainingZoneId },
+    const zone = await this.prisma.trainingZone.findUnique({
+      where: { trainingZoneId: trainingZoneId },
       include: { values: true },
     });
     if (!zone) throw new NotFoundException('Training zone not found');
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: zone.athlete_id },
+      where: { athleteId: zone.athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('update', subject('athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
     // For now, update only the first value
-    const updatedZone = await this.prisma.training_zone.update({
-      where: { training_zone_id: trainingZoneId },
+    const updatedZone = await this.prisma.trainingZone.update({
+      where: { trainingZoneId: trainingZoneId },
       data: {
         name: dto.name,
         description: dto.description ?? '',
@@ -102,8 +101,7 @@ export class TrainingZoneService {
             ? [
                 {
                   where: {
-                    training_zone_value_id:
-                      zone.values[0].training_zone_value_id,
+                    trainingZoneValueId: zone.values[0].trainingZoneValueId,
                   },
                   data: { min: dto.min, max: dto.max, sports: dto.sports },
                 },
@@ -113,27 +111,27 @@ export class TrainingZoneService {
       },
       include: { values: true },
     });
-    return keysToCamel(updatedZone);
+    return updatedZone;
   }
 
   async delete(user: AuthUser, trainingZoneId: number) {
     const ability = await this.abilities.getFor({ user });
-    const zone = await this.prisma.training_zone.findUnique({
-      where: { training_zone_id: trainingZoneId },
+    const zone = await this.prisma.trainingZone.findUnique({
+      where: { trainingZoneId: trainingZoneId },
     });
     if (!zone) throw new NotFoundException('Training zone not found');
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: zone.athlete_id },
+      where: { athleteId: zone.athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('update', subject('athlete', athlete))) {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
-    await this.prisma.training_zone_value.deleteMany({
-      where: { training_zone_id: trainingZoneId },
+    await this.prisma.trainingZoneValue.deleteMany({
+      where: { trainingZoneId: trainingZoneId },
     });
-    await this.prisma.training_zone.delete({
-      where: { training_zone_id: trainingZoneId },
+    await this.prisma.trainingZone.delete({
+      where: { trainingZoneId: trainingZoneId },
     });
     return { success: true };
   }

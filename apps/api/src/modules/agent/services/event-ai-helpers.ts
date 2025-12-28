@@ -1,7 +1,7 @@
 import { RuntimeContext } from '@mastra/core/runtime-context';
 import { z } from 'zod';
 
-import { athlete_metric, training_zone_type } from '@openathlete/database';
+import { AthleteMetric, TrainingZoneType } from '@openathlete/database';
 import {
   METRIC_TYPE,
   WORKOUT_STEP_TYPE,
@@ -17,7 +17,7 @@ export type TrainingEventSchema = z.infer<typeof trainingEventSchema>;
 
 // Types for zones and metrics
 type Zone = {
-  training_zone_id: number;
+  trainingZoneId: number;
   type: string;
   index: number;
   name: string;
@@ -146,8 +146,8 @@ export async function fetchAthleteZones(
   prismaService: PrismaService,
   athleteId: number,
 ): Promise<Zone[]> {
-  return await prismaService.training_zone.findMany({
-    where: { athlete_id: athleteId },
+  return await prismaService.trainingZone.findMany({
+    where: { athleteId: athleteId },
     include: { values: true },
     orderBy: { index: 'asc' },
   });
@@ -159,9 +159,9 @@ export async function fetchAthleteZones(
 export async function fetchAthleteMetrics(
   prismaService: PrismaService,
   athleteId: number,
-): Promise<athlete_metric[]> {
-  return await prismaService.athlete_metric.findMany({
-    where: { athlete_id: athleteId },
+): Promise<AthleteMetric[]> {
+  return await prismaService.athleteMetric.findMany({
+    where: { athleteId: athleteId },
     orderBy: { date: 'desc' },
   });
 }
@@ -170,7 +170,7 @@ export async function fetchAthleteMetrics(
  * Group metrics by type and get latest value for each
  */
 export function getLatestMetrics(
-  metrics: athlete_metric[],
+  metrics: AthleteMetric[],
 ): Record<METRIC_TYPE, number> {
   const latest = metrics.reduce(
     (acc, metric) => {
@@ -204,14 +204,14 @@ export function getLatestMetrics(
  */
 export function formatZonesByType(
   zones: Zone[],
-): Record<training_zone_type, Zone[]> {
+): Record<TrainingZoneType, Zone[]> {
   return zones.reduce(
     (acc, zone) => {
       if (!acc[zone.type]) {
         acc[zone.type] = [];
       }
       acc[zone.type].push({
-        training_zone_id: zone.training_zone_id,
+        trainingZoneId: zone.trainingZoneId,
         type: zone.type,
         index: zone.index,
         name: zone.name,
@@ -232,7 +232,7 @@ export function formatZonesByType(
  * Build zones context string for prompt
  */
 export function buildZonesContext(
-  zonesByType: Record<training_zone_type, Zone[]>,
+  zonesByType: Record<TrainingZoneType, Zone[]>,
 ): string {
   return Object.entries(zonesByType)
     .map(
@@ -241,9 +241,9 @@ ${type} Zones:
 ${zoneList
   .map(
     (zone) =>
-      `  Zone ID ${zone.training_zone_id} (display: Zone ${zone.index + 1}): ${zone.name} - ${zone.description}
+      `  Zone ID ${zone.trainingZoneId} (display: Zone ${zone.index + 1}): ${zone.name} - ${zone.description}
     Values: ${zone.values.map((v) => `${v.min}-${v.max} (sports: ${v.sports.join(', ')})`).join(', ')}
-    IMPORTANT: Use zone ID ${zone.training_zone_id} for ZONE targets of type ${type}`,
+    IMPORTANT: Use zone ID ${zone.trainingZoneId} for ZONE targets of type ${type}`,
   )
   .join('\n')}`,
     )
@@ -281,9 +281,9 @@ export function createZoneIdMap(
 ): Map<number, { type: string; id: number }> {
   const zoneIdMap = new Map<number, { type: string; id: number }>();
   zones.forEach((zone) => {
-    zoneIdMap.set(zone.training_zone_id, {
+    zoneIdMap.set(zone.trainingZoneId, {
       type: zone.type,
-      id: zone.training_zone_id,
+      id: zone.trainingZoneId,
     });
   });
   return zoneIdMap;
@@ -306,7 +306,7 @@ export function validateZoneTarget(
         (z) => z.index === zoneId || z.index === zoneId - 1,
       );
       if (zoneByIndex) {
-        target.targetValue = zoneByIndex.training_zone_id;
+        target.targetValue = zoneByIndex.trainingZoneId;
         return { target, fixed: true };
       } else {
         return { target: null, fixed: false };
@@ -448,13 +448,13 @@ export function buildWorkoutTargetsInstructions(): string {
   return `WORKOUT TARGETS:
 - Each workout step can have targets to specify intensity/pace/power/heartrate/etc.
 - Use targets to make workouts more specific and actionable
-- For ZONE targets: Use the zone ID (training_zone_id) from the zones listed above. Zones are athlete-specific and vary in number.
+- For ZONE targets: Use the zone ID (trainingZoneId) from the zones listed above. Zones are athlete-specific and vary in number.
 - Prefer ZONE targets when the intensity is subjective (e.g., "easy pace", "tempo", "threshold") as zones are more flexible
 - For specific values: Use PACE (expressed in min/km, e.g., 4.2 = 4:12 min/km), HEARTRATE (bpm), POWER (watts), CADENCE (rpm/spm), or RPE (1-10)
-- When using zones, reference them by their ID (the training_zone_id number shown in the context)
+- When using zones, reference them by their ID (the trainingZoneId number shown in the context)
 - Example: For a tempo run in HEARTRATE zones, use ZONE target with targetValue set to the tempo zone ID (e.g., if tempo zone has ID 42, use targetValue: 42)
 - When metrics are available (FTP, VMA, etc.), you can use metricType to set targets as percentages of metrics
-- For ZONE targets: targetValue should be the zone ID (training_zone_id), no unit needed
+- For ZONE targets: targetValue should be the zone ID (trainingZoneId), no unit needed
 - IMPORTANT: Match the zone type to the target context (HEARTRATE zones for heartrate targets, POWER zones for power targets, PACE zones for pace targets)
 - For other targets: specify targetMin/targetMax for ranges, or targetValue for single values, with appropriate unit
 

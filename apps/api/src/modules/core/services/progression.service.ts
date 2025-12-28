@@ -1,12 +1,12 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import {
+  Athlete,
+  Event,
+  EventActivity,
+  EventType,
   Prisma,
-  athlete,
-  event,
-  event_activity,
-  event_type,
-  sport_type,
+  SportType,
 } from '@openathlete/database';
 import { GetProgressionDataResponseDto } from '@openathlete/shared';
 
@@ -23,17 +23,17 @@ export class ProgressionService {
 
   async getFirstActivityDate(
     user: AuthUser,
-    athleteId: athlete['athlete_id'],
-    sport?: sport_type,
+    athleteId: Athlete['athleteId'],
+    sport?: SportType,
   ): Promise<Date | null> {
     const ability = await this.abilities.getFor({ user });
     if (!ability.can('read', 'athlete')) {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
-    const whereClause: Prisma.eventWhereInput = {
-      athlete_id: athleteId,
-      type: event_type.ACTIVITY,
+    const whereClause: Prisma.EventWhereInput = {
+      athleteId: athleteId,
+      type: EventType.ACTIVITY,
       activity: {
         isNot: null,
       },
@@ -51,22 +51,22 @@ export class ProgressionService {
     const firstEvent = await this.prisma.event.findFirst({
       where: whereClause,
       orderBy: {
-        start_date: 'asc',
+        startDate: 'asc',
       },
       select: {
-        start_date: true,
+        startDate: true,
       },
     });
 
-    return firstEvent?.start_date ? new Date(firstEvent.start_date) : null;
+    return firstEvent?.startDate ? new Date(firstEvent.startDate) : null;
   }
 
   async getProgressionData(
     user: AuthUser,
-    athleteId: athlete['athlete_id'],
+    athleteId: Athlete['athleteId'],
     startDate: Date,
     endDate: Date,
-    sport?: sport_type,
+    sport?: SportType,
   ): Promise<GetProgressionDataResponseDto> {
     const ability = await this.abilities.getFor({ user });
     if (!ability.can('read', 'athlete')) {
@@ -79,10 +79,10 @@ export class ProgressionService {
       daysDiff <= 120 ? 'week' : 'month';
 
     // Build where clause
-    const whereClause: Prisma.eventWhereInput = {
-      athlete_id: athleteId,
-      type: event_type.ACTIVITY,
-      start_date: {
+    const whereClause: Prisma.EventWhereInput = {
+      athleteId: athleteId,
+      type: EventType.ACTIVITY,
+      startDate: {
         gte: startDate,
         lte: endDate,
       },
@@ -108,13 +108,13 @@ export class ProgressionService {
         activity: true,
       },
       orderBy: {
-        start_date: 'asc',
+        startDate: 'asc',
       },
     });
 
     // Filter to only events with activities
     const activities = events.filter(
-      (e): e is event & { activity: event_activity } => e.activity !== null,
+      (e): e is Event & { activity: EventActivity } => e.activity !== null,
     );
 
     if (activities.length === 0) {
@@ -128,7 +128,7 @@ export class ProgressionService {
     const grouped = new Map<string, typeof activities>();
 
     activities.forEach((event) => {
-      const eventDate = new Date(event.start_date);
+      const eventDate = new Date(event.startDate);
       let periodKey: string;
 
       if (aggregationType === 'week') {
@@ -164,14 +164,14 @@ export class ProgressionService {
           0,
         );
         const totalElevationGain = periodActivities.reduce(
-          (sum, e) => sum + (e.activity.elevation_gain || 0),
+          (sum, e) => sum + (e.activity.elevationGain || 0),
           0,
         );
         const activityCount = periodActivities.length;
 
         // Calculate averages
         const speeds = periodActivities
-          .map((e) => e.activity.average_speed)
+          .map((e) => e.activity.averageSpeed)
           .filter((s): s is number => s !== null && s !== undefined);
         const averageSpeed =
           speeds.length > 0
@@ -179,7 +179,7 @@ export class ProgressionService {
             : 0;
 
         const gapSpeeds = periodActivities
-          .map((e) => e.activity.average_gap_speed)
+          .map((e) => e.activity.averageGapSpeed)
           .filter((g): g is number => g !== null && g !== undefined);
         const averageGapSpeed =
           gapSpeeds.length > 0
@@ -187,7 +187,7 @@ export class ProgressionService {
             : null;
 
         const heartrates = periodActivities
-          .map((e) => e.activity.average_heartrate)
+          .map((e) => e.activity.averageHeartrate)
           .filter((h): h is number => h !== null && h !== undefined);
         const averageHeartrate =
           heartrates.length > 0
@@ -195,7 +195,7 @@ export class ProgressionService {
             : null;
 
         const cadences = periodActivities
-          .map((e) => e.activity.average_cadence)
+          .map((e) => e.activity.averageCadence)
           .filter((c): c is number => c !== null && c !== undefined);
         const averageCadence =
           cadences.length > 0

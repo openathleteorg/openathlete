@@ -17,7 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { invitation_status } from '@openathlete/database';
+import { InvitationStatus } from '@openathlete/database';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -190,7 +190,7 @@ export class CoachController {
           },
           status: {
             type: 'string',
-            enum: Object.values(invitation_status),
+            enum: Object.values(InvitationStatus),
             example: 'PENDING',
           },
           athleteUserId: { type: 'number', example: 1 },
@@ -234,7 +234,7 @@ export class CoachController {
   })
   getPendingInvitations(@JwtUser() user: AuthUser) {
     return this.coachInvitationService.getPendingInvitationsForCoach(
-      user.user_id,
+      user.userId,
     );
   }
 
@@ -274,7 +274,7 @@ export class CoachController {
     @Param('invitationId', ParseIntPipe) invitationId: number,
   ) {
     return this.coachInvitationService.acceptInvitation(
-      user.user_id,
+      user.userId,
       invitationId,
     );
   }
@@ -315,7 +315,7 @@ export class CoachController {
     @Param('invitationId', ParseIntPipe) invitationId: number,
   ) {
     return this.coachInvitationService.rejectInvitation(
-      user.user_id,
+      user.userId,
       invitationId,
     );
   }

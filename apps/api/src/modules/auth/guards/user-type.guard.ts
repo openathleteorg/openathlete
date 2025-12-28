@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { user } from '@openathlete/database';
+import { User } from '@openathlete/database';
 
 import { UserTypes } from '../decorators';
 
@@ -19,7 +19,7 @@ export class UserTypeGuard implements CanActivate {
       return true;
     }
 
-    const { user } = context.switchToHttp().getRequest<{ user: user | null }>();
+    const { user } = context.switchToHttp().getRequest<{ user: User | null }>();
 
     if (!user) {
       return false;

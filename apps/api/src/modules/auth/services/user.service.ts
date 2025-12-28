@@ -297,7 +297,7 @@ export class UserService {
     }
 
     const token = await this.tokenService.createToken(
-      { user_id: user.userId },
+      { userId: user.userId },
       TokenType.PASSWORD_RESET,
     );
 
@@ -328,7 +328,7 @@ export class UserService {
     }
 
     await this.prisma.user.update({
-      where: { userId: user.user_id },
+      where: { userId: user.userId },
       data: { password: hashedPassword },
     });
   };

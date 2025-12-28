@@ -1,10 +1,10 @@
+import { SportType } from '@openathlete/database';
 import type {
   WorkoutDto,
   WorkoutStepDto,
   WorkoutStepTargetDto,
 } from '@openathlete/shared';
 import {
-  SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
@@ -55,7 +55,7 @@ function resolveTargetValues(
  */
 function mapTargetToSuuntoField(
   target: WorkoutStepTargetDto | undefined,
-  sport: SPORT_TYPE,
+  sport: SportType,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoField | null {
   if (!target || target.targetType === WORKOUT_TARGET_TYPE.OPEN) {
@@ -254,7 +254,7 @@ function mapDurationToCondition(
  */
 function mapStepToFields(
   step: WorkoutStepDto,
-  sport: SPORT_TYPE,
+  sport: SportType,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoField[] {
   const fields: SuuntoField[] = [];
@@ -267,20 +267,24 @@ function mapStepToFields(
     fields.push(targetField);
   }
 
-  const isRunning = [
-    SPORT_TYPE.RUNNING,
-    SPORT_TYPE.TRAIL_RUNNING,
-    SPORT_TYPE.VIRTUAL_RUN,
-  ].includes(sport);
-  const isCycling = [
-    SPORT_TYPE.CYCLING,
-    SPORT_TYPE.MOUNTAIN_BIKE_RIDE,
-    SPORT_TYPE.GRAVEL_RIDE,
-    SPORT_TYPE.E_BIKE_RIDE,
-    SPORT_TYPE.E_MOUNTAIN_BIKE_RIDE,
-    SPORT_TYPE.VIRTUAL_RIDE,
-  ].includes(sport);
-  const isSwimming = sport === SPORT_TYPE.SWIMMING;
+  const isRunning = (
+    [
+      SportType.RUNNING,
+      SportType.TRAIL_RUNNING,
+      SportType.VIRTUAL_RUN,
+    ] as SportType[]
+  ).includes(sport);
+  const isCycling = (
+    [
+      SportType.CYCLING,
+      SportType.MOUNTAIN_BIKE_RIDE,
+      SportType.GRAVEL_RIDE,
+      SportType.E_BIKE_RIDE,
+      SportType.E_MOUNTAIN_BIKE_RIDE,
+      SportType.VIRTUAL_RIDE,
+    ] as SportType[]
+  ).includes(sport);
+  const isSwimming = sport === SportType.SWIMMING;
 
   // Add countdown field
   if (step.durationType === WORKOUT_DURATION_TYPE.TIME && step.durationValue) {
@@ -389,7 +393,7 @@ function mapStepToFields(
  */
 function mapStepToSuuntoFieldsStep(
   step: WorkoutStepDto,
-  sport: SPORT_TYPE,
+  sport: SportType,
   metrics?: Record<string, { value: number } | number>,
 ): SuuntoFieldsStep {
   const fields = mapStepToFields(step, sport, metrics);
@@ -429,7 +433,7 @@ function mapStepToSuuntoFieldsStep(
  */
 export function mapWorkoutDtoToSuuntoGuide(
   workout: WorkoutDto,
-  sport: SPORT_TYPE,
+  sport: SportType,
   title: string | null,
   description: string | null,
   date: string, // YYYY-MM-DD

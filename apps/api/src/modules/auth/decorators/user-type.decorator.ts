@@ -1,5 +1,5 @@
 import { Reflector } from '@nestjs/core';
 
-import { user_role } from '@openathlete/database';
+import { UserRole } from '@openathlete/database';
 
-export const UserTypes = Reflector.createDecorator<user_role[]>();
+export const UserTypes = Reflector.createDecorator<UserRole[]>();

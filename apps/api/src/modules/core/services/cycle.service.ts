@@ -6,8 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { cycle } from '@openathlete/database';
-import { CreateCycleDto, keysToCamel, keysToSnake } from '@openathlete/shared';
+import { Cycle } from '@openathlete/database';
+import { CreateCycleDto } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -24,8 +24,8 @@ export class CycleService {
   async getMyCycles(user: AuthUser, isCoach: boolean, athleteId?: number) {
     if (isCoach && athleteId) {
       // For coaches, filter to specific athlete if provided
-      const coachAthlete = user.coach_athletes?.find(
-        (ca) => ca.athlete_id === athleteId,
+      const coachAthlete = user.coachAthletes?.find(
+        (ca) => ca.athleteId === athleteId,
       );
       if (!coachAthlete) {
         throw new ForbiddenException('You are not coaching this athlete');
@@ -37,16 +37,16 @@ export class CycleService {
     const cycles = await this.prisma.cycle.findMany({
       where: {
         AND: [
-          accessibleBy(ability, 'read').cycle,
+          accessibleBy(ability, 'read').Cycle,
           athleteId
-            ? { athlete_id: athleteId }
+            ? { athleteId: athleteId }
             : isCoach
               ? {
-                  athlete_id: {
-                    in: user.coach_athletes?.map((ca) => ca.athlete_id) || [],
+                  athleteId: {
+                    in: user.coachAthletes?.map((ca) => ca.athleteId) || [],
                   },
                 }
-              : { athlete_id: user?.athlete?.athlete_id || null },
+              : { athleteId: user?.athlete?.athleteId || null },
         ],
       },
       include: {
@@ -54,15 +54,15 @@ export class CycleService {
       },
     });
 
-    return cycles.map((cycle) => keysToCamel(cycle));
+    return cycles;
   }
 
-  async getCycleById(user: AuthUser, cycleId: cycle['cycle_id']) {
+  async getCycleById(user: AuthUser, cycleId: Cycle['cycleId']) {
     const ability = await this.abilities.getFor({ user });
 
     const cycle = await this.prisma.cycle.findFirst({
       where: {
-        AND: [{ cycle_id: cycleId }, accessibleBy(ability, 'read').cycle],
+        AND: [{ cycleId: cycleId }, accessibleBy(ability, 'read').Cycle],
       },
       include: {
         athlete: true,
@@ -73,15 +73,13 @@ export class CycleService {
       throw new NotFoundException('Cycle not found');
     }
 
-    return keysToCamel(cycle);
+    return cycle;
   }
 
   async createCycle(user: AuthUser, data: CreateCycleDto) {
     const ability = await this.abilities.getFor({ user });
 
-    const { athlete_id, ...rest } = keysToSnake(data);
-
-    const finalAthleteId = athlete_id || user?.athlete?.athlete_id;
+    const finalAthleteId = data.athleteId || user?.athlete?.athleteId;
 
     if (!finalAthleteId) {
       throw new ForbiddenException('Athlete ID is required');
@@ -90,15 +88,16 @@ export class CycleService {
     if (
       !ability.can(
         'create',
-        subject('cycle', { athlete_id: finalAthleteId } as cycle),
+        subject('cycle', { athleteId: finalAthleteId } as Cycle),
       )
     ) {
       throw new ForbiddenException('You are not allowed to create this cycle');
     }
 
+    const { athleteId, ...rest } = data;
     const cycle = await this.prisma.cycle.create({
       data: {
-        athlete_id: finalAthleteId,
+        athleteId: finalAthleteId,
         ...rest,
       },
       include: {
@@ -106,19 +105,19 @@ export class CycleService {
       },
     });
 
-    return keysToCamel(cycle);
+    return cycle;
   }
 
   async updateCycle(
     user: AuthUser,
-    cycleId: cycle['cycle_id'],
+    cycleId: Cycle['cycleId'],
     data: Partial<CreateCycleDto>,
   ) {
     const ability = await this.abilities.getFor({ user });
 
     const cycle = await this.prisma.cycle.findFirst({
       where: {
-        AND: [{ cycle_id: cycleId }, accessibleBy(ability, 'update').cycle],
+        AND: [{ cycleId: cycleId }, accessibleBy(ability, 'update').Cycle],
       },
     });
 
@@ -126,25 +125,23 @@ export class CycleService {
       throw new NotFoundException('Cycle not found');
     }
 
-    const updateData = keysToSnake(data);
-
     const updatedCycle = await this.prisma.cycle.update({
-      where: { cycle_id: cycleId },
-      data: updateData,
+      where: { cycleId: cycleId },
+      data: data,
       include: {
         athlete: true,
       },
     });
 
-    return keysToCamel(updatedCycle);
+    return updatedCycle;
   }
 
-  async deleteCycle(user: AuthUser, cycleId: cycle['cycle_id']) {
+  async deleteCycle(user: AuthUser, cycleId: Cycle['cycleId']) {
     const ability = await this.abilities.getFor({ user });
 
     const cycle = await this.prisma.cycle.findFirst({
       where: {
-        AND: [{ cycle_id: cycleId }, accessibleBy(ability, 'delete').cycle],
+        AND: [{ cycleId: cycleId }, accessibleBy(ability, 'delete').Cycle],
       },
     });
 
@@ -153,7 +150,7 @@ export class CycleService {
     }
 
     await this.prisma.cycle.delete({
-      where: { cycle_id: cycleId },
+      where: { cycleId: cycleId },
     });
 
     return { success: true };

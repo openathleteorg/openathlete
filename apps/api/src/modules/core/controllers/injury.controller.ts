@@ -14,7 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { athlete } from '@openathlete/database';
+import { Athlete } from '@openathlete/database';
 import { AthleteInjury, INJURY_STATUS } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
@@ -135,7 +135,7 @@ export class InjuryController {
   })
   getInjuries(
     @JwtUser() user: AuthUser,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ): Promise<AthleteInjury[]> {
     return this.injuryService.getInjuries(user, athleteId);
   }

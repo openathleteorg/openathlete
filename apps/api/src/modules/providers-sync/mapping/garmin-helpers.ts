@@ -1,5 +1,5 @@
+import { SportType } from '@openathlete/database';
 import {
-  SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
@@ -7,36 +7,36 @@ import {
 } from '@openathlete/shared';
 import type { NormalizedWorkoutStep } from '@openathlete/shared';
 
-export function mapSportToGarmin(sport: SPORT_TYPE): string {
+export function mapSportToGarmin(sport: SportType): string {
   switch (sport) {
-    case SPORT_TYPE.RUNNING:
-    case SPORT_TYPE.TRAIL_RUNNING:
-    case SPORT_TYPE.VIRTUAL_RUN:
+    case SportType.RUNNING:
+    case SportType.TRAIL_RUNNING:
+    case SportType.VIRTUAL_RUN:
       return 'RUNNING';
-    case SPORT_TYPE.CYCLING:
-    case SPORT_TYPE.E_BIKE_RIDE:
-    case SPORT_TYPE.E_MOUNTAIN_BIKE_RIDE:
-    case SPORT_TYPE.GRAVEL_RIDE:
-    case SPORT_TYPE.MOUNTAIN_BIKE_RIDE:
-    case SPORT_TYPE.VIRTUAL_RIDE:
-    case SPORT_TYPE.HANDCYCLE:
+    case SportType.CYCLING:
+    case SportType.E_BIKE_RIDE:
+    case SportType.E_MOUNTAIN_BIKE_RIDE:
+    case SportType.GRAVEL_RIDE:
+    case SportType.MOUNTAIN_BIKE_RIDE:
+    case SportType.VIRTUAL_RIDE:
+    case SportType.HANDCYCLE:
       return 'CYCLING';
-    case SPORT_TYPE.SWIMMING:
+    case SportType.SWIMMING:
       return 'LAP_SWIMMING';
-    case SPORT_TYPE.WEIGHT_TRAINING:
-    case SPORT_TYPE.STRENGTH:
+    case SportType.WEIGHT_TRAINING:
+    case SportType.STRENGTH:
       return 'STRENGTH_TRAINING';
-    case SPORT_TYPE.HIGH_INTENSITY_INTERVAL_TRAINING:
-    case SPORT_TYPE.CROSSFIT:
+    case SportType.HIGH_INTENSITY_INTERVAL_TRAINING:
+    case SportType.CROSSFIT:
       return 'CARDIO_TRAINING';
-    case SPORT_TYPE.YOGA:
+    case SportType.YOGA:
       return 'YOGA';
-    case SPORT_TYPE.PILATES:
+    case SportType.PILATES:
       return 'PILATES';
-    case SPORT_TYPE.TRIATHLON:
-    case SPORT_TYPE.DUATHLON:
-    case SPORT_TYPE.AQUATHLON:
-    case SPORT_TYPE.AQUABIKE:
+    case SportType.TRIATHLON:
+    case SportType.DUATHLON:
+    case SportType.AQUATHLON:
+    case SportType.AQUABIKE:
       return 'GENERIC';
     default:
       return 'GENERIC';
@@ -45,7 +45,7 @@ export function mapSportToGarmin(sport: SPORT_TYPE): string {
 
 export function mapStepTypeToGarminIntensity(
   stepType: string,
-  sport: SPORT_TYPE,
+  sport: SportType,
 ): string {
   switch (stepType) {
     case WORKOUT_STEP_TYPE.WARMUP:
@@ -53,7 +53,7 @@ export function mapStepTypeToGarminIntensity(
     case WORKOUT_STEP_TYPE.COOLDOWN:
       return 'COOLDOWN';
     case WORKOUT_STEP_TYPE.INTERVAL_REST:
-      return sport === SPORT_TYPE.SWIMMING ? 'REST' : 'RECOVERY';
+      return sport === SportType.SWIMMING ? 'REST' : 'RECOVERY';
     case WORKOUT_STEP_TYPE.INTERVAL_ACTIVE:
       return 'INTERVAL';
     case WORKOUT_STEP_TYPE.STEADY:
@@ -66,7 +66,7 @@ export function mapStepTypeToGarminIntensity(
 
 export function mapDurationTypeToGarmin(
   durationType: string,
-  __: SPORT_TYPE,
+  __: SportType,
   _: string,
 ): string {
   switch (durationType) {
@@ -93,9 +93,9 @@ export function mapDurationTypeToGarmin(
 
 export function mapTargetTypeToGarmin(
   targetType: string,
-  sport: SPORT_TYPE,
+  sport: SportType,
 ): string | null {
-  if (sport === SPORT_TYPE.SWIMMING) {
+  if (sport === SportType.SWIMMING) {
     return null;
   }
 
@@ -148,7 +148,7 @@ function convertFractionToPercent(
 
 export function mapTargetValue(
   target: NormalizedWorkoutStep['targets'][0],
-  sport: SPORT_TYPE,
+  sport: SportType,
   metrics?: Record<string, { value: number } | number>,
 ): {
   targetValue: number | null;

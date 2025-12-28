@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { equipment_type, sport_type } from '@openathlete/database';
+import { EquipmentType, SportType } from '@openathlete/database';
 import {
   CreateEquipmentDto,
   UpdateEquipmentDto,
@@ -63,7 +63,7 @@ export class EquipmentController {
         },
         type: {
           type: 'string',
-          enum: Object.values(equipment_type),
+          enum: Object.values(EquipmentType),
           description: 'Equipment type',
           example: 'SHOE',
         },
@@ -71,7 +71,7 @@ export class EquipmentController {
           type: 'array',
           items: {
             type: 'string',
-            enum: Object.values(sport_type),
+            enum: Object.values(SportType),
           },
           description: 'Array of sports this equipment is used for',
           example: ['RUNNING', 'TRAIL_RUNNING'],
@@ -99,7 +99,7 @@ export class EquipmentController {
         name: { type: 'string', example: 'Nike Air Zoom Pegasus 40' },
         type: {
           type: 'string',
-          enum: Object.values(equipment_type),
+          enum: Object.values(EquipmentType),
           example: 'SHOE',
         },
         sports: {
@@ -162,7 +162,7 @@ export class EquipmentController {
         },
         type: {
           type: 'string',
-          enum: Object.values(equipment_type),
+          enum: Object.values(EquipmentType),
           description: 'Updated equipment type',
           example: 'SHOE',
         },
@@ -170,7 +170,7 @@ export class EquipmentController {
           type: 'array',
           items: {
             type: 'string',
-            enum: Object.values(sport_type),
+            enum: Object.values(SportType),
           },
           description: 'Updated array of sports',
           example: ['RUNNING'],
@@ -195,7 +195,7 @@ export class EquipmentController {
         name: { type: 'string', example: 'Nike Air Zoom Pegasus 41' },
         type: {
           type: 'string',
-          enum: Object.values(equipment_type),
+          enum: Object.values(EquipmentType),
           example: 'SHOE',
         },
         sports: {
@@ -290,7 +290,7 @@ export class EquipmentController {
           name: { type: 'string', example: 'Nike Air Zoom Pegasus 40' },
           type: {
             type: 'string',
-            enum: Object.values(equipment_type),
+            enum: Object.values(EquipmentType),
             example: 'SHOE',
           },
           sports: {
@@ -333,7 +333,7 @@ export class EquipmentController {
   @ApiQuery({
     name: 'sport',
     type: String,
-    enum: Object.values(sport_type),
+    enum: Object.values(SportType),
     description: 'Sport type to get default equipment for',
     example: 'RUNNING',
     required: true,
@@ -351,7 +351,7 @@ export class EquipmentController {
         name: { type: 'string', example: 'Nike Air Zoom Pegasus 40' },
         type: {
           type: 'string',
-          enum: Object.values(equipment_type),
+          enum: Object.values(EquipmentType),
           example: 'SHOE',
         },
         sports: {
@@ -380,7 +380,7 @@ export class EquipmentController {
   })
   getDefaultEquipmentForSport(
     @JwtUser() user: AuthUser,
-    @Query('sport') sport: sport_type,
+    @Query('sport') sport: SportType,
   ) {
     return this.equipmentService.getDefaultEquipmentForSport(user, sport);
   }

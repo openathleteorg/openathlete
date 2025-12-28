@@ -40,8 +40,8 @@ export class MessageNotificationScheduler {
     const now = new Date();
     const since = new Date(now.getTime() - 24 * 60 * 60 * 1000); // safety window
 
-    const rawParticipants =
-      await this.prisma.message_thread_participant.findMany({
+    const rawParticipants = await this.prisma.messageThreadParticipant.findMany(
+      {
         where: {
           user: {
             email: {
@@ -52,41 +52,42 @@ export class MessageNotificationScheduler {
         include: {
           user: {
             select: {
-              user_id: true,
+              userId: true,
               email: true,
-              first_name: true,
-              last_name: true,
+              firstName: true,
+              lastName: true,
             },
           },
           thread: {
             include: {
               messages: {
                 where: {
-                  created_at: {
+                  createdAt: {
                     gte: since,
                   },
                 },
                 include: {
                   sender: {
                     select: {
-                      first_name: true,
-                      last_name: true,
+                      firstName: true,
+                      lastName: true,
                     },
                   },
-                  read_receipts: true,
+                  readReceipts: true,
                 },
                 orderBy: {
-                  created_at: 'asc',
+                  createdAt: 'asc',
                 },
               },
             },
           },
         },
-      });
+      },
+    );
 
     const participants = rawParticipants as unknown as Array<
       (typeof rawParticipants)[number] & {
-        last_notification_at: Date | null;
+        lastNotificationAt: Date | null;
       }
     >;
 
@@ -97,24 +98,24 @@ export class MessageNotificationScheduler {
     const inboxUrl = `${appUrl.replace(/\/$/, '')}/dashboard/messages`;
 
     for (const participant of participants) {
-      const recipientEmail = participant.user.email;
+      const recipientEmail = participant.user?.email;
       if (!recipientEmail) {
         continue;
       }
 
-      const userId = participant.user.user_id;
-      const lastNotificationAt = participant.last_notification_at;
+      const userId = participant.user.userId;
+      const lastNotificationAt = participant.lastNotificationAt;
       const unreadMessages = participant.thread.messages.filter((message) => {
-        if (message.sender_id === userId) {
+        if (message.senderId === userId) {
           return false;
         }
 
-        if (lastNotificationAt && message.created_at <= lastNotificationAt) {
+        if (lastNotificationAt && message.createdAt <= lastNotificationAt) {
           return false;
         }
 
-        const hasReadReceipt = message.read_receipts.some(
-          (rr) => rr.user_id === userId,
+        const hasReadReceipt = message.readReceipts.some(
+          (rr) => rr.userId === userId,
         );
         if (hasReadReceipt) {
           return false;
@@ -128,7 +129,7 @@ export class MessageNotificationScheduler {
       }
 
       const lastMessage = unreadMessages[unreadMessages.length - 1];
-      const lastMessageAt = lastMessage.created_at;
+      const lastMessageAt = lastMessage.createdAt;
 
       if (now.getTime() - lastMessageAt.getTime() < TEN_MINUTES_IN_MS) {
         continue;
@@ -138,8 +139,8 @@ export class MessageNotificationScheduler {
         const htmlContent = buildMessageThreadNotificationEmail({
           threadTitle: participant.thread.title,
           messages: unreadMessages.map((message) => {
-            const senderFirstName = message.sender.first_name || '';
-            const senderLastName = message.sender.last_name || '';
+            const senderFirstName = message.sender.firstName || '';
+            const senderLastName = message.sender.lastName || '';
             const senderName =
               `${senderFirstName} ${senderLastName}`.trim() || 'OpenAthlete';
 
@@ -152,7 +153,7 @@ export class MessageNotificationScheduler {
             return {
               senderName,
               contentSnippet: snippet,
-              createdAtIso: message.created_at.toISOString(),
+              createdAtIso: message.createdAt.toISOString(),
             };
           }),
           inboxUrl,
@@ -171,25 +172,24 @@ export class MessageNotificationScheduler {
         await this.apiInstance.sendTransacEmail(sendSmtpEmail);
         await (
           this.prisma as unknown as {
-            message_thread_participant: {
+            messageThreadParticipant: {
               update: (args: {
-                where: { message_thread_participant_id: number };
-                data: { last_notification_at: Date };
+                where: { messageThreadParticipantId: number };
+                data: { lastNotificationAt: Date };
               }) => Promise<void>;
             };
           }
-        ).message_thread_participant.update({
+        ).messageThreadParticipant.update({
           where: {
-            message_thread_participant_id:
-              participant.message_thread_participant_id,
+            messageThreadParticipantId: participant.messageThreadParticipantId,
           },
           data: {
-            last_notification_at: lastMessageAt,
+            lastNotificationAt: lastMessageAt,
           },
         });
       } catch (error) {
         this.logger.error(
-          `Failed to send message-thread-notification email to ${recipientEmail} for thread ${participant.message_thread_id}`,
+          `Failed to send message-thread-notification email to ${recipientEmail} for thread ${participant.messageThreadId}`,
           error instanceof Error ? error.stack : String(error),
         );
       }

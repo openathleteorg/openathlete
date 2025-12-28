@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { Prisma, agent_message } from '@openathlete/database';
+import { AgentMessage, Prisma } from '@openathlete/database';
 import { CreateMessageDto } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -24,12 +24,12 @@ export class MessageService {
   async createMessage(
     user: AuthUser,
     dto: CreateMessageDto,
-  ): Promise<agent_message> {
+  ): Promise<AgentMessage> {
     await this.threadService.getThreadById(user, dto.threadId);
 
-    const message = await this.prisma.agent_message.create({
+    const message = await this.prisma.agentMessage.create({
       data: {
-        thread_id: dto.threadId,
+        threadId: dto.threadId,
         role: dto.role || 'USER',
         metadata: (dto.metadata || {}) as Prisma.InputJsonValue,
         blocks: dto.blocks
@@ -41,15 +41,15 @@ export class MessageService {
                 metadata: (block.metadata || {}) as Prisma.InputJsonValue,
                 status: block.status || 'completed',
                 error: block.error,
-                tool_name: block.toolName,
-                tool_input: block.toolInput
+                toolName: block.toolName,
+                toolInput: block.toolInput
                   ? (block.toolInput as Prisma.InputJsonValue)
                   : undefined,
-                tool_output: block.toolOutput
+                toolOutput: block.toolOutput
                   ? (block.toolOutput as Prisma.InputJsonValue)
                   : undefined,
-                chart_type: block.chartType,
-                chart_data: block.chartData
+                chartType: block.chartType,
+                chartData: block.chartData
                   ? (block.chartData as Prisma.InputJsonValue)
                   : undefined,
               })),
@@ -65,9 +65,9 @@ export class MessageService {
   async getMessageById(
     user: AuthUser,
     messageId: number,
-  ): Promise<agent_message> {
-    const message = await this.prisma.agent_message.findUnique({
-      where: { message_id: messageId },
+  ): Promise<AgentMessage> {
+    const message = await this.prisma.agentMessage.findUnique({
+      where: { messageId: messageId },
       include: {
         ...MESSAGE_INCLUDES,
         thread: true,
@@ -78,7 +78,7 @@ export class MessageService {
       throw new NotFoundException(`Message with ID ${messageId} not found`);
     }
 
-    await this.threadService.getThreadById(user, message.thread_id);
+    await this.threadService.getThreadById(user, message.threadId);
 
     return message;
   }
@@ -86,13 +86,13 @@ export class MessageService {
   async getThreadMessages(
     user: AuthUser,
     threadId: number,
-  ): Promise<agent_message[]> {
+  ): Promise<AgentMessage[]> {
     await this.threadService.getThreadById(user, threadId);
 
-    const messages = await this.prisma.agent_message.findMany({
-      where: { thread_id: threadId },
+    const messages = await this.prisma.agentMessage.findMany({
+      where: { threadId: threadId },
       include: MESSAGE_INCLUDES,
-      orderBy: { created_at: 'asc' },
+      orderBy: { createdAt: 'asc' },
     });
 
     return messages;
@@ -102,11 +102,11 @@ export class MessageService {
     user: AuthUser,
     messageId: number,
     status: 'pending' | 'processing' | 'completed' | 'error',
-  ): Promise<agent_message> {
+  ): Promise<AgentMessage> {
     await this.getMessageById(user, messageId);
 
-    const updated = await this.prisma.agent_message.update({
-      where: { message_id: messageId },
+    const updated = await this.prisma.agentMessage.update({
+      where: { messageId: messageId },
       data: { status },
       include: MESSAGE_INCLUDES,
     });
@@ -117,8 +117,8 @@ export class MessageService {
   async deleteMessage(user: AuthUser, messageId: number): Promise<void> {
     await this.getMessageById(user, messageId);
 
-    await this.prisma.agent_message.delete({
-      where: { message_id: messageId },
+    await this.prisma.agentMessage.delete({
+      where: { messageId: messageId },
     });
   }
 }

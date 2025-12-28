@@ -6,8 +6,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { athlete } from '@openathlete/database';
-import { AthleteInjury, INJURY_STATUS, keysToCamel } from '@openathlete/shared';
+import { Athlete } from '@openathlete/database';
+import { AthleteInjury, INJURY_STATUS } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -25,7 +25,7 @@ export class InjuryService {
    */
   async getInjuries(
     user: AuthUser,
-    athleteId?: athlete['athlete_id'],
+    athleteId?: Athlete['athleteId'],
   ): Promise<AthleteInjury[]> {
     const ability = await this.abilities.getFor({ user });
 
@@ -35,7 +35,7 @@ export class InjuryService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -52,11 +52,11 @@ export class InjuryService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
         select: {
-          athlete_id: true,
+          athleteId: true,
         },
       });
 
@@ -64,14 +64,14 @@ export class InjuryService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
-    const injuries = await this.prisma.athlete_injury.findMany({
+    const injuries = await this.prisma.athleteInjury.findMany({
       where: {
-        athlete_id: targetAthleteId,
+        athleteId: targetAthleteId,
       },
-      orderBy: { updated_at: 'desc' },
+      orderBy: { updatedAt: 'desc' },
     });
 
     // Map Prisma injury_status to shared INJURY_STATUS enum
@@ -80,6 +80,6 @@ export class InjuryService {
       status: injury.status as INJURY_STATUS,
     }));
 
-    return keysToCamel<AthleteInjury[]>(mappedInjuries);
+    return mappedInjuries;
   }
 }

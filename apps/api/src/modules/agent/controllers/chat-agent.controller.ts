@@ -22,10 +22,10 @@ import {
 } from '@nestjs/swagger';
 
 import {
-  agent_block_status,
-  agent_block_type,
-  agent_message_role,
-  agent_message_status,
+  AgentBlockStatus,
+  AgentBlockType,
+  AgentMessageRole,
+  AgentMessageStatus,
 } from '@openathlete/database';
 import {
   CreateMessageDto,
@@ -33,7 +33,6 @@ import {
   UpdateThreadDto,
   createMessageDtoSchema,
   createThreadDtoSchema,
-  keysToCamel,
   updateThreadDtoSchema,
 } from '@openathlete/shared';
 
@@ -148,11 +147,11 @@ export class ChatAgentController {
                 threadId: { type: 'number' },
                 role: {
                   type: 'string',
-                  enum: Object.values(agent_message_role),
+                  enum: Object.values(AgentMessageRole),
                 },
                 status: {
                   type: 'string',
-                  enum: Object.values(agent_message_status),
+                  enum: Object.values(AgentMessageStatus),
                 },
                 blocks: { type: 'array' },
               },
@@ -168,7 +167,7 @@ export class ChatAgentController {
   })
   async getUserThreads(@JwtUser() user: AuthUser) {
     const threads = await this.threadService.getUserThreads(user);
-    return threads.map(keysToCamel);
+    return threads;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -210,11 +209,11 @@ export class ChatAgentController {
               threadId: { type: 'number' },
               role: {
                 type: 'string',
-                enum: Object.values(agent_message_role),
+                enum: Object.values(AgentMessageRole),
               },
               status: {
                 type: 'string',
-                enum: Object.values(agent_message_status),
+                enum: Object.values(AgentMessageStatus),
               },
               metadata: { type: 'object', nullable: true },
               createdAt: { type: 'string', format: 'date-time' },
@@ -228,13 +227,13 @@ export class ChatAgentController {
                     messageId: { type: 'number' },
                     type: {
                       type: 'string',
-                      enum: Object.values(agent_block_type),
+                      enum: Object.values(AgentBlockType),
                     },
                     order: { type: 'number' },
                     content: { type: 'string' },
                     status: {
                       type: 'string',
-                      enum: Object.values(agent_block_status),
+                      enum: Object.values(AgentBlockStatus),
                     },
                     toolName: { type: 'string', nullable: true },
                     toolInput: { type: 'object', nullable: true },
@@ -269,7 +268,7 @@ export class ChatAgentController {
     @Param('threadId', ParseIntPipe) threadId: number,
   ) {
     const thread = await this.threadService.getThreadById(user, threadId);
-    return keysToCamel(thread);
+    return thread;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -341,7 +340,7 @@ export class ChatAgentController {
     @Body(new ZodValidationPipe(updateThreadDtoSchema)) dto: UpdateThreadDto,
   ) {
     const thread = await this.threadService.updateThread(user, threadId, dto);
-    return keysToCamel(thread);
+    return thread;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -407,7 +406,7 @@ export class ChatAgentController {
         },
         role: {
           type: 'string',
-          enum: Object.values(agent_message_role),
+          enum: Object.values(AgentMessageRole),
           description: 'Message role (defaults to USER)',
           example: 'USER',
         },
@@ -427,13 +426,13 @@ export class ChatAgentController {
             properties: {
               type: {
                 type: 'string',
-                enum: Object.values(agent_block_type),
+                enum: Object.values(AgentBlockType),
               },
               order: { type: 'number', minimum: 0 },
               content: { type: 'string' },
               status: {
                 type: 'string',
-                enum: Object.values(agent_block_status),
+                enum: Object.values(AgentBlockStatus),
                 default: 'completed',
               },
               toolName: { type: 'string', nullable: true },
@@ -461,12 +460,12 @@ export class ChatAgentController {
         threadId: { type: 'number', example: 1 },
         role: {
           type: 'string',
-          enum: Object.values(agent_message_role),
+          enum: Object.values(AgentMessageRole),
           example: 'USER',
         },
         status: {
           type: 'string',
-          enum: Object.values(agent_message_status),
+          enum: Object.values(AgentMessageStatus),
           example: 'pending',
         },
         metadata: { type: 'object', nullable: true },
@@ -493,7 +492,7 @@ export class ChatAgentController {
     @Body(new ZodValidationPipe(createMessageDtoSchema)) dto: CreateMessageDto,
   ) {
     const message = await this.messageService.createMessage(user, dto);
-    return keysToCamel(message);
+    return message;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -522,12 +521,12 @@ export class ChatAgentController {
           threadId: { type: 'number', example: 1 },
           role: {
             type: 'string',
-            enum: Object.values(agent_message_role),
+            enum: Object.values(AgentMessageRole),
             example: 'USER',
           },
           status: {
             type: 'string',
-            enum: Object.values(agent_message_status),
+            enum: Object.values(AgentMessageStatus),
             example: 'completed',
           },
           metadata: { type: 'object', nullable: true },
@@ -578,7 +577,7 @@ export class ChatAgentController {
       user,
       threadId,
     );
-    return messages.map(keysToCamel);
+    return messages;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -605,12 +604,12 @@ export class ChatAgentController {
         threadId: { type: 'number', example: 1 },
         role: {
           type: 'string',
-          enum: Object.values(agent_message_role),
+          enum: Object.values(AgentMessageRole),
           example: 'USER',
         },
         status: {
           type: 'string',
-          enum: Object.values(agent_message_status),
+          enum: Object.values(AgentMessageStatus),
           example: 'completed',
         },
         metadata: { type: 'object', nullable: true },
@@ -657,6 +656,6 @@ export class ChatAgentController {
     @Param('messageId', ParseIntPipe) messageId: number,
   ) {
     const message = await this.messageService.getMessageById(user, messageId);
-    return keysToCamel(message);
+    return message;
   }
 }

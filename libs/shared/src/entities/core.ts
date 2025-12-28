@@ -73,16 +73,16 @@ export interface Workout extends PrismaWorkout {
   steps: WorkoutStep[];
 }
 
-export type TrainingEvent = PrismaEventTraining &
-  Omit<PrismaEvent, 'type'> & {
+export type TrainingEvent = Omit<PrismaEventTraining, 'sport'> &
+  Omit<PrismaEvent, 'type' | 'sport'> & {
     type: EVENT_TYPE.TRAINING;
     sport: SPORT_TYPE;
     relatedActivity?: ActivityEvent;
     workout?: Workout;
   };
 
-export type CompetitionEvent = Omit<PrismaEvent, 'type'> &
-  PrismaEventCompetition & {
+export type CompetitionEvent = Omit<PrismaEvent, 'type' | 'sport'> &
+  Omit<PrismaEventCompetition, 'sport'> & {
     type: EVENT_TYPE.COMPETITION;
     sport: SPORT_TYPE;
     relatedActivity?: ActivityEvent;

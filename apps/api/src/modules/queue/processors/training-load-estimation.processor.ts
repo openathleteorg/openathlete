@@ -61,7 +61,7 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
 
       // Fetch event with workout and athlete data
       const event = await this.prisma.event.findUnique({
-        where: { event_id: eventId },
+        where: { eventId },
         include: {
           training: {
             include: {
@@ -70,21 +70,21 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
                   steps: {
                     include: {
                       targets: true,
-                      repeat_block: {
+                      repeatBlock: {
                         include: {
-                          child_steps: {
+                          childSteps: {
                             include: {
                               targets: true,
                             },
                             orderBy: {
-                              order_index: 'asc',
+                              orderIndex: 'asc',
                             },
                           },
                         },
                       },
                     },
                     orderBy: {
-                      order_index: 'asc',
+                      orderIndex: 'asc',
                     },
                   },
                 },
@@ -107,8 +107,8 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         throw new Error(`Event ${eventId} or training data not found`);
       }
 
-      if (!event.athlete_id) {
-        throw new Error(`Event ${eventId} has no athlete_id`);
+      if (!event.athleteId) {
+        throw new Error(`Event ${eventId} has no athleteId`);
       }
 
       // Fetch athlete metrics and training zones
@@ -198,10 +198,10 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
       }
 
       // Save estimated_load to event_training
-      await this.prisma.event_training.update({
-        where: { event_training_id: eventTrainingId },
+      await this.prisma.eventTraining.update({
+        where: { eventTrainingId },
         data: {
-          estimated_load: result.trimp,
+          estimatedLoad: result.trimp,
         },
       });
 

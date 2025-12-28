@@ -6,13 +6,8 @@ import {
   forwardRef,
 } from '@nestjs/common';
 
-import { event_template } from '@openathlete/database';
-import {
-  CreateEventTemplateDto,
-  Event,
-  keysToCamel,
-  startOfDay,
-} from '@openathlete/shared';
+import { EventTemplate } from '@openathlete/database';
+import { CreateEventTemplateDto, Event, startOfDay } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
@@ -36,9 +31,9 @@ export class EventTemplateService {
   ) {}
 
   async getMyEventTemplates(user: AuthUser, search?: string) {
-    const templates = await this.prisma.event_template.findMany({
+    const templates = await this.prisma.eventTemplate.findMany({
       where: {
-        user_id: user.user_id,
+        userId: user.userId,
         ...(search && {
           event: {
             name: {
@@ -55,12 +50,10 @@ export class EventTemplateService {
         folder: true,
       },
     });
-    return templates.map((t) =>
-      keysToCamel({
-        ...t,
-        event: this.eventService.prismaEventToEvent(t.event),
-      }),
-    );
+    return templates.map((t) => ({
+      ...t,
+      event: this.eventService.prismaEventToEvent(t.event),
+    }));
   }
 
   async createEventTemplate(user: AuthUser, body: CreateEventTemplateDto) {
@@ -68,7 +61,7 @@ export class EventTemplateService {
 
     await this.prisma.event.update({
       where: {
-        event_id: event.event_id,
+        eventId: event.eventId,
       },
       data: {
         athlete: {
@@ -78,19 +71,19 @@ export class EventTemplateService {
     });
 
     if (event.type === 'TRAINING') {
-      await this.prisma.event_training.update({
+      await this.prisma.eventTraining.update({
         where: {
-          event_id: event.event_id,
+          eventId: event.eventId,
         },
         data: {
-          estimated_load: null,
+          estimatedLoad: null,
         },
       });
     }
 
     // Retrieve the duplicated event with includes to check for training
     const eventWithIncludes = await this.prisma.event.findUnique({
-      where: { event_id: event.event_id },
+      where: { eventId: event.eventId },
       include: EVENT_INCLUDES,
     });
 
@@ -98,25 +91,25 @@ export class EventTemplateService {
     if (event.type === 'TRAINING' && eventWithIncludes?.training) {
       const originalWorkout = await this.prisma.workout.findUnique({
         where: {
-          event_training_id: (
-            await this.prisma.event_training.findUnique({
-              where: { event_id: body.eventId },
+          eventTrainingId: (
+            await this.prisma.eventTraining.findUnique({
+              where: { eventId: body.eventId },
             })
-          )?.event_training_id,
+          )?.eventTrainingId,
         },
         include: {
           steps: {
             include: {
               targets: true,
-              repeat_block: {
+              repeatBlock: {
                 include: {
-                  child_steps: {
+                  childSteps: {
                     include: { targets: true },
                   },
                 },
               },
             },
-            orderBy: { order_index: 'asc' },
+            orderBy: { orderIndex: 'asc' },
           },
         },
       });
@@ -125,44 +118,44 @@ export class EventTemplateService {
         // Duplicate workout to the template training
         await this.prisma.workout.create({
           data: {
-            event_training_id: eventWithIncludes.training.event_training_id,
+            eventTrainingId: eventWithIncludes.training.eventTrainingId,
             steps: {
               create: originalWorkout.steps.map((step) => ({
-                order_index: step.order_index,
-                step_type: step.step_type,
+                orderIndex: step.orderIndex,
+                stepType: step.stepType,
                 name: step.name,
                 notes: step.notes,
-                duration_type: step.duration_type,
-                duration_value: step.duration_value,
-                duration_target: step.duration_target,
+                durationType: step.durationType,
+                durationValue: step.durationValue,
+                durationTarget: step.durationTarget,
                 targets: {
                   create: step.targets.map((t) => ({
-                    target_type: t.target_type,
-                    target_min: t.target_min,
-                    target_max: t.target_max,
-                    target_value: t.target_value,
+                    targetType: t.targetType,
+                    targetMin: t.targetMin,
+                    targetMax: t.targetMax,
+                    targetValue: t.targetValue,
                   })),
                 },
-                repeat_block: step.repeat_block
+                repeatBlock: step.repeatBlock
                   ? {
                       create: {
-                        repetitions: step.repeat_block.repetitions,
-                        child_steps: {
-                          create: step.repeat_block.child_steps.map(
+                        repetitions: step.repeatBlock.repetitions,
+                        childSteps: {
+                          create: step.repeatBlock.childSteps.map(
                             (childStep) => ({
-                              order_index: childStep.order_index,
-                              step_type: childStep.step_type,
+                              orderIndex: childStep.orderIndex,
+                              stepType: childStep.stepType,
                               name: childStep.name,
                               notes: childStep.notes,
-                              duration_type: childStep.duration_type,
-                              duration_value: childStep.duration_value,
-                              duration_target: childStep.duration_target,
+                              durationType: childStep.durationType,
+                              durationValue: childStep.durationValue,
+                              durationTarget: childStep.durationTarget,
                               targets: {
                                 create: childStep.targets.map((t) => ({
-                                  target_type: t.target_type,
-                                  target_min: t.target_min,
-                                  target_max: t.target_max,
-                                  target_value: t.target_value,
+                                  targetType: t.targetType,
+                                  targetMin: t.targetMin,
+                                  targetMax: t.targetMax,
+                                  targetValue: t.targetValue,
                                 })),
                               },
                             }),
@@ -178,24 +171,24 @@ export class EventTemplateService {
       }
     }
 
-    const eventTemplate = await this.prisma.event_template.create({
+    const eventTemplate = await this.prisma.eventTemplate.create({
       data: {
-        user_id: user.user_id,
-        event_id: event.event_id,
-        folder_id: body.folderId,
+        userId: user.userId,
+        eventId: event.eventId,
+        folderId: body.folderId,
       },
     });
 
-    return keysToCamel(eventTemplate);
+    return eventTemplate;
   }
 
   async deleteEventTemplate(
     user: AuthUser,
-    eventTemplateId: event_template['event_template_id'],
+    eventTemplateId: EventTemplate['eventTemplateId'],
   ) {
-    const eventTemplate = await this.prisma.event_template.findUnique({
+    const eventTemplate = await this.prisma.eventTemplate.findUnique({
       where: {
-        event_template_id: eventTemplateId,
+        eventTemplateId: eventTemplateId,
       },
     });
 
@@ -203,25 +196,25 @@ export class EventTemplateService {
       throw new Error('Event template not found');
     }
 
-    if (eventTemplate.user_id !== user.user_id) {
+    if (eventTemplate.userId !== user.userId) {
       throw new Error('Unauthorized');
     }
 
-    await this.prisma.event_template.delete({
+    await this.prisma.eventTemplate.delete({
       where: {
-        event_template_id: eventTemplateId,
+        eventTemplateId: eventTemplateId,
       },
     });
   }
 
   async updateEventTemplate(
     user: AuthUser,
-    eventTemplateId: event_template['event_template_id'],
+    eventTemplateId: EventTemplate['eventTemplateId'],
     data: { folderId?: number | null },
   ) {
-    const eventTemplate = await this.prisma.event_template.findUnique({
+    const eventTemplate = await this.prisma.eventTemplate.findUnique({
       where: {
-        event_template_id: eventTemplateId,
+        eventTemplateId: eventTemplateId,
       },
     });
 
@@ -229,16 +222,16 @@ export class EventTemplateService {
       throw new Error('Event template not found');
     }
 
-    if (eventTemplate.user_id !== user.user_id) {
+    if (eventTemplate.userId !== user.userId) {
       throw new Error('Unauthorized');
     }
 
-    const updated = await this.prisma.event_template.update({
+    const updated = await this.prisma.eventTemplate.update({
       where: {
-        event_template_id: eventTemplateId,
+        eventTemplateId: eventTemplateId,
       },
       data: {
-        folder_id: data.folderId,
+        folderId: data.folderId,
       },
       include: {
         event: {
@@ -248,10 +241,10 @@ export class EventTemplateService {
       },
     });
 
-    return keysToCamel({
+    return {
       ...updated,
       event: this.eventService.prismaEventToEvent(updated.event),
-    });
+    };
   }
 
   /**
@@ -260,13 +253,13 @@ export class EventTemplateService {
    */
   async useEventTemplate(
     user: AuthUser,
-    eventTemplateId: event_template['event_template_id'],
+    eventTemplateId: EventTemplate['eventTemplateId'],
     dto: { startDate: Date; endDate: Date; athleteId?: number | null },
   ) {
     // Get the template
-    const template = await this.prisma.event_template.findUnique({
+    const template = await this.prisma.eventTemplate.findUnique({
       where: {
-        event_template_id: eventTemplateId,
+        eventTemplateId: eventTemplateId,
       },
       include: {
         event: {
@@ -279,7 +272,7 @@ export class EventTemplateService {
       throw new Error('Event template not found');
     }
 
-    if (template.user_id !== user.user_id) {
+    if (template.userId !== user.userId) {
       throw new Error('Unauthorized');
     }
 
@@ -297,28 +290,28 @@ export class EventTemplateService {
     };
 
     // Remove IDs and relations
-    delete subEntityData.event_training_id;
-    delete subEntityData.event_competition_id;
-    delete subEntityData.event_note_id;
-    delete subEntityData.event_activity_id;
-    delete subEntityData.event_id;
-    delete subEntityData.related_activity_id;
-    delete subEntityData.related_activity;
+    delete subEntityData.eventTrainingId;
+    delete subEntityData.eventCompetitionId;
+    delete subEntityData.eventNoteId;
+    delete subEntityData.eventActivityId;
+    delete subEntityData.eventId;
+    delete subEntityData.relatedActivityId;
+    delete subEntityData.relatedActivity;
 
-    // Remove workout and estimated_load - will be duplicated/calculated separately
+    // Remove workout and estimatedLoad - will be duplicated/calculated separately
     if (templateEvent.type === 'TRAINING') {
       delete subEntityData.workout;
-      delete subEntityData.estimated_load; // Don't copy estimated_load from template
+      delete subEntityData.estimatedLoad; // Don't copy estimatedLoad from template
     }
 
     // Create the new event from template
     const newEvent = await this.prisma.event.create({
       data: {
-        start_date: dto.startDate,
-        end_date: dto.endDate,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
         name: templateEvent.name,
         type: templateEvent.type,
-        athlete_id: dto.athleteId,
+        athleteId: dto.athleteId,
         [templateEvent.type.toLocaleLowerCase()]: {
           create: subEntityData,
         },
@@ -329,20 +322,20 @@ export class EventTemplateService {
     // If training event with workout, duplicate the workout
     if (templateEvent.type === 'TRAINING' && templateEvent.training?.workout) {
       const templateWorkout = await this.prisma.workout.findUnique({
-        where: { event_training_id: templateEvent.training.event_training_id },
+        where: { eventTrainingId: templateEvent.training.eventTrainingId },
         include: {
           steps: {
             include: {
               targets: true,
-              repeat_block: {
+              repeatBlock: {
                 include: {
-                  child_steps: {
+                  childSteps: {
                     include: { targets: true },
                   },
                 },
               },
             },
-            orderBy: { order_index: 'asc' },
+            orderBy: { orderIndex: 'asc' },
           },
         },
       });
@@ -350,44 +343,44 @@ export class EventTemplateService {
       if (templateWorkout && newEvent.training) {
         const createdWorkout = await this.prisma.workout.create({
           data: {
-            event_training_id: newEvent.training.event_training_id,
+            eventTrainingId: newEvent.training.eventTrainingId,
             steps: {
               create: templateWorkout.steps.map((step) => ({
-                order_index: step.order_index,
-                step_type: step.step_type,
+                orderIndex: step.orderIndex,
+                stepType: step.stepType,
                 name: step.name,
                 notes: step.notes,
-                duration_type: step.duration_type,
-                duration_value: step.duration_value,
-                duration_target: step.duration_target,
+                durationType: step.durationType,
+                durationValue: step.durationValue,
+                durationTarget: step.durationTarget,
                 targets: {
                   create: step.targets.map((t) => ({
-                    target_type: t.target_type,
-                    target_min: t.target_min,
-                    target_max: t.target_max,
-                    target_value: t.target_value,
+                    targetType: t.targetType,
+                    targetMin: t.targetMin,
+                    targetMax: t.targetMax,
+                    targetValue: t.targetValue,
                   })),
                 },
-                repeat_block: step.repeat_block
+                repeatBlock: step.repeatBlock
                   ? {
                       create: {
-                        repetitions: step.repeat_block.repetitions,
-                        child_steps: {
-                          create: step.repeat_block.child_steps.map(
+                        repetitions: step.repeatBlock.repetitions,
+                        childSteps: {
+                          create: step.repeatBlock.childSteps.map(
                             (childStep) => ({
-                              order_index: childStep.order_index,
-                              step_type: childStep.step_type,
+                              orderIndex: childStep.orderIndex,
+                              stepType: childStep.stepType,
                               name: childStep.name,
                               notes: childStep.notes,
-                              duration_type: childStep.duration_type,
-                              duration_value: childStep.duration_value,
-                              duration_target: childStep.duration_target,
+                              durationType: childStep.durationType,
+                              durationValue: childStep.durationValue,
+                              durationTarget: childStep.durationTarget,
                               targets: {
                                 create: childStep.targets.map((t) => ({
-                                  target_type: t.target_type,
-                                  target_min: t.target_min,
-                                  target_max: t.target_max,
-                                  target_value: t.target_value,
+                                  targetType: t.targetType,
+                                  targetMin: t.targetMin,
+                                  targetMax: t.targetMax,
+                                  targetValue: t.targetValue,
                                 })),
                               },
                             }),
@@ -402,12 +395,12 @@ export class EventTemplateService {
         });
 
         // Emit event for workout export sync if within 7 days
-        if (newEvent.athlete_id && newEvent.training) {
+        if (newEvent.athleteId && newEvent.training) {
           this.eventService.emitWorkoutPlannedChanged(
-            newEvent.event_id,
-            newEvent.athlete_id,
-            createdWorkout.workout_id,
-            newEvent.start_date,
+            newEvent.eventId,
+            newEvent.athleteId,
+            createdWorkout.workoutId,
+            newEvent.startDate,
             newEvent.training.sport,
           );
         }
@@ -418,15 +411,15 @@ export class EventTemplateService {
     if (
       newEvent.type === 'TRAINING' &&
       newEvent.training &&
-      newEvent.start_date > startOfDay(new Date()) &&
+      newEvent.startDate > startOfDay(new Date()) &&
       this.trainingLoadEstimationService &&
-      newEvent.athlete_id
+      newEvent.athleteId
     ) {
       this.trainingLoadEstimationService
         .scheduleEstimation(
-          newEvent.event_id,
-          newEvent.training.event_training_id,
-          newEvent.athlete_id,
+          newEvent.eventId,
+          newEvent.training.eventTrainingId,
+          newEvent.athleteId,
         )
         .catch((error) => {
           // Log but don't fail the request
@@ -438,6 +431,6 @@ export class EventTemplateService {
     }
 
     // Return the complete event
-    return this.eventService.getEventById(user, newEvent.event_id);
+    return this.eventService.getEventById(user, newEvent.eventId);
   }
 }

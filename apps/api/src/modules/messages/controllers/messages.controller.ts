@@ -31,7 +31,6 @@ import type {
 import {
   createMessageThreadDtoSchema,
   createMessageThreadMessageDtoSchema,
-  keysToCamel,
   markMessagesAsReadDtoSchema,
   updateMessageThreadDtoSchema,
   updateMessageThreadMessageDtoSchema,
@@ -155,20 +154,20 @@ export class MessagesController {
     const thread = await this.threadService.createThread(user, dto);
 
     const threadWithParticipants = thread as typeof thread & {
-      participants: Array<{ user_id: number }>;
+      participants: Array<{ userId: number }>;
     };
     const participantUserIds = threadWithParticipants.participants.map(
-      (p) => p.user_id,
+      (p) => p.userId,
     );
     this.messagesGateway.broadcastToUsers(
       'thread_created',
       {
-        messageThreadId: thread.message_thread_id,
+        messageThreadId: thread.messageThreadId,
       },
       participantUserIds,
     );
 
-    return keysToCamel(thread);
+    return thread;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -208,7 +207,7 @@ export class MessagesController {
   })
   async getUserThreads(@JwtUser() user: AuthUser) {
     const threads = await this.threadService.getUserThreads(user);
-    return threads.map(keysToCamel);
+    return threads;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -306,7 +305,7 @@ export class MessagesController {
     @Param('threadId', ParseIntPipe) threadId: number,
   ) {
     const thread = await this.threadService.getThreadById(user, threadId);
-    return keysToCamel(thread);
+    return thread;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -372,7 +371,7 @@ export class MessagesController {
     dto: UpdateMessageThreadDto,
   ) {
     const thread = await this.threadService.updateThread(user, threadId, dto);
-    return keysToCamel(thread);
+    return thread;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -492,7 +491,7 @@ export class MessagesController {
     dto: CreateMessageThreadMessageDto,
   ) {
     const message = await this.messageService.createMessage(user, dto);
-    return keysToCamel(message);
+    return message;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -578,7 +577,7 @@ export class MessagesController {
       user,
       threadId,
     );
-    return messages.map(keysToCamel);
+    return messages;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -638,7 +637,7 @@ export class MessagesController {
     @Param('messageId', ParseIntPipe) messageId: number,
   ) {
     const message = await this.messageService.getMessageById(user, messageId);
-    return keysToCamel(message);
+    return message;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -707,7 +706,7 @@ export class MessagesController {
       messageId,
       dto,
     );
-    return keysToCamel(message);
+    return message;
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

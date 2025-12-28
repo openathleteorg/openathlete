@@ -36,11 +36,11 @@ export class ActivityProcessingProcessor extends WorkerHost {
     try {
       // Get athleteId from event before processing
       const event = await this.prisma.event.findUnique({
-        where: { event_id: eventId },
-        select: { athlete_id: true },
+        where: { eventId: eventId },
+        select: { athleteId: true },
       });
 
-      const athleteId = event?.athlete_id;
+      const athleteId = event?.athleteId;
 
       await this.pipeline.run({
         eventActivityId,

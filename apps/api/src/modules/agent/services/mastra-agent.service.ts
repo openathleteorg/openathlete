@@ -41,8 +41,8 @@ export interface ProcessMessageResponse {
 }
 
 interface BlockData {
-  block_id?: number;
-  message_id?: number;
+  blockId?: number;
+  messageId?: number;
   type: string;
   order: number;
   content: string;
@@ -162,7 +162,7 @@ export class MastraAgentService implements OnModuleInit {
 
     await this.messageService.updateMessageStatus(
       user,
-      userMessage.message_id,
+      userMessage.messageId,
       'completed',
     );
 
@@ -185,16 +185,16 @@ export class MastraAgentService implements OnModuleInit {
     try {
       await this.messageService.updateMessageStatus(
         user,
-        assistantMessage.message_id,
+        assistantMessage.messageId,
         'processing',
       );
 
-      const athleteId = user.athlete?.athlete_id || user.user_id;
+      const athleteId = user.athlete?.athleteId || user.userId;
 
       const runtimeContext = new RuntimeContext();
       runtimeContext.set('prisma', this.prismaService);
       runtimeContext.set('athleteId', athleteId);
-      runtimeContext.set('userId', user.user_id);
+      runtimeContext.set('userId', user.userId);
       runtimeContext.set('trainingLoadService', this.trainingLoadService);
       runtimeContext.set('currentDate', new Date().toISOString());
 
@@ -287,7 +287,7 @@ export class MastraAgentService implements OnModuleInit {
             if (!textBlock) {
               textBlock = (await this.blockService.createBlock(
                 user,
-                assistantMessage.message_id,
+                assistantMessage.messageId,
                 {
                   type: 'TEXT',
                   order: 0,
@@ -301,7 +301,7 @@ export class MastraAgentService implements OnModuleInit {
                 data: textBlock as unknown as Record<string, unknown>,
               });
             } else {
-              await this.blockService.updateBlock(user, textBlock.block_id!, {
+              await this.blockService.updateBlock(user, textBlock.blockId!, {
                 content: responseContent,
                 status: 'processing',
               });
@@ -309,8 +309,8 @@ export class MastraAgentService implements OnModuleInit {
               onChunk({
                 type: 'block_delta',
                 data: {
-                  blockId: textBlock.block_id,
-                  messageId: textBlock.message_id,
+                  blockId: textBlock.blockId,
+                  messageId: textBlock.messageId,
                   delta: textChunk,
                   content: responseContent,
                 },
@@ -320,13 +320,13 @@ export class MastraAgentService implements OnModuleInit {
         }
 
         if (textBlock) {
-          await this.blockService.updateBlock(user, textBlock.block_id!, {
+          await this.blockService.updateBlock(user, textBlock.blockId!, {
             status: 'completed',
           });
 
           onChunk({
             type: 'block_completed',
-            data: { blockId: textBlock.block_id },
+            data: { blockId: textBlock.blockId },
           });
         }
       } catch (streamError) {
@@ -338,7 +338,7 @@ export class MastraAgentService implements OnModuleInit {
         if (!textBlock) {
           textBlock = (await this.blockService.createBlock(
             user,
-            assistantMessage.message_id,
+            assistantMessage.messageId,
             {
               type: 'TEXT',
               order: 0,
@@ -356,7 +356,7 @@ export class MastraAgentService implements OnModuleInit {
 
       await this.messageService.updateMessageStatus(
         user,
-        assistantMessage.message_id,
+        assistantMessage.messageId,
         'completed',
       );
 
@@ -381,7 +381,7 @@ export class MastraAgentService implements OnModuleInit {
       onChunk({
         type: 'message_completed',
         data: {
-          messageId: assistantMessage.message_id,
+          messageId: assistantMessage.messageId,
           threadTitle: updatedTitle || undefined,
         },
       });
@@ -396,7 +396,7 @@ export class MastraAgentService implements OnModuleInit {
 
       const errorBlock = await this.blockService.createBlock(
         user,
-        assistantMessage.message_id,
+        assistantMessage.messageId,
         {
           type: 'ERROR',
           order: 0,
@@ -413,7 +413,7 @@ export class MastraAgentService implements OnModuleInit {
 
       await this.messageService.updateMessageStatus(
         user,
-        assistantMessage.message_id,
+        assistantMessage.messageId,
         'error',
       );
     }

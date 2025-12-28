@@ -11,7 +11,7 @@ export interface StravaSummaryActivity {
   elapsed_time: number;
   total_elevation_gain: number;
   type: string;
-  sport_type: string;
+  SportType: string;
   workout_type: string;
   external_id: string;
   upload_id: number;

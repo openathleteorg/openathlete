@@ -2,7 +2,7 @@ import { randomUUID } from 'crypto';
 
 import { Injectable } from '@nestjs/common';
 
-import { token_type, user } from '@openathlete/database';
+import { TokenType, User } from '@openathlete/database';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -14,20 +14,20 @@ export class TokenService {
     return randomUUID();
   }
 
-  async _getExpiracy(type: token_type): Promise<number> {
+  async _getExpiracy(type: TokenType): Promise<number> {
     switch (type) {
-      case token_type.PASSWORD_RESET:
+      case TokenType.PASSWORD_RESET:
         return 60 * 15 * 1000; // 15 minutes;
-      case token_type.ATHLETE_INVITATION:
+      case TokenType.ATHLETE_INVITATION:
         return 60 * 60 * 24 * 7 * 1000; // 7 days;
-      case token_type.COACH_INVITATION:
+      case TokenType.COACH_INVITATION:
         return 60 * 60 * 24 * 7 * 1000; // 7 days;
       default:
         return 0;
     }
   }
 
-  async createToken(user: Pick<user, 'user_id'>, type: token_type) {
+  async createToken(user: Pick<User, 'userId'>, type: TokenType) {
     const token = await this.prisma.token.create({
       data: {
         user: {
@@ -41,7 +41,7 @@ export class TokenService {
     return token;
   }
 
-  async verifyToken(token: string): Promise<user | null> {
+  async verifyToken(token: string): Promise<User | null> {
     const tokenData = await this.prisma.token.findFirst({
       where: {
         token,
@@ -57,12 +57,12 @@ export class TokenService {
 
     const expiracy = await this._getExpiracy(tokenData.type);
     const now = new Date();
-    const tokenDate = new Date(tokenData.created_at);
+    const tokenDate = new Date(tokenData.createdAt);
     const diff = now.getTime() - tokenDate.getTime();
     if (diff > expiracy) {
       await this.prisma.token.delete({
         where: {
-          token_id: tokenData.token_id,
+          tokenId: tokenData.tokenId,
         },
       });
       return null;

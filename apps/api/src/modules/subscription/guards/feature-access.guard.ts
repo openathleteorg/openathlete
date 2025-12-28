@@ -37,7 +37,7 @@ export class FeatureAccessGuard implements CanActivate {
     }
 
     const hasAccess = await this.featureAccessService.canAccessFeature(
-      user.user_id,
+      user.userId,
       requiredFeature,
     );
 

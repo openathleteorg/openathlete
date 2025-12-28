@@ -1,4 +1,4 @@
-import { sport_type } from '@openathlete/database';
+import { SportType } from '@openathlete/database';
 
 /**
  * Maps Suunto activity ID to our sport type
@@ -6,15 +6,15 @@ import { sport_type } from '@openathlete/database';
  * @param activityId - Suunto activity ID (number)
  * @returns sport type
  */
-export const mapSuuntoActivityId = (activityId: number): sport_type => {
+export const mapSuuntoActivityId = (activityId: number): SportType => {
   switch (activityId) {
     // Walking & Hiking
     case 0: // Walking
     case 24: // Nordic walking
-      return sport_type.WALK;
+      return SportType.WALK;
     case 11: // Hiking
     case 70: // Trekking
-      return sport_type.HIKING;
+      return SportType.HIKING;
 
     // Running
     case 1: // Running
@@ -22,32 +22,32 @@ export const mapSuuntoActivityId = (activityId: number): sport_type => {
     case 59: // Track and field
     case 60: // Orienteering
     case 103: // Track running
-      return sport_type.RUNNING;
+      return SportType.RUNNING;
     case 22: // Trail running
     case 115: // Vertical running
-      return sport_type.TRAIL_RUNNING;
+      return SportType.TRAIL_RUNNING;
 
     // Cycling
     case 2: // Cycling
     case 52: // Indoor cycling
     case 114: // Cyclocross
-      return sport_type.CYCLING;
+      return SportType.CYCLING;
     case 10: // Mountain biking
-      return sport_type.MOUNTAIN_BIKE_RIDE;
+      return SportType.MOUNTAIN_BIKE_RIDE;
     case 99: // Gravel cycling
-      return sport_type.GRAVEL_RIDE;
+      return SportType.GRAVEL_RIDE;
     case 105: // E-biking
-      return sport_type.E_BIKE_RIDE;
+      return SportType.E_BIKE_RIDE;
     case 106: // E-mtb
-      return sport_type.E_MOUNTAIN_BIKE_RIDE;
+      return SportType.E_MOUNTAIN_BIKE_RIDE;
     case 109: // Hand cycling
-      return sport_type.HANDCYCLE;
+      return SportType.HANDCYCLE;
 
     // Swimming
     case 21: // Swimming
     case 85: // Openwater swimming
     case 90: // Snorkeling
-      return sport_type.SWIMMING;
+      return SportType.SWIMMING;
 
     // Winter Sports
     case 3: // Cross-country skiing
@@ -55,98 +55,98 @@ export const mapSuuntoActivityId = (activityId: number): sport_type => {
     case 107: // Backcountry skiing
     case 117: // Skate skiing
     case 118: // Classic skiing
-      return sport_type.NORDIC_SKI;
+      return SportType.NORDIC_SKI;
     case 13: // Downhill skiing
     case 84: // Telemarkskiing
-      return sport_type.ALPINE_SKI;
+      return SportType.ALPINE_SKI;
     case 31: // Ski touring
     case 116: // Ski mountaineering
-      return sport_type.BACKCOUNTRY_SKI;
+      return SportType.BACKCOUNTRY_SKI;
     case 30: // Snowboarding
     case 110: // Splitboarding
-      return sport_type.SNOWBOARD;
+      return SportType.SNOWBOARD;
     case 65: // Snow shoeing
-      return sport_type.SNOWSHOE;
+      return SportType.SNOWSHOE;
 
     // Water Sports
     case 14: // Paddling
     case 82: // Canoeing
-      return sport_type.CANOEING;
+      return SportType.CANOEING;
     case 15: // Rowing
     case 57: // Indoor rowing
-      return sport_type.ROWING;
+      return SportType.ROWING;
     case 61: // Standup paddling
-      return sport_type.STAND_UP_PADDLING;
+      return SportType.STAND_UP_PADDLING;
     case 71: // Sailing
-      return sport_type.SAIL;
+      return SportType.SAIL;
     case 72: // Kayaking
-      return sport_type.KAYAKING;
+      return SportType.KAYAKING;
     case 86: // Windsurfing
-      return sport_type.WINDSURF;
+      return SportType.WINDSURF;
     case 87: // Kitesurfing
-      return sport_type.KITESURF;
+      return SportType.KITESURF;
     case 91: // Surfing
-      return sport_type.SURFING;
+      return SportType.SURFING;
 
     // Racket Sports
     case 34: // Tennis
-      return sport_type.TENNIS;
+      return SportType.TENNIS;
     case 36: // Badminton
-      return sport_type.BADMINTON;
+      return SportType.BADMINTON;
     case 40: // Table tennis
-      return sport_type.TABLE_TENNIS;
+      return SportType.TABLE_TENNIS;
     case 41: // Racquet ball
-      return sport_type.RACQUETBALL;
+      return SportType.RACQUETBALL;
     case 42: // Squash
-      return sport_type.SQUASH;
+      return SportType.SQUASH;
 
     // Team Sports
     case 33: // Soccer
-      return sport_type.SOCCER;
+      return SportType.SOCCER;
 
     // Fitness & Gym
     case 23: // Gym
     case 63: // Kettlebell
     case 104: // Calisthenics
-      return sport_type.WEIGHT_TRAINING;
+      return SportType.WEIGHT_TRAINING;
     case 51: // Yoga/pilates
     case 121: // Yoga
-      return sport_type.YOGA;
+      return SportType.YOGA;
     case 120: // Pilates
-      return sport_type.PILATES;
+      return SportType.PILATES;
     case 54: // Crossfit
-      return sport_type.CROSSFIT;
+      return SportType.CROSSFIT;
     case 55: // Crosstrainer
-      return sport_type.ELLIPTICAL;
+      return SportType.ELLIPTICAL;
 
     // Other Sports
     case 12: // Roller skating
-      return sport_type.INLINE_SKATE;
+      return SportType.INLINE_SKATE;
     case 16: // Golfing
-      return sport_type.GOLF;
+      return SportType.GOLF;
     case 27: // Skateboarding
-      return sport_type.SKATEBOARD;
+      return SportType.SKATEBOARD;
     case 29: // Climbing
     case 83: // Mountaineering
-      return sport_type.ROCK_CLIMBING;
+      return SportType.ROCK_CLIMBING;
     case 49: // Ice skating
-      return sport_type.ICE_SKATE;
+      return SportType.ICE_SKATE;
     case 108: // Wheelchair sport
-      return sport_type.WHEELCHAIR;
+      return SportType.WHEELCHAIR;
 
     // Multisport
     case 68: // Multisport
-      return sport_type.OTHER;
+      return SportType.OTHER;
     case 74: // Triathlon
-      return sport_type.TRIATHLON;
+      return SportType.TRIATHLON;
     case 92: // Swimrun
-      return sport_type.OTHER;
+      return SportType.OTHER;
     case 93: // Duathlon
-      return sport_type.DUATHLON;
+      return SportType.DUATHLON;
     case 94: // Aquathlon
-      return sport_type.AQUATHLON;
+      return SportType.AQUATHLON;
     case 111: // Biathlon
-      return sport_type.OTHER;
+      return SportType.OTHER;
 
     // Generic/Other
     case 4: // Sports (generic)
@@ -200,10 +200,10 @@ export const mapSuuntoActivityId = (activityId: number): sport_type => {
     case 112: // Meditation
     case 113: // Field hockey
     case 119: // Chores
-      return sport_type.OTHER;
+      return SportType.OTHER;
 
     default:
-      return sport_type.OTHER;
+      return SportType.OTHER;
   }
 };
 
@@ -215,7 +215,7 @@ export const mapSuuntoWorkoutToSportType = (workout: {
   activityId?: number;
   workoutName?: string;
   extensionTypes?: string[];
-}): sport_type => {
+}): SportType => {
   // First, try to use activityId if available (most reliable)
   if (workout.activityId !== undefined) {
     return mapSuuntoActivityId(workout.activityId);
@@ -224,13 +224,13 @@ export const mapSuuntoWorkoutToSportType = (workout: {
   // Try to infer from extension types
   if (workout.extensionTypes) {
     if (workout.extensionTypes.includes('SWIMMINGHEADER')) {
-      return sport_type.SWIMMING;
+      return SportType.SWIMMING;
     }
     if (workout.extensionTypes.includes('SKIHEADER')) {
-      return sport_type.ALPINE_SKI;
+      return SportType.ALPINE_SKI;
     }
     if (workout.extensionTypes.includes('SKITURN')) {
-      return sport_type.ALPINE_SKI;
+      return SportType.ALPINE_SKI;
     }
   }
 
@@ -239,9 +239,9 @@ export const mapSuuntoWorkoutToSportType = (workout: {
     const name = workout.workoutName.toLowerCase();
     if (name.includes('run') || name.includes('course')) {
       if (name.includes('trail')) {
-        return sport_type.TRAIL_RUNNING;
+        return SportType.TRAIL_RUNNING;
       }
-      return sport_type.RUNNING;
+      return SportType.RUNNING;
     }
     if (
       name.includes('bike') ||
@@ -249,21 +249,21 @@ export const mapSuuntoWorkoutToSportType = (workout: {
       name.includes('cycling')
     ) {
       if (name.includes('mountain') || name.includes('vtt')) {
-        return sport_type.MOUNTAIN_BIKE_RIDE;
+        return SportType.MOUNTAIN_BIKE_RIDE;
       }
       if (name.includes('gravel')) {
-        return sport_type.GRAVEL_RIDE;
+        return SportType.GRAVEL_RIDE;
       }
-      return sport_type.CYCLING;
+      return SportType.CYCLING;
     }
     if (name.includes('swim') || name.includes('nage')) {
-      return sport_type.SWIMMING;
+      return SportType.SWIMMING;
     }
     if (name.includes('hike') || name.includes('randonnée')) {
-      return sport_type.HIKING;
+      return SportType.HIKING;
     }
   }
 
   // Default fallback
-  return sport_type.OTHER;
+  return SportType.OTHER;
 };

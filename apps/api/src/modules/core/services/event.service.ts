@@ -21,14 +21,14 @@ import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
+  ActivitySegment,
+  Event,
+  EventActivity,
+  EventCompetition,
+  EventNote,
+  EventTraining,
+  EventType,
   Prisma,
-  activity_segment,
-  event,
-  event_activity,
-  event_competition,
-  event_note,
-  event_training,
-  event_type,
 } from '@openathlete/database';
 import {
   ActivityStream,
@@ -37,12 +37,9 @@ import {
   CreateEventDto,
   DuplicateWorkoutDto,
   EVENT_TYPE,
-  Event,
   ReorderWorkoutStepsDto,
   UpdateEventDto,
   createWorkoutSchema,
-  keysToCamel,
-  keysToSnake,
   mapPrismaWorkoutToDto,
   mapWorkoutDtoToPrisma,
   startOfDay,
@@ -72,9 +69,9 @@ import {
 export const EVENT_INCLUDES = {
   training: {
     include: {
-      related_activity: {
+      relatedActivity: {
         select: {
-          event_id: true,
+          eventId: true,
         },
       },
       workout: {
@@ -82,21 +79,21 @@ export const EVENT_INCLUDES = {
           steps: {
             include: {
               targets: true,
-              repeat_block: {
+              repeatBlock: {
                 include: {
-                  child_steps: {
+                  childSteps: {
                     include: {
                       targets: true,
                     },
                     orderBy: {
-                      order_index: 'asc' as const,
+                      orderIndex: 'asc' as const,
                     },
                   },
                 },
               },
             },
             orderBy: {
-              order_index: 'asc' as const,
+              orderIndex: 'asc' as const,
             },
           },
         },
@@ -105,9 +102,9 @@ export const EVENT_INCLUDES = {
   },
   competition: {
     include: {
-      related_activity: {
+      relatedActivity: {
         select: {
-          event_id: true,
+          eventId: true,
         },
       },
     },
@@ -116,79 +113,79 @@ export const EVENT_INCLUDES = {
   activity: {
     // select all fields except stream
     select: {
-      event_activity_id: true,
-      event_id: true,
+      eventActivityId: true,
+      eventId: true,
       distance: true,
-      elevation_gain: true,
-      moving_time: true,
-      average_speed: true,
-      max_speed: true,
-      average_cadence: true,
-      average_watts: true,
-      max_watts: true,
-      weighted_average_watts: true,
-      average_heartrate: true,
-      max_heartrate: true,
+      elevationGain: true,
+      movingTime: true,
+      averageSpeed: true,
+      maxSpeed: true,
+      averageCadence: true,
+      averageWatts: true,
+      maxWatts: true,
+      weightedAverageWatts: true,
+      averageHeartrate: true,
+      maxHeartrate: true,
       kilojoules: true,
-      average_gap_speed: true,
-      average_normalized_speed: true,
+      averageGapSpeed: true,
+      averageNormalizedSpeed: true,
       rpe: true,
-      external_id: true,
+      externalId: true,
       sport: true,
       provider: true,
       description: true,
       records: true,
-      equipment_id: true,
-      feedback_skipped: true,
+      equipmentId: true,
+      feedbackSkipped: true,
       equipment: {
         select: {
-          equipment_id: true,
+          equipmentId: true,
           name: true,
           type: true,
         },
       },
       segments: {
         orderBy: {
-          order_index: 'asc' as const,
+          orderIndex: 'asc' as const,
         },
         select: {
-          activity_segment_id: true,
-          segment_type: true,
+          activitySegmentId: true,
+          segmentType: true,
           name: true,
-          order_index: true,
-          start_time_seconds: true,
-          end_time_seconds: true,
-          event_activity_id: true,
+          orderIndex: true,
+          startTimeSeconds: true,
+          endTimeSeconds: true,
+          eventActivityId: true,
           distance: true,
-          elevation_gain: true,
-          moving_time: true,
-          average_speed: true,
-          max_speed: true,
-          average_cadence: true,
-          average_watts: true,
-          max_watts: true,
-          weighted_average_watts: true,
-          average_heartrate: true,
-          max_heartrate: true,
+          elevationGain: true,
+          movingTime: true,
+          averageSpeed: true,
+          maxSpeed: true,
+          averageCadence: true,
+          averageWatts: true,
+          maxWatts: true,
+          weightedAverageWatts: true,
+          averageHeartrate: true,
+          maxHeartrate: true,
           kilojoules: true,
-          average_gap_speed: true,
-          average_normalized_speed: true,
-          workout_step_id: true,
-          created_at: true,
-          updated_at: true,
+          averageGapSpeed: true,
+          averageNormalizedSpeed: true,
+          workoutStepId: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
-      feedback_questions: {
+      feedbackQuestions: {
         orderBy: {
-          activity_feedback_question_id: 'asc' as const,
+          activityFeedbackQuestionId: 'asc' as const,
         },
         select: {
-          activity_feedback_question_id: true,
-          question_text: true,
-          qcm_options: true,
-          answer_text: true,
-          created_at: true,
-          updated_at: true,
+          activityFeedbackQuestionId: true,
+          questionText: true,
+          qcmOptions: true,
+          answerText: true,
+          createdAt: true,
+          updatedAt: true,
         },
       },
     },
@@ -219,20 +216,20 @@ export class EventService {
   }
 
   public prismaEventToEvent(
-    event: event & {
-      competition: event_competition | null;
-      training: event_training | null;
-      note: event_note | null;
+    event: Event & {
+      competition: EventCompetition | null;
+      training: EventTraining | null;
+      note: EventNote | null;
       activity:
-        | (Omit<event_activity, 'stream'> & {
-            segments?: activity_segment[];
-            feedback_questions?: Array<{
-              activity_feedback_question_id: number;
-              question_text: string;
-              qcm_options: unknown;
-              answer_text: string | null;
-              created_at: Date;
-              updated_at: Date;
+        | (Omit<EventActivity, 'stream'> & {
+            segments?: ActivitySegment[];
+            feedbackQuestions?: Array<{
+              activityFeedbackQuestionId: number;
+              questionText: string;
+              qcmOptions: unknown;
+              answerText: string | null;
+              createdAt: Date;
+              updatedAt: Date;
             }>;
           })
         | null;
@@ -260,25 +257,25 @@ export class EventService {
       user.athlete = null;
 
       if (athleteId) {
-        user.coach_athletes = user.coach_athletes?.filter(
-          (athlete) => athlete.athlete_id === athleteId,
+        user.coachAthletes = user.coachAthletes?.filter(
+          (athlete) => athlete.athleteId === athleteId,
         );
       }
     } else {
-      user.coach_athletes = undefined;
+      user.coachAthletes = undefined;
     }
 
     return this.getEventsOfAthlete(user, startDate, endDate).then((events) =>
-      events.map((e) => keysToCamel(this.prismaEventToEvent(e))),
+      events.map((e) => this.prismaEventToEvent(e)),
     );
   }
 
-  async getEventById(user: AuthUser, eventId: event['event_id']) {
+  async getEventById(user: AuthUser, eventId: Event['eventId']) {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'read').Event],
       },
       include: EVENT_INCLUDES,
     });
@@ -287,7 +284,7 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    return keysToCamel(this.prismaEventToEvent(event));
+    return this.prismaEventToEvent(event);
   }
 
   async getEventsOfAthlete(user: AuthUser, startDate?: Date, endDate?: Date) {
@@ -300,14 +297,14 @@ export class EventService {
             OR: [
               // Event starts within the range
               {
-                start_date: {
+                startDate: {
                   gte: startDate,
                   lte: endDate,
                 },
               },
               // Event ends within the range
               {
-                end_date: {
+                endDate: {
                   gte: startDate,
                   lte: endDate,
                 },
@@ -315,8 +312,8 @@ export class EventService {
               // Event spans across the range
               {
                 AND: [
-                  { start_date: { lte: startDate } },
-                  { end_date: { gte: endDate } },
+                  { startDate: { lte: startDate } },
+                  { endDate: { gte: endDate } },
                 ],
               },
             ],
@@ -326,9 +323,9 @@ export class EventService {
     return this.prisma.event.findMany({
       where: {
         AND: [
-          accessibleBy(ability, 'read').event,
+          accessibleBy(ability, 'read').Event,
           {
-            athlete_id: { not: null },
+            athleteId: { not: null },
           },
           dateFilter,
         ],
@@ -342,16 +339,14 @@ export class EventService {
 
     const workout = data.type === 'TRAINING' ? data.workout : undefined;
 
-    const snakeCaseData = keysToSnake(data);
-    const { type, end_date, start_date, name, athlete_id, ...rest } =
-      snakeCaseData;
+    const { type, endDate, startDate, name, athleteId, ...rest } = data;
 
     // Remove workout from rest if it exists (it shouldn't be passed to Prisma create)
     if ('workout' in rest) {
       delete rest.workout;
     }
 
-    const finalAthleteId = athlete_id || user?.athlete?.athlete_id;
+    const finalAthleteId = athleteId || user?.athlete?.athleteId;
 
     if (!finalAthleteId) {
       throw new Error('Athlete ID is required');
@@ -360,7 +355,7 @@ export class EventService {
     if (
       !ability.can(
         'create',
-        subject('event', { athlete_id: finalAthleteId } as event),
+        subject('event', { athleteId: finalAthleteId } as Event),
       )
     ) {
       throw new ForbiddenException('You are not allowed to create this event');
@@ -368,9 +363,9 @@ export class EventService {
 
     const created = await this.prisma.event.create({
       data: {
-        athlete_id: finalAthleteId,
-        start_date,
-        end_date,
+        athleteId: finalAthleteId,
+        startDate,
+        endDate,
         name,
         type,
         [type.toLocaleLowerCase()]: {
@@ -390,33 +385,33 @@ export class EventService {
       const stepsForCreate = parsed.data.steps;
       const workoutData = await this.prisma.workout.create({
         data: {
-          event_training_id: created.training.event_training_id,
+          eventTrainingId: created.training.eventTrainingId,
           ...mapWorkoutDtoToPrisma({ steps: stepsForCreate }),
         },
         include: {
           steps: {
             include: {
               targets: true,
-              repeat_block: {
+              repeatBlock: {
                 include: {
-                  child_steps: {
+                  childSteps: {
                     include: { targets: true },
-                    orderBy: { order_index: 'asc' },
+                    orderBy: { orderIndex: 'asc' },
                   },
                 },
               },
             },
-            orderBy: { order_index: 'asc' },
+            orderBy: { orderIndex: 'asc' },
           },
         },
       });
 
       // Emit event for workout export sync if within 7 days
       this.emitWorkoutPlannedChanged(
-        created.event_id,
+        created.eventId,
         finalAthleteId,
-        workoutData.workout_id,
-        created.start_date,
+        workoutData.workoutId,
+        created.startDate,
         created.training.sport,
       );
     }
@@ -425,13 +420,13 @@ export class EventService {
     if (
       type === 'TRAINING' &&
       created.training &&
-      created.start_date > startOfDay(new Date()) &&
+      created.startDate > startOfDay(new Date()) &&
       this.trainingLoadEstimationService
     ) {
       this.trainingLoadEstimationService
         .scheduleEstimation(
-          created.event_id,
-          created.training.event_training_id,
+          created.eventId,
+          created.training.eventTrainingId,
           finalAthleteId,
         )
         .catch((error) => {
@@ -443,7 +438,7 @@ export class EventService {
         });
     }
 
-    return this.getEventById(user, created.event_id);
+    return this.getEventById(user, created.eventId);
   }
 
   emitWorkoutPlannedChanged(
@@ -470,14 +465,14 @@ export class EventService {
 
   async updateEvent(
     user: AuthUser,
-    eventId: event['event_id'],
+    eventId: Event['eventId'],
     data: UpdateEventDto,
   ) {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'update').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'update').Event],
       },
       include: EVENT_INCLUDES,
     });
@@ -487,17 +482,15 @@ export class EventService {
     }
 
     const isTemplate = Boolean(
-      await this.prisma.event_template.findUnique({
-        where: { event_id: eventId },
+      await this.prisma.eventTemplate.findUnique({
+        where: { eventId: eventId },
       }),
     );
 
     const workout =
       data.type === EVENT_TYPE.TRAINING ? data.workout : undefined;
 
-    const snakeCaseData = keysToSnake(data);
-    const { type, end_date, start_date, name, athlete_id, ...rest } =
-      snakeCaseData;
+    const { type, endDate, startDate, name, athleteId, ...rest } = data;
 
     if ('workout' in rest) {
       delete rest.workout;
@@ -511,10 +504,10 @@ export class EventService {
       rest.rpe !== null;
 
     const updatedEvent = await this.prisma.event.update({
-      where: { event_id: eventId },
+      where: { eventId: eventId },
       data: {
-        start_date,
-        end_date,
+        startDate,
+        endDate,
         name,
         type,
         ...(type
@@ -530,19 +523,19 @@ export class EventService {
     // Handle workout updates for training events
     if (event.type === 'TRAINING' && event.training && workout) {
       const existingWorkout = await this.prisma.workout.findUnique({
-        where: { event_training_id: event.training.event_training_id },
+        where: { eventTrainingId: event.training.eventTrainingId },
       });
 
       if (existingWorkout) {
         // Update existing workout
         if (workout.steps) {
           // Delete existing steps and create new ones
-          await this.prisma.workout_step.deleteMany({
-            where: { workout_id: existingWorkout.workout_id },
+          await this.prisma.workoutStep.deleteMany({
+            where: { workoutId: existingWorkout.workoutId },
           });
 
           await this.prisma.workout.update({
-            where: { workout_id: existingWorkout.workout_id },
+            where: { workoutId: existingWorkout.workoutId },
             data: {
               ...mapWorkoutDtoToPrisma({ steps: workout.steps }),
             },
@@ -550,16 +543,16 @@ export class EventService {
               steps: {
                 include: {
                   targets: true,
-                  repeat_block: {
+                  repeatBlock: {
                     include: {
-                      child_steps: {
+                      childSteps: {
                         include: { targets: true },
-                        orderBy: { order_index: 'asc' },
+                        orderBy: { orderIndex: 'asc' },
                       },
                     },
                   },
                 },
-                orderBy: { order_index: 'asc' },
+                orderBy: { orderIndex: 'asc' },
               },
             },
           });
@@ -568,9 +561,9 @@ export class EventService {
           if (!isTemplate) {
             this.emitWorkoutPlannedChanged(
               eventId,
-              event.athlete_id!,
-              existingWorkout.workout_id,
-              updatedEvent.start_date,
+              event.athleteId!,
+              existingWorkout.workoutId,
+              updatedEvent.startDate,
               event.training.sport,
             );
           }
@@ -582,23 +575,23 @@ export class EventService {
         }
         const newWorkout = await this.prisma.workout.create({
           data: {
-            event_training_id: event.training.event_training_id,
+            eventTrainingId: event.training.eventTrainingId,
             ...mapWorkoutDtoToPrisma({ steps: parsedUpdate.data.steps }),
           },
           include: {
             steps: {
               include: {
                 targets: true,
-                repeat_block: {
+                repeatBlock: {
                   include: {
-                    child_steps: {
+                    childSteps: {
                       include: { targets: true },
-                      orderBy: { order_index: 'asc' },
+                      orderBy: { orderIndex: 'asc' },
                     },
                   },
                 },
               },
-              orderBy: { order_index: 'asc' },
+              orderBy: { orderIndex: 'asc' },
             },
           },
         });
@@ -607,9 +600,9 @@ export class EventService {
         if (!isTemplate) {
           this.emitWorkoutPlannedChanged(
             eventId,
-            event.athlete_id!,
-            newWorkout.workout_id,
-            updatedEvent.start_date,
+            event.athleteId!,
+            newWorkout.workoutId,
+            updatedEvent.startDate,
             event.training.sport,
           );
         }
@@ -621,15 +614,15 @@ export class EventService {
       !isTemplate &&
       event.type === 'TRAINING' &&
       event.training &&
-      updatedEvent.start_date > startOfDay(new Date()) &&
+      updatedEvent.startDate > startOfDay(new Date()) &&
       this.trainingLoadEstimationService &&
-      event.training.estimated_load === null
+      event.training.estimatedLoad === null
     ) {
       this.trainingLoadEstimationService
         .scheduleEstimation(
           eventId,
-          event.training.event_training_id,
-          event.athlete_id!,
+          event.training.eventTrainingId,
+          event.athleteId!,
         )
         .catch((error) => {
           // Log but don't fail the request
@@ -645,14 +638,14 @@ export class EventService {
       !isTemplate &&
       event.type === 'TRAINING' &&
       event.training?.workout &&
-      (start_date || end_date) &&
-      event.athlete_id
+      (startDate || endDate) &&
+      event.athleteId
     ) {
-      const finalStartDate = start_date ?? event.start_date;
+      const finalStartDate = startDate ?? event.startDate;
       this.emitWorkoutPlannedChanged(
         eventId,
-        event.athlete_id,
-        event.training.workout.workout_id,
+        event.athleteId,
+        event.training.workout.workoutId,
         finalStartDate,
         event.training.sport,
       );
@@ -663,7 +656,7 @@ export class EventService {
       this.eventEmitter.emit(
         ActivityImportedEvent.SLUG,
         new ActivityImportedEvent({
-          eventActivityId: event.activity.event_activity_id,
+          eventActivityId: event.activity.eventActivityId,
           eventId: eventId,
         }),
       );
@@ -676,14 +669,14 @@ export class EventService {
       rest.description !== undefined
     ) {
       const description = rest.description as string | null;
-      const eventActivityId = event.activity.event_activity_id;
+      const eventActivityId = event.activity.eventActivityId;
 
       try {
-        const existingThread = await this.prisma.message_thread.findUnique({
-          where: { event_activity_id: eventActivityId },
+        const existingThread = await this.prisma.messageThread.findUnique({
+          where: { eventActivityId: eventActivityId },
           include: {
             messages: {
-              orderBy: { created_at: 'asc' },
+              orderBy: { createdAt: 'asc' },
               take: 1,
             },
           },
@@ -694,24 +687,24 @@ export class EventService {
           if (firstMessage) {
             await this.messageService.updateMessage(
               user,
-              firstMessage.message_id,
+              firstMessage.messageId,
               {
                 content: description || '',
               },
             );
           } else if (description) {
             await this.messageService.createMessage(user, {
-              messageThreadId: existingThread.message_thread_id,
+              messageThreadId: existingThread.messageThreadId,
               content: description,
             });
           }
         } else if (description) {
           const eventWithAthlete = await this.prisma.event.findUnique({
-            where: { event_id: eventId },
+            where: { eventId: eventId },
             include: {
               athlete: {
                 include: {
-                  coach_athletes: {
+                  coachAthletes: {
                     include: {
                       user: true,
                     },
@@ -724,8 +717,8 @@ export class EventService {
           if (eventWithAthlete?.athlete) {
             const athlete = eventWithAthlete.athlete;
             const participantUserIds = [
-              athlete.user_id,
-              ...athlete.coach_athletes.map((ca) => ca.user_id),
+              athlete.userId,
+              ...athlete.coachAthletes.map((ca) => ca.userId),
             ];
 
             const thread = await this.messageThreadService.createThread(user, {
@@ -734,7 +727,7 @@ export class EventService {
             });
 
             await this.messageService.createMessage(user, {
-              messageThreadId: thread.message_thread_id,
+              messageThreadId: thread.messageThreadId,
               content: description,
             });
           }
@@ -753,7 +746,7 @@ export class EventService {
         description &&
         description.trim() !== ''
       ) {
-        const eventActivityId = event.activity.event_activity_id;
+        const eventActivityId = event.activity.eventActivityId;
         this.eventEmitter.emit(
           ActivityFeedbackCompletedEvent.SLUG,
           new ActivityFeedbackCompletedEvent({
@@ -769,12 +762,12 @@ export class EventService {
     return this.getEventById(user, eventId);
   }
 
-  async deleteEvent(user: AuthUser, eventId: event['event_id']) {
+  async deleteEvent(user: AuthUser, eventId: Event['eventId']) {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'delete').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'delete').Event],
       },
       include: {
         activity: true,
@@ -788,59 +781,59 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    if (event.training?.workout?.workout_id) {
+    if (event.training?.workout?.workoutId) {
       await this.providerExportService.deleteExportsForWorkout({
-        workoutId: event.training.workout.workout_id,
+        workoutId: event.training.workout.workoutId,
       });
     }
 
-    await this.prisma.provider_workout_export.deleteMany({
+    await this.prisma.providerWorkoutExport.deleteMany({
       where: {
         workout: {
-          event_training_id: eventId,
+          eventTrainingId: eventId,
         },
       },
     });
     await this.prisma.workout.deleteMany({
-      where: { event_training_id: eventId },
+      where: { eventTrainingId: eventId },
     });
-    await this.prisma.event_training.deleteMany({
-      where: { event_id: eventId },
+    await this.prisma.eventTraining.deleteMany({
+      where: { eventId: eventId },
     });
-    await this.prisma.event_competition.deleteMany({
-      where: { event_id: eventId },
+    await this.prisma.eventCompetition.deleteMany({
+      where: { eventId: eventId },
     });
-    await this.prisma.event_note.deleteMany({
-      where: { event_id: eventId },
+    await this.prisma.eventNote.deleteMany({
+      where: { eventId: eventId },
     });
-    await this.prisma.event_activity_weather.deleteMany({
-      where: { event_activity: { event_id: eventId } },
+    await this.prisma.eventActivityWeather.deleteMany({
+      where: { eventActivity: { eventId: eventId } },
     });
-    await this.prisma.event_activity_normalization_factor.deleteMany({
-      where: { normalization: { event_activity: { event_id: eventId } } },
+    await this.prisma.eventActivityNormalizationFactor.deleteMany({
+      where: { normalization: { eventActivity: { eventId: eventId } } },
     });
-    await this.prisma.event_activity_normalization.deleteMany({
-      where: { event_activity: { event_id: eventId } },
+    await this.prisma.eventActivityNormalization.deleteMany({
+      where: { eventActivity: { eventId: eventId } },
     });
     await this.prisma.record.deleteMany({
-      where: { event_activity: { event: { event_id: eventId } } },
+      where: { eventActivity: { event: { eventId: eventId } } },
     });
-    await this.prisma.activity_feedback_question.deleteMany({
-      where: { activity: { event_id: eventId } },
+    await this.prisma.activityFeedbackQuestion.deleteMany({
+      where: { activity: { eventId: eventId } },
     });
-    await this.prisma.activity_feedback_embedding.deleteMany({
-      where: { activity: { event_id: eventId } },
+    await this.prisma.activityFeedbackEmbedding.deleteMany({
+      where: { activity: { eventId: eventId } },
     });
-    await this.prisma.event_activity.deleteMany({
-      where: { event_id: eventId },
+    await this.prisma.eventActivity.deleteMany({
+      where: { eventId: eventId },
     });
 
     const deletedEvent = await this.prisma.event.delete({
-      where: { event_id: eventId },
+      where: { eventId: eventId },
     });
 
-    if (event.athlete_id) {
-      this.calendarWebSocketService?.notifyWeeklyLoadUpdated(event.athlete_id, {
+    if (event.athleteId) {
+      this.calendarWebSocketService?.notifyWeeklyLoadUpdated(event.athleteId, {
         eventId,
         reason: 'event_deleted',
       });
@@ -851,7 +844,7 @@ export class EventService {
 
   async getEventStream(
     user: AuthUser,
-    eventId: event['event_id'],
+    eventId: Event['eventId'],
     resolution: number,
     keys?: (keyof ActivityStream)[],
   ) {
@@ -859,7 +852,7 @@ export class EventService {
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'read').Event],
       },
       include: { activity: true },
     });
@@ -868,8 +861,8 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_id: eventId },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventId: eventId },
       select: { stream: true },
     });
 
@@ -903,12 +896,12 @@ export class EventService {
     return compressedStreams as ActivityStream;
   }
 
-  async getEventWeather(user: AuthUser, eventId: event['event_id']) {
+  async getEventWeather(user: AuthUser, eventId: Event['eventId']) {
     const ability = await this.abilities.getFor({ user });
 
     const evt = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'read').Event],
       },
       include: { activity: true },
     });
@@ -917,38 +910,37 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_id: eventId },
-      select: { event_activity_id: true },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventId: eventId },
+      select: { eventActivityId: true },
     });
 
     if (!activity) {
       throw new NotFoundException('Activity not found');
     }
 
-    const weather = await this.prisma.event_activity_weather.findUnique({
-      where: { event_activity_id: activity.event_activity_id },
-      select: { resolution_m: true, provider: true, samples: true },
+    const weather = await this.prisma.eventActivityWeather.findUnique({
+      where: { eventActivityId: activity.eventActivityId },
+      select: { resolutionM: true, provider: true, samples: true },
     });
 
     if (!weather) {
       throw new NotFoundException('Weather not found');
     }
 
-    // keysToCamel for API consistency
-    return keysToCamel({
-      resolution_m: weather.resolution_m,
+    return {
+      resolutionM: weather.resolutionM,
       provider: weather.provider,
       samples: weather.samples,
-    });
+    };
   }
 
-  async getEventNormalization(user: AuthUser, eventId: event['event_id']) {
+  async getEventNormalization(user: AuthUser, eventId: Event['eventId']) {
     const ability = await this.abilities.getFor({ user });
 
     const evt = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'read').Event],
       },
       include: { activity: true },
     });
@@ -957,9 +949,9 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    const activity = await this.prisma.event_activity.findUnique({
-      where: { event_id: eventId },
-      select: { event_activity_id: true, average_normalized_speed: true },
+    const activity = await this.prisma.eventActivity.findUnique({
+      where: { eventId: eventId },
+      select: { eventActivityId: true, averageNormalizedSpeed: true },
     });
 
     if (!activity) {
@@ -967,17 +959,17 @@ export class EventService {
     }
 
     const normalization =
-      await this.prisma.event_activity_normalization.findUnique({
-        where: { event_activity_id: activity.event_activity_id },
+      await this.prisma.eventActivityNormalization.findUnique({
+        where: { eventActivityId: activity.eventActivityId },
         include: { factors: true },
       });
 
     return {
-      averageNormalizedSpeed: activity.average_normalized_speed,
+      averageNormalizedSpeed: activity.averageNormalizedSpeed,
       factors:
         normalization?.factors.map((f) => ({
           factor: f.factor,
-          timeSeconds: f.time_seconds,
+          timeSeconds: f.timeSeconds,
           percent: f.percent,
         })) ?? [],
     };
@@ -985,19 +977,19 @@ export class EventService {
 
   async setRelatedActivity(
     user: AuthUser,
-    eventId: event['event_id'],
-    activityId: event['event_id'],
+    eventId: Event['eventId'],
+    activityId: Event['eventId'],
   ): Promise<void> {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'update').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'update').Event],
       },
     });
     const activity = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: activityId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: activityId }, accessibleBy(ability, 'read').Event],
       },
     });
 
@@ -1006,40 +998,40 @@ export class EventService {
     }
 
     if (
-      event.type !== event_type.TRAINING &&
-      event.type !== event_type.COMPETITION
+      event.type !== EventType.TRAINING &&
+      event.type !== EventType.COMPETITION
     ) {
       throw new BadRequestException(
         'eventId must refer to a training or a competition',
       );
     }
 
-    if (activity.type !== event_type.ACTIVITY) {
+    if (activity.type !== EventType.ACTIVITY) {
       throw new BadRequestException('activityId must refer to an activity');
     }
 
     if (event.type === 'COMPETITION') {
-      await this.prisma.event_competition.update({
-        where: { event_id: eventId },
-        data: { related_activity: { connect: { event_id: activityId } } },
+      await this.prisma.eventCompetition.update({
+        where: { eventId: eventId },
+        data: { relatedActivity: { connect: { eventActivityId: activityId } } },
       });
     } else if (event.type === 'TRAINING') {
-      await this.prisma.event_training.update({
-        where: { event_id: eventId },
-        data: { related_activity: { connect: { event_id: activityId } } },
+      await this.prisma.eventTraining.update({
+        where: { eventId: eventId },
+        data: { relatedActivity: { connect: { eventActivityId: activityId } } },
       });
     }
   }
 
   async unsetRelatedActivity(
     user: AuthUser,
-    eventId: event['event_id'],
+    eventId: Event['eventId'],
   ): Promise<void> {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'update').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'update').Event],
       },
     });
 
@@ -1048,14 +1040,14 @@ export class EventService {
     }
 
     if (event.type === 'COMPETITION') {
-      await this.prisma.event_competition.update({
-        where: { event_id: eventId },
-        data: { related_activity: { disconnect: true } },
+      await this.prisma.eventCompetition.update({
+        where: { eventId: eventId },
+        data: { relatedActivity: { disconnect: true } },
       });
     } else if (event.type === 'TRAINING') {
-      await this.prisma.event_training.update({
-        where: { event_id: eventId },
-        data: { related_activity: { disconnect: true } },
+      await this.prisma.eventTraining.update({
+        where: { eventId: eventId },
+        data: { relatedActivity: { disconnect: true } },
       });
     }
   }
@@ -1063,26 +1055,26 @@ export class EventService {
   async getIcalCalendar(base64Secret: string): Promise<string> {
     const secret = Buffer.from(base64Secret, 'base64').toString('utf-8');
     const users = await this.prisma.user.findMany({
-      select: { user_id: true, athlete: { select: { athlete_id: true } } },
+      select: { userId: true, athlete: { select: { athleteId: true } } },
     });
     const user = await Promise.all(
       users.map(async (user) => {
-        const isValid = await argon2.verify(secret, user.user_id.toString(), {
+        const isValid = await argon2.verify(secret, user.userId.toString(), {
           secret: this.HASH_PEPPER,
         });
         return isValid ? user : null;
       }),
     ).then((results) => results.find((user) => user !== null));
 
-    if (!user || !user.athlete?.athlete_id) {
+    if (!user || !user.athlete?.athleteId) {
       throw new UnauthorizedException();
     }
 
     const events = await this.prisma.event.findMany({
       where: {
-        athlete_id: user.athlete.athlete_id,
+        athleteId: user.athlete.athleteId,
         type: {
-          not: event_type.ACTIVITY,
+          not: EventType.ACTIVITY,
         },
       },
     });
@@ -1092,15 +1084,15 @@ export class EventService {
       method: ICalCalendarMethod.PUBLISH,
     });
     events.forEach((event) => {
-      const { start_date, end_date, name, type } = event;
+      const { startDate, endDate, name, type } = event;
       const eventType = type.toLowerCase();
       const eventData = {
-        start: start_date,
-        end: end_date,
+        start: startDate,
+        end: endDate,
         allDay: true,
         summary: name,
         description: `Type: ${eventType}`,
-        uid: event.event_id,
+        uid: event.eventId,
       } as ICalEvent | ICalEventData;
       calendar.createEvent(eventData);
     });
@@ -1113,16 +1105,16 @@ export class EventService {
 
     const userEntity = await this.prisma.user.findFirst({
       where: {
-        AND: [{ user_id: user.user_id }, accessibleBy(ability, 'read').user],
+        AND: [{ userId: user.userId }, accessibleBy(ability, 'read').User],
       },
       include: { athlete: true },
     });
 
-    if (!userEntity?.athlete?.athlete_id) {
+    if (!userEntity?.athlete?.athleteId) {
       throw new NotFoundException('Athlete not found');
     }
 
-    const hash = await argon2.hash(userEntity.user_id.toString(), {
+    const hash = await argon2.hash(userEntity.userId.toString(), {
       secret: this.HASH_PEPPER,
     });
 
@@ -1131,13 +1123,13 @@ export class EventService {
 
   async duplicateEvent(
     user: AuthUser,
-    eventId: event['event_id'],
-  ): Promise<event> {
+    eventId: Event['eventId'],
+  ): Promise<Event> {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'read').Event],
       },
       include: EVENT_INCLUDES,
     });
@@ -1146,32 +1138,32 @@ export class EventService {
       throw new NotFoundException('Event not found');
     }
 
-    const { start_date, end_date, name, type, athlete_id } = event;
+    const { startDate, endDate, name, type, athleteId } = event;
 
     const subEntityData: Record<string, unknown> = {
       ...event[type.toLocaleLowerCase() as Lowercase<Event['type']>],
     };
 
-    delete subEntityData.event_training_id;
-    delete subEntityData.event_competition_id;
-    delete subEntityData.event_note_id;
-    delete subEntityData.event_activity_id;
-    delete subEntityData.event_id;
-    delete subEntityData.related_activity_id;
-    delete subEntityData.related_activity;
+    delete subEntityData.eventTrainingId;
+    delete subEntityData.eventCompetitionId;
+    delete subEntityData.eventNoteId;
+    delete subEntityData.eventActivityId;
+    delete subEntityData.eventId;
+    delete subEntityData.relatedActivityId;
+    delete subEntityData.relatedActivity;
 
     if (type === 'TRAINING') {
       delete subEntityData.workout;
-      delete subEntityData.estimated_load;
+      delete subEntityData.estimatedLoad;
     }
 
     return this.prisma.event.create({
       data: {
-        start_date,
-        end_date,
+        startDate,
+        endDate,
         name,
         type,
-        athlete_id,
+        athleteId,
         [type.toLocaleLowerCase()]: {
           create: subEntityData,
         },
@@ -1182,7 +1174,7 @@ export class EventService {
 
   async duplicateEventComplete(
     user: AuthUser,
-    eventId: event['event_id'],
+    eventId: Event['eventId'],
     dto?: { startDate?: Date; endDate?: Date },
   ) {
     const ability = await this.abilities.getFor({ user });
@@ -1190,7 +1182,7 @@ export class EventService {
     // Get original event
     const originalEvent = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'read').Event],
       },
       include: EVENT_INCLUDES,
     });
@@ -1204,39 +1196,39 @@ export class EventService {
 
     // Override dates if provided
     if (dto?.startDate || dto?.endDate) {
-      const updateData: Prisma.eventUpdateInput = {};
-      if (dto.startDate) updateData.start_date = dto.startDate;
-      if (dto.endDate) updateData.end_date = dto.endDate;
+      const updateData: Prisma.EventUpdateInput = {};
+      if (dto.startDate) updateData.startDate = dto.startDate;
+      if (dto.endDate) updateData.endDate = dto.endDate;
 
       await this.prisma.event.update({
-        where: { event_id: duplicatedEvent.event_id },
+        where: { eventId: duplicatedEvent.eventId },
         data: updateData,
       });
     }
 
     if (originalEvent.type === 'TRAINING' && originalEvent.training?.workout) {
       const originalWorkout = await this.prisma.workout.findUnique({
-        where: { event_training_id: originalEvent.training.event_training_id },
+        where: { eventTrainingId: originalEvent.training.eventTrainingId },
         include: {
           steps: {
             include: {
               targets: true,
-              repeat_block: {
+              repeatBlock: {
                 include: {
-                  child_steps: {
+                  childSteps: {
                     include: { targets: true },
                   },
                 },
               },
             },
-            orderBy: { order_index: 'asc' },
+            orderBy: { orderIndex: 'asc' },
           },
         },
       });
 
       if (originalWorkout) {
         const duplicatedEventWithIncludes = await this.prisma.event.findUnique({
-          where: { event_id: duplicatedEvent.event_id },
+          where: { eventId: duplicatedEvent.eventId },
           include: EVENT_INCLUDES,
         });
 
@@ -1244,8 +1236,8 @@ export class EventService {
           const originalDto = mapPrismaWorkoutToDto(originalWorkout);
           await this.prisma.workout.create({
             data: {
-              event_training_id:
-                duplicatedEventWithIncludes.training.event_training_id,
+              eventTrainingId:
+                duplicatedEventWithIncludes.training.eventTrainingId,
               ...mapWorkoutDtoToPrisma({ steps: originalDto.steps }),
             },
           });
@@ -1255,7 +1247,7 @@ export class EventService {
 
     // Get the final duplicated event with updated dates
     const finalDuplicatedEvent = await this.prisma.event.findUnique({
-      where: { event_id: duplicatedEvent.event_id },
+      where: { eventId: duplicatedEvent.eventId },
       include: EVENT_INCLUDES,
     });
 
@@ -1263,14 +1255,14 @@ export class EventService {
     if (
       originalEvent.type === 'TRAINING' &&
       finalDuplicatedEvent?.training &&
-      finalDuplicatedEvent.start_date > startOfDay(new Date()) &&
+      finalDuplicatedEvent.startDate > startOfDay(new Date()) &&
       this.trainingLoadEstimationService
     ) {
       this.trainingLoadEstimationService
         .scheduleEstimation(
-          duplicatedEvent.event_id,
-          finalDuplicatedEvent.training.event_training_id,
-          originalEvent.athlete_id!,
+          duplicatedEvent.eventId,
+          finalDuplicatedEvent.training.eventTrainingId,
+          originalEvent.athleteId!,
         )
         .catch((error) => {
           // Log but don't fail the request
@@ -1282,17 +1274,17 @@ export class EventService {
     }
 
     // Notify websocket for training load reload (same as updateEvent)
-    if (originalEvent.type === 'TRAINING' && originalEvent.athlete_id) {
+    if (originalEvent.type === 'TRAINING' && originalEvent.athleteId) {
       this.calendarWebSocketService?.notifyWeeklyLoadUpdated(
-        originalEvent.athlete_id,
+        originalEvent.athleteId,
         {
-          eventId: duplicatedEvent.event_id,
+          eventId: duplicatedEvent.eventId,
           reason: 'event_updated',
         },
       );
     }
 
-    return this.getEventById(user, duplicatedEvent.event_id);
+    return this.getEventById(user, duplicatedEvent.eventId);
   }
 
   // ============================================================================
@@ -1304,14 +1296,14 @@ export class EventService {
    */
   async reorderWorkoutSteps(
     user: AuthUser,
-    eventId: event['event_id'],
+    eventId: Event['eventId'],
     data: ReorderWorkoutStepsDto,
   ) {
     const ability = await this.abilities.getFor({ user });
 
     const event = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: eventId }, accessibleBy(ability, 'update').event],
+        AND: [{ eventId: eventId }, accessibleBy(ability, 'update').Event],
       },
       include: {
         training: {
@@ -1328,9 +1320,9 @@ export class EventService {
 
     // Reorder steps based on the provided order
     const updatePromises = data.stepOrders.map(({ stepId, order }) =>
-      this.prisma.workout_step.update({
-        where: { workout_step_id: stepId },
-        data: { order_index: order },
+      this.prisma.workoutStep.update({
+        where: { workoutStepId: stepId },
+        data: { orderIndex: order },
       }),
     );
 
@@ -1345,7 +1337,7 @@ export class EventService {
    */
   async duplicateWorkout(
     user: AuthUser,
-    sourceEventId: event['event_id'],
+    sourceEventId: Event['eventId'],
     data: DuplicateWorkoutDto,
   ) {
     const ability = await this.abilities.getFor({ user });
@@ -1353,7 +1345,7 @@ export class EventService {
     // Get source event with workout
     const sourceEvent = await this.prisma.event.findFirst({
       where: {
-        AND: [{ event_id: sourceEventId }, accessibleBy(ability, 'read').event],
+        AND: [{ eventId: sourceEventId }, accessibleBy(ability, 'read').Event],
       },
       include: {
         training: {
@@ -1363,16 +1355,16 @@ export class EventService {
                 steps: {
                   include: {
                     targets: true,
-                    repeat_block: {
+                    repeatBlock: {
                       include: {
-                        child_steps: {
+                        childSteps: {
                           include: { targets: true },
-                          orderBy: { order_index: 'asc' },
+                          orderBy: { orderIndex: 'asc' },
                         },
                       },
                     },
                   },
-                  orderBy: { order_index: 'asc' },
+                  orderBy: { orderIndex: 'asc' },
                 },
               },
             },
@@ -1391,8 +1383,8 @@ export class EventService {
     const targetEvent = await this.prisma.event.findFirst({
       where: {
         AND: [
-          { event_id: data.targetTrainingId },
-          accessibleBy(ability, 'update').event,
+          { eventId: data.targetTrainingId },
+          accessibleBy(ability, 'update').Event,
         ],
       },
       include: {
@@ -1415,23 +1407,23 @@ export class EventService {
 
     await this.prisma.workout.create({
       data: {
-        event_training_id: targetEvent.training.event_training_id,
+        eventTrainingId: targetEvent.training.eventTrainingId,
         ...mapWorkoutDtoToPrisma({ steps: sourceDto.steps }),
       },
       include: {
         steps: {
           include: {
             targets: true,
-            repeat_block: {
+            repeatBlock: {
               include: {
-                child_steps: {
+                childSteps: {
                   include: { targets: true },
-                  orderBy: { order_index: 'asc' },
+                  orderBy: { orderIndex: 'asc' },
                 },
               },
             },
           },
-          orderBy: { order_index: 'asc' },
+          orderBy: { orderIndex: 'asc' },
         },
       },
     });
@@ -1444,27 +1436,27 @@ export class EventService {
    * Check if an event is validated based on athlete settings
    */
   private async isEventValidated(
-    event: event & {
-      competition: event_competition | null;
-      training: event_training | null;
-      note: event_note | null;
-      activity: Omit<event_activity, 'stream'> | null;
+    event: Event & {
+      competition: EventCompetition | null;
+      training: EventTraining | null;
+      note: EventNote | null;
+      activity: Omit<EventActivity, 'stream'> | null;
     },
   ): Promise<boolean> {
-    if (!event.athlete_id) return true; // No athlete, consider validated
+    if (!event.athleteId) return true; // No athlete, consider validated
 
     // Get athlete settings
-    const settings = await this.prisma.athlete_settings.findUnique({
-      where: { athlete_id: event.athlete_id },
+    const settings = await this.prisma.athleteSettings.findUnique({
+      where: { athleteId: event.athleteId },
     });
 
     // If no settings, consider validated
-    if (!settings || (!settings.require_rpe && !settings.require_comment)) {
+    if (!settings || (!settings.requireRpe && !settings.requireComment)) {
       return true;
     }
 
     // For ACTIVITY events, check RPE and comment
-    if (event.type === event_type.ACTIVITY && event.activity) {
+    if (event.type === EVENT_TYPE.ACTIVITY && event.activity) {
       const hasRpe =
         event.activity.rpe !== null && event.activity.rpe !== undefined;
       const hasComment =
@@ -1472,19 +1464,19 @@ export class EventService {
         event.activity.description !== undefined &&
         event.activity.description.trim() !== '';
 
-      if (settings.require_rpe && !hasRpe) return false;
-      if (settings.require_comment && !hasComment) return false;
+      if (settings.requireRpe && !hasRpe) return false;
+      if (settings.requireComment && !hasComment) return false;
 
       return true;
     }
 
     // For TRAINING events, check related activity
     if (
-      event.type === event_type.TRAINING &&
-      event.training?.related_activity_id
+      event.type === EVENT_TYPE.TRAINING &&
+      event.training?.relatedActivityId
     ) {
-      const relatedActivity = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: event.training.related_activity_id },
+      const relatedActivity = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: event.training.relatedActivityId },
       });
 
       if (!relatedActivity) return false;
@@ -1496,19 +1488,19 @@ export class EventService {
         relatedActivity.description !== undefined &&
         relatedActivity.description.trim() !== '';
 
-      if (settings.require_rpe && !hasRpe) return false;
-      if (settings.require_comment && !hasComment) return false;
+      if (settings.requireRpe && !hasRpe) return false;
+      if (settings.requireComment && !hasComment) return false;
 
       return true;
     }
 
     // For COMPETITION events, check related activity
     if (
-      event.type === event_type.COMPETITION &&
-      event.competition?.related_activity_id
+      event.type === EVENT_TYPE.COMPETITION &&
+      event.competition?.relatedActivityId
     ) {
-      const relatedActivity = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: event.competition.related_activity_id },
+      const relatedActivity = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: event.competition.relatedActivityId },
       });
 
       if (!relatedActivity) return false;
@@ -1520,18 +1512,18 @@ export class EventService {
         relatedActivity.description !== undefined &&
         relatedActivity.description.trim() !== '';
 
-      if (settings.require_rpe && !hasRpe) return false;
-      if (settings.require_comment && !hasComment) return false;
+      if (settings.requireRpe && !hasRpe) return false;
+      if (settings.requireComment && !hasComment) return false;
 
       return true;
     }
 
     // For TRAINING and COMPETITION without related activity, they are not validated
     if (
-      (event.type === event_type.TRAINING ||
-        event.type === event_type.COMPETITION) &&
-      !event.training?.related_activity_id &&
-      !event.competition?.related_activity_id
+      (event.type === EVENT_TYPE.TRAINING ||
+        event.type === EVENT_TYPE.COMPETITION) &&
+      !event.training?.relatedActivityId &&
+      !event.competition?.relatedActivityId
     ) {
       return false;
     }
@@ -1552,7 +1544,7 @@ export class EventService {
 
     // Check access to athlete
     const athlete = await this.prisma.athlete.findUnique({
-      where: { athlete_id: athleteId },
+      where: { athleteId: athleteId },
     });
     if (!athlete) throw new NotFoundException('Athlete not found');
     if (!ability.can('read', subject('athlete', athlete))) {
@@ -1565,21 +1557,21 @@ export class EventService {
         ? {
             OR: [
               {
-                start_date: {
+                startDate: {
                   gte: startDate,
                   lte: endDate,
                 },
               },
               {
-                end_date: {
+                endDate: {
                   gte: startDate,
                   lte: endDate,
                 },
               },
               {
                 AND: [
-                  { start_date: { lte: startDate } },
-                  { end_date: { gte: endDate } },
+                  { startDate: { lte: startDate } },
+                  { endDate: { gte: endDate } },
                 ],
               },
             ],
@@ -1590,11 +1582,11 @@ export class EventService {
     const events = await this.prisma.event.findMany({
       where: {
         AND: [
-          accessibleBy(ability, 'read').event,
+          accessibleBy(ability, 'read').Event,
           {
-            athlete_id: athleteId,
+            athleteId: athleteId,
             type: {
-              in: [event_type.ACTIVITY],
+              in: [EVENT_TYPE.ACTIVITY],
             },
           },
           dateFilter,
@@ -1612,10 +1604,6 @@ export class EventService {
       }
     }
 
-    return unvalidatedEvents.map((e) =>
-      keysToCamel(this.prismaEventToEvent(e)),
-    );
+    return unvalidatedEvents.map((e) => this.prismaEventToEvent(e));
   }
-
-  // Legacy builder/mapper removed; mapping is handled in @openathlete/shared utils.
 }

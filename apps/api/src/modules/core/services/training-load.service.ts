@@ -8,15 +8,14 @@ import {
 } from '@nestjs/common';
 
 import {
-  athlete,
-  metric_type,
-  training_load_calculation_type,
+  Athlete,
+  MetricType,
+  TrainingLoadCalculationType,
 } from '@openathlete/database';
 import {
   ActivityStream,
   CalendarWeekLoadSummary,
   CompressedActivityStream,
-  keysToCamel,
 } from '@openathlete/shared';
 
 import {
@@ -48,7 +47,7 @@ import { uncompressActivityStream } from '../helpers/activity-stream';
  * Training load calculation metadata
  */
 interface TrainingLoadMetadata {
-  calculationType: training_load_calculation_type;
+  calculationType: TrainingLoadCalculationType;
   rpe?: number;
   duration?: number; // seconds
   avgHr?: number;
@@ -390,23 +389,23 @@ export class TrainingLoadService {
    */
   private async getOrCreateCalculation(
     athleteId: number,
-    type: training_load_calculation_type,
+    type: TrainingLoadCalculationType,
   ) {
-    let calculation = await this.prisma.training_load_calculation.findUnique({
+    let calculation = await this.prisma.trainingLoadCalculation.findUnique({
       where: {
-        athlete_id_type: {
-          athlete_id: athleteId,
+        athleteId_type: {
+          athleteId: athleteId,
           type,
         },
       },
     });
 
     if (!calculation) {
-      calculation = await this.prisma.training_load_calculation.create({
+      calculation = await this.prisma.trainingLoadCalculation.create({
         data: {
-          athlete_id: athleteId,
+          athleteId: athleteId,
           type,
-          is_active: true,
+          isActive: true,
         },
       });
     }
@@ -419,11 +418,11 @@ export class TrainingLoadService {
    */
   private async getLatestMetric(
     athleteId: number,
-    metricType: metric_type,
+    metricType: MetricType,
   ): Promise<number | null> {
-    const metric = await this.prisma.athlete_metric.findFirst({
+    const metric = await this.prisma.athleteMetric.findFirst({
       where: {
-        athlete_id: athleteId,
+        athleteId: athleteId,
         type: metricType,
       },
       orderBy: {
@@ -522,7 +521,7 @@ export class TrainingLoadService {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
     });
@@ -534,8 +533,8 @@ export class TrainingLoadService {
     // Get activity to verify ownership
     const event = await this.prisma.event.findFirst({
       where: {
-        event_id: activityId,
-        athlete_id: athlete.athlete_id,
+        eventId: activityId,
+        athleteId: athlete.athleteId,
         type: 'ACTIVITY',
       },
       include: {
@@ -548,16 +547,16 @@ export class TrainingLoadService {
     }
 
     // Get all training load entries for this activity
-    const entries = await this.prisma.training_load_entry.findMany({
+    const entries = await this.prisma.trainingLoadEntry.findMany({
       where: {
-        activity_id: event.activity.event_activity_id,
+        activityId: event.activity.eventActivityId,
       },
       include: {
         calculation: true,
       },
     });
 
-    return entries.map((entry) => keysToCamel(entry));
+    return entries;
   }
 
   /**
@@ -566,13 +565,13 @@ export class TrainingLoadService {
   async calculateActivityLoad(
     user: AuthUser,
     activityId: number,
-    calculationType: training_load_calculation_type,
+    calculationType: TrainingLoadCalculationType,
   ) {
     // Get athlete with user info
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
       include: {
@@ -591,8 +590,8 @@ export class TrainingLoadService {
     // Get activity with stream
     const event = await this.prisma.event.findFirst({
       where: {
-        event_id: activityId,
-        athlete_id: athlete.athlete_id,
+        eventId: activityId,
+        athleteId: athlete.athleteId,
         type: 'ACTIVITY',
       },
       include: {
@@ -608,7 +607,7 @@ export class TrainingLoadService {
 
     // Get or create calculation
     const calculation = await this.getOrCreateCalculation(
-      athlete.athlete_id,
+      athlete.athleteId,
       calculationType,
     );
 
@@ -619,18 +618,18 @@ export class TrainingLoadService {
         if (!activity.rpe) {
           throw new Error('RPE not available for this activity');
         }
-        result = this.calculateFosterLoad(activity.rpe, activity.moving_time);
+        result = this.calculateFosterLoad(activity.rpe, activity.movingTime);
         break;
 
       case 'TRIMP': {
         // Get HR metrics
         const hrMax = await this.getLatestMetric(
-          athlete.athlete_id,
-          'HR_MAX' as metric_type,
+          athlete.athleteId,
+          'HR_MAX' as MetricType,
         );
         const hrRest = await this.getLatestMetric(
-          athlete.athlete_id,
-          'HR_REST' as metric_type,
+          athlete.athleteId,
+          'HR_REST' as MetricType,
         );
 
         if (!hrMax || !hrRest) {
@@ -660,16 +659,16 @@ export class TrainingLoadService {
     }
 
     // Save or update training load entry
-    const existingEntry = await this.prisma.training_load_entry.findUnique({
+    const existingEntry = await this.prisma.trainingLoadEntry.findUnique({
       where: {
-        calculation_id_activity_id: {
-          calculation_id: calculation.training_load_calculation_id,
-          activity_id: activity.event_activity_id,
+        calculationId_activityId: {
+          calculationId: calculation.trainingLoadCalculationId,
+          activityId: activity.eventActivityId,
         },
       },
     });
 
-    const startDate = new Date(event.start_date);
+    const startDate = new Date(event.startDate);
     const activityDate = new Date(
       Date.UTC(
         startDate.getUTCFullYear(),
@@ -683,31 +682,27 @@ export class TrainingLoadService {
     );
 
     if (existingEntry) {
-      return keysToCamel(
-        await this.prisma.training_load_entry.update({
-          where: {
-            training_load_entry_id: existingEntry.training_load_entry_id,
-          },
-          data: {
-            value: result.value,
-            metadata: result.metadata as object,
-            date: activityDate,
-          },
-        }),
-      );
-    }
-
-    return keysToCamel(
-      await this.prisma.training_load_entry.create({
+      return await this.prisma.trainingLoadEntry.update({
+        where: {
+          trainingLoadEntryId: existingEntry.trainingLoadEntryId,
+        },
         data: {
-          calculation_id: calculation.training_load_calculation_id,
-          activity_id: activity.event_activity_id,
-          date: activityDate,
           value: result.value,
           metadata: result.metadata as object,
+          date: activityDate,
         },
-      }),
-    );
+      });
+    }
+
+    return await this.prisma.trainingLoadEntry.create({
+      data: {
+        calculationId: calculation.trainingLoadCalculationId,
+        activityId: activity.eventActivityId,
+        date: activityDate,
+        value: result.value,
+        metadata: result.metadata as object,
+      },
+    });
   }
 
   /**
@@ -715,10 +710,10 @@ export class TrainingLoadService {
    */
   async getTrainingLoadByPeriod(
     user: AuthUser,
-    calculationType: training_load_calculation_type,
+    calculationType: TrainingLoadCalculationType,
     startDate: Date,
     endDate: Date,
-    athleteId?: athlete['athlete_id'],
+    athleteId?: Athlete['athleteId'],
   ): Promise<DailyTrainingLoad[]> {
     const ability = await this.abilities.getFor({ user });
 
@@ -728,7 +723,7 @@ export class TrainingLoadService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -745,7 +740,7 @@ export class TrainingLoadService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
       });
@@ -754,13 +749,13 @@ export class TrainingLoadService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
-    const calculation = await this.prisma.training_load_calculation.findUnique({
+    const calculation = await this.prisma.trainingLoadCalculation.findUnique({
       where: {
-        athlete_id_type: {
-          athlete_id: targetAthleteId,
+        athleteId_type: {
+          athleteId: targetAthleteId,
           type: calculationType,
         },
       },
@@ -770,9 +765,9 @@ export class TrainingLoadService {
       return [];
     }
 
-    const entries = await this.prisma.training_load_entry.findMany({
+    const entries = await this.prisma.trainingLoadEntry.findMany({
       where: {
-        calculation_id: calculation.training_load_calculation_id,
+        calculationId: calculation.trainingLoadCalculationId,
         date: {
           gte: startDate,
           lte: endDate,
@@ -810,9 +805,9 @@ export class TrainingLoadService {
    */
   async getTrainingLoadMetrics(
     user: AuthUser,
-    calculationType: training_load_calculation_type,
+    calculationType: TrainingLoadCalculationType,
     targetDate: Date = new Date(),
-    athleteId?: athlete['athlete_id'],
+    athleteId?: Athlete['athleteId'],
   ): Promise<TrainingLoadMetrics> {
     const ability = await this.abilities.getFor({ user });
 
@@ -822,7 +817,7 @@ export class TrainingLoadService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -839,7 +834,7 @@ export class TrainingLoadService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
       });
@@ -848,7 +843,7 @@ export class TrainingLoadService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
     // Get last 42 days of data for CTL calculation
@@ -957,10 +952,10 @@ export class TrainingLoadService {
    */
   async getTrainingLoadHistory(
     user: AuthUser,
-    calculationType: training_load_calculation_type,
+    calculationType: TrainingLoadCalculationType,
     startDate: Date,
     endDate: Date,
-    athleteId?: athlete['athlete_id'],
+    athleteId?: Athlete['athleteId'],
   ): Promise<
     Array<{
       date: Date;
@@ -978,7 +973,7 @@ export class TrainingLoadService {
     if (athleteId) {
       // Check if user can access this athlete's data
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -995,7 +990,7 @@ export class TrainingLoadService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
       });
@@ -1004,7 +999,7 @@ export class TrainingLoadService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
     // Get data starting 42 days before startDate for proper CTL calculation
@@ -1084,7 +1079,7 @@ export class TrainingLoadService {
     user: AuthUser,
     startDate: Date,
     endDate: Date,
-    athleteId?: athlete['athlete_id'],
+    athleteId?: Athlete['athleteId'],
   ): Promise<CalendarWeekLoadSummary[]> {
     const ability = await this.abilities.getFor({ user });
 
@@ -1092,7 +1087,7 @@ export class TrainingLoadService {
 
     if (athleteId) {
       const athlete = await this.prisma.athlete.findUnique({
-        where: { athlete_id: athleteId },
+        where: { athleteId: athleteId },
       });
 
       if (!athlete) {
@@ -1108,7 +1103,7 @@ export class TrainingLoadService {
       const athlete = await this.prisma.athlete.findFirst({
         where: {
           user: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
       });
@@ -1117,7 +1112,7 @@ export class TrainingLoadService {
         throw new NotFoundException('Athlete not found');
       }
 
-      targetAthleteId = athlete.athlete_id;
+      targetAthleteId = athlete.athleteId;
     }
 
     const normalizedStart = this.getWeekStart(startDate);
@@ -1154,22 +1149,22 @@ export class TrainingLoadService {
     }
 
     const trimpCalculation =
-      await this.prisma.training_load_calculation.findUnique({
+      await this.prisma.trainingLoadCalculation.findUnique({
         where: {
-          athlete_id_type: {
-            athlete_id: targetAthleteId,
+          athleteId_type: {
+            athleteId: targetAthleteId,
             type: 'TRIMP',
           },
         },
         select: {
-          training_load_calculation_id: true,
+          trainingLoadCalculationId: true,
         },
       });
 
     if (trimpCalculation) {
-      const entries = await this.prisma.training_load_entry.findMany({
+      const entries = await this.prisma.trainingLoadEntry.findMany({
         where: {
-          calculation_id: trimpCalculation.training_load_calculation_id,
+          calculationId: trimpCalculation.trainingLoadCalculationId,
           date: {
             gte: extendedStart,
             lte: normalizedEnd,
@@ -1197,15 +1192,15 @@ export class TrainingLoadService {
       }
     }
 
-    const plannedTrainings = await this.prisma.event_training.findMany({
+    const plannedTrainings = await this.prisma.eventTraining.findMany({
       where: {
-        estimated_load: {
+        estimatedLoad: {
           not: null,
         },
-        related_activity_id: null,
+        relatedActivityId: null,
         event: {
-          athlete_id: targetAthleteId,
-          start_date: {
+          athleteId: targetAthleteId,
+          startDate: {
             gte: extendedStart,
             lte: normalizedEnd,
           },
@@ -1213,21 +1208,21 @@ export class TrainingLoadService {
         },
       },
       select: {
-        estimated_load: true,
+        estimatedLoad: true,
         event: {
           select: {
-            start_date: true,
+            startDate: true,
           },
         },
       },
     });
 
     for (const training of plannedTrainings) {
-      if (training.estimated_load === null) {
+      if (training.estimatedLoad === null) {
         continue;
       }
 
-      const eventDate = new Date(training.event.start_date);
+      const eventDate = new Date(training.event.startDate);
       const weekStart = this.getWeekStart(eventDate);
       const weekKey = weekStart.toISOString();
       const summary =
@@ -1239,7 +1234,7 @@ export class TrainingLoadService {
           return placeholder;
         })();
 
-      summary.estimated += training.estimated_load;
+      summary.estimated += training.estimatedLoad;
     }
 
     const sortedSummaries = Array.from(weekSummaries.values()).sort(
@@ -1391,12 +1386,12 @@ export class TrainingLoadService {
    */
   async recalculateAllLoads(
     user: AuthUser,
-    calculationType: training_load_calculation_type,
+    calculationType: TrainingLoadCalculationType,
   ): Promise<{ processed: number; errors: number }> {
     const athlete = await this.prisma.athlete.findFirst({
       where: {
         user: {
-          user_id: user.user_id,
+          userId: user.userId,
         },
       },
     });
@@ -1408,7 +1403,7 @@ export class TrainingLoadService {
     // Get all activities
     const events = await this.prisma.event.findMany({
       where: {
-        athlete_id: athlete.athlete_id,
+        athleteId: athlete.athleteId,
         type: 'ACTIVITY',
       },
       include: {
@@ -1423,11 +1418,11 @@ export class TrainingLoadService {
       if (!event.activity) continue;
 
       try {
-        await this.calculateActivityLoad(user, event.event_id, calculationType);
+        await this.calculateActivityLoad(user, event.eventId, calculationType);
         processed++;
       } catch (error) {
         this.logger.error(
-          `Failed to calculate load for activity ${event.event_id}: ${error instanceof Error ? error.message : String(error)}`,
+          `Failed to calculate load for activity ${event.eventId}: ${error instanceof Error ? error.message : String(error)}`,
           error instanceof Error ? error.stack : undefined,
         );
         errors++;

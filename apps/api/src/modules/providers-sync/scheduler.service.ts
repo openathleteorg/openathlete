@@ -72,15 +72,15 @@ export class ProviderExportScheduler {
     );
 
     // Get all athletes with active provider accounts (or specific athlete if provided)
-    const providerAccounts = await this.prisma.provider_account.findMany({
+    const providerAccounts = await this.prisma.providerAccount.findMany({
       where: {
         provider: { in: ['GARMIN', 'SUUNTO', 'COROS'] },
         status: 'active',
-        export_workouts_enabled: true,
-        ...(athleteId && { athlete_id: athleteId }),
+        exportWorkoutsEnabled: true,
+        ...(athleteId && { athleteId: athleteId }),
       },
       select: {
-        athlete_id: true,
+        athleteId: true,
         provider: true,
       },
     });
@@ -95,10 +95,10 @@ export class ProviderExportScheduler {
       const providerKey = providerEnumToKey(account.provider);
       if (!providerKey) continue;
 
-      if (!athletesByProvider.has(account.athlete_id)) {
-        athletesByProvider.set(account.athlete_id, new Set());
+      if (!athletesByProvider.has(account.athleteId)) {
+        athletesByProvider.set(account.athleteId, new Set());
       }
-      athletesByProvider.get(account.athlete_id)!.add(providerKey);
+      athletesByProvider.get(account.athleteId)!.add(providerKey);
     }
 
     if (athletesByProvider.size === 0) {
@@ -111,9 +111,9 @@ export class ProviderExportScheduler {
       try {
         const events = await this.prisma.event.findMany({
           where: {
-            athlete_id: athleteId,
+            athleteId: athleteId,
             type: 'TRAINING',
-            start_date: {
+            startDate: {
               gte: windowStart,
               lte: windowEnd,
             },
@@ -131,16 +131,16 @@ export class ProviderExportScheduler {
                     steps: {
                       include: {
                         targets: true,
-                        repeat_block: {
+                        repeatBlock: {
                           include: {
-                            child_steps: {
+                            childSteps: {
                               include: { targets: true },
-                              orderBy: { order_index: 'asc' },
+                              orderBy: { orderIndex: 'asc' },
                             },
                           },
                         },
                       },
-                      orderBy: { order_index: 'asc' },
+                      orderBy: { orderIndex: 'asc' },
                     },
                   },
                 },
@@ -151,7 +151,7 @@ export class ProviderExportScheduler {
 
         const workoutIdsInWindow = new Set(
           events
-            .map((event) => event.training?.workout?.workout_id)
+            .map((event) => event.training?.workout?.workoutId)
             .filter((id): id is number => typeof id === 'number'),
         );
 
@@ -161,27 +161,27 @@ export class ProviderExportScheduler {
 
         if (providerEnums.length > 0) {
           const orphanExports =
-            await this.prisma.provider_workout_export.findMany({
+            await this.prisma.providerWorkoutExport.findMany({
               where: {
-                athlete_id: athleteId,
+                athleteId: athleteId,
                 provider: { in: providerEnums },
-                planned_date: {
+                plannedDate: {
                   gte: windowStart,
                   lte: windowEnd,
                 },
                 ...(workoutIdsInWindow.size > 0 && {
-                  workout_id: {
+                  workoutId: {
                     notIn: Array.from(workoutIdsInWindow),
                   },
                 }),
               },
               select: {
-                workout_id: true,
+                workoutId: true,
               },
             });
 
           const workoutsToDelete = new Set(
-            orphanExports.map((exp) => exp.workout_id),
+            orphanExports.map((exp) => exp.workoutId),
           );
 
           for (const workoutId of workoutsToDelete) {
@@ -209,7 +209,7 @@ export class ProviderExportScheduler {
             workout: workoutDto,
           });
 
-          const eventDate = new Date(event.start_date);
+          const eventDate = new Date(event.startDate);
           eventDate.setUTCHours(0, 0, 0, 0);
           const dateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
 
@@ -219,16 +219,16 @@ export class ProviderExportScheduler {
               await this.exportService.upsertPlannedExport({
                 athleteId,
                 provider,
-                workoutId: event.training!.workout!.workout_id,
+                workoutId: event.training!.workout!.workoutId,
                 date: dateStr,
                 normalized,
               });
               this.logger.debug(
-                `Synced workout ${event.training!.workout!.workout_id} to ${provider} for athlete ${athleteId}`,
+                `Synced workout ${event.training!.workout!.workoutId} to ${provider} for athlete ${athleteId}`,
               );
             } catch (err: unknown) {
               this.logger.error(
-                `Failed to sync workout ${event.training!.workout!.workout_id} to ${provider} for athlete ${athleteId}: ${err instanceof Error ? err.message : String(err)}`,
+                `Failed to sync workout ${event.training!.workout!.workoutId} to ${provider} for athlete ${athleteId}: ${err instanceof Error ? err.message : String(err)}`,
                 err instanceof Error ? err.stack : undefined,
               );
             }

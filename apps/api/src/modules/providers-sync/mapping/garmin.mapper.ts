@@ -1,10 +1,11 @@
+import { SportType } from '@openathlete/database';
 import type {
   NormalizedWorkout,
   NormalizedWorkoutStep,
   NormalizedWorkoutStepTarget,
   WorkoutDto,
 } from '@openathlete/shared';
-import { SPORT_TYPE, WORKOUT_STEP_TYPE } from '@openathlete/shared';
+import { WORKOUT_STEP_TYPE } from '@openathlete/shared';
 
 import {
   mapDurationTypeToGarmin,
@@ -38,7 +39,7 @@ function truncateDescription(
 function mapNormalizedStepToGarmin(
   step: NormalizedWorkoutStep,
   stepOrder: number,
-  sport: SPORT_TYPE,
+  sport: SportType,
   metrics?: Record<string, { value: number } | number>,
 ): GarminWorkoutStep {
   const intensity = mapStepTypeToGarminIntensity(step.stepType, sport);
@@ -91,13 +92,13 @@ function mapNormalizedStepToGarmin(
 export function mapWorkoutDtoToGarmin(
   ownerId: number | null,
   workout: WorkoutDto,
-  sport: SPORT_TYPE,
+  sport: SportType,
   title: string | null = null,
   description: string | null = null,
   metrics?: Record<string, { value: number } | number>,
 ): GarminWorkout {
   const garminSport = mapSportToGarmin(sport);
-  const isSwimming = sport === SPORT_TYPE.SWIMMING;
+  const isSwimming = sport === SportType.SWIMMING;
   const workoutName = title || 'Workout';
   const workoutDescription = truncateDescription(description, 1024);
 

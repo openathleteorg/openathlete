@@ -3,7 +3,7 @@ import { Queue } from 'bullmq';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 
-import { provider_account } from '@openathlete/database';
+import { ProviderAccount } from '@openathlete/database';
 
 import { ImportedActivity } from '../providers-sync/base/provider-import.interface';
 
@@ -43,7 +43,7 @@ export class QueueService {
   }
 
   async addActivityImportJob(
-    account: provider_account,
+    account: ProviderAccount,
     activity: ImportedActivity,
     bulkImport = false,
   ): Promise<void> {
@@ -80,7 +80,7 @@ export class QueueService {
       await this.activityImportQueue.add(
         'import',
         {
-          providerAccountId: account.provider_account_id,
+          providerAccountId: account.providerAccountId,
           activity,
           bulkImport,
         },
@@ -99,7 +99,7 @@ export class QueueService {
   }
 
   async addActivityImportJobs(
-    account: provider_account,
+    account: ProviderAccount,
     activities: ImportedActivity[],
     bulkImport = false,
   ): Promise<void> {
@@ -145,7 +145,7 @@ export class QueueService {
         jobsToAdd.push({
           name: 'import',
           data: {
-            providerAccountId: account.provider_account_id,
+            providerAccountId: account.providerAccountId,
             activity,
             bulkImport,
           },

@@ -1,4 +1,4 @@
-import { provider_account } from '@openathlete/database';
+import { ProviderAccount } from '@openathlete/database';
 
 /**
  * Interface for providers that support activity import
@@ -10,7 +10,7 @@ export interface ProviderImportCapability {
    * @param options Import options (date range, etc.)
    */
   importActivities(
-    account: provider_account,
+    account: ProviderAccount,
     options?: ImportOptions,
   ): Promise<ImportedActivity[]>;
 

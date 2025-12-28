@@ -14,7 +14,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { athlete, record_type, sport_type } from '@openathlete/database';
+import { Athlete, RecordType, SportType } from '@openathlete/database';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -77,7 +77,7 @@ export class RecordController {
           },
           type: {
             type: 'string',
-            enum: Object.values(record_type),
+            enum: Object.values(RecordType),
             description:
               'Type of record: SPEED (best time, lowest value), HEARTRATE (highest heart rate), POWER (highest power), ELEVATION_GAIN (highest elevation gain), ELEVATION_LOSS (highest elevation loss), CADENCE (highest cadence)',
             example: 'SPEED',
@@ -154,8 +154,8 @@ export class RecordController {
   getRecords(
     @JwtUser() user: AuthUser,
     @Query('sport') sport?: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
-    return this.recordService.getRecords(user, sport as sport_type, athleteId);
+    return this.recordService.getRecords(user, sport as SportType, athleteId);
   }
 }

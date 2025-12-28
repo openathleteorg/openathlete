@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { message_thread } from '@openathlete/database';
+import { MessageThread } from '@openathlete/database';
 import type {
   CreateMessageThreadDto,
   UpdateMessageThreadDto,
@@ -20,9 +20,9 @@ const THREAD_INCLUDES = {
     include: {
       user: {
         select: {
-          user_id: true,
-          first_name: true,
-          last_name: true,
+          userId: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
@@ -32,26 +32,26 @@ const THREAD_INCLUDES = {
     include: {
       sender: {
         select: {
-          user_id: true,
-          first_name: true,
-          last_name: true,
+          userId: true,
+          firstName: true,
+          lastName: true,
           email: true,
         },
       },
-      read_receipts: {
+      readReceipts: {
         include: {
           user: {
             select: {
-              user_id: true,
-              first_name: true,
-              last_name: true,
+              userId: true,
+              firstName: true,
+              lastName: true,
               email: true,
             },
           },
         },
       },
     },
-    orderBy: { created_at: 'asc' as const },
+    orderBy: { createdAt: 'asc' as const },
   },
 };
 
@@ -65,9 +65,9 @@ export class MessageThreadService {
   async createThread(
     user: AuthUser,
     dto: CreateMessageThreadDto,
-  ): Promise<message_thread> {
+  ): Promise<MessageThread> {
     // Validate participants
-    if (!dto.participantUserIds.includes(user.user_id)) {
+    if (!dto.participantUserIds.includes(user.userId)) {
       throw new BadRequestException(
         'You must include yourself as a participant',
       );
@@ -75,14 +75,14 @@ export class MessageThreadService {
 
     // If linked to event_training, verify access
     if (dto.eventActivityId) {
-      const eventActivity = await this.prisma.event_activity.findUnique({
-        where: { event_activity_id: dto.eventActivityId },
+      const eventActivity = await this.prisma.eventActivity.findUnique({
+        where: { eventActivityId: dto.eventActivityId },
         include: {
           event: {
             include: {
               athlete: {
                 include: {
-                  coach_athletes: true,
+                  coachAthletes: true,
                 },
               },
             },
@@ -97,7 +97,7 @@ export class MessageThreadService {
       }
 
       // Verify user has access to this training session
-      const athleteId = eventActivity.event.athlete_id;
+      const athleteId = eventActivity.event.athleteId;
       if (!athleteId) {
         throw new ForbiddenException('Training session has no athlete');
       }
@@ -107,9 +107,9 @@ export class MessageThreadService {
         throw new ForbiddenException('Training session has no athlete');
       }
 
-      const isAthlete = athlete.user_id === user.user_id;
-      const isCoach = athlete.coach_athletes.some(
-        (ca) => ca.user_id === user.user_id,
+      const isAthlete = athlete.userId === user.userId;
+      const isCoach = athlete.coachAthletes.some(
+        (ca) => ca.userId === user.userId,
       );
 
       if (!isAthlete && !isCoach) {
@@ -119,8 +119,8 @@ export class MessageThreadService {
       }
 
       // Auto-add athlete and coaches as participants
-      const athleteUserId = athlete.user_id;
-      const coachUserIds = athlete.coach_athletes.map((ca) => ca.user_id);
+      const athleteUserId = athlete.userId;
+      const coachUserIds = athlete.coachAthletes.map((ca) => ca.userId);
       const allParticipantIds = [athleteUserId, ...coachUserIds].filter(
         (id, index, self) => self.indexOf(id) === index,
       ); // Remove duplicates
@@ -138,35 +138,35 @@ export class MessageThreadService {
     if (!dto.title) {
       const participants = await this.prisma.user.findMany({
         where: {
-          user_id: {
+          userId: {
             in: dto.participantUserIds,
           },
         },
         select: {
-          user_id: true,
-          first_name: true,
-          last_name: true,
+          userId: true,
+          firstName: true,
+          lastName: true,
         },
       });
 
-      // Sort participants by user_id to ensure consistent ordering
-      participants.sort((a, b) => a.user_id - b.user_id);
+      // Sort participants by userId to ensure consistent ordering
+      participants.sort((a, b) => a.userId - b.userId);
 
       // Generate title from participant names
       const participantNames = participants
-        .map((p) => `${p.first_name} ${p.last_name}`)
+        .map((p) => `${p.firstName} ${p.lastName}`)
         .join(', ');
       dto.title = participantNames || 'Conversation';
     }
 
     // Create thread
-    const thread = await this.prisma.message_thread.create({
+    const thread = await this.prisma.messageThread.create({
       data: {
         title: dto.title,
-        event_activity_id: dto.eventActivityId,
+        eventActivityId: dto.eventActivityId,
         participants: {
           create: dto.participantUserIds.map((userId) => ({
-            user_id: userId,
+            userId: userId,
           })),
         },
       },
@@ -179,10 +179,10 @@ export class MessageThreadService {
   async getOrCreateThreadForTraining(
     user: AuthUser,
     eventActivityId: number,
-  ): Promise<message_thread> {
+  ): Promise<MessageThread> {
     // Check if thread already exists
-    const existingThread = await this.prisma.message_thread.findUnique({
-      where: { event_activity_id: eventActivityId },
+    const existingThread = await this.prisma.messageThread.findUnique({
+      where: { eventActivityId: eventActivityId },
       include: THREAD_INCLUDES,
     });
 
@@ -202,9 +202,9 @@ export class MessageThreadService {
   async getThreadById(
     user: AuthUser,
     threadId: number,
-  ): Promise<message_thread> {
-    const thread = await this.prisma.message_thread.findUnique({
-      where: { message_thread_id: threadId },
+  ): Promise<MessageThread> {
+    const thread = await this.prisma.messageThread.findUnique({
+      where: { messageThreadId: threadId },
       include: THREAD_INCLUDES,
     });
 
@@ -214,7 +214,7 @@ export class MessageThreadService {
 
     // Check if user is a participant
     const isParticipant = thread.participants.some(
-      (p) => p.user_id === user.user_id,
+      (p) => p.userId === user.userId,
     );
 
     if (!isParticipant) {
@@ -229,47 +229,47 @@ export class MessageThreadService {
 
   async markThreadAsRead(user: AuthUser, threadId: number): Promise<void> {
     // Update participant's last_read_at
-    await this.prisma.message_thread_participant.updateMany({
+    await this.prisma.messageThreadParticipant.updateMany({
       where: {
-        message_thread_id: threadId,
-        user_id: user.user_id,
+        messageThreadId: threadId,
+        userId: user.userId,
       },
       data: {
-        last_read_at: new Date(),
+        lastReadAt: new Date(),
       },
     });
 
     // Mark all messages in thread as read (except own messages)
     const messages = await this.prisma.message.findMany({
       where: {
-        message_thread_id: threadId,
-        sender_id: { not: user.user_id },
+        messageThreadId: threadId,
+        senderId: { not: user.userId },
       },
-      select: { message_id: true },
+      select: { messageId: true },
     });
 
     if (messages.length > 0) {
-      await this.prisma.message_read_receipt.createMany({
+      await this.prisma.messageReadReceipt.createMany({
         data: messages.map((m) => ({
-          message_id: m.message_id,
-          user_id: user.user_id,
+          messageId: m.messageId,
+          userId: user.userId,
         })),
         skipDuplicates: true,
       });
     }
   }
 
-  async getUserThreads(user: AuthUser): Promise<message_thread[]> {
-    const threads = await this.prisma.message_thread.findMany({
+  async getUserThreads(user: AuthUser): Promise<MessageThread[]> {
+    const threads = await this.prisma.messageThread.findMany({
       where: {
         participants: {
           some: {
-            user_id: user.user_id,
+            userId: user.userId,
           },
         },
       },
       include: THREAD_INCLUDES,
-      orderBy: { updated_at: 'desc' },
+      orderBy: { updatedAt: 'desc' },
     });
 
     return threads;
@@ -279,11 +279,11 @@ export class MessageThreadService {
     user: AuthUser,
     threadId: number,
     dto: UpdateMessageThreadDto,
-  ): Promise<message_thread> {
+  ): Promise<MessageThread> {
     await this.getThreadById(user, threadId); // Check authorization
 
-    const thread = await this.prisma.message_thread.update({
-      where: { message_thread_id: threadId },
+    const thread = await this.prisma.messageThread.update({
+      where: { messageThreadId: threadId },
       data: {
         title: dto.title,
       },
@@ -296,8 +296,8 @@ export class MessageThreadService {
   async deleteThread(user: AuthUser, threadId: number): Promise<void> {
     await this.getThreadById(user, threadId); // Check authorization
 
-    await this.prisma.message_thread.delete({
-      where: { message_thread_id: threadId },
+    await this.prisma.messageThread.delete({
+      where: { messageThreadId: threadId },
     });
   }
 }

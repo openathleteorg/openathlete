@@ -4,7 +4,7 @@ import { Athlete, CoachAthlete, User } from '@openathlete/database';
 
 export type AuthUser = Pick<User, 'userId' | 'email'> & {
   athlete: Pick<Athlete, 'athleteId'> | null;
-  coach_athletes?: Array<Pick<CoachAthlete, 'athleteId'>>;
+  coachAthletes?: Array<Pick<CoachAthlete, 'athleteId'>>;
 };
 
 export const JwtUser = createParamDecorator(

@@ -1,13 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 
 import {
-  athlete,
-  event,
-  event_activity,
-  event_type,
-  sport_type,
+  Athlete,
+  Event,
+  EventActivity,
+  EventType,
 } from '@openathlete/database';
-import { GetStatisticsForPeriodDto, SPORT_TYPE } from '@openathlete/shared';
+import { SPORT_TYPE } from '@openathlete/shared';
+import { GetStatisticsForPeriodDto } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -21,7 +21,7 @@ export class StatisticsService {
   ) {}
 
   private computeBasicStatisticsForActivities(
-    activities: (event & { activity: event_activity | null })[],
+    activities: (Event & { activity: EventActivity | null })[],
   ): {
     duration: number;
     distance: number;
@@ -29,8 +29,8 @@ export class StatisticsService {
     count: number;
   } {
     const duration = activities.reduce((acc, activity) => {
-      const start = new Date(activity.start_date);
-      const end = new Date(activity.end_date);
+      const start = new Date(activity.startDate);
+      const end = new Date(activity.endDate);
       const diff = end.getTime() - start.getTime();
       const seconds = diff / 1000;
       return acc + seconds;
@@ -42,8 +42,8 @@ export class StatisticsService {
       return acc;
     }, 0);
     const elevationGain = activities.reduce((acc, activity) => {
-      if (activity.activity?.elevation_gain) {
-        return acc + activity.activity.elevation_gain;
+      if (activity.activity?.elevationGain) {
+        return acc + activity.activity.elevationGain;
       }
       return acc;
     }, 0);
@@ -58,7 +58,7 @@ export class StatisticsService {
 
   async getStatisticsForPeriod(
     user: AuthUser,
-    athleteId: athlete['athlete_id'],
+    athleteId: Athlete['athleteId'],
     startDate: Date,
     endDate: Date,
   ): Promise<GetStatisticsForPeriodDto> {
@@ -69,9 +69,9 @@ export class StatisticsService {
 
     const events = await this.prisma.event.findMany({
       where: {
-        athlete_id: athleteId,
-        type: event_type.ACTIVITY,
-        start_date: {
+        athleteId: athleteId,
+        type: EventType.ACTIVITY,
+        startDate: {
           gte: startDate,
           lte: endDate,
         },
@@ -83,14 +83,14 @@ export class StatisticsService {
 
     const groupedBySport = events.reduce(
       (acc, event) => {
-        const sport = event.activity?.sport as sport_type;
+        const sport = event.activity?.sport as SPORT_TYPE;
         if (!acc[sport]) {
           acc[sport] = [];
         }
         acc[sport].push(event);
         return acc;
       },
-      {} as Record<sport_type, (event & { activity: event_activity | null })[]>,
+      {} as Record<SPORT_TYPE, (Event & { activity: EventActivity | null })[]>,
     );
 
     const sportStatistics = Object.entries(groupedBySport).map(

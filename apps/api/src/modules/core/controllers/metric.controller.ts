@@ -23,7 +23,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { athlete, metric_type } from '@openathlete/database';
+import { Athlete, MetricType } from '@openathlete/database';
 import {
   CreateMetricDto,
   UpdateMetricDto,
@@ -64,7 +64,7 @@ export class MetricController {
       properties: {
         type: {
           type: 'string',
-          enum: Object.values(metric_type),
+          enum: Object.values(MetricType),
           description: 'Type of metric',
           example: 'WEIGHT',
         },
@@ -132,7 +132,7 @@ export class MetricController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(createMetricDtoSchema))
     dto: CreateMetricDto,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     return this.metricService.createMetric(user, dto, athleteId);
   }
@@ -216,7 +216,7 @@ export class MetricController {
     @Param('id', ParseIntPipe) id: number,
     @Body(new ZodValidationPipe(updateMetricDtoSchema))
     dto: UpdateMetricDto,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     return this.metricService.updateMetric(user, id, dto, athleteId);
   }
@@ -269,7 +269,7 @@ export class MetricController {
   deleteMetric(
     @JwtUser() user: AuthUser,
     @Param('id', ParseIntPipe) id: number,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     return this.metricService.deleteMetric(user, id, athleteId);
   }
@@ -332,9 +332,9 @@ export class MetricController {
   getMetrics(
     @JwtUser() user: AuthUser,
     @Query('type') type?: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
-    return this.metricService.getMetrics(user, type as metric_type, athleteId);
+    return this.metricService.getMetrics(user, type as MetricType, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -407,7 +407,7 @@ export class MetricController {
   })
   getLatestMetrics(
     @JwtUser() user: AuthUser,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     return this.metricService.getLatestMetrics(user, athleteId);
   }
@@ -469,11 +469,11 @@ export class MetricController {
   getMetricHistory(
     @JwtUser() user: AuthUser,
     @Param('type') type: string,
-    @Query('athleteId', ParseIntPipe) athleteId?: athlete['athlete_id'],
+    @Query('athleteId', ParseIntPipe) athleteId?: Athlete['athleteId'],
   ) {
     return this.metricService.getMetricHistory(
       user,
-      type as metric_type,
+      type as MetricType,
       athleteId,
     );
   }
@@ -527,14 +527,14 @@ export class MetricController {
   calculateMetric(
     @JwtUser() user: AuthUser,
     @Param('type') type: string,
-    @Query('athleteId') athleteId?: athlete['athlete_id'],
+    @Query('athleteId') athleteId?: Athlete['athleteId'],
   ) {
     if (typeof athleteId === 'string') {
       athleteId = parseInt(athleteId);
     }
     return this.metricService.calculateMetric(
       user,
-      type as metric_type,
+      type as MetricType,
       athleteId,
     );
   }

@@ -81,11 +81,11 @@ export class MessagesGateway
    * Authenticate user and setup their socket room for direct messaging
    */
   private authenticateAndSetupUser(client: Socket, user: AuthUser) {
-    if (!this.userSockets.has(user.user_id)) {
-      this.userSockets.set(user.user_id, new Set());
+    if (!this.userSockets.has(user.userId)) {
+      this.userSockets.set(user.userId, new Set());
     }
-    this.userSockets.get(user.user_id)!.add(client.id);
-    client.join(`user:${user.user_id}`);
+    this.userSockets.get(user.userId)!.add(client.id);
+    client.join(`user:${user.userId}`);
   }
 
   handleDisconnect(client: Socket) {
@@ -122,7 +122,7 @@ export class MessagesGateway
         return;
       }
 
-      if (!this.userSockets.get(user.user_id)?.has(client.id)) {
+      if (!this.userSockets.get(user.userId)?.has(client.id)) {
         this.authenticateAndSetupUser(client, user);
       }
 
@@ -133,7 +133,7 @@ export class MessagesGateway
 
       const fullMessage = await this.messageService.getMessageById(
         user,
-        createdMessage.message_id,
+        createdMessage.messageId,
       );
 
       const thread = await this.threadService.getThreadById(
@@ -141,34 +141,34 @@ export class MessagesGateway
         messageThreadId,
       );
       const threadWithParticipants = thread as typeof thread & {
-        participants: Array<{ user_id: number }>;
+        participants: Array<{ userId: number }>;
       };
 
       const messagePayload = {
         message: {
-          messageId: fullMessage.message_id,
-          messageThreadId: fullMessage.message_thread_id,
-          senderId: fullMessage.sender_id,
+          messageId: fullMessage.messageId,
+          messageThreadId: fullMessage.messageThreadId,
+          senderId: fullMessage.senderId,
           content: fullMessage.content,
-          createdAt: fullMessage.created_at.toISOString(),
-          updatedAt: fullMessage.updated_at.toISOString(),
-          editedAt: fullMessage.edited_at?.toISOString(),
+          createdAt: fullMessage.createdAt.toISOString(),
+          updatedAt: fullMessage.updatedAt.toISOString(),
+          editedAt: fullMessage.editedAt?.toISOString(),
           sender: {
-            userId: fullMessage.sender.user_id,
-            firstName: fullMessage.sender.first_name,
-            lastName: fullMessage.sender.last_name,
+            userId: fullMessage.sender.userId,
+            firstName: fullMessage.sender.firstName,
+            lastName: fullMessage.sender.lastName,
             email: fullMessage.sender.email,
           },
-          readReceipts: fullMessage.read_receipts?.map((rr) => ({
-            messageReadReceiptId: rr.message_read_receipt_id,
-            messageId: rr.message_id,
-            userId: rr.user_id,
-            readAt: rr.read_at.toISOString(),
+          readReceipts: fullMessage.readReceipts?.map((rr) => ({
+            messageReadReceiptId: rr.messageReadReceiptId,
+            messageId: rr.messageId,
+            userId: rr.userId,
+            readAt: rr.readAt.toISOString(),
             user: rr.user
               ? {
-                  userId: rr.user.user_id,
-                  firstName: rr.user.first_name,
-                  lastName: rr.user.last_name,
+                  userId: rr.user.userId,
+                  firstName: rr.user.firstName,
+                  lastName: rr.user.lastName,
                   email: rr.user.email,
                 }
               : undefined,
@@ -177,7 +177,7 @@ export class MessagesGateway
       };
 
       const participantUserIds = threadWithParticipants.participants.map(
-        (p) => p.user_id,
+        (p) => p.userId,
       );
       this.broadcastToUsers('new_message', messagePayload, participantUserIds);
       this.broadcastToThread(messageThreadId, 'new_message', messagePayload);
@@ -185,7 +185,7 @@ export class MessagesGateway
 
       client.emit('message_sent', {
         messageThreadId,
-        messageId: createdMessage.message_id,
+        messageId: createdMessage.messageId,
       });
     } catch (error) {
       this.logger.error(
@@ -224,7 +224,7 @@ export class MessagesGateway
         return;
       }
 
-      if (!this.userSockets.get(user.user_id)?.has(client.id)) {
+      if (!this.userSockets.get(user.userId)?.has(client.id)) {
         this.authenticateAndSetupUser(client, user);
       }
 
@@ -234,42 +234,42 @@ export class MessagesGateway
 
       const fullMessage = await this.messageService.getMessageById(
         user,
-        message.message_id,
+        message.messageId,
       );
 
       const thread = await this.threadService.getThreadById(
         user,
-        message.message_thread_id,
+        message.messageThreadId,
       );
       const threadWithParticipants = thread as typeof thread & {
-        participants: Array<{ user_id: number }>;
+        participants: Array<{ userId: number }>;
       };
 
       const messagePayload = {
         message: {
-          messageId: fullMessage.message_id,
-          messageThreadId: fullMessage.message_thread_id,
-          senderId: fullMessage.sender_id,
+          messageId: fullMessage.messageId,
+          messageThreadId: fullMessage.messageThreadId,
+          senderId: fullMessage.senderId,
           content: fullMessage.content,
-          createdAt: fullMessage.created_at.toISOString(),
-          updatedAt: fullMessage.updated_at.toISOString(),
-          editedAt: fullMessage.edited_at?.toISOString(),
+          createdAt: fullMessage.createdAt.toISOString(),
+          updatedAt: fullMessage.updatedAt.toISOString(),
+          editedAt: fullMessage.editedAt?.toISOString(),
           sender: {
-            userId: fullMessage.sender.user_id,
-            firstName: fullMessage.sender.first_name,
-            lastName: fullMessage.sender.last_name,
+            userId: fullMessage.sender.userId,
+            firstName: fullMessage.sender.firstName,
+            lastName: fullMessage.sender.lastName,
             email: fullMessage.sender.email,
           },
-          readReceipts: fullMessage.read_receipts?.map((rr) => ({
-            messageReadReceiptId: rr.message_read_receipt_id,
-            messageId: rr.message_id,
-            userId: rr.user_id,
-            readAt: rr.read_at.toISOString(),
+          readReceipts: fullMessage.readReceipts?.map((rr) => ({
+            messageReadReceiptId: rr.messageReadReceiptId,
+            messageId: rr.messageId,
+            userId: rr.userId,
+            readAt: rr.readAt.toISOString(),
             user: rr.user
               ? {
-                  userId: rr.user.user_id,
-                  firstName: rr.user.first_name,
-                  lastName: rr.user.last_name,
+                  userId: rr.user.userId,
+                  firstName: rr.user.firstName,
+                  lastName: rr.user.lastName,
                   email: rr.user.email,
                 }
               : undefined,
@@ -278,7 +278,7 @@ export class MessagesGateway
       };
 
       const participantUserIds = threadWithParticipants.participants.map(
-        (p) => p.user_id,
+        (p) => p.userId,
       );
       this.broadcastToUsers(
         'message_updated',
@@ -286,16 +286,16 @@ export class MessagesGateway
         participantUserIds,
       );
       this.broadcastToThread(
-        message.message_thread_id,
+        message.messageThreadId,
         'message_updated',
         messagePayload,
       );
       this.server.emit('thread_updated', {
-        messageThreadId: message.message_thread_id,
+        messageThreadId: message.messageThreadId,
       });
 
       client.emit('message_updated', {
-        messageId: message.message_id,
+        messageId: message.messageId,
       });
     } catch (error) {
       this.logger.error(
@@ -327,7 +327,7 @@ export class MessagesGateway
         return;
       }
 
-      if (!this.userSockets.get(user.user_id)?.has(client.id)) {
+      if (!this.userSockets.get(user.userId)?.has(client.id)) {
         this.authenticateAndSetupUser(client, user);
       }
 
@@ -341,17 +341,17 @@ export class MessagesGateway
         messageThreadId,
       );
       const threadWithParticipants = thread as typeof thread & {
-        participants: Array<{ user_id: number }>;
+        participants: Array<{ userId: number }>;
       };
 
       const readPayload = {
-        userId: user.user_id,
+        userId: user.userId,
         messageThreadId,
         messageIds: messageIds || [],
       };
 
       const participantUserIds = threadWithParticipants.participants.map(
-        (p) => p.user_id,
+        (p) => p.userId,
       );
       this.broadcastToUsers('messages_read', readPayload, participantUserIds);
       this.broadcastToThread(messageThreadId, 'messages_read', readPayload);
@@ -391,7 +391,7 @@ export class MessagesGateway
     }
 
     try {
-      if (!this.userSockets.get(user.user_id)?.has(client.id)) {
+      if (!this.userSockets.get(user.userId)?.has(client.id)) {
         this.authenticateAndSetupUser(client, user);
       }
 

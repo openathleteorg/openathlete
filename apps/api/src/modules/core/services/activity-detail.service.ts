@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
 import {
+  Event,
+  EventActivity,
+  EventActivityNormalization,
+  EventActivityWeather,
   Prisma,
-  event,
-  event_activity,
-  event_activity_normalization,
-  event_activity_weather,
-  sport_type,
+  SportType,
 } from '@openathlete/database';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -20,16 +20,16 @@ interface ActivitySearchCriteria {
   date?: Date; // Specific date (will search for activities on that day)
   name?: string; // Partial match, case-insensitive
   position?: 'last' | 'first'; // Most recent or oldest
-  sport?: sport_type;
+  sport?: SportType;
 }
 
 /**
  * Full activity with related data
  */
-type FullActivity = event & {
-  activity: event_activity & {
-    weather?: event_activity_weather;
-    normalization?: event_activity_normalization;
+type FullActivity = Event & {
+  activity: EventActivity & {
+    weather?: EventActivityWeather;
+    normalization?: EventActivityNormalization;
   };
 };
 
@@ -46,8 +46,8 @@ export class ActivityDetailService {
     const { athleteId, activityId, date, name, position, sport } = criteria;
 
     // Build where clause
-    const whereClause: Prisma.eventWhereInput = {
-      athlete_id: athleteId,
+    const whereClause: Prisma.EventWhereInput = {
+      athleteId: athleteId,
       type: 'ACTIVITY',
       activity: {
         isNot: null,
@@ -63,7 +63,7 @@ export class ActivityDetailService {
 
     // If activity ID is provided, use it directly for precise lookup
     if (activityId) {
-      whereClause.event_id = activityId;
+      whereClause.eventId = activityId;
     }
 
     // If date is provided, search for activities on that day
@@ -71,7 +71,7 @@ export class ActivityDetailService {
       const nextDay = new Date(date);
       nextDay.setDate(nextDay.getDate() + 1);
 
-      whereClause.start_date = {
+      whereClause.startDate = {
         gte: date,
         lt: nextDay,
       };
@@ -92,7 +92,7 @@ export class ActivityDetailService {
     const event = await this.prisma.event.findFirst({
       where: whereClause,
       orderBy: {
-        start_date: orderBy,
+        startDate: orderBy,
       },
       include: {
         activity: {
@@ -130,7 +130,7 @@ export class ActivityDetailService {
    */
   async getLastActivity(
     athleteId: number,
-    sport?: sport_type,
+    sport?: SportType,
   ): Promise<FullActivity | null> {
     return this.findActivity({ athleteId, position: 'last', sport });
   }
@@ -141,7 +141,7 @@ export class ActivityDetailService {
   async getActivityByDate(
     athleteId: number,
     date: Date,
-    sport?: sport_type,
+    sport?: SportType,
   ): Promise<FullActivity | null> {
     return this.findActivity({ athleteId, date, sport });
   }
@@ -152,7 +152,7 @@ export class ActivityDetailService {
   async searchActivityByName(
     athleteId: number,
     name: string,
-    sport?: sport_type,
+    sport?: SportType,
   ): Promise<FullActivity | null> {
     return this.findActivity({ athleteId, name, sport });
   }

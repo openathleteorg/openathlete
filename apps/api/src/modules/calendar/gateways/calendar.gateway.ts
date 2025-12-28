@@ -61,12 +61,12 @@ export class CalendarGateway
 
   handleDisconnect(client: Socket) {
     const user = client.data.user as AuthUser | undefined;
-    if (user?.user_id) {
-      const sockets = this.userSockets.get(user.user_id);
+    if (user?.userId) {
+      const sockets = this.userSockets.get(user.userId);
       if (sockets) {
         sockets.delete(client.id);
         if (sockets.size === 0) {
-          this.userSockets.delete(user.user_id);
+          this.userSockets.delete(user.userId);
         }
       }
     }
@@ -86,13 +86,13 @@ export class CalendarGateway
       }
 
       // Track user socket
-      if (!this.userSockets.has(user.user_id)) {
-        this.userSockets.set(user.user_id, new Set());
+      if (!this.userSockets.has(user.userId)) {
+        this.userSockets.set(user.userId, new Set());
       }
-      this.userSockets.get(user.user_id)!.add(client.id);
+      this.userSockets.get(user.userId)!.add(client.id);
 
       // Join room for athlete-specific updates
-      const athleteId = data.athleteId ?? user.athlete?.athlete_id;
+      const athleteId = data.athleteId ?? user.athlete?.athleteId;
       if (athleteId) {
         client.join(`athlete:${athleteId}`);
         client.emit('subscribed', { athleteId });

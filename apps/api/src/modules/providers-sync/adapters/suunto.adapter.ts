@@ -2,7 +2,7 @@ import axios, { isAxiosError } from 'axios';
 
 import { Injectable, Logger } from '@nestjs/common';
 
-import { connector_provider, provider_account } from '@openathlete/database';
+import { ConnectorProvider, ProviderAccount } from '@openathlete/database';
 import { mapPrismaWorkoutToDto } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -38,8 +38,8 @@ export class SuuntoAdapter implements ProviderAdapter {
   private async getLatestMetricsMap(
     athleteId: number,
   ): Promise<Record<string, { value: number }>> {
-    const metrics = await this.prisma.athlete_metric.findMany({
-      where: { athlete_id: athleteId },
+    const metrics = await this.prisma.athleteMetric.findMany({
+      where: { athleteId: athleteId },
       orderBy: [{ date: 'desc' }],
     });
 
@@ -56,10 +56,10 @@ export class SuuntoAdapter implements ProviderAdapter {
   async upsertPlannedWorkout(
     input: UpsertPlannedWorkoutInput,
   ): Promise<UpsertPlannedWorkoutResult> {
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        athlete_id: input.athleteId,
-        provider: connector_provider.SUUNTO,
+        athleteId: input.athleteId,
+        provider: ConnectorProvider.SUUNTO,
         status: 'active',
       },
     });
@@ -71,23 +71,23 @@ export class SuuntoAdapter implements ProviderAdapter {
     // Fetch workout with full structure (including repeat blocks)
     // This preserves the repeat structure for proper Suunto RepeatStep mapping
     const workoutRecord = await this.prisma.workout.findUnique({
-      where: { workout_id: input.workoutId },
+      where: { workoutId: input.workoutId },
       include: {
         steps: {
           include: {
             targets: true,
-            repeat_block: {
+            repeatBlock: {
               include: {
-                child_steps: {
+                childSteps: {
                   include: {
                     targets: true,
                   },
-                  orderBy: { order_index: 'asc' },
+                  orderBy: { orderIndex: 'asc' },
                 },
               },
             },
           },
-          orderBy: { order_index: 'asc' },
+          orderBy: { orderIndex: 'asc' },
         },
       },
     });
@@ -133,7 +133,7 @@ export class SuuntoAdapter implements ProviderAdapter {
    * Create a new guide via Suunto Guides API
    */
   private async createGuide(
-    account: provider_account,
+    account: ProviderAccount,
     zipBuffer: Buffer,
   ): Promise<string> {
     return this.suuntoProviderService.makeGuidesApiRequest(
@@ -165,7 +165,7 @@ export class SuuntoAdapter implements ProviderAdapter {
           }
 
           this.logger.debug(
-            `Created Suunto guide ${data.payload.id} for account ${account.provider_account_id}`,
+            `Created Suunto guide ${data.payload.id} for account ${account.providerAccountId}`,
           );
 
           return data.payload.id;
@@ -185,7 +185,7 @@ export class SuuntoAdapter implements ProviderAdapter {
    * Update an existing guide via Suunto Guides API
    */
   private async updateGuide(
-    account: provider_account,
+    account: ProviderAccount,
     guideId: string,
     zipBuffer: Buffer,
   ): Promise<string> {
@@ -218,7 +218,7 @@ export class SuuntoAdapter implements ProviderAdapter {
           }
 
           this.logger.debug(
-            `Updated Suunto guide ${data.payload.id} for account ${account.provider_account_id}`,
+            `Updated Suunto guide ${data.payload.id} for account ${account.providerAccountId}`,
           );
 
           return data.payload.id;
@@ -250,10 +250,10 @@ export class SuuntoAdapter implements ProviderAdapter {
       return;
     }
 
-    const account = await this.prisma.provider_account.findFirst({
+    const account = await this.prisma.providerAccount.findFirst({
       where: {
-        athlete_id: input.athleteId,
-        provider: connector_provider.SUUNTO,
+        athleteId: input.athleteId,
+        provider: ConnectorProvider.SUUNTO,
         status: 'active',
       },
     });
@@ -280,7 +280,7 @@ export class SuuntoAdapter implements ProviderAdapter {
           );
 
           this.logger.debug(
-            `Deleted Suunto guide ${input.externalId} for account ${account.provider_account_id}`,
+            `Deleted Suunto guide ${input.externalId} for account ${account.providerAccountId}`,
           );
         } catch (error) {
           if (isAxiosError(error)) {
