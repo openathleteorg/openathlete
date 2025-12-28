@@ -127,6 +127,9 @@ export class ActivityFeedbackListener {
           take: 20,
         })) ?? [];
 
+      // Filter out injuries with pain score of 0
+      const activeInjuries = injuries.filter((injury) => injury.painScore > 0);
+
       const latestMetrics = getLatestMetrics(metrics);
       const athleteMetricsSummary = buildMetricsContext(latestMetrics);
       const zonesByType = formatZonesByType(zones);
@@ -141,9 +144,9 @@ export class ActivityFeedbackListener {
           : 'No goals specified';
 
       const injuriesSummary =
-        injuries.length === 0
+        activeInjuries.length === 0
           ? 'No active injuries reported.'
-          : injuries
+          : activeInjuries
               .map(
                 (injury: {
                   location: string;
