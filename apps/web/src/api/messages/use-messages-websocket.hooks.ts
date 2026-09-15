@@ -1,3 +1,4 @@
+import { m } from '@/paraglide/messages';
 import { getAccessToken } from '@/utils/auth';
 import { ACCESS_TOKEN, getItem, setItem } from '@/utils/local-storage';
 import { useQueryClient } from '@tanstack/react-query';
@@ -352,9 +353,7 @@ export function useMessagesWebSocket({
         });
       } catch (error) {
         if (onError) {
-          onError(
-            error instanceof Error ? error.message : 'Failed to send message',
-          );
+          onError(error instanceof Error ? error.message : m.ui_send_failed());
         }
       }
     },

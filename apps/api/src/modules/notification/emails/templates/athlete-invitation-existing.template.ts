@@ -6,6 +6,18 @@ import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 const translations = {
+  ES: {
+    title: 'Nueva invitación de entrenador',
+    preview: (coachName: string) =>
+      `${coachName} te invita a unirte a su equipo de atletas`,
+    description: (coachName: string) =>
+      `${coachName} te invita a unirte a su equipo de atletas en OpenAthlete. Puedes aceptar o rechazar la invitación en los ajustes.`,
+    buttonLabel: 'Ver invitaciones',
+    linkNote: (url: string) =>
+      `Si el botón no funciona, copia y pega este enlace en tu navegador: ${url}`,
+    settingsNote:
+      'Puedes gestionar todas tus invitaciones en la sección Ajustes de tu cuenta.',
+  },
   FR: {
     title: 'Nouvelle invitation de coach',
     preview: (coachName: string) =>
@@ -65,5 +77,5 @@ export function buildAthleteInvitationExistingEmail({
     note(t.settingsNote),
   ].join('');
 
-  return layout({ title, preview, contentHtml: content });
+  return layout({ language, title, preview, contentHtml: content });
 }

@@ -1,3 +1,5 @@
+import { m } from '@/paraglide/messages';
+
 export function View500() {
-  return <>500 Internal Server Error</>;
+  return <>{m.ui_server_error()} </>;
 }

@@ -4,6 +4,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { Check } from 'lucide-react';
 
@@ -14,24 +15,24 @@ interface ColorPickerProps {
 
 // Predefined colors from Tailwind CSS variables
 const PRESET_COLORS = [
-  { name: 'Gray', value: '#9CA3AF' }, // gray-400
-  { name: 'Slate', value: '#64748B' }, // slate-500
-  { name: 'Green', value: '#22C55E' }, // green-500
-  { name: 'Emerald', value: '#10B981' }, // emerald-500
-  { name: 'Teal', value: '#14B8A6' }, // teal-500
-  { name: 'Cyan', value: '#06B6D4' }, // cyan-500
-  { name: 'Blue', value: '#3B82F6' }, // blue-500
-  { name: 'Indigo', value: '#6366F1' }, // indigo-500
-  { name: 'Violet', value: '#8B5CF6' }, // violet-500
-  { name: 'Purple', value: '#A855F7' }, // purple-500
-  { name: 'Fuchsia', value: '#D946EF' }, // fuchsia-500
-  { name: 'Pink', value: '#EC4899' }, // pink-500
-  { name: 'Rose', value: '#F43F5E' }, // rose-500
-  { name: 'Red', value: '#EF4444' }, // red-500
-  { name: 'Orange', value: '#F97316' }, // orange-500
-  { name: 'Amber', value: '#F59E0B' }, // amber-500
-  { name: 'Yellow', value: '#EAB308' }, // yellow-500
-  { name: 'Lime', value: '#84CC16' }, // lime-500
+  { name: m.color_gray(), value: '#9CA3AF' }, // gray-400
+  { name: m.color_slate(), value: '#64748B' }, // slate-500
+  { name: m.color_green(), value: '#22C55E' }, // green-500
+  { name: m.color_emerald(), value: '#10B981' }, // emerald-500
+  { name: m.color_teal(), value: '#14B8A6' }, // teal-500
+  { name: m.color_cyan(), value: '#06B6D4' }, // cyan-500
+  { name: m.color_blue(), value: '#3B82F6' }, // blue-500
+  { name: m.color_indigo(), value: '#6366F1' }, // indigo-500
+  { name: m.color_violet(), value: '#8B5CF6' }, // violet-500
+  { name: m.color_purple(), value: '#A855F7' }, // purple-500
+  { name: m.color_fuchsia(), value: '#D946EF' }, // fuchsia-500
+  { name: m.color_pink(), value: '#EC4899' }, // pink-500
+  { name: m.color_rose(), value: '#F43F5E' }, // rose-500
+  { name: m.color_red(), value: '#EF4444' }, // red-500
+  { name: m.color_orange(), value: '#F97316' }, // orange-500
+  { name: m.color_amber(), value: '#F59E0B' }, // amber-500
+  { name: m.color_yellow(), value: '#EAB308' }, // yellow-500
+  { name: m.color_lime(), value: '#84CC16' }, // lime-500
 ];
 
 export function ColorPicker({ value, onChange }: ColorPickerProps) {

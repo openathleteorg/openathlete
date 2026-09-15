@@ -1,3 +1,4 @@
+import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { Controller, useForm } from 'react-hook-form';
 
@@ -45,15 +46,15 @@ export function TrainingZoneForm({
       onSubmit={methods.handleSubmit(onSubmit)}
       className="space-y-4"
     >
-      <RHFTextField name="name" label="Name" required />
-      <RHFTextField name="description" label="Description" />
+      <RHFTextField name="name" label={m.name()} required />
+      <RHFTextField name="description" label={m.description()} />
       <div className="flex gap-2">
-        <RHFTextField name="min" label="Min" type="number" required />
-        <RHFTextField name="max" label="Max" type="number" required />
+        <RHFTextField name="min" label={m.min()} type="number" required />
+        <RHFTextField name="max" label={m.max()} type="number" required />
       </div>
       <RHFTextField
         name="color"
-        label="Color"
+        label={m.color()}
         type="color"
         required
         className="w-16 h-10 p-0 border-none radi"
@@ -63,7 +64,7 @@ export function TrainingZoneForm({
         control={methods.control}
         render={({ field }) => (
           <div>
-            <Label>Sports</Label>
+            <Label>{m.sports()} </Label>
             <div className="flex flex-wrap gap-2 mt-1">
               {ALL_SPORTS.map((sport) => (
                 <label key={sport} className="flex items-center gap-1">
@@ -89,7 +90,7 @@ export function TrainingZoneForm({
         )}
       />
       <Button type="submit" className="w-full" isLoading={isLoading}>
-        Save
+        {m.save()}{' '}
       </Button>
     </FormProvider>
   );

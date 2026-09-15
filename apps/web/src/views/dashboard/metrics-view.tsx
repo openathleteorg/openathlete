@@ -275,7 +275,9 @@ export function MetricsView({ athleteId }: P) {
       {/* Chart Section */}
       <Card>
         <CardHeader>
-          <CardTitle>{m.metrics()} - Evolution</CardTitle>
+          <CardTitle>
+            {m.metrics()} {m.ui_evolution_suffix()}{' '}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <MetricChart athleteId={athleteId} />

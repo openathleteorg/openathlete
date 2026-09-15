@@ -39,7 +39,7 @@ export function CalendarMobileWeekHeader({ week, events }: P) {
       <div className="px-4 py-3">
         <div className="mb-3">
           <h3 className="text-sm font-semibold text-foreground mb-1">
-            {m.week_summary()} - Semaine {weekNumber} ({year})
+            {m.week_summary()} {m.ui_week_prefix()} {weekNumber} ({year})
           </h3>
           <p className="text-xs text-muted-foreground">
             {formattedStart} - {formattedEnd}

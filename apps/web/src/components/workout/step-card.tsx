@@ -115,7 +115,7 @@ export function StepCard({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">Actions</span>
+                  <span className="sr-only">{m.actions()} </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

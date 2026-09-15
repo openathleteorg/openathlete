@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { usePageActions } from '@/hooks/use-page-actions';
+import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { ArrowLeft, MoreVertical } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -55,7 +56,7 @@ export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
           onClick={handleBack}
         >
           <ArrowLeft className="h-5 w-5" />
-          <span className="sr-only">Go back</span>
+          <span className="sr-only">{m.ui_back()} </span>
         </Button>
       ) : (
         <SidebarTrigger className="h-9 w-9" />
@@ -70,7 +71,7 @@ export function MobileHeader({ title, showBack, onBack }: MobileHeaderProps) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-9 w-9">
               <MoreVertical className="h-5 w-5" />
-              <span className="sr-only">Page actions</span>
+              <span className="sr-only">{m.ui_page_actions()} </span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

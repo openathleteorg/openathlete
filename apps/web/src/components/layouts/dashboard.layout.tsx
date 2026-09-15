@@ -73,7 +73,9 @@ function LayoutContent({ children }: P) {
               <span className="font-medium text-sm truncate max-w-[180px]">
                 {event?.name}
               </span>
-              <span className="text-xs text-muted-foreground">Template</span>
+              <span className="text-xs text-muted-foreground">
+                {m.ui_template()}{' '}
+              </span>
             </div>
           </div>
         </div>
@@ -100,7 +102,9 @@ function LayoutContent({ children }: P) {
               <span className="font-medium text-sm truncate max-w-[180px]">
                 {activeData.folder.name}
               </span>
-              <span className="text-xs text-muted-foreground">Dossier</span>
+              <span className="text-xs text-muted-foreground">
+                {m.ui_folder()}{' '}
+              </span>
             </div>
           </div>
         </div>

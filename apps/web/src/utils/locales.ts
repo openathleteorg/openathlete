@@ -1,7 +1,7 @@
 import type { Locale } from 'date-fns';
-import { enUS, fr, it } from 'date-fns/locale';
+import { enUS, es, fr, it } from 'date-fns/locale';
 
-export const SUPPORTED_LOCALES = ['en', 'fr', 'it'] as const;
+export const SUPPORTED_LOCALES = ['en', 'fr', 'it', 'es'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export const getLocaleName = (locale: string) => {
@@ -9,6 +9,7 @@ export const getLocaleName = (locale: string) => {
     en: 'English',
     fr: 'Français',
     it: 'Italiano',
+    es: 'Español',
   };
   return localeMap[locale] || locale;
 };
@@ -18,6 +19,7 @@ export const getDateLocale = (locale: string) => {
     en: 'en-US',
     fr: 'fr-FR',
     it: 'it-IT',
+    es: 'es-ES',
   };
   return localeMap[locale] || locale;
 };
@@ -27,6 +29,7 @@ export const getDateFnsLocale = (locale: string) => {
     en: enUS,
     fr,
     it,
+    es,
   };
   return localeMap[locale] || enUS;
 };

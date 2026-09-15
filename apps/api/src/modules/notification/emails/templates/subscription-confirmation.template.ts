@@ -31,6 +31,11 @@ function planLabel(plan: SubscriptionPlan, language: EmailLanguage): string {
   if (language === Language.EN) {
     return getPlanConfig(plan).name;
   }
+  if (language === Language.ES) {
+    return plan === SubscriptionPlan.FREE
+      ? 'Gratuito'
+      : getPlanConfig(plan).name;
+  }
   if (language === Language.IT) {
     return itPlanLabel[plan];
   }
@@ -38,6 +43,20 @@ function planLabel(plan: SubscriptionPlan, language: EmailLanguage): string {
 }
 
 const translations = {
+  ES: {
+    title: 'Tu suscripción está confirmada',
+    preview: 'Gracias por suscribirte',
+    greeting: (name?: string) =>
+      name
+        ? `Hola, ${name}. Gracias por suscribirte a OpenAthlete.`
+        : 'Gracias por suscribirte a OpenAthlete.',
+    planLine: (label: string) => `Plan: ${label}.`,
+    description:
+      'Ya tienes acceso a todas las funciones de tu plan. Puedes gestionar la facturación, los métodos de pago y la suscripción en cualquier momento.',
+    buttonLabel: 'Gestionar suscripción',
+    helpNote:
+      'Si tienes preguntas, responde a este correo y te contestaremos pronto.',
+  },
   FR: {
     title: 'Votre abonnement est confirmé',
     preview: 'Merci pour votre confiance',
@@ -110,5 +129,5 @@ export function buildSubscriptionConfirmationEmail({
     note(t.helpNote),
   ].join('');
 
-  return layout({ title, preview, contentHtml: content });
+  return layout({ language, title, preview, contentHtml: content });
 }

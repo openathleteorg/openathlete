@@ -67,8 +67,8 @@ export function AuthProvider({ children }: Props) {
 
         const urlParams = new URLSearchParams(window.location.search);
         const urlLang = urlParams.get('lang');
-        if (urlLang && (urlLang === 'fr' || urlLang === 'en')) {
-          const language = urlLang.toUpperCase() as 'FR' | 'EN';
+        if (urlLang && ['fr', 'en', 'it', 'es'].includes(urlLang)) {
+          const language = urlLang.toUpperCase() as 'FR' | 'EN' | 'IT' | 'ES';
           if (user.language !== language) {
             try {
               await UserAPI.updateLanguage(language);
@@ -108,8 +108,8 @@ export function AuthProvider({ children }: Props) {
 
           const urlParams = new URLSearchParams(window.location.search);
           const urlLang = urlParams.get('lang');
-          if (urlLang && (urlLang === 'fr' || urlLang === 'en')) {
-            const language = urlLang.toUpperCase() as 'FR' | 'EN';
+          if (urlLang && ['fr', 'en', 'it', 'es'].includes(urlLang)) {
+            const language = urlLang.toUpperCase() as 'FR' | 'EN' | 'IT' | 'ES';
             if (user.language !== language) {
               try {
                 await UserAPI.updateLanguage(language);

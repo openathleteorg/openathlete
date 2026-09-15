@@ -27,7 +27,7 @@ export function SummaryView({ athleteId }: SummaryViewProps) {
           <CardTitle>{m.summary()}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">WIP</p>
+          <p className="text-muted-foreground">{m.ui_work_in_progress()} </p>
         </CardContent>
       </Card>
     </div>

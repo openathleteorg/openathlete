@@ -1,3 +1,4 @@
+import { getLocale } from '@/paraglide/runtime';
 import posthog from 'posthog-js';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -24,6 +25,8 @@ if (isCapacitor()) {
     );
   }
 }
+
+document.documentElement.lang = getLocale();
 
 initErrorMonitoring();
 loadAnalyticsScripts();

@@ -1,3 +1,4 @@
+import { m } from '@/paraglide/messages';
 import { AthleteCalendarView } from '@/views/dashboard/athlete-calendar-view';
 import { useParams } from 'react-router-dom';
 
@@ -6,7 +7,7 @@ export function AthleteCalendarPage() {
 
   return (
     <>
-      <title>Athlete Calendar</title>
+      <title>{m.ui_athlete_calendar()} </title>
       <AthleteCalendarView athleteId={Number(athleteId)} />
     </>
   );

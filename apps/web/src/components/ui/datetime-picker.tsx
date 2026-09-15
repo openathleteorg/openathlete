@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
@@ -54,9 +55,9 @@ export function DateTimePicker({ value, onChange, className }: P) {
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {value ? (
-            format(value, 'MM/dd/yyyy HH:mm')
+            format(value, 'P HH:mm', { locale: getDateFnsLocale(locale) })
           ) : (
-            <span>MM/DD/YYYY hh:mm</span>
+            <span>{m.ui_datetime_placeholder()} </span>
           )}
         </Button>
       </PopoverTrigger>
