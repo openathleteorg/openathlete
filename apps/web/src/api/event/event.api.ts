@@ -31,6 +31,17 @@ export class EventAPI {
     return mapEvent(res.data);
   }
 
+  static async uploadActivity(file: File): Promise<Event> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await client.post(routes.event.upload, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return mapEvent(res.data);
+  }
+
   static async updateEvent({
     eventId,
     body,

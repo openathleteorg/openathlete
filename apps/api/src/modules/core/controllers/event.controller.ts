@@ -14,12 +14,16 @@ import {
   Post,
   Query,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiParam,
   ApiProduces,
@@ -367,6 +371,42 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.getEventById(user, eventId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({
+    summary: 'Upload an activity file',
+    description:
+      'Uploads an activity file (e.g. .fit, .gpx) and creates a corresponding event for the authenticated user.',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Activity uploaded and event created successfully',
+  })
+  async uploadActivity(
+    @JwtUser() user: AuthUser,
+    @UploadedFile()
+    file: { buffer: Buffer; mimetype: string; originalname: string },
+  ) {
+    if (!file) {
+      throw new NotFoundException('No file provided');
+    }
+    return this.eventService.uploadActivity(user, file);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

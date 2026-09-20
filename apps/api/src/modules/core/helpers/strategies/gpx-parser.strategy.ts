@@ -1,11 +1,12 @@
 import { parseGPXWithCustomParser } from '@we-gold/gpxjs';
 import { DOMParser } from 'xmldom-qsa';
 
-import { ActivityStream } from '@openathlete/shared';
+import { ActivityStream, SPORT_TYPE } from '@openathlete/shared';
 
 import {
   ActivityParseResult,
   ActivityParser,
+  ActivitySummary,
 } from '../activity-parser.interface';
 import {
   calculateDistance,
@@ -173,6 +174,24 @@ export class GpxParserStrategy implements ActivityParser {
       stream.distance = distance;
     }
 
-    return { stream };
+    let summary: ActivitySummary | undefined = undefined;
+
+    if (startTimestamp !== null) {
+      const totalTime = time.length > 0 ? time[time.length - 1] : 0;
+
+      summary = {
+        startTime: new Date(startTimestamp),
+        totalTime,
+        movingTime: totalTime, // Fallback approximation
+        totalDistance: cumulativeDistance,
+        averageSpeed:
+          cumulativeDistance > 0 && totalTime > 0
+            ? cumulativeDistance / totalTime
+            : 0,
+        sport: SPORT_TYPE.RUNNING, // Default fallback
+      };
+    }
+
+    return { stream, summary };
   }
 }

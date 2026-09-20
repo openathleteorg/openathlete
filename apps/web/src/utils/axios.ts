@@ -28,6 +28,7 @@ export const routes = {
   },
   event: {
     create: '/event',
+    upload: '/event/upload',
     update: (eventId: Event['eventId']) => `/event/${eventId}`,
     duplicate: (eventId: Event['eventId']) => `/event/${eventId}/duplicate`,
     getMyEvents: '/event',

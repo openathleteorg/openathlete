@@ -188,9 +188,7 @@ export const ApiEnvSchema = z
     POLAR_WEBHOOK_SECRET_KEY: z
       .string()
       .optional()
-      .describe(
-        'Secret key for verifying Polar webhook requests (optional)',
-      ),
+      .describe('Secret key for verifying Polar webhook requests (optional)'),
 
     // Email service (Brevo, optional)
     BREVO_API_KEY: z

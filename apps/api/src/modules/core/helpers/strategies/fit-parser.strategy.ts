@@ -9,11 +9,13 @@ import {
   ActivityParser,
   FitFileSegment,
 } from '../activity-parser.interface';
+import { ActivitySummary } from '../activity-parser.interface';
 import {
   calculateDistance,
   toFitTimestamp,
   toNumber,
 } from '../activity-parser.utils';
+import { mapGarminActivityType } from '../garmin';
 
 const logger = new Logger('FitParserStrategy');
 
@@ -236,7 +238,53 @@ export class FitParserStrategy implements ActivityParser {
       totalDurationSeconds,
     );
 
-    return { stream: result, segments };
+    // Extract summary metrics
+
+    let summary: ActivitySummary | undefined = undefined;
+
+    if (session && startTimeValue) {
+      summary = {
+        startTime:
+          startTimeValue instanceof Date
+            ? startTimeValue
+            : new Date(startTimeValue as string),
+        totalTime:
+          toNumber(session.totalElapsedTime ?? session.total_elapsed_time) ??
+          undefined,
+        movingTime:
+          toNumber(session.totalTimerTime ?? session.total_timer_time) ??
+          undefined,
+        totalDistance:
+          toNumber(session.totalDistance ?? session.total_distance) ??
+          undefined,
+        totalElevationGain:
+          toNumber(session.totalAscent ?? session.total_ascent) ?? undefined,
+        averageSpeed:
+          toNumber(session.avgSpeed ?? session.avg_speed) ?? undefined,
+        maxSpeed: toNumber(session.maxSpeed ?? session.max_speed) ?? undefined,
+        averageCadence:
+          toNumber(session.avgCadence ?? session.avg_cadence) ?? undefined,
+        averagePower:
+          toNumber(session.avgPower ?? session.avg_power) ?? undefined,
+        maxPower: toNumber(session.maxPower ?? session.max_power) ?? undefined,
+        normalizedPower:
+          toNumber(session.normalizedPower ?? session.normalized_power) ??
+          undefined,
+        averageHeartRate:
+          toNumber(session.avgHeartRate ?? session.avg_heart_rate) ?? undefined,
+        maxHeartRate:
+          toNumber(session.maxHeartRate ?? session.max_heart_rate) ?? undefined,
+        totalWork:
+          toNumber(session.totalWork ?? session.total_work) ?? undefined,
+        sport: session.sport
+          ? (mapGarminActivityType(
+              String(session.sport).toUpperCase(),
+            ) as unknown as import('@openathlete/shared').SPORT_TYPE)
+          : undefined,
+      };
+    }
+
+    return { stream: result, segments, summary };
   }
 
   private buildFitSegments(

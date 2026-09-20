@@ -17,6 +17,37 @@ type CreateEventContext = {
   tempId: number;
 };
 
+export const useUploadActivityMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.uploadActivity>>,
+    Error,
+    Parameters<typeof EventAPI.uploadActivity>[0]
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    Awaited<ReturnType<typeof EventAPI.uploadActivity>>,
+    Error,
+    Parameters<typeof EventAPI.uploadActivity>[0]
+  >({
+    ...opt,
+    mutationFn: EventAPI.uploadActivity,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.getTrainingLoadHistory],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.getTrainingLoadMetrics],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
+      });
+      opt?.onSuccess?.(...args);
+    },
+  });
+};
+
 export const useCreateEventMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof EventAPI.createEvent>>,

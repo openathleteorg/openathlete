@@ -1,4 +1,5 @@
 import { ActivityStream } from '@openathlete/shared';
+import { SPORT_TYPE } from '@openathlete/shared';
 
 export interface FitFileSegment {
   startTimeSeconds: number;
@@ -7,9 +8,29 @@ export interface FitFileSegment {
   name?: string;
 }
 
+export interface ActivitySummary {
+  sport?: SPORT_TYPE;
+  startTime: Date;
+  totalTime?: number; // seconds
+  movingTime?: number; // seconds
+  totalDistance?: number; // meters
+  totalElevationGain?: number; // meters
+  averageSpeed?: number; // m/s
+  maxSpeed?: number; // m/s
+  averageCadence?: number;
+  averagePower?: number; // watts
+  maxPower?: number; // watts
+  normalizedPower?: number; // watts
+  averageHeartRate?: number; // bpm
+  maxHeartRate?: number; // bpm
+  totalWork?: number; // kilojoules
+  name?: string;
+}
+
 export interface ActivityParseResult {
   stream: ActivityStream;
   segments?: FitFileSegment[];
+  summary?: ActivitySummary;
 }
 
 export interface ActivityParser {

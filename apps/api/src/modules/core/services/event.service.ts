@@ -61,11 +61,14 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { ProviderExportService } from '../../providers-sync/export.service';
 import { TrainingLoadEstimationService } from '../../queue/services/training-load-estimation.service';
+import { ActivityFileParserService } from '../helpers/activity-file-parser.service';
 import {
   reductActivityStreamToResolution,
   uncompressActivityStream,
 } from '../helpers/activity-stream';
+import { compressActivityStream } from '../helpers/activity-stream';
 import { EVENT_INCLUDES } from './event-includes';
+import { ActivityPipelineService } from './pipeline/activity-pipeline.service';
 import { WorkoutService } from './workout.service';
 
 @Injectable()
@@ -88,6 +91,10 @@ export class EventService {
     private trainingLoadEstimationService?: TrainingLoadEstimationService,
     @Optional()
     private readonly calendarWebSocketService?: CalendarWebSocketService,
+    @Optional()
+    private readonly activityFileParserService?: ActivityFileParserService,
+    @Optional()
+    private readonly activityPipelineService?: ActivityPipelineService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
@@ -257,6 +264,119 @@ export class EventService {
       },
       include: EVENT_INCLUDES,
     });
+  }
+
+  async uploadActivity(
+    user: AuthUser,
+    file: { buffer: Buffer; mimetype: string; originalname: string },
+  ) {
+    if (!this.activityFileParserService) {
+      throw new Error('Activity file parser service not available');
+    }
+
+    if (!this.activityPipelineService) {
+      throw new Error('Activity pipeline service not available');
+    }
+
+    const ability = await this.abilities.getFor({ user });
+    const athleteId = user?.athlete?.athleteId;
+
+    if (!athleteId) {
+      throw new Error('Athlete ID is required');
+    }
+
+    if (!ability.can('create', subject('Event', { athleteId } as Event))) {
+      throw new ForbiddenException(
+        'You are not allowed to create events for this athlete',
+      );
+    }
+
+    // Parse the file
+    const parseResult = await this.activityFileParserService.parse(
+      file.buffer,
+      file.mimetype,
+    );
+
+    const activityStream = parseResult.stream;
+    const compressedStream = compressActivityStream(activityStream);
+    const summary = parseResult.summary;
+
+    if (!summary) {
+      throw new BadRequestException(
+        'Could not extract activity summary from file',
+      );
+    }
+
+    const sport = summary.sport;
+    if (!sport) {
+      throw new BadRequestException('Could not determine sport type from file');
+    }
+
+    const startDate = summary.startTime;
+    const endDate = new Date(
+      startDate.getTime() + (summary.totalTime || 0) * 1000,
+    );
+
+    // Save the event to DB
+    const event = await this.prisma.event.create({
+      data: {
+        athleteId,
+        type: 'ACTIVITY',
+        startDate,
+        endDate,
+        name: summary.name || 'Uploaded Activity',
+        activity: {
+          create: {
+            provider: null,
+            distance: summary.totalDistance || 0,
+            elevationGain: summary.totalElevationGain || 0,
+            movingTime: summary.movingTime || summary.totalTime || 0,
+            averageSpeed: summary.averageSpeed || 0,
+            maxSpeed: summary.maxSpeed || 0,
+            averageCadence: summary.averageCadence,
+            averageWatts: summary.averagePower,
+            maxWatts: summary.maxPower,
+            weightedAverageWatts: summary.normalizedPower,
+            averageHeartrate: summary.averageHeartRate,
+            maxHeartrate: summary.maxHeartRate,
+            kilojoules: summary.totalWork,
+            sport,
+            stream: compressedStream as object,
+            externalId: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          },
+        },
+      },
+      include: { activity: true },
+    });
+
+    if (!event.activity) {
+      throw new Error('Failed to create activity event');
+    }
+
+    // Process pipeline
+    await this.activityPipelineService.run({
+      eventActivityId: event.activity.eventActivityId,
+      eventId: event.eventId,
+      bulkImport: false,
+    });
+
+    this.eventEmitter.emit(
+      ActivityImportedEvent.SLUG,
+      new ActivityImportedEvent({
+        eventActivityId: event.activity.eventActivityId,
+        eventId: event.eventId,
+        bulkImport: false,
+      }),
+    );
+
+    if (this.calendarWebSocketService && athleteId) {
+      this.calendarWebSocketService.notifyActivityProcessed(
+        event.eventId,
+        athleteId,
+      );
+    }
+
+    return this.getEventById(user, event.eventId);
   }
 
   async createEvent(user: AuthUser, data: CreateEventDto) {

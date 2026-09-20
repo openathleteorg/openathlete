@@ -1,10 +1,13 @@
+import { useUploadActivityMutation } from '@/api/event/event.hooks';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
-import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Upload } from 'lucide-react';
 import { useState } from 'react';
+import { useRef } from 'react';
+import { toast } from 'sonner';
 
 import { EVENT_TYPE, Event, SPORT_TYPE } from '@openathlete/shared';
 
@@ -37,6 +40,27 @@ export function CalendarHeader() {
   const { open, setOpen, mainSidebarWasOpen, setMainSidebarWasOpen } =
     useTemplateLibrarySidebar();
   const { setOpen: setMainSidebarOpen, open: mainSidebarOpen } = useSidebar();
+  const uploadActivity = useUploadActivityMutation();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    uploadActivity.mutate(file, {
+      onSuccess: () => {
+        toast.success('Activity uploaded successfully');
+      },
+      onError: (err) => {
+        toast.error('Failed to upload activity: ' + err.message);
+      },
+      onSettled: () => {
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      },
+    });
+  };
 
   const handleChangeSportFilter = (value: string | null) => {
     setSportFilter(value as SPORT_TYPE);
@@ -135,7 +159,29 @@ export function CalendarHeader() {
           />
         </div>
         {/* Navigation buttons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {isCurrentUser && (
+            <>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".fit,.gpx"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadActivity.isPending}
+                title={'Upload Activity'}
+              >
+                <Upload
+                  className={`h-4 w-4 ${uploadActivity.isPending ? 'animate-pulse' : ''}`}
+                />
+              </Button>
+            </>
+          )}
           <Button size="icon" onClick={() => prevMonth()}>
             <ChevronLeft />
           </Button>
