@@ -42,6 +42,11 @@ export class EventAPI {
     return res.data.map(mapEvent);
   }
 
+  static async fixSports(): Promise<{ fixed: number }> {
+    const res = await client.post(routes.event.fixSports);
+    return res.data;
+  }
+
   static async updateEvent({
     eventId,
     body,

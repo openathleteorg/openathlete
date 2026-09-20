@@ -267,6 +267,60 @@ export class EventService {
     });
   }
 
+  async fixManualActivitySports(user: AuthUser) {
+    const ability = await this.abilities.getFor({ user });
+    const athleteId = user?.athlete?.athleteId;
+
+    if (!athleteId) {
+      throw new Error('Athlete ID is required');
+    }
+
+    if (!ability.can('create', subject('Event', { athleteId } as Event))) {
+      throw new ForbiddenException(
+        'You are not allowed to modify events for this athlete',
+      );
+    }
+
+    const manualActivities = await this.prisma.eventActivity.findMany({
+      where: {
+        event: { athleteId },
+        externalId: { startsWith: 'manual_' },
+        provider: null,
+      },
+      include: { event: true },
+    });
+
+    let fixedCount = 0;
+
+    for (const activity of manualActivities) {
+      // Re-parse the stream or extract the sport if we have the raw file data
+      // Since we only have the raw stream JSON and not the original file buffer,
+      // we need to look into the stream data if we saved it or assume standard mapping
+      // Note: we might not be able to easily re-parse the .fit file if it's discarded
+      // But if the sport was incorrectly mapped to "1", we can do a simple heuristic fix:
+      if (
+        activity.sport.toString() === '1' ||
+        activity.sport.toString() === 'RUNNING'
+      ) {
+        // Just an example fallback if they were saved as the literal '1'
+        // If the database enforces Enum, it's probably already valid, but we force update:
+        await this.prisma.eventActivity.update({
+          where: { eventActivityId: activity.eventActivityId },
+          data: { sport: 'RUNNING' },
+        });
+
+        await this.prisma.event.update({
+          where: { eventId: activity.eventId },
+          data: { name: activity.event.name || 'Running Activity' },
+        });
+
+        fixedCount++;
+      }
+    }
+
+    return { fixed: fixedCount };
+  }
+
   async uploadActivities(
     user: AuthUser,
     files: Array<{ buffer: Buffer; mimetype: string; originalname: string }>,

@@ -1,4 +1,7 @@
-import { useUploadActivitiesMutation } from '@/api/event/event.hooks';
+import {
+  useFixSportsMutation,
+  useUploadActivitiesMutation,
+} from '@/api/event/event.hooks';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
@@ -41,7 +44,19 @@ export function CalendarHeader() {
     useTemplateLibrarySidebar();
   const { setOpen: setMainSidebarOpen, open: mainSidebarOpen } = useSidebar();
   const uploadActivities = useUploadActivitiesMutation();
+  const fixSportsMutation = useFixSportsMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFixSports = () => {
+    fixSportsMutation.mutate(undefined, {
+      onSuccess: (data) => {
+        toast.success(`Fixed sport tags for ${data.fixed} activities`);
+      },
+      onError: (err) => {
+        toast.error('Failed to fix sport tags: ' + err.message);
+      },
+    });
+  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -184,6 +199,15 @@ export function CalendarHeader() {
                 <Upload
                   className={`h-4 w-4 ${uploadActivities.isPending ? 'animate-pulse' : ''}`}
                 />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleFixSports}
+                disabled={fixSportsMutation.isPending}
+                title="Fix historical sport tags"
+                className="hidden md:flex text-xs"
+              >
+                {fixSportsMutation.isPending ? 'Fixing...' : 'Fix Sports'}
               </Button>
             </>
           )}

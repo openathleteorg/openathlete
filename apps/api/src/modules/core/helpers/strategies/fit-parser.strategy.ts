@@ -59,7 +59,7 @@ export class FitParserStrategy implements ActivityParser {
       applyScaleAndOffset: true,
       expandSubFields: true,
       expandComponents: true,
-      convertTypesToStrings: false,
+      convertTypesToStrings: true,
       convertDateTimesToDates: true,
       includeUnknownData: false,
       mergeHeartRates: true,

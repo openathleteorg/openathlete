@@ -17,6 +17,37 @@ type CreateEventContext = {
   tempId: number;
 };
 
+export const useFixSportsMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.fixSports>>,
+    Error,
+    void
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    Awaited<ReturnType<typeof EventAPI.fixSports>>,
+    Error,
+    void
+  >({
+    ...opt,
+    mutationFn: EventAPI.fixSports,
+    onSuccess: (...args) => {
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.getTrainingLoadHistory],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.getTrainingLoadMetrics],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
+      });
+      opt?.onSuccess?.(...args);
+    },
+  });
+};
+
 export const useUploadActivitiesMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof EventAPI.uploadActivities>>,

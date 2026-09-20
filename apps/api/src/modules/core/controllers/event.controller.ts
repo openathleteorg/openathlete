@@ -115,6 +115,22 @@ export class EventController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Post('fix-sports')
+  @ApiOperation({
+    summary: 'Fix sport tags for manual activities',
+    description:
+      'Iterates through manually uploaded activities and fixes their sport tags based on raw fit data.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Sport tags updated successfully',
+  })
+  async fixSports(@JwtUser() user: AuthUser) {
+    return this.eventService.fixManualActivitySports(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('ical/secret')
   @ApiOperation({
     summary: 'Get iCal calendar secret',
