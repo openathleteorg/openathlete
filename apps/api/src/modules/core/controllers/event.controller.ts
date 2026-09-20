@@ -377,7 +377,7 @@ export class EventController {
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Post('upload')
-  @UseInterceptors(FilesInterceptor('files', 50))
+  @UseInterceptors(FilesInterceptor('files'))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
     summary: 'Upload one or multiple activity files',
