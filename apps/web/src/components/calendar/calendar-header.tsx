@@ -1,4 +1,4 @@
-import { useUploadActivityMutation } from '@/api/event/event.hooks';
+import { useUploadActivitiesMutation } from '@/api/event/event.hooks';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
@@ -40,19 +40,23 @@ export function CalendarHeader() {
   const { open, setOpen, mainSidebarWasOpen, setMainSidebarWasOpen } =
     useTemplateLibrarySidebar();
   const { setOpen: setMainSidebarOpen, open: mainSidebarOpen } = useSidebar();
-  const uploadActivity = useUploadActivityMutation();
+  const uploadActivities = useUploadActivitiesMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    uploadActivity.mutate(file, {
-      onSuccess: () => {
-        toast.success('Activity uploaded successfully');
+    uploadActivities.mutate(files, {
+      onSuccess: (data) => {
+        if (data.length === 0) {
+          toast.warning('No new activities uploaded (might be duplicates).');
+        } else {
+          toast.success(`Successfully uploaded ${data.length} activities.`);
+        }
       },
       onError: (err) => {
-        toast.error('Failed to upload activity: ' + err.message);
+        toast.error('Failed to upload activities: ' + err.message);
       },
       onSettled: () => {
         if (fileInputRef.current) {
@@ -164,6 +168,7 @@ export function CalendarHeader() {
             <>
               <input
                 type="file"
+                multiple
                 ref={fileInputRef}
                 className="hidden"
                 accept=".fit,.gpx"
@@ -173,11 +178,11 @@ export function CalendarHeader() {
                 variant="outline"
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
-                disabled={uploadActivity.isPending}
-                title={'Upload Activity'}
+                disabled={uploadActivities.isPending}
+                title={'Upload Activities'}
               >
                 <Upload
-                  className={`h-4 w-4 ${uploadActivity.isPending ? 'animate-pulse' : ''}`}
+                  className={`h-4 w-4 ${uploadActivities.isPending ? 'animate-pulse' : ''}`}
                 />
               </Button>
             </>

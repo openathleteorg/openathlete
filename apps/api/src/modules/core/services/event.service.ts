@@ -1,5 +1,6 @@
 import { subject } from '@casl/ability';
 import * as argon2 from 'argon2';
+import { createHash } from 'crypto';
 import ical, {
   ICalCalendarMethod,
   ICalEvent,
@@ -266,9 +267,9 @@ export class EventService {
     });
   }
 
-  async uploadActivity(
+  async uploadActivities(
     user: AuthUser,
-    file: { buffer: Buffer; mimetype: string; originalname: string },
+    files: Array<{ buffer: Buffer; mimetype: string; originalname: string }>,
   ) {
     if (!this.activityFileParserService) {
       throw new Error('Activity file parser service not available');
@@ -291,92 +292,125 @@ export class EventService {
       );
     }
 
-    // Parse the file
-    const parseResult = await this.activityFileParserService.parse(
-      file.buffer,
-      file.mimetype,
-    );
+    const results = [];
 
-    const activityStream = parseResult.stream;
-    const compressedStream = compressActivityStream(activityStream);
-    const summary = parseResult.summary;
+    for (const file of files) {
+      try {
+        const hash = createHash('sha256').update(file.buffer).digest('hex');
+        const externalId = `manual_${hash}`;
 
-    if (!summary) {
-      throw new BadRequestException(
-        'Could not extract activity summary from file',
-      );
-    }
+        // Check for duplicates
+        const existingActivity = await this.prisma.eventActivity.findUnique({
+          where: { externalId },
+        });
 
-    const sport = summary.sport;
-    if (!sport) {
-      throw new BadRequestException('Could not determine sport type from file');
-    }
+        if (existingActivity) {
+          this.logger.debug(`Skipping duplicate file: ${file.originalname}`);
+          continue;
+        }
 
-    const startDate = summary.startTime;
-    const endDate = new Date(
-      startDate.getTime() + (summary.totalTime || 0) * 1000,
-    );
+        // Parse the file
+        const parseResult = await this.activityFileParserService.parse(
+          file.buffer,
+          file.mimetype,
+        );
 
-    // Save the event to DB
-    const event = await this.prisma.event.create({
-      data: {
-        athleteId,
-        type: 'ACTIVITY',
-        startDate,
-        endDate,
-        name: summary.name || 'Uploaded Activity',
-        activity: {
-          create: {
-            provider: null,
-            distance: summary.totalDistance || 0,
-            elevationGain: summary.totalElevationGain || 0,
-            movingTime: summary.movingTime || summary.totalTime || 0,
-            averageSpeed: summary.averageSpeed || 0,
-            maxSpeed: summary.maxSpeed || 0,
-            averageCadence: summary.averageCadence,
-            averageWatts: summary.averagePower,
-            maxWatts: summary.maxPower,
-            weightedAverageWatts: summary.normalizedPower,
-            averageHeartrate: summary.averageHeartRate,
-            maxHeartrate: summary.maxHeartRate,
-            kilojoules: summary.totalWork,
-            sport,
-            stream: compressedStream as object,
-            externalId: `manual_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+        const activityStream = parseResult.stream;
+        const compressedStream = compressActivityStream(activityStream);
+        const summary = parseResult.summary;
+
+        if (!summary) {
+          throw new BadRequestException(
+            `Could not extract activity summary from file: ${file.originalname}`,
+          );
+        }
+
+        const sport = summary.sport;
+        if (!sport) {
+          throw new BadRequestException(
+            `Could not determine sport type from file: ${file.originalname}`,
+          );
+        }
+
+        const startDate = summary.startTime;
+        const endDate = new Date(
+          startDate.getTime() + (summary.totalTime || 0) * 1000,
+        );
+
+        // Save the event to DB
+        const event = await this.prisma.event.create({
+          data: {
+            athleteId,
+            type: 'ACTIVITY',
+            startDate,
+            endDate,
+            name:
+              summary.name ||
+              file.originalname.split('.').slice(0, -1).join('.') ||
+              'Uploaded Activity',
+            activity: {
+              create: {
+                provider: null,
+                distance: summary.totalDistance || 0,
+                elevationGain: summary.totalElevationGain || 0,
+                movingTime: summary.movingTime || summary.totalTime || 0,
+                averageSpeed: summary.averageSpeed || 0,
+                maxSpeed: summary.maxSpeed || 0,
+                averageCadence: summary.averageCadence,
+                averageWatts: summary.averagePower,
+                maxWatts: summary.maxPower,
+                weightedAverageWatts: summary.normalizedPower,
+                averageHeartrate: summary.averageHeartRate,
+                maxHeartrate: summary.maxHeartRate,
+                kilojoules: summary.totalWork,
+                sport,
+                stream: compressedStream as object,
+                externalId,
+              },
+            },
           },
-        },
-      },
-      include: { activity: true },
-    });
+          include: { activity: true },
+        });
 
-    if (!event.activity) {
-      throw new Error('Failed to create activity event');
+        if (!event.activity) {
+          throw new Error(
+            `Failed to create activity event for ${file.originalname}`,
+          );
+        }
+
+        // Process pipeline
+        await this.activityPipelineService.run({
+          eventActivityId: event.activity.eventActivityId,
+          eventId: event.eventId,
+          bulkImport: false,
+        });
+
+        this.eventEmitter.emit(
+          ActivityImportedEvent.SLUG,
+          new ActivityImportedEvent({
+            eventActivityId: event.activity.eventActivityId,
+            eventId: event.eventId,
+            bulkImport: false,
+          }),
+        );
+
+        if (this.calendarWebSocketService && athleteId) {
+          this.calendarWebSocketService.notifyActivityProcessed(
+            event.eventId,
+            athleteId,
+          );
+        }
+
+        results.push(await this.getEventById(user, event.eventId));
+      } catch (err) {
+        this.logger.error(
+          `Error processing file ${file.originalname}: ${err instanceof Error ? err.message : String(err)}`,
+        );
+        // Continue processing other files
+      }
     }
 
-    // Process pipeline
-    await this.activityPipelineService.run({
-      eventActivityId: event.activity.eventActivityId,
-      eventId: event.eventId,
-      bulkImport: false,
-    });
-
-    this.eventEmitter.emit(
-      ActivityImportedEvent.SLUG,
-      new ActivityImportedEvent({
-        eventActivityId: event.activity.eventActivityId,
-        eventId: event.eventId,
-        bulkImport: false,
-      }),
-    );
-
-    if (this.calendarWebSocketService && athleteId) {
-      this.calendarWebSocketService.notifyActivityProcessed(
-        event.eventId,
-        athleteId,
-      );
-    }
-
-    return this.getEventById(user, event.eventId);
+    return results;
   }
 
   async createEvent(user: AuthUser, data: CreateEventDto) {

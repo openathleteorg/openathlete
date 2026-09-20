@@ -31,15 +31,15 @@ export class EventAPI {
     return mapEvent(res.data);
   }
 
-  static async uploadActivity(file: File): Promise<Event> {
+  static async uploadActivities(files: File[]): Promise<Event[]> {
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach((file) => formData.append('files', file));
     const res = await client.post(routes.event.upload, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
-    return mapEvent(res.data);
+    return res.data.map(mapEvent);
   }
 
   static async updateEvent({

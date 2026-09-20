@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,12 +15,12 @@ import {
   Post,
   Query,
   Res,
-  UploadedFile,
+  UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FilesInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -376,37 +377,40 @@ export class EventController {
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FilesInterceptor('files', 50))
   @ApiConsumes('multipart/form-data')
   @ApiOperation({
-    summary: 'Upload an activity file',
+    summary: 'Upload one or multiple activity files',
     description:
-      'Uploads an activity file (e.g. .fit, .gpx) and creates a corresponding event for the authenticated user.',
+      'Uploads multiple activity files (e.g. .fit, .gpx) and creates corresponding events for the authenticated user. Skips duplicates.',
   })
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
         },
       },
     },
   })
   @ApiResponse({
     status: 201,
-    description: 'Activity uploaded and event created successfully',
+    description: 'Activities uploaded successfully',
   })
-  async uploadActivity(
+  async uploadActivities(
     @JwtUser() user: AuthUser,
-    @UploadedFile()
-    file: { buffer: Buffer; mimetype: string; originalname: string },
+    @UploadedFiles()
+    files?: Array<{ buffer: Buffer; mimetype: string; originalname: string }>,
   ) {
-    if (!file) {
-      throw new NotFoundException('No file provided');
+    if (!files || files.length === 0) {
+      throw new BadRequestException('No files provided');
     }
-    return this.eventService.uploadActivity(user, file);
+    return this.eventService.uploadActivities(user, files);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
