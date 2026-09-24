@@ -981,5 +981,7 @@
   "select_people_to_talk_with": "Select the people you want to talk with",
   "no_people_available_for_conversation": "No people available to start a conversation",
   "edited": "Edited",
-  "ui_toggle_sidebar": "Toggle Sidebar"
+  "ui_toggle_sidebar": "Toggle Sidebar",
+  "calendar_day_events_label": "Events on {date}",
+  "calendar_day_scroll_hint": "Scroll within the list to see all events for this day."
 }

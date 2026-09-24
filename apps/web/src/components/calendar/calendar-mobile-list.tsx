@@ -85,14 +85,17 @@ export function CalendarMobileList({ isLoading }: P) {
           ),
       );
       const cycleSegments = calculateCyclesForDay(cycles, item.day);
-      const dayHeaderHeight = 56;
+      const dayHeaderHeight = 76;
       let cycleHeight = 0;
       if (cycleSegments.length > 0) {
         cycleHeight = 48;
       }
       let eventHeight = 0;
       if (dayEvents.length > 0) {
-        eventHeight = 16 + dayEvents.length * 40 + (dayEvents.length - 1) * 8;
+        // Only estimate the capped viewport; rendered rows are measured below.
+        eventHeight =
+          16 +
+          Math.min(320, dayEvents.length * 40 + (dayEvents.length - 1) * 8);
       }
       const emptyStateHeight =
         dayEvents.length === 0 && cycleSegments.length === 0 ? 52 : 0;
@@ -271,6 +274,7 @@ export function CalendarMobileList({ isLoading }: P) {
   return (
     <div
       ref={parentRef}
+      data-mobile-calendar-list
       className="w-full overflow-auto bg-background scrollbar-hide relative"
       style={{
         contain: 'strict',
@@ -324,12 +328,13 @@ export function CalendarMobileList({ isLoading }: P) {
             return (
               <div
                 key={`week-${item.weekIndex}`}
+                data-index={virtualItem.index}
+                ref={virtualizer.measureElement}
                 style={{
                   position: 'absolute',
                   top: 0,
                   left: 0,
                   width: '100%',
-                  height: `${virtualItem.size}px`,
                   transform: `translateY(${virtualItem.start}px)`,
                 }}
               >
@@ -355,12 +360,13 @@ export function CalendarMobileList({ isLoading }: P) {
           return (
             <div
               key={`day-${item.dayIndex}`}
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
               style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 width: '100%',
-                height: `${virtualItem.size}px`,
                 transform: `translateY(${virtualItem.start}px)`,
               }}
             >

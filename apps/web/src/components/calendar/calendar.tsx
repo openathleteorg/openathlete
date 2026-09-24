@@ -7,6 +7,14 @@ import { eventKeys } from '@/api/event/event.keys';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
 import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
 import { useCalendarData } from '@/components/calendar/hooks/use-calendar-data';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { Loader } from '@/components/ui/loader';
 import { useFeatureAccess } from '@/hooks/use-feature-access';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -16,8 +24,16 @@ import { AnalyticsEvent } from '@/utils/analytics-events';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import { DragEndEvent } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { addDays, startOfMonth } from 'date-fns';
-import { Activity, Award, Plus, Sparkles } from 'lucide-react';
+import { addDays, format, isValid, parseISO, startOfMonth } from 'date-fns';
+import {
+  Activity,
+  Award,
+  ChevronDown,
+  Copy,
+  Plus,
+  Sparkles,
+  StickyNote,
+} from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -67,6 +83,7 @@ export function Calendar({
 }: P) {
   const posthog = usePostHog();
   const isMobile = useIsMobile();
+  const [planningDate, setPlanningDate] = useState(() => new Date());
   const calendarData = useCalendarData({ events });
   const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
   const { hasAccess: hasAIAccess } = useFeatureAccess(
@@ -527,45 +544,53 @@ export function Calendar({
   const mobileActions = useMemo<PageAction[]>(() => {
     if (!isMobile || !allowCreate) return [];
 
-    const today = new Date();
     const actions: PageAction[] = [
-      {
-        label: m.create_event(),
-        icon: Plus,
-        onClick: () => {
-          setCreateEventDialog({ date: today, type: EVENT_TYPE.TRAINING });
-        },
-      },
       {
         label: m.plan_a_training(),
         icon: Activity,
         onClick: () => {
-          setCreateEventDialog({ date: today, type: EVENT_TYPE.TRAINING });
+          setCreateEventDialog({
+            date: planningDate,
+            type: EVENT_TYPE.TRAINING,
+          });
         },
+      },
+      {
+        label: m.set_a_template(),
+        icon: Copy,
+        onClick: () => setCreateEventFromTemplateDialog(planningDate),
       },
       {
         label: m.plan_a_competition(),
         icon: Award,
         onClick: () => {
-          setCreateEventDialog({ date: today, type: EVENT_TYPE.COMPETITION });
+          setCreateEventDialog({
+            date: planningDate,
+            type: EVENT_TYPE.COMPETITION,
+          });
+        },
+      },
+      {
+        label: m.plan_a_note(),
+        icon: StickyNote,
+        onClick: () => {
+          setCreateEventDialog({ date: planningDate, type: EVENT_TYPE.NOTE });
         },
       },
     ];
 
     if (hasAIAccess) {
-      actions.splice(1, 0, {
+      actions.splice(2, 0, {
         label: m.create_with_ai(),
         icon: Sparkles,
-        onClick: () => {
-          setAIGenerateEventDialog(today);
-        },
+        onClick: () => setAIGenerateEventDialog(planningDate),
       });
     }
 
     return actions;
-  }, [isMobile, allowCreate, hasAIAccess]);
+  }, [isMobile, allowCreate, hasAIAccess, planningDate]);
 
-  useSetPageActions(isMobile && allowCreate ? mobileActions : []);
+  useSetPageActions(mobileActions);
 
   // Handle global mouse up to end drag selection and cycle resize
   useEffect(() => {
@@ -613,6 +638,49 @@ export function Calendar({
 
   return (
     <div className="flex flex-col gap-3">
+      {mobileActions.length > 0 && (
+        <div
+          data-calendar-planning-toolbar
+          className="flex flex-wrap items-end gap-3 px-4 py-2 md:hidden"
+        >
+          <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm font-medium">
+            {m.date()}
+            <Input
+              type="date"
+              className="h-11"
+              value={format(planningDate, 'yyyy-MM-dd')}
+              onChange={(event) => {
+                const date = parseISO(event.target.value);
+                if (isValid(date)) setPlanningDate(date);
+              }}
+            />
+          </label>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button className="h-11" data-calendar-plan-trigger>
+                <Plus className="size-4" />
+                {m.plan()}
+                <ChevronDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="max-w-[calc(100vw-2rem)]"
+            >
+              {mobileActions.map((action) => (
+                <DropdownMenuItem
+                  key={action.label}
+                  onSelect={action.onClick}
+                  className="min-h-11"
+                >
+                  {action.icon && <action.icon className="size-4" />}
+                  {action.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
       <EventClipboardProvider>
         <EventContextMenuProvider>
           <CalendarContext.Provider value={memoizedValue}>

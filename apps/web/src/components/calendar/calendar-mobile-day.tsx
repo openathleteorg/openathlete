@@ -2,6 +2,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { Event } from '@openathlete/shared';
 
@@ -23,6 +24,29 @@ export function CalendarMobileDay({
   isToday,
   isCurrentMonth,
 }: P) {
+  const eventsViewportRef = useRef<HTMLDivElement>(null);
+  const eventsContentRef = useRef<HTMLDivElement>(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+  const scrollHintId = useId();
+
+  useEffect(() => {
+    const viewport = eventsViewportRef.current;
+    const content = eventsContentRef.current;
+    if (!viewport || !content) {
+      setHasOverflow(false);
+      return;
+    }
+
+    const updateOverflow = () => {
+      setHasOverflow(viewport.scrollHeight > viewport.clientHeight + 1);
+    };
+    updateOverflow();
+    const observer = new ResizeObserver(updateOverflow);
+    observer.observe(viewport);
+    observer.observe(content);
+    return () => observer.disconnect();
+  }, [events.length]);
+
   const dayOfMonth = day.getDate();
   const dayName = day.toLocaleString(getDateLocale(getLocale()), {
     weekday: 'long',
@@ -33,6 +57,7 @@ export function CalendarMobileDay({
 
   return (
     <div
+      data-mobile-calendar-day={day.toLocaleDateString('en-CA')}
       className={cn('flex flex-col bg-background', 'border-b border-border')}
     >
       <div className={cn('flex items-center justify-between px-4 py-3')}>
@@ -97,12 +122,35 @@ export function CalendarMobileDay({
       )}
 
       {events.length > 0 && (
-        <div className="px-4 pb-4 flex flex-col gap-2">
-          {events
-            .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
-            .map((event) => (
-              <CalendarEvent key={event.eventId} event={event} />
-            ))}
+        <div className="px-4 pb-4">
+          <div
+            ref={eventsViewportRef}
+            data-mobile-day-events
+            role="region"
+            aria-label={m.calendar_day_events_label({
+              date: day.toLocaleDateString(getDateLocale(getLocale())),
+            })}
+            aria-describedby={hasOverflow ? scrollHintId : undefined}
+            tabIndex={hasOverflow ? 0 : undefined}
+            className={cn(
+              'max-h-[min(20rem,50dvh)] overflow-y-auto rounded-sm focus-visible:outline-2 focus-visible:outline-ring',
+              hasOverflow && 'overscroll-y-contain',
+            )}
+            style={{ scrollbarWidth: 'thin' }}
+          >
+            <div ref={eventsContentRef} className="flex flex-col gap-2">
+              {[...events]
+                .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+                .map((event) => (
+                  <CalendarEvent key={event.eventId} event={event} />
+                ))}
+            </div>
+          </div>
+          {hasOverflow && (
+            <p id={scrollHintId} className="mt-2 text-xs text-muted-foreground">
+              {m.calendar_day_scroll_hint()}
+            </p>
+          )}
         </div>
       )}
 

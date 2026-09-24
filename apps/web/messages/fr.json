@@ -981,5 +981,7 @@
   "select_people_to_talk_with": "Sélectionnez les personnes avec qui vous souhaitez dialoguer",
   "no_people_available_for_conversation": "Aucune personne disponible pour démarrer une conversation",
   "edited": "édité",
-  "ui_toggle_sidebar": "Afficher/masquer la barre latérale"
+  "ui_toggle_sidebar": "Afficher/masquer la barre latérale",
+  "calendar_day_events_label": "Événements du {date}",
+  "calendar_day_scroll_hint": "Faites défiler la liste pour voir tous les événements de la journée."
 }
