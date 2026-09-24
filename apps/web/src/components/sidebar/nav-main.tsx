@@ -79,7 +79,13 @@ export function NavMain({
                   <CollapsibleTrigger asChild>
                     <SidebarMenuButton
                       tooltip={item.title}
-                      className={item.isActive ? 'active-class' : ''}
+                      className={
+                        isMobile
+                          ? 'min-h-11 text-base'
+                          : item.isActive
+                            ? 'active-class'
+                            : ''
+                      }
                     >
                       {item.icon && <item.icon />}
                       <span>{item.title}</span>
@@ -90,9 +96,17 @@ export function NavMain({
                     <SidebarMenuSub>
                       {item.items?.map((subItem) => (
                         <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
+                          <SidebarMenuSubButton
+                            asChild
+                            className={
+                              isMobile ? 'min-h-11 text-base' : undefined
+                            }
+                          >
                             <Link
                               to={subItem.url}
+                              aria-current={
+                                pathname === subItem.url ? 'page' : undefined
+                              }
                               onClick={handleLinkClick}
                               className={
                                 pathname === subItem.url ? 'font-bold' : ''
@@ -110,9 +124,13 @@ export function NavMain({
               </Collapsible>
             ) : (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton
+                  asChild
+                  className={isMobile ? 'min-h-11 text-base' : undefined}
+                >
                   <Link
                     to={item.url || '#'}
+                    aria-current={pathname === item.url ? 'page' : undefined}
                     onClick={handleLinkClick}
                     className={`flex items-center gap-2 ${
                       pathname === item.url ? 'font-bold' : ''

@@ -1,9 +1,11 @@
 import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
+import { MobileAccountControls } from '@/components/mobile/mobile-account-controls';
 import { NavMain } from '@/components/sidebar/nav-main';
 import { NavUser } from '@/components/sidebar/nav-user';
 import { SpaceSwitcher } from '@/components/sidebar/space-switcher';
+import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +26,7 @@ import {
   PieChart,
   TrendingUp,
   User,
+  X,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { ComponentProps, useMemo } from 'react';
@@ -154,7 +157,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           <Link
             to={getPath(['dashboard'])}
             onClick={handleLogoClick}
-            className="flex items-center justify-center gap-2 w-full"
+            className="flex items-center justify-center gap-2 w-full min-w-0"
           >
             <img
               src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}
@@ -162,6 +165,17 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
               className="h-10 w-10"
             />
           </Link>
+          {isMobile && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-11 shrink-0"
+              aria-label={m.activity_feedback_close()}
+              onClick={() => setOpenMobile(false)}
+            >
+              <X className="size-5" />
+            </Button>
+          )}
         </div>
         <SpaceSwitcher />
       </SidebarHeader>
@@ -169,7 +183,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         <NavMain items={sidebarNavigation} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser />
+        {isMobile ? <MobileAccountControls /> : <NavUser />}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
