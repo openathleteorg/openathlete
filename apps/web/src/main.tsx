@@ -8,6 +8,7 @@ import { initAnalytics } from './utils/analytics';
 import { isCapacitor } from './utils/capacitor';
 import { initChunkLoadRecovery } from './utils/chunk-recovery';
 import { initErrorMonitoring } from './utils/error-monitoring';
+import { initPwa } from './utils/pwa';
 import { initStatusBar } from './utils/status-bar';
 
 if (isCapacitor()) {
@@ -26,6 +27,7 @@ initErrorMonitoring();
 initAnalytics();
 initStatusBar();
 initChunkLoadRecovery();
+initPwa();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

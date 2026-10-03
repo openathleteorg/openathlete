@@ -2,10 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <!-- API URL, read at runtime: Docker images set it when the container starts -->
     <meta name="openathlete-api-base-url" content="%VITE_API_BASE_URL%" />
+    <!-- Installable web app (PWA). The service worker is registered in main.tsx. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14161b" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="OpenAthlete" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <title>OpenAthlete</title>
   </head>
   <body>

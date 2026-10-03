@@ -1147,5 +1147,8 @@
   "ai_error_not_configured": "Set up an AI provider key in Settings > AI to use this feature.",
   "ai_error_credential_rejected": "Your AI provider rejected the API key. Check it in Settings > AI.",
   "ai_error_quota_exceeded": "Your AI provider's quota is exhausted or rate limited. Try again later or check your provider account.",
-  "ai_error_provider": "The AI provider could not complete the request. Try again or choose another model."
+  "ai_error_provider": "The AI provider could not complete the request. Try again or choose another model.",
+  "pwa_install": "Install app",
+  "pwa_install_title": "Install OpenAthlete",
+  "pwa_install_ios_steps": "Tap the browser's Share button and choose “Add to Home Screen”. OpenAthlete then opens full screen from its icon, like an app."
 }

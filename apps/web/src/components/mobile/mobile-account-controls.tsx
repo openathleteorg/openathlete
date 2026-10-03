@@ -1,3 +1,4 @@
+import { useInstallApp } from '@/components/pwa/use-install-app';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAuthContext } from '@/contexts/auth';
@@ -6,7 +7,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { SUPPORTED_LOCALES, getLocaleName } from '@/utils/locales';
-import { LogOut, Settings } from 'lucide-react';
+import { Download, LogOut, Settings } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link, useNavigate } from 'react-router-dom';
 
@@ -17,6 +18,7 @@ export function MobileAccountControls() {
   const { syncLanguage } = useLanguageSync();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const installApp = useInstallApp();
   if (!user) return null;
 
   return (
@@ -58,6 +60,17 @@ export function MobileAccountControls() {
           </select>
         </label>
       </div>
+      {installApp.available && (
+        <Button
+          variant="outline"
+          className="h-11 w-full"
+          onClick={installApp.install}
+        >
+          <Download className="size-4" />
+          {m.pwa_install()}
+        </Button>
+      )}
+      {installApp.dialog}
       <div className="flex gap-2">
         <Button asChild variant="outline" className="h-11 min-w-0 flex-1">
           <Link

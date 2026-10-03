@@ -1147,5 +1147,8 @@
   "ai_error_not_configured": "Configura una chiave di un fornitore di IA in Impostazioni > IA per usare questa funzionalità.",
   "ai_error_credential_rejected": "Il tuo fornitore di IA ha rifiutato la chiave API. Controllala in Impostazioni > IA.",
   "ai_error_quota_exceeded": "La quota del tuo fornitore di IA è esaurita o limitata. Riprova più tardi o controlla il tuo account presso il fornitore.",
-  "ai_error_provider": "Il fornitore di IA non ha potuto completare la richiesta. Riprova o scegli un altro modello."
+  "ai_error_provider": "Il fornitore di IA non ha potuto completare la richiesta. Riprova o scegli un altro modello.",
+  "pwa_install": "Installa l'app",
+  "pwa_install_title": "Installa OpenAthlete",
+  "pwa_install_ios_steps": "Tocca il pulsante Condividi del browser e scegli «Aggiungi alla schermata Home». OpenAthlete si aprirà poi a schermo intero dalla sua icona, come un'app."
 }

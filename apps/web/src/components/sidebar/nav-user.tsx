@@ -1,6 +1,7 @@
 'use client';
 
 import { useCurrentSubscription } from '@/api/subscription';
+import { useInstallApp } from '@/components/pwa/use-install-app';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -28,7 +29,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { SUPPORTED_LOCALES, getLocaleName } from '@/utils/locales';
-import { ChevronsUpDown, CogIcon, LogOut } from 'lucide-react';
+import { ChevronsUpDown, CogIcon, Download, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useNavigate } from 'react-router-dom';
 
@@ -50,6 +51,7 @@ export function NavUser() {
   const { isMobile, setOpenMobile } = useSidebar();
   const { theme, setTheme } = useTheme();
   const { syncLanguage } = useLanguageSync();
+  const installApp = useInstallApp();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -125,6 +127,12 @@ export function NavUser() {
                 <CogIcon />
                 {m.settings()}
               </DropdownMenuItem>
+              {installApp.available && (
+                <DropdownMenuItem onClick={installApp.install}>
+                  <Download />
+                  {m.pwa_install()}
+                </DropdownMenuItem>
+              )}
             </DropdownMenuGroup>
             <DropdownMenuGroup>
               <DropdownMenuSub>
@@ -181,6 +189,7 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        {installApp.dialog}
       </SidebarMenuItem>
     </SidebarMenu>
   );
