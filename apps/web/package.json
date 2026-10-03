@@ -77,7 +77,7 @@
     "react-day-picker": "8.10.1",
     "react-dom": "^19.3.0",
     "react-hook-form": "^7.89.0",
-    "react-leaflet": "5.0.0-rc.2",
+    "react-leaflet": "5.0.0",
     "react-markdown": "^10.1.0",
     "react-router-dom": "^7.18.4",
     "recharts": "^2.15.4",
