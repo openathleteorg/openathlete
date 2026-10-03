@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 
 # ---- Build stage ----
-FROM node:22.23.3-alpine AS build
+FROM node:26.10.0-alpine AS build
 WORKDIR /app
 
 # Install pnpm
