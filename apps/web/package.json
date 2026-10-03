@@ -30,7 +30,7 @@
     "@capacitor-firebase/authentication": "^7.5.0",
     "@capacitor/android": "^7.6.9",
     "@capacitor/browser": "^7.0.5",
-    "@capacitor/cli": "^7.6.9",
+    "@capacitor/cli": "^8.5.2",
     "@capacitor/core": "^7.6.9",
     "@capacitor/ios": "^7.6.9",
     "@capacitor/push-notifications": "^7.0.7",
