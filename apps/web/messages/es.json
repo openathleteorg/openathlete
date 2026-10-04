@@ -1165,5 +1165,22 @@
   "hr_zones_conversion_error": "Revisa la FC máxima, la FC en reposo y los límites antes de cambiar de unidad. Los límites existentes deben ser ppm enteras, no superar la FC máxima y, para porcentajes de reserva, no estar por debajo de la FC en reposo.",
   "hr_zones_convert_limits": "Convertir límites actuales",
   "hr_zones_invalid": "Revisa los nombres y límites de las zonas. Los porcentajes deben estar entre 0 y 100 y producir un rango de ppm no vacío.",
-  "hr_zones_save_error": "No se pudieron guardar todas las zonas. Revisa los valores y reintenta; algunos cambios pueden haberse guardado."
+  "hr_zones_save_error": "No se pudieron guardar todas las zonas. Revisa los valores y reintenta; algunos cambios pueden haberse guardado.",
+  "consent_title": "Tu privacidad",
+  "consent_description": "Nos gustaría medir el uso de la aplicación (estadísticas de uso y grabaciones de sesión enmascaradas) para mejorarla. No se recoge nada hasta que aceptes, y puedes cambiar de opinión en Ajustes > Perfil.",
+  "consent_accept": "Aceptar",
+  "consent_refuse": "Rechazar",
+  "consent_privacy_policy": "Política de privacidad",
+  "consent_settings_title": "Estadísticas de uso",
+  "consent_settings_granted": "Permites las estadísticas de uso y las grabaciones de sesión.",
+  "consent_settings_denied": "Las estadísticas de uso y las grabaciones de sesión están desactivadas.",
+  "consent_settings_change": "Cambiar mi elección",
+  "privacy_section_title": "Privacidad y datos",
+  "privacy_section_description": "Controla lo que se recoge y llévate tus datos.",
+  "data_export_title": "Descargar mis datos",
+  "data_export_description": "Un archivo JSON con tu perfil, entrenamientos, actividades, métricas, los mensajes que has escrito y tus ajustes. Las contraseñas y las claves nunca se incluyen.",
+  "data_export_include_streams": "Incluir los flujos de las actividades (GPS, frecuencia cardiaca), archivo más pesado",
+  "data_export_download": "Descargar mis datos",
+  "data_export_preparing": "Preparando el archivo…",
+  "data_export_failed": "La exportación ha fallado. Inténtalo más tarde."
 }

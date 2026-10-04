@@ -1165,5 +1165,22 @@
   "hr_zones_conversion_error": "Check maximum HR, resting HR and zone limits before switching units. Existing limits must be whole bpm, at or below maximum HR and, for reserve percentages, at or above resting HR.",
   "hr_zones_convert_limits": "Convert current limits",
   "hr_zones_invalid": "Check zone names and limits. Percentages must be between 0 and 100 and produce a non-empty bpm range.",
-  "hr_zones_save_error": "Some zones could not be saved. Review the values and retry; some changes may already have been saved."
+  "hr_zones_save_error": "Some zones could not be saved. Review the values and retry; some changes may already have been saved.",
+  "consent_title": "Your privacy",
+  "consent_description": "We would like to measure how the app is used (product analytics and masked session recordings) to improve it. Nothing is collected until you accept, and you can change your choice in Settings > Profile.",
+  "consent_accept": "Accept",
+  "consent_refuse": "Refuse",
+  "consent_privacy_policy": "Privacy policy",
+  "consent_settings_title": "Usage analytics",
+  "consent_settings_granted": "You allow product analytics and session recordings.",
+  "consent_settings_denied": "Product analytics and session recordings are off.",
+  "consent_settings_change": "Change my choice",
+  "privacy_section_title": "Privacy and data",
+  "privacy_section_description": "Control what is collected and take your data with you.",
+  "data_export_title": "Download my data",
+  "data_export_description": "One JSON file with your profile, workouts, activities, metrics, the messages you wrote and your settings. Passwords and keys are never included.",
+  "data_export_include_streams": "Include activity streams (GPS, heart rate), for a larger file",
+  "data_export_download": "Download my data",
+  "data_export_preparing": "Preparing the file…",
+  "data_export_failed": "The export failed. Try again later."
 }

@@ -274,7 +274,8 @@ export class StravaProviderService
               headers: {
                 Authorization: `Bearer ${accessToken}`,
               },
-              timeout: 15000, // 15 seconds timeout for activities list
+              // Pages of 200 activities regularly took more than 15s
+              timeout: 30000,
             },
           );
           return response.data;

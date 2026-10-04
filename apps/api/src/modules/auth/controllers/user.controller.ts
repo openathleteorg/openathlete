@@ -1,3 +1,4 @@
+import { Response } from 'express';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { z } from 'zod';
 
@@ -8,6 +9,8 @@ import {
   Get,
   Patch,
   Post,
+  Query,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -41,11 +45,42 @@ import { JwtUser } from '../decorators';
 import { AuthUser } from '../decorators/user.decorator';
 import { UserTypeGuard } from '../guards';
 import { UserService } from '../services';
+import { AccountExportService } from '../services/account-export.service';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private readonly accountExportService: AccountExportService,
+  ) {}
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Throttle(RATE_LIMITS.dataExport)
+  @Get('me/export')
+  @ApiOperation({
+    summary: 'Download all of the user’s data',
+    description:
+      'GDPR data portability: profile, athlete data (metrics, zones, equipment, injuries, plans, records), events with workouts and activities, templates, messages the user wrote, AI assistant conversations and AI settings, as one JSON file. Secrets (password hash, OAuth and push tokens, AI keys) are never included. Activity streams (GPS, heart rate...) are included with includeStreams=true.',
+  })
+  @ApiQuery({ name: 'includeStreams', required: false, type: Boolean })
+  @ApiResponse({ status: 200, description: 'JSON file download' })
+  async exportData(
+    @JwtUser() user: AuthUser,
+    @Query('includeStreams') includeStreams: string | undefined,
+    @Res() res: Response,
+  ) {
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="openathlete-export-${date}.json"`,
+    );
+    await this.accountExportService.export(user.userId, res, {
+      includeStreams: includeStreams === 'true',
+    });
+  }
 
   @Throttle(RATE_LIMITS.signup)
   @Post()

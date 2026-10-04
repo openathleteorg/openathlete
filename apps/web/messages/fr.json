@@ -1165,5 +1165,22 @@
   "hr_zones_conversion_error": "Vérifiez la FC maximale, la FC au repos et les limites avant de changer d'unité. Les limites existantes doivent être des bpm entiers, ne pas dépasser la FC maximale et, pour les pourcentages de réserve, ne pas être inférieures à la FC au repos.",
   "hr_zones_convert_limits": "Convertir les limites actuelles",
   "hr_zones_invalid": "Vérifiez les noms et les limites des zones. Les pourcentages doivent être compris entre 0 et 100 et produire une plage de bpm non vide.",
-  "hr_zones_save_error": "Certaines zones n'ont pas pu être enregistrées. Vérifiez les valeurs et réessayez ; certaines modifications ont peut-être déjà été enregistrées."
+  "hr_zones_save_error": "Certaines zones n'ont pas pu être enregistrées. Vérifiez les valeurs et réessayez ; certaines modifications ont peut-être déjà été enregistrées.",
+  "consent_title": "Votre vie privée",
+  "consent_description": "Nous aimerions mesurer l'utilisation de l'application (statistiques d'usage et enregistrements de sessions masqués) pour l'améliorer. Rien n'est collecté tant que vous n'acceptez pas, et vous pouvez changer d'avis dans Paramètres > Profil.",
+  "consent_accept": "Accepter",
+  "consent_refuse": "Refuser",
+  "consent_privacy_policy": "Politique de confidentialité",
+  "consent_settings_title": "Statistiques d'usage",
+  "consent_settings_granted": "Vous autorisez les statistiques d'usage et les enregistrements de sessions.",
+  "consent_settings_denied": "Les statistiques d'usage et les enregistrements de sessions sont désactivés.",
+  "consent_settings_change": "Modifier mon choix",
+  "privacy_section_title": "Confidentialité et données",
+  "privacy_section_description": "Contrôlez ce qui est collecté et récupérez vos données.",
+  "data_export_title": "Télécharger mes données",
+  "data_export_description": "Un fichier JSON avec votre profil, vos séances, activités, métriques, les messages que vous avez écrits et vos réglages. Les mots de passe et les clés ne sont jamais inclus.",
+  "data_export_include_streams": "Inclure les flux des activités (GPS, fréquence cardiaque), fichier plus lourd",
+  "data_export_download": "Télécharger mes données",
+  "data_export_preparing": "Préparation du fichier…",
+  "data_export_failed": "L'export a échoué. Réessayez plus tard."
 }

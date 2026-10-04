@@ -180,40 +180,52 @@ export class UserService {
 
     const allSports = Object.values(SportType) as SportType[];
 
-    const created = await this.prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        password: hashedPassword,
-        firstName: firstName,
-        lastName: lastName,
-        roles: [UserRole.ATHLETE, UserRole.COACH],
-        athlete: {
-          create: {
-            trainingZones: {
-              create: DEFAULT_HR_ZONES.map((z, idx) => ({
-                name: z.name,
-                description: z.description,
-                index: idx,
-                type: 'HEARTRATE',
-                color: z.color,
-                values: {
-                  create: [
-                    {
-                      min: z.min,
-                      max: z.max,
-                      sports: allSports,
-                    },
-                  ],
-                },
-              })),
+    const created = await this.prisma.user
+      .create({
+        data: {
+          email: normalizedEmail,
+          password: hashedPassword,
+          firstName: firstName,
+          lastName: lastName,
+          roles: [UserRole.ATHLETE, UserRole.COACH],
+          athlete: {
+            create: {
+              trainingZones: {
+                create: DEFAULT_HR_ZONES.map((z, idx) => ({
+                  name: z.name,
+                  description: z.description,
+                  index: idx,
+                  type: 'HEARTRATE',
+                  color: z.color,
+                  values: {
+                    create: [
+                      {
+                        min: z.min,
+                        max: z.max,
+                        sports: allSports,
+                      },
+                    ],
+                  },
+                })),
+              },
             },
           },
         },
-      },
-      select: {
-        userId: true,
-      },
-    });
+        select: {
+          userId: true,
+        },
+      })
+      .catch((error: unknown) => {
+        // Two sign-ups for the same email at once (double submit, OAuth
+        // callbacks) both pass the check above; the database decides
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError &&
+          error.code === 'P2002'
+        ) {
+          throw new ConflictException('User already exists');
+        }
+        throw error;
+      });
 
     if (invitationToken) {
       await this.invitationService.consumeInvitation(

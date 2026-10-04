@@ -55,6 +55,15 @@ export class UserAPI {
     return res.data;
   }
 
+  /** All of the user's data as a JSON file (GDPR portability). */
+  static async exportData(includeStreams: boolean): Promise<Blob> {
+    const res = await client.get(routes.user.exportData, {
+      params: { includeStreams },
+      responseType: 'blob',
+    });
+    return res.data;
+  }
+
   static async deleteAccount(): Promise<{ success: boolean }> {
     const res = await client.delete(routes.user.deleteAccount);
     return res.data;

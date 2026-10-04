@@ -21,6 +21,7 @@ The same build ships to Vercel (hosted), to the Docker image (self-hosted) and t
 - **Small screens**: below 768px the dashboard uses `MobileWebHeader` and the sidebar drawer. Check new pages at 390px: no horizontal scroll, touch targets of 44px.
 - **Native apps**: guard native-only code with `isCapacitor()` from `@/utils/capacitor`.
 - **Third parties**: nothing may load or send data unless its build variable is set. PostHog, Contentsquare and error monitoring are opt-in (`utils/analytics.ts`, `utils/error-monitoring.ts`). The E2E test `makes no third-party request` enforces this.
+- **Consent (GDPR)**: analytics and session recordings start only through `whenConsentGranted` (`utils/consent.ts`), after the user accepts the banner. A new tracker goes through it too, and is listed in the website privacy policy.
 - **API URL**: read through `API_BASE_URL` (`src/config.ts`). Docker images inject it at runtime into a `<meta>` tag of `index.html` (`docker/40-api-public-url.sh`); never bake deployment values into the bundles.
 
 ## Checks
