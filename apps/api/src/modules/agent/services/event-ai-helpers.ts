@@ -1,6 +1,10 @@
 import { z } from 'zod';
 
-import { AthleteMetric, TrainingZoneType } from '@openathlete/database';
+import {
+  AthleteMetric,
+  SportType,
+  TrainingZoneType,
+} from '@openathlete/database';
 import {
   METRIC_TYPE,
   WORKOUT_STEP_TYPE,
@@ -227,6 +231,17 @@ export function formatZonesByType(
   );
 }
 
+const ALL_SPORTS = Object.values(SportType);
+
+/**
+ * Sports only matter when they narrow a zone. Default zones cover every
+ * sport, and listing them all for each zone made up a third of the prompt.
+ */
+const zoneSports = (sports: string[]) =>
+  ALL_SPORTS.every((sport) => sports.includes(sport))
+    ? ''
+    : ` (sports: ${sports.join(', ')})`;
+
 /**
  * Build zones context string for prompt
  */
@@ -241,7 +256,7 @@ ${zoneList
   .map(
     (zone) =>
       `  Zone ID ${zone.trainingZoneId}: ${zone.name} - ${zone.description}
-    Values: ${zone.values.map((v) => `${v.min}-${v.max} (sports: ${v.sports.join(', ')})`).join(', ')}
+    Values: ${zone.values.map((v) => `${v.min}-${v.max}${zoneSports(v.sports)}`).join(', ')}
     IMPORTANT: Use zone ID ${zone.trainingZoneId} for ZONE targets of type ${type}`,
   )
   .join('\n')}`,
