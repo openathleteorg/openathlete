@@ -1,6 +1,7 @@
 import authBackground from '@/assets/images/auth/background.webp';
 import whiteLogoSrc from '@/assets/logos/logo_white.svg';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { m } from '@/paraglide/messages';
 import { Link } from 'react-router-dom';
 
 interface P {
@@ -19,7 +20,7 @@ export function AuthLayout({ children }: P) {
               className="flex items-center gap-2 font-medium"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--oa-bg)] text-primary-foreground">
-                <img src={whiteLogoSrc} alt="Logo" className="h-6 w-6" />
+                <img src={whiteLogoSrc} alt={m.ui_logo()} className="h-6 w-6" />
               </div>
               OpenAthlete
             </Link>
@@ -33,7 +34,7 @@ export function AuthLayout({ children }: P) {
       <div className="relative hidden bg-muted lg:block">
         <img
           src={authBackground}
-          alt="Image"
+          alt={m.ui_image()}
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>

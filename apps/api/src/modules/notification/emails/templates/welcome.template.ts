@@ -6,6 +6,21 @@ import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 const translations = {
+  ES: {
+    title: 'Te damos la bienvenida a OpenAthlete',
+    preview: (name?: string) =>
+      name
+        ? `¡Te damos la bienvenida, ${name}!`
+        : 'Te damos la bienvenida a OpenAthlete',
+    greeting: (name?: string) =>
+      name
+        ? `Nos alegra contar contigo, ${name}.`
+        : 'Nos alegra contar contigo.',
+    description:
+      'Ya puedes configurar tus objetivos, importar tus sesiones y explorar el panel.',
+    buttonLabel: 'Ir al panel',
+    helpNote: '¿Necesitas ayuda? Responde a este correo y te ayudaremos.',
+  },
   FR: {
     title: 'Bienvenue sur OpenAthlete',
     preview: (name?: string) =>
@@ -73,5 +88,5 @@ export function buildWelcomeEmail({
     .filter(Boolean)
     .join('');
 
-  return layout({ title, preview, contentHtml: content });
+  return layout({ language, title, preview, contentHtml: content });
 }

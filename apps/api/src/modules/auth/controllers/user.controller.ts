@@ -251,7 +251,7 @@ export class UserController {
   @ApiOperation({
     summary: 'Update user preferred language',
     description:
-      "Updates the authenticated user's preferred language for the application interface. Supported languages are French (FR) and English (EN).",
+      "Updates the authenticated user's preferred language for the application interface. Supported languages are French (FR), English (EN), Italian (IT), and Spanish (ES).",
   })
   @ApiBody({
     description: 'Language preference',

@@ -29,7 +29,7 @@ model User {
   gender              Gender?
   /// Whether the user has completed the onboarding flow
   onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
-  /// User's preferred language (FR or EN)
+  /// User's preferred language (FR, EN, IT or ES)
   language            UserLanguage @default(FR)
   /// Push notification token for mobile devices
   pushToken           String?      @map("push_token")

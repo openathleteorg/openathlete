@@ -6,6 +6,21 @@ import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 const translations = {
+  ES: {
+    title: 'Nuevos mensajes en tu bandeja de entrada',
+    preview: (count: number) =>
+      count > 1
+        ? `${count} mensajes nuevos en una conversación`
+        : 'Nuevo mensaje en una conversación',
+    intro: (threadTitle?: string | null) =>
+      threadTitle
+        ? `Has recibido nuevos mensajes en la conversación «${threadTitle}» de OpenAthlete.`
+        : 'Has recibido nuevos mensajes en una de tus conversaciones de OpenAthlete.',
+    openInbox: 'Abrir bandeja de entrada',
+    footerNote:
+      'Hemos agrupado estos mensajes para evitar enviarte un correo por cada uno.',
+    from: (senderName: string, time: string) => `De ${senderName} — ${time}`,
+  },
   FR: {
     title: 'Nouveaux messages dans votre messagerie',
     preview: (count: number) =>
@@ -78,11 +93,13 @@ export function buildMessageThreadNotificationEmail({
     .map((message) => {
       const createdAt = new Date(message.createdAtIso);
       const timeLabel = createdAt.toLocaleString(
-        language === Language.FR
-          ? 'fr-FR'
-          : language === Language.IT
-            ? 'it-IT'
-            : 'en-US',
+        language === Language.ES
+          ? 'es-ES'
+          : language === Language.FR
+            ? 'fr-FR'
+            : language === Language.IT
+              ? 'it-IT'
+              : 'en-US',
         {
           hour: '2-digit',
           minute: '2-digit',
@@ -113,5 +130,5 @@ export function buildMessageThreadNotificationEmail({
     .filter(Boolean)
     .join('');
 
-  return layout({ title, preview, contentHtml: content });
+  return layout({ language, title, preview, contentHtml: content });
 }

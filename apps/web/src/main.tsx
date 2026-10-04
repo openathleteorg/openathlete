@@ -1,3 +1,4 @@
+import { getLocale } from '@/paraglide/runtime';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -18,6 +19,8 @@ if (isCapacitor()) {
     );
   }
 }
+
+document.documentElement.lang = getLocale();
 
 initErrorMonitoring();
 initAnalytics();

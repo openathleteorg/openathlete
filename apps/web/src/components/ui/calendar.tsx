@@ -1,4 +1,7 @@
 import { buttonVariants } from '@/components/ui/button';
+import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
+import { getDateFnsLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
@@ -12,6 +15,13 @@ function Calendar({
 }: React.ComponentProps<typeof DayPicker>) {
   return (
     <DayPicker
+      locale={getDateFnsLocale(getLocale())}
+      labels={{
+        labelPrevious: () => m.calendar_previous_month(),
+        labelNext: () => m.calendar_next_month(),
+        labelMonthDropdown: () => m.month(),
+        labelYearDropdown: () => m.year(),
+      }}
       showOutsideDays={showOutsideDays}
       className={cn('p-3', className)}
       classNames={{

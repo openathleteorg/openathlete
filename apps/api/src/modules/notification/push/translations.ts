@@ -52,6 +52,14 @@ type PushNotificationTranslationsMap = {
  */
 const pushNotificationTranslations: PushNotificationTranslationsMap = {
   activity_processed: {
+    [Language.ES]: {
+      title: 'Actividad procesada',
+      body: {
+        withQuestions:
+          'Tu actividad se ha analizado y ya puedes responder a las preguntas sobre la sesión.',
+        withoutQuestions: 'Tu actividad se ha analizado correctamente.',
+      },
+    },
     [Language.FR]: {
       title: 'Activité traitée',
       body: {

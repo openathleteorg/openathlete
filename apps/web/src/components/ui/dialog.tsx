@@ -1,3 +1,4 @@
+import { m } from '@/paraglide/messages';
 import { isCapacitor } from '@/utils/capacitor';
 import { cn } from '@/utils/shadcn';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -79,7 +80,7 @@ function DialogContent({
         {children}
         <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 z-10">
           <XIcon />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{m.activity_feedback_close()} </span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </DialogPortal>

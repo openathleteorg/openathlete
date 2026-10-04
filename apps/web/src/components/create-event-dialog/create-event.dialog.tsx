@@ -311,7 +311,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                   <span className="hidden sm:inline">
                     {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
                   </span>
-                  <span className="sm:hidden">AI</span>
+                  <span className="sm:hidden">{m.ui_ai()} </span>
                 </Button>
               </div>
             )}

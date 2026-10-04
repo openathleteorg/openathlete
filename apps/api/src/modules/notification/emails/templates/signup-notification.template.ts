@@ -6,6 +6,19 @@ import { h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 const translations = {
+  ES: {
+    title: 'Nuevo registro de usuario',
+    preview: 'Se acaba de crear una nueva cuenta.',
+    intro: (name?: string) =>
+      name
+        ? `${name} se ha registrado en OpenAthlete.`
+        : 'Una nueva persona se ha registrado en OpenAthlete.',
+    emailLabel: 'Correo electrónico',
+    nameLabel: 'Nombre completo',
+    followUp:
+      'Puedes contactar para darle la bienvenida o conocer sus necesidades.',
+    note: 'Este correo se envía automáticamente con cada nuevo registro.',
+  },
   FR: {
     title: 'Nouvelle inscription utilisateur',
     preview: 'Un nouvel utilisateur vient de créer un compte.',
@@ -73,6 +86,7 @@ export function buildSignupNotificationEmail({
     .join('');
 
   return layout({
+    language,
     title: t.title,
     preview: t.preview,
     contentHtml: content,

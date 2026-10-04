@@ -278,7 +278,7 @@ export function ProgressionView({ athleteId }: P) {
       ) : (
         <Card>
           <CardContent className="p-8 text-center text-muted-foreground">
-            No data available
+            {m.ui_no_data()}{' '}
           </CardContent>
         </Card>
       )}

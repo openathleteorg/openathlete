@@ -14,6 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { m } from '@/paraglide/messages';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 
@@ -25,38 +26,38 @@ interface ExercisePickerProps {
 }
 
 const PLACEHOLDER_EXERCISES = [
-  'Push-ups',
-  'Pull-ups',
-  'Bench Press',
-  'Shoulder Press',
-  'Dumbbell Rows',
-  'Bicep Curls',
-  'Tricep Dips',
-  'Squats',
-  'Lunges',
-  'Deadlifts',
-  'Leg Press',
-  'Calf Raises',
-  'Bulgarian Split Squats',
-  'Plank',
-  'Crunches',
-  'Russian Twists',
-  'Mountain Climbers',
-  'Bicycle Crunches',
-  'Burpees',
-  'Jumping Jacks',
-  'Box Jumps',
-  'Kettlebell Swings',
-  'Downward Dog',
-  'Warrior Pose',
-  'Tree Pose',
-  'Child Pose',
+  m.exercise_push_ups(),
+  m.exercise_pull_ups(),
+  m.exercise_bench_press(),
+  m.exercise_shoulder_press(),
+  m.exercise_dumbbell_rows(),
+  m.exercise_bicep_curls(),
+  m.exercise_tricep_dips(),
+  m.exercise_squats(),
+  m.exercise_lunges(),
+  m.exercise_deadlifts(),
+  m.exercise_leg_press(),
+  m.exercise_calf_raises(),
+  m.exercise_bulgarian_split_squats(),
+  m.exercise_plank(),
+  m.exercise_crunches(),
+  m.exercise_russian_twists(),
+  m.exercise_mountain_climbers(),
+  m.exercise_bicycle_crunches(),
+  m.exercise_burpees(),
+  m.exercise_jumping_jacks(),
+  m.exercise_box_jumps(),
+  m.exercise_kettlebell_swings(),
+  m.exercise_downward_dog(),
+  m.exercise_warrior_pose(),
+  m.exercise_tree_pose(),
+  m.exercise_child_pose(),
 ].sort();
 
 export function ExercisePicker({
   value = '',
   onChange,
-  placeholder = 'Search or type exercise name...',
+  placeholder = m.exercise_search_placeholder(),
   label,
 }: ExercisePickerProps) {
   const [open, setOpen] = useState(false);
@@ -107,14 +108,12 @@ export function ExercisePicker({
         >
           <Command>
             <CommandInput
-              placeholder="Search exercises..."
+              placeholder={m.ui_search_exercises()}
               value={searchValue}
               onValueChange={setSearchValue}
             />
             <CommandList>
-              <CommandEmpty>
-                No exercises found. You can still type your own.
-              </CommandEmpty>
+              <CommandEmpty>{m.ui_no_exercises()} </CommandEmpty>
               <CommandGroup>
                 {filteredExercises.map((exercise) => (
                   <CommandItem

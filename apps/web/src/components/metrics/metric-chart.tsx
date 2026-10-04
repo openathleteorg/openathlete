@@ -7,16 +7,13 @@ import {
 import { SkeletonChart } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
+import { getMetricUnit } from '@/utils/metric-unit';
 import { cn } from '@/utils/shadcn';
 import { format } from 'date-fns';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
-import {
-  METRIC_TYPE,
-  metricUnitMap,
-  metricsByCategory,
-} from '@openathlete/shared';
+import { METRIC_TYPE, metricsByCategory } from '@openathlete/shared';
 
 import {
   Select,
@@ -110,7 +107,7 @@ export function MetricChart({
                 tick={{ fontSize: 12 }}
                 tickMargin={10}
                 label={{
-                  value: metricUnitMap[selectedType],
+                  value: getMetricUnit(selectedType),
                   angle: -90,
                   position: 'insideLeft',
                   style: { fontSize: 12 },
@@ -121,7 +118,7 @@ export function MetricChart({
                   <ChartTooltipContent
                     formatter={(value) => (
                       <>
-                        {value} {metricUnitMap[selectedType]}
+                        {value} {getMetricUnit(selectedType)}
                       </>
                     )}
                   />

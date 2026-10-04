@@ -1,4 +1,7 @@
 import { Loader } from '@/components/ui/loader';
+import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
+import { getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { getToolMessage } from '@/utils/tool-messages';
 import {
@@ -121,7 +124,9 @@ function ThinkingBlock({
     <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg border border-muted">
       <Brain className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
       <div className="flex-1 space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">Thinking...</p>
+        <p className="text-sm font-medium text-muted-foreground">
+          {m.agent_thinking()}{' '}
+        </p>
         <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
           <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
             {block.content}
@@ -180,7 +185,7 @@ function ErrorBlock({ block }: { block: AgentMessageBlock }) {
       <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
       <div className="flex-1 space-y-1">
         <p className="text-sm font-medium text-red-900 dark:text-red-100">
-          Error
+          {m.ui_error()}{' '}
         </p>
         <p className="text-sm text-red-800 dark:text-red-200">
           {block.error || block.content}
@@ -214,14 +219,15 @@ function ChartBlock({ block }: { block: AgentMessageBlock }) {
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
         {getChartIcon()}
         <span className="text-sm font-medium">
-          {block.chartType || block.type.replace('CHART_', '')} Chart
+          {block.chartType || block.type.replace('CHART_', '')}{' '}
+          {m.ui_chart()}{' '}
         </span>
       </div>
       <div className="p-4 bg-background">
         {block.chartData ? (
           <div className="h-64 flex items-center justify-center bg-muted/20 rounded">
             <p className="text-sm text-muted-foreground">
-              Chart visualization would render here
+              {m.ui_chart_placeholder()}{' '}
             </p>
           </div>
         ) : (
@@ -238,12 +244,12 @@ function TableBlock({ block }: { block: AgentMessageBlock }) {
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
         <TableIcon className="h-5 w-5" />
-        <span className="text-sm font-medium">Table</span>
+        <span className="text-sm font-medium">{m.table()} </span>
       </div>
       <div className="p-4 bg-background overflow-auto">
         {block.metadata?.data ? (
           <div className="text-sm text-muted-foreground">
-            <p>Table would render here with data</p>
+            <p>{m.ui_table_placeholder()} </p>
           </div>
         ) : (
           <p className="text-sm text-muted-foreground">{block.content}</p>
@@ -259,12 +265,12 @@ function MapBlock() {
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
         <MapIcon className="h-5 w-5" />
-        <span className="text-sm font-medium">Map</span>
+        <span className="text-sm font-medium">{m.ui_map()} </span>
       </div>
       <div className="p-4 bg-background">
         <div className="h-64 flex items-center justify-center bg-muted/20 rounded">
           <p className="text-sm text-muted-foreground">
-            Map visualization would render here
+            {m.ui_map_placeholder()}{' '}
           </p>
         </div>
       </div>
@@ -278,7 +284,7 @@ function ActivitySummaryBlock({ block }: { block: AgentMessageBlock }) {
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
         <Activity className="h-5 w-5" />
-        <span className="text-sm font-medium">Activity Summary</span>
+        <span className="text-sm font-medium">{m.ui_activity_summary()} </span>
       </div>
       <div className="p-4 bg-background space-y-2">
         <p className="text-sm whitespace-pre-wrap">{block.content}</p>
@@ -305,7 +311,7 @@ function TrainingPlanBlock({ block }: { block: AgentMessageBlock }) {
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
         <Calendar className="h-5 w-5" />
-        <span className="text-sm font-medium">Training Plan</span>
+        <span className="text-sm font-medium">{m.ui_training_plan()} </span>
       </div>
       <div className="p-4 bg-background">
         <p className="text-sm whitespace-pre-wrap">{block.content}</p>
@@ -320,18 +326,18 @@ function ImageBlock({ block }: { block: AgentMessageBlock }) {
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b">
         <ImageIcon className="h-5 w-5" />
-        <span className="text-sm font-medium">Image</span>
+        <span className="text-sm font-medium">{m.ui_image()} </span>
       </div>
       <div className="p-4 bg-background">
         {block.content ? (
           <img
             src={block.content}
-            alt="Attachment"
+            alt={m.ui_attachment()}
             className="max-w-full h-auto rounded"
           />
         ) : (
           <div className="h-48 flex items-center justify-center bg-muted/20 rounded">
-            <p className="text-sm text-muted-foreground">No image data</p>
+            <p className="text-sm text-muted-foreground">{m.ui_no_image()} </p>
           </div>
         )}
       </div>
@@ -370,16 +376,18 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
       <div className="flex items-center justify-between px-4 py-2 bg-muted border-b">
         <div className="flex items-center gap-2">
           <Activity className="h-5 w-5" />
-          <span className="text-sm font-medium">Recent Activities</span>
+          <span className="text-sm font-medium">
+            {m.ui_recent_activities()}{' '}
+          </span>
         </div>
         <span className="text-xs text-muted-foreground">
-          {totalCount} total
+          {totalCount} {m.ui_total()}{' '}
         </span>
       </div>
       <div className="divide-y">
         {activities.length === 0 ? (
           <div className="p-6 text-center text-sm text-muted-foreground">
-            No activities found
+            {m.ui_no_activities()}{' '}
           </div>
         ) : (
           activities.map((activity: ActivityEvent, index: number) => (
@@ -430,7 +438,7 @@ function ActivityListBlock({ block }: { block: AgentMessageBlock }) {
                     }}
                   >
                     <Calendar className="h-3 w-3" />
-                    View
+                    {m.ui_view()}{' '}
                   </a>
                 )}
               </div>
@@ -464,7 +472,7 @@ function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
       <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/20 border-b border-green-200 dark:border-green-800">
         <Activity className="h-5 w-5 text-green-600 dark:text-green-400" />
         <span className="text-sm font-medium text-green-900 dark:text-green-100">
-          Activity Created Successfully
+          {m.ui_activity_created()}{' '}
         </span>
       </div>
       <div className="p-4 bg-background space-y-3">
@@ -492,8 +500,12 @@ function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
 
         {activity.startDate && (
           <div className="text-sm">
-            <span className="text-muted-foreground">Date: </span>
-            <span>{new Date(activity.startDate).toLocaleString('fr-FR')}</span>
+            <span className="text-muted-foreground">{m.ui_date_label()} </span>
+            <span>
+              {new Date(activity.startDate).toLocaleString(
+                getDateLocale(getLocale()),
+              )}
+            </span>
           </div>
         )}
 
@@ -508,7 +520,7 @@ function ActivityCreatedBlock({ block }: { block: AgentMessageBlock }) {
               }}
             >
               <Calendar className="h-4 w-4" />
-              View in Calendar
+              {m.ui_view_in_calendar()}{' '}
             </a>
           </div>
         )}

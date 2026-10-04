@@ -1,6 +1,7 @@
 import { AthleteMetric, MetricAPI } from '@/api/metric';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
+import { getMetricUnit } from '@/utils/metric-unit';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Calculator } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -11,7 +12,6 @@ import {
   METRIC_TYPE,
   createMetricDtoSchema,
   metricCalculationMap,
-  metricUnitMap,
   metricsByCategory,
 } from '@openathlete/shared';
 
@@ -120,13 +120,13 @@ export function MetricForm({
           </RHFSelect>
         )}
 
-        <RHFDatePicker name="date" label="Date" required max={new Date()} />
+        <RHFDatePicker name="date" label={m.date()} required max={new Date()} />
 
         <div className="space-y-2">
           <RHFTextField
             name="value"
             type="number"
-            label={`${m.value()} (${metricUnitMap[selectedType]})`}
+            label={`${m.value()} (${getMetricUnit(selectedType)})`}
             required
             step="0.01"
           />

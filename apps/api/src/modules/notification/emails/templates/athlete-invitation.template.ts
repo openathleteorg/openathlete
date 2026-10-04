@@ -6,6 +6,18 @@ import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 const translations = {
+  ES: {
+    title: 'Invitación para unirte a OpenAthlete',
+    preview: (coachName: string) =>
+      `${coachName} te invita a unirte a OpenAthlete`,
+    description: (coachName: string) =>
+      `${coachName} te invita a unirte a OpenAthlete como atleta. Pulsa el botón para crear tu cuenta y empezar a hacer el seguimiento de los entrenamientos.`,
+    buttonLabel: 'Crear mi cuenta',
+    linkNote: (url: string) =>
+      `Si el botón no funciona, copia y pega este enlace en tu navegador: ${url}`,
+    expiryNote:
+      'Esta invitación es válida durante 7 días. Si no te interesa, puedes ignorar este correo.',
+  },
   FR: {
     title: 'Invitation à rejoindre OpenAthlete',
     preview: (coachName: string) =>
@@ -65,5 +77,5 @@ export function buildAthleteInvitationEmail({
     note(t.expiryNote),
   ].join('');
 
-  return layout({ title, preview, contentHtml: content });
+  return layout({ language, title, preview, contentHtml: content });
 }

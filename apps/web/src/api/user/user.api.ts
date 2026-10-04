@@ -25,7 +25,9 @@ export class UserAPI {
     return res.data;
   }
 
-  static async updateLanguage(language: 'FR' | 'EN' | 'IT'): Promise<void> {
+  static async updateLanguage(
+    language: 'FR' | 'EN' | 'IT' | 'ES',
+  ): Promise<void> {
     await client.patch(routes.user.updateLanguage, { language });
   }
 

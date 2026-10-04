@@ -1,3 +1,5 @@
+import type { EmailLanguage } from '@openathlete/shared';
+
 import { brand } from './brand';
 import { escapeHtml } from './utils';
 
@@ -5,14 +7,34 @@ export function layout({
   title,
   contentHtml,
   preview,
+  language = 'FR',
 }: {
   title: string;
   contentHtml: string;
   preview?: string;
+  language?: EmailLanguage;
 }) {
+  const footer = {
+    FR: [
+      'Tous droits réservés',
+      'Vous recevez cet email suite à une action sur votre compte.',
+    ],
+    EN: [
+      'All rights reserved',
+      'You received this email following an action on your account.',
+    ],
+    IT: [
+      'Tutti i diritti riservati',
+      'Ricevi questa email in seguito a un’azione sul tuo account.',
+    ],
+    ES: [
+      'Todos los derechos reservados',
+      'Recibes este correo como resultado de una acción en tu cuenta.',
+    ],
+  }[language];
   return `
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="${language.toLowerCase()}">
   <head>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
@@ -40,8 +62,8 @@ export function layout({
             </tr>
             <tr>
               <td style="padding:20px 28px;background:${brand.footerBg};border-top:1px solid ${brand.border};">
-                <p style="margin:0;font-size:12px;color:${brand.muted};">© ${new Date().getFullYear()} OpenAthlete — Tous droits réservés</p>
-                <p style="margin:4px 0 0;font-size:12px;color:#9AA4D6;">Vous recevez cet email suite à une action sur votre compte.</p>
+                <p style="margin:0;font-size:12px;color:${brand.muted};">© ${new Date().getFullYear()} OpenAthlete — ${footer[0]}</p>
+                <p style="margin:4px 0 0;font-size:12px;color:#9AA4D6;">${footer[1]}</p>
               </td>
             </tr>
           </table>

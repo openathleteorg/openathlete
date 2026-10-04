@@ -6,6 +6,17 @@ import { button, h1, note, p } from '../core/blocks';
 import { layout } from '../core/layout';
 
 const translations = {
+  ES: {
+    title: 'Restablece tu contraseña',
+    preview: 'Restablece tu contraseña de OpenAthlete',
+    description:
+      'Hemos recibido una solicitud para restablecer tu contraseña. Pulsa el botón para crear una nueva.',
+    buttonLabel: 'Elegir una nueva contraseña',
+    linkNote: (url: string) =>
+      `Si el botón no funciona, copia y pega este enlace en tu navegador: ${url}`,
+    ignoreNote:
+      'Si no has realizado esta solicitud, puedes ignorar este correo.',
+  },
   FR: {
     title: 'Réinitialiser votre mot de passe',
     preview: 'Réinitialisez votre mot de passe OpenAthlete',
@@ -59,5 +70,5 @@ export function buildPasswordResetEmail({
     note(t.ignoreNote),
   ].join('');
 
-  return layout({ title, preview, contentHtml: content });
+  return layout({ language, title, preview, contentHtml: content });
 }

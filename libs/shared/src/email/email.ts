@@ -1,6 +1,6 @@
 import type { SubscriptionPlan } from '../types/subscription.types';
 
-export type EmailLanguage = 'FR' | 'EN' | 'IT';
+export type EmailLanguage = 'FR' | 'EN' | 'IT' | 'ES';
 
 const emailSubjects: {
   'password-reset': Record<EmailLanguage, string>;
@@ -13,41 +13,49 @@ const emailSubjects: {
   'signup-notification': Record<EmailLanguage, string>;
 } = {
   'password-reset': {
+    ES: 'Restablece tu contraseña',
     FR: 'Réinitialisation de votre mot de passe',
     EN: 'Reset your password',
     IT: 'Reimposta la tua password',
   },
   welcome: {
+    ES: 'Te damos la bienvenida a OpenAthlete',
     FR: 'Bienvenue sur OpenAthlete',
     EN: 'Welcome to OpenAthlete',
     IT: 'Benvenuto su OpenAthlete',
   },
   'subscription-confirmation': {
+    ES: 'Confirmación de tu suscripción a OpenAthlete',
     FR: 'Confirmation de votre abonnement OpenAthlete',
     EN: 'Your OpenAthlete subscription is confirmed',
     IT: 'Il tuo abbonamento OpenAthlete è confermato',
   },
   'athlete-invitation': {
+    ES: 'Invitación para unirte a OpenAthlete',
     FR: 'Invitation à rejoindre OpenAthlete',
     EN: 'Invitation to join OpenAthlete',
     IT: 'Invito a unirsi a OpenAthlete',
   },
   'athlete-invitation-existing': {
+    ES: 'Nueva invitación de entrenador',
     FR: 'Nouvelle invitation de coach',
     EN: 'New coach invitation',
     IT: 'Nuovo invito da coach',
   },
   'coach-invitation-new': {
+    ES: 'Invitación para unirte a OpenAthlete',
     FR: 'Invitation à rejoindre OpenAthlete',
     EN: 'Invitation to join OpenAthlete',
     IT: 'Invito a unirsi a OpenAthlete',
   },
   'coach-invitation-existing': {
+    ES: 'Nueva invitación de entrenador',
     FR: 'Nouvelle invitation de coach',
     EN: 'New coach invitation',
     IT: 'Nuovo invito da coach',
   },
   'signup-notification': {
+    ES: 'Nuevo registro de usuario',
     FR: 'Nouvelle inscription utilisateur',
     EN: 'New user signup',
     IT: 'Nuova registrazione utente',

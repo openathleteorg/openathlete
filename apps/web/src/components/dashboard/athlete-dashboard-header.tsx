@@ -9,11 +9,12 @@ import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getDateFnsLocale } from '@/utils/locales';
+import { getMetricUnit } from '@/utils/metric-unit';
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { METRIC_TYPE, metricUnitMap } from '@openathlete/shared';
+import { METRIC_TYPE } from '@openathlete/shared';
 
 interface AthleteDashboardHeaderProps {
   athleteId?: number;
@@ -234,7 +235,7 @@ export function AthleteDashboardHeader({
                   const label =
                     metricTypeLabelMap[metric.type as METRIC_TYPE] ||
                     metric.type;
-                  const unit = metricUnitMap[metric.type as METRIC_TYPE] || '';
+                  const unit = getMetricUnit(metric.type as METRIC_TYPE) || '';
 
                   // Different gradient colors for each metric
                   const gradientColors = [
