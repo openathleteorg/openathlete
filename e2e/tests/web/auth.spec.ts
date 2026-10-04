@@ -18,6 +18,25 @@ test('explains the password rule on sign up', async ({ page }) => {
   );
 });
 
+test('says when the email already has an account', async ({
+  page,
+  request,
+}) => {
+  const athlete = await createAthlete(request);
+
+  await page.goto('/auth/create-account');
+  await page.fill('input[name="email"]', athlete.email);
+  await page.fill('input[name="firstName"]', 'Same');
+  await page.fill('input[name="lastName"]', 'Email');
+  await page.fill('input[name="password"]', athlete.password);
+  await page.click('button[type="submit"]');
+
+  await expect(
+    page.getByText('An account with this email already exists'),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/auth\/create-account/);
+});
+
 test('logs in and lands on the dashboard', async ({ page, request }) => {
   const athlete = await createAthlete(request);
 
