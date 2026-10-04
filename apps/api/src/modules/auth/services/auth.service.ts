@@ -1,7 +1,12 @@
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import {
@@ -130,16 +135,25 @@ export class AuthService {
 
       // Create a strong random password (OAuth users won't use it directly).
       const randomPassword = randomUUID();
-      const created = await this.userService.createAccount({
-        email,
-        password: randomPassword,
-        firstName,
-        lastName,
-        invitationToken: body.invitationToken,
-        coachInvitationToken: body.coachInvitationToken,
-      });
-
-      user = { userId: created.userId, email };
+      try {
+        const created = await this.userService.createAccount({
+          email,
+          password: randomPassword,
+          firstName,
+          lastName,
+          invitationToken: body.invitationToken,
+          coachInvitationToken: body.coachInvitationToken,
+        });
+        user = { userId: created.userId, email };
+      } catch (error) {
+        // A concurrent sign-in for the same account created it first
+        if (!(error instanceof ConflictException)) throw error;
+        user = await this.prisma.user.findFirst({
+          where: { email },
+          select: { userId: true, email: true },
+        });
+        if (!user) throw error;
+      }
     }
 
     return {

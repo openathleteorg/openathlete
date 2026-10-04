@@ -42,7 +42,8 @@ export default async function PrivacyPolicyPage({
     notFound();
   }
 
-  const today = new Date().toISOString().slice(0, 10);
+  // Update when the policy changes; never the build date
+  const lastUpdated = '2026-10-04';
 
   return (
     <>
@@ -55,7 +56,7 @@ export default async function PrivacyPolicyPage({
         <header className="space-y-2">
           <h1 className="text-3xl font-bold">{m.privacy_policy_title()}</h1>
           <p className="text-sm text-muted-foreground">
-            {m.privacy_policy_last_updated({ date: today })}
+            {m.privacy_policy_last_updated({ date: lastUpdated })}
           </p>
         </header>
 
@@ -99,6 +100,21 @@ export default async function PrivacyPolicyPage({
             <li>{m.privacy_policy_sharing_list_4()}</li>
           </ul>
 
+          <h2>{m.privacy_policy_processors_title()}</h2>
+          <ul>
+            <li>{m.privacy_policy_processors_list_1()}</li>
+            <li>{m.privacy_policy_processors_list_2()}</li>
+            <li>{m.privacy_policy_processors_list_3()}</li>
+            <li>{m.privacy_policy_processors_list_4()}</li>
+            <li>{m.privacy_policy_processors_list_5()}</li>
+            <li>{m.privacy_policy_processors_list_6()}</li>
+            <li>{m.privacy_policy_processors_list_7()}</li>
+            <li>{m.privacy_policy_processors_list_8()}</li>
+          </ul>
+
+          <h2>{m.privacy_policy_cookies_title()}</h2>
+          <p>{m.privacy_policy_cookies_content()}</p>
+
           <h2>{m.privacy_policy_data_retention_title()}</h2>
           <p>{m.privacy_policy_data_retention_content()}</p>
 
@@ -117,6 +133,9 @@ export default async function PrivacyPolicyPage({
 
           <h2>{m.privacy_policy_children_title()}</h2>
           <p>{m.privacy_policy_children_content()}</p>
+
+          <h2>{m.privacy_policy_self_hosting_title()}</h2>
+          <p>{m.privacy_policy_self_hosting_content()}</p>
 
           <h2>{m.privacy_policy_changes_title()}</h2>
           <p>{m.privacy_policy_changes_content()}</p>

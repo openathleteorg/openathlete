@@ -1175,5 +1175,22 @@
   "fit_import_progress": "Importando {done} de {total}…",
   "fit_import_skipped": "Se omiten porque no son archivos FIT o superan 20 MB: {files}",
   "fit_import_summary": "{imported} importadas, {already} ya importadas, {failed} con error.",
-  "fit_import_more": "Importar más archivos"
+  "fit_import_more": "Importar más archivos",
+  "consent_title": "Tu privacidad",
+  "consent_description": "Nos gustaría medir el uso de la aplicación (estadísticas de uso y grabaciones de sesión enmascaradas) para mejorarla. No se recoge nada hasta que aceptes, y puedes cambiar de opinión en Ajustes > Perfil.",
+  "consent_accept": "Aceptar",
+  "consent_refuse": "Rechazar",
+  "consent_privacy_policy": "Política de privacidad",
+  "consent_settings_title": "Estadísticas de uso",
+  "consent_settings_granted": "Permites las estadísticas de uso y las grabaciones de sesión.",
+  "consent_settings_denied": "Las estadísticas de uso y las grabaciones de sesión están desactivadas.",
+  "consent_settings_change": "Cambiar mi elección",
+  "privacy_section_title": "Privacidad y datos",
+  "privacy_section_description": "Controla lo que se recoge y llévate tus datos.",
+  "data_export_title": "Descargar mis datos",
+  "data_export_description": "Un archivo JSON con tu perfil, entrenamientos, actividades, métricas, los mensajes que has escrito y tus ajustes. Las contraseñas y las claves nunca se incluyen.",
+  "data_export_include_streams": "Incluir los flujos de las actividades (GPS, frecuencia cardiaca), archivo más pesado",
+  "data_export_download": "Descargar mis datos",
+  "data_export_preparing": "Preparando el archivo…",
+  "data_export_failed": "La exportación ha fallado. Inténtalo más tarde."
 }
