@@ -8,15 +8,24 @@ import { getPath } from '@/routes/paths';
 import { cn } from '@/utils/shadcn';
 import { OAuthButtons } from '@/views/auth/oauth-buttons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import z from 'zod';
 
 import { loginDtoSchema } from '@openathlete/shared';
 
 const PLAN_TOKEN_STORAGE_KEY = 'pendingPlanToken';
+
+function loginErrorMessage(error: unknown) {
+  const status = isAxiosError(error) ? error.response?.status : undefined;
+  if (status === 401) return m.login_invalid_credentials();
+  if (status === 429) return m.login_too_many_attempts();
+  return m.login_failed();
+}
 
 export function LoginView({ className }: React.ComponentProps<'form'>) {
   const { initialize } = useAuthContext();
@@ -38,6 +47,7 @@ export function LoginView({ className }: React.ComponentProps<'form'>) {
       await initialize();
       navigate(getPath(['dashboard']));
     },
+    onError: (error) => toast.error(loginErrorMessage(error)),
   });
   const methods = useForm<z.infer<typeof loginDtoSchema>>({
     resolver: zodResolver(loginDtoSchema),

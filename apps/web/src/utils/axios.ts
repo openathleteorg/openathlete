@@ -255,9 +255,10 @@ client.interceptors.response.use(undefined, async (error) => {
     localStorage.removeItem(REFRESH_TOKEN);
     const queryClient = new QueryClient();
     queryClient.clear();
-  } else {
-    throw error;
   }
+  // Callers still need the failure: swallowing it made a wrong password look
+  // like a broken response, and an unauthorized change like a success.
+  throw error;
 });
 
 export default client;
