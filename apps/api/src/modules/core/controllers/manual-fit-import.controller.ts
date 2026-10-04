@@ -23,9 +23,7 @@ import {
   importActivityFileDtoSchema,
 } from '@openathlete/shared';
 
-import { UserTypes } from '../../auth/decorators/user-type.decorator';
 import { AuthUser, JwtUser } from '../../auth/decorators/user.decorator';
-import { UserTypeGuard } from '../../auth/guards/user-type.guard';
 import { MAX_MANUAL_FIT_BYTES } from '../helpers/manual-fit-import';
 import {
   ManualFitFile,
@@ -34,8 +32,7 @@ import {
 
 @ApiTags('Activities')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), UserTypeGuard)
-@UserTypes(['ATHLETE'])
+@UseGuards(AuthGuard('jwt'))
 @Controller('activity-import')
 export class ManualFitImportController {
   constructor(private readonly service: ManualFitImportService) {}
@@ -52,7 +49,7 @@ export class ManualFitImportController {
     description:
       'Not a valid FIT activity: FIT_INVALID, FIT_NOT_ACTIVITY or FIT_MULTISPORT_UNSUPPORTED',
   })
-  @ApiResponse({ status: 403, description: 'Not an athlete account' })
+  @ApiResponse({ status: 403, description: 'No athlete profile' })
   @ApiResponse({
     status: 409,
     description: 'FIT_DUPLICATE_TIME: another activity starts at the same time',

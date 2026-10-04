@@ -16,7 +16,6 @@ jest.mock('@garmin/fitsdk', () =>
 describe('Manual FIT multipart upload', () => {
   let app: INestApplication;
   let origin: string;
-  let roles: string[];
   const service = { import: jest.fn().mockResolvedValue({ eventId: 90 }) };
   beforeAll(async () => {
     const module = await Test.createTestingModule({
@@ -28,7 +27,7 @@ describe('Manual FIT multipart upload', () => {
         canActivate: (context: {
           switchToHttp: () => { getRequest: () => { user: unknown } };
         }) => {
-          context.switchToHttp().getRequest().user = { userId: 4, roles };
+          context.switchToHttp().getRequest().user = { userId: 4 };
           return true;
         },
       })
@@ -41,7 +40,6 @@ describe('Manual FIT multipart upload', () => {
     await app.close();
   });
   beforeEach(() => {
-    roles = ['ATHLETE'];
     service.import.mockClear();
   });
   const form = () => {
@@ -57,7 +55,7 @@ describe('Manual FIT multipart upload', () => {
     });
     expect(response.status).toBe(201);
     expect(service.import).toHaveBeenCalledWith(
-      { userId: 4, roles: ['ATHLETE'] },
+      { userId: 4 },
       expect.objectContaining({
         originalname: 'test.fit',
         buffer: Buffer.from('fixture'),
@@ -73,15 +71,6 @@ describe('Manual FIT multipart upload', () => {
       body: data,
     });
     expect(response.status).toBe(400);
-    expect(service.import).not.toHaveBeenCalled();
-  });
-  test('rejects coach-only uploads before parsing', async () => {
-    roles = ['COACH'];
-    const response = await fetch(origin + '/activity-import/fit', {
-      method: 'POST',
-      body: form(),
-    });
-    expect(response.status).toBe(403);
     expect(service.import).not.toHaveBeenCalled();
   });
 });
