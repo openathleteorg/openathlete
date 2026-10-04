@@ -34,6 +34,7 @@ import {
 } from 'src/common/constants/training-formulas.constants';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { uncompressActivityStream } from '../helpers/activity-stream';
@@ -460,24 +461,15 @@ export class TrainingLoadService {
    * Get all training load entries for a specific activity
    */
   async getActivityTrainingLoads(user: AuthUser, activityId: number) {
-    const athlete = await this.prisma.athlete.findFirst({
-      where: {
-        user: {
-          userId: user.userId,
-        },
-      },
-    });
+    const ability = await this.abilities.getFor({ user });
 
-    if (!athlete) {
-      throw new NotFoundException('Athlete not found');
-    }
-
-    // Get activity to verify ownership
+    // The athlete and their linked coaches can read the activity.
     const event = await this.prisma.event.findFirst({
       where: {
-        eventId: activityId,
-        athleteId: athlete.athleteId,
-        type: 'ACTIVITY',
+        AND: [
+          { eventId: activityId, type: 'ACTIVITY' },
+          accessibleBy(ability, 'read').Event,
+        ],
       },
       include: {
         activity: true,
