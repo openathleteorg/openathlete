@@ -54,6 +54,11 @@ export function CalendarEventDetailsDialog({
                   {eventTypeLabelMap[event.type]}
                 </Badge>
               )}
+              {event?.type === EVENT_TYPE.ACTIVITY &&
+                !event.provider &&
+                event.externalId?.startsWith('fit-manual:') && (
+                  <Badge variant="outline">{m.fit_import_source()}</Badge>
+                )}
               {event &&
                 event.type === EVENT_TYPE.ACTIVITY &&
                 event.externalId &&

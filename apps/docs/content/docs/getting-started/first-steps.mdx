@@ -20,6 +20,21 @@ OpenAthlete integrates with Strava to automatically import your workouts.
 3. Authorize OpenAthlete to access your Strava data
 4. Your workouts will start syncing automatically
 
+## Import Activity Files
+
+Activities recorded elsewhere can be imported from their FIT files, with all the
+data the device recorded (heart rate, power, laps...):
+
+1. Go to [**Settings** → **Connectors**](https://app.openathlete.org/dashboard/settings)
+2. Under **Import FIT activity**, select one or several `.fit` files (up to 20 MB each)
+3. Click **Import**
+
+Each activity appears in your calendar on its original date and is processed like
+a synced one. Importing the same file again does not duplicate it, and a file whose
+start time matches an existing activity is refused. Planned workouts, courses and
+multisport files are not accepted. The same import is available to scripts at
+`POST /activity-import/fit` (see the [API reference](/docs/api)).
+
 ## Explore Your Dashboard
 
 Once logged in, you'll see your dashboard with:
