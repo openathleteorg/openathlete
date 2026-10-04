@@ -105,6 +105,7 @@ export class FitParserStrategy implements ActivityParser {
     const cadence: number[] = [];
     const watts: number[] = [];
     const distance: number[] = [];
+    const temp: number[] = [];
 
     let previousLat: number | null = null;
     let previousLon: number | null = null;
@@ -194,6 +195,13 @@ export class FitParserStrategy implements ActivityParser {
       if (power !== null) {
         watts.push(power);
       }
+
+      if (
+        typeof record.temperature === 'number' &&
+        Number.isFinite(record.temperature)
+      ) {
+        temp.push(record.temperature);
+      }
     }
 
     if (time.length) {
@@ -216,6 +224,10 @@ export class FitParserStrategy implements ActivityParser {
     }
     if (distance.length) {
       result.distance = distance;
+    }
+    // Only a complete series: a shorter one could not be aligned with time.
+    if (temp.length && temp.length === time.length) {
+      result.temp = temp;
     }
 
     const totalDurationSeconds =
