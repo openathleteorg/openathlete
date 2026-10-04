@@ -20,7 +20,9 @@ import {
 
 import {
   ImportActivityFileDto,
+  ImportGpxActivityFileDto,
   importActivityFileDtoSchema,
+  importGpxActivityFileDtoSchema,
 } from '@openathlete/shared';
 
 import { UserTypes } from '../../auth/decorators/user-type.decorator';
@@ -74,5 +76,38 @@ export class ManualFitImportController {
     body: ImportActivityFileDto,
   ) {
     return this.service.import(user, file, body.name);
+  }
+
+  @Post('gpx')
+  @ApiOperation({
+    summary: 'Import a recorded GPX activity',
+    description:
+      'Multipart `file` (one .gpx track, up to 20 MB and 100,000 points), `name` and an optional `sport` that overrides the track type. Points need times: a planned route is refused. Distance, moving time and climbing are calculated from the track, and sensors missing on more than a tenth of the points are left out. Same ownership, duplicate rules and processing as FIT files.',
+  })
+  @ApiResponse({ status: 201, description: 'Imported, or already imported' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Not a recorded GPX track: GPX_INVALID, GPX_NO_TIME (a route or a track without times) or GPX_LIMIT',
+  })
+  @ApiResponse({ status: 403, description: 'Not an athlete account' })
+  @ApiResponse({
+    status: 409,
+    description: 'GPX_DUPLICATE_TIME: another activity starts at the same time',
+  })
+  @ApiResponse({ status: 413, description: 'GPX_LIMIT: file too large' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: MAX_MANUAL_FIT_BYTES, files: 1, fields: 2, parts: 4 },
+    }),
+  )
+  importGpx(
+    @JwtUser() user: AuthUser,
+    @UploadedFile() file: ManualFitFile | undefined,
+    @Body(new ZodValidationPipe(importGpxActivityFileDtoSchema))
+    body: ImportGpxActivityFileDto,
+  ) {
+    return this.service.importGpx(user, file, body.name, body.sport);
   }
 }

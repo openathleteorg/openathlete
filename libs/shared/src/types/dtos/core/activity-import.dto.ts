@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { SPORT_TYPE } from '../../misc';
+
 /** Largest activity file accepted, in bytes. */
 export const MAX_ACTIVITY_FILE_BYTES = 20 * 1024 * 1024;
 
@@ -10,12 +12,24 @@ export const importActivityFileDtoSchema = z
 
 export type ImportActivityFileDto = z.infer<typeof importActivityFileDtoSchema>;
 
+/** GPX files do not always say the sport, so the athlete can choose it. */
+export const importGpxActivityFileDtoSchema = importActivityFileDtoSchema
+  .extend({ sport: z.nativeEnum(SPORT_TYPE).optional() })
+  .strict();
+
+export type ImportGpxActivityFileDto = z.infer<
+  typeof importGpxActivityFileDtoSchema
+>;
+
 /** Data a file lacked, or that was left out to keep series aligned. */
 export const ACTIVITY_IMPORT_WARNINGS = [
   'FIT_INCOMPLETE_CHANNELS',
   'FIT_NO_STREAM',
   'FIT_MISSING_SUMMARY',
   'FIT_UNKNOWN_SPORT',
+  'GPX_INCOMPLETE_CHANNELS',
+  'GPX_NO_GPS',
+  'GPX_UNKNOWN_SPORT',
 ] as const;
 
 export type ActivityImportWarning = (typeof ACTIVITY_IMPORT_WARNINGS)[number];
