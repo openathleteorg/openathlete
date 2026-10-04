@@ -22,18 +22,25 @@ OpenAthlete integrates with Strava to automatically import your workouts.
 
 ## Import Activity Files
 
-Activities recorded elsewhere can be imported from their FIT files, with all the
-data the device recorded (heart rate, power, laps...):
+Activities recorded elsewhere can be imported from their FIT or GPX files:
 
 1. Go to [**Settings** → **Connectors**](https://app.openathlete.org/dashboard/settings)
-2. Under **Import FIT activity**, select one or several `.fit` files (up to 20 MB each)
-3. Click **Import**
+2. Under **Import activities (FIT or GPX)**, select one or several `.fit` or `.gpx` files (up to 20 MB each)
+3. For GPX files, choose the sport if the file does not state it
+4. Click **Import**
 
 Each activity appears in your calendar on its original date and is processed like
 a synced one. Importing the same file again does not duplicate it, and a file whose
-start time matches an existing activity is refused. Planned workouts, courses and
-multisport files are not accepted. The same import is available to scripts at
-`POST /activity-import/fit` (see the [API reference](/docs/api)).
+start time matches an existing activity is refused.
+
+- **FIT** keeps all the data the device recorded (heart rate, power, laps...) and its
+  summary. Planned workouts, courses and multisport files are not accepted.
+- **GPX** has no laps or summary: distance, moving time and elevation gain are
+  calculated from the track. Points need times, so planned routes are not accepted.
+  The activity takes the track name stored in the file.
+
+The same imports are available to scripts at `POST /activity-import/fit` and
+`POST /activity-import/gpx` (see the [API reference](/docs/api)).
 
 ## Explore Your Dashboard
 

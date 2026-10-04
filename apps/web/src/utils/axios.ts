@@ -28,6 +28,7 @@ export const routes = {
   },
   activityImport: {
     fit: '/activity-import/fit',
+    gpx: '/activity-import/gpx',
   },
   event: {
     create: '/event',
