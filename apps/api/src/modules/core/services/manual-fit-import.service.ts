@@ -43,7 +43,7 @@ export class ManualFitImportService {
     private readonly queue: QueueService,
   ) {}
 
-  /** The controller only lets athletes in; the activity is always theirs. */
+  /** The activity always goes to the caller's own athlete profile. */
   private async ownAthlete(user: AuthUser) {
     const athlete = await this.prisma.athlete.findUnique({
       where: { userId: user.userId },
