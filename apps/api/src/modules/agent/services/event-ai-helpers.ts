@@ -240,7 +240,7 @@ ${type} Zones:
 ${zoneList
   .map(
     (zone) =>
-      `  Zone ID ${zone.trainingZoneId} (display: Zone ${zone.index + 1}): ${zone.name} - ${zone.description}
+      `  Zone ID ${zone.trainingZoneId}: ${zone.name} - ${zone.description}
     Values: ${zone.values.map((v) => `${v.min}-${v.max} (sports: ${v.sports.join(', ')})`).join(', ')}
     IMPORTANT: Use zone ID ${zone.trainingZoneId} for ZONE targets of type ${type}`,
   )

@@ -161,7 +161,8 @@ export function buildTrainingZonesContext(
       })
       .join(', ');
 
-    const label = `Z${zone.index + 1} ${zone.name}`;
+    // Names, not positions: zones may start at Zone 0.
+    const label = zone.name;
     zoneLookup.set(zone.trainingZoneId, {
       id: zone.trainingZoneId,
       label,
