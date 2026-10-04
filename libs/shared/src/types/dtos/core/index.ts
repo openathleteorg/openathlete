@@ -1,3 +1,4 @@
+export * from './activity-import.dto';
 export * from './create-event.dto';
 export * from './update-event.dto';
 export * from './duplicate-event.dto';
