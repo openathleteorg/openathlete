@@ -2,6 +2,7 @@ import {
   ActivityStream,
   CompressedActivityStream,
   CompressedActivityStreamUnit,
+  isValidGpsPoint,
 } from '@openathlete/shared';
 
 export const reductActivityStreamToResolution = (
@@ -16,8 +17,18 @@ export const reductActivityStreamToResolution = (
 
   const compressedStream: (number | number[] | boolean)[] = [];
 
+  let previousIndex = -1;
   for (let i = 0; i < stream.length; i += compression) {
-    compressedStream.push(stream[Math.floor(i)]);
+    const index = Math.floor(i);
+    const sample = stream[index];
+    // Preserve GPS gaps even when their original sample would be skipped.
+    const crossesGap =
+      Array.isArray(sample) &&
+      stream
+        .slice(previousIndex + 1, index + 1)
+        .some((point) => Array.isArray(point) && point.length === 0);
+    compressedStream.push(crossesGap ? [] : sample);
+    previousIndex = index;
   }
 
   return compressedStream;
@@ -25,7 +36,7 @@ export const reductActivityStreamToResolution = (
 
 const checkEqual = (a: number | number[], b: number | number[]) => {
   if (Array.isArray(a) && Array.isArray(b)) {
-    return a.every((v, i) => v === b[i]);
+    return a.length === b.length && a.every((v, i) => v === b[i]);
   }
   return a === b;
 };
@@ -128,7 +139,14 @@ export const compressActivityStream = (
   const compressedStream: Partial<CompressedActivityStream> = {};
   for (const key in stream) {
     const typedKey = key as keyof ActivityStream;
-    const value = stream[typedKey];
+    let value = stream[typedKey];
+    if (typedKey === 'latlng' && value) {
+      // Applies to FIT, Garmin and Strava streams. A shortened channel cannot
+      // be aligned safely without original indices; never guess its timestamps.
+      if (stream.time && value.length !== stream.time.length) continue;
+      value = value.map((point) => (isValidGpsPoint(point) ? point : []));
+      if (!value.some(isValidGpsPoint)) continue;
+    }
     if (value && value.length > 0) {
       (compressedStream as Record<string, unknown>)[typedKey] =
         compressStream(value);

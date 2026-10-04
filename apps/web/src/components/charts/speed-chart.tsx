@@ -10,6 +10,7 @@ import {
   formatSpeed,
   formatSpeedUnit,
   getSportConfig,
+  isValidGpsPoint,
 } from '@openathlete/shared';
 
 import { useActivityDetailsSelection } from '../event-details/activity-details-selection-context';
@@ -37,7 +38,15 @@ export function SpeedChart({
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const chartData = useMemo(() => {
     const rawData = latLngStream.map(([lat, lng], i) => {
+      const time = timeStream ? timeStream[i] : i;
+      const x = distanceStream ? distanceStream[i] : time;
       const prevPoint = latLngStream[i - 1];
+      if (
+        !isValidGpsPoint([lat, lng]) ||
+        (i > 0 && !isValidGpsPoint(prevPoint))
+      ) {
+        return { speed: null, time, x };
+      }
       const prevLat = prevPoint ? prevPoint[0] : lat;
       const prevLng = prevPoint ? prevPoint[1] : lng;
       const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
@@ -55,8 +64,6 @@ export function SpeedChart({
 
       const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       const distance = earthRadius * c;
-      const time = timeStream ? timeStream[i] : i;
-      const x = distanceStream ? distanceStream[i] : time;
       const timeDiff = timeStream ? timeStream[i] - timeStream[i - 1] : 1;
       const speed = distance / (timeDiff || 1);
       return {
@@ -66,16 +73,40 @@ export function SpeedChart({
       };
     });
 
-    const smoothed = despikeAndEma(rawData.map((d) => d.speed));
-    return rawData.map((d, i) => ({ ...d, speed: smoothed[i] ?? d.speed }));
+    for (let start = 0; start < rawData.length;) {
+      if (rawData[start].speed === null) {
+        start++;
+        continue;
+      }
+      let end = start;
+      while (end < rawData.length && rawData[end].speed !== null) end++;
+      const smoothed = despikeAndEma(
+        rawData.slice(start, end).map((d) => d.speed!),
+      );
+      for (let i = start; i < end; i++) rawData[i].speed = smoothed[i - start];
+      start = end;
+    }
+    return rawData;
   }, [latLngStream, timeStream, distanceStream]);
 
   const minSpeed = useMemo(
-    () => Math.min(...chartData.map((data) => data.speed)),
+    () =>
+      Math.min(
+        0,
+        ...chartData.flatMap((data) =>
+          data.speed === null ? [] : [data.speed],
+        ),
+      ),
     [chartData],
   );
   const maxSpeed = useMemo(
-    () => Math.max(...chartData.map((data) => data.speed)),
+    () =>
+      Math.max(
+        0,
+        ...chartData.flatMap((data) =>
+          data.speed === null ? [] : [data.speed],
+        ),
+      ),
     [chartData],
   );
 
@@ -153,8 +184,18 @@ export function SpeedChart({
         <YAxis
           type="number"
           domain={[
-            Math.min(...displayData.map((d) => d.speed), minSpeed),
-            Math.max(...displayData.map((d) => d.speed), maxSpeed),
+            Math.min(
+              ...displayData.flatMap((d) =>
+                d.speed === null ? [] : [d.speed],
+              ),
+              minSpeed,
+            ),
+            Math.max(
+              ...displayData.flatMap((d) =>
+                d.speed === null ? [] : [d.speed],
+              ),
+              maxSpeed,
+            ),
           ]}
           hide
         />

@@ -1,6 +1,7 @@
 export interface ActivityStream {
   time?: number[];
   distance?: number[];
+  /** One entry per time sample; [] means GPS unavailable (never [0, 0]). */
   latlng?: number[][];
   altitude?: number[];
   heartrate?: number[];
