@@ -8,6 +8,8 @@ import {
   PayloadTooLargeException,
 } from '@nestjs/common';
 
+import { Prisma } from '@openathlete/database';
+
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -386,6 +388,34 @@ describe('Manual FIT ownership and persistence', () => {
       expect(db.eventActivity.update).not.toHaveBeenCalled();
     },
   );
+  test('retries a transaction that failed to serialize with another import', async () => {
+    const { db, service } = setup();
+    const serialization = new Prisma.PrismaClientKnownRequestError(
+      'could not serialize access',
+      { code: 'P2034', clientVersion: 'test' },
+    );
+    db.$transaction
+      .mockRejectedValueOnce(serialization)
+      .mockRejectedValueOnce(serialization);
+    expect(await service.import(athlete, fixture(), 'Test')).toMatchObject({
+      eventId: 90,
+      alreadyImported: false,
+    });
+    expect(db.$transaction).toHaveBeenCalledTimes(3);
+  });
+  test('reports a conflict once retries are exhausted', async () => {
+    const { db, service } = setup();
+    db.$transaction.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('could not serialize access', {
+        code: 'P2034',
+        clientVersion: 'test',
+      }),
+    );
+    await expect(service.import(athlete, fixture(), 'Test')).rejects.toThrow(
+      'FIT_CONFLICT',
+    );
+    expect(db.$transaction).toHaveBeenCalledTimes(3);
+  });
   test('queue failure reports a saved activity, not a failed import', async () => {
     const { queue, service } = setup();
     queue.addActivityProcessingJob.mockRejectedValue(

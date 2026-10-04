@@ -124,9 +124,8 @@ export class ManualFitImportService {
         where: { externalId },
         include: { event: true },
       });
-    let saved;
-    try {
-      saved = await this.prisma.$transaction(
+    const store = () =>
+      this.prisma.$transaction(
         async (tx) => {
           const existing = await tx.eventActivity.findUnique({
             where: { externalId },
@@ -195,15 +194,23 @@ export class ManualFitImportService {
           timeout: 15000,
         },
       );
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        ['P2002', 'P2034'].includes(error.code)
-      ) {
+    // Concurrent serializable imports, from other athletes too, can fail to
+    // serialize: retry them before reporting a conflict.
+    let saved: Awaited<ReturnType<typeof store>> | undefined;
+    for (let attempt = 1; !saved; attempt++) {
+      try {
+        saved = await store();
+      } catch (error) {
+        if (
+          !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+          !['P2002', 'P2034'].includes(error.code)
+        )
+          throw error;
         const existing = await findExisting();
-        if (!existing) throw new ConflictException(`${format}_CONFLICT`);
-        saved = { activity: existing, alreadyImported: true };
-      } else throw error;
+        if (existing) saved = { activity: existing, alreadyImported: true };
+        else if (error.code === 'P2002' || attempt >= 3)
+          throw new ConflictException(`${format}_CONFLICT`);
+      }
     }
     let processingQueued = true;
     try {
