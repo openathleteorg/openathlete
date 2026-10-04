@@ -80,9 +80,23 @@ describe('GPS gaps in shared provider streams', () => {
     expect(isValidGpsPoint([0, 0])).toBe(true);
     expect(isValidGpsPoint([])).toBe(false);
   });
-  test('does not create GPS-derived records across missing coordinates', () => {
+  test('does not count distance across missing coordinates', () => {
+    // 1 km apart, but the gap between them is not bridged
     expect(
-      computeRecords({ time: [0, 1, 2], latlng: [[40, 1], [], [41, 1]] }),
+      computeRecords({ time: [0, 1, 2], latlng: [[40, 1], [], [40.009, 1]] }),
     ).toEqual([]);
+  });
+  test('keeps records when the GPS fix comes late', () => {
+    // ~3.3 m per second after the fix: 400 m takes about 120 s
+    const fixed = Array.from({ length: 200 }, (_, i) => [40 + i * 0.00003, 1]);
+    const records = computeRecords({
+      time: Array.from({ length: 205 }, (_, i) => i),
+      latlng: [[], [], [], [], [], ...fixed],
+    });
+    const speed400 = records.find(
+      (record) => record.type === 'SPEED' && record.distance === 400,
+    );
+    expect(speed400?.value).toBeGreaterThan(115);
+    expect(speed400?.value).toBeLessThan(125);
   });
 });

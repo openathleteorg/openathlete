@@ -10,10 +10,12 @@ import { localizedNewPasswordSchema } from '@/utils/password';
 import { cn } from '@/utils/shadcn';
 import { OAuthButtons } from '@/views/auth/oauth-buttons';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { isAxiosError } from 'axios';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import z from 'zod';
 
 import { createAccountDtoSchema } from '@openathlete/shared';
@@ -73,12 +75,19 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
       await initialize();
       navigate(getPath(['dashboard', 'onboarding']));
     },
+    onError: () => toast.error(m.signup_login_failed()),
   });
   const createAccountMutation = useCreateAccountMutation({
     onSuccess: async (_, variables) => {
       posthog?.capture('user_signed_up');
       loginMutation.mutate(variables);
     },
+    onError: (error) =>
+      toast.error(
+        isAxiosError(error) && error.response?.status === 409
+          ? m.signup_email_exists()
+          : m.signup_failed(),
+      ),
   });
 
   const { handleSubmit } = methods;
@@ -144,7 +153,11 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
           type="submit"
           className="w-full"
           onClick={onSubmit}
-          isLoading={createAccountMutation.isPending || isVerifyingInvitation}
+          isLoading={
+            createAccountMutation.isPending ||
+            loginMutation.isPending ||
+            isVerifyingInvitation
+          }
         >
           {m.create_account()}
         </Button>

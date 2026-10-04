@@ -71,14 +71,24 @@ function sampleArray<T>(arr: T[], targetSize: number): T[] {
 
 /**
  * Calculate cumulative distances from latlng stream
- * This is expensive, so we compute it once and reuse
+ * This is expensive, so we compute it once and reuse.
+ * No distance is counted across a GPS gap: the distance stays flat, which
+ * can only make a segment slower, never invent a faster one.
  */
 function calculateCumulativeDistances(latlngStream: number[][]): number[] {
   const cumulativeDistances: number[] = [0];
   for (let i = 1; i < latlngStream.length; i++) {
-    const [lat1, lng1] = latlngStream[i - 1];
-    const [lat2, lng2] = latlngStream[i];
-    const distance = calculateHaversineDistance(lat1, lng1, lat2, lng2);
+    const previous = latlngStream[i - 1];
+    const current = latlngStream[i];
+    const distance =
+      isValidGpsPoint(previous) && isValidGpsPoint(current)
+        ? calculateHaversineDistance(
+            previous[0],
+            previous[1],
+            current[0],
+            current[1],
+          )
+        : 0;
     cumulativeDistances.push(cumulativeDistances[i - 1] + distance);
   }
   return cumulativeDistances;
@@ -692,24 +702,27 @@ export const computeRecords = (
     return [];
   }
 
-  // GPS-derived records require a complete, aligned route. Do not invent
-  // distances across GPS gaps or feed invalid coordinates into interpolation.
-  if (latlng.length !== time.length || !latlng.every(isValidGpsPoint))
+  // GPS-derived records require a route aligned with time
+  if (latlng.length !== time.length || !latlng.some(isValidGpsPoint)) {
     return [];
+  }
+
+  // Computed before sampling: interpolating across a GPS gap would invent
+  // positions
+  let cumulativeDistances = calculateCumulativeDistances(latlng);
 
   // Sample streams if they're too large to reduce memory usage and computation time
   let timeStream = time;
-  let latlngStream = latlng;
   let altitudeStream = altitude;
   let heartrateStream = heartrate;
   let cadenceStream = cadence;
   let wattsStream = watts;
 
-  const needsSampling = latlngStream.length > MAX_POINTS_WITHOUT_SAMPLING;
+  const needsSampling = timeStream.length > MAX_POINTS_WITHOUT_SAMPLING;
   if (needsSampling) {
     const targetSize = MAX_POINTS_WITHOUT_SAMPLING;
     timeStream = sampleArray(timeStream, targetSize);
-    latlngStream = sampleArray(latlngStream, targetSize);
+    cumulativeDistances = sampleArray(cumulativeDistances, targetSize);
     if (altitudeStream) {
       altitudeStream = sampleArray(altitudeStream, targetSize);
     }
@@ -723,10 +736,6 @@ export const computeRecords = (
       wattsStream = sampleArray(wattsStream, targetSize);
     }
   }
-
-  // Calculate cumulative distances once and reuse for all record types
-  // This is the most expensive operation, so we do it once
-  const cumulativeDistances = calculateCumulativeDistances(latlngStream);
 
   // Compute all record types using the pre-calculated cumulativeDistances
   const speedRecords = computeSpeedRecords(timeStream, cumulativeDistances);
