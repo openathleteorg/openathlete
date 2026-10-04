@@ -75,11 +75,18 @@ export class FitParserStrategy implements ActivityParser {
       return { stream: {}, segments: [] };
     }
 
+    const fit = {
+      fileType: (
+        messages.fileIdMesgs as Array<Record<string, unknown>> | undefined
+      )?.[0]?.type,
+      sessions: messages.sessionMesgs ?? [],
+      decodeErrors: !!errors?.length,
+    };
     const records = (messages.recordMesgs ?? []) as Array<
       Record<string, unknown>
     >;
     if (!records.length) {
-      return { stream: {}, segments: [] };
+      return { stream: {}, segments: [], fit };
     }
 
     const session = (messages.sessionMesgs?.[0] ?? null) as Record<
@@ -257,7 +264,7 @@ export class FitParserStrategy implements ActivityParser {
       totalDurationSeconds,
     );
 
-    return { stream: result, segments };
+    return { stream: result, segments, fit };
   }
 
   private buildFitSegments(

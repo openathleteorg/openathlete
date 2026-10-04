@@ -27,6 +27,10 @@ export const routes = {
     completeOnboarding: '/user/complete-onboarding',
     updatePushToken: '/user/push-token',
   },
+  activityImport: {
+    fit: '/activity-import/fit',
+    gpx: '/activity-import/gpx',
+  },
   event: {
     create: '/event',
     update: (eventId: Event['eventId']) => `/event/${eventId}`,

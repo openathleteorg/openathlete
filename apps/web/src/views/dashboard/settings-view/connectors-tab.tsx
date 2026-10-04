@@ -9,6 +9,7 @@ import {
 import { GarminLogo, StravaIcon } from '@/assets/icons';
 import { PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
 import { ConfirmAction } from '@/components/confirm-action';
+import { ImportFitDialog } from '@/components/import-fit-dialog/import-fit-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { API_BASE_URL } from '@/config';
+import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import {
   AnalyticsEvent,
@@ -66,6 +68,7 @@ export function ConnectorsTab() {
   );
   const [updatingProvider, setUpdatingProvider] =
     useState<ConnectorProvider | null>(null);
+  const roles = useUserRoles();
   const [importingProvider, setImportingProvider] =
     useState<ConnectorProvider | null>(null);
 
@@ -493,6 +496,15 @@ export function ConnectorsTab() {
               })}
         </div>
       </SettingsSection>
+
+      {roles?.includes('ATHLETE') && (
+        <SettingsSection
+          title={m.fit_import_title()}
+          description={m.fit_import_help()}
+        >
+          <ImportFitDialog />
+        </SettingsSection>
+      )}
 
       {icalSecret && (
         <SettingsSection
