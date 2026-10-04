@@ -712,15 +712,10 @@ export class EventService {
       });
     }
 
+    // Workouts belong to the event's training (eventTrainingId is not the
+    // event id); deleting the training cascades to them
     await this.prisma.providerWorkoutExport.deleteMany({
-      where: {
-        workout: {
-          eventTrainingId: eventId,
-        },
-      },
-    });
-    await this.prisma.workout.deleteMany({
-      where: { eventTrainingId: eventId },
+      where: { workout: { eventTraining: { eventId } } },
     });
     await this.prisma.eventTraining.deleteMany({
       where: { eventId: eventId },

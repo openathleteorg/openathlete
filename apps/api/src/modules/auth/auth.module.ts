@@ -11,6 +11,7 @@ import { AuthController, UserController } from './controllers';
 import { UserTypeGuard } from './guards';
 import { AuthService, CaslAbilityFactory, UserService } from './services';
 import { AccountDeletionService } from './services/account-deletion.service';
+import { AccountExportService } from './services/account-export.service';
 import { AthleteInvitationService } from './services/athlete-invitation.service';
 import { CoachInvitationService } from './services/coach-invitation.service';
 import { FirebaseAuthService } from './services/firebase-auth.service';
@@ -35,6 +36,7 @@ import { JwtStrategy } from './strategies';
     FirebaseAuthService,
     UserService,
     AccountDeletionService,
+    AccountExportService,
     TokenService,
     AthleteInvitationService,
     CoachInvitationService,

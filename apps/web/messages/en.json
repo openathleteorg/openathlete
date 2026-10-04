@@ -1181,5 +1181,22 @@
   "gpx_import_invalid": "This is not a valid GPX file with a recorded track.",
   "gpx_import_no_time": "This GPX has no times: it looks like a planned route, not a completed activity.",
   "gpx_import_no_gps": "The file has no positions (for example, a treadmill run): there is no map and the distance is 0.",
-  "gpx_import_source": "Manual GPX file"
+  "gpx_import_source": "Manual GPX file",
+  "consent_title": "Your privacy",
+  "consent_description": "We would like to measure how the app is used (product analytics and masked session recordings) to improve it. Nothing is collected until you accept, and you can change your choice in Settings > Profile.",
+  "consent_accept": "Accept",
+  "consent_refuse": "Refuse",
+  "consent_privacy_policy": "Privacy policy",
+  "consent_settings_title": "Usage analytics",
+  "consent_settings_granted": "You allow product analytics and session recordings.",
+  "consent_settings_denied": "Product analytics and session recordings are off.",
+  "consent_settings_change": "Change my choice",
+  "privacy_section_title": "Privacy and data",
+  "privacy_section_description": "Control what is collected and take your data with you.",
+  "data_export_title": "Download my data",
+  "data_export_description": "One JSON file with your profile, workouts, activities, metrics, the messages you wrote and your settings. Passwords and keys are never included.",
+  "data_export_include_streams": "Include activity streams (GPS, heart rate), for a larger file",
+  "data_export_download": "Download my data",
+  "data_export_preparing": "Preparing the file…",
+  "data_export_failed": "The export failed. Try again later."
 }

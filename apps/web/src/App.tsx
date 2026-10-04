@@ -4,6 +4,7 @@ import posthog from 'posthog-js';
 import { PostHogProvider } from 'posthog-js/react';
 import { RouterProvider } from 'react-router-dom';
 
+import { ConsentBanner } from './components/consent';
 import { StatusBarThemeSync } from './components/status-bar-theme-sync';
 import { Toaster } from './components/ui/sonner';
 import { AuthConsumer, AuthProvider } from './contexts/auth';
@@ -30,6 +31,7 @@ function AppContent() {
           <AuthConsumer>
             <RouterProvider router={router} />
             <Toaster />
+            <ConsentBanner />
           </AuthConsumer>
         </ChatbotProvider>
       </QueryClientProvider>
