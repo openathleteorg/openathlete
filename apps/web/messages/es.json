@@ -1150,5 +1150,20 @@
   "ai_error_provider": "El proveedor de IA no ha podido completar la solicitud. Inténtalo de nuevo o elige otro modelo.",
   "pwa_install": "Instalar app",
   "pwa_install_title": "Instalar OpenAthlete",
-  "pwa_install_ios_steps": "Pulsa el botón Compartir del navegador y elige «Añadir a pantalla de inicio». Después OpenAthlete se abrirá a pantalla completa desde su icono, como una app."
+  "pwa_install_ios_steps": "Pulsa el botón Compartir del navegador y elige «Añadir a pantalla de inicio». Después OpenAthlete se abrirá a pantalla completa desde su icono, como una app.",
+  "hr_zone_0": "Zona 0",
+  "hr_zones_input_mode": "Modo de edición de zonas",
+  "hr_zones_manual": "Manual",
+  "hr_zones_reserve_percent": "% de la FC de reserva",
+  "hr_zones_percentage_help": "Los límites se redondean a ppm enteras. Cada límite superior pertenece a la zona siguiente, salvo el 100 %. Las zonas se guardan en ppm y no cambian automáticamente cuando cambia tu FC máxima o en reposo. Estos campos no modifican tus métricas guardadas.",
+  "hr_zones_reserve_formula": "FC objetivo = FC en reposo + porcentaje × (FC máxima − FC en reposo). Cambiar entre métodos de porcentaje conserva los porcentajes y recalcula los rangos en ppm.",
+  "hr_zones_default_percentages": "Aplicar porcentajes predeterminados",
+  "hr_zones_resting_hr": "FC en reposo",
+  "hr_zones_resting_help": "Usa tu FC en reposo, no la mínima registrada durante el día. Solo es necesaria para la FC de reserva.",
+  "hr_zones_max_required": "Introduce una FC máxima entera entre 1 y 300 ppm.",
+  "hr_zones_rest_required": "Introduce una FC en reposo entera, mayor que cero y menor que la FC máxima.",
+  "hr_zones_conversion_error": "Revisa la FC máxima, la FC en reposo y los límites antes de cambiar de unidad. Los límites existentes deben ser ppm enteras, no superar la FC máxima y, para porcentajes de reserva, no estar por debajo de la FC en reposo.",
+  "hr_zones_convert_limits": "Convertir límites actuales",
+  "hr_zones_invalid": "Revisa los nombres y límites de las zonas. Los porcentajes deben estar entre 0 y 100 y producir un rango de ppm no vacío.",
+  "hr_zones_save_error": "No se pudieron guardar todas las zonas. Revisa los valores y reintenta; algunos cambios pueden haberse guardado."
 }

@@ -1150,5 +1150,20 @@
   "ai_error_provider": "The AI provider could not complete the request. Try again or choose another model.",
   "pwa_install": "Install app",
   "pwa_install_title": "Install OpenAthlete",
-  "pwa_install_ios_steps": "Tap the browser's Share button and choose “Add to Home Screen”. OpenAthlete then opens full screen from its icon, like an app."
+  "pwa_install_ios_steps": "Tap the browser's Share button and choose “Add to Home Screen”. OpenAthlete then opens full screen from its icon, like an app.",
+  "hr_zone_0": "Zone 0",
+  "hr_zones_input_mode": "Zone input mode",
+  "hr_zones_manual": "Manual",
+  "hr_zones_reserve_percent": "% of heart-rate reserve",
+  "hr_zones_percentage_help": "Limits are rounded to whole bpm. Each upper limit belongs to the next zone, except 100%. Zones are saved in bpm and do not change automatically when your maximum or resting heart rate changes. These fields do not change your saved metrics.",
+  "hr_zones_reserve_formula": "Target HR = resting HR + percentage × (maximum HR − resting HR). Switching between percentage methods keeps the percentages and recalculates the bpm ranges.",
+  "hr_zones_default_percentages": "Apply default percentages",
+  "hr_zones_resting_hr": "Resting heart rate",
+  "hr_zones_resting_help": "Use your resting heart rate, not the lowest heart rate recorded during the day. Only needed for heart-rate reserve.",
+  "hr_zones_max_required": "Enter a whole-number maximum heart rate between 1 and 300 bpm.",
+  "hr_zones_rest_required": "Enter a whole-number resting heart rate greater than zero and below maximum heart rate.",
+  "hr_zones_conversion_error": "Check maximum HR, resting HR and zone limits before switching units. Existing limits must be whole bpm, at or below maximum HR and, for reserve percentages, at or above resting HR.",
+  "hr_zones_convert_limits": "Convert current limits",
+  "hr_zones_invalid": "Check zone names and limits. Percentages must be between 0 and 100 and produce a non-empty bpm range.",
+  "hr_zones_save_error": "Some zones could not be saved. Review the values and retry; some changes may already have been saved."
 }

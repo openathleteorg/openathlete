@@ -1150,5 +1150,20 @@
   "ai_error_provider": "Le fournisseur d'IA n'a pas pu traiter la demande. Réessayez ou choisissez un autre modèle.",
   "pwa_install": "Installer l'application",
   "pwa_install_title": "Installer OpenAthlete",
-  "pwa_install_ios_steps": "Touchez le bouton Partager du navigateur puis choisissez « Sur l'écran d'accueil ». OpenAthlete s'ouvrira ensuite en plein écran depuis son icône, comme une application."
+  "pwa_install_ios_steps": "Touchez le bouton Partager du navigateur puis choisissez « Sur l'écran d'accueil ». OpenAthlete s'ouvrira ensuite en plein écran depuis son icône, comme une application.",
+  "hr_zone_0": "Zone 0",
+  "hr_zones_input_mode": "Mode de saisie des zones",
+  "hr_zones_manual": "Manuel",
+  "hr_zones_reserve_percent": "% de la réserve cardiaque",
+  "hr_zones_percentage_help": "Les limites sont arrondies en bpm entiers. Chaque limite supérieure appartient à la zone suivante, sauf 100 %. Les zones sont enregistrées en bpm et ne changent pas automatiquement quand votre FC maximale ou au repos change. Ces champs ne modifient pas vos mesures enregistrées.",
+  "hr_zones_reserve_formula": "FC cible = FC au repos + pourcentage × (FC maximale − FC au repos). Changer de méthode de pourcentage conserve les pourcentages et recalcule les plages en bpm.",
+  "hr_zones_default_percentages": "Appliquer les pourcentages par défaut",
+  "hr_zones_resting_hr": "FC au repos",
+  "hr_zones_resting_help": "Utilisez votre FC au repos, pas la FC minimale enregistrée dans la journée. Elle n'est nécessaire que pour la réserve cardiaque.",
+  "hr_zones_max_required": "Saisissez une FC maximale entière entre 1 et 300 bpm.",
+  "hr_zones_rest_required": "Saisissez une FC au repos entière, supérieure à zéro et inférieure à la FC maximale.",
+  "hr_zones_conversion_error": "Vérifiez la FC maximale, la FC au repos et les limites avant de changer d'unité. Les limites existantes doivent être des bpm entiers, ne pas dépasser la FC maximale et, pour les pourcentages de réserve, ne pas être inférieures à la FC au repos.",
+  "hr_zones_convert_limits": "Convertir les limites actuelles",
+  "hr_zones_invalid": "Vérifiez les noms et les limites des zones. Les pourcentages doivent être compris entre 0 et 100 et produire une plage de bpm non vide.",
+  "hr_zones_save_error": "Certaines zones n'ont pas pu être enregistrées. Vérifiez les valeurs et réessayez ; certaines modifications ont peut-être déjà été enregistrées."
 }

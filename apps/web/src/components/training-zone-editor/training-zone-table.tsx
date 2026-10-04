@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 
 import {
   SPORT_TYPE,
+  TRAINING_ZONE_TYPE,
   TrainingZone,
   TrainingZoneValue,
 } from '@openathlete/shared';
@@ -33,7 +34,7 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
 
     zones.forEach((zone) => {
       zone.values.forEach((value: TrainingZoneValue) => {
-        const key = value.sports.sort().join(',');
+        const key = [...value.sports].sort().join(',');
         if (!sportConfigs.has(key)) {
           sportConfigs.set(key, []);
         }
@@ -69,7 +70,6 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>{m.zone()}</TableHead>
                   <TableHead>{m.name()}</TableHead>
                   <TableHead>{m.description()}</TableHead>
                   <TableHead className="text-right">{m.min()}</TableHead>
@@ -92,9 +92,6 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
                       idx === config.zones.length - 1;
                     return (
                       <TableRow key={idx}>
-                        <TableCell className="font-medium">
-                          {item.zone.index + 1}
-                        </TableCell>
                         <TableCell>{item.zone.name}</TableCell>
                         <TableCell className="text-muted-foreground text-sm">
                           {item.zone.description}
@@ -104,11 +101,12 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
                         </TableCell>
                         <TableCell className="text-right font-mono">
                           {item.value.max}
-                          {isLastZone && (
-                            <span className="text-xs text-muted-foreground ml-1">
-                              +
-                            </span>
-                          )}
+                          {isLastZone &&
+                            item.zone.type !== TRAINING_ZONE_TYPE.HEARTRATE && (
+                              <span className="text-xs text-muted-foreground ml-1">
+                                +
+                              </span>
+                            )}
                         </TableCell>
                         <TableCell>
                           <div

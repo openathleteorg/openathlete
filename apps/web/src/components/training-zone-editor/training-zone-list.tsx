@@ -59,6 +59,7 @@ export function TrainingZoneList({ athleteId, type }: TrainingZoneListProps) {
               </DialogTitle>
             </DialogHeader>
             <TrainingZoneBulkEditor
+              key={`${athleteId}:${type}`}
               athleteId={athleteId}
               type={type}
               zones={zones}

@@ -1150,5 +1150,20 @@
   "ai_error_provider": "Il fornitore di IA non ha potuto completare la richiesta. Riprova o scegli un altro modello.",
   "pwa_install": "Installa l'app",
   "pwa_install_title": "Installa OpenAthlete",
-  "pwa_install_ios_steps": "Tocca il pulsante Condividi del browser e scegli «Aggiungi alla schermata Home». OpenAthlete si aprirà poi a schermo intero dalla sua icona, come un'app."
+  "pwa_install_ios_steps": "Tocca il pulsante Condividi del browser e scegli «Aggiungi alla schermata Home». OpenAthlete si aprirà poi a schermo intero dalla sua icona, come un'app.",
+  "hr_zone_0": "Zona 0",
+  "hr_zones_input_mode": "Modalità di modifica delle zone",
+  "hr_zones_manual": "Manuale",
+  "hr_zones_reserve_percent": "% della riserva cardiaca",
+  "hr_zones_percentage_help": "I limiti sono arrotondati a bpm interi. Ogni limite superiore appartiene alla zona successiva, tranne il 100%. Le zone vengono salvate in bpm e non cambiano automaticamente quando cambia la tua FC massima o a riposo. Questi campi non modificano le tue metriche salvate.",
+  "hr_zones_reserve_formula": "FC obiettivo = FC a riposo + percentuale × (FC massima − FC a riposo). Cambiare metodo percentuale mantiene le percentuali e ricalcola gli intervalli in bpm.",
+  "hr_zones_default_percentages": "Applica percentuali predefinite",
+  "hr_zones_resting_hr": "FC a riposo",
+  "hr_zones_resting_help": "Usa la tua FC a riposo, non la minima registrata durante il giorno. Serve solo per la riserva cardiaca.",
+  "hr_zones_max_required": "Inserisci una FC massima intera tra 1 e 300 bpm.",
+  "hr_zones_rest_required": "Inserisci una FC a riposo intera, maggiore di zero e inferiore alla FC massima.",
+  "hr_zones_conversion_error": "Controlla la FC massima, la FC a riposo e i limiti prima di cambiare unità. I limiti esistenti devono essere bpm interi, non superare la FC massima e, per le percentuali di riserva, non essere inferiori alla FC a riposo.",
+  "hr_zones_convert_limits": "Converti i limiti attuali",
+  "hr_zones_invalid": "Controlla i nomi e i limiti delle zone. Le percentuali devono essere tra 0 e 100 e produrre un intervallo di bpm non vuoto.",
+  "hr_zones_save_error": "Non è stato possibile salvare tutte le zone. Controlla i valori e riprova; alcune modifiche potrebbero essere già state salvate."
 }

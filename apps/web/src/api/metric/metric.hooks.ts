@@ -1,6 +1,7 @@
 import {
   MutationOptions,
   QueryOptions,
+  UseQueryOptions,
   useMutation,
   useQuery,
   useQueryClient,
@@ -25,7 +26,10 @@ export const useGetMetricsQuery = (
 
 export const useGetLatestMetricsQuery = (
   athleteId?: number,
-  opt?: QueryOptions<Awaited<ReturnType<typeof MetricAPI.getLatestMetrics>>>,
+  opt?: Omit<
+    UseQueryOptions<Awaited<ReturnType<typeof MetricAPI.getLatestMetrics>>>,
+    'queryKey' | 'queryFn'
+  >,
 ) => {
   return useQuery({
     ...opt,
