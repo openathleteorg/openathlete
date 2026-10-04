@@ -288,6 +288,8 @@
   "gender_other": "Other",
   "email_placeholder": "m@example.com",
   "password": "Password",
+  "show_password": "Show password",
+  "hide_password": "Hide password",
   "password_reset": "Password Reset",
   "password_reset_request": "Password Reset Request",
   "create_account": "Create Account",

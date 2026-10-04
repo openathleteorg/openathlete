@@ -53,3 +53,20 @@ test('sends logged out visitors to the login page', async ({ page }) => {
 
   await expect(page).toHaveURL(/\/auth\/login/);
 });
+
+test('shows the password while logging in', async ({ page, request }) => {
+  const athlete = await createAthlete(request);
+
+  await page.goto('/auth/login');
+  await page.fill('input[name="email"]', athlete.email);
+  const password = page.locator('input[name="password"]');
+  await password.fill(athlete.password);
+  await expect(password).toHaveAttribute('type', 'password');
+
+  await page.getByRole('button', { name: 'Show password' }).click();
+  await expect(password).toHaveAttribute('type', 'text');
+  await expect(password).toHaveValue(athlete.password);
+
+  await page.click('button[type="submit"]');
+  await expect(page).toHaveURL(/\/dashboard/);
+});

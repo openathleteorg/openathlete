@@ -283,6 +283,8 @@
   "gender_other": "Autre",
   "email_placeholder": "m@example.com",
   "password": "Mot de passe",
+  "show_password": "Afficher le mot de passe",
+  "hide_password": "Masquer le mot de passe",
   "create_account": "Créer un compte",
   "already_have_account": "Vous avez déjà un compte ?",
   "signup_email_exists": "Un compte existe déjà avec cet email. Connectez-vous.",
