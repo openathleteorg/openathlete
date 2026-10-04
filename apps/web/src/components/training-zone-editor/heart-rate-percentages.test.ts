@@ -90,6 +90,7 @@ describe('percentage of maximum heart rate', () => {
       expect(() => percentageToHeartRate(range, 185)).toThrow();
     }
     expect(() => heartRateToPercentage({ min: 190, max: 220 }, 185)).toThrow();
+    expect(() => heartRateToPercentage({ min: 186, max: 220 }, 185)).toThrow();
     expect(() =>
       heartRateToPercentage({ min: 120.5, max: 130 }, 185),
     ).toThrow();
@@ -148,9 +149,23 @@ describe('percentage of heart-rate reserve', () => {
         heartRateToPercentage({ min: 141, max: 154 }, 195, hrRest),
       ).toThrow();
     }
-    expect(() =>
-      heartRateToPercentage({ min: 0, max: 127 }, 195, 60),
-    ).toThrow();
+    expect(() => heartRateToPercentage({ min: 0, max: 59 }, 195, 60)).toThrow();
+  });
+
+  it('opens zones that reach past resting or maximum heart rate', () => {
+    // The default zones every athlete gets start at 0 and end at 220 bpm.
+    expect(heartRateToPercentage({ min: 0, max: 131 }, 190, 50)).toEqual({
+      min: 0,
+      max: 58.57,
+    });
+    expect(heartRateToPercentage({ min: 164, max: 220 }, 190, 50)).toEqual({
+      min: 81.43,
+      max: 100,
+    });
+    expect(heartRateToPercentage({ min: 164, max: 220 }, 190)).toEqual({
+      min: 86.32,
+      max: 100,
+    });
   });
 });
 

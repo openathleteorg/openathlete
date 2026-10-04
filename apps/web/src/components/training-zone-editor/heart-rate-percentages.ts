@@ -53,6 +53,12 @@ export function percentageToHeartRate(
   return { min, max };
 }
 
+/**
+ * A lower limit under the reference (0 bpm, resting HR) or an upper limit over
+ * the maximum only leaves the zone open on that side, as in the default zones
+ * every athlete gets: it becomes 0% or 100%. A zone entirely outside the range
+ * cannot be expressed and is refused.
+ */
 export function heartRateToPercentage(
   range: ZoneRange,
   hrMax: number,
@@ -63,16 +69,16 @@ export function heartRateToPercentage(
     (hrRest !== 0 && !isValidRestingHeartRate(hrRest, hrMax)) ||
     !Number.isInteger(range.min) ||
     !Number.isInteger(range.max) ||
-    range.min < hrRest ||
-    range.max > hrMax ||
-    range.min > range.max
+    range.min > range.max ||
+    range.max < hrRest ||
+    range.min > hrMax
   ) {
     throw new Error('Heart-rate range cannot be expressed as percentages');
   }
   const percent = (value: number) =>
     Math.round(((value - hrRest) / (hrMax - hrRest)) * 10000) / 100;
   return {
-    min: percent(range.min),
-    max: range.max === hrMax ? 100 : Math.min(99.99, percent(range.max + 1)),
+    min: range.min <= hrRest ? 0 : percent(range.min),
+    max: range.max >= hrMax ? 100 : Math.min(99.99, percent(range.max + 1)),
   };
 }
