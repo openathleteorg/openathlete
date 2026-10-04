@@ -1,5 +1,5 @@
 import { Record as PrismaRecord, RecordType } from '@openathlete/database';
-import { ActivityStream } from '@openathlete/shared';
+import { ActivityStream, isValidGpsPoint } from '@openathlete/shared';
 
 // Target distances for all record types (in meters)
 const TARGET_DISTANCES = [
@@ -691,6 +691,11 @@ export const computeRecords = (
   if (!time || !latlng || time.length === 0 || latlng.length === 0) {
     return [];
   }
+
+  // GPS-derived records require a complete, aligned route. Do not invent
+  // distances across GPS gaps or feed invalid coordinates into interpolation.
+  if (latlng.length !== time.length || !latlng.every(isValidGpsPoint))
+    return [];
 
   // Sample streams if they're too large to reduce memory usage and computation time
   let timeStream = time;

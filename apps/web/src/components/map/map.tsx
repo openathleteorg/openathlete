@@ -9,7 +9,12 @@ import {
   useMap,
 } from 'react-leaflet';
 
-import { findPathCenter, findPathZoomLevel } from '@openathlete/shared';
+import {
+  findPathCenter,
+  findPathZoomLevel,
+  isValidGpsPoint,
+  splitGpsPath,
+} from '@openathlete/shared';
 
 interface P {
   className?: string;
@@ -19,14 +24,14 @@ interface P {
 }
 
 export function Map({ className, polyline, focusPolyline, pins }: P) {
-  const center = findPathCenter(polyline);
-  const zoomLevel = findPathZoomLevel(polyline);
-  const convertedPolyline = polyline.map(
-    (path) => new LatLng(path[0], path[1]),
-  );
-  const convertedFocusPolyline = focusPolyline?.map(
-    (path) => new LatLng(path[0], path[1]),
-  );
+  const validPoints = polyline.filter(isValidGpsPoint);
+  if (!validPoints.length) return null;
+  const center = findPathCenter(validPoints);
+  const zoomLevel = Math.min(18, findPathZoomLevel(validPoints));
+  const convert = (path: number[][]) => path.map((p) => new LatLng(p[0], p[1]));
+  const convertedPolyline = splitGpsPath(polyline).map(convert);
+  const convertedFocusPolyline =
+    focusPolyline && splitGpsPath(focusPolyline).map(convert);
   return (
     <MapContainer
       center={center as LatLngExpression}
@@ -35,8 +40,8 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <FitToSelection
-        polyline={convertedPolyline}
-        focusPolyline={convertedFocusPolyline}
+        polyline={convertedPolyline.flat()}
+        focusPolyline={convertedFocusPolyline?.flat()}
       />
       {polyline && (
         <Polyline
@@ -51,7 +56,7 @@ export function Map({ className, polyline, focusPolyline, pins }: P) {
         />
       )}
       {pins &&
-        pins.map((p, idx) => (
+        pins.filter(isValidGpsPoint).map((p, idx) => (
           <CircleMarker
             key={idx}
             center={new LatLng(p[0], p[1])}

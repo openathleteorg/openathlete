@@ -2,7 +2,7 @@ import { Decoder, Stream } from '@garmin/fitsdk';
 
 import { Logger } from '@nestjs/common';
 
-import { ActivityStream } from '@openathlete/shared';
+import { ActivityStream, isValidGpsPoint } from '@openathlete/shared';
 
 import {
   ActivityParseResult,
@@ -154,9 +154,12 @@ export class FitParserStrategy implements ActivityParser {
         time.push(0);
       }
 
-      if (lat !== null && lon !== null) {
-        const latDeg = lat * (180 / 2 ** 31);
-        const lonDeg = lon * (180 / 2 ** 31);
+      const point =
+        lat !== null && lon !== null
+          ? [lat * (180 / 2 ** 31), lon * (180 / 2 ** 31)]
+          : [];
+      if (isValidGpsPoint(point)) {
+        const [latDeg, lonDeg] = point;
 
         if (previousLat !== null && previousLon !== null) {
           cumulativeDistance += calculateDistance(
@@ -170,6 +173,12 @@ export class FitParserStrategy implements ActivityParser {
         latlng.push([latDeg, lonDeg]);
         previousLat = latDeg;
         previousLon = lonDeg;
+      } else {
+        // Keep the sample so positions stay aligned with time; the gap is
+        // not bridged when computing distance either.
+        latlng.push([]);
+        previousLat = null;
+        previousLon = null;
       }
 
       if (dist !== null) {
@@ -199,7 +208,7 @@ export class FitParserStrategy implements ActivityParser {
     if (time.length) {
       result.time = time;
     }
-    if (latlng.length) {
+    if (latlng.some(isValidGpsPoint)) {
       result.latlng = latlng;
     }
     if (altitude.length) {

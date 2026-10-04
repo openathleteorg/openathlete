@@ -1,4 +1,4 @@
-import { ActivityStream } from '@openathlete/shared';
+import { type ActivityStream, isValidGpsPoint } from '@openathlete/shared';
 
 type HoverPoint = { index: number; time: number } | undefined;
 
@@ -32,6 +32,6 @@ export function computeHoverPin(
     }, candidates[0]);
   }
   const coord = latlng[idx];
-  if (!coord) return undefined;
+  if (!isValidGpsPoint(coord)) return undefined;
   return [coord];
 }

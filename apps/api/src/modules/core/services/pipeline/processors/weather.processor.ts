@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { ActivityStream } from '@openathlete/shared';
+import { ActivityStream, isValidGpsPoint } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -62,12 +62,15 @@ export class WeatherProcessor implements ActivityProcessor {
     while (target <= totalDist + 1e-6) {
       while (i < dist.length && dist[i] < target) i++;
       const idx = Math.min(i, dist.length - 1);
-      const coord =
-        latlng[Math.min(idx, latlng.length - 1)] || latlng[latlng.length - 1];
-      const [lat, lon] = coord || [0, 0];
-      points.push({ lat, lon, distM: target, timeSec: time[idx] ?? 0 });
+      const coord = latlng[idx];
+      if (isValidGpsPoint(coord)) {
+        const [lat, lon] = coord;
+        points.push({ lat, lon, distM: target, timeSec: time[idx] ?? 0 });
+      }
       target += resolutionM;
     }
+
+    if (!points.length) return;
 
     // Call provider
     const samples = await this.weather.fetch({
