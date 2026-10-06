@@ -40,6 +40,14 @@ export default tseslint.config(
     },
   },
   {
+    // Route tables export plain objects around lazy pages: a change there
+    // reloads the page whatever the rule says
+    files: ['src/routes/sections/**'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
+  {
     ignores: [
       'dist/**',
       '**/dist/**',

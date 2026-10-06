@@ -8,7 +8,6 @@ import { mainRoutes } from './main.routes';
 /**
  * Root component that shows landing page on web, or redirects on Capacitor
  */
-// eslint-disable-next-line react-refresh/only-export-components
 function RootElement() {
   return <HomeRedirect />;
 }
