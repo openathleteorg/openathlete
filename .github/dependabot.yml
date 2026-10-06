@@ -36,6 +36,10 @@ updates:
     ignore:
       - dependency-name: '*'
         update-types: [version-update:semver-major]
+      # Later 14.x releases overflow the stack while building pages with
+      # includeProcessedMarkdown; drop this once a release builds again
+      - dependency-name: fumadocs-mdx
+        versions: ['> 14.2.3']
 
   - package-ecosystem: docker
     directories: [/apps/api, /apps/web]
