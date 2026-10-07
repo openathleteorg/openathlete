@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace "org.openathlete"
-    compileSdk rootProject.ext.compileSdkVersion
+    namespace = "org.openathlete"
+    compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
         applicationId "org.openathlete"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -13,7 +13,7 @@ android {
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
-            ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
     buildTypes {
@@ -22,7 +22,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    // Disable AAR metadata check to allow compileSdk 35 with AGP 8.1.4
     packagingOptions {
         resources {
             excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0']
@@ -50,13 +49,6 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-// Disable AAR metadata check to allow compileSdk 35 with AGP 8.1.4
-tasks.whenTaskAdded { task ->
-    if (task.name.contains('check') && task.name.contains('AarMetadata')) {
-        task.enabled = false
-    }
-}
 
 try {
     def servicesJSON = file('google-services.json')

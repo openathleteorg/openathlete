@@ -79,6 +79,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
       application, continue: userActivity, restorationHandler: restorationHandler)
   }
 
+  // Apps built with the iOS 27 SDK no longer launch without the scene life
+  // cycle; the window and URL handling live in SceneDelegate
+  func application(
+    _ application: UIApplication,
+    configurationForConnecting connectingSceneSession: UISceneSession,
+    options: UIScene.ConnectionOptions
+  ) -> UISceneConfiguration {
+    let config = UISceneConfiguration(
+      name: "Default Configuration", sessionRole: connectingSceneSession.role)
+    config.delegateClass = SceneDelegate.self
+    return config
+  }
+
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
