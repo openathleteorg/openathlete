@@ -97,6 +97,16 @@ TestFlight screenshots and crash reports reuse the App Store Connect key. Google
 
 To act on a feedback issue, transfer it to the public repository (issue menu → Transfer) once it holds nothing private.
 
+### Claude on issues
+
+Run `/install-github-app` in Claude Code, or set the token by hand: `claude setup-token` prints a token for your Claude subscription, which you paste into:
+
+```bash
+gh secret set CLAUDE_CODE_OAUTH_TOKEN
+```
+
+Then mention `@claude` in an issue or pull request comment, or add the `claude` label to an issue. Only owners, members and collaborators can trigger it.
+
 ## Releasing
 
 1. Push the tag, as for any release (see the `release` skill). The **Release** workflow uploads both apps next to the Docker images.
