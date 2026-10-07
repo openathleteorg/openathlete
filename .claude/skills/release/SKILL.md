@@ -26,9 +26,10 @@ Versions follow SemVer:
    ```
    `.github/workflows/release.yml` then:
    - builds and pushes `ghcr.io/openathleteorg/openathlete-{api,web}` for amd64 and arm64, tagged `X.Y.Z`, `X.Y` and `X`;
-   - creates the GitHub release with generated notes.
+   - creates the GitHub release with generated notes;
+   - uploads the iOS app to TestFlight and the Android app to the Google Play testing track (when `MOBILE_RELEASES` is `true`; see `apps/web/docs/mobile-releases.md`).
 
-   A tag with a suffix (`v1.2.0-rc.1`) is published as a pre-release.
+   A tag with a suffix (`v1.2.0-rc.1`) is published as a pre-release. Mobile builds need a numbered suffix (`-rc.1` to `-rc.98`), since the build number is computed from the tag: check with `node apps/web/scripts/mobile-version.ts vX.Y.Z` before tagging. A store refuses a build number twice, so never move a tag; push the next one.
 5. Watch the run until it finishes: `gh run list -R openathleteorg/openathlete -w Release -L 1`.
 6. Check the images are public and multi-arch, without logging in:
    ```bash
@@ -40,4 +41,5 @@ Versions follow SemVer:
    - behaviour self-hosters will notice.
 
    Then the highlights in user terms, then the generated changelog.
-8. Draft a short announcement for Discord and GitHub Discussions for the maintainer to post.
+8. Mobile apps: check both upload jobs passed. Once the maintainer has tried the TestFlight and Play builds, they ship them with the **Mobile promote** workflow (`gh workflow run mobile-promote.yml -f tag=vX.Y.Z`): Play production, and App Store review.
+9. Draft a short announcement for Discord and GitHub Discussions for the maintainer to post.

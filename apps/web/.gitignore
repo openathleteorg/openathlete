@@ -28,3 +28,10 @@ vite.config.js
 vite.config.d.ts
 tsconfig.node.tsbuildinfo
 .env
+
+# Mobile release tooling (fastlane)
+.bundle
+vendor/bundle
+fastlane/build
+fastlane/report.xml
+fastlane/README.md

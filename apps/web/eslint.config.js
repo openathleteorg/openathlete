@@ -48,6 +48,16 @@ export default tseslint.config(
     },
   },
   {
+    // Release tooling run by Node, outside the app bundle
+    files: ['scripts/**'],
+    languageOptions: {
+      parserOptions: { project: './tsconfig.scripts.json' },
+      globals: { ...globals.node },
+    },
+    // CLIs: their output is what they print
+    rules: { 'no-console': 'off' },
+  },
+  {
     ignores: [
       'dist/**',
       '**/dist/**',

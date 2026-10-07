@@ -4,6 +4,10 @@ name: Release
 # Registry and create the GitHub release:
 #
 #   git tag v1.2.3 && git push origin v1.2.3
+#
+# When the MOBILE_RELEASES repository variable is "true", the same tag also
+# uploads the iOS app to TestFlight and the Android app to the Google Play
+# testing track (apps/web/docs/mobile-releases.md).
 
 on:
   push:
@@ -11,6 +15,22 @@ on:
 
 permissions:
   contents: read
+
+# Build-time settings of the web bundle inside the mobile apps (the Docker
+# images ignore them and read their settings at runtime)
+env:
+  VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+  VITE_WEB_URL: ${{ vars.VITE_WEB_URL }}
+  VITE_WEBSITE_URL: ${{ vars.VITE_WEBSITE_URL }}
+  VITE_FIREBASE_API_KEY: ${{ vars.VITE_FIREBASE_API_KEY }}
+  VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
+  VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
+  VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+  VITE_ERROR_MONITORING_DSN: ${{ vars.VITE_ERROR_MONITORING_DSN }}
+  VITE_PUBLIC_POSTHOG_PROJECT_TOKEN: ${{ vars.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN }}
+  VITE_PUBLIC_POSTHOG_HOST: ${{ vars.VITE_PUBLIC_POSTHOG_HOST }}
+  VITE_CONTENTSQUARE_TAG_ID: ${{ vars.VITE_CONTENTSQUARE_TAG_ID }}
+  VITE_DISABLE_PAYMENTS: ${{ vars.VITE_DISABLE_PAYMENTS }}
 
 jobs:
   images:
@@ -74,3 +94,61 @@ jobs:
           prerelease=""
           if [[ "$TAG" == *-* ]]; then prerelease="--prerelease"; fi
           gh release create "$TAG" --verify-tag --generate-notes $prerelease
+
+  android:
+    name: Upload Android app to Google Play
+    if: vars.MOBILE_RELEASES == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # Release notes list the commits since the previous tag
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-mobile
+        with:
+          platform: android
+      - name: Add the Firebase config
+        env:
+          GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}
+        run: echo "$GOOGLE_SERVICES_JSON_BASE64" | base64 --decode > apps/web/android/app/google-services.json
+      - name: Build and upload
+        working-directory: apps/web
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_TRACK: ${{ vars.PLAY_TRACK || 'internal' }}
+          PLAY_RELEASE_STATUS: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}
+        run: bundle exec fastlane android release
+
+  ios:
+    name: Upload iOS app to TestFlight
+    if: vars.MOBILE_RELEASES == 'true'
+    # Default Xcode 26: App Store Connect rejects builds from older SDKs
+    runs-on: macos-26
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-mobile
+        with:
+          platform: ios
+      - name: Add the Firebase config
+        env:
+          GOOGLE_SERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}
+        run: echo "$GOOGLE_SERVICE_INFO_PLIST_BASE64" | base64 --decode > apps/web/ios/App/App/GoogleService-Info.plist
+      - name: Build and upload
+        working-directory: apps/web
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          IOS_DISTRIBUTION_CERTIFICATE_BASE64: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_BASE64 }}
+          IOS_DISTRIBUTION_CERTIFICATE_PASSWORD: ${{ secrets.IOS_DISTRIBUTION_CERTIFICATE_PASSWORD }}
+        run: bundle exec fastlane ios release

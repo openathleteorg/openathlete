@@ -1,0 +1,248 @@
+# Builds and publishes the OpenAthlete iOS and Android apps.
+# Setup, secrets and day-to-day use: apps/web/docs/mobile-releases.md
+#
+#   bundle exec fastlane android check      # unsigned build, as CI runs on changes
+#   bundle exec fastlane ios check
+#   RELEASE_TAG=v1.4.2 bundle exec fastlane android release   # Google Play testing track
+#   RELEASE_TAG=v1.4.2 bundle exec fastlane ios release       # TestFlight
+#   RELEASE_TAG=v1.4.2 bundle exec fastlane android promote   # testing track -> production
+#   RELEASE_TAG=v1.4.2 bundle exec fastlane ios submit        # App Store review
+
+require "base64"
+require "json"
+require "tmpdir"
+
+skip_docs
+opt_out_usage
+
+WEB_DIR = File.expand_path("..", __dir__)
+APP_ID = "org.openathlete"
+APPLE_TEAM_ID = "UYGGB9NHYF"
+XCODE_PROJECT = File.join(WEB_DIR, "ios/App/App.xcodeproj")
+XCODE_WORKSPACE = File.join(WEB_DIR, "ios/App/App.xcworkspace")
+BUILD_DIR = File.join(WEB_DIR, "fastlane/build")
+# Store limits for release notes
+PLAY_NOTES_MAX = 500
+TESTFLIGHT_NOTES_MAX = 4000
+
+def required_env(*names)
+  missing = names.select { |name| ENV[name].to_s.strip.empty? }
+  UI.user_error!("Missing environment variables: #{missing.join(', ')}") unless missing.empty?
+  names.map { |name| ENV[name] }
+end
+
+def release_tag
+  required_env("RELEASE_TAG").first
+end
+
+def node_script(*args)
+  # Node prints the type-stripping warning on stderr, which sh merges
+  output = sh("node", "--no-warnings", *args, log: false)
+  output.strip
+end
+
+def mobile_version
+  JSON.parse(node_script(File.join(WEB_DIR, "scripts/mobile-version.ts"), release_tag).lines.last)
+end
+
+def release_notes(max_length)
+  node_script(File.join(WEB_DIR, "scripts/release-notes.ts"), release_tag, "--max-length", max_length.to_s)
+end
+
+# Writes a base64 secret to a file only the current user can read
+def secret_file(env_name, file_name)
+  dir = Dir.mktmpdir("openathlete-")
+  at_exit { FileUtils.rm_rf(dir) }
+  path = File.join(dir, file_name)
+  File.binwrite(path, Base64.decode64(ENV.fetch(env_name)))
+  File.chmod(0o600, path)
+  path
+end
+
+# Vite always reads apps/web/.env*, whose development values (a localhost
+# API) would ship in a store build
+def ensure_no_local_env!
+  local = Dir.glob(File.join(WEB_DIR, ".env*")).reject { |path| path.end_with?(".example") }
+  return if local.empty?
+
+  UI.user_error!("Move #{local.map { |path| File.basename(path) }.join(', ')} out of apps/web " \
+                 "before a store build: Vite would bake its values into the app")
+end
+
+# The native projects embed the web build: rebuild it, then copy it in
+def sync_native(platform)
+  # CI passes unset GitHub variables as empty strings, and an empty
+  # VITE_API_BASE_URL means "same origin" to the web app: unset them instead
+  # so the native defaults apply (https://api.openathlete.org)
+  ENV.keys.select { |name| name.start_with?("VITE_") && ENV[name].strip.empty? }
+     .each { |name| ENV.delete(name) }
+  Dir.chdir(WEB_DIR) do
+    sh({ "CAPACITOR" => "true" }, "pnpm", "build")
+    sh("pnpm", "exec", "cap", "sync", platform)
+  end
+end
+
+platform :android do
+  desc "Build the app without signing it"
+  lane :check do
+    sync_native("android")
+    gradle(project_dir: File.join(WEB_DIR, "android"), task: "assembleDebug")
+  end
+
+  desc "Build the signed bundle of RELEASE_TAG and upload it to the Google Play testing track"
+  lane :release do
+    required_env("ANDROID_KEYSTORE_BASE64", "ANDROID_KEYSTORE_PASSWORD", "ANDROID_KEY_ALIAS",
+                 "ANDROID_KEY_PASSWORD", "PLAY_SERVICE_ACCOUNT_JSON")
+    ensure_no_local_env!
+    version = mobile_version
+    sync_native("android")
+
+    # Read by android/app/build.gradle
+    ENV["ANDROID_KEYSTORE_PATH"] = secret_file("ANDROID_KEYSTORE_BASE64", "upload.jks")
+    gradle(
+      project_dir: File.join(WEB_DIR, "android"),
+      task: "bundle",
+      build_type: "Release",
+      properties: { "versionName" => version["versionName"], "versionCode" => version["buildNumber"] },
+      print_command: false,
+    )
+
+    # supply reads release notes from <metadata>/<language>/changelogs/<versionCode>.txt
+    metadata_path = File.join(BUILD_DIR, "play-metadata")
+    changelogs = File.join(metadata_path, "en-US/changelogs")
+    FileUtils.rm_rf(metadata_path)
+    FileUtils.mkdir_p(changelogs)
+    File.write(File.join(changelogs, "#{version['buildNumber']}.txt"), release_notes(PLAY_NOTES_MAX))
+
+    upload_to_play_store(
+      package_name: APP_ID,
+      json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
+      track: ENV.fetch("PLAY_TRACK", "internal"),
+      release_status: ENV.fetch("PLAY_RELEASE_STATUS", "completed"),
+      aab: lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH],
+      metadata_path: metadata_path,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+
+  desc "Promote the build of RELEASE_TAG from the testing track to production"
+  lane :promote do
+    required_env("PLAY_SERVICE_ACCOUNT_JSON")
+    upload_to_play_store(
+      package_name: APP_ID,
+      json_key_data: ENV["PLAY_SERVICE_ACCOUNT_JSON"],
+      track: ENV.fetch("PLAY_TRACK", "internal"),
+      track_promote_to: "production",
+      track_promote_release_status: "completed",
+      version_code: mobile_version["buildNumber"],
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+  end
+end
+
+platform :ios do
+  def asc_api_key
+    key_id, issuer_id, key = required_env("ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_KEY_P8")
+    app_store_connect_api_key(key_id: key_id, issuer_id: issuer_id, key_content: key)
+  end
+
+  desc "Build the app for the simulator without signing it"
+  lane :check do
+    sync_native("ios")
+    # The Firebase config is a secret; CI builds with a stand-in so the
+    # project's resource reference resolves
+    plist = File.join(WEB_DIR, "ios/App/App/GoogleService-Info.plist")
+    FileUtils.cp(File.join(__dir__, "ci/GoogleService-Info.placeholder.plist"), plist) unless File.exist?(plist)
+    xcodebuild(
+      workspace: XCODE_WORKSPACE,
+      scheme: "App",
+      configuration: "Release",
+      sdk: "iphonesimulator",
+      destination: "generic/platform=iOS Simulator",
+      xcargs: "CODE_SIGNING_ALLOWED=NO",
+      build: true,
+    )
+  end
+
+  desc "Build and sign RELEASE_TAG, then upload it to TestFlight"
+  lane :release do
+    ensure_no_local_env!
+    version = mobile_version
+    api_key = asc_api_key
+    sync_native("ios")
+
+    if ENV["CI"]
+      required_env("IOS_DISTRIBUTION_CERTIFICATE_BASE64", "IOS_DISTRIBUTION_CERTIFICATE_PASSWORD")
+      setup_ci
+      import_certificate(
+        certificate_path: secret_file("IOS_DISTRIBUTION_CERTIFICATE_BASE64", "distribution.p12"),
+        certificate_password: ENV["IOS_DISTRIBUTION_CERTIFICATE_PASSWORD"],
+        keychain_name: "fastlane_tmp_keychain",
+        keychain_password: "",
+      )
+    end
+    # Downloads the App Store profile, or creates it when it expired
+    get_provisioning_profile(api_key: api_key, app_identifier: APP_ID, team_id: APPLE_TEAM_ID)
+    profile = lane_context[SharedValues::SIGH_NAME]
+
+    # Sign the app target only; developers keep automatic signing in the repo
+    original_project = File.read(File.join(XCODE_PROJECT, "project.pbxproj"))
+    begin
+      update_code_signing_settings(
+        path: XCODE_PROJECT,
+        use_automatic_signing: false,
+        targets: ["App"],
+        build_configurations: ["Release"],
+        team_id: APPLE_TEAM_ID,
+        code_sign_identity: "Apple Distribution",
+        profile_name: profile,
+      )
+      build_app(
+        workspace: XCODE_WORKSPACE,
+        scheme: "App",
+        configuration: "Release",
+        export_method: "app-store",
+        export_options: { provisioningProfiles: { APP_ID => profile } },
+        xcargs: "MARKETING_VERSION=#{version['marketingVersion']} CURRENT_PROJECT_VERSION=#{version['buildNumber']}",
+        output_directory: BUILD_DIR,
+        clean: true,
+      )
+    ensure
+      File.write(File.join(XCODE_PROJECT, "project.pbxproj"), original_project)
+    end
+
+    upload_to_testflight(
+      api_key: api_key,
+      app_identifier: APP_ID,
+      changelog: release_notes(TESTFLIGHT_NOTES_MAX),
+      distribute_external: false,
+    )
+  end
+
+  desc "Submit the TestFlight build of RELEASE_TAG for App Store review"
+  lane :submit do
+    version = mobile_version
+    deliver(
+      api_key: asc_api_key,
+      app_identifier: APP_ID,
+      app_version: version["marketingVersion"],
+      build_number: version["buildNumber"].to_s,
+      submit_for_review: true,
+      automatic_release: false,
+      skip_binary_upload: true,
+      skip_metadata: true,
+      skip_screenshots: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: { add_id_info_uses_idfa: false },
+      force: true,
+    )
+  end
+end

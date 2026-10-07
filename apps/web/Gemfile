@@ -1,0 +1,6 @@
+# Mobile release tooling, used by the release workflow and to publish the
+# iOS and Android apps by hand (see apps/web/fastlane/README.md)
+source "https://rubygems.org"
+
+gem "cocoapods", "~> 1.16"
+gem "fastlane", "~> 2.240"

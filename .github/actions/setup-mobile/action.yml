@@ -1,0 +1,34 @@
+name: 'Setup mobile build'
+description: 'Setup the web build, Ruby and fastlane, plus Java for Android'
+
+inputs:
+  platform:
+    description: 'android or ios'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: ./.github/actions/setup
+
+    - name: Setup Java
+      if: inputs.platform == 'android'
+      uses: actions/setup-java@v6
+      with:
+        distribution: 'temurin'
+        # Capacitor 8 compiles for Java 21
+        java-version: '21'
+        cache: 'gradle'
+
+    - name: Setup Ruby and fastlane
+      uses: ruby/setup-ruby@v1
+      with:
+        working-directory: apps/web
+        bundler-cache: true
+
+    - name: Cache CocoaPods
+      if: inputs.platform == 'ios'
+      uses: actions/cache@v6
+      with:
+        path: apps/web/ios/App/Pods
+        key: pods-${{ runner.os }}-${{ hashFiles('apps/web/ios/App/Podfile.lock') }}

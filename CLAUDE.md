@@ -55,6 +55,7 @@ Run `scripts/verify.sh` for every change, then add the targeted checks:
 | AI agents, prompts, structured outputs | `scripts/verify.sh --build` (runs `test:agents`) |
 | Dockerfiles, nginx, env vars, auth, routing, a user flow | `scripts/verify.sh --e2e` |
 | `apps/docs` | `cd apps/docs && pnpm install --frozen-lockfile && pnpm types:check && pnpm build` |
+| Native projects, Capacitor plugins, `apps/web/fastlane` | `cd apps/web && bundle exec fastlane android check && bundle exec fastlane ios check` |
 
 Behaviour changes come with tests at the lowest level that can catch the regression:
 - unit tests for logic;
@@ -86,7 +87,7 @@ Behaviour changes come with tests at the lowest level that can catch the regress
 - Conventional commits: `type(scope): summary` (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, `ci`). The body explains the why and the user-visible effect.
 - Small, focused commits, each passing CI on its own.
 - Never commit secrets or `.env` files, nor `DISCORD_FEEDBACK.md`: it is a local export of community feedback, excluded through `.git/info/exclude`.
-- Releases: push a `vX.Y.Z` tag. `.github/workflows/release.yml` publishes multi-arch images to GHCR and creates the GitHub release.
+- Releases: push a `vX.Y.Z` tag. `.github/workflows/release.yml` publishes multi-arch images to GHCR, uploads the mobile apps to TestFlight and Google Play testing, and creates the GitHub release. See `apps/web/docs/mobile-releases.md`.
 
 ## Skills
 

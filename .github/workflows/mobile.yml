@@ -1,0 +1,55 @@
+name: Mobile
+
+# Builds the iOS and Android apps, unsigned, when something that ends up in
+# the native projects changes. Web-only changes are covered by CI's web build.
+
+on:
+  push:
+    branches: [main]
+    paths: &mobile-paths
+      - 'apps/web/android/**'
+      - 'apps/web/ios/**'
+      - 'apps/web/fastlane/**'
+      - 'apps/web/scripts/mobile-version.ts'
+      - 'apps/web/scripts/release-notes.ts'
+      - 'apps/web/capacitor.config.ts'
+      - 'apps/web/package.json'
+      - 'apps/web/Gemfile*'
+      - 'pnpm-lock.yaml'
+      - '.github/actions/setup-mobile/**'
+      - '.github/workflows/mobile.yml'
+  pull_request:
+    branches: [main]
+    paths: *mobile-paths
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  android:
+    name: Android build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-mobile
+        with:
+          platform: android
+      - run: bundle exec fastlane android check
+        working-directory: apps/web
+
+  ios:
+    name: iOS build
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup-mobile
+        with:
+          platform: ios
+      - run: bundle exec fastlane ios check
+        working-directory: apps/web

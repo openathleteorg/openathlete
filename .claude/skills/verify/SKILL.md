@@ -22,6 +22,7 @@ Then add what the change touches:
 | Dockerfiles, nginx, env vars, auth, routing, a page or user flow | `scripts/verify.sh --e2e` | Builds the production images and runs Playwright (ports 13000 and 18080) |
 | Dependency upgrades, release preparation | `scripts/verify.sh --all` | Everything CI runs |
 | `apps/docs` | `cd apps/docs && pnpm install --frozen-lockfile && pnpm types:check && pnpm build` | Standalone project |
+| `apps/web/android`, `apps/web/ios`, Capacitor plugins, `apps/web/fastlane` | `cd apps/web && bundle exec fastlane android check && bundle exec fastlane ios check` | Builds both native apps unsigned, as the Mobile workflow does (needs Ruby, Java 21 and the Android SDK, Xcode 26+) |
 
 ## When a step fails
 

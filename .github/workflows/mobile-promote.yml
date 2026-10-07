@@ -1,0 +1,73 @@
+name: Mobile promote
+
+# Ships a version already in testing to the public stores: promotes the
+# Google Play testing build to production and submits the TestFlight build
+# for App Store review. Run it from the Actions tab once testers are happy.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag already uploaded by the Release workflow (e.g. v1.4.2)'
+        required: true
+      platforms:
+        description: 'Stores to ship to'
+        type: choice
+        options: [both, android, ios]
+        default: both
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.tag }}
+
+jobs:
+  android:
+    name: Promote on Google Play
+    if: inputs.platforms != 'ios'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: apps/web
+          bundler-cache: true
+      - name: Promote to production
+        working-directory: apps/web
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_TRACK: ${{ vars.PLAY_TRACK || 'internal' }}
+        run: bundle exec fastlane android promote
+
+  ios:
+    name: Submit for App Store review
+    if: inputs.platforms != 'android'
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.tag }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+      - uses: ruby/setup-ruby@v1
+        with:
+          working-directory: apps/web
+          bundler-cache: true
+      - name: Submit for review
+        working-directory: apps/web
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: bundle exec fastlane ios submit
