@@ -20,18 +20,20 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
+  // testMatch runs against absolute paths: anchor on tests/ so a checkout
+  // in a folder named like a project ("…-mobile/") selects nothing extra
   projects: [
     { name: 'setup', testMatch: /auth\.setup\.ts/ },
-    { name: 'api', testMatch: /api\/.*\.spec\.ts/ },
+    { name: 'api', testMatch: /tests\/api\/.*\.spec\.ts$/ },
     {
       name: 'desktop',
-      testMatch: /web\/.*\.spec\.ts/,
+      testMatch: /tests\/web\/.*\.spec\.ts$/,
       use: { ...devices['Desktop Chrome'], storageState: AUTH_FILE },
       dependencies: ['setup'],
     },
     {
       name: 'mobile',
-      testMatch: /mobile\/.*\.spec\.ts/,
+      testMatch: /tests\/mobile\/.*\.spec\.ts$/,
       // The iPhone viewport and touch input, rendered by Chromium
       use: {
         ...devices['iPhone 13'],
