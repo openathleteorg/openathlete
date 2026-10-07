@@ -1,0 +1,36 @@
+name: Store feedback
+
+# Files TestFlight feedback (screenshots, crashes) and Google Play reviews as
+# issues in STORE_FEEDBACK_REPO, a private repository: screenshots can show
+# testers' data. See apps/web/docs/mobile-releases.md.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+
+jobs:
+  sync:
+    name: File new feedback
+    if: vars.STORE_FEEDBACK_REPO != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+      - run: node apps/web/scripts/store-feedback.ts
+        env:
+          STORE_FEEDBACK_REPO: ${{ vars.STORE_FEEDBACK_REPO }}
+          STORE_FEEDBACK_TOKEN: ${{ secrets.STORE_FEEDBACK_TOKEN }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
