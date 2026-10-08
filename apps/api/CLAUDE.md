@@ -10,7 +10,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - `providers-sync` (Strava, Garmin, Polar, Suunto, Coros, with OAuth, webhooks, import and export);
   - `queue` (BullMQ queues and processors);
   - `notification` (emails, push);
-  - `subscription` (Stripe);
+  - `subscription` (Stripe on the web, App Store purchases in the iOS app, verified against Apple's signatures; see `apps/web/docs/mobile-releases.md`);
   - `agent` (AI features).
 - `src/mastra/agents/`: Mastra 1 agents. Model ids (`provider/model`) come from `common/constants/ai-models.constant.ts`.
 - `src/events/` and `src/listeners/`: typed in-process events (`EventEmitter2`). Use them for side effects such as emails, push notifications and AI feedback, so they stay out of request handlers.
