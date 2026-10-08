@@ -408,6 +408,13 @@ enum BillingInterval {
   @@map("billing_interval")
 }
 
+enum BillingProvider {
+  stripe
+  apple
+
+  @@map("billing_provider")
+}
+
 enum SubscriptionStatus {
   active
   canceled

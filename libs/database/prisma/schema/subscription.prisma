@@ -1,11 +1,12 @@
 // ============================================================================
 // Subscription Models
 // ============================================================================
-// User subscription management integrated with Stripe for billing.
+// User subscription management, billed through Stripe (web) or the App Store
+// (iOS app).
 // ============================================================================
 
 /// User subscription.
-/// Manages user subscription plans and billing via Stripe integration.
+/// Manages user subscription plans, billed via Stripe or App Store in-app purchases.
 /// Tracks subscription status, billing periods, and trial information.
 model Subscription {
   // primary key
@@ -30,6 +31,12 @@ model Subscription {
   trialEnd             DateTime?          @map("trial_end")
   /// Whether subscription is set to cancel at period end
   cancelAtPeriodEnd    Boolean            @default(false) @map("cancel_at_period_end")
+  /// Store that bills the Supporter subscription; null on the free plan
+  provider                   BillingProvider?
+  /// App Store originalTransactionId, shared by every renewal of the subscription
+  appleOriginalTransactionId String?          @unique @map("apple_original_transaction_id")
+  /// UUID the iOS app passes to StoreKit as appAccountToken, tying purchases to this user
+  appleAppAccountToken       String?          @unique @map("apple_app_account_token") @db.Uuid
 
   // relationships
   user   User @relation(fields: [userId], references: [userId])

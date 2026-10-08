@@ -1,3 +1,7 @@
+import {
+  VerificationException,
+  VerificationStatus,
+} from '@apple/app-store-server-library';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
@@ -9,6 +13,7 @@ import {
   Param,
   Post,
   Query,
+  ServiceUnavailableException,
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -23,19 +28,27 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
-import { SubscriptionPlan, SubscriptionStatus } from '@openathlete/database';
+import {
+  Subscription,
+  SubscriptionPlan,
+  SubscriptionStatus,
+} from '@openathlete/database';
 import {
   ApiEnvSchemaType,
+  AppleAccountTokenDto,
+  AppleTransactionDto,
   CreateCheckoutSessionDto,
   CurrentSubscriptionDto,
   FeatureName,
   InvoiceDto,
+  appleTransactionDtoSchema,
   createCheckoutSessionDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser } from '../../auth/decorators/user.decorator';
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { UserTypeGuard } from '../../auth/guards/user-type.guard';
+import { AppleStoreService } from '../apple/apple-store.service';
 import { FeatureAccessService } from '../services/feature-access.service';
 import { StripeService } from '../services/stripe.service';
 import { SubscriptionService } from '../services/subscription.service';
@@ -49,6 +62,7 @@ export class SubscriptionController {
     private readonly subscriptionService: SubscriptionService,
     private readonly stripeService: StripeService,
     private readonly featureAccessService: FeatureAccessService,
+    private readonly appleStoreService: AppleStoreService,
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
   ) {}
 
@@ -92,6 +106,18 @@ export class SubscriptionController {
           description:
             'Whether this instance sells subscriptions (false on self-hosted instances without Stripe)',
         },
+        provider: {
+          type: 'string',
+          enum: ['stripe', 'apple'],
+          nullable: true,
+          description:
+            'Store billing the subscription: Stripe (web) or the App Store (iOS app)',
+        },
+        appStoreEnabled: {
+          type: 'boolean',
+          description:
+            'Whether the iOS app can sell subscriptions (APPLE_IAP_APP_ID is set)',
+        },
         status: {
           type: 'string',
           enum: Object.values(SubscriptionStatus),
@@ -134,6 +160,8 @@ export class SubscriptionController {
         'billingInterval',
         'maxAthletes',
         'billingEnabled',
+        'provider',
+        'appStoreEnabled',
       ],
     },
   })
@@ -147,7 +175,13 @@ export class SubscriptionController {
     const subscription = await this.subscriptionService.getOrCreateSubscription(
       user.userId,
     );
+    return this.toCurrentSubscriptionDto(subscription, user.userId);
+  }
 
+  private async toCurrentSubscriptionDto(
+    subscription: Subscription,
+    userId: number,
+  ): Promise<CurrentSubscriptionDto> {
     return {
       subscriptionId: subscription.subscriptionId,
       plan: subscription.plan as CurrentSubscriptionDto['plan'],
@@ -158,11 +192,94 @@ export class SubscriptionController {
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       billingInterval:
         subscription.billingInterval as CurrentSubscriptionDto['billingInterval'],
-      maxAthletes: await this.subscriptionService.getMaxAthletesForUser(
-        user.userId,
-      ),
+      provider: subscription.provider as CurrentSubscriptionDto['provider'],
+      maxAthletes: await this.subscriptionService.getMaxAthletesForUser(userId),
       billingEnabled: this.stripeService.billingEnabled,
+      appStoreEnabled: this.appleStoreService.enabled,
     };
+  }
+
+  @Get('apple/account-token')
+  @ApiOperation({
+    summary: 'Get the App Store account token',
+    description:
+      'The UUID the iOS app passes to StoreKit as appAccountToken when buying the Supporter subscription, created on first use. The App Store reports it with every transaction, which ties purchases and renewals to this user. 503 when App Store purchases are not configured.',
+  })
+  @ApiResponse({ status: 200, description: 'The account token' })
+  @ApiResponse({ status: 503, description: 'App Store purchases are off' })
+  async getAppleAccountToken(
+    @JwtUser() user: AuthUser,
+  ): Promise<AppleAccountTokenDto> {
+    this.assertAppStoreEnabled();
+    return {
+      appAccountToken:
+        await this.subscriptionService.getOrCreateAppleAccountToken(
+          user.userId,
+        ),
+    };
+  }
+
+  @Post('apple/transactions')
+  @ApiOperation({
+    summary: 'Record an App Store purchase',
+    description:
+      "Called by the iOS app after buying or restoring the Supporter subscription, with the StoreKit 2 transaction as signed by the App Store (jwsRepresentation). The signature is checked against Apple's root certificate, in production then sandbox (TestFlight and App Review buy in the sandbox). The transaction must carry the user's account token, or belong to no other user. Returns the updated subscription.",
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { signedTransaction: { type: 'string' } },
+      required: ['signedTransaction'],
+    },
+  })
+  @ApiResponse({ status: 201, description: 'The updated subscription' })
+  @ApiResponse({
+    status: 400,
+    description:
+      'INVALID_APPLE_TRANSACTION (bad signature, app or environment) or UNKNOWN_APPLE_PRODUCT',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'APPLE_PURCHASE_OF_ANOTHER_ACCOUNT',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'ALREADY_SUPPORTER: an active Stripe subscription exists',
+  })
+  @ApiResponse({
+    status: 503,
+    description:
+      'App Store purchases are off, or Apple could not be reached to check the certificates',
+  })
+  async recordAppleTransaction(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(appleTransactionDtoSchema))
+    dto: AppleTransactionDto,
+  ): Promise<CurrentSubscriptionDto> {
+    this.assertAppStoreEnabled();
+    let transaction;
+    try {
+      transaction = await this.appleStoreService.verifyTransaction(
+        dto.signedTransaction,
+      );
+    } catch (error) {
+      if (!(error instanceof VerificationException)) throw error;
+      if (error.status === VerificationStatus.RETRYABLE_VERIFICATION_FAILURE) {
+        throw new ServiceUnavailableException('APPLE_VERIFICATION_UNAVAILABLE');
+      }
+      throw new BadRequestException('INVALID_APPLE_TRANSACTION');
+    }
+    const subscription = await this.subscriptionService.linkAppleTransaction(
+      user.userId,
+      transaction,
+    );
+    return this.toCurrentSubscriptionDto(subscription, user.userId);
+  }
+
+  private assertAppStoreEnabled(): void {
+    if (!this.appleStoreService.enabled) {
+      throw new ServiceUnavailableException('APP_STORE_PURCHASES_DISABLED');
+    }
   }
 
   @Post('checkout')
@@ -252,6 +369,8 @@ export class SubscriptionController {
     // A Supporter switching between monthly and yearly billing
     const currentSubscription =
       await this.subscriptionService.getCurrentSubscription(user.userId);
+    // Supporters through the App Store switch or cancel in iOS settings
+    await this.subscriptionService.assertBilledByStripe(user.userId);
     if (
       currentSubscription?.stripeSubscriptionId &&
       (currentSubscription.status === SubscriptionStatus.active ||
@@ -496,6 +615,7 @@ export class SubscriptionController {
     @JwtUser() user: AuthUser,
     @Query('returnUrl') returnUrl?: string,
   ) {
+    await this.subscriptionService.assertBilledByStripe(user.userId);
     const stripeCustomerId =
       await this.subscriptionService.getOrCreateStripeCustomerId(user.userId);
 

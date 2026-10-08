@@ -20,6 +20,7 @@
     "test:agents": "node --test test/agents.test.cjs"
   },
   "dependencies": {
+    "@apple/app-store-server-library": "^3.1.0",
     "@casl/ability": "^6.8.1",
     "@casl/prisma": "^1.6.2",
     "@garmin/fitsdk": "21.217.0",

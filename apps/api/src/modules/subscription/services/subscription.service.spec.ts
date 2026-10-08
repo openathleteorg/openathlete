@@ -2,8 +2,15 @@ import Stripe from 'stripe';
 
 import { BillingInterval } from '@openathlete/shared';
 
+import {
+  appleRenewalInfo,
+  appleTransaction,
+} from '../apple/apple-store.fixture';
 import { StripeService } from './stripe.service';
-import { SubscriptionService } from './subscription.service';
+import {
+  SubscriptionService,
+  appleSubscriptionFields,
+} from './subscription.service';
 
 const PRICES: Record<string, BillingInterval> = {
   price_month: BillingInterval.MONTH,
@@ -194,5 +201,89 @@ describe('SubscriptionService', () => {
         }),
       );
     });
+  });
+});
+
+describe('appleSubscriptionFields', () => {
+  const now = new Date('2026-10-08T12:00:00Z');
+  const at = (iso: string) => new Date(iso).getTime();
+  const transaction = (overrides: Record<string, unknown> = {}) =>
+    appleTransaction({
+      purchaseDate: at('2026-10-01T12:00:00Z'),
+      expiresDate: at('2026-11-01T12:00:00Z'),
+      ...overrides,
+    }) as never;
+
+  it('gives access until the paid period ends', () => {
+    expect(appleSubscriptionFields(transaction(), null, now)).toMatchObject({
+      plan: 'SUPPORTER',
+      provider: 'apple',
+      billingInterval: 'month',
+      status: 'active',
+      currentPeriodStart: new Date('2026-10-01T12:00:00Z'),
+      currentPeriodEnd: new Date('2026-11-01T12:00:00Z'),
+      appleOriginalTransactionId: '2000000000000001',
+    });
+  });
+
+  it('reads the yearly product', () => {
+    const fields = appleSubscriptionFields(
+      transaction({ productId: 'org.openathlete.supporter.yearly' }),
+      null,
+      now,
+    );
+    expect(fields.billingInterval).toBe('year');
+  });
+
+  it('ends access once the period is over', () => {
+    const fields = appleSubscriptionFields(
+      transaction({ expiresDate: at('2026-10-07T12:00:00Z') }),
+      null,
+      now,
+    );
+    expect(fields.status).toBe('canceled');
+  });
+
+  it("keeps access through Apple's billing grace period", () => {
+    const fields = appleSubscriptionFields(
+      transaction({ expiresDate: at('2026-10-07T12:00:00Z') }),
+      appleRenewalInfo({
+        gracePeriodExpiresDate: at('2026-10-14T12:00:00Z'),
+      }) as never,
+      now,
+    );
+    expect(fields).toMatchObject({
+      status: 'active',
+      currentPeriodEnd: new Date('2026-10-14T12:00:00Z'),
+    });
+  });
+
+  it('ends access at once after a refund', () => {
+    const fields = appleSubscriptionFields(
+      transaction({ revocationDate: at('2026-10-05T12:00:00Z') }),
+      null,
+      now,
+    );
+    expect(fields.status).toBe('canceled');
+  });
+
+  it('reads whether the subscription renews from the renewal info only', () => {
+    expect(
+      appleSubscriptionFields(transaction(), null, now),
+    ).not.toHaveProperty('cancelAtPeriodEnd');
+    const off = appleRenewalInfo({ autoRenewStatus: 0 }) as never;
+    expect(appleSubscriptionFields(transaction(), off, now)).toMatchObject({
+      cancelAtPeriodEnd: true,
+    });
+  });
+
+  it('refuses products that are not the Supporter subscription', () => {
+    expect(() =>
+      appleSubscriptionFields(
+        transaction({ productId: 'org.openathlete.other' }),
+        null,
+        now,
+      ),
+    ).toThrow('UNKNOWN_APPLE_PRODUCT');
   });
 });

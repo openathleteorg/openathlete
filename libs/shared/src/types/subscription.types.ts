@@ -16,6 +16,36 @@ export enum BillingInterval {
   YEAR = 'year',
 }
 
+/** Store that bills a Supporter subscription. */
+export enum BillingProvider {
+  /** Stripe checkout, on the web */
+  STRIPE = 'stripe',
+  /** In-app purchase in the iOS app */
+  APPLE = 'apple',
+}
+
+/** Bundle identifier of the iOS app, the only one selling through Apple. */
+export const IOS_APP_BUNDLE_ID = 'org.openathlete';
+
+/**
+ * App Store auto-renewable subscription product of each billing interval,
+ * created in App Store Connect in the "Supporter" subscription group.
+ */
+export const APPLE_SUPPORTER_PRODUCT_IDS: Record<BillingInterval, string> = {
+  [BillingInterval.MONTH]: 'org.openathlete.supporter.monthly',
+  [BillingInterval.YEAR]: 'org.openathlete.supporter.yearly',
+};
+
+/** The billing interval of an App Store product; null when it is not ours. */
+export function billingIntervalOfAppleProduct(
+  productId: string,
+): BillingInterval | null {
+  const entry = Object.entries(APPLE_SUPPORTER_PRODUCT_IDS).find(
+    ([, id]) => id === productId,
+  );
+  return entry ? (entry[0] as BillingInterval) : null;
+}
+
 /**
  * Subscription status
  */
@@ -104,6 +134,8 @@ export enum FeatureName {
 export const subscriptionPlanSchema = z.nativeEnum(SubscriptionPlan);
 
 export const billingIntervalSchema = z.nativeEnum(BillingInterval);
+
+export const billingProviderSchema = z.nativeEnum(BillingProvider);
 
 /**
  * Zod schema for subscription status

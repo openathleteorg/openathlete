@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import {
   billingIntervalSchema,
+  billingProviderSchema,
   subscriptionPlanSchema,
   subscriptionStatusSchema,
 } from '../../subscription.types';
@@ -19,10 +20,14 @@ export const currentSubscriptionDtoSchema = z.object({
   cancelAtPeriodEnd: z.boolean(),
   /** Billing interval of a Supporter subscription */
   billingInterval: billingIntervalSchema.nullable(),
+  /** Store billing the subscription; null on the free plan */
+  provider: billingProviderSchema.nullable(),
   /** Athletes the user may coach right now; null = unlimited */
   maxAthletes: z.number().nullable(),
   /** The instance sells subscriptions (Stripe is configured) */
   billingEnabled: z.boolean(),
+  /** The iOS app can sell subscriptions (App Store purchases are configured) */
+  appStoreEnabled: z.boolean(),
 });
 
 export type CurrentSubscriptionDto = z.infer<
@@ -86,3 +91,30 @@ export const customerPortalResponseDtoSchema = z.object({
 export type CustomerPortalResponseDto = z.infer<
   typeof customerPortalResponseDtoSchema
 >;
+
+/**
+ * The UUID the iOS app passes to StoreKit as appAccountToken, so that the
+ * App Store reports every purchase and renewal with the user it belongs to.
+ */
+export const appleAccountTokenDtoSchema = z.object({
+  appAccountToken: z.string().uuid(),
+});
+
+export type AppleAccountTokenDto = z.infer<typeof appleAccountTokenDtoSchema>;
+
+/**
+ * A StoreKit 2 transaction as signed by the App Store (its
+ * jwsRepresentation), sent by the iOS app after a purchase or a restore.
+ */
+export const appleTransactionDtoSchema = z.object({
+  signedTransaction: z.string().min(1).max(20_000),
+});
+
+export type AppleTransactionDto = z.infer<typeof appleTransactionDtoSchema>;
+
+/** An App Store Server Notification V2, as Apple posts it. */
+export const appleNotificationDtoSchema = z.object({
+  signedPayload: z.string().min(1).max(100_000),
+});
+
+export type AppleNotificationDto = z.infer<typeof appleNotificationDtoSchema>;

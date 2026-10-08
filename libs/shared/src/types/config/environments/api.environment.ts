@@ -349,6 +349,18 @@ export const ApiEnvSchema = z
         'Stripe webhook secret for verifying webhook requests (optional)',
       ),
 
+    // App Store in-app purchases (optional, hosted iOS app only)
+    APPLE_IAP_APP_ID: z
+      .string()
+      .regex(
+        /^\d+$/,
+        'APPLE_IAP_APP_ID must be the numeric Apple ID of the app',
+      )
+      .optional()
+      .describe(
+        'Apple ID of the iOS app (App Store Connect > App Information); enables Supporter subscriptions bought in the iOS app (optional)',
+      ),
+
     // Firebase
     FIREBASE_FUNCTIONS_URL: z
       .string()
