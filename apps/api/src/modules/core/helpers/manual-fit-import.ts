@@ -21,6 +21,8 @@ export function fitSport(sport: unknown, subSport: unknown): SPORT_TYPE {
     if (subSport === 58) return SPORT_TYPE.VIRTUAL_RIDE;
     return SPORT_TYPE.CYCLING;
   }
+  // Garmin mobility: sport 86, not yet named by the bundled FIT SDK.
+  if (sport === 86 || sport === 'mobility') return SPORT_TYPE.MOBILITY;
   if (sport === 10 || sport === 4) {
     if (subSport === 20) return SPORT_TYPE.WEIGHT_TRAINING;
     if (subSport === 43) return SPORT_TYPE.YOGA;

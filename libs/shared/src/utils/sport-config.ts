@@ -608,6 +608,19 @@ export const SPORT_CONFIG: Record<SPORT_TYPE, SportStatisticsConfig> = {
     speedUnit: 'km/h',
     speedLabel: 'speed',
   },
+  [SPORT_TYPE.MOBILITY]: {
+    showDistance: false,
+    showSpeed: false,
+    showMaxSpeed: false,
+    showGap: false,
+    showElevation: false,
+    showHeartrate: false,
+    showPower: false,
+    showCadence: false,
+    showSplits: false,
+    speedUnit: 'km/h',
+    speedLabel: 'speed',
+  },
 
   // Racquet sports
   [SPORT_TYPE.BADMINTON]: {

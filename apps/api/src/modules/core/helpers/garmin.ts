@@ -175,6 +175,7 @@ export const mapGarminActivityType = (type: string): SportType => {
     case 'INDOOR_ROWING':
       return SportType.ROWING;
     case 'MOBILITY':
+      return SportType.MOBILITY;
     case 'PILATES':
       return SportType.PILATES;
     case 'STAIR_CLIMBING':

@@ -95,6 +95,7 @@ export function SportIcon({ sport, className }: P) {
       case SPORT_TYPE.PICKLEBALL:
         return playingTennis;
       case SPORT_TYPE.PILATES:
+      case SPORT_TYPE.MOBILITY:
         return stretch01;
       case SPORT_TYPE.RACQUETBALL:
         return playingTennis;

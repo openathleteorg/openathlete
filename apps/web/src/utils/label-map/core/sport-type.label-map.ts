@@ -28,6 +28,7 @@ export const sportTypeLabelMap: Record<SPORT_TYPE, string> = {
   [SPORT_TYPE.INLINE_SKATE]: m.sport_inline_skate(),
   [SPORT_TYPE.KAYAKING]: m.sport_kayaking(),
   [SPORT_TYPE.KITESURF]: m.sport_kitesurf(),
+  [SPORT_TYPE.MOBILITY]: m.sport_mobility(),
   [SPORT_TYPE.MOUNTAIN_BIKE_RIDE]: m.sport_mountain_bike_ride(),
   [SPORT_TYPE.NORDIC_SKI]: m.sport_nordic_ski(),
   [SPORT_TYPE.PICKLEBALL]: m.sport_pickleball(),
