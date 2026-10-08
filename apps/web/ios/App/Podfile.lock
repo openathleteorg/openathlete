@@ -19,6 +19,8 @@ PODS:
     - Capacitor
   - CapacitorVoiceRecorder (7.0.6):
     - Capacitor
+  - CapgoNativePurchases (8.8.3):
+    - Capacitor
   - Firebase/Core (12.8.0):
     - Firebase/CoreOnly
     - FirebaseAnalytics (~> 12.8.0)
@@ -153,6 +155,7 @@ DEPENDENCIES:
   - "CapacitorPushNotifications (from `../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.2/node_modules/@capacitor/push-notifications`)"
   - "CapacitorStatusBar (from `../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.2/node_modules/@capacitor/status-bar`)"
   - "CapacitorVoiceRecorder (from `../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.2_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.2_/node_modules/capacitor-voice-recorder`)"
+  - "CapgoNativePurchases (from `../../../../node_modules/.pnpm/@capgo+native-purchases@8.8.3_@capacitor+core@8.5.2/node_modules/@capgo/native-purchases`)"
   - Firebase/Core (~> 12.7)
   - Firebase/Messaging (~> 12.7)
 
@@ -194,6 +197,8 @@ EXTERNAL SOURCES:
     :path: "../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.2/node_modules/@capacitor/status-bar"
   CapacitorVoiceRecorder:
     :path: "../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.2_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.2_/node_modules/capacitor-voice-recorder"
+  CapgoNativePurchases:
+    :path: "../../../../node_modules/.pnpm/@capgo+native-purchases@8.8.3_@capacitor+core@8.5.2/node_modules/@capgo/native-purchases"
 
 SPEC CHECKSUMS:
   Capacitor: 89067779e14fb7ea56af07b4817f45d1f0c2a269
@@ -204,6 +209,7 @@ SPEC CHECKSUMS:
   CapacitorPushNotifications: a31b62e18764ab855537dfcdade1e6ecf5aba29f
   CapacitorStatusBar: ff844df1f126da6c4fbc4028272425fa3a91e7e3
   CapacitorVoiceRecorder: 9158861be982f32d411769723a4d813d6ce46135
+  CapgoNativePurchases: a8d952f7a28d148176f755783488f1f8e4328cf2
   Firebase: 9a58fdbc9d8655ed7b79a19cf9690bb007d3d46d
   FirebaseAnalytics: f20bbad8cb7f65d8a5eaefeb424ae8800a31bdfc
   FirebaseAppCheckInterop: ba3dc604a89815379e61ec2365101608d365cf7d
@@ -223,6 +229,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
 
-PODFILE CHECKSUM: 40f1220d551b79a73c815cce398034414c047f39
+PODFILE CHECKSUM: bc71d1861572f18e29eaad96a7e49d9bec18b6a8
 
 COCOAPODS: 1.17.0

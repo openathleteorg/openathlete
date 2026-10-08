@@ -35,6 +35,17 @@ const config: CapacitorConfig = {
     },
   },
   android: {
+    // Every plugin but @capgo/native-purchases: the Android app sells
+    // nothing, and that plugin would add Google Play Billing and its
+    // permission. Add new plugins here too.
+    includePlugins: [
+      '@capacitor-community/safe-area',
+      '@capacitor-firebase/authentication',
+      '@capacitor/browser',
+      '@capacitor/push-notifications',
+      '@capacitor/status-bar',
+      'capacitor-voice-recorder',
+    ],
     buildOptions: {
       keystorePath: undefined,
       keystoreAlias: undefined,

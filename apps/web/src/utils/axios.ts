@@ -231,6 +231,8 @@ export const routes = {
     resume: '/subscription/resume',
     invoices: '/subscription/invoices',
     portal: '/subscription/portal',
+    appleAccountToken: '/subscription/apple/account-token',
+    appleTransactions: '/subscription/apple/transactions',
   },
   seoPlan: {
     create: '/seo-plan',

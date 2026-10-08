@@ -1,4 +1,5 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useCurrentSubscription } from '@/api/subscription';
 import { useDeleteAccountMutation, useUpdateAccountMutation } from '@/api/user';
 import { ConfirmAction } from '@/components/confirm-action';
 import { FormProvider, RHFTextField } from '@/components/hook-form';
@@ -15,7 +16,11 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { updateAccountDtoSchema } from '@openathlete/shared';
+import {
+  BillingProvider,
+  SubscriptionStatus,
+  updateAccountDtoSchema,
+} from '@openathlete/shared';
 
 import { PrivacySection } from './privacy-section';
 import { SettingsSection } from './settings-section';
@@ -29,6 +34,12 @@ export function ProfileTab() {
       toast.success(m.account_updated_successfully());
     },
   });
+  const { data: subscription } = useCurrentSubscription();
+  // Deleting the account cannot stop Apple from billing
+  const appStoreRenews =
+    subscription?.provider === BillingProvider.APPLE &&
+    subscription.status === SubscriptionStatus.ACTIVE &&
+    !subscription.cancelAtPeriodEnd;
   const deleteAccountMutation = useDeleteAccountMutation({
     onSuccess: async () => {
       toast.success(m.account_deleted_successfully());
@@ -121,7 +132,11 @@ export function ProfileTab() {
           deleteAccountMutation.mutate();
         }}
         title={m.delete_account()}
-        message={m.confirm_delete_account()}
+        message={
+          appStoreRenews
+            ? `${m.confirm_delete_account()} ${m.delete_account_app_store_warning()}`
+            : m.confirm_delete_account()
+        }
         confirmText={m.delete_account()}
         isLoading={deleteAccountMutation.isPending}
       />

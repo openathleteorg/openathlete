@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { m } from '@/paraglide/messages';
-import { isPaymentDisabled } from '@/utils/capacitor';
+import { purchaseChannel } from '@/utils/capacitor';
 import { ExternalLink, Github, HeartHandshake } from 'lucide-react';
 
 import { SettingsSection } from './settings-section';
@@ -16,7 +16,9 @@ const PATREON_URL = 'https://www.patreon.com/OpenAthlete';
 const GITHUB_REPO_URL = 'https://github.com/openathleteorg/openathlete';
 
 export function ContributeTab() {
-  const hideFinancialSupport = isPaymentDisabled();
+  // Store rules: donations outside the app's own in-app purchase are refused
+  // in the iOS app, and the Android app points to no payment
+  const hideFinancialSupport = purchaseChannel() !== 'stripe';
 
   return (
     <div className="space-y-6">

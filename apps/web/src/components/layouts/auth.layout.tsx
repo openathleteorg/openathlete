@@ -2,6 +2,7 @@ import authBackground from '@/assets/images/auth/background.webp';
 import whiteLogoSrc from '@/assets/logos/logo_white.svg';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { m } from '@/paraglide/messages';
+import { isCapacitor } from '@/utils/capacitor';
 import { Link } from 'react-router-dom';
 
 interface P {
@@ -9,7 +10,10 @@ interface P {
 }
 
 export function AuthLayout({ children }: P) {
-  const websiteUrl = import.meta.env.VITE_WEBSITE_URL || '/';
+  // The website shows prices: the store apps stay away from it (App Store
+  // guideline 3.1.1)
+  const websiteUrl =
+    (!isCapacitor() && import.meta.env.VITE_WEBSITE_URL) || '/';
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

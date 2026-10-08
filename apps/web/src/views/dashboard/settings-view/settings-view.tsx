@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRoles } from '@/contexts/auth';
 import { SubscriptionSettingsPage } from '@/pages/dashboard/settings/subscription';
 import { m } from '@/paraglide/messages';
-import { isPaymentDisabled } from '@/utils/capacitor';
+import { purchaseChannel } from '@/utils/capacitor';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -20,9 +20,13 @@ import { TrainingZonesTab } from './training-zones-tab';
 export function SettingsView() {
   const roles = useUserRoles();
   const { data: subscription } = useCurrentSubscription();
-  // Nothing to subscribe to on instances without billing, nor on iOS
+  // Nothing to subscribe to on instances without billing, nor in the
+  // Android app; the iOS app sells through the App Store when it is set up
+  const channel = purchaseChannel();
   const showSubscription =
-    Boolean(subscription?.billingEnabled) && !isPaymentDisabled();
+    Boolean(subscription?.billingEnabled) &&
+    (channel === 'stripe' ||
+      (channel === 'app-store' && Boolean(subscription?.appStoreEnabled)));
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || 'connectors');

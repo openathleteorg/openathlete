@@ -3,7 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
-import { isPaymentDisabled } from '@/utils/capacitor';
+import { purchaseChannel } from '@/utils/capacitor';
 import { ShieldCheck } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -33,7 +33,7 @@ export function AiTab() {
         </Alert>
       )}
 
-      {access?.upgradeUnlocksHosted && !isPaymentDisabled() && (
+      {access?.upgradeUnlocksHosted && purchaseChannel() !== null && (
         <Alert>
           <SparklesIcon className="size-4" />
           <AlertTitle>{m.ai_upgrade_title()}</AlertTitle>

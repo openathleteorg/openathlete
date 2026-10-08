@@ -1,6 +1,7 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  AppleAccountTokenDto,
   CheckoutSessionResponseDto,
   CreateCheckoutSessionDto,
   CurrentSubscriptionDto,
@@ -53,6 +54,24 @@ export class SubscriptionAPI {
       {
         params: returnUrl ? { returnUrl } : undefined,
       },
+    );
+    return res.data;
+  }
+
+  static async getAppleAccountToken(): Promise<string> {
+    const res = await client.get<AppleAccountTokenDto>(
+      routes.subscription.appleAccountToken,
+    );
+    return res.data.appAccountToken;
+  }
+
+  /** Records a StoreKit purchase or restore, signed by the App Store */
+  static async recordAppleTransaction(
+    signedTransaction: string,
+  ): Promise<CurrentSubscriptionDto> {
+    const res = await client.post<CurrentSubscriptionDto>(
+      routes.subscription.appleTransactions,
+      { signedTransaction },
     );
     return res.data;
   }

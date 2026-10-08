@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getApiBaseUrl } from './capacitor';
+import { getApiBaseUrl, purchaseChannel } from './capacitor';
+
+const platform = vi.hoisted(() => ({ name: 'web' }));
+vi.mock('@capacitor/core', () => ({
+  Capacitor: {
+    getPlatform: () => platform.name,
+    isNativePlatform: () => platform.name !== 'web',
+  },
+}));
 
 function withMetaUrl(content: string | null) {
   vi.stubGlobal('document', {
@@ -34,5 +42,32 @@ describe('getApiBaseUrl', () => {
     vi.stubEnv('VITE_API_BASE_URL', '__OPENATHLETE_API_BASE_URL__');
 
     expect(getApiBaseUrl()).toBe('http://localhost:3000');
+  });
+});
+
+describe('purchaseChannel', () => {
+  afterEach(() => {
+    platform.name = 'web';
+    vi.unstubAllEnvs();
+  });
+
+  it('sells through Stripe on the web', () => {
+    expect(purchaseChannel()).toBe('stripe');
+  });
+
+  it('sells through the App Store in the iOS app, whatever the build flag', () => {
+    platform.name = 'ios';
+    vi.stubEnv('VITE_DISABLE_PAYMENTS', 'true');
+    expect(purchaseChannel()).toBe('app-store');
+  });
+
+  it('sells nothing in the Android app', () => {
+    platform.name = 'android';
+    expect(purchaseChannel()).toBeNull();
+  });
+
+  it('sells nothing in a web build with payments turned off', () => {
+    vi.stubEnv('VITE_DISABLE_PAYMENTS', 'true');
+    expect(purchaseChannel()).toBeNull();
   });
 });

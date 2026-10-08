@@ -299,6 +299,9 @@ importers:
       '@capacitor/status-bar':
         specifier: ^8.0.4
         version: 8.0.4(@capacitor/core@8.5.2)
+      '@capgo/native-purchases':
+        specifier: ^8.8.3
+        version: 8.8.3(@capacitor/core@8.5.2)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -1146,6 +1149,11 @@ packages:
 
   '@capacitor/synapse@1.0.4':
     resolution: {integrity: sha512-/C1FUo8/OkKuAT4nCIu/34ny9siNHr9qtFezu4kxm6GY1wNFxrCFWjfYx5C1tUhVGz3fxBABegupkpjXvjCHrw==}
+
+  '@capgo/native-purchases@8.8.3':
+    resolution: {integrity: sha512-gOhup6zDk98cWnJCt4J9AWpawmmOURv5mIJAVebeUdC9FzYnHE2dvYOHHejHuouQe3xU3aZRNRrm0JqN1L96PA==}
+    peerDependencies:
+      '@capacitor/core': '>=8.0.0'
 
   '@casl/ability@6.8.1':
     resolution: {integrity: sha512-VX5DD1JbSP/DdewZnNwXXaCzve+0pLe14mcUj2l93CdOFAQUT/ylAptNqxf3Wc/jlsuSanAgXza4Z1Iq23dzpQ==}
@@ -9546,6 +9554,10 @@ snapshots:
       '@capacitor/core': 8.5.2
 
   '@capacitor/synapse@1.0.4': {}
+
+  '@capgo/native-purchases@8.8.3(@capacitor/core@8.5.2)':
+    dependencies:
+      '@capacitor/core': 8.5.2
 
   '@casl/ability@6.8.1':
     dependencies:

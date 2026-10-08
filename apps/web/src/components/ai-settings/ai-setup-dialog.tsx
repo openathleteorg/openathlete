@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { isPaymentDisabled } from '@/utils/capacitor';
+import { purchaseChannel } from '@/utils/capacitor';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,7 +31,7 @@ export function AiSetupDialog({ open, onOpenChange, analyticsSource }: Props) {
   const { data: access } = useAiAccessQuery();
   const [plansOpen, setPlansOpen] = useState(false);
   const canSubscribe =
-    Boolean(access?.upgradeUnlocksHosted) && !isPaymentDisabled();
+    Boolean(access?.upgradeUnlocksHosted) && purchaseChannel() !== null;
 
   return (
     <>

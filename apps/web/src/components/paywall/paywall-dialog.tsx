@@ -2,7 +2,7 @@ import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { AnalyticsEvent } from '@/utils/analytics-events';
-import { isPaymentDisabled } from '@/utils/capacitor';
+import { purchaseChannel } from '@/utils/capacitor';
 import { Users } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect } from 'react';
@@ -49,16 +49,17 @@ export function PaywallDialog({
     });
   }, [open, isAIReason, analyticsSource, posthog]);
 
-  if (isPaymentDisabled()) {
+  // The Android app neither sells nor points to a way to buy
+  if (purchaseChannel() === null) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl">
-              {m.feature_unavailable_ios()}
+              {m.subscription_unavailable_title()}
             </DialogTitle>
             <DialogDescription className="pt-2 text-base">
-              {m.feature_unavailable_ios_description()}
+              {m.subscription_unavailable_in_app()}
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

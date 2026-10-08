@@ -16,6 +16,7 @@ def capacitor_pods
   pod 'CapacitorBrowser', :path => '../../../../node_modules/.pnpm/@capacitor+browser@8.0.5_@capacitor+core@8.5.2/node_modules/@capacitor/browser'
   pod 'CapacitorPushNotifications', :path => '../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.2/node_modules/@capacitor/push-notifications'
   pod 'CapacitorStatusBar', :path => '../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.2/node_modules/@capacitor/status-bar'
+  pod 'CapgoNativePurchases', :path => '../../../../node_modules/.pnpm/@capgo+native-purchases@8.8.3_@capacitor+core@8.5.2/node_modules/@capgo/native-purchases'
   pod 'CapacitorVoiceRecorder', :path => '../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.2_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.2_/node_modules/capacitor-voice-recorder'
 end
 

@@ -22,18 +22,21 @@ export function isAndroid(): boolean {
 }
 
 /**
- * Check if payments are disabled (iOS build or environment variable)
- * Apple requires in-app purchases, so we disable Stripe payments on iOS
+ * How this build sells the Supporter subscription:
+ * - `stripe`: Stripe checkout, on the web;
+ * - `app-store`: in-app purchase, in the iOS app (App Store guideline 3.1.1);
+ * - `null`: not at all. The Android app sells nothing and never points to a
+ *   payment elsewhere, which lets it give Supporters their benefits without
+ *   Google Play billing. VITE_DISABLE_PAYMENTS does the same for a web build.
  */
-export function isPaymentDisabled(): boolean {
-  // Check environment variable first (for build-time configuration)
-  const envDisabled = import.meta.env.VITE_DISABLE_PAYMENTS === 'true';
-  if (envDisabled) {
-    return true;
-  }
+export type PurchaseChannel = 'stripe' | 'app-store' | null;
 
-  // Check if running on iOS
-  return isIOS();
+export function purchaseChannel(): PurchaseChannel {
+  if (isIOS()) return 'app-store';
+  if (isAndroid() || import.meta.env.VITE_DISABLE_PAYMENTS === 'true') {
+    return null;
+  }
+  return 'stripe';
 }
 
 /** Set by the Docker image at container start, see docker/40-api-public-url.sh */
