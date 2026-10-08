@@ -956,6 +956,7 @@
   "or_continue_with": "Oppure continua con",
   "continue_with_google": "Continua con Google",
   "continue_with_apple": "Continua con Apple",
+  "continue_with_apple": "Continua con Apple",
   "continue_with_github": "Continua con GitHub",
   "oauth_login_failed": "Accesso OAuth non riuscito. Riprova.",
   "oauth_garmin_code_verifier_missing": "Impossibile completare la connessione Garmin. Prova a riconnetterti dalle impostazioni.",

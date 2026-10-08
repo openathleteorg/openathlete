@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { SelectItem } from '@/components/ui/select';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
+import { revokeAppleSignIn } from '@/utils/firebase-auth';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -29,8 +30,11 @@ export function ProfileTab() {
     },
   });
   const deleteAccountMutation = useDeleteAccountMutation({
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(m.account_deleted_successfully());
+      await revokeAppleSignIn().catch((error: unknown) =>
+        console.error('Revoking Sign in with Apple failed:', error),
+      );
       logout();
     },
     onError: () => {

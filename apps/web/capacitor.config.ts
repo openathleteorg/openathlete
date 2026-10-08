@@ -31,7 +31,7 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
     FirebaseAuthentication: {
-      providers: ['google.com'],
+      providers: ['google.com', 'apple.com'],
     },
   },
   android: {

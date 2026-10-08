@@ -1,16 +1,16 @@
-import { isCapacitor } from '@/utils/capacitor';
+import { isCapacitor, isIOS } from '@/utils/capacitor';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { initializeApp } from 'firebase/app';
 import {
   type Auth,
-  GithubAuthProvider,
   GoogleAuthProvider,
   OAuthProvider,
   getAuth,
   signInWithPopup,
 } from 'firebase/auth';
 
-export type OAuthProviderId = 'google';
+/** Apple is offered in the iOS app, where App Store rules require it */
+export type OAuthProviderId = 'google' | 'apple';
 
 type FirebaseWebConfig = {
   apiKey: string;
@@ -59,10 +59,10 @@ export async function getFirebaseIdTokenForProvider(
   providerId: OAuthProviderId,
 ): Promise<string> {
   if (isCapacitor()) {
-    switch (providerId) {
-      case 'google':
-        await FirebaseAuthentication.signInWithGoogle();
-        break;
+    if (providerId === 'apple') {
+      await FirebaseAuthentication.signInWithApple();
+    } else {
+      await FirebaseAuthentication.signInWithGoogle();
     }
 
     const { token } = await FirebaseAuthentication.getIdToken({
@@ -72,26 +72,38 @@ export async function getFirebaseIdTokenForProvider(
   }
 
   const auth = getWebAuth();
-
-  if (providerId === 'google') {
-    const provider = new GoogleAuthProvider();
-    const { user } = await signInWithPopup(auth, provider);
-    return await user.getIdToken();
+  const provider =
+    providerId === 'apple'
+      ? new OAuthProvider('apple.com')
+      : new GoogleAuthProvider();
+  if (provider instanceof OAuthProvider) {
+    provider.addScope('email');
+    provider.addScope('name');
   }
-
-  if (providerId === 'github') {
-    const provider = new GithubAuthProvider();
-    // GitHub may not return email without this scope.
-    provider.addScope('user:email');
-    const { user } = await signInWithPopup(auth, provider);
-    return await user.getIdToken();
-  }
-
-  const provider = new OAuthProvider('apple.com');
-  provider.addScope('email');
-  provider.addScope('name');
   const { user } = await signInWithPopup(auth, provider);
   return await user.getIdToken();
+}
+
+/**
+ * Apple asks apps to revoke Sign in with Apple when the account is deleted,
+ * so the user no longer sees OpenAthlete in their Apple ID settings. Revoking
+ * needs a fresh authorization code, hence one more Apple prompt. Best effort:
+ * the account is already gone when this runs.
+ */
+export async function revokeAppleSignIn(): Promise<void> {
+  if (!isIOS()) return;
+  const { user } = await FirebaseAuthentication.getCurrentUser();
+  const usesApple = user?.providerData.some(
+    (info) => info.providerId === 'apple.com',
+  );
+  if (!usesApple) return;
+
+  const { credential } = await FirebaseAuthentication.signInWithApple();
+  if (credential?.authorizationCode) {
+    await FirebaseAuthentication.revokeAccessToken({
+      token: credential.authorizationCode,
+    });
+  }
 }
 
 export async function signOutFirebase(): Promise<void> {
