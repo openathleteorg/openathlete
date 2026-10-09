@@ -260,6 +260,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                   'ring-2 ring-inset ring-primary',
               )}
               ref={setCardRef}
+              data-compliance={shownCompliance?.status}
               {...(draggable ? { ...listeners, ...attributes } : {})}
               onClick={(e) => {
                 if (bulk?.selecting) {
