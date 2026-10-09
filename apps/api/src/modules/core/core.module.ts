@@ -46,6 +46,7 @@ import { ManualFitImportService } from './services/manual-fit-import.service';
 import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import {
+  EquipmentProcessor,
   GapProcessor,
   NormalizationProcessor,
   RecordsProcessor,
@@ -121,9 +122,11 @@ import { WeatherService } from './services/weather/weather.service';
     WeatherProcessor,
     NormalizationProcessor,
     TrainingMatchProcessor,
+    EquipmentProcessor,
     {
       provide: ActivityPipelineService,
       useFactory: (
+        equipment: EquipmentProcessor,
         gap: GapProcessor,
         records: RecordsProcessor,
         weather: WeatherProcessor,
@@ -131,6 +134,7 @@ import { WeatherService } from './services/weather/weather.service';
         trainingMatch: TrainingMatchProcessor,
       ) =>
         new ActivityPipelineService([
+          equipment,
           gap,
           records,
           weather,
@@ -138,6 +142,7 @@ import { WeatherService } from './services/weather/weather.service';
           trainingMatch,
         ]),
       inject: [
+        EquipmentProcessor,
         GapProcessor,
         RecordsProcessor,
         WeatherProcessor,
