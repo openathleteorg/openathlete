@@ -28,6 +28,9 @@ model Event {
   name      String
   /// Event type: TRAINING, COMPETITION, NOTE, or ACTIVITY
   type      EventType
+  /// Shared by the occurrences of a repeated session, to edit or delete
+  /// one and the following ones together
+  seriesId  String?   @map("series_id")
 
   // relationships
   activityChatNotices ActivityChatNotice[]
@@ -48,6 +51,7 @@ model Event {
   @@index([trainingWeekId])
   /// Every calendar read asks for one athlete's events over a date range
   @@index([athleteId, startDate])
+  @@index([seriesId])
   @@map("event")
 }
 

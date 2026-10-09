@@ -36,12 +36,14 @@ import {
   DuplicateEventDto,
   DuplicateWorkoutDto,
   ReorderWorkoutStepsDto,
+  RepeatEventDto,
   ShiftEventsDto,
   UpdateEventDto,
   createEventDtoSchema,
   duplicateEventDtoSchema,
   duplicateWorkoutSchema,
   reorderWorkoutStepsSchema,
+  repeatEventDtoSchema,
   shiftEventsDtoSchema,
   updateEventDtoSchema,
 } from '@openathlete/shared';
@@ -54,6 +56,7 @@ import { EventService } from '../services';
 import { ActivityFeedbackService } from '../services/activity-feedback.service';
 import { CalendarFeedService } from '../services/calendar-feed.service';
 import { EventBulkService } from '../services/event-bulk.service';
+import { EventSeriesService } from '../services/event-series.service';
 
 @ApiTags('Event')
 @Controller('event')
@@ -63,6 +66,7 @@ export class EventController {
     private activityFeedbackService: ActivityFeedbackService,
     private calendarFeedService: CalendarFeedService,
     private eventBulkService: EventBulkService,
+    private eventSeriesService: EventSeriesService,
   ) {}
 
   @Get('ical')
@@ -987,6 +991,63 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.deleteEvent(user, eventId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post(':eventId/repeat')
+  @ApiOperation({
+    summary: 'Repeat a planned event',
+    description:
+      'Copies a planned session, race or note every 1 to 4 weeks, on the same weekday and local time, until a date (at most 90 days on). The original and its copies form a series. One transaction.',
+  })
+  @ApiResponse({ status: 201, description: 'The new occurrences, by date' })
+  @ApiResponse({
+    status: 400,
+    description: 'Nothing to repeat before this date',
+  })
+  @ApiResponse({ status: 404, description: 'Event not found or not editable' })
+  repeatEvent(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
+    @Body(new ZodValidationPipe(repeatEventDtoSchema)) dto: RepeatEventDto,
+  ) {
+    return this.eventSeriesService.repeat(user, eventId, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Patch(':eventId/series')
+  @ApiOperation({
+    summary: 'Edit an occurrence and the following ones',
+    description:
+      'Applies the same changes to this occurrence of a series and the following ones still to do. A new date moves them all by the same number of days, to the same new time. Without a series, edits this event only.',
+  })
+  @ApiResponse({ status: 200, description: 'The updated occurrences' })
+  @ApiResponse({ status: 404, description: 'Event not found or not editable' })
+  updateEventSeries(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
+    @Body(new ZodValidationPipe(updateEventDtoSchema)) dto: UpdateEventDto,
+  ) {
+    return this.eventSeriesService.updateFollowing(user, eventId, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Delete(':eventId/series')
+  @ApiOperation({
+    summary: 'Delete an occurrence and the following ones',
+    description:
+      'Deletes this occurrence of a series and the following ones still to do (done sessions stay). Without a series, deletes this event only.',
+  })
+  @ApiResponse({ status: 200, description: 'How many events were deleted' })
+  @ApiResponse({ status: 404, description: 'Event not found or not deletable' })
+  deleteEventSeries(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
+  ) {
+    return this.eventSeriesService.deleteFollowing(user, eventId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

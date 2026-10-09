@@ -1,47 +1,21 @@
 import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 
-import { EventType, Prisma } from '@openathlete/database';
-import {
-  ShiftEventsDto,
-  mapPrismaWorkoutToDto,
-  mapWorkoutDtoToPrisma,
-} from '@openathlete/shared';
+import { ShiftEventsDto } from '@openathlete/shared';
 
-import { addZonedDays } from 'src/common/utils/time-zone';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { CalendarWebSocketService } from 'src/modules/calendar/services/calendar-websocket.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import {
+  SHIFTABLE_TYPES,
+  SOURCE_INCLUDE,
+  copyOf,
+  shiftedDates,
+} from './event-copy';
 import { EVENT_INCLUDES } from './event-includes';
 import { EventService } from './event.service';
-
-/** What can be copied or moved: plans, never activities */
-const SHIFTABLE_TYPES = [
-  EventType.TRAINING,
-  EventType.COMPETITION,
-  EventType.NOTE,
-];
-
-const WORKOUT_INCLUDE = {
-  steps: {
-    include: {
-      targets: true,
-      repeatBlock: { include: { childSteps: { include: { targets: true } } } },
-    },
-    orderBy: { orderIndex: 'asc' },
-  },
-} satisfies Prisma.WorkoutInclude;
-
-const SOURCE_INCLUDE = {
-  training: { include: { workout: { include: WORKOUT_INCLUDE } } },
-  competition: true,
-  note: true,
-  athlete: { select: { user: { select: { timeZone: true } } } },
-} satisfies Prisma.EventInclude;
-
-type SourceEvent = Prisma.EventGetPayload<{ include: typeof SOURCE_INCLUDE }>;
 
 /**
  * Copies or moves many planned events by whole days at once, for the week
@@ -111,7 +85,7 @@ export class EventBulkService {
     return events;
   }
 
-  private reload(eventIds: number[]) {
+  reload(eventIds: number[]) {
     return this.prisma.event.findMany({
       where: { eventId: { in: eventIds } },
       include: EVENT_INCLUDES,
@@ -123,7 +97,7 @@ export class EventBulkService {
    * Side effects stay out of the transaction: watch exports go through the
    * workout listener's jobs, and calendars refresh their weekly load.
    */
-  private afterChange(events: Awaited<ReturnType<typeof this.reload>>) {
+  afterChange(events: Awaited<ReturnType<typeof this.reload>>) {
     const athletes = new Set<number>();
     for (const event of events) {
       if (!event.athleteId) continue;
@@ -145,73 +119,4 @@ export class EventBulkService {
       });
     }
   }
-}
-
-/** Same wall clock time, `offsetDays` later, in the athlete's time zone */
-function shiftedDates(event: SourceEvent, offsetDays: number) {
-  const timeZone = event.athlete?.user.timeZone ?? 'UTC';
-  return {
-    startDate: addZonedDays(event.startDate, offsetDays, timeZone),
-    endDate: addZonedDays(event.endDate, offsetDays, timeZone),
-  };
-}
-
-/**
- * A copy of the plan, with its workout. Not the link to an activity: the
- * copy is still to do. The load estimate does not depend on the date, so it
- * carries over instead of asking the AI again.
- */
-function copyOf(
-  event: SourceEvent,
-  offsetDays: number,
-): Prisma.EventCreateInput {
-  const base = {
-    name: event.name,
-    type: event.type,
-    ...shiftedDates(event, offsetDays),
-    ...(event.athleteId && {
-      athlete: { connect: { athleteId: event.athleteId } },
-    }),
-  };
-
-  if (event.training) {
-    const {
-      eventTrainingId: _id,
-      eventId: _eventId,
-      relatedActivityId: _activity,
-      // The comment thread stays with the original session (it is unique)
-      messageThreadId: _thread,
-      workout,
-      ...training
-    } = event.training;
-    return {
-      ...base,
-      training: {
-        create: {
-          ...training,
-          ...(workout && {
-            workout: {
-              create: mapWorkoutDtoToPrisma({
-                steps: mapPrismaWorkoutToDto(workout).steps,
-              }),
-            },
-          }),
-        },
-      },
-    };
-  }
-  if (event.competition) {
-    const {
-      eventCompetitionId: _id,
-      eventId: _eventId,
-      relatedActivityId: _activity,
-      ...competition
-    } = event.competition;
-    return { ...base, competition: { create: competition } };
-  }
-  if (event.note) {
-    const { eventNoteId: _id, eventId: _eventId, ...note } = event.note;
-    return { ...base, note: { create: note } };
-  }
-  return base;
 }

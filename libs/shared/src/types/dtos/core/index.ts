@@ -2,6 +2,7 @@ export * from './activity-import.dto';
 export * from './create-event.dto';
 export * from './update-event.dto';
 export * from './duplicate-event.dto';
+export * from './repeat-event.dto';
 export * from './shift-events.dto';
 export * from './use-event-template.dto';
 export * from './update-event-template.dto';

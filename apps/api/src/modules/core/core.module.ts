@@ -38,6 +38,7 @@ import { CalendarFeedService } from './services/calendar-feed.service';
 import { CoachService } from './services/coach.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventBulkService } from './services/event-bulk.service';
+import { EventSeriesService } from './services/event-series.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
 import { InjuryService } from './services/injury.service';
@@ -109,6 +110,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityFeedbackService,
     CalendarFeedService,
     EventBulkService,
+    EventSeriesService,
     OpenMeteoWeatherProvider,
     ActivityDetailService,
     ActivityFileParserService,
