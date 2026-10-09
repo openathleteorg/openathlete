@@ -342,6 +342,8 @@ model Cycle {
   color       String?
   /// Training phase type: BASE, SPECIFIC, TAPER, RECOVERY, or COMPETITION
   phase       CyclePhase?
+  /// Training block, or a period without training (travel, illness, injury)
+  kind        CycleKind   @default(TRAINING)
 
   // relationships
   athlete        Athlete?       @relation(fields: [athleteId], references: [athleteId])

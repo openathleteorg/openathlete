@@ -5,6 +5,8 @@ import { Edit2, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { CYCLE_KIND } from '@openathlete/shared';
+
 import { ConfirmAction } from '../confirm-action';
 import {
   ContextMenu,
@@ -14,6 +16,7 @@ import {
 } from '../ui/context-menu';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { CycleDaySegment } from './utils/cycle-day-layout';
+import { cycleKindIcon, isUnavailableKind } from './utils/cycle-kind';
 
 interface P {
   segment: CycleDaySegment;
@@ -87,6 +90,8 @@ export function CalendarCycleSegment({ segment }: P) {
   };
 
   const isResizing = cycleResize?.cycleId === segment.cycle.cycleId;
+  const unavailable = isUnavailableKind(segment.cycle.kind);
+  const KindIcon = cycleKindIcon[segment.cycle.kind as CYCLE_KIND];
 
   return (
     <ContextMenu>
@@ -99,7 +104,10 @@ export function CalendarCycleSegment({ segment }: P) {
             roundedClass,
           )}
           style={{
-            backgroundColor: segment.cycle.color || '#3b82f6',
+            // Periods without training are hatched grey, whatever their colour
+            background: unavailable
+              ? 'repeating-linear-gradient(135deg, #6b7280 0 6px, #8b93a1 6px 12px)'
+              : segment.cycle.color || '#3b82f6',
             top: `${topOffset}px`,
             left: leftOffset,
             right: rightOffset,
@@ -125,8 +133,11 @@ export function CalendarCycleSegment({ segment }: P) {
 
           {/* Cycle name */}
           {segment.isStart && (
-            <span className="truncate pointer-events-none">
-              {segment.cycle.name}
+            <span className="flex min-w-0 items-center gap-1 pointer-events-none">
+              {unavailable && (
+                <KindIcon aria-hidden className="size-3 shrink-0" />
+              )}
+              <span className="truncate">{segment.cycle.name}</span>
             </span>
           )}
 

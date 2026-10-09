@@ -79,7 +79,9 @@ import { useSharedDnd } from './contexts/shared-dnd-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
+import { UnavailableSessionsDialog } from './unavailable-sessions-dialog';
 import { isPlannedEvent } from './utils/compliance';
+import { isUnavailableKind } from './utils/cycle-kind';
 import { parseLinkDropId } from './utils/link-drop';
 import {
   COPY_KEY,
@@ -88,6 +90,7 @@ import {
   shortcutFor,
   trackHeldKeys,
 } from './utils/shortcuts';
+import { sessionsDuring } from './utils/unavailability';
 import { getUtcWeekKey, getWeekEnd, getWeekStart } from './utils/week';
 
 interface P {
@@ -350,6 +353,10 @@ export function Calendar({
   const [editEventDialog, setEditEventDialog] = useState<
     Event['eventId'] | null
   >(null);
+  const [unavailableReview, setUnavailableReview] = useState<{
+    cycle: Cycle;
+    sessions: Event[];
+  } | null>(null);
   const [createCycleDialog, setCreateCycleDialog] = useState<{
     startDate: Date;
     endDate: Date;
@@ -931,6 +938,19 @@ export function Calendar({
                 onClose={() => setCreateCycleDialog(null)}
                 startDate={createCycleDialog?.startDate}
                 endDate={createCycleDialog?.endDate}
+                onCreated={(cycle) => {
+                  // A period without training: decide about its sessions
+                  if (!isUnavailableKind(cycle.kind)) return;
+                  const sessions = sessionsDuring(calendarData.events, cycle);
+                  if (sessions.length)
+                    setUnavailableReview({ cycle, sessions });
+                }}
+              />
+              <UnavailableSessionsDialog
+                key={unavailableReview?.cycle.cycleId}
+                cycle={unavailableReview?.cycle ?? null}
+                sessions={unavailableReview?.sessions ?? []}
+                onClose={() => setUnavailableReview(null)}
               />
               <CreateCycleDialog
                 key={`edit-cycle-${editCycleDialog}`}

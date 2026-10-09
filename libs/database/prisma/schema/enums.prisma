@@ -436,3 +436,14 @@ enum CompetitionPriority {
 
   @@map("competition_priority")
 }
+
+/// What a cycle stands for: a block of training, or a period the athlete
+/// cannot train (travel, illness, injury)
+enum CycleKind {
+  TRAINING
+  TRAVEL
+  ILLNESS
+  INJURY
+
+  @@map("cycle_kind")
+}

@@ -8,13 +8,22 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { Cycle } from '@openathlete/shared';
+import { CYCLE_KIND, Cycle } from '@openathlete/shared';
 
 import {
   CYCLE_COLORS,
   DEFAULT_CYCLE_COLOR,
 } from '../calendar/constants/cycle-colors';
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
+import {
+  cycleKindIcon,
+  cycleKindLabel,
+  isUnavailableKind,
+} from '../calendar/utils/cycle-kind';
+import {
+  endOfLocalDateInput,
+  startOfLocalDateInput,
+} from '../calendar/utils/local-date';
 import { FormProvider, RHFDatePicker, RHFTextField } from '../hook-form';
 import { RHFTextarea } from '../hook-form/rhf-textarea';
 import { Button } from '../ui/button';
@@ -28,6 +37,7 @@ const cycleFormSchema = z.object({
   startDate: z.string(),
   endDate: z.string(),
   color: z.string().optional(),
+  kind: z.nativeEnum(CYCLE_KIND),
 });
 
 type CycleFormValues = z.infer<typeof cycleFormSchema>;
@@ -38,6 +48,8 @@ type P =
       onClose: () => void;
       startDate?: Date;
       endDate?: Date;
+      /** A new cycle was saved: the calendar reviews the sessions it covers */
+      onCreated?: (cycle: Cycle) => void;
     }
   | {
       open: boolean;
@@ -84,9 +96,10 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
   };
 
   const createCycleMutation = useCreateCycleMutation({
-    onSuccess: () => {
-      posthog?.capture('cycle_created');
+    onSuccess: (cycle) => {
+      posthog?.capture('cycle_created', { kind: cycle.kind });
       onClose();
+      if (create) rest.onCreated?.(cycle);
       toast.success(m.cycle_created_successfully());
     },
     onError: () => {
@@ -115,6 +128,7 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
             startDate: formatDateForInput(initialStartDate),
             endDate: formatDateForInput(initialEndDate),
             color: rest.cycle.color || '#3b82f6',
+            kind: rest.cycle.kind as CYCLE_KIND,
           }
         : {
             name: '',
@@ -122,6 +136,7 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
             startDate: formatDateForInput(initialStartDate),
             endDate: formatDateForInput(initialEndDate),
             color: DEFAULT_CYCLE_COLOR,
+            kind: CYCLE_KIND.TRAINING,
           },
   });
 
@@ -132,9 +147,10 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
     const submitData = {
       name: data.name,
       description: data.description || '',
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
+      startDate: startOfLocalDateInput(data.startDate),
+      endDate: endOfLocalDateInput(data.endDate),
       color: data.color,
+      kind: data.kind,
     };
 
     if (create) {
@@ -149,6 +165,23 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
   });
 
   const colorValue = watch('color');
+  const kind = watch('kind');
+  const unavailable = isUnavailableKind(kind);
+
+  // Choosing a kind names the cycle after it, unless the name was typed
+  const chooseKind = (next: CYCLE_KIND) => {
+    const name = methods.getValues('name');
+    const named = Object.values(cycleKindLabel).some(
+      (label) => label() === name,
+    );
+    methods.setValue('kind', next);
+    if (!name || named) {
+      methods.setValue(
+        'name',
+        next === CYCLE_KIND.TRAINING ? '' : cycleKindLabel[next](),
+      );
+    }
+  };
 
   if ((create && (!rest.startDate || !rest.endDate)) || (edit && !rest.cycle)) {
     return null;
@@ -165,6 +198,43 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
           onSubmit={onSubmit}
           className="flex flex-col gap-4 pt-3"
         >
+          <div className="flex flex-col gap-2">
+            <Label id="cycle-kind-label">{m.cycle_kind()}</Label>
+            <div
+              role="radiogroup"
+              aria-labelledby="cycle-kind-label"
+              className="flex flex-wrap gap-2"
+            >
+              {Object.values(CYCLE_KIND).map((value) => {
+                const Icon = cycleKindIcon[value];
+                const checked = kind === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={checked}
+                    onClick={() => chooseKind(value)}
+                    className={cn(
+                      'flex min-h-10 items-center gap-2 rounded-md border px-3 text-sm transition-colors',
+                      checked
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'hover:bg-muted',
+                    )}
+                  >
+                    <Icon className="size-4" />
+                    {cycleKindLabel[value]()}
+                  </button>
+                );
+              })}
+            </div>
+            {unavailable && (
+              <p className="text-xs text-muted-foreground">
+                {m.cycle_kind_unavailable_help()}
+              </p>
+            )}
+          </div>
+
           <RHFTextField
             name="name"
             type="text"
@@ -185,19 +255,26 @@ export function CreateCycleDialog({ open, onClose, ...rest }: P) {
               name="startDate"
               label={m.start_date()}
               required
-              max={watch('endDate') ? new Date(watch('endDate')) : undefined}
+              max={
+                watch('endDate')
+                  ? startOfLocalDateInput(watch('endDate'))
+                  : undefined
+              }
             />
             <RHFDatePicker
               name="endDate"
               label={m.end_date()}
               required
               min={
-                watch('startDate') ? new Date(watch('startDate')) : undefined
+                watch('startDate')
+                  ? startOfLocalDateInput(watch('startDate'))
+                  : undefined
               }
             />
           </div>
 
-          <div className="flex flex-col gap-2">
+          {/* Periods without training share one hatched grey look */}
+          <div className={cn('flex flex-col gap-2', unavailable && 'hidden')}>
             <Label htmlFor="color">{m.color()}</Label>
             <div className="grid grid-cols-10 gap-2">
               {CYCLE_COLORS.map((color) => (

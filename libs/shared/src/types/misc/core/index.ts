@@ -1,4 +1,5 @@
 export * from './competition-priority.enum';
+export * from './cycle-kind.enum';
 export * from './cycle-phase.enum';
 export * from './event-type.enum';
 export * from './sport-type.enum';

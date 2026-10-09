@@ -1,16 +1,21 @@
 import { useDeleteCycleMutation } from '@/api/cycle';
 import { m } from '@/paraglide/messages';
-import { format } from 'date-fns';
+import { differenceInCalendarDays, format } from 'date-fns';
 import { Calendar, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { Cycle } from '@openathlete/shared';
+import { CYCLE_KIND, Cycle } from '@openathlete/shared';
 
 import { ConfirmAction } from '../confirm-action';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Separator } from '../ui/separator';
+import {
+  cycleKindIcon,
+  cycleKindLabel,
+  isUnavailableKind,
+} from './utils/cycle-kind';
 
 interface P {
   open: boolean;
@@ -37,11 +42,11 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
 
   const startDate = new Date(cycle.startDate);
   const endDate = new Date(cycle.endDate);
-  const duration =
-    Math.ceil(
-      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-    ) + 1;
+  // Calendar days, both ends included: a cycle ends at 23:59 on its last day
+  const duration = differenceInCalendarDays(endDate, startDate) + 1;
   const weeks = Math.round(duration / 7);
+
+  const KindIcon = cycleKindIcon[cycle.kind as CYCLE_KIND];
 
   return (
     <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
@@ -51,9 +56,19 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
             <div className="flex items-center gap-3 flex-1">
               <div
                 className="w-4 h-4 rounded"
-                style={{ backgroundColor: cycle.color || '#3b82f6' }}
+                style={{
+                  background: isUnavailableKind(cycle.kind)
+                    ? 'repeating-linear-gradient(135deg, #6b7280 0 3px, #8b93a1 3px 6px)'
+                    : cycle.color || '#3b82f6',
+                }}
               />
-              <span className="text-xl font-semibold">{cycle.name}</span>
+              <span className="flex flex-col">
+                <span className="text-xl font-semibold">{cycle.name}</span>
+                <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                  <KindIcon aria-hidden className="size-3.5" />
+                  {cycleKindLabel[cycle.kind as CYCLE_KIND]()}
+                </span>
+              </span>
             </div>
             <div className="flex items-center gap-2 pr-4 -translate-y-4">
               <Button
