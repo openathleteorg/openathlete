@@ -55,9 +55,9 @@ import { toast } from 'sonner';
 
 import {
   AiTask,
-  CALENDAR_WELLNESS_METRICS,
   CreateEventDto,
   Cycle,
+  DAILY_WELLNESS_SIGNALS,
   EVENT_TYPE,
   Event,
   EventTemplate,
@@ -174,11 +174,12 @@ export function Calendar({
         : undefined,
     [ownCalendar, myAthlete],
   );
-  // Wellness only for athletes who record some: no request otherwise
-  const { data: latestMetrics } = useGetLatestMetricsQuery(athleteId, {
-    enabled: Boolean(athleteId),
-  });
-  const recordsWellness = CALENDAR_WELLNESS_METRICS.some(
+  // Wellness only for athletes who track it day by day: no request otherwise
+  const { data: latestMetrics, isPending: latestMetricsPending } =
+    useGetLatestMetricsQuery(athleteId, {
+      enabled: Boolean(athleteId),
+    });
+  const recordsWellness = DAILY_WELLNESS_SIGNALS.some(
     (type) => latestMetrics?.[type],
   );
   const { data: dailyFormList } = useDailyFormQuery({
@@ -188,9 +189,11 @@ export function Calendar({
     wellness: display.wellness && recordsWellness,
     // The wellness row and the weekly load charts read it; the phone's
     // list of months shows neither
+    // Once the metrics say whether to ask for wellness: one request, not two
     enabled:
       (display.wellness || display.summary.load) &&
-      (!isMobile || view === 'week'),
+      (!isMobile || view === 'week') &&
+      !latestMetricsPending,
   });
   const { data: commentCountList } = useEventCommentCountsQuery({
     startDate: loadRange.start,

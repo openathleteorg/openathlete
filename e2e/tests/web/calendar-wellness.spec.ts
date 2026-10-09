@@ -18,16 +18,19 @@ test('an athlete without wellness data costs no wellness query', async ({
   page,
   request,
 }) => {
+  // Onboarding records a resting heart rate: not a sign of daily tracking
   const athlete = await createAthlete(request);
   await signIn(page, athlete);
-  const days = page.waitForRequest((req) =>
-    req.url().includes('/training-load/days'),
-  );
+  const asked: string[] = [];
+  page.on('request', (req) => {
+    if (req.url().includes('/training-load/days')) asked.push(req.url());
+  });
   await page.goto('/dashboard/calendar');
-  expect(new URL((await days).url()).searchParams.get('wellness')).toBe(
-    'false',
-  );
   await expect(page.locator('[data-calendar-day]').first()).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  // One request, without wellness
+  expect(asked).toHaveLength(1);
+  expect(new URL(asked[0]).searchParams.get('wellness')).toBe('false');
   await expect(page.locator('[data-day-wellness]')).toHaveCount(0);
 });
 

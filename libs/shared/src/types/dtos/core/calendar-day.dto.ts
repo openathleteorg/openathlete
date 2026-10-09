@@ -15,6 +15,17 @@ export const CALENDAR_WELLNESS_METRICS = [
 
 export type CalendarWellnessMetric = (typeof CALENDAR_WELLNESS_METRICS)[number];
 
+/**
+ * The measurements that show an athlete tracks their wellness day by day.
+ * Not the resting heart rate: onboarding records one for everyone.
+ */
+export const DAILY_WELLNESS_SIGNALS = [
+  METRIC_TYPE.SLEEP_DURATION,
+  METRIC_TYPE.SLEEP_SCORE,
+  METRIC_TYPE.HRV_LAST_NIGHT_AVG,
+  METRIC_TYPE.HOOPER_INDEX,
+] as const;
+
 /** One day of the calendar: its load, the form it leads to, and wellness */
 export type CalendarDayForm = {
   /** UTC date, YYYY-MM-DD, as training load is bucketed */
