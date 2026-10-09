@@ -1100,6 +1100,8 @@ export class EventService {
     delete subEntityData.eventId;
     delete subEntityData.relatedActivityId;
     delete subEntityData.relatedActivity;
+    // The comment thread stays with the original session (it is unique)
+    delete subEntityData.messageThreadId;
 
     if (type === 'TRAINING') {
       delete subEntityData.workout;
