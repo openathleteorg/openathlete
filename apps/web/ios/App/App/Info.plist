@@ -57,6 +57,8 @@
         </dict>
       </dict>
     </dict>
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
     <key>NSMicrophoneUsageDescription</key>
     <string>OpenAthlete needs access to your microphone to record audio feedback for your
       activities.</string>
