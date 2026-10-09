@@ -27,6 +27,8 @@ export const RHFTextField = ({ name, type, label, ...other }: Props) => {
           <>
             <Input
               {...field}
+              // Ties the field to its label for screen readers
+              id={name}
               type={type}
               value={
                 type === 'number'
