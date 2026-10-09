@@ -115,3 +115,13 @@ export const mapStravaSportType = (type: string): SportType => {
       return SportType.OTHER;
   }
 };
+
+/**
+ * The sport of a Strava activity. `sport_type` tells a trail run from a run
+ * and a gravel ride from a ride; `type`, kept for old payloads, folds them
+ * into Run and Ride.
+ */
+export const stravaActivitySport = (activity: {
+  sport_type?: string | null;
+  type?: string | null;
+}): SportType => mapStravaSportType(activity.sport_type || activity.type || '');

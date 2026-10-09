@@ -8,6 +8,7 @@ import {
   EventActivity,
   EventType,
   ProviderAccount,
+  SportType,
 } from '@openathlete/database';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
@@ -23,7 +24,7 @@ import {
   roundPower,
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
-import { mapStravaSportType } from '../../core/helpers/strava';
+import { stravaActivitySport } from '../../core/helpers/strava';
 import { StravaSteam, StravaSummaryActivity } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -306,7 +307,7 @@ export class StravaProviderService
           name: activity.name,
           startDate,
           endDate,
-          sport: mapStravaSportType(activity.type),
+          sport: stravaActivitySport(activity),
           distance: activity.distance,
           duration: activity.elapsed_time,
           raw: activity,
@@ -431,7 +432,7 @@ export class StravaProviderService
       );
     }
 
-    const sport = mapStravaSportType(activity.type);
+    const sport = stravaActivitySport(activity);
 
     const savedActivity = await this.prisma.eventActivity.create({
       data: {
@@ -506,6 +507,48 @@ export class StravaProviderService
     }
   }
 
+  /**
+   * Activities imported before the sport was read from `sport_type` were
+   * filed under the parent sport (a trail run as a run). An import that
+   * fetches them again puts them right, from the summaries it already has.
+   */
+  private async correctSports(
+    existing: {
+      eventActivityId: number;
+      externalId: string;
+      sport: SportType;
+      provider: ConnectorProvider | null;
+    }[],
+    activities: ImportedActivity[],
+  ) {
+    const fetched = new Map(
+      activities.map((a) => [a.externalId, a.sport as SportType]),
+    );
+    const bySport = new Map<SportType, number[]>();
+    for (const activity of existing) {
+      const sport = fetched.get(activity.externalId);
+      if (
+        activity.provider !== ConnectorProvider.STRAVA ||
+        !sport ||
+        sport === SportType.OTHER ||
+        sport === activity.sport
+      ) {
+        continue;
+      }
+      bySport.set(sport, [
+        ...(bySport.get(sport) ?? []),
+        activity.eventActivityId,
+      ]);
+    }
+    for (const [sport, ids] of bySport) {
+      await this.prisma.eventActivity.updateMany({
+        where: { eventActivityId: { in: ids } },
+        data: { sport },
+      });
+      this.logger.log(`Filed ${ids.length} Strava activities under ${sport}`);
+    }
+  }
+
   private async enqueueActivities(
     account: ProviderAccount,
     activities: ImportedActivity[],
@@ -514,20 +557,22 @@ export class StravaProviderService
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.eventActivity.findMany({
+    const existing = await this.prisma.eventActivity.findMany({
       where: {
         externalId: {
           in: activities.map((a) => a.externalId),
         },
       },
       select: {
+        eventActivityId: true,
         externalId: true,
+        sport: true,
+        provider: true,
       },
     });
 
-    const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.externalId),
-    );
+    const existingIdsSet = new Set(existing.map((a) => a.externalId));
+    await this.correctSports(existing, activities);
 
     const newActivities = activities.filter(
       (a) => !existingIdsSet.has(a.externalId),
@@ -638,7 +683,7 @@ export class StravaProviderService
         name: activity.name,
         startDate: new Date(activity.start_date),
         endDate,
-        sport: mapStravaSportType(activity.type),
+        sport: stravaActivitySport(activity),
         distance: activity.distance,
         duration: activity.elapsed_time,
         raw: activity,
