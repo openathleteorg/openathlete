@@ -10,7 +10,10 @@ import {
   TrainingLoadAPI,
   TrainingLoadCalculationType,
 } from './training-load.api';
-import { trainingLoadKeys } from './training-load.keys';
+import {
+  invalidateTrainingLoadQueries,
+  trainingLoadKeys,
+} from './training-load.keys';
 
 export const useCalculateActivityLoadMutation = (
   opt?: MutationOptions<
@@ -31,9 +34,7 @@ export const useCalculateActivityLoadMutation = (
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
       // Invalidate all training load queries
-      queryClient.invalidateQueries({
-        queryKey: [trainingLoadKeys.root],
-      });
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };
@@ -176,9 +177,7 @@ export const useRecalculateAllLoadsMutation = (
     onSuccess: (data, variables, onMutateResult, context) => {
       if (opt?.onSuccess)
         opt.onSuccess(data, variables, onMutateResult, context);
-      queryClient.invalidateQueries({
-        queryKey: [trainingLoadKeys.root],
-      });
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };

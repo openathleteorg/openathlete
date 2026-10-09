@@ -10,6 +10,7 @@ import { Event, EventTemplate } from '@openathlete/shared';
 
 import { eventTemplateFolderKeys } from '../event-template-folder/event-template-folder.keys';
 import { eventKeys } from '../event/event.keys';
+import { invalidateTrainingLoadQueries } from '../training-load/training-load.keys';
 import { EventTemplateAPI } from './event-template.api';
 import { eventTemplateKeys } from './event-template.keys';
 
@@ -205,6 +206,7 @@ export const useUseEventTemplateMutation = (
 
       // Don't invalidate immediately - the cache already has the real data
       // from setQueriesData. Let the natural staleTime handle eventual sync.
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };

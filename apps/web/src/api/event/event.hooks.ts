@@ -8,7 +8,10 @@ import {
 
 import { Event } from '@openathlete/shared';
 
-import { trainingLoadKeys } from '../training-load/training-load.keys';
+import {
+  invalidateTrainingLoadQueries,
+  trainingLoadKeys,
+} from '../training-load/training-load.keys';
 import { EventAPI } from './event.api';
 import { eventKeys } from './event.keys';
 
@@ -114,6 +117,7 @@ export const useCreateEventMutation = (
       // Don't invalidate immediately - the cache already has the real data
       // from setQueriesData. The invalidation would trigger a refetch that could
       // return stale data if the server hasn't fully committed yet.
+      invalidateTrainingLoadQueries(queryClient);
       // Let the natural staleTime (5 min) handle eventual sync.
     },
   });
@@ -229,9 +233,7 @@ export const useUpdateEventMutation = (
         queryKey: [eventKeys.getMyEvents],
       });
       // Invalidate training load queries when RPE is updated (affects Foster RPE calculation)
-      queryClient.invalidateQueries({
-        queryKey: [trainingLoadKeys.root],
-      });
+      invalidateTrainingLoadQueries(queryClient);
       // Also invalidate the specific activity training loads query
       queryClient.invalidateQueries({
         queryKey: [
@@ -385,6 +387,7 @@ export const useDeleteEventMutation = (
         opt.onSuccess(data, variables, onMutateResult, context);
       // Invalidate to ensure we have the correct server data
       queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };
@@ -409,6 +412,7 @@ export const useSetRelatedActivityMutation = (
       queryClient.invalidateQueries({
         queryKey: [eventKeys.getMyEvents],
       });
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };
@@ -433,6 +437,7 @@ export const useUnsetRelatedActivityMutation = (
       queryClient.invalidateQueries({
         queryKey: [eventKeys.getMyEvents],
       });
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };
@@ -593,6 +598,7 @@ export const useDuplicateEventMutation = (
       queryClient.invalidateQueries({
         queryKey: [eventKeys.getMyEvents],
       });
+      invalidateTrainingLoadQueries(queryClient);
     },
     onSettled: (_data, _error, _variables, context) => {
       // After everything is settled (success or error), ensure cache is clean
