@@ -65,6 +65,7 @@ import { CalendarMobileList } from './calendar-mobile-list';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { CalendarWeekView } from './calendar-week-view';
 import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
+import { ComplianceLegend } from './compliance-badge';
 import { CalendarContext } from './contexts/calendar-context';
 import { EventClipboardProvider } from './contexts/event-clipboard-context';
 import { EventContextMenuProvider } from './contexts/event-context-menu-context';
@@ -723,6 +724,7 @@ export function Calendar({
                   <div className="flex flex-wrap gap-2 px-4">
                     <CalendarViewToggle />
                     <BulkWorkoutSelectButton />
+                    <ComplianceLegend className="w-full" />
                   </div>
                 )
               }

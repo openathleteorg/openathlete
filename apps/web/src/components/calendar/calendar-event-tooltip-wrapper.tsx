@@ -5,15 +5,20 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { Event } from '@openathlete/shared';
 
 import { CalendarEventTooltipContent } from './calendar-event-tooltip';
+import { ComplianceBadge } from './compliance-badge';
+import { Compliance } from './utils/compliance';
 
 interface CalendarEventTooltipWrapperProps {
   event: Event;
+  /** How the planned session behind this card went */
+  compliance?: Compliance;
   children: React.ReactNode;
   disabled?: boolean;
 }
 
 export function CalendarEventTooltipWrapper({
   event,
+  compliance,
   children,
   disabled = false,
 }: CalendarEventTooltipWrapperProps) {
@@ -34,6 +39,9 @@ export function CalendarEventTooltipWrapper({
           avoidCollisions={true}
           alignOffset={-8}
         >
+          {compliance && (
+            <ComplianceBadge compliance={compliance} className="mb-3" />
+          )}
           <CalendarEventTooltipContent event={event} />
           <TooltipPrimitive.Arrow
             className={cn(

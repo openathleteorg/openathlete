@@ -46,6 +46,14 @@ import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useEventContextMenu } from './contexts/event-context-menu-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY } from './types/filter';
+import {
+  PlannedEvent,
+  complianceStripClass,
+  getCompliance,
+  isPlannedEvent,
+  isShownCompliance,
+} from './utils/compliance';
+import { complianceLabel } from './utils/compliance-labels';
 
 interface P {
   event: Event;
@@ -176,10 +184,16 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
   const draggable =
     event.type !== EVENT_TYPE.ACTIVITY && !wrapped && !bulk?.selecting;
   const relatedEvents = allEvents.filter(
-    (e) =>
-      (e.type === EVENT_TYPE.TRAINING || e.type === EVENT_TYPE.COMPETITION) &&
-      e.relatedActivity?.eventId === event.eventId,
+    (e): e is PlannedEvent =>
+      isPlannedEvent(e) && e.relatedActivity?.eventId === event.eventId,
   );
+  // A done session shows as its activity, so the activity carries the strip
+  const plannedEvent = isPlannedEvent(event) ? event : relatedEvents[0];
+  const compliance =
+    plannedEvent && !wrapped ? getCompliance(plannedEvent) : undefined;
+  const shownCompliance = isShownCompliance(compliance)
+    ? compliance
+    : undefined;
   return (
     <>
       <ContextMenu
@@ -190,6 +204,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
         <ContextMenuTrigger className="w-full">
           <CalendarEventTooltipWrapper
             event={event}
+            compliance={compliance}
             disabled={isDragging || isAnyContextMenuOpen || bulk?.selecting}
           >
             <div
@@ -197,6 +212,11 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                 'calendar-event rounded-sm cursor-pointer text-left flex flex-col items-start justify-center py-0.5 px-1 overflow-hidden w-full',
                 eventColor,
                 wrapped ? 'border-2' : '',
+                shownCompliance &&
+                  cn(
+                    'border-l-4',
+                    complianceStripClass[shownCompliance.status],
+                  ),
                 !isValidated ? 'opacity-60' : '',
                 isDragging ? 'opacity-30' : '',
                 selectable &&
@@ -288,6 +308,11 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               <div className="px-1 w-full">
                 <EventSecondLine event={event} />
               </div>
+              {shownCompliance && (
+                <span className="sr-only">
+                  {complianceLabel[shownCompliance.status]()}
+                </span>
+              )}
               {relatedEvents.length > 0 && (
                 <div className="flex flex-col gap-1 mt-1 w-full mb-0.5">
                   {relatedEvents.map((relatedEvent) => (

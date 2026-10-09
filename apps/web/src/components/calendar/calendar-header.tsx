@@ -35,6 +35,7 @@ import {
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarDayActions } from './calendar-day-actions';
 import { CalendarViewToggle } from './calendar-view-toggle';
+import { ComplianceLegend } from './compliance-badge';
 import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY, coloredByLabelMap } from './types/filter';
@@ -148,6 +149,7 @@ export function CalendarHeader() {
             )}
           </p>
         )}
+        <ComplianceLegend className="mt-1" />
       </div>
       <div className="flex flex-col md:flex-row md:flex-wrap gap-2">
         <div className="flex flex-wrap gap-2">
