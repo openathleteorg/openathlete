@@ -131,6 +131,10 @@ export function getFormDefaultValues(
       endDate: calculatedEndDate,
       sport: SPORT_TYPE.RUNNING,
       saveAsTemplate: false,
+      // A logged activity shows the hour its end implies
+      ...(props.type === EVENT_TYPE.ACTIVITY && {
+        duration: (calculatedEndDate.getTime() - startDate.getTime()) / 1000,
+      }),
     };
   }
 

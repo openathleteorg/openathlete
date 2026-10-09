@@ -42,6 +42,7 @@ import { EventSeriesService } from './services/event-series.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
 import { InjuryService } from './services/injury.service';
+import { ManualActivityService } from './services/manual-activity.service';
 import { ManualFitImportService } from './services/manual-fit-import.service';
 import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
@@ -112,6 +113,7 @@ import { WeatherService } from './services/weather/weather.service';
     CalendarFeedService,
     EventBulkService,
     EventSeriesService,
+    ManualActivityService,
     OpenMeteoWeatherProvider,
     ActivityDetailService,
     ActivityFileParserService,

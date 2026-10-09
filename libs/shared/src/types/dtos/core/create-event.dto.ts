@@ -43,11 +43,21 @@ export const noteEventSchema = baseEventSchema.extend({
   description: z.string().min(1),
 });
 
+/**
+ * An activity logged by hand, without a device: its duration is the time
+ * between its start and end, its distance and elevation are optional.
+ */
 export const activityEventSchema = baseEventSchema.extend({
   type: z.literal(EVENT_TYPE.ACTIVITY),
   sport: z.nativeEnum(SPORT_TYPE),
   description: z.string().optional(),
-  rpe: z.number().optional().nullable(),
+  rpe: z.number().min(0).max(1).optional().nullable(),
+  /** Meters */
+  distance: z.number().min(0).max(1_000_000).optional().nullable(),
+  /** Meters */
+  elevationGain: z.number().min(0).max(30_000).optional().nullable(),
+  equipmentId: z.number().int().positive().optional().nullable(),
+  isRace: z.boolean().optional(),
 });
 
 export const createEventDtoSchema = z.discriminatedUnion('type', [

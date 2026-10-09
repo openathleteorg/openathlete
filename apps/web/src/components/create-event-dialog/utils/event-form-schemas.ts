@@ -79,6 +79,10 @@ export const activityEventFormSchema = baseEventFormSchema.extend({
   /** An equipment id, or 'none' */
   equipment: z.string().optional(),
   isRace: z.boolean().optional(),
+  // Logging an activity by hand: what a device would have recorded
+  duration: z.number().optional().nullable(),
+  distance: z.number().optional().nullable(),
+  elevationGain: z.number().optional().nullable(),
 });
 
 // Discriminated union for all event types

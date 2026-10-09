@@ -36,6 +36,7 @@ import {
   CreateEventDto,
   DuplicateEventDto,
   DuplicateWorkoutDto,
+  EVENT_TYPE,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
   SeasonEvent,
@@ -59,6 +60,7 @@ import { ActivityFeedbackService } from '../services/activity-feedback.service';
 import { CalendarFeedService } from '../services/calendar-feed.service';
 import { EventBulkService } from '../services/event-bulk.service';
 import { EventSeriesService } from '../services/event-series.service';
+import { ManualActivityService } from '../services/manual-activity.service';
 
 @ApiTags('Event')
 @Controller('event')
@@ -69,6 +71,7 @@ export class EventController {
     private calendarFeedService: CalendarFeedService,
     private eventBulkService: EventBulkService,
     private eventSeriesService: EventSeriesService,
+    private manualActivityService: ManualActivityService,
   ) {}
 
   @Get('ical')
@@ -464,6 +467,10 @@ export class EventController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(createEventDtoSchema)) body: CreateEventDto,
   ) {
+    // Logged by hand: built apart, with the processing imports get
+    if (body.type === EVENT_TYPE.ACTIVITY) {
+      return this.manualActivityService.create(user, body);
+    }
     return this.eventService.createEvent(user, body);
   }
 

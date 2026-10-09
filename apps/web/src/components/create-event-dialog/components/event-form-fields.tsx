@@ -36,6 +36,8 @@ type Props = {
   goalDurationValue?: number | null;
   setValue: UseFormSetValue<EventFormValues>;
   isTemplate?: boolean;
+  /** A new activity logged by hand: its duration, distance and elevation */
+  logging?: boolean;
 };
 
 export function EventFormFields({
@@ -48,6 +50,7 @@ export function EventFormFields({
   goalDurationValue,
   setValue,
   isTemplate,
+  logging,
 }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -161,6 +164,25 @@ export function EventFormFields({
           />
           <RHFRpe name="goalRpe" label={m.goal_rpe()} />
           {type === EVENT_TYPE.COMPETITION && <CompetitionPriorityField />}
+        </>
+      )}
+      {type === EVENT_TYPE.ACTIVITY && logging && (
+        <>
+          <RHFDuration
+            name="duration"
+            label={m.duration()}
+            onChange={(seconds) => {
+              // The end follows: the API reads the duration from it
+              if (startDateValue && seconds) {
+                setValue(
+                  'endDate',
+                  new Date(new Date(startDateValue).getTime() + seconds * 1000),
+                );
+              }
+            }}
+          />
+          <RHFDistance name="distance" label={m.distance()} />
+          <RHFElevation name="elevationGain" label={m.elevation_gain()} />
         </>
       )}
       {type === EVENT_TYPE.ACTIVITY && (

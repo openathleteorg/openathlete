@@ -335,7 +335,11 @@ export class EventService {
     const finalAthleteId = athleteId || user?.athlete?.athleteId;
 
     if (!finalAthleteId) {
-      throw new Error('Athlete ID is required');
+      throw new BadRequestException('athleteId is required');
+    }
+    if (type === EVENT_TYPE.ACTIVITY) {
+      // Activities need their recorded figures: ManualActivityService
+      throw new BadRequestException('Activities are not created here');
     }
 
     if (

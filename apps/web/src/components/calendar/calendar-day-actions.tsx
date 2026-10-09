@@ -6,6 +6,7 @@ import {
   Award,
   ClipboardPaste,
   FileText,
+  PenLine,
   StickyNote,
 } from 'lucide-react';
 import { ComponentProps, ComponentType } from 'react';
@@ -130,6 +131,10 @@ export function CalendarDayActions({
       <Item onClick={() => createEvent(day, EVENT_TYPE.NOTE)}>
         <StickyNote className="mr-2 h-4 w-4" />
         {m.plan_a_note()}
+      </Item>
+      <Item onClick={() => createEvent(day, EVENT_TYPE.ACTIVITY)}>
+        <PenLine className="mr-2 h-4 w-4" />
+        {m.event_dialog_plan_activity()}
       </Item>
     </>
   );

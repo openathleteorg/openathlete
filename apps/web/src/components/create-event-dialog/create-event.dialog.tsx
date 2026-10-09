@@ -428,6 +428,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         >
           <EventFormFields
             type={type}
+            logging={create && type === EVENT_TYPE.ACTIVITY}
             hasStepsWithDuration={hasStepsWithDuration}
             startDateValue={startDateValue}
             endDateValue={watch('endDate')}
@@ -475,7 +476,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                 {m.delete_()}
               </Button>
             )}
-            {create && (
+            {create && type !== EVENT_TYPE.ACTIVITY && (
               <RHFCheckbox
                 name="saveAsTemplate"
                 label={m.save_event_as_template()}

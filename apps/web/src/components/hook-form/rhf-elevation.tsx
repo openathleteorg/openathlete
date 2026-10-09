@@ -51,6 +51,8 @@ function ElevationFieldAdapter({
   return (
     <div className="flex items-center">
       <Input
+        // Labelled by the Label above, which points at the field's name
+        id={field.name}
         type="number"
         min={0}
         step="any"
