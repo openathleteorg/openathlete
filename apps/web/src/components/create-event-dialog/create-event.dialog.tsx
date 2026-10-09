@@ -7,6 +7,7 @@ import {
 import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -28,6 +29,9 @@ import {
   type SeriesScope,
   SeriesScopeDialog,
 } from '../calendar/series-scope-dialog';
+import { isPlannedEvent } from '../calendar/utils/compliance';
+import { restoreDeleted } from '../calendar/utils/restore-deleted';
+import { undoable } from '../calendar/utils/undo';
 import { ConfirmAction } from '../confirm-action/confirm-action';
 import { FormProvider } from '../hook-form';
 import { RHFCheckbox } from '../hook-form/rhf-checkbox';
@@ -80,7 +84,7 @@ const PLAN_TITLES: Record<EVENT_TYPE, () => string> = {
 };
 
 export function CreateEventDialog({ open, onClose, ...rest }: P) {
-  const { athleteId } = useCalendarContext();
+  const { athleteId, events: calendarEvents } = useCalendarContext();
   const edit = 'event' in rest;
   const create = 'type' in rest && 'date' in rest;
 
@@ -185,10 +189,36 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const isTemplate = edit && 'isTemplate' in rest && !!rest.isTemplate;
   const { data: myAthlete } = useGetMyAthleteQuery();
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const queryClient = useQueryClient();
+  const deletedEvent = 'event' in rest ? rest.event : undefined;
+  // Hook options, not mutate callbacks: the dialog closes on success
   const deleteEventMutation = useDeleteEventMutation({
+    onSuccess: () => {
+      // A plan can come back; an activity comes from its device
+      if (deletedEvent && deletedEvent.type !== EVENT_TYPE.ACTIVITY) {
+        undoable(m.calendar_items_deleted({ count: 1 }), () =>
+          restoreDeleted(queryClient, [deletedEvent]),
+        );
+      }
+    },
     onError: () => toast.error(m.failed_to_delete_event()),
   });
   const deleteSeriesMutation = useDeleteEventSeriesMutation({
+    onSuccess: ({ deleted }) => {
+      if (!deletedEvent) return;
+      // What the API deleted: this occurrence and the following ones to do
+      const occurrences = calendarEvents.filter(
+        (other) =>
+          other.seriesId === deletedEvent.seriesId &&
+          other.startDate >= deletedEvent.startDate &&
+          (other.eventId === deletedEvent.eventId ||
+            !isPlannedEvent(other) ||
+            !other.relatedActivity),
+      );
+      undoable(m.calendar_items_deleted({ count: deleted }), () =>
+        restoreDeleted(queryClient, occurrences),
+      );
+    },
     onError: () => toast.error(m.failed_to_delete_event()),
   });
   const isSeriesEvent = edit && 'event' in rest && !!rest.event?.seriesId;

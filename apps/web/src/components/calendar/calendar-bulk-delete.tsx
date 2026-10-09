@@ -36,8 +36,10 @@ import {
   canBulkDeleteWorkout,
   deleteWorkoutsSequentially,
 } from './utils/bulk-delete';
+import { restoreDeleted } from './utils/restore-deleted';
 import { SHIFT_OPTIONS } from './utils/shift-options';
 import { isOverlayOpen } from './utils/shortcuts';
+import { undoable } from './utils/undo';
 
 const COPY_OPTIONS = [
   { offsetDays: 1, label: m.calendar_bulk_copy_next_day },
@@ -167,7 +169,10 @@ export function CalendarBulkDelete({
         }),
       );
     } else {
-      toast.success(m.bulk_workouts_deleted({ count: result.deleted.length }));
+      const removed = selectedEvents.filter((e) => deleted.has(e.eventId));
+      undoable(m.bulk_workouts_deleted({ count: result.deleted.length }), () =>
+        restoreDeleted(client, removed),
+      );
     }
     await Promise.allSettled([
       client.invalidateQueries({ queryKey: [eventKeys.getMyEvents] }),

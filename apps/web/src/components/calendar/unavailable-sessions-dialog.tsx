@@ -23,7 +23,9 @@ import {
 } from '../ui/dialog';
 import { useShiftActions } from './hooks/use-shift-actions';
 import { deleteWorkoutsSequentially } from './utils/bulk-delete';
+import { restoreDeleted } from './utils/restore-deleted';
 import { daysAfter } from './utils/unavailability';
+import { undoable } from './utils/undo';
 
 type Choice = 'move' | 'delete' | 'keep';
 
@@ -68,7 +70,14 @@ export function UnavailableSessionsDialog({
       queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
       invalidateTrainingLoadQueries(queryClient);
       if (failed.length) toast.error(m.calendar_week_action_failed());
-      else toast.success(m.calendar_week_deleted({ count: ids.length }));
+      const removed = sessions.filter(
+        (event) => !failed.includes(event.eventId),
+      );
+      if (removed.length) {
+        undoable(m.calendar_week_deleted({ count: removed.length }), () =>
+          restoreDeleted(queryClient, removed),
+        );
+      }
     }
     onClose();
   };

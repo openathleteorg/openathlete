@@ -20,6 +20,7 @@ const SHORTCUTS = [
     label: m.calendar_shortcut_copy,
   },
   { keys: ['E', m.calendar_shortcut_click()], label: m.calendar_shortcut_edit },
+  { keys: ['Ctrl / ⌘', 'Z'], label: m.calendar_shortcut_undo },
   { keys: ['Esc'], label: m.calendar_shortcut_escape },
   { keys: ['?'], label: m.calendar_shortcut_help },
 ];

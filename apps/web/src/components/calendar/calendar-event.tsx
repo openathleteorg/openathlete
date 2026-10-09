@@ -17,6 +17,7 @@ import {
 } from '@/utils/color';
 import { cn } from '@/utils/shadcn';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   ActivityIcon,
   Copy,
@@ -59,7 +60,9 @@ import {
 } from './utils/compliance';
 import { complianceLabel } from './utils/compliance-labels';
 import { isActivityDrag, linkDropId } from './utils/link-drop';
+import { restoreDeleted } from './utils/restore-deleted';
 import { EDIT_KEY, isKeyHeld } from './utils/shortcuts';
+import { undoable } from './utils/undo';
 import {
   formatCompactDuration,
   formatCompactKilometers,
@@ -127,16 +130,36 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
     athleteId,
   } = useCalendarContext();
   const [deleteEventDialog, setDeleteEventDialog] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  // Hook options, not mutate callbacks: the card is gone once deleted
   const deleteEventMutation = useDeleteEventMutation({
     onSuccess: () => {
       posthog?.capture(AnalyticsEvent.event_deleted, {
         event_type: event.type,
       });
+      // A plan can come back; an activity comes from its device
+      if (event.type !== EVENT_TYPE.ACTIVITY) {
+        undoable(m.calendar_items_deleted({ count: 1 }), () =>
+          restoreDeleted(queryClient, [event]),
+        );
+      }
     },
   });
   const deleteSeriesMutation = useDeleteEventSeriesMutation({
-    onSuccess: ({ deleted }) =>
-      toast.success(m.calendar_week_deleted({ count: deleted })),
+    onSuccess: ({ deleted }) => {
+      // What the API deleted: this occurrence and the following ones to do
+      const occurrences = allEvents.filter(
+        (other) =>
+          other.seriesId === event.seriesId &&
+          other.startDate >= event.startDate &&
+          (other.eventId === event.eventId ||
+            !isPlannedEvent(other) ||
+            !other.relatedActivity),
+      );
+      undoable(m.calendar_items_deleted({ count: deleted }), () =>
+        restoreDeleted(queryClient, occurrences),
+      );
+    },
     onError: () => toast.error(m.failed_to_delete_event()),
   });
   const duplicateEventMutation = useDuplicateEventMutation({

@@ -87,10 +87,12 @@ import {
   COPY_KEY,
   isKeyHeld,
   isOverlayOpen,
+  isUndoKey,
   shortcutFor,
   trackHeldKeys,
 } from './utils/shortcuts';
 import { sessionsDuring } from './utils/unavailability';
+import { undoLast, undoable } from './utils/undo';
 import { getUtcWeekKey, getWeekEnd, getWeekStart } from './utils/week';
 
 interface P {
@@ -429,18 +431,14 @@ export function Calendar({
             posthog?.capture(AnalyticsEvent.activity_linked, {
               source: 'calendar_drag',
             });
-            toast.success(m.calendar_link_done({ name: session.name }), {
-              action: {
-                label: m.calendar_link_undo(),
-                onClick: () =>
-                  previous
-                    ? setRelatedActivityMutation.mutate({
-                        eventId: previous.eventId,
-                        activityId,
-                      })
-                    : unsetRelatedActivityMutation.mutate(sessionId),
-              },
-            });
+            undoable(m.calendar_link_done({ name: session.name }), () =>
+              previous
+                ? setRelatedActivityMutation.mutateAsync({
+                    eventId: previous.eventId,
+                    activityId,
+                  })
+                : unsetRelatedActivityMutation.mutateAsync(sessionId),
+            );
           },
           onError: () => toast.error(m.calendar_link_failed()),
         },
@@ -649,6 +647,10 @@ export function Calendar({
   const { nextMonth, prevMonth, goToCurrentMonth } = calendarData;
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (isUndoKey(event, isOverlayOpen())) {
+        if (undoLast()) event.preventDefault();
+        return;
+      }
       const shortcut = shortcutFor(event, isOverlayOpen());
       if (!shortcut) return;
       event.preventDefault();

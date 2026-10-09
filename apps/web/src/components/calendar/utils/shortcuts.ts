@@ -48,10 +48,37 @@ export function shortcutFor(
   return SHORTCUTS[key] ?? null;
 }
 
-/** A dialog, menu or popover is open: it owns the keyboard */
+/**
+ * Ctrl+Z, or Cmd+Z on a Mac, outside text fields (they undo their own text)
+ * and dialogs. Shift+Cmd+Z stays the browser's redo.
+ */
+export function isUndoKey(
+  event: Pick<
+    KeyboardEvent,
+    'key' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey' | 'target'
+  >,
+  overlayOpen: boolean,
+): boolean {
+  if (event.key.toLowerCase() !== 'z') return false;
+  if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) {
+    return false;
+  }
+  const target = event.target as HTMLElement | null;
+  if (target && (TYPING_TAGS.has(target.tagName) || target.isContentEditable)) {
+    return false;
+  }
+  return !overlayOpen;
+}
+
+/**
+ * A dialog, menu or list is open: it owns the keyboard. Radix keeps a closing
+ * one in the page for its exit animation, marked data-state="closed".
+ */
 export function isOverlayOpen(root: ParentNode = document): boolean {
   return !!root.querySelector(
-    '[role="dialog"], [role="alertdialog"], [role="menu"], [role="listbox"]',
+    ['dialog', 'alertdialog', 'menu', 'listbox']
+      .map((role) => `[role="${role}"]:not([data-state="closed"])`)
+      .join(', '),
   );
 }
 

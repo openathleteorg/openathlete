@@ -88,6 +88,9 @@ test('a week is copied onto the next one, undone, and shifted by a day', async (
   await page.getByRole('menuitem', { name: 'One day later' }).click();
 
   await expect(page.getByText('Items moved: 2')).toBeVisible();
+  const dayKey = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const mondayKey = dayKey(monday);
   const tuesday = new Date(monday.getTime() + DAY);
   const tuesdayKey = `${tuesday.getFullYear()}-${String(tuesday.getMonth() + 1).padStart(2, '0')}-${String(tuesday.getDate()).padStart(2, '0')}`;
   await expect(
@@ -95,5 +98,31 @@ test('a week is copied onto the next one, undone, and shifted by a day', async (
       .locator(`[data-calendar-day="${tuesdayKey}"]`)
       .locator('.calendar-event', { hasText: 'Week intervals' }),
   ).toBeVisible();
+
+  // Ctrl+Z moves them back to Monday
+  await page.keyboard.press('Control+z');
+  await expect(
+    page
+      .locator(`[data-calendar-day="${mondayKey}"]`)
+      .locator('.calendar-event', { hasText: 'Week intervals' }),
+  ).toBeVisible();
+
+  // Deleting the week's sessions can be undone too. In the week view the
+  // menu sits where the toasts stack: let them go first
+  await expect(page.locator('[data-sonner-toast]')).toHaveCount(0, {
+    timeout: 10_000,
+  });
+  await page.locator('[data-week-actions]').click();
+  await page
+    .getByRole('menuitem', { name: "Delete the week's sessions" })
+    .click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Confirm' })
+    .click();
+  await expect(cards).toHaveCount(0);
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(cards.filter({ hasText: 'Week intervals' })).toBeVisible();
+  await expect(cards.filter({ hasText: 'Week long run' })).toBeVisible();
   expect(problems).toEqual([]);
 });

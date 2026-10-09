@@ -101,7 +101,7 @@ test('a repeated session is created, then edited and deleted from an occurrence 
     .locator('[data-series-scope]')
     .getByRole('button', { name: 'This session and the following ones' })
     .click();
-  await expect(page.getByText('Sessions deleted: 5')).toBeVisible();
+  await expect(page.getByText('Items deleted: 5')).toBeVisible();
   expect(await events()).toHaveLength(4);
   expect(problems).toEqual([]);
 });

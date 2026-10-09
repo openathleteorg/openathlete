@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Event } from '@openathlete/shared';
 
 import { deleteWorkoutsSequentially } from '../utils/bulk-delete';
+import { undoable } from '../utils/undo';
 
 /**
  * Copies or moves planned events by whole days, each with an Undo in its
@@ -26,18 +27,14 @@ export function useShiftActions() {
 
   // mutateAsync, not mutate: the toast and its Undo must survive a caller
   // that unmounts before the request ends (a dialog closing on submit)
+  // mutateAsync, not mutate: the toast and its Undo must survive a caller
+  // that unmounts before the request ends (a dialog closing on submit)
   const move = async (eventIds: Event['eventId'][], offsetDays: number) => {
     try {
       const moved = await moveMutation.mutateAsync({ eventIds, offsetDays });
-      toast.success(m.calendar_week_moved({ count: moved.length }), {
-        action: {
-          label: m.calendar_link_undo(),
-          onClick: () =>
-            moveMutation
-              .mutateAsync({ eventIds, offsetDays: -offsetDays })
-              .catch(failed),
-        },
-      });
+      undoable(m.calendar_week_moved({ count: moved.length }), () =>
+        moveMutation.mutateAsync({ eventIds, offsetDays: -offsetDays }),
+      );
     } catch {
       failed();
     }
@@ -46,20 +43,14 @@ export function useShiftActions() {
   const copy = async (eventIds: Event['eventId'][], offsetDays: number) => {
     try {
       const copies = await copyMutation.mutateAsync({ eventIds, offsetDays });
-      toast.success(m.calendar_week_pasted({ count: copies.length }), {
-        action: {
-          label: m.calendar_link_undo(),
-          onClick: async () => {
-            await deleteWorkoutsSequentially(
-              copies.map((event) => event.eventId),
-              EventAPI.deleteEvent,
-            );
-            queryClient.invalidateQueries({
-              queryKey: [eventKeys.getMyEvents],
-            });
-            invalidateTrainingLoadQueries(queryClient);
-          },
-        },
+      undoable(m.calendar_week_pasted({ count: copies.length }), async () => {
+        const { failed: notDeleted } = await deleteWorkoutsSequentially(
+          copies.map((event) => event.eventId),
+          EventAPI.deleteEvent,
+        );
+        queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+        invalidateTrainingLoadQueries(queryClient);
+        if (notDeleted.length) throw new Error('Some copies remain');
       });
     } catch {
       failed();

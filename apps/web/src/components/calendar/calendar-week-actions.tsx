@@ -33,7 +33,9 @@ import {
 import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useShiftActions } from './hooks/use-shift-actions';
 import { deleteWorkoutsSequentially } from './utils/bulk-delete';
+import { restoreDeleted } from './utils/restore-deleted';
 import { SHIFT_OPTIONS } from './utils/shift-options';
+import { undoable } from './utils/undo';
 import {
   deletablePlan,
   movablePlan,
@@ -99,7 +101,14 @@ export function CalendarWeekActions({
     setConfirmDelete(false);
     refresh();
     if (notDeleted.length) toast.error(m.calendar_week_action_failed());
-    else toast.success(m.calendar_week_deleted({ count: deleted.length }));
+    const removed = deletable.filter((event) =>
+      deleted.includes(event.eventId),
+    );
+    if (removed.length) {
+      undoable(m.calendar_week_deleted({ count: removed.length }), () =>
+        restoreDeleted(queryClient, removed),
+      );
+    }
   };
 
   return (

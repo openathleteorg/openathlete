@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import {
   isKeyHeld,
   isOverlayOpen,
+  isUndoKey,
   shortcutFor,
   trackHeldKeys,
 } from './shortcuts';
@@ -13,6 +14,7 @@ const press = (key: string, fields: Partial<KeyboardEvent> = {}) => ({
   ctrlKey: false,
   metaKey: false,
   altKey: false,
+  shiftKey: false,
   repeat: false,
   target: document.body,
   ...fields,
@@ -56,6 +58,9 @@ describe('calendar shortcuts', () => {
     expect(isOverlayOpen(root)).toBe(false);
     root.innerHTML = '<div role="menu"></div>';
     expect(isOverlayOpen(root)).toBe(true);
+    // A menu playing its closing animation no longer counts
+    root.innerHTML = '<div role="menu" data-state="closed"></div>';
+    expect(isOverlayOpen(root)).toBe(false);
   });
 });
 
@@ -73,5 +78,26 @@ describe('held keys', () => {
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'e' }));
     window.dispatchEvent(new Event('blur'));
     expect(isKeyHeld('e')).toBe(false);
+  });
+});
+
+describe('undo key', () => {
+  it('is Ctrl+Z or Cmd+Z, outside fields and dialogs, never with Shift', () => {
+    expect(isUndoKey(press('z', { ctrlKey: true }), false)).toBe(true);
+    expect(isUndoKey(press('Z', { metaKey: true }), false)).toBe(true);
+    expect(isUndoKey(press('z'), false)).toBe(false);
+    expect(
+      isUndoKey(press('z', { metaKey: true, shiftKey: true }), false),
+    ).toBe(false);
+    expect(
+      isUndoKey(
+        press('z', {
+          ctrlKey: true,
+          target: document.createElement('textarea'),
+        }),
+        false,
+      ),
+    ).toBe(false);
+    expect(isUndoKey(press('z', { ctrlKey: true }), true)).toBe(false);
   });
 });
