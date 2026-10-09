@@ -42,7 +42,8 @@ import { getWeekKey } from './utils/week';
 
 interface CalendarWeeklyLoadChartProps {
   weeks: Date[][];
-  displayedMonth: Date;
+  /** Only the weeks of this month; all the weeks given without it */
+  displayedMonth?: Date;
   weeklyLoadSummary: Record<string, CalendarWeekLoadSummary>;
   isLoading: boolean;
   hasScheduledActivities: boolean;
@@ -172,19 +173,22 @@ export function CalendarWeeklyLoadChart({
   isLoading,
   hasScheduledActivities,
 }: CalendarWeeklyLoadChartProps) {
-  const targetMonth = displayedMonth.getMonth();
-  const targetYear = displayedMonth.getFullYear();
+  const targetMonth = displayedMonth?.getMonth();
+  const targetYear = displayedMonth?.getFullYear();
   const dateFnsLocale = getDateFnsLocale(getLocale());
 
   const chartData = useMemo<ChartWeekRow[]>(() => {
     const seen = new Set<string>();
     const rows = weeks
       // `week` holds local calendar days, Monday to Sunday
-      .filter((week) =>
-        week.some(
-          (day) =>
-            day.getMonth() === targetMonth && day.getFullYear() === targetYear,
-        ),
+      .filter(
+        (week) =>
+          targetMonth === undefined ||
+          week.some(
+            (day) =>
+              day.getMonth() === targetMonth &&
+              day.getFullYear() === targetYear,
+          ),
       )
       .flatMap((week): ChartWeekRow[] => {
         const key = getWeekKey(week[0]);
@@ -253,7 +257,9 @@ export function CalendarWeeklyLoadChart({
     <XAxis
       dataKey="weekLabel"
       tick={{ fontSize: 11 }}
-      interval={0}
+      // Every week of a month; enough of them to read over a season
+      interval={chartData.length > 12 ? 'preserveStartEnd' : 0}
+      minTickGap={8}
       tickLine={false}
     />
   );

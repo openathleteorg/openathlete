@@ -41,6 +41,7 @@ export const routes = {
     eventSeries: (eventId: Event['eventId']) => `/event/${eventId}/series`,
     moveEvents: '/event/bulk/move',
     getMyEvents: '/event',
+    season: '/event/season',
     getUpcomingCompetitions: '/event/upcoming-competitions',
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,

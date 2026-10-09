@@ -265,6 +265,27 @@ export const useGetMyEventsQuery = (
     queryKey: [eventKeys.getMyEvents, isCoach, athleteId, startDate, endDate],
   });
 
+/**
+ * A season's sessions, races and activities, in short. Always refetched on
+ * mount: other views change events without updating these.
+ */
+export const useSeasonEventsQuery = (
+  startDate: Date,
+  endDate: Date,
+  athleteId?: number,
+) =>
+  useQuery({
+    queryKey: [
+      eventKeys.getSeasonEvents,
+      startDate.toISOString(),
+      endDate.toISOString(),
+      athleteId,
+    ],
+    queryFn: () => EventAPI.getSeasonEvents(startDate, endDate, athleteId),
+    enabled: Boolean(athleteId),
+    staleTime: 0,
+  });
+
 export const useGetUpcomingCompetitionsQuery = (
   isCoach?: boolean,
   athleteId?: number,

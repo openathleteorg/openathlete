@@ -10,6 +10,7 @@ import {
   GetEventWeatherResponseDto,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
+  SeasonEvent,
   ShiftEventsDto,
   UpdateEventDto,
 } from '@openathlete/shared';
@@ -62,6 +63,24 @@ export class EventAPI {
     const res = await client.get(routes.event.getMyEvents, { params });
     const data = res.data as Event[];
     return data.map((event) => mapEvent(event));
+  }
+
+  static async getSeasonEvents(
+    startDate: Date,
+    endDate: Date,
+    athleteId?: number,
+  ): Promise<SeasonEvent[]> {
+    const res = await client.get(routes.event.season, {
+      params: {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        athleteId,
+      },
+    });
+    return (res.data as SeasonEvent[]).map((event) => ({
+      ...event,
+      startDate: new Date(event.startDate),
+    }));
   }
 
   static async getUpcomingCompetitions(

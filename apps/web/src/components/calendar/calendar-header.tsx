@@ -61,6 +61,7 @@ export function CalendarHeader() {
     showShortcuts,
   } = useCalendarContext();
   const isWeek = view === 'week';
+  const isSeason = view === 'season';
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
   const [sportFilter, setSportFilter] = useState<SPORT_TYPE | null>(null);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
@@ -81,12 +82,16 @@ export function CalendarHeader() {
     }
   };
 
+  const monthLabel = (date: Date) =>
+    date.toLocaleString(getDateLocale(getLocale()), {
+      month: 'long',
+      year: 'numeric',
+    });
   const displayedMonthString = isWeek
     ? m.calendar_week_title({ week: getISOWeek(weekStart) })
-    : displayedMonth.toLocaleString(getDateLocale(getLocale()), {
-        month: 'long',
-        year: 'numeric',
-      });
+    : isSeason
+      ? m.calendar_season_title({ month: monthLabel(displayedMonth) })
+      : monthLabel(displayedMonth);
 
   // Today when it is shown, otherwise the first day of the week or month
   const now = new Date();

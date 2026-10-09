@@ -1,5 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { CalendarDays, CalendarRange } from 'lucide-react';
+import { CalendarDays, CalendarRange, ChartNoAxesGantt } from 'lucide-react';
 
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { useCalendarContext } from './hooks/use-calendar-context';
@@ -18,6 +18,10 @@ export function CalendarViewToggle() {
         <TabsTrigger value="week" className="gap-1.5">
           <CalendarRange className="size-4" />
           {m.calendar_view_week()}
+        </TabsTrigger>
+        <TabsTrigger value="season" className="gap-1.5">
+          <ChartNoAxesGantt className="size-4" />
+          {m.calendar_view_season()}
         </TabsTrigger>
       </TabsList>
     </Tabs>

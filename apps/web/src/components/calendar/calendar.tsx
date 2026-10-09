@@ -36,7 +36,7 @@ import { AnalyticsEvent } from '@/utils/analytics-events';
 import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import { DragEndEvent } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
-import { addDays, format, isValid, parseISO, startOfMonth } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import {
   Activity,
   Award,
@@ -72,10 +72,10 @@ import { CalendarBulkDelete } from './calendar-bulk-delete';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
 import { CalendarHeader } from './calendar-header';
 import { CalendarMobileList } from './calendar-mobile-list';
+import { CalendarSeasonView } from './calendar-season-view';
 import { CalendarShortcutsDialog } from './calendar-shortcuts-dialog';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { CalendarWeekView } from './calendar-week-view';
-import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
 import { ComplianceLegend } from './compliance-badge';
 import { CalendarContext } from './contexts/calendar-context';
 import { EventClipboardProvider } from './contexts/event-clipboard-context';
@@ -121,9 +121,8 @@ export function Calendar({
   const [planningDate, setPlanningDate] = useState(() => new Date());
   const [view, setViewState] = useState<CalendarView>(() => {
     const requested = new URLSearchParams(window.location.search).get('view');
-    return (requested ?? getItem('calendar_view')) === 'week'
-      ? 'week'
-      : 'month';
+    const saved = requested ?? getItem('calendar_view');
+    return saved === 'week' || saved === 'season' ? saved : 'month';
   });
   const calendarData = useCalendarData({ events, view });
   const { goToWeek, displayedMonth } = calendarData;
@@ -214,20 +213,6 @@ export function Calendar({
       {} as CalendarContextType['weeklyLoadSummary'],
     );
   }, [weeklyLoadSummary]);
-
-  const hasScheduledActivitiesWithinSixtyDays = useMemo(() => {
-    if (!calendarData.events.length) {
-      return false;
-    }
-
-    const rangeStart = startOfMonth(calendarData.displayedMonth);
-    const rangeEnd = addDays(rangeStart, 60);
-
-    return calendarData.events.some((event) => {
-      const eventStart = new Date(event.startDate);
-      return eventStart >= rangeStart && eventStart <= rangeEnd;
-    });
-  }, [calendarData.displayedMonth, calendarData.events]);
 
   useEffect(() => {
     if (onMonthChange) {
@@ -705,6 +690,8 @@ export function Calendar({
           return setView('month');
         case 'weekView':
           return setView('week');
+        case 'seasonView':
+          return setView('season');
         case 'help':
           return setShortcutsOpen(true);
       }
@@ -869,7 +856,7 @@ export function Calendar({
           <CalendarContext.Provider value={memoizedValue}>
             <CalendarBulkDelete
               header={
-                !isMobile || view === 'week' ? (
+                !isMobile || view !== 'month' ? (
                   <CalendarHeader />
                 ) : (
                   <div className="flex flex-wrap gap-2 px-4">
@@ -883,6 +870,8 @@ export function Calendar({
               <div className={isMobile ? 'w-full flex-1' : 'relative'}>
                 {view === 'week' ? (
                   <CalendarWeekView isLoading={isLoading} />
+                ) : view === 'season' ? (
+                  <CalendarSeasonView />
                 ) : isMobile ? (
                   <div className="w-full h-full">
                     <CalendarMobileList isLoading={isLoading} />
@@ -909,15 +898,6 @@ export function Calendar({
                   </>
                 )}
               </div>
-              {!isMobile && view === 'month' && (
-                <CalendarWeeklyLoadChart
-                  weeks={calendarData.displayedWeeks}
-                  displayedMonth={calendarData.displayedMonth}
-                  weeklyLoadSummary={weeklyLoadSummaryMap}
-                  isLoading={weeklyLoadSummaryLoading}
-                  hasScheduledActivities={hasScheduledActivitiesWithinSixtyDays}
-                />
-              )}
               <CreateEventDialog
                 key={createEventDialog?.date?.toDateString()}
                 open={createEventDialog !== null}

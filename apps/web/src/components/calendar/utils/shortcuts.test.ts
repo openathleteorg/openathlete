@@ -28,6 +28,7 @@ describe('calendar shortcuts', () => {
     expect(shortcutFor(press('ArrowRight'), false)).toBe('next');
     expect(shortcutFor(press('w'), false)).toBe('weekView');
     expect(shortcutFor(press('m'), false)).toBe('monthView');
+    expect(shortcutFor(press('s'), false)).toBe('seasonView');
     expect(shortcutFor(press('?'), false)).toBe('help');
     expect(shortcutFor(press('x'), false)).toBeNull();
   });

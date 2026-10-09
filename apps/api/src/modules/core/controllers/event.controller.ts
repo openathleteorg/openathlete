@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -37,6 +38,7 @@ import {
   DuplicateWorkoutDto,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
+  SeasonEvent,
   ShiftEventsDto,
   UpdateEventDto,
   createEventDtoSchema,
@@ -296,6 +298,36 @@ export class EventController {
       startDate ? new Date(startDate) : undefined,
       endDate ? new Date(endDate) : undefined,
     );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('season')
+  @ApiOperation({
+    summary: 'Sessions, races and activities of a season, in short',
+    description:
+      'What the season view sums up week by week, for up to two years: goals of planned sessions and races, and what activities recorded.',
+  })
+  getSeasonEvents(
+    @JwtUser() user: AuthUser,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('athleteId', new ParseIntPipe({ optional: true }))
+    athleteId?: number,
+  ): Promise<SeasonEvent[]> {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (
+      Number.isNaN(start.getTime()) ||
+      Number.isNaN(end.getTime()) ||
+      end < start ||
+      end.getTime() - start.getTime() > 731 * 24 * 3600 * 1000
+    ) {
+      throw new BadRequestException(
+        'startDate and endDate, in order and at most two years apart',
+      );
+    }
+    return this.eventService.getSeasonEvents(user, start, end, athleteId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

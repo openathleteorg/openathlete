@@ -30,3 +30,4 @@ export * from './weekly-volume.dto';
 export * from './instance.dto';
 export * from './calendar-display.dto';
 export * from './calendar-day.dto';
+export * from './season.dto';

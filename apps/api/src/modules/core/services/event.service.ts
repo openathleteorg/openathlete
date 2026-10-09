@@ -29,6 +29,8 @@ import {
   DuplicateWorkoutDto,
   EVENT_TYPE,
   ReorderWorkoutStepsDto,
+  SPORT_TYPE,
+  SeasonEvent,
   UpdateEventDto,
   createWorkoutSchema,
   mapPrismaWorkoutToDto,
@@ -189,6 +191,69 @@ export class EventService {
     });
 
     return events.map((e) => this.prismaEventToEvent(e));
+  }
+
+  /**
+   * Planned sessions, races and activities of one athlete between two
+   * dates, reduced to what the season view sums up.
+   */
+  async getSeasonEvents(
+    user: AuthUser,
+    startDate: Date,
+    endDate: Date,
+    athleteId?: number,
+  ): Promise<SeasonEvent[]> {
+    const targetAthleteId = athleteId ?? user.athlete?.athleteId;
+    if (!targetAthleteId) {
+      throw new BadRequestException('athleteId is required');
+    }
+    const ability = await this.abilities.getFor({ user });
+    const goals = {
+      select: {
+        sport: true,
+        goalDuration: true,
+        goalDistance: true,
+        relatedActivityId: true,
+      },
+    };
+    const events = await this.prisma.event.findMany({
+      where: {
+        AND: [
+          accessibleBy(ability, 'read').Event,
+          { athleteId: targetAthleteId },
+          { type: { in: ['TRAINING', 'COMPETITION', 'ACTIVITY'] } },
+          { startDate: { gte: startDate, lte: endDate } },
+        ],
+      },
+      select: {
+        eventId: true,
+        type: true,
+        name: true,
+        startDate: true,
+        training: goals,
+        competition: { select: { ...goals.select, priority: true } },
+        activity: { select: { sport: true, movingTime: true, distance: true } },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+
+    return events.map((event) => {
+      const planned = event.training ?? event.competition;
+      return {
+        eventId: event.eventId,
+        type: event.type as SeasonEvent['type'],
+        name: event.name,
+        startDate: event.startDate,
+        sport: (planned?.sport ?? event.activity?.sport) as SPORT_TYPE,
+        plannedSeconds: planned?.goalDuration ?? null,
+        plannedMeters: planned?.goalDistance ?? null,
+        doneSeconds: event.activity?.movingTime ?? null,
+        doneMeters: event.activity?.distance ?? null,
+        done: Boolean(planned?.relatedActivityId),
+        priority: (event.competition?.priority ??
+          null) as SeasonEvent['priority'],
+      };
+    });
   }
 
   async getEventById(user: AuthUser, eventId: Event['eventId']) {

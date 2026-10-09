@@ -16,7 +16,11 @@ import {
 } from '../ui/context-menu';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { CycleDaySegment } from './utils/cycle-day-layout';
-import { cycleKindIcon, isUnavailableKind } from './utils/cycle-kind';
+import {
+  cycleBackground,
+  cycleKindIcon,
+  isUnavailableKind,
+} from './utils/cycle-kind';
 
 interface P {
   segment: CycleDaySegment;
@@ -104,10 +108,7 @@ export function CalendarCycleSegment({ segment }: P) {
             roundedClass,
           )}
           style={{
-            // Periods without training are hatched grey, whatever their colour
-            background: unavailable
-              ? 'repeating-linear-gradient(135deg, #6b7280 0 6px, #8b93a1 6px 12px)'
-              : segment.cycle.color || '#3b82f6',
+            background: cycleBackground(segment.cycle),
             top: `${topOffset}px`,
             left: leftOffset,
             right: rightOffset,

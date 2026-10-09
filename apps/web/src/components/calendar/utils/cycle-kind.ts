@@ -26,3 +26,12 @@ export const cycleKindIcon: Record<CYCLE_KIND, LucideIcon> = {
 /** A period the athlete cannot train */
 export const isUnavailableKind = (kind: `${CYCLE_KIND}` | null | undefined) =>
   !!kind && kind !== CYCLE_KIND.TRAINING;
+
+/** Periods without training are hatched grey, whatever their colour */
+export const cycleBackground = (cycle: {
+  kind?: `${CYCLE_KIND}` | null;
+  color?: string | null;
+}) =>
+  isUnavailableKind(cycle.kind)
+    ? 'repeating-linear-gradient(135deg, #6b7280 0 6px, #8b93a1 6px 12px)'
+    : cycle.color || '#3b82f6';

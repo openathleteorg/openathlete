@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { Event } from '@openathlete/shared';
 
-export type CalendarView = 'month' | 'week';
+export type CalendarView = 'month' | 'week' | 'season';
 
 interface CalendarData {
   defaultMonth?: Date;

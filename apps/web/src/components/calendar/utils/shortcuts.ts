@@ -1,6 +1,12 @@
 /** Calendar keyboard shortcuts, by key */
 export type CalendarShortcut =
-  'today' | 'previous' | 'next' | 'monthView' | 'weekView' | 'help';
+  | 'today'
+  | 'previous'
+  | 'next'
+  | 'monthView'
+  | 'weekView'
+  | 'seasonView'
+  | 'help';
 
 const SHORTCUTS: Record<string, CalendarShortcut> = {
   t: 'today',
@@ -8,6 +14,7 @@ const SHORTCUTS: Record<string, CalendarShortcut> = {
   ArrowRight: 'next',
   m: 'monthView',
   w: 'weekView',
+  s: 'seasonView',
   '?': 'help',
 };
 

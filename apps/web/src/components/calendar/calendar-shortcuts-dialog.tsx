@@ -14,6 +14,7 @@ const SHORTCUTS = [
   { keys: ['←', '→'], label: m.calendar_shortcut_previous_next, or: true },
   { keys: ['M'], label: m.calendar_shortcut_month },
   { keys: ['W'], label: m.calendar_shortcut_week },
+  { keys: ['S'], label: m.calendar_shortcut_season },
   { keys: ['C', m.calendar_shortcut_drag()], label: m.calendar_shortcut_copy },
   {
     keys: ['Alt', m.calendar_shortcut_drag()],
