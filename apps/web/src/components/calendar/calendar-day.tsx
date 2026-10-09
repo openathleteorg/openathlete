@@ -81,6 +81,10 @@ export function CalendarDay({
     })();
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    // React events bubble through portals: a press in a card's context menu
+    // reaches the day, but is not a press on the day
+    if (!e.currentTarget.contains(e.target as Node)) return;
+
     // Only start drag selection on empty area (not on events or cycles)
     const target = e.target as HTMLElement;
     if (
