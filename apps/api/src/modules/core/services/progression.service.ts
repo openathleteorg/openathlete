@@ -1,18 +1,26 @@
+import { subject } from '@casl/ability';
+
 import { ForbiddenException, Injectable } from '@nestjs/common';
 
-import {
-  Athlete,
-  Event,
-  EventActivity,
-  EventType,
-  Prisma,
-  SportType,
-} from '@openathlete/database';
+import { Athlete, EventType, SportType } from '@openathlete/database';
 import { GetProgressionDataResponseDto } from '@openathlete/shared';
 
+import {
+  addDaysToDateKey,
+  validTimeZone,
+  zonedClock,
+} from 'src/common/utils/time-zone';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+
+/** Average of the values that exist, or `fallback` */
+function average(values: (number | null)[], fallback: number | null = null) {
+  const present = values.filter((value): value is number => value !== null);
+  return present.length
+    ? present.reduce((sum, value) => sum + value, 0) / present.length
+    : fallback;
+}
 
 @Injectable()
 export class ProgressionService {
@@ -21,46 +29,46 @@ export class ProgressionService {
     private readonly abilities: CaslAbilityFactory,
   ) {}
 
+  /**
+   * The athlete if the user may read their data. A check on the athlete
+   * itself: being allowed to read some athlete is not enough.
+   */
+  private async readableAthlete(user: AuthUser, athleteId: number) {
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { athleteId },
+      include: { user: { select: { timeZone: true } } },
+    });
+    const ability = await this.abilities.getFor({ user });
+    if (!athlete || !ability.can('read', subject('Athlete', athlete))) {
+      throw new ForbiddenException('Not allowed to access this athlete');
+    }
+    return athlete;
+  }
+
   async getFirstActivityDate(
     user: AuthUser,
     athleteId: Athlete['athleteId'],
     sport?: SportType,
   ): Promise<Date | null> {
-    const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', 'Athlete')) {
-      throw new ForbiddenException('Not allowed to access this athlete');
-    }
-
-    const whereClause: Prisma.EventWhereInput = {
-      athleteId: athleteId,
-      type: EventType.ACTIVITY,
-      activity: {
-        isNot: null,
+    await this.readableAthlete(user, athleteId);
+    const first = await this.prisma.event.findFirst({
+      where: {
+        athleteId,
+        type: EventType.ACTIVITY,
+        activity: sport ? { is: { sport } } : { isNot: null },
       },
-    };
-
-    if (sport) {
-      whereClause.activity = {
-        isNot: null,
-        is: {
-          sport,
-        },
-      };
-    }
-
-    const firstEvent = await this.prisma.event.findFirst({
-      where: whereClause,
-      orderBy: {
-        startDate: 'asc',
-      },
-      select: {
-        startDate: true,
-      },
+      orderBy: { startDate: 'asc' },
+      select: { startDate: true },
     });
-
-    return firstEvent?.startDate ? new Date(firstEvent.startDate) : null;
+    return first?.startDate ?? null;
   }
 
+  /**
+   * Weekly (up to 120 days) or monthly averages of the activities of a
+   * period. Periods follow the athlete's calendar: their weeks and months
+   * start at their local midnight, and are returned as local dates
+   * (YYYY-MM-DD).
+   */
   async getProgressionData(
     user: AuthUser,
     athleteId: Athlete['athleteId'],
@@ -68,171 +76,80 @@ export class ProgressionService {
     endDate: Date,
     sport?: SportType,
   ): Promise<GetProgressionDataResponseDto> {
-    const ability = await this.abilities.getFor({ user });
-    if (!ability.can('read', 'Athlete')) {
-      throw new ForbiddenException('Not allowed to access this athlete');
-    }
+    const athlete = await this.readableAthlete(user, athleteId);
+    const timeZone = validTimeZone(athlete.user.timeZone);
     const daysDiff = Math.ceil(
       (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
     );
     const aggregationType: 'week' | 'month' =
       daysDiff <= 120 ? 'week' : 'month';
 
-    // Build where clause
-    const whereClause: Prisma.EventWhereInput = {
-      athleteId: athleteId,
-      type: EventType.ACTIVITY,
-      startDate: {
-        gte: startDate,
-        lte: endDate,
+    // Only the figures averaged: a whole activity row holds its recording
+    const activities = await this.prisma.eventActivity.findMany({
+      where: {
+        ...(sport && { sport }),
+        event: { athleteId, startDate: { gte: startDate, lte: endDate } },
       },
-      activity: {
-        isNot: null,
-      },
-    };
-
-    // Filter by sport if provided
-    if (sport) {
-      whereClause.activity = {
-        isNot: null,
-        is: {
-          sport,
-        },
-      };
-    }
-
-    // Fetch all activities in the period
-    const events = await this.prisma.event.findMany({
-      where: whereClause,
-      include: {
-        activity: true,
-      },
-      orderBy: {
-        startDate: 'asc',
+      select: {
+        distance: true,
+        elevationGain: true,
+        averageSpeed: true,
+        averageGapSpeed: true,
+        averageHeartrate: true,
+        averageCadence: true,
+        event: { select: { startDate: true } },
       },
     });
 
-    // Filter to only events with activities
-    const activities = events.filter(
-      (e): e is Event & { activity: EventActivity } => e.activity !== null,
-    );
-
-    if (activities.length === 0) {
-      return {
-        data: [],
-        aggregationType,
-      };
-    }
-
-    // Group activities by period
     const grouped = new Map<string, typeof activities>();
+    for (const activity of activities) {
+      const day = zonedClock(activity.event.startDate, timeZone).date;
+      const weekday = (new Date(`${day}T12:00:00Z`).getUTCDay() + 6) % 7;
+      const period =
+        aggregationType === 'week'
+          ? addDaysToDateKey(day, -weekday)
+          : `${day.slice(0, 7)}-01`;
+      grouped.set(period, [...(grouped.get(period) ?? []), activity]);
+    }
 
-    activities.forEach((event) => {
-      const eventDate = new Date(event.startDate);
-      let periodKey: string;
-
-      if (aggregationType === 'week') {
-        // Get start of week (Monday)
-        const weekStart = new Date(eventDate);
-        const day = weekStart.getDay();
-        const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
-        weekStart.setDate(diff);
-        weekStart.setHours(0, 0, 0, 0);
-        periodKey = weekStart.toISOString();
-      } else {
-        // Get start of month
-        const monthStart = new Date(
-          eventDate.getFullYear(),
-          eventDate.getMonth(),
-          1,
-        );
-        monthStart.setHours(0, 0, 0, 0);
-        periodKey = monthStart.toISOString();
-      }
-
-      if (!grouped.has(periodKey)) {
-        grouped.set(periodKey, []);
-      }
-      grouped.get(periodKey)!.push(event);
-    });
-
-    // Calculate metrics for each period
-    const data = Array.from(grouped.entries())
-      .map(([period, periodActivities]) => {
-        const totalDistance = periodActivities.reduce(
-          (sum, e) => sum + (e.activity.distance || 0),
+    const data = [...grouped.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([period, items]) => {
+        const totalDistance = items.reduce(
+          (sum, a) => sum + (a.distance || 0),
           0,
         );
-        const totalElevationGain = periodActivities.reduce(
-          (sum, e) => sum + (e.activity.elevationGain || 0),
+        const totalElevationGain = items.reduce(
+          (sum, a) => sum + (a.elevationGain || 0),
           0,
         );
-        const activityCount = periodActivities.length;
-
-        // Calculate averages
-        const speeds = periodActivities
-          .map((e) => e.activity.averageSpeed)
-          .filter((s): s is number => s !== null && s !== undefined);
-        const averageSpeed =
-          speeds.length > 0
-            ? speeds.reduce((sum, s) => sum + s, 0) / speeds.length
-            : 0;
-
-        const gapSpeeds = periodActivities
-          .map((e) => e.activity.averageGapSpeed)
-          .filter((g): g is number => g !== null && g !== undefined);
-        const averageGapSpeed =
-          gapSpeeds.length > 0
-            ? gapSpeeds.reduce((sum, g) => sum + g, 0) / gapSpeeds.length
-            : null;
-
-        const heartrates = periodActivities
-          .map((e) => e.activity.averageHeartrate)
-          .filter((h): h is number => h !== null && h !== undefined);
-        const averageHeartrate =
-          heartrates.length > 0
-            ? heartrates.reduce((sum, h) => sum + h, 0) / heartrates.length
-            : null;
-
-        const cadences = periodActivities
-          .map((e) => e.activity.averageCadence)
-          .filter((c): c is number => c !== null && c !== undefined);
-        const averageCadence =
-          cadences.length > 0
-            ? cadences.reduce((sum, c) => sum + c, 0) / cadences.length
-            : null;
-
-        // Calculate efficiency: gap / hr average (if both available)
-        const efficiency =
-          averageHeartrate !== null &&
-          averageGapSpeed !== null &&
-          averageHeartrate > 0
-            ? averageGapSpeed / averageHeartrate
-            : null;
-
+        const activityCount = items.length;
+        const averageGapSpeed = average(items.map((a) => a.averageGapSpeed));
+        const averageHeartrate = average(items.map((a) => a.averageHeartrate));
         return {
           period,
           totalDistance,
-          averageDistancePerActivity:
-            activityCount > 0 ? totalDistance / activityCount : 0,
-          averageSpeed,
+          averageDistancePerActivity: totalDistance / activityCount,
+          averageSpeed: average(
+            items.map((a) => a.averageSpeed),
+            0,
+          )!,
           averageGapSpeed,
-          efficiency,
+          // Speed for each heartbeat: rises as aerobic fitness improves
+          efficiency:
+            averageHeartrate !== null &&
+            averageGapSpeed !== null &&
+            averageHeartrate > 0
+              ? averageGapSpeed / averageHeartrate
+              : null,
           totalElevationGain,
-          averageElevationGainPerActivity:
-            activityCount > 0 ? totalElevationGain / activityCount : 0,
+          averageElevationGainPerActivity: totalElevationGain / activityCount,
           averageHeartrate,
-          averageCadence,
+          averageCadence: average(items.map((a) => a.averageCadence)),
           activityCount,
         };
-      })
-      .sort(
-        (a, b) => new Date(a.period).getTime() - new Date(b.period).getTime(),
-      );
+      });
 
-    return {
-      data,
-      aggregationType,
-    };
+    return { data, aggregationType };
   }
 }

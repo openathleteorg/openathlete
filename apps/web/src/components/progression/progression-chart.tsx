@@ -3,7 +3,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
@@ -35,7 +35,8 @@ export function ProgressionChart({
   const chartData = useMemo(() => {
     return data
       .map((point) => {
-        const date = new Date(point.period);
+        // A local date (YYYY-MM-DD): parseISO reads it at local midnight
+        const date = parseISO(point.period);
         const label =
           aggregationType === 'week'
             ? format(date, 'dd/MM')
