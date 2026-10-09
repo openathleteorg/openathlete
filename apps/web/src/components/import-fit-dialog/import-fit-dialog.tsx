@@ -19,7 +19,7 @@ import { getLocale } from '@/paraglide/runtime';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { isAxiosError } from 'axios';
 import { Upload } from 'lucide-react';
-import { FormEvent, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 
 import {
   ActivityImportWarning,
@@ -126,7 +126,14 @@ function warningText(warning: ActivityImportWarning) {
  * named after the name their GPX or TCX stores, or their file. Each file is checked on its
  * own: one failure does not stop the others.
  */
-export function ImportFitDialog() {
+type Props = {
+  /** Shows the button that opens the dialog; off when files are dropped */
+  trigger?: boolean;
+  /** Files dropped on the calendar: opens the dialog with them */
+  dropped?: { files: File[]; at: number } | null;
+};
+
+export function ImportFitDialog({ trigger = true, dropped }: Props = {}) {
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [name, setName] = useState('');
@@ -146,6 +153,30 @@ export function ImportFitDialog() {
   const sports = Object.entries(sportTypeLabelMap).sort(([, a], [, b]) =>
     a.localeCompare(b, getLocale()),
   );
+
+  async function chooseFiles(selected: File[]) {
+    const valid = selected.filter(isActivityFile);
+    chosenFiles.current = valid;
+    setSkipped(
+      selected.filter((file) => !isActivityFile(file)).map((file) => file.name),
+    );
+    setFiles(valid);
+    setSport('');
+    const only = valid.length === 1 ? valid[0] : undefined;
+    setName(only ? nameFromFile(only) : '');
+    if (!only || kindOf(only) === 'fit') return;
+    // Suggest the track name, unless other files were chosen meanwhile.
+    const suggested = await suggestedName(only);
+    if (chosenFiles.current === valid) setName(suggested);
+  }
+
+  // Each drop opens the dialog afresh with its files
+  useEffect(() => {
+    if (!dropped || running.current) return;
+    reset();
+    void chooseFiles(dropped.files);
+    setOpen(true);
+  }, [dropped]);
 
   function reset() {
     setFiles([]);
@@ -199,18 +230,20 @@ export function ImportFitDialog() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        className="min-h-11"
-        data-import-fit-trigger
-        onClick={() => {
-          reset();
-          setOpen(true);
-        }}
-      >
-        <Upload className="size-4" />
-        {m.fit_import_title()}
-      </Button>
+      {trigger && (
+        <Button
+          variant="outline"
+          className="min-h-11"
+          data-import-fit-trigger
+          onClick={() => {
+            reset();
+            setOpen(true);
+          }}
+        >
+          <Upload className="size-4" />
+          {m.fit_import_title()}
+        </Button>
+      )}
       <Dialog
         open={open}
         onOpenChange={(value) => {
@@ -291,27 +324,12 @@ export function ImportFitDialog() {
                   type="file"
                   accept=".fit,.gpx,.tcx,application/vnd.garmin.fit,application/fit,application/gpx+xml,application/vnd.garmin.tcx+xml"
                   multiple
-                  required
+                  // Dropped files are not in the input
+                  required={!files.length}
                   disabled={busy}
-                  onChange={async (event) => {
-                    const selected = [...(event.target.files ?? [])];
-                    const valid = selected.filter(isActivityFile);
-                    chosenFiles.current = valid;
-                    setSkipped(
-                      selected
-                        .filter((file) => !isActivityFile(file))
-                        .map((file) => file.name),
-                    );
-                    setFiles(valid);
-                    setSport('');
-                    const only = valid.length === 1 ? valid[0] : undefined;
-                    setName(only ? nameFromFile(only) : '');
-                    if (!only || kindOf(only) === 'fit') return;
-                    // Suggest the track name, unless other files were
-                    // chosen meanwhile.
-                    const suggested = await suggestedName(only);
-                    if (chosenFiles.current === valid) setName(suggested);
-                  }}
+                  onChange={(event) =>
+                    chooseFiles([...(event.target.files ?? [])])
+                  }
                 />
               </label>
               {files.some(takesSport) && (

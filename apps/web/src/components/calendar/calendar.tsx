@@ -1,4 +1,5 @@
 import { useAiTaskAvailable } from '@/api/ai-settings';
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import { CalendarAPI } from '@/api/calendar/calendar.api';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { cycleKeys } from '@/api/cycle/cycle.keys';
@@ -66,6 +67,7 @@ import { AiSetupDialog } from '../ai-settings';
 import { CreateCycleDialog } from '../create-cycle-dialog';
 import { CreateEventDialog } from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
+import { ImportFitDialog } from '../import-fit-dialog/import-fit-dialog';
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarBody } from './calendar-body';
 import { CalendarBulkDelete } from './calendar-bulk-delete';
@@ -157,6 +159,20 @@ export function Calendar({
   }, [weekRangeStart, weekRangeEnd]);
 
   const { display, updateDisplay } = useCalendarDisplay();
+  // Files import into the signed-in athlete's own activities only
+  const { data: myAthlete } = useGetMyAthleteQuery();
+  const ownCalendar = !athleteId || athleteId === myAthlete?.athleteId;
+  const [droppedFiles, setDroppedFiles] = useState<{
+    files: File[];
+    at: number;
+  } | null>(null);
+  const importFiles = useMemo(
+    () =>
+      ownCalendar && myAthlete
+        ? (files: File[]) => setDroppedFiles({ files, at: Date.now() })
+        : undefined,
+    [ownCalendar, myAthlete],
+  );
   // Wellness only for athletes who record some: no request otherwise
   const { data: latestMetrics } = useGetLatestMetricsQuery(athleteId, {
     enabled: Boolean(athleteId),
@@ -549,6 +565,7 @@ export function Calendar({
       display,
       updateDisplay,
       dailyForm,
+      importFiles,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -571,6 +588,7 @@ export function Calendar({
       display,
       updateDisplay,
       dailyForm,
+      importFiles,
     ],
   );
 
@@ -898,6 +916,9 @@ export function Calendar({
                   </>
                 )}
               </div>
+              {importFiles && (
+                <ImportFitDialog trigger={false} dropped={droppedFiles} />
+              )}
               <CreateEventDialog
                 key={createEventDialog?.date?.toDateString()}
                 open={createEventDialog !== null}

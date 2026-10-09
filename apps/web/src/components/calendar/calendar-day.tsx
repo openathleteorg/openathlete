@@ -53,7 +53,12 @@ export function CalendarDay({
     setCycleResize,
     display,
     dailyForm,
+    importFiles,
   } = useCalendarContext();
+  // Activity files dragged from the computer over this day
+  const [fileOver, setFileOver] = useState(false);
+  const draggingFiles = (event: React.DragEvent) =>
+    !!importFiles && event.dataTransfer.types.includes('Files');
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // A left press on this day's empty area that has not left the day yet:
@@ -181,6 +186,8 @@ export function CalendarDay({
         'group/day min-h-32 flex-1 [&:not(:last-child)]:border-r-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30 select-none',
         variant === 'week' && 'min-w-0 min-h-64 border-b md:border-b-0',
         isOver ? 'bg-gray-100 dark:bg-gray-800/50' : '',
+        fileOver &&
+          'bg-primary/10 outline-2 -outline-offset-2 outline-dashed outline-primary',
         isInDragSelection ? 'bg-blue-50 dark:bg-blue-950/30' : '',
       )}
       onMouseDown={handleMouseDown}
@@ -190,6 +197,25 @@ export function CalendarDay({
         pressRef.current = null;
       }}
       onMouseUp={handleMouseUp}
+      onDragOver={(event) => {
+        if (!draggingFiles(event)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'copy';
+        setFileOver(true);
+      }}
+      onDragLeave={(event) => {
+        // Leaving for a child of the day is still over the day
+        if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+          setFileOver(false);
+        }
+      }}
+      onDrop={(event) => {
+        if (!draggingFiles(event)) return;
+        event.preventDefault();
+        setFileOver(false);
+        importFiles?.([...event.dataTransfer.files]);
+      }}
+      data-file-drop={fileOver || undefined}
       ref={setNodeRef}
     >
       <ContextMenu>

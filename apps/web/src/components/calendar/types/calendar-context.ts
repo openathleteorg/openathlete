@@ -50,6 +50,8 @@ export type CalendarContextType = {
   ) => void;
   /** Load, form and wellness of each day, by date (YYYY-MM-DD) */
   dailyForm: Record<string, CalendarDayForm>;
+  /** Imports activity files dropped on a day; absent on others' calendars */
+  importFiles?: (files: File[]) => void;
   // Cycle management
   cycles: Cycle[];
   createCycle: (startDate: Date, endDate: Date) => void;
