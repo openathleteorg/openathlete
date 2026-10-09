@@ -9,6 +9,7 @@ import {
   useUnsetRelatedActivityMutation,
   useUpdateEventMutation,
 } from '@/api/event';
+import { useEventCommentCountsQuery } from '@/api/event-comments';
 import { useUseEventTemplateMutation } from '@/api/event-template';
 import { eventKeys } from '@/api/event/event.keys';
 import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
@@ -191,6 +192,21 @@ export function Calendar({
       (display.wellness || display.summary.load) &&
       (!isMobile || view === 'week'),
   });
+  const { data: commentCountList } = useEventCommentCountsQuery({
+    startDate: loadRange.start,
+    endDate: loadRange.end,
+    athleteId,
+  });
+  const commentCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        (commentCountList ?? []).map(({ eventId, ...counts }) => [
+          eventId,
+          counts,
+        ]),
+      ),
+    [commentCountList],
+  );
   const dailyForm = useMemo(
     () =>
       Object.fromEntries(
@@ -566,6 +582,7 @@ export function Calendar({
       updateDisplay,
       dailyForm,
       importFiles,
+      commentCounts,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -589,6 +606,7 @@ export function Calendar({
       updateDisplay,
       dailyForm,
       importFiles,
+      commentCounts,
     ],
   );
 

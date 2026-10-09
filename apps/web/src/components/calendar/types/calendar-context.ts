@@ -52,6 +52,8 @@ export type CalendarContextType = {
   dailyForm: Record<string, CalendarDayForm>;
   /** Imports activity files dropped on a day; absent on others' calendars */
   importFiles?: (files: File[]) => void;
+  /** Comments on each commented event of the range, by event id */
+  commentCounts: Record<number, { count: number; unread: number }>;
   // Cycle management
   cycles: Cycle[];
   createCycle: (startDate: Date, endDate: Date) => void;

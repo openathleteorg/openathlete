@@ -222,6 +222,10 @@ export const routes = {
     updateMessage: (messageId: number) => `/messages/messages/${messageId}`,
     deleteMessage: (messageId: number) => `/messages/messages/${messageId}`,
     markAsRead: (threadId: number) => `/messages/threads/${threadId}/read`,
+    eventCommentCounts: '/messages/events/comments',
+    eventComments: (eventId: number) => `/messages/events/${eventId}/comments`,
+    eventCommentsRead: (eventId: number) =>
+      `/messages/events/${eventId}/comments/read`,
   },
   workout: {
     // Note: Workouts are now managed through event endpoints

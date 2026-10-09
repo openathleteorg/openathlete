@@ -23,6 +23,7 @@ import {
   Copy,
   Edit2,
   FileText,
+  MessageCircle,
   Repeat,
   Trash2,
   Trophy,
@@ -170,6 +171,38 @@ function EventDetails({ event }: { event: Event }) {
   );
 }
 
+/** Comments on the session, highlighted when some are unread */
+function CommentBadge({
+  counts,
+}: {
+  counts: ({ count: number; unread: number } | undefined)[];
+}) {
+  const count = counts.reduce((sum, entry) => sum + (entry?.count ?? 0), 0);
+  const unread = counts.reduce((sum, entry) => sum + (entry?.unread ?? 0), 0);
+  if (!count) return null;
+  const label = unread
+    ? m.calendar_card_comments_unread({ count, unread })
+    : m.calendar_card_comments({ count });
+  return (
+    <span
+      className={cn(
+        'mx-1 mb-0.5 inline-flex items-center gap-1 text-xs tabular-nums',
+        unread ? 'font-semibold text-primary' : 'text-muted-foreground',
+      )}
+      title={label}
+      data-comment-count={count}
+      data-comment-unread={unread || undefined}
+    >
+      <MessageCircle aria-hidden className="size-3" />
+      <span aria-hidden>{count}</span>
+      {unread > 0 && (
+        <span aria-hidden className="size-1.5 rounded-full bg-primary" />
+      )}
+      <span className="sr-only">{label}</span>
+    </span>
+  );
+}
+
 export function CalendarEvent({ event, wrapped, detailed = false }: P) {
   const posthog = usePostHog();
   const bulk = useBulkWorkoutSelection();
@@ -189,6 +222,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
     coloredBy,
     athleteId,
     display,
+    commentCounts,
   } = useCalendarContext();
   const compact = display.density === 'compact' && !detailed;
   const [deleteEventDialog, setDeleteEventDialog] = useState<boolean>(false);
@@ -462,6 +496,14 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                 <EventMetrics event={event} fields={display.card} />
               </div>
               {detailed && !wrapped && <EventDetails event={event} />}
+              {!wrapped && (
+                <CommentBadge
+                  // A done session shows as its activity: both threads count
+                  counts={[event, ...relatedEvents].map(
+                    (item) => commentCounts[item.eventId],
+                  )}
+                />
+              )}
               {shownCompliance && (
                 <span className="sr-only">
                   {complianceLabel[shownCompliance.status]()}

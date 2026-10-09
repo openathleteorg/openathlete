@@ -117,3 +117,32 @@ export const markMessagesAsReadDtoSchema = z.object({
 });
 
 export type MarkMessagesAsReadDto = z.infer<typeof markMessagesAsReadDtoSchema>;
+
+/** A comment on a planned session or an activity, as the calendar shows it */
+export type EventComment = {
+  messageId: number;
+  content: string;
+  createdAt: Date;
+  sender: { userId: number; firstName: string; lastName: string };
+  /** Written by the user reading it */
+  mine: boolean;
+};
+
+export type EventComments = {
+  comments: EventComment[];
+  /** Comments of others since the user last read them */
+  unread: number;
+};
+
+/** Comments of each commented event of a calendar range */
+export type EventCommentCount = {
+  eventId: number;
+  count: number;
+  unread: number;
+};
+
+export const addEventCommentDtoSchema = z.object({
+  content: z.string().trim().min(1).max(5000),
+});
+
+export type AddEventCommentDto = z.infer<typeof addEventCommentDtoSchema>;
