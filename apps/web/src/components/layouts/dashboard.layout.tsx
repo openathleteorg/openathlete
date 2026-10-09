@@ -11,7 +11,6 @@ import {
   DragOverlay,
   KeyboardSensor,
   PointerSensor,
-  pointerWithin,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -25,6 +24,7 @@ import {
 } from '../calendar/contexts/shared-dnd-context';
 import { TemplateLibrarySidebarProvider } from '../calendar/contexts/template-library-sidebar-context';
 import { TemplateLibrarySidebar } from '../calendar/template-library-sidebar';
+import { calendarCollisionDetection } from '../calendar/utils/link-drop';
 import { ChatBubble, ChatWindow } from '../chatbot';
 import {
   DraggableData,
@@ -126,12 +126,13 @@ function LayoutContent({ children }: P) {
         event.type === EVENT_TYPE.TRAINING ||
         event.type === EVENT_TYPE.COMPETITION;
       const isNote = event.type === EVENT_TYPE.NOTE;
+      const isActivity = event.type === EVENT_TYPE.ACTIVITY;
 
       return (
         <div className="bg-card px-3 py-2.5 rounded-xl shadow-2xl border border-border/50 cursor-grabbing animate-in zoom-in-95 duration-150 max-w-[240px]">
           <div className="flex items-center gap-2.5">
             <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10">
-              {isTrainingOrCompetition && 'sport' in event ? (
+              {(isTrainingOrCompetition || isActivity) && 'sport' in event ? (
                 <SportIcon sport={event.sport} className="h-4 w-4" />
               ) : isNote ? (
                 <StickyNote className="h-4 w-4 text-amber-500" />
@@ -142,11 +143,13 @@ function LayoutContent({ children }: P) {
             <div className="flex flex-col min-w-0 flex-1">
               <span className="font-medium text-sm truncate">{event.name}</span>
               <span className="text-xs text-muted-foreground">
-                {isTrainingOrCompetition
-                  ? m.event_type_session()
-                  : isNote
-                    ? 'Note'
-                    : m.event_type_event()}
+                {isActivity
+                  ? m.calendar_link_drag_hint()
+                  : isTrainingOrCompetition
+                    ? m.event_type_session()
+                    : isNote
+                      ? 'Note'
+                      : m.event_type_event()}
               </span>
             </div>
           </div>
@@ -160,7 +163,7 @@ function LayoutContent({ children }: P) {
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={pointerWithin}
+      collisionDetection={calendarCollisionDetection}
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >

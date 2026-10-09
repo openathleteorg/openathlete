@@ -21,6 +21,7 @@ export const AnalyticsEvent = {
   event_deleted: 'event_deleted',
   event_duplicated: 'event_duplicated',
   event_template_saved: 'event_template_saved',
+  activity_linked: 'activity_linked',
   ai_event_generation_opened: 'ai_event_generation_opened',
   ai_event_generation_succeeded: 'ai_event_generation_succeeded',
   ai_event_generation_failed: 'ai_event_generation_failed',

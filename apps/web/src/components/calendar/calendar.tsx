@@ -2,7 +2,12 @@ import { useAiTaskAvailable } from '@/api/ai-settings';
 import { CalendarAPI } from '@/api/calendar/calendar.api';
 import { useGetMyCyclesQuery, useUpdateCycleMutation } from '@/api/cycle';
 import { cycleKeys } from '@/api/cycle/cycle.keys';
-import { useDuplicateEventMutation, useUpdateEventMutation } from '@/api/event';
+import {
+  useDuplicateEventMutation,
+  useSetRelatedActivityMutation,
+  useUnsetRelatedActivityMutation,
+  useUpdateEventMutation,
+} from '@/api/event';
 import { useUseEventTemplateMutation } from '@/api/event-template';
 import { eventKeys } from '@/api/event/event.keys';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
@@ -73,6 +78,8 @@ import { useSharedDnd } from './contexts/shared-dnd-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
 import { CalendarContextType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
+import { isPlannedEvent } from './utils/compliance';
+import { parseLinkDropId } from './utils/link-drop';
 import { getUtcWeekKey, getWeekEnd, getWeekStart } from './utils/week';
 
 interface P {
@@ -381,6 +388,50 @@ export function Calendar({
     },
   });
   const { registerCalendarHandler } = useSharedDnd() || {};
+  const setRelatedActivityMutation = useSetRelatedActivityMutation();
+  const unsetRelatedActivityMutation = useUnsetRelatedActivityMutation();
+
+  /** An activity dropped on a planned session: link them, undoably */
+  const linkActivity = useCallback(
+    (activityId: Event['eventId'], sessionId: Event['eventId']) => {
+      const session = events?.find(
+        (event) => event.eventId === sessionId && isPlannedEvent(event),
+      );
+      if (!session || !isPlannedEvent(session)) return;
+      if (session.relatedActivity?.eventId === activityId) return;
+      // Undoing puts the activity back where it was
+      const previous = events?.find(
+        (event) =>
+          isPlannedEvent(event) &&
+          event.relatedActivity?.eventId === activityId,
+      );
+
+      setRelatedActivityMutation.mutate(
+        { eventId: sessionId, activityId },
+        {
+          onSuccess: () => {
+            posthog?.capture(AnalyticsEvent.activity_linked, {
+              source: 'calendar_drag',
+            });
+            toast.success(m.calendar_link_done({ name: session.name }), {
+              action: {
+                label: m.calendar_link_undo(),
+                onClick: () =>
+                  previous
+                    ? setRelatedActivityMutation.mutate({
+                        eventId: previous.eventId,
+                        activityId,
+                      })
+                    : unsetRelatedActivityMutation.mutate(sessionId),
+              },
+            });
+          },
+          onError: () => toast.error(m.calendar_link_failed()),
+        },
+      );
+    },
+    [events, posthog, setRelatedActivityMutation, unsetRelatedActivityMutation],
+  );
 
   const updateCycleDates = useCallback(
     (cycleId: number, startDate: Date, endDate: Date) => {
@@ -487,6 +538,11 @@ export function Calendar({
   const dndOnDragEnd = React.useCallback(
     async (e: DragEndEvent) => {
       if (!e.over?.id) return;
+      const sessionId = parseLinkDropId(e.over.id);
+      if (sessionId !== null) {
+        linkActivity(Number(e.active.id), sessionId);
+        return;
+      }
       const altKey = (e.activatorEvent as PointerEvent).altKey;
       const day = new Date(e.over?.id);
       const activeId = String(e.active.id);
@@ -556,6 +612,7 @@ export function Calendar({
     [
       athleteId,
       events,
+      linkActivity,
       useTemplateMutation,
       updateEventMutation,
       duplicateEventMutation,

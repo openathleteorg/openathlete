@@ -4,6 +4,7 @@ import { Active, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import * as React from 'react';
 
 import { DroppableData } from '../../create-event-from-template-dialog/dnd-types';
+import { parseLinkDropId } from '../utils/link-drop';
 
 type SharedDndContextType = {
   onDragStart?: (event: DragStartEvent) => void;
@@ -51,8 +52,11 @@ export function SharedDndProvider({ children }: { children: React.ReactNode }) {
     // This takes priority because sidebar drops have specific data attached
     const isSidebarDrop = overData?.type !== undefined;
 
-    // Check if drop is on a calendar day (ISO date string) only if not a sidebar drop
-    const isCalendarDay = !isSidebarDrop && !Number.isNaN(Date.parse(overId));
+    // Check if drop is on a calendar day (ISO date string), or on a planned
+    // session (an activity to link), only if not a sidebar drop
+    const isCalendarDay =
+      !isSidebarDrop &&
+      (!Number.isNaN(Date.parse(overId)) || parseLinkDropId(overId) !== null);
 
     if (isSidebarDrop && sidebarHandlerRef.current) {
       // Drop in sidebar - use sidebar handler (handles template/folder reorganization)

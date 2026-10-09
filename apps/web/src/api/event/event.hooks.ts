@@ -1,5 +1,7 @@
 import {
   MutationOptions,
+  QueryClient,
+  QueryKey,
   QueryOptions,
   useMutation,
   useQuery,
@@ -14,6 +16,10 @@ import {
 } from '../training-load/training-load.keys';
 import { EventAPI } from './event.api';
 import { eventKeys } from './event.keys';
+import {
+  linkActivityInEvents,
+  unlinkActivityInEvents,
+} from './related-activity.cache';
 
 type CreateEventContext = {
   previousQueries: Map<unknown[], unknown>;
@@ -392,20 +398,59 @@ export const useDeleteEventMutation = (
   });
 };
 
+type EventsSnapshot = { previousEvents: [QueryKey, Event[] | undefined][] };
+
+/**
+ * Applies a change to every cached list of events at once, and returns them
+ * as they were, to roll back if the request fails.
+ */
+async function updateCachedEvents(
+  queryClient: QueryClient,
+  update: (events: Event[]) => Event[],
+): Promise<EventsSnapshot> {
+  await queryClient.cancelQueries({ queryKey: [eventKeys.getMyEvents] });
+  const previousEvents = queryClient.getQueriesData<Event[]>({
+    queryKey: [eventKeys.getMyEvents],
+  });
+  queryClient.setQueriesData<Event[]>(
+    { queryKey: [eventKeys.getMyEvents] },
+    (events) => events && update(events),
+  );
+  return { previousEvents };
+}
+
+function restoreCachedEvents(
+  queryClient: QueryClient,
+  snapshot: EventsSnapshot | undefined,
+) {
+  snapshot?.previousEvents.forEach(([queryKey, events]) =>
+    queryClient.setQueryData(queryKey, events),
+  );
+}
+
+/** Links an activity to a session, shown at once in the calendar */
 export const useSetRelatedActivityMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof EventAPI.setRelatedActivity>>,
     Error,
-    Parameters<typeof EventAPI.setRelatedActivity>[0]
+    Parameters<typeof EventAPI.setRelatedActivity>[0],
+    EventsSnapshot
   >,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     ...opt,
     mutationFn: EventAPI.setRelatedActivity,
-    onSuccess: (data, variables, onMutateResult, context) => {
-      if (opt?.onSuccess)
-        opt.onSuccess(data, variables, onMutateResult, context);
+    onMutate: ({ eventId, activityId }) =>
+      updateCachedEvents(queryClient, (events) =>
+        linkActivityInEvents(events, eventId, activityId),
+      ),
+    onError: (error, variables, snapshot, context) => {
+      restoreCachedEvents(queryClient, snapshot);
+      opt?.onError?.(error, variables, snapshot, context);
+    },
+    onSettled: (data, error, variables, snapshot, context) => {
+      opt?.onSettled?.(data, error, variables, snapshot, context);
       queryClient.invalidateQueries({
         queryKey: [eventKeys.getEvent, variables.eventId],
       });
@@ -417,20 +462,29 @@ export const useSetRelatedActivityMutation = (
   });
 };
 
+/** Unlinks the activity of a session, shown at once in the calendar */
 export const useUnsetRelatedActivityMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof EventAPI.unsetRelatedActivity>>,
     Error,
-    Parameters<typeof EventAPI.unsetRelatedActivity>[0]
+    Parameters<typeof EventAPI.unsetRelatedActivity>[0],
+    EventsSnapshot
   >,
 ) => {
   const queryClient = useQueryClient();
   return useMutation({
     ...opt,
     mutationFn: EventAPI.unsetRelatedActivity,
-    onSuccess: (data, variables, onMutateResult, context) => {
-      if (opt?.onSuccess)
-        opt.onSuccess(data, variables, onMutateResult, context);
+    onMutate: (eventId) =>
+      updateCachedEvents(queryClient, (events) =>
+        unlinkActivityInEvents(events, eventId),
+      ),
+    onError: (error, variables, snapshot, context) => {
+      restoreCachedEvents(queryClient, snapshot);
+      opt?.onError?.(error, variables, snapshot, context);
+    },
+    onSettled: (data, error, variables, snapshot, context) => {
+      opt?.onSettled?.(data, error, variables, snapshot, context);
       queryClient.invalidateQueries({
         queryKey: [eventKeys.getEvent, variables],
       });

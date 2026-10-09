@@ -1,4 +1,8 @@
-import { useDeleteEventMutation, useDuplicateEventMutation } from '@/api/event';
+import {
+  useDeleteEventMutation,
+  useDuplicateEventMutation,
+  useUnsetRelatedActivityMutation,
+} from '@/api/event';
 import { useCreateEventTemplateMutation } from '@/api/event-template';
 import { useIsEventValidated } from '@/hooks/use-event-validation';
 import { m } from '@/paraglide/messages';
@@ -10,7 +14,7 @@ import {
   getSportColor,
 } from '@/utils/color';
 import { cn } from '@/utils/shadcn';
-import { useDraggable } from '@dnd-kit/core';
+import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   ActivityIcon,
   Copy,
@@ -18,9 +22,10 @@ import {
   FileText,
   Trash2,
   Trophy,
+  Unlink,
 } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -54,6 +59,7 @@ import {
   isShownCompliance,
 } from './utils/compliance';
 import { complianceLabel } from './utils/compliance-labels';
+import { isActivityDrag, linkDropId } from './utils/link-drop';
 
 interface P {
   event: Event;
@@ -150,6 +156,12 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
       toast.success(m.template_saved_successfully());
     },
   });
+  const unsetRelatedActivityMutation = useUnsetRelatedActivityMutation();
+  const unlinkActivity = (sessionId: Event['eventId']) =>
+    unsetRelatedActivityMutation.mutate(sessionId, {
+      onSuccess: () => toast.success(m.calendar_unlink_done()),
+      onError: () => toast.error(m.calendar_link_failed()),
+    });
   const isValidated = useIsEventValidated(event, athleteId);
   const { copyEvent } = useEventClipboard();
   const { isAnyContextMenuOpen, setContextMenuOpen } = useEventContextMenu();
@@ -180,9 +192,28 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
   }, [event, coloredBy]);
 
   // While selecting, the event is not draggable: dnd-kit would still mark it
-  // aria-disabled, and with it the selection checkbox inside.
-  const draggable =
-    event.type !== EVENT_TYPE.ACTIVITY && !wrapped && !bulk?.selecting;
+  // aria-disabled, and with it the selection checkbox inside. Activities are
+  // dragged onto their planned session to link them.
+  const draggable = !wrapped && !bulk?.selecting;
+  // A planned session still waiting for its activity takes one by drop
+  const linkTarget =
+    isPlannedEvent(event) && !event.relatedActivity && !wrapped;
+  const {
+    setNodeRef: setDropRef,
+    isOver: isLinkOver,
+    active: activeDrag,
+  } = useDroppable({
+    id: linkDropId(event.eventId),
+    disabled: !linkTarget,
+  });
+  const awaitsActivity = linkTarget && isActivityDrag(activeDrag);
+  const setCardRef = useCallback(
+    (node: HTMLElement | null) => {
+      if (draggable) setNodeRef(node);
+      setDropRef(node);
+    },
+    [draggable, setNodeRef, setDropRef],
+  );
   const relatedEvents = allEvents.filter(
     (e): e is PlannedEvent =>
       isPlannedEvent(e) && e.relatedActivity?.eventId === event.eventId,
@@ -219,11 +250,16 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                   ),
                 !isValidated ? 'opacity-60' : '',
                 isDragging ? 'opacity-30' : '',
+                awaitsActivity &&
+                  'outline-2 outline-offset-1 outline-dashed outline-primary/50 transition-transform',
+                awaitsActivity &&
+                  isLinkOver &&
+                  'scale-[1.03] bg-primary/10 outline-solid outline-primary',
                 selectable &&
                   bulk?.selected.has(event.eventId) &&
                   'ring-2 ring-inset ring-primary',
               )}
-              ref={draggable ? setNodeRef : undefined}
+              ref={setCardRef}
               {...(draggable ? { ...listeners, ...attributes } : {})}
               onClick={(e) => {
                 if (bulk?.selecting) {
@@ -351,6 +387,29 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                 {m.save_as_template()}
               </ContextMenuItem>
             )}
+            {isPlannedEvent(event) && event.relatedActivity && (
+              <ContextMenuItem
+                onClick={(e) => {
+                  unlinkActivity(event.eventId);
+                  e.stopPropagation();
+                }}
+              >
+                <Unlink className="w-4 h-4 mr-2" />
+                {m.calendar_unlink_activity()}
+              </ContextMenuItem>
+            )}
+            {relatedEvents.map((related) => (
+              <ContextMenuItem
+                key={related.eventId}
+                onClick={(e) => {
+                  unlinkActivity(related.eventId);
+                  e.stopPropagation();
+                }}
+              >
+                <Unlink className="w-4 h-4 mr-2" />
+                {m.calendar_unlink_from({ name: related.name })}
+              </ContextMenuItem>
+            ))}
             {event.type !== EVENT_TYPE.ACTIVITY && (
               <>
                 <ContextMenuItem
