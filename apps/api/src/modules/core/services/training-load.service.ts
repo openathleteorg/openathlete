@@ -13,7 +13,10 @@ import {
   TrainingLoadCalculationType,
 } from '@openathlete/database';
 import {
+  CALENDAR_WELLNESS_METRICS,
+  CalendarDayForm,
   CalendarWeekLoadSummary,
+  CalendarWellnessMetric,
   CompressedActivityStream,
 } from '@openathlete/shared';
 
@@ -51,6 +54,7 @@ import {
 import {
   LoadEntry,
   PlannedSessionLoad,
+  buildDailyLoads,
   buildWeeklyLoads,
 } from '../helpers/weekly-load';
 
@@ -1117,6 +1121,84 @@ export class TrainingLoadService {
           done: session.relatedActivityId !== null,
         },
       ];
+    });
+  }
+
+  /**
+   * Day by day load and form between two dates, projected over the planned
+   * sessions like the weekly summary, with the day's wellness measurements
+   * when asked for. Callers skip `wellness` when the athlete records none.
+   */
+  async getDailyForm(
+    user: AuthUser,
+    startDate: Date,
+    endDate: Date,
+    athleteId: Athlete['athleteId'] | undefined,
+    wellness: boolean,
+  ): Promise<CalendarDayForm[]> {
+    const ability = await this.abilities.getFor({ user });
+    const athlete = await this.prisma.athlete.findFirst({
+      where: athleteId ? { athleteId } : { user: { userId: user.userId } },
+    });
+    if (!athlete) {
+      throw new NotFoundException('Athlete not found');
+    }
+    if (!ability.can('read', subject('Athlete', athlete))) {
+      throw new ForbiddenException('Not allowed to access this athlete');
+    }
+
+    // The same warm-up as the weekly summary, so both agree
+    const warmupFrom = addUtcDays(getUtcWeekStart(startDate), -42);
+    const to = startOfUtcDay(endDate);
+    to.setUTCHours(23, 59, 59, 999);
+    const [entries, sessions, metrics] = await Promise.all([
+      this.getTrimpEntries(athlete.athleteId, warmupFrom, to),
+      this.getPlannedSessionLoads(athlete.athleteId, warmupFrom, to),
+      wellness
+        ? this.prisma.athleteMetric.findMany({
+            where: {
+              athleteId: athlete.athleteId,
+              type: { in: [...CALENDAR_WELLNESS_METRICS] as MetricType[] },
+              date: { gte: startOfUtcDay(startDate), lte: to },
+            },
+            select: { type: true, value: true, date: true },
+            orderBy: { date: 'asc' },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    // Metrics are stored by date (no time): their UTC date is their day
+    const byDay = new Map<
+      string,
+      Partial<Record<CalendarWellnessMetric, number>>
+    >();
+    for (const metric of metrics) {
+      const day = toUtcDateKey(metric.date);
+      byDay.set(day, {
+        ...byDay.get(day),
+        [metric.type as CalendarWellnessMetric]: metric.value,
+      });
+    }
+
+    const round = (value: number) => Math.round(value * 10) / 10;
+    return buildDailyLoads({
+      warmupFrom,
+      from: startDate,
+      to,
+      entries,
+      sessions,
+      today: new Date(),
+    }).map(({ date, load, fitness, projected }) => {
+      const key = toUtcDateKey(date);
+      return {
+        date: key,
+        load: Math.round(load),
+        ctl: round(fitness.ctl),
+        atl: round(fitness.atl),
+        tsb: round(fitness.ctl - fitness.atl),
+        projected,
+        ...(wellness && byDay.has(key) && { wellness: byDay.get(key) }),
+      };
     });
   }
 

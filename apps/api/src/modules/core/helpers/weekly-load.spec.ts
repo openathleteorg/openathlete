@@ -1,4 +1,4 @@
-import { buildWeeklyLoads } from './weekly-load';
+import { buildDailyLoads, buildWeeklyLoads } from './weekly-load';
 
 const utc = (day: number, hour = 0) => new Date(Date.UTC(2026, 9, day, hour)); // October 2026, Monday the 5th
 
@@ -72,5 +72,63 @@ describe('buildWeeklyLoads', () => {
     expect(weeks.every((week) => week.actual === 0 && week.planned === 0)).toBe(
       true,
     );
+  });
+});
+
+describe('buildDailyLoads', () => {
+  const today = utc(14, 10);
+  const entries = [
+    { date: utc(6), value: 80 },
+    { date: utc(13), value: 50 },
+  ];
+  const sessions = [
+    // Missed: not in the projection
+    { startDate: utc(12, 7), load: 60, done: false },
+    { startDate: utc(16, 7), load: 70, done: false },
+    // Done: its activity is already an entry
+    { startDate: utc(13, 7), load: 55, done: true },
+  ];
+
+  it('gives each day its load and form, projected from today', () => {
+    const days = buildDailyLoads({
+      warmupFrom: utc(5),
+      from: utc(12),
+      to: utc(18),
+      entries,
+      sessions,
+      today,
+    });
+    expect(days.map((day) => day.date)).toEqual(
+      [12, 13, 14, 15, 16, 17, 18].map((day) => utc(day)),
+    );
+    expect(days.map((day) => day.load)).toEqual([0, 50, 0, 0, 70, 0, 0]);
+    expect(days.map((day) => day.projected)).toEqual([
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+    ]);
+  });
+
+  it('ends each week on the form of the weekly summary', () => {
+    const [week] = buildWeeklyLoads({
+      from: utc(12),
+      to: utc(18),
+      entries,
+      sessions,
+      today,
+    });
+    const days = buildDailyLoads({
+      warmupFrom: utc(12),
+      from: utc(12),
+      to: utc(18),
+      entries,
+      sessions,
+      today,
+    });
+    expect(days[6].fitness).toEqual(week.fitness);
   });
 });

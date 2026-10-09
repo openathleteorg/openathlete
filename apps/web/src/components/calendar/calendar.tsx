@@ -10,7 +10,11 @@ import {
 } from '@/api/event';
 import { useUseEventTemplateMutation } from '@/api/event-template';
 import { eventKeys } from '@/api/event/event.keys';
-import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
+import {
+  useDailyFormQuery,
+  useWeeklyLoadSummaryQuery,
+} from '@/api/training-load';
 import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
 import {
   CalendarView,
@@ -49,6 +53,7 @@ import { toast } from 'sonner';
 
 import {
   AiTask,
+  CALENDAR_WELLNESS_METRICS,
   CreateEventDto,
   Cycle,
   EVENT_TYPE,
@@ -151,6 +156,33 @@ export function Calendar({
 
     return { start, end };
   }, [weekRangeStart, weekRangeEnd]);
+
+  const { display, updateDisplay } = useCalendarDisplay();
+  // Wellness only for athletes who record some: no request otherwise
+  const { data: latestMetrics } = useGetLatestMetricsQuery(athleteId, {
+    enabled: Boolean(athleteId),
+  });
+  const recordsWellness = CALENDAR_WELLNESS_METRICS.some(
+    (type) => latestMetrics?.[type],
+  );
+  const { data: dailyFormList } = useDailyFormQuery({
+    startDate: loadRange.start,
+    endDate: loadRange.end,
+    athleteId,
+    wellness: display.wellness && recordsWellness,
+    // The wellness row and the weekly load charts read it; the phone's
+    // list of months shows neither
+    enabled:
+      (display.wellness || display.summary.load) &&
+      (!isMobile || view === 'week'),
+  });
+  const dailyForm = useMemo(
+    () =>
+      Object.fromEntries(
+        (dailyFormList ?? []).map((day) => [day.date, day]),
+      ) as CalendarContextType['dailyForm'],
+    [dailyFormList],
+  );
 
   const queryClient = useQueryClient();
   const {
@@ -494,8 +526,6 @@ export function Calendar({
     }
   }, [coloredBy]);
 
-  const { display, updateDisplay } = useCalendarDisplay();
-
   const memoizedValue = useMemo<CalendarContextType>(
     () => ({
       ...calendarData,
@@ -533,6 +563,7 @@ export function Calendar({
       estimatingEvents,
       display,
       updateDisplay,
+      dailyForm,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -554,6 +585,7 @@ export function Calendar({
       estimatingEvents,
       display,
       updateDisplay,
+      dailyForm,
     ],
   );
 

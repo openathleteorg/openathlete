@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 
 import {
+  CalendarDayForm,
   CalendarDisplay,
   CalendarWeekLoadSummary,
   Cycle,
@@ -47,6 +48,8 @@ export type CalendarContextType = {
   updateDisplay: (
     change: (current: CalendarDisplay) => CalendarDisplay,
   ) => void;
+  /** Load, form and wellness of each day, by date (YYYY-MM-DD) */
+  dailyForm: Record<string, CalendarDayForm>;
   // Cycle management
   cycles: Cycle[];
   createCycle: (startDate: Date, endDate: Date) => void;

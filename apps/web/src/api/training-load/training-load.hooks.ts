@@ -181,3 +181,33 @@ export const useRecalculateAllLoadsMutation = (
     },
   });
 };
+
+/**
+ * Day by day load and form of a calendar range, with the wellness
+ * measurements only when the athlete records some (`wellness`).
+ */
+export const useDailyFormQuery = ({
+  startDate,
+  endDate,
+  athleteId,
+  wellness,
+  enabled = true,
+}: {
+  startDate?: Date;
+  endDate?: Date;
+  athleteId?: number;
+  wellness: boolean;
+  enabled?: boolean;
+}) =>
+  useQuery({
+    enabled: enabled && Boolean(startDate && endDate && athleteId),
+    queryFn: () =>
+      TrainingLoadAPI.getDailyForm(startDate!, endDate!, athleteId, wellness),
+    queryKey: [
+      trainingLoadKeys.getDailyForm,
+      startDate?.toISOString(),
+      endDate?.toISOString(),
+      athleteId,
+      wellness,
+    ],
+  });

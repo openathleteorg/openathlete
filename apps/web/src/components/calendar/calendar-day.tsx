@@ -22,6 +22,7 @@ import {
 } from '../ui/dropdown-menu';
 import { CalendarCycleSegment } from './calendar-cycle-segment';
 import { CalendarDayActions } from './calendar-day-actions';
+import { CalendarDayWellness } from './calendar-day-wellness';
 import { CalendarEvent } from './calendar-event';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { CycleDaySegment } from './utils/cycle-day-layout';
@@ -50,6 +51,8 @@ export function CalendarDay({
     createCycle,
     cycleResize,
     setCycleResize,
+    display,
+    dailyForm,
   } = useCalendarContext();
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -281,6 +284,9 @@ export function CalendarDay({
                 />
               ))}
           </div>
+          {display.wellness && (
+            <CalendarDayWellness form={dailyForm[format(day, 'yyyy-MM-dd')]} />
+          )}
         </ContextMenuTrigger>
         {allowCreate && (
           <ContextMenuContent className="w-64">

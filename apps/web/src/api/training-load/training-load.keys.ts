@@ -8,6 +8,7 @@ export const trainingLoadKeys = {
   getTrainingLoadMetrics: 'TrainingLoadAPI.getTrainingLoadMetrics',
   getTrainingLoadHistory: 'TrainingLoadAPI.getTrainingLoadHistory',
   getWeeklyLoadSummary: 'TrainingLoadAPI.getWeeklyLoadSummary',
+  getDailyForm: 'TrainingLoadAPI.getDailyForm',
   recalculateAllLoads: 'TrainingLoadAPI.recalculateAllLoads',
 } as const;
 

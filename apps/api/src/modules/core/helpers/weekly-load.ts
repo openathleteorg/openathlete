@@ -117,3 +117,67 @@ export function buildWeeklyLoads({
 
   return sorted;
 }
+
+export interface DayLoad {
+  date: Date;
+  /** Done load, then planned load from today on */
+  load: number;
+  fitness: FitnessState;
+  /** Today or later: counts the sessions still to do */
+  projected: boolean;
+}
+
+/**
+ * The same model day by day, for the days from `from` to `to`. It starts at
+ * `warmupFrom` like the weekly summary does, so the form at the end of a
+ * week matches its summary.
+ */
+export function buildDailyLoads({
+  warmupFrom,
+  from,
+  to,
+  entries,
+  sessions,
+  today,
+}: {
+  warmupFrom: Date;
+  from: Date;
+  to: Date;
+  entries: LoadEntry[];
+  sessions: PlannedSessionLoad[];
+  today: Date;
+}): DayLoad[] {
+  const todayStart = startOfUtcDay(today);
+  const dailyLoad = new Map<string, number>();
+  const add = (date: Date, load: number) => {
+    const key = toUtcDateKey(date);
+    dailyLoad.set(key, (dailyLoad.get(key) ?? 0) + load);
+  };
+  for (const entry of entries) add(entry.date, entry.value);
+  for (const session of sessions) {
+    if (
+      session.load !== null &&
+      !session.done &&
+      session.startDate >= todayStart
+    ) {
+      add(session.startDate, session.load);
+    }
+  }
+
+  const first = startOfUtcDay(from);
+  const last = startOfUtcDay(to);
+  const days: DayLoad[] = [];
+  let fitness: FitnessState = { ctl: 0, atl: 0 };
+  for (
+    let date = startOfUtcDay(warmupFrom);
+    date <= last;
+    date = addUtcDays(date, 1)
+  ) {
+    const load = dailyLoad.get(toUtcDateKey(date)) ?? 0;
+    fitness = advanceFitness(fitness, load);
+    if (date >= first) {
+      days.push({ date, load, fitness, projected: date >= todayStart });
+    }
+  }
+  return days;
+}

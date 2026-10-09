@@ -234,6 +234,7 @@ export const routes = {
     metrics: '/training-load/metrics',
     history: '/training-load/history',
     weeklySummary: '/training-load/weekly-summary',
+    days: '/training-load/days',
     recalculate: '/training-load/recalculate',
   },
   subscription: {

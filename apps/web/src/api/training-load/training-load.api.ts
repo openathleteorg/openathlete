@@ -1,6 +1,7 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  CalendarDayForm,
   CalendarWeekLoadSummary,
   DailyTrainingLoad,
   RecalculateAllLoadsResponse,
@@ -139,6 +140,23 @@ export class TrainingLoadAPI {
   ): Promise<RecalculateAllLoadsResponse> {
     const res = await client.post(routes.trainingLoad.recalculate, {
       calculationType,
+    });
+    return res.data;
+  }
+
+  static async getDailyForm(
+    startDate: Date,
+    endDate: Date,
+    athleteId: number | undefined,
+    wellness: boolean,
+  ): Promise<CalendarDayForm[]> {
+    const res = await client.get(routes.trainingLoad.days, {
+      params: {
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        athleteId,
+        wellness,
+      },
     });
     return res.data;
   }

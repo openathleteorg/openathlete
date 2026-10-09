@@ -29,3 +29,4 @@ export * from './records.dto';
 export * from './weekly-volume.dto';
 export * from './instance.dto';
 export * from './calendar-display.dto';
+export * from './calendar-day.dto';

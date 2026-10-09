@@ -73,7 +73,8 @@ export function CalendarDisplaySettings() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-72 space-y-4"
+        // Scrolls on short screens rather than running off them
+        className="max-h-(--radix-popover-content-available-height) w-72 space-y-4 overflow-y-auto"
         data-calendar-display-settings
       >
         <p className="text-sm font-semibold">{m.calendar_display_title()}</p>
@@ -149,6 +150,20 @@ export function CalendarDisplaySettings() {
               }
             />
           ))}
+        </fieldset>
+
+        <fieldset className="space-y-1">
+          <legend className="mb-1 text-xs font-medium text-muted-foreground">
+            {m.calendar_display_days()}
+          </legend>
+          <Field
+            id="calendar-wellness"
+            label={m.calendar_display_wellness()}
+            checked={display.wellness}
+            onChange={(wellness) =>
+              updateDisplay((current) => ({ ...current, wellness }))
+            }
+          />
         </fieldset>
       </PopoverContent>
     </Popover>

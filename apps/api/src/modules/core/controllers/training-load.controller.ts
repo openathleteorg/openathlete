@@ -21,7 +21,11 @@ import {
 } from '@nestjs/swagger';
 
 import { Athlete, TrainingLoadCalculationType } from '@openathlete/database';
-import { DailyTrainingLoad, TrainingLoadMetrics } from '@openathlete/shared';
+import {
+  CalendarDayForm,
+  DailyTrainingLoad,
+  TrainingLoadMetrics,
+} from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -468,6 +472,40 @@ export class TrainingLoadController {
     );
 
     return history;
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('days')
+  @ApiOperation({
+    summary: 'Daily load and form, with wellness measurements on demand',
+  })
+  async getDailyForm(
+    @JwtUser() user: AuthUser,
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+    @Query('wellness') wellness?: string,
+    @Query('athleteId', new ParseIntPipe({ optional: true }))
+    athleteId?: Athlete['athleteId'],
+  ): Promise<CalendarDayForm[]> {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new BadRequestException('startDate and endDate are required');
+    }
+    if (
+      end < start ||
+      end.getTime() - start.getTime() > 731 * 24 * 3600 * 1000
+    ) {
+      throw new BadRequestException('At most two years, in order');
+    }
+    return this.trainingLoadService.getDailyForm(
+      user,
+      start,
+      end,
+      athleteId,
+      wellness === 'true',
+    );
   }
 
   /**

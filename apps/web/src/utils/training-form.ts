@@ -25,6 +25,13 @@ export const formStatusTextClass: Record<FormStatus, string> = {
   detraining: 'text-blue-600 dark:text-blue-400',
 };
 
+/** Solid colours for a small status dot */
+export const formStatusDotClass: Record<FormStatus, string> = {
+  overtraining: 'bg-red-500',
+  optimal: 'bg-green-500',
+  detraining: 'bg-blue-500',
+};
+
 export const formStatusBackgroundClass: Record<FormStatus, string> = {
   overtraining:
     'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30',

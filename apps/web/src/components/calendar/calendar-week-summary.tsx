@@ -20,6 +20,7 @@ import {
 import { Skeleton } from '../ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { CalendarWeekActions } from './calendar-week-actions';
+import { CalendarWeekLoadBars } from './calendar-week-load-bars';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { complianceDotClass } from './utils/compliance';
 import { nextRaceCountdown } from './utils/races';
@@ -287,6 +288,7 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
     allowCreate,
     events: allEvents,
     display,
+    dailyForm,
   } = useCalendarContext();
   const shown = display.summary;
   const weekLoad = weeklyLoadSummary[getWeekKey(week[0])];
@@ -369,7 +371,12 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
             (isLoadLoading ? (
               <Skeleton className="h-6 w-full" />
             ) : (
-              weekLoad && <LoadRow load={weekLoad} />
+              weekLoad && (
+                <div className="space-y-1">
+                  <LoadRow load={weekLoad} />
+                  <CalendarWeekLoadBars week={week} dailyForm={dailyForm} />
+                </div>
+              )
             ))}
         </div>
         <div className="mt-auto flex flex-col gap-1.5 @md:mt-0 @md:flex-row @md:items-center @md:justify-between">
