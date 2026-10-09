@@ -27,7 +27,7 @@ export function CalendarBody() {
   return (
     <div className="w-full border-1 rounded-lg shadow-sm">
       {/* Header row with days */}
-      <div className="grid grid-cols-7 md:grid-cols-8 border-b-1">
+      <div className="grid grid-cols-7 md:grid-cols-[repeat(7,minmax(0,1fr))_minmax(8.5rem,1.25fr)] border-b-1">
         {displayedWeeks[0].map((day, i) => (
           <div
             key={i}
@@ -46,7 +46,7 @@ export function CalendarBody() {
       {/* Week rows */}
       {displayedWeeks.map((week, weekIndex) => (
         <div key={weekIndex}>
-          <div className="grid grid-cols-7 md:grid-cols-8 [&:not(:last-child)]:border-b-1">
+          <div className="grid grid-cols-7 md:grid-cols-[repeat(7,minmax(0,1fr))_minmax(8.5rem,1.25fr)] [&:not(:last-child)]:border-b-1">
             {week.map((day, i) => (
               <CalendarDay
                 key={i}

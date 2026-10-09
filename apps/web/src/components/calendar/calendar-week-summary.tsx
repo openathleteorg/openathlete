@@ -7,6 +7,7 @@ import {
   formatForm,
   getFormStatus,
 } from '@/utils/training-form';
+import { Clock, Gauge, LucideIcon, Mountain, Route } from 'lucide-react';
 import { useMemo } from 'react';
 
 import {
@@ -58,13 +59,33 @@ function ProgressBar({ progress }: { progress: number }) {
   );
 }
 
+/**
+ * A row label: an icon where the summary is narrow (month column on a
+ * laptop), the word where there is room. Screen readers always get the word.
+ */
+function RowLabel({ label, icon: Icon }: { label: string; icon: LucideIcon }) {
+  return (
+    <span
+      className="flex min-w-0 items-center text-muted-foreground"
+      title={label}
+    >
+      <Icon aria-hidden className="size-3.5 shrink-0 @[11rem]:hidden" />
+      <span className="sr-only @[11rem]:not-sr-only @[11rem]:truncate">
+        {label}
+      </span>
+    </span>
+  );
+}
+
 function VolumeRow({
   label,
+  icon,
   values,
   format,
   unit,
 }: {
   label: string;
+  icon: LucideIcon;
   values: PlannedDone;
   format: (value: number) => string;
   unit?: string;
@@ -73,7 +94,7 @@ function VolumeRow({
   return (
     <div className="min-w-0">
       <div className="flex items-baseline justify-between gap-1">
-        <span className="truncate text-muted-foreground">{label}</span>
+        <RowLabel label={label} icon={icon} />
         <span className="whitespace-nowrap tabular-nums">
           <span className="font-semibold">{format(values.done)}</span>
           {values.planned > 0 && (
@@ -107,7 +128,7 @@ function LoadRow({ load }: { load: CalendarWeekLoadSummary }) {
       <TooltipTrigger asChild>
         <div className="min-w-0 cursor-default" data-week-load>
           <div className="flex items-baseline justify-between gap-1">
-            <span className="truncate text-muted-foreground">{m.load()}</span>
+            <RowLabel label={m.load()} icon={Gauge} />
             <span className="whitespace-nowrap tabular-nums">
               <span className="font-semibold">{formatLoad(actualLoad)}</span>
               {plannedLoad > 0 && (
@@ -280,12 +301,14 @@ export function CalendarWeekSummary({ events, week }: P) {
         <div className="grid gap-2 @md:grid-cols-4 @md:gap-4">
           <VolumeRow
             label={m.duration()}
+            icon={Clock}
             values={totals.duration}
             format={formatCompactDuration}
           />
           {hasDistance && (
             <VolumeRow
               label={m.distance()}
+              icon={Route}
               values={totals.distance}
               format={(meters) => formatCompactKilometers(meters, locale)}
               unit="km"
@@ -293,7 +316,8 @@ export function CalendarWeekSummary({ events, week }: P) {
           )}
           {hasElevation && (
             <VolumeRow
-              label={m.calendar_week_elevation_short()}
+              label={m.elevation_gain()}
+              icon={Mountain}
               values={totals.elevation}
               format={(meters) => String(Math.round(meters))}
               unit="m"

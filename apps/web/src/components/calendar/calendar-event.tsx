@@ -6,6 +6,7 @@ import {
 import { useCreateEventTemplateMutation } from '@/api/event-template';
 import { useIsEventValidated } from '@/hooks/use-event-validation';
 import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
 import { AnalyticsEvent } from '@/utils/analytics-events';
 import {
   getEventTypeColor,
@@ -28,13 +29,7 @@ import { usePostHog } from 'posthog-js/react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import {
-  EVENT_TYPE,
-  Event,
-  SPORT_TYPE,
-  formatDistance,
-  formatDuration,
-} from '@openathlete/shared';
+import { EVENT_TYPE, Event, SPORT_TYPE } from '@openathlete/shared';
 
 import { ConfirmAction } from '../confirm-action';
 import { SportIcon } from '../sport-icon/sport-icon';
@@ -60,6 +55,10 @@ import {
 } from './utils/compliance';
 import { complianceLabel } from './utils/compliance-labels';
 import { isActivityDrag, linkDropId } from './utils/link-drop';
+import {
+  formatCompactDuration,
+  formatCompactKilometers,
+} from './utils/week-summary';
 
 interface P {
   event: Event;
@@ -67,51 +66,40 @@ interface P {
   detailed?: boolean;
 }
 
+const DISTANCE_SPORTS = new Set<SPORT_TYPE>([
+  SPORT_TYPE.RUNNING,
+  SPORT_TYPE.CYCLING,
+  SPORT_TYPE.TRAIL_RUNNING,
+  SPORT_TYPE.SWIMMING,
+  SPORT_TYPE.HIKING,
+]);
+
+/**
+ * Duration and distance, done or planned. They wrap onto two lines when the
+ * card is narrow rather than running into each other.
+ */
 function EventSecondLine({ event }: { event: Event }) {
-  if (event.type === 'ACTIVITY') {
-    if (
-      event.sport === SPORT_TYPE.RUNNING ||
-      event.sport === SPORT_TYPE.CYCLING ||
-      event.sport === SPORT_TYPE.TRAIL_RUNNING ||
-      event.sport === SPORT_TYPE.SWIMMING ||
-      event.sport === SPORT_TYPE.HIKING
-    ) {
-      return (
-        <div className="flex justify-between w-full">
-          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {formatDuration(event.movingTime)}
-          </div>
-          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {formatDistance(event.distance, 'km')} km
-          </div>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex justify-between w-full">
-          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {formatDuration(event.movingTime)}
-          </div>
-        </div>
-      );
-    }
+  let duration: number | null | undefined;
+  let distance: number | null | undefined;
+  if (event.type === EVENT_TYPE.ACTIVITY) {
+    duration = event.movingTime;
+    distance = DISTANCE_SPORTS.has(event.sport) ? event.distance : null;
+  } else if (isPlannedEvent(event)) {
+    duration = event.goalDuration;
+    distance = event.goalDistance;
+  } else {
+    return null;
   }
-  if (event.type === 'TRAINING' || event.type === 'COMPETITION') {
-    return (
-      <div className="flex justify-between w-full">
-        {!!event.goalDuration && (
-          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {formatDuration(event.goalDuration)}
-          </div>
-        )}
-        {!!event.goalDistance && (
-          <div className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {formatDistance(event.goalDistance, 'km')} km
-          </div>
-        )}
-      </div>
-    );
-  }
+  if (!duration && !distance) return null;
+
+  return (
+    <div className="flex w-full flex-wrap justify-between gap-x-2 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400">
+      {!!duration && <span>{formatCompactDuration(duration)}</span>}
+      {!!distance && (
+        <span>{formatCompactKilometers(distance, getLocale())} km</span>
+      )}
+    </div>
+  );
 }
 
 export function CalendarEvent({ event, wrapped, detailed = false }: P) {
@@ -298,10 +286,9 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               )}
               <div
                 className={cn(
-                  'text-sm font-medium px-1',
-                  detailed
-                    ? 'whitespace-normal break-words'
-                    : 'whitespace-nowrap overflow-hidden text-ellipsis',
+                  'text-sm font-medium px-1 break-words',
+                  // Two lines in narrow day cells rather than a few letters
+                  detailed ? 'whitespace-normal' : 'line-clamp-2',
                 )}
               >
                 {event.type !== EVENT_TYPE.NOTE && (

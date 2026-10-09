@@ -132,98 +132,34 @@ export function CalendarHeader() {
   };
 
   return (
-    <div className="flex flex-col gap-4 px-4 md:px-0 lg:flex-row lg:flex-wrap lg:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-xl md:text-2xl font-semibold">{calendarTitle}</h1>
-        {isWeek && (
-          <p className="text-sm text-muted-foreground">
-            {weekStart.toLocaleDateString(getDateLocale(getLocale()), {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-            {' – '}
-            {addDays(weekStart, 6).toLocaleDateString(
-              getDateLocale(getLocale()),
-              { day: 'numeric', month: 'short', year: 'numeric' },
-            )}
-          </p>
-        )}
-        <ComplianceLegend className="mt-1" />
-      </div>
-      <div className="flex flex-col md:flex-row md:flex-wrap gap-2">
-        <div className="flex flex-wrap gap-2">
-          <CalendarViewToggle />
-          <BulkWorkoutSelectButton iconOnlyOnMobile />
-        </div>
-        {/* Filters row */}
-        <div className="flex flex-wrap gap-2">
-          {allowCreate && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                {/* Phones have the planning bar above the calendar */}
-                <Button
-                  className="hidden md:inline-flex"
-                  data-calendar-header-plan
-                >
-                  <Plus className="size-4" />
-                  {m.plan()}
-                  <ChevronDown className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64">
-                <DropdownMenuLabel className="font-normal text-muted-foreground">
-                  {planningDay.toLocaleDateString(getDateLocale(getLocale()), {
-                    weekday: 'long',
-                    day: 'numeric',
-                    month: 'long',
-                  })}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <CalendarDayActions
-                  day={planningDay}
-                  menu="dropdown"
-                  onAiSetupNeeded={() => setAiSetupOpen(true)}
-                />
-              </DropdownMenuContent>
-            </DropdownMenu>
+    <div className="flex flex-col gap-3 px-4 md:px-0">
+      {/* Title and period navigation share a row at every width, so the
+          arrows stay next to what they change */}
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h1
+            className="truncate text-xl font-semibold md:text-2xl"
+            title={calendarTitle}
+          >
+            {calendarTitle}
+          </h1>
+          {isWeek && (
+            <p className="text-sm text-muted-foreground">
+              {weekStart.toLocaleDateString(getDateLocale(getLocale()), {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+              {' – '}
+              {addDays(weekStart, 6).toLocaleDateString(
+                getDateLocale(getLocale()),
+                { day: 'numeric', month: 'short', year: 'numeric' },
+              )}
+            </p>
           )}
-          <Button
-            variant={open ? 'default' : 'outline'}
-            onClick={handleTemplateLibraryToggle}
-            className="hidden md:flex items-center gap-2"
-          >
-            <BookOpen className="h-4 w-4" />
-            {m.template_library()}
-          </Button>
-          <Select
-            value={coloredBy || ''}
-            onValueChange={(c) => {
-              if (c === '') {
-                setColoredBy(null);
-              } else {
-                setColoredBy(c as COLORED_BY);
-              }
-            }}
-          >
-            <SelectTrigger className="flex-1 md:flex-none">
-              <SelectValue placeholder={m.colored_by()} />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(COLORED_BY).map((colorProfile) => (
-                <SelectItem key={colorProfile} value={colorProfile}>
-                  {coloredByLabelMap[colorProfile]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <SportSelect
-            selected={sportFilter}
-            onChange={(sport) => handleChangeSportFilter(sport)}
-          />
+          <ComplianceLegend className="mt-1" />
         </div>
-        {/* Navigation buttons */}
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <Button
             size="icon"
             aria-label={
@@ -257,6 +193,77 @@ export function CalendarHeader() {
             <ChevronRight />
           </Button>
         </div>
+      </div>
+      {/* One toolbar that wraps instead of overflowing */}
+      <div className="flex flex-wrap items-center gap-2" data-calendar-toolbar>
+        <CalendarViewToggle />
+        <BulkWorkoutSelectButton iconOnlyOnMobile />
+        {allowCreate && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              {/* Phones have the planning bar above the calendar */}
+              <Button
+                className="hidden md:inline-flex"
+                data-calendar-header-plan
+              >
+                <Plus className="size-4" />
+                {m.plan()}
+                <ChevronDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-64">
+              <DropdownMenuLabel className="font-normal text-muted-foreground">
+                {planningDay.toLocaleDateString(getDateLocale(getLocale()), {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <CalendarDayActions
+                day={planningDay}
+                menu="dropdown"
+                onAiSetupNeeded={() => setAiSetupOpen(true)}
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <Button
+          variant={open ? 'default' : 'outline'}
+          onClick={handleTemplateLibraryToggle}
+          aria-label={m.template_library()}
+          title={m.template_library()}
+          className="hidden md:inline-flex items-center gap-2"
+        >
+          <BookOpen className="h-4 w-4" />
+          {/* Icon only on laptops, where the row is short of room */}
+          <span className="hidden xl:inline">{m.template_library()}</span>
+        </Button>
+        <Select
+          value={coloredBy || ''}
+          onValueChange={(c) => {
+            if (c === '') {
+              setColoredBy(null);
+            } else {
+              setColoredBy(c as COLORED_BY);
+            }
+          }}
+        >
+          <SelectTrigger className="flex-1 md:flex-none">
+            <SelectValue placeholder={m.colored_by()} />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.values(COLORED_BY).map((colorProfile) => (
+              <SelectItem key={colorProfile} value={colorProfile}>
+                {coloredByLabelMap[colorProfile]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <SportSelect
+          selected={sportFilter}
+          onChange={(sport) => handleChangeSportFilter(sport)}
+        />
       </div>
       <AiSetupDialog
         open={aiSetupOpen}

@@ -97,9 +97,11 @@ export function AthleteDashboardHeader({
   return (
     <Card className="mb-6">
       <CardContent>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {/* Two columns on laptops, with the races across the top: three
+            would leave the tiles too narrow for their labels */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {/* Upcoming Competitions */}
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 md:col-span-2 xl:col-span-1">
             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {m.dashboard_header_upcoming_competitions()}
             </h3>
@@ -249,7 +251,10 @@ export function AthleteDashboardHeader({
                       className={`rounded-md bg-gradient-to-br p-2 ${gradientColors[index % gradientColors.length]}`}
                     >
                       <div className="flex flex-col">
-                        <span className="text-[10px] font-medium text-muted-foreground mb-0.5 truncate">
+                        <span
+                          className="text-[10px] font-medium text-muted-foreground mb-0.5 truncate"
+                          title={label}
+                        >
                           {label}
                         </span>
                         <div className="flex items-baseline gap-0.5">
