@@ -1,0 +1,144 @@
+// ============================================================================
+// MCP access (AI agents)
+// ============================================================================
+// AI agents reach a user's data through the MCP server, with a token the user
+// gave them: through OAuth (an MCP client such as Claude or ChatGPT asks for
+// access, the user approves it) or a personal token the user created and
+// pasted into their agent. Every token is stored as a SHA-256 hash: they are
+// random 256-bit values, so a hash is enough and lookups stay one indexed
+// read.
+// ============================================================================
+
+enum McpGrantKind {
+  /// An MCP client the user approved through OAuth
+  OAUTH
+  /// A token the user created in their settings
+  PERSONAL_TOKEN
+
+  @@map("mcp_grant_kind")
+}
+
+enum McpTokenType {
+  ACCESS
+  REFRESH
+
+  @@map("mcp_token_type")
+}
+
+/// An OAuth client: registered through Dynamic Client Registration (random
+/// id), or known by the URL of its Client ID Metadata Document (the id is
+/// that https URL, and the document is fetched again once stale).
+model OAuthClient {
+  // primary key
+  clientId String @id @map("client_id")
+
+  // fields
+  /// Name shown on the consent page and in the user's connections
+  name              String
+  /// Exact redirect URIs the client may send users back to
+  redirectUris      String[]  @map("redirect_uris")
+  /// Hash of the secret of a confidential client, null for public clients
+  secretHash        String?   @map("secret_hash")
+  clientUri         String?   @map("client_uri")
+  logoUri           String?   @map("logo_uri")
+  /// When the metadata document of a URL client was last fetched
+  metadataFetchedAt DateTime? @map("metadata_fetched_at")
+
+  // relationships
+  grants McpGrant[]
+  codes  OAuthAuthorizationCode[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("oauth_client")
+}
+
+/// One access a user gave an agent: an approved OAuth client (one per user
+/// and client, approving again updates it) or a personal token. Revoking
+/// deletes it, with its tokens.
+model McpGrant {
+  // primary key
+  mcpGrantId Int @id @default(autoincrement()) @map("mcp_grant_id")
+
+  // fields
+  kind       McpGrantKind
+  /// Client name, or the label the user gave their token
+  name       String
+  /// read, write
+  scopes     String[]
+  /// Personal token only: its hash, and its last characters to recognize it
+  tokenHash  String?      @unique @map("token_hash")
+  tokenHint  String?      @map("token_hint")
+  /// Personal token only, null: never expires
+  expiresAt  DateTime?    @map("expires_at")
+  /// Last MCP request made with this access, at most once a minute
+  lastUsedAt DateTime?    @map("last_used_at")
+
+  // relationships
+  user     User         @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId   Int          @map("user_id")
+  client   OAuthClient? @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  clientId String?      @map("client_id")
+  tokens   McpToken[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, clientId])
+  @@map("mcp_grant")
+}
+
+/// OAuth access and refresh tokens of a grant. A refresh token is used once:
+/// it is replaced at each refresh, and presenting a used one again revokes
+/// the grant, since only a stolen copy would be replayed.
+model McpToken {
+  // primary key
+  mcpTokenId Int @id @default(autoincrement()) @map("mcp_token_id")
+
+  // fields
+  tokenHash String       @unique @map("token_hash")
+  type      McpTokenType
+  expiresAt DateTime     @map("expires_at")
+  /// Refresh tokens: when it was exchanged for new tokens
+  usedAt    DateTime?    @map("used_at")
+
+  // relationships
+  grant   McpGrant @relation(fields: [grantId], references: [mcpGrantId], onDelete: Cascade)
+  grantId Int      @map("grant_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([grantId])
+  @@index([expiresAt])
+  @@map("mcp_token")
+}
+
+/// A single-use authorization code, valid a few minutes, bound to the PKCE
+/// challenge, redirect URI and resource of its request.
+model OAuthAuthorizationCode {
+  // primary key
+  codeHash String @id @map("code_hash")
+
+  // fields
+  redirectUri   String   @map("redirect_uri")
+  codeChallenge String   @map("code_challenge")
+  scopes        String[]
+  resource      String
+  expiresAt     DateTime @map("expires_at")
+
+  // relationships
+  client   OAuthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  clientId String      @map("client_id")
+  user     User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId   Int         @map("user_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([expiresAt])
+  @@map("oauth_authorization_code")
+}

@@ -75,3 +75,37 @@ export function addZonedDays(
   const guess = wall - offsetAt(wall);
   return new Date(wall - offsetAt(guess) + milliseconds);
 }
+
+/** The instant the wall clock shows `time` (HH:mm) on `date` in `timeZone`. */
+export function zonedInstant(
+  date: string,
+  time: string,
+  timeZone: string,
+): Date {
+  const [hours, minutes] = time.split(':').map(Number);
+  const offsetAt = (at: number) => wallClock(new Date(at), timeZone).asUtc - at;
+  const wall = Date.parse(`${date}T00:00:00Z`) + (hours * 60 + minutes) * 60000;
+  const guess = wall - offsetAt(wall);
+  return new Date(wall - offsetAt(guess));
+}
+
+/** `instant` in local time with its offset, e.g. 2026-10-12T18:00+02:00 */
+export function formatZoned(instant: Date, timeZone: string): string {
+  const wall = wallClock(instant, timeZone).asUtc;
+  const offset = Math.round((wall - instant.getTime()) / 60000);
+  const sign = offset < 0 ? '-' : '+';
+  const pad = (value: number) => String(Math.floor(value)).padStart(2, '0');
+  const local = new Date(wall).toISOString().slice(0, 16);
+  return `${local}${sign}${pad(Math.abs(offset) / 60)}:${pad(Math.abs(offset) % 60)}`;
+}
+
+/** `timeZone` when the runtime knows it, else UTC: device values can be odd */
+export function validTimeZone(timeZone: string | null | undefined): string {
+  if (!timeZone) return 'UTC';
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone });
+    return timeZone;
+  } catch {
+    return 'UTC';
+  }
+}

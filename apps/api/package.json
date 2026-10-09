@@ -25,6 +25,7 @@
     "@casl/prisma": "^1.6.2",
     "@garmin/fitsdk": "21.217.0",
     "@mastra/core": "^1.74.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@nestjs/bull": "^11.0.5",
     "@nestjs/bullmq": "^11.0.5",
     "@nestjs/common": "^11.2.7",

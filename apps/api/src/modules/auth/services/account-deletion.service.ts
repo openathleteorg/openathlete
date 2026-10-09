@@ -78,7 +78,8 @@ export class AccountDeletionService {
         if (athleteId) {
           await tx.athlete.delete({ where: { athleteId } });
         }
-        // Messages, read receipts and thread memberships cascade
+        // Messages, read receipts and thread memberships cascade, and so do
+        // the accesses given to AI agents (MCP) with their tokens and codes
         await tx.user.delete({ where: { userId } });
 
         await tx.messageThread.deleteMany({

@@ -1,8 +1,11 @@
 import {
   addDaysToDateKey,
   addZonedDays,
+  formatZoned,
   startOfZonedDay,
+  validTimeZone,
   zonedClock,
+  zonedInstant,
 } from './time-zone';
 
 describe('time zones', () => {
@@ -87,5 +90,33 @@ describe('time zones', () => {
     expect(addZonedDays(instant, 1, 'Europe/Paris').toISOString()).toBe(
       '2026-03-02T10:00:00.250Z',
     );
+  });
+
+  it('finds the instant of a local time, on both sides of a DST change', () => {
+    expect(zonedInstant('2026-10-24', '18:00', 'Europe/Paris')).toEqual(
+      new Date('2026-10-24T16:00:00Z'),
+    );
+    expect(zonedInstant('2026-10-26', '07:30', 'Europe/Paris')).toEqual(
+      new Date('2026-10-26T06:30:00Z'),
+    );
+    expect(zonedInstant('2026-10-12', '06:00', 'America/New_York')).toEqual(
+      new Date('2026-10-12T10:00:00Z'),
+    );
+  });
+
+  it('formats an instant in local time with its offset', () => {
+    const instant = new Date('2026-10-24T16:00:00Z');
+    expect(formatZoned(instant, 'Europe/Paris')).toBe('2026-10-24T18:00+02:00');
+    expect(formatZoned(instant, 'America/New_York')).toBe(
+      '2026-10-24T12:00-04:00',
+    );
+    expect(formatZoned(instant, 'Asia/Kolkata')).toBe('2026-10-24T21:30+05:30');
+    expect(formatZoned(instant, 'UTC')).toBe('2026-10-24T16:00+00:00');
+  });
+
+  it('falls back to UTC for an unknown time zone', () => {
+    expect(validTimeZone('Europe/Paris')).toBe('Europe/Paris');
+    expect(validTimeZone('Mars/Olympus')).toBe('UTC');
+    expect(validTimeZone(null)).toBe('UTC');
   });
 });

@@ -53,9 +53,12 @@ const NOT_EXPORTED_TABLES = {
   athlete_invitation: 'pending invitations sent to other people',
   coach_invitation: 'pending invitations, also other people’s data',
   event_template_folder: 'exported with each template, by name',
+  mcp_grant:
+    'accesses given to AI agents: hashed secrets and connection metadata, listed in Settings',
   message_read_receipt: 'read markers, no content',
   message_thread_participant: 'conversation membership, no content',
   provider_workout_export: 'technical sync state with providers',
+  oauth_authorization_code: 'short-lived OAuth secrets, hashed',
   token: 'password reset and invitation secrets',
 };
 

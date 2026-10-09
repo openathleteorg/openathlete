@@ -4,9 +4,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 import { validateEnv } from 'src/common/config/validate-env';
+import { AppThrottlerGuard } from 'src/common/security/app-throttler.guard';
 import { DEFAULT_RATE_LIMIT } from 'src/common/security/rate-limits';
 import {
   ActivityFeedbackExtractionListener,
@@ -24,6 +25,7 @@ import { AuthModule } from './auth';
 import { CalendarModule } from './calendar/calendar.module';
 import { CoreModule } from './core';
 import { InstanceModule } from './instance/instance.module';
+import { McpModule } from './mcp/mcp.module';
 import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
 import { PrismaService } from './prisma/services/prisma.service';
@@ -49,6 +51,7 @@ import { SubscriptionModule } from './subscription';
     InstanceModule,
     AgentModule,
     AiModule,
+    McpModule,
     MessagesModule,
     CalendarModule,
     EventEmitterModule.forRoot(),
@@ -66,7 +69,7 @@ import { SubscriptionModule } from './subscription';
     },
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: AppThrottlerGuard,
     },
     PrismaService,
     NotificationListener,

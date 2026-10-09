@@ -59,6 +59,8 @@ model User {
   activityAlertSettings     CoachActivityAlertSettings[]
   activityChatNotices        ActivityChatNotice[]
   subscription              Subscription?
+  mcpGrants                 McpGrant[]
+  oauthCodes                OAuthAuthorizationCode[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

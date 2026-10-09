@@ -155,6 +155,12 @@ import { WeatherService } from './services/weather/weather.service';
     TrainingPlanService,
     CycleService,
     ActivityFileParserService,
+    // For the MCP server's tools
+    EventBulkService,
+    EventSeriesService,
+    MetricService,
+    RecordService,
+    TrainingZoneService,
   ],
 })
 export class CoreModule {}

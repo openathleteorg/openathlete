@@ -89,6 +89,14 @@ export const ApiEnvSchema = z
       .default('http://localhost:5173')
       .describe('Frontend application URL for redirects'),
 
+    API_PUBLIC_URL: z
+      .string()
+      .url('API_PUBLIC_URL must be a valid URL')
+      .optional()
+      .describe(
+        'Public URL of the API, where AI agents reach the MCP server and its OAuth endpoints. Defaults to APP_URL/api, as in the Docker Compose setup',
+      ),
+
     CORS_ORIGINS: z
       .string()
       .optional()

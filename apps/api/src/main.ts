@@ -7,7 +7,11 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { getAllowedOrigins } from './common/utils/cors.util';
+import {
+  MCP_CORS,
+  getAllowedOrigins,
+  isPublicCorsPath,
+} from './common/utils/cors.util';
 import './instrument';
 import { AppModule } from './modules/app.module';
 
@@ -39,13 +43,19 @@ async function bootstrap() {
         : trustProxy,
   );
 
-  // CORS_ORIGINS, else APP_URL: the same rule as the WebSocket gateways
-  app.enableCors({
+  // CORS_ORIGINS, else APP_URL: the same rule as the WebSocket gateways.
+  // The MCP endpoint and its OAuth routes answer any origin: agents and
+  // tools such as the MCP Inspector run in browsers on other sites, and
+  // they only authenticate with bearer tokens, never cookies.
+  const appCors = {
     origin: getAllowedOrigins(),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-  });
+  };
+  app.enableCors((req, callback) =>
+    callback(null, isPublicCorsPath(req.url ?? '') ? MCP_CORS : appCors),
+  );
 
   // Swagger configuration
   const config = new DocumentBuilder()

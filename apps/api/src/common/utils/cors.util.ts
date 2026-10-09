@@ -74,3 +74,35 @@ export const corsOriginValidator = (
     return isAllowed;
   }
 };
+
+/**
+ * Routes any origin may call: the MCP endpoint, the OAuth routes MCP clients
+ * call, and discovery documents. The consent routes (/oauth/authorize) stay
+ * on the app's origins.
+ */
+export const isPublicCorsPath = (url: string): boolean =>
+  /^\/(mcp|oauth\/(token|register|revoke)|\.well-known\/oauth-[a-z-]+)(\/|\?|$)/.test(
+    url,
+  ) && !/^\/mcp\/(connections|tokens|info)/.test(url);
+
+export const MCP_CORS = {
+  origin: '*',
+  credentials: false,
+  methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Accept',
+    'Mcp-Session-Id',
+    'Mcp-Protocol-Version',
+    'Mcp-Method',
+    'Mcp-Name',
+    'Last-Event-ID',
+  ],
+  exposedHeaders: [
+    'WWW-Authenticate',
+    'Mcp-Session-Id',
+    'Mcp-Protocol-Version',
+  ],
+  maxAge: 86400,
+};

@@ -37,4 +37,16 @@ export const RATE_LIMITS = {
    * read.
    */
   calendarFeed: { default: { limit: 120, ttl: MINUTE } },
+  /**
+   * OAuth token and client registration endpoints of the MCP server. MCP
+   * clients such as Claude or ChatGPT call them from shared server
+   * addresses for all their users, so these only stop floods.
+   */
+  oauthToken: { default: { limit: 120, ttl: MINUTE } },
+  oauthRegister: { default: { limit: 30, ttl: MINUTE } },
+  /**
+   * MCP requests, per access token rather than per IP (see
+   * McpThrottlerGuard): an agent planning a season chains many tool calls.
+   */
+  mcp: { default: { limit: 240, ttl: MINUTE } },
 } as const;
