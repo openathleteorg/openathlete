@@ -1,9 +1,12 @@
 export const EVENT_INCLUDES = {
   training: {
     include: {
+      // What the calendar needs to grade the session against the plan
       relatedActivity: {
         select: {
           eventId: true,
+          movingTime: true,
+          distance: true,
         },
       },
       workout: {
@@ -34,9 +37,12 @@ export const EVENT_INCLUDES = {
   },
   competition: {
     include: {
+      // What the calendar needs to grade the session against the plan
       relatedActivity: {
         select: {
           eventId: true,
+          movingTime: true,
+          distance: true,
         },
       },
     },

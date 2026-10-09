@@ -79,11 +79,20 @@ export interface Workout extends PrismaWorkout {
   steps: WorkoutStep[];
 }
 
+/**
+ * The activity done for a planned session, as events are listed: enough to
+ * open it and grade the session against the plan.
+ */
+export type LinkedActivity = Pick<
+  ActivityEvent,
+  'eventId' | 'movingTime' | 'distance'
+>;
+
 export type TrainingEvent = Omit<PrismaEventTraining, 'sport'> &
   Omit<PrismaEvent, 'type' | 'sport'> & {
     type: EVENT_TYPE.TRAINING;
     sport: SPORT_TYPE;
-    relatedActivity?: ActivityEvent;
+    relatedActivity?: LinkedActivity;
     workout?: Workout;
   };
 
@@ -91,7 +100,7 @@ export type CompetitionEvent = Omit<PrismaEvent, 'type' | 'sport'> &
   Omit<PrismaEventCompetition, 'sport'> & {
     type: EVENT_TYPE.COMPETITION;
     sport: SPORT_TYPE;
-    relatedActivity?: ActivityEvent;
+    relatedActivity?: LinkedActivity;
   };
 
 export type NoteEvent = PrismaEventNote &
