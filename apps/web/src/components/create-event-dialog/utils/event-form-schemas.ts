@@ -30,6 +30,9 @@ export const baseEventFormSchema = z.object({
   name: z.string().min(1, m.required()).max(100),
   description: z.string().optional(),
   saveAsTemplate: z.boolean().optional(),
+  // Only to repeat a new session; not sent with the event
+  repeatEveryWeeks: z.string().optional(),
+  repeatUntil: z.string().optional(),
 });
 
 // Training event schema

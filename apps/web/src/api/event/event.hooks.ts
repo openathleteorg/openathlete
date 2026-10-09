@@ -508,6 +508,47 @@ export const useGetMyIcalCalendarSecretQuery = (
     queryKey: [eventKeys.getMyIcalCalendarSecret],
   });
 
+/** Edits an occurrence of a series and the following ones */
+export const useUpdateEventSeriesMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.updateEventSeries>>,
+    Error,
+    Parameters<typeof EventAPI.updateEventSeries>[0]
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: EventAPI.updateEventSeries,
+    onSettled: (data, error, variables, onMutateResult, context) => {
+      opt?.onSettled?.(data, error, variables, onMutateResult, context);
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getEvent] });
+      invalidateTrainingLoadQueries(queryClient);
+    },
+  });
+};
+
+/** Deletes an occurrence of a series and the following ones */
+export const useDeleteEventSeriesMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.deleteEventSeries>>,
+    Error,
+    Event['eventId']
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: EventAPI.deleteEventSeries,
+    onSettled: (data, error, variables, onMutateResult, context) => {
+      opt?.onSettled?.(data, error, variables, onMutateResult, context);
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      invalidateTrainingLoadQueries(queryClient);
+    },
+  });
+};
+
 /** Copies planned events by whole days (week actions) */
 export const useCopyEventsMutation = (
   opt?: MutationOptions<

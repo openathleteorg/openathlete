@@ -1,11 +1,14 @@
 import { useAiAccessQuery } from '@/api/ai-settings';
 import { useGetMyAthleteQuery } from '@/api/athlete';
-import { useDeleteEventMutation } from '@/api/event';
+import {
+  useDeleteEventMutation,
+  useDeleteEventSeriesMutation,
+} from '@/api/event';
 import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -21,6 +24,10 @@ import { EVENT_TYPE } from '@openathlete/shared';
 
 import { AiSetupDialog } from '../ai-settings';
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
+import {
+  type SeriesScope,
+  SeriesScopeDialog,
+} from '../calendar/series-scope-dialog';
 import { ConfirmAction } from '../confirm-action/confirm-action';
 import { FormProvider } from '../hook-form';
 import { RHFCheckbox } from '../hook-form/rhf-checkbox';
@@ -28,6 +35,7 @@ import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { AIModifyEventDialog } from './components/ai-modify-event-dialog';
 import { EventFormFields } from './components/event-form-fields';
+import { RepeatFields } from './components/repeat-fields';
 import { WorkoutSection } from './components/workout-section';
 import { useCurrentEventData } from './hooks/use-current-event-data';
 import { useEventFormSubmission } from './hooks/use-event-form-submission';
@@ -127,12 +135,30 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     athleteId ?? 0,
   );
 
+  // A repeated session asks whether the change covers the following ones
+  const [scopeRequest, setScopeRequest] = useState<{
+    action: 'edit' | 'delete';
+    resolve: (scope: SeriesScope | null) => void;
+  } | null>(null);
+  const chooseSeriesScope = useCallback(
+    (action: 'edit' | 'delete' = 'edit') =>
+      new Promise<SeriesScope | null>((resolve) =>
+        setScopeRequest({ action, resolve }),
+      ),
+    [],
+  );
+  const answerScope = (scope: SeriesScope | null) => {
+    scopeRequest?.resolve(scope);
+    setScopeRequest(null);
+  };
+
   // Handle form submission
   const { onSubmit, isSubmitting } = useEventFormSubmission(
     rest,
     athleteId ?? 0,
     workoutSteps,
     onClose,
+    chooseSeriesScope,
   );
 
   // Watch form values for UI
@@ -162,6 +188,27 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const deleteEventMutation = useDeleteEventMutation({
     onError: () => toast.error(m.failed_to_delete_event()),
   });
+  const deleteSeriesMutation = useDeleteEventSeriesMutation({
+    onError: () => toast.error(m.failed_to_delete_event()),
+  });
+  const isSeriesEvent = edit && 'event' in rest && !!rest.event?.seriesId;
+  const deleteEvent = async () => {
+    if (!('event' in rest) || !rest.event) return;
+    const { eventId } = rest.event;
+    const onDeleted = rest.onDeleted;
+    const done = () => {
+      setConfirmDelete(false);
+      onClose();
+      onDeleted?.();
+    };
+    const scope = isSeriesEvent ? await chooseSeriesScope('delete') : 'single';
+    if (!scope) return;
+    if (scope === 'following') {
+      deleteSeriesMutation.mutate(eventId, { onSuccess: done });
+    } else {
+      deleteEventMutation.mutate(eventId, { onSuccess: done });
+    }
+  };
 
   // AI modification/generation dialog state
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
@@ -366,6 +413,10 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             isTemplate={isTemplate}
           />
 
+          {create && !isTemplate && type !== EVENT_TYPE.ACTIVITY && (
+            <RepeatFields startDate={startDateValue} />
+          )}
+
           <WorkoutSection
             props={rest}
             type={type}
@@ -384,7 +435,10 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
                 type="button"
                 variant="outline"
                 className="text-destructive"
-                onClick={() => setConfirmDelete(true)}
+                // A repeated session asks its scope instead of a confirmation
+                onClick={() =>
+                  isSeriesEvent ? void deleteEvent() : setConfirmDelete(true)
+                }
                 data-event-delete
               >
                 <Trash2 className="h-4 w-4" />
@@ -417,20 +471,17 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
         onOpenChange={setAiSetupOpen}
         analyticsSource="event_dialog"
       />
+      <SeriesScopeDialog
+        open={!!scopeRequest}
+        action={scopeRequest?.action ?? 'edit'}
+        onChoose={answerScope}
+        onCancel={() => answerScope(null)}
+      />
       {edit && 'event' in rest && rest.event && (
         <ConfirmAction
           open={confirmDelete}
           onClose={() => setConfirmDelete(false)}
-          onConfirm={() => {
-            const eventId = rest.event!.eventId;
-            deleteEventMutation.mutate(eventId, {
-              onSuccess: () => {
-                setConfirmDelete(false);
-                onClose();
-                rest.onDeleted?.();
-              },
-            });
-          }}
+          onConfirm={() => void deleteEvent()}
           title={m.delete_event()}
           message={
             type === EVENT_TYPE.ACTIVITY

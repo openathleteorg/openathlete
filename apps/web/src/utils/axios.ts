@@ -37,6 +37,8 @@ export const routes = {
     update: (eventId: Event['eventId']) => `/event/${eventId}`,
     duplicate: (eventId: Event['eventId']) => `/event/${eventId}/duplicate`,
     copyEvents: '/event/bulk/copy',
+    repeatEvent: (eventId: Event['eventId']) => `/event/${eventId}/repeat`,
+    eventSeries: (eventId: Event['eventId']) => `/event/${eventId}/series`,
     moveEvents: '/event/bulk/move',
     getMyEvents: '/event',
     getUpcomingCompetitions: '/event/upcoming-competitions',

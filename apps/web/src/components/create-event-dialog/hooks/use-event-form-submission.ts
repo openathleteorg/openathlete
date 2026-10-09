@@ -1,7 +1,15 @@
-import { useCreateEventMutation, useUpdateEventMutation } from '@/api/event';
+import {
+  EventAPI,
+  useCreateEventMutation,
+  useUpdateEventMutation,
+  useUpdateEventSeriesMutation,
+} from '@/api/event';
 import { useCreateEventTemplateMutation } from '@/api/event-template';
+import { eventKeys } from '@/api/event/event.keys';
+import { invalidateTrainingLoadQueries } from '@/api/training-load/training-load.keys';
 import { m } from '@/paraglide/messages';
 import { AnalyticsEvent } from '@/utils/analytics-events';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePostHog } from 'posthog-js/react';
 import { useCallback } from 'react';
 import { UseFormHandleSubmit } from 'react-hook-form';
@@ -15,6 +23,8 @@ import type {
 } from '@openathlete/shared';
 import { EVENT_TYPE } from '@openathlete/shared';
 
+import type { SeriesScope } from '../../calendar/series-scope-dialog';
+import { endOfLocalDateInput } from '../../calendar/utils/local-date';
 import {
   type EventFormValues,
   withEquipmentId,
@@ -37,10 +47,57 @@ export function useEventFormSubmission(
   athleteId: number,
   workoutSteps: CreateWorkoutStepDto[],
   onClose: () => void,
+  /** Editing a repeated session: asks whether the following ones change too */
+  chooseSeriesScope?: () => Promise<SeriesScope | null>,
 ) {
   const edit = 'event' in props;
   const create = 'type' in props && 'date' in props;
   const posthog = usePostHog();
+  const queryClient = useQueryClient();
+
+  const updateSeriesMutation = useUpdateEventSeriesMutation({
+    onSuccess: (updated) => {
+      toast.success(m.series_updated({ count: updated.length }));
+      onClose();
+    },
+    onError: () => toast.error(m.failed_to_update_event()),
+  });
+
+  /**
+   * Repeats a session just created. The dialog has closed by then, so this
+   * talks to the API directly rather than through a component's mutation.
+   */
+  const repeatCreated = async (
+    eventId: Event['eventId'],
+    everyWeeks: number,
+    until: string,
+  ) => {
+    try {
+      const copies = await EventAPI.repeatEvent(eventId, {
+        everyWeeks,
+        until: endOfLocalDateInput(until),
+      });
+      toast.success(m.repeat_done({ count: copies.length }));
+    } catch {
+      toast.error(m.repeat_failed());
+    }
+    queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+    invalidateTrainingLoadQueries(queryClient);
+  };
+
+  /** Updates one occurrence, or it and the following ones, as chosen */
+  const update = async (eventId: Event['eventId'], body: UpdateEventDto) => {
+    const seriesEvent =
+      'event' in props && props.event?.seriesId ? props.event : null;
+    const scope =
+      seriesEvent && chooseSeriesScope ? await chooseSeriesScope() : 'single';
+    if (!scope) return;
+    if (scope === 'following') {
+      updateSeriesMutation.mutate({ eventId, body });
+    } else {
+      updateEventMutation.mutate({ eventId, body });
+    }
+  };
 
   const createEventTemplateMutation = useCreateEventTemplateMutation({
     onSuccess: () => {
@@ -80,8 +137,26 @@ export function useEventFormSubmission(
     (handleSubmit: UseFormHandleSubmit<EventFormValues>) =>
       handleSubmit(
         async (data: EventFormValues) => {
-          const { saveAsTemplate, startDate, endDate, ...formData } = data;
+          const {
+            saveAsTemplate,
+            startDate,
+            endDate,
+            repeatEveryWeeks,
+            repeatUntil,
+            ...formData
+          } = data;
           const shouldSaveAsTemplate = saveAsTemplate === true;
+          const everyWeeks = Number(repeatEveryWeeks ?? 0);
+          const afterCreate = (createdEvent: Event) => {
+            if (shouldSaveAsTemplate && createdEvent.eventId) {
+              createEventTemplateMutation.mutate({
+                eventId: createdEvent.eventId,
+              });
+            }
+            if (everyWeeks > 0 && repeatUntil && createdEvent.eventId) {
+              void repeatCreated(createdEvent.eventId, everyWeeks, repeatUntil);
+            }
+          };
           const eventData = withEquipmentId(formData);
 
           // Prepare event data, only include dates if they exist
@@ -103,19 +178,13 @@ export function useEventFormSubmission(
 
             if (create) {
               createEventMutation.mutate(eventWithWorkout as CreateEventDto, {
-                onSuccess: (createdEvent) => {
-                  if (shouldSaveAsTemplate && createdEvent.eventId) {
-                    createEventTemplateMutation.mutate({
-                      eventId: createdEvent.eventId,
-                    });
-                  }
-                },
+                onSuccess: afterCreate,
               });
             } else if (edit && 'event' in props && props.event) {
-              updateEventMutation.mutate({
-                eventId: props.event.eventId,
-                body: eventWithWorkout as UpdateEventDto,
-              });
+              await update(
+                props.event.eventId,
+                eventWithWorkout as UpdateEventDto,
+              );
             }
           } else {
             // For non-training events, no workout
@@ -125,21 +194,13 @@ export function useEventFormSubmission(
                   ...(baseEventData as CreateEventDto),
                   athleteId,
                 },
-                {
-                  onSuccess: (createdEvent) => {
-                    if (shouldSaveAsTemplate && createdEvent.eventId) {
-                      createEventTemplateMutation.mutate({
-                        eventId: createdEvent.eventId,
-                      });
-                    }
-                  },
-                },
+                { onSuccess: afterCreate },
               );
             } else if (edit && 'event' in props && props.event) {
-              updateEventMutation.mutate({
-                eventId: props.event.eventId,
-                body: baseEventData as UpdateEventDto,
-              });
+              await update(
+                props.event.eventId,
+                baseEventData as UpdateEventDto,
+              );
             }
           }
         },
@@ -147,6 +208,8 @@ export function useEventFormSubmission(
           // Form validation failed
         },
       ),
+    // update and repeatCreated only use the props and mutations listed here
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       workoutSteps,
       athleteId,
@@ -156,12 +219,15 @@ export function useEventFormSubmission(
       createEventMutation,
       updateEventMutation,
       createEventTemplateMutation,
+      chooseSeriesScope,
     ],
   );
 
   return {
     onSubmit,
     isSubmitting:
-      createEventMutation.isPending || updateEventMutation.isPending,
+      createEventMutation.isPending ||
+      updateEventMutation.isPending ||
+      updateSeriesMutation.isPending,
   };
 }

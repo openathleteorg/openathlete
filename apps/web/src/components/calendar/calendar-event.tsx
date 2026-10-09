@@ -1,5 +1,6 @@
 import {
   useDeleteEventMutation,
+  useDeleteEventSeriesMutation,
   useDuplicateEventMutation,
   useUnsetRelatedActivityMutation,
 } from '@/api/event';
@@ -21,6 +22,7 @@ import {
   Copy,
   Edit2,
   FileText,
+  Repeat,
   Trash2,
   Trophy,
   Unlink,
@@ -46,6 +48,7 @@ import { useBulkWorkoutSelection } from './contexts/bulk-workout-selection-conte
 import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useEventContextMenu } from './contexts/event-context-menu-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
+import { SeriesScopeDialog } from './series-scope-dialog';
 import { COLORED_BY } from './types/filter';
 import {
   PlannedEvent,
@@ -130,6 +133,11 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
         event_type: event.type,
       });
     },
+  });
+  const deleteSeriesMutation = useDeleteEventSeriesMutation({
+    onSuccess: ({ deleted }) =>
+      toast.success(m.calendar_week_deleted({ count: deleted })),
+    onError: () => toast.error(m.failed_to_delete_event()),
   });
   const duplicateEventMutation = useDuplicateEventMutation({
     onSuccess: (duplicated) => {
@@ -302,6 +310,13 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                     className="inline-block mr-1"
                   />
                 )}
+                {event.seriesId && (
+                  <Repeat
+                    className="inline-block mr-1 size-3 text-muted-foreground"
+                    role="img"
+                    aria-label={m.series_badge()}
+                  />
+                )}
                 {event.type === EVENT_TYPE.COMPETITION && (
                   <CompetitionPriorityBadge
                     priority={event.priority}
@@ -446,17 +461,37 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
           </ContextMenuContent>
         )}
       </ContextMenu>
-      <ConfirmAction
-        open={deleteEventDialog}
-        onClose={() => setDeleteEventDialog(false)}
-        onConfirm={() => {
-          deleteEventMutation.mutate(event.eventId);
-          setDeleteEventDialog(false);
-        }}
-        title={m.delete_event()}
-        message={m.confirm_delete_event()}
-        isLoading={deleteEventMutation.isPending}
-      />
+      {event.seriesId ? (
+        // A repeated session asks its scope instead of a confirmation
+        <SeriesScopeDialog
+          open={deleteEventDialog}
+          action="delete"
+          onCancel={() => setDeleteEventDialog(false)}
+          onChoose={(scope) => {
+            if (scope === 'following') {
+              deleteSeriesMutation.mutate(event.eventId);
+            } else {
+              deleteEventMutation.mutate(event.eventId);
+            }
+            setDeleteEventDialog(false);
+          }}
+          isLoading={
+            deleteEventMutation.isPending || deleteSeriesMutation.isPending
+          }
+        />
+      ) : (
+        <ConfirmAction
+          open={deleteEventDialog}
+          onClose={() => setDeleteEventDialog(false)}
+          onConfirm={() => {
+            deleteEventMutation.mutate(event.eventId);
+            setDeleteEventDialog(false);
+          }}
+          title={m.delete_event()}
+          message={m.confirm_delete_event()}
+          isLoading={deleteEventMutation.isPending}
+        />
+      )}
     </>
   );
 }
