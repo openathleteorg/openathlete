@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { waitUntil } from '@/utils/test/wait-until';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -27,10 +28,6 @@ describe('per-athlete notification settings', () => {
   let container: HTMLDivElement;
   let root: Root;
   let cache: QueryClient;
-  const settle = async () =>
-    act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 25));
-    });
   beforeEach(() => {
     api.get.mockReset().mockResolvedValue({ data: settings });
     api.put
@@ -61,7 +58,9 @@ describe('per-athlete notification settings', () => {
         </QueryClientProvider>,
       ),
     );
-    await settle();
+    await waitUntil(
+      () => !!container.querySelector('[role="switch"], [role="alert"]'),
+    );
   };
   it('changes only the selected switch for the selected athlete', async () => {
     await render();
@@ -69,22 +68,27 @@ describe('per-athlete notification settings', () => {
       container.querySelectorAll<HTMLButtonElement>('[role="switch"]');
     expect(switches).toHaveLength(3);
     await act(async () => switches[1].click());
-    await settle();
-    expect(api.put).toHaveBeenCalledWith(
-      '/messages/activity-alert-settings/12',
-      { ...settings, notifyRpe: false },
+    await waitUntil(() =>
+      expect(api.put).toHaveBeenCalledWith(
+        '/messages/activity-alert-settings/12',
+        { ...settings, notifyRpe: false },
+      ),
     );
-    expect(switches[1].getAttribute('aria-checked')).toBe('false');
+    await waitUntil(() =>
+      expect(switches[1].getAttribute('aria-checked')).toBe('false'),
+    );
     expect(switches[0].getAttribute('aria-checked')).toBe('true');
     await render(13);
     expect(api.get).toHaveBeenCalledWith(
       '/messages/activity-alert-settings/13',
     );
-    expect(
-      container
-        .querySelectorAll('[role="switch"]')[1]
-        .getAttribute('aria-checked'),
-    ).toBe('true');
+    await waitUntil(() =>
+      expect(
+        container
+          .querySelectorAll('[role="switch"]')[1]
+          .getAttribute('aria-checked'),
+      ).toBe('true'),
+    );
   });
   it('offers a retry after access or loading fails', async () => {
     api.get.mockRejectedValue(new Error('Forbidden'));
@@ -95,8 +99,9 @@ describe('per-athlete notification settings', () => {
     await act(async () =>
       container.querySelector<HTMLButtonElement>('button')!.click(),
     );
-    await settle();
-    expect(container.querySelectorAll('[role="switch"]')).toHaveLength(3);
+    await waitUntil(() =>
+      expect(container.querySelectorAll('[role="switch"]')).toHaveLength(3),
+    );
   });
   it('keeps the saved preference when an update fails', async () => {
     api.put.mockRejectedValue(new Error('Unavailable'));
@@ -104,8 +109,7 @@ describe('per-athlete notification settings', () => {
     await act(async () =>
       container.querySelector<HTMLButtonElement>('[role="switch"]')!.click(),
     );
-    await settle();
-    expect(container.querySelector('[role="alert"]')).not.toBeNull();
+    await waitUntil(() => !!container.querySelector('[role="alert"]'));
     expect(
       container.querySelector('[role="switch"]')?.getAttribute('aria-checked'),
     ).toBe('true');

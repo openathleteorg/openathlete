@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { waitUntil } from '@/utils/test/wait-until';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -85,12 +86,7 @@ describe('LoginView', () => {
         );
     });
     // Validation and the request resolve asynchronously.
-    for (
-      let tries = 0;
-      tries < 100 && !api.toastError.mock.calls.length;
-      tries++
-    )
-      await act(() => new Promise((resolve) => setTimeout(resolve, 5)));
+    await waitUntil(() => api.toastError.mock.calls.length > 0);
   };
 
   it('says when the email or password is wrong', async () => {

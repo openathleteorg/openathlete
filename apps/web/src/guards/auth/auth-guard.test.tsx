@@ -2,6 +2,7 @@
 import { AuthConsumer, AuthProvider, useAuthContext } from '@/contexts/auth';
 import { ACCESS_TOKEN } from '@/utils/local-storage';
 import { queryClient } from '@/utils/query-client';
+import { waitUntil } from '@/utils/test/wait-until';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
@@ -96,17 +97,17 @@ describe('AuthGuard', () => {
     queryClient.setDefaultOptions(defaults);
   });
 
-  const settle = () =>
-    act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    });
   const click = async (label: string) => {
+    await waitUntil(() =>
+      expect(
+        [...container.querySelectorAll('button')].map((b) => b.textContent),
+      ).toContain(label),
+    );
     await act(async () => {
       [...container.querySelectorAll('button')]
         .find((button) => button.textContent === label)!
         .click();
     });
-    await settle();
   };
 
   it('sends a new account to the onboarding after another one logged out in the same tab', async () => {
@@ -129,6 +130,8 @@ describe('AuthGuard', () => {
       ],
       { initialEntries: ['/dashboard/calendar'] },
     );
+    const at = (pathname: string) =>
+      waitUntil(() => expect(router.state.location.pathname).toBe(pathname));
     await act(async () =>
       root.render(
         <AuthProvider>
@@ -140,14 +143,13 @@ describe('AuthGuard', () => {
         </AuthProvider>,
       ),
     );
-    await settle();
-    expect(router.state.location.pathname).toBe('/dashboard/calendar');
+    await at('/dashboard/calendar');
 
     await click('calendar');
-    expect(router.state.location.pathname).toBe('/auth/login');
+    await at('/auth/login');
 
     await click('sign in');
-    expect(router.state.location.pathname).toBe('/dashboard/onboarding');
-    expect(container.textContent).toBe('onboarding');
+    await at('/dashboard/onboarding');
+    await waitUntil(() => expect(container.textContent).toBe('onboarding'));
   });
 });
