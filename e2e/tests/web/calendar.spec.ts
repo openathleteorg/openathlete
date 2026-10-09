@@ -76,3 +76,28 @@ test('dragging across days still creates a cycle', async ({ page }) => {
     page.getByRole('menuitem', { name: 'Plan a training' }),
   ).toHaveCount(0);
 });
+
+test('the keyboard moves through periods and views', async ({ page }) => {
+  await page.goto('/dashboard/calendar?view=month');
+  const title = page.getByRole('heading', { level: 1 });
+  await expect(title).toBeVisible();
+  const thisMonth = await title.textContent();
+
+  await page.keyboard.press('ArrowRight');
+  await expect(title).not.toHaveText(thisMonth!);
+  await page.keyboard.press('t');
+  await expect(title).toHaveText(thisMonth!);
+
+  await page.keyboard.press('w');
+  await expect(title).toContainText('week');
+  await page.keyboard.press('?');
+  await expect(
+    page.getByRole('dialog', { name: 'Keyboard shortcuts' }),
+  ).toBeVisible();
+  // Its own keys win while it is open (the page behind is hidden from
+  // assistive technologies, so check once it is closed)
+  await page.keyboard.press('m');
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(title).toContainText('week');
+});

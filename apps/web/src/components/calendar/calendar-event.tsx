@@ -55,6 +55,7 @@ import {
 } from './utils/compliance';
 import { complianceLabel } from './utils/compliance-labels';
 import { isActivityDrag, linkDropId } from './utils/link-drop';
+import { EDIT_KEY, isKeyHeld } from './utils/shortcuts';
 import {
   formatCompactDuration,
   formatCompactKilometers,
@@ -253,6 +254,9 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               onClick={(e) => {
                 if (bulk?.selecting) {
                   if (selectable) bulk.toggle(event.eventId);
+                } else if (isKeyHeld(EDIT_KEY)) {
+                  // E + click goes straight to editing
+                  editEvent(event.eventId);
                 } else openEventDetails(event.eventId);
                 e.stopPropagation();
               }}

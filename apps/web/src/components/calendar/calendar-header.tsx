@@ -9,6 +9,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Keyboard,
   Plus,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -56,6 +57,7 @@ export function CalendarHeader() {
     prevWeek,
     goToCurrentWeek,
     allowCreate,
+    showShortcuts,
   } = useCalendarContext();
   const isWeek = view === 'week';
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
@@ -264,6 +266,16 @@ export function CalendarHeader() {
           selected={sportFilter}
           onChange={(sport) => handleChangeSportFilter(sport)}
         />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={showShortcuts}
+          aria-label={m.calendar_shortcuts_title()}
+          title={`${m.calendar_shortcuts_title()} (?)`}
+          className="hidden md:inline-flex text-muted-foreground"
+        >
+          <Keyboard className="size-4" />
+        </Button>
       </div>
       <AiSetupDialog
         open={aiSetupOpen}

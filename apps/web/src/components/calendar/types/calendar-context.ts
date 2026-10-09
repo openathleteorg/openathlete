@@ -27,6 +27,8 @@ export type CalendarContextType = {
   createEventFromTemplate: (date: Date) => void;
   createEventWithAI: (date: Date) => void;
   editEvent: (eventId: Event['eventId']) => void;
+  /** Opens the keyboard shortcuts help */
+  showShortcuts: () => void;
   events: Event[];
   openEventDetails: (eventId: Event['eventId']) => void;
   eventDetailsOpened: Event['eventId'] | null;

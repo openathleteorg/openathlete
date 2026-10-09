@@ -67,6 +67,7 @@ import { CalendarBulkDelete } from './calendar-bulk-delete';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
 import { CalendarHeader } from './calendar-header';
 import { CalendarMobileList } from './calendar-mobile-list';
+import { CalendarShortcutsDialog } from './calendar-shortcuts-dialog';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { CalendarWeekView } from './calendar-week-view';
 import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
@@ -80,6 +81,13 @@ import { CalendarContextType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
 import { isPlannedEvent } from './utils/compliance';
 import { parseLinkDropId } from './utils/link-drop';
+import {
+  COPY_KEY,
+  isKeyHeld,
+  isOverlayOpen,
+  shortcutFor,
+  trackHeldKeys,
+} from './utils/shortcuts';
 import { getUtcWeekKey, getWeekEnd, getWeekStart } from './utils/week';
 
 interface P {
@@ -121,6 +129,7 @@ export function Calendar({
     AiTask.EVENT_GENERATION,
   );
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const weekRangeStart = calendarData.displayedWeeks[0]?.[0];
   const weekRangeEnd =
     calendarData.displayedWeeks[calendarData.displayedWeeks.length - 1]?.[6];
@@ -494,6 +503,7 @@ export function Calendar({
       openEventDetails: setEventDetailsOpened,
       eventDetailsOpened,
       editEvent: (eventId) => setEditEventDialog(eventId),
+      showShortcuts: () => setShortcutsOpen(true),
       createCycle: (startDate, endDate) => {
         setCreateCycleDialog({ startDate, endDate });
       },
@@ -543,7 +553,9 @@ export function Calendar({
         linkActivity(Number(e.active.id), sessionId);
         return;
       }
-      const altKey = (e.activatorEvent as PointerEvent).altKey;
+      // Alt or C held while dragging copies instead of moving
+      const altKey =
+        (e.activatorEvent as PointerEvent).altKey || isKeyHeld(COPY_KEY);
       const day = new Date(e.over?.id);
       const activeId = String(e.active.id);
 
@@ -623,6 +635,44 @@ export function Calendar({
     if (!registerCalendarHandler) return;
     return registerCalendarHandler(dndOnDragEnd);
   }, [registerCalendarHandler, dndOnDragEnd]);
+
+  useEffect(() => trackHeldKeys(), []);
+
+  const { nextWeek, prevWeek, goToCurrentWeek } = calendarData;
+  const { nextMonth, prevMonth, goToCurrentMonth } = calendarData;
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const shortcut = shortcutFor(event, isOverlayOpen());
+      if (!shortcut) return;
+      event.preventDefault();
+      const isWeek = view === 'week';
+      switch (shortcut) {
+        case 'today':
+          return isWeek ? goToCurrentWeek() : goToCurrentMonth();
+        case 'previous':
+          return isWeek ? prevWeek() : prevMonth();
+        case 'next':
+          return isWeek ? nextWeek() : nextMonth();
+        case 'monthView':
+          return setView('month');
+        case 'weekView':
+          return setView('week');
+        case 'help':
+          return setShortcutsOpen(true);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [
+    view,
+    setView,
+    nextWeek,
+    prevWeek,
+    goToCurrentWeek,
+    nextMonth,
+    prevMonth,
+    goToCurrentMonth,
+  ]);
 
   const mobileActions = useMemo<PageAction[]>(() => {
     if (!isMobile || !allowCreate) return [];
@@ -834,6 +884,10 @@ export function Calendar({
                 open={aiSetupOpen}
                 onOpenChange={setAiSetupOpen}
                 analyticsSource="calendar_mobile"
+              />
+              <CalendarShortcutsDialog
+                open={shortcutsOpen}
+                onOpenChange={setShortcutsOpen}
               />
               <AIGenerateEventDialog
                 open={aiGenerateEventDialog !== null}

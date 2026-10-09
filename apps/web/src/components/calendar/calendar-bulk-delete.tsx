@@ -37,6 +37,7 @@ import {
   deleteWorkoutsSequentially,
 } from './utils/bulk-delete';
 import { SHIFT_OPTIONS } from './utils/shift-options';
+import { isOverlayOpen } from './utils/shortcuts';
 
 const COPY_OPTIONS = [
   { offsetDays: 1, label: m.calendar_bulk_copy_next_day },
@@ -111,6 +112,19 @@ export function CalendarBulkDelete({
       return next.size === previous.size ? previous : next;
     });
   }, [eligible]);
+
+  // Escape leaves the selection, unless a dialog or menu takes it first
+  useEffect(() => {
+    if (!selecting) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isOverlayOpen() && !running.current) {
+        setSelected(new Set());
+        setSelecting(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [selecting]);
 
   const toggle = (id: number) => {
     if (!allowed || !selecting || running.current || !eligible.has(id)) return;
