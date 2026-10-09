@@ -27,6 +27,12 @@ export const paths: Paths = {
     passwordResetRequest: `${ROOTS.AUTH}/password-reset-request`,
   },
 
+  // An AI agent asking for access (MCP)
+  oauth: {
+    root: '/oauth',
+    authorize: '/oauth/authorize',
+  },
+
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,

@@ -7,6 +7,7 @@ import { purchaseChannel } from '@/utils/capacitor';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
+import { AgentsTab } from './agents/agents-tab';
 import { AiTab } from './ai/ai-tab';
 import { AthletesTab } from './athletes-tab';
 import { CoachesTab } from './coaches-tab';
@@ -37,6 +38,7 @@ export function SettingsView() {
     'equipment',
     'training_zones',
     'ai',
+    'agents',
     ...(roles?.includes('COACH') ? ['athletes'] : []),
     ...(roles?.includes('ATHLETE') ? ['coaches'] : []),
     'invitations',
@@ -49,6 +51,7 @@ export function SettingsView() {
     equipment: m.equipment(),
     training_zones: m.training_zones(),
     ai: m.ai_settings_tab(),
+    agents: m.mcp_tab(),
     athletes: m.athletes(),
     coaches: m.coaches(),
     invitations: m.invitations(),
@@ -98,6 +101,7 @@ export function SettingsView() {
               {m.training_zones()}
             </TabsTrigger>
             <TabsTrigger value="ai">{m.ai_settings_tab()}</TabsTrigger>
+            <TabsTrigger value="agents">{m.mcp_tab()}</TabsTrigger>
             {roles?.includes('COACH') && (
               <TabsTrigger value="athletes">{m.athletes()}</TabsTrigger>
             )}
@@ -125,6 +129,9 @@ export function SettingsView() {
         </TabsContent>
         <TabsContent value="ai" className="mt-6">
           <AiTab />
+        </TabsContent>
+        <TabsContent value="agents" className="mt-6">
+          <AgentsTab />
         </TabsContent>
         <TabsContent value="athletes" className="mt-6">
           <AthletesTab />

@@ -191,6 +191,14 @@ export const routes = {
     generateEvent: '/agent/ai/events/generate',
     modifyEvent: '/agent/ai/events/modify',
   },
+  mcp: {
+    info: '/mcp/info',
+    connections: '/mcp/connections',
+    connection: (mcpGrantId: number) => `/mcp/connections/${mcpGrantId}`,
+    tokens: '/mcp/tokens',
+    authorizeDetails: '/oauth/authorize/details',
+    authorize: '/oauth/authorize',
+  },
   aiSettings: {
     providers: '/ai/providers',
     credentials: '/ai/credentials',
