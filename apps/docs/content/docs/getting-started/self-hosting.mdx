@@ -114,6 +114,24 @@ AI features (workout generation and editing, post-activity questions, feedback a
 
 For background features (post-activity questions, feedback analysis, load estimation), an athlete without AI uses their coach's key or plan.
 
+### AI agents (MCP)
+
+Users can connect AI agents (Claude, ChatGPT, Cursor...) to their account
+from **Settings › AI agents** ([guide](/docs/guides/ai-agents)). Agents
+reach the MCP server at `APP_URL/api/mcp` and sign in through OAuth on the
+same address: nothing to configure, and no data goes to the OpenAthlete
+project.
+
+- The web container forwards `/.well-known/oauth-*` to the API, where agents
+  look for the OAuth discovery documents. A proxy in front must forward
+  these paths too, as it does for the rest of the domain.
+- With the API on its own address, set `API_PUBLIC_URL` to it, for example
+  `https://api.example.com`: agents then connect to
+  `https://api.example.com/mcp`.
+- Agents register themselves (OAuth Dynamic Client Registration, or Client
+  ID Metadata Documents, which the API fetches from public https addresses
+  only). Clients nobody approved are deleted after a month.
+
 ### HTTPS and reverse proxies
 
 The `https` profile runs Caddy with automatic certificates (see the quick start). With your own proxy (Traefik, nginx, Coolify...), forward the whole domain to the web container and keep `WEB_PORT` on localhost, for example `WEB_PORT=127.0.0.1:8080`. The API trusts `X-Forwarded-For` only from proxies on private networks, which covers a proxy on the same host or Docker network. If another public proxy sits in front (for example Cloudflare), set `TRUST_PROXY` to the number of proxy hops so rate limiting sees real client IPs.

@@ -1,0 +1,122 @@
+---
+title: AI agents (MCP)
+description: Let Claude, ChatGPT, Cursor or your own agent read your training and plan sessions in your calendar.
+---
+
+OpenAthlete is an [MCP](https://modelcontextprotocol.io) server. An AI agent
+you connect can read your profile, zones, metrics, activities, calendar and
+training load, and, if you allow it, plan and adapt your sessions: build a
+training block towards a race, rework the week after an illness, review what
+you did against the plan.
+
+You decide what each agent may do, and you can revoke it at any time in
+**Settings › AI agents**.
+
+## Connect an agent
+
+The address of the server is in **Settings › AI agents**:
+`https://api.openathlete.org/mcp` on openathlete.org, or
+`https://<your domain>/api/mcp` on a self-hosted instance.
+
+**Claude** (claude.ai, desktop and mobile apps): open **Settings ›
+Connectors › Add custom connector**, paste the address, then **Connect**.
+Claude opens OpenAthlete: sign in if needed and choose **Allow**.
+
+**ChatGPT**: turn on developer mode in **Settings › Apps & Connectors**,
+create a connector with the address and OAuth authentication, then allow it
+in OpenAthlete.
+
+**Claude Code**:
+
+```bash
+claude mcp add --transport http openathlete https://api.openathlete.org/mcp
+```
+
+then type `/mcp` in Claude Code to sign in.
+
+**Cursor, VS Code and your own agents**: agents that support OAuth sign in
+like Claude does. Others take a personal token: in **Settings › AI agents**,
+choose **Create a token**, pick what it may do and when it expires, and copy
+it. It is shown once. Send it in the `Authorization` header:
+
+```json
+{
+  "mcpServers": {
+    "openathlete": {
+      "url": "https://api.openathlete.org/mcp",
+      "headers": { "Authorization": "Bearer oa_pat_..." }
+    }
+  }
+}
+```
+
+## What agents can do
+
+With **read** access:
+
+| Tool | What it gives |
+| --- | --- |
+| `get_athlete_context` | Today's date and time zone, metrics, zones, fitness and form, the last 4 weeks of training, coming races, periods and injuries. Agents call it first |
+| `get_calendar` | Planned sessions (done, missed or to do), races, notes, activities and periods between two dates |
+| `get_session`, `get_activity` | A session's structured workout; an activity's laps and your answers to the post-activity questions |
+| `get_activities`, `get_training_volume` | Training history and weekly volume per sport |
+| `get_training_load` | Weekly load, done and planned, with fitness, fatigue and form projected over the planned sessions |
+| `get_metrics`, `get_records` | Metric history (weight, resting HR, HRV, sleep...) and best efforts |
+| `list_workout_templates`, `list_athletes` | Your workout library; for coaches, the athletes they coach |
+
+With **write** access as well:
+
+| Tool | What it does |
+| --- | --- |
+| `plan_sessions` | Adds up to 60 trainings with structured workouts, races and notes at once; all are saved or none |
+| `update_session` | Changes a session, a race or a note; for a repeated session, this one and the following |
+| `move_sessions`, `copy_sessions`, `repeat_session` | Moves or copies sessions by days, repeats one every few weeks |
+| `delete_sessions` | Deletes planned sessions; done sessions and recorded activities are never deleted |
+| `create_period`, `update_period`, `delete_period` | Training blocks, and periods without training (travel, illness, injury) |
+| `log_metrics`, `update_training_zone` | Records measurements, changes a zone after a test |
+
+Workouts read and write in plain units: durations in seconds, paces as
+`4:35` per km, your zones by id, or percentages of your VMA, FTP or maximum
+heart rate. Planned workouts reach your watch like the ones you plan
+yourself. Dates are in your time zone.
+
+The server also offers three prompts that clients show as commands: **Build
+a training plan**, **Adapt the plan** (illness, injury, trip, fatigue) and
+**Review a week**.
+
+### Examples
+
+- "Build me a 12-week plan for a marathon on 14 March, 5 runs a week, with
+  my long run on Sundays."
+- "I've had a fever since yesterday. Adapt my next two weeks."
+- "How did last week go compared to the plan? Is my form right for
+  Saturday's race?"
+- "My new FTP is 265 W: record it and update my power zones."
+
+Changes show in your calendar at once: good agents tell you what they are
+about to change and ask first. You can edit anything they planned in the
+calendar, or ask the agent to put it back.
+
+## Coaches
+
+A coach's agent reaches the athletes they coach, with the same rules as the
+app: it passes the athlete with each request, and `list_athletes` lists
+them.
+
+## Security and privacy
+
+- Agents get access through OAuth 2.1 with PKCE, after you approve them on a
+  page of OpenAthlete. They never see your password.
+- **Read** and **write** are separate: an agent with read access is not even
+  offered the tools that write.
+- Tokens are stored hashed. OAuth access tokens last an hour and are renewed
+  with single-use refresh tokens: a stolen refresh token used twice revokes
+  the access. Personal tokens last 30, 90 or 365 days, or never expire.
+- Revoking an agent or a token in **Settings › AI agents** takes effect on
+  the next request.
+- Agents reach your data, not your account: they cannot change your
+  password, your connected devices or your subscription, nor delete your
+  history.
+
+What an agent does with your data is up to it and its provider: connect
+those you trust.
