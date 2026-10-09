@@ -1,0 +1,44 @@
+---
+title: Done against planned
+description: How the calendar grades sessions and sums up each week.
+---
+
+## Colours on the cards
+
+A planned session gets a coloured strip on its left once it can be judged:
+
+| Strip | Meaning |
+| --- | --- |
+| Green | Done within 20% of the planned duration |
+| Yellow | Done at 50 to 79%, or 121 to 150%, of the plan |
+| Orange | Done more than 50% away from the plan |
+| Red | Missed: its day is over and no activity is linked |
+
+The duration is compared first; sessions planned only in distance are
+compared on distance. A session done without a duration or distance goal is
+green. Sessions still to do, and activities done without a plan, have no
+strip. The tooltip of a card gives the status and the percentage.
+
+The strip needs the activity to be linked to its session. Synced activities
+are linked automatically when they match a session of the same day; otherwise
+drag the activity onto its session, or see
+[Link a completed activity to a session](/docs/guides/link-activity-suggestions).
+
+## Weekly summary
+
+Next to each week (or below it, in the week view), the summary shows:
+
+- duration, distance and elevation, **done / planned**, with a progress bar;
+- the training load done / planned against the recommended range: the
+  lighter part of the bar is the load still planned;
+- the sessions done, missed and still to do;
+- **TSB**, the form at the end of the week (fitness minus fatigue), marked
+  *projected* until the week is over.
+
+## Planned load without AI
+
+When no AI estimate exists for a session, its load is estimated from its
+planned duration and target RPE, on your maximum and resting heart rates, in
+the same unit as the load of your activities (TRIMP). Races count too. This
+needs your heart rate profile in **Metrics**; a session without a planned
+duration has no estimate.

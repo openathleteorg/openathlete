@@ -1,6 +1,6 @@
 ---
 title: Delete multiple planned workouts
-description: Select and delete uncompleted training sessions from a coach calendar.
+description: Select uncompleted training sessions on a coach calendar to delete, move or copy them.
 ---
 
 In the coach space, open an athlete's calendar and choose **Select workouts**.
@@ -17,5 +17,9 @@ authorization and provider export cleanup. If some deletions fail, the calendar
 reports how many succeeded and keeps the failed sessions selected for retry.
 The batch is not atomic: successful deletions are not rolled back.
 Canceling the confirmation does not delete anything.
+
+**Move** shifts the selected sessions one day or one week, earlier or later,
+and **Copy** copies them to the next day or the next week. Both run as one
+request, with **Undo** in their toast.
 
 On mobile, the selection toolbar stays visible while scrolling.
