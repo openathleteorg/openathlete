@@ -74,12 +74,15 @@ export function getCompliance(
   return { status: 'complete' };
 }
 
-/** The colour strip of a card, as Tailwind classes, by status */
+/**
+ * The colour strip of a card, as Tailwind classes, by status. Cards set their
+ * border colour for dark mode too, so the strip repeats it under `dark:`.
+ */
 export const complianceStripClass: Record<ComplianceStatus, string> = {
-  complete: 'border-l-green-500',
-  partial: 'border-l-yellow-400',
-  off: 'border-l-orange-500',
-  missed: 'border-l-red-500',
+  complete: 'border-l-green-500 dark:border-l-green-500',
+  partial: 'border-l-yellow-400 dark:border-l-yellow-400',
+  off: 'border-l-orange-500 dark:border-l-orange-500',
+  missed: 'border-l-red-500 dark:border-l-red-500',
   pending: '',
 };
 
