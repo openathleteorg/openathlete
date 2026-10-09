@@ -189,8 +189,11 @@ platform :ios do
         keychain_password: "",
       )
     end
-    # Downloads the App Store profile, or creates it when it expired
-    get_provisioning_profile(api_key: api_key, app_identifier: APP_ID, team_id: APPLE_TEAM_ID)
+    # A fresh App Store profile on every release: Apple does not invalidate
+    # an existing one when the App ID gains a capability, and signing then
+    # fails on the missing entitlement
+    get_provisioning_profile(api_key: api_key, app_identifier: APP_ID, team_id: APPLE_TEAM_ID,
+                             force: true)
     profile = lane_context[SharedValues::SIGH_NAME]
 
     # Sign the app target only; developers keep automatic signing in the repo

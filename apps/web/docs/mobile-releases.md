@@ -47,7 +47,7 @@ Mobile releases stay off until the `MOBILE_RELEASES` variable is `true`, so fork
    base64 -i apps/web/ios/App/App/GoogleService-Info.plist | gh secret set GOOGLE_SERVICE_INFO_PLIST_BASE64
    ```
 
-The provisioning profile needs no secret: each build downloads it, and creates it again when it expires.
+The provisioning profile needs no secret: each release creates a fresh one, with the App ID's current capabilities.
 
 ### Google Play
 
@@ -130,6 +130,7 @@ The release lanes read the secrets above as environment variables (`ANDROID_KEYS
 | `Version code ... has already been used` / `The bundle version must be higher` | The tag was released already. Push a new one. |
 | `Only releases with status draft may be created on draft app` | The app was never published: set `PLAY_RELEASE_STATUS=draft` (see above). |
 | `No profile for team ... matching ...` / certificate errors | The `.p12` is missing its private key, or the certificate was revoked. Export it again. |
+| `Provisioning profile ... doesn't include the ... capability` | The App ID lacks a capability the app's entitlements ask for. Enable it in Apple Developer, Identifiers; each release creates a fresh profile, so the next one picks it up. |
 | `Invalid Swift Support` / SDK version rejected | The runner's Xcode is older than Apple's minimum. Pick another `runs-on` image in `release.yml`. |
 | The iOS app quits at launch, logging `UIScene life cycle is required` | Since the iOS 27 SDK, apps must use scenes. Keep `ios/App/App/SceneDelegate.swift` and the scene manifest in `Info.plist`. |
 | `APPLE_PURCHASE_OF_ANOTHER_ACCOUNT` after a purchase or restore | The Apple ID's subscription belongs to another OpenAthlete account, the one logged in when it was bought. |
