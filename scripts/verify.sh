@@ -44,6 +44,11 @@ step() {
   else
     printf 'FAIL  %-22s %3ss\n\n' "$name" $((SECONDS - start))
     tail -n 60 "$log"
+    # The tail can miss the failure when packages run together (the output
+    # of the one that failed comes first): keep the whole log
+    local kept="${TMPDIR:-/tmp}/openathlete-verify-$name.log"
+    cp "$log" "$kept"
+    printf '\nFull log: %s\n' "$kept"
     exit 1
   fi
 }
