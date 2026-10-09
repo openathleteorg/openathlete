@@ -129,6 +129,12 @@ export class EventAPI {
     return res.data;
   }
 
+  /** A new feed token: the previous feed URL stops working */
+  static async regenerateMyIcalCalendarSecret(): Promise<string> {
+    const res = await client.post(routes.event.getMyIcalCalendarSecret);
+    return res.data;
+  }
+
   /**
    * Duplicate an event with optional date override
    * @param eventId - The ID of the event to duplicate

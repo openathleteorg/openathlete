@@ -507,6 +507,24 @@ export const useGetMyIcalCalendarSecretQuery = (
     queryKey: [eventKeys.getMyIcalCalendarSecret],
   });
 
+export const useRegenerateIcalCalendarSecretMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.regenerateMyIcalCalendarSecret>>,
+    Error,
+    void
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: EventAPI.regenerateMyIcalCalendarSecret,
+    onSuccess: (token, variables, onMutateResult, context) => {
+      queryClient.setQueryData([eventKeys.getMyIcalCalendarSecret], token);
+      opt?.onSuccess?.(token, variables, onMutateResult, context);
+    },
+  });
+};
+
 export const useDuplicateEventMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof EventAPI.duplicateEvent>>,

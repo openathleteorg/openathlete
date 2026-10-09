@@ -1,4 +1,3 @@
-import { useGetMyIcalCalendarSecretQuery } from '@/api/event';
 import { useInstanceInfoQuery } from '@/api/instance';
 import {
   useDisconnectProviderMutation,
@@ -31,7 +30,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
-import { API_BASE_URL } from '@/config';
 import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import {
@@ -53,6 +51,7 @@ import {
   isFullImportInProgress,
 } from '@openathlete/shared';
 
+import { CalendarFeedSection } from './calendar-feed-section';
 import { SettingsSection } from './settings-section';
 
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
@@ -125,8 +124,6 @@ export function ConnectorsTab() {
       toast.error(error.message || m.failed_to_disconnect());
     },
   });
-
-  const { data: icalSecret } = useGetMyIcalCalendarSecretQuery();
 
   const updatePreferencesMutation = useUpdateProviderPreferencesMutation({
     onMutate: ({ provider }) => {
@@ -523,16 +520,7 @@ export function ConnectorsTab() {
         </SettingsSection>
       )}
 
-      {icalSecret && (
-        <SettingsSection
-          title={m.icalendar_feed()}
-          description={m.subscribe_calendar_feed()}
-        >
-          <div className="break-all rounded-sm border bg-muted p-3 font-mono text-sm text-muted-foreground">
-            {`${API_BASE_URL}/event/ical?calendar=${icalSecret}`}
-          </div>
-        </SettingsSection>
-      )}
+      {roles?.includes('ATHLETE') && <CalendarFeedSection />}
 
       <ConfirmAction
         open={disconnectDialogOpen}
