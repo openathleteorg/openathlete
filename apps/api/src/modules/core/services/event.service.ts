@@ -1,10 +1,4 @@
 import { subject } from '@casl/ability';
-import * as argon2 from 'argon2';
-import ical, {
-  ICalCalendarMethod,
-  ICalEvent,
-  ICalEventData,
-} from 'ical-generator';
 
 import {
   BadRequestException,
@@ -14,10 +8,8 @@ import {
   Logger,
   NotFoundException,
   Optional,
-  UnauthorizedException,
   forwardRef,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
@@ -32,7 +24,6 @@ import {
 } from '@openathlete/database';
 import {
   ActivityStream,
-  ApiEnvSchemaType,
   CompressedActivityStream,
   CreateEventDto,
   DuplicateWorkoutDto,
@@ -72,11 +63,9 @@ import { WorkoutService } from './workout.service';
 @Injectable()
 export class EventService {
   private readonly logger = new Logger(EventService.name);
-  HASH_PEPPER: Buffer | undefined;
 
   constructor(
     private readonly prisma: PrismaService,
-    private configService: ConfigService<ApiEnvSchemaType, true>,
     private readonly abilities: CaslAbilityFactory,
     private eventEmitter: EventEmitter2,
     private messageThreadService: MessageThreadService,
@@ -89,11 +78,7 @@ export class EventService {
     private trainingLoadEstimationService?: TrainingLoadEstimationService,
     @Optional()
     private readonly calendarWebSocketService?: CalendarWebSocketService,
-  ) {
-    this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
-      ? Buffer.from(this.configService.get('HASH_PEPPER'))
-      : undefined;
-  }
+  ) {}
 
   public prismaEventToEvent(
     event: Event & {
@@ -1083,75 +1068,6 @@ export class EventService {
         data: { relatedActivity: { disconnect: true } },
       });
     }
-  }
-
-  async getIcalCalendar(base64Secret: string): Promise<string> {
-    const secret = Buffer.from(base64Secret, 'base64').toString('utf-8');
-    const users = await this.prisma.user.findMany({
-      select: { userId: true, athlete: { select: { athleteId: true } } },
-    });
-    const user = await Promise.all(
-      users.map(async (user) => {
-        const isValid = await argon2.verify(secret, user.userId.toString(), {
-          secret: this.HASH_PEPPER,
-        });
-        return isValid ? user : null;
-      }),
-    ).then((results) => results.find((user) => user !== null));
-
-    if (!user || !user.athlete?.athleteId) {
-      throw new UnauthorizedException();
-    }
-
-    const events = await this.prisma.event.findMany({
-      where: {
-        athleteId: user.athlete.athleteId,
-        type: {
-          not: EventType.ACTIVITY,
-        },
-      },
-    });
-    const calendar = ical({
-      name: 'OpenAthlete',
-      timezone: 'UTC',
-      method: ICalCalendarMethod.PUBLISH,
-    });
-    events.forEach((event) => {
-      const { startDate, endDate, name, type } = event;
-      const eventType = type.toLowerCase();
-      const eventData = {
-        start: startDate,
-        end: endDate,
-        allDay: true,
-        summary: name,
-        description: `Type: ${eventType}`,
-        uid: event.eventId,
-      } as ICalEvent | ICalEventData;
-      calendar.createEvent(eventData);
-    });
-
-    return calendar.toString();
-  }
-
-  async getMyIcalCalendarSecret(user: AuthUser): Promise<string> {
-    const ability = await this.abilities.getFor({ user });
-
-    const userEntity = await this.prisma.user.findFirst({
-      where: {
-        AND: [{ userId: user.userId }, accessibleBy(ability, 'read').User],
-      },
-      include: { athlete: true },
-    });
-
-    if (!userEntity?.athlete?.athleteId) {
-      throw new NotFoundException('Athlete not found');
-    }
-
-    const hash = await argon2.hash(userEntity.userId.toString(), {
-      secret: this.HASH_PEPPER,
-    });
-
-    return Buffer.from(hash).toString('base64');
   }
 
   async duplicateEvent(

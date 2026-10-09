@@ -14,6 +14,10 @@ model Athlete {
   athleteId Int @id @default(autoincrement()) @map("athlete_id")
 
   // fields
+  /// Random token of the athlete's calendar feed URL (iCal). Created on first
+  /// request, replaced to revoke the previous URL. Unique so a feed request
+  /// finds its athlete in one indexed read.
+  calendarFeedToken String? @unique @map("calendar_feed_token")
 
   // relationships
   user                     User                      @relation(fields: [userId], references: [userId])

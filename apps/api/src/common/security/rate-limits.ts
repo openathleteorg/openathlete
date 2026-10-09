@@ -31,4 +31,10 @@ export const RATE_LIMITS = {
   dataExport: { default: { limit: 5, ttl: 60 * MINUTE } },
   /** Routes calling an AI provider on the user's key just to check it */
   aiCheck: { default: { limit: 10, ttl: MINUTE } },
+  /**
+   * Public calendar feed. Google and Apple fetch the feeds of many users from
+   * shared addresses, so this only stops floods: each request is one indexed
+   * read.
+   */
+  calendarFeed: { default: { limit: 120, ttl: MINUTE } },
 } as const;

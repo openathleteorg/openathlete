@@ -1,8 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { ApiEnvSchemaType, EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
+import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -49,10 +48,6 @@ describe('editing an activity (PostgreSQL)', () => {
     // Editing an activity touches none of the messaging or export services
     events = new EventService(
       prisma,
-      { get: () => undefined } as unknown as ConfigService<
-        ApiEnvSchemaType,
-        true
-      >,
       new CaslAbilityFactory(),
       emitter,
       {} as never,

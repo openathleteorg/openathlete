@@ -34,6 +34,7 @@ import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { ActivityRecordsService } from './services/activity-records.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
+import { CalendarFeedService } from './services/calendar-feed.service';
 import { CoachService } from './services/coach.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
@@ -105,6 +106,7 @@ import { WeatherService } from './services/weather/weather.service';
     CycleService,
     WeatherService,
     ActivityFeedbackService,
+    CalendarFeedService,
     OpenMeteoWeatherProvider,
     ActivityDetailService,
     ActivityFileParserService,

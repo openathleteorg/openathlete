@@ -1,8 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-
-import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -48,10 +45,6 @@ describe('linking an activity to a session (PostgreSQL)', () => {
     await prisma.$connect();
     events = new EventService(
       prisma,
-      { get: () => undefined } as unknown as ConfigService<
-        ApiEnvSchemaType,
-        true
-      >,
       new CaslAbilityFactory(),
       new EventEmitter2(),
       {} as never,

@@ -27,6 +27,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 import { Event } from '@openathlete/database';
 import {
@@ -43,11 +44,13 @@ import {
   updateEventDtoSchema,
 } from '@openathlete/shared';
 
+import { RATE_LIMITS } from 'src/common/security/rate-limits';
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { EventService } from '../services';
 import { ActivityFeedbackService } from '../services/activity-feedback.service';
+import { CalendarFeedService } from '../services/calendar-feed.service';
 
 @ApiTags('Event')
 @Controller('event')
@@ -55,20 +58,22 @@ export class EventController {
   constructor(
     private eventService: EventService,
     private activityFeedbackService: ActivityFeedbackService,
+    private calendarFeedService: CalendarFeedService,
   ) {}
 
   @Get('ical')
+  @Throttle(RATE_LIMITS.calendarFeed)
   @ApiOperation({
     summary: 'Get iCal calendar file',
     description:
-      "Retrieves an iCal calendar file (.ics) for an athlete's events. The calendar includes all events (training, competition, note) but excludes activities. The calendar secret is provided as a base64-encoded query parameter and is verified using Argon2 hashing with a pepper. The calendar is generated in UTC timezone and includes event name, type, start date, and end date.",
+      "Retrieves an iCal calendar file (.ics) of an athlete's planned sessions, races and notes, from 90 days ago to a year ahead (activities excluded). The feed token, from GET /event/ical/secret, finds the athlete. Public, for calendar apps: no bearer token.",
   })
   @ApiQuery({
     name: 'calendar',
     type: String,
     description:
-      'Base64-encoded calendar secret for authentication. Use GET /event/ical/secret to obtain your secret.',
-    example: 'dGVzdA==',
+      'Feed token of the athlete. Use GET /event/ical/secret to obtain it.',
+    example: 'q3H1v0nJ8kE2b9cW7xYz4aB5dF6gH7iJ8kL9mN0oP1r',
     required: true,
   })
   @ApiProduces('text/calendar')
@@ -83,47 +88,35 @@ export class EventController {
         },
       },
     },
-    headers: {
-      'Content-Type': {
-        description: 'text/calendar; charset=utf-8',
-        schema: { type: 'string' },
-      },
-      'Content-Disposition': {
-        description: 'attachment; filename="calendar.ics"',
-        schema: { type: 'string' },
-      },
-    },
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized - invalid calendar secret',
+    description: 'Unauthorized - unknown or revoked feed token',
   })
   async getIcalCalendar(
     @Res() res: Response,
-    @Query('calendar') calendar: string,
+    @Query('calendar') token: string | undefined,
   ) {
+    const feed = await this.calendarFeedService.renderFeed(token);
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="calendar.ics"');
-    const ical = await this.eventService.getIcalCalendar(calendar);
-    res.send(ical);
+    // Calendar apps poll every few hours; a short private cache absorbs bursts
+    res.setHeader('Cache-Control', 'private, max-age=900');
+    res.send(feed);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Get('ical/secret')
   @ApiOperation({
-    summary: 'Get iCal calendar secret',
+    summary: 'Get iCal calendar feed token',
     description:
-      'Generates and returns a base64-encoded calendar secret for the authenticated user. This secret can be used to access the iCal calendar feed at GET /event/ical?calendar={secret}. The secret is generated using Argon2 hashing with a pepper and is unique to each user. The user must have an associated athlete account.',
+      "Returns the feed token of the user's calendar, creating it on the first request. The same token comes back until it is regenerated. Use it at GET /event/ical?calendar={token}.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Calendar secret generated successfully',
-    schema: {
-      type: 'string',
-      description: 'Base64-encoded calendar secret',
-      example: 'dGVzdA==',
-    },
+    description: 'Feed token of the calendar',
+    schema: { type: 'string' },
   })
   @ApiResponse({
     status: 401,
@@ -134,7 +127,28 @@ export class EventController {
     description: 'Not found - athlete not found for user',
   })
   async getMyIcalCalendarSecret(@JwtUser() user: AuthUser) {
-    return this.eventService.getMyIcalCalendarSecret(user);
+    return this.calendarFeedService.getOrCreateToken(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('ical/secret')
+  @ApiOperation({
+    summary: 'Regenerate the iCal calendar feed token',
+    description:
+      "Replaces the feed token of the user's calendar and returns the new one. The previous feed URL stops working at once.",
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'New feed token of the calendar',
+    schema: { type: 'string' },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Not found - athlete not found for user',
+  })
+  async regenerateMyIcalCalendarSecret(@JwtUser() user: AuthUser) {
+    return this.calendarFeedService.regenerateToken(user);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
