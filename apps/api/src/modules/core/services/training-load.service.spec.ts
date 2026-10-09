@@ -88,10 +88,13 @@ function weeklySummaryService({
   loads = {},
   plannedEvents = [],
   heartRate = { HR_MAX: 190, HR_REST: 50 },
+  firstActivity = Object.keys(loads).sort()[0],
 }: {
   loads?: Record<string, number>;
   plannedEvents?: unknown[];
   heartRate?: Record<string, number>;
+  /** Day of the athlete's first activity; by default their first load */
+  firstActivity?: string;
 }) {
   const prisma = {
     athlete: {
@@ -111,7 +114,16 @@ function weeklySummaryService({
         })),
       ),
     },
-    event: { findMany: jest.fn().mockResolvedValue(plannedEvents) },
+    event: {
+      findMany: jest.fn().mockResolvedValue(plannedEvents),
+      findFirst: jest
+        .fn()
+        .mockResolvedValue(
+          firstActivity
+            ? { startDate: new Date(`${firstActivity}T08:00:00Z`) }
+            : null,
+        ),
+    },
   };
   const service = new TrainingLoadService(
     prisma as unknown as PrismaService,
@@ -128,8 +140,12 @@ describe('TrainingLoadService weekly ACWR', () => {
     loads: Record<string, number>,
     from: string,
     to: string,
+    firstActivity?: string,
   ) {
-    const { service } = weeklySummaryService({ loads });
+    const { service } = weeklySummaryService({
+      loads,
+      ...(firstActivity && { firstActivity }),
+    });
     const summaries = await service.getWeeklyTrimpSummary(
       athlete,
       new Date(`${from}T00:00:00Z`),
@@ -184,6 +200,42 @@ describe('TrainingLoadService weekly ACWR', () => {
       ].map((day) => [day, 300]),
     );
     const result = await weeks(steady, '2026-09-14', '2026-09-14');
+    expect(result['2026-09-14']).toEqual({ acwr: 1, status: 'optimal' });
+  });
+
+  it('counts empty weeks after the first activity as rest', async () => {
+    // Training since June, then two weeks off five and six weeks ago
+    const result = await weeks(
+      {
+        '2026-06-01': 400,
+        '2026-08-17': 400,
+        '2026-08-24': 400,
+        '2026-08-31': 400,
+        '2026-09-07': 400,
+        '2026-09-14': 400,
+      },
+      '2026-09-14',
+      '2026-09-14',
+    );
+    // The two weeks of rest lower the chronic load: the return weighs more
+    // than steady training would (an ACWR of 1)
+    expect(result['2026-09-14'].acwr).toBeGreaterThan(1.3);
+  });
+
+  it('ignores the weeks before the first activity, even with old data around', async () => {
+    // Same loads, but the athlete's first activity is in mid-August
+    const result = await weeks(
+      {
+        '2026-08-17': 400,
+        '2026-08-24': 400,
+        '2026-08-31': 400,
+        '2026-09-07': 400,
+        '2026-09-14': 400,
+      },
+      '2026-09-14',
+      '2026-09-14',
+      '2026-08-17',
+    );
     expect(result['2026-09-14']).toEqual({ acwr: 1, status: 'optimal' });
   });
 

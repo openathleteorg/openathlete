@@ -171,8 +171,19 @@ export class TrainingLoadService {
    * ATL = 7-day exponentially weighted average (acute)
    * CTL = 42-day exponentially weighted average (chronic)
    */
+  /** Monday (UTC) of the week of the athlete's first activity, if any */
+  private async firstActivityWeek(athleteId: number): Promise<Date | null> {
+    const first = await this.prisma.event.findFirst({
+      where: { athleteId, type: 'ACTIVITY' },
+      orderBy: { startDate: 'asc' },
+      select: { startDate: true },
+    });
+    return first ? getUtcWeekStart(first.startDate) : null;
+  }
+
   private calculateACWRFromWeeklyLoads(
     weeklyLoads: number[],
+    weeksOfData: number,
   ): { acwr: number; atl: number; ctl: number } | null {
     if (weeklyLoads.length === 0) {
       return null;
@@ -181,15 +192,11 @@ export class TrainingLoadService {
     // For ATL, we use the most recent week
     const acuteWeek = weeklyLoads[0] ?? 0;
 
-    // The chronic weeks (up to 6 before the acute one), oldest first. Weeks
-    // before the first one with any load are missing data, not rest: as zeros
-    // they would shrink the CTL and inflate the ratio of every new athlete.
-    const chronicWeeks = weeklyLoads.slice(1, 7).reverse();
-    const firstLoaded = chronicWeeks.findIndex((load) => load > 0);
-    if (firstLoaded === -1) {
-      return null;
-    }
-    const history = chronicWeeks.slice(firstLoaded);
+    // The chronic weeks (up to 6 before the acute one), oldest first, since
+    // the athlete's first activity. Weeks before it are missing data: as
+    // zeros they would shrink the CTL of every new athlete. Empty weeks
+    // after it are rest, and count as zero.
+    const history = weeklyLoads.slice(1, Math.min(7, weeksOfData)).reverse();
     if (history.length < ACWR_MIN_CHRONIC_WEEKS) {
       return null;
     }
@@ -889,8 +896,19 @@ export class TrainingLoadService {
       normalizedTargetDate,
     );
 
-    // Calculate ACWR for recommendation adjustment
-    const acwrResult = this.calculateACWRFromWeeklyLoads(weeklyLoads);
+    // Calculate ACWR for recommendation adjustment, over the weeks since
+    // the athlete's first activity
+    const firstWeek = await this.firstActivityWeek(targetAthleteId);
+    const weeksOfData = firstWeek
+      ? Math.floor(
+          (normalizedTargetDate.getTime() - firstWeek.getTime()) /
+            (7 * 24 * 3600 * 1000),
+        ) + 1
+      : 0;
+    const acwrResult = this.calculateACWRFromWeeklyLoads(
+      weeklyLoads,
+      weeksOfData,
+    );
     const acwr = acwrResult?.acwr;
 
     const recommendedLoadRangeResult =
@@ -1287,6 +1305,7 @@ export class TrainingLoadService {
         }
       | undefined;
 
+    const firstWeek = await this.firstActivityWeek(targetAthleteId);
     for (let index = 0; index < sortedSummaries.length; index++) {
       // Get weekly loads for ACWR calculation (need at least 7 weeks for proper CTL)
       const weeklyLoadsForACWR: number[] = [];
@@ -1301,7 +1320,16 @@ export class TrainingLoadService {
       }
 
       // Calculate ACWR for this week
-      const acwrResult = this.calculateACWRFromWeeklyLoads(weeklyLoadsForACWR);
+      const weeksOfData = firstWeek
+        ? Math.round(
+            (sortedSummaries[index].weekStart.getTime() - firstWeek.getTime()) /
+              (7 * 24 * 3600 * 1000),
+          ) + 1
+        : 0;
+      const acwrResult = this.calculateACWRFromWeeklyLoads(
+        weeklyLoadsForACWR,
+        weeksOfData,
+      );
       let acwr: number | undefined;
       let acwrStatus:
         'safe' | 'optimal' | 'moderate_risk' | 'high_risk' | undefined;
