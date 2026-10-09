@@ -1028,25 +1028,32 @@ export class EventService {
       );
     }
 
-    if (event.type === 'COMPETITION') {
-      await this.prisma.eventCompetition.update({
-        where: { eventId: eventId },
-        data: {
-          relatedActivity: {
-            connect: { eventActivityId: eventActivity.eventActivityId },
-          },
-        },
-      });
-    } else if (event.type === 'TRAINING') {
-      await this.prisma.eventTraining.update({
-        where: { eventId: eventId },
-        data: {
-          relatedActivity: {
-            connect: { eventActivityId: eventActivity.eventActivityId },
-          },
-        },
-      });
+    // A coach reads several athletes: never mix one's activity with another's plan
+    if (activity.athleteId !== event.athleteId) {
+      throw new BadRequestException(
+        'The activity and the session belong to different athletes',
+      );
     }
+
+    // An activity is the outcome of a single session: linking it here moves
+    // it from the session it was linked to, if any (relatedActivityId is
+    // unique, so connecting it twice would fail)
+    const { eventActivityId } = eventActivity;
+    const elsewhere = {
+      where: { relatedActivityId: eventActivityId, NOT: { eventId } },
+      data: { relatedActivityId: null },
+    };
+    const link = {
+      where: { eventId },
+      data: { relatedActivity: { connect: { eventActivityId } } },
+    };
+    await this.prisma.$transaction([
+      this.prisma.eventTraining.updateMany(elsewhere),
+      this.prisma.eventCompetition.updateMany(elsewhere),
+      event.type === EventType.COMPETITION
+        ? this.prisma.eventCompetition.update(link)
+        : this.prisma.eventTraining.update(link),
+    ]);
   }
 
   async unsetRelatedActivity(
