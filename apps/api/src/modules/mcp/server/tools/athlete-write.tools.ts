@@ -12,7 +12,6 @@ import {
   addDaysToDateKey,
   startOfZonedDay,
   zonedClock,
-  zonedInstant,
 } from 'src/common/utils/time-zone';
 
 import { AthleteScope, ToolError, athleteIdInput, run } from '../context';
@@ -296,8 +295,8 @@ export const registerAthleteWriteTools: ToolRegistrar = (server, ctx, deps) => {
             {
               type: entry.type as METRIC_TYPE,
               value: entry.value,
-              // Midday: the measurement stays on its day in any time zone
-              date: zonedInstant(date, '12:00', scope.timeZone),
+              // Metrics are stored by date, without a time
+              date: new Date(`${date}T00:00:00Z`),
               ...(entry.notes && { notes: entry.notes }),
             },
             scope.athleteId,

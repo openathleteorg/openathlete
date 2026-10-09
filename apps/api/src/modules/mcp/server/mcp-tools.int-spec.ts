@@ -519,7 +519,12 @@ describe('MCP tools (PostgreSQL)', () => {
     });
   });
 
-  it('records metrics on their local day and refuses the future', async () => {
+  it('records metrics on their day and refuses the future', async () => {
+    // Fourteen hours ahead of UTC: a local midday is the day before in UTC
+    await prisma.user.update({
+      where: { userId: DELETED_USER_ID },
+      data: { timeZone: 'Pacific/Kiritimati' },
+    });
     const { call } = await connect(athlete);
     const saved = data(
       await call('log_metrics', {

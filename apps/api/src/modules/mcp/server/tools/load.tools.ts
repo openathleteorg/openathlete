@@ -361,7 +361,8 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
             values: values
               .filter((value) => value.type === type)
               .map((value) => ({
-                date: zonedClock(value.date, scope.timeZone).date,
+                // Stored by date, without a time
+                date: value.date.toISOString().slice(0, 10),
                 value: round(value.value, 2),
                 ...(value.notes && { notes: value.notes }),
               })),

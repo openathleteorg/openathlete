@@ -268,7 +268,8 @@ export const registerAthleteTools: ToolRegistrar = (server, ctx, deps) => {
               type: metric.type,
               value: round(metric.value, 2),
               unit: metricUnitMap[metric.type] ?? '',
-              date: localDay(metric.date),
+              // Stored by date, without a time
+              date: new Date(metric.date).toISOString().slice(0, 10),
             })),
           zones: zones.map((zone) => ({
             zoneId: zone.trainingZoneId,
