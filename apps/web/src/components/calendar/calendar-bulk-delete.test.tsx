@@ -33,6 +33,9 @@ vi.mock('@/contexts/space', () => ({
   useSpaceContext: () => ({ space: state.space }),
 }));
 vi.mock('@/hooks/use-mobile', () => ({ useIsMobile: () => false }));
+vi.mock('./hooks/use-shift-actions', () => ({
+  useShiftActions: () => ({ move: vi.fn(), copy: vi.fn(), busy: false }),
+}));
 vi.mock('./hooks/use-calendar-context', () => ({
   useCalendarContext: () => state.calendar,
 }));

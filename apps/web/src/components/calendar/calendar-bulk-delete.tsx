@@ -10,6 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useSpaceContext } from '@/contexts/space';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
@@ -17,7 +23,7 @@ import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
 import { cn } from '@/utils/shadcn';
 import { useQueryClient } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, Copy, Trash2 } from 'lucide-react';
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -25,10 +31,17 @@ import { Event } from '@openathlete/shared';
 
 import { BulkWorkoutSelectionContext } from './contexts/bulk-workout-selection-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
+import { useShiftActions } from './hooks/use-shift-actions';
 import {
   canBulkDeleteWorkout,
   deleteWorkoutsSequentially,
 } from './utils/bulk-delete';
+import { SHIFT_OPTIONS } from './utils/shift-options';
+
+const COPY_OPTIONS = [
+  { offsetDays: 1, label: m.calendar_bulk_copy_next_day },
+  { offsetDays: 7, label: m.calendar_bulk_copy_next_week },
+];
 
 /**
  * Bulk selection and deletion of planned workouts. `header` is the calendar
@@ -58,6 +71,7 @@ export function CalendarBulkDelete({
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [confirm, setConfirm] = useState(false);
+  const shift = useShiftActions();
   const [busy, setBusy] = useState(false);
   const running = useRef(false);
   const client = useQueryClient();
@@ -195,6 +209,56 @@ export function CalendarBulkDelete({
           >
             {m.cancel()}
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="min-h-11"
+                disabled={!selectedEvents.length || busy || shift.busy}
+                data-bulk-move
+              >
+                <ArrowLeftRight className="size-4" />
+                {m.calendar_bulk_move()}
+                <ChevronDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {SHIFT_OPTIONS.map(({ offsetDays, label }) => (
+                <DropdownMenuItem
+                  key={offsetDays}
+                  className="min-h-11 md:min-h-0"
+                  onSelect={() => shift.move([...selectedIds], offsetDays)}
+                >
+                  {label()}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="min-h-11"
+                disabled={!selectedEvents.length || busy || shift.busy}
+                data-bulk-copy
+              >
+                <Copy className="size-4" />
+                {m.copy()}
+                <ChevronDown className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {COPY_OPTIONS.map(({ offsetDays, label }) => (
+                <DropdownMenuItem
+                  key={offsetDays}
+                  className="min-h-11 md:min-h-0"
+                  onSelect={() => shift.copy([...selectedIds], offsetDays)}
+                >
+                  {label()}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             variant="destructive"
             className="min-h-11"

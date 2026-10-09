@@ -1,8 +1,4 @@
-import {
-  EventAPI,
-  useCopyEventsMutation,
-  useMoveEventsMutation,
-} from '@/api/event';
+import { EventAPI } from '@/api/event';
 import { eventKeys } from '@/api/event/event.keys';
 import { invalidateTrainingLoadQueries } from '@/api/training-load/training-load.keys';
 import { m } from '@/paraglide/messages';
@@ -35,20 +31,15 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { useEventClipboard } from './contexts/event-clipboard-context';
+import { useShiftActions } from './hooks/use-shift-actions';
 import { deleteWorkoutsSequentially } from './utils/bulk-delete';
+import { SHIFT_OPTIONS } from './utils/shift-options';
 import {
   deletablePlan,
   movablePlan,
   weekOffsetDays,
   weekPlan,
 } from './utils/week-actions';
-
-const SHIFTS = [
-  { offsetDays: 1, label: m.calendar_week_shift_day_later },
-  { offsetDays: -1, label: m.calendar_week_shift_day_earlier },
-  { offsetDays: 7, label: m.calendar_week_shift_week_later },
-  { offsetDays: -7, label: m.calendar_week_shift_week_earlier },
-];
 
 /**
  * The "…" menu of a week: copy, cut and paste it on another week, shift its
@@ -67,9 +58,8 @@ export function CalendarWeekActions({
   const { weekClipboard, setWeekClipboard } = useEventClipboard();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const copyMutation = useCopyEventsMutation();
-  const moveMutation = useMoveEventsMutation();
-  const busy = copyMutation.isPending || moveMutation.isPending || deleting;
+  const shift = useShiftActions();
+  const busy = shift.busy || deleting;
 
   const plan = weekPlan(events, weekStart);
   const movable = movablePlan(plan);
@@ -87,58 +77,16 @@ export function CalendarWeekActions({
     queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
     invalidateTrainingLoadQueries(queryClient);
   };
-  const failed = () => toast.error(m.calendar_week_action_failed());
-
-  /** Moves events, with an Undo that moves them back */
-  const move = (eventIds: number[], offsetDays: number) =>
-    moveMutation.mutate(
-      { eventIds, offsetDays },
-      {
-        onSuccess: (moved) => {
-          toast.success(m.calendar_week_moved({ count: moved.length }), {
-            action: {
-              label: m.calendar_link_undo(),
-              onClick: () =>
-                moveMutation.mutate(
-                  { eventIds, offsetDays: -offsetDays },
-                  { onError: failed },
-                ),
-            },
-          });
-        },
-        onError: failed,
-      },
-    );
-
   const paste = () => {
     if (!weekClipboard || !canPaste) return;
     const { mode, eventIds } = weekClipboard;
     if (mode === 'cut') {
-      move(eventIds, pasteOffset);
+      shift.move(eventIds, pasteOffset);
       // A cut week lands once
       setWeekClipboard(null);
-      return;
+    } else {
+      shift.copy(eventIds, pasteOffset);
     }
-    copyMutation.mutate(
-      { eventIds, offsetDays: pasteOffset },
-      {
-        onSuccess: (copies) => {
-          toast.success(m.calendar_week_pasted({ count: copies.length }), {
-            action: {
-              label: m.calendar_link_undo(),
-              onClick: async () => {
-                await deleteWorkoutsSequentially(
-                  copies.map((copy) => copy.eventId),
-                  EventAPI.deleteEvent,
-                );
-                refresh();
-              },
-            },
-          });
-        },
-        onError: failed,
-      },
-    );
   };
 
   const remove = async () => {
@@ -150,7 +98,7 @@ export function CalendarWeekActions({
     setDeleting(false);
     setConfirmDelete(false);
     refresh();
-    if (notDeleted.length) failed();
+    if (notDeleted.length) toast.error(m.calendar_week_action_failed());
     else toast.success(m.calendar_week_deleted({ count: deleted.length }));
   };
 
@@ -212,11 +160,11 @@ export function CalendarWeekActions({
               {m.calendar_week_shift()}
             </DropdownMenuSubTrigger>
             <DropdownMenuSubContent>
-              {SHIFTS.map(({ offsetDays, label }) => (
+              {SHIFT_OPTIONS.map(({ offsetDays, label }) => (
                 <DropdownMenuItem
                   key={offsetDays}
                   onSelect={() =>
-                    move(
+                    shift.move(
                       movable.map((event) => event.eventId),
                       offsetDays,
                     )

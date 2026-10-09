@@ -95,3 +95,52 @@ test('a coach deletes several planned workouts at once', async ({
   );
   expect(names).toEqual(['Easy run C']);
 });
+
+test('a coach moves several planned workouts a day later', async ({
+  page,
+  request,
+}) => {
+  const { coach, athleteId } = await createCoachWithAthlete(request);
+  const headers = apiHeaders(undefined, coach.accessToken);
+  // Mid-month as the browser sees it, so the moved sessions stay in view
+  const [month, , year] = new Date()
+    .toLocaleDateString('en-US', { timeZone: 'America/New_York' })
+    .split('/')
+    .map(Number);
+  for (const [day, name] of ['Tempo A', 'Tempo B'].entries()) {
+    const start = new Date(Date.UTC(year, month - 1, 10 + day, 16));
+    const planned = await request.post(`${API_URL}/event`, {
+      headers,
+      data: {
+        type: 'TRAINING',
+        athleteId,
+        name,
+        sport: 'RUNNING',
+        description: '',
+        startDate: start.toISOString(),
+        endDate: new Date(start.getTime() + 60 * 60 * 1000).toISOString(),
+      },
+    });
+    expect(planned.status(), await planned.text()).toBe(201);
+  }
+  await signInAsCoach(page, coach);
+  const problems = trackPageProblems(page);
+
+  await page.goto(`/dashboard/calendar/${athleteId}`);
+  await page.getByRole('button', { name: 'Select workouts' }).click();
+  await page.getByRole('checkbox', { name: 'Select Tempo A' }).check();
+  await page.getByRole('checkbox', { name: 'Select Tempo B' }).check();
+  await page.locator('[data-bulk-move]').click();
+  await page.getByRole('menuitem', { name: 'One day later' }).click();
+
+  await expect(page.getByText('Items moved: 2')).toBeVisible();
+  const events = await request.get(
+    `${API_URL}/event?coach=true&athleteId=${athleteId}`,
+    { headers },
+  );
+  const days = ((await events.json()) as { startDate: string }[])
+    .map((event) => new Date(event.startDate).getUTCDate())
+    .sort((a, b) => a - b);
+  expect(days).toEqual([11, 12]);
+  expect(problems).toEqual([]);
+});
