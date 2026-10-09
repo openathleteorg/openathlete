@@ -10,6 +10,14 @@ import { isCapacitor } from '@/utils/capacitor';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getDateFnsLocale } from '@/utils/locales';
 import { getMetricUnit } from '@/utils/metric-unit';
+import { cn } from '@/utils/shadcn';
+import {
+  formStatusBackgroundClass,
+  formStatusLabel,
+  formStatusTextClass,
+  formatForm,
+  getFormStatus,
+} from '@/utils/training-form';
 import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
@@ -81,20 +89,6 @@ export function AthleteDashboardHeader({
     if (diffDays === 0) return m.dashboard_header_today();
     if (diffDays === 1) return m.dashboard_header_tomorrow();
     return m.dashboard_header_days_until({ days: diffDays });
-  };
-
-  const getTSBColor = (tsb?: number) => {
-    if (tsb === undefined) return 'text-muted-foreground';
-    if (tsb > 5) return 'text-green-600 dark:text-green-400';
-    if (tsb < -5) return 'text-red-600 dark:text-red-400';
-    return 'text-blue-600 dark:text-blue-400';
-  };
-
-  const getTSBStatus = (tsb?: number) => {
-    if (tsb === undefined) return null;
-    if (tsb > 5) return 'optimal';
-    if (tsb < -5) return 'overreaching';
-    return 'balanced';
   };
 
   if (isMobile) {
@@ -178,31 +172,31 @@ export function AthleteDashboardHeader({
                   </div>
                 </div>
                 <div
-                  className={`rounded-md bg-gradient-to-br p-2 ${
-                    getTSBStatus(trainingLoadMetrics.tsb) === 'optimal'
-                      ? 'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30'
-                      : getTSBStatus(trainingLoadMetrics.tsb) === 'overreaching'
-                        ? 'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30'
-                        : 'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30'
-                  }`}
+                  className={cn(
+                    'rounded-md bg-gradient-to-br p-2',
+                    formStatusBackgroundClass[
+                      getFormStatus(trainingLoadMetrics.tsb)
+                    ],
+                  )}
                 >
                   <div className="flex flex-col">
                     <span className="text-[10px] font-medium text-muted-foreground mb-0.5">
                       TSB
                     </span>
                     <span
-                      className={`text-lg font-bold ${getTSBColor(trainingLoadMetrics.tsb)}`}
+                      className={cn(
+                        'text-lg font-bold',
+                        formStatusTextClass[
+                          getFormStatus(trainingLoadMetrics.tsb)
+                        ],
+                      )}
                     >
-                      {trainingLoadMetrics.tsb > 0 ? '+' : ''}
-                      {Math.round(trainingLoadMetrics.tsb)}
+                      {formatForm(trainingLoadMetrics.tsb)}
                     </span>
                     <span className="text-[9px] text-muted-foreground mt-0.5 truncate">
-                      {getTSBStatus(trainingLoadMetrics.tsb) === 'optimal'
-                        ? m.optimal_zone()
-                        : getTSBStatus(trainingLoadMetrics.tsb) ===
-                            'overreaching'
-                          ? m.overtraining()
-                          : m.detraining()}
+                      {formStatusLabel[
+                        getFormStatus(trainingLoadMetrics.tsb)
+                      ]()}
                     </span>
                   </div>
                 </div>

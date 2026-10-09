@@ -12,6 +12,7 @@ import { Loader } from '@/components/ui/loader';
 import * as m from '@/paraglide/messages.js';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale } from '@/utils/locales';
+import { TSB_DETRAINING, TSB_OVERREACHING } from '@/utils/training-form';
 import { format } from 'date-fns';
 import { useMemo } from 'react';
 import {
@@ -40,9 +41,6 @@ const COLORS = {
   tsb: 'var(--chart-3)',
 };
 
-// Same thresholds as the API's training status (training-formulas.constants)
-const TSB_OVERREACHING = -10;
-const TSB_DETRAINING = 25;
 const TSB_ZONES = [
   { key: 'overtraining', color: '#ef4444', label: () => m.overtraining() },
   { key: 'optimal', color: '#22c55e', label: () => m.optimal_zone() },
