@@ -115,6 +115,7 @@
   "calendar_display_load": "Charge",
   "calendar_display_save_failed": "Impossible d'enregistrer vos préférences d'affichage",
   "calendar_card_load": "charge {load}",
+  "calendar_card_rpe": "Effort {rpe}/10",
   "calendar_week_form_projected": "projetée",
   "calendar_week_form_detail": "Fraîcheur (TSB) en fin de semaine : forme (CTL) {ctl} moins fatigue (ATL) {atl}.",
   "calendar_week_form_projected_detail": "Projetée à partir des séances encore prévues.",

@@ -135,6 +135,41 @@ function EventMetrics({
   );
 }
 
+/**
+ * What the week view adds to a card: when, how hard, and the start of the
+ * description, so a week reads without opening every session.
+ */
+function EventDetails({ event }: { event: Event }) {
+  const rpe =
+    event.type === EVENT_TYPE.ACTIVITY
+      ? event.rpe
+      : isPlannedEvent(event)
+        ? event.goalRpe
+        : null;
+  const description =
+    'description' in event ? event.description?.trim() : undefined;
+  const time = event.startDate.toLocaleTimeString(getLocale(), {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  return (
+    <div className="w-full space-y-0.5 px-1 pb-0.5 text-xs text-muted-foreground">
+      <div className="flex flex-wrap gap-x-2 tabular-nums">
+        <span>{time}</span>
+        {rpe != null && (
+          <span>{m.calendar_card_rpe({ rpe: Math.round(rpe * 10) })}</span>
+        )}
+      </div>
+      {description && (
+        <p className="line-clamp-2 break-words" data-event-description>
+          {description}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function CalendarEvent({ event, wrapped, detailed = false }: P) {
   const posthog = usePostHog();
   const bulk = useBulkWorkoutSelection();
@@ -417,13 +452,16 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                       steps={event.workout.steps}
                       sport={event.sport}
                       athleteId={event.athleteId}
-                      className={compact ? 'h-1.5' : undefined}
+                      className={
+                        compact ? 'h-1.5' : detailed ? 'h-4' : undefined
+                      }
                     />
                   </div>
                 )}
               <div className="px-1 w-full">
                 <EventMetrics event={event} fields={display.card} />
               </div>
+              {detailed && !wrapped && <EventDetails event={event} />}
               {shownCompliance && (
                 <span className="sr-only">
                   {complianceLabel[shownCompliance.status]()}

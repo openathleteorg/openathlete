@@ -117,6 +117,7 @@
   "calendar_display_load": "Carico",
   "calendar_display_save_failed": "Impossibile salvare le preferenze di visualizzazione",
   "calendar_card_load": "carico {load}",
+  "calendar_card_rpe": "Sforzo {rpe}/10",
   "calendar_week_form_projected": "prevista",
   "calendar_week_form_detail": "Freschezza (TSB) a fine settimana: forma (CTL) {ctl} meno fatica (ATL) {atl}.",
   "calendar_week_form_projected_detail": "Prevista in base alle sedute ancora pianificate.",

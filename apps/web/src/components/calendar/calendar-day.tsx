@@ -31,6 +31,8 @@ interface P {
   events: Event[];
   cycleSegments?: CycleDaySegment[];
   variant?: 'month' | 'week';
+  /** Week view: the day's total, planned sessions and activities alike */
+  total?: string;
 }
 
 export function CalendarDay({
@@ -38,6 +40,7 @@ export function CalendarDay({
   events,
   cycleSegments = [],
   variant = 'month',
+  total,
 }: P) {
   const {
     displayedMonth,
@@ -194,6 +197,7 @@ export function CalendarDay({
           <div
             className={cn(
               'relative flex justify-center p-2 text-sm font-medium text-gray-600',
+              variant === 'week' && 'flex-col items-center gap-0.5 pb-1.5',
               {
                 'text-red-500 font-bold': isToday,
                 'text-gray-400': !isCurrentMonth,
@@ -209,6 +213,14 @@ export function CalendarDay({
                   })
                 : dayOfMonth}
             </span>
+            {variant === 'week' && (
+              <span
+                className="min-h-4 text-xs font-normal tabular-nums text-muted-foreground"
+                data-day-total
+              >
+                {total}
+              </span>
+            )}
             {allowCreate && (
               <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger asChild>
