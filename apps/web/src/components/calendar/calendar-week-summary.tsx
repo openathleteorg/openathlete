@@ -22,6 +22,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { CalendarWeekActions } from './calendar-week-actions';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { complianceDotClass } from './utils/compliance';
+import { nextRaceCountdown } from './utils/races';
 import { getWeekKey } from './utils/week';
 import {
   PlannedDone,
@@ -284,9 +285,14 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
     weeklyLoadSummaryLoading,
     estimatingEvents,
     allowCreate,
+    events: allEvents,
   } = useCalendarContext();
   const weekLoad = weeklyLoadSummary[getWeekKey(week[0])];
   const totals = useMemo(() => summarizeWeek(events), [events]);
+  const countdown = useMemo(
+    () => (withActions ? nextRaceCountdown(allEvents, week[0]) : null),
+    [withActions, allEvents, week],
+  );
   const locale = getLocale();
 
   // The AI estimate of a session of this week is on its way
@@ -308,8 +314,22 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
       <div className="flex h-full min-h-32 select-none flex-col gap-2 p-2 text-xs @md:min-h-0">
         {withActions && (
           <div className="-mt-1 -mb-1 flex items-center justify-between">
-            <span className="font-medium text-muted-foreground">
+            <span className="flex min-w-0 items-center gap-2 font-medium text-muted-foreground">
               {m.calendar_week_number({ week: getISOWeek(week[0]) })}
+              {countdown && (
+                <span
+                  className="truncate text-red-600 dark:text-red-400"
+                  title={m.calendar_week_until_race_detail({
+                    name: countdown.race.name,
+                    weeks: countdown.weeks,
+                  })}
+                >
+                  {m.calendar_week_until_race({
+                    priority: 'A',
+                    weeks: countdown.weeks,
+                  })}
+                </span>
+              )}
             </span>
             {allowCreate && (
               <CalendarWeekActions weekStart={week[0]} events={events} />

@@ -427,3 +427,12 @@ enum SubscriptionStatus {
 
   @@map("subscription_status")
 }
+
+/// How much a race matters in the season: A is the goal, C a training race
+enum CompetitionPriority {
+  A
+  B
+  C
+
+  @@map("competition_priority")
+}

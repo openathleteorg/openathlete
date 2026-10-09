@@ -51,6 +51,7 @@ export function getFormDefaultValues(
         goalDuration: props.event.goalDuration ?? null,
         goalElevationGain: props.event.goalElevationGain ?? null,
         goalRpe: props.event.goalRpe ?? null,
+        priority: props.event.priority ?? null,
       } as EventFormValues;
     }
 
@@ -98,6 +99,7 @@ export function getFormDefaultValues(
         goalDuration: prefilled.goalDuration ?? null,
         goalElevationGain: prefilled.goalElevationGain ?? null,
         goalRpe: prefilled.goalRpe ?? null,
+        priority: prefilled.priority ?? null,
       } as EventFormValues;
     }
 

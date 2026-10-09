@@ -2,6 +2,7 @@ import { useGetUpcomingCompetitionsQuery } from '@/api/event';
 import { AthleteMetric, useGetMetricsQuery } from '@/api/metric';
 import { useTrainingLoadMetrics } from '@/api/training-load';
 import { TrainingLoadCalculationType } from '@/api/training-load/training-load.api';
+import { CompetitionPriorityBadge } from '@/components/calendar/competition-priority-badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
@@ -22,7 +23,7 @@ import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
 
-import { METRIC_TYPE } from '@openathlete/shared';
+import { EVENT_TYPE, METRIC_TYPE } from '@openathlete/shared';
 
 interface AthleteDashboardHeaderProps {
   athleteId?: number;
@@ -124,8 +125,15 @@ export function AthleteDashboardHeader({
                   >
                     <Calendar className="mt-0.5 h-3.5 w-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-blue-900 dark:text-blue-100 truncate">
-                        {competition.name}
+                      <p className="flex items-center gap-1 text-xs font-medium text-blue-900 dark:text-blue-100">
+                        <CompetitionPriorityBadge
+                          priority={
+                            competition.type === EVENT_TYPE.COMPETITION
+                              ? competition.priority
+                              : null
+                          }
+                        />
+                        <span className="truncate">{competition.name}</span>
                       </p>
                       <p className="text-[10px] text-blue-700 dark:text-blue-300">
                         {getDaysUntil(competition.startDate)} •{' '}

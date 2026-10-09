@@ -23,6 +23,7 @@ import {
   type EventFormValues,
   NO_EQUIPMENT,
 } from '../utils/event-form-schemas';
+import { CompetitionPriorityField } from './competition-priority-field';
 
 type Props = {
   type: EVENT_TYPE;
@@ -159,6 +160,7 @@ export function EventFormFields({
             label={m.goal_elevation_gain()}
           />
           <RHFRpe name="goalRpe" label={m.goal_rpe()} />
+          {type === EVENT_TYPE.COMPETITION && <CompetitionPriorityField />}
         </>
       )}
       {type === EVENT_TYPE.ACTIVITY && (

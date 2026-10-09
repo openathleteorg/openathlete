@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { EVENT_TYPE, SPORT_TYPE } from '../../misc';
+import { COMPETITION_PRIORITY, EVENT_TYPE, SPORT_TYPE } from '../../misc';
 import { createWorkoutStepDtoSchema } from './workout.dto';
 
 const baseEventSchema = z.object({
@@ -35,6 +35,7 @@ export const competitionEventSchema = baseEventSchema.extend({
   goalDuration: z.number().optional().nullable(),
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
+  priority: z.nativeEnum(COMPETITION_PRIORITY).optional().nullable(),
 });
 
 export const noteEventSchema = baseEventSchema.extend({

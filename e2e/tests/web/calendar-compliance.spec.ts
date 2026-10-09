@@ -127,3 +127,43 @@ test('the weekly summary puts done and planned side by side', async ({
   await expect(summary.locator('[data-week-form]')).toContainText('projected');
   expect(problems).toEqual([]);
 });
+
+test('an A race shows its letter and counts down the weeks before it', async ({
+  page,
+  request,
+}) => {
+  const athlete = await createAthlete(request);
+  // Three weeks ahead, mid-week, mid-day in the browser's time zone
+  const raceDay = new Date(Date.now() + 21 * DAY);
+  raceDay.setUTCHours(16, 0, 0, 0);
+  const race = await request.post(`${API_URL}/event`, {
+    headers: apiHeaders(undefined, athlete.accessToken),
+    data: {
+      type: 'COMPETITION',
+      name: 'Goal half marathon',
+      sport: 'RUNNING',
+      description: '',
+      priority: 'A',
+      startDate: raceDay.toISOString(),
+      endDate: new Date(raceDay.getTime() + 5400_000).toISOString(),
+    },
+  });
+  expect(race.status(), await race.text()).toBe(201);
+  expect(await race.json()).toMatchObject({ priority: 'A' });
+
+  await signIn(page, athlete);
+  const problems = trackPageProblems(page);
+  await page.goto('/dashboard/calendar?view=month');
+
+  // The upcoming races of the header carry the letter
+  const upcoming = page.getByText('Goal half marathon').first();
+  await expect(upcoming).toBeVisible();
+  await expect(
+    page.getByRole('img', { name: 'Priority A race' }).first(),
+  ).toBeVisible();
+  // This week's summary counts the weeks left: two or three, by weekday
+  await expect(
+    page.locator('[data-week-summary]').filter({ hasText: /A: [23] wk/ }),
+  ).not.toHaveCount(0);
+  expect(problems).toEqual([]);
+});

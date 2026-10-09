@@ -41,6 +41,7 @@ import {
   ContextMenuTrigger,
 } from '../ui/context-menu';
 import { CalendarEventTooltipWrapper } from './calendar-event-tooltip-wrapper';
+import { CompetitionPriorityBadge } from './competition-priority-badge';
 import { useBulkWorkoutSelection } from './contexts/bulk-workout-selection-context';
 import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useEventContextMenu } from './contexts/event-context-menu-context';
@@ -299,6 +300,12 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                   <SportIcon
                     sport={event.sport}
                     className="inline-block mr-1"
+                  />
+                )}
+                {event.type === EVENT_TYPE.COMPETITION && (
+                  <CompetitionPriorityBadge
+                    priority={event.priority}
+                    className="mr-1 align-text-bottom"
                   />
                 )}
                 {event.type === EVENT_TYPE.ACTIVITY && event.isRace && (

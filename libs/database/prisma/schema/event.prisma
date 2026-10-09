@@ -107,6 +107,8 @@ model EventCompetition {
   goalDuration      Int?      @map("goal_duration")
   /// Goal Rate of Perceived Exertion (0.0-1.0 scale, optional)
   goalRpe           Float?    @map("goal_rpe")
+  /// A (season goal), B or C (training race); unset for unranked races
+  priority          CompetitionPriority?
 
   // relationships
   event             Event          @relation(fields: [eventId], references: [eventId])

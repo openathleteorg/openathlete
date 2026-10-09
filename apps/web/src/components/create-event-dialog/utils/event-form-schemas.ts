@@ -1,7 +1,11 @@
 import { m } from '@/paraglide/messages';
 import { z } from 'zod';
 
-import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
+import {
+  COMPETITION_PRIORITY,
+  EVENT_TYPE,
+  SPORT_TYPE,
+} from '@openathlete/shared';
 
 // Base schema for all event types
 export const baseEventFormSchema = z.object({
@@ -52,6 +56,7 @@ export const competitionEventFormSchema = baseEventFormSchema.extend({
   goalDuration: z.number().optional().nullable(),
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
+  priority: z.nativeEnum(COMPETITION_PRIORITY).optional().nullable(),
 });
 
 // Note event schema
