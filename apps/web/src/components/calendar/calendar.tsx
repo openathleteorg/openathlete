@@ -77,6 +77,7 @@ import { EventClipboardProvider } from './contexts/event-clipboard-context';
 import { EventContextMenuProvider } from './contexts/event-context-menu-context';
 import { useSharedDnd } from './contexts/shared-dnd-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
+import { useCalendarDisplay } from './hooks/use-calendar-display';
 import { CalendarContextType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
 import { UnavailableSessionsDialog } from './unavailable-sessions-dialog';
@@ -493,6 +494,8 @@ export function Calendar({
     }
   }, [coloredBy]);
 
+  const { display, updateDisplay } = useCalendarDisplay();
+
   const memoizedValue = useMemo<CalendarContextType>(
     () => ({
       ...calendarData,
@@ -528,6 +531,8 @@ export function Calendar({
       weeklyLoadSummary: weeklyLoadSummaryMap,
       weeklyLoadSummaryLoading,
       estimatingEvents,
+      display,
+      updateDisplay,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -547,6 +552,8 @@ export function Calendar({
       weeklyLoadSummaryMap,
       weeklyLoadSummaryLoading,
       estimatingEvents,
+      display,
+      updateDisplay,
     ],
   );
 

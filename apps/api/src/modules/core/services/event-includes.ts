@@ -115,6 +115,11 @@ export const EVENT_INCLUDES = {
           updatedAt: true,
         },
       },
+      // The load cards show: the TRIMP the app charts
+      trainingLoadEntries: {
+        where: { calculation: { type: 'TRIMP' as const } },
+        select: { value: true },
+      },
       feedbackQuestions: {
         orderBy: {
           activityFeedbackQuestionId: 'asc' as const,

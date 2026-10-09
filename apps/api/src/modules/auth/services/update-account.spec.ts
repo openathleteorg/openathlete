@@ -18,4 +18,28 @@ describe('account update', () => {
       false,
     );
   });
+
+  it('stores calendar display settings as a full, valid preference', () => {
+    const parsed = updateAccountDtoSchema.parse({
+      calendarDisplay: { density: 'compact', card: { distance: false } },
+    });
+    expect(parsed.calendarDisplay).toEqual({
+      density: 'compact',
+      card: {
+        profile: true,
+        duration: true,
+        distance: false,
+        elevation: false,
+        load: false,
+      },
+      summary: {
+        duration: true,
+        distance: true,
+        elevation: true,
+        load: true,
+        form: true,
+      },
+      wellness: true,
+    });
+  });
 });

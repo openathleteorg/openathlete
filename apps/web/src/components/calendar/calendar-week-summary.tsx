@@ -286,7 +286,9 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
     estimatingEvents,
     allowCreate,
     events: allEvents,
+    display,
   } = useCalendarContext();
+  const shown = display.summary;
   const weekLoad = weeklyLoadSummary[getWeekKey(week[0])];
   const totals = useMemo(() => summarizeWeek(events), [events]);
   const countdown = useMemo(
@@ -337,13 +339,15 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
           </div>
         )}
         <div className="grid gap-2 @md:grid-cols-4 @md:gap-4">
-          <VolumeRow
-            label={m.duration()}
-            icon={Clock}
-            values={totals.duration}
-            format={formatCompactDuration}
-          />
-          {hasDistance && (
+          {shown.duration && (
+            <VolumeRow
+              label={m.duration()}
+              icon={Clock}
+              values={totals.duration}
+              format={formatCompactDuration}
+            />
+          )}
+          {shown.distance && hasDistance && (
             <VolumeRow
               label={m.distance()}
               icon={Route}
@@ -352,7 +356,7 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
               unit="km"
             />
           )}
-          {hasElevation && (
+          {shown.elevation && hasElevation && (
             <VolumeRow
               label={m.elevation_gain()}
               icon={Mountain}
@@ -361,15 +365,18 @@ export function CalendarWeekSummary({ events, week, withActions }: P) {
               unit="m"
             />
           )}
-          {isLoadLoading ? (
-            <Skeleton className="h-6 w-full" />
-          ) : (
-            weekLoad && <LoadRow load={weekLoad} />
-          )}
+          {shown.load &&
+            (isLoadLoading ? (
+              <Skeleton className="h-6 w-full" />
+            ) : (
+              weekLoad && <LoadRow load={weekLoad} />
+            ))}
         </div>
         <div className="mt-auto flex flex-col gap-1.5 @md:mt-0 @md:flex-row @md:items-center @md:justify-between">
           <SessionCounts sessions={totals.sessions} />
-          {!isLoadLoading && weekLoad && <FormRow load={weekLoad} />}
+          {shown.form && !isLoadLoading && weekLoad && (
+            <FormRow load={weekLoad} />
+          )}
         </div>
       </div>
     </div>

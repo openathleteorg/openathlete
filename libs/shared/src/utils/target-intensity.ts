@@ -25,7 +25,8 @@ export const DEFAULT_METRIC_VALUES: Record<string, number> = {
 const DEFAULT_METRIC_FOR_TARGET: Partial<Record<WORKOUT_TARGET_TYPE, string>> =
   {
     [WORKOUT_TARGET_TYPE.HEARTRATE]: METRIC_TYPE.HR_MAX,
-    [WORKOUT_TARGET_TYPE.ZONE]: METRIC_TYPE.HR_MAX,
+    // Not ZONE: its value is a zone id, which ids 1 and 2 made look like a
+    // percentage
     [WORKOUT_TARGET_TYPE.PACE]: METRIC_TYPE.VMA,
     [WORKOUT_TARGET_TYPE.POWER]: METRIC_TYPE.FTP_CYCLING,
   };

@@ -88,6 +88,7 @@ export class EventService {
       activity:
         | (Omit<EventActivity, 'stream' | 'recordsVersion'> & {
             segments?: ActivitySegment[];
+            trainingLoadEntries?: Array<{ value: number }>;
             feedbackQuestions?: Array<{
               activityFeedbackQuestionId: number;
               questionText: string;
@@ -101,13 +102,22 @@ export class EventService {
     },
   ) {
     const { competition, training, note, activity, ...rest } = event;
+    const { trainingLoadEntries, ...activityFields } = activity ?? {};
 
     return {
       ...rest,
       ...(training ? { ...training } : {}),
       ...(competition ? { ...competition } : {}),
       ...(note ? { ...note } : {}),
-      ...(activity ? { ...activity } : {}),
+      ...(activity
+        ? {
+            ...activityFields,
+            // Null until the activity is processed
+            trainingLoad: trainingLoadEntries?.length
+              ? trainingLoadEntries.reduce((sum, entry) => sum + entry.value, 0)
+              : null,
+          }
+        : {}),
     };
   }
 

@@ -39,6 +39,8 @@ model User {
   trainingReminders   Boolean      @default(true) @map("training_reminders")
   /// Local date of the last evening reminded, so it goes out once
   trainingReminderSentOn DateTime? @map("training_reminder_sent_on") @db.Date
+  /// What calendar cards and summaries show (see calendarDisplaySchema)
+  calendarDisplay     Json?        @map("calendar_display")
 
   // relationships
   athlete                   Athlete?

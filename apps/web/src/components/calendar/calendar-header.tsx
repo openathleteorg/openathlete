@@ -35,6 +35,7 @@ import {
 } from '../ui/select';
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarDayActions } from './calendar-day-actions';
+import { CalendarDisplaySettings } from './calendar-display-settings';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { ComplianceLegend } from './compliance-badge';
 import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-context';
@@ -276,6 +277,7 @@ export function CalendarHeader() {
         >
           <Keyboard className="size-4" />
         </Button>
+        <CalendarDisplaySettings />
       </div>
       <AiSetupDialog
         open={aiSetupOpen}

@@ -28,3 +28,4 @@ export * from './injury.dto';
 export * from './records.dto';
 export * from './weekly-volume.dto';
 export * from './instance.dto';
+export * from './calendar-display.dto';

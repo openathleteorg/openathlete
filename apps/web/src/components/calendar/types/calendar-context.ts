@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 
 import {
+  CalendarDisplay,
   CalendarWeekLoadSummary,
   Cycle,
   EVENT_TYPE,
@@ -41,6 +42,11 @@ export type CalendarContextType = {
   weeklyLoadSummary: Record<string, CalendarWeekLoadSummary>;
   weeklyLoadSummaryLoading: boolean;
   estimatingEvents: Set<number>;
+  /** What cards and summaries show, saved with the account */
+  display: CalendarDisplay;
+  updateDisplay: (
+    change: (current: CalendarDisplay) => CalendarDisplay,
+  ) => void;
   // Cycle management
   cycles: Cycle[];
   createCycle: (startDate: Date, endDate: Date) => void;

@@ -93,6 +93,7 @@ export class UserService {
         language: true,
         timeZone: true,
         trainingReminders: true,
+        calendarDisplay: true,
       },
     });
   };
@@ -322,6 +323,7 @@ export class UserService {
         gender: data.gender,
         timeZone: data.timeZone,
         trainingReminders: data.trainingReminders,
+        calendarDisplay: data.calendarDisplay,
       },
       select: {
         firstName: true,
@@ -329,6 +331,7 @@ export class UserService {
         gender: true,
         timeZone: true,
         trainingReminders: true,
+        calendarDisplay: true,
       },
     });
   };

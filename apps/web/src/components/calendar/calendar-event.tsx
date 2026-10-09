@@ -32,7 +32,12 @@ import { usePostHog } from 'posthog-js/react';
 import { useCallback, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { EVENT_TYPE, Event, SPORT_TYPE } from '@openathlete/shared';
+import {
+  CalendarDisplay,
+  EVENT_TYPE,
+  Event,
+  SPORT_TYPE,
+} from '@openathlete/shared';
 
 import { ConfirmAction } from '../confirm-action';
 import { SportIcon } from '../sport-icon/sport-icon';
@@ -67,6 +72,7 @@ import {
   formatCompactDuration,
   formatCompactKilometers,
 } from './utils/week-summary';
+import { WorkoutMiniProfile } from './workout-mini-profile';
 
 interface P {
   event: Event;
@@ -83,29 +89,48 @@ const DISTANCE_SPORTS = new Set<SPORT_TYPE>([
 ]);
 
 /**
- * Duration and distance, done or planned. They wrap onto two lines when the
- * card is narrow rather than running into each other.
+ * The figures the user chose to see, done or planned. They wrap onto two
+ * lines when the card is narrow rather than running into each other.
  */
-function EventSecondLine({ event }: { event: Event }) {
+function EventMetrics({
+  event,
+  fields,
+}: {
+  event: Event;
+  fields: CalendarDisplay['card'];
+}) {
   let duration: number | null | undefined;
   let distance: number | null | undefined;
+  let elevation: number | null | undefined;
+  let load: number | null | undefined;
   if (event.type === EVENT_TYPE.ACTIVITY) {
     duration = event.movingTime;
     distance = DISTANCE_SPORTS.has(event.sport) ? event.distance : null;
+    elevation = event.elevationGain;
+    load = event.trainingLoad;
   } else if (isPlannedEvent(event)) {
     duration = event.goalDuration;
     distance = event.goalDistance;
+    elevation = event.goalElevationGain;
+    load = event.type === EVENT_TYPE.TRAINING ? event.estimatedLoad : null;
   } else {
     return null;
   }
-  if (!duration && !distance) return null;
+  const parts = [
+    fields.duration && !!duration && formatCompactDuration(duration),
+    fields.distance &&
+      !!distance &&
+      `${formatCompactKilometers(distance, getLocale())} km`,
+    fields.elevation && !!elevation && `${Math.round(elevation)} m D+`,
+    fields.load && !!load && m.calendar_card_load({ load: Math.round(load) }),
+  ].filter((part): part is string => !!part);
+  if (!parts.length) return null;
 
   return (
     <div className="flex w-full flex-wrap justify-between gap-x-2 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400">
-      {!!duration && <span>{formatCompactDuration(duration)}</span>}
-      {!!distance && (
-        <span>{formatCompactKilometers(distance, getLocale())} km</span>
-      )}
+      {parts.map((part) => (
+        <span key={part}>{part}</span>
+      ))}
     </div>
   );
 }
@@ -128,7 +153,9 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
     events: allEvents,
     coloredBy,
     athleteId,
+    display,
   } = useCalendarContext();
+  const compact = display.density === 'compact' && !detailed;
   const [deleteEventDialog, setDeleteEventDialog] = useState<boolean>(false);
   const queryClient = useQueryClient();
   // Hook options, not mutate callbacks: the card is gone once deleted
@@ -322,9 +349,10 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               )}
               <div
                 className={cn(
-                  'text-sm font-medium px-1 break-words',
+                  'font-medium px-1 break-words',
+                  compact ? 'text-xs line-clamp-1' : 'text-sm',
                   // Two lines in narrow day cells rather than a few letters
-                  detailed ? 'whitespace-normal' : 'line-clamp-2',
+                  detailed ? 'whitespace-normal' : !compact && 'line-clamp-2',
                 )}
               >
                 {event.type !== EVENT_TYPE.NOTE && (
@@ -370,7 +398,8 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                       )}
                     />
                   )}
-                {event.type === EVENT_TYPE.TRAINING &&
+                {!display.card.profile &&
+                  event.type === EVENT_TYPE.TRAINING &&
                   'workout' in event &&
                   event.workout &&
                   event.workout.steps.length > 0 && (
@@ -378,8 +407,22 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                   )}
                 {event.name}
               </div>
+              {display.card.profile &&
+                event.type === EVENT_TYPE.TRAINING &&
+                !!event.workout?.steps.length && (
+                  <div
+                    className={cn('w-full px-1', compact ? 'py-0' : 'py-0.5')}
+                  >
+                    <WorkoutMiniProfile
+                      steps={event.workout.steps}
+                      sport={event.sport}
+                      athleteId={event.athleteId}
+                      className={compact ? 'h-1.5' : undefined}
+                    />
+                  </div>
+                )}
               <div className="px-1 w-full">
-                <EventSecondLine event={event} />
+                <EventMetrics event={event} fields={display.card} />
               </div>
               {shownCompliance && (
                 <span className="sr-only">

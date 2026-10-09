@@ -132,6 +132,8 @@ export type ActivityEvent = Omit<
     segments?: ActivitySegment[];
     feedbackQuestions?: ActivityFeedbackQuestion[];
     extractedInjuries?: ActivityInjuryNote[];
+    /** TRIMP of the activity, null until it is processed */
+    trainingLoad?: number | null;
   };
 
 export type Event =
