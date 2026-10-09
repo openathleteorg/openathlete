@@ -46,6 +46,8 @@ model Event {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([trainingWeekId])
+  /// Every calendar read asks for one athlete's events over a date range
+  @@index([athleteId, startDate])
   @@map("event")
 }
 
