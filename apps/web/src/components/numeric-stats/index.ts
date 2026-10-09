@@ -5,4 +5,3 @@ export * from './equipment-stat';
 export * from './estimated-load-stat';
 export * from './heartrate-stat';
 export * from './speed-stat';
-export * from './load-stat';

@@ -10,8 +10,6 @@ import {
 import { CalendarView } from '../hooks/use-calendar-data';
 import { COLORED_BY } from './filter';
 
-export type SummaryType = 'planned' | 'done' | 'planned-done';
-
 export type CalendarContextType = {
   view: CalendarView;
   setView: (view: CalendarView) => void;
@@ -32,8 +30,6 @@ export type CalendarContextType = {
   events: Event[];
   openEventDetails: (eventId: Event['eventId']) => void;
   eventDetailsOpened: Event['eventId'] | null;
-  summaryType: SummaryType;
-  setSummaryType: (type: SummaryType) => void;
   filter: (event: Event) => boolean;
   setFilter: Dispatch<SetStateAction<(event: Event) => boolean>>;
   athleteId?: number;

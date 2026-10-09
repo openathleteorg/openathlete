@@ -4,27 +4,13 @@ import { getDateLocale } from '@/utils/locales';
 
 import { EVENT_TYPE, endOfDay, startOfDay } from '@openathlete/shared';
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
 import { CalendarDay } from './calendar-day';
 import { CalendarWeekSummary } from './calendar-week-summary';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { calculateCyclesForDay } from './utils/cycle-day-layout';
 
 export function CalendarBody() {
-  const {
-    displayedWeeks,
-    events,
-    cycles,
-    summaryType,
-    setSummaryType,
-    cycleResize,
-  } = useCalendarContext();
+  const { displayedWeeks, events, cycles, cycleResize } = useCalendarContext();
 
   // Create a modified cycles array with resize preview
   const displayedCycles = cycles.map((cycle) => {
@@ -52,36 +38,9 @@ export function CalendarBody() {
             })}
           </div>
         ))}
-        {/* Summary type selector - hidden on mobile, shown on desktop */}
-        <div className="hidden md:block h-8 [&:not(:last-child)]:border-r-1">
-          <Select value={summaryType} onValueChange={setSummaryType}>
-            <SelectTrigger
-              className="border-0 shadow-none py-0 w-full"
-              style={{ height: '100%' }}
-            >
-              <SelectValue className="font-bold" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="planned-done">{m.planned_done()}</SelectItem>
-              <SelectItem value="planned">{m.planned()}</SelectItem>
-              <SelectItem value="done">{m.done()}</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="hidden md:flex h-8 items-center px-2 text-xs font-semibold text-muted-foreground">
+          {m.calendar_week_summary_heading()}
         </div>
-      </div>
-
-      {/* Summary selector for mobile - shown between header and weeks */}
-      <div className="md:hidden border-b-1 p-2">
-        <Select value={summaryType} onValueChange={setSummaryType}>
-          <SelectTrigger className="w-full">
-            <SelectValue className="font-bold" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="planned-done">{m.planned_done()}</SelectItem>
-            <SelectItem value="planned">{m.planned()}</SelectItem>
-            <SelectItem value="done">{m.done()}</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
 
       {/* Week rows */}

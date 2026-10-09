@@ -71,7 +71,7 @@ import { EventClipboardProvider } from './contexts/event-clipboard-context';
 import { EventContextMenuProvider } from './contexts/event-context-menu-context';
 import { useSharedDnd } from './contexts/shared-dnd-context';
 import { CycleDetailsDialog } from './cycle-details.dialog';
-import { CalendarContextType, SummaryType } from './types/calendar-context';
+import { CalendarContextType } from './types/calendar-context';
 import { COLORED_BY } from './types/filter';
 import { getUtcWeekKey, getWeekEnd, getWeekStart } from './utils/week';
 
@@ -356,7 +356,6 @@ export function Calendar({
     currentStart: Date;
     currentEnd: Date;
   } | null>(null);
-  const [summaryType, setSummaryType] = useState<SummaryType>('planned-done');
   const [filter, setFilter] = useState<(event: Event) => boolean>(
     () => () => true,
   );
@@ -454,8 +453,6 @@ export function Calendar({
       setDragSelection,
       cycleResize,
       setCycleResize,
-      summaryType,
-      setSummaryType,
       athleteId,
       allowCreate,
       filter,
@@ -477,7 +474,6 @@ export function Calendar({
       dragSelection,
       cycleResize,
       filter,
-      summaryType,
       coloredBy,
       eventDetailsOpened,
       allowCreate,

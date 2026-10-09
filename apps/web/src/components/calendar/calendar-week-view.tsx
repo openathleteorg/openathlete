@@ -7,7 +7,6 @@ import { Loader } from '../ui/loader';
 import { CalendarDay } from './calendar-day';
 import { CalendarWeekSummary } from './calendar-week-summary';
 import { useCalendarContext } from './hooks/use-calendar-context';
-import { SummaryType } from './types/calendar-context';
 import { calculateCyclesForDay } from './utils/cycle-day-layout';
 
 /** Reuses calendar day interactions and the existing planned/actual summary. */
@@ -16,15 +15,8 @@ export function CalendarWeekView({
 }: {
   isLoading?: boolean;
 }) {
-  const {
-    displayedWeeks,
-    weekStart,
-    events,
-    cycles,
-    cycleResize,
-    summaryType,
-    setSummaryType,
-  } = useCalendarContext();
+  const { displayedWeeks, weekStart, events, cycles, cycleResize } =
+    useCalendarContext();
   const days = displayedWeeks[0] ?? [];
   const end = addDays(weekStart, 7);
   const weekEvents = events.filter(
@@ -72,21 +64,14 @@ export function CalendarWeekView({
           </div>
         )}
       </div>
-      <section className="rounded-lg border p-3">
-        <label className="flex flex-wrap items-center gap-2 text-sm">
+      <section className="rounded-lg border p-2">
+        <h2 className="px-2 text-sm font-semibold">
           {m.calendar_week_title({ week: getISOWeek(weekStart) })}
-          <select
-            className="rounded-md border bg-background p-2"
-            value={summaryType}
-            onChange={(event) =>
-              setSummaryType(event.target.value as SummaryType)
-            }
-          >
-            <option value="planned-done">{m.planned_done()}</option>
-            <option value="planned">{m.planned()}</option>
-            <option value="done">{m.done()}</option>
-          </select>
-        </label>
+          <span className="font-normal text-muted-foreground">
+            {' · '}
+            {m.calendar_week_summary_heading()}
+          </span>
+        </h2>
         <CalendarWeekSummary events={weekEvents} week={days} />
       </section>
     </div>
