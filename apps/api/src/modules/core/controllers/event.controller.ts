@@ -36,11 +36,13 @@ import {
   DuplicateEventDto,
   DuplicateWorkoutDto,
   ReorderWorkoutStepsDto,
+  ShiftEventsDto,
   UpdateEventDto,
   createEventDtoSchema,
   duplicateEventDtoSchema,
   duplicateWorkoutSchema,
   reorderWorkoutStepsSchema,
+  shiftEventsDtoSchema,
   updateEventDtoSchema,
 } from '@openathlete/shared';
 
@@ -51,6 +53,7 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { EventService } from '../services';
 import { ActivityFeedbackService } from '../services/activity-feedback.service';
 import { CalendarFeedService } from '../services/calendar-feed.service';
+import { EventBulkService } from '../services/event-bulk.service';
 
 @ApiTags('Event')
 @Controller('event')
@@ -59,6 +62,7 @@ export class EventController {
     private eventService: EventService,
     private activityFeedbackService: ActivityFeedbackService,
     private calendarFeedService: CalendarFeedService,
+    private eventBulkService: EventBulkService,
   ) {}
 
   @Get('ical')
@@ -983,6 +987,42 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventService.deleteEvent(user, eventId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('bulk/copy')
+  @ApiOperation({
+    summary: 'Copy planned events by whole days',
+    description:
+      "Copies planned sessions, races and notes (with their workouts) a number of calendar days later or earlier, at the same local time in the athlete's time zone. All or nothing, in one transaction: fails with 404 if any event is missing, an activity, or not editable by the user. At most 200 events.",
+  })
+  @ApiResponse({ status: 201, description: 'The copies, by start date' })
+  @ApiResponse({ status: 400, description: 'Invalid event ids or offset' })
+  @ApiResponse({ status: 404, description: 'Some events cannot be changed' })
+  copyEvents(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(shiftEventsDtoSchema)) dto: ShiftEventsDto,
+  ) {
+    return this.eventBulkService.duplicate(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('bulk/move')
+  @ApiOperation({
+    summary: 'Move planned events by whole days',
+    description:
+      "Moves planned sessions, races and notes a number of calendar days later or earlier, at the same local time in the athlete's time zone. All or nothing, in one transaction: fails with 404 if any event is missing, an activity, or not editable by the user. At most 200 events.",
+  })
+  @ApiResponse({ status: 201, description: 'The moved events, by start date' })
+  @ApiResponse({ status: 400, description: 'Invalid event ids or offset' })
+  @ApiResponse({ status: 404, description: 'Some events cannot be changed' })
+  moveEvents(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(shiftEventsDtoSchema)) dto: ShiftEventsDto,
+  ) {
+    return this.eventBulkService.move(user, dto);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

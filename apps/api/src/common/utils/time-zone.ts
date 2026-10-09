@@ -58,3 +58,20 @@ export function startOfZonedDay(date: string, timeZone: string): Date {
   const guess = midnightUtc - offsetAt(midnightUtc);
   return new Date(midnightUtc - offsetAt(guess));
 }
+
+/**
+ * `instant` moved by `days` calendar days in `timeZone`, at the same wall
+ * clock time: a 7:00 session moved a week across a DST change stays at 7:00.
+ */
+export function addZonedDays(
+  instant: Date,
+  days: number,
+  timeZone: string,
+): Date {
+  const offsetAt = (at: number) => wallClock(new Date(at), timeZone).asUtc - at;
+  // The wall clock has whole seconds: carry the milliseconds over
+  const milliseconds = instant.getTime() % 1000;
+  const wall = wallClock(instant, timeZone).asUtc + days * DAY_MS;
+  const guess = wall - offsetAt(wall);
+  return new Date(wall - offsetAt(guess) + milliseconds);
+}

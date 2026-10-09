@@ -1,4 +1,9 @@
-import { addDaysToDateKey, startOfZonedDay, zonedClock } from './time-zone';
+import {
+  addDaysToDateKey,
+  addZonedDays,
+  startOfZonedDay,
+  zonedClock,
+} from './time-zone';
 
 describe('time zones', () => {
   it('reads the local date and hour', () => {
@@ -56,5 +61,31 @@ describe('time zones', () => {
   it('adds days to a date across months and years', () => {
     expect(addDaysToDateKey('2026-10-31', 1)).toBe('2026-11-01');
     expect(addDaysToDateKey('2026-12-31', 2)).toBe('2027-01-02');
+  });
+
+  it('moves by calendar days at the same local time across DST', () => {
+    // Saturday 24 October 2026, 7:00 in Paris (UTC+2); summer time ends
+    // the next night, so a week later 7:00 is UTC+1
+    const saturday = new Date('2026-10-24T05:00:00Z');
+    expect(addZonedDays(saturday, 7, 'Europe/Paris')).toEqual(
+      new Date('2026-10-31T06:00:00Z'),
+    );
+    expect(
+      addZonedDays(new Date('2026-10-31T06:00:00Z'), -7, 'Europe/Paris'),
+    ).toEqual(saturday);
+    // Without DST in between, plain days
+    expect(addZonedDays(saturday, 2, 'Europe/Paris')).toEqual(
+      new Date('2026-10-26T06:00:00Z'),
+    );
+    expect(addZonedDays(saturday, 3, 'UTC')).toEqual(
+      new Date('2026-10-27T05:00:00Z'),
+    );
+  });
+
+  it('keeps the milliseconds', () => {
+    const instant = new Date('2026-03-01T10:00:00.250Z');
+    expect(addZonedDays(instant, 1, 'Europe/Paris').toISOString()).toBe(
+      '2026-03-02T10:00:00.250Z',
+    );
   });
 });
