@@ -8,7 +8,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 
-import { Event } from '@openathlete/shared';
+import { Event, ShiftEventsDto } from '@openathlete/shared';
 
 import {
   invalidateTrainingLoadQueries,
@@ -18,8 +18,9 @@ import { EventAPI } from './event.api';
 import { eventKeys } from './event.keys';
 import {
   linkActivityInEvents,
+  shiftEventsInCache,
   unlinkActivityInEvents,
-} from './related-activity.cache';
+} from './events.cache';
 
 type CreateEventContext = {
   previousQueries: Map<unknown[], unknown>;
@@ -506,6 +507,55 @@ export const useGetMyIcalCalendarSecretQuery = (
     queryFn: EventAPI.getMyIcalCalendarSecret,
     queryKey: [eventKeys.getMyIcalCalendarSecret],
   });
+
+/** Copies planned events by whole days (week actions) */
+export const useCopyEventsMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.copyEvents>>,
+    Error,
+    ShiftEventsDto
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: EventAPI.copyEvents,
+    onSettled: (data, error, variables, onMutateResult, context) => {
+      opt?.onSettled?.(data, error, variables, onMutateResult, context);
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      invalidateTrainingLoadQueries(queryClient);
+    },
+  });
+};
+
+/** Moves planned events by whole days, shown at once in the calendar */
+export const useMoveEventsMutation = (
+  opt?: MutationOptions<
+    Awaited<ReturnType<typeof EventAPI.moveEvents>>,
+    Error,
+    ShiftEventsDto,
+    EventsSnapshot
+  >,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    ...opt,
+    mutationFn: EventAPI.moveEvents,
+    onMutate: ({ eventIds, offsetDays }) =>
+      updateCachedEvents(queryClient, (events) =>
+        shiftEventsInCache(events, eventIds, offsetDays),
+      ),
+    onError: (error, variables, snapshot, context) => {
+      restoreCachedEvents(queryClient, snapshot);
+      opt?.onError?.(error, variables, snapshot, context);
+    },
+    onSettled: (data, error, variables, snapshot, context) => {
+      opt?.onSettled?.(data, error, variables, snapshot, context);
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      invalidateTrainingLoadQueries(queryClient);
+    },
+  });
+};
 
 export const useRegenerateIcalCalendarSecretMutation = (
   opt?: MutationOptions<

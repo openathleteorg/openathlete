@@ -2,11 +2,16 @@ import { createContext, useContext, useState } from 'react';
 
 import { Event } from '@openathlete/shared';
 
+import { WeekClipboard } from '../utils/week-actions';
+
 interface EventClipboardContextType {
   clipboard: Event | null;
   copyEvent: (event: Event) => void;
   clearClipboard: () => void;
   hasClipboard: boolean;
+  /** A whole week copied or cut, waiting to be pasted on another week */
+  weekClipboard: WeekClipboard | null;
+  setWeekClipboard: (clipboard: WeekClipboard | null) => void;
 }
 
 const EventClipboardContext = createContext<
@@ -19,6 +24,9 @@ export function EventClipboardProvider({
   children: React.ReactNode;
 }) {
   const [clipboard, setClipboard] = useState<Event | null>(null);
+  const [weekClipboard, setWeekClipboard] = useState<WeekClipboard | null>(
+    null,
+  );
 
   const copyEvent = (event: Event) => {
     setClipboard(event);
@@ -37,6 +45,8 @@ export function EventClipboardProvider({
         copyEvent,
         clearClipboard,
         hasClipboard,
+        weekClipboard,
+        setWeekClipboard,
       }}
     >
       {children}

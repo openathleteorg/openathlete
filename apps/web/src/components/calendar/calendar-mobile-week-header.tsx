@@ -5,7 +5,9 @@ import { endOfDay, format, getISOWeek, startOfDay } from 'date-fns';
 
 import { Event } from '@openathlete/shared';
 
+import { CalendarWeekActions } from './calendar-week-actions';
 import { CalendarWeekSummary } from './calendar-week-summary';
+import { useCalendarContext } from './hooks/use-calendar-context';
 
 interface P {
   week: Date[];
@@ -13,6 +15,7 @@ interface P {
 }
 
 export function CalendarMobileWeekHeader({ week, events }: P) {
+  const { allowCreate } = useCalendarContext();
   const weekStart = week[0];
   const weekEnd = week[6];
 
@@ -34,13 +37,18 @@ export function CalendarMobileWeekHeader({ week, events }: P) {
   return (
     <div className="sticky top-0 z-10 bg-muted/50 border-b border-border shadow-sm">
       <div className="px-4 py-3">
-        <div className="mb-1">
-          <h3 className="text-sm font-semibold text-foreground mb-1">
-            {m.week_summary()} {m.ui_week_prefix()} {weekNumber} ({year})
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {formattedStart} - {formattedEnd}
-          </p>
+        <div className="mb-1 flex items-start justify-between gap-2">
+          <div>
+            <h3 className="text-sm font-semibold text-foreground mb-1">
+              {m.week_summary()} {m.ui_week_prefix()} {weekNumber} ({year})
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {formattedStart} - {formattedEnd}
+            </p>
+          </div>
+          {allowCreate && (
+            <CalendarWeekActions weekStart={weekStart} events={weekEvents} />
+          )}
         </div>
         <CalendarWeekSummary events={weekEvents} week={week} />
       </div>

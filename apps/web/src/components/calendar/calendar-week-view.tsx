@@ -5,6 +5,7 @@ import { EVENT_TYPE } from '@openathlete/shared';
 
 import { Loader } from '../ui/loader';
 import { CalendarDay } from './calendar-day';
+import { CalendarWeekActions } from './calendar-week-actions';
 import { CalendarWeekSummary } from './calendar-week-summary';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { calculateCyclesForDay } from './utils/cycle-day-layout';
@@ -15,8 +16,14 @@ export function CalendarWeekView({
 }: {
   isLoading?: boolean;
 }) {
-  const { displayedWeeks, weekStart, events, cycles, cycleResize } =
-    useCalendarContext();
+  const {
+    displayedWeeks,
+    weekStart,
+    events,
+    cycles,
+    cycleResize,
+    allowCreate,
+  } = useCalendarContext();
   const days = displayedWeeks[0] ?? [];
   const end = addDays(weekStart, 7);
   const weekEvents = events.filter(
@@ -65,13 +72,18 @@ export function CalendarWeekView({
         )}
       </div>
       <section className="rounded-lg border p-2">
-        <h2 className="px-2 text-sm font-semibold">
-          {m.calendar_week_title({ week: getISOWeek(weekStart) })}
-          <span className="font-normal text-muted-foreground">
-            {' · '}
-            {m.calendar_week_summary_heading()}
-          </span>
-        </h2>
+        <div className="flex items-center justify-between gap-2 px-2">
+          <h2 className="text-sm font-semibold">
+            {m.calendar_week_title({ week: getISOWeek(weekStart) })}
+            <span className="font-normal text-muted-foreground">
+              {' · '}
+              {m.calendar_week_summary_heading()}
+            </span>
+          </h2>
+          {allowCreate && (
+            <CalendarWeekActions weekStart={weekStart} events={weekEvents} />
+          )}
+        </div>
         <CalendarWeekSummary events={weekEvents} week={days} />
       </section>
     </div>

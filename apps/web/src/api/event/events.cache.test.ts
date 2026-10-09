@@ -10,8 +10,9 @@ import {
 
 import {
   linkActivityInEvents,
+  shiftEventsInCache,
   unlinkActivityInEvents,
-} from './related-activity.cache';
+} from './events.cache';
 
 const run = {
   eventId: 10,
@@ -54,5 +55,23 @@ describe('linking an activity in the cached events', () => {
     const events = unlinkActivityInEvents([run, session(1, run)], 1);
     expect(relatedOf(events, 1)).toBeUndefined();
     expect((events[1] as TrainingEvent).relatedActivityId).toBeNull();
+  });
+});
+
+describe('moving events in the cached events', () => {
+  it('moves the chosen events by calendar days, at the same local time', () => {
+    const tempo = {
+      ...session(1),
+      startDate: new Date(2026, 9, 24, 7),
+      endDate: new Date(2026, 9, 24, 8),
+    } as TrainingEvent;
+    const other = { ...session(2), startDate: new Date(2026, 9, 24, 9) };
+
+    const [moved, still] = shiftEventsInCache([tempo, other], [1], 7);
+
+    // Across the end of summer time in Europe and America
+    expect(moved.startDate).toEqual(new Date(2026, 9, 31, 7));
+    expect(moved.endDate).toEqual(new Date(2026, 9, 31, 8));
+    expect(still).toBe(other);
   });
 });

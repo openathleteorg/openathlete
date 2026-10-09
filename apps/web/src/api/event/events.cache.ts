@@ -1,3 +1,5 @@
+import { addDays } from 'date-fns';
+
 import { EVENT_TYPE, Event } from '@openathlete/shared';
 
 const isPlanned = (event: Event) =>
@@ -43,6 +45,27 @@ export function unlinkActivityInEvents(
   return events.map((event) =>
     isPlanned(event) && event.eventId === sessionId
       ? { ...event, relatedActivity: undefined, relatedActivityId: null }
+      : event,
+  );
+}
+
+/**
+ * Cached events once moved by `offsetDays` calendar days, at the same local
+ * time, as the API moves them.
+ */
+export function shiftEventsInCache(
+  events: Event[],
+  eventIds: Event['eventId'][],
+  offsetDays: number,
+): Event[] {
+  const moving = new Set(eventIds);
+  return events.map((event) =>
+    moving.has(event.eventId)
+      ? {
+          ...event,
+          startDate: addDays(event.startDate, offsetDays),
+          endDate: addDays(event.endDate, offsetDays),
+        }
       : event,
   );
 }

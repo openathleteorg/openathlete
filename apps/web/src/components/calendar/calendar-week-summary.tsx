@@ -7,6 +7,7 @@ import {
   formatForm,
   getFormStatus,
 } from '@/utils/training-form';
+import { getISOWeek } from 'date-fns';
 import { Clock, Gauge, LucideIcon, Mountain, Route } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -18,6 +19,7 @@ import {
 
 import { Skeleton } from '../ui/skeleton';
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { CalendarWeekActions } from './calendar-week-actions';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { complianceDotClass } from './utils/compliance';
 import { getWeekKey } from './utils/week';
@@ -32,6 +34,8 @@ import {
 interface P {
   events: Event[];
   week: Date[];
+  /** Show the week number and the week's "…" menu above the summary */
+  withActions?: boolean;
 }
 
 const loadFormatter = new Intl.NumberFormat(undefined, {
@@ -274,9 +278,13 @@ function SessionCounts({
  * form at the end of the week. Fits the narrow column of the month view and
  * spreads into a row in wider places (week view).
  */
-export function CalendarWeekSummary({ events, week }: P) {
-  const { weeklyLoadSummary, weeklyLoadSummaryLoading, estimatingEvents } =
-    useCalendarContext();
+export function CalendarWeekSummary({ events, week, withActions }: P) {
+  const {
+    weeklyLoadSummary,
+    weeklyLoadSummaryLoading,
+    estimatingEvents,
+    allowCreate,
+  } = useCalendarContext();
   const weekLoad = weeklyLoadSummary[getWeekKey(week[0])];
   const totals = useMemo(() => summarizeWeek(events), [events]);
   const locale = getLocale();
@@ -298,6 +306,16 @@ export function CalendarWeekSummary({ events, week }: P) {
     // The container query lays it out by the room it gets, not the screen
     <div data-week-summary className="@container h-full w-full">
       <div className="flex h-full min-h-32 select-none flex-col gap-2 p-2 text-xs @md:min-h-0">
+        {withActions && (
+          <div className="-mt-1 -mb-1 flex items-center justify-between">
+            <span className="font-medium text-muted-foreground">
+              {m.calendar_week_number({ week: getISOWeek(week[0]) })}
+            </span>
+            {allowCreate && (
+              <CalendarWeekActions weekStart={week[0]} events={events} />
+            )}
+          </div>
+        )}
         <div className="grid gap-2 @md:grid-cols-4 @md:gap-4">
           <VolumeRow
             label={m.duration()}

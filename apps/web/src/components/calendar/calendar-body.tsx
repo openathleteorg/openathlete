@@ -66,6 +66,7 @@ export function CalendarBody() {
             {/* Summary column - hidden on mobile, shown on desktop */}
             <div className="hidden md:block">
               <CalendarWeekSummary
+                withActions
                 week={week}
                 events={events.filter(
                   (event) =>

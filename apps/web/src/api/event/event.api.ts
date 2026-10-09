@@ -9,6 +9,7 @@ import {
   EventNormalizationFactorDto,
   GetEventWeatherResponseDto,
   ReorderWorkoutStepsDto,
+  ShiftEventsDto,
   UpdateEventDto,
 } from '@openathlete/shared';
 
@@ -150,6 +151,18 @@ export class EventAPI {
   }): Promise<Event> {
     const res = await client.post(routes.event.duplicate(eventId), body || {});
     return mapEvent(res.data);
+  }
+
+  /** Copies planned events by whole days; returns the copies */
+  static async copyEvents(body: ShiftEventsDto): Promise<Event[]> {
+    const res = await client.post(routes.event.copyEvents, body);
+    return (res.data as Event[]).map(mapEvent);
+  }
+
+  /** Moves planned events by whole days; returns them moved */
+  static async moveEvents(body: ShiftEventsDto): Promise<Event[]> {
+    const res = await client.post(routes.event.moveEvents, body);
+    return (res.data as Event[]).map(mapEvent);
   }
 
   // ============================================================================
