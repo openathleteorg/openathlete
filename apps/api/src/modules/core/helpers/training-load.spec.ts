@@ -1,7 +1,9 @@
 import {
   addUtcDays,
+  advanceFitness,
   calculateTrimpFromAverage,
   calculateTrimpFromStream,
+  estimatePlannedTrimp,
   getUtcWeekStart,
   startOfUtcDay,
   toUtcDateKey,
@@ -92,5 +94,57 @@ describe('calculateTrimpFromStream', () => {
     expect(() =>
       calculateTrimpFromStream({ time: [0, 1] }, HR_MAX, HR_REST),
     ).toThrow('Heart rate or time data not available');
+  });
+});
+
+describe('estimatePlannedTrimp', () => {
+  const profile = { hrMax: HR_MAX, hrRest: HR_REST, gender: 'male' as const };
+
+  it('equals the TRIMP of the session done at the heart rate of its RPE', () => {
+    // RPE 5/10: 60% of the heart rate reserve, 134 bpm
+    expect(estimatePlannedTrimp(3600, 0.5, profile)).toBeCloseTo(
+      calculateTrimpFromAverage(134, 3600, HR_MAX, HR_REST).value,
+    );
+  });
+
+  it('grows with the effort and the duration', () => {
+    const easy = estimatePlannedTrimp(3600, 0.3, profile)!;
+    const hard = estimatePlannedTrimp(3600, 0.8, profile)!;
+    expect(hard).toBeGreaterThan(easy * 2);
+    expect(estimatePlannedTrimp(7200, 0.3, profile)).toBeCloseTo(easy * 2);
+  });
+
+  it('assumes a moderate effort without a target RPE', () => {
+    expect(estimatePlannedTrimp(3600, null, profile)).toBeCloseTo(
+      estimatePlannedTrimp(3600, 0.5, profile)!,
+    );
+  });
+
+  it('clamps an RPE given on the wrong scale', () => {
+    expect(estimatePlannedTrimp(3600, 8, profile)).toBeCloseTo(
+      estimatePlannedTrimp(3600, 1, profile)!,
+    );
+  });
+
+  it('cannot estimate a session without a duration or a valid profile', () => {
+    expect(estimatePlannedTrimp(null, 0.5, profile)).toBeNull();
+    expect(estimatePlannedTrimp(0, 0.5, profile)).toBeNull();
+    expect(
+      estimatePlannedTrimp(3600, 0.5, { ...profile, hrMax: HR_REST }),
+    ).toBeNull();
+  });
+});
+
+describe('advanceFitness', () => {
+  it('builds fatigue faster than fitness, and lets both decay at rest', () => {
+    let state = { ctl: 0, atl: 0 };
+    for (let day = 0; day < 7; day++) state = advanceFitness(state, 100);
+    expect(state.atl).toBeGreaterThan(state.ctl);
+
+    const rested = advanceFitness(state, 0);
+    expect(rested.atl).toBeLessThan(state.atl);
+    expect(rested.ctl).toBeLessThan(state.ctl);
+    // Form (CTL - ATL) improves with rest
+    expect(rested.ctl - rested.atl).toBeGreaterThan(state.ctl - state.atl);
   });
 });

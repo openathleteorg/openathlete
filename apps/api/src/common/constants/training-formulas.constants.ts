@@ -52,6 +52,28 @@ export const TRIMP_COEFFICIENT_Y_MALE = 0.64;
 export const TRIMP_COEFFICIENT_Y_FEMALE = 0.86;
 
 // ============================================================================
+// Planned Session Load Constants
+// ============================================================================
+
+/**
+ * Heart rate reserve fraction assumed for a planned session at RPE 0.
+ *
+ * A planned session has no heart rate yet: its TRIMP is estimated at the
+ * heart rate its target RPE usually brings. %HRR rises roughly linearly with
+ * the CR10 scale, from about 30% at rest-like efforts to about 90% at a
+ * maximal one, so: HRr = BASE + SLOPE × RPE (RPE on the 0-1 scale).
+ *
+ * Source: Borg CR10 vs %HRR (Foster et al. 2001; ACSM intensity tables)
+ */
+export const PLANNED_LOAD_HRR_BASE = 0.3;
+
+/** Heart rate reserve fraction gained per unit of RPE (0-1 scale) */
+export const PLANNED_LOAD_HRR_SLOPE = 0.6;
+
+/** RPE assumed when a planned session has a duration but no target RPE */
+export const PLANNED_LOAD_DEFAULT_RPE = 0.5;
+
+// ============================================================================
 // Exponentially Weighted Moving Average (EWMA) Constants
 // ============================================================================
 

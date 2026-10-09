@@ -95,9 +95,20 @@ export type RecalculateAllLoadsResponse = z.infer<
 export const calendarWeekLoadSummarySchema = z.object({
   weekStart: z.coerce.date(),
   weekEnd: z.coerce.date(),
+  /** Load of the activities done */
   actualLoad: z.number(),
+  /** Load of the sessions still to do, from today on */
   estimatedLoad: z.number(),
+  /** Load of every session planned in the week, done, missed or to do */
+  plannedLoad: z.number(),
+  /** Actual load, plus the sessions still to do */
   totalLoad: z.number(),
+  /** Fitness, fatigue and form at the end of the week */
+  ctl: z.number().optional(),
+  atl: z.number().optional(),
+  tsb: z.number().optional(),
+  /** The week is not over: its form counts the sessions still to do */
+  formProjected: z.boolean().optional(),
   recommendedMin: z.number(),
   recommendedMax: z.number(),
   acwr: z.number().optional(),

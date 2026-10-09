@@ -532,13 +532,41 @@ export class TrainingLoadController {
           },
           estimatedLoad: {
             type: 'number',
-            description: 'Estimated TRIMP load from planned training sessions',
+            description:
+              'Estimated TRIMP load of the planned sessions still to do, from today on',
             example: 50.0,
+          },
+          plannedLoad: {
+            type: 'number',
+            description:
+              'Estimated TRIMP load of every session planned in the week, done, missed or to do',
+            example: 210.0,
           },
           totalLoad: {
             type: 'number',
             description: 'Total load (actual + estimated)',
             example: 200.5,
+          },
+          ctl: {
+            type: 'number',
+            description: 'Fitness (CTL) at the end of the week',
+            example: 42.3,
+          },
+          atl: {
+            type: 'number',
+            description: 'Fatigue (ATL) at the end of the week',
+            example: 48.1,
+          },
+          tsb: {
+            type: 'number',
+            description: 'Form (TSB = CTL - ATL) at the end of the week',
+            example: -5.8,
+          },
+          formProjected: {
+            type: 'boolean',
+            description:
+              'The week is not over: its form counts the sessions still planned',
+            example: true,
           },
           recommendedMin: {
             type: 'number',
@@ -575,6 +603,7 @@ export class TrainingLoadController {
           'weekEnd',
           'actualLoad',
           'estimatedLoad',
+          'plannedLoad',
           'totalLoad',
           'recommendedMin',
           'recommendedMax',

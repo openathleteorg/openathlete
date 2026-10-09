@@ -25,8 +25,6 @@ import {
   ACWR_RECOMMENDATION_ADJUSTMENTS,
   ACWR_SAFE_THRESHOLD,
   CURRENT_LOAD_ANCHORING,
-  EWMA_ALPHA_ATL,
-  EWMA_ALPHA_CTL,
   LOAD_SLOPE_CLAMP,
   RECOMMENDATION_ADJUSTMENTS,
   RECOMMENDATION_BASE_RATIOS,
@@ -40,13 +38,21 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { uncompressActivityStream } from '../helpers/activity-stream';
 import {
+  HeartRateProfile,
   addUtcDays,
+  advanceFitness,
   calculateTrimpFromAverage,
   calculateTrimpFromStream,
+  estimatePlannedTrimp,
   getUtcWeekStart,
   startOfUtcDay,
   toUtcDateKey,
 } from '../helpers/training-load';
+import {
+  LoadEntry,
+  PlannedSessionLoad,
+  buildWeeklyLoads,
+} from '../helpers/weekly-load';
 
 /**
  * Training load calculation metadata
@@ -849,15 +855,11 @@ export class TrainingLoadService {
       currentDate.setUTCDate(currentDate.getUTCDate() + 1);
     }
 
-    // Calculate exponentially weighted moving averages using ALL days (including rest days)
-    let atl = 0;
-    let ctl = 0;
-
-    for (const day of allDays) {
-      // Update EWMA (even for days with 0 load - this causes fitness decay)
-      atl = EWMA_ALPHA_ATL * day.load + (1 - EWMA_ALPHA_ATL) * atl;
-      ctl = EWMA_ALPHA_CTL * day.load + (1 - EWMA_ALPHA_CTL) * ctl;
-    }
+    // Every day counts, rest days included: they make fitness decay
+    const { ctl, atl } = allDays.reduce(
+      (state, day) => advanceFitness(state, day.load),
+      { ctl: 0, atl: 0 },
+    );
 
     const tsb = ctl - atl;
 
@@ -1012,13 +1014,12 @@ export class TrainingLoadService {
       tsb: number;
     }> = [];
 
-    let atl = 0;
-    let ctl = 0;
+    let fitness = { ctl: 0, atl: 0 };
 
     for (const day of allDays) {
-      // Update EWMA (even for days with 0 load - this causes fitness decay)
-      atl = EWMA_ALPHA_ATL * day.load + (1 - EWMA_ALPHA_ATL) * atl;
-      ctl = EWMA_ALPHA_CTL * day.load + (1 - EWMA_ALPHA_CTL) * ctl;
+      // Every day counts, rest days included: they make fitness decay
+      fitness = advanceFitness(fitness, day.load);
+      const { ctl, atl } = fitness;
       const tsb = ctl - atl;
 
       // Only include dates within the requested range
@@ -1034,6 +1035,89 @@ export class TrainingLoadService {
     }
 
     return history;
+  }
+
+  /** TRIMP of the athlete's activities, one entry per activity */
+  private async getTrimpEntries(
+    athleteId: number,
+    from: Date,
+    to: Date,
+  ): Promise<LoadEntry[]> {
+    return this.prisma.trainingLoadEntry.findMany({
+      where: {
+        calculation: { athleteId, type: 'TRIMP' },
+        date: { gte: from, lte: to },
+      },
+      select: { date: true, value: true },
+    });
+  }
+
+  /**
+   * Heart rate profile used to estimate planned sessions, the same one the
+   * TRIMP of activities uses. Null when the athlete has not set it.
+   */
+  private async getHeartRateProfile(
+    athleteId: number,
+  ): Promise<HeartRateProfile | null> {
+    const [hrMax, hrRest, athlete] = await Promise.all([
+      this.getLatestMetric(athleteId, 'HR_MAX' as MetricType),
+      this.getLatestMetric(athleteId, 'HR_REST' as MetricType),
+      this.prisma.athlete.findUnique({
+        where: { athleteId },
+        select: { user: { select: { gender: true } } },
+      }),
+    ]);
+    if (!hrMax || !hrRest) return null;
+    return {
+      hrMax,
+      hrRest,
+      gender: athlete?.user?.gender === 'FEMALE' ? 'female' : 'male',
+    };
+  }
+
+  /**
+   * Estimated load of every planned training and competition in the range.
+   * The AI estimate wins when there is one; otherwise the load comes from
+   * the planned duration and RPE, so it works without any AI key.
+   */
+  private async getPlannedSessionLoads(
+    athleteId: number,
+    from: Date,
+    to: Date,
+  ): Promise<PlannedSessionLoad[]> {
+    const goals = {
+      select: { goalDuration: true, goalRpe: true, relatedActivityId: true },
+    };
+    const [events, profile] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          athleteId,
+          type: { in: ['TRAINING', 'COMPETITION'] },
+          startDate: { gte: from, lte: to },
+        },
+        select: {
+          startDate: true,
+          training: { select: { ...goals.select, estimatedLoad: true } },
+          competition: goals,
+        },
+      }),
+      this.getHeartRateProfile(athleteId),
+    ]);
+
+    return events.flatMap(({ startDate, training, competition }) => {
+      const session = training ?? competition;
+      if (!session) return [];
+      const fallback = profile
+        ? estimatePlannedTrimp(session.goalDuration, session.goalRpe, profile)
+        : null;
+      return [
+        {
+          startDate,
+          load: training?.estimatedLoad ?? fallback,
+          done: session.relatedActivityId !== null,
+        },
+      ];
+    });
   }
 
   async getWeeklyTrimpSummary(
@@ -1080,125 +1164,25 @@ export class TrainingLoadService {
     const normalizedEnd = addUtcDays(getUtcWeekStart(endDate), 6);
     normalizedEnd.setUTCHours(23, 59, 59, 999);
 
+    // Six weeks of history warm up the recommendations and the fitness model
     const extendedStart = addUtcDays(normalizedStart, -42);
 
-    const weekSummaries = new Map<
-      string,
-      {
-        weekStart: Date;
-        weekEnd: Date;
-        actual: number;
-        estimated: number;
-      }
-    >();
+    const [entries, sessions] = await Promise.all([
+      this.getTrimpEntries(targetAthleteId, extendedStart, normalizedEnd),
+      this.getPlannedSessionLoads(
+        targetAthleteId,
+        extendedStart,
+        normalizedEnd,
+      ),
+    ]);
 
-    for (
-      let cursor = new Date(extendedStart);
-      cursor <= normalizedEnd;
-      cursor = addUtcDays(cursor, 7)
-    ) {
-      const weekStart = new Date(cursor);
-      const weekEnd = addUtcDays(weekStart, 6);
-      weekSummaries.set(weekStart.toISOString(), {
-        weekStart,
-        weekEnd,
-        actual: 0,
-        estimated: 0,
-      });
-    }
-
-    const trimpCalculation =
-      await this.prisma.trainingLoadCalculation.findUnique({
-        where: {
-          athleteId_type: {
-            athleteId: targetAthleteId,
-            type: 'TRIMP',
-          },
-        },
-        select: {
-          trainingLoadCalculationId: true,
-        },
-      });
-
-    if (trimpCalculation) {
-      const entries = await this.prisma.trainingLoadEntry.findMany({
-        where: {
-          calculationId: trimpCalculation.trainingLoadCalculationId,
-          date: {
-            gte: extendedStart,
-            lte: normalizedEnd,
-          },
-        },
-        select: {
-          date: true,
-          value: true,
-        },
-      });
-
-      for (const entry of entries) {
-        const weekStart = getUtcWeekStart(entry.date);
-        const weekKey = weekStart.toISOString();
-        const summary =
-          weekSummaries.get(weekKey) ||
-          (() => {
-            const weekEnd = addUtcDays(weekStart, 6);
-            const placeholder = { weekStart, weekEnd, actual: 0, estimated: 0 };
-            weekSummaries.set(weekKey, placeholder);
-            return placeholder;
-          })();
-
-        summary.actual += entry.value;
-      }
-    }
-
-    const plannedTrainings = await this.prisma.eventTraining.findMany({
-      where: {
-        estimatedLoad: {
-          not: null,
-        },
-        relatedActivityId: null,
-        event: {
-          athleteId: targetAthleteId,
-          startDate: {
-            gte: extendedStart,
-            lte: normalizedEnd,
-          },
-          type: 'TRAINING',
-        },
-      },
-      select: {
-        estimatedLoad: true,
-        event: {
-          select: {
-            startDate: true,
-          },
-        },
-      },
+    const sortedSummaries = buildWeeklyLoads({
+      from: extendedStart,
+      to: normalizedEnd,
+      entries,
+      sessions,
+      today: new Date(),
     });
-
-    for (const training of plannedTrainings) {
-      if (training.estimatedLoad === null) {
-        continue;
-      }
-
-      const eventDate = new Date(training.event.startDate);
-      const weekStart = getUtcWeekStart(eventDate);
-      const weekKey = weekStart.toISOString();
-      const summary =
-        weekSummaries.get(weekKey) ||
-        (() => {
-          const weekEnd = addUtcDays(weekStart, 6);
-          const placeholder = { weekStart, weekEnd, actual: 0, estimated: 0 };
-          weekSummaries.set(weekKey, placeholder);
-          return placeholder;
-        })();
-
-      summary.estimated += training.estimatedLoad;
-    }
-
-    const sortedSummaries = Array.from(weekSummaries.values()).sort(
-      (a, b) => a.weekStart.getTime() - b.weekStart.getTime(),
-    );
 
     const recommendations: Array<{
       min: number;
@@ -1277,6 +1261,7 @@ export class TrainingLoadService {
           weekEnd: nextWeekEnd,
           actualLoad: 0,
           estimatedLoad: 0,
+          plannedLoad: 0,
           totalLoad: 0,
           recommendedMin: Number(recommendedRange.min.toFixed(2)),
           recommendedMax: Number(recommendedRange.max.toFixed(2)),
@@ -1308,7 +1293,12 @@ export class TrainingLoadService {
           weekEnd: summary.weekEnd,
           actualLoad: Number(summary.actual.toFixed(2)),
           estimatedLoad: Number(summary.estimated.toFixed(2)),
+          plannedLoad: Number(summary.planned.toFixed(2)),
           totalLoad: Number((summary.actual + summary.estimated).toFixed(2)),
+          ctl: Number(summary.fitness.ctl.toFixed(1)),
+          atl: Number(summary.fitness.atl.toFixed(1)),
+          tsb: Number((summary.fitness.ctl - summary.fitness.atl).toFixed(1)),
+          formProjected: summary.projected,
           recommendedMin: Number((range?.min ?? summary.actual).toFixed(2)),
           recommendedMax: Number((range?.max ?? summary.actual).toFixed(2)),
           acwrAdjusted: range?.acwrAdjusted ?? false,

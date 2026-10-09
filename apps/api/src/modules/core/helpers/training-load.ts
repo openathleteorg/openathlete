@@ -1,6 +1,11 @@
 import { ActivityStream } from '@openathlete/shared';
 
 import {
+  EWMA_ALPHA_ATL,
+  EWMA_ALPHA_CTL,
+  PLANNED_LOAD_DEFAULT_RPE,
+  PLANNED_LOAD_HRR_BASE,
+  PLANNED_LOAD_HRR_SLOPE,
   TRIMP_COEFFICIENT_K_FEMALE,
   TRIMP_COEFFICIENT_K_MALE,
   TRIMP_COEFFICIENT_Y_FEMALE,
@@ -122,5 +127,51 @@ export function calculateTrimpFromAverage(
     value: trimpAt(averageHr, durationSeconds / 60, hrMax, hrRest, gender),
     avgHr: averageHr,
     duration: durationSeconds,
+  };
+}
+
+export interface HeartRateProfile {
+  hrMax: number;
+  hrRest: number;
+  gender: TrimpGender;
+}
+
+/**
+ * TRIMP of a planned session, in the same unit as the load of activities, so
+ * planned and actual loads add up. Used when the AI estimate is missing: the
+ * session is assumed to be done at the heart rate its target RPE (0-1)
+ * usually brings. Returns null without a duration.
+ */
+export function estimatePlannedTrimp(
+  durationSeconds: number | null | undefined,
+  rpe: number | null | undefined,
+  { hrMax, hrRest, gender }: HeartRateProfile,
+): number | null {
+  if (!durationSeconds || durationSeconds <= 0 || hrMax <= hrRest) {
+    return null;
+  }
+  const effort = Math.min(Math.max(rpe ?? PLANNED_LOAD_DEFAULT_RPE, 0), 1);
+  const hrFraction = PLANNED_LOAD_HRR_BASE + PLANNED_LOAD_HRR_SLOPE * effort;
+  const hr = hrRest + hrFraction * (hrMax - hrRest);
+  return trimpAt(hr, durationSeconds / 60, hrMax, hrRest, gender);
+}
+
+export interface FitnessState {
+  ctl: number;
+  atl: number;
+}
+
+/**
+ * One day of the Banister impulse-response model: fitness (CTL, 42 days) and
+ * fatigue (ATL, 7 days) as exponentially weighted averages of daily load.
+ * Rest days must be fed too, with a load of 0, as they make both decay.
+ */
+export function advanceFitness(
+  { ctl, atl }: FitnessState,
+  load: number,
+): FitnessState {
+  return {
+    ctl: EWMA_ALPHA_CTL * load + (1 - EWMA_ALPHA_CTL) * ctl,
+    atl: EWMA_ALPHA_ATL * load + (1 - EWMA_ALPHA_ATL) * atl,
   };
 }

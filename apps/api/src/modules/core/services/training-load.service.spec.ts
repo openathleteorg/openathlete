@@ -80,6 +80,48 @@ describe('TrainingLoadService.getActivityTrainingLoads', () => {
   });
 });
 
+/**
+ * Stand-in database for the weekly summary: TRIMP entries keyed by day, the
+ * planned events of the range and the athlete's heart rate profile.
+ */
+function weeklySummaryService({
+  loads = {},
+  plannedEvents = [],
+  heartRate = { HR_MAX: 190, HR_REST: 50 },
+}: {
+  loads?: Record<string, number>;
+  plannedEvents?: unknown[];
+  heartRate?: Record<string, number>;
+}) {
+  const prisma = {
+    athlete: {
+      findFirst: jest.fn().mockResolvedValue({ athleteId: 12 }),
+      findUnique: jest.fn().mockResolvedValue({ user: { gender: 'MALE' } }),
+    },
+    athleteMetric: {
+      findFirst: jest.fn(async ({ where }: { where: { type: string } }) =>
+        where.type in heartRate ? { value: heartRate[where.type] } : null,
+      ),
+    },
+    trainingLoadEntry: {
+      findMany: jest.fn().mockResolvedValue(
+        Object.entries(loads).map(([day, value]) => ({
+          date: new Date(`${day}T00:00:00Z`),
+          value,
+        })),
+      ),
+    },
+    event: { findMany: jest.fn().mockResolvedValue(plannedEvents) },
+  };
+  const service = new TrainingLoadService(
+    prisma as unknown as PrismaService,
+    {
+      getFor: jest.fn().mockResolvedValue({}),
+    } as unknown as CaslAbilityFactory,
+  );
+  return { prisma, service };
+}
+
 describe('TrainingLoadService weekly ACWR', () => {
   /** Weekly summaries for TRIMP entries keyed by day (one per week here). */
   async function weeks(
@@ -87,29 +129,7 @@ describe('TrainingLoadService weekly ACWR', () => {
     from: string,
     to: string,
   ) {
-    const prisma = {
-      athlete: { findFirst: jest.fn().mockResolvedValue({ athleteId: 12 }) },
-      trainingLoadCalculation: {
-        findUnique: jest
-          .fn()
-          .mockResolvedValue({ trainingLoadCalculationId: 1 }),
-      },
-      trainingLoadEntry: {
-        findMany: jest.fn().mockResolvedValue(
-          Object.entries(loads).map(([day, value]) => ({
-            date: new Date(`${day}T00:00:00Z`),
-            value,
-          })),
-        ),
-      },
-      eventTraining: { findMany: jest.fn().mockResolvedValue([]) },
-    };
-    const service = new TrainingLoadService(
-      prisma as unknown as PrismaService,
-      {
-        getFor: jest.fn().mockResolvedValue({}),
-      } as unknown as CaslAbilityFactory,
-    );
+    const { service } = weeklySummaryService({ loads });
     const summaries = await service.getWeeklyTrimpSummary(
       athlete,
       new Date(`${from}T00:00:00Z`),
@@ -179,5 +199,108 @@ describe('TrainingLoadService weekly ACWR', () => {
       '2026-09-14',
     );
     expect(result['2026-09-14'].status).toBe('high_risk');
+  });
+});
+
+describe('TrainingLoadService weekly planned load', () => {
+  beforeAll(() => {
+    jest.useFakeTimers({ now: new Date('2026-10-14T10:00:00Z') });
+  });
+  afterAll(() => {
+    jest.useRealTimers();
+  });
+
+  const session = (
+    day: string,
+    fields: {
+      goalDuration?: number | null;
+      goalRpe?: number | null;
+      estimatedLoad?: number | null;
+      relatedActivityId?: number | null;
+    },
+    type: 'training' | 'competition' = 'training',
+  ) => {
+    const goals = {
+      goalDuration: fields.goalDuration ?? null,
+      goalRpe: fields.goalRpe ?? null,
+      relatedActivityId: fields.relatedActivityId ?? null,
+    };
+    return {
+      startDate: new Date(`${day}T07:00:00Z`),
+      training:
+        type === 'training'
+          ? { ...goals, estimatedLoad: fields.estimatedLoad ?? null }
+          : null,
+      competition: type === 'competition' ? goals : null,
+    };
+  };
+
+  async function week(
+    plannedEvents: unknown[],
+    heartRate?: Record<string, number>,
+  ) {
+    const { service, prisma } = weeklySummaryService({
+      plannedEvents,
+      heartRate,
+    });
+    const summaries = await service.getWeeklyTrimpSummary(
+      athlete,
+      new Date('2026-10-19T00:00:00Z'),
+      new Date('2026-10-19T00:00:00Z'),
+    );
+    return { summary: summaries[0], prisma };
+  }
+
+  it('estimates sessions and races without any AI estimate', async () => {
+    const { summary, prisma } = await week([
+      session('2026-10-20', { goalDuration: 3600, goalRpe: 0.5 }),
+      session(
+        '2026-10-25',
+        { goalDuration: 5400, goalRpe: 0.9 },
+        'competition',
+      ),
+    ]);
+
+    // RPE 5/10 for an hour: about 73 TRIMP; the race adds far more
+    expect(summary.estimatedLoad).toBeGreaterThan(73 + 150);
+    expect(summary.plannedLoad).toBe(summary.estimatedLoad);
+    expect(summary.totalLoad).toBe(summary.estimatedLoad);
+    // Trainings and races of the range, in one query
+    expect(prisma.event.findMany).toHaveBeenCalledTimes(1);
+    expect(prisma.event.findMany.mock.calls[0][0].where).toMatchObject({
+      athleteId: 12,
+      type: { in: ['TRAINING', 'COMPETITION'] },
+    });
+  });
+
+  it('prefers the AI estimate, and leaves done sessions to the actual load', async () => {
+    const { summary } = await week([
+      session('2026-10-20', { goalDuration: 3600, estimatedLoad: 120 }),
+      session('2026-10-21', {
+        goalDuration: 3600,
+        estimatedLoad: 80,
+        relatedActivityId: 7,
+      }),
+    ]);
+    expect(summary.estimatedLoad).toBe(120);
+    expect(summary.plannedLoad).toBe(200);
+  });
+
+  it('projects the form at the end of the week', async () => {
+    const { summary } = await week([
+      session('2026-10-20', { goalDuration: 7200, goalRpe: 0.7 }),
+    ]);
+    expect(summary.formProjected).toBe(true);
+    expect(summary.ctl).toBeGreaterThan(0);
+    // A hard session on a blank history: fatigue outweighs fitness
+    expect(summary.tsb).toBeLessThan(0);
+  });
+
+  it('cannot estimate without a heart rate profile, as for activities', async () => {
+    const { summary } = await week(
+      [session('2026-10-20', { goalDuration: 3600, goalRpe: 0.5 })],
+      {},
+    );
+    expect(summary.estimatedLoad).toBe(0);
   });
 });
