@@ -15,4 +15,12 @@ describe('date inputs as local days', () => {
       11, 23, 59,
     ]);
   });
+
+  it('reads the date picker value, an instant at local noon', () => {
+    const picked = new Date(2026, 9, 5, 12).toISOString();
+    expect(startOfLocalDateInput(picked)).toEqual(new Date(2026, 9, 5));
+    expect(endOfLocalDateInput(picked)).toEqual(
+      new Date(2026, 9, 5, 23, 59, 59, 999),
+    );
+  });
 });
