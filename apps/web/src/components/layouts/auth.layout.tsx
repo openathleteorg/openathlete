@@ -1,8 +1,13 @@
 import authBackground from '@/assets/images/auth/background.webp';
 import whiteLogoSrc from '@/assets/logos/logo_white.svg';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 import { isCapacitor } from '@/utils/capacitor';
+import {
+  getSelectedServerUrl,
+  openServerSelection,
+} from '@/utils/mobile-server';
 import { Link } from 'react-router-dom';
 
 interface P {
@@ -29,10 +34,29 @@ export function AuthLayout({ children }: P) {
               OpenAthlete
             </Link>
           </div>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-2">
+            {isCapacitor() && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={openServerSelection}
+              >
+                {m.mobile_server_change()}
+              </Button>
+            )}
+            <LanguageSwitcher />
+          </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">{children}</div>
+          <div className="w-full max-w-xs space-y-4">
+            {isCapacitor() && (
+              <p className="truncate text-center text-xs text-muted-foreground">
+                {getSelectedServerUrl()}
+              </p>
+            )}
+            {children}
+          </div>
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">

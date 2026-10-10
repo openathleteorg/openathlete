@@ -1518,5 +1518,16 @@
   "notifications": "Notificaciones",
   "training_reminders": "Sesiones del día siguiente",
   "training_reminders_description": "En la aplicación móvil, una notificación a las 19:00 el día antes de las sesiones planificadas.",
-  "training_reminders_update_failed": "No se han podido modificar los recordatorios"
+  "training_reminders_update_failed": "No se han podido modificar los recordatorios",
+  "mobile_server_title": "Elige tu servidor",
+  "mobile_server_description": "Usa OpenAthlete Cloud o conéctate a tu propia instancia.",
+  "mobile_server_cloud": "OpenAthlete Cloud",
+  "mobile_server_custom": "Mi propio servidor",
+  "mobile_server_url_label": "URL del servidor",
+  "mobile_server_url_hint": "Introduce la dirección HTTPS de tu instancia. La aplicación comprueba /api automáticamente.",
+  "mobile_server_invalid_url": "Introduce una dirección HTTPS válida sin ruta o que termine en /api.",
+  "mobile_server_unreachable": "No se pudo conectar con la API de OpenAthlete en esta dirección. Comprueba la URL y la configuración CORS del servidor.",
+  "mobile_server_switch_warning": "Cambiar de servidor cierra la sesión y borra los datos locales de la aplicación.",
+  "mobile_server_continue": "Continuar",
+  "mobile_server_change": "Cambiar servidor"
 }

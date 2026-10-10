@@ -5,8 +5,8 @@ import {
 import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { API_BASE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
+import { getApiBaseUrl } from '@/utils/capacitor';
 import { Copy, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ export function CalendarFeedSection() {
 
   if (!isLoading && !token) return null;
   const url = token
-    ? `${API_BASE_URL}/event/ical?calendar=${encodeURIComponent(token)}`
+    ? `${getApiBaseUrl()}/event/ical?calendar=${encodeURIComponent(token)}`
     : '';
 
   const copy = async () => {

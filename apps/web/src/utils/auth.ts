@@ -1,7 +1,7 @@
-import { API_BASE_URL } from '@/config';
 import axios from 'axios';
 
 import { routes } from './axios';
+import { getApiBaseUrl } from './capacitor';
 import { ACCESS_TOKEN, REFRESH_TOKEN, getItem } from './local-storage';
 
 function decodeJWT(token: string): { exp?: number } | null {
@@ -39,7 +39,7 @@ async function refreshToken(): Promise<TokenInfo | null> {
 
   try {
     const tokenData = await axios.post(
-      `${API_BASE_URL}${routes.auth.refreshToken}`,
+      `${getApiBaseUrl()}${routes.auth.refreshToken}`,
       {
         refreshToken: token,
       },

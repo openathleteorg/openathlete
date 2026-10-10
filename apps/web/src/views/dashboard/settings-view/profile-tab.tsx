@@ -9,7 +9,12 @@ import { Button } from '@/components/ui/button';
 import { SelectItem } from '@/components/ui/select';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
+import { isCapacitor } from '@/utils/capacitor';
 import { revokeAppleSignIn } from '@/utils/firebase-auth';
+import {
+  getSelectedServerUrl,
+  openServerSelection,
+} from '@/utils/mobile-server';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -69,6 +74,19 @@ export function ProfileTab() {
   );
   return (
     <div className="space-y-6">
+      {isCapacitor() && (
+        <SettingsSection
+          title={m.mobile_server_title()}
+          description={m.mobile_server_switch_warning()}
+        >
+          <div className="flex flex-col items-start gap-3">
+            <p className="break-all text-sm">{getSelectedServerUrl()}</p>
+            <Button variant="outline" onClick={openServerSelection}>
+              {m.mobile_server_change()}
+            </Button>
+          </div>
+        </SettingsSection>
+      )}
       <SettingsSection
         title={m.profile()}
         description={m.update_profile_information()}

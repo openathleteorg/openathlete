@@ -1518,5 +1518,16 @@
   "notifications": "Notifications",
   "training_reminders": "Tomorrow's sessions",
   "training_reminders_description": "On the mobile app, a notification at 7 pm the day before planned training sessions.",
-  "training_reminders_update_failed": "Could not update the reminders"
+  "training_reminders_update_failed": "Could not update the reminders",
+  "mobile_server_title": "Choose your server",
+  "mobile_server_description": "Use OpenAthlete Cloud or connect to your own instance.",
+  "mobile_server_cloud": "OpenAthlete Cloud",
+  "mobile_server_custom": "My own server",
+  "mobile_server_url_label": "Server URL",
+  "mobile_server_url_hint": "Enter the HTTPS address of your instance. The app checks /api automatically.",
+  "mobile_server_invalid_url": "Enter a valid HTTPS address without a path, or ending in /api.",
+  "mobile_server_unreachable": "Could not reach an OpenAthlete API at this address. Check the URL and the server CORS settings.",
+  "mobile_server_switch_warning": "Changing servers signs you out and clears local app data.",
+  "mobile_server_continue": "Continue",
+  "mobile_server_change": "Change server"
 }
