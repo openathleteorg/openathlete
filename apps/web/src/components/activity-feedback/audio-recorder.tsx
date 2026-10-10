@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
-import { API_BASE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { getAccessToken } from '@/utils/auth';
 import { routes } from '@/utils/axios';
+import { getApiBaseUrl } from '@/utils/capacitor';
 import { isAndroid, isCapacitor } from '@/utils/capacitor';
 import { Mic, MicOff } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -334,7 +334,7 @@ export function AudioRecorder({
       const token = await getAccessToken();
 
       const response = await fetch(
-        `${API_BASE_URL}${routes.event.transcribeAudio}`,
+        `${getApiBaseUrl()}${routes.event.transcribeAudio}`,
         {
           method: 'POST',
           headers: {

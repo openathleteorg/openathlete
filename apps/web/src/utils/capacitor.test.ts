@@ -19,6 +19,7 @@ function withMetaUrl(content: string | null) {
 
 describe('getApiBaseUrl', () => {
   afterEach(() => {
+    platform.name = 'web';
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
@@ -42,6 +43,15 @@ describe('getApiBaseUrl', () => {
     vi.stubEnv('VITE_API_BASE_URL', '__OPENATHLETE_API_BASE_URL__');
 
     expect(getApiBaseUrl()).toBe('http://localhost:3000');
+  });
+
+  it('uses the selected server in the native app ahead of the build URL', () => {
+    platform.name = 'ios';
+    vi.stubGlobal('localStorage', {
+      getItem: () => 'https://train.example.org/api',
+    });
+    withMetaUrl('https://api.openathlete.org');
+    expect(getApiBaseUrl()).toBe('https://train.example.org/api');
   });
 });
 

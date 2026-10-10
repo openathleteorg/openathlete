@@ -1,5 +1,7 @@
 import { Capacitor } from '@capacitor/core';
 
+import { getSelectedServerUrl } from './mobile-server';
+
 /**
  * Check if the app is running in a Capacitor native environment
  */
@@ -63,6 +65,9 @@ function getRuntimeApiBaseUrl(): string | undefined {
  * In native, you may want to use a different URL or read from Capacitor config
  */
 export function getApiBaseUrl(): string {
+  const selectedUrl = getSelectedServerUrl();
+  if (selectedUrl) return selectedUrl;
+
   const runtimeUrl = getRuntimeApiBaseUrl();
   if (runtimeUrl) {
     return runtimeUrl;

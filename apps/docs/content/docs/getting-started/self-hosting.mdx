@@ -34,6 +34,12 @@ curl -fsSL https://raw.githubusercontent.com/openathleteorg/openathlete/main/scr
 - **Images.** The Compose file runs the published multi-architecture images (amd64, arm64): `ghcr.io/openathleteorg/openathlete-api` and `ghcr.io/openathleteorg/openathlete-web`. `OPENATHLETE_VERSION=1` follows every 1.x release; set it to a version such as `1.1.0` to upgrade only when you choose.
 - **Data.** PostgreSQL and Redis are only reachable from the other containers. Database migrations run when the API starts.
 
+### Mobile app
+
+On first launch, the iOS and Android apps offer OpenAthlete Cloud or your own server. Enter the HTTPS address of your web instance, such as `https://openathlete.example.org`; the app checks its `/api` endpoint. You can change the server later from the login screen or Settings > Profile. Changing servers signs you out and clears local app data.
+
+For a self-hosted API, add the mobile WebView origin to `.env` while keeping your web address in the list: `CORS_ORIGINS=https://openathlete.example.org,https://localhost`. Restart the API after changing it. If you use a separate API host, the same origin list must be allowed there. The app's server check will report an unreachable server when CORS blocks it.
+
 ### Without the script
 
 ```bash

@@ -1,10 +1,10 @@
-import { API_BASE_URL } from '@/config';
 import { getAccessToken } from '@/utils/auth';
 import { QueryClient } from '@tanstack/react-query';
 import axios, { isAxiosError } from 'axios';
 
 import { ConnectorProvider, Event } from '@openathlete/shared';
 
+import { getApiBaseUrl } from './capacitor';
 import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from './local-storage';
 
 export const routes = {
@@ -260,7 +260,7 @@ export const routes = {
 } as const;
 
 const client = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
 });
 
 /** The request got no answer: the device is offline or the API unreachable. */
@@ -268,6 +268,7 @@ export const isNetworkError = (error: unknown) =>
   isAxiosError(error) && !error.response;
 
 client.interceptors.request.use(async (config) => {
+  config.baseURL = getApiBaseUrl();
   const token = await getAccessToken();
   if (token?.refreshToken) {
     setItem(REFRESH_TOKEN, token.refreshToken);
