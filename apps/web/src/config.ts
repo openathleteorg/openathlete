@@ -1,7 +1,6 @@
 import { getPath } from './routes/paths';
 import { getApiBaseUrl } from './utils/capacitor';
 
-export const API_BASE_URL = getApiBaseUrl();
 export const PATH_AFTER_LOGIN = getPath(['dashboard']);
 
 /**
@@ -10,8 +9,7 @@ export const PATH_AFTER_LOGIN = getPath(['dashboard']);
  * path reaches the API.
  */
 export function socketUrl(namespace: string): string {
-  const base = API_BASE_URL.startsWith('/')
-    ? window.location.origin
-    : API_BASE_URL;
+  const apiBaseUrl = getApiBaseUrl();
+  const base = apiBaseUrl.startsWith('/') ? window.location.origin : apiBaseUrl;
   return `${base}/${namespace}`;
 }

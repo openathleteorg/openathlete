@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { getApiBaseUrl, purchaseChannel } from './capacitor';
+import {
+  getApiBaseUrl,
+  getDefaultApiBaseUrl,
+  purchaseChannel,
+} from './capacitor';
 
 const platform = vi.hoisted(() => ({ name: 'web' }));
 vi.mock('@capacitor/core', () => ({
@@ -19,6 +23,7 @@ function withMetaUrl(content: string | null) {
 
 describe('getApiBaseUrl', () => {
   afterEach(() => {
+    platform.name = 'web';
     vi.unstubAllGlobals();
     vi.unstubAllEnvs();
   });
@@ -42,6 +47,26 @@ describe('getApiBaseUrl', () => {
     vi.stubEnv('VITE_API_BASE_URL', '__OPENATHLETE_API_BASE_URL__');
 
     expect(getApiBaseUrl()).toBe('http://localhost:3000');
+  });
+
+  it('uses the selected server in the native app ahead of the build URL', () => {
+    platform.name = 'ios';
+    vi.stubGlobal('localStorage', {
+      getItem: () => 'https://train.example.org/api',
+    });
+    withMetaUrl('https://api.openathlete.org');
+    expect(getDefaultApiBaseUrl()).toBe('https://api.openathlete.org');
+    expect(getApiBaseUrl()).toBe('https://train.example.org/api');
+  });
+
+  it('uses a self-hosted native build URL as its default', () => {
+    platform.name = 'android';
+    vi.stubGlobal('localStorage', { getItem: () => null });
+    withMetaUrl('%VITE_API_BASE_URL%');
+    vi.stubEnv('VITE_API_BASE_URL', 'https://train.example.org/api');
+
+    expect(getDefaultApiBaseUrl()).toBe('https://train.example.org/api');
+    expect(getApiBaseUrl()).toBe('https://train.example.org/api');
   });
 });
 
