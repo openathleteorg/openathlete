@@ -133,6 +133,43 @@ describe('OAuth clients', () => {
     expect(await service.find(DOCUMENT_URL)).toBeNull();
   });
 
+  it('accepts public-client capability despite a different legacy preference', async () => {
+    const service = new OAuthClientsService(
+      fakePrisma() as unknown as PrismaService,
+    );
+    fetchDocument.mockResolvedValue({
+      client_id: DOCUMENT_URL,
+      token_endpoint_auth_method: 'private_key_jwt',
+      token_endpoint_auth_methods_supported: ['none', 'private_key_jwt'],
+      redirect_uris: ['https://agent.example/callback'],
+    });
+    expect(await service.find(DOCUMENT_URL)).toMatchObject({
+      clientId: DOCUMENT_URL,
+      redirectUris: ['https://agent.example/callback'],
+    });
+  });
+
+  it.each([
+    { methods: ['private_key_jwt'] },
+    { methods: [] },
+    { methods: ['none', 123] },
+    { methods: 'none' },
+  ])(
+    'rejects unsupported or malformed capabilities: %j',
+    async ({ methods }) => {
+      const service = new OAuthClientsService(
+        fakePrisma() as unknown as PrismaService,
+      );
+      fetchDocument.mockResolvedValue({
+        client_id: DOCUMENT_URL,
+        token_endpoint_auth_method: 'none',
+        token_endpoint_auth_methods_supported: methods,
+        redirect_uris: ['https://agent.example/callback'],
+      });
+      expect(await service.find(DOCUMENT_URL)).toBeNull();
+    },
+  );
+
   it('keeps a known client while its document is unreachable', async () => {
     const stale = {
       clientId: DOCUMENT_URL,

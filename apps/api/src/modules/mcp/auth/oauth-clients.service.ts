@@ -216,11 +216,19 @@ export class OAuthClientsService {
       this.logger.warn(`Client metadata document ${clientId} names another id`);
       return null;
     }
-    // Only public clients: a document cannot hold a secret
-    if (
-      document.token_endpoint_auth_method &&
-      document.token_endpoint_auth_method !== 'none'
-    ) {
+    // Public clients only. The plural CIMD field lists capabilities; the
+    // legacy singular field is a preference, not a requirement when that
+    // list is present. Select the supported public-client method.
+    const methods = document.token_endpoint_auth_methods_supported;
+    const supportsPublicClient =
+      methods === undefined
+        ? !document.token_endpoint_auth_method ||
+          document.token_endpoint_auth_method === 'none'
+        : Array.isArray(methods) &&
+          methods.length > 0 &&
+          methods.every((method) => typeof method === 'string') &&
+          methods.includes('none');
+    if (!supportsPublicClient) {
       this.logger.warn(
         `Client ${clientId} asks for an unsupported auth method`,
       );
