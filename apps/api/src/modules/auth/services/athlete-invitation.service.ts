@@ -266,19 +266,21 @@ export class AthleteInvitationService {
       );
     }
 
-    // Create coach-athlete link
-    await this.prisma.coachAthlete.create({
-      data: {
-        athleteId: athlete.athleteId,
-        userId: invitation.userId,
-      },
-    });
-
-    // Delete invitation (one-time use)
-    await this.prisma.athleteInvitation.delete({
-      where: {
-        athleteInvitationId: invitation.athleteInvitationId,
-      },
+    // Spend the invitation and link the coach together: of two sign-ups
+    // racing with one link, only the first gets in
+    await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.athleteInvitation.deleteMany({
+        where: { athleteInvitationId: invitation.athleteInvitationId, token },
+      });
+      if (claimed.count !== 1) {
+        throw new BadRequestException('Invalid or expired invitation token');
+      }
+      await tx.coachAthlete.create({
+        data: {
+          athleteId: athlete.athleteId,
+          userId: invitation.userId,
+        },
+      });
     });
   }
 

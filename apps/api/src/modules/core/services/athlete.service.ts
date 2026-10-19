@@ -171,10 +171,11 @@ export class AthleteService {
   }
 
   async getMyCoaches(userId: AuthUser['userId']) {
-    const users = await this.prisma.user.findMany({
-      where: { coachAthletes: { some: { athleteId: userId } } },
+    // Through the athlete profile the user owns: its id is not the user's
+    return this.prisma.user.findMany({
+      where: { coachAthletes: { some: { athlete: { userId } } } },
+      select: { userId: true, firstName: true, lastName: true, email: true },
     });
-    return users;
   }
 
   async inviteCoach(userId: AuthUser['userId'], email: string) {

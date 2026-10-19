@@ -270,7 +270,7 @@ export const registerAthleteWriteTools: ToolRegistrar = (server, ctx, deps) => {
           .array(
             z.object({
               type: z.nativeEnum(MetricType),
-              value: z.number().positive(),
+              value: z.number().finite(),
               date: localDate.optional().describe('Default: today'),
               notes: z.string().max(500).optional(),
             }),
@@ -286,6 +286,24 @@ export const registerAthleteWriteTools: ToolRegistrar = (server, ctx, deps) => {
         const scope = await ctx.athlete(athleteId);
         const saved = [];
         for (const entry of entries) {
+          const zeroAllowed =
+            entry.type.startsWith('DAILY_') ||
+            entry.type.startsWith('STRESS_') ||
+            entry.type.startsWith('BODY_BATTERY_') ||
+            [
+              'SLEEP_SCORE',
+              'SLEEP_REM_DURATION',
+              'SLEEP_DEEP_DURATION',
+              'SLEEP_LIGHT_DURATION',
+              'SLEEP_AWAKE_DURATION',
+              'NAP_DURATION',
+              'SKIN_TEMP_DEVIATION',
+            ].includes(entry.type);
+          if (
+            (entry.value < 0 && entry.type !== 'SKIN_TEMP_DEVIATION') ||
+            (entry.value === 0 && !zeroAllowed)
+          )
+            throw new ToolError(`${entry.type}: invalid measurement value.`);
           const date = entry.date ?? scope.today;
           if (date > scope.today) {
             throw new ToolError(`${entry.type}: ${date} is in the future.`);

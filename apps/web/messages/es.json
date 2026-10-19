@@ -1519,6 +1519,7 @@
   "training_reminders": "Sesiones del día siguiente",
   "training_reminders_description": "En la aplicación móvil, una notificación a las 19:00 el día antes de las sesiones planificadas.",
   "training_reminders_update_failed": "No se han podido modificar los recordatorios",
+  "messages_no_unread": "No hay conversaciones sin leer",
   "mobile_server_title": "Elige tu servidor",
   "mobile_server_description": "Usa el servidor predeterminado o conéctate a tu propia instancia.",
   "mobile_server_cloud": "OpenAthlete Cloud",

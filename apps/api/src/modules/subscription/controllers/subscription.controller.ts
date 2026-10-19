@@ -8,9 +8,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Query,
   ServiceUnavailableException,
@@ -670,12 +672,20 @@ export class SubscriptionController {
     description: 'Unauthorized - invalid or missing authentication token',
   })
   async getAthleteFeatureAccess(
-    @Param('athleteId') athleteId: string,
+    @JwtUser() user: AuthUser,
+    @Param('athleteId', ParseIntPipe) athleteId: number,
     @Param('featureName') featureName: FeatureName,
   ): Promise<{ hasAccess: boolean }> {
+    // Whose plans cover an athlete is the athlete's and their coaches' business
+    const readable =
+      user.athlete?.athleteId === athleteId ||
+      user.coachAthletes?.some((link) => link.athleteId === athleteId);
+    if (!readable) {
+      throw new ForbiddenException('Not allowed to access this athlete');
+    }
     const hasAccess =
       await this.featureAccessService.canAccessFeatureForAthlete(
-        Number.parseInt(athleteId, 10),
+        athleteId,
         featureName,
       );
 

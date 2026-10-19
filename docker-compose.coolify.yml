@@ -131,6 +131,12 @@ services:
       - "coolify.managed=true"
 
   worker:
+    # The API's image. Declared buildable too: Coolify pulls every service
+    # without a build section before deploying, and this image exists only
+    # on the server (the build reuses the API's cached layers).
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     image: openathlete-api:latest
     restart: unless-stopped
     depends_on:

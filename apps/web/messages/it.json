@@ -1519,6 +1519,7 @@
   "training_reminders": "Sedute del giorno dopo",
   "training_reminders_description": "Sull'app mobile, una notifica alle 19:00 il giorno prima delle sedute pianificate.",
   "training_reminders_update_failed": "Impossibile modificare i promemoria",
+  "messages_no_unread": "Nessuna conversazione da leggere",
   "mobile_server_title": "Scegli il server",
   "mobile_server_description": "Usa il server predefinito oppure connettiti alla tua istanza.",
   "mobile_server_cloud": "OpenAthlete Cloud",

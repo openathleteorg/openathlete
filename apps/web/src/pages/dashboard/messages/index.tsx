@@ -100,12 +100,14 @@ export function MessagesPage() {
   const deleteThreadMutation = deleteMessageThreadMutation;
   const isStreaming = false;
 
-  // Auto-create first thread if none exist
+  // Auto-create a first thread when the user has none at all. Checked on
+  // every thread, not the filtered list: an empty "Unread" view used to
+  // create a new conversation on each refresh.
   useEffect(() => {
     if (
       currentUser &&
-      threads &&
-      threads.length === 0 &&
+      allThreads &&
+      allThreads.length === 0 &&
       !isLoading &&
       !createMessageThreadMutation.isPending
     ) {
@@ -127,7 +129,7 @@ export function MessagesPage() {
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [threads, isLoading, currentUser]);
+  }, [allThreads, isLoading, currentUser]);
 
   useEffect(() => {
     if (!isMobile && threads && threads.length > 0 && !activeId) {
@@ -246,7 +248,8 @@ export function MessagesPage() {
   const handleDeleteConversation = useCallback(
     (threadId: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      if (threads && threads.length > 1) {
+      // The last conversation stays, whatever the filter shows
+      if (allThreads && allThreads.length > 1) {
         deleteThreadMutation.mutate(threadId, {
           onSuccess: () => {
             posthog?.capture(AnalyticsEvent.messages_thread_deleted);
@@ -254,7 +257,7 @@ export function MessagesPage() {
         });
       }
     },
-    [deleteThreadMutation, posthog, threads],
+    [deleteThreadMutation, posthog, allThreads],
   );
 
   const handleSendMessage = useCallback(
@@ -309,6 +312,11 @@ export function MessagesPage() {
           </div>
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-2 space-y-1">
+              {filter === 'unread' && threads?.length === 0 && (
+                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                  {m.messages_no_unread()}
+                </p>
+              )}
               {threads?.map((thread: AgentThread | MessageThread) => {
                 const threadId = (thread as MessageThread).messageThreadId;
                 const threadTitle = thread.title;
@@ -352,7 +360,7 @@ export function MessagesPage() {
                         {new Date(threadCreatedAt).toLocaleDateString()}
                       </p>
                     </div>
-                    {(threads?.length || 0) > 1 && (
+                    {(allThreads?.length || 0) > 1 && (
                       <Button
                         variant="ghost"
                         size="icon"
@@ -490,6 +498,11 @@ export function MessagesPage() {
 
         <ScrollArea className="flex-1 min-h-0">
           <div className="p-2 space-y-1">
+            {filter === 'unread' && threads?.length === 0 && (
+              <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                {m.messages_no_unread()}
+              </p>
+            )}
             {threads?.map((thread: AgentThread | MessageThread) => {
               const threadId = (thread as MessageThread).messageThreadId;
               const threadTitle = thread.title;
@@ -533,7 +546,7 @@ export function MessagesPage() {
                       {new Date(threadCreatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  {(threads?.length || 0) > 1 && (
+                  {(allThreads?.length || 0) > 1 && (
                     <Button
                       variant="ghost"
                       size="icon"

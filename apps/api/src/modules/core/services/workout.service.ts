@@ -55,19 +55,57 @@ export class WorkoutService {
       throw new NotFoundException('Training event with workout not found');
     }
 
-    // Reorder steps based on the provided order
-    const updatePromises = data.stepOrders.map(({ stepId, order }) =>
-      this.prisma.workoutStep.update({
-        where: { workoutStepId: stepId },
-        data: { orderIndex: order },
-      }),
+    // The event check only proves the caller may edit this workout: every
+    // step must belong to it, or nothing is written
+    const ownSteps = await this.workoutStepIds(
+      event.training.workout.workoutId,
     );
+    if (data.stepOrders.some(({ stepId }) => !ownSteps.has(stepId))) {
+      throw new BadRequestException('Steps must belong to this workout');
+    }
 
-    await Promise.all(updatePromises);
+    await this.prisma.$transaction(
+      data.stepOrders.map(({ stepId, order }) =>
+        this.prisma.workoutStep.update({
+          where: { workoutStepId: stepId },
+          data: { orderIndex: order },
+        }),
+      ),
+    );
 
     // Return updated event with workout
     const eventService = this.moduleRef.get(EventService, { strict: false });
     return eventService.getEventById(user, eventId);
+  }
+
+  /**
+   * Ids of a workout's steps, nested ones included: steps inside a repeat
+   * block point to it rather than to the workout.
+   */
+  private async workoutStepIds(workoutId: number): Promise<Set<number>> {
+    const select = {
+      workoutStepId: true,
+      repeatBlock: { select: { workoutRepeatId: true } },
+    } as const;
+    const ids = new Set<number>();
+    let level = await this.prisma.workoutStep.findMany({
+      where: { workoutId },
+      select,
+    });
+    // Repeats nest a few levels at most; the bound only guards bad data
+    for (let depth = 0; level.length > 0 && depth < 10; depth++) {
+      for (const step of level) ids.add(step.workoutStepId);
+      const repeatIds = level.flatMap((step) =>
+        step.repeatBlock ? [step.repeatBlock.workoutRepeatId] : [],
+      );
+      level = repeatIds.length
+        ? await this.prisma.workoutStep.findMany({
+            where: { repeatParentId: { in: repeatIds } },
+            select,
+          })
+        : [];
+    }
+    return ids;
   }
 
   /**

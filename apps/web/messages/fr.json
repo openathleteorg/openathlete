@@ -1519,6 +1519,7 @@
   "training_reminders": "Séances du lendemain",
   "training_reminders_description": "Sur l'application mobile, une notification à 19 h la veille des séances prévues.",
   "training_reminders_update_failed": "Impossible de modifier les rappels",
+  "messages_no_unread": "Aucune conversation non lue",
   "mobile_server_title": "Choisir un serveur",
   "mobile_server_description": "Utilisez le serveur par défaut ou connectez votre propre instance.",
   "mobile_server_cloud": "OpenAthlete Cloud",

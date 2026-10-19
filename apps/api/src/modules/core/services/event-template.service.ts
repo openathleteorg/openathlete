@@ -1,14 +1,20 @@
+import { subject } from '@casl/ability';
+
 import {
+  BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   Optional,
   forwardRef,
 } from '@nestjs/common';
 
-import { EventTemplate } from '@openathlete/database';
+import { EventTemplate, Event as PrismaEvent } from '@openathlete/database';
 import { CreateEventTemplateDto, Event, startOfDay } from '@openathlete/shared';
 
+import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -23,6 +29,7 @@ export class EventTemplateService {
   constructor(
     private readonly prisma: PrismaService,
     private eventService: EventService,
+    private readonly abilities: CaslAbilityFactory,
     @Optional()
     @Inject(forwardRef(() => TrainingLoadEstimationService))
     private trainingLoadEstimationService?: TrainingLoadEstimationService,
@@ -191,11 +198,11 @@ export class EventTemplateService {
     });
 
     if (!eventTemplate) {
-      throw new Error('Event template not found');
+      throw new NotFoundException('Event template not found');
     }
 
     if (eventTemplate.userId !== user.userId) {
-      throw new Error('Unauthorized');
+      throw new NotFoundException('Event template not found');
     }
 
     await this.prisma.eventTemplate.delete({
@@ -217,11 +224,11 @@ export class EventTemplateService {
     });
 
     if (!eventTemplate) {
-      throw new Error('Event template not found');
+      throw new NotFoundException('Event template not found');
     }
 
     if (eventTemplate.userId !== user.userId) {
-      throw new Error('Unauthorized');
+      throw new NotFoundException('Event template not found');
     }
 
     const updated = await this.prisma.eventTemplate.update({
@@ -267,18 +274,31 @@ export class EventTemplateService {
     });
 
     if (!template) {
-      throw new Error('Event template not found');
+      throw new NotFoundException('Event template not found');
     }
 
     if (template.userId !== user.userId) {
-      throw new Error('Unauthorized');
+      throw new NotFoundException('Event template not found');
     }
 
     if (!template.event) {
-      throw new Error('Template event not found');
+      throw new NotFoundException('Template event not found');
     }
 
     const templateEvent = template.event;
+
+    // The template is the caller's; the calendar it goes into must be one
+    // they may plan in, as for any new event. Checked before any write.
+    const athleteId = dto.athleteId ?? user.athlete?.athleteId;
+    if (!athleteId) {
+      throw new BadRequestException('athleteId is required');
+    }
+    const ability = await this.abilities.getFor({ user });
+    if (
+      !ability.can('create', subject('Event', { athleteId } as PrismaEvent))
+    ) {
+      throw new ForbiddenException('You are not allowed to create this event');
+    }
 
     // Prepare the event data from template
     const subEntityData: Record<string, unknown> = {
@@ -309,7 +329,7 @@ export class EventTemplateService {
         endDate: dto.endDate,
         name: templateEvent.name,
         type: templateEvent.type,
-        athleteId: dto.athleteId,
+        athleteId,
         [templateEvent.type.toLocaleLowerCase()]: {
           create: subEntityData,
         },

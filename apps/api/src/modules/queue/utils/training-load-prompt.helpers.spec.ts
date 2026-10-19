@@ -1,5 +1,8 @@
 import { buildZonesContext } from '../../agent/services/event-ai-helpers';
-import { buildTrainingZonesContext } from './training-load-prompt.helpers';
+import {
+  buildTrainingZonesContext,
+  formatGoalSummary,
+} from './training-load-prompt.helpers';
 
 // Heart-rate zones may start at Zone 0, so the AI must see their names
 // rather than numbers derived from their position.
@@ -26,5 +29,18 @@ describe('zone labels in AI prompts', () => {
     expect(context).toContain('Zone ID 30: Zone 0 - ');
     expect(context).toContain('Zone ID 31: Zone 1 - ');
     expect(context).not.toContain('Zone 2');
+  });
+});
+
+describe('goal RPE in training load prompts', () => {
+  test('formats goal RPE on a 10-point scale', () => {
+    expect(formatGoalSummary({ goalRpe: 0.6 })).toBe('Target RPE: 6/10');
+    expect(formatGoalSummary({ goalRpe: 0.75 })).toBe('Target RPE: 7.5/10');
+  });
+
+  test('does not include RPE when it is not provided', () => {
+    expect(formatGoalSummary({ goalRpe: null })).toBe(
+      'No numeric goals specified.',
+    );
   });
 });

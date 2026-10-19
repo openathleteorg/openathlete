@@ -48,6 +48,8 @@ describe('AuthService.loginWithFirebase', () => {
 
     expect(userService.createAccount).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'runner@example.com' }),
+      // The provider sets the address: no need to match an invitation's
+      { emailFromProvider: true },
     );
     expect(tokens).toEqual({
       accessToken: expect.any(String),
@@ -63,6 +65,7 @@ describe('AuthService.loginWithFirebase', () => {
 
     expect(userService.createAccount).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'runner@example.com', language: 'IT' }),
+      { emailFromProvider: true },
     );
   });
 

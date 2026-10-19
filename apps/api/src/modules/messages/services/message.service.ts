@@ -28,7 +28,6 @@ const MESSAGE_INCLUDES = {
       userId: true,
       firstName: true,
       lastName: true,
-      email: true,
     },
   },
   readReceipts: {
@@ -38,7 +37,6 @@ const MESSAGE_INCLUDES = {
           userId: true,
           firstName: true,
           lastName: true,
-          email: true,
         },
       },
     },

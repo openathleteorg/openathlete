@@ -1519,6 +1519,7 @@
   "training_reminders": "Tomorrow's sessions",
   "training_reminders_description": "On the mobile app, a notification at 7 pm the day before planned training sessions.",
   "training_reminders_update_failed": "Could not update the reminders",
+  "messages_no_unread": "No unread conversations",
   "mobile_server_title": "Choose your server",
   "mobile_server_description": "Use the default server or connect to your own instance.",
   "mobile_server_cloud": "OpenAthlete Cloud",

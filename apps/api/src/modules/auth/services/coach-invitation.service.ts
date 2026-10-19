@@ -200,7 +200,8 @@ export class CoachInvitationService {
       },
     });
 
-    if (!invitation) {
+    // A link works once: an accepted or refused invitation is spent
+    if (!invitation || invitation.status !== InvitationStatus.PENDING) {
       return null;
     }
 
@@ -247,23 +248,30 @@ export class CoachInvitationService {
       );
     }
 
-    // Create coach-athlete link
-    await this.prisma.coachAthlete.create({
-      data: {
-        athleteId: athlete.athleteId,
-        userId: coachUserId,
-      },
-    });
-
-    // Update invitation status to ACCEPTED
-    await this.prisma.coachInvitation.update({
-      where: {
-        coachInvitationId: invitation.coachInvitationId,
-      },
-      data: {
-        status: InvitationStatus.ACCEPTED,
-        coachUserId: coachUserId,
-      },
+    // Claim the invitation and link the coach together: of two sign-ups
+    // racing with one link, only the first gets in
+    await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.coachInvitation.updateMany({
+        where: {
+          coachInvitationId: invitation.coachInvitationId,
+          token,
+          status: InvitationStatus.PENDING,
+        },
+        data: {
+          status: InvitationStatus.ACCEPTED,
+          coachUserId: coachUserId,
+          token: null,
+        },
+      });
+      if (claimed.count !== 1) {
+        throw new BadRequestException('Invalid or expired invitation token');
+      }
+      await tx.coachAthlete.create({
+        data: {
+          athleteId: athlete.athleteId,
+          userId: coachUserId,
+        },
+      });
     });
   }
 

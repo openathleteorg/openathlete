@@ -34,7 +34,6 @@ export interface MessageThreadParticipant {
     userId: number;
     firstName: string;
     lastName: string;
-    email: string;
   };
 }
 
@@ -52,7 +51,6 @@ export interface Message {
     userId: number;
     firstName: string;
     lastName: string;
-    email: string;
   };
   readReceipts?: MessageReadReceipt[];
   isRead?: boolean; // Computed field for current user
@@ -67,7 +65,6 @@ export interface MessageReadReceipt {
     userId: number;
     firstName: string;
     lastName: string;
-    email: string;
   };
 }
 

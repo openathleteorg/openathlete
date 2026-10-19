@@ -18,7 +18,6 @@ import {
   Prisma,
   SportType,
   TokenType,
-  User,
   UserRole,
 } from '@openathlete/database';
 import {
@@ -34,7 +33,10 @@ import { Language } from 'src/common/constants/languages.constant';
 import { maskEmail } from 'src/common/utils/mask-email';
 import { SendEmailEvent } from 'src/events';
 import { emailTransportKind } from 'src/modules/notification/services/email-transport.service';
-import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import {
+  PrismaService,
+  UserRow,
+} from 'src/modules/prisma/services/prisma.service';
 
 import { AuthUser } from '../decorators/user.decorator';
 import { passwordResetUrl } from '../helpers/password-reset-url';
@@ -62,11 +64,11 @@ export class UserService {
       : undefined;
   }
 
-  async findOneOrFail(where: Prisma.UserWhereInput): Promise<User> {
+  async findOneOrFail(where: Prisma.UserWhereInput): Promise<UserRow> {
     return this.prisma.user.findFirstOrThrow({ where });
   }
 
-  async findOne(where: Prisma.UserWhereInput): Promise<User | null> {
+  async findOne(where: Prisma.UserWhereInput): Promise<UserRow | null> {
     return this.prisma.user.findFirst({ where });
   }
 
@@ -151,17 +153,58 @@ export class UserService {
     throw new ForbiddenException('SIGNUP_CLOSED');
   }
 
-  public createAccount = async ({
-    email,
-    password,
-    firstName,
-    lastName,
-    invitationToken,
-    coachInvitationToken,
-    language,
-  }: CreateAccountDto) => {
+  /**
+   * An invitation link must be valid before an account is created with it,
+   * and a password sign-up must use the address it was sent to. Google and
+   * Apple set the address themselves (Apple may hide it behind a relay).
+   */
+  private async assertInvitationsUsable(
+    email: string,
+    tokens: { invitationToken?: string; coachInvitationToken?: string },
+    emailFromProvider: boolean,
+  ) {
+    const invitations = await Promise.all([
+      tokens.invitationToken &&
+        this.invitationService.verifyInvitationToken(tokens.invitationToken),
+      tokens.coachInvitationToken &&
+        this.coachInvitationService.verifyInvitationToken(
+          tokens.coachInvitationToken,
+        ),
+    ]);
+    for (const [index, token] of [
+      tokens.invitationToken,
+      tokens.coachInvitationToken,
+    ].entries()) {
+      if (!token) continue;
+      const invitation = invitations[index];
+      if (!invitation) {
+        throw new BadRequestException('Invalid or expired invitation token');
+      }
+      if (!emailFromProvider && invitation.email.toLowerCase() !== email) {
+        throw new BadRequestException('INVITATION_EMAIL_MISMATCH');
+      }
+    }
+  }
+
+  public createAccount = async (
+    {
+      email,
+      password,
+      firstName,
+      lastName,
+      invitationToken,
+      coachInvitationToken,
+      language,
+    }: CreateAccountDto,
+    { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
+  ) => {
     await this.assertSignupAllowed(invitationToken, coachInvitationToken);
     const normalizedEmail = email.toLowerCase();
+    await this.assertInvitationsUsable(
+      normalizedEmail,
+      { invitationToken, coachInvitationToken },
+      emailFromProvider,
+    );
     const hashedPassword = await this.hashPassword(password);
 
     if (!hashedPassword) {

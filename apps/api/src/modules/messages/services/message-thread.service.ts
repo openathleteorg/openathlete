@@ -22,7 +22,6 @@ const THREAD_INCLUDES = {
           userId: true,
           firstName: true,
           lastName: true,
-          email: true,
         },
       },
     },
@@ -37,7 +36,6 @@ const THREAD_INCLUDES = {
           userId: true,
           firstName: true,
           lastName: true,
-          email: true,
         },
       },
       readReceipts: {
@@ -47,7 +45,6 @@ const THREAD_INCLUDES = {
               userId: true,
               firstName: true,
               lastName: true,
-              email: true,
             },
           },
         },
@@ -131,6 +128,8 @@ export class MessageThreadService {
       if (!dto.title) {
         dto.title = eventActivity.event.name;
       }
+    } else {
+      await this.assertCoachingLinks(user, dto.participantUserIds);
     }
 
     // Generate title from participants if not provided and not linked to event
@@ -173,6 +172,34 @@ export class MessageThreadService {
     });
 
     return thread;
+  }
+
+  /**
+   * Outside a training session, a conversation only brings together people
+   * linked by coaching: the user's coaches and athletes. Unknown and
+   * unrelated ids get the same answer, before anything is read or written.
+   */
+  private async assertCoachingLinks(user: AuthUser, userIds: number[]) {
+    const others = [...new Set(userIds)].filter((id) => id !== user.userId);
+    if (others.length === 0) return;
+
+    const links = await this.prisma.coachAthlete.findMany({
+      where: {
+        OR: [
+          { userId: user.userId, athlete: { userId: { in: others } } },
+          { userId: { in: others }, athlete: { userId: user.userId } },
+        ],
+      },
+      select: { userId: true, athlete: { select: { userId: true } } },
+    });
+    const linked = new Set(
+      links.flatMap((link) => [link.userId, link.athlete.userId]),
+    );
+    if (others.some((id) => !linked.has(id))) {
+      throw new ForbiddenException(
+        'You can only start conversations with your coaches and athletes',
+      );
+    }
   }
 
   async getOrCreateThreadForTraining(

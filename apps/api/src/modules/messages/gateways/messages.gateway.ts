@@ -177,7 +177,6 @@ export class MessagesGateway
             userId: fullMessage.sender.userId,
             firstName: fullMessage.sender.firstName,
             lastName: fullMessage.sender.lastName,
-            email: fullMessage.sender.email,
           },
           readReceipts: fullMessage.readReceipts?.map((rr) => ({
             messageReadReceiptId: rr.messageReadReceiptId,
@@ -189,7 +188,6 @@ export class MessagesGateway
                   userId: rr.user.userId,
                   firstName: rr.user.firstName,
                   lastName: rr.user.lastName,
-                  email: rr.user.email,
                 }
               : undefined,
           })),
@@ -278,7 +276,6 @@ export class MessagesGateway
             userId: fullMessage.sender.userId,
             firstName: fullMessage.sender.firstName,
             lastName: fullMessage.sender.lastName,
-            email: fullMessage.sender.email,
           },
           readReceipts: fullMessage.readReceipts?.map((rr) => ({
             messageReadReceiptId: rr.messageReadReceiptId,
@@ -290,7 +287,6 @@ export class MessagesGateway
                   userId: rr.user.userId,
                   firstName: rr.user.firstName,
                   lastName: rr.user.lastName,
-                  email: rr.user.email,
                 }
               : undefined,
           })),

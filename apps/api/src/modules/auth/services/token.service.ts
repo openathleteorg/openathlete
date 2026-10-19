@@ -2,9 +2,12 @@ import { randomUUID } from 'node:crypto';
 
 import { Injectable } from '@nestjs/common';
 
-import { TokenType, User } from '@openathlete/database';
+import { TokenType } from '@openathlete/database';
 
-import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import {
+  PrismaService,
+  UserRow,
+} from 'src/modules/prisma/services/prisma.service';
 
 @Injectable()
 export class TokenService {
@@ -27,7 +30,7 @@ export class TokenService {
     }
   }
 
-  async createToken(user: Pick<User, 'userId'>, type: TokenType) {
+  async createToken(user: Pick<UserRow, 'userId'>, type: TokenType) {
     const token = await this.prisma.token.create({
       data: {
         user: {
@@ -41,7 +44,7 @@ export class TokenService {
     return token;
   }
 
-  async verifyToken(token: string): Promise<User | null> {
+  async verifyToken(token: string): Promise<UserRow | null> {
     const tokenData = await this.prisma.token.findFirst({
       where: {
         token,

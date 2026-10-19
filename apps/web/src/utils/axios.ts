@@ -12,7 +12,6 @@ export const routes = {
     login: '/auth/login',
     firebaseLogin: '/auth/firebase',
     refreshToken: '/auth/refresh-token',
-    emailExists: '/auth/email-exists',
     verifyInvitation: '/auth/invitation',
   },
   user: {

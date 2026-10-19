@@ -40,16 +40,3 @@ export const useLoginWithFirebaseMutation = (
     },
   });
 };
-
-export const useEmailExistsMutation = (
-  opt?: MutationOptions<
-    Awaited<ReturnType<typeof AuthAPI.emailExists>>,
-    Error,
-    Parameters<typeof AuthAPI.emailExists>[0]
-  >,
-) => {
-  return useMutation({
-    ...opt,
-    mutationFn: AuthAPI.emailExists,
-  });
-};

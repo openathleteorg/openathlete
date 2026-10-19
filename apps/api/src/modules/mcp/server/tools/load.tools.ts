@@ -363,7 +363,7 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
               .map((value) => ({
                 // Stored by date, without a time
                 date: value.date.toISOString().slice(0, 10),
-                value: round(value.value, 2),
+                value: value.value,
                 ...(value.notes && { notes: value.notes }),
               })),
           })),

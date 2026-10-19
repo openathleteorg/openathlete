@@ -12,7 +12,7 @@ import {
   CoachActivityNoticeKind,
 } from '../../../events/coach-activity-notice.event';
 import { AuthUser } from '../../auth/decorators/user.decorator';
-import { PrismaService } from '../../prisma/services/prisma.service';
+import { PrismaService, PrismaTx } from '../../prisma/services/prisma.service';
 
 export const ACTIVITY_NOTICE_SELECT = {
   kind: true,
@@ -23,7 +23,7 @@ export const ACTIVITY_NOTICE_SELECT = {
 const MESSAGE_INCLUDE = {
   activityNotice: { select: ACTIVITY_NOTICE_SELECT },
   sender: {
-    select: { userId: true, firstName: true, lastName: true, email: true },
+    select: { userId: true, firstName: true, lastName: true },
   },
   readReceipts: true,
 } satisfies Prisma.MessageInclude;
@@ -66,7 +66,7 @@ export class CoachActivityNoticeService {
   private async authorize(
     user: AuthUser,
     athleteId: number,
-    db: Prisma.TransactionClient = this.prisma,
+    db: PrismaTx = this.prisma,
   ) {
     if (
       !(await db.coachAthlete.findFirst({

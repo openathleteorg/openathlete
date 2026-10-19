@@ -136,15 +136,18 @@ export class AuthService {
       // Create a strong random password (OAuth users won't use it directly).
       const randomPassword = randomUUID();
       try {
-        const created = await this.userService.createAccount({
-          email,
-          password: randomPassword,
-          firstName,
-          lastName,
-          invitationToken: body.invitationToken,
-          coachInvitationToken: body.coachInvitationToken,
-          language: body.language,
-        });
+        const created = await this.userService.createAccount(
+          {
+            email,
+            password: randomPassword,
+            firstName,
+            lastName,
+            invitationToken: body.invitationToken,
+            coachInvitationToken: body.coachInvitationToken,
+            language: body.language,
+          },
+          { emailFromProvider: true },
+        );
         user = { userId: created.userId, email };
       } catch (error) {
         // A concurrent sign-in for the same account created it first

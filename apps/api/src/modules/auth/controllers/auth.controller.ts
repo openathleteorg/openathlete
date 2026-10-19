@@ -22,7 +22,7 @@ import {
 
 import { RATE_LIMITS } from 'src/common/security/rate-limits';
 
-import { AuthService, UserService } from '../services';
+import { AuthService } from '../services';
 import { InvitationService } from '../services/invitation.service';
 
 @ApiTags('Auth')
@@ -30,7 +30,6 @@ import { InvitationService } from '../services/invitation.service';
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private userService: UserService,
     private invitationService: InvitationService,
   ) {}
 
@@ -155,35 +154,6 @@ export class AuthController {
     @Body(new ZodValidationPipe(refreshTokenDtoSchema)) body: RefreshTokenDto,
   ): Promise<AuthResponseDto> {
     return this.authService.refresh(body.refreshToken);
-  }
-
-  @Throttle(RATE_LIMITS.accountLookup)
-  @Get('email-exists')
-  @ApiOperation({
-    summary: 'Check if an email address is already registered',
-    description:
-      'Verifies whether a given email address is already associated with an existing user account. Useful for registration forms to prevent duplicate accounts.',
-  })
-  @ApiQuery({
-    name: 'email',
-    type: String,
-    description: 'Email address to check',
-    example: 'user@example.com',
-    required: true,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Email existence check result',
-    schema: {
-      type: 'boolean',
-      example: true,
-      description: 'true if email exists, false otherwise',
-    },
-  })
-  async emailExists(@Query('email') email: string) {
-    return this.userService.exists({
-      email,
-    });
   }
 
   @Throttle(RATE_LIMITS.accountLookup)

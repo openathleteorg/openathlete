@@ -8,6 +8,8 @@ import {
   mapPrismaWorkoutToDto,
 } from '@openathlete/shared';
 
+import { formatRpe } from 'src/common/utils/rpe';
+
 import { fetchAthleteZones } from '../../agent/services/event-ai-helpers';
 import { PrismaService } from '../../prisma/services/prisma.service';
 
@@ -208,7 +210,7 @@ export function formatGoalSummary(
     parts.push(`Elevation Gain: ${Math.round(training.goalElevationGain)} m`);
   }
   if (typeof training.goalRpe === 'number') {
-    parts.push(`Target RPE: ${training.goalRpe}`);
+    parts.push(`Target RPE: ${formatRpe(training.goalRpe)}`);
   }
 
   return parts.length ? parts.join(' | ') : 'No numeric goals specified.';

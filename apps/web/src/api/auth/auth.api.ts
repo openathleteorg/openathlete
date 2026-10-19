@@ -19,13 +19,6 @@ export class AuthAPI {
     return res.data;
   }
 
-  static async emailExists(email: string): Promise<boolean> {
-    const res = await client.get(routes.auth.emailExists, {
-      params: { email },
-    });
-    return res.data;
-  }
-
   static async verifyInvitation(token: string): Promise<{
     valid: boolean;
     email?: string;

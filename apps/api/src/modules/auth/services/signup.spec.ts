@@ -31,7 +31,9 @@ function setup(env: Record<string, string> = {}) {
     {} as TokenService,
     {
       verifyInvitationToken: jest.fn(async (token: string) =>
-        token === 'valid' ? { athleteInvitationId: 1 } : null,
+        token === 'valid'
+          ? { athleteInvitationId: 1, email: 'ana@example.com' }
+          : null,
       ),
       consumeInvitation: jest.fn(),
     } as unknown as AthleteInvitationService,
@@ -41,14 +43,20 @@ function setup(env: Record<string, string> = {}) {
     } as unknown as CoachInvitationService,
     {} as AccountDeletionService,
   );
-  const signUp = (extra: object = {}) =>
-    service.createAccount({
-      email: 'Ana@Example.com',
-      password: 'E2e-Test-Passw0rd!',
-      firstName: 'Ana',
-      lastName: 'Lopez',
-      ...extra,
-    });
+  const signUp = (
+    extra: object = {},
+    options?: Parameters<UserService['createAccount']>[1],
+  ) =>
+    service.createAccount(
+      {
+        email: 'Ana@Example.com',
+        password: 'E2e-Test-Passw0rd!',
+        firstName: 'Ana',
+        lastName: 'Lopez',
+        ...extra,
+      },
+      options,
+    );
   const emails = () =>
     emitter.emit.mock.calls
       .filter(([slug]) => slug === SendEmailEvent.SLUG)
@@ -130,5 +138,38 @@ describe('sign-up language', () => {
       data: { language?: string };
     };
     expect(data.language).toBeUndefined();
+  });
+});
+
+describe('sign-up with an invitation link', () => {
+  it('refuses a spent or unknown link before creating the account', async () => {
+    const { signUp, prisma } = setup();
+    await expect(signUp({ invitationToken: 'spent' })).rejects.toThrow(
+      'Invalid or expired invitation token',
+    );
+    expect(prisma.user.create).not.toHaveBeenCalled();
+  });
+
+  it('needs the invited address for a password sign-up', async () => {
+    const { signUp, prisma } = setup();
+    await expect(
+      signUp({ invitationToken: 'valid', email: 'mallory@example.com' }),
+    ).rejects.toThrow('INVITATION_EMAIL_MISMATCH');
+    expect(prisma.user.create).not.toHaveBeenCalled();
+
+    // Any case of the invited address
+    await expect(signUp({ invitationToken: 'valid' })).resolves.toEqual({
+      userId: 42,
+    });
+  });
+
+  it('takes the address Google or Apple gives', async () => {
+    const { signUp } = setup();
+    await expect(
+      signUp(
+        { invitationToken: 'valid', email: 'relay@privaterelay.appleid.com' },
+        { emailFromProvider: true },
+      ),
+    ).resolves.toEqual({ userId: 42 });
   });
 });
