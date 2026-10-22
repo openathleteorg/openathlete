@@ -149,15 +149,23 @@ export class ManualFitImportService {
   ) {
     const externalId = `${format.toLowerCase()}-manual:${athlete.athleteId}:${createHash('sha256').update(file.buffer).digest('hex')}`;
     const findExisting = () =>
-      this.prisma.eventActivity.findUnique({
-        where: { externalId },
+      this.prisma.eventActivity.findFirst({
+        where: {
+          externalId,
+          provider: null,
+          event: { athleteId: athlete.athleteId },
+        },
         include: { event: true },
       });
     const store = () =>
       this.prisma.$transaction(
         async (tx) => {
-          const existing = await tx.eventActivity.findUnique({
-            where: { externalId },
+          const existing = await tx.eventActivity.findFirst({
+            where: {
+              externalId,
+              provider: null,
+              event: { athleteId: athlete.athleteId },
+            },
             include: { event: true },
           });
           if (existing) {

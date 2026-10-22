@@ -25,6 +25,7 @@ import {
   MedalIcon,
   MessageCircle,
   PieChart,
+  RefreshCw,
   TrendingUp,
   User,
   Users,
@@ -143,6 +144,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         title: m.metrics(),
         url: getPath(['dashboard', 'metrics']),
         icon: Activity,
+        spaces: ['ATHLETE'] as UserRole[],
+      },
+      {
+        title: m.sync_panel_title(),
+        url: getPath(['dashboard', 'sync']),
+        icon: RefreshCw,
         spaces: ['ATHLETE'] as UserRole[],
       },
       {

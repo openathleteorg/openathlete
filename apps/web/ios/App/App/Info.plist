@@ -59,6 +59,10 @@
     </dict>
     <key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>NSHealthShareUsageDescription</key>
+    <string>Read your selected health measurements and Apple Watch workouts, with optional heart rate, power, cadence and routes, for a protected preview on this iPhone. With your separate approval, send the selected measurements or workouts to your chosen OpenAthlete server, including automatic updates when you enable sync.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>OpenAthlete uses HealthKit to import your selected health measurements and Apple Watch workouts into your chosen OpenAthlete server. This version only reads Health data and does not add, change or delete data in Apple Health.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>OpenAthlete needs access to your microphone to record audio feedback for your
       activities.</string>

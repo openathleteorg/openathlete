@@ -10,6 +10,9 @@ export const PATH_AFTER_LOGIN = getPath(['dashboard']);
  */
 export function socketUrl(namespace: string): string {
   const apiBaseUrl = getApiBaseUrl();
-  const base = apiBaseUrl.startsWith('/') ? window.location.origin : apiBaseUrl;
+  // /api is an HTTP reverse-proxy prefix, not part of a Socket.IO namespace.
+  const base = apiBaseUrl.startsWith('/')
+    ? window.location.origin
+    : apiBaseUrl.replace(/\/api\/?$/, '').replace(/\/$/, '');
   return `${base}/${namespace}`;
 }

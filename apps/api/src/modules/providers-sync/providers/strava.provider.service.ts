@@ -5,8 +5,6 @@ import { ConfigService } from '@nestjs/config';
 
 import {
   ConnectorProvider,
-  EventActivity,
-  EventType,
   ProviderAccount,
   SportType,
 } from '@openathlete/database';
@@ -14,7 +12,7 @@ import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
-import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { ActivityRecording } from '../../core/helpers/activity-recording';
 import {
   roundCadence,
   roundDistance,
@@ -25,6 +23,7 @@ import {
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
 import { stravaActivitySport } from '../../core/helpers/strava';
+import { ActivityReconciliationService } from '../../core/services/activity-reconciliation.service';
 import { StravaSteam, StravaSummaryActivity } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
@@ -94,6 +93,7 @@ export class StravaProviderService
     configService: ConfigService<ApiEnvSchemaType, true>,
     @Inject(forwardRef(() => QueueService))
     private readonly queueService: QueueService,
+    private readonly reconciliation: ActivityReconciliationService,
   ) {
     super(prisma, configService);
   }
@@ -278,6 +278,14 @@ export class StravaProviderService
             // 200 is the largest page Strava allows: 7x fewer rate-limited calls
             `https://www.strava.com/api/v3/athlete/activities?page=${page}&per_page=200`,
             {
+              params: {
+                ...(options?.startDate && {
+                  after: Math.floor(options.startDate.getTime() / 1000),
+                }),
+                ...(options?.endDate && {
+                  before: Math.ceil(options.endDate.getTime() / 1000),
+                }),
+              },
               headers: {
                 Authorization: `Bearer ${accessToken}`,
               },
@@ -327,46 +335,37 @@ export class StravaProviderService
     account: ProviderAccount,
     activity: ImportedActivity,
   ): Promise<ImportResult> {
-    const existing = await this.prisma.eventActivity.findFirst({
-      where: {
-        externalId: activity.externalId,
-      },
-    });
-
-    if (existing) {
-      return { activity: existing, created: false };
-    }
-
-    // Get athlete (only need athleteId, no need for user relation)
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { athleteId: account.athleteId },
-      select: { athleteId: true },
-    });
-
-    if (!athlete) {
-      throw new Error('Athlete not found');
-    }
-
-    // Create event
-    const event = await this.prisma.event.create({
-      data: {
-        athleteId: athlete.athleteId,
-        name: activity.name,
-        type: EventType.ACTIVITY,
-        startDate: activity.startDate,
-        endDate: activity.endDate,
-      },
-    });
-
-    // Fetch full activity data with streams
-    const stravaActivity = activity.raw as StravaSummaryActivity;
-    const savedActivity = await this.fetchStravaActivityData(
-      account,
-      event,
-      stravaActivity,
+    const source = await this.reconciliation.findSource(
+      account.athleteId,
+      this.provider,
+      activity.externalId,
     );
-
-    return { activity: savedActivity, created: true };
+    if (source)
+      return {
+        activity: source.eventActivity,
+        created: false,
+        receiptId: source.activitySourceId,
+        revision: source.revision,
+        processingPending: source.processingPending,
+      };
+    const recording = await this.fetchStravaActivityData(
+      account,
+      activity.raw as StravaSummaryActivity,
+    );
+    return this.reconciliation.reconcile(
+      account.athleteId,
+      this.provider,
+      activity.externalId,
+      {
+        ...recording,
+        name: activity.name,
+        startDate: activity.startDate.toISOString(),
+        endDate: activity.endDate.toISOString(),
+        original: false,
+        recordingKind: 'single',
+        raw: activity.raw as object,
+      },
+    );
   }
 
   /**
@@ -374,9 +373,8 @@ export class StravaProviderService
    */
   private async fetchStravaActivityData(
     account: ProviderAccount,
-    event: { eventId: number },
     activity: StravaSummaryActivity,
-  ): Promise<EventActivity> {
+  ): Promise<Pick<ActivityRecording, 'values' | 'stream'>> {
     const shouldFetchStreams = !activity.manual;
 
     let streams: StravaSteam[] = [];
@@ -423,20 +421,10 @@ export class StravaProviderService
       }
     }
 
-    const compressionStart = Date.now();
-    const compressedActivityStream = compressActivityStream(mergedData);
-    const compressionTime = Date.now() - compressionStart;
-    if (compressionTime > 1000) {
-      this.logger.debug(
-        `Stream compression took ${compressionTime}ms for activity ${activity.id}`,
-      );
-    }
-
     const sport = stravaActivitySport(activity);
 
-    const savedActivity = await this.prisma.eventActivity.create({
-      data: {
-        provider: ConnectorProvider.STRAVA,
+    return {
+      values: {
         distance: roundDistance(activity.distance),
         elevationGain: roundElevation(activity.total_elevation_gain),
         movingTime: activity.moving_time,
@@ -450,17 +438,9 @@ export class StravaProviderService
         maxHeartrate: roundHeartrate(activity.max_heartrate),
         kilojoules: roundEnergy(activity.kilojoules),
         sport,
-        stream: compressedActivityStream as object,
-        externalId: activity.id.toString(),
-        event: {
-          connect: {
-            eventId: event.eventId,
-          },
-        },
       },
-    });
-
-    return savedActivity;
+      stream: mergedData,
+    };
   }
 
   /**
@@ -505,6 +485,27 @@ export class StravaProviderService
       // Re-throw to be caught by the caller
       throw error;
     }
+  }
+
+  /** Bounded catch-up after missed webhooks, without changing history-import state. */
+  async queueRecentImport(
+    account: ProviderAccount,
+    endDate: Date,
+    onActivities?: (jobIds: string[]) => Promise<void>,
+  ): Promise<FullImportResult> {
+    const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const activities = await this.importActivities(account, {
+      startDate,
+      endDate,
+      limit: 1000,
+    });
+    return {
+      queuedActivities: await this.enqueueActivities(
+        account,
+        activities,
+        onActivities,
+      ),
+    };
   }
 
   /**
@@ -552,16 +553,18 @@ export class StravaProviderService
   private async enqueueActivities(
     account: ProviderAccount,
     activities: ImportedActivity[],
+    onActivities?: (jobIds: string[]) => Promise<void>,
   ): Promise<number> {
     if (activities.length === 0) {
+      await onActivities?.([]);
       return 0;
     }
 
     const existing = await this.prisma.eventActivity.findMany({
       where: {
-        externalId: {
-          in: activities.map((a) => a.externalId),
-        },
+        provider: this.provider,
+        event: { athleteId: account.athleteId },
+        externalId: { in: activities.map((a) => a.externalId) },
       },
       select: {
         eventActivityId: true,
@@ -570,14 +573,29 @@ export class StravaProviderService
         provider: true,
       },
     });
-
-    const existingIdsSet = new Set(existing.map((a) => a.externalId));
+    const sources = await this.prisma.activitySource.findMany({
+      where: {
+        athleteId: account.athleteId,
+        provider: this.provider,
+        externalId: { in: activities.map((a) => a.externalId) },
+      },
+      select: { externalId: true },
+    });
+    const existingIdsSet = new Set(
+      [...existing, ...sources].map((a) => a.externalId),
+    );
     await this.correctSports(existing, activities);
 
     const newActivities = activities.filter(
       (a) => !existingIdsSet.has(a.externalId),
     );
 
+    await onActivities?.(
+      newActivities.map(
+        (activity) =>
+          `import-${account.athleteId}-${account.provider}-${activity.externalId}`,
+      ),
+    );
     if (newActivities.length === 0) {
       this.logger.log('All activities already imported');
       return 0;
@@ -644,11 +662,11 @@ export class StravaProviderService
       }
 
       // Check if activity already imported
-      const existingActivity = await this.prisma.eventActivity.findFirst({
-        where: {
-          externalId: activityId,
-        },
-      });
+      const existingActivity = await this.reconciliation.findSource(
+        account.athleteId,
+        this.provider,
+        activityId,
+      );
 
       if (existingActivity) {
         this.logger.debug(

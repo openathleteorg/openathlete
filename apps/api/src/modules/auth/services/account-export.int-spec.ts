@@ -24,6 +24,7 @@ if (!databaseUrl) {
  * the test below fails until it is.
  */
 const EXPORTED_TABLES = [
+  'activity_source',
   'agent_thread',
   'ai_credential',
   'ai_model_preference',
@@ -65,6 +66,11 @@ const NOT_EXPORTED_TABLES = {
 /** The parts of the export document these tests read. */
 interface ExportDocument {
   format: string;
+  activitySources: {
+    externalId: string;
+    payload?: unknown;
+    observations: { revision: number; payload?: unknown }[];
+  }[];
   user: Record<string, unknown>;
   athlete: {
     metrics: unknown[];
@@ -154,6 +160,25 @@ describe('AccountExportService (PostgreSQL)', () => {
     expect(data.aiSettings.keys).toEqual([
       expect.objectContaining({ provider: 'openai', apiKeyHint: '••••1234' }),
     ]);
+  });
+
+  it('exports source identity and revisions, with raw health data only on opt-in', async () => {
+    const normal = (await exportOf(USER_ID)).data.activitySources;
+    expect(normal.map((source) => source.externalId)).toEqual([
+      'watch-workout',
+      'unresolved-workout',
+    ]);
+    expect(normal.every((source) => !('payload' in source))).toBe(true);
+    expect(normal.flatMap((source) => source.observations)).toEqual([
+      { revision: 1, createdAt: expect.any(String) },
+      { revision: 1, createdAt: expect.any(String) },
+    ]);
+    const full = (await exportOf(USER_ID, true)).data.activitySources;
+    expect(full[0].payload).toMatchObject({ streams: { heartrate: [123] } });
+    expect(full[0].observations[0].payload).toEqual(full[0].payload);
+    expect((await exportOf(COACH_USER_ID, true)).data.activitySources).toEqual(
+      [],
+    );
   });
 
   it('includes every event with its workout and activity', async () => {

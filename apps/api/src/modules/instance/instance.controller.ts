@@ -50,6 +50,11 @@ export class InstanceController {
       googleSignIn: !!get('FIREBASE_SERVICE_ACCOUNT_JSON'),
       email: !!emailTransportKind(get),
       providers: configuredProviders(get),
+      healthkitWorkoutImport: {
+        protocolVersion: 1,
+        maxSamples: 100000,
+        maxBodyBytes: 20 * 1024 * 1024,
+      },
       // The first account is always allowed: it is the administrator's
       signup:
         mode !== 'open' && (await this.prisma.user.count()) === 0

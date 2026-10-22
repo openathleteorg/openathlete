@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   getFirebaseIdTokenForProvider,
   revokeAppleSignIn,
+  signOutFirebase,
 } from './firebase-auth';
 
 const native = vi.hoisted(() => ({
@@ -15,6 +16,7 @@ const plugin = vi.hoisted(() => ({
   getIdToken: vi.fn(),
   getCurrentUser: vi.fn(),
   revokeAccessToken: vi.fn(),
+  signOut: vi.fn(),
 }));
 
 vi.mock('@/utils/capacitor', () => native);
@@ -47,6 +49,19 @@ describe('revokeAppleSignIn', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     native.isIOS.mockReturnValue(true);
+    vi.stubEnv('VITE_FIREBASE_API_KEY', 'test-key');
+    vi.stubEnv('VITE_FIREBASE_AUTH_DOMAIN', 'test.example.org');
+    vi.stubEnv('VITE_FIREBASE_PROJECT_ID', 'test-project');
+    vi.stubEnv('VITE_FIREBASE_APP_ID', 'test-app');
+  });
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('does not initialize native Firebase for an email-only self-hosted build', async () => {
+    vi.stubEnv('VITE_FIREBASE_API_KEY', '');
+    await revokeAppleSignIn();
+    await signOutFirebase();
+    expect(plugin.getCurrentUser).not.toHaveBeenCalled();
+    expect(plugin.signOut).not.toHaveBeenCalled();
   });
 
   it('revokes with a fresh authorization code for an Apple account', async () => {

@@ -156,6 +156,7 @@ platform :ios do
 
   desc "Build the app for the simulator without signing it"
   lane :check do
+    sh("python3", File.join(WEB_DIR, "scripts/check-healthkit-bridge.py"))
     sync_native("ios")
     # The Firebase config is a secret; CI builds with a stand-in so the
     # project's resource reference resolves

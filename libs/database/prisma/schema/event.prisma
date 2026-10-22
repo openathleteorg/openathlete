@@ -153,6 +153,9 @@ model EventActivity {
   // fields
   /// Provider from which this activity was imported (null if manually created)
   provider               ConnectorProvider?
+  /// Scope the legacy primary provider reference; all additional identities
+  /// live in ActivitySource. Null for manual or ownerless legacy activities.
+  sourceAthleteId        Int?               @map("source_athlete_id")
   /// Total distance in meters
   distance               Float
   /// Total elevation gain in meters
@@ -214,11 +217,13 @@ model EventActivity {
   trainingLoadEntries TrainingLoadEntry[]
   messageThread       MessageThread?              @relation("ActivityCommentThread") // comment thread for this activity
   segments            ActivitySegment[]
+  sources             ActivitySource[]
   feedbackQuestions   ActivityFeedbackQuestion[]
   extractedInjuries   AthleteInjury[] // injuries extracted from feedback
   feedbackEmbedding   ActivityFeedbackEmbedding? // vector embedding of feedback responses
 
-  @@unique([externalId]) // Index for fast lookup by external provider ID
+  @@index([externalId]) // Legacy primary source; identity lives in ActivitySource
+  @@unique([sourceAthleteId, provider, externalId])
   @@map("event_activity")
 }
 

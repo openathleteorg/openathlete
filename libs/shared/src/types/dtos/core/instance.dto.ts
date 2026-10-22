@@ -16,4 +16,10 @@ export interface InstanceInfoDto {
    * without any account is open, for its administrator
    */
   signup: 'open' | 'invite' | 'closed';
+  /** Versioned native workout upload contract. Absent on older servers. */
+  healthkitWorkoutImport?: {
+    protocolVersion: 1;
+    maxSamples: number;
+    maxBodyBytes: number;
+  };
 }

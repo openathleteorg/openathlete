@@ -6,8 +6,8 @@ const FIT = path.join(import.meta.dirname, '../../fixtures/synthetic-run.fit');
 const GPX = path.join(import.meta.dirname, '../../fixtures/synthetic-run.gpx');
 const TCX = path.join(import.meta.dirname, '../../fixtures/synthetic-run.tcx');
 
-test('imports FIT files from Settings > Connectors', async ({ page }) => {
-  await page.goto('/dashboard/settings?tab=connectors');
+test('imports FIT files from the Sync & import page', async ({ page }) => {
+  await page.goto('/dashboard/sync');
   await page.locator('[data-import-fit-trigger]').click();
 
   const dialog = page.getByRole('dialog');
@@ -25,7 +25,7 @@ test('imports FIT files from Settings > Connectors', async ({ page }) => {
 });
 
 test('imports a GPX file with its track name and a sport', async ({ page }) => {
-  await page.goto('/dashboard/settings?tab=connectors');
+  await page.goto('/dashboard/sync');
   await page.locator('[data-import-fit-trigger]').click();
 
   const dialog = page.getByRole('dialog');
@@ -43,7 +43,7 @@ test('imports a GPX file with its track name and a sport', async ({ page }) => {
 });
 
 test('imports a TCX file with its notes as the name', async ({ page }) => {
-  await page.goto('/dashboard/settings?tab=connectors');
+  await page.goto('/dashboard/sync');
   await page.locator('[data-import-fit-trigger]').click();
 
   const dialog = page.getByRole('dialog');

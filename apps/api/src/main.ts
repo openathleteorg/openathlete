@@ -7,6 +7,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { configureBodyParsers } from './common/http/body-parsers';
 import {
   MCP_CORS,
   getAllowedOrigins,
@@ -19,6 +20,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
   });
+  configureBodyParsers(app);
 
   // Security headers. Helmet's default CSP fits the JSON API and the Swagger
   // UI at /docs, whose scripts are all served from the API itself.

@@ -24,6 +24,7 @@ model Athlete {
   userId                   Int                       @unique @map("user_id")
   coachAthletes            CoachAthlete[]
   events                   Event[]
+  activitySources          ActivitySource[]
   trainingZones            TrainingZone[]
   records                  Record[]
   equipment                Equipment[]

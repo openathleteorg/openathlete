@@ -21,6 +21,7 @@ export function MobileWebHeader() {
     progression: m.progression(),
     records: m.records(),
     metrics: m.metrics(),
+    sync: m.sync_panel_title(),
     settings: m.settings(),
     messages: m.messages(),
     profile: m.profile(),

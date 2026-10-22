@@ -47,6 +47,21 @@ describe('day wellness', () => {
     ]);
   });
 
+  it('labels Apple SDNN separately from overnight HRV', () => {
+    const items = wellnessItems({
+      ...day,
+      wellness: {
+        HRV_SDNN: 42.5,
+        HRV_LAST_NIGHT_AVG: 60,
+      },
+    });
+    expect(items.map((item) => [item.key, item.text])).toEqual([
+      ['hrv', '60'],
+      ['hrv-sdnn', '43 SDNN'],
+    ]);
+    expect(items[1].label).toContain('metric_hrv_sdnn');
+  });
+
   it('marks the projected form apart', () => {
     const [form] = wellnessItems({
       ...day,

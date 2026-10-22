@@ -31,3 +31,6 @@ export * from './instance.dto';
 export * from './calendar-display.dto';
 export * from './calendar-day.dto';
 export * from './season.dto';
+export * from './import-health-metrics.dto';
+export * from './import-healthkit-workout.dto';
+export * from './provider-sync.dto';

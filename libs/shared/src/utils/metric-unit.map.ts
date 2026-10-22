@@ -38,6 +38,7 @@ export const metricUnitMap: Record<METRIC_TYPE, string> = {
   [METRIC_TYPE.HR_MAX_DAILY]: 'bpm',
   [METRIC_TYPE.HR_RESERVE]: 'bpm',
   [METRIC_TYPE.RMSSD]: 'ms',
+  [METRIC_TYPE.HRV_SDNN]: 'ms',
   [METRIC_TYPE.HRV_LAST_NIGHT_AVG]: 'ms',
   [METRIC_TYPE.HRV_LAST_NIGHT_5MIN_HIGH]: 'ms',
   [METRIC_TYPE.SNAPSHOT_HEART_RATE_AVG]: 'bpm',

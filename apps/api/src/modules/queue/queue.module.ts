@@ -13,6 +13,7 @@ import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
+import { ProviderRecentSyncProcessor } from './processors/provider-recent-sync.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { QueueService } from './queue.service';
 import { RecordsBackfillService } from './services/records-backfill.service';
@@ -275,6 +276,15 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'provider-recent-sync',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { age: 24 * 3600, count: 1000 },
+        removeOnFail: { age: 7 * 24 * 3600, count: 1000 },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'training-load-estimation',
       defaultJobOptions: {
         attempts: 3,
@@ -299,7 +309,11 @@ function parseRedisUrl(redisUrl: string): {
     // Note: We use process.env here because ConfigService is not available
     // at module definition time. The value is validated by envValidationSchema.
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
-      ? [ActivityImportProcessor, ProviderFullImportProcessor]
+      ? [
+          ActivityImportProcessor,
+          ProviderFullImportProcessor,
+          ProviderRecentSyncProcessor,
+        ]
       : []),
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
       ? [ActivityProcessingProcessor, RecordsBackfillService]

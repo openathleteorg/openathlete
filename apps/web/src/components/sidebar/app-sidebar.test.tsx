@@ -195,6 +195,27 @@ describe('AppSidebar elsewhere', () => {
     ).not.toBeNull();
   });
 
+  it('links sync between metrics and messages in the athlete menu', async () => {
+    state.space = 'ATHLETE';
+    state.athletes = [];
+    await render({ open: true });
+    const links = [...container.querySelectorAll<HTMLAnchorElement>('a')];
+    const urls = links.map((link) => link.getAttribute('href'));
+    const metrics = urls.indexOf('/dashboard/metrics');
+    expect(urls.slice(metrics, metrics + 3)).toEqual([
+      '/dashboard/metrics',
+      '/dashboard/sync',
+      '/dashboard/messages',
+    ]);
+    const sync = links.find(
+      (link) => link.getAttribute('href') === '/dashboard/sync',
+    )!;
+    await act(async () => sync.click());
+    expect(container.querySelector('[data-path]')!.textContent).toBe(
+      '/dashboard/sync',
+    );
+  });
+
   it('keeps the athlete tree in the drawer on phones', async () => {
     state.athletes = athletes(1);
     await render({ width: 390 });

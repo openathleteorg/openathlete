@@ -50,6 +50,15 @@ export function wellnessItems(
       label: m.calendar_wellness_hrv({ value: Math.round(hrv) }),
     });
   }
+  const sdnn = wellness[METRIC_TYPE.HRV_SDNN];
+  if (sdnn) {
+    items.push({
+      key: 'hrv-sdnn',
+      icon: HeartPulse,
+      text: `${Math.round(sdnn)} SDNN`,
+      label: `${m.metric_hrv_sdnn()}: ${Math.round(sdnn)} ms`,
+    });
+  }
   const restingHr = wellness[METRIC_TYPE.HR_REST];
   if (restingHr) {
     items.push({

@@ -6,9 +6,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Athlete, AthleteMetric, MetricType } from '@openathlete/database';
+import {
+  Athlete,
+  AthleteMetric,
+  MetricType,
+  Prisma,
+} from '@openathlete/database';
 import {
   CreateMetricDto,
+  ImportHealthMetricsDto,
+  ImportHealthMetricsResponseDto,
   UpdateMetricDto,
   metricCalculationMap,
 } from '@openathlete/shared';
@@ -23,6 +30,69 @@ export class MetricService {
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
   ) {}
+
+  /** Import only into the signed-in athlete's account, never a coach's target. */
+  async importHealthMetrics(
+    user: AuthUser,
+    dto: ImportHealthMetricsDto,
+  ): Promise<ImportHealthMetricsResponseDto> {
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { userId: user.userId },
+      select: { athleteId: true },
+    });
+    if (!athlete) throw new NotFoundException('Athlete not found');
+
+    const ability = await this.abilities.getFor({ user });
+    if (
+      !ability.can('manage', subject('AthleteMetric', athlete as AthleteMetric))
+    ) {
+      throw new ForbiddenException('Not allowed to import metrics');
+    }
+
+    // Consistent lock order for concurrent historical imports.
+    const rows = [...dto.metrics]
+      .sort((a, b) =>
+        `${a.date}:${a.type}`.localeCompare(`${b.date}:${b.type}`),
+      )
+      .map((metric) => ({
+        athleteId: athlete.athleteId,
+        type: metric.type as MetricType,
+        // A calendar date is a bucket, not a local-midnight timestamp.
+        date: new Date(`${metric.date}T00:00:00.000Z`),
+        value: metric.value,
+        source: dto.source,
+        sourceMetadata: {
+          timeZone: dto.timeZone,
+          unit: metric.unit,
+          ...(metric.sampleCount !== undefined && {
+            sampleCount: metric.sampleCount,
+          }),
+        },
+      }));
+
+    // Insert missing dates, then update only rows owned by this source.
+    // Keeping source in the UPDATE predicate protects manual/provider edits
+    // even if they race with this request. A failed batch rolls back entirely.
+    const [, ...updates] = await this.prisma.$transaction([
+      this.prisma.athleteMetric.createMany({
+        data: rows,
+        skipDuplicates: true,
+      }),
+      ...rows.map((row) =>
+        this.prisma.athleteMetric.updateMany({
+          where: {
+            athleteId: row.athleteId,
+            type: row.type,
+            date: row.date,
+            source: row.source,
+          },
+          data: { value: row.value, sourceMetadata: row.sourceMetadata },
+        }),
+      ),
+    ]);
+    const imported = updates.reduce((count, update) => count + update.count, 0);
+    return { imported, skipped: rows.length - imported };
+  }
 
   /**
    * Create a new metric for the authenticated user or a specific athlete (if coach)
@@ -104,6 +174,8 @@ export class MetricService {
         data: {
           value: dto.value,
           notes: dto.notes,
+          source: null,
+          sourceMetadata: Prisma.DbNull,
         },
       });
     }
@@ -169,6 +241,8 @@ export class MetricService {
       data: {
         ...(dto.value !== undefined && { value: dto.value }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
+        source: null,
+        sourceMetadata: Prisma.DbNull,
       },
     });
   }

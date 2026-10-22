@@ -2,14 +2,19 @@ import { UserAPI } from '@/api/user';
 import { getPath } from '@/routes/paths';
 import { isValidToken } from '@/utils/auth';
 import { isNetworkError } from '@/utils/axios';
+import { getApiBaseUrl } from '@/utils/capacitor';
 import { signOutFirebase } from '@/utils/firebase-auth';
+import {
+  bindLocalHealthSession,
+  clearLocalHealthSession,
+} from '@/utils/healthkit';
 import { saveLanguageChoice } from '@/utils/language-choice';
 import { ACCESS_TOKEN, clear, getItem, setItem } from '@/utils/local-storage';
 import { initializePushNotifications } from '@/utils/push-notifications';
 import { queryClient } from '@/utils/query-client';
 import { saveTimeZone } from '@/utils/time-zone';
 import posthog from 'posthog-js';
-import { useCallback, useEffect, useMemo, useReducer } from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 
 import { User } from '@openathlete/shared';
 
@@ -42,6 +47,7 @@ const reducer = (state: AuthStateType, action: ActionsType) => {
   if (action.type === Types.LOGOUT) {
     return {
       ...state,
+      offline: false,
       user: null,
     };
   }
@@ -71,94 +77,60 @@ const initialState: AuthStateType = {
 export function AuthProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const initialize = useCallback(async () => {
-    // Without an answer from the API the session is unknown, not signed out:
-    // treating it as signed out would send the user to the login page
-    const signedOutOrOffline = (error: unknown) =>
-      dispatch(
-        isNetworkError(error)
-          ? { type: Types.OFFLINE }
-          : { type: Types.INITIAL, payload: { user: null } },
-      );
+  const initializing = useRef<Promise<void> | null>(null);
+  const generation = useRef(0);
 
-    try {
-      const accessToken = getItem(ACCESS_TOKEN);
-
-      if (accessToken && isValidToken(accessToken)) {
-        setItem(ACCESS_TOKEN, accessToken);
-
+  const initialize = useCallback(() => {
+    if (initializing.current) return initializing.current;
+    const expected = generation.current;
+    const current = () => generation.current === expected;
+    const check = async () => {
+      try {
+        const accessToken = getItem(ACCESS_TOKEN);
+        if (accessToken && isValidToken(accessToken)) {
+          setItem(ACCESS_TOKEN, accessToken);
+        }
         const user = await UserAPI.getMe();
-
+        if (!current()) return;
         await saveLanguageChoice(user.language);
-        // Not awaited: reminders can wait, the app should not
+        if (!current()) return;
         void saveTimeZone(user.timeZone);
-
-        posthog.identify(user.userId.toString(), {
-          roles: user.roles,
-        });
-
-        dispatch({
-          type: Types.INITIAL,
-          payload: {
-            user,
-          },
-        });
-
-        // Initialize push notifications and send any pending token
+        posthog.identify(user.userId.toString(), { roles: user.roles });
+        dispatch({ type: Types.INITIAL, payload: { user } });
         initializePushNotifications()
           .then(() => {
-            // Import dynamically to avoid circular dependency
-            import('@/utils/push-notifications').then(
+            if (!current()) return;
+            return import('@/utils/push-notifications').then(
               ({ sendPendingTokenIfAny }) => {
-                sendPendingTokenIfAny();
+                if (current()) sendPendingTokenIfAny();
               },
             );
           })
           .catch((error) => {
             console.error('Failed to initialize push notifications:', error);
           });
-      } else {
-        try {
-          const user = await UserAPI.getMe();
-
-          await saveLanguageChoice(user.language);
-          // Not awaited: reminders can wait, the app should not
-          void saveTimeZone(user.timeZone);
-
-          posthog.identify(user.userId.toString(), {
-            roles: user.roles,
-          });
-
-          dispatch({
-            type: Types.INITIAL,
-            payload: {
-              user,
-            },
-          });
-
-          // Initialize push notifications and send any pending token
-          initializePushNotifications()
-            .then(() => {
-              // Import dynamically to avoid circular dependency
-              import('@/utils/push-notifications').then(
-                ({ sendPendingTokenIfAny }) => {
-                  sendPendingTokenIfAny();
-                },
-              );
-            })
-            .catch((error) => {
-              console.error('Failed to initialize push notifications:', error);
-            });
-        } catch (error) {
-          signedOutOrOffline(error);
-        }
+      } catch (error) {
+        if (!current()) return;
+        // An unanswered request leaves the session unknown; retain credentials.
+        dispatch(
+          isNetworkError(error)
+            ? { type: Types.OFFLINE }
+            : { type: Types.INITIAL, payload: { user: null } },
+        );
       }
-    } catch (error) {
-      signedOutOrOffline(error);
-    }
+    };
+    const pending = check();
+    initializing.current = pending;
+    void pending.finally(() => {
+      if (initializing.current === pending) initializing.current = null;
+    });
+    return pending;
   }, []);
 
-  const logout = useCallback((navigate?: (path: string) => void) => {
+  const logout = useCallback(async (navigate?: (path: string) => void) => {
+    generation.current += 1;
+    initializing.current = null;
+    await clearLocalHealthSession().catch(() => undefined);
     posthog.capture('user_logged_out');
     posthog.reset();
     clear();
@@ -181,15 +153,58 @@ export function AuthProvider({ children }: Props) {
   }, []);
 
   useEffect(() => {
-    initialize();
+    void initialize();
+    return () => {
+      generation.current += 1;
+      initializing.current = null;
+    };
   }, [initialize]);
 
-  // Back online: try again without waiting for the user
+  useEffect(() => {
+    const update = () => {
+      if (state.user) {
+        void bindLocalHealthSession({
+          apiBaseURL: getApiBaseUrl(),
+          accountID: String(state.user.userId),
+        }).catch(() => undefined);
+      }
+    };
+    update();
+    window.addEventListener('openathlete-session-token', update);
+    return () =>
+      window.removeEventListener('openathlete-session-token', update);
+  }, [state.user]);
+
+  // A failed native request does not imply a connectivity transition. Retry
+  // while visible, and when returning to the app, even without an online event.
   useEffect(() => {
     if (!state.offline) return;
-    const retry = () => void initialize();
-    window.addEventListener('online', retry);
-    return () => window.removeEventListener('online', retry);
+    let active = true;
+    let delay = 2_000;
+    let timer: ReturnType<typeof setTimeout>;
+    const retry = async () => {
+      clearTimeout(timer);
+      if (!active || document.visibilityState !== 'visible') return;
+      await initialize();
+      if (!active) return;
+      timer = setTimeout(() => void retry(), delay);
+      delay = Math.min(delay * 2, 30_000);
+    };
+    const wake = () => {
+      delay = 2_000;
+      void retry();
+    };
+    timer = setTimeout(() => void retry(), delay);
+    window.addEventListener('online', wake);
+    window.addEventListener('focus', wake);
+    document.addEventListener('visibilitychange', wake);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      window.removeEventListener('online', wake);
+      window.removeEventListener('focus', wake);
+      document.removeEventListener('visibilitychange', wake);
+    };
   }, [state.offline, initialize]);
 
   const checkAuthenticated = state.user ? 'authenticated' : 'unauthenticated';

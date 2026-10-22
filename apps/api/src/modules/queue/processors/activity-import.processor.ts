@@ -1,4 +1,4 @@
-import { Job } from 'bullmq';
+import { Job, UnrecoverableError } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
@@ -7,6 +7,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ConnectorProvider } from '@openathlete/database';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+import { ActivityReconciliationService } from '../../core/services/activity-reconciliation.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { ImportResult } from '../../providers-sync/base/provider-import.interface';
 import {
@@ -34,6 +35,7 @@ export class ActivityImportProcessor extends WorkerHost {
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
     private readonly queueService: QueueService,
+    private readonly reconciliation: ActivityReconciliationService,
     @Optional() private readonly emitter?: EventEmitter2,
   ) {
     super();
@@ -48,9 +50,22 @@ export class ActivityImportProcessor extends WorkerHost {
   }
 
   async process(job: Job<ActivityImportJobData>) {
-    const { providerAccountId, activity, bulkImport } = job.data;
+    const { providerAccountId, bulkImport } = job.data;
+    // BullMQ persists dates as JSON strings. Providers consume real Dates,
+    // regardless of whether a job came from a webhook or a catch-up import.
+    const activity = {
+      ...job.data.activity,
+      startDate: new Date(job.data.activity.startDate),
+      endDate: new Date(job.data.activity.endDate),
+    };
 
     try {
+      if (
+        !Number.isFinite(activity.startDate.getTime()) ||
+        !Number.isFinite(activity.endDate.getTime()) ||
+        activity.endDate < activity.startDate
+      )
+        throw new UnrecoverableError('Invalid activity timestamps');
       await job.updateProgress(10);
 
       const account = await this.prisma.providerAccount.findUnique({
@@ -106,6 +121,18 @@ export class ActivityImportProcessor extends WorkerHost {
       }
 
       const { activity: savedActivity, created } = result;
+      if (!savedActivity)
+        return {
+          success: true,
+          status: 'needs_review',
+          receiptId: result.receiptId,
+        };
+      if (result.receiptId && !result.processingPending)
+        return {
+          success: true,
+          eventActivityId: savedActivity.eventActivityId,
+          eventId: savedActivity.eventId,
+        };
 
       // Only the import that saved the activity announces it: a webhook
       // retry or a later sync of the same activity finds it already there
@@ -144,8 +171,16 @@ export class ActivityImportProcessor extends WorkerHost {
       await this.queueService.addActivityProcessingJob(
         savedActivity.eventActivityId,
         savedActivity.eventId,
-        bulkImport,
+        bulkImport || (result.receiptId !== undefined && !created),
+        result.receiptId
+          ? `source-${result.receiptId}-${result.revision}`
+          : undefined,
       );
+      if (result.receiptId && result.revision)
+        await this.reconciliation.markDispatched(
+          result.receiptId,
+          result.revision,
+        );
 
       return {
         success: true,

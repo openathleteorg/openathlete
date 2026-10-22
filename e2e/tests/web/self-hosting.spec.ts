@@ -49,13 +49,22 @@ test('hides what the instance has not set up', async ({ page, request }) => {
     email: false,
     providers: [],
     signup: 'open',
+    healthkitWorkoutImport: {
+      protocolVersion: 1,
+      maxSamples: 100000,
+      maxBodyBytes: 20971520,
+    },
   });
 
   await page.goto('/dashboard/settings?tab=connectors');
   await expect(page.locator('[data-connectors-unavailable]')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Connect' })).toHaveCount(0);
-  // Files remain the way in
-  await expect(page.locator('[data-import-fit-trigger]')).toBeVisible();
+  await expect(page.locator('[data-import-fit-trigger]')).toHaveCount(0);
+  // Files remain the way in, through the dedicated sync page.
+  await page.goto('/dashboard/sync');
+  await expect(
+    page.locator('[data-sync-panel] [data-import-fit-trigger]'),
+  ).toBeVisible();
 });
 
 test('signs in without a Google button on a bare instance', async ({

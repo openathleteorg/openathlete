@@ -91,7 +91,7 @@ export async function getFirebaseIdTokenForProvider(
  * the account is already gone when this runs.
  */
 export async function revokeAppleSignIn(): Promise<void> {
-  if (!isIOS()) return;
+  if (!isIOS() || !isFirebaseWebConfigured()) return;
   const { user } = await FirebaseAuthentication.getCurrentUser();
   const usesApple = user?.providerData.some(
     (info) => info.providerId === 'apple.com',
@@ -107,6 +107,7 @@ export async function revokeAppleSignIn(): Promise<void> {
 }
 
 export async function signOutFirebase(): Promise<void> {
+  if (!isFirebaseWebConfigured()) return;
   if (isCapacitor()) {
     await FirebaseAuthentication.signOut();
     return;

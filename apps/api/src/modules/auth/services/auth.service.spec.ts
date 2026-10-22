@@ -1,4 +1,6 @@
-import { ConflictException } from '@nestjs/common';
+import { sign, verify } from 'jsonwebtoken';
+
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 
@@ -76,5 +78,50 @@ describe('AuthService.loginWithFirebase', () => {
     await expect(
       service.loginWithFirebase({ idToken: 'token' }),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+});
+
+describe('AuthService.refresh', () => {
+  const secret = 'test-jwt-secret-at-least-32-characters-long';
+  const payload = { userId: 7, email: 'runner@example.com' };
+
+  it.each([
+    ['malformed', 'not-a-jwt'],
+    ['expired', sign(payload, secret, { expiresIn: -1 })],
+    ['wrong signature', sign(payload, 'another-test-signing-secret')],
+    [
+      'not yet valid',
+      sign({ ...payload, nbf: Math.floor(Date.now() / 1000) + 3600 }, secret),
+    ],
+  ])('returns unauthorized for a %s token', async (_kind, token) => {
+    const { service, prisma } = setup();
+    await expect(service.refresh(token)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+    expect(prisma.user.findFirst).not.toHaveBeenCalled();
+  });
+
+  it('refreshes a valid token for an existing user', async () => {
+    const { service, prisma } = setup();
+    prisma.user.findFirst.mockReset().mockResolvedValue(payload);
+    const tokens = await service.refresh(
+      sign(payload, secret, { expiresIn: '1d' }),
+    );
+    expect(verify(tokens.accessToken, secret)).toMatchObject(payload);
+    expect(verify(tokens.refreshToken, secret)).toMatchObject(payload);
+  });
+
+  it('rejects tokens whose account no longer exists', async () => {
+    const { service } = setup();
+    await expect(service.refresh(sign(payload, secret))).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it('keeps database failures distinguishable from invalid credentials', async () => {
+    const { service, prisma } = setup();
+    const error = new Error('Database unavailable');
+    prisma.user.findFirst.mockReset().mockRejectedValue(error);
+    await expect(service.refresh(sign(payload, secret))).rejects.toBe(error);
   });
 });

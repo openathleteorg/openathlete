@@ -2,6 +2,7 @@ import {
   useSetRelatedActivityMutation,
   useUnsetRelatedActivityMutation,
 } from '@/api/event';
+import { ZwiftWorkoutAction } from '@/components/zwift/zwift-workout-action';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
@@ -203,6 +204,7 @@ export function TrainingCompetitionDetails({ event }: P) {
               <CardTitle>{m.workout()}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              <ZwiftWorkoutAction event={event} />
               <WorkoutGraph
                 workout={event.workout}
                 sport={(event as TrainingEvent).sport}

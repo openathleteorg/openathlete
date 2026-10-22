@@ -17,6 +17,17 @@
 		9582B6852FE996820072D4E8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9582B6842FE996800072D4E8 /* SceneDelegate.swift */; };
 		96AEA3A92EF5841200B62DD6 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 96AEA3A82EF5841200B62DD6 /* GoogleService-Info.plist */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
+		55D08FF4A04B41AFB621A3C7 /* HealthKitModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB5B7F7C1566412BB54D42C4 /* HealthKitModels.swift */; };
+		D6191F17872C4118BDF24D97 /* HealthKitPreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99F8AE436DA44A4E8B2F252F /* HealthKitPreview.swift */; };
+		0AF5A0D892D141899A7828F9 /* HealthKitStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1E9F2CAF943E9AFC1E713 /* HealthKitStore.swift */; };
+		6F47ABE49056458EA18A5370 /* HealthKitReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = F58488302F7B4B47A57F1F30 /* HealthKitReader.swift */; };
+		3FE4C85285A54643967FEEA8 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 93F073EB99714362917FB866 /* PrivacyInfo.xcprivacy */; };
+		303DAE57521B4BA08338C27C /* HealthKitWorkouts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2835AE49987B4B76946AD82F /* HealthKitWorkouts.swift */; };
+		729FED304E814DE296DC5088 /* HealthKitWorkoutReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04FE76326131401A8F2DF227 /* HealthKitWorkoutReader.swift */; };
+		38D537067B664DD8B9C0D2B5 /* HealthKitAutomation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7616A389721485CA2BF581E /* HealthKitAutomation.swift */; };
+		831F654203624FD89A46D954 /* HealthKitAutomaticSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35E1F982E0BA474292E9D6F8 /* HealthKitAutomaticSync.swift */; };
+		AAB100000000000000000001 /* ZwiftPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB100000000000000000002 /* ZwiftPlugin.swift */; };
+		AAB100000000000000000003 /* ZwiftClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAB100000000000000000004 /* ZwiftClient.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +46,17 @@
 		AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_App.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
+		CB5B7F7C1566412BB54D42C4 /* HealthKitModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitModels.swift; sourceTree = "<group>"; };
+		99F8AE436DA44A4E8B2F252F /* HealthKitPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitPreview.swift; sourceTree = "<group>"; };
+		D8A1E9F2CAF943E9AFC1E713 /* HealthKitStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitStore.swift; sourceTree = "<group>"; };
+		F58488302F7B4B47A57F1F30 /* HealthKitReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitReader.swift; sourceTree = "<group>"; };
+		93F073EB99714362917FB866 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2835AE49987B4B76946AD82F /* HealthKitWorkouts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWorkouts.swift; sourceTree = "<group>"; };
+		04FE76326131401A8F2DF227 /* HealthKitWorkoutReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitWorkoutReader.swift; sourceTree = "<group>"; };
+		A7616A389721485CA2BF581E /* HealthKitAutomation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitAutomation.swift; sourceTree = "<group>"; };
+		35E1F982E0BA474292E9D6F8 /* HealthKitAutomaticSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitAutomaticSync.swift; sourceTree = "<group>"; };
+		AAB100000000000000000002 /* ZwiftPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ZwiftPlugin.swift"; sourceTree = "<group>"; };
+		AAB100000000000000000004 /* ZwiftClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "../../ZwiftCore/Sources/ZwiftCore/ZwiftClient.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +83,7 @@
 			isa = PBXGroup;
 			children = (
 				504EC3061FED79650016851F /* App */,
+				FC71D53F4B2441D0AD684C15 /* HealthKitCore */,
 				504EC3051FED79650016851F /* Products */,
 				7F8756D8B27F46E3366F6CEA /* Pods */,
 				27E2DDA53C4D2A4D1A88CE4A /* Frameworks */,
@@ -80,12 +103,18 @@
 			children = (
 				961EB1572EFAD9AC003D99DD /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
+				AAB100000000000000000002 /* ZwiftPlugin.swift */,
+				AAB100000000000000000004 /* ZwiftClient.swift */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
+				F58488302F7B4B47A57F1F30 /* HealthKitReader.swift */,
+				04FE76326131401A8F2DF227 /* HealthKitWorkoutReader.swift */,
+				35E1F982E0BA474292E9D6F8 /* HealthKitAutomaticSync.swift */,
 				9582B6842FE996800072D4E8 /* SceneDelegate.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
 				504EC3131FED79650016851F /* Info.plist */,
+				93F073EB99714362917FB866 /* PrivacyInfo.xcprivacy */,
 				2FAD9762203C412B000D30F8 /* config.xml */,
 				96AEA3A82EF5841200B62DD6 /* GoogleService-Info.plist */,
 				50B271D01FEDC1A000F3C39B /* public */,
@@ -100,6 +129,19 @@
 				AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */,
 			);
 			name = Pods;
+			sourceTree = "<group>";
+		};
+		FC71D53F4B2441D0AD684C15 /* HealthKitCore */ = {
+			isa = PBXGroup;
+			children = (
+				CB5B7F7C1566412BB54D42C4 /* HealthKitModels.swift */,
+				99F8AE436DA44A4E8B2F252F /* HealthKitPreview.swift */,
+				D8A1E9F2CAF943E9AFC1E713 /* HealthKitStore.swift */,
+				2835AE49987B4B76946AD82F /* HealthKitWorkouts.swift */,
+				A7616A389721485CA2BF581E /* HealthKitAutomation.swift */,
+			);
+			name = HealthKitCore;
+			path = ../HealthKitCore/Sources/HealthKitCore;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -165,6 +207,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3FE4C85285A54643967FEEA8 /* PrivacyInfo.xcprivacy in Resources */,
 				504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */,
 				50B271D11FEDC1A000F3C39B /* public in Resources */,
 				504EC30F1FED79650016851F /* Assets.xcassets in Resources */,
@@ -218,6 +261,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				55D08FF4A04B41AFB621A3C7 /* HealthKitModels.swift in Sources */,
+				D6191F17872C4118BDF24D97 /* HealthKitPreview.swift in Sources */,
+				0AF5A0D892D141899A7828F9 /* HealthKitStore.swift in Sources */,
+				6F47ABE49056458EA18A5370 /* HealthKitReader.swift in Sources */,
+				831F654203624FD89A46D954 /* HealthKitAutomaticSync.swift in Sources */,
+				38D537067B664DD8B9C0D2B5 /* HealthKitAutomation.swift in Sources */,
+				729FED304E814DE296DC5088 /* HealthKitWorkoutReader.swift in Sources */,
+				303DAE57521B4BA08338C27C /* HealthKitWorkouts.swift in Sources */,
+
+				AAB100000000000000000001 /* ZwiftPlugin.swift in Sources */,
+				AAB100000000000000000003 /* ZwiftClient.swift in Sources */,
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				9582B6852FE996820072D4E8 /* SceneDelegate.swift in Sources */,
 			);
@@ -366,7 +420,8 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
-				PRODUCT_BUNDLE_IDENTIFIER = org.openathlete;
+				OPENATHLETE_BUNDLE_IDENTIFIER = org.openathlete;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(OPENATHLETE_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -391,7 +446,8 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.openathlete;
+				OPENATHLETE_BUNDLE_IDENTIFIER = org.openathlete;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(OPENATHLETE_BUNDLE_IDENTIFIER)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

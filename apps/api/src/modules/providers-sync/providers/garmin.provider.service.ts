@@ -12,10 +12,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 
 import {
-  ActivitySegmentType,
   ConnectorProvider,
   EventActivity,
-  EventType,
   MetricType,
   Prisma,
   ProviderAccount,
@@ -23,9 +21,7 @@ import {
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
-import { FitFileSegment } from '../../core/helpers/activity-parser.interface';
-import { calculateSegmentMetrics } from '../../core/helpers/activity-segment';
-import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { ActivityRecording } from '../../core/helpers/activity-recording';
 import { mapGarminActivityType } from '../../core/helpers/garmin';
 import {
   roundCadence,
@@ -36,6 +32,7 @@ import {
   roundMetricValue,
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
+import { ActivityReconciliationService } from '../../core/services/activity-reconciliation.service';
 import {
   GarminActivityFilePingWebhook,
   GarminActivityPingWebhook,
@@ -143,6 +140,7 @@ export class GarminProviderService
     @Inject(forwardRef(() => QueueService))
     private readonly queueService: QueueService,
     private readonly activityFileParserService: ActivityFileParserService,
+    private readonly reconciliation: ActivityReconciliationService,
   ) {
     super(prisma, configService);
   }
@@ -676,10 +674,7 @@ export class GarminProviderService
       for (const activity of data) {
         if (activities.length >= limit) break;
 
-        const startDate = new Date(
-          (activity.startTimeInSeconds + activity.startTimeOffsetInSeconds) *
-            1000,
-        );
+        const startDate = new Date(activity.startTimeInSeconds * 1000);
         const endDate = new Date(
           startDate.getTime() + activity.durationInSeconds * 1000,
         );
@@ -713,17 +708,14 @@ export class GarminProviderService
       return 0;
     }
 
-    const existingExternalIds = await this.prisma.eventActivity.findMany({
+    const existingExternalIds = await this.prisma.activitySource.findMany({
       where: {
-        externalId: {
-          in: activities.map((a) => a.externalId),
-        },
+        athleteId: account.athleteId,
+        provider: this.provider,
+        externalId: { in: activities.map((a) => a.externalId) },
       },
-      select: {
-        externalId: true,
-      },
+      select: { externalId: true },
     });
-
     const existingIdsSet = new Set(
       existingExternalIds.map((a) => a.externalId),
     );
@@ -747,62 +739,72 @@ export class GarminProviderService
     account: ProviderAccount,
     activity: ImportedActivity,
   ): Promise<ImportResult> {
-    const existing = await this.prisma.eventActivity.findFirst({
-      where: {
-        externalId: activity.externalId,
-      },
-    });
-
-    if (existing) {
-      return { activity: existing, created: false };
-    }
-
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { athleteId: account.athleteId },
-      select: { athleteId: true },
-    });
-
-    if (!athlete) {
-      throw new Error('Athlete not found');
-    }
-
-    const event = await this.prisma.event.create({
-      data: {
-        athleteId: athlete.athleteId,
-        name: activity.name,
-        type: EventType.ACTIVITY,
-        startDate: activity.startDate,
-        endDate: activity.endDate,
-      },
-    });
-
-    const garminActivity = activity.raw as GarminActivitySummary;
-    const savedActivity = await this.fetchGarminActivityData(
-      event,
-      garminActivity,
+    const source = await this.reconciliation.findSource(
+      account.athleteId,
+      this.provider,
+      activity.externalId,
     );
-
+    if (source)
+      return {
+        activity: source.eventActivity,
+        created: false,
+        receiptId: source.activitySourceId,
+        revision: source.revision,
+        processingPending: source.processingPending,
+      };
+    const recording = await this.fetchGarminActivityData(
+      activity.raw as GarminActivitySummary,
+    );
+    const result = await this.reconciliation.reconcile(
+      account.athleteId,
+      this.provider,
+      activity.externalId,
+      {
+        ...recording,
+        name: activity.name,
+        startDate: activity.startDate.toISOString(),
+        endDate: activity.endDate.toISOString(),
+        original: true,
+        recordingKind: (activity.raw as GarminActivitySummary).isParent
+          ? 'multisport_parent'
+          : (activity.raw as GarminActivitySummary).parentSummaryId
+            ? 'multisport_leg'
+            : 'single',
+        raw: activity.raw as object,
+      },
+    );
     const pendingFile = await this.getPendingFile(activity.externalId);
-    if (pendingFile) {
+    if (pendingFile && result.activity) {
       await this.processActivityFile(
         account,
-        savedActivity,
+        result.activity,
         pendingFile.callbackURL,
         pendingFile.fileType as 'FIT' | 'GPX',
+        activity.externalId,
+        false,
       );
+      const updated = await this.reconciliation.findSource(
+        account.athleteId,
+        this.provider,
+        activity.externalId,
+      );
+      if (updated)
+        return {
+          ...result,
+          activity: updated.eventActivity,
+          revision: updated.revision,
+          processingPending: updated.processingPending,
+        };
     }
-
-    return { activity: savedActivity, created: true };
+    return result;
   }
 
   private async fetchGarminActivityData(
-    event: { eventId: number },
     activity: GarminActivitySummary,
-  ): Promise<EventActivity> {
+  ): Promise<Pick<ActivityRecording, 'values' | 'stream'>> {
     const activityStream: ActivityStream = {};
 
     const summary = activity;
-    const compressedActivityStream = compressActivityStream(activityStream);
     const sport = mapGarminActivityType(summary.activityType);
 
     let averageCadence: number | undefined;
@@ -819,9 +821,8 @@ export class GarminProviderService
 
     const movingTime = summary.durationInSeconds;
 
-    const savedActivity = await this.prisma.eventActivity.create({
-      data: {
-        provider: ConnectorProvider.GARMIN,
+    return {
+      values: {
         distance: roundDistance(summary.distanceInMeters || 0),
         elevationGain: roundElevation(summary.totalElevationGainInMeters || 0),
         movingTime: movingTime,
@@ -837,17 +838,9 @@ export class GarminProviderService
           ? roundEnergy(summary.activeKilocalories * 4.184)
           : undefined,
         sport,
-        stream: compressedActivityStream as object,
-        externalId: activity.activityId.toString(),
-        event: {
-          connect: {
-            eventId: event.eventId,
-          },
-        },
       },
-    });
-
-    return savedActivity;
+      stream: activityStream,
+    };
   }
 
   async handleActivityPingWebhook(
@@ -904,6 +897,8 @@ export class GarminProviderService
     const activityIds = activities.map((a) => String(a.activityId));
     const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
+        provider: this.provider,
+        event: { athleteId: account.athleteId },
         externalId: {
           in: activityIds,
         },
@@ -920,10 +915,7 @@ export class GarminProviderService
     const newActivities: ImportedActivity[] = activities
       .filter((a) => !existingIdsSet.has(String(a.activityId)))
       .map((activity) => {
-        const startDate = new Date(
-          (activity.startTimeInSeconds + activity.startTimeOffsetInSeconds) *
-            1000,
-        );
+        const startDate = new Date(activity.startTimeInSeconds * 1000);
         const endDate = new Date(
           startDate.getTime() + activity.durationInSeconds * 1000,
         );
@@ -1308,9 +1300,12 @@ export class GarminProviderService
             type: metric.type as unknown as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: 'GARMIN',
           },
           update: {
             value: roundMetricValue(metric.value),
+            source: 'GARMIN',
+            sourceMetadata: Prisma.DbNull,
           },
         }),
       ),
@@ -2099,15 +2094,12 @@ export class GarminProviderService
       return;
     }
 
-    const activity = await this.prisma.eventActivity.findFirst({
-      where: {
-        externalId: String(payload.activityId),
-        provider: ConnectorProvider.GARMIN,
-      },
-      include: {
-        event: true,
-      },
-    });
+    const source = await this.reconciliation.findSource(
+      account.athleteId,
+      this.provider,
+      String(payload.activityId),
+    );
+    const activity = source?.eventActivity;
 
     if (!activity) {
       // Activity ping hasn't been processed yet. Cache the callback URL so we
@@ -2124,6 +2116,7 @@ export class GarminProviderService
       activity,
       payload.callbackURL,
       payload.fileType,
+      String(payload.activityId),
     );
   }
 
@@ -2132,6 +2125,8 @@ export class GarminProviderService
     activity: EventActivity,
     callbackURL: string,
     fileType: 'FIT' | 'GPX',
+    externalId: string,
+    dispatch = true,
   ): Promise<void> {
     try {
       const accessToken = await this.getValidAccessToken(account);
@@ -2150,46 +2145,51 @@ export class GarminProviderService
         fileType,
       );
       const activityStream = parseResult.stream;
-      const compressedStream = compressActivityStream(activityStream);
-
-      await this.prisma.eventActivity.update({
-        where: {
-          eventActivityId: activity.eventActivityId,
-        },
-        data: {
-          stream: compressedStream as unknown as object,
-        },
-      });
-
-      if (
-        parseResult.segments?.length &&
-        Object.keys(activityStream).length > 0
-      ) {
-        await this.syncSegmentsFromFit(
-          activity.eventActivityId,
-          parseResult.segments,
-          activityStream,
-        );
-      }
-
-      const activityWithEvent = await this.prisma.eventActivity.findUnique({
+      const source = await this.reconciliation.findSource(
+        account.athleteId,
+        this.provider,
+        externalId,
+      );
+      const canonical = await this.prisma.eventActivity.findUniqueOrThrow({
         where: { eventActivityId: activity.eventActivityId },
-        select: {
-          event: { select: { athleteId: true } },
-          stream: true,
-          eventId: true,
-        },
+        include: { event: true },
       });
-
-      if (
-        activityWithEvent?.stream &&
-        activityWithEvent.event &&
-        activityWithEvent.eventId
-      ) {
+      const stored = source?.payload as unknown as
+        ActivityRecording | undefined;
+      const recording = stored?.values
+        ? stored
+        : this.reconciliation.fromActivity(canonical);
+      const result = await this.reconciliation.reconcile(
+        account.athleteId,
+        this.provider,
+        externalId,
+        {
+          ...recording,
+          stream: activityStream,
+          laps: (parseResult.segments ?? [])
+            .filter((lap) => lap.endTimeSeconds > lap.startTimeSeconds)
+            .map((lap) => ({
+              startDate: new Date(
+                Date.parse(recording.startDate) + lap.startTimeSeconds * 1000,
+              ).toISOString(),
+              endDate: new Date(
+                Date.parse(recording.startDate) + lap.endTimeSeconds * 1000,
+              ).toISOString(),
+              name: lap.name,
+            })),
+          raw: { ...recording.raw, fileSegments: parseResult.segments ?? [] },
+        },
+      );
+      if (dispatch && result.activity && result.processingPending) {
         await this.queueService.addActivityProcessingJob(
-          activity.eventActivityId,
-          activityWithEvent.eventId,
-          false,
+          result.activity.eventActivityId,
+          result.activity.eventId,
+          true,
+          `source-${result.receiptId}-${result.revision}`,
+        );
+        await this.reconciliation.markDispatched(
+          result.receiptId,
+          result.revision,
         );
       }
     } catch (error) {
@@ -2197,53 +2197,6 @@ export class GarminProviderService
         `Failed to download/parse Garmin activity file for activity ${activity.eventActivityId} (account ${account.providerAccountId}): ${error instanceof Error ? error.message : String(error)}`,
       );
     }
-  }
-
-  private async syncSegmentsFromFit(
-    eventActivityId: number,
-    segments: FitFileSegment[],
-    stream: ActivityStream,
-  ): Promise<void> {
-    if (!segments.length || !stream?.time?.length) {
-      return;
-    }
-
-    const segmentsData: Prisma.ActivitySegmentCreateManyInput[] = [];
-
-    segments.forEach((segment, index) => {
-      if (segment.endTimeSeconds <= segment.startTimeSeconds) {
-        return;
-      }
-
-      const metrics = calculateSegmentMetrics(
-        stream,
-        segment.startTimeSeconds,
-        segment.endTimeSeconds,
-      );
-
-      segmentsData.push({
-        segmentType: ActivitySegmentType.LAP,
-        name: segment.name ?? `Lap ${index + 1}`,
-        orderIndex: index,
-        startTimeSeconds: Math.round(segment.startTimeSeconds),
-        endTimeSeconds: Math.round(segment.endTimeSeconds),
-        ...metrics,
-        eventActivityId: eventActivityId,
-      });
-    });
-
-    if (!segmentsData.length) {
-      return;
-    }
-
-    await this.prisma.$transaction(async (tx) => {
-      await tx.activitySegment.deleteMany({
-        where: { eventActivityId: eventActivityId },
-      });
-      await tx.activitySegment.createMany({
-        data: segmentsData,
-      });
-    });
   }
 
   async handleDeregistrationWebhook(

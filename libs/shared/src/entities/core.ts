@@ -124,7 +124,7 @@ export type ActivityEvent = Omit<
   PrismaEvent,
   'type' | 'activity' | 'training' | 'competition' | 'note'
 > &
-  Omit<PrismaEventActivity, 'event' | 'sport'> & {
+  Omit<PrismaEventActivity, 'event' | 'sport' | 'sourceAthleteId'> & {
     type: EVENT_TYPE.ACTIVITY;
     sport: SPORT_TYPE;
     records?: Record[];

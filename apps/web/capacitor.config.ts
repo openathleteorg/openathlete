@@ -3,17 +3,20 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'org.openathlete',
   appName: 'OpenAthlete',
+  // Native bridge responses can contain health previews. Never log their payloads.
+  loggingBehavior: 'none',
   webDir: 'dist',
   server: {
     // Use https scheme for native apps
     androidScheme: 'https',
-    iosScheme: 'https',
+    iosScheme: 'capacitor',
     // Uncomment for local development with live reload
     // url: 'http://localhost:5173',
     // cleartext: true,
     // End of local development configuration
   },
   plugins: {
+    CapacitorHttp: { enabled: true },
     SafeArea: {
       statusBarStyle: undefined,
       navigationBarStyle: undefined,

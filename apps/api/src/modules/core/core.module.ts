@@ -14,6 +14,7 @@ import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateFolderController } from './controllers/event-template-folder.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
+import { HealthkitWorkoutImportController } from './controllers/healthkit-workout-import.controller';
 import { InjuryController } from './controllers/injury.controller';
 import { ManualFitImportController } from './controllers/manual-fit-import.controller';
 import { MetricController } from './controllers/metric.controller';
@@ -31,6 +32,7 @@ import {
 } from './services';
 import { ActivityDetailService } from './services/activity-detail.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
+import { ActivityReconciliationService } from './services/activity-reconciliation.service';
 import { ActivityRecordsService } from './services/activity-records.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
@@ -41,6 +43,7 @@ import { EventBulkService } from './services/event-bulk.service';
 import { EventSeriesService } from './services/event-series.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
 import { EventTemplateService } from './services/event-template.service';
+import { HealthkitWorkoutImportService } from './services/healthkit-workout-import.service';
 import { InjuryService } from './services/injury.service';
 import { ManualActivityService } from './services/manual-activity.service';
 import { ManualFitImportService } from './services/manual-fit-import.service';
@@ -87,10 +90,13 @@ import { WeatherService } from './services/weather/weather.service';
     TrainingLoadController,
     CycleController,
     ManualFitImportController,
+    HealthkitWorkoutImportController,
   ],
   providers: [
     EventService,
     ManualFitImportService,
+    ActivityReconciliationService,
+    HealthkitWorkoutImportService,
     WorkoutService,
     EventTemplateService,
     EventTemplateFolderService,
@@ -154,6 +160,7 @@ import { WeatherService } from './services/weather/weather.service';
     },
   ],
   exports: [
+    ActivityReconciliationService,
     EventService,
     ActivityRecordsService,
     ActivityPipelineService,

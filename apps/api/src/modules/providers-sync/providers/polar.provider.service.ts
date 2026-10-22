@@ -15,6 +15,7 @@ import {
   EventActivity,
   EventType,
   MetricType,
+  Prisma,
   ProviderAccount,
   SportType,
 } from '@openathlete/database';
@@ -1127,6 +1128,8 @@ export class PolarProviderService
     const existing = await this.prisma.eventActivity.findFirst({
       where: {
         externalId: activity.externalId,
+        provider: this.provider,
+        event: { athleteId: account.athleteId },
       },
     });
 
@@ -1177,7 +1180,7 @@ export class PolarProviderService
    * Save activity data
    */
   private async saveActivityData(
-    event: { eventId: number },
+    event: { eventId: number; athleteId: number | null },
     exercise: PolarExercise,
   ): Promise<EventActivity> {
     const durationMatch = exercise.duration.match(
@@ -1195,6 +1198,7 @@ export class PolarProviderService
       data: {
         eventId: event.eventId,
         provider: ConnectorProvider.POLAR,
+        sourceAthleteId: event.athleteId,
         externalId: exercise['exercise-id'],
         distance: exercise.distance ? roundDistance(exercise.distance) : 0,
         movingTime: durationSeconds,
@@ -1356,6 +1360,8 @@ export class PolarProviderService
 
     const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
+        provider: this.provider,
+        event: { athleteId: account.athleteId },
         externalId: {
           in: activities.map((a) => a.externalId),
         },
@@ -1675,9 +1681,12 @@ export class PolarProviderService
             type: metric.type as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: 'POLAR',
           },
           update: {
             value: roundMetricValue(metric.value),
+            source: 'POLAR',
+            sourceMetadata: Prisma.DbNull,
           },
         });
       } catch (error) {

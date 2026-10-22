@@ -129,11 +129,16 @@ function warningText(warning: ActivityImportWarning) {
 type Props = {
   /** Shows the button that opens the dialog; off when files are dropped */
   trigger?: boolean;
+  triggerLabel?: string;
   /** Files dropped on the calendar: opens the dialog with them */
   dropped?: { files: File[]; at: number } | null;
 };
 
-export function ImportFitDialog({ trigger = true, dropped }: Props = {}) {
+export function ImportFitDialog({
+  trigger = true,
+  triggerLabel,
+  dropped,
+}: Props = {}) {
   const [open, setOpen] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [name, setName] = useState('');
@@ -241,7 +246,7 @@ export function ImportFitDialog({ trigger = true, dropped }: Props = {}) {
           }}
         >
           <Upload className="size-4" />
-          {m.fit_import_title()}
+          {triggerLabel ?? m.fit_import_title()}
         </Button>
       )}
       <Dialog

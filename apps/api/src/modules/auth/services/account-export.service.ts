@@ -88,6 +88,11 @@ export class AccountExportService {
     write('aiAssistant', await this.aiAssistant(userId));
     write('aiSettings', await this.aiSettings(userId));
 
+    sink.write('"activitySources":[');
+    if (athleteId) {
+      await this.writeActivitySources(athleteId, sink, options.includeStreams);
+    }
+    sink.write('],');
     sink.write('"events":[');
     if (athleteId) {
       await this.writeEvents(athleteId, sink, options.includeStreams);
@@ -95,6 +100,60 @@ export class AccountExportService {
     sink.write(']}');
     sink.end();
     this.logger.log(`Data export for user ${userId}`);
+  }
+
+  /** Raw source revisions can contain GPS/health samples: stream them one at a
+   * time, only with the same explicit opt-in as canonical activity streams. */
+  private async writeActivitySources(
+    athleteId: number,
+    sink: ExportSink,
+    includeStreams: boolean,
+  ) {
+    let after = 0;
+    let separator = '';
+    while (true) {
+      const source = await this.prisma.activitySource.findFirst({
+        where: { athleteId, activitySourceId: { gt: after } },
+        orderBy: { activitySourceId: 'asc' },
+        select: {
+          activitySourceId: true,
+          provider: true,
+          externalId: true,
+          eventActivityId: true,
+          revision: true,
+          createdAt: true,
+          updatedAt: true,
+          payload: includeStreams,
+        },
+      });
+      if (!source) break;
+      sink.write(separator + JSON.stringify(source).slice(0, -1));
+      sink.write(',"observations":[');
+      let revision = 0;
+      let observationSeparator = '';
+      while (true) {
+        const observation =
+          await this.prisma.activitySourceObservation.findFirst({
+            where: {
+              activitySourceId: source.activitySourceId,
+              revision: { gt: revision },
+            },
+            orderBy: { revision: 'asc' },
+            select: {
+              revision: true,
+              createdAt: true,
+              payload: includeStreams,
+            },
+          });
+        if (!observation) break;
+        sink.write(observationSeparator + JSON.stringify(observation));
+        observationSeparator = ',';
+        revision = observation.revision;
+      }
+      sink.write(']}');
+      separator = ',';
+      after = source.activitySourceId;
+    }
   }
 
   private async athleteData(athleteId: number) {

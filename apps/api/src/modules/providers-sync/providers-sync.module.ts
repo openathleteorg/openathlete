@@ -10,6 +10,7 @@ import { CorosAdapter } from './adapters/coros.adapter';
 import { GarminAdapter } from './adapters/garmin.adapter';
 import { SuuntoAdapter } from './adapters/suunto.adapter';
 import { ProviderOAuthController } from './controllers/provider-oauth.controller';
+import { StravaSyncController } from './controllers/strava-sync.controller';
 import { ProviderExportService } from './export.service';
 import {
   CorosProviderService,
@@ -28,7 +29,7 @@ import { ProviderExportScheduler } from './scheduler.service';
     EventEmitterModule,
     forwardRef(() => QueueModule),
   ],
-  controllers: [ProviderOAuthController],
+  controllers: [ProviderOAuthController, StravaSyncController],
   providers: [
     PrismaService,
     GarminAdapter,

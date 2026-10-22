@@ -126,7 +126,7 @@ function setup() {
   const db = {
     athlete: { findUnique: jest.fn().mockResolvedValue({ athleteId: 4 }) },
     eventActivity: {
-      findUnique: jest.fn().mockResolvedValue(null),
+      findFirst: jest.fn().mockResolvedValue(null),
       update: jest.fn(),
     },
     event: {
@@ -339,7 +339,7 @@ describe('Manual FIT ownership and persistence', () => {
   });
   test('same-file retry reuses existing activity and can retry queue submission', async () => {
     const { db, queue, service } = setup();
-    db.eventActivity.findUnique.mockResolvedValue({
+    db.eventActivity.findFirst.mockResolvedValue({
       eventId: 90,
       eventActivityId: 80,
       event: { name: 'Original', startDate: new Date('2020-01-02T09:00:00Z') },
@@ -352,7 +352,7 @@ describe('Manual FIT ownership and persistence', () => {
   });
   test('same-file retry restores missing GPS without overwriting any other data', async () => {
     const { db, service } = setup();
-    db.eventActivity.findUnique.mockResolvedValue({
+    db.eventActivity.findFirst.mockResolvedValue({
       eventId: 90,
       eventActivityId: 80,
       event: { name: 'Original', startDate: new Date('2020-01-02T09:00:00Z') },
@@ -385,7 +385,7 @@ describe('Manual FIT ownership and persistence', () => {
     'does not replace existing GPS or repair a different timeline',
     async (stream) => {
       const { db, service } = setup();
-      db.eventActivity.findUnique.mockResolvedValue({
+      db.eventActivity.findFirst.mockResolvedValue({
         eventId: 90,
         eventActivityId: 80,
         stream,
@@ -531,7 +531,7 @@ describe('Manual GPX import', () => {
     await service.importGpx(athlete, file, 'Rodaje');
     const externalId = db.event.create.mock.calls[0][0].data.activity.create
       .externalId as string;
-    db.eventActivity.findUnique.mockResolvedValue({
+    db.eventActivity.findFirst.mockResolvedValue({
       eventActivityId: 80,
       eventId: 90,
       externalId,
@@ -539,8 +539,8 @@ describe('Manual GPX import', () => {
       event: { startDate: new Date('2020-01-02T09:00:00Z'), name: 'Rodaje' },
     });
     const again = await service.importGpx(athlete, file, 'Other name');
-    expect(db.eventActivity.findUnique).toHaveBeenLastCalledWith({
-      where: { externalId },
+    expect(db.eventActivity.findFirst).toHaveBeenLastCalledWith({
+      where: { externalId, provider: null, event: { athleteId: 4 } },
       include: { event: true },
     });
     expect(db.event.create).toHaveBeenCalledTimes(1);

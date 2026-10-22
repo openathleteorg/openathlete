@@ -1,4 +1,6 @@
 declare module 'jsonwebtoken' {
+  export class JsonWebTokenError extends Error {}
+
   export interface JwtPayload {
     userId: number;
     user_id?: number; // Alias for compatibility
