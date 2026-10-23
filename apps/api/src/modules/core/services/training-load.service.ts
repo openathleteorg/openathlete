@@ -46,7 +46,8 @@ import {
   advanceFitness,
   calculateTrimpFromAverage,
   calculateTrimpFromStream,
-  estimatePlannedTrimp,
+  estimatePlannedSessionTrimp,
+  getHeartRateProfile,
   getUtcWeekStart,
   startOfUtcDay,
   toUtcDateKey,
@@ -440,26 +441,6 @@ export class TrainingLoadService {
   }
 
   /**
-   * Get the latest metric value for an athlete
-   */
-  private async getLatestMetric(
-    athleteId: number,
-    metricType: MetricType,
-  ): Promise<number | null> {
-    const metric = await this.prisma.athleteMetric.findFirst({
-      where: {
-        athleteId: athleteId,
-        type: metricType,
-      },
-      orderBy: {
-        date: 'desc',
-      },
-    });
-
-    return metric?.value ?? null;
-  }
-
-  /**
    * Calculate Foster training load (RPE-based)
    * Formula: Training Load = RPE (0-10) × Duration (minutes)
    */
@@ -581,24 +562,13 @@ export class TrainingLoadService {
         break;
 
       case 'TRIMP': {
-        // Get HR metrics
-        const hrMax = await this.getLatestMetric(
-          athlete.athleteId,
-          'HR_MAX' as MetricType,
-        );
-        const hrRest = await this.getLatestMetric(
-          athlete.athleteId,
-          'HR_REST' as MetricType,
-        );
-
-        if (!hrMax || !hrRest) {
+        const profile = await this.getHeartRateProfile(athlete.athleteId);
+        if (!profile) {
           throw new Error(
             'HR_MAX and HR_REST metrics are required for TRIMP calculation',
           );
         }
-
-        // Default to 'male' coefficients if gender is not set or 'OTHER'
-        const gender = athlete.user.gender === 'FEMALE' ? 'female' : 'male';
+        const { hrMax, hrRest, gender } = profile;
 
         const stream = activity.stream
           ? uncompressActivityStream(
@@ -1078,23 +1048,23 @@ export class TrainingLoadService {
    * Heart rate profile used to estimate planned sessions, the same one the
    * TRIMP of activities uses. Null when the athlete has not set it.
    */
-  private async getHeartRateProfile(
+  async getHeartRateProfile(
     athleteId: number,
   ): Promise<HeartRateProfile | null> {
-    const [hrMax, hrRest, athlete] = await Promise.all([
-      this.getLatestMetric(athleteId, 'HR_MAX' as MetricType),
-      this.getLatestMetric(athleteId, 'HR_REST' as MetricType),
+    const [metrics, athlete] = await Promise.all([
+      this.prisma.athleteMetric.findMany({
+        where: {
+          athleteId,
+          type: { in: [MetricType.HR_MAX, MetricType.HR_REST] },
+        },
+        orderBy: { date: 'desc' },
+      }),
       this.prisma.athlete.findUnique({
         where: { athleteId },
         select: { user: { select: { gender: true } } },
       }),
     ]);
-    if (!hrMax || !hrRest) return null;
-    return {
-      hrMax,
-      hrRest,
-      gender: athlete?.user?.gender === 'FEMALE' ? 'female' : 'male',
-    };
+    return getHeartRateProfile(metrics, athlete?.user?.gender);
   }
 
   /**
@@ -1129,9 +1099,13 @@ export class TrainingLoadService {
     return events.flatMap(({ startDate, training, competition }) => {
       const session = training ?? competition;
       if (!session) return [];
-      const fallback = profile
-        ? estimatePlannedTrimp(session.goalDuration, session.goalRpe, profile)
-        : null;
+      // On-read fallback for sessions saved before deterministic estimation was stored.
+      const fallback =
+        estimatePlannedSessionTrimp({
+          goalDuration: session.goalDuration,
+          goalRpe: session.goalRpe,
+          profile,
+        })?.value ?? null;
       return [
         {
           startDate,

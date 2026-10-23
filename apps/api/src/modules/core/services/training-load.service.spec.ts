@@ -105,6 +105,9 @@ function weeklySummaryService({
       findFirst: jest.fn(async ({ where }: { where: { type: string } }) =>
         where.type in heartRate ? { value: heartRate[where.type] } : null,
       ),
+      findMany: jest.fn(async () =>
+        Object.entries(heartRate).map(([type, value]) => ({ type, value })),
+      ),
     },
     trainingLoadEntry: {
       findMany: jest.fn().mockResolvedValue(

@@ -51,7 +51,7 @@ export class CalendarWebSocketService {
   notifyTrainingLoadEstimationCompleted(
     eventId: number,
     athleteId: number,
-    estimatedLoad: number,
+    estimatedLoad: number | null,
   ): void {
     try {
       this.calendarGateway.broadcastToAthlete(

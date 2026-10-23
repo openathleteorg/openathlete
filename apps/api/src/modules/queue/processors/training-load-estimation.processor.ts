@@ -3,6 +3,7 @@ import { Job, UnrecoverableError } from 'bullmq';
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 
+import { MetricType, SportType } from '@openathlete/database';
 import {
   AiTask,
   TrainingZone,
@@ -15,6 +16,11 @@ import {
 } from 'src/mastra/agents';
 import { AiModelResolverService, AiService } from 'src/modules/ai';
 import { isRetryableAiError } from 'src/modules/ai/ai.errors';
+import {
+  estimatePlannedSessionTrimp,
+  estimatePlannedTrimp,
+  getHeartRateProfile,
+} from 'src/modules/core/helpers/training-load';
 
 import {
   fetchAthleteMetrics,
@@ -32,6 +38,19 @@ import {
   formatFewShotExamples,
   formatGoalSummary,
 } from '../utils/training-load-prompt.helpers';
+
+type EventForAiFallback = {
+  name: string;
+  training: {
+    sport: SportType;
+    goalDistance: number | null;
+    goalDuration: number | null;
+    goalElevationGain: number | null;
+    goalRpe: number | null;
+    workout: Parameters<typeof mapPrismaWorkoutToDto>[0] | null;
+  };
+  athlete: { user: { gender: string | null } } | null;
+};
 
 @Processor('training-load-estimation', {
   concurrency: 2, // Limits concurrent calls on users' AI keys
@@ -58,18 +77,6 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
         `Processing training load estimation for event ${eventId} (training ${eventTrainingId})...`,
       );
 
-      // Keys may have been removed since the job was scheduled
-      const model = await this.aiModelResolver.tryResolveForAthlete(
-        AiTask.TRAINING_LOAD_ESTIMATION,
-        athleteId,
-      );
-      if (!model) {
-        throw new UnrecoverableError(
-          'No AI model available for training load estimation',
-        );
-      }
-
-      // Fetch event with workout and athlete data
       const event = await this.prisma.event.findUnique({
         where: { eventId },
         include: {
@@ -83,19 +90,13 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
                       repeatBlock: {
                         include: {
                           childSteps: {
-                            include: {
-                              targets: true,
-                            },
-                            orderBy: {
-                              orderIndex: 'asc',
-                            },
+                            include: { targets: true },
+                            orderBy: { orderIndex: 'asc' },
                           },
                         },
                       },
                     },
-                    orderBy: {
-                      orderIndex: 'asc',
-                    },
+                    orderBy: { orderIndex: 'asc' },
                   },
                 },
               },
@@ -103,140 +104,228 @@ export class TrainingLoadEstimationProcessor extends WorkerHost {
           },
           athlete: {
             include: {
-              user: {
-                select: {
-                  gender: true,
+              user: { select: { gender: true } },
+              metrics: {
+                where: {
+                  type: { in: [MetricType.HR_MAX, MetricType.HR_REST] },
                 },
+                orderBy: { date: 'desc' },
               },
+              trainingZones: { include: { values: true } },
             },
           },
         },
       });
 
-      if (!event || !event.training) {
+      if (!event?.training || !event.athlete) {
         throw new Error(`Event ${eventId} or training data not found`);
       }
 
-      if (!event.athleteId) {
-        throw new Error(`Event ${eventId} has no athleteId`);
-      }
-
-      // Fetch athlete metrics and training zones
-      const [metrics, zones] = await Promise.all([
-        fetchAthleteMetrics(this.prisma, athleteId),
-        fetchAthleteZones(this.prisma, athleteId),
-      ]);
-
-      const latestMetrics = getLatestMetrics(metrics);
-
-      // Build workout DTO
-      const workoutDto = event.training.workout
-        ? mapPrismaWorkoutToDto(event.training.workout)
-        : null;
-
-      const athleteMetricsSummary = buildAthleteMetricsSummary(latestMetrics);
-      const { summary: trainingZonesSummary, zoneLookup } =
-        buildTrainingZonesContext(zones, event.training.sport);
-      const goalSummary = formatGoalSummary(event.training);
-      const workoutStructure = describeWorkoutStructure(
-        workoutDto,
-        zoneLookup,
-        zones as unknown as TrainingZone[],
+      const profile = getHeartRateProfile(
+        event.athlete.metrics,
+        event.athlete.user.gender,
       );
 
-      // Fetch few-shot examples from past similar sessions
-      const fewShotExamples = await fetchFewShotExamples(
-        this.prisma,
-        athleteId,
-        event.training.sport,
-        3, // Get 3 examples
-      );
-
-      const fewShotSection = formatFewShotExamples(
-        fewShotExamples,
-        zoneLookup,
-        zones as unknown as TrainingZone[],
-      );
-
-      const prompt = [
-        'ATHLETE PROFILE:',
-        athleteMetricsSummary,
-        `Gender: ${event.athlete?.user?.gender ?? 'Unspecified'}`,
-        '',
-        'TRAINING ZONES:',
-        trainingZonesSummary,
-        '',
-        fewShotSection,
-        'CURRENT SESSION TO ESTIMATE:',
-        `Name: ${event.name}`,
-        `Sport: ${event.training.sport}`,
-        `Goals: ${goalSummary}`,
-        '',
-        'WORKOUT STRUCTURE:',
-        workoutStructure,
-      ].join('\n');
-
-      let result;
-      try {
-        result = await this.aiService.generateObject(
-          trimpEstimationAgent,
-          model,
-          prompt,
-          trimpEstimationOutputSchema,
-        );
-      } catch (error) {
-        // Job attempts only make sense for invalid answers
-        if (!isRetryableAiError(error)) {
-          throw new UnrecoverableError(
-            error instanceof Error ? error.message : String(error),
-          );
-        }
-        throw error;
-      }
-
-      // Save estimated_load to event_training
-      await this.prisma.eventTraining.update({
-        where: { eventTrainingId },
-        data: {
-          estimatedLoad: result.trimp,
-        },
+      const deterministicEstimate = estimatePlannedSessionTrimp({
+        goalDuration: event.training.goalDuration,
+        goalRpe: event.training.goalRpe,
+        sport: event.training.sport,
+        workout: event.training.workout,
+        zones: event.athlete.trainingZones,
+        profile,
       });
 
-      this.logger.log(
-        `✓ Training load estimated for event ${eventId}: ${result.trimp} TRIMP`,
-      );
-
-      // Notify that estimation completed
-      if (this.calendarWebSocketService) {
-        this.calendarWebSocketService.notifyTrainingLoadEstimationCompleted(
+      if (deterministicEstimate) {
+        await this.saveAndNotify(
           eventId,
+          eventTrainingId,
           athleteId,
-          result.trimp,
+          deterministicEstimate.value,
+          deterministicEstimate.method,
         );
+        return {
+          success: true,
+          eventId,
+          eventTrainingId,
+          trimp: deterministicEstimate.value,
+          method: deterministicEstimate.method,
+        };
       }
 
+      const aiEstimate = await this.estimateWithAi(
+        {
+          name: event.name,
+          training: event.training,
+          athlete: event.athlete,
+        },
+        athleteId,
+      );
+      if (aiEstimate != null) {
+        await this.saveAndNotify(
+          eventId,
+          eventTrainingId,
+          athleteId,
+          aiEstimate,
+          'AI_FALLBACK',
+        );
+        return {
+          success: true,
+          eventId,
+          eventTrainingId,
+          trimp: aiEstimate,
+          method: 'AI_FALLBACK',
+        };
+      }
+
+      // If AI was not available or could not estimate, fall back to duration and RPE if available.
+      if (
+        event.training.goalDuration &&
+        event.training.goalRpe != null &&
+        profile
+      ) {
+        const fallbackValue = estimatePlannedTrimp(
+          event.training.goalDuration,
+          event.training.goalRpe,
+          profile,
+        );
+        if (fallbackValue != null) {
+          await this.saveAndNotify(
+            eventId,
+            eventTrainingId,
+            athleteId,
+            fallbackValue,
+            'DURATION_RPE',
+          );
+          return {
+            success: true,
+            eventId,
+            eventTrainingId,
+            trimp: fallbackValue,
+            method: 'DURATION_RPE',
+          };
+        }
+      }
+
+      await this.clearUnavailableEstimate(eventId, eventTrainingId, athleteId);
       return {
         success: true,
         eventId,
         eventTrainingId,
-        trimp: result.trimp,
-        confidence: result.confidence,
+        trimp: null,
+        method: null,
       };
     } catch (error) {
       this.logger.error(
         `Failed to estimate training load for event ${eventId}: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error.stack : undefined,
       );
+      this.calendarWebSocketService?.notifyTrainingLoadEstimationFailed(
+        eventId,
+        athleteId,
+        error instanceof Error ? error.message : String(error),
+      );
+      throw error;
+    }
+  }
 
-      // Notify that estimation failed
-      if (this.calendarWebSocketService) {
-        this.calendarWebSocketService.notifyTrainingLoadEstimationFailed(
-          eventId,
-          athleteId,
+  private async saveAndNotify(
+    eventId: number,
+    eventTrainingId: number,
+    athleteId: number,
+    value: number,
+    method: string,
+  ): Promise<void> {
+    await this.prisma.eventTraining.update({
+      where: { eventTrainingId },
+      data: { estimatedLoad: value },
+    });
+    this.logger.log(
+      `✨ Training load estimated for event ${eventId}: ${value} TRIMP (${method})`,
+    );
+    this.calendarWebSocketService?.notifyTrainingLoadEstimationCompleted(
+      eventId,
+      athleteId,
+      value,
+    );
+  }
+
+  private async clearUnavailableEstimate(
+    eventId: number,
+    eventTrainingId: number,
+    athleteId: number,
+  ): Promise<void> {
+    await this.prisma.eventTraining.update({
+      where: { eventTrainingId },
+      data: { estimatedLoad: null },
+    });
+    this.calendarWebSocketService?.notifyTrainingLoadEstimationCompleted(
+      eventId,
+      athleteId,
+      null,
+    );
+  }
+
+  private async estimateWithAi(
+    event: EventForAiFallback,
+    athleteId: number,
+  ): Promise<number | null> {
+    const model = await this.aiModelResolver.tryResolveForAthlete(
+      AiTask.TRAINING_LOAD_ESTIMATION,
+      athleteId,
+    );
+    if (!model) return null;
+
+    const [metrics, zones, fewShotExamples] = await Promise.all([
+      fetchAthleteMetrics(this.prisma, athleteId),
+      fetchAthleteZones(this.prisma, athleteId),
+      fetchFewShotExamples(this.prisma, athleteId, event.training.sport, 3),
+    ]);
+    const latestMetrics = getLatestMetrics(metrics);
+    const workout = event.training.workout
+      ? mapPrismaWorkoutToDto(event.training.workout)
+      : null;
+    const { summary: trainingZonesSummary, zoneLookup } =
+      buildTrainingZonesContext(zones, event.training.sport);
+    const prompt = [
+      'ATHLETE PROFILE:',
+      buildAthleteMetricsSummary(latestMetrics),
+      `Gender: ${event.athlete?.user?.gender ?? 'Unspecified'}`,
+      '',
+      'TRAINING ZONES:',
+      trainingZonesSummary,
+      '',
+      formatFewShotExamples(
+        fewShotExamples,
+        zoneLookup,
+        zones as unknown as TrainingZone[],
+      ),
+      'CURRENT SESSION TO ESTIMATE:',
+      `Name: ${event.name}`,
+      `Sport: ${event.training.sport}`,
+      `Goals: ${formatGoalSummary(event.training)}`,
+      '',
+      'WORKOUT STRUCTURE:',
+      describeWorkoutStructure(
+        workout,
+        zoneLookup,
+        zones as unknown as TrainingZone[],
+      ),
+    ].join('\n');
+
+    try {
+      const result = await this.aiService.generateObject(
+        trimpEstimationAgent,
+        model,
+        prompt,
+        trimpEstimationOutputSchema,
+      );
+      return result.trimp;
+    } catch (error) {
+      if (!isRetryableAiError(error)) {
+        throw new UnrecoverableError(
           error instanceof Error ? error.message : String(error),
         );
       }
-
       throw error;
     }
   }

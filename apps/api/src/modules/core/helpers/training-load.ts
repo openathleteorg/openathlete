@@ -1,3 +1,4 @@
+import { MetricType } from '@openathlete/database';
 import { ActivityStream } from '@openathlete/shared';
 
 import {
@@ -134,6 +135,270 @@ export interface HeartRateProfile {
   hrMax: number;
   hrRest: number;
   gender: TrimpGender;
+}
+
+/**
+ * Resolves the athlete's heart rate profile from their latest recorded
+ * metrics and gender. Both HR_MAX and HR_REST are required.
+ */
+export function getHeartRateProfile(
+  metrics: Array<{ type: MetricType | string; value: number }>,
+  gender: string | null | undefined,
+): HeartRateProfile | null {
+  const latest = new Map<MetricType | string, number>();
+  for (const metric of metrics) {
+    if (!latest.has(metric.type)) latest.set(metric.type, metric.value);
+  }
+  const hrMax = latest.get(MetricType.HR_MAX);
+  const hrRest = latest.get(MetricType.HR_REST);
+  if (hrMax == null || hrRest == null) return null;
+  return {
+    hrMax,
+    hrRest,
+    gender: gender === 'FEMALE' ? 'female' : 'male',
+  };
+}
+
+export type PlannedTrimpEstimationMethod =
+  'WORKOUT_HR_TARGETS' | 'DURATION_RPE';
+
+export interface PlannedTrimpEstimate {
+  value: number;
+  method: PlannedTrimpEstimationMethod;
+}
+
+/**
+ * Minimal persisted workout shape used by the deterministic estimator. Only
+ * timed steps with an explicit HEARTRATE target or a HEARTRATE ZONE target are
+ * supported. Every top-level step (and every child of a repeat) must be
+ * supported; otherwise the workout is considered partial and duration/RPE is
+ * used only when that complete fallback is available.
+ */
+export interface PlannedWorkoutStep {
+  durationType: string;
+  durationValue?: number | null;
+  targets?: PlannedWorkoutTarget[];
+  repeatBlock?: {
+    repetitions: number;
+    childSteps?: PlannedWorkoutStep[];
+  } | null;
+}
+
+export interface PlannedWorkoutTarget {
+  targetType: string;
+  targetMin?: number | null;
+  targetMax?: number | null;
+  targetValue?: number | null;
+  metricType?: string | null;
+}
+
+export interface PlannedHeartRateZone {
+  trainingZoneId: number;
+  type: string;
+  values: Array<{
+    min: number;
+    max: number;
+    sports?: readonly string[] | null;
+  }>;
+}
+
+export interface PlannedTrimpEstimationInput {
+  goalDuration?: number | null;
+  // Stored on its native 0–1 scale. Presentation is responsible for 0–10.
+  goalRpe?: number | null;
+  sport?: string | null;
+  workout?: { steps?: PlannedWorkoutStep[] } | null;
+  zones?: PlannedHeartRateZone[];
+  profile: HeartRateProfile | null | undefined;
+}
+
+function hasUsableHeartRateProfile(
+  profile: HeartRateProfile | null | undefined,
+): profile is HeartRateProfile {
+  return Boolean(
+    profile &&
+    Number.isFinite(profile.hrMax) &&
+    Number.isFinite(profile.hrRest) &&
+    profile.hrMax > profile.hrRest &&
+    profile.hrRest >= 0,
+  );
+}
+
+function midpointOrValue(target: PlannedWorkoutTarget): number | null {
+  if (target.targetMin != null || target.targetMax != null) {
+    if (
+      !Number.isFinite(target.targetMin) ||
+      !Number.isFinite(target.targetMax) ||
+      target.targetMin! > target.targetMax!
+    ) {
+      return null;
+    }
+    return (target.targetMin! + target.targetMax!) / 2;
+  }
+  return Number.isFinite(target.targetValue) ? target.targetValue! : null;
+}
+
+function resolveExplicitHeartRateTarget(
+  target: PlannedWorkoutTarget,
+  profile: HeartRateProfile,
+): number | null {
+  if (target.targetType !== 'HEARTRATE') return null;
+  const value = midpointOrValue(target);
+  if (value == null) return null;
+
+  switch (target.metricType) {
+    case null:
+    case undefined:
+      return value;
+    case 'HR_MAX':
+      return value >= 0 && value <= 1 ? value * profile.hrMax : null;
+    case 'HR_RESERVE':
+      return value >= 0 && value <= 1
+        ? profile.hrRest + value * (profile.hrMax - profile.hrRest)
+        : null;
+    case 'HR_REST':
+      return null;
+    default:
+      return null;
+  }
+}
+
+function resolveHeartRateZoneTarget(
+  target: PlannedWorkoutTarget,
+  zones: PlannedHeartRateZone[],
+  sport: string | null | undefined,
+): number | null {
+  if (target.targetType !== 'ZONE' || !Number.isFinite(target.targetValue)) {
+    return null;
+  }
+  const zone = zones.find(
+    (candidate) =>
+      candidate.trainingZoneId === target.targetValue &&
+      candidate.type === 'HEARTRATE',
+  );
+  if (!zone) return null;
+
+  const specific = zone.values.filter(
+    (value) => sport && value.sports?.includes(sport),
+  );
+  const generic = zone.values.filter(
+    (value) => !value.sports || value.sports.length === 0,
+  );
+  const values = specific.length ? specific : generic;
+  if (values.length !== 1) return null;
+
+  const [value] = values;
+  if (
+    !Number.isFinite(value.min) ||
+    !Number.isFinite(value.max) ||
+    value.min > value.max
+  ) {
+    return null;
+  }
+  return (value.min + value.max) / 2;
+}
+
+function resolveHeartRateTarget(
+  targets: PlannedWorkoutTarget[] | undefined,
+  zones: PlannedHeartRateZone[],
+  sport: string | null | undefined,
+  profile: HeartRateProfile,
+): number | null {
+  const candidates = (targets ?? [])
+    .map(
+      (target) =>
+        resolveExplicitHeartRateTarget(target, profile) ??
+        resolveHeartRateZoneTarget(target, zones, sport),
+    )
+    .filter((value): value is number => value != null)
+    .filter((value) => value >= profile.hrRest && value <= profile.hrMax);
+
+  // Multiple HR targets can conflict; do not guess which one the athlete will use.
+  return candidates.length === 1 ? candidates[0] : null;
+}
+
+function estimateTimedSteps(
+  steps: PlannedWorkoutStep[],
+  zones: PlannedHeartRateZone[],
+  sport: string | null | undefined,
+  profile: HeartRateProfile,
+): number | null {
+  let total = 0;
+
+  for (const step of steps) {
+    if (step.repeatBlock) {
+      const repetitions = step.repeatBlock.repetitions;
+      const children = step.repeatBlock.childSteps;
+      if (
+        !Number.isInteger(repetitions) ||
+        repetitions <= 0 ||
+        !children?.length
+      ) {
+        return null;
+      }
+      const repeated = estimateTimedSteps(children, zones, sport, profile);
+      if (repeated == null) return null;
+      total += repeated * repetitions;
+      continue;
+    }
+
+    if (
+      step.durationType !== 'TIME' ||
+      !Number.isFinite(step.durationValue) ||
+      step.durationValue! <= 0
+    ) {
+      return null;
+    }
+    const hr = resolveHeartRateTarget(step.targets, zones, sport, profile);
+    if (hr == null) return null;
+    total += calculateTrimpFromAverage(
+      hr,
+      step.durationValue!,
+      profile.hrMax,
+      profile.hrRest,
+      profile.gender,
+    ).value;
+  }
+
+  return total;
+}
+
+/**
+ * Deterministic planned-session TRIMP. HR-targeted steps are summed per
+ * segment because the Banister intensity term is nonlinear. A structured
+ * workout must be completely understood before it wins over duration/RPE.
+ */
+export function estimatePlannedSessionTrimp(
+  input: PlannedTrimpEstimationInput,
+): PlannedTrimpEstimate | null {
+  const { profile } = input;
+  if (!hasUsableHeartRateProfile(profile)) return null;
+
+  const steps = input.workout?.steps;
+  if (steps?.length) {
+    const value = estimateTimedSteps(
+      steps,
+      input.zones ?? [],
+      input.sport,
+      profile,
+    );
+    if (value != null) return { value, method: 'WORKOUT_HR_TARGETS' };
+    return null;
+  }
+
+  if (
+    !Number.isFinite(input.goalRpe) ||
+    input.goalRpe! < 0 ||
+    input.goalRpe! > 1
+  ) {
+    return null;
+  }
+  const value = estimatePlannedTrimp(
+    input.goalDuration,
+    input.goalRpe,
+    profile,
+  );
+  return value == null ? null : { value, method: 'DURATION_RPE' };
 }
 
 /**

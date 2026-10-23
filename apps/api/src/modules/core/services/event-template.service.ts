@@ -425,27 +425,19 @@ export class EventTemplateService {
       }
     }
 
-    // Schedule training load estimation for future training events
+    // Compute training load or schedule AI estimation for created training events
     if (
       newEvent.type === 'TRAINING' &&
       newEvent.training &&
-      newEvent.startDate > startOfDay(new Date()) &&
-      this.trainingLoadEstimationService &&
       newEvent.athleteId
     ) {
-      this.trainingLoadEstimationService
-        .scheduleEstimation(
-          newEvent.eventId,
-          newEvent.training.eventTrainingId,
-          newEvent.athleteId,
-        )
-        .catch((error) => {
-          // Log but don't fail the request
-          this.logger.error(
-            `Failed to schedule training load estimation: ${error instanceof Error ? error.message : String(error)}`,
-            error instanceof Error ? error.stack : undefined,
-          );
-        });
+      const isFuture = newEvent.startDate > startOfDay(new Date());
+      await this.eventService.computeAndApplyPlannedTrainingLoad(
+        newEvent.eventId,
+        newEvent.athleteId,
+        newEvent.training.eventTrainingId,
+        isFuture,
+      );
     }
 
     // Return the complete event

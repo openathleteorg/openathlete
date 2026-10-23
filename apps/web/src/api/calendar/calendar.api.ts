@@ -11,7 +11,7 @@ export interface TrainingLoadEstimationStartedPayload {
 export interface TrainingLoadEstimationCompletedPayload {
   eventId: number;
   athleteId: number;
-  estimatedLoad: number;
+  estimatedLoad: number | null;
 }
 
 export interface TrainingLoadEstimationFailedPayload {
