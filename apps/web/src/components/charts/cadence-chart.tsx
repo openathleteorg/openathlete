@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { hasDistanceProgression } from '@/utils/chart-x-axis';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
@@ -34,9 +35,12 @@ export function CadenceChart({
   const unit = isRunningSport ? m.ppm() : m.rpm();
 
   const chartData = useMemo(() => {
+    const xStream = hasDistanceProgression(distanceStream)
+      ? distanceStream
+      : undefined;
     return cadenceStream.map((cadence, i) => {
       const time = timeStream ? timeStream[i] : i;
-      const x = distanceStream ? distanceStream[i] : time;
+      const x = xStream ? xStream[i] : time;
       const convertedCadence = cadence * conversionFactor;
       return {
         cadence: convertedCadence,

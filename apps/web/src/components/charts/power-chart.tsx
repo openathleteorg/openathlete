@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { hasDistanceProgression } from '@/utils/chart-x-axis';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
@@ -26,9 +27,12 @@ export function PowerChart({
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const chartData = useMemo(() => {
+    const xStream = hasDistanceProgression(distanceStream)
+      ? distanceStream
+      : undefined;
     return wattsStream.map((watts, i) => {
       const time = timeStream ? timeStream[i] : i;
-      const x = distanceStream ? distanceStream[i] : time;
+      const x = xStream ? xStream[i] : time;
       return {
         watts,
         time,

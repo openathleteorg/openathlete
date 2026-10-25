@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { hasDistanceProgression } from '@/utils/chart-x-axis';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
 import { CategoricalChartFunc } from 'recharts/types/chart/generateCategoricalChart';
@@ -27,10 +28,13 @@ export function AltitudeChart({
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
 
   const chartData = useMemo(() => {
+    const xStream = hasDistanceProgression(distanceStream)
+      ? distanceStream
+      : undefined;
     return altitudeStream.map((altitude, i) => ({
       altitude,
       time: timeStream ? timeStream[i] : i,
-      x: distanceStream ? distanceStream[i] : timeStream ? timeStream[i] : i,
+      x: xStream ? xStream[i] : timeStream ? timeStream[i] : i,
     }));
   }, [altitudeStream, timeStream, distanceStream]);
 

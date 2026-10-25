@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { hasDistanceProgression } from '@/utils/chart-x-axis';
 import { despikeAndEma } from '@/utils/despike';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
@@ -37,9 +38,12 @@ export function SpeedChart({
   const [refAreaStart, setRefAreaStart] = useState<number | undefined>();
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
   const chartData = useMemo(() => {
+    const xStream = hasDistanceProgression(distanceStream)
+      ? distanceStream
+      : undefined;
     const rawData = latLngStream.map(([lat, lng], i) => {
       const time = timeStream ? timeStream[i] : i;
-      const x = distanceStream ? distanceStream[i] : time;
+      const x = xStream ? xStream[i] : time;
       const prevPoint = latLngStream[i - 1];
       if (
         !isValidGpsPoint([lat, lng]) ||

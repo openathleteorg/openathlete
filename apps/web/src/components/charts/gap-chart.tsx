@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { hasDistanceProgression } from '@/utils/chart-x-axis';
 import { despikeAndEma } from '@/utils/despike';
 import { useMemo, useState } from 'react';
 import { Line, LineChart, ReferenceArea, XAxis, YAxis } from 'recharts';
@@ -36,9 +37,12 @@ export function GapChart({
   const [refAreaEnd, setRefAreaEnd] = useState<number | undefined>();
 
   const chartData = useMemo(() => {
+    const xStream = hasDistanceProgression(distanceStream)
+      ? distanceStream
+      : undefined;
     const base = gapStream.map((gap, i) => {
       const time = timeStream ? timeStream[i] : i;
-      const x = distanceStream ? distanceStream[i] : time;
+      const x = xStream ? xStream[i] : time;
       return { gap, time, x };
     });
     const smoothed = despikeAndEma(base.map((d) => d.gap));

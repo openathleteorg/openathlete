@@ -1,6 +1,7 @@
 import { useGetEventNormalizationQuery } from '@/api/event';
 import type { GetEventNormalizationResponseDto } from '@/api/event/event.api';
 import { m } from '@/paraglide/messages';
+import { hasDistanceProgression } from '@/utils/chart-x-axis';
 import { computeHoverPin } from '@/utils/map-hover';
 import { ZoomOut } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -70,7 +71,7 @@ export function ActivityDetailsOverviewTab({
 
   const fullDomain: [number, number] | undefined = useMemo(() => {
     const d = stream?.distance;
-    if (d?.length) return [d[0], d[d.length - 1]];
+    if (hasDistanceProgression(d)) return [d[0], d[d.length - 1]];
     const t = stream?.time;
     if (t?.length) return [t[0], t[t.length - 1]];
     return undefined;
