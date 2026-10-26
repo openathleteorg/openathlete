@@ -18,7 +18,7 @@
     "tsc:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@inlang/paraglide-js": "2.29.0",
+    "@inlang/paraglide-js": "2.29.1",
     "@openathlete/shared": "workspace:*",
     "@radix-ui/react-avatar": "^1.3.1",
     "@radix-ui/react-collapsible": "^1.2.1",
@@ -28,7 +28,7 @@
     "@radix-ui/react-select": "^2.4.1",
     "@radix-ui/react-slot": "^1.5.0",
     "@tailwindcss/typography": "^0.5.20",
-    "@tanstack/react-query": "^5.104.3",
+    "@tanstack/react-query": "^5.104.5",
     "axios": "^1.20.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -56,8 +56,8 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.5.7",
     "globals": "^15.15.0",
-    "postcss": "^8.5.29",
+    "postcss": "^8.5.31",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.71.2"
+    "typescript-eslint": "^8.72.0"
   }
 }
