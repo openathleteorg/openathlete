@@ -3,7 +3,7 @@
 # ---- Build stage ----
 # The bundle is the same on every architecture: build it once, on the
 # builder's own platform. Emulating arm64 made the release build take hours.
-FROM --platform=$BUILDPLATFORM node:22.23.3-alpine AS build
+FROM --platform=$BUILDPLATFORM node:22.23.4-alpine AS build
 WORKDIR /app
 
 # Install pnpm
