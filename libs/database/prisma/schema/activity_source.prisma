@@ -1,0 +1,41 @@
+/// A provider recording or a pending ambiguous recording. Source identity is
+/// scoped to its authenticated athlete and provider, never a bare external ID.
+model ActivitySource {
+  activitySourceId Int @id @default(autoincrement()) @map("activity_source_id")
+  athleteId Int @map("athlete_id")
+  athlete Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  provider ConnectorProvider
+  externalId String @map("external_id")
+  eventActivityId Int? @map("event_activity_id")
+  eventActivity EventActivity? @relation(fields: [eventActivityId], references: [eventActivityId], onDelete: SetNull)
+  revision Int
+  payloadHash String @map("payload_hash")
+  payload Json
+  candidates Json?
+  processingPending Boolean @default(false) @map("processing_pending")
+  /// Last canonical values written by this importer; edits are never overwritten.
+  reviewDecision Json? @map("review_decision")
+  resolution Json?
+  observations ActivitySourceObservation[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([athleteId, provider, externalId])
+  @@index([eventActivityId])
+  @@map("activity_source")
+}
+
+/// Immutable source revisions preserve original observations and reject reuse
+/// of a revision number with a different payload.
+model ActivitySourceObservation {
+  activitySourceObservationId Int @id @default(autoincrement()) @map("activity_source_observation_id")
+  activitySourceId Int @map("activity_source_id")
+  source ActivitySource @relation(fields: [activitySourceId], references: [activitySourceId], onDelete: Cascade)
+  revision Int
+  payloadHash String @map("payload_hash")
+  payload Json
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([activitySourceId, revision])
+  @@map("activity_source_observation")
+}

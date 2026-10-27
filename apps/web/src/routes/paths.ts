@@ -66,6 +66,7 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/settings`,
       athleteId: `${ROOTS.DASHBOARD}/settings/:athleteId`,
     },
+    sync: `${ROOTS.DASHBOARD}/sync`,
     messages: `${ROOTS.DASHBOARD}/messages`,
     profile: `${ROOTS.DASHBOARD}/profile`,
   },

@@ -88,7 +88,10 @@ export class EventService {
       training: EventTraining | null;
       note: EventNote | null;
       activity:
-        | (Omit<EventActivity, 'stream' | 'recordsVersion'> & {
+        | (Omit<
+            EventActivity,
+            'stream' | 'recordsVersion' | 'sourceAthleteId'
+          > & {
             segments?: ActivitySegment[];
             trainingLoadEntries?: Array<{ value: number }>;
             feedbackQuestions?: Array<{
@@ -1351,7 +1354,10 @@ export class EventService {
       competition: EventCompetition | null;
       training: EventTraining | null;
       note: EventNote | null;
-      activity: Omit<EventActivity, 'stream' | 'recordsVersion'> | null;
+      activity: Omit<
+        EventActivity,
+        'stream' | 'recordsVersion' | 'sourceAthleteId'
+      > | null;
     },
   ): Promise<boolean> {
     if (!event.athleteId) return true; // No athlete, consider validated

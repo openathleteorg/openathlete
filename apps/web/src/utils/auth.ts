@@ -43,6 +43,7 @@ async function refreshToken(): Promise<TokenInfo | null> {
       {
         refreshToken: token,
       },
+      { timeout: 15_000 },
     );
 
     if (!tokenData.data) return null;
@@ -53,8 +54,12 @@ async function refreshToken(): Promise<TokenInfo | null> {
       refreshToken,
       refreshed: true,
     };
-  } catch {
-    return null;
+  } catch (error) {
+    // A transport failure must not turn a recoverable session into an
+    // unauthenticated /user/me request that clears both stored credentials.
+    if (axios.isAxiosError(error) && error.response?.status === 401)
+      return null;
+    throw error;
   }
 }
 

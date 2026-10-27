@@ -1,0 +1,68 @@
+---
+title: Activity review
+description: Resolve overlapping Garmin, Strava and Apple Health workout recordings
+---
+
+Open **Sync & import > Activity review** to see pending recordings from all your
+connected activity sources. The queue is available independently of starting an
+import or opening a provider's controls. It shows the source, recording name,
+start time, sport, distance and duration alongside suggested existing activities.
+
+Details appear automatically. Strava and Apple Health comparisons use the original
+recording already held on the server. New Garmin Personal conflicts also retain
+comparison details. Older Garmin Personal recordings load their details in the
+background, with at most two requests running at once. If retrieval fails, **Retry
+details** retries that recording independently; starting another import is unnecessary.
+Loading details never chooses a match or creates a calendar activity.
+
+Choose one action for each recording:
+
+- **Link to this activity** attaches the incoming source to the chosen existing
+  activity, preserving its edits, streams and training links. Later revisions of a
+  manually linked source retain that choice and do not replace its canonical values.
+- **Import as a separate activity** creates another activity. Use this when the
+  recording represents a different session. Previously uploaded Strava and Apple
+  Health data can be used without reconnecting those providers or reading Health
+  again. Garmin Personal still needs activity access to fetch the original FIT.
+- **Ignore recording** leaves the calendar unchanged and suppresses that source
+  recording on future syncs, including later Apple Health revisions.
+
+After a decision, the remaining recordings stay available with their loaded details.
+The pending counts refresh automatically. Identical retries are safe if an
+acknowledgement was lost. A different decision for an already resolved item is
+rejected; changed source revisions require refreshing the comparison before choosing.
+Only recordings and target activities belonging to the signed-in athlete are accessible.
+Review decisions are included in account exports. Existing local deletions remain
+excluded from the review queue.
+
+## iPhone
+
+The same review section is part of the iPhone client's shared web interface. It
+reviews workouts that were already uploaded with separate consent and does not
+request additional Health permissions or upload new samples. Server-side decisions
+remain consistent between web and iPhone. Existing installed apps need a rebuild
+from the updated `feature/healthkit-sync` branch to display the new interface;
+a server deployment alone does not replace a bundled Capacitor UI.
+
+The workout upload protocol remains version 1. Accepted receipt IDs and persisted
+workout revisions are preserved. An ignored workout returns `unchanged` on later
+uploads, so existing iOS clients can acknowledge it without creating another activity.
+The receipt-status endpoint reports `ignored` for reviewed sources without a
+canonical activity.
+
+## Shared API
+
+Supporting servers advertise `activityReview: true` in `GET /api/instance`.
+All routes below require the current user's JWT and derive athlete ownership from it.
+
+| Method | Path under `/api` | Request |
+| --- | --- | --- |
+| GET | `/activity-import/reviews` | Optional opaque `cursor`; returns items, per-provider counts and `nextCursor` |
+| POST | `/activity-import/reviews/:id/prepare` | No body; caches details for an older recording |
+| POST | `/activity-import/reviews/:id/resolve` | `{ action, revision, eventActivityId? }` |
+
+Treat review IDs and cursors as opaque, URL-encoded strings. Actions are `link`,
+`import` and `ignore`; `eventActivityId` is required only for `link`. The listed
+revision must accompany the choice. Comparison responses contain summary metadata,
+not raw sensor streams, GPS payloads or provider credentials. The original Garmin
+Personal review endpoints remain available for older clients.

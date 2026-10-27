@@ -37,6 +37,7 @@ export const metricTypeLabelMap: Record<METRIC_TYPE, string> = {
   [METRIC_TYPE.HR_MAX_DAILY]: m.metric_hr_max_daily(),
   [METRIC_TYPE.HR_RESERVE]: m.metric_hr_reserve(),
   [METRIC_TYPE.RMSSD]: m.metric_rmssd(),
+  [METRIC_TYPE.HRV_SDNN]: m.metric_hrv_sdnn(),
   [METRIC_TYPE.HRV_LAST_NIGHT_AVG]: m.metric_hrv_last_night_avg(),
   [METRIC_TYPE.HRV_LAST_NIGHT_5MIN_HIGH]: m.metric_hrv_last_night_5min_high(),
   [METRIC_TYPE.SNAPSHOT_HEART_RATE_AVG]: m.metric_snapshot_heart_rate_avg(),

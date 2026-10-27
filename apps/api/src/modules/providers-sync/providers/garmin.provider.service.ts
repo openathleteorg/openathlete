@@ -14,14 +14,13 @@ import { ConfigService } from '@nestjs/config';
 import {
   ConnectorProvider,
   EventActivity,
-  EventType,
   MetricType,
   ProviderAccount,
 } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
-import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { ActivityRecording } from '../../core/helpers/activity-recording';
 import { buildFitActivityDetails } from '../../core/helpers/fit-activity-details';
 import { mapGarminActivityType } from '../../core/helpers/garmin';
 import {
@@ -33,6 +32,7 @@ import {
   roundMetricValue,
   roundSpeed,
 } from '../../core/helpers/round-activity-values';
+import { ActivityReconciliationService } from '../../core/services/activity-reconciliation.service';
 import type {
   GarminActivityFileNotification,
   GarminActivitySummary,
@@ -229,6 +229,7 @@ export class GarminProviderService
     @Inject(forwardRef(() => QueueService))
     private readonly queueService: QueueService,
     private readonly activityFileParserService: ActivityFileParserService,
+    private readonly reconciliation: ActivityReconciliationService,
   ) {
     super(prisma, configService);
   }
@@ -840,105 +841,91 @@ export class GarminProviderService
       .filter((activity): activity is ImportedActivity => activity !== null);
     if (activities.length === 0) return;
 
-    const existing = await this.prisma.eventActivity.findMany({
+    const existing = await this.prisma.activitySource.findMany({
       where: {
-        provider: ConnectorProvider.GARMIN,
+        athleteId: account.athleteId,
+        provider: this.provider,
         externalId: { in: activities.map((activity) => activity.externalId) },
-        event: { athleteId: account.athleteId },
       },
-      select: { externalId: true, eventActivityId: true, eventId: true },
+      select: { externalId: true },
     });
-    const existingById = new Map(
-      existing.map((activity) => [activity.externalId, activity]),
-    );
-
+    const existingIds = new Set(existing.map((source) => source.externalId));
     if (manuallyUpdated) {
       for (const activity of activities) {
-        const saved = existingById.get(activity.externalId);
-        if (saved?.eventId) {
-          await this.updateActivityFromSummary(
-            saved.eventActivityId,
-            saved.eventId,
-            activity,
-          );
-        }
+        const result = await this.importActivity(account, activity, true);
+        await this.dispatchReconciledActivity(result);
       }
+      return;
     }
-
-    const newActivities = activities.filter(
-      (activity) => !existingById.has(activity.externalId),
-    );
     await this.queueService.addActivityImportJobs(
       account,
-      newActivities,
+      activities.filter((activity) => !existingIds.has(activity.externalId)),
       false,
     );
-  }
-
-  /** An activity edited in Garmin Connect: its new summary replaces ours */
-  private async updateActivityFromSummary(
-    eventActivityId: number,
-    eventId: number,
-    activity: ImportedActivity,
-  ) {
-    const summary = activity.raw as GarminActivitySummary;
-    await this.prisma.$transaction([
-      this.prisma.event.update({
-        where: { eventId },
-        data: {
-          ...(activity.name && { name: activity.name }),
-          startDate: activity.startDate,
-          endDate: activity.endDate,
-        },
-      }),
-      this.prisma.eventActivity.update({
-        where: { eventActivityId },
-        data: activityMetrics(summary),
-      }),
-    ]);
-    await this.queueService.addActivityProcessingJob(eventActivityId, eventId);
   }
 
   async importActivity(
     account: ProviderAccount,
     activity: ImportedActivity,
+    update = false,
   ): Promise<ImportResult> {
-    const existing = await this.prisma.eventActivity.findFirst({
-      where: {
-        provider: ConnectorProvider.GARMIN,
-        externalId: activity.externalId,
-        event: { athleteId: account.athleteId },
-      },
-    });
-    if (existing) {
-      return { activity: existing, created: false };
-    }
-
+    const source = await this.reconciliation.findSource(
+      account.athleteId,
+      this.provider,
+      activity.externalId,
+    );
+    if (source && !update)
+      return {
+        activity: source.eventActivity,
+        created: false,
+        receiptId: source.activitySourceId,
+        revision: source.revision,
+        processingPending: source.processingPending,
+        ...(source.reviewDecision && !source.eventActivityId
+          ? { ignored: true }
+          : {}),
+      };
     const summary = activity.raw as GarminActivitySummary;
-    const metrics = activityMetrics(summary);
-    const saved = await this.prisma.$transaction(async (tx) => {
-      const event = await tx.event.create({
-        data: {
-          athleteId: account.athleteId,
-          name: activity.name || summary.activityType || 'Activity',
-          type: EventType.ACTIVITY,
-          startDate: new Date(activity.startDate),
-          endDate: new Date(activity.endDate),
-        },
-      });
-      return tx.eventActivity.create({
-        data: {
-          provider: ConnectorProvider.GARMIN,
-          ...metrics,
-          // The activity file brings the stream, in its own notification
-          stream: compressActivityStream({}) as object,
-          externalId: activity.externalId,
-          event: { connect: { eventId: event.eventId } },
-        },
-      });
-    });
+    const stored = source?.payload as unknown as ActivityRecording | undefined;
+    return this.reconciliation.reconcile(
+      account.athleteId,
+      this.provider,
+      activity.externalId,
+      {
+        name: activity.name || summary.activityType || 'Activity',
+        startDate: new Date(activity.startDate).toISOString(),
+        endDate: new Date(activity.endDate).toISOString(),
+        values: activityMetrics(summary),
+        stream: stored?.stream ?? {},
+        ...(stored?.laps ? { laps: stored.laps } : {}),
+        original: true,
+        recordingKind: summary.isParent
+          ? 'multisport_parent'
+          : summary.parentSummaryId
+            ? 'multisport_leg'
+            : 'single',
+        raw: { ...stored?.raw, ...summary },
+      },
+    );
+  }
 
-    return { activity: saved, created: true };
+  private async dispatchReconciledActivity(result: ImportResult) {
+    if (
+      result.activity?.eventId &&
+      result.processingPending &&
+      result.receiptId
+    ) {
+      await this.queueService.addActivityProcessingJob(
+        result.activity.eventActivityId,
+        result.activity.eventId,
+        true,
+        `source-${result.receiptId}-${result.revision}`,
+      );
+      await this.reconciliation.markDispatched(
+        result.receiptId,
+        result.revision!,
+      );
+    }
   }
 
   /**
@@ -961,16 +948,33 @@ export class GarminProviderService
     const activityId =
       entry.activityId === undefined ? null : String(entry.activityId);
 
-    let activity: EventActivity | null = null;
+    let activity:
+      | (EventActivity & {
+          event: { name: string; startDate: Date; endDate: Date };
+        })
+      | null = null;
+    let source: Awaited<
+      ReturnType<ActivityReconciliationService['findSource']>
+    > = null;
     if (account?.importActivitiesEnabled && parsable && activityId) {
-      activity = await this.prisma.eventActivity.findFirst({
-        where: {
-          provider: ConnectorProvider.GARMIN,
-          externalId: activityId,
-          event: { athleteId: account.athleteId },
-        },
-      });
-      if (!activity && !lastAttempt) {
+      source = await this.reconciliation.findSource(
+        account.athleteId,
+        this.provider,
+        activityId,
+      );
+      // A review receipt may intentionally have no canonical activity. Its file
+      // still enriches the stored recording for review without creating one.
+      if (!source) {
+        activity = await this.prisma.eventActivity.findFirst({
+          where: {
+            provider: this.provider,
+            externalId: activityId,
+            event: { athleteId: account.athleteId },
+          },
+          include: { event: true },
+        });
+      }
+      if (!source && !activity && !lastAttempt) {
         throw new Error(
           `Garmin activity ${activityId} is not saved yet; its file will be fetched on the next attempt`,
         );
@@ -995,37 +999,40 @@ export class GarminProviderService
       throw error;
     }
 
-    if (!activity || !account) return;
-
+    if (!account || (!source && !activity) || !activityId) return;
+    // Answer ignored/deleted source notifications without resurrecting them.
+    if (source?.reviewDecision && !source.eventActivityId) return;
     const parsed = await this.activityFileParserService.parseByFileType(
       file,
       fileType as 'FIT' | 'GPX',
     );
-    const details = buildFitActivityDetails(parsed);
-    const { eventActivityId } = activity;
-
-    await this.prisma.$transaction(async (tx) => {
-      await tx.eventActivity.update({
-        where: { eventActivityId },
-        data: { stream: details.stream as unknown as object },
-      });
-      if (details.segments.length > 0) {
-        await tx.activitySegment.deleteMany({ where: { eventActivityId } });
-        await tx.activitySegment.createMany({
-          data: details.segments.map((segment) => ({
-            ...segment,
-            eventActivityId,
+    buildFitActivityDetails(parsed); // Validate the timeline and remove incomplete channels.
+    const stored = source?.payload as unknown as ActivityRecording | undefined;
+    const recording = stored?.values
+      ? stored
+      : this.reconciliation.fromActivity(activity!);
+    const result = await this.reconciliation.reconcile(
+      account.athleteId,
+      this.provider,
+      activityId,
+      {
+        ...recording,
+        stream: parsed.stream,
+        laps: (parsed.segments ?? [])
+          .filter((lap) => lap.endTimeSeconds > lap.startTimeSeconds)
+          .map((lap) => ({
+            startDate: new Date(
+              Date.parse(recording.startDate) + lap.startTimeSeconds * 1000,
+            ).toISOString(),
+            endDate: new Date(
+              Date.parse(recording.startDate) + lap.endTimeSeconds * 1000,
+            ).toISOString(),
+            name: lap.name,
           })),
-        });
-      }
-    });
-
-    if (activity.eventId) {
-      await this.queueService.addActivityProcessingJob(
-        eventActivityId,
-        activity.eventId,
-      );
-    }
+        raw: { ...recording.raw, fileSegments: parsed.segments ?? [] },
+      },
+    );
+    await this.dispatchReconciledActivity(result);
   }
 
   // ---------------------------------------------------------------------------

@@ -90,6 +90,7 @@ export function LoginView({ className }: React.ComponentProps<'form'>) {
           <RHFTextField
             name="email"
             type="email"
+            autoComplete="username"
             placeholder={m.email_placeholder()}
             label={m.email()}
             required

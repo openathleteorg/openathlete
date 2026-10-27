@@ -1,0 +1,39 @@
+/// Independent, per-athlete read-only access; never uses the shared Garmin OAuth app.
+model GarminPersonalConnection {
+  id                   Int                  @id @default(autoincrement())
+  athleteId            Int                  @unique @map("athlete_id")
+  athlete              Athlete              @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  encryptedCredentials String?              @map("encrypted_credentials")
+  version              Int                  @default(1)
+  activities           Boolean              @default(false)
+  automatic            Boolean              @default(false)
+  status               String               @default("idle")
+  leaseId              String?              @map("lease_id")
+  leaseUntil           DateTime?            @map("lease_until")
+  error                String?
+  result               Json?
+  lastSyncedAt         DateTime?            @map("last_synced_at")
+  items                GarminPersonalItem[]
+  createdAt            DateTime             @default(now()) @map("created_at")
+  updatedAt            DateTime             @updatedAt @map("updated_at")
+
+  @@map("garmin_personal_connection")
+}
+
+/// Stable personal-source identities and retry state. Null targets retain local deletions.
+model GarminPersonalItem {
+  id                Int                      @id @default(autoincrement())
+  connectionId      Int                      @map("connection_id")
+  connection        GarminPersonalConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  externalId        String                   @map("external_id")
+  eventActivityId   Int?                     @map("event_activity_id")
+  eventActivity     EventActivity?           @relation(fields: [eventActivityId], references: [eventActivityId], onDelete: SetNull)
+  processingPending Boolean                  @default(false) @map("processing_pending")
+  needsReview       Boolean                  @default(false) @map("needs_review")
+  reviewSummary     Json?                    @map("review_summary")
+  reviewDecision    Json?                    @map("review_decision")
+  createdAt         DateTime                 @default(now()) @map("created_at")
+
+  @@unique([connectionId, externalId])
+  @@map("garmin_personal_item")
+}

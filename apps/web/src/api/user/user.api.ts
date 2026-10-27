@@ -22,7 +22,7 @@ export class UserAPI {
   }
 
   static async getMe(): Promise<User> {
-    const res = await client.get(routes.user.getMe);
+    const res = await client.get(routes.user.getMe, { timeout: 15_000 });
     return res.data;
   }
 

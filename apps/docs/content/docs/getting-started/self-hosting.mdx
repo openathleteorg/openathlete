@@ -87,7 +87,10 @@ Every API variable is documented in `apps/api/.env.example`.
 
 ### Device sync
 
-Each provider needs an app registered in its developer program. Users can always import FIT and GPX files instead (Settings > Connectors).
+The OAuth connectors below need an app registered in their developer program.
+[Garmin Personal API](/docs/guides/garmin-personal-api) is also available: each athlete
+can supply their own personal key in Settings > Connectors, without shared Garmin
+business credentials. Users can always import FIT and GPX files instead (Settings > Connectors).
 
 | Provider | Developer program                                                                                                                       | Callback URL to declare           |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |
@@ -101,6 +104,103 @@ Set the client ID and secret in `.env` (`STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRE
 For Garmin, open the [endpoint configuration](https://apis.garmin.com/tools/endpoints) and point every summary type you enable to `APP_URL/api/provider/garmin/webhook`, as **Ping** notifications. Enable at least `Deregistration` and `User Permissions` (Garmin requires them), `Activities` and `Activity Files`, and the health summaries you want (`Dailies`, `Sleeps`, `HRV`...). The worker pulls each notification once, even for users who turned import off, as Garmin counts unanswered notifications against the app.
 
 Activities from connected devices, including historical imports, are fetched by background jobs that run inside the API container (`ENABLE_ACTIVITY_IMPORT` and `ENABLE_ACTIVITY_PROCESSING`, both on by default). To run them in a separate worker instead, start a second API container with these two variables set to `true` and `SKIP_MIGRATIONS=true`, and set them to `false` on the API.
+
+### Importing Apple Health recovery metrics
+
+An iOS client can send daily HealthKit summaries directly to your API with the
+same bearer access token used for login:
+
+```http
+POST /api/metric/import
+Authorization: Bearer <access-token>
+Content-Type: application/json
+```
+
+```json
+{
+  "source": "APPLE_HEALTH",
+  "timeZone": "Europe/Berlin",
+  "metrics": [
+    {
+      "type": "HRV_SDNN",
+      "date": "2026-10-19",
+      "value": 42.5,
+      "unit": "ms",
+      "sampleCount": 12
+    },
+    { "type": "HR_REST", "date": "2026-10-19", "value": 55, "unit": "bpm" },
+    {
+      "type": "SLEEP_DURATION",
+      "date": "2026-10-19",
+      "value": 7.5,
+      "unit": "h"
+    }
+  ]
+}
+```
+
+The response is `201` with `{ "imported": 3, "skipped": 0 }`. `imported` includes
+new and updated entries. Existing manual entries and other providers' entries
+are skipped. Repeating a summary updates that source's type/date instead of
+adding a duplicate. Manual edits take ownership of a metric, preventing later
+Apple Health imports from replacing the correction. Deleting an entry through
+the ordinary metric API allows it to be imported again.
+
+The batch accepts 1–500 summaries and is atomic. It always targets the signed-in
+user's athlete; a coach cannot use it to upload into another athlete's account.
+There may be only one summary per type/date in a batch. Values must be finite
+JSON numbers, HRV/resting heart rate/weight positive, body fat between 0 and 100
+percent, and sleep between 0 and 25 hours. Types, units, dates and IANA time zones are validated. Invalid input
+returns `400`, missing/invalid authentication `401`, missing permission `403`,
+and an account without an athlete profile `404`.
+
+The client must prepare these daily summaries:
+
+- `HRV_SDNN`: arithmetic mean of the day's selected HealthKit SDNN measurements,
+  converted to milliseconds. This remains distinct from RMSSD, a Garmin
+  overnight average, or a health snapshot. See [Apple's SDNN documentation](https://developer.apple.com/documentation/healthkit/hkquantitytypeidentifier/heartratevariabilitysdnn).
+- `HR_REST`: the latest selected HealthKit resting-heart-rate sample for the day,
+  in beats per minute.
+  Do not substitute the mean of ordinary heart-rate measurements.
+- `SLEEP_DURATION`: the main sleep episode assigned to the local wake-up date,
+  in hours. Union overlapping asleep intervals from the selected source before
+  summing; do not count awake/in-bed intervals or duplicate a summary alongside
+  its constituent sleep stages. See [Apple's sleep categories](https://developer.apple.com/documentation/healthkit/hkcategoryvaluesleepanalysis).
+
+- `WEIGHT`: the latest selected daily body-mass measurement in kilograms, positive.
+- `BODY_FAT`: the latest selected daily body-fat measurement, in percent (0–100).
+
+Dates are literal `YYYY-MM-DD` buckets in the supplied time zone and are never
+shifted by the server's time zone. Persist the original bucket when retrying;
+a later time-zone change must not rebucket an old upload. Send absent data as
+no entry, not as zero. Zero sleep explicitly records a day with no sleep.
+HealthKit permission denial must never be interpreted as zero sleep.
+
+This endpoint stores daily summaries and provenance (`source`, `sourceMetadata`),
+not individual timestamped HealthKit samples. The iOS client is responsible for
+source selection, aggregation, and re-uploading affected days after HealthKit
+corrections. The current iOS client does not propagate HealthKit deletions to
+the server. If a whole day's data disappears, manually delete its previously
+imported metric through `DELETE /api/metric/:id` after verifying its source;
+omitting it from a batch does not delete it. No HealthKit cursor or raw sample
+UUID is accepted by this endpoint.
+
+Metrics are available through the existing `/api/metric`, `/api/metric/latest`
+and `/api/metric/history/:type` endpoints and in the metrics/calendar views.
+Deploy the database migration and matching API, shared library, and web build
+together before enabling iOS uploads.
+
+On iOS, configure measurements and Watch activities separately under Settings >
+Connectors. Consent is remembered for the selected account, server and data scope;
+automatic sync is optional and subject to iOS background-execution limits. The
+main menu's **Sync & import** page contains **Sync now** and FIT/GPX/TCX file import.
+
+Watch workouts use `POST /api/activity-import/healthkit`; `/api/instance`
+advertises protocol v1 and upload limits. Clear Strava/Garmin matches attach to
+one activity and enrich missing data. Ambiguous matches remain uncounted pending
+a resolution workflow. Sleep stages and respiration/oxygen/temperature are
+preview-only in the current client; full raw measurement upload and source
+removal are outside the implemented protocol.
 
 ### AI features
 

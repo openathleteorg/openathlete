@@ -1,4 +1,4 @@
-import { JwtPayload, sign, verify } from 'jsonwebtoken';
+import { JsonWebTokenError, JwtPayload, sign, verify } from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 
 import {
@@ -96,10 +96,18 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string): Promise<AuthResponseDto> {
-    const payload = verify(
-      refreshToken,
-      this.configService.getOrThrow('JWT_SECRET_KEY'),
-    ) as JwtPayload & Partial<{ userId: number }>;
+    let payload: JwtPayload & Partial<{ userId: number }>;
+    try {
+      payload = verify(
+        refreshToken,
+        this.configService.getOrThrow('JWT_SECRET_KEY'),
+      ) as JwtPayload & Partial<{ userId: number }>;
+    } catch (error) {
+      if (error instanceof JsonWebTokenError) {
+        throw new UnauthorizedException('Invalid or expired refresh token');
+      }
+      throw error;
+    }
     if (!payload.userId) throw new UnauthorizedException();
     const user = await this.prisma.user.findFirst({
       where: {

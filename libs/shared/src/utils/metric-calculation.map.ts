@@ -65,6 +65,7 @@ export const metricCalculationMap: Record<METRIC_TYPE, MetricCalculation> = {
       values[METRIC_TYPE.HR_MAX]! - values[METRIC_TYPE.HR_REST]!,
   },
   [METRIC_TYPE.RMSSD]: { canAutoCalculate: false },
+  [METRIC_TYPE.HRV_SDNN]: { canAutoCalculate: false },
   [METRIC_TYPE.HRV_LAST_NIGHT_AVG]: { canAutoCalculate: false },
   [METRIC_TYPE.HRV_LAST_NIGHT_5MIN_HIGH]: { canAutoCalculate: false },
   [METRIC_TYPE.SNAPSHOT_HEART_RATE_AVG]: { canAutoCalculate: false },

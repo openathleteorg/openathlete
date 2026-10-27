@@ -38,6 +38,12 @@ const RecordsPage = lazy(() =>
   })),
 );
 
+const SyncPage = lazy(() =>
+  import('@/pages/dashboard/sync').then((module) => ({
+    default: module.SyncPage,
+  })),
+);
+
 const MetricsPage = lazy(() =>
   import('@/pages/dashboard/metrics').then((module) => ({
     default: module.MetricsPage,
@@ -177,6 +183,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'settings', 'athleteId']),
         element: <AthleteSettingsPage />,
+      },
+      {
+        path: getPath(['dashboard', 'sync']),
+        element: <SyncPage />,
       },
       {
         path: getPath(['dashboard', 'messages']),

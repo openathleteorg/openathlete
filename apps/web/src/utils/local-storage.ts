@@ -6,9 +6,16 @@ export const CURRENT_SPACE = 'current_space';
 export const MOBILE_SERVER_URL = 'openathlete_mobile_server_url';
 
 export const getItem = (key: string) => localStorage.getItem(key);
-export const setItem = (key: string, value: string) =>
+export const setItem = (key: string, value: string) => {
   localStorage.setItem(key, value);
-export const removeItem = (key: string) => localStorage.removeItem(key);
+  if (key === ACCESS_TOKEN)
+    window.dispatchEvent(new Event('openathlete-session-token'));
+};
+export const removeItem = (key: string) => {
+  localStorage.removeItem(key);
+  if (key === ACCESS_TOKEN)
+    window.dispatchEvent(new Event('openathlete-session-token'));
+};
 export const clear = () => {
   const serverUrl = localStorage.getItem(MOBILE_SERVER_URL);
   localStorage.clear();

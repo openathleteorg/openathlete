@@ -135,6 +135,9 @@ importers:
       dotenv:
         specifier: ^16.6.1
         version: 16.6.1
+      express:
+        specifier: 5.2.1
+        version: 5.2.1
       fast-xml-parser:
         specifier: ^5.11.2
         version: 5.11.2

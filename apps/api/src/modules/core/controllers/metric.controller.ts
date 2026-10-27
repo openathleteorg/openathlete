@@ -26,8 +26,11 @@ import {
 import { Athlete, MetricType } from '@openathlete/database';
 import {
   CreateMetricDto,
+  ImportHealthMetricsDto,
+  ImportHealthMetricsResponseDto,
   UpdateMetricDto,
   createMetricDtoSchema,
+  importHealthMetricsDtoSchema,
   updateMetricDtoSchema,
 } from '@openathlete/shared';
 
@@ -40,6 +43,101 @@ import { MetricService } from '../services/metric.service';
 @Controller('metric')
 export class MetricController {
   constructor(private metricService: MetricService) {}
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('import')
+  @ApiOperation({
+    summary: 'Import daily Apple Health recovery and body measurements',
+    description:
+      'Imports up to 500 daily summaries for the signed-in athlete only. ' +
+      'HRV_SDNN uses milliseconds, HR_REST beats/minute, SLEEP_DURATION hours, WEIGHT kilograms and BODY_FAT percent (0–100). ' +
+      'Dates are YYYY-MM-DD in the supplied IANA time zone; sleep belongs to the wake-up date. ' +
+      'Repeating a type/date updates its APPLE_HEALTH entry. Existing manual or other-provider ' +
+      'entries are skipped. Missing days are left unchanged. The batch is atomic.',
+  })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      additionalProperties: false,
+      required: ['source', 'timeZone', 'metrics'],
+      properties: {
+        source: { type: 'string', enum: ['APPLE_HEALTH'] },
+        timeZone: { type: 'string', example: 'Europe/Berlin' },
+        metrics: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 500,
+          items: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['type', 'date', 'unit', 'value'],
+            properties: {
+              type: {
+                type: 'string',
+                enum: [
+                  'HRV_SDNN',
+                  'HR_REST',
+                  'SLEEP_DURATION',
+                  'WEIGHT',
+                  'BODY_FAT',
+                ],
+              },
+              date: { type: 'string', format: 'date' },
+              unit: { type: 'string', enum: ['ms', 'bpm', 'h', 'kg', '%'] },
+              value: { type: 'number' },
+              sampleCount: { type: 'integer', minimum: 1, maximum: 100000 },
+            },
+          },
+        },
+      },
+      example: {
+        source: 'APPLE_HEALTH',
+        timeZone: 'Europe/Berlin',
+        metrics: [
+          {
+            type: 'HRV_SDNN',
+            date: '2026-10-19',
+            unit: 'ms',
+            value: 42.5,
+            sampleCount: 12,
+          },
+          { type: 'HR_REST', date: '2026-10-19', unit: 'bpm', value: 55 },
+          { type: 'SLEEP_DURATION', date: '2026-10-19', unit: 'h', value: 7.5 },
+        ],
+      },
+    },
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Batch imported; counts include updated entries',
+    schema: {
+      type: 'object',
+      required: ['imported', 'skipped'],
+      properties: {
+        imported: { type: 'integer' },
+        skipped: { type: 'integer' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      'Invalid metrics, units, dates, time zone, or duplicate type/date',
+  })
+  @ApiResponse({ status: 401, description: 'Missing or invalid login token' })
+  @ApiResponse({ status: 403, description: 'No permission to import metrics' })
+  @ApiResponse({
+    status: 404,
+    description: 'Signed-in user has no athlete profile',
+  })
+  importHealthMetrics(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(importHealthMetricsDtoSchema))
+    dto: ImportHealthMetricsDto,
+  ): Promise<ImportHealthMetricsResponseDto> {
+    return this.metricService.importHealthMetrics(user, dto);
+  }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()

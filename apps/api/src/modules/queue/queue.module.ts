@@ -14,6 +14,7 @@ import { ActivityImportProcessor } from './processors/activity-import.processor'
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
 import { GarminNotificationProcessor } from './processors/garmin-notification.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
+import { ProviderRecentSyncProcessor } from './processors/provider-recent-sync.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { QueueService } from './queue.service';
 import { RecordsBackfillService } from './services/records-backfill.service';
@@ -276,6 +277,15 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'provider-recent-sync',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 60_000 },
+        removeOnComplete: { age: 24 * 3600, count: 1000 },
+        removeOnFail: { age: 7 * 24 * 3600, count: 1000 },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'garmin-notification',
       defaultJobOptions: {
         // An activity file can arrive before its activity is saved: retry
@@ -322,6 +332,7 @@ function parseRedisUrl(redisUrl: string): {
       ? [
           ActivityImportProcessor,
           ProviderFullImportProcessor,
+          ProviderRecentSyncProcessor,
           GarminNotificationProcessor,
         ]
       : []),

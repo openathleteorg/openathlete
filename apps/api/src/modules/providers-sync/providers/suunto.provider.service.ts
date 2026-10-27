@@ -683,6 +683,8 @@ export class SuuntoProviderService
     const existing = await this.prisma.eventActivity.findFirst({
       where: {
         externalId: activity.externalId,
+        provider: this.provider,
+        event: { athleteId: account.athleteId },
       },
     });
 
@@ -736,7 +738,7 @@ export class SuuntoProviderService
    * Fetch and save Suunto activity data
    */
   private async fetchSuuntoActivityData(
-    event: { eventId: number },
+    event: { eventId: number; athleteId: number | null },
     workout: SuuntoLimitedWorkout,
   ): Promise<EventActivity> {
     const activityStream: ActivityStream = {};
@@ -773,6 +775,7 @@ export class SuuntoProviderService
     const savedActivity = await this.prisma.eventActivity.create({
       data: {
         provider: ConnectorProvider.SUUNTO,
+        sourceAthleteId: event.athleteId,
         distance: roundDistance(workout.totalDistance || 0),
         elevationGain: roundElevation(workout.totalAscent || 0),
         movingTime: workout.totalTime,
@@ -931,6 +934,8 @@ export class SuuntoProviderService
 
     const existingExternalIds = await this.prisma.eventActivity.findMany({
       where: {
+        provider: this.provider,
+        event: { athleteId: account.athleteId },
         externalId: {
           in: activities.map((a) => a.externalId),
         },
@@ -1831,9 +1836,12 @@ export class SuuntoProviderService
             type: metric.type as unknown as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: 'SUUNTO',
           },
           update: {
             value: roundMetricValue(metric.value),
+            source: 'SUUNTO',
+            sourceMetadata: Prisma.DbNull,
           },
         }),
       ),

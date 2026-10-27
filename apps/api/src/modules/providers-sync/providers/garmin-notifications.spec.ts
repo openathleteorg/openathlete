@@ -95,6 +95,7 @@ describe('GarminProviderService.processNotification', () => {
       config as never,
       queue as never,
       {} as never,
+      {} as never,
     );
     return { service, prisma };
   }

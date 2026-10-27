@@ -22,6 +22,10 @@ model AthleteMetric {
   value Float
   /// Optional notes
   notes String?
+  /// Null for manual entries and legacy imports; APPLE_HEALTH for iOS imports.
+  source String?
+  /// Import provenance: timeZone, unit, and optional sampleCount.
+  sourceMetadata Json? @map("source_metadata")
 
   // relationships
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)

@@ -1,0 +1,53 @@
+{
+  "protocolVersion": 1,
+  "workoutUuid": "12345678-1234-4234-8234-123456789abc",
+  "revision": 1792483200,
+  "name": "Apple Watch RUNNING",
+  "sport": "RUNNING",
+  "startDate": "2026-10-20T08:00:00.123Z",
+  "endDate": "2026-10-20T08:30:00.456Z",
+  "elapsedDuration": { "value": 1800.333, "unit": "s" },
+  "activeDuration": { "value": 1700.123, "unit": "s" },
+  "distance": { "value": 5000.25, "unit": "m" },
+  "energy": { "value": 1000.567, "unit": "kJ" },
+  "source": {
+    "bundleIdentifier": "org.example.watch",
+    "name": "Apple Watch",
+    "version": "1",
+    "deviceType": "Watch",
+    "recordingKind": "single",
+    "original": true,
+    "indoor": false
+  },
+  "streams": {
+    "heartrate": {
+      "unit": "bpm",
+      "samples": [
+        { "timestamp": "2026-10-20T08:00:00.123Z", "value": 120.5 },
+        { "timestamp": "2026-10-20T08:30:00.456Z", "value": 141.25 }
+      ]
+    },
+    "route": {
+      "unit": "degrees",
+      "samples": [
+        { "timestamp": "2026-10-20T08:00:00.123Z", "latitude": 50, "longitude": 8 },
+        { "timestamp": "2026-10-20T08:30:00.456Z", "latitude": 50.01, "longitude": 8.01 }
+      ]
+    },
+    "altitude": {
+      "unit": "m",
+      "samples": [
+        { "timestamp": "2026-10-20T08:00:00.123Z", "value": -4 },
+        { "timestamp": "2026-10-20T08:30:00.456Z", "value": 10 }
+      ]
+    }
+  },
+  "events": [
+    { "type": "PAUSE", "timestamp": "2026-10-20T08:10:00.123Z" },
+    { "type": "RESUME", "timestamp": "2026-10-20T08:11:40.333Z" }
+  ],
+  "laps": [
+    { "startDate": "2026-10-20T08:00:00.123Z", "endDate": "2026-10-20T08:10:00.123Z" },
+    { "startDate": "2026-10-20T08:11:40.333Z", "endDate": "2026-10-20T08:30:00.456Z" }
+  ]
+}

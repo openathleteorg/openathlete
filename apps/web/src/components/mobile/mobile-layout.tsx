@@ -33,6 +33,7 @@ function getPageTitle(pathname: string): string {
     [getPath(['dashboard', 'statistics'])]: m.statistics(),
     [getPath(['dashboard', 'records'])]: m.records(),
     [getPath(['dashboard', 'metrics'])]: m.metrics(),
+    [getPath(['dashboard', 'sync'])]: m.sync_panel_title(),
     [getPath(['dashboard', 'settings'])]: m.settings(),
   };
 

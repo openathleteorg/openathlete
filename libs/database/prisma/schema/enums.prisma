@@ -238,6 +238,8 @@ enum MetricType {
   HR_MAX_DAILY
   HR_RESERVE
   RMSSD
+  /// Daily mean of HealthKit SDNN samples, in milliseconds (not RMSSD).
+  HRV_SDNN
   HRV_LAST_NIGHT_AVG
   HRV_LAST_NIGHT_5MIN_HIGH
   SNAPSHOT_HEART_RATE_AVG

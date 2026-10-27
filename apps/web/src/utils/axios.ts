@@ -5,7 +5,12 @@ import axios, { isAxiosError } from 'axios';
 import { ConnectorProvider, Event } from '@openathlete/shared';
 
 import { getApiBaseUrl } from './capacitor';
-import { ACCESS_TOKEN, REFRESH_TOKEN, setItem } from './local-storage';
+import {
+  ACCESS_TOKEN,
+  REFRESH_TOKEN,
+  removeItem,
+  setItem,
+} from './local-storage';
 
 export const routes = {
   auth: {
@@ -101,6 +106,7 @@ export const routes = {
     deleteEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
   },
   metric: {
+    importHealthMetrics: '/metric/import',
     getMetrics: '/metric',
     getLatestMetrics: '/metric/latest',
     getMetricHistory: (type: string) => `/metric/history/${type}`,
@@ -120,6 +126,9 @@ export const routes = {
     disconnect: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/disconnect`,
     getConnected: '/provider/connected',
+    syncStrava: '/provider/strava/sync',
+    stravaSyncStatus: (id: string) =>
+      `/provider/strava/sync/${encodeURIComponent(id)}`,
     updatePreferences: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/preferences`,
     importAllActivities: (provider: ConnectorProvider) =>
@@ -282,8 +291,8 @@ client.interceptors.request.use(async (config) => {
 
 client.interceptors.response.use(undefined, async (error) => {
   if (isAxiosError(error) && error.response?.status === 401) {
-    localStorage.removeItem(ACCESS_TOKEN);
-    localStorage.removeItem(REFRESH_TOKEN);
+    removeItem(ACCESS_TOKEN);
+    removeItem(REFRESH_TOKEN);
     const queryClient = new QueryClient();
     queryClient.clear();
   }

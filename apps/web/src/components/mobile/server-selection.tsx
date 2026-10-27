@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { m } from '@/paraglide/messages';
 import { getDefaultApiBaseUrl } from '@/utils/capacitor';
 import { signOutFirebase } from '@/utils/firebase-auth';
+import { clearLocalHealthSession } from '@/utils/healthkit';
 import {
   getSelectedServerUrl,
   resolveServerUrl,
@@ -43,6 +44,7 @@ export function ServerSelection({ onCancel }: Props) {
         url = await resolveServerUrl(serverInput);
       }
       if (url !== current) {
+        await clearLocalHealthSession();
         await signOutFirebase().catch((reason: unknown) =>
           console.error('Failed to sign out Firebase:', reason),
         );

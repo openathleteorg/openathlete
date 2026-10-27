@@ -13,9 +13,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
+    HealthKitWakeObserver.shared.start()
     UNUserNotificationCenter.current().delegate = self
-    Messaging.messaging().delegate = self
+    if FirebaseOptions.defaultOptions() != nil {
+      FirebaseApp.configure()
+      Messaging.messaging().delegate = self
+    }
 
     return true
   }
@@ -23,7 +26,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
   func application(
     _ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data
   ) {
-    Messaging.messaging().apnsToken = deviceToken
+    if FirebaseApp.app() != nil {
+      Messaging.messaging().apnsToken = deviceToken
+    }
     // Don't send APNs token to Capacitor plugin
     // We'll wait for FCM token from MessagingDelegate instead
     // NotificationCenter.default.post(

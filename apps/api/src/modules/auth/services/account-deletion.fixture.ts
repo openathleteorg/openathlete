@@ -51,6 +51,12 @@ export const accountFixtureSql = [
   // Completed activity and everything computed from it
   `INSERT INTO event (event_id, start_date, end_date, name, type, athlete_id, updated_at) VALUES (3002, '2026-01-06', '2026-01-06', 'Run', 'ACTIVITY', 2001, ${now})`,
   `INSERT INTO event_activity (event_activity_id, event_id, equipment_id, distance, elevation_gain, external_id, average_speed, max_speed, moving_time, sport) VALUES (3501, 3002, 2101, 10000, 100, 'garmin-1', 3, 5, 3300, 'RUNNING')`,
+  // Both attached and unresolved source recordings, including immutable raw
+  // observations, must disappear when their athlete account is deleted.
+  `INSERT INTO activity_source (activity_source_id, athlete_id, provider, external_id, event_activity_id, revision, payload_hash, payload, updated_at) VALUES
+    (3511, 2001, 'APPLE_HEALTH', 'watch-workout', 3501, 1, 'fixture', '{"source":{"name":"Watch"},"streams":{"heartrate":[123]}}', ${now}),
+    (3512, 2001, 'APPLE_HEALTH', 'unresolved-workout', NULL, 1, 'fixture', '{"source":{"name":"Watch"},"streams":{"route":[[50,8]]}}', ${now})`,
+  `INSERT INTO activity_source_observation (activity_source_id, revision, payload_hash, payload) SELECT activity_source_id, revision, payload_hash, payload FROM activity_source WHERE athlete_id = 2001`,
   `UPDATE event_training SET related_activity_id = 3501 WHERE event_training_id = 3101`,
   `INSERT INTO event_activity_normalization (event_activity_normalization_id, event_activity_id, updated_at) VALUES (3601, 3501, ${now})`,
   `INSERT INTO event_activity_normalization_factor (factor, time_seconds, percent, event_activity_normalization_id, updated_at) VALUES ('SLOPE', 10, 0.1, 3601, ${now})`,
@@ -94,8 +100,8 @@ export const accountFixtureSql = [
   // and a personal token. The client and the coach's access must survive.
   `INSERT INTO oauth_client (client_id, name, redirect_uris, updated_at) VALUES ('client-1', 'Agent', '{https://agent.example/callback}', ${now})`,
   `INSERT INTO mcp_grant (mcp_grant_id, kind, name, scopes, token_hash, user_id, client_id, updated_at) VALUES (7101, 'OAUTH', 'Agent', '{read,write}', NULL, 1001, 'client-1', ${now}), (7102, 'PERSONAL_TOKEN', 'Script', '{read}', 'hash-1', 1001, NULL, ${now}), (7103, 'OAUTH', 'Agent', '{read}', NULL, 1002, 'client-1', ${now})`,
-  `INSERT INTO mcp_token (token_hash, type, expires_at, grant_id) VALUES ('access-1', 'ACCESS', now(), 7101), ('access-2', 'ACCESS', now(), 7103)`,
-  `INSERT INTO oauth_authorization_code (code_hash, redirect_uri, code_challenge, scopes, resource, expires_at, client_id, user_id) VALUES ('code-1', 'https://agent.example/callback', 'x', '{read}', 'https://api.example/mcp', now(), 'client-1', 1001)`,
+  `INSERT INTO mcp_token (token_hash, type, expires_at, grant_id) VALUES ('access-1', 'ACCESS', now() - interval '1 day', 7101), ('access-2', 'ACCESS', now() - interval '1 day', 7103)`,
+  `INSERT INTO oauth_authorization_code (code_hash, redirect_uri, code_challenge, scopes, resource, expires_at, client_id, user_id) VALUES ('code-1', 'https://agent.example/callback', 'x', '{read}', 'https://api.example/mcp', now() - interval '1 day', 'client-1', 1001)`,
 
   // AI assistant conversation
   `INSERT INTO agent_thread (thread_id, user_id, updated_at) VALUES (6001, 1001, ${now})`,
