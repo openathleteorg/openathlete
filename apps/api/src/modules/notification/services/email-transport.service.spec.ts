@@ -105,7 +105,11 @@ describe('EmailTransportService over SMTP', () => {
       authOptional: true,
       logger: false,
       onAuth(auth, _session, callback) {
-        logins.push({ username: auth.username, password: auth.password });
+        // smtp-server 3.21 types both as possibly null
+        logins.push({
+          username: auth.username ?? undefined,
+          password: auth.password ?? undefined,
+        });
         if (auth.password !== 'secret') {
           return callback(new Error('Invalid username or password'));
         }
