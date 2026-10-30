@@ -119,6 +119,12 @@ export class StripeService {
       mode: 'subscription',
       line_items: [{ price: this.priceIdFor(interval), quantity: 1 }],
       allow_promotion_codes: true,
+      automatic_tax: { enabled: true },
+      billing_address_collection: 'auto',
+      // The customer exists before Checkout: without this, Stripe refuses
+      // automatic tax and tax ids, having nowhere to save what is entered.
+      customer_update: { address: 'auto', name: 'auto' },
+      tax_id_collection: { enabled: true },
       success_url: successUrl,
       cancel_url: cancelUrl,
       // Proof of the customer's acceptance and request to start at once
