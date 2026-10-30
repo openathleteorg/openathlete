@@ -55,7 +55,8 @@ test('gives one sport its own heart-rate zones', async ({ page, request }) => {
 
   await page.goto('/dashboard/settings?tab=training_zones');
   await page.getByRole('button', { name: 'Edit zones' }).click();
-  const dialog = page.getByRole('dialog');
+  // By name: the sports popover is a dialog too, until it has closed
+  const dialog = page.getByRole('dialog', { name: 'Edit zones' });
   await expect(
     dialog.getByRole('button', { name: 'All Sports' }),
   ).toBeVisible();
