@@ -75,7 +75,9 @@ test('gives one sport its own heart-rate zones', async ({ page, request }) => {
   await expect(dialog).toBeHidden();
 
   // Both sets are listed, and the general one no longer covers cycling
-  await expect(page.getByRole('heading', { name: 'Cycling' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Cycling', exact: true }),
+  ).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'All sports except Cycling' }),
   ).toBeVisible();
