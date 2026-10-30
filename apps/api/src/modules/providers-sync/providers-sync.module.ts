@@ -4,7 +4,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { QueueModule } from '../queue';
 import { CorosAdapter } from './adapters/coros.adapter';
 import { GarminAdapter } from './adapters/garmin.adapter';
@@ -30,7 +29,6 @@ import { ProviderExportScheduler } from './scheduler.service';
   ],
   controllers: [ProviderOAuthController],
   providers: [
-    PrismaService,
     GarminAdapter,
     SuuntoAdapter,
     CorosAdapter,

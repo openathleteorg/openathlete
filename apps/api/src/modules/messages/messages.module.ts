@@ -3,7 +3,6 @@ import { Module, forwardRef } from '@nestjs/common';
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core/core.module';
 import { NotificationModule } from '../notification/notification.module';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { ActivityAlertSettingsController } from './controllers/activity-alert-settings.controller';
 import { EventCommentsController } from './controllers/event-comments.controller';
@@ -35,7 +34,6 @@ import { MessageService } from './services/message.service';
     MessageService,
     MessagesGateway,
     WsJwtAuthGuard,
-    PrismaService,
     MessageNotificationScheduler,
   ],
   exports: [MessageThreadService, MessageService],

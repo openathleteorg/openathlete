@@ -8,7 +8,6 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 import { AiModule } from '../ai/ai.module';
 import { CalendarModule } from '../calendar/calendar.module';
 import { CoreModule } from '../core';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
@@ -332,7 +331,6 @@ function parseRedisUrl(redisUrl: string): {
     }),
   ],
   providers: [
-    PrismaService,
     QueueService,
     TrainingLoadEstimationService,
     // Note: We use process.env here because ConfigService is not available

@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { OAuthClientsService } from './auth/oauth-clients.service';
 import { OAuthTokensModule } from './auth/oauth-tokens.module';
 import { OAuthService } from './auth/oauth.service';
@@ -26,11 +25,6 @@ import { McpServerFactory } from './server/mcp-server.factory';
     OAuthController,
     WellKnownController,
   ],
-  providers: [
-    PrismaService,
-    OAuthClientsService,
-    OAuthService,
-    McpServerFactory,
-  ],
+  providers: [OAuthClientsService, OAuthService, McpServerFactory],
 })
 export class McpModule {}

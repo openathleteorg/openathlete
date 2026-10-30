@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaService } from '../../prisma/services/prisma.service';
 import { ActivityImportAuthGuard } from './activity-import-auth.guard';
 import { McpAuthService } from './mcp-auth.service';
 
@@ -10,7 +9,7 @@ import { McpAuthService } from './mcp-auth.service';
  * on the database, so both can import it.
  */
 @Module({
-  providers: [PrismaService, McpAuthService, ActivityImportAuthGuard],
+  providers: [McpAuthService, ActivityImportAuthGuard],
   exports: [McpAuthService, ActivityImportAuthGuard],
 })
 export class OAuthTokensModule {}

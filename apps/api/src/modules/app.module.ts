@@ -30,7 +30,7 @@ import { InstanceModule } from './instance/instance.module';
 import { McpModule } from './mcp/mcp.module';
 import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
-import { PrismaService } from './prisma/services/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { QueueModule } from './queue';
 import { SeoPlanModule } from './seo/seo-plan.module';
@@ -38,6 +38,7 @@ import { SubscriptionModule } from './subscription';
 
 @Module({
   imports: [
+    PrismaModule,
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
@@ -73,7 +74,6 @@ import { SubscriptionModule } from './subscription';
       provide: APP_GUARD,
       useClass: AppThrottlerGuard,
     },
-    PrismaService,
     NotificationListener,
     // Only register listeners that depend on activity processing
     // if ENABLE_ACTIVITY_PROCESSING is true so they run on the same instances.

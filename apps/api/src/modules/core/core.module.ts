@@ -4,7 +4,6 @@ import { AuthModule } from '../auth';
 import { CalendarModule } from '../calendar/calendar.module';
 import { OAuthTokensModule } from '../mcp/auth/oauth-tokens.module';
 import { MessagesModule } from '../messages/messages.module';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { QueueModule } from '../queue';
 import { EventController } from './controllers';
@@ -98,7 +97,6 @@ import { WeatherService } from './services/weather/weather.service';
     AthleteSettingsService,
     CoachService,
     StatisticsService,
-    PrismaService,
     RecordService,
     EquipmentService,
     InjuryService,
