@@ -7,20 +7,18 @@ import {
 import { ConfirmAction } from '@/components/confirm-action';
 import { InviteCoachDialog } from '@/components/invite-coach-dialog/invite-coach.dialog';
 import { Button } from '@/components/ui/button';
-import { SkeletonTableRow } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { m } from '@/paraglide/messages';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { SettingsSection } from './settings-section';
+import { SentInvitationsSection } from './sent-invitations-section';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from './settings-section';
 
 export function CoachesTab() {
   const { data: coaches, isPending: isLoadingCoaches } = useGetMyCoachesQuery();
@@ -40,18 +38,9 @@ export function CoachesTab() {
       toast.error(m.failed_to_cancel_invitation());
     },
   });
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <SettingsSection
-        title={m.coaches()}
-        description={m.coaches_tab_description()}
         action={
           <Button
             size="sm"
@@ -63,105 +52,48 @@ export function CoachesTab() {
           </Button>
         }
       >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{m.name()}</TableHead>
-              <TableHead>{m.email()}</TableHead>
-              <TableHead className="text-right">{m.actions()}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoadingCoaches
-              ? Array.from({ length: 2 }).map((_, i) => (
-                  <SkeletonTableRow key={i} colCount={3} />
-                ))
-              : coaches?.map((coach) => (
-                  <TableRow key={coach.userId}>
-                    <TableCell>
-                      {coach.firstName} {coach.lastName}
-                    </TableCell>
-                    <TableCell>{coach.email}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setDeleteEventDialog(coach.userId);
-                          }}
-                        >
-                          {m.delete_()}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
+        {isLoadingCoaches ? (
+          <SettingsRowsSkeleton />
+        ) : !coaches?.length ? (
+          <SettingsEmpty>{m.no_coaches_yet()}</SettingsEmpty>
+        ) : (
+          <SettingsPanel>
+            {coaches.map((coach) => (
+              <SettingsRow
+                key={coach.userId}
+                title={`${coach.firstName} ${coach.lastName}`}
+                description={coach.email}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDeleteEventDialog(coach.userId);
+                  }}
+                >
+                  {m.delete_()}
+                </Button>
+              </SettingsRow>
+            ))}
+          </SettingsPanel>
+        )}
       </SettingsSection>
       <InviteCoachDialog
         open={inviteCoachDialogOpen}
         onClose={() => setInviteCoachDialogOpen(false)}
       />
-      {sentInvitationsLoading ? (
-        <SettingsSection
-          title={m.sent_invitations_to_coaches()}
-          description={m.sent_invitations_to_coaches_description()}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.email()}</TableHead>
-                <TableHead>{m.invitation_sent_at()}</TableHead>
-                <TableHead className="text-right">{m.actions()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 2 }).map((_, i) => (
-                <SkeletonTableRow key={i} colCount={3} />
-              ))}
-            </TableBody>
-          </Table>
-        </SettingsSection>
-      ) : sentInvitations && sentInvitations.length > 0 ? (
-        <SettingsSection
-          title={m.sent_invitations_to_coaches()}
-          description={m.sent_invitations_to_coaches_description()}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.email()}</TableHead>
-                <TableHead>{m.invitation_sent_at()}</TableHead>
-                <TableHead className="text-right">{m.actions()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sentInvitations.map((invitation) => (
-                <TableRow key={invitation.coachInvitationId}>
-                  <TableCell>{invitation.email}</TableCell>
-                  <TableCell>{formatDate(invitation.createdAt)}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        cancelInvitationMutation.mutate(
-                          invitation.coachInvitationId,
-                        )
-                      }
-                      disabled={cancelInvitationMutation.isPending}
-                    >
-                      {m.cancel_invitation()}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </SettingsSection>
-      ) : null}
+      <SentInvitationsSection
+        title={m.sent_invitations_to_coaches()}
+        description={m.sent_invitations_to_coaches_description()}
+        invitations={sentInvitations?.map((invitation) => ({
+          id: invitation.coachInvitationId,
+          email: invitation.email,
+          createdAt: invitation.createdAt,
+        }))}
+        isLoading={sentInvitationsLoading}
+        isCancelling={cancelInvitationMutation.isPending}
+        onCancel={(id) => cancelInvitationMutation.mutate(id)}
+      />
       <ConfirmAction
         open={!!deleteCoachDialog}
         onClose={() => setDeleteEventDialog(null)}

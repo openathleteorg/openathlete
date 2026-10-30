@@ -40,7 +40,7 @@ export function TrainingZoneList({ athleteId, type }: TrainingZoneListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between gap-3 px-1">
         <p className="text-sm text-muted-foreground">
           {zones.length === 0
             ? m.no_training_zones_defined()

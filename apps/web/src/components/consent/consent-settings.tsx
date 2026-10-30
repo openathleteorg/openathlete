@@ -12,9 +12,9 @@ export function ConsentSettings() {
   if (!isConsentRequired()) return null;
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <p className="font-medium">{m.consent_settings_title()}</p>
+        <p className="text-sm font-medium">{m.consent_settings_title()}</p>
         <p className="text-sm text-muted-foreground">
           {consent === 'granted'
             ? m.consent_settings_granted()

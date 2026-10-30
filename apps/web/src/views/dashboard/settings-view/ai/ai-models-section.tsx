@@ -29,7 +29,7 @@ import {
   AiTask,
 } from '@openathlete/shared';
 
-import { SettingsSection } from '../settings-section';
+import { SettingsPanel, SettingsSection } from '../settings-section';
 
 /** Select value of "no key of mine" (default row) / "same as default". */
 const NONE = 'none';
@@ -102,7 +102,7 @@ export function AiModelsSection() {
     return (
       <div
         key={task}
-        className="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] sm:items-center"
+        className="grid min-h-14 gap-2 px-4 py-3 sm:grid-cols-3 sm:items-center"
       >
         <div className="min-w-0">
           <p className="text-sm font-medium">{aiTaskLabel(task)}</p>
@@ -138,6 +138,7 @@ export function AiModelsSection() {
             }
           >
             <SelectTrigger
+              className="w-full"
               aria-label={`${aiTaskLabel(task)} ${m.ai_models_key()}`}
             >
               <SelectValue />
@@ -177,25 +178,28 @@ export function AiModelsSection() {
     <SettingsSection
       title={m.ai_models_title()}
       description={m.ai_models_description()}
-      contentClassName="pt-2"
     >
       {credentials.length === 0 && (
-        <p className="pt-2 text-sm text-muted-foreground">
+        <p className="px-1 text-sm text-muted-foreground">
           {m.ai_models_no_keys()}
         </p>
       )}
-      <div className="divide-y">
+      <SettingsPanel>
         {credentials.length > 0 && row(AiTask.DEFAULT)}
         {AI_FEATURE_TASKS.map(row)}
-      </div>
+      </SettingsPanel>
       {error && (
-        <p role="alert" className="pt-2 text-sm text-destructive">
+        <p role="alert" className="px-1 text-sm text-destructive">
           {error}
         </p>
       )}
       {credentials.length > 0 && (
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={updatePreferences.isPending}>
+        <div className="flex justify-end">
+          <Button
+            className="w-full sm:w-fit"
+            onClick={handleSave}
+            disabled={updatePreferences.isPending}
+          >
             {m.ai_models_save()}
           </Button>
         </div>

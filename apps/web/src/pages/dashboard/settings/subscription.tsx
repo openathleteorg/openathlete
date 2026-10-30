@@ -6,20 +6,20 @@ import {
   useInvoices,
   useResumeSubscription,
 } from '@/api/subscription';
+import { ConfirmAction } from '@/components/confirm-action';
 import { SupporterOffer } from '@/components/paywall/supporter-offer';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { m } from '@/paraglide/messages';
 import { AnalyticsEvent } from '@/utils/analytics-events';
 import { manageAppStoreSubscription } from '@/utils/app-store';
 import { purchaseChannel } from '@/utils/capacitor';
 import { supporterPriceLabel } from '@/utils/supporter';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsSection,
+} from '@/views/dashboard/settings-view/settings-section';
 import { format } from 'date-fns';
 import { Download, ExternalLink, FileText } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
@@ -70,6 +70,7 @@ export function SubscriptionSettingsPage() {
   const posthog = usePostHog();
 
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const channel = purchaseChannel();
 
   const handleManageBilling = async () => {
@@ -86,14 +87,13 @@ export function SubscriptionSettingsPage() {
   };
 
   const handleCancel = async () => {
-    if (confirm(m.subscription_cancel_confirm())) {
-      try {
-        await cancelMutation.mutateAsync();
-        posthog?.capture('subscription_cancelled');
-        toast.success(m.subscription_cancel_success());
-      } catch {
-        toast.error(m.subscription_cancel_error());
-      }
+    try {
+      await cancelMutation.mutateAsync();
+      posthog?.capture('subscription_cancelled');
+      toast.success(m.subscription_cancel_success());
+      setCancelOpen(false);
+    } catch {
+      toast.error(m.subscription_cancel_error());
     }
   };
 
@@ -124,37 +124,24 @@ export function SubscriptionSettingsPage() {
     // The Android app neither sells nor points to a way to buy
     if (channel === null) {
       return (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>{m.subscription_free_title()}</CardTitle>
-              <CardDescription>
-                {m.subscription_unavailable_in_app()}
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
+        <SettingsSection
+          title={m.subscription_free_title()}
+          description={m.subscription_unavailable_in_app()}
+        />
       );
     }
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{m.subscription_free_title()}</CardTitle>
-            <CardDescription>
-              {m.subscription_free_description({
-                count: FREE_PLAN_MAX_ATHLETES,
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <SupporterOffer
-              analyticsSource="subscription_settings"
-              className="max-w-xl"
-            />
-          </CardContent>
-        </Card>
-      </div>
+      <SettingsSection
+        title={m.subscription_free_title()}
+        description={m.subscription_free_description({
+          count: FREE_PLAN_MAX_ATHLETES,
+        })}
+      >
+        <SupporterOffer
+          analyticsSource="subscription_settings"
+          className="rounded-2xl"
+        />
+      </SettingsSection>
     );
   }
 
@@ -186,197 +173,168 @@ export function SubscriptionSettingsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>{m.subscription_current()}</CardTitle>
-          <CardDescription>{m.subscription_supporter_thanks()}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <div className="text-sm text-muted-foreground">
-                {m.subscription_plan()}
-              </div>
-              <div className="text-lg font-semibold">
-                {m.plan_supporter_name()}
-                {interval &&
-                  ` · ${
-                    billedByAppStore
-                      ? interval === BillingInterval.YEAR
-                        ? m.supporter_interval_yearly()
-                        : m.supporter_interval_monthly()
-                      : supporterPriceLabel(interval)
-                  }`}
-              </div>
-            </div>
-            <div>
-              <div className="text-sm text-muted-foreground">
-                {m.subscription_status()}
-              </div>
-              <div className="text-lg font-semibold">
-                {subscriptionStatusMap[
-                  subscription.status as SubscriptionStatus
-                ] || subscription.status}
-              </div>
-            </div>
-            {subscription.currentPeriodStart &&
-              subscription.currentPeriodEnd && (
-                <>
-                  <div>
-                    <div className="text-sm text-muted-foreground">
-                      {m.subscription_period()}
-                    </div>
-                    <div className="text-sm">
-                      {format(new Date(subscription.currentPeriodStart), 'PP')}{' '}
-                      - {format(new Date(subscription.currentPeriodEnd), 'PP')}
-                    </div>
-                  </div>
-                  <div>
-                    {subscription.cancelAtPeriodEnd && (
-                      <div className="text-sm text-orange-600">
-                        {m.subscription_cancel_at_period_end()}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
+    <div className="space-y-8">
+      <SettingsSection
+        title={m.subscription_current()}
+        description={m.subscription_supporter_thanks()}
+      >
+        <SettingsPanel>
+          <SettingsRow title={m.subscription_plan()}>
+            <span className="text-sm text-muted-foreground">
+              {m.plan_supporter_name()}
+              {interval &&
+                ` · ${
+                  billedByAppStore
+                    ? interval === BillingInterval.YEAR
+                      ? m.supporter_interval_yearly()
+                      : m.supporter_interval_monthly()
+                    : supporterPriceLabel(interval)
+                }`}
+            </span>
+          </SettingsRow>
+          <SettingsRow title={m.subscription_status()}>
+            <span className="text-sm text-muted-foreground">
+              {subscriptionStatusMap[
+                subscription.status as SubscriptionStatus
+              ] || subscription.status}
+            </span>
+          </SettingsRow>
+          {subscription.currentPeriodStart && subscription.currentPeriodEnd && (
+            <SettingsRow
+              title={m.subscription_period()}
+              description={
+                subscription.cancelAtPeriodEnd && (
+                  <span className="text-orange-600">
+                    {m.subscription_cancel_at_period_end()}
+                  </span>
+                )
+              }
+            >
+              <span className="text-sm text-muted-foreground">
+                {format(new Date(subscription.currentPeriodStart), 'PP')} -{' '}
+                {format(new Date(subscription.currentPeriodEnd), 'PP')}
+              </span>
+            </SettingsRow>
+          )}
+        </SettingsPanel>
+
+        {channel === 'stripe' && billedByAppStore && (
+          <p className="px-1 text-sm text-muted-foreground">
+            {m.subscription_managed_by_app_store()}
+          </p>
+        )}
+
+        {managesAppStore && (
+          <Button
+            variant="outline"
+            onClick={() => manageAppStoreSubscription()}
+            className="w-full sm:w-auto"
+          >
+            {m.subscription_manage_app_store()}
+          </Button>
+        )}
+
+        {managesStripe && (
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button
+              variant="outline"
+              onClick={handleManageBilling}
+              disabled={isLoadingPortal}
+              className="w-full sm:w-auto"
+            >
+              <ExternalLink className="size-4" />
+              {m.subscription_manage_billing()}
+            </Button>
+            {interval && !subscription.cancelAtPeriodEnd && (
+              <Button
+                variant="outline"
+                onClick={handleSwitchInterval}
+                disabled={createCheckout.isPending}
+                className="w-full sm:w-auto"
+              >
+                {otherInterval === BillingInterval.YEAR
+                  ? m.subscription_switch_to_yearly({
+                      price: supporterPriceLabel(BillingInterval.YEAR),
+                    })
+                  : m.subscription_switch_to_monthly({
+                      price: supporterPriceLabel(BillingInterval.MONTH),
+                    })}
+              </Button>
+            )}
+            {subscription.cancelAtPeriodEnd ? (
+              <Button
+                onClick={handleResume}
+                disabled={resumeMutation.isPending}
+                className="w-full sm:w-auto"
+              >
+                {m.subscription_resume()}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => setCancelOpen(true)}
+                disabled={cancelMutation.isPending}
+                className="w-full text-destructive-foreground sm:ml-auto sm:w-auto"
+              >
+                {m.subscription_cancel()}
+              </Button>
+            )}
           </div>
-
-          {channel === 'stripe' && billedByAppStore && (
-            <p className="text-sm text-muted-foreground">
-              {m.subscription_managed_by_app_store()}
-            </p>
-          )}
-
-          {managesAppStore && (
-            <div className="pt-4">
-              <Button
-                variant="outline"
-                onClick={() => manageAppStoreSubscription()}
-                className="w-full sm:w-auto"
-              >
-                {m.subscription_manage_app_store()}
-              </Button>
-            </div>
-          )}
-
-          {managesStripe && (
-            <div className="flex flex-col sm:flex-row gap-2 pt-4">
-              {subscription.cancelAtPeriodEnd ? (
-                <Button
-                  onClick={handleResume}
-                  disabled={resumeMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {m.subscription_resume()}
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={cancelMutation.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {m.subscription_cancel()}
-                </Button>
-              )}
-              {interval && !subscription.cancelAtPeriodEnd && (
-                <Button
-                  variant="outline"
-                  onClick={handleSwitchInterval}
-                  disabled={createCheckout.isPending}
-                  className="w-full sm:w-auto"
-                >
-                  {otherInterval === BillingInterval.YEAR
-                    ? m.subscription_switch_to_yearly({
-                        price: supporterPriceLabel(BillingInterval.YEAR),
-                      })
-                    : m.subscription_switch_to_monthly({
-                        price: supporterPriceLabel(BillingInterval.MONTH),
-                      })}
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                onClick={handleManageBilling}
-                disabled={isLoadingPortal}
-                className="w-full sm:w-auto"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                {m.subscription_manage_billing()}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        )}
+      </SettingsSection>
 
       {managesStripe && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{m.subscription_invoices()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {!invoices || invoices.length === 0 ? (
-              <div className="text-sm text-muted-foreground">
-                {m.subscription_no_invoices()}
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {invoices.map((invoice) => (
-                  <div
-                    key={invoice.id}
-                    className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                      <div>
-                        <div className="font-medium">
-                          €{invoice.amount.toFixed(2)}{' '}
-                          {invoice.currency.toUpperCase()}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {format(new Date(invoice.createdAt), 'PP')} -{' '}
-                          {invoiceStatusMap[invoice.status.toLowerCase()] ||
-                            invoice.status}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      {invoice.invoiceUrl && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(invoice.invoiceUrl!, '_blank')
-                          }
-                          className="w-full sm:w-auto"
-                        >
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          {m.subscription_view_invoice()}
-                        </Button>
-                      )}
-                      {invoice.invoicePdf && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() =>
-                            window.open(invoice.invoicePdf!, '_blank')
-                          }
-                          className="w-full sm:w-auto"
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          {m.subscription_download_invoice()}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SettingsSection title={m.subscription_invoices()}>
+          {!invoices || invoices.length === 0 ? (
+            <SettingsEmpty>{m.subscription_no_invoices()}</SettingsEmpty>
+          ) : (
+            <SettingsPanel>
+              {invoices.map((invoice) => (
+                <SettingsRow
+                  key={invoice.id}
+                  leading={<FileText className="size-5" />}
+                  title={`€${invoice.amount.toFixed(2)} ${invoice.currency.toUpperCase()}`}
+                  description={`${format(new Date(invoice.createdAt), 'PP')} - ${
+                    invoiceStatusMap[invoice.status.toLowerCase()] ||
+                    invoice.status
+                  }`}
+                >
+                  {invoice.invoiceUrl && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="max-md:w-11"
+                      aria-label={m.subscription_view_invoice()}
+                      onClick={() => window.open(invoice.invoiceUrl!, '_blank')}
+                    >
+                      <ExternalLink className="size-4" />
+                    </Button>
+                  )}
+                  {invoice.invoicePdf && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="max-md:w-11"
+                      aria-label={m.subscription_download_invoice()}
+                      onClick={() => window.open(invoice.invoicePdf!, '_blank')}
+                    >
+                      <Download className="size-4" />
+                    </Button>
+                  )}
+                </SettingsRow>
+              ))}
+            </SettingsPanel>
+          )}
+        </SettingsSection>
       )}
+      <ConfirmAction
+        open={cancelOpen}
+        onClose={() => setCancelOpen(false)}
+        onConfirm={handleCancel}
+        title={m.subscription_cancel()}
+        message={m.subscription_cancel_confirm()}
+        isLoading={cancelMutation.isPending}
+      />
     </div>
   );
 }

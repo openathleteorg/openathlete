@@ -9,7 +9,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { SettingsSection } from './settings-section';
+import {
+  SettingsPanel,
+  SettingsRow,
+  SettingsSection,
+} from './settings-section';
 
 /** The evening push reminder of the next day's planned sessions. */
 export function TrainingRemindersSection() {
@@ -24,37 +28,40 @@ export function TrainingRemindersSection() {
 
   return (
     <SettingsSection title={m.notifications()}>
-      <div className="flex items-center justify-between gap-4">
-        <div className="space-y-0.5">
-          <Label htmlFor="training-reminders">{m.training_reminders()}</Label>
-          <p className="text-sm text-muted-foreground">
-            {m.training_reminders_description()}
-          </p>
-        </div>
-        <Switch
-          id="training-reminders"
-          checked={me?.trainingReminders ?? true}
-          onCheckedChange={(trainingReminders) =>
-            updateMutation.mutate({ trainingReminders })
+      <SettingsPanel>
+        <SettingsRow
+          title={
+            <Label htmlFor="training-reminders">{m.training_reminders()}</Label>
           }
-          disabled={!me || updateMutation.isPending}
-        />
-      </div>
-      {permission === 'prompt' && (
-        <Button
-          variant="outline"
-          className="mt-4 h-11 w-full"
-          onClick={() => void enable()}
+          description={m.training_reminders_description()}
         >
-          <Bell className="size-4" />
-          {m.push_enable_on_device()}
-        </Button>
-      )}
-      {permission === 'denied' && (
-        <p className="mt-4 text-sm text-muted-foreground">
-          {m.push_denied_hint()}
-        </p>
-      )}
+          <Switch
+            id="training-reminders"
+            checked={me?.trainingReminders ?? true}
+            onCheckedChange={(trainingReminders) =>
+              updateMutation.mutate({ trainingReminders })
+            }
+            disabled={!me || updateMutation.isPending}
+          />
+        </SettingsRow>
+        {permission === 'prompt' && (
+          <div className="p-3">
+            <Button
+              variant="outline"
+              className="h-11 w-full"
+              onClick={() => void enable()}
+            >
+              <Bell className="size-4" />
+              {m.push_enable_on_device()}
+            </Button>
+          </div>
+        )}
+        {permission === 'denied' && (
+          <p className="px-4 py-3 text-sm text-muted-foreground">
+            {m.push_denied_hint()}
+          </p>
+        )}
+      </SettingsPanel>
     </SettingsSection>
   );
 }

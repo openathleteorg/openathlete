@@ -1314,7 +1314,6 @@
   "calendar_day_events_label": "Eventos del {date}",
   "ai_settings_tab": "IA",
   "mcp_tab": "Agentes de IA",
-  "mcp_intro_title": "Conecta un agente de IA",
   "mcp_intro_description": "Claude, ChatGPT, Cursor o tu propio agente pueden leer tu entrenamiento y planificar sesiones en tu calendario, mediante el Model Context Protocol (MCP). Tú eliges lo que puede hacer cada agente y puedes revocarlo en cualquier momento.",
   "mcp_server_title": "Dirección del servidor",
   "mcp_server_description": "Añade esta dirección a tu agente como servidor MCP.",
@@ -1367,7 +1366,6 @@
   "oauth_consent_invalid": "Este enlace no es válido o ha caducado. Vuelve a iniciar la conexión desde tu agente.",
   "oauth_consent_redirecting": "Volviendo a tu agente…",
   "oauth_consent_failed": "No se pudo enviar tu respuesta: inténtalo de nuevo",
-  "ai_settings_title": "Usa tu propia IA",
   "ai_sharing_title": "Datos compartidos con la IA",
   "ai_sharing_ask_title": "¿Permitir que la IA use tus datos?",
   "ai_sharing_ask_description": "Las funciones de IA envían parte de tus datos a un proveedor de IA. No se envía nada hasta que lo permitas.",
@@ -1790,5 +1788,7 @@
   "pwa_channel_web_description": "Se instala desde tu navegador, con su propio icono.",
   "pwa_channel_web_unavailable": "No disponible en este navegador. Prueba Chrome, Edge o Safari en iPhone.",
   "pwa_coming_soon": "Próximamente",
-  "pwa_install_action": "Instalar"
+  "pwa_install_action": "Instalar",
+  "no_athletes_yet": "Aún no hay atletas. Invita a uno para empezar a entrenarlo.",
+  "no_coaches_yet": "Aún no hay entrenador. Invita al tuyo para compartir tu entrenamiento."
 }

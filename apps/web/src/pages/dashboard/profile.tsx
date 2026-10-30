@@ -11,55 +11,24 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { SUPPORTED_LOCALES, getLocaleName } from '@/utils/locales';
-import { useSettingsTabs } from '@/views/dashboard/settings-view/use-settings-tabs';
+import {
+  SETTINGS_TAB_ICONS,
+  useSettingsTabs,
+} from '@/views/dashboard/settings-view/use-settings-tabs';
 import {
   Bell,
-  Bike,
-  Bot,
   ChevronRight,
-  CreditCard,
   Download,
   Globe,
-  Heart,
   LogOut,
   type LucideIcon,
-  Mail,
   Moon,
-  Plug,
-  ShieldUser,
-  Sparkles,
-  UserRound,
-  Users,
-  Zap,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { UserRole } from '@openathlete/shared';
-
-const TAB_ICONS: Record<string, LucideIcon> = {
-  connectors: Plug,
-  profile: UserRound,
-  equipment: Bike,
-  training_zones: Zap,
-  ai: Sparkles,
-  agents: Bot,
-  athletes: Users,
-  coaches: ShieldUser,
-  invitations: Mail,
-  subscription: CreditCard,
-  contribute: Heart,
-};
-
-const TRAINING_TABS = [
-  'connectors',
-  'training_zones',
-  'equipment',
-  'coaches',
-  'athletes',
-  'invitations',
-];
 
 const Group = ({
   title,
@@ -80,7 +49,7 @@ const rowClass =
   'flex min-h-13 w-full items-center gap-3 px-4 py-2.5 text-left text-[0.9375rem] active:bg-accent';
 
 function SettingRow({ tab, label }: { tab: string; label: string }) {
-  const Icon = TAB_ICONS[tab];
+  const Icon = SETTINGS_TAB_ICONS[tab];
   return (
     <Link
       to={`${getPath(['dashboard', 'settings'])}?tab=${tab}`}
@@ -160,7 +129,7 @@ function MeScreen() {
   const { user, logout } = useAuthContext();
   const roles = useUserRoles();
   const { space, setSpace } = useSpaceContext();
-  const { allowedTabs, tabLabels } = useSettingsTabs();
+  const { trainingTabs, appTabs, tabLabels } = useSettingsTabs();
   const { syncLanguage } = useLanguageSync();
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
@@ -169,10 +138,6 @@ function MeScreen() {
   const initials = [user.firstName, user.lastName]
     .map((name) => name?.[0] ?? '')
     .join('');
-  const trainingTabs = allowedTabs.filter((tab) => TRAINING_TABS.includes(tab));
-  const appTabs = allowedTabs.filter(
-    (tab) => !TRAINING_TABS.includes(tab) && tab !== 'profile',
-  );
 
   return (
     <div className="space-y-6 px-4 pt-2 pb-6">

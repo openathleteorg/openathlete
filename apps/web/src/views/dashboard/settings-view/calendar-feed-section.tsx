@@ -7,11 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { getApiBaseUrl } from '@/utils/capacitor';
-import { Copy, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { SettingsSection } from './settings-section';
+import {
+  SettingsCopyField,
+  SettingsPanel,
+  SettingsSection,
+} from './settings-section';
 
 /**
  * The athlete's calendar feed URL, for Google or Apple Calendar. It stays the
@@ -50,26 +54,26 @@ export function CalendarFeedSection() {
       description={m.subscribe_calendar_feed()}
     >
       {isLoading ? (
-        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
       ) : (
-        <div className="space-y-3" data-calendar-feed>
-          <div className="break-all rounded-sm border bg-muted p-3 font-mono text-sm text-muted-foreground select-all">
-            {url}
+        <SettingsPanel padded className="divide-y-0">
+          <div className="space-y-3" data-calendar-feed>
+            <SettingsCopyField value={url} onCopy={copy} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs text-muted-foreground">
+                {m.calendar_feed_private_hint()}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setConfirmOpen(true)}
+              >
+                <RefreshCw className="size-4" />
+                {m.calendar_feed_regenerate()}
+              </Button>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {m.calendar_feed_private_hint()}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={copy}>
-              <Copy className="size-4" />
-              {m.copy()}
-            </Button>
-            <Button variant="ghost" onClick={() => setConfirmOpen(true)}>
-              <RefreshCw className="size-4" />
-              {m.calendar_feed_regenerate()}
-            </Button>
-          </div>
-        </div>
+        </SettingsPanel>
       )}
       <ConfirmAction
         open={confirmOpen}

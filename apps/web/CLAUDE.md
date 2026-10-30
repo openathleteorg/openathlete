@@ -24,6 +24,7 @@ The same build ships to Vercel (hosted), to the Docker image (self-hosted) and t
   - `Dialog` opens as a bottom sheet, or full screen with `mobileFullscreen`; menus, selects and popovers become sheets in `theme/index.css`. Don't rebuild this per component.
   - Pad fixed elements with `--safe-top`, `--safe-bottom` and `--tab-bar-space`, never `env()` directly.
   - Check new pages at 390px: no horizontal scroll, touch targets of 44px.
+- **Settings pages**: build them from `settings-section.tsx` (`SettingsSection`, `SettingsPanel`, `SettingsRow`), the look of the Me tab, on every screen size. A section is never a `Card`, and a panel never holds another framed surface.
 - **Native apps**: guard native-only code with `isCapacitor()` from `@/utils/capacitor`. The Capacitor projects (`android/`, `ios/`) are built and published by fastlane (`fastlane/Fastfile`, `docs/mobile-releases.md`); never set a version in them, the release tag does. Build-time `VITE_*` values for the apps come from GitHub variables, since a native bundle cannot read them at runtime.
 - **Third parties**: nothing may load or send data unless its build variable is set. PostHog, Contentsquare and error monitoring are opt-in (`utils/analytics.ts`, `utils/error-monitoring.ts`). The E2E test `makes no third-party request` enforces this.
 - **Consent (GDPR)**: analytics and session recordings start only through `whenConsentGranted` (`utils/consent.ts`), after the user accepts the banner. A new tracker goes through it too, and is listed in the website privacy policy.

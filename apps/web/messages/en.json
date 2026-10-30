@@ -1314,7 +1314,6 @@
   "calendar_next_month": "Next month",
   "ai_settings_tab": "AI",
   "mcp_tab": "AI agents",
-  "mcp_intro_title": "Connect an AI agent",
   "mcp_intro_description": "Claude, ChatGPT, Cursor or your own agent can read your training and plan sessions in your calendar, through the Model Context Protocol (MCP). You choose what each agent may do and can revoke it at any time.",
   "mcp_server_title": "Server address",
   "mcp_server_description": "Add this address to your agent as an MCP server.",
@@ -1367,7 +1366,6 @@
   "oauth_consent_invalid": "This link is invalid or has expired. Start the connection again from your agent.",
   "oauth_consent_redirecting": "Taking you back to your agent…",
   "oauth_consent_failed": "Your answer could not be sent: try again",
-  "ai_settings_title": "Bring your own AI",
   "ai_sharing_title": "Data shared with AI",
   "ai_sharing_ask_title": "Allow AI to use your data?",
   "ai_sharing_ask_description": "AI features send some of your data to an AI provider. Nothing is sent until you allow it.",
@@ -1790,5 +1788,7 @@
   "pwa_channel_web_description": "Installs from your browser, with its own icon.",
   "pwa_channel_web_unavailable": "Not available in this browser. Try Chrome, Edge or Safari on iPhone.",
   "pwa_coming_soon": "Coming soon",
-  "pwa_install_action": "Install"
+  "pwa_install_action": "Install",
+  "no_athletes_yet": "No athletes yet. Invite one to start coaching.",
+  "no_coaches_yet": "No coach yet. Invite yours to share your training."
 }

@@ -16,19 +16,11 @@ import {
 import { ImportFitDialog } from '@/components/import-fit-dialog/import-fit-dialog';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
@@ -52,7 +44,12 @@ import {
 } from '@openathlete/shared';
 
 import { CalendarFeedSection } from './calendar-feed-section';
-import { SettingsSection } from './settings-section';
+import {
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from './settings-section';
 
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
@@ -227,289 +224,218 @@ export function ConnectorsTab() {
   };
 
   return (
-    <div className="space-y-6">
-      <SettingsSection
-        title={m.connectors()}
-        description={m.connect_activity_tracking_services()}
-        contentClassName="space-y-6"
-      >
-        <div className="grid gap-4">
-          {isLoadingConnected ? (
-            Array.from({ length: SUPPORTED_PROVIDERS.length }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Skeleton className="h-10 w-10 rounded" />
-                      <div>
-                        <Skeleton className="h-5 w-32 mb-2" />
-                        <Skeleton className="h-4 w-24" />
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-10 w-full" />
-                </CardContent>
-              </Card>
-            ))
-          ) : providers.length === 0 ? (
-            <ConnectorsUnavailable />
-          ) : (
-            providers.map((provider) => {
-              const connected = isConnected(provider);
-              const isLoading =
-                getOAuthUriMutation.isPending ||
-                disconnectMutation.isPending ||
-                isLoadingConnected;
-              const providerDetails = connectedProviders.find(
-                (p) => p.provider === provider,
-              );
-              const capabilities = getProviderSyncCapabilities(provider);
-              const preferenceToggles =
-                providerDetails && connected
-                  ? ([
-                      capabilities.importActivities && {
-                        key: 'importActivitiesEnabled',
-                        label: m.import_sessions_toggle_label(),
-                        description: m.import_sessions_toggle_description({
-                          provider: connectorProviderLabelMap[provider],
-                        }),
-                        value: providerDetails.importActivitiesEnabled,
-                      },
-                      capabilities.exportWorkouts && {
-                        key: 'exportWorkoutsEnabled',
-                        label: m.export_workouts_toggle_label(),
-                        description: m.export_workouts_toggle_description({
-                          provider: connectorProviderLabelMap[provider],
-                        }),
-                        value: providerDetails.exportWorkoutsEnabled,
-                      },
-                      capabilities.importMetrics && {
-                        key: 'importMetricsEnabled',
-                        label: m.import_metrics_toggle_label(),
-                        description: m.import_metrics_toggle_description({
-                          provider: connectorProviderLabelMap[provider],
-                        }),
-                        value: providerDetails.importMetricsEnabled,
-                      },
-                    ].filter(Boolean) as Array<{
-                      key: keyof ProviderPreferencesDto;
-                      label: string;
-                      description: string;
-                      value: boolean;
-                    }>)
-                  : [];
-              const hasSyncOptions =
-                preferenceToggles.length > 0 ||
-                (capabilities.supportsFullImport &&
-                  !!providerDetails &&
-                  connected);
-              const isUpdatingThisProvider =
-                updatingProvider === provider &&
-                updatePreferencesMutation.isPending;
-              const isImportingThisProvider =
-                importingProvider === provider &&
-                importAllActivitiesMutation.isPending;
-              const fullImportCompleted =
-                providerDetails?.fullImportCompletedAt != null;
-              const fullImportInProgress =
-                providerDetails != null &&
-                isFullImportInProgress(providerDetails);
+    <div className="space-y-8">
+      {isLoadingConnected ? (
+        <SettingsRowsSkeleton count={SUPPORTED_PROVIDERS.length} />
+      ) : providers.length === 0 ? (
+        <ConnectorsUnavailable />
+      ) : (
+        <SettingsPanel>
+          {providers.map((provider) => {
+            const connected = isConnected(provider);
+            const isLoading =
+              getOAuthUriMutation.isPending ||
+              disconnectMutation.isPending ||
+              isLoadingConnected;
+            const providerDetails = connectedProviders.find(
+              (p) => p.provider === provider,
+            );
+            const capabilities = getProviderSyncCapabilities(provider);
+            const preferenceToggles =
+              providerDetails && connected
+                ? ([
+                    capabilities.importActivities && {
+                      key: 'importActivitiesEnabled',
+                      label: m.import_sessions_toggle_label(),
+                      description: m.import_sessions_toggle_description({
+                        provider: connectorProviderLabelMap[provider],
+                      }),
+                      value: providerDetails.importActivitiesEnabled,
+                    },
+                    capabilities.exportWorkouts && {
+                      key: 'exportWorkoutsEnabled',
+                      label: m.export_workouts_toggle_label(),
+                      description: m.export_workouts_toggle_description({
+                        provider: connectorProviderLabelMap[provider],
+                      }),
+                      value: providerDetails.exportWorkoutsEnabled,
+                    },
+                    capabilities.importMetrics && {
+                      key: 'importMetricsEnabled',
+                      label: m.import_metrics_toggle_label(),
+                      description: m.import_metrics_toggle_description({
+                        provider: connectorProviderLabelMap[provider],
+                      }),
+                      value: providerDetails.importMetricsEnabled,
+                    },
+                  ].filter(Boolean) as Array<{
+                    key: keyof ProviderPreferencesDto;
+                    label: string;
+                    description: string;
+                    value: boolean;
+                  }>)
+                : [];
+            const isUpdatingThisProvider =
+              updatingProvider === provider &&
+              updatePreferencesMutation.isPending;
+            const isImportingThisProvider =
+              importingProvider === provider &&
+              importAllActivitiesMutation.isPending;
+            const fullImportCompleted =
+              providerDetails?.fullImportCompletedAt != null;
+            const fullImportInProgress =
+              providerDetails != null &&
+              isFullImportInProgress(providerDetails);
+            const isOpen = openProvider === provider;
+            const logo = (
+              <div className="flex size-10 items-center justify-center text-foreground">
+                {getProviderIcon(provider)}
+              </div>
+            );
 
+            if (!connected || !providerDetails) {
               return (
-                <Card key={provider}>
-                  <CardHeader>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
-                          {getProviderIcon(provider)}
-                        </div>
-                        <div>
-                          <CardTitle className="text-base">
-                            {connectorProviderLabelMap[provider]}
-                          </CardTitle>
-                          <CardDescription>
-                            {connected
-                              ? m.connected_and_syncing()
-                              : m.not_connected()}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {connected && (
-                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 flex-shrink-0">
-                          <CheckCircle2 className="h-5 w-5" />
-                          <span className="text-sm font-medium">
-                            {m.connected()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex-1">
-                        {connected ? (
-                          <p className="text-sm text-muted-foreground">
-                            {m.provider_account_connected({
-                              provider: connectorProviderLabelMap[provider],
-                            })}
-                          </p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">
-                            {m.connect_provider_account({
-                              provider: connectorProviderLabelMap[provider],
-                            })}
-                          </p>
+                <SettingsRow
+                  key={provider}
+                  leading={logo}
+                  title={connectorProviderLabelMap[provider]}
+                  description={m.not_connected()}
+                >
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleConnect(provider)}
+                    disabled={isLoading}
+                  >
+                    <Link2 className="size-4" />
+                    {m.connect()}
+                  </Button>
+                </SettingsRow>
+              );
+            }
+
+            return (
+              <Collapsible
+                key={provider}
+                open={isOpen}
+                onOpenChange={(openState) =>
+                  setOpenProvider(openState ? provider : null)
+                }
+              >
+                <SettingsRow
+                  leading={logo}
+                  title={connectorProviderLabelMap[provider]}
+                  description={
+                    <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
+                      <CheckCircle2 className="size-3.5 shrink-0" />
+                      {m.connected_and_syncing()}
+                    </span>
+                  }
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="min-w-11"
+                      aria-label={`${connectorProviderLabelMap[provider]} ${m.provider_sync_options_title()}`}
+                    >
+                      <span className="hidden sm:inline">
+                        {isOpen ? m.hide_sync_options() : m.show_sync_options()}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          'size-4 transition-transform',
+                          isOpen && 'rotate-180',
                         )}
-                      </div>
-                      <div className="sm:ml-4 flex-shrink-0">
-                        {connected ? (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDisconnect(provider)}
-                            disabled={isLoading}
-                            className="w-full sm:w-auto"
-                          >
-                            <Link2Off className="mr-2 h-4 w-4" />
-                            {m.disconnect()}
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleConnect(provider)}
-                            disabled={isLoading}
-                            className="w-full sm:w-auto"
-                          >
-                            <Link2 className="mr-2 h-4 w-4" />
-                            {m.connect()}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    {connected && providerDetails && hasSyncOptions && (
-                      <div className="mt-6">
-                        <Collapsible
-                          open={openProvider === provider}
-                          onOpenChange={(openState) =>
-                            setOpenProvider(openState ? provider : null)
+                      />
+                    </Button>
+                  </CollapsibleTrigger>
+                </SettingsRow>
+                <CollapsibleContent className="divide-y border-t bg-muted/30">
+                  {preferenceToggles.map((toggle) => {
+                    const id = `${provider}-${toggle.key}`;
+                    return (
+                      <SettingsRow
+                        key={toggle.key}
+                        title={<Label htmlFor={id}>{toggle.label}</Label>}
+                        description={toggle.description}
+                      >
+                        <Switch
+                          id={id}
+                          checked={toggle.value}
+                          onCheckedChange={(checked) =>
+                            handlePreferenceChange(
+                              provider,
+                              toggle.key,
+                              checked,
+                            )
+                          }
+                          disabled={isUpdatingThisProvider}
+                        />
+                      </SettingsRow>
+                    );
+                  })}
+                  {capabilities.supportsFullImport && (
+                    <SettingsRow
+                      stacked
+                      title={m.full_import_title()}
+                      description={
+                        <>
+                          {m.full_import_description({
+                            provider: connectorProviderLabelMap[provider],
+                          })}
+                          {provider === 'GARMIN' &&
+                            ` ${m.full_import_garmin_hint()}`}
+                          {fullImportCompleted
+                            ? ` ${m.full_import_completed()}`
+                            : !providerDetails.importActivitiesEnabled &&
+                              ` ${m.full_import_disabled()}`}
+                        </>
+                      }
+                    >
+                      {!fullImportCompleted && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={
+                            fullImportInProgress ||
+                            isImportingThisProvider ||
+                            !providerDetails.importActivitiesEnabled
+                          }
+                          onClick={() =>
+                            importAllActivitiesMutation.mutate(provider)
                           }
                         >
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                            <p className="text-sm font-medium">
-                              {m.provider_sync_options_title()}
-                            </p>
-                            <CollapsibleTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="flex items-center gap-2 self-start sm:self-auto"
-                              >
-                                <ChevronDown
-                                  className={cn(
-                                    'h-4 w-4 transition-transform',
-                                    openProvider === provider && 'rotate-180',
-                                  )}
-                                />
-                                {openProvider === provider
-                                  ? m.hide_sync_options()
-                                  : m.show_sync_options()}
-                              </Button>
-                            </CollapsibleTrigger>
-                          </div>
-                          <CollapsibleContent className="space-y-4 pt-4">
-                            {preferenceToggles.map((toggle) => (
-                              <div
-                                key={toggle.key}
-                                className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between rounded-md border p-4"
-                              >
-                                <div className="flex-1">
-                                  <Label className="text-sm font-medium">
-                                    {toggle.label}
-                                  </Label>
-                                  <p className="text-sm text-muted-foreground">
-                                    {toggle.description}
-                                  </p>
-                                </div>
-                                <Switch
-                                  checked={toggle.value}
-                                  onCheckedChange={(checked) =>
-                                    handlePreferenceChange(
-                                      provider,
-                                      toggle.key,
-                                      checked,
-                                    )
-                                  }
-                                  disabled={isUpdatingThisProvider}
-                                  className="flex-shrink-0"
-                                />
-                              </div>
-                            ))}
-                            {capabilities.supportsFullImport && (
-                              <div className="rounded-md border p-4">
-                                <div className="space-y-2">
-                                  <p className="text-sm font-medium">
-                                    {m.full_import_title()}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {m.full_import_description({
-                                      provider:
-                                        connectorProviderLabelMap[provider],
-                                    })}
-                                  </p>
-                                  {provider === 'GARMIN' && (
-                                    <p className="text-xs text-muted-foreground">
-                                      {m.full_import_garmin_hint()}
-                                    </p>
-                                  )}
-                                  {fullImportCompleted ? (
-                                    <p className="text-sm text-muted-foreground">
-                                      {m.full_import_completed()}
-                                    </p>
-                                  ) : (
-                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={
-                                          fullImportInProgress ||
-                                          isImportingThisProvider ||
-                                          !providerDetails.importActivitiesEnabled
-                                        }
-                                        onClick={() =>
-                                          importAllActivitiesMutation.mutate(
-                                            provider,
-                                          )
-                                        }
-                                      >
-                                        {fullImportInProgress ||
-                                        isImportingThisProvider
-                                          ? m.full_import_in_progress()
-                                          : m.full_import_cta()}
-                                      </Button>
-                                      {!providerDetails.importActivitiesEnabled && (
-                                        <p className="text-xs text-muted-foreground">
-                                          {m.full_import_disabled()}
-                                        </p>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </CollapsibleContent>
-                        </Collapsible>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })
-          )}
-        </div>
-      </SettingsSection>
+                          {fullImportInProgress || isImportingThisProvider
+                            ? m.full_import_in_progress()
+                            : m.full_import_cta()}
+                        </Button>
+                      )}
+                    </SettingsRow>
+                  )}
+                  <SettingsRow
+                    stacked
+                    description={m.provider_account_connected({
+                      provider: connectorProviderLabelMap[provider],
+                    })}
+                  >
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive-foreground"
+                      onClick={() => handleDisconnect(provider)}
+                      disabled={isLoading}
+                    >
+                      <Link2Off className="size-4" />
+                      {m.disconnect()}
+                    </Button>
+                  </SettingsRow>
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
+        </SettingsPanel>
+      )}
 
       {roles?.includes('ATHLETE') && (
         <SettingsSection

@@ -6,7 +6,11 @@ import { LoadingScreen } from '@/components/loading-screen';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { m } from '@/paraglide/messages';
-import { SettingsSection } from '@/views/dashboard/settings-view/settings-section';
+import {
+  SettingsPanel,
+  SettingsRow,
+  SettingsSection,
+} from '@/views/dashboard/settings-view/settings-section';
 
 interface P {
   athleteId: number;
@@ -35,52 +39,45 @@ export function SessionValidationSettingsCard({ athleteId }: P) {
       title={m.session_validation_settings()}
       description={m.session_validation_settings_description()}
     >
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="require-rpe">{m.require_rpe()}</Label>
-            <p className="text-sm text-muted-foreground">
-              {m.require_rpe_description()}
-            </p>
-          </div>
+      <SettingsPanel>
+        <SettingsRow
+          title={<Label htmlFor="require-rpe">{m.require_rpe()}</Label>}
+          description={m.require_rpe_description()}
+        >
           <Switch
             id="require-rpe"
             checked={settings?.requireRpe ?? false}
             onCheckedChange={handleToggleRpe}
             disabled={updateMutation.isPending}
           />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="require-comment">{m.require_comment()}</Label>
-            <p className="text-sm text-muted-foreground">
-              {m.require_comment_description()}
-            </p>
-          </div>
+        </SettingsRow>
+        <SettingsRow
+          title={<Label htmlFor="require-comment">{m.require_comment()}</Label>}
+          description={m.require_comment_description()}
+        >
           <Switch
             id="require-comment"
             checked={settings?.requireComment ?? false}
             onCheckedChange={handleToggleComment}
             disabled={updateMutation.isPending}
           />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
+        </SettingsRow>
+        <SettingsRow
+          title={
             <Label htmlFor="require-feedback-questions">
               {m.require_feedback_questions()}
             </Label>
-            <p className="text-sm text-muted-foreground">
-              {m.require_feedback_questions_description()}
-            </p>
-          </div>
+          }
+          description={m.require_feedback_questions_description()}
+        >
           <Switch
             id="require-feedback-questions"
             checked={settings?.requireFeedbackQuestions ?? true}
             onCheckedChange={handleToggleFeedbackQuestions}
             disabled={updateMutation.isPending}
           />
-        </div>
-      </div>
+        </SettingsRow>
+      </SettingsPanel>
     </SettingsSection>
   );
 }

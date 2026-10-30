@@ -13,7 +13,9 @@ test('adds an AI key and runs features on it', async ({ page, request }) => {
 
   const problems = trackPageProblems(page);
   await page.goto('/dashboard/settings?tab=ai');
-  await expect(page.getByText('Bring your own AI')).toBeVisible();
+  await expect(
+    page.getByText('Connect an API key from the AI provider of your choice'),
+  ).toBeVisible();
   await expect(
     page.getByText('No key yet. Add one to start using AI features.'),
   ).toBeVisible();

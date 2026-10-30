@@ -5,7 +5,6 @@ import {
 import { ConfirmAction } from '@/components/confirm-action';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { Bot, KeyRound, Plus, Trash } from 'lucide-react';
@@ -14,7 +13,13 @@ import { toast } from 'sonner';
 
 import { McpConnection } from '@openathlete/shared';
 
-import { SettingsSection } from '../settings-section';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from '../settings-section';
 import { CreateTokenDialog } from './create-token-dialog';
 
 const formatDate = (date: Date | string) =>
@@ -55,66 +60,58 @@ export function AgentConnectionsSection() {
       title={m.mcp_connections_title()}
       description={m.mcp_connections_description()}
       action={
-        <Button onClick={() => setCreateOpen(true)}>
+        <Button size="sm" onClick={() => setCreateOpen(true)}>
           <Plus className="size-4" />
           {m.mcp_token_create()}
         </Button>
       }
-      contentClassName="pt-4"
     >
       {isPending ? (
-        <Skeleton className="h-16 w-full" />
+        <SettingsRowsSkeleton count={1} />
       ) : connections.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {m.mcp_connections_empty()}
-        </p>
+        <SettingsEmpty>{m.mcp_connections_empty()}</SettingsEmpty>
       ) : (
-        <ul
-          className="divide-y"
+        <SettingsPanel
+          role="list"
           aria-label={m.mcp_connections_title()}
           data-mcp-connections
         >
           {connections.map((connection) => {
             const Icon = connection.kind === 'OAUTH' ? Bot : KeyRound;
             return (
-              <li
+              <SettingsRow
                 key={connection.mcpGrantId}
-                className="flex items-start justify-between gap-3 py-3"
+                role="listitem"
                 data-mcp-connection={connection.name}
+                leading={<Icon className="size-5" />}
+                title={
+                  <span className="flex flex-wrap items-center gap-2">
+                    {connection.name}
+                    <Badge variant="secondary">
+                      {connection.scopes.includes('write')
+                        ? m.mcp_scope_write()
+                        : connection.scopes.includes('read')
+                          ? m.mcp_scope_read()
+                          : m.mcp_scope_import()}
+                    </Badge>
+                  </span>
+                }
+                description={details(connection).join(' · ')}
               >
-                <div className="flex min-w-0 items-start gap-3">
-                  <Icon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0 space-y-1">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-medium">{connection.name}</p>
-                      <Badge variant="secondary">
-                        {connection.scopes.includes('write')
-                          ? m.mcp_scope_write()
-                          : connection.scopes.includes('read')
-                            ? m.mcp_scope_read()
-                            : m.mcp_scope_import()}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {details(connection).join(' · ')}
-                    </p>
-                  </div>
-                </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  // 44 px touch target on phones
-                  className="h-11 min-w-11 shrink-0 sm:h-8 sm:min-w-0"
+                  className="min-w-11"
                   aria-label={`${m.mcp_revoke()} ${connection.name}`}
                   onClick={() => setToRevoke(connection)}
                 >
                   <Trash className="size-4" />
                   <span className="hidden sm:inline">{m.mcp_revoke()}</span>
                 </Button>
-              </li>
+              </SettingsRow>
             );
           })}
-        </ul>
+        </SettingsPanel>
       )}
 
       <CreateTokenDialog open={createOpen} onOpenChange={setCreateOpen} />

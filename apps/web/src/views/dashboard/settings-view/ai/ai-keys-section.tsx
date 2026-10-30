@@ -10,7 +10,6 @@ import { aiProviderName } from '@/components/ai-settings/ai-labels';
 import { ConfirmAction } from '@/components/confirm-action';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { aiErrorMessage } from '@/utils/ai-errors';
@@ -20,7 +19,13 @@ import { toast } from 'sonner';
 
 import { AiCredentialDto, AiErrorCode } from '@openathlete/shared';
 
-import { SettingsSection } from '../settings-section';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from '../settings-section';
 
 function statusBadge(credential: AiCredentialDto) {
   if (credential.lastError === AiErrorCode.CREDENTIAL_REJECTED) {
@@ -80,59 +85,61 @@ export function AiKeysSection() {
       title={m.ai_keys_title()}
       description={m.ai_keys_description()}
       action={
-        <Button onClick={() => setAddOpen(true)} disabled={!providers.length}>
+        <Button
+          size="sm"
+          onClick={() => setAddOpen(true)}
+          disabled={!providers.length}
+        >
           <Plus className="size-4" />
           {m.ai_key_add()}
         </Button>
       }
-      contentClassName="pt-4"
     >
       {isPending ? (
-        <Skeleton className="h-16 w-full" />
+        <SettingsRowsSkeleton count={1} />
       ) : credentials.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{m.ai_keys_empty()}</p>
+        <SettingsEmpty>{m.ai_keys_empty()}</SettingsEmpty>
       ) : (
-        <ul className="divide-y" aria-label={m.ai_keys_title()}>
+        <SettingsPanel role="list" aria-label={m.ai_keys_title()}>
           {credentials.map((credential) => (
-            <li
+            <SettingsRow
               key={credential.aiCredentialId}
-              className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-between"
-            >
-              <div className="flex min-w-0 items-start gap-3">
-                <KeyRound className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-                <div className="min-w-0 space-y-1">
-                  <p className="truncate font-medium">{credential.label}</p>
-                  <p className="truncate text-sm text-muted-foreground">
+              role="listitem"
+              stacked
+              leading={<KeyRound className="size-5" />}
+              title={credential.label}
+              description={
+                <>
+                  <span className="block truncate">
                     {aiProviderName(providers, credential.provider)}
                     {credential.apiKeyHint && ` · ${credential.apiKeyHint}`}
                     {credential.baseUrl && ` · ${credential.baseUrl}`}
-                  </p>
+                  </span>
                   {statusBadge(credential)}
-                </div>
-              </div>
-              <div className="flex shrink-0 gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleTest(credential)}
-                  disabled={
-                    !modelToTest(credential) || testCredential.isPending
-                  }
-                >
-                  {m.ai_key_test()}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`${m.ai_key_delete()} ${credential.label}`}
-                  onClick={() => setToDelete(credential)}
-                >
-                  <Trash className="size-4" />
-                </Button>
-              </div>
-            </li>
+                </>
+              }
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 sm:flex-none"
+                onClick={() => handleTest(credential)}
+                disabled={!modelToTest(credential) || testCredential.isPending}
+              >
+                {m.ai_key_test()}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="max-md:w-11"
+                aria-label={`${m.ai_key_delete()} ${credential.label}`}
+                onClick={() => setToDelete(credential)}
+              >
+                <Trash className="size-4" />
+              </Button>
+            </SettingsRow>
           ))}
-        </ul>
+        </SettingsPanel>
       )}
 
       <AddAiKeyDialog
