@@ -8,8 +8,6 @@ import { ProviderAccount } from '@openathlete/database';
 
 import { ImportedActivity } from '../providers-sync/base/provider-import.interface';
 
-export const GARMIN_PULL_DELAY_MS = 5_000;
-
 export interface ActivityImportJobData {
   providerAccountId: number;
   activity: ImportedActivity;
@@ -170,11 +168,8 @@ export class QueueService {
       notifications.map((data) => ({
         name: data.summaryType,
         data,
+        // Garmin resends a notification it thinks failed: process it once
         opts: {
-          // Garmin ties a pull to a ping it has seen answered: a pull that
-          // overtakes our 200 counts as unprompted, and the ping as unanswered
-          delay: GARMIN_PULL_DELAY_MS,
-          // Garmin resends a notification it thinks failed: process it once
           jobId: `garmin-${createHash('sha256')
             .update(
               JSON.stringify([
