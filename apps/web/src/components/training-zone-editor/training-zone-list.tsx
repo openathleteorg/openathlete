@@ -41,18 +41,21 @@ export function TrainingZoneList({ athleteId, type }: TrainingZoneListProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 px-1">
-        <p className="text-sm text-muted-foreground">
-          {zones.length === 0
-            ? m.no_training_zones_defined()
-            : `${zones.length} ${m.training_zones()}`}
-        </p>
+        {zones.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            {m.no_training_zones_defined()}
+          </p>
+        )}
         <Dialog open={editMode} onOpenChange={setEditMode}>
           <DialogTrigger asChild>
-            <Button variant="default" size="sm">
+            <Button variant="default" size="sm" className="ml-auto">
               {zones.length === 0 ? m.create_zones() : m.edit_zones()}
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogContent
+            mobileFullscreen
+            className="max-h-[90vh] overflow-y-auto sm:max-w-2xl"
+          >
             <DialogHeader>
               <DialogTitle>
                 {zones.length === 0 ? m.create_zones() : m.edit_zones()}

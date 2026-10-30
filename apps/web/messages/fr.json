@@ -1790,5 +1790,9 @@
   "pwa_coming_soon": "Bientôt",
   "pwa_install_action": "Installer",
   "no_athletes_yet": "Aucun athlète pour l'instant. Invitez-en un pour commencer à coacher.",
-  "no_coaches_yet": "Aucun coach pour l'instant. Invitez le vôtre pour partager votre entraînement."
+  "no_coaches_yet": "Aucun coach pour l'instant. Invitez le vôtre pour partager votre entraînement.",
+  "zones_add_sport": "Personnaliser pour un sport",
+  "zones_other_sports": "Autres sports",
+  "zones_remove_sport": "Supprimer ces zones et utiliser les zones générales",
+  "zones_customize": "Personnaliser"
 }

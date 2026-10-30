@@ -47,3 +47,38 @@ test('sets heart-rate zones from the heart-rate reserve', async ({
   await expect(page.getByRole('row', { name: /Zone 1/ })).toContainText('120');
   expect(problems).toEqual([]);
 });
+
+test('gives one sport its own heart-rate zones', async ({ page, request }) => {
+  const athlete = await createAthlete(request);
+  await signIn(page, athlete);
+  const problems = trackPageProblems(page);
+
+  await page.goto('/dashboard/settings?tab=training_zones');
+  await page.getByRole('button', { name: 'Edit zones' }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(
+    dialog.getByRole('button', { name: 'All Sports' }),
+  ).toBeVisible();
+
+  await dialog.getByRole('button', { name: 'Customize for a sport' }).click();
+  await dialog.getByRole('combobox').click();
+  await page.getByRole('option', { name: 'Cycling', exact: true }).click();
+  await page.keyboard.press('Escape');
+  await expect(
+    dialog.getByRole('button', { name: 'Other sports' }),
+  ).toBeVisible();
+
+  // Only the first limit changes: the next zone follows
+  await dialog.locator('#zone-0-max').fill('125');
+  await expect(dialog.locator('[data-zone-row]').nth(1)).toContainText('126');
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect(dialog).toBeHidden();
+
+  // Both sets are listed, and the general one no longer covers cycling
+  await expect(page.getByRole('heading', { name: 'Cycling' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'All sports except Cycling' }),
+  ).toBeVisible();
+  await expect(page.getByRole('row', { name: /125/ })).toHaveCount(1);
+  expect(problems).toEqual([]);
+});
