@@ -47,12 +47,15 @@ function output(
 
 /**
  * What an activity's recording says of its intensity. `zones` are the
- * athlete's heart rate zones for the sport, lowest first.
+ * athlete's heart rate zones for the sport, lowest first, and `powerZones`
+ * their power zones: on a bike with a power meter they win, as heart rate
+ * lags behind short efforts.
  */
 export function activityIntensity(
   stream: ActivityStream,
   sport: string,
   zones: ZoneRange[],
+  powerZones: ZoneRange[] = [],
 ): ActivityIntensity {
   const { heartrate, time } = stream;
   const none = { seconds: [], efficiencyFactor: null, decouplingPercent: null };
@@ -60,9 +63,20 @@ export function activityIntensity(
   const end = Math.min(heartrate.length, time.length) - 1;
   if (end < 1) return none;
 
-  const split = threeZoneSplit(zones.length);
+  const usePower =
+    CYCLING.has(sport) &&
+    !!stream.watts?.some((watts) => watts > 0) &&
+    !!threeZoneSplit(powerZones.length);
+  const sorted = usePower ? powerZones : zones;
+  const split = threeZoneSplit(sorted.length);
   const inZones = split
-    ? timeInZones(heartrate, time, zones, [0, end], (hr) => hr <= 0)
+    ? timeInZones(
+        usePower ? stream.watts! : heartrate,
+        time,
+        sorted,
+        [0, Math.min(end, (usePower ? stream.watts! : heartrate).length - 1)],
+        (value) => value <= 0,
+      )
     : [];
   const seconds = split
     ? [

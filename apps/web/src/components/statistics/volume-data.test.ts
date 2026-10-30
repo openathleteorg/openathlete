@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { SPORT_TYPE, StatisticsVolumeDto } from '@openathlete/shared';
 
-import { OTHER_SPORTS, bucketTotals, volumeChartData } from './volume-data';
+import {
+  OTHER_SPORTS,
+  bucketTotals,
+  chartTotals,
+  volumeChartData,
+} from './volume-data';
 
 const volume = (sport: SPORT_TYPE, distance: number) => ({
   sport,
@@ -52,6 +57,17 @@ describe('volumeChartData', () => {
     );
     expect(series).toEqual([...sports.slice(0, 3), OTHER_SPORTS]);
     expect(rows[0][OTHER_SPORTS]).toBe(3);
+  });
+});
+
+describe('chartTotals', () => {
+  it('gives the total of each bucket in display units', () => {
+    expect(
+      chartTotals(
+        [bucket('2026-01-05', [volume(SPORT_TYPE.RUNNING, 10000)])],
+        'distance',
+      ),
+    ).toEqual([10]);
   });
 });
 

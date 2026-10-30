@@ -7,6 +7,7 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import {
   SPORT_TYPE,
+  SportGroup,
   StatisticsDaysDto,
   formatDuration,
   getSportConfig,
@@ -23,6 +24,7 @@ interface P {
   athleteId: number;
   period: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
 }
 
 const LEVELS = [
@@ -219,7 +221,7 @@ function Regularity({
 }
 
 /** The year as a whole: it does not follow the period, but the year it ends. */
-export function RegularitySection({ athleteId, period, sport }: P) {
+export function RegularitySection({ athleteId, period, sport, group }: P) {
   const year = (period?.end ?? new Date()).getFullYear();
   return (
     <StatSection id="regularity" title={m.statistics_section_regularity()}>
@@ -228,6 +230,7 @@ export function RegularitySection({ athleteId, period, sport }: P) {
           athleteId={athleteId}
           year={year}
           sport={sport}
+          group={group}
           visible={visible && !!period}
         />
       )}
@@ -239,11 +242,13 @@ function RegularityData({
   athleteId,
   year,
   sport,
+  group,
   visible,
 }: {
   athleteId: number;
   year: number;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
   visible: boolean;
 }) {
   const { data } = useStatisticsDaysQuery(
@@ -252,6 +257,7 @@ function RegularityData({
       from: new Date(year - 1, 0, 1),
       to: new Date(year, 11, 31, 23, 59, 59),
       sport: sport ?? undefined,
+      group: group ?? undefined,
     },
     visible,
   );

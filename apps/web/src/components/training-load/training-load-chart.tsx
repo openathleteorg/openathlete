@@ -25,7 +25,7 @@ import {
   YAxis,
 } from 'recharts';
 
-import { SPORT_TYPE } from '@openathlete/shared';
+import { SPORT_TYPE, SportGroup } from '@openathlete/shared';
 
 import { MetricInfo } from '../statistics/metric-info';
 import { Period } from '../statistics/statistics-period';
@@ -33,7 +33,9 @@ import { Period } from '../statistics/statistics-period';
 interface TrainingLoadChartProps {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
   /** Off until the chart comes near the screen */
   enabled: boolean;
 }
@@ -46,6 +48,7 @@ const COLORS = {
   ctl: 'var(--chart-1)',
   atl: 'var(--chart-2)',
   tsb: 'var(--chart-3)',
+  ctlCompared: 'var(--muted-foreground)',
   ctlProjected: 'var(--chart-1)',
   atlProjected: 'var(--chart-2)',
   tsbProjected: 'var(--chart-3)',
@@ -94,7 +97,9 @@ function Legend({
 export function TrainingLoadChart({
   athleteId,
   period,
+  compared,
   sport,
+  group,
   enabled,
 }: TrainingLoadChartProps) {
   const dateFnsLocale = getDateFnsLocale(getLocale());
@@ -104,8 +109,19 @@ export function TrainingLoadChart({
       from: period?.start ?? new Date(0),
       to: period?.end ?? new Date(0),
       sport: sport ?? undefined,
+      group: group ?? undefined,
     },
     enabled && !!period,
+  );
+  const { data: before } = useStatisticsLoadQuery(
+    {
+      athleteId,
+      from: compared?.start ?? new Date(0),
+      to: compared?.end ?? new Date(0),
+      sport: sport ?? undefined,
+      group: group ?? undefined,
+    },
+    enabled && !!compared,
   );
   const chartData = useMemo(
     () =>
@@ -119,12 +135,14 @@ export function TrainingLoadChart({
           ctl: point.projected ? undefined : point.ctl,
           atl: point.projected ? undefined : point.atl,
           tsb: point.projected ? undefined : point.tsb,
+          // Periods have the same length: days line up by rank
+          ctlCompared: compared ? before?.points[index]?.ctl : undefined,
           ctlProjected: planned ? point.ctl : undefined,
           atlProjected: planned ? point.atl : undefined,
           tsbProjected: planned ? point.tsb : undefined,
         };
       }),
-    [data],
+    [data, before, compared],
   );
 
   const labels: Record<Series, string> = {
@@ -132,6 +150,7 @@ export function TrainingLoadChart({
     ctl: m.fitness_ctl(),
     atl: m.fatigue_atl(),
     tsb: m.tsb_balance(),
+    ctlCompared: `${m.fitness_ctl()} (${m.statistics_series_compared()})`,
     ctlProjected: `${m.fitness_ctl()} (${m.statistics_projected()})`,
     atlProjected: `${m.fatigue_atl()} (${m.statistics_projected()})`,
     tsbProjected: `${m.tsb_balance()} (${m.statistics_projected()})`,
@@ -259,6 +278,18 @@ export function TrainingLoadChart({
                     dot={false}
                     isAnimationActive={false}
                   />
+                  {compared && (
+                    <Line
+                      type="linear"
+                      dataKey="ctlCompared"
+                      stroke={COLORS.ctlCompared}
+                      strokeWidth={1.5}
+                      strokeDasharray="2 3"
+                      connectNulls
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
                   <Line
                     type="linear"
                     dataKey="ctlProjected"
@@ -369,6 +400,18 @@ export function TrainingLoadChart({
                 </LineChart>
               </ChartContainer>
             </div>
+            {data.monotony !== null && (
+              <p
+                className="flex items-center gap-1 text-sm text-muted-foreground"
+                data-monotony
+              >
+                {m.statistics_monotony()}
+                <span className="font-mono font-medium text-foreground tabular-nums">
+                  {data.monotony.toFixed(2)}
+                </span>
+                <MetricInfo metric="monotony" />
+              </p>
+            )}
             {chartData.some((point) => point.sessionRpe > 0) && (
               <div className="space-y-2" data-session-rpe>
                 <p className="flex items-center gap-1 text-sm text-muted-foreground">

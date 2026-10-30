@@ -1,5 +1,7 @@
+import { m } from '@/paraglide/messages';
 import { useInView } from 'framer-motion';
-import { ReactNode, useRef } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { ReactNode, useRef, useState } from 'react';
 
 interface P {
   title: string;
@@ -14,6 +16,7 @@ interface P {
 export function StatSection({ title, id, actions, children }: P) {
   const ref = useRef<HTMLElement>(null);
   const visible = useInView(ref, { once: true, margin: '300px' });
+  const [open, setOpen] = useState(true);
   return (
     <section
       ref={ref}
@@ -22,12 +25,27 @@ export function StatSection({ title, id, actions, children }: P) {
       className="space-y-3 scroll-mt-36"
     >
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <h2 id={`${id}-title`} className="text-lg font-semibold">
-          {title}
-        </h2>
-        {actions}
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={
+            open
+              ? m.statistics_collapse({ section: title })
+              : m.statistics_expand({ section: title })
+          }
+          onClick={() => setOpen(!open)}
+          className="flex min-h-11 items-center gap-1 text-left md:min-h-0"
+        >
+          <ChevronDown
+            className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
+          />
+          <h2 id={`${id}-title`} className="text-lg font-semibold">
+            {title}
+          </h2>
+        </button>
+        {open && actions}
       </div>
-      {children(visible)}
+      {open && children(visible)}
     </section>
   );
 }

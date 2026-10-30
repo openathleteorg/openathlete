@@ -10,6 +10,8 @@ export type MetricVerdict = 'validated' | 'reserved' | 'estimate';
 
 export interface MetricEntry {
   verdict: MetricVerdict;
+  /** Plain arithmetic: reads the same in every language */
+  formula: string;
   sources: { label: string; url: string }[];
 }
 
@@ -25,6 +27,7 @@ const IMBACH = {
 export const METRIC_REGISTRY = {
   sessionRpe: {
     verdict: 'validated',
+    formula: 'RPE (0-10) × min',
     sources: [
       {
         label: 'Foster et al. 2001',
@@ -38,6 +41,7 @@ export const METRIC_REGISTRY = {
   },
   trimp: {
     verdict: 'reserved',
+    formula: 'min × ΔHR × 0.64 e^(1.92 ΔHR); ♀ 0.86 e^(1.67 ΔHR)',
     sources: [
       {
         label: 'Wallace et al. 2014',
@@ -45,11 +49,24 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
-  ctl: { verdict: 'estimate', sources: [CLARKE_SKIBA, IMBACH] },
-  atl: { verdict: 'estimate', sources: [CLARKE_SKIBA, IMBACH] },
-  tsb: { verdict: 'estimate', sources: [CLARKE_SKIBA, IMBACH] },
+  ctl: {
+    verdict: 'estimate',
+    formula: 'CTL(d) = CTL(d-1) + (1 - e^(-1/42)) × (load - CTL(d-1))',
+    sources: [CLARKE_SKIBA, IMBACH],
+  },
+  atl: {
+    verdict: 'estimate',
+    formula: 'ATL(d) = ATL(d-1) + (1 - e^(-1/7)) × (load - ATL(d-1))',
+    sources: [CLARKE_SKIBA, IMBACH],
+  },
+  tsb: {
+    verdict: 'estimate',
+    formula: 'TSB = CTL - ATL',
+    sources: [CLARKE_SKIBA, IMBACH],
+  },
   intensityDistribution: {
     verdict: 'validated',
+    formula: '5 zones: Z1-2 | Z3 | Z4-5',
     sources: [
       {
         label: 'Seiler & Kjerland 2006',
@@ -63,6 +80,7 @@ export const METRIC_REGISTRY = {
   },
   efficiency: {
     verdict: 'estimate',
+    formula: 'output / HR',
     sources: [
       {
         label: 'Rothschild et al. 2025',
@@ -72,6 +90,7 @@ export const METRIC_REGISTRY = {
   },
   decoupling: {
     verdict: 'estimate',
+    formula: '(EF1 - EF2) / EF1',
     sources: [
       {
         label: 'Rothschild et al. 2025',
@@ -85,6 +104,7 @@ export const METRIC_REGISTRY = {
   },
   longRun: {
     verdict: 'reserved',
+    formula: 'distance > 1.1 × longest (30 d)',
     sources: [
       {
         label: 'Frandsen et al. 2025',
@@ -94,6 +114,7 @@ export const METRIC_REGISTRY = {
   },
   criticalSpeed: {
     verdict: 'estimate',
+    formula: 'distance = D′ + CS × t (2-20 min)',
     sources: [
       {
         label: 'Smyth & Muniz-Pumares 2020',
@@ -105,8 +126,23 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  criticalSwimSpeed: {
+    verdict: 'reserved',
+    formula: 'CSS = (400 - 200) / (T400 - T200)',
+    sources: [
+      {
+        label: 'Wakayoshi et al. 1992',
+        url: 'https://doi.org/10.1007/bf00717953',
+      },
+      {
+        label: 'Dekerle et al. 2005',
+        url: 'https://doi.org/10.1055/s-2004-821227',
+      },
+    ],
+  },
   criticalPower: {
     verdict: 'reserved',
+    formula: 'work = W′ + CP × t (2-20 min)',
     sources: [
       {
         label: 'Jones et al. 2010',
@@ -118,8 +154,20 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  monotony: {
+    verdict: 'estimate',
+    formula: 'mean(daily load, 7 d) / SD(daily load, 7 d)',
+    sources: [
+      {
+        label: 'Foster 1998',
+        url: 'https://doi.org/10.1097/00005768-199807000-00023',
+      },
+    ],
+  },
   gap: {
     verdict: 'reserved',
+    formula:
+      'v × Cr(i) / Cr(0); Cr = 155.4i⁵ - 30.4i⁴ - 43.3i³ + 46.3i² + 19.5i + 3.6',
     sources: [
       {
         label: 'Minetti et al. 2002',

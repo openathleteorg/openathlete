@@ -4,7 +4,11 @@ import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale } from '@/utils/locales';
 import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
 
-import { SPORT_TYPE, StatisticsIntensityDto } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  SportGroup,
+  StatisticsIntensityDto,
+} from '@openathlete/shared';
 
 import { cadenceFactor } from '../activity-analysis/tracks';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
@@ -21,7 +25,9 @@ type Bucket = StatisticsIntensityDto['buckets'][number];
 interface P {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
 }
 
 const DOMAINS = [
@@ -132,6 +138,45 @@ function Distribution({ data }: { data: StatisticsIntensityDto }) {
   );
 }
 
+/** Shares of a whole period, as bars of a chart would not line up */
+function periodShares({ buckets }: StatisticsIntensityDto) {
+  return intensityShares(
+    buckets.reduce(
+      (sum, bucket) => ({
+        ...sum,
+        low: sum.low + bucket.low,
+        middle: sum.middle + bucket.middle,
+        high: sum.high + bucket.high,
+      }),
+      { ...buckets[0], low: 0, middle: 0, high: 0 },
+    ),
+  );
+}
+
+function Comparison({
+  data,
+  before,
+}: {
+  data: StatisticsIntensityDto;
+  before: StatisticsIntensityDto;
+}) {
+  const [current, previous] = [periodShares(data), periodShares(before)];
+  if (previous.low + previous.middle + previous.high === 0) return null;
+  const line = (shares: typeof current) =>
+    DOMAINS.map(({ key }) => `${Math.round(shares[key])}`).join(' / ');
+  return (
+    <p
+      className="text-sm text-muted-foreground tabular-nums"
+      data-intensity-compared
+    >
+      {m.statistics_intensity_compared({
+        current: line(current),
+        previous: line(previous),
+      })}
+    </p>
+  );
+}
+
 function SteadyTrends({
   data,
   sport,
@@ -214,7 +259,9 @@ function SteadyTrends({
 function Intensity({
   athleteId,
   period,
+  compared,
   sport,
+  group,
   visible,
 }: P & { visible: boolean }) {
   const { data } = useStatisticsIntensityQuery(
@@ -223,8 +270,19 @@ function Intensity({
       from: period?.start ?? new Date(0),
       to: period?.end ?? new Date(0),
       sport: sport ?? undefined,
+      group: group ?? undefined,
     },
     visible && !!period,
+  );
+  const { data: before } = useStatisticsIntensityQuery(
+    {
+      athleteId,
+      from: compared?.start ?? new Date(0),
+      to: compared?.end ?? new Date(0),
+      sport: sport ?? undefined,
+      group: group ?? undefined,
+    },
+    visible && !!compared,
   );
   if (!data) return <SkeletonChart className="h-[300px] rounded-xl" />;
   if (!data.buckets.some((b) => b.low + b.middle + b.high > 0)) {
@@ -245,6 +303,7 @@ function Intensity({
         </p>
       )}
       <Distribution data={data} />
+      {compared && before && <Comparison data={data} before={before} />}
       {steady && <SteadyTrends data={data} sport={sport} />}
     </div>
   );

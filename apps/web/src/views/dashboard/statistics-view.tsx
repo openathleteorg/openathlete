@@ -19,7 +19,7 @@ export function StatisticsView({ athleteId }: P) {
   const { data: options } = useStatisticsFiltersQuery(athleteId);
   const filters = useStatisticsFilters(options?.firstActivityDate);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
-  const { period, compared, sport } = filters;
+  const { period, compared, sport, group } = filters;
 
   const pageTitle = isCurrentUser
     ? m.my_statistics()
@@ -37,11 +37,35 @@ export function StatisticsView({ athleteId }: P) {
         period={period}
         compared={compared}
         sport={sport}
+        group={group}
       />
-      <VolumeSection athleteId={athleteId} period={period} sport={sport} />
-      <RegularitySection athleteId={athleteId} period={period} sport={sport} />
-      <LoadSection athleteId={athleteId} period={period} sport={sport} />
-      <IntensitySection athleteId={athleteId} period={period} sport={sport} />
+      <VolumeSection
+        athleteId={athleteId}
+        period={period}
+        compared={compared}
+        sport={sport}
+        group={group}
+      />
+      <RegularitySection
+        athleteId={athleteId}
+        period={period}
+        sport={sport}
+        group={group}
+      />
+      <LoadSection
+        athleteId={athleteId}
+        period={period}
+        compared={compared}
+        sport={sport}
+        group={group}
+      />
+      <IntensitySection
+        athleteId={athleteId}
+        period={period}
+        compared={compared}
+        sport={sport}
+        group={group}
+      />
       <PerformanceSection
         athleteId={athleteId}
         period={period}

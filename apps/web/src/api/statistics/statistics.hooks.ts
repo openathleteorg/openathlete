@@ -17,8 +17,20 @@ const sectionOptions = (enabled: boolean) => ({
   placeholderData: keepPreviousData,
 });
 
-const paramsKey = ({ athleteId, from, to, sport }: StatisticsSectionParams) =>
-  [athleteId, from.toISOString(), to.toISOString(), sport ?? null] as const;
+const paramsKey = ({
+  athleteId,
+  from,
+  to,
+  sport,
+  group,
+}: StatisticsSectionParams) =>
+  [
+    athleteId,
+    from.toISOString(),
+    to.toISOString(),
+    sport ?? null,
+    group ?? null,
+  ] as const;
 
 export const useStatisticsFiltersQuery = (athleteId: number) =>
   useQuery({

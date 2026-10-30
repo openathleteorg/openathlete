@@ -2,6 +2,7 @@ import client, { routes } from '@/utils/axios';
 
 import {
   SPORT_TYPE,
+  SportGroup,
   StatisticsDaysDto,
   StatisticsFiltersDto,
   StatisticsIntensityDto,
@@ -18,6 +19,7 @@ export interface StatisticsSectionParams {
   from: Date;
   to: Date;
   sport?: SPORT_TYPE;
+  group?: SportGroup;
 }
 
 export class StatisticsAPI {

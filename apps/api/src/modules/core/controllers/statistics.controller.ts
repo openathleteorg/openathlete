@@ -64,6 +64,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
   @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
+  @ApiQuery({
     name: 'compareFrom',
     type: String,
     format: 'date-time',
@@ -98,6 +103,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })
@@ -121,6 +131,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })
@@ -144,6 +159,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })
@@ -212,6 +232,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })

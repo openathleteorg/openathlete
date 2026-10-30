@@ -4,7 +4,7 @@ import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { getDateLocale } from '@/utils/locales';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-import { SPORT_TYPE } from '@openathlete/shared';
+import { SPORT_GROUPS, SPORT_TYPE, SportGroup } from '@openathlete/shared';
 
 import { Button } from '../ui/button';
 import { DatePicker } from '../ui/date-picker';
@@ -24,6 +24,13 @@ import {
 import { StatisticsFiltersState } from './use-statistics-filters';
 
 const ALL_SPORTS = 'ALL';
+const GROUP_PREFIX = 'group:';
+
+const GROUP_LABELS: Record<SportGroup, () => string> = {
+  RUNNING: m.statistics_group_running,
+  CYCLING: m.statistics_group_cycling,
+  SKIING: m.statistics_group_skiing,
+};
 
 const PERIOD_LABELS: Record<StatisticsPeriodType, () => string> = {
   days7: m.last_7_days,
@@ -60,7 +67,12 @@ interface P {
 
 /** Stays on screen on desktop: on a phone, it would take too much of it. */
 export function StatisticsFilters({ filters, sports }: P) {
-  const { period, periodType, offset, sport, comparison } = filters;
+  const { period, periodType, offset, sport, group, comparison } = filters;
+  // A group only says something for an athlete with several of its sports
+  const groups = (Object.keys(SPORT_GROUPS) as SportGroup[]).filter(
+    (key) =>
+      SPORT_GROUPS[key].filter((value) => sports.includes(value)).length > 1,
+  );
   const canStep = periodType !== 'all' && periodType !== 'custom';
   const dayAndMonth = (date: Date) =>
     date.toLocaleString(getDateLocale(getLocale()), {
@@ -96,12 +108,16 @@ export function StatisticsFilters({ filters, sports }: P) {
           </SelectContent>
         </Select>
         <Select
-          value={sport ?? ALL_SPORTS}
-          onValueChange={(value) =>
-            filters.setSport(
-              value === ALL_SPORTS ? null : (value as SPORT_TYPE),
-            )
-          }
+          value={sport ?? (group ? `${GROUP_PREFIX}${group}` : ALL_SPORTS)}
+          onValueChange={(value) => {
+            if (value === ALL_SPORTS) filters.setSport(null);
+            else if (value.startsWith(GROUP_PREFIX)) {
+              filters.setSport(
+                null,
+                value.slice(GROUP_PREFIX.length) as SportGroup,
+              );
+            } else filters.setSport(value as SPORT_TYPE);
+          }}
         >
           <SelectTrigger className={TRIGGER} aria-label={m.sport()}>
             <SelectValue />
@@ -110,6 +126,11 @@ export function StatisticsFilters({ filters, sports }: P) {
             <SelectItem value={ALL_SPORTS}>
               {m.statistics_all_sports()}
             </SelectItem>
+            {groups.map((value) => (
+              <SelectItem key={value} value={`${GROUP_PREFIX}${value}`}>
+                {GROUP_LABELS[value]()}
+              </SelectItem>
+            ))}
             {sports.map((value) => (
               <SelectItem key={value} value={value}>
                 {sportTypeLabelMap[value]}

@@ -6,6 +6,7 @@ import { m } from '@/paraglide/messages';
 
 import {
   SPORT_TYPE,
+  SportGroup,
   StatisticsTotalsDto,
   formatDistance,
   formatDuration,
@@ -22,17 +23,25 @@ interface P {
   period: Period | null;
   compared: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
 }
 
 const TILES = 5;
 
 /** The answer to "how did it go?", before any chart. */
-export function SummarySection({ athleteId, period, compared, sport }: P) {
+export function SummarySection({
+  athleteId,
+  period,
+  compared,
+  sport,
+  group,
+}: P) {
   const params = {
     athleteId,
     from: period?.start ?? new Date(0),
     to: period?.end ?? new Date(0),
     sport: sport ?? undefined,
+    group: group ?? undefined,
   };
   const { data: overview, isFetching } = useStatisticsOverviewQuery(
     {

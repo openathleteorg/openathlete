@@ -12,7 +12,7 @@ import { ActivityPipelineContext, ActivityProcessor } from '../types';
  * Bump when the figures below change: activities computed with an older
  * version are recomputed in the background (IntensityBackfillService).
  */
-export const INTENSITY_VERSION = 2;
+export const INTENSITY_VERSION = 3;
 
 /** Reads the recording once, so statistics never have to. */
 @Injectable()
@@ -21,13 +21,14 @@ export class IntensityProcessor implements ActivityProcessor {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /** The athlete's heart rate zones for a sport, lowest first */
-  private async heartRateZones(
+  /** The athlete's zones of a kind for a sport, lowest first */
+  private async zonesOf(
     athleteId: number,
+    type: 'HEARTRATE' | 'POWER',
     sport: string,
   ): Promise<ZoneRange[]> {
     const zones = await this.prisma.trainingZone.findMany({
-      where: { athleteId, type: 'HEARTRATE' },
+      where: { athleteId, type },
       include: { values: true },
     });
     const ranges = zones.flatMap(({ trainingZoneId, values }) => {
@@ -53,10 +54,12 @@ export class IntensityProcessor implements ActivityProcessor {
     });
     if (!activity?.stream || !activity.event.athleteId) return;
 
+    const { athleteId } = activity.event;
     const { seconds, efficiencyFactor, decouplingPercent } = activityIntensity(
       uncompressActivityStream(activity.stream as ActivityStream),
       activity.sport,
-      await this.heartRateZones(activity.event.athleteId, activity.sport),
+      await this.zonesOf(athleteId, 'HEARTRATE', activity.sport),
+      await this.zonesOf(athleteId, 'POWER', activity.sport),
     );
     await this.prisma.eventActivity.update({
       where: { eventActivityId },

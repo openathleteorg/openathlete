@@ -7,10 +7,19 @@ import { getLocale } from '@/paraglide/runtime';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { getDateFnsLocale } from '@/utils/locales';
 import { useState } from 'react';
-import { Bar, BarChart, CartesianGrid, Cell, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Line,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import {
   SPORT_TYPE,
+  SportGroup,
   formatDistance,
   formatDuration,
 } from '@openathlete/shared';
@@ -28,18 +37,27 @@ import {
   VolumeMetric,
   VolumeRow,
   VolumeSeries,
+  chartTotals,
   volumeChartData,
 } from './volume-data';
 
 interface P {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
 }
 
 const color = (index: number) => `var(--chart-${(index % 5) + 1})`;
 
-export function VolumeSection({ athleteId, period, sport }: P) {
+export function VolumeSection({
+  athleteId,
+  period,
+  compared,
+  sport,
+  group,
+}: P) {
   const [metric, setMetric] = useState<VolumeMetric>('movingTime');
   return (
     <StatSection
@@ -65,7 +83,9 @@ export function VolumeSection({ athleteId, period, sport }: P) {
         <VolumeCharts
           athleteId={athleteId}
           period={period}
+          compared={compared}
           sport={sport}
+          group={group}
           metric={metric}
           visible={visible}
         />
@@ -77,7 +97,9 @@ export function VolumeSection({ athleteId, period, sport }: P) {
 function VolumeCharts({
   athleteId,
   period,
+  compared,
   sport,
+  group,
   metric,
   visible,
 }: P & { metric: VolumeMetric; visible: boolean }) {
@@ -86,6 +108,7 @@ function VolumeCharts({
     from: period?.start ?? new Date(0),
     to: period?.end ?? new Date(0),
     sport: sport ?? undefined,
+    group: group ?? undefined,
   };
   const enabled = visible && !!period;
   const { data: volume, isFetching } = useStatisticsVolumeQuery(
@@ -94,9 +117,23 @@ function VolumeCharts({
   );
   // The same totals as the summary: no second request without a comparison
   const { data: overview } = useStatisticsOverviewQuery(params, enabled);
+  const { data: before } = useStatisticsVolumeQuery(
+    {
+      ...params,
+      from: compared?.start ?? new Date(0),
+      to: compared?.end ?? new Date(0),
+    },
+    enabled && !!compared,
+  );
   const locale = getDateFnsLocale(getLocale());
 
-  const { rows, series } = volumeChartData(volume?.buckets ?? [], metric);
+  const { rows: bars, series } = volumeChartData(volume?.buckets ?? [], metric);
+  // Periods have the same length: buckets line up by rank
+  const totals = before && compared ? chartTotals(before.buckets, metric) : [];
+  const rows = bars.map((row, index) => ({
+    ...row,
+    compared: totals[index],
+  }));
   const granularity = volume?.granularity ?? 'week';
   const unit: Record<VolumeMetric, string> = {
     movingTime: 'h',
@@ -104,8 +141,12 @@ function VolumeCharts({
     elevationGain: m.short_elevation_gain(),
     count: '',
   };
-  const seriesLabel = (key: VolumeSeries) =>
-    key === OTHER_SPORTS ? m.other_sports() : sportTypeLabelMap[key];
+  const seriesLabel = (key: VolumeSeries | 'compared') =>
+    key === 'compared'
+      ? m.statistics_series_compared()
+      : key === OTHER_SPORTS
+        ? m.other_sports()
+        : sportTypeLabelMap[key];
   const formatValue = (value: number) =>
     metric === 'movingTime' ? value.toFixed(1) : `${Math.round(value)}`;
   const formatSlice: Record<VolumeMetric, (value: number) => string> = {
@@ -145,6 +186,14 @@ function VolumeCharts({
                     </span>
                   </li>
                 ))}
+                {compared && (
+                  <li className="flex items-center gap-1.5">
+                    <span className="w-4 border-t-2 border-dashed border-muted-foreground" />
+                    <span className="text-muted-foreground">
+                      {seriesLabel('compared')}
+                    </span>
+                  </li>
+                )}
                 {rows.some((row) => row.partial) && (
                   <li className="flex items-center gap-1.5">
                     <span className="h-2.5 w-2.5 shrink-0 rounded-sm bg-muted-foreground/40" />
@@ -163,7 +212,10 @@ function VolumeCharts({
                 )}
                 className="h-[272px] w-full"
               >
-                <BarChart data={rows} margin={{ top: 8, right: 8, left: 0 }}>
+                <ComposedChart
+                  data={rows}
+                  margin={{ top: 8, right: 8, left: 0 }}
+                >
                   <CartesianGrid vertical={false} />
                   <XAxis
                     dataKey="period"
@@ -201,12 +253,15 @@ function VolumeCharts({
                             <span
                               className="h-2.5 w-2.5 shrink-0 rounded-sm"
                               style={{
-                                backgroundColor: color(
-                                  series.indexOf(name as VolumeSeries),
-                                ),
+                                backgroundColor:
+                                  name === 'compared'
+                                    ? 'var(--muted-foreground)'
+                                    : color(
+                                        series.indexOf(name as VolumeSeries),
+                                      ),
                               }}
                             />
-                            {seriesLabel(name as VolumeSeries)}
+                            {seriesLabel(name as VolumeSeries | 'compared')}
                             <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
                               {formatValue(Number(value))} {unit[metric]}
                             </span>
@@ -231,7 +286,19 @@ function VolumeCharts({
                       ))}
                     </Bar>
                   ))}
-                </BarChart>
+                  {compared && (
+                    <Line
+                      dataKey="compared"
+                      type="linear"
+                      stroke="var(--muted-foreground)"
+                      strokeWidth={1.5}
+                      strokeDasharray="4 4"
+                      connectNulls
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
+                </ComposedChart>
               </ChartContainer>
             </>
           )}

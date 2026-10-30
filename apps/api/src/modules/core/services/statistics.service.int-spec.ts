@@ -157,6 +157,24 @@ describe('StatisticsService (PostgreSQL)', () => {
     expect(totals.load).toBe(70);
   });
 
+  it('reads the sports of a group together', async () => {
+    await activity('road', '2026-03-10T08:00:00Z');
+    await activity('trail', '2026-03-11T08:00:00Z', {
+      sport: 'TRAIL_RUNNING' as 'RUNNING',
+    });
+    await activity('ride', '2026-03-12T08:00:00Z', { sport: 'CYCLING' });
+
+    const { totals, sports } = await service.getOverview(athlete, {
+      ...period,
+      group: 'RUNNING',
+    });
+    expect(totals.count).toBe(2);
+    expect(sports.map(({ sport }) => sport).sort()).toEqual([
+      'RUNNING',
+      'TRAIL_RUNNING',
+    ]);
+  });
+
   it('compares a period with another, for one sport', async () => {
     await activity('now', '2026-03-10T08:00:00Z');
     await activity('before', '2026-02-10T08:00:00Z');
@@ -403,6 +421,26 @@ describe('StatisticsService (PostgreSQL)', () => {
     expect(running.load).toBe(0);
     expect(cycling.load).toBe(50);
     expect(running.ctl + cycling.ctl).toBeCloseTo(all.ctl, 0);
+  });
+
+  it('reads the monotony of the last week', async () => {
+    const now = new Date('2026-03-10T12:00:00Z');
+    for (const day of [3, 4, 5, 6, 7, 8, 9]) {
+      const session = await activity(`day ${day}`, `2026-03-0${day}T08:00:00Z`);
+      await trimp(session.eventId, `2026-03-0${day}`, day === 9 ? 80 : 60);
+    }
+    const { monotony } = await service.getLoad(
+      athlete,
+      {
+        athleteId: DELETED_ATHLETE_ID,
+        from: period.from,
+        to: now,
+        sport: 'RUNNING' as SPORT_TYPE,
+      },
+      now,
+    );
+    // The week to today: 60 five times, then 80 and a rest day
+    expect(monotony).toBeCloseTo(2.34, 1);
   });
 
   it('marks races, and how much history backs the curve', async () => {

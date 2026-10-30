@@ -51,6 +51,32 @@ describe('activityIntensity', () => {
     expect(seconds.map((value) => Math.round(value / 60))).toEqual([2, 1, 2]);
   });
 
+  it('reads power zones first on a bike with a power meter', () => {
+    const powerZones = [0, 150, 200, 250, 300].map((min, index) => ({
+      id: index + 10,
+      min,
+      max: min + 49,
+    }));
+    const { seconds } = activityIntensity(
+      stream([190, 190, 190], () => ({ watts: 120 })),
+      SPORT_TYPE.CYCLING,
+      zones,
+      powerZones,
+    );
+    expect(Math.round(seconds[0] / 60)).toBe(3);
+  });
+
+  it('keeps heart rate for a run, whatever the power zones', () => {
+    const powerZones = zones.map((zone) => ({ ...zone, id: zone.id + 10 }));
+    const { seconds } = activityIntensity(
+      stream([190, 190], () => ({ watts: 120 })),
+      SPORT_TYPE.RUNNING,
+      zones,
+      powerZones,
+    );
+    expect(Math.round(seconds[2] / 60)).toBe(2);
+  });
+
   it('gives metres per heartbeat for running', () => {
     const { efficiencyFactor, decouplingPercent } = activityIntensity(
       stream(Array<number>(30).fill(150), () => ({ gap: 3 })),

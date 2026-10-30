@@ -60,10 +60,20 @@ const COPY: Record<
     what: m.metric_critical_speed_what,
     limits: m.metric_critical_speed_limits,
   },
+  criticalSwimSpeed: {
+    name: m.statistics_critical_swim,
+    what: m.metric_critical_swim_what,
+    limits: m.metric_critical_swim_limits,
+  },
   criticalPower: {
     name: m.statistics_critical_power,
     what: m.metric_critical_power_what,
     limits: m.metric_critical_power_limits,
+  },
+  monotony: {
+    name: m.statistics_monotony,
+    what: m.metric_monotony_what,
+    limits: m.metric_monotony_limits,
   },
   gap: { name: m.gap, what: m.metric_gap_what, limits: m.metric_gap_limits },
 };
@@ -74,7 +84,7 @@ interface P {
 
 /** What a derived figure is, where it comes from and how far to trust it. */
 export function MetricInfo({ metric }: P) {
-  const { verdict, sources } = METRIC_REGISTRY[metric];
+  const { verdict, sources, formula } = METRIC_REGISTRY[metric];
   const copy = COPY[metric];
   const estimate = verdict === 'estimate';
   return (
@@ -97,6 +107,9 @@ export function MetricInfo({ metric }: P) {
         <PopoverContent className="w-72 space-y-2 text-sm">
           <p className="font-medium">{copy.name()}</p>
           <p>{copy.what()}</p>
+          <p className="font-mono text-xs break-words text-muted-foreground">
+            {formula}
+          </p>
           <p className="text-muted-foreground">
             <span className="font-medium">{m.metric_limits()}</span>{' '}
             {copy.limits()}

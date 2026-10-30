@@ -6,7 +6,7 @@ import { getDateFnsLocale } from '@/utils/locales';
 import { format, parseISO } from 'date-fns';
 import { Link } from 'react-router-dom';
 
-import { SPORT_TYPE, formatDistance } from '@openathlete/shared';
+import { SPORT_TYPE, SportGroup, formatDistance } from '@openathlete/shared';
 
 import { TrainingLoadChart } from '../training-load';
 import { Card, CardContent } from '../ui/card';
@@ -17,7 +17,9 @@ import { Period } from './statistics-period';
 interface P {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
 }
 
 const isRunning = (sport: SPORT_TYPE | null) =>
@@ -71,7 +73,7 @@ function LongRuns({
   );
 }
 
-export function LoadSection({ athleteId, period, sport }: P) {
+export function LoadSection({ athleteId, period, compared, sport, group }: P) {
   return (
     <StatSection id="load" title={m.statistics_section_load()}>
       {(visible) => (
@@ -79,7 +81,9 @@ export function LoadSection({ athleteId, period, sport }: P) {
           <TrainingLoadChart
             athleteId={athleteId}
             period={period}
+            compared={compared}
             sport={sport}
+            group={group}
             enabled={visible}
           />
           {isRunning(sport) && period && (

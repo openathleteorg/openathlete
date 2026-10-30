@@ -238,6 +238,57 @@ for (const profile of PROFILES) {
   });
 }
 
+test('a swimmer works out their critical swim speed from a test', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60_000);
+  await prepare(page, request, weeks(2, swim));
+  await page.goto('/dashboard/statistics?sport=SWIMMING');
+  await page.locator('[data-stat-tile]').first().waitFor();
+  await page.locator('#performance').scrollIntoViewIfNeeded();
+  const card = page.locator('[data-critical-swim]');
+  await card.getByLabel('200 m').fill('3:00');
+  await card.getByLabel('400 m').fill('6:20');
+  await expect(card).toContainText('1:40');
+});
+
+test('sports read together as a group, and sections collapse', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60_000);
+  await prepare(page, request, [
+    ...run(0),
+    { ...run(1)[0], sport: 'TRAIL_RUNNING' },
+  ]);
+  await page.goto('/dashboard/statistics');
+  await page.getByRole('combobox', { name: 'Sport' }).click();
+  await page.getByRole('option', { name: 'Running and trail' }).click();
+  await expect(page).toHaveURL(/group=RUNNING/);
+  await expect(page.locator('[data-stat-tile]').nth(3)).toContainText('3');
+
+  const trends = page.getByRole('button', { name: 'Collapse Volume' });
+  await trends.click();
+  await expect(page.locator('[data-volume]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Expand Volume' }).click();
+  await expect(page.locator('[data-volume]')).toBeVisible();
+});
+
+test('the page compares two periods section by section', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60_000);
+  await prepare(page, request, weeks(14, run));
+  await page.goto(
+    '/dashboard/statistics?sport=RUNNING&period=days7&compare=previous',
+  );
+  await reachEverySection(page);
+  await expect(page.locator('[data-volume]')).toContainText('Compared period');
+  await expect(page.locator('[data-intensity-compared]')).toBeVisible();
+});
+
 test('a coach reads the statistics of their athlete', async ({
   page,
   request,

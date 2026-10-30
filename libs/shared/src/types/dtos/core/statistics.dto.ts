@@ -18,11 +18,29 @@ export function statisticsGranularity(
   return days <= WEEKLY_MAX_DAYS ? 'week' : 'month';
 }
 
+/** Sports read together when an athlete practises several forms of one */
+export const SPORT_GROUPS = {
+  RUNNING: [SPORT_TYPE.RUNNING, SPORT_TYPE.TRAIL_RUNNING],
+  CYCLING: [
+    SPORT_TYPE.CYCLING,
+    SPORT_TYPE.GRAVEL_RIDE,
+    SPORT_TYPE.MOUNTAIN_BIKE_RIDE,
+  ],
+  SKIING: [
+    SPORT_TYPE.NORDIC_SKI,
+    SPORT_TYPE.BACKCOUNTRY_SKI,
+    SPORT_TYPE.ROLLER_SKI,
+  ],
+} as const satisfies Record<string, readonly SPORT_TYPE[]>;
+export type SportGroup = keyof typeof SPORT_GROUPS;
+const sportGroupSchema = z.enum(['RUNNING', 'CYCLING', 'SKIING']);
+
 const statisticsPeriodSchema = z.object({
   athleteId: z.coerce.number().int().positive(),
   from: z.coerce.date(),
   to: z.coerce.date(),
   sport: z.nativeEnum(SPORT_TYPE).optional(),
+  group: sportGroupSchema.optional(),
 });
 
 const orderedPeriod = ({ from, to }: { from: Date; to: Date }) => from < to;
@@ -210,6 +228,8 @@ export const statisticsLoadSchema = z.object({
       projected: z.boolean(),
     }),
   ),
+  /** Foster's monotony of the last 7 days: null on an empty or even week */
+  monotony: z.number().nullable(),
   /** Days of a race, within the period */
   races: z.array(z.string()),
   /** Days of load behind the last point: below 126, fitness is still rising */

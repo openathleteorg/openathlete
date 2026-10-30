@@ -4,12 +4,14 @@ import { getLocale } from '@/paraglide/runtime';
 import { activityPath } from '@/routes/paths';
 import { getDateFnsLocale } from '@/utils/locales';
 import { format } from 'date-fns';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
   RECORD_TYPE,
   SPORT_CONFIG,
   SPORT_TYPE,
+  formatDuration,
   formatSpeed,
   formatSpeedUnit,
 } from '@openathlete/shared';
@@ -21,8 +23,14 @@ import {
 } from '../records/record-metrics';
 import { RecordsCurveChart } from '../records/records-curve-chart';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Input } from '../ui/input';
 import { Skeleton, SkeletonChart } from '../ui/skeleton';
-import { CriticalFit, criticalFit } from './critical-model';
+import {
+  CriticalFit,
+  criticalFit,
+  criticalSwimSpeed,
+  parseSwimTime,
+} from './critical-model';
 import { MetricInfo } from './metric-info';
 import { StatSection } from './stat-section';
 import { Period } from './statistics-period';
@@ -68,6 +76,59 @@ function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
               .join(', '),
           })}
         </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Computed on the spot from a test the swimmer did: nothing is stored */
+function CriticalSwimCard() {
+  const [times, setTimes] = useState({ short: '', long: '' });
+  const short = parseSwimTime(times.short);
+  const long = parseSwimTime(times.long);
+  const speed = short && long ? criticalSwimSpeed(short, long) : null;
+  return (
+    <Card className="gap-0 py-0 md:col-span-2" data-critical-swim>
+      <CardContent className="space-y-3 p-4">
+        <div className="flex min-h-6 items-center justify-between gap-1">
+          <span className="text-sm text-muted-foreground">
+            {m.statistics_critical_swim()}
+          </span>
+          <MetricInfo metric="criticalSwimSpeed" />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {m.statistics_critical_swim_help()}
+        </p>
+        <div className="grid grid-cols-2 gap-2 md:max-w-sm">
+          <Input
+            aria-label={m.statistics_critical_swim_200()}
+            placeholder={m.statistics_critical_swim_200()}
+            className="h-11 md:h-9"
+            inputMode="numeric"
+            value={times.short}
+            onChange={(event) =>
+              setTimes({ ...times, short: event.target.value })
+            }
+          />
+          <Input
+            aria-label={m.statistics_critical_swim_400()}
+            placeholder={m.statistics_critical_swim_400()}
+            className="h-11 md:h-9"
+            inputMode="numeric"
+            value={times.long}
+            onChange={(event) =>
+              setTimes({ ...times, long: event.target.value })
+            }
+          />
+        </div>
+        {speed && (
+          <p className="text-2xl font-bold tabular-nums">
+            {formatDuration(Math.round(100 / speed))}{' '}
+            <span className="text-sm font-normal text-muted-foreground">
+              {m.statistics_per_100m()}
+            </span>
+          </p>
+        )}
       </CardContent>
     </Card>
   );
@@ -147,7 +208,8 @@ function Performance({
     .sort((a, b) => +new Date(b.date) - +new Date(a.date))
     .slice(0, 6);
 
-  if (metrics.length === 0) {
+  const swimming = sport === SPORT_TYPE.SWIMMING;
+  if (metrics.length === 0 && !swimming) {
     return (
       <p className="py-8 text-center text-sm text-muted-foreground">
         {m.no_data_for_period()}
@@ -157,6 +219,7 @@ function Performance({
 
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {swimming && <CriticalSwimCard />}
       {fit && <CriticalCard fit={fit} sport={sport} />}
       {newRecords.length > 0 && (
         <Card

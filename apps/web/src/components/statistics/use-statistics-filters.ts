@@ -1,7 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { SPORT_TYPE, endOfDay, startOfDay } from '@openathlete/shared';
+import {
+  SPORT_GROUPS,
+  SPORT_TYPE,
+  SportGroup,
+  endOfDay,
+  startOfDay,
+} from '@openathlete/shared';
 
 import {
   Period,
@@ -32,13 +38,14 @@ export interface StatisticsFiltersState {
   periodType: StatisticsPeriodType;
   offset: number;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
   comparison: StatisticsComparison;
   /** Null until the first activity is known, for the whole history */
   period: Period | null;
   compared: Period | null;
   setPeriodType: (type: StatisticsPeriodType) => void;
   setOffset: (offset: number) => void;
-  setSport: (sport: SPORT_TYPE | null) => void;
+  setSport: (sport: SPORT_TYPE | null, group?: SportGroup | null) => void;
   setComparison: (comparison: StatisticsComparison) => void;
   setCustomPeriod: (period: Period) => void;
 }
@@ -61,6 +68,11 @@ export function useStatisticsFilters(
   const sport = Object.values(SPORT_TYPE).includes(sportParam as SPORT_TYPE)
     ? (sportParam as SPORT_TYPE)
     : null;
+  const groupParam = params.get('group');
+  const group =
+    !sport && groupParam && groupParam in SPORT_GROUPS
+      ? (groupParam as SportGroup)
+      : null;
   const comparison = oneOf(
     STATISTICS_COMPARISONS,
     params.get('compare'),
@@ -111,6 +123,7 @@ export function useStatisticsFilters(
     periodType,
     offset,
     sport,
+    group,
     comparison,
     period,
     compared: period && comparedPeriod(period, comparison),
@@ -123,7 +136,8 @@ export function useStatisticsFilters(
           : { from: null, to: null }),
       }),
     setOffset: (next) => update({ offset: next === 0 ? null : String(next) }),
-    setSport: (next) => update({ sport: next }),
+    setSport: (next, nextGroup = null) =>
+      update({ sport: next, group: nextGroup }),
     setComparison: (next) => update({ compare: next === 'none' ? null : next }),
     setCustomPeriod: ({ start, end }) =>
       update({ period: 'custom', from: dateKey(start), to: dateKey(end) }),

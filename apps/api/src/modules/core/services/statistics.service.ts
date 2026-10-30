@@ -11,7 +11,9 @@ import {
   GetStatisticsOverviewQueryDto,
   GetStatisticsSectionQueryDto,
   GetStatisticsTrendsQueryDto,
+  SPORT_GROUPS,
   SPORT_TYPE,
+  SportGroup,
   StatisticsDaysDto,
   StatisticsFiltersDto,
   StatisticsIntensityDto,
@@ -105,12 +107,21 @@ export class StatisticsService {
     return validTimeZone(athlete.user.timeZone);
   }
 
+  /** Restricts a query joined on `event_activity a` */
+  private sportFilter(sport?: SPORT_TYPE, group?: SportGroup) {
+    const sports = sport ? [sport] : group ? SPORT_GROUPS[group] : [];
+    return sports.length
+      ? Prisma.sql`AND a.sport::text IN (${Prisma.join([...sports])})`
+      : Prisma.empty;
+  }
+
   /** The activities of a period, as the end of a query on `event e` */
   private activitiesOf(
     athleteId: number,
     from: Date,
     to: Date,
     sport?: SPORT_TYPE,
+    group?: SportGroup,
   ) {
     return Prisma.sql`
       FROM event e
@@ -119,7 +130,7 @@ export class StatisticsService {
         AND e.type = 'ACTIVITY'
         AND e.start_date >= ${from}
         AND e.start_date <= ${to}
-        ${sport ? Prisma.sql`AND a.sport = ${sport}::sport_type` : Prisma.empty}`;
+        ${this.sportFilter(sport, group)}`;
   }
 
   /** First day of an activity's bucket, on the athlete's calendar */
@@ -155,6 +166,7 @@ export class StatisticsService {
     from: Date,
     to: Date,
     sport?: SPORT_TYPE,
+    group?: SportGroup,
   ) {
     return this.prisma.$queryRaw<
       (StatisticsTotalsDto & { sport: SPORT_TYPE })[]
@@ -171,7 +183,7 @@ export class StatisticsService {
             ON c.training_load_calculation_id = t.calculation_id
           WHERE t.activity_id = a.event_activity_id AND c.type = 'TRIMP'
         )), 0)::float8 AS load
-      ${this.activitiesOf(athleteId, from, to, sport)}
+      ${this.activitiesOf(athleteId, from, to, sport, group)}
       GROUP BY a.sport
       ORDER BY "movingTime" DESC`;
   }
@@ -193,12 +205,12 @@ export class StatisticsService {
     user: AuthUser,
     query: GetStatisticsOverviewQueryDto,
   ): Promise<StatisticsOverviewDto> {
-    const { athleteId, from, to, sport, compareFrom, compareTo } = query;
+    const { athleteId, from, to, sport, group, compareFrom, compareTo } = query;
     await this.assertCanRead(user, athleteId);
     const [sports, compared] = await Promise.all([
-      this.totalsBySport(athleteId, from, to, sport),
+      this.totalsBySport(athleteId, from, to, sport, group),
       compareFrom && compareTo
-        ? this.totalsBySport(athleteId, compareFrom, compareTo, sport)
+        ? this.totalsBySport(athleteId, compareFrom, compareTo, sport, group)
         : null,
     ]);
     return {
@@ -211,7 +223,7 @@ export class StatisticsService {
   /** Volume by sport, for every bucket of the period. */
   async getVolume(
     user: AuthUser,
-    { athleteId, from, to, sport }: GetStatisticsSectionQueryDto,
+    { athleteId, from, to, sport, group }: GetStatisticsSectionQueryDto,
     now = new Date(),
   ): Promise<StatisticsVolumeDto> {
     const timeZone = await this.readableTimeZone(user, athleteId);
@@ -226,7 +238,7 @@ export class StatisticsService {
         sum(a.distance)::float8 AS distance,
         sum(a.elevation_gain)::float8 AS "elevationGain",
         count(*)::int AS count
-      ${this.activitiesOf(athleteId, from, to, sport)}
+      ${this.activitiesOf(athleteId, from, to, sport, group)}
       GROUP BY 1, 2
       ORDER BY 1, 3 DESC`;
 
@@ -249,7 +261,7 @@ export class StatisticsService {
   /** Every active day of a period, for the calendar and the yearly totals. */
   async getDays(
     user: AuthUser,
-    { athleteId, from, to, sport }: GetStatisticsSectionQueryDto,
+    { athleteId, from, to, sport, group }: GetStatisticsSectionQueryDto,
   ): Promise<StatisticsDaysDto> {
     const timeZone = await this.readableTimeZone(user, athleteId);
     const days = await this.prisma.$queryRaw<StatisticsDaysDto['days']>`
@@ -258,7 +270,7 @@ export class StatisticsService {
         sum(a.distance)::float8 AS distance,
         sum(a.elevation_gain)::float8 AS "elevationGain",
         count(*)::int AS count
-      ${this.activitiesOf(athleteId, from, to, sport)}
+      ${this.activitiesOf(athleteId, from, to, sport, group)}
       GROUP BY 1
       ORDER BY 1`;
     return { days };
@@ -270,7 +282,7 @@ export class StatisticsService {
    */
   async getIntensity(
     user: AuthUser,
-    { athleteId, from, to, sport }: GetStatisticsSectionQueryDto,
+    { athleteId, from, to, sport, group }: GetStatisticsSectionQueryDto,
     now = new Date(),
   ): Promise<StatisticsIntensityDto> {
     const timeZone = await this.readableTimeZone(user, athleteId);
@@ -290,7 +302,7 @@ export class StatisticsService {
         count(*) FILTER (WHERE ${steady} AND a.efficiency_factor IS NOT NULL)::int AS "steadyCount",
         (avg(a.efficiency_factor) FILTER (WHERE ${steady}))::float8 AS efficiency,
         (avg(a.decoupling_percent) FILTER (WHERE ${steady}))::float8 AS decoupling
-      ${this.activitiesOf(athleteId, from, to, sport)}
+      ${this.activitiesOf(athleteId, from, to, sport, group)}
       GROUP BY 1`;
 
     const zones = await this.prisma.trainingZoneValue.findMany({
@@ -426,13 +438,13 @@ export class StatisticsService {
    */
   async getLoad(
     user: AuthUser,
-    { athleteId, from, to, sport }: GetStatisticsSectionQueryDto,
+    { athleteId, from, to, sport, group }: GetStatisticsSectionQueryDto,
     now = new Date(),
   ): Promise<StatisticsLoadDto> {
     await this.assertCanRead(user, athleteId);
-    const sportFilter = sport
-      ? Prisma.sql`AND a.sport = ${sport}::sport_type`
-      : Prisma.empty;
+    const sportFilter = this.sportFilter(sport, group);
+    // Planned sessions have no load by sport: the curve then stops today
+    const allSports = !sport && !group;
     const [loads, races, first] = await Promise.all([
       this.prisma.$queryRaw<{ date: string; type: string; value: number }[]>`
         SELECT t.date::text AS date, c.type::text AS type,
@@ -445,7 +457,7 @@ export class StatisticsService {
         GROUP BY 1, 2`,
       this.prisma.$queryRaw<{ date: string }[]>`
         SELECT DISTINCT (e.start_date::date)::text AS date
-        ${this.activitiesOf(athleteId, from, to, sport)}
+        ${this.activitiesOf(athleteId, from, to, sport, group)}
           AND a.is_race`,
       this.prisma.$queryRaw<{ first: string | null }[]>`
         SELECT min(t.date)::text AS first
@@ -466,7 +478,7 @@ export class StatisticsService {
     const fromDay = toUtcDateKey(from);
     const today = toUtcDateKey(now);
     const projection =
-      sport || lastDay < today
+      !allSports || lastDay < today
         ? []
         : await this.trainingLoad.getDailyForm(
             user,
@@ -503,7 +515,7 @@ export class StatisticsService {
           });
         }
       }
-      if (lastDay >= today && !sport) {
+      if (lastDay >= today && allSports) {
         for (const day of projection) {
           days.push({
             date: day.date,
@@ -516,7 +528,6 @@ export class StatisticsService {
           });
         }
       } else if (lastDay >= today) {
-        // A sport has no planned load of its own: the curve stops today
         const load = trimp.get(today) ?? 0;
         fitness = advanceFitness(fitness, load);
         days.push({
@@ -538,6 +549,7 @@ export class StatisticsService {
     return {
       granularity,
       points,
+      monotony: this.monotony(days.filter(({ projected }) => !projected)),
       races: races.map(({ date }) => date),
       historyDays: firstDay
         ? Math.round(
@@ -547,6 +559,18 @@ export class StatisticsService {
           )
         : 0,
     };
+  }
+
+  /** Mean daily load of the last week over its spread (Foster 1998) */
+  private monotony(days: StatisticsLoadDto['points']): number | null {
+    const loads = days.slice(-7).map(({ load }) => load);
+    if (loads.length < 7) return null;
+    const mean = loads.reduce((sum, load) => sum + load, 0) / 7;
+    const variance =
+      loads.reduce((sum, load) => sum + (load - mean) ** 2, 0) / 7;
+    return variance > 0
+      ? Math.round((mean / Math.sqrt(variance)) * 100) / 100
+      : null;
   }
 
   /** Weeks of load: their total, and their form on their last day */
