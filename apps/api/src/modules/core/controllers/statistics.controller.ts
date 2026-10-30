@@ -268,6 +268,28 @@ export class StatisticsController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('recovery')
+  @ApiOperation({
+    summary: 'Wellness measures of a period',
+    description:
+      'Heart rate variability, resting heart rate and sleep, day by day, with the week before the period for rolling means.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiResponse({ status: 400, description: 'Invalid period' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getRecovery(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsSectionQuerySchema))
+    query: GetStatisticsSectionQueryDto,
+  ) {
+    return this.statisticsService.getRecovery(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('trends')
   @ApiOperation({
     summary: "How a sport's averages evolve",

@@ -269,6 +269,21 @@ export type StatisticsDurabilityDto = z.infer<
   typeof statisticsDurabilitySchema
 >;
 
+export const statisticsRecoverySchema = z.object({
+  /** A few days before the period too, for the rolling means */
+  days: z.array(
+    z.object({
+      /** YYYY-MM-DD */
+      date: z.string(),
+      /** ms, from one source only: they are not interchangeable */
+      hrv: z.number().nullable(),
+      restingHeartrate: z.number().nullable(),
+      sleepHours: z.number().nullable(),
+    }),
+  ),
+});
+export type StatisticsRecoveryDto = z.infer<typeof statisticsRecoverySchema>;
+
 export const statisticsLoadSchema = z.object({
   granularity: z.enum(['day', 'week']),
   /** A week holds its total load, and its form on its last day */

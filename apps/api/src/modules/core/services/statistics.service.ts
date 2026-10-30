@@ -22,6 +22,7 @@ import {
   StatisticsLoadDto,
   StatisticsLongRunsDto,
   StatisticsOverviewDto,
+  StatisticsRecoveryDto,
   StatisticsTerrainDto,
   StatisticsTotalsDto,
   StatisticsTrendsDto,
@@ -61,6 +62,9 @@ const DEFAULT_HR_ZONE_MINS = [0, 132, 143, 153, 164];
 /** A band read in passing says nothing: it needs some time, on several days */
 const MIN_BIN_SECONDS = 60;
 const MIN_BIN_ACTIVITIES = 3;
+
+/** The rolling week of the first days needs the days before them */
+const RECOVERY_WARMUP_DAYS = 7;
 
 /** How far planned sessions carry the form curve */
 const PROJECTION_DAYS = 42;
@@ -456,7 +460,7 @@ export class StatisticsService {
       this.profileQuantiles('SPEED', query, 0.5),
       this.profileQuantiles('POWER', query, 10),
     ]);
-    return power.length >= speed.length
+    return power.length > speed.length
       ? { unit: 'power', bins: power }
       : { unit: 'speed', bins: speed };
   }
@@ -486,6 +490,47 @@ export class StatisticsService {
         AND e.start_date <= ${to}
         AND a.sport = ${sport}::sport_type`;
     return durabilityClasses(rows);
+  }
+
+  /** Wellness measures of the days around a period, as they were recorded. */
+  async getRecovery(
+    user: AuthUser,
+    { athleteId, from, to }: GetStatisticsSectionQueryDto,
+  ): Promise<StatisticsRecoveryDto> {
+    await this.assertCanRead(user, athleteId);
+    const rows = await this.prisma.athleteMetric.findMany({
+      where: {
+        athleteId,
+        type: {
+          in: ['HRV_LAST_NIGHT_AVG', 'RMSSD', 'HR_REST', 'SLEEP_DURATION'],
+        },
+        date: { gte: addUtcDays(from, -RECOVERY_WARMUP_DAYS), lte: to },
+      },
+      select: { date: true, type: true, value: true },
+      orderBy: { date: 'asc' },
+    });
+    const count = (type: string) =>
+      rows.filter((row) => row.type === type).length;
+    const hrvType =
+      count('HRV_LAST_NIGHT_AVG') >= count('RMSSD')
+        ? 'HRV_LAST_NIGHT_AVG'
+        : 'RMSSD';
+
+    const days = new Map<string, StatisticsRecoveryDto['days'][number]>();
+    for (const { date, type, value } of rows) {
+      const key = toUtcDateKey(date);
+      const day = days.get(key) ?? {
+        date: key,
+        hrv: null,
+        restingHeartrate: null,
+        sleepHours: null,
+      };
+      if (type === hrvType) day.hrv = value;
+      if (type === 'HR_REST') day.restingHeartrate = value;
+      if (type === 'SLEEP_DURATION') day.sleepHours = value;
+      days.set(key, day);
+    }
+    return { days: [...days.values()] };
   }
 
   /** How the averages of a sport evolve, bucket by bucket. */

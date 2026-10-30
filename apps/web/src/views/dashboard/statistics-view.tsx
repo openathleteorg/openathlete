@@ -5,6 +5,7 @@ import { LoadSection } from '@/components/statistics/load-section';
 import { PerformanceSection } from '@/components/statistics/performance-section';
 import { PhysiologySection } from '@/components/statistics/physiology-section';
 import { ProfileSection } from '@/components/statistics/profile-section';
+import { RecoverySection } from '@/components/statistics/recovery-section';
 import { RegularitySection } from '@/components/statistics/regularity-section';
 import { SportPicker } from '@/components/statistics/sport-picker';
 import { StatisticsFilters } from '@/components/statistics/statistics-filters';
@@ -18,6 +19,7 @@ import { TerrainSection } from '@/components/statistics/terrain-section';
 import { TrendsSection } from '@/components/statistics/trends-section';
 import { useStatisticsFilters } from '@/components/statistics/use-statistics-filters';
 import { VolumeSection } from '@/components/statistics/volume-section';
+import { YearReviewSection } from '@/components/statistics/year-review-section';
 import { PageTitle } from '@/components/ui/page-title';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
@@ -45,7 +47,9 @@ export function StatisticsView({ athleteId }: P) {
   return (
     <div className="w-full space-y-4 p-4 md:space-y-6 md:p-8 md:pt-6">
       <PageTitle desktopOnly>{pageTitle}</PageTitle>
-      <StatisticsFilters filters={filters} sports={options?.sports ?? []} />
+      {filters.view !== 'review' && (
+        <StatisticsFilters filters={filters} sports={options?.sports ?? []} />
+      )}
       <StatisticsTabs value={filters.view} onChange={filters.setView} />
       {filters.view === 'overview' && (
         <>
@@ -92,7 +96,14 @@ export function StatisticsView({ athleteId }: P) {
             sport={sport}
             group={group}
           />
+          <RecoverySection athleteId={athleteId} period={period} />
         </>
+      )}
+      {filters.view === 'review' && (
+        <YearReviewSection
+          athleteId={athleteId}
+          firstActivityDate={options?.firstActivityDate}
+        />
       )}
       {(filters.view === 'capacities' || filters.view === 'trends') &&
         oneSport && (

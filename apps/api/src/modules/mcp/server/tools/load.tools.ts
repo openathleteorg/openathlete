@@ -5,7 +5,7 @@ import {
   SportType,
   TrainingLoadCalculationType,
 } from '@openathlete/database';
-import { metricUnitMap } from '@openathlete/shared';
+import { SPORT_TYPE, metricUnitMap } from '@openathlete/shared';
 
 import { addDaysToDateKey, zonedClock } from 'src/common/utils/time-zone';
 
@@ -33,6 +33,29 @@ const weekSchema = z.object({
     .optional()
     .describe('Not over yet: its form assumes the remaining sessions are done'),
   recommendedLoad: z.object({ min: z.number(), max: z.number() }),
+});
+
+const capacitiesOutput = z.object({
+  athleteId: z.number(),
+  verticalSpeedBySlope: z.array(
+    z.object({ slopePercent: z.number(), metresPerHour: z.number() }),
+  ),
+  heartRateByOutput: z.object({
+    unit: z.string(),
+    bands: z.array(z.object({ output: z.number(), heartRate: z.number() })),
+  }),
+  drift: z.array(
+    z.object({
+      kind: z.string(),
+      byLength: z.array(
+        z.object({
+          fromHours: z.number(),
+          percent: z.number(),
+          outings: z.number(),
+        }),
+      ),
+    }),
+  ),
 });
 
 const trainingLoadOutput = z.object({
@@ -360,6 +383,61 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
                 value: value.value,
                 ...(value.notes && { notes: value.notes }),
               })),
+          })),
+        };
+      }),
+  );
+
+  registerTool(
+    server,
+    'get_capacities',
+    {
+      title: 'What the athlete can do on terrain',
+      description:
+        'Over a period and for one sport, the same figures as the statistics page: median vertical speed by percent of slope, median heart rate by speed or power, and how output and heart rate drift by length of outing. Bins need three activities. Use them to set climbing paces and to judge long efforts; they describe the athlete and rank nobody.',
+      inputSchema: {
+        athleteId: athleteIdInput,
+        sport: z.nativeEnum(SportType),
+        from: localDate.optional().describe('First day; default a year ago'),
+        to: localDate.optional().describe('Last day; default today'),
+      },
+      outputSchema: capacitiesOutput,
+      annotations: READ_ONLY,
+    },
+    ({ athleteId, sport, from, to }) =>
+      run(capacitiesOutput, async () => {
+        const scope = await ctx.athlete(athleteId);
+        const query = {
+          athleteId: scope.athleteId,
+          sport: sport as unknown as SPORT_TYPE,
+          from: utcDay(from ?? addDaysToDateKey(scope.today, -365)),
+          to: utcDay(to ?? scope.today),
+        };
+        const [terrain, cardiacCost, durability] = await Promise.all([
+          deps.statistics.getTerrain(ctx.user, query),
+          deps.statistics.getCardiacCost(ctx.user, query),
+          deps.statistics.getDurability(ctx.user, query),
+        ]);
+        return {
+          athleteId: scope.athleteId,
+          verticalSpeedBySlope: terrain.bins.map(({ bin, median }) => ({
+            slopePercent: bin,
+            metresPerHour: round(median),
+          })),
+          heartRateByOutput: {
+            unit: cardiacCost.unit === 'power' ? 'W' : 'km/h',
+            bands: cardiacCost.bins.map(({ bin, median }) => ({
+              output: bin,
+              heartRate: round(median),
+            })),
+          },
+          drift: durability.series.map(({ kind, classes }) => ({
+            kind,
+            byLength: classes.map(({ fromHours, median, count }) => ({
+              fromHours,
+              percent: round(median, 1),
+              outings: count,
+            })),
           })),
         };
       }),

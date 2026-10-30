@@ -20,6 +20,7 @@ const VIEWS = [
   'view=capacities&capacity=endurance',
   'view=capacities&capacity=physiology',
   'view=capacities&capacity=performance',
+  'view=review',
 ];
 const WIDTHS = [320, 360, 390, 768, 1024];
 

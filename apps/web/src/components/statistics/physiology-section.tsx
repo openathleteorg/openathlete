@@ -6,6 +6,7 @@ import { SPORT_TYPE, StatisticsCardiacCostDto } from '@openathlete/shared';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { SkeletonChart } from '../ui/skeleton';
 import { referenceOutput } from './capacity-data';
+import { ExportButton } from './export-button';
 import { MetricInfo } from './metric-info';
 import { QuantileChart } from './quantile-chart';
 import { QuickRead, QuickReadLine } from './quick-read';
@@ -80,6 +81,21 @@ function Cost({
             formatY={(value) => `${Math.round(value)}`}
             color="var(--chart-3)"
           />
+          <div className="flex justify-end">
+            <ExportButton
+              name="cardiac-cost"
+              header={[data.unit, 'low', 'median', 'high', 'activities']}
+              rows={() =>
+                data.bins.map(({ bin, low, median, high, count }) => [
+                  bin,
+                  low,
+                  median,
+                  high,
+                  count,
+                ])
+              }
+            />
+          </div>
         </CardContent>
       </Card>
     </div>

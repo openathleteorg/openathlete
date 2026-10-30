@@ -5,6 +5,7 @@ import { SPORT_TYPE, StatisticsTerrainDto } from '@openathlete/shared';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { SkeletonChart } from '../ui/skeleton';
+import { ExportButton } from './export-button';
 import { QuantileChart } from './quantile-chart';
 import { QuickRead } from './quick-read';
 import { StatSection } from './stat-section';
@@ -112,6 +113,21 @@ function Terrain({ data }: { data: StatisticsTerrainDto }) {
             color="var(--chart-3)"
           />
         )}
+      </div>
+      <div className="flex justify-end">
+        <ExportButton
+          name="terrain"
+          header={['slope_percent', 'low', 'median', 'high', 'activities']}
+          rows={() =>
+            data.bins.map(({ bin, low, median, high, count }) => [
+              bin,
+              low,
+              median,
+              high,
+              count,
+            ])
+          }
+        />
       </div>
       <Card className="gap-0 py-0">
         <CardHeader className="p-4 pb-2">

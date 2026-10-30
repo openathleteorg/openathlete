@@ -337,6 +337,38 @@ test('a runner reads their capacities, from terrain to coherence', async ({
   expect(problems).toEqual([]);
 });
 
+test('a year in review sums the year up, and shares only on demand', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60_000);
+  await prepare(page, request, weeks(3, run));
+  const problems = trackPageProblems(page);
+  await open(page, 'view=review');
+  const review = page.locator('[data-year-review]');
+  await expect(review).toContainText('Longest streak');
+  // Headless Chromium has no share sheet: the image is saved instead
+  const download = page.waitForEvent('download');
+  await page.locator('[data-year-share]').click();
+  expect((await download).suggestedFilename()).toBe('openathlete-year.png');
+  expect(problems).toEqual([]);
+});
+
+test('figures export as CSV, and predictions come as ranges', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60_000);
+  await prepare(page, request, weeks(4, run));
+  await open(page, 'sport=RUNNING&view=trends');
+  const download = page.waitForEvent('download');
+  await page.locator('[data-export="trends"]').click();
+  expect((await download).suggestedFilename()).toBe('openathlete-trends.csv');
+
+  await open(page, 'sport=RUNNING&view=load');
+  await expect(page.locator('[data-recovery-series="resting"]')).toBeVisible();
+});
+
 test('a view opens on the main sport, without a dead end', async ({
   page,
   request,
@@ -400,6 +432,7 @@ for (const [locale, section] of [
       'view=capacities&capacity=endurance',
       'view=capacities&capacity=physiology',
       'view=capacities&capacity=performance',
+      'view=review',
     ]) {
       await open(page, `sport=RUNNING&${query}`);
       await expect(page.locator('body')).not.toContainText(

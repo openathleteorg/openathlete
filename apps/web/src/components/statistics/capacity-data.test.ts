@@ -9,6 +9,7 @@ import {
   longDrift,
   missingDistances,
   progress,
+  racePredictions,
   recordCoherence,
   referenceOutput,
   strongestChanges,
@@ -151,5 +152,21 @@ describe('missingDistances', () => {
     const missing = missingDistances([record(1000, 200), record(5000, 1200)]);
     expect(missing).toContain(10000);
     expect(missing).not.toContain(5000);
+  });
+});
+
+describe('racePredictions', () => {
+  it('gives a range for longer races only, wider on the marathon', () => {
+    const { anchor, races } = racePredictions([record(5000, 1200)])!;
+    expect(anchor).toBe(5000);
+    expect(races.map(({ distance }) => distance)).toEqual([
+      10000, 21097.5, 42195,
+    ]);
+    const spread = ({ fast, slow }: (typeof races)[number]) => slow / fast;
+    expect(spread(races[2])).toBeGreaterThan(spread(races[1]));
+  });
+
+  it('needs a best over a meaningful distance', () => {
+    expect(racePredictions([record(1000, 200)])).toBeNull();
   });
 });

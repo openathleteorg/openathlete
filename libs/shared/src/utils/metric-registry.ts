@@ -160,6 +160,30 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  racePrediction: {
+    verdict: 'estimate',
+    formula: 'T2 = T1 × (D2 / D1)^k, k 1.04-1.08; marathon k 1.07-1.15',
+    sources: [
+      {
+        label: 'Vickers & Vertosick 2016',
+        url: 'https://doi.org/10.1186/s13102-016-0052-y',
+      },
+    ],
+  },
+  hrvTrend: {
+    verdict: 'reserved',
+    formula: 'mean(ln rMSSD, 7 days)',
+    sources: [
+      {
+        label: 'Plews et al. 2013',
+        url: 'https://doi.org/10.1007/s40279-013-0071-8',
+      },
+      {
+        label: 'Buchheit 2014',
+        url: 'https://doi.org/10.3389/fphys.2014.00073',
+      },
+    ],
+  },
   criticalSwimSpeed: {
     verdict: 'reserved',
     formula: 'CSS = (400 - 200) / (T400 - T200)',

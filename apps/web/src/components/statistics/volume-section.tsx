@@ -28,6 +28,7 @@ import { SportDistributionChart } from '../charts/sport-distribution-chart';
 import { Card, CardContent } from '../ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 import { SkeletonChart } from '../ui/skeleton';
+import { ExportButton } from './export-button';
 import { bucketLabel, bucketTick } from './stat-chart-format';
 import { StatSection } from './stat-section';
 import { Period } from './statistics-period';
@@ -301,6 +302,18 @@ function VolumeCharts({
                   )}
                 </ComposedChart>
               </ChartContainer>
+              <div className="flex justify-end">
+                <ExportButton
+                  name="volume"
+                  header={['period', ...series.map(String)]}
+                  rows={() =>
+                    rows.map((row) => [
+                      row.period,
+                      ...series.map((key) => row[key] ?? 0),
+                    ])
+                  }
+                />
+              </div>
             </>
           )}
         </CardContent>

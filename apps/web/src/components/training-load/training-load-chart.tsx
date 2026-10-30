@@ -27,6 +27,7 @@ import {
 
 import { SPORT_TYPE, SportGroup } from '@openathlete/shared';
 
+import { ExportButton } from '../statistics/export-button';
 import { MetricInfo } from '../statistics/metric-info';
 import { Period } from '../statistics/statistics-period';
 
@@ -399,6 +400,22 @@ export function TrainingLoadChart({
                   />
                 </LineChart>
               </ChartContainer>
+            </div>
+            <div className="flex justify-end">
+              <ExportButton
+                name="load"
+                header={['date', 'load', 'ctl', 'atl', 'tsb', 'session_rpe']}
+                rows={() =>
+                  data.points.map((point) => [
+                    point.date,
+                    point.load,
+                    point.ctl,
+                    point.atl,
+                    point.tsb,
+                    point.sessionRpe,
+                  ])
+                }
+              />
             </div>
             {data.monotony !== null && (
               <p

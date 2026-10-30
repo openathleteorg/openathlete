@@ -377,6 +377,32 @@ describe('StatisticsService (PostgreSQL)', () => {
     });
   });
 
+  it('reads recovery from one source of HRV, with the week before', async () => {
+    const metric = (
+      type: 'RMSSD' | 'HRV_LAST_NIGHT_AVG' | 'HR_REST',
+      date: string,
+      value: number,
+    ) =>
+      prisma.athleteMetric.create({
+        data: {
+          type,
+          date: new Date(date),
+          value,
+          athleteId: DELETED_ATHLETE_ID,
+        },
+      });
+    await metric('HRV_LAST_NIGHT_AVG', '2026-02-26', 60);
+    await metric('HRV_LAST_NIGHT_AVG', '2026-03-02', 62);
+    await metric('RMSSD', '2026-03-02', 95);
+    await metric('HR_REST', '2026-03-02', 48);
+
+    const { days } = await service.getRecovery(athlete, period);
+    expect(days).toEqual([
+      { date: '2026-02-26', hrv: 60, restingHeartrate: null, sleepHours: null },
+      { date: '2026-03-02', hrv: 62, restingHeartrate: 48, sleepHours: null },
+    ]);
+  });
+
   it('weighs averages by the time in motion', async () => {
     await activity('long', '2026-03-10T08:00:00Z', {
       movingTime: 9000,

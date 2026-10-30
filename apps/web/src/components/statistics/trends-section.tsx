@@ -14,6 +14,7 @@ import {
 import { cadenceFactor } from '../activity-analysis/tracks';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Skeleton, SkeletonChart } from '../ui/skeleton';
+import { ExportButton } from './export-button';
 import { MetricInfo } from './metric-info';
 import { StatChart } from './stat-chart';
 import { StatSection } from './stat-section';
@@ -184,6 +185,18 @@ function Trends({
     <div
       className={`grid grid-cols-1 gap-4 transition-opacity md:grid-cols-2 ${isFetching ? 'opacity-70' : ''}`}
     >
+      <div className="flex justify-end md:col-span-2">
+        <ExportButton
+          name="trends"
+          header={['period', ...trends.map(({ key }) => key)]}
+          rows={() =>
+            data.buckets.map((bucket) => [
+              bucket.period,
+              ...trends.map((trend) => trend.value(bucket)),
+            ])
+          }
+        />
+      </div>
       {trends.map((trend) => (
         <Card key={trend.key} data-trend={trend.key} className="gap-0 py-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">

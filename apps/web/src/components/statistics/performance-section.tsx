@@ -3,8 +3,8 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { activityPath } from '@/routes/paths';
 import { getDateFnsLocale } from '@/utils/locales';
-import { format } from 'date-fns';
-import { useState } from 'react';
+import { format, subYears } from 'date-fns';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
@@ -28,6 +28,7 @@ import { Input } from '../ui/input';
 import { Skeleton, SkeletonChart } from '../ui/skeleton';
 import {
   missingDistances,
+  racePredictions,
   recordCoherence,
   speedRecords,
 } from './capacity-data';
@@ -150,6 +151,46 @@ function CoherenceCard({ records }: { records: BestRecordDto[] }) {
             ]}
           />
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Ranges only, from a best of the last year: a single time would mislead */
+function PredictionsCard({ athleteId }: { athleteId: number }) {
+  const from = useMemo(() => subYears(new Date(), 1), []);
+  const { data } = useGetRecordsQuery({
+    sport: SPORT_TYPE.RUNNING,
+    athleteId,
+    from,
+  });
+  const prediction = data && racePredictions(data);
+  if (!prediction || prediction.races.length === 0) return null;
+  return (
+    <Card className="gap-0 py-0 md:col-span-2" data-predictions>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+        <CardTitle className="text-sm font-medium">
+          {m.statistics_predictions_title()}
+        </CardTitle>
+        <MetricInfo metric="racePrediction" />
+      </CardHeader>
+      <CardContent className="space-y-2 p-4 pt-0">
+        <p className="text-sm text-muted-foreground">
+          {m.statistics_predictions_from({
+            distance: formatRecordDistance(prediction.anchor),
+          })}
+        </p>
+        <ul className="divide-y text-sm tabular-nums">
+          {prediction.races.map(({ distance, fast, slow }) => (
+            <li key={distance} className="flex justify-between py-1.5">
+              <span>{formatRecordDistance(distance)}</span>
+              <span className="font-medium">
+                {formatDuration(Math.round(fast))} –{' '}
+                {formatDuration(Math.round(slow))}
+              </span>
+            </li>
+          ))}
+        </ul>
       </CardContent>
     </Card>
   );
@@ -295,7 +336,10 @@ function Performance({
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {swimming && <CriticalSwimCard />}
       {RUNNING_FOR_COHERENCE.has(sport) && (
-        <CoherenceCard records={allTime.data} />
+        <>
+          <PredictionsCard athleteId={athleteId} />
+          <CoherenceCard records={allTime.data} />
+        </>
       )}
       {fit && <CriticalCard fit={fit} sport={sport} />}
       {newRecords.length > 0 && (

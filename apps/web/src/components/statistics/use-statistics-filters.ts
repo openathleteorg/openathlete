@@ -39,6 +39,7 @@ export const STATISTICS_VIEWS = [
   'load',
   'capacities',
   'trends',
+  'review',
 ] as const;
 export type StatisticsView = (typeof STATISTICS_VIEWS)[number];
 

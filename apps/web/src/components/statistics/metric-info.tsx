@@ -75,6 +75,16 @@ const COPY: Record<
     what: m.metric_coherence_what,
     limits: m.metric_coherence_limits,
   },
+  racePrediction: {
+    name: m.statistics_predictions_title,
+    what: m.metric_prediction_what,
+    limits: m.metric_prediction_limits,
+  },
+  hrvTrend: {
+    name: m.statistics_recovery_hrv,
+    what: m.metric_hrv_what,
+    limits: m.metric_hrv_limits,
+  },
   criticalSwimSpeed: {
     name: m.statistics_critical_swim,
     what: m.metric_critical_swim_what,

@@ -124,6 +124,16 @@ export const useStatisticsDurabilityQuery = (
     queryKey: [statisticsKeys.durability, ...paramsKey(params)],
   });
 
+export const useStatisticsRecoveryQuery = (
+  params: StatisticsSectionParams,
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getRecovery(params),
+    queryKey: [statisticsKeys.recovery, ...paramsKey(params)],
+  });
+
 export const useStatisticsTrendsQuery = (
   params: StatisticsSectionParams & { sport: SPORT_TYPE },
   enabled: boolean,

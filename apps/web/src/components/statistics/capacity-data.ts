@@ -158,3 +158,40 @@ export function missingDistances(records: BestRecordDto[]): number[] {
     (distance) => !speeds.some((record) => record.distance === distance),
   );
 }
+
+const RACES = [5000, 10000, HALF_MARATHON, 42195];
+const ANCHORS = [5000, 10000, 3000];
+
+export interface RacePrediction {
+  distance: number;
+  /** Seconds, the two ends of the range */
+  fast: number;
+  slow: number;
+}
+
+/**
+ * A range for each longer race, from a best of the last year. Riegel holds up
+ * to the half; on the marathon, runners fade far more than its exponent says.
+ */
+export function racePredictions(records: BestRecordDto[]): {
+  anchor: number;
+  races: RacePrediction[];
+} | null {
+  const speeds = speedRecords(records);
+  const anchor = ANCHORS.map((distance) =>
+    speeds.find((record) => record.distance === distance),
+  ).find(Boolean);
+  if (!anchor?.distance) return null;
+  const { distance: from, value: time } = anchor;
+  return {
+    anchor: from,
+    races: RACES.filter((distance) => distance > from).map((distance) => {
+      const marathon = distance > HALF_MARATHON;
+      return {
+        distance,
+        fast: riegel(time, from, distance, marathon ? 1.07 : 1.04),
+        slow: riegel(time, from, distance, marathon ? 1.15 : 1.08),
+      };
+    }),
+  };
+}

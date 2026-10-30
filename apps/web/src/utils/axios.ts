@@ -158,6 +158,7 @@ export const routes = {
     overview: '/statistics/overview',
     volume: '/statistics/volume',
     days: '/statistics/days',
+    recovery: '/statistics/recovery',
     terrain: '/statistics/terrain',
     cardiacCost: '/statistics/cardiac-cost',
     durability: '/statistics/durability',

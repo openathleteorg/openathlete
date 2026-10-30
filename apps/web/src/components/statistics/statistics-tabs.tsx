@@ -8,6 +8,7 @@ const VIEWS: { id: StatisticsView; label: () => string }[] = [
   { id: 'load', label: m.statistics_view_load },
   { id: 'capacities', label: m.statistics_view_capacities },
   { id: 'trends', label: m.statistics_view_trends },
+  { id: 'review', label: m.statistics_view_review },
 ];
 
 interface P<T extends string> {

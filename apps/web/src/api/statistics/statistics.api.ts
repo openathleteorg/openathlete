@@ -11,6 +11,7 @@ import {
   StatisticsLoadDto,
   StatisticsLongRunsDto,
   StatisticsOverviewDto,
+  StatisticsRecoveryDto,
   StatisticsTerrainDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
@@ -87,6 +88,13 @@ export class StatisticsAPI {
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
   ): Promise<StatisticsDurabilityDto> {
     const res = await client.get(routes.statistics.durability, { params });
+    return res.data;
+  }
+
+  static async getRecovery(
+    params: StatisticsSectionParams,
+  ): Promise<StatisticsRecoveryDto> {
+    const res = await client.get(routes.statistics.recovery, { params });
     return res.data;
   }
 
