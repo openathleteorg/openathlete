@@ -39,7 +39,7 @@ export function StatisticsView({ athleteId }: P) {
       />
       <VolumeSection athleteId={athleteId} period={period} sport={sport} />
       <RegularitySection athleteId={athleteId} period={period} sport={sport} />
-      <LoadSection athleteId={athleteId} period={period} />
+      <LoadSection athleteId={athleteId} period={period} sport={sport} />
       <PerformanceSection
         athleteId={athleteId}
         period={period}

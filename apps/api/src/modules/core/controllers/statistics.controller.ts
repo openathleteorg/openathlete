@@ -161,11 +161,12 @@ export class StatisticsController {
   @ApiOperation({
     summary: 'Load and form of a period',
     description:
-      'TRIMP load, fitness (CTL), fatigue (ATL) and form (TSB), by day, or by week on periods over 400 days.',
+      'TRIMP load, session RPE, fitness (CTL), fatigue (ATL) and form (TSB), by day, or by week on periods over 400 days, of one sport or all of them. Without a sport, a period reaching today goes on six weeks over the planned sessions.',
   })
   @ApiQuery({ name: 'athleteId', type: Number })
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType, required: false })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })

@@ -23,6 +23,19 @@ const IMBACH = {
 };
 
 export const METRIC_REGISTRY = {
+  sessionRpe: {
+    verdict: 'validated',
+    sources: [
+      {
+        label: 'Foster et al. 2001',
+        url: 'https://doi.org/10.1519/00124278-200102000-00019',
+      },
+      {
+        label: 'Haddad et al. 2017',
+        url: 'https://doi.org/10.3389/fnins.2017.00612',
+      },
+    ],
+  },
   trimp: {
     verdict: 'reserved',
     sources: [

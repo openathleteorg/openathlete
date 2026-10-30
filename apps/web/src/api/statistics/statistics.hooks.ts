@@ -73,7 +73,7 @@ export const useStatisticsTrendsQuery = (
   });
 
 export const useStatisticsLoadQuery = (
-  params: Omit<StatisticsSectionParams, 'sport'>,
+  params: StatisticsSectionParams,
   enabled: boolean,
 ) =>
   useQuery({

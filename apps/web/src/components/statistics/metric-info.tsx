@@ -10,6 +10,11 @@ const COPY: Record<
   MetricKey,
   { name: () => string; what: () => string; limits: () => string }
 > = {
+  sessionRpe: {
+    name: m.metric_srpe_name,
+    what: m.metric_srpe_what,
+    limits: m.metric_srpe_limits,
+  },
   trimp: {
     name: m.metric_trimp_name,
     what: m.metric_trimp_what,

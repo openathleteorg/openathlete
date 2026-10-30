@@ -28,11 +28,19 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { statisticsBuckets } from '../helpers/statistics-buckets';
-import { getUtcWeekStart, toUtcDateKey } from '../helpers/training-load';
+import {
+  addUtcDays,
+  advanceFitness,
+  getUtcWeekStart,
+  toUtcDateKey,
+} from '../helpers/training-load';
 import { TrainingLoadService } from './training-load.service';
 
 /** Above this, the load chart shows weeks: days are too many to draw */
 const LOAD_DAILY_MAX_DAYS = 400;
+
+/** How far planned sessions carry the form curve */
+const PROJECTION_DAYS = 42;
 
 const EMPTY_TOTALS: StatisticsTotalsDto = {
   movingTime: 0,
@@ -295,35 +303,151 @@ export class StatisticsService {
     };
   }
 
-  /** Load and form, by day or by week on long periods. */
+  /**
+   * Load and form, by day or by week on long periods. Fitness runs from the
+   * first activity, of the sport when one is asked for. Without a sport, the
+   * planned sessions carry the curve on past today.
+   */
   async getLoad(
     user: AuthUser,
-    { athleteId, from, to }: GetStatisticsSectionQueryDto,
+    { athleteId, from, to, sport }: GetStatisticsSectionQueryDto,
+    now = new Date(),
   ): Promise<StatisticsLoadDto> {
-    const history = await this.trainingLoad.getTrainingLoadHistory(
-      user,
-      'TRIMP',
-      from,
-      to,
-      athleteId,
-    );
-    const round = (value: number) => Math.round(value * 10) / 10;
-    const days = (to.getTime() - from.getTime()) / (24 * 3600 * 1000);
-    const granularity = days <= LOAD_DAILY_MAX_DAYS ? 'day' : 'week';
+    await this.assertCanRead(user, athleteId);
+    const sportFilter = sport
+      ? Prisma.sql`AND a.sport = ${sport}::sport_type`
+      : Prisma.empty;
+    const [loads, races, first] = await Promise.all([
+      this.prisma.$queryRaw<{ date: string; type: string; value: number }[]>`
+        SELECT t.date::text AS date, c.type::text AS type,
+          sum(t.value)::float8 AS value
+        FROM training_load_entry t
+        JOIN training_load_calculation c
+          ON c.training_load_calculation_id = t.calculation_id
+        JOIN event_activity a ON a.event_activity_id = t.activity_id
+        WHERE c.athlete_id = ${athleteId} AND t.date <= ${to} ${sportFilter}
+        GROUP BY 1, 2`,
+      this.prisma.$queryRaw<{ date: string }[]>`
+        SELECT DISTINCT (e.start_date::date)::text AS date
+        ${this.activitiesOf(athleteId, from, to, sport)}
+          AND a.is_race`,
+      this.prisma.$queryRaw<{ first: string | null }[]>`
+        SELECT min(t.date)::text AS first
+        FROM training_load_entry t
+        JOIN training_load_calculation c
+          ON c.training_load_calculation_id = t.calculation_id
+        JOIN event_activity a ON a.event_activity_id = t.activity_id
+        WHERE c.athlete_id = ${athleteId} AND c.type = 'TRIMP' ${sportFilter}`,
+    ]);
 
-    const points = new Map<string, StatisticsLoadDto['points'][number]>();
-    for (const day of history) {
-      const date = toUtcDateKey(
-        granularity === 'day' ? day.date : getUtcWeekStart(day.date),
+    const trimp = new Map<string, number>();
+    const sessionRpe = new Map<string, number>();
+    for (const { date, type, value } of loads) {
+      (type === 'TRIMP' ? trimp : sessionRpe).set(date, value);
+    }
+    const firstDay = first[0]?.first ?? null;
+    const lastDay = toUtcDateKey(to);
+    const fromDay = toUtcDateKey(from);
+    const today = toUtcDateKey(now);
+    const projection =
+      sport || lastDay < today
+        ? []
+        : await this.trainingLoad.getDailyForm(
+            user,
+            new Date(`${today}T00:00:00Z`),
+            addUtcDays(new Date(`${today}T00:00:00Z`), PROJECTION_DAYS),
+            athleteId,
+            false,
+          );
+
+    const round = (value: number) => Math.round(value * 10) / 10;
+    const days: StatisticsLoadDto['points'] = [];
+    if (firstDay || projection.length) {
+      let fitness = { ctl: 0, atl: 0 };
+      const start = new Date(
+        `${[firstDay, fromDay].filter(Boolean).sort()[0]}T00:00:00Z`,
       );
-      points.set(date, {
+      for (
+        let date = start;
+        toUtcDateKey(date) <= lastDay && toUtcDateKey(date) < today;
+        date = addUtcDays(date, 1)
+      ) {
+        const key = toUtcDateKey(date);
+        const load = trimp.get(key) ?? 0;
+        fitness = advanceFitness(fitness, load);
+        if (key >= fromDay) {
+          days.push({
+            date: key,
+            load: round(load),
+            sessionRpe: Math.round(sessionRpe.get(key) ?? 0),
+            ctl: round(fitness.ctl),
+            atl: round(fitness.atl),
+            tsb: round(fitness.ctl - fitness.atl),
+            projected: false,
+          });
+        }
+      }
+      if (lastDay >= today && !sport) {
+        for (const day of projection) {
+          days.push({
+            date: day.date,
+            load: day.load,
+            sessionRpe: Math.round(sessionRpe.get(day.date) ?? 0),
+            ctl: day.ctl,
+            atl: day.atl,
+            tsb: day.tsb,
+            projected: day.projected,
+          });
+        }
+      } else if (lastDay >= today) {
+        // A sport has no planned load of its own: the curve stops today
+        const load = trimp.get(today) ?? 0;
+        fitness = advanceFitness(fitness, load);
+        days.push({
+          date: today,
+          load: round(load),
+          sessionRpe: Math.round(sessionRpe.get(today) ?? 0),
+          ctl: round(fitness.ctl),
+          atl: round(fitness.atl),
+          tsb: round(fitness.ctl - fitness.atl),
+          projected: false,
+        });
+      }
+    }
+
+    const span = (to.getTime() - from.getTime()) / (24 * 3600 * 1000);
+    const granularity = span <= LOAD_DAILY_MAX_DAYS ? 'day' : 'week';
+    const points = granularity === 'day' ? days : this.loadWeeks(days);
+    const last = days.at(-1)?.date ?? lastDay;
+    return {
+      granularity,
+      points,
+      races: races.map(({ date }) => date),
+      historyDays: firstDay
+        ? Math.round(
+            (Date.parse(`${last}T00:00:00Z`) -
+              Date.parse(`${firstDay}T00:00:00Z`)) /
+              (24 * 3600 * 1000),
+          )
+        : 0,
+    };
+  }
+
+  /** Weeks of load: their total, and their form on their last day */
+  private loadWeeks(days: StatisticsLoadDto['points']) {
+    const weeks = new Map<string, StatisticsLoadDto['points'][number]>();
+    for (const day of days) {
+      const date = toUtcDateKey(
+        getUtcWeekStart(new Date(`${day.date}T00:00:00Z`)),
+      );
+      const week = weeks.get(date);
+      weeks.set(date, {
+        ...day,
         date,
-        load: round((points.get(date)?.load ?? 0) + day.load),
-        ctl: round(day.ctl),
-        atl: round(day.atl),
-        tsb: round(day.tsb),
+        load: Math.round(((week?.load ?? 0) + day.load) * 10) / 10,
+        sessionRpe: (week?.sessionRpe ?? 0) + day.sessionRpe,
       });
     }
-    return { granularity, points: [...points.values()] };
+    return [...weeks.values()];
   }
 }

@@ -14,6 +14,7 @@ import { format, parseISO } from 'date-fns';
 import { ReactNode, useMemo } from 'react';
 import {
   Bar,
+  BarChart,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -24,21 +25,30 @@ import {
   YAxis,
 } from 'recharts';
 
+import { SPORT_TYPE } from '@openathlete/shared';
+
 import { MetricInfo } from '../statistics/metric-info';
 import { Period } from '../statistics/statistics-period';
 
 interface TrainingLoadChartProps {
   athleteId: number;
   period: Period | null;
+  sport: SPORT_TYPE | null;
   /** Off until the chart comes near the screen */
   enabled: boolean;
 }
+
+/** Fitness reaches 95% of a steady load after three time constants */
+const COLD_START_DAYS = 126;
 
 const COLORS = {
   load: 'var(--chart-5)',
   ctl: 'var(--chart-1)',
   atl: 'var(--chart-2)',
   tsb: 'var(--chart-3)',
+  ctlProjected: 'var(--chart-1)',
+  atlProjected: 'var(--chart-2)',
+  tsbProjected: 'var(--chart-3)',
 };
 
 const TSB_ZONES = [
@@ -84,6 +94,7 @@ function Legend({
 export function TrainingLoadChart({
   athleteId,
   period,
+  sport,
   enabled,
 }: TrainingLoadChartProps) {
   const dateFnsLocale = getDateFnsLocale(getLocale());
@@ -92,16 +103,27 @@ export function TrainingLoadChart({
       athleteId,
       from: period?.start ?? new Date(0),
       to: period?.end ?? new Date(0),
+      sport: sport ?? undefined,
     },
     enabled && !!period,
   );
   const chartData = useMemo(
     () =>
-      (data?.points ?? []).map((point) => ({
-        ...point,
-        // A plain date: parseISO reads it at local midnight
-        date: parseISO(point.date).getTime(),
-      })),
+      (data?.points ?? []).map((point, index, points) => {
+        // Drawn apart, dashed, starting from the last real day
+        const planned = point.projected || points[index + 1]?.projected;
+        return {
+          ...point,
+          // A plain date: parseISO reads it at local midnight
+          date: parseISO(point.date).getTime(),
+          ctl: point.projected ? undefined : point.ctl,
+          atl: point.projected ? undefined : point.atl,
+          tsb: point.projected ? undefined : point.tsb,
+          ctlProjected: planned ? point.ctl : undefined,
+          atlProjected: planned ? point.atl : undefined,
+          tsbProjected: planned ? point.tsb : undefined,
+        };
+      }),
     [data],
   );
 
@@ -110,6 +132,9 @@ export function TrainingLoadChart({
     ctl: m.fitness_ctl(),
     atl: m.fatigue_atl(),
     tsb: m.tsb_balance(),
+    ctlProjected: `${m.fitness_ctl()} (${m.statistics_projected()})`,
+    atlProjected: `${m.fatigue_atl()} (${m.statistics_projected()})`,
+    tsbProjected: `${m.tsb_balance()} (${m.statistics_projected()})`,
   };
   const config = Object.fromEntries(
     (Object.keys(COLORS) as Series[]).map((key) => [
@@ -118,7 +143,7 @@ export function TrainingLoadChart({
     ]),
   );
   // Values at the end of the period, shown next to each legend entry
-  const latest = chartData[chartData.length - 1];
+  const latest = [...chartData].reverse().find((point) => !point.projected);
   const tickDate = (value: number) =>
     format(new Date(value), 'dd MMM', { locale: dateFnsLocale });
   const tooltip = (
@@ -150,7 +175,7 @@ export function TrainingLoadChart({
     />
   );
 
-  const tsbValues = chartData.map((point) => point.tsb);
+  const tsbValues = (data?.points ?? []).map((point) => point.tsb);
   const tsbDomain: [number, number] = [
     Math.floor(Math.min(TSB_OVERREACHING - 10, ...tsbValues) / 10) * 10,
     Math.ceil(Math.max(TSB_DETRAINING + 10, ...tsbValues) / 10) * 10,
@@ -168,6 +193,12 @@ export function TrainingLoadChart({
           </div>
         ) : chartData.length > 0 ? (
           <div className="space-y-6">
+            {(data.historyDays ?? 0) < COLD_START_DAYS &&
+              chartData.some((point) => point.load > 0) && (
+                <p className="text-sm text-muted-foreground">
+                  {m.statistics_load_short_history()}
+                </p>
+              )}
             {chartData.every((point) => point.load === 0) && (
               <p className="text-sm text-muted-foreground">
                 {m.statistics_load_empty()}
@@ -200,6 +231,19 @@ export function TrainingLoadChart({
                   />
                   <YAxis width={40} tick={{ fontSize: 11 }} />
                   {tooltip}
+                  {data.races.map((race) => (
+                    <ReferenceLine
+                      key={race}
+                      x={parseISO(race).getTime()}
+                      stroke="var(--muted-foreground)"
+                      strokeDasharray="2 2"
+                      label={{
+                        value: m.statistics_race(),
+                        position: 'insideTopLeft',
+                        fontSize: 10,
+                      }}
+                    />
+                  ))}
                   <Bar
                     dataKey="load"
                     fill={COLORS.load}
@@ -208,7 +252,7 @@ export function TrainingLoadChart({
                     isAnimationActive={false}
                   />
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="ctl"
                     stroke={COLORS.ctl}
                     strokeWidth={2.5}
@@ -216,10 +260,28 @@ export function TrainingLoadChart({
                     isAnimationActive={false}
                   />
                   <Line
-                    type="monotone"
+                    type="linear"
+                    dataKey="ctlProjected"
+                    stroke={COLORS.ctl}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="linear"
                     dataKey="atl"
                     stroke={COLORS.atl}
                     strokeWidth={2.5}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="linear"
+                    dataKey="atlProjected"
+                    stroke={COLORS.atl}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
                     dot={false}
                     isAnimationActive={false}
                   />
@@ -288,16 +350,62 @@ export function TrainingLoadChart({
                   />
                   {tooltip}
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="tsb"
                     stroke={COLORS.tsb}
                     strokeWidth={2.5}
                     dot={false}
                     isAnimationActive={false}
                   />
+                  <Line
+                    type="linear"
+                    dataKey="tsbProjected"
+                    stroke={COLORS.tsb}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    isAnimationActive={false}
+                  />
                 </LineChart>
               </ChartContainer>
             </div>
+            {chartData.some((point) => point.sessionRpe > 0) && (
+              <div className="space-y-2" data-session-rpe>
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                  {m.metric_srpe_name()} <MetricInfo metric="sessionRpe" />
+                </p>
+                <ChartContainer
+                  config={{
+                    sessionRpe: {
+                      label: m.metric_srpe_name(),
+                      color: COLORS.load,
+                    },
+                  }}
+                  className="h-[120px] w-full"
+                >
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                  >
+                    <XAxis
+                      dataKey="date"
+                      type="number"
+                      scale="time"
+                      domain={['dataMin', 'dataMax']}
+                      tickFormatter={tickDate}
+                      tick={{ fontSize: 11 }}
+                      minTickGap={32}
+                    />
+                    <YAxis width={40} tick={{ fontSize: 11 }} />
+                    <Bar
+                      dataKey="sessionRpe"
+                      fill={COLORS.load}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-8 text-center text-sm text-muted-foreground">

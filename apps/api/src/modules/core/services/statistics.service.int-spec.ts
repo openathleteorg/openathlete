@@ -275,15 +275,86 @@ describe('StatisticsService (PostgreSQL)', () => {
     expect(firstActivityDate?.toISOString()).toBe('2026-01-06T00:00:00.000Z');
   });
 
-  it('gives weeks of load on long periods, with their last day of form', async () => {
-    const long = await service.getLoad(athlete, {
-      athleteId: DELETED_ATHLETE_ID,
-      from: new Date('2024-01-01T00:00:00Z'),
-      to: new Date('2026-01-01T00:00:00Z'),
+  async function trimp(eventId: number, date: string, value: number) {
+    const { eventActivityId } = (await prisma.eventActivity.findUnique({
+      where: { eventId },
+    }))!;
+    const { trainingLoadCalculationId } =
+      await prisma.trainingLoadCalculation.upsert({
+        where: {
+          athleteId_type: { athleteId: DELETED_ATHLETE_ID, type: 'TRIMP' },
+        },
+        create: { athleteId: DELETED_ATHLETE_ID, type: 'TRIMP' },
+        update: {},
+      });
+    await prisma.trainingLoadEntry.create({
+      data: {
+        date: new Date(date),
+        value,
+        calculationId: trainingLoadCalculationId,
+        activityId: eventActivityId,
+      },
     });
+  }
+
+  it('gives weeks of load on long periods, with their last day of form', async () => {
+    const run = await activity('run', '2025-03-10T08:00:00Z');
+    await trimp(run.eventId, '2025-03-10', 100);
+    const long = await service.getLoad(
+      athlete,
+      {
+        athleteId: DELETED_ATHLETE_ID,
+        from: new Date('2024-01-01T00:00:00Z'),
+        to: new Date('2026-01-01T00:00:00Z'),
+      },
+      new Date('2026-06-01T00:00:00Z'),
+    );
     expect(long.granularity).toBe('week');
     expect(long.points.length).toBeLessThan(110);
-    expect(long.points[0].date).toBe('2024-01-01');
+    expect(long.points.find(({ date }) => date === '2025-03-10')?.load).toBe(
+      100,
+    );
+  });
+
+  it('runs fitness from the first load of the sport asked for', async () => {
+    const run = await activity('run', '2026-01-10T08:00:00Z');
+    await trimp(run.eventId, '2026-01-10', 100);
+    const ride = await activity('ride', '2026-03-10T08:00:00Z', {
+      sport: 'CYCLING',
+    });
+    await trimp(ride.eventId, '2026-03-10', 50);
+    const now = new Date('2026-06-01T00:00:00Z');
+
+    const point = async (sport?: SPORT_TYPE) =>
+      (await service.getLoad(athlete, { ...period, sport }, now)).points.find(
+        ({ date }) => date === '2026-03-10',
+      )!;
+    const all = await point();
+    const running = await point('RUNNING' as SPORT_TYPE);
+    const cycling = await point('CYCLING' as SPORT_TYPE);
+
+    // The January load, read from a period that starts in March
+    expect(running.ctl).toBeGreaterThan(0);
+    expect(running.load).toBe(0);
+    expect(cycling.load).toBe(50);
+    expect(running.ctl + cycling.ctl).toBeCloseTo(all.ctl, 0);
+  });
+
+  it('marks races, and how much history backs the curve', async () => {
+    const race = await activity('race', '2026-03-15T08:00:00Z');
+    await prisma.eventActivity.update({
+      where: { eventId: race.eventId },
+      data: { isRace: true },
+    });
+    await trimp(race.eventId, '2026-03-15', 80);
+    const { races, historyDays } = await service.getLoad(
+      athlete,
+      period,
+      new Date('2026-06-01T00:00:00Z'),
+    );
+    expect(races).toEqual(['2026-03-15']);
+    // From the fixture's load of 6 January to the end of the period
+    expect(historyDays).toBe(84);
   });
 
   it('never reads the recording of an activity', async () => {

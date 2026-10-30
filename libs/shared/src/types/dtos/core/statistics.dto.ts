@@ -159,10 +159,18 @@ export const statisticsLoadSchema = z.object({
       /** YYYY-MM-DD, UTC like training load */
       date: z.string(),
       load: z.number(),
+      /** Session RPE of the day or week, 0 without a rated session */
+      sessionRpe: z.number(),
       ctl: z.number(),
       atl: z.number(),
       tsb: z.number(),
+      /** From today on: counts the sessions still planned */
+      projected: z.boolean(),
     }),
   ),
+  /** Days of a race, within the period */
+  races: z.array(z.string()),
+  /** Days of load behind the last point: below 126, fitness is still rising */
+  historyDays: z.number(),
 });
 export type StatisticsLoadDto = z.infer<typeof statisticsLoadSchema>;

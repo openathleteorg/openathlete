@@ -56,7 +56,7 @@ export class StatisticsAPI {
   }
 
   static async getLoad(
-    params: Omit<StatisticsSectionParams, 'sport'>,
+    params: StatisticsSectionParams,
   ): Promise<StatisticsLoadDto> {
     const res = await client.get(routes.statistics.load, { params });
     return res.data;
