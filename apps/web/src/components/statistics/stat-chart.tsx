@@ -10,7 +10,8 @@ import { bucketLabel, bucketTick } from './stat-chart-format';
 
 /** Fits the values: a flat line stays in the middle, not on the axis */
 function paddedDomain([min, max]: readonly [number, number]): [number, number] {
-  const padding = (max - min) * 0.15 || max * 0.1 || 1;
+  // A minimum span: near equal values would all print the same tick
+  const padding = Math.max((max - min) * 0.15, max * 0.1) || 1;
   return [Math.max(0, min - padding), max + padding];
 }
 

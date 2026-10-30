@@ -64,6 +64,7 @@
   "statistics_intensity_low": "Abaixo do primeiro limiar",
   "statistics_intensity_middle": "Entre os limiares",
   "statistics_intensity_high": "Acima do segundo limiar",
+  "statistics_intensity_default_zones": "Estes números usam as zonas padrão, iguais para todos: defina suas próprias zonas cardíacas para que correspondam a você.",
   "statistics_intensity_empty": "O tempo por intensidade precisa de dados de frequência cardíaca e de pelo menos três zonas cardíacas nas suas configurações.",
   "statistics_efficiency": "Eficiência",
   "statistics_decoupling": "Desacoplamento aeróbico",

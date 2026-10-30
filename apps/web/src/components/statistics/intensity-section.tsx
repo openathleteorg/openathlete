@@ -85,7 +85,7 @@ function Distribution({ data }: { data: StatisticsIntensityDto }) {
               minTickGap={16}
             />
             <YAxis
-              width={40}
+              width={48}
               domain={[0, 100]}
               tick={{ fontSize: 11 }}
               tickFormatter={(value: number) => `${value}${m.percent_symbol()}`}
@@ -239,6 +239,11 @@ function Intensity({
   const steady = sport && data.buckets.some((bucket) => bucket.steadyCount > 0);
   return (
     <div className="space-y-4">
+      {data.defaultZones && (
+        <p className="text-sm text-muted-foreground" data-default-zones>
+          {m.statistics_intensity_default_zones()}
+        </p>
+      )}
       <Distribution data={data} />
       {steady && <SteadyTrends data={data} sport={sport} />}
     </div>

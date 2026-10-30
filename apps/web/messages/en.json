@@ -64,6 +64,7 @@
   "statistics_intensity_low": "Below first threshold",
   "statistics_intensity_middle": "Between thresholds",
   "statistics_intensity_high": "Above second threshold",
+  "statistics_intensity_default_zones": "These figures use the default zones, the same for everyone: set your own heart rate zones to make them yours.",
   "statistics_intensity_empty": "Time by intensity needs heart rate data and at least three heart rate zones in your settings.",
   "statistics_efficiency": "Efficiency",
   "statistics_decoupling": "Aerobic decoupling",

@@ -157,6 +157,8 @@ export type StatisticsDaysDto = z.infer<typeof statisticsDaysSchema>;
 
 export const statisticsIntensitySchema = z.object({
   granularity: z.enum(['day', 'week', 'month']),
+  /** Still the zones every athlete starts with, not their own */
+  defaultZones: z.boolean(),
   buckets: z.array(
     statisticsBucketSchema.extend({
       /** Seconds below, between and above the two thresholds */

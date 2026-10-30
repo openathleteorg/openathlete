@@ -64,6 +64,7 @@
   "statistics_intensity_low": "Sotto la prima soglia",
   "statistics_intensity_middle": "Tra le soglie",
   "statistics_intensity_high": "Sopra la seconda soglia",
+  "statistics_intensity_default_zones": "Questi dati usano le zone predefinite, uguali per tutti: imposta le tue zone cardiache perché ti rispecchino.",
   "statistics_intensity_empty": "Il tempo per intensità richiede dati di frequenza cardiaca e almeno tre zone cardiache nelle impostazioni.",
   "statistics_efficiency": "Efficienza",
   "statistics_decoupling": "Disaccoppiamento aerobico",

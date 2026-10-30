@@ -12,7 +12,7 @@ import { ActivityPipelineContext, ActivityProcessor } from '../types';
  * Bump when the figures below change: activities computed with an older
  * version are recomputed in the background (IntensityBackfillService).
  */
-export const INTENSITY_VERSION = 1;
+export const INTENSITY_VERSION = 2;
 
 /** Reads the recording once, so statistics never have to. */
 @Injectable()
@@ -29,9 +29,8 @@ export class IntensityProcessor implements ActivityProcessor {
     const zones = await this.prisma.trainingZone.findMany({
       where: { athleteId, type: 'HEARTRATE' },
       include: { values: true },
-      orderBy: { index: 'asc' },
     });
-    return zones.flatMap(({ trainingZoneId, values }) => {
+    const ranges = zones.flatMap(({ trainingZoneId, values }) => {
       const value =
         values.find(({ sports }) => (sports as string[]).includes(sport)) ??
         values.find(({ sports }) => sports.length === 0);
@@ -39,6 +38,8 @@ export class IntensityProcessor implements ActivityProcessor {
         ? [{ id: trainingZoneId, min: value.min, max: value.max }]
         : [];
     });
+    // By threshold, not by creation: the domains split this order
+    return ranges.sort((a, b) => a.min - b.min);
   }
 
   async run({ eventActivityId }: ActivityPipelineContext) {

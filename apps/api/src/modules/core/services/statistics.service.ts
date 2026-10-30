@@ -49,6 +49,9 @@ const STEADY_LOW_SHARE = 0.8;
 const LONG_RUN_RATIO = 1.1;
 const LONG_RUNS_SHOWN = 5;
 
+/** Lower bounds of the zones an account starts with */
+const DEFAULT_HR_ZONE_MINS = [0, 132, 143, 153, 164];
+
 /** How far planned sessions carry the form curve */
 const PROJECTION_DAYS = 42;
 
@@ -290,9 +293,17 @@ export class StatisticsService {
       ${this.activitiesOf(athleteId, from, to, sport)}
       GROUP BY 1`;
 
+    const zones = await this.prisma.trainingZoneValue.findMany({
+      where: { trainingZone: { athleteId, type: 'HEARTRATE' } },
+      select: { min: true },
+      orderBy: { min: 'asc' },
+    });
+
     const byPeriod = new Map(rows.map((row) => [row.period, row]));
     return {
       granularity,
+      defaultZones:
+        zones.map(({ min }) => min).join() === DEFAULT_HR_ZONE_MINS.join(),
       buckets: statisticsBuckets(
         zonedClock(from, timeZone).date,
         zonedClock(to, timeZone).date,

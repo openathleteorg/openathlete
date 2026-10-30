@@ -59,7 +59,8 @@ describe('intensity backfill (PostgreSQL)', () => {
       where: { trainingZone: { athleteId: ATHLETE_ID } },
     });
     await prisma.trainingZone.deleteMany({ where: { athleteId: ATHLETE_ID } });
-    for (const [index, min] of [100, 140, 170].entries()) {
+    // Created out of order: thresholds decide the domains, not creation
+    for (const [index, min] of [170, 100, 140].entries()) {
       await prisma.trainingZone.create({
         data: {
           name: `Zone ${index}`,
@@ -91,7 +92,7 @@ describe('intensity backfill (PostgreSQL)', () => {
   it('reads the recording again once marked out of date', async () => {
     await backfill.run();
     await prisma.trainingZoneValue.updateMany({
-      where: { trainingZone: { athleteId: ATHLETE_ID, index: 1 } },
+      where: { min: 140, trainingZone: { athleteId: ATHLETE_ID } },
       data: { min: 110 },
     });
     await prisma.eventActivity.update({

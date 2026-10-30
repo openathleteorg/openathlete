@@ -62,6 +62,7 @@
   "statistics_intensity_low": "Sous le premier seuil",
   "statistics_intensity_middle": "Entre les seuils",
   "statistics_intensity_high": "Au-dessus du second seuil",
+  "statistics_intensity_default_zones": "Ces chiffres utilisent les zones par défaut, les mêmes pour tous : réglez vos propres zones cardiaques pour qu'ils vous correspondent.",
   "statistics_intensity_empty": "Le temps par intensité demande des données de fréquence cardiaque et au moins trois zones cardiaques dans vos réglages.",
   "statistics_efficiency": "Efficacité",
   "statistics_decoupling": "Découplage aérobie",
