@@ -105,6 +105,8 @@ export class GapProcessor implements ActivityProcessor {
         stream: compressed as InputJsonValue,
         averageGapSpeed: roundSpeed(avgGap) ?? undefined,
         gapVersion: GAP_VERSION,
+        // Efficiency is built on it
+        intensityVersion: 0,
       },
     });
   }

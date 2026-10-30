@@ -134,6 +134,10 @@ export class EventService {
             | 'stream'
             | 'recordsVersion'
             | 'gapVersion'
+            | 'intensityVersion'
+            | 'intensitySeconds'
+            | 'efficiencyFactor'
+            | 'decouplingPercent'
             | 'originalStream'
             | 'originalSummary'
           > & {
@@ -1643,6 +1647,10 @@ export class EventService {
         | 'stream'
         | 'recordsVersion'
         | 'gapVersion'
+        | 'intensityVersion'
+        | 'intensitySeconds'
+        | 'efficiencyFactor'
+        | 'decouplingPercent'
         | 'originalStream'
         | 'originalSummary'
       > | null;

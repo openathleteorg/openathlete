@@ -151,6 +151,25 @@ export const statisticsDaysSchema = z.object({
 });
 export type StatisticsDaysDto = z.infer<typeof statisticsDaysSchema>;
 
+export const statisticsIntensitySchema = z.object({
+  granularity: z.enum(['day', 'week', 'month']),
+  buckets: z.array(
+    statisticsBucketSchema.extend({
+      /** Seconds below, between and above the two thresholds */
+      low: z.number(),
+      middle: z.number(),
+      high: z.number(),
+      /** Steady outings only: long, and mostly below the first threshold */
+      steadyCount: z.number(),
+      /** Metres or watts per heartbeat, null without a steady outing */
+      efficiency: z.number().nullable(),
+      /** Percent, null without a steady outing */
+      decoupling: z.number().nullable(),
+    }),
+  ),
+});
+export type StatisticsIntensityDto = z.infer<typeof statisticsIntensitySchema>;
+
 export const statisticsLoadSchema = z.object({
   granularity: z.enum(['day', 'week']),
   /** A week holds its total load, and its form on its last day */

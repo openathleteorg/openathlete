@@ -14,6 +14,7 @@ import {
   SPORT_TYPE,
   StatisticsDaysDto,
   StatisticsFiltersDto,
+  StatisticsIntensityDto,
   StatisticsLoadDto,
   StatisticsOverviewDto,
   StatisticsTotalsDto,
@@ -38,6 +39,10 @@ import { TrainingLoadService } from './training-load.service';
 
 /** Above this, the load chart shows weeks: days are too many to draw */
 const LOAD_DAILY_MAX_DAYS = 400;
+
+/** A steady outing lasts, and stays mostly below the first threshold */
+const STEADY_MIN_SECONDS = 40 * 60;
+const STEADY_LOW_SHARE = 0.8;
 
 /** How far planned sessions carry the form curve */
 const PROJECTION_DAYS = 42;
@@ -249,6 +254,56 @@ export class StatisticsService {
       GROUP BY 1
       ORDER BY 1`;
     return { days };
+  }
+
+  /**
+   * Time in the three intensity domains, and how efficiency evolves on steady
+   * outings: an interval session says nothing of aerobic drift.
+   */
+  async getIntensity(
+    user: AuthUser,
+    { athleteId, from, to, sport }: GetStatisticsSectionQueryDto,
+    now = new Date(),
+  ): Promise<StatisticsIntensityDto> {
+    const timeZone = await this.readableTimeZone(user, athleteId);
+    const granularity = statisticsGranularity(from, to);
+    const steady = Prisma.sql`a.moving_time >= ${STEADY_MIN_SECONDS}
+      AND a.intensity_seconds[1] >= ${STEADY_LOW_SHARE} * (
+        a.intensity_seconds[1] + a.intensity_seconds[2] + a.intensity_seconds[3])`;
+    const rows = await this.prisma.$queryRaw<
+      (Omit<StatisticsIntensityDto['buckets'][number], 'partial'> & {
+        period: string;
+      })[]
+    >`
+      SELECT ${this.bucketOf(granularity, timeZone)} AS period,
+        coalesce(sum(a.intensity_seconds[1]), 0)::float8 AS low,
+        coalesce(sum(a.intensity_seconds[2]), 0)::float8 AS middle,
+        coalesce(sum(a.intensity_seconds[3]), 0)::float8 AS high,
+        count(*) FILTER (WHERE ${steady} AND a.efficiency_factor IS NOT NULL)::int AS "steadyCount",
+        (avg(a.efficiency_factor) FILTER (WHERE ${steady}))::float8 AS efficiency,
+        (avg(a.decoupling_percent) FILTER (WHERE ${steady}))::float8 AS decoupling
+      ${this.activitiesOf(athleteId, from, to, sport)}
+      GROUP BY 1`;
+
+    const byPeriod = new Map(rows.map((row) => [row.period, row]));
+    return {
+      granularity,
+      buckets: statisticsBuckets(
+        zonedClock(from, timeZone).date,
+        zonedClock(to, timeZone).date,
+        granularity,
+        zonedClock(now, timeZone).date,
+      ).map((bucket) => ({
+        low: 0,
+        middle: 0,
+        high: 0,
+        steadyCount: 0,
+        efficiency: null,
+        decoupling: null,
+        ...byPeriod.get(bucket.period),
+        ...bucket,
+      })),
+    };
   }
 
   /** How the averages of a sport evolve, bucket by bucket. */

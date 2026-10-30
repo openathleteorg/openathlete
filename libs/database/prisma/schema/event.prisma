@@ -191,6 +191,15 @@ model EventActivity {
   /// Version of the grade adjustment averageGapSpeed comes from: older ones
   /// are recomputed in the background
   gapVersion             Int                @default(0) @map("gap_version")
+  /// Seconds below, between and above the two thresholds, from the athlete's
+  /// heart rate zones; empty without heart rate or zones
+  intensitySeconds       Float[]            @default([]) @map("intensity_seconds")
+  /// Output per heartbeat: metres for running, watts for cycling
+  efficiencyFactor       Float?             @map("efficiency_factor")
+  /// Efficiency lost from the first half to the second, in percent
+  decouplingPercent      Float?             @map("decoupling_percent")
+  /// Version of the figures above: older ones are recomputed in the background
+  intensityVersion       Int                @default(0) @map("intensity_version")
   /// Activity description/notes
   description            String             @default("")
   /// Average Grade Adjusted Pace (GAP) speed in m/s (normalized for elevation)

@@ -48,6 +48,41 @@ export const METRIC_REGISTRY = {
   ctl: { verdict: 'estimate', sources: [CLARKE_SKIBA, IMBACH] },
   atl: { verdict: 'estimate', sources: [CLARKE_SKIBA, IMBACH] },
   tsb: { verdict: 'estimate', sources: [CLARKE_SKIBA, IMBACH] },
+  intensityDistribution: {
+    verdict: 'validated',
+    sources: [
+      {
+        label: 'Seiler & Kjerland 2006',
+        url: 'https://doi.org/10.1111/j.1600-0838.2004.00418.x',
+      },
+      {
+        label: 'Casado et al. 2022',
+        url: 'https://doi.org/10.1123/ijspp.2021-0435',
+      },
+    ],
+  },
+  efficiency: {
+    verdict: 'estimate',
+    sources: [
+      {
+        label: 'Rothschild et al. 2025',
+        url: 'https://doi.org/10.1007/s00421-025-05815-0',
+      },
+    ],
+  },
+  decoupling: {
+    verdict: 'estimate',
+    sources: [
+      {
+        label: 'Rothschild et al. 2025',
+        url: 'https://doi.org/10.1007/s00421-025-05815-0',
+      },
+      {
+        label: 'Coyle & González-Alonso 2001',
+        url: 'https://doi.org/10.1097/00003677-200104000-00009',
+      },
+    ],
+  },
   criticalSpeed: {
     verdict: 'estimate',
     sources: [

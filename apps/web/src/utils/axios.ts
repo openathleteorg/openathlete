@@ -157,6 +157,7 @@ export const routes = {
     overview: '/statistics/overview',
     volume: '/statistics/volume',
     days: '/statistics/days',
+    intensity: '/statistics/intensity',
     trends: '/statistics/trends',
     load: '/statistics/load',
   },

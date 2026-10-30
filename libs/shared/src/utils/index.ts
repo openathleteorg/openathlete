@@ -8,6 +8,7 @@ export * from './metric-calculation.map';
 export * from './metric-category.map';
 export * from './metric-registry';
 export * from './sport-config';
+export * from './time-in-zones';
 export * from './cycle-colors';
 export * from './provider-import';
 export {

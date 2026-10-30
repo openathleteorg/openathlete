@@ -186,6 +186,7 @@ export class ActivityCorrectionsService {
     if (!corrections.length) {
       activityData = {
         gapVersion: 0,
+        intensityVersion: 0,
         stream: originalStream as object,
         originalStream: Prisma.DbNull,
         originalSummary: Prisma.DbNull,
@@ -202,6 +203,7 @@ export class ActivityCorrectionsService {
       activityData = {
         // The stream changed, or came back: the backfill adjusts it again
         gapVersion: 0,
+        intensityVersion: 0,
         stream: compressActivityStream(stream) as object,
         originalStream: originalStream as object,
         originalSummary: original as unknown as Prisma.InputJsonValue,

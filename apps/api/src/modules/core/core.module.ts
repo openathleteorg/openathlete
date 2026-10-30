@@ -49,6 +49,7 @@ import { ActivityPipelineService } from './services/pipeline/activity-pipeline.s
 import {
   EquipmentProcessor,
   GapProcessor,
+  IntensityProcessor,
   NormalizationProcessor,
   RecordsProcessor,
   TrainingMatchProcessor,
@@ -123,6 +124,7 @@ import { WeatherService } from './services/weather/weather.service';
     NormalizationProcessor,
     TrainingMatchProcessor,
     EquipmentProcessor,
+    IntensityProcessor,
     {
       provide: ActivityPipelineService,
       useFactory: (
@@ -132,6 +134,7 @@ import { WeatherService } from './services/weather/weather.service';
         weather: WeatherProcessor,
         normalization: NormalizationProcessor,
         trainingMatch: TrainingMatchProcessor,
+        intensity: IntensityProcessor,
       ) =>
         new ActivityPipelineService([
           equipment,
@@ -140,6 +143,7 @@ import { WeatherService } from './services/weather/weather.service';
           weather,
           normalization,
           trainingMatch,
+          intensity,
         ]),
       inject: [
         EquipmentProcessor,
@@ -148,6 +152,7 @@ import { WeatherService } from './services/weather/weather.service';
         WeatherProcessor,
         NormalizationProcessor,
         TrainingMatchProcessor,
+        IntensityProcessor,
       ],
     },
   ],
@@ -156,6 +161,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityRecordsService,
     ActivityPipelineService,
     GapProcessor,
+    IntensityProcessor,
     NormalizationProcessor,
     ActivityDetailService,
     TrainingLoadService,

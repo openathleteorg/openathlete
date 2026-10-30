@@ -36,6 +36,9 @@ test('statistics read the last weeks, by section, with filters in the URL', asyn
   await calendar.scrollIntoViewIfNeeded();
   await expect(calendar.locator('[title]').first()).toBeAttached();
 
+  await page.locator('#intensity').scrollIntoViewIfNeeded();
+  await expect(page.getByText('at least three heart rate zones')).toBeVisible();
+
   const tsb = page.locator('[data-tsb-chart]');
   await tsb.scrollIntoViewIfNeeded();
   await expect(tsb).toBeVisible();

@@ -62,6 +62,16 @@ export const useStatisticsDaysQuery = (
     queryKey: [statisticsKeys.days, ...paramsKey(params)],
   });
 
+export const useStatisticsIntensityQuery = (
+  params: StatisticsSectionParams,
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getIntensity(params),
+    queryKey: [statisticsKeys.intensity, ...paramsKey(params)],
+  });
+
 export const useStatisticsTrendsQuery = (
   params: StatisticsSectionParams & { sport: SPORT_TYPE },
   enabled: boolean,

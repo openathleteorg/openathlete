@@ -228,6 +228,54 @@ describe('StatisticsService (PostgreSQL)', () => {
     ]);
   });
 
+  it('adds up the intensity, and reads efficiency on steady outings only', async () => {
+    const steady = await activity('steady', '2026-03-10T08:00:00Z', {
+      movingTime: 3600,
+    });
+    const hard = await activity('hard', '2026-03-12T08:00:00Z', {
+      movingTime: 3600,
+    });
+    await prisma.eventActivity.update({
+      where: { eventId: steady.eventId },
+      data: {
+        intensitySeconds: [3400, 200, 0],
+        efficiencyFactor: 1.2,
+        decouplingPercent: 3,
+      },
+    });
+    await prisma.eventActivity.update({
+      where: { eventId: hard.eventId },
+      data: {
+        intensitySeconds: [1800, 600, 1200],
+        efficiencyFactor: 0.9,
+        decouplingPercent: 12,
+      },
+    });
+
+    const { buckets } = await service.getIntensity(
+      athlete,
+      {
+        athleteId: DELETED_ATHLETE_ID,
+        from: new Date('2026-01-01T00:00:00Z'),
+        to: new Date('2026-12-31T00:00:00Z'),
+      },
+      new Date('2027-01-15T00:00:00Z'),
+    );
+    expect(buckets.find(({ period }) => period === '2026-03-01')).toMatchObject(
+      {
+        low: 5200,
+        middle: 800,
+        high: 1200,
+        steadyCount: 1,
+        efficiency: 1.2,
+        decoupling: 3,
+      },
+    );
+    expect(buckets.find(({ period }) => period === '2026-04-01')).toMatchObject(
+      { low: 0, efficiency: null, steadyCount: 0 },
+    );
+  });
+
   it('weighs averages by the time in motion', async () => {
     await activity('long', '2026-03-10T08:00:00Z', {
       movingTime: 9000,

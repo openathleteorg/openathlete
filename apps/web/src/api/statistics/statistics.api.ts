@@ -4,6 +4,7 @@ import {
   SPORT_TYPE,
   StatisticsDaysDto,
   StatisticsFiltersDto,
+  StatisticsIntensityDto,
   StatisticsLoadDto,
   StatisticsOverviewDto,
   StatisticsTrendsDto,
@@ -45,6 +46,13 @@ export class StatisticsAPI {
     params: StatisticsSectionParams,
   ): Promise<StatisticsDaysDto> {
     const res = await client.get(routes.statistics.days, { params });
+    return res.data;
+  }
+
+  static async getIntensity(
+    params: StatisticsSectionParams,
+  ): Promise<StatisticsIntensityDto> {
+    const res = await client.get(routes.statistics.intensity, { params });
     return res.data;
   }
 

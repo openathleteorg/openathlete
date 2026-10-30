@@ -35,6 +35,21 @@ const COPY: Record<
     what: m.metric_tsb_what,
     limits: m.metric_tsb_limits,
   },
+  intensityDistribution: {
+    name: m.statistics_section_intensity,
+    what: m.metric_intensity_what,
+    limits: m.metric_intensity_limits,
+  },
+  efficiency: {
+    name: m.statistics_efficiency,
+    what: m.metric_efficiency_what,
+    limits: m.metric_efficiency_limits,
+  },
+  decoupling: {
+    name: m.statistics_decoupling,
+    what: m.metric_decoupling_what,
+    limits: m.metric_decoupling_limits,
+  },
   criticalSpeed: {
     name: m.statistics_critical_speed,
     what: m.metric_critical_speed_what,

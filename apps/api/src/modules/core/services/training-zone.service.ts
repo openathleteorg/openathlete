@@ -40,6 +40,14 @@ export class TrainingZoneService {
     return zones;
   }
 
+  /** Time in zones depends on the zones: the background job reads it again */
+  private async refreshIntensity(athleteId: number) {
+    await this.prisma.eventActivity.updateMany({
+      where: { event: { athleteId } },
+      data: { intensityVersion: 0 },
+    });
+  }
+
   async create(user: AuthUser, dto: CreateTrainingZoneDto) {
     const ability = await this.abilities.getFor({ user });
     // Check access to athlete
@@ -67,6 +75,7 @@ export class TrainingZoneService {
       },
       include: { values: true },
     });
+    await this.refreshIntensity(dto.athleteId);
     return zone;
   }
 
@@ -111,6 +120,7 @@ export class TrainingZoneService {
       },
       include: { values: true },
     });
+    await this.refreshIntensity(zone.athleteId);
     return updatedZone;
   }
 
@@ -133,6 +143,7 @@ export class TrainingZoneService {
     await this.prisma.trainingZone.delete({
       where: { trainingZoneId: trainingZoneId },
     });
+    await this.refreshIntensity(zone.athleteId);
     return { success: true };
   }
 }
