@@ -83,7 +83,7 @@ function Legend({
           />
           <span className="text-muted-foreground">{item.label}</span>
           {item.value !== undefined && (
-            <span className="font-mono font-medium tabular-nums">
+            <span className="font-medium tabular-nums">
               {item.value.toFixed(1)}
             </span>
           )}
@@ -184,7 +184,7 @@ export function TrainingLoadChart({
                 style={{ backgroundColor: COLORS[name as Series] }}
               />
               {labels[name as Series]}
-              <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+              <span className="ml-auto font-medium tabular-nums text-foreground">
                 {Number(value).toFixed(1)}
               </span>
             </div>
@@ -406,7 +406,7 @@ export function TrainingLoadChart({
                 data-monotony
               >
                 {m.statistics_monotony()}
-                <span className="font-mono font-medium text-foreground tabular-nums">
+                <span className="font-medium text-foreground tabular-nums">
                   {data.monotony.toFixed(2)}
                 </span>
                 <MetricInfo metric="monotony" />

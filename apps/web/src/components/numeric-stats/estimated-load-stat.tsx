@@ -20,7 +20,7 @@ export function EstimatedLoadStat({ label, estimatedLoad }: P) {
       {label && <div className="text-sm font-semibold">{label}</div>}
       <div>
         {formatLoadValue(estimatedLoad)}{' '}
-        <span className="text-gray-500 dark:text-gray-400 text-sm"></span>
+        <span className="text-muted-foreground text-sm"></span>
       </div>
     </div>
   );

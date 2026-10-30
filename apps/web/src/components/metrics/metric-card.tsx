@@ -38,7 +38,10 @@ export function MetricCard({
 
   return (
     <Card
-      className={cn('cursor-pointer transition-all hover:shadow-md', className)}
+      className={cn(
+        'cursor-pointer transition-colors hover:bg-muted/50',
+        className,
+      )}
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -49,7 +52,7 @@ export function MetricCard({
       <CardContent>
         {metric ? (
           <>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-semibold tracking-tight">
               {metric.value} <span className="text-sm font-normal">{unit}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">

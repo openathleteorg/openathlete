@@ -173,7 +173,7 @@ function LayoutContent({ children }: P) {
           <MobileLayout>{children}</MobileLayout>
         ) : (
           <>
-            <div className="flex min-w-0 flex-1">
+            <div className="flex min-w-0 flex-1 bg-background md:my-2 md:mr-2 md:overflow-hidden md:rounded-xl">
               <TemplateLibrarySidebar />
               <SidebarInset className="min-w-0 flex-1 max-md:pt-[calc(4rem+env(safe-area-inset-top))]">
                 <MobileWebHeader />

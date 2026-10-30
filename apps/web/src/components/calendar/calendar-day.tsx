@@ -183,7 +183,7 @@ export function CalendarDay({
   return (
     <div
       className={cn(
-        'group/day min-h-32 flex-1 [&:not(:last-child)]:border-r-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30 select-none',
+        'group/day min-h-32 flex-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30 select-none',
         variant === 'week' && 'min-w-0 min-h-64 border-b md:border-b-0',
         isOver ? 'bg-gray-100 dark:bg-gray-800/50' : '',
         fileOver &&
@@ -225,11 +225,11 @@ export function CalendarDay({
         >
           <div
             className={cn(
-              'relative flex justify-center p-2 text-sm font-medium text-gray-600',
+              'relative flex justify-center p-2 text-sm font-medium text-muted-foreground',
               variant === 'week' && 'flex-col items-center gap-0.5 pb-1.5',
               {
                 'text-red-500 font-bold': isToday,
-                'text-gray-400': !isCurrentMonth,
+                'text-muted-foreground/50': !isCurrentMonth,
               },
             )}
           >

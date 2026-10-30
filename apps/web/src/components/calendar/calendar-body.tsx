@@ -25,20 +25,20 @@ export function CalendarBody() {
   });
 
   return (
-    <div className="w-full border-1 rounded-lg shadow-sm">
+    <div className="w-full border-1 rounded-xl overflow-hidden">
       {/* Header row with days */}
       <div className="grid grid-cols-7 md:grid-cols-[repeat(7,minmax(0,1fr))_minmax(8.5rem,1.25fr)] border-b-1">
         {displayedWeeks[0].map((day, i) => (
           <div
             key={i}
-            className="h-8 flex justify-center items-center text-sm font-semibold [&:not(:last-child)]:border-r-1"
+            className="h-8 flex justify-center items-center text-sm font-medium text-muted-foreground"
           >
             {new Date(day).toLocaleString(getDateLocale(getLocale()), {
               weekday: 'short',
             })}
           </div>
         ))}
-        <div className="hidden md:flex h-8 items-center px-2 text-xs font-semibold text-muted-foreground">
+        <div className="hidden md:flex h-8 items-center px-2 text-xs font-medium text-muted-foreground">
           {m.calendar_week_summary_heading()}
         </div>
       </div>

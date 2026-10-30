@@ -31,9 +31,14 @@ function Sparkline({ values }: { values: number[] }) {
     <svg
       viewBox="0 0 100 24"
       preserveAspectRatio="none"
-      className="h-6 w-full text-chart-1"
+      className="h-6 w-full text-foreground/70"
       aria-hidden
     >
+      <polygon
+        points={`0,24 ${points} 100,24`}
+        fill="currentColor"
+        opacity={0.08}
+      />
       <polyline
         points={points}
         fill="none"
@@ -80,7 +85,7 @@ export function StatTile({
           {info}
         </div>
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-xl font-bold tabular-nums md:text-2xl">
+          <span className="text-xl font-semibold tracking-tight md:text-2xl">
             {value}
             {unit && (
               <span className="ml-1 text-sm font-normal text-muted-foreground">

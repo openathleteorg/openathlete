@@ -15,6 +15,10 @@ const state = vi.hoisted(() => ({
   }[],
 }));
 
+vi.mock('@/contexts/chatbot', () => ({
+  useChatbot: () => ({ openChat: vi.fn() }),
+}));
+
 vi.mock('@/api/athlete', () => ({
   useGetMyCoachedAthletesQuery: () => ({ data: state.athletes }),
 }));

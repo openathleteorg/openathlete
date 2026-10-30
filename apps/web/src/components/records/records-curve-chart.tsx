@@ -96,7 +96,7 @@ export function RecordsCurveChart({ metric, sport, series, className }: P) {
               formatter={(value, name) => (
                 <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                   {drawn.find((s) => s.key === name)?.label}
-                  <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                  <span className="ml-auto font-medium tabular-nums text-foreground">
                     {metric.format(Number(value), sport)} {unit}
                   </span>
                 </div>

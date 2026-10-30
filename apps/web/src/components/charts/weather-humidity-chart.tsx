@@ -48,7 +48,7 @@ export function WeatherHumidityChart({ samples }: P) {
             content={
               <ChartTooltipContent
                 formatter={(value) => (
-                  <span className="text-foreground font-mono tabular-nums">
+                  <span className="text-foreground tabular-nums">
                     {Number(value).toFixed(0)} %
                   </span>
                 )}

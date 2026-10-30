@@ -168,7 +168,7 @@ function Regularity({
                     formatter={(value, name) => (
                       <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                         {labels[name as keyof typeof labels]}
-                        <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                        <span className="ml-auto font-medium tabular-nums text-foreground">
                           {Math.round(Number(value))} {unit}
                         </span>
                       </div>

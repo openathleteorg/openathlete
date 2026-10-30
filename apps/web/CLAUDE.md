@@ -16,6 +16,7 @@ The same build ships to Vercel (hosted), to the Docker image (self-hosted) and t
 ## Rules
 
 - **Text**: every user-visible string is `m.some_key()` from `@/paraglide/messages`. Add the key to all five catalogs, then run `pnpm check:locale-parity` at the root (see the `i18n` skill).
+- **Design**: colours, fonts and radii are variables in `src/theme/index.css`; never hardcode a hex or a gray utility. Use `PageTitle`, `SectionLabel`, `MetricTile` and `InsightBanner` from `components/ui` rather than restyling them in a view.
 - **Server state**: React Query hooks only. Don't copy query data into local state.
 - **Forms**: React Hook Form with a Zod schema, built from `libs/shared` when the API validates the same data, and the `RHF*` fields in `components/hook-form` (they show validation messages). Show API errors with `toast.error`.
 - **Small screens**: below 768px the dashboard uses `MobileWebHeader` and the sidebar drawer. Check new pages at 390px: no horizontal scroll, touch targets of 44px.

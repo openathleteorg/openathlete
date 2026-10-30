@@ -4,10 +4,12 @@ import { LoadSection } from '@/components/statistics/load-section';
 import { PerformanceSection } from '@/components/statistics/performance-section';
 import { RegularitySection } from '@/components/statistics/regularity-section';
 import { StatisticsFilters } from '@/components/statistics/statistics-filters';
+import { StatisticsInsight } from '@/components/statistics/statistics-insight';
 import { SummarySection } from '@/components/statistics/summary-section';
 import { TrendsSection } from '@/components/statistics/trends-section';
 import { useStatisticsFilters } from '@/components/statistics/use-statistics-filters';
 import { VolumeSection } from '@/components/statistics/volume-section';
+import { PageTitle } from '@/components/ui/page-title';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
 
@@ -30,7 +32,8 @@ export function StatisticsView({ athleteId }: P) {
 
   return (
     <div className="w-full space-y-6 p-4 md:p-8 md:pt-6">
-      <h1 className="hidden text-2xl font-semibold md:block">{pageTitle}</h1>
+      <PageTitle desktopOnly>{pageTitle}</PageTitle>
+      <StatisticsInsight athleteId={athleteId} period={period} sport={sport} />
       <StatisticsFilters filters={filters} sports={options?.sports ?? []} />
       <SummarySection
         athleteId={athleteId}

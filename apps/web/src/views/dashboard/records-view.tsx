@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { PageTitle } from '@/components/ui/page-title';
 import { SkeletonChart } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
@@ -92,7 +93,7 @@ export function RecordsView({ athleteId }: P) {
 
   return (
     <div className="w-full p-4 md:p-8 flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold md:block hidden">{pageTitle}</h1>
+      <PageTitle desktopOnly>{pageTitle}</PageTitle>
       <div className="flex flex-wrap items-center gap-3">
         {sports && sports.length > 0 && (
           <SportSelect

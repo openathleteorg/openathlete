@@ -125,23 +125,19 @@ function WeekTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
       <p className="font-medium">{week.rangeLabel}</p>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">{m.done()}</span>
-        <span className="font-mono tabular-nums">
-          {formatLoad(week.actual)}
-        </span>
+        <span className="tabular-nums">{formatLoad(week.actual)}</span>
       </div>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">
           {m.calendar_chart_still_planned()}
         </span>
-        <span className="font-mono tabular-nums">
-          {formatLoad(week.estimated)}
-        </span>
+        <span className="tabular-nums">{formatLoad(week.estimated)}</span>
       </div>
       <div className="flex justify-between gap-4">
         <span className="text-muted-foreground">
           {m.recommended_zone_range()}
         </span>
-        <span className="font-mono tabular-nums">
+        <span className="tabular-nums">
           {formatLoad(week.recommendedMin)}–{formatLoad(week.recommendedMax)}
         </span>
       </div>
@@ -150,7 +146,7 @@ function WeekTooltip({ active, payload }: TooltipProps<ValueType, NameType>) {
           <span className="text-muted-foreground">
             {week.projected ? m.calendar_chart_tsb_projected() : 'TSB'}
           </span>
-          <span className="font-mono tabular-nums">
+          <span className="tabular-nums">
             {formatForm(week.tsb)} ·{' '}
             {formStatusLabel[getFormStatus(week.tsb)]()}
           </span>

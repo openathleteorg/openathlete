@@ -109,7 +109,7 @@ function Distribution({ data }: { data: StatisticsIntensityDto }) {
                   formatter={(value, name) => (
                     <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                       {DOMAINS.find(({ key }) => key === name)?.label()}
-                      <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                      <span className="ml-auto font-medium tabular-nums text-foreground">
                         {Math.round(Number(value))}
                         {m.percent_symbol()}
                       </span>

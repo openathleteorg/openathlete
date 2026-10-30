@@ -1747,5 +1747,12 @@
   "training_pace_marathon": "Marathon",
   "training_pace_threshold": "Threshold",
   "training_pace_interval": "Interval",
-  "training_pace_repetition": "Repetition"
+  "training_pace_repetition": "Repetition",
+  "insight_form_balanced": "Form at {form}: your load and fitness are balanced.",
+  "insight_form_fatigue": "Form at {form}: fatigue is taking over, a lighter week would help.",
+  "insight_form_fresh": "Form at {form}: you have room to add volume.",
+  "insight_dominant_sport": "{sport} takes up {share}% of the time in this period.",
+  "insight_stale_metrics": "Metrics not updated for over six months: {count}.",
+  "insight_ask_coach": "Ask the AI coach",
+  "sidebar_ask": "Ask OpenAthlete"
 }

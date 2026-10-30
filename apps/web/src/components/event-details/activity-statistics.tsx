@@ -44,7 +44,7 @@ function ValueStat({
       <div className="text-sm font-semibold">{label}</div>
       <div>
         {Math.round(value)}{' '}
-        <span className="text-gray-500 dark:text-gray-400 text-sm">{unit}</span>
+        <span className="text-muted-foreground text-sm">{unit}</span>
       </div>
     </div>
   );

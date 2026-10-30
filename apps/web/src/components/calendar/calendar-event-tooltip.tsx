@@ -33,7 +33,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
           <span className="font-semibold text-sm">{event.name}</span>
         </div>
         {event.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {event.description.split('\n').map((line, index) => (
               <Fragment key={index}>
                 {line}
@@ -49,9 +49,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
       <div className="space-y-2">
         {!!event.movingTime && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.duration()}
-            </span>
+            <span className="text-muted-foreground">{m.duration()}</span>
             <span className="font-medium">
               {formatDuration(event.movingTime)}
             </span>
@@ -64,9 +62,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
             event.sport === SPORT_TYPE.SWIMMING ||
             event.sport === SPORT_TYPE.HIKING) && (
             <div className="flex justify-between items-center text-xs">
-              <span className="text-gray-600 dark:text-gray-400">
-                {m.distance()}
-              </span>
+              <span className="text-muted-foreground">{m.distance()}</span>
               <span className="font-medium">
                 {formatDistance(event.distance, 'km')} km
               </span>
@@ -74,9 +70,7 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
           )}
         {!!event.elevationGain && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.elevation_gain()}
-            </span>
+            <span className="text-muted-foreground">{m.elevation_gain()}</span>
             <span className="font-medium">
               {Math.round(event.elevationGain)} m
             </span>
@@ -84,15 +78,13 @@ function ActivityTooltipContent({ event }: { event: ActivityEvent }) {
         )}
         {event.rpe !== null && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">{m.rpe()}</span>
+            <span className="text-muted-foreground">{m.rpe()}</span>
             <span className="font-medium">{event.rpe * 10}/10</span>
           </div>
         )}
         {!!event.averageSpeed && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.average_speed()}
-            </span>
+            <span className="text-muted-foreground">{m.average_speed()}</span>
             <span className="font-medium">
               {formatSpeed(event.averageSpeed, sportConfig.speedUnit)}{' '}
               {formatSpeedUnit(sportConfig.speedUnit)}
@@ -113,7 +105,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
           <span className="font-semibold text-sm">{event.name}</span>
         </div>
         {event.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {event.description.split('\n').map((line, index) => (
               <Fragment key={index}>
                 {line}
@@ -129,9 +121,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
       <div className="space-y-2">
         {!!event.goalDuration && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.goal_duration()}
-            </span>
+            <span className="text-muted-foreground">{m.goal_duration()}</span>
             <span className="font-medium">
               {formatDuration(event.goalDuration)}
             </span>
@@ -139,9 +129,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
         )}
         {!!event.goalDistance && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.goal_distance()}
-            </span>
+            <span className="text-muted-foreground">{m.goal_distance()}</span>
             <span className="font-medium">
               {formatDistance(event.goalDistance, 'km')} km
             </span>
@@ -149,7 +137,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
         )}
         {!!event.goalElevationGain && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="text-muted-foreground">
               {m.goal_elevation_gain()}
             </span>
             <span className="font-medium">
@@ -159,9 +147,7 @@ function TrainingTooltipContent({ event }: { event: TrainingEvent }) {
         )}
         {event.goalRpe !== null && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.goal_rpe()}
-            </span>
+            <span className="text-muted-foreground">{m.goal_rpe()}</span>
             <span className="font-medium">{event.goalRpe * 10}/10</span>
           </div>
         )}
@@ -196,7 +182,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
           <span className="font-semibold text-sm">{event.name}</span>
         </div>
         {event.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {event.description.split('\n').map((line, index) => (
               <Fragment key={index}>
                 {line}
@@ -212,9 +198,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
       <div className="space-y-2">
         {!!event.goalDuration && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.goal_duration()}
-            </span>
+            <span className="text-muted-foreground">{m.goal_duration()}</span>
             <span className="font-medium">
               {formatDuration(event.goalDuration)}
             </span>
@@ -222,9 +206,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
         )}
         {!!event.goalDistance && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.goal_distance()}
-            </span>
+            <span className="text-muted-foreground">{m.goal_distance()}</span>
             <span className="font-medium">
               {formatDistance(event.goalDistance, 'km')} km
             </span>
@@ -232,7 +214,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
         )}
         {!!event.goalElevationGain && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
+            <span className="text-muted-foreground">
               {m.goal_elevation_gain()}
             </span>
             <span className="font-medium">
@@ -242,9 +224,7 @@ function CompetitionTooltipContent({ event }: { event: CompetitionEvent }) {
         )}
         {event.goalRpe !== null && (
           <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-600 dark:text-gray-400">
-              {m.goal_rpe()}
-            </span>
+            <span className="text-muted-foreground">{m.goal_rpe()}</span>
             <span className="font-medium">{event.goalRpe * 10}/10</span>
           </div>
         )}
@@ -259,7 +239,7 @@ function NoteTooltipContent({ event }: { event: NoteEvent }) {
       <div className="space-y-2">
         <div className="font-semibold text-sm">{event.name}</div>
         {event.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             {event.description.split('\n').map((line, index) => (
               <Fragment key={index}>
                 {line}

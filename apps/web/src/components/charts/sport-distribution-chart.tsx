@@ -17,7 +17,7 @@ interface P {
 }
 
 const sliceColor = (colorRank: number, sizeRank: number) =>
-  `var(--chart-${((colorRank >= 0 ? colorRank : sizeRank) % 5) + 1})`;
+  `var(--chart-${((colorRank >= 0 ? colorRank : sizeRank) % 7) + 1})`;
 
 export function SportDistributionChart({
   sports,
@@ -75,7 +75,7 @@ export function SportDistributionChart({
                       }
                     />
                     {name}
-                    <div className="ml-auto flex items-baseline gap-0.5 font-mono font-medium tabular-nums text-foreground">
+                    <div className="ml-auto flex items-baseline gap-0.5 font-medium tabular-nums text-foreground">
                       {Math.round((Number(value) / total) * 100)}
                       <span className="font-normal text-muted-foreground">
                         {m.percent_symbol()}
@@ -110,7 +110,7 @@ export function SportDistributionChart({
             />
             <SportIcon sport={slice.sport} />
             <span className="min-w-0 truncate">{slice.name}</span>
-            <span className="ml-auto whitespace-nowrap font-mono tabular-nums">
+            <span className="ml-auto whitespace-nowrap tabular-nums">
               {formatter ? formatter(slice.value) : slice.value}
             </span>
             <span className="w-10 text-right text-muted-foreground tabular-nums">

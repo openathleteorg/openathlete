@@ -89,7 +89,7 @@ export function StatChart({
               formatter={(value, name) => (
                 <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                   {name === 'compared' ? comparedLabel : label}
-                  <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                  <span className="ml-auto font-medium tabular-nums text-foreground">
                     {formatTooltip(Number(value))}
                   </span>
                 </div>

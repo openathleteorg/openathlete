@@ -1,3 +1,4 @@
+import { PageTitle } from '@/components/ui/page-title';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { m } from '@/paraglide/messages';
@@ -145,12 +146,12 @@ export function CalendarHeader() {
           arrows stay next to what they change */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1
-            className="truncate text-xl font-semibold md:text-2xl"
+          <PageTitle
+            className="truncate text-xl md:text-2xl"
             title={calendarTitle}
           >
             {calendarTitle}
-          </h1>
+          </PageTitle>
           {isWeek && (
             <p className="text-sm text-muted-foreground">
               {weekStart.toLocaleDateString(getDateLocale(getLocale()), {
@@ -170,6 +171,7 @@ export function CalendarHeader() {
         <div className="flex shrink-0 gap-2">
           <Button
             size="icon"
+            variant="secondary"
             aria-label={
               isWeek ? m.calendar_previous_week() : m.calendar_previous_month()
             }
@@ -192,6 +194,7 @@ export function CalendarHeader() {
             {isWeek ? m.calendar_current_week() : m.calendar_current_month()}
           </Button>
           <Button
+            variant="secondary"
             aria-label={
               isWeek ? m.calendar_next_week() : m.calendar_next_month()
             }

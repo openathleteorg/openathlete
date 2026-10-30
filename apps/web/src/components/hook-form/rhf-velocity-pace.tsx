@@ -196,7 +196,9 @@ function VelocityPaceFieldAdapter({
               )}
             />
             <div className="rounded-none border border-l-0 shadow-xs py-1.25 px-3 text-base shrink-0">
-              <span className="text-md text-gray-500">{m.minutes()}</span>
+              <span className="text-md text-muted-foreground">
+                {m.minutes()}
+              </span>
             </div>
           </div>
           <div className="flex items-center flex-1">
@@ -218,7 +220,9 @@ function VelocityPaceFieldAdapter({
               )}
             />
             <div className="rounded-l-none border border-l-0 shadow-xs py-1.25 px-3 text-base shrink-0 border-r-0">
-              <span className="text-md text-gray-500">{m.unit_seconds()}</span>
+              <span className="text-md text-muted-foreground">
+                {m.unit_seconds()}
+              </span>
             </div>
           </div>
         </div>

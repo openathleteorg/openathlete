@@ -1,4 +1,5 @@
 import { useCurrentSubscription } from '@/api/subscription';
+import { PageTitle } from '@/components/ui/page-title';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRoles } from '@/contexts/auth';
 import { SubscriptionSettingsPage } from '@/pages/dashboard/settings/subscription';
@@ -75,7 +76,7 @@ export function SettingsView() {
 
   return (
     <div className="w-full p-4 md:p-8">
-      <h1 className="text-2xl font-semibold hidden md:block">{m.settings()}</h1>
+      <PageTitle desktopOnly>{m.settings()}</PageTitle>
       <Tabs value={visibleTab} onValueChange={handleTabChange} className="mt-4">
         <label className="block md:hidden">
           <span className="sr-only">{m.settings()}</span>

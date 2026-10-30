@@ -264,7 +264,7 @@ function VolumeCharts({
                               }}
                             />
                             {seriesLabel(name as VolumeSeries | 'compared')}
-                            <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                            <span className="ml-auto font-medium tabular-nums text-foreground">
                               {formatValue(Number(value))} {unit[metric]}
                             </span>
                           </div>

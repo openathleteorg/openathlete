@@ -15,10 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { InsightBanner } from '@/components/ui/insight-banner';
+import { PageTitle } from '@/components/ui/page-title';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
 import { useSetPageActions } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
+import { countStaleMetrics } from '@/utils/insights';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
@@ -140,15 +143,22 @@ export function MetricsView({ athleteId }: P) {
 
   useSetPageActions(actions);
 
+  const staleMetrics = countStaleMetrics(Object.values(latestMetrics));
+
   return (
     <div className="w-full p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold hidden md:block">{pageTitle}</h1>
+        <PageTitle desktopOnly>{pageTitle}</PageTitle>
         <Button onClick={handleAddNewMetric} className="hidden md:flex">
           <Plus className="h-4 w-4 mr-2" />
           {m.add_metric()}
         </Button>
       </div>
+      {staleMetrics > 0 && (
+        <InsightBanner
+          text={m.insight_stale_metrics({ count: staleMetrics })}
+        />
+      )}
 
       {/* Health & Body Composition Section */}
       <div>

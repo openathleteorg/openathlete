@@ -76,7 +76,7 @@ export function RecordsTable({ metric, sport, columns, onOpenActivity }: P) {
                   >
                     {record ? (
                       <div className="flex flex-col">
-                        <span className="font-mono tabular-nums">
+                        <span className="tabular-nums">
                           {metric.type === RECORD_TYPE.SPEED && (
                             <>{formatRecordTime(record)} · </>
                           )}

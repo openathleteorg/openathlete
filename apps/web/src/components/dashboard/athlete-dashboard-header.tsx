@@ -4,16 +4,19 @@ import { useTrainingLoadMetrics } from '@/api/training-load';
 import { TrainingLoadCalculationType } from '@/api/training-load/training-load.api';
 import { CompetitionPriorityBadge } from '@/components/calendar/competition-priority-badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { InsightBanner } from '@/components/ui/insight-banner';
+import { MetricTile } from '@/components/ui/metric-tile';
+import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getDateFnsLocale } from '@/utils/locales';
 import { getMetricUnit } from '@/utils/metric-unit';
-import { cn } from '@/utils/shadcn';
 import {
-  formStatusBackgroundClass,
+  FormStatus,
   formStatusLabel,
   formStatusTextClass,
   formatForm,
@@ -29,10 +32,17 @@ interface AthleteDashboardHeaderProps {
   athleteId?: number;
 }
 
+const formInsight: Record<FormStatus, typeof m.insight_form_balanced> = {
+  overtraining: m.insight_form_fatigue,
+  optimal: m.insight_form_balanced,
+  detraining: m.insight_form_fresh,
+};
+
 export function AthleteDashboardHeader({
   athleteId,
 }: AthleteDashboardHeaderProps) {
   const isMobile = isCapacitor();
+  const { openChat } = useChatbot();
   const {
     data: upcomingCompetitionsData = [],
     isLoading: isLoadingCompetitions,
@@ -95,195 +105,143 @@ export function AthleteDashboardHeader({
   if (isMobile) {
     return null;
   }
+  const form =
+    trainingLoadMetrics && trainingLoadMetrics.ctl > 0
+      ? trainingLoadMetrics.tsb
+      : null;
+
   return (
-    <Card className="mb-6">
-      <CardContent>
-        {/* Two columns on laptops, with the races across the top: three
+    <>
+      {form !== null && (
+        <InsightBanner
+          className="mx-4 mb-4 md:mx-0"
+          text={formInsight[getFormStatus(form)]({ form: formatForm(form) })}
+          actions={[{ label: m.insight_ask_coach(), onClick: openChat }]}
+        />
+      )}
+      <Card className="mx-4 mb-6 md:mx-0">
+        <CardContent>
+          {/* Two columns on laptops, with the races across the top: three
             would leave the tiles too narrow for their labels */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {/* Upcoming Competitions */}
-          <div className="space-y-1.5 md:col-span-2 xl:col-span-1">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              {m.dashboard_header_upcoming_competitions()}
-            </h3>
-            {isLoadingCompetitions ? (
-              <div className="space-y-1.5">
-                {Array.from({ length: 2 }).map((_, i) => (
-                  <Skeleton key={i} className="h-12 rounded-md" />
-                ))}
-              </div>
-            ) : upcomingCompetitions.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                {m.dashboard_header_no_upcoming_competitions()}
-              </p>
-            ) : (
-              <div className="space-y-1.5">
-                {upcomingCompetitions.map((competition) => (
-                  <div
-                    key={competition.eventId}
-                    className="flex items-start gap-1.5 rounded-md bg-blue-50 p-2 dark:bg-blue-950/30"
-                  >
-                    <Calendar className="mt-0.5 h-3.5 w-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="flex items-center gap-1 text-xs font-medium text-blue-900 dark:text-blue-100">
-                        <CompetitionPriorityBadge
-                          priority={
-                            competition.type === EVENT_TYPE.COMPETITION
-                              ? competition.priority
-                              : null
-                          }
-                        />
-                        <span className="truncate">{competition.name}</span>
-                      </p>
-                      <p className="text-[10px] text-blue-700 dark:text-blue-300">
-                        {getDaysUntil(competition.startDate)} •{' '}
-                        {format(competition.startDate, 'MMM d', {
-                          locale: getDateFnsLocale(getLocale()),
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Fitness Status (CTL/ATL/TSB) */}
-          <div className="space-y-1.5">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              {m.training_load()}
-            </h3>
-            {isLoadingTrainingLoad ? (
-              <div className="grid grid-cols-3 gap-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-md" />
-                ))}
-              </div>
-            ) : trainingLoadMetrics ? (
-              <div className="grid grid-cols-3 gap-2">
-                <div className="rounded-md bg-gradient-to-br from-purple-50 to-blue-50 p-2 dark:from-purple-950/30 dark:to-blue-950/30">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-medium text-muted-foreground mb-0.5">
-                      CTL
-                    </span>
-                    <span className="text-lg font-bold text-purple-700 dark:text-purple-300">
-                      {Math.round(trainingLoadMetrics.ctl)}
-                    </span>
-                  </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {/* Upcoming Competitions */}
+            <div className="space-y-1.5 md:col-span-2 xl:col-span-1">
+              <SectionLabel>
+                {m.dashboard_header_upcoming_competitions()}
+              </SectionLabel>
+              {isLoadingCompetitions ? (
+                <div className="space-y-1.5">
+                  {Array.from({ length: 2 }).map((_, i) => (
+                    <Skeleton key={i} className="h-12 rounded-md" />
+                  ))}
                 </div>
-                <div className="rounded-md bg-gradient-to-br from-orange-50 to-red-50 p-2 dark:from-orange-950/30 dark:to-red-950/30">
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-medium text-muted-foreground mb-0.5">
-                      ATL
-                    </span>
-                    <span className="text-lg font-bold text-orange-700 dark:text-orange-300">
-                      {Math.round(trainingLoadMetrics.atl)}
-                    </span>
-                  </div>
-                </div>
-                <div
-                  className={cn(
-                    'rounded-md bg-gradient-to-br p-2',
-                    formStatusBackgroundClass[
-                      getFormStatus(trainingLoadMetrics.tsb)
-                    ],
-                  )}
-                >
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-medium text-muted-foreground mb-0.5">
-                      TSB
-                    </span>
-                    <span
-                      className={cn(
-                        'text-lg font-bold',
-                        formStatusTextClass[
-                          getFormStatus(trainingLoadMetrics.tsb)
-                        ],
-                      )}
-                    >
-                      {formatForm(trainingLoadMetrics.tsb)}
-                    </span>
-                    <span className="text-[9px] text-muted-foreground mt-0.5 truncate">
-                      {formStatusLabel[
-                        getFormStatus(trainingLoadMetrics.tsb)
-                      ]()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-muted-foreground">
-                {m.no_data_for_metric()}
-              </p>
-            )}
-          </div>
-
-          {/* Recent Metrics */}
-          <div className="space-y-1.5">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-              {m.dashboard_header_recent_metrics()}
-            </h3>
-            {isLoadingMetrics ? (
-              <div className="grid grid-cols-3 gap-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-md" />
-                ))}
-              </div>
-            ) : recentMetrics.length === 0 ? (
-              <p className="text-xs text-muted-foreground">
-                {m.dashboard_header_no_recent_metrics()}
-              </p>
-            ) : (
-              <div className="grid grid-cols-3 gap-2">
-                {recentMetrics.map((metric, index) => {
-                  const label =
-                    metricTypeLabelMap[metric.type as METRIC_TYPE] ||
-                    metric.type;
-                  const unit = getMetricUnit(metric.type as METRIC_TYPE) || '';
-
-                  // Different gradient colors for each metric
-                  const gradientColors = [
-                    'from-indigo-50 to-violet-50 dark:from-indigo-950/30 dark:to-violet-950/30',
-                    'from-pink-50 to-rose-50 dark:from-pink-950/30 dark:to-rose-950/30',
-                    'from-cyan-50 to-teal-50 dark:from-cyan-950/30 dark:to-teal-950/30',
-                  ];
-                  const textColors = [
-                    'text-indigo-700 dark:text-indigo-300',
-                    'text-pink-700 dark:text-pink-300',
-                    'text-cyan-700 dark:text-cyan-300',
-                  ];
-
-                  return (
+              ) : upcomingCompetitions.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {m.dashboard_header_no_upcoming_competitions()}
+                </p>
+              ) : (
+                <div className="space-y-1.5">
+                  {upcomingCompetitions.map((competition) => (
                     <div
-                      key={metric.athleteMetricId}
-                      className={`rounded-md bg-gradient-to-br p-2 ${gradientColors[index % gradientColors.length]}`}
+                      key={competition.eventId}
+                      className="flex items-start gap-1.5 rounded-md bg-blue-50 p-2 dark:bg-blue-950/30"
                     >
-                      <div className="flex flex-col">
-                        <span
-                          className="text-[10px] font-medium text-muted-foreground mb-0.5 truncate"
-                          title={label}
-                        >
-                          {label}
-                        </span>
-                        <div className="flex items-baseline gap-0.5">
-                          <span
-                            className={`text-lg font-bold ${textColors[index % textColors.length]}`}
-                          >
-                            {metric.value}
-                          </span>
-                          <span className="text-[10px] font-normal text-muted-foreground">
-                            {unit}
-                          </span>
-                        </div>
+                      <Calendar className="mt-0.5 h-3.5 w-3.5 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="flex items-center gap-1 text-xs font-medium text-blue-900 dark:text-blue-100">
+                          <CompetitionPriorityBadge
+                            priority={
+                              competition.type === EVENT_TYPE.COMPETITION
+                                ? competition.priority
+                                : null
+                            }
+                          />
+                          <span className="truncate">{competition.name}</span>
+                        </p>
+                        <p className="text-[10px] text-blue-700 dark:text-blue-300">
+                          {getDaysUntil(competition.startDate)} •{' '}
+                          {format(competition.startDate, 'MMM d', {
+                            locale: getDateFnsLocale(getLocale()),
+                          })}
+                        </p>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Fitness Status (CTL/ATL/TSB) */}
+            <div className="space-y-1.5">
+              <SectionLabel>{m.training_load()}</SectionLabel>
+              {isLoadingTrainingLoad ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 rounded-md" />
+                  ))}
+                </div>
+              ) : trainingLoadMetrics ? (
+                <div className="grid grid-cols-3 gap-2">
+                  <MetricTile
+                    label="CTL"
+                    value={Math.round(trainingLoadMetrics.ctl)}
+                  />
+                  <MetricTile
+                    label="ATL"
+                    value={Math.round(trainingLoadMetrics.atl)}
+                  />
+                  <MetricTile
+                    label="TSB"
+                    value={formatForm(trainingLoadMetrics.tsb)}
+                    valueClassName={
+                      formStatusTextClass[
+                        getFormStatus(trainingLoadMetrics.tsb)
+                      ]
+                    }
+                    caption={formStatusLabel[
+                      getFormStatus(trainingLoadMetrics.tsb)
+                    ]()}
+                  />
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  {m.no_data_for_metric()}
+                </p>
+              )}
+            </div>
+
+            {/* Recent Metrics */}
+            <div className="space-y-1.5">
+              <SectionLabel>{m.dashboard_header_recent_metrics()}</SectionLabel>
+              {isLoadingMetrics ? (
+                <div className="grid grid-cols-3 gap-2">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-16 rounded-md" />
+                  ))}
+                </div>
+              ) : recentMetrics.length === 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {m.dashboard_header_no_recent_metrics()}
+                </p>
+              ) : (
+                <div className="grid grid-cols-3 gap-2">
+                  {recentMetrics.map((metric) => (
+                    <MetricTile
+                      key={metric.athleteMetricId}
+                      label={
+                        metricTypeLabelMap[metric.type as METRIC_TYPE] ||
+                        metric.type
+                      }
+                      value={metric.value}
+                      unit={getMetricUnit(metric.type as METRIC_TYPE) || ''}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }

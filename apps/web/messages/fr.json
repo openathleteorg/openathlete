@@ -1747,5 +1747,12 @@
   "training_pace_marathon": "Marathon",
   "training_pace_threshold": "Seuil",
   "training_pace_interval": "Intervalle",
-  "training_pace_repetition": "Répétition"
+  "training_pace_repetition": "Répétition",
+  "insight_form_balanced": "Équilibre à {form} : ta charge et ta forme s'équilibrent.",
+  "insight_form_fatigue": "Équilibre à {form} : la fatigue prend le dessus, une semaine plus légère serait utile.",
+  "insight_form_fresh": "Équilibre à {form} : tu as de la marge pour ajouter du volume.",
+  "insight_dominant_sport": "{sport} représente {share} % du temps sur cette période.",
+  "insight_stale_metrics": "Métriques sans mise à jour depuis plus de six mois : {count}.",
+  "insight_ask_coach": "Demander au coach IA",
+  "sidebar_ask": "Demander à OpenAthlete"
 }

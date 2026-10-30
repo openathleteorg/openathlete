@@ -118,7 +118,7 @@ export function WeatherTemperatureChart({
                   return (
                     <div className="flex w-full items-center justify-between gap-2">
                       <span className="text-muted-foreground">{label}</span>
-                      <span className="text-foreground font-mono tabular-nums">
+                      <span className="text-foreground tabular-nums">
                         {Number(value).toFixed(1)} °C
                       </span>
                     </div>
