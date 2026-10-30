@@ -10,7 +10,6 @@ import { FullImportResult } from '../../providers-sync/base/base-provider.servic
 import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
   GarminProviderService,
-  PolarProviderService,
   StravaProviderService,
   SuuntoProviderService,
 } from '../../providers-sync/providers';
@@ -36,8 +35,6 @@ export class ProviderFullImportProcessor extends WorkerHost {
     private readonly stravaProviderService: StravaProviderService,
     @Inject(forwardRef(() => GarminProviderService))
     private readonly garminProviderService: GarminProviderService,
-    @Inject(forwardRef(() => PolarProviderService))
-    private readonly polarProviderService: PolarProviderService,
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
   ) {
@@ -118,8 +115,6 @@ export class ProviderFullImportProcessor extends WorkerHost {
         return this.stravaProviderService.queueFullImport(account);
       case ConnectorProvider.GARMIN:
         return this.garminProviderService.queueFullImport(account);
-      case ConnectorProvider.POLAR:
-        return this.polarProviderService.queueFullImport(account);
       case ConnectorProvider.SUUNTO:
         return this.suuntoProviderService.queueFullImport(account);
       default:

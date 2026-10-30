@@ -1,22 +1,22 @@
-import axios, { isAxiosError } from 'axios';
+import axios, { AxiosRequestConfig, isAxiosError } from 'axios';
 import * as crypto from 'node:crypto';
 
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
-  OnModuleInit,
   forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Cron } from '@nestjs/schedule';
 
 import {
   ConnectorProvider,
   EventActivity,
   EventType,
-  MetricType,
+  Prisma,
   ProviderAccount,
-  SportType,
 } from '@openathlete/database';
 import { ActivityStream, ApiEnvSchemaType } from '@openathlete/shared';
 
@@ -29,29 +29,23 @@ import {
   roundEnergy,
   roundHeartrate,
   roundMetricValue,
+  roundSpeed,
 } from '../../core/helpers/round-activity-values';
 import {
-  PolarActivitySummary,
-  PolarActivityTransaction,
-  PolarActivityTransactionResponse,
+  PolarCreatedWebhook,
+  PolarDailyActivity,
   PolarExercise,
-  PolarExerciseTransaction,
-  PolarExerciseTransactionResponse,
+  PolarNightlyRecharge,
   PolarOAuthTokenResponse,
+  PolarPhysicalInfo,
   PolarSleep,
   PolarUser,
-  PolarWebhookCreateRequest,
-  PolarWebhookCreateResponse,
+  PolarWebhook,
   PolarWebhookPayload,
 } from '../../core/types/connector';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
-import {
-  BaseProviderService,
-  FullImportResult,
-  OAuthConfig,
-  OAuthTokenResponse,
-} from '../base';
+import { BaseProviderService, OAuthConfig, OAuthTokenResponse } from '../base';
 import {
   ImportOptions,
   ImportResult,
@@ -59,25 +53,39 @@ import {
   ProviderImportCapability,
 } from '../base/provider-import.interface';
 import { providerRedirectUri, providerWebhookUrl } from '../base/provider-urls';
+import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
+import {
+  PolarMetricRecord,
+  mapPolarDailyActivity,
+  mapPolarNightlyRecharge,
+  mapPolarPhysicalInfo,
+  mapPolarSleep,
+  mapPolarSport,
+  parsePolarDuration,
+  polarActivityName,
+  polarStartDate,
+} from '../mapping/polar.mapper';
 
 const POLAR_API_BASE = 'https://www.polaraccesslink.com/v3';
 const POLAR_OAUTH_AUTHORIZE = 'https://flow.polar.com/oauth2/authorization';
 const POLAR_OAUTH_TOKEN = 'https://polarremote.com/v2/oauth2/token';
 
-type MetricRecord = {
-  type: MetricType;
-  date: Date;
-  value: number;
-};
+// Nightly Recharge has no event of its own: SLEEP brings it along
+const POLAR_WEBHOOK_EVENTS = [
+  'EXERCISE',
+  'SLEEP',
+  'ACTIVITY_SUMMARY',
+  'PHYSICAL_INFORMATION',
+];
+
+const KCAL_TO_KJ = 4.184;
 
 @Injectable()
 export class PolarProviderService
   extends BaseProviderService
-  implements ProviderImportCapability, OnModuleInit
+  implements ProviderImportCapability
 {
   protected readonly provider = ConnectorProvider.POLAR;
-  private readonly importWindowMs = 30 * 24 * 60 * 60 * 1000;
-  private webhookSecretKey: string | null = null;
 
   protected get oauthConfig(): OAuthConfig {
     return {
@@ -94,6 +102,12 @@ export class PolarProviderService
     };
   }
 
+  private get clientAuthorization(): string {
+    const { clientId, clientSecret } = this.oauthConfig;
+    const credentials = Buffer.from(`${clientId}:${clientSecret}`);
+    return `Basic ${credentials.toString('base64')}`;
+  }
+
   constructor(
     prisma: PrismaService,
     configService: ConfigService<ApiEnvSchemaType, true>,
@@ -104,98 +118,58 @@ export class PolarProviderService
     super(prisma, configService);
   }
 
-  async onModuleInit() {
-    // Load webhook secret key from config if available
-    const configSecret = this.configService.get('POLAR_WEBHOOK_SECRET_KEY');
-    if (configSecret) {
-      this.webhookSecretKey = configSecret;
-      this.logger.log(
-        'Polar webhook secret key loaded from environment config',
-      );
-    } else {
-      this.logger.warn(
-        'POLAR_WEBHOOK_SECRET_KEY not configured. Webhook signature verification will be skipped until webhook is created.',
-      );
-    }
-  }
-
-  /**
-   * Polar uses Basic auth for token exchange (not standard OAuth)
-   */
+  /** Polar expects a space-separated scope and a response_type first */
   override getAuthorizationUri(state?: string): string {
+    const { authorizationUrl, clientId, redirectUri, scopes } =
+      this.oauthConfig;
     const params = new URLSearchParams({
       response_type: 'code',
-      client_id: this.oauthConfig.clientId,
-      ...(this.oauthConfig.redirectUri && {
-        redirect_uri: this.oauthConfig.redirectUri,
-      }),
-      ...(this.oauthConfig.scopes.length > 0 && {
-        scope: this.oauthConfig.scopes.join(' '),
-      }),
+      client_id: clientId,
+      ...(redirectUri && { redirect_uri: redirectUri }),
+      scope: scopes.join(' '),
       ...(state && { state }),
     });
-
-    return `${this.oauthConfig.authorizationUrl}?${params.toString()}`;
+    return `${authorizationUrl}?${params.toString()}`;
   }
 
-  /**
-   * Polar token exchange uses Basic auth (client_id:client_secret)
-   */
+  /** Polar's token endpoint takes the client as Basic auth, and a form */
   override async exchangeCodeForTokens(
     code: string,
-  ): Promise<OAuthTokenResponse> {
-    this.logger.log('Starting Polar OAuth token exchange');
+  ): Promise<OAuthTokenResponse & { x_user_id?: number }> {
+    const { tokenUrl, redirectUri } = this.oauthConfig;
+    const params = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      ...(redirectUri && { redirect_uri: redirectUri }),
+    });
+
     try {
-      const auth = Buffer.from(
-        `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
-      ).toString('base64');
-
-      const params = new URLSearchParams({
-        grant_type: 'authorization_code',
-        code,
-        ...(this.oauthConfig.redirectUri && {
-          redirect_uri: this.oauthConfig.redirectUri,
-        }),
-      });
-
-      this.logger.debug(
-        `Polar token exchange URL: ${this.oauthConfig.tokenUrl}`,
-      );
-
       const { data } = await axios.post<PolarOAuthTokenResponse>(
-        this.oauthConfig.tokenUrl,
+        tokenUrl,
         params.toString(),
         {
           headers: {
-            Authorization: `Basic ${auth}`,
+            Authorization: this.clientAuthorization,
             'Content-Type': 'application/x-www-form-urlencoded',
             Accept: 'application/json;charset=UTF-8',
           },
+          timeout: 30_000,
         },
       );
 
-      this.logger.log(
-        `Polar OAuth token exchange successful. Token expires in: ${data.expires_in}s, x_user_id: ${data.x_user_id}`,
-      );
-
-      // Convert Polar response to standard OAuthTokenResponse
-      // Note: x_user_id is Polar Ecosystem user id, not AccessLink user id
-      // AccessLink user id is obtained after registration
       return {
         access_token: data.access_token,
         token_type: data.token_type || 'bearer',
         expires_in: data.expires_in,
-        // Polar doesn't provide refresh_token, tokens don't expire
+        // Polar has no refresh token: access tokens don't expire
         refresh_token: '',
         scope: 'accesslink.read_all',
+        x_user_id: data.x_user_id,
       };
     } catch (error) {
       if (isAxiosError(error)) {
         this.logger.error(
-          `Polar OAuth token exchange failed: ${JSON.stringify(error.response?.data)}`,
-        );
-        this.logger.error(
-          `Polar OAuth token exchange error status: ${error.response?.status}`,
+          `Polar token exchange failed (${error.response?.status}): ${JSON.stringify(error.response?.data)}`,
         );
       }
       throw error;
@@ -203,1511 +177,610 @@ export class PolarProviderService
   }
 
   /**
-   * Register user in Polar AccessLink (required before accessing data)
-   * @param accessToken - Polar access token
-   * @param athleteId - Our athlete ID to generate stable member-id
+   * Register the user with our client, which AccessLink requires before any
+   * data access. Polar starts keeping exercises for us from this moment on.
+   * @returns the user's AccessLink id
    */
   async registerUser(
     accessToken: string,
     athleteId: number,
-  ): Promise<PolarUser> {
-    this.logger.log(
-      `Starting Polar user registration for athlete ${athleteId}`,
-    );
-    try {
-      // Polar requires XML body for user registration
-      // According to Polar API docs, the body must contain <register> with <member-id>
-      // member-id is a partner's custom identifier for the user
-      // Use stable member-id based on athleteId so we can reuse it
-      const memberId = `oa_athlete_${athleteId}`;
-      const xmlBody = `<?xml version="1.0" encoding="UTF-8"?>
+    knownUserId?: number,
+  ): Promise<number> {
+    const body = `<?xml version="1.0" encoding="UTF-8"?>
 <register>
-  <member-id>${memberId}</member-id>
+  <member-id>oa_athlete_${athleteId}</member-id>
 </register>`;
 
-      this.logger.debug(`Polar user registration - member-id: ${memberId}`);
-      this.logger.debug(`Polar user registration XML body: ${xmlBody}`);
-
-      const response = await axios.post(`${POLAR_API_BASE}/users`, xmlBody, {
+    const response = await axios.post<PolarUser>(
+      `${POLAR_API_BASE}/users`,
+      body,
+      {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/xml',
           Accept: 'application/json',
         },
-        validateStatus: () => true, // Don't throw on any status
-      });
+        timeout: 30_000,
+        validateStatus: () => true,
+      },
+    );
 
-      // Log full response for debugging
-      this.logger.debug(
-        `Polar user registration response: ${response.status} - ${JSON.stringify(response.data)}`,
-      );
-      this.logger.debug(
-        `Polar user registration headers: ${JSON.stringify(response.headers)}`,
-      );
+    if (response.status === 403) {
+      throw new ForbiddenException('POLAR_CONSENT_REQUIRED');
+    }
 
-      if (response.status === 200 || response.status === 201) {
-        this.logger.log(
-          `Polar user registration successful! Status: ${response.status}`,
-        );
-        // Success - parse response
-        if (typeof response.data === 'string') {
-          // XML response - try to parse or extract from Location header
-          const location = response.headers.location;
-          this.logger.debug(
-            `Polar user registration Location header: ${location}`,
-          );
-          if (location) {
-            const match = location.match(/\/users\/(\d+)/);
-            if (match) {
-              const userId = Number.parseInt(match[1], 10);
-              this.logger.log(
-                `Polar user registered with AccessLink user-id: ${userId}`,
-              );
-              // Return minimal user object with the ID
-              return {
-                'polar-user-id': userId,
-                'member-id': memberId,
-                'registration-date': new Date().toISOString(),
-                'polar-user-id-uri': location,
-              } as PolarUser;
-            }
-          }
-          // If we can't parse, try to get user info
-          throw new Error('Could not parse Polar user registration response');
-        }
-        const userData = response.data as PolarUser;
-        this.logger.log(
-          `Polar user registered with AccessLink user-id: ${userData['polar-user-id']}`,
-        );
-        return userData;
-      }
-
-      // Handle error responses
-      const errorData = response.data;
-      const errorText =
-        typeof errorData === 'string' ? errorData : JSON.stringify(errorData);
-
-      if (response.status === 400) {
-        this.logger.error(`Polar user registration 400 error: ${errorText}`);
-        this.logger.error(`Request body was: ${xmlBody}`);
-        this.logger.error(`Request URL: ${POLAR_API_BASE}/users`);
-        throw new Error(
-          `Polar user registration failed with 400: ${errorText || 'Bad Request - check XML format'}`,
-        );
-      }
-
-      if (response.status === 409) {
-        this.logger.warn(`Polar user already registered (409): ${errorText}`);
-        // Try to extract userid from error message
-        // Format: "User userid:63661436 with membertag ..."
-        const userIdMatch = errorText.match(/userid:(\d+)/i);
-        if (userIdMatch) {
-          const userId = Number.parseInt(userIdMatch[1], 10);
-          this.logger.log(
-            `Extracted Polar AccessLink user-id from 409 error: ${userId}`,
-          );
-          // Return user info with extracted ID
-          return {
-            'polar-user-id': userId,
-            'member-id': memberId,
-            'registration-date': new Date().toISOString(),
-          } as PolarUser;
-        }
-        // If we can't extract, throw error - will be handled in connect()
-        throw new Error(
-          `Polar user already registered (409) but could not extract user-id from: ${errorText}`,
-        );
-      }
-
+    // A reconnecting user is already registered: the token names them
+    const registered = response.status === 200 || response.status === 201;
+    const userId = registered
+      ? (response.data?.['polar-user-id'] ?? knownUserId)
+      : response.status === 409
+        ? knownUserId
+        : undefined;
+    if (!userId) {
       throw new Error(
-        `Polar user registration failed with status ${response.status}: ${errorText}`,
+        `Polar user registration failed with status ${response.status}`,
       );
-    } catch (error) {
-      if (isAxiosError(error)) {
-        const errorData = error.response?.data;
-        const errorText =
-          typeof errorData === 'string' ? errorData : JSON.stringify(errorData);
-        this.logger.error(`Polar user registration failed: ${errorText}`);
-        this.logger.error(
-          `Polar user registration error details: ${error.response?.status} - ${error.response?.statusText}`,
-        );
-      }
-      throw error;
     }
+    return userId;
   }
 
-  /**
-   * Get user info
-   */
-  async getUserInfo(accessToken: string, userId: number): Promise<PolarUser> {
-    try {
-      const { data } = await axios.get<PolarUser>(
-        `${POLAR_API_BASE}/users/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/json',
-          },
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error)) {
-        this.logger.error(
-          `Polar get user info failed: ${JSON.stringify(error.response?.data)}`,
-        );
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Connect user: exchange code, register user, save account
-   */
   async connect(code: string, athleteId: number): Promise<ProviderAccount> {
-    this.logger.log(`Starting Polar connection flow for athlete ${athleteId}`);
+    const tokens = await this.exchangeCodeForTokens(code);
+    const userId = await this.registerUser(
+      tokens.access_token,
+      athleteId,
+      tokens.x_user_id,
+    );
 
-    this.logger.log('Step 1: Exchanging OAuth code for token');
-    const tokenResponse = await this.exchangeCodeForTokens(code);
-    this.logger.log('Step 1 completed: Token obtained');
-
-    // Register user in AccessLink
-    // If registration fails (user already registered), try to get user info
-    let userInfo: PolarUser;
-    let accessLinkUserId: number;
-
-    this.logger.log('Step 2: Registering user in Polar AccessLink');
-    try {
-      userInfo = await this.registerUser(tokenResponse.access_token, athleteId);
-      accessLinkUserId = userInfo['polar-user-id'];
-      this.logger.log(
-        `Step 2 completed: User registered with AccessLink user-id ${accessLinkUserId}`,
-      );
-    } catch (error) {
-      // If registration fails, check if we have an existing account
-      if (isAxiosError(error) && error.response?.status === 409) {
-        this.logger.log(
-          'User already registered (409), checking for existing account in database',
-        );
-
-        // Check if we have an existing account for this athlete
-        const existingAccount = await this.prisma.providerAccount.findFirst({
-          where: {
-            athleteId: athleteId,
-            provider: ConnectorProvider.POLAR,
-            status: 'active',
-          },
-        });
-
-        if (existingAccount?.externalUserId) {
-          // Use existing external_user_id (which should be the AccessLink user-id)
-          accessLinkUserId = Number.parseInt(
-            existingAccount.externalUserId,
-            10,
-          );
-          this.logger.log(
-            `Found existing Polar account with AccessLink user-id: ${accessLinkUserId}`,
-          );
-          // Create minimal userInfo object
-          userInfo = {
-            'polar-user-id': accessLinkUserId,
-            'member-id': `oa_athlete_${athleteId}`,
-            'registration-date': existingAccount.createdAt.toISOString(),
-          } as PolarUser;
-        } else {
-          // Try to extract from error message (registerUser should have done this, but just in case)
-          const errorMessage =
-            error.message || JSON.stringify(error.response?.data || {});
-          const userIdMatch = errorMessage.match(/userid:(\d+)/i);
-          if (userIdMatch) {
-            accessLinkUserId = Number.parseInt(userIdMatch[1], 10);
-            this.logger.log(
-              `Extracted AccessLink user-id from error message: ${accessLinkUserId}`,
-            );
-            userInfo = {
-              'polar-user-id': accessLinkUserId,
-              'member-id': `oa_athlete_${athleteId}`,
-              'registration-date': new Date().toISOString(),
-            } as PolarUser;
-          } else {
-            this.logger.error(
-              'Cannot determine AccessLink user-id from 409 error',
-            );
-            throw new Error(
-              'Polar user already registered but cannot determine user-id. Please disconnect and reconnect.',
-            );
-          }
-        }
-      } else {
-        this.logger.error('Step 2 failed: User registration error');
-        throw error;
-      }
-    }
-
-    // Save provider account
-    this.logger.log('Step 3: Saving provider account to database');
     const account = await this.saveProviderAccount({
       athleteId,
-      accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token || '',
-      expiresIn: tokenResponse.expires_in,
-      scopes: tokenResponse.scope,
-      externalUserId: accessLinkUserId.toString(),
+      accessToken: tokens.access_token,
+      refreshToken: '',
+      expiresIn: tokens.expires_in,
+      scopes: tokens.scope,
+      externalUserId: userId.toString(),
     });
     this.logger.log(
-      `Step 3 completed: Provider account saved with ID ${account.providerAccountId}, external_user_id: ${account.externalUserId}`,
+      `Polar account ${account.providerAccountId} connected for athlete ${athleteId}`,
     );
 
-    // Create webhook if not exists (one per client)
-    this.logger.log('Step 4: Ensuring webhook is configured');
     await this.ensureWebhook();
-    this.logger.log('Step 4 completed: Webhook check completed');
-
-    this.logger.log(
-      `Polar connection flow completed successfully for athlete ${athleteId}, account ${account.providerAccountId}`,
-    );
-
+    await this.queueService.addPolarSyncJob(account.providerAccountId);
     return account;
   }
 
   /**
-   * Ensure webhook exists (one per client)
+   * Stop Polar from keeping this user's data for us. Failing (a token they
+   * revoked at Polar already) doesn't keep them from disconnecting.
    */
-  private async ensureWebhook(): Promise<void> {
-    this.logger.log('Checking Polar webhook configuration');
-
-    // Try to load webhook secret from config first
-    const configSecret = this.configService.get('POLAR_WEBHOOK_SECRET_KEY');
-    if (configSecret) {
-      this.webhookSecretKey = configSecret;
-      this.logger.log('Polar webhook secret key loaded from config');
-    }
-
-    if (this.webhookSecretKey) {
-      this.logger.log(
-        'Polar webhook secret key already available, skipping creation',
+  async disconnect(account: ProviderAccount): Promise<void> {
+    try {
+      await axios.delete(`${POLAR_API_BASE}/users/${account.externalUserId}`, {
+        headers: { Authorization: `Bearer ${account.accessToken}` },
+        timeout: 30_000,
+      });
+    } catch (error) {
+      this.logger.warn(
+        `Failed to deregister Polar account ${account.providerAccountId}: ${error instanceof Error ? error.message : String(error)}`,
       );
-      return;
     }
+  }
 
-    const webhookUrl = providerWebhookUrl(
+  /**
+   * Bring the single webhook of our Polar client to the wanted state. Polar
+   * deactivates a webhook after 7 days of failed deliveries, and shows the
+   * signing key only once, so a client whose key was lost starts over.
+   */
+  async ensureWebhook(): Promise<void> {
+    const url = providerWebhookUrl(
       this.configService.get('POLAR_WEBHOOK_URL'),
       this.configService.get('APP_URL'),
       'polar',
     );
-    if (!webhookUrl) {
-      this.logger.warn(
-        'POLAR_WEBHOOK_URL not configured, skipping webhook creation. Webhooks will not work until configured.',
-      );
+    // Polar can't reach a local instance, which relies on the hourly sync
+    if (!url.startsWith('https://')) {
+      this.logger.debug('Polar webhook skipped: no public HTTPS URL');
       return;
     }
-
-    this.logger.log(`Creating Polar webhook with URL: ${webhookUrl}`);
 
     try {
-      const auth = Buffer.from(
-        `${this.oauthConfig.clientId}:${this.oauthConfig.clientSecret}`,
-      ).toString('base64');
-
-      const request: PolarWebhookCreateRequest = {
-        events: [
-          'EXERCISE',
-          'ACTIVITY_SUMMARY',
-          'CONTINUOUS_HEART_RATE',
-          'SLEEP',
-          'PHYSICAL_INFORMATION',
-          'NIGHTLY_RECHARGE',
-          'SLEEPWISE',
-        ],
-        url: webhookUrl,
+      const headers = {
+        Authorization: this.clientAuthorization,
+        Accept: 'application/json',
       };
-
-      this.logger.debug(
-        `Polar webhook creation request: ${JSON.stringify(request)}`,
-      );
-
-      const { data } = await axios.post<PolarWebhookCreateResponse>(
+      const { data } = await axios.get<{ data?: PolarWebhook[] }>(
         `${POLAR_API_BASE}/webhooks`,
-        request,
-        {
-          headers: {
-            Authorization: `Basic ${auth}`,
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        },
+        { headers, timeout: 30_000 },
       );
+      let webhook = data?.data?.[0];
 
-      // IMPORTANT: Save signature_secret_key - only returned once
-      this.webhookSecretKey = data['signature-secret-key'];
-      this.logger.log(
-        `✅ Polar webhook created successfully! Webhook ID: ${data['webhook-id']}`,
-      );
-      this.logger.warn(
-        `⚠️  IMPORTANT: Save this signature_secret_key to POLAR_WEBHOOK_SECRET_KEY env var: ${this.webhookSecretKey}`,
-      );
-      this.logger.log(`Polar webhook events: ${data.events.join(', ')}`);
-    } catch (error) {
-      if (isAxiosError(error)) {
-        if (error.response?.status === 409) {
-          // Webhook already exists
-          this.logger.warn(
-            'Polar webhook already exists (409). Make sure POLAR_WEBHOOK_SECRET_KEY is configured.',
-          );
-        } else {
-          this.logger.error(
-            `Failed to create Polar webhook: ${JSON.stringify(error.response?.data)}`,
-          );
-          this.logger.error(
-            `Polar webhook creation error status: ${error.response?.status}`,
-          );
-        }
-      } else {
-        this.logger.error(
-          `Polar webhook creation failed: ${error instanceof Error ? error.message : String(error)}`,
-        );
+      if (webhook && (await this.webhookSecrets()).length === 0) {
+        this.logger.warn('Polar webhook has no known key: recreating it');
+        await axios.delete(`${POLAR_API_BASE}/webhooks/${webhook.id}`, {
+          headers,
+          timeout: 30_000,
+        });
+        webhook = undefined;
       }
+
+      if (!webhook) {
+        const created = await axios.post<PolarCreatedWebhook>(
+          `${POLAR_API_BASE}/webhooks`,
+          { events: POLAR_WEBHOOK_EVENTS, url },
+          { headers, timeout: 30_000 },
+        );
+        await this.queueService.setPolarWebhookSecret(
+          created.data.data.signature_secret_key,
+        );
+        this.logger.log(`Polar webhook ${created.data.data.id} created`);
+        return;
+      }
+
+      const eventsMatch =
+        POLAR_WEBHOOK_EVENTS.length === webhook.events.length &&
+        POLAR_WEBHOOK_EVENTS.every((event) => webhook.events.includes(event));
+      if (webhook.url !== url || !eventsMatch) {
+        await axios.patch(
+          `${POLAR_API_BASE}/webhooks/${webhook.id}`,
+          { events: POLAR_WEBHOOK_EVENTS, url },
+          { headers, timeout: 30_000 },
+        );
+        this.logger.log(`Polar webhook ${webhook.id} updated`);
+      }
+      if (webhook.active === false) {
+        await axios.post(`${POLAR_API_BASE}/webhooks/activate`, null, {
+          headers,
+          timeout: 30_000,
+        });
+        this.logger.warn(`Polar webhook ${webhook.id} was off: reactivated`);
+      }
+    } catch (error) {
+      // Imports go on through the hourly sync
+      this.logger.error(
+        `Polar webhook setup failed (${isAxiosError(error) ? error.response?.status : 'no response'}): ${isAxiosError(error) ? JSON.stringify(error.response?.data) : String(error)}`,
+      );
     }
   }
 
-  /**
-   * Verify webhook HMAC signature
-   */
-  verifyWebhookSignature(
-    payload: string,
-    signature: string,
-    secret: string,
-  ): boolean {
-    const hmac = crypto.createHmac('sha256', secret);
-    hmac.update(payload);
-    const expected = hmac.digest('hex');
-    return crypto.timingSafeEqual(
-      Buffer.from(expected),
-      Buffer.from(signature),
-    );
+  /** The key of a webhook this instance created, then the configured one */
+  private async webhookSecrets(): Promise<string[]> {
+    const secrets = [
+      await this.queueService.getPolarWebhookSecret(),
+      this.configService.get('POLAR_WEBHOOK_SECRET_KEY'),
+    ];
+    return secrets.filter((secret): secret is string => Boolean(secret));
   }
 
-  /**
-   * Handle webhook from Polar
-   */
+  /** The signature covers the bytes Polar sent, not their parsed JSON */
+  verifyWebhookSignature(
+    rawBody: Buffer | undefined,
+    signature: string | undefined,
+    secrets: string[],
+  ): boolean {
+    if (!rawBody || !signature) return false;
+    const received = Buffer.from(signature);
+    return secrets.some((secret) => {
+      const expected = Buffer.from(
+        crypto.createHmac('sha256', secret).update(rawBody).digest('hex'),
+      );
+      return (
+        expected.length === received.length &&
+        crypto.timingSafeEqual(expected, received)
+      );
+    });
+  }
+
+  /** Answers at once: the work happens in the polar-notification queue */
   async handleWebhook(
     payload: PolarWebhookPayload,
+    rawBody?: Buffer,
     signature?: string,
   ): Promise<void> {
-    this.logger.log(
-      `Received Polar webhook: event=${payload.event}, user_id=${payload.user_id || 'N/A'}, entity_id=${payload.entity_id || 'N/A'}`,
-    );
+    // Sent while the webhook is created, before we can know its key
+    if (payload.event === 'PING') return;
 
-    // Handle PING event (webhook verification)
-    if (payload.event === 'PING') {
-      this.logger.log('Polar webhook PING received - responding with 200 OK');
-      return;
-    }
-
-    // After PING check, TypeScript knows event is not PING
-    // Verify signature if provided
-    if (signature && this.webhookSecretKey) {
-      const payloadString = JSON.stringify(payload);
-      if (
-        !this.verifyWebhookSignature(
-          payloadString,
-          signature,
-          this.webhookSecretKey,
-        )
-      ) {
-        this.logger.warn(
-          `Polar webhook signature verification failed for event ${payload.event}`,
-        );
-        throw new BadRequestException('Invalid webhook signature');
-      }
-      this.logger.debug('Polar webhook signature verified successfully');
-    } else if (signature && !this.webhookSecretKey) {
+    const secrets = await this.webhookSecrets();
+    if (!this.verifyWebhookSignature(rawBody, signature, secrets)) {
       this.logger.warn(
-        'Polar webhook signature provided but secret key not configured',
+        `Polar webhook refused: bad signature on ${payload.event} (${secrets.length} keys known)`,
       );
+      throw new BadRequestException('Invalid webhook signature');
     }
 
-    // Non-PING events should have user_id
-    if (!payload.user_id) {
-      this.logger.warn('Polar webhook payload missing user_id');
-      return;
-    }
-
+    if (!payload.user_id) return;
     const account = await this.prisma.providerAccount.findFirst({
       where: {
         provider: ConnectorProvider.POLAR,
         externalUserId: payload.user_id.toString(),
         status: 'active',
       },
-      include: {
-        athlete: {
-          include: {
-            user: true,
-          },
-        },
-      },
     });
-
-    if (!account || !account.athlete || !account.athlete.user) {
-      this.logger.warn(
-        `No active Polar account found for user_id ${payload.user_id}`,
-      );
+    if (!account) {
+      this.logger.debug(`No Polar account for user ${payload.user_id}`);
       return;
     }
 
-    this.logger.log(
-      `Processing Polar webhook for account ${account.providerAccountId}, athlete ${account.athleteId}`,
-    );
-
-    switch (payload.event) {
-      case 'EXERCISE':
-        this.logger.log(
-          `Handling EXERCISE webhook for exercise_id: ${payload.entity_id}`,
+    if (payload.event === 'EXERCISE') {
+      if (account.importActivitiesEnabled && payload.entity_id) {
+        await this.queueService.addPolarExerciseJob(
+          account.providerAccountId,
+          payload.entity_id,
         );
-        if (account.importActivitiesEnabled && payload.entity_id) {
-          await this.handleExerciseWebhook(account, payload.entity_id);
-        } else {
-          this.logger.debug(
-            `Skipping EXERCISE webhook: importActivitiesEnabled=${account.importActivitiesEnabled}, entity_id=${payload.entity_id}`,
-          );
-        }
-        break;
-      case 'ACTIVITY_SUMMARY':
-        this.logger.log('Handling ACTIVITY_SUMMARY webhook');
-        if (account.importMetricsEnabled) {
-          await this.handleActivitySummaryWebhook(account);
-        } else {
-          this.logger.debug(
-            'Skipping ACTIVITY_SUMMARY webhook: importMetricsEnabled=false',
-          );
-        }
-        break;
-      case 'CONTINUOUS_HEART_RATE':
-        this.logger.log('Handling CONTINUOUS_HEART_RATE webhook');
-        if (account.importMetricsEnabled) {
-          await this.handleContinuousHeartRateWebhook();
-        } else {
-          this.logger.debug(
-            'Skipping CONTINUOUS_HEART_RATE webhook: importMetricsEnabled=false',
-          );
-        }
-        break;
-      case 'SLEEP':
-        this.logger.log('Handling SLEEP webhook');
-        if (account.importMetricsEnabled) {
-          await this.handleSleepWebhook(account);
-        } else {
-          this.logger.debug(
-            'Skipping SLEEP webhook: importMetricsEnabled=false',
-          );
-        }
-        break;
-      default:
-        this.logger.debug(`Unhandled Polar webhook event: ${payload.event}`);
+      }
+    } else if (account.importMetricsEnabled) {
+      await this.queueService.addPolarMetricsJob(account.providerAccountId);
     }
-
-    this.logger.log(
-      `Polar webhook processing completed for event ${payload.event}`,
-    );
   }
 
-  private async handleExerciseWebhook(
+  /**
+   * GET a user resource.
+   * @returns null on 204 and 404, which Polar answers when there is no data
+   */
+  private async request<T>(
     account: ProviderAccount,
-    exerciseId: string,
-  ): Promise<void> {
-    this.logger.log(
-      `Processing EXERCISE webhook for exercise_id: ${exerciseId}, account: ${account.providerAccountId}`,
-    );
-
-    // Check if already imported
-    const existing = await this.prisma.eventActivity.findFirst({
-      where: {
-        externalId: exerciseId,
-        provider: ConnectorProvider.POLAR,
-      },
-    });
-
-    if (existing) {
-      this.logger.debug(`Exercise ${exerciseId} already imported, skipping`);
-      return;
-    }
-
-    // Import the exercise
+    path: string,
+    config: AxiosRequestConfig = {},
+  ): Promise<T | null> {
     try {
-      this.logger.log(`Fetching Polar exercise ${exerciseId} from API`);
-      const exercise = await this.fetchExercise(account, exerciseId);
-      if (exercise) {
-        this.logger.log(
-          `Exercise ${exerciseId} fetched successfully, mapping to ImportedActivity`,
+      const response = await axios.get<T>(`${POLAR_API_BASE}${path}`, {
+        ...config,
+        headers: {
+          Authorization: `Bearer ${account.accessToken}`,
+          Accept: config.responseType ? '*/*' : 'application/json',
+        },
+        timeout: config.timeout ?? 30_000,
+      });
+      return response.status === 204 ? null : response.data;
+    } catch (error) {
+      if (!isAxiosError(error)) throw error;
+      const status = error.response?.status;
+      if (status === 404) return null;
+      if (status === 401) {
+        // Polar tokens only stop working when the user revokes them
+        this.logger.warn(
+          `Polar refused account ${account.providerAccountId}: marking it revoked`,
         );
-        const importedActivity = this.mapExerciseToImportedActivity(exercise);
-        this.logger.log(
-          `Importing activity: ${importedActivity.name}, start: ${importedActivity.startDate.toISOString()}`,
+        await this.prisma.providerAccount.update({
+          where: { providerAccountId: account.providerAccountId },
+          data: { status: 'revoked' },
+        });
+      }
+      if (status === 429) {
+        const reset = String(
+          error.response?.headers?.['ratelimit-reset'] ?? '',
         );
-        await this.importActivity(account, importedActivity);
-        this.logger.log(`Exercise ${exerciseId} imported successfully`);
-      } else {
-        this.logger.warn(`Exercise ${exerciseId} not found in Polar API`);
-      }
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar exercise ${exerciseId}: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-    }
-  }
-
-  private async handleActivitySummaryWebhook(
-    account: ProviderAccount,
-  ): Promise<void> {
-    this.logger.log(
-      `Processing ACTIVITY_SUMMARY webhook for account ${account.providerAccountId}`,
-    );
-    // Fetch latest activity summaries
-    try {
-      await this.importActivitySummaries(account);
-      this.logger.log('Activity summaries imported successfully');
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar activity summaries: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-    }
-  }
-
-  private async handleContinuousHeartRateWebhook(): Promise<void> {
-    // Fetch latest continuous heart rate data
-    try {
-      await this.importContinuousHeartRate();
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar continuous heart rate: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  private async handleSleepWebhook(account: ProviderAccount): Promise<void> {
-    this.logger.log(
-      `Processing SLEEP webhook for account ${account.providerAccountId}`,
-    );
-    // Fetch latest sleep data
-    try {
-      await this.importSleep(account);
-      this.logger.log('Sleep data imported successfully');
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar sleep: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-    }
-  }
-
-  /**
-   * Make authenticated request with automatic token refresh
-   */
-  private async makeAuthenticatedRequest<T>(
-    account: ProviderAccount,
-    requestFn: (accessToken: string) => Promise<{ data: T }>,
-  ): Promise<T> {
-    const accessToken = account.accessToken;
-    if (!accessToken) {
-      throw new Error('No access token available');
-    }
-
-    try {
-      const response = await requestFn(accessToken);
-      return response.data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 401) {
-        // Polar tokens don't expire, but handle 401 anyway
-        this.logger.error('Polar access token invalid');
-        throw error;
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Import activities using transactions
-   */
-  async importActivities(
-    account: ProviderAccount,
-    options?: ImportOptions,
-  ): Promise<ImportedActivity[]> {
-    this.logger.log(
-      `Starting Polar activities import for account ${account.providerAccountId}`,
-    );
-
-    const userId = Number.parseInt(account.externalUserId || '0', 10);
-    if (!userId) {
-      this.logger.error(`Invalid Polar user ID: ${account.externalUserId}`);
-      throw new Error('Invalid Polar user ID');
-    }
-
-    this.logger.log(`Using Polar AccessLink user-id: ${userId}`);
-
-    const activities: ImportedActivity[] = [];
-
-    try {
-      // Create exercise transaction
-      this.logger.log('Creating Polar exercise transaction');
-      const transaction = await this.createExerciseTransaction(account, userId);
-      if (!transaction) {
-        this.logger.log(
-          'No new exercises available (transaction returned null/204)',
+        const seconds = Number.parseInt(reset.split(',')[0], 10);
+        throw new ProviderRateLimitError(
+          'Polar',
+          Number.isFinite(seconds) ? seconds * 1000 : undefined,
         );
-        return activities;
       }
-
-      this.logger.log(
-        `Exercise transaction created: transaction-id=${transaction['transaction-id']}`,
-      );
-
-      // Get transaction details
-      this.logger.log(
-        `Fetching exercise transaction details for transaction-id=${transaction['transaction-id']}`,
-      );
-      const transactionDetails = await this.getExerciseTransaction(
-        account,
-        userId,
-        transaction['transaction-id'],
-      );
-
-      if (!transactionDetails || !transactionDetails.exercises) {
-        this.logger.log('No exercises found in transaction');
-        return activities;
-      }
-
-      this.logger.log(
-        `Found ${transactionDetails.exercises.length} exercises in transaction`,
-      );
-
-      // Fetch each exercise
-      for (const exerciseUrl of transactionDetails.exercises) {
-        if (activities.length >= (options?.limit ?? Number.POSITIVE_INFINITY)) {
-          this.logger.log(`Reached limit of ${options?.limit} activities`);
-          break;
-        }
-
-        try {
-          this.logger.debug(`Fetching exercise from URL: ${exerciseUrl}`);
-          const exercise = await this.fetchExerciseByUrl(account, exerciseUrl);
-
-          if (exercise) {
-            const imported = this.mapExerciseToImportedActivity(exercise);
-
-            // Apply date filters
-            if (options?.startDate && imported.startDate < options.startDate) {
-              this.logger.debug(
-                `Skipping exercise ${imported.externalId}: before startDate`,
-              );
-              continue;
-            }
-            if (options?.endDate && imported.startDate > options.endDate) {
-              this.logger.debug(
-                `Skipping exercise ${imported.externalId}: after endDate`,
-              );
-              continue;
-            }
-
-            activities.push(imported);
-            this.logger.debug(
-              `Added exercise to import list: ${imported.name} (${imported.externalId})`,
-            );
-          }
-        } catch (error) {
-          this.logger.warn(
-            `Failed to fetch Polar exercise from ${exerciseUrl}: ${error instanceof Error ? error.message : String(error)}`,
-          );
-        }
-      }
-
-      this.logger.log(
-        `Polar activities import completed: ${activities.length} activities found`,
-      );
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar activities: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-    }
-
-    return activities;
-  }
-
-  /**
-   * Create exercise transaction
-   */
-  private async createExerciseTransaction(
-    account: ProviderAccount,
-    userId: number,
-  ): Promise<PolarExerciseTransaction | null> {
-    try {
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.post<PolarExerciseTransaction>(
-            `${POLAR_API_BASE}/users/${userId}/exercise-transactions`,
-            null,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
-              },
-            },
-          );
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 204) {
-        // No new exercises
-        return null;
+      if (status === 403) {
+        this.logger.warn(
+          `Polar account ${account.providerAccountId} is missing mandatory consents`,
+        );
       }
       throw error;
     }
   }
 
-  /**
-   * Get exercise transaction details
-   */
-  private async getExerciseTransaction(
-    account: ProviderAccount,
-    userId: number,
-    transactionId: number,
-  ): Promise<PolarExerciseTransactionResponse | null> {
-    try {
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.get<PolarExerciseTransactionResponse>(
-            `${POLAR_API_BASE}/users/${userId}/exercise-transactions/${transactionId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
-              },
-            },
-          );
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Fetch exercise by ID
-   */
-  private async fetchExercise(
-    account: ProviderAccount,
-    exerciseId: string,
-  ): Promise<PolarExercise | null> {
-    try {
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.get<PolarExercise>(
-            `${POLAR_API_BASE}/exercises/${encodeURIComponent(exerciseId)}`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
-              },
-            },
-          );
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Fetch exercise by URL
-   */
-  private async fetchExerciseByUrl(
-    account: ProviderAccount,
-    exerciseUrl: string,
-  ): Promise<PolarExercise | null> {
-    try {
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.get<PolarExercise>(exerciseUrl, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              Accept: 'application/json',
-            },
-          });
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Map Polar exercise to ImportedActivity
-   */
-  private mapExerciseToImportedActivity(
-    exercise: PolarExercise,
-  ): ImportedActivity {
-    const startDate = new Date(exercise['start-time']);
-    const durationMatch = exercise.duration.match(
-      /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/,
-    );
-    let durationSeconds = 0;
-    if (durationMatch) {
-      const hours = Number.parseInt(durationMatch[1] || '0', 10);
-      const minutes = Number.parseInt(durationMatch[2] || '0', 10);
-      const seconds = Number.parseInt(durationMatch[3] || '0', 10);
-      durationSeconds = hours * 3600 + minutes * 60 + seconds;
-    }
-    const endDate = new Date(startDate.getTime() + durationSeconds * 1000);
-
-    // Map Polar sport to our SportType (basic mapping)
-    const sport = this.mapPolarSportToSportType(exercise.sport || 'OTHER');
-
+  private toImportedActivity(exercise: PolarExercise): ImportedActivity {
+    const startDate = polarStartDate(exercise);
+    const duration = parsePolarDuration(exercise.duration);
     return {
-      externalId: exercise['exercise-id'],
-      name: exercise.sport || 'Exercise',
+      externalId: exercise.id,
+      name: polarActivityName(exercise),
       startDate,
-      endDate,
-      sport,
+      endDate: new Date(startDate.getTime() + duration * 1000),
+      sport: mapPolarSport(exercise),
       distance: exercise.distance,
-      duration: durationSeconds,
+      duration,
       raw: exercise,
     };
   }
 
   /**
-   * Map Polar sport to SportType
+   * Exercises Polar holds for this account: those uploaded to Flow in the
+   * last 30 days and after the user connected. Polar offers nothing older.
    */
-  private mapPolarSportToSportType(polarSport: string): SportType {
-    // Basic mapping - can be extended
-    const upper = polarSport.toUpperCase();
-    if (upper.includes('RUNNING') || upper.includes('RUN')) {
-      return 'RUNNING';
-    }
-    if (upper.includes('CYCLING') || upper.includes('BIKE')) {
-      return 'CYCLING';
-    }
-    if (upper.includes('SWIMMING') || upper.includes('SWIM')) {
-      return 'SWIMMING';
-    }
-    if (upper.includes('TRAIL')) {
-      return 'TRAIL_RUNNING';
-    }
-    return 'OTHER';
+  async importActivities(
+    account: ProviderAccount,
+    options?: ImportOptions,
+  ): Promise<ImportedActivity[]> {
+    const exercises =
+      (await this.request<PolarExercise[]>(account, '/exercises')) ?? [];
+    return exercises
+      .filter((exercise) => exercise?.id && exercise.start_time)
+      .map((exercise) => this.toImportedActivity(exercise))
+      .filter(
+        ({ startDate }) =>
+          (!options?.startDate || startDate >= options.startDate) &&
+          (!options?.endDate || startDate <= options.endDate),
+      )
+      .slice(0, options?.limit);
   }
 
-  /**
-   * Import a single activity
-   */
+  /** Import a session a webhook announced */
+  async processExerciseNotification(
+    providerAccountId: number,
+    exerciseId: string,
+  ): Promise<void> {
+    const account = await this.activeAccount(providerAccountId);
+    if (!account?.importActivitiesEnabled) return;
+
+    const exercise = await this.request<PolarExercise>(
+      account,
+      `/exercises/${encodeURIComponent(exerciseId)}`,
+    );
+    if (!exercise?.id) {
+      this.logger.warn(`Polar exercise ${exerciseId} not found`);
+      return;
+    }
+    await this.queueService.addActivityImportJobs(account, [
+      this.toImportedActivity(exercise),
+    ]);
+  }
+
+  /** Catch up on the sessions no webhook brought */
+  async syncAccount(providerAccountId: number): Promise<void> {
+    const account = await this.activeAccount(providerAccountId);
+    if (!account?.importActivitiesEnabled) return;
+
+    const activities = await this.importActivities(account);
+    if (activities.length === 0) return;
+
+    const known = await this.prisma.eventActivity.findMany({
+      where: {
+        provider: ConnectorProvider.POLAR,
+        externalId: { in: activities.map((activity) => activity.externalId) },
+      },
+      select: { externalId: true },
+    });
+    const knownIds = new Set(known.map((activity) => activity.externalId));
+    const missing = activities.filter(
+      (activity) => !knownIds.has(activity.externalId),
+    );
+    if (missing.length === 0) return;
+
+    this.logger.log(
+      `Importing ${missing.length} Polar activities for account ${providerAccountId}`,
+    );
+    await this.queueService.addActivityImportJobs(account, missing);
+  }
+
+  private async activeAccount(
+    providerAccountId: number,
+  ): Promise<ProviderAccount | null> {
+    const account = await this.prisma.providerAccount.findUnique({
+      where: { providerAccountId },
+    });
+    return account?.status === 'active' ? account : null;
+  }
+
   async importActivity(
     account: ProviderAccount,
     activity: ImportedActivity,
   ): Promise<ImportResult> {
     const existing = await this.prisma.eventActivity.findFirst({
       where: {
+        provider: ConnectorProvider.POLAR,
         externalId: activity.externalId,
       },
     });
+    if (existing) return { activity: existing, created: false };
 
-    if (existing) {
-      return { activity: existing, created: false };
-    }
+    const exercise = activity.raw as PolarExercise;
+    const duration = activity.duration ?? 0;
 
-    const athlete = await this.prisma.athlete.findUnique({
-      where: { athleteId: account.athleteId },
-      select: { athleteId: true },
-    });
-
-    if (!athlete) {
-      throw new Error('Athlete not found');
-    }
-
-    const event = await this.prisma.event.create({
-      data: {
-        athleteId: athlete.athleteId,
-        name: activity.name,
-        type: EventType.ACTIVITY,
-        startDate: activity.startDate,
-        endDate: activity.endDate,
-      },
-    });
-
-    const polarExercise = activity.raw as PolarExercise;
-    const savedActivity = await this.saveActivityData(event, polarExercise);
-
-    // Try to fetch and process FIT file
+    let saved: EventActivity;
     try {
-      await this.processActivityFile(
-        account,
-        savedActivity,
-        polarExercise['exercise-id'],
-      );
-    } catch (error) {
-      // Activity saved without stream
-      this.logger.debug(
-        `Failed to fetch FIT file for Polar exercise ${polarExercise['exercise-id']}: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-
-    return { activity: savedActivity, created: true };
-  }
-
-  /**
-   * Save activity data
-   */
-  private async saveActivityData(
-    event: { eventId: number },
-    exercise: PolarExercise,
-  ): Promise<EventActivity> {
-    const durationMatch = exercise.duration.match(
-      /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/,
-    );
-    let durationSeconds = 0;
-    if (durationMatch) {
-      const hours = Number.parseInt(durationMatch[1] || '0', 10);
-      const minutes = Number.parseInt(durationMatch[2] || '0', 10);
-      const seconds = Number.parseInt(durationMatch[3] || '0', 10);
-      durationSeconds = hours * 3600 + minutes * 60 + seconds;
-    }
-
-    return this.prisma.eventActivity.create({
-      data: {
-        eventId: event.eventId,
-        provider: ConnectorProvider.POLAR,
-        externalId: exercise['exercise-id'],
-        distance: exercise.distance ? roundDistance(exercise.distance) : 0,
-        movingTime: durationSeconds,
-        averageSpeed: 0,
-        maxSpeed: 0,
-        elevationGain: 0, // Polar doesn't provide this in exercise summary
-        kilojoules: exercise.calories ? roundEnergy(exercise.calories) : null,
-        averageHeartrate: exercise['heart-rate']?.average
-          ? roundHeartrate(exercise['heart-rate'].average)
-          : null,
-        maxHeartrate: exercise['heart-rate']?.maximum
-          ? roundHeartrate(exercise['heart-rate'].maximum)
-          : null,
-        sport: this.mapPolarSportToSportType(exercise.sport || 'OTHER'),
-      },
-    });
-  }
-
-  /**
-   * Process activity file (FIT/TCX/GPX)
-   */
-  private async processActivityFile(
-    account: ProviderAccount,
-    activity: EventActivity,
-    exerciseId: string,
-  ): Promise<void> {
-    try {
-      // Try FIT first, then GPX (TCX parsing not implemented yet)
-      let activityStream: ActivityStream | null = null;
-
-      for (const type of ['fit', 'gpx'] as const) {
-        try {
-          const data = await this.makeAuthenticatedRequest(
-            account,
-            async (accessToken) => {
-              return axios.get<ArrayBuffer>(
-                `${POLAR_API_BASE}/exercises/${encodeURIComponent(exerciseId)}/${type}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    Accept: '*/*',
-                  },
-                  responseType: 'arraybuffer',
-                  timeout: 60000,
-                },
-              );
-            },
-          );
-
-          if (type === 'fit') {
-            const parseResult =
-              await this.activityFileParserService.parseByFileType(data, 'FIT');
-            activityStream = parseResult.stream;
-          } else if (type === 'gpx') {
-            const parseResult =
-              await this.activityFileParserService.parseByFileType(data, 'GPX');
-            activityStream = parseResult.stream;
-          }
-          // TCX parsing not implemented yet, skip for now
-
-          if (activityStream) {
-            break;
-          }
-        } catch {
-          // Try next format
-          continue;
-        }
-      }
-
-      if (!activityStream) {
-        return;
-      }
-
-      const compressedStream = compressActivityStream(activityStream);
-
-      await this.prisma.eventActivity.update({
-        where: {
-          eventActivityId: activity.eventActivityId,
-        },
-        // A corrected activity keeps its corrections over the new recording
-        data: await streamUpdate(
-          this.prisma,
-          activity.eventActivityId,
-          compressedStream,
-        ),
-      });
-
-      const activityWithEvent = await this.prisma.eventActivity.findUnique({
-        where: { eventActivityId: activity.eventActivityId },
-        select: {
-          event: { select: { athleteId: true } },
-          stream: true,
-          eventId: true,
-        },
-      });
-
-      if (
-        activityWithEvent?.stream &&
-        activityWithEvent.event &&
-        activityWithEvent.eventId
-      ) {
-        await this.queueService.addActivityProcessingJob(
-          activity.eventActivityId,
-          activityWithEvent.eventId,
-          false,
-        );
-      }
-    } catch (error) {
-      // Failed to download/parse file, activity remains without stream
-      this.logger.debug(
-        `Failed to process Polar activity file: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  /**
-   * Queue full import
-   */
-  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
-    this.logger.log(
-      `Starting Polar full import for account ${account.providerAccountId} athlete ${account.athleteId}`,
-    );
-
-    const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - this.importWindowMs);
-
-    this.logger.log(
-      `Import window: ${startDate.toISOString()} to ${endDate.toISOString()} (${this.importWindowMs / (24 * 60 * 60 * 1000)} days)`,
-    );
-
-    const activities = await this.importActivities(account, {
-      startDate,
-      endDate,
-    });
-
-    this.logger.log(
-      `Found ${activities.length} activities, queuing for import`,
-    );
-
-    const queued = await this.enqueueActivities(account, activities);
-
-    this.logger.log(
-      `Polar full import completed: ${queued} activities queued (out of ${activities.length} found)`,
-    );
-
-    return {
-      queuedActivities: queued,
-      backfillRequested: false,
-    };
-  }
-
-  /**
-   * Enqueue activities for import
-   */
-  private async enqueueActivities(
-    account: ProviderAccount,
-    activities: ImportedActivity[],
-  ): Promise<number> {
-    if (activities.length === 0) {
-      return 0;
-    }
-
-    const existingExternalIds = await this.prisma.eventActivity.findMany({
-      where: {
-        externalId: {
-          in: activities.map((a) => a.externalId),
-        },
-      },
-      select: {
-        externalId: true,
-      },
-    });
-
-    const existingIdsSet = new Set(
-      existingExternalIds.map((a) => a.externalId),
-    );
-
-    const newActivities = activities.filter(
-      (a) => !existingIdsSet.has(a.externalId),
-    );
-
-    if (newActivities.length === 0) {
-      this.logger.log(
-        `No new Polar activities to queue for account ${account.providerAccountId}`,
-      );
-      return 0;
-    }
-
-    await this.queueService.addActivityImportJobs(account, newActivities, true);
-    return newActivities.length;
-  }
-
-  /**
-   * Import activity summaries (daily metrics)
-   */
-  private async importActivitySummaries(
-    account: ProviderAccount,
-  ): Promise<void> {
-    const userId = Number.parseInt(account.externalUserId || '0', 10);
-    if (!userId) {
-      return;
-    }
-
-    try {
-      const transaction = await this.createActivityTransaction(account, userId);
-      if (!transaction) {
-        return;
-      }
-
-      const transactionDetails = await this.getActivityTransaction(
-        account,
-        userId,
-        transaction['transaction-id'],
-      );
-
-      if (!transactionDetails || !transactionDetails.activities) {
-        return;
-      }
-
-      const metrics: MetricRecord[] = [];
-
-      for (const activityUrl of transactionDetails.activities) {
-        try {
-          const data = await this.makeAuthenticatedRequest(
-            account,
-            async (accessToken) => {
-              return axios.get<PolarActivitySummary>(activityUrl, {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                  Accept: 'application/json',
-                },
-              });
-            },
-          );
-
-          const date = new Date(data.date);
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.DAILY_STEPS,
-            date,
-            data.steps,
-          );
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.DAILY_DISTANCE,
-            date,
-            data['daily-activity'] ? data['daily-activity'] / 1000 : undefined, // Convert to km
-          );
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.DAILY_CALORIES,
-            date,
-            data.calories,
-          );
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.DAILY_ACTIVE_CALORIES,
-            date,
-            data['active-calories'],
-          );
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.DAILY_ACTIVE_MINUTES,
-            date,
-            data['daily-activity'] ? data['daily-activity'] / 60 : undefined, // Convert to minutes
-          );
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.HR_AVG_DAILY,
-            date,
-            data['heart-rate']?.average,
-          );
-          this.addMetricIfDefined(
-            metrics,
-            MetricType.HR_MAX_DAILY,
-            date,
-            data['heart-rate']?.maximum,
-          );
-        } catch (error) {
-          this.logger.warn(
-            `Failed to fetch Polar activity summary: ${error instanceof Error ? error.message : String(error)}`,
-          );
-        }
-      }
-
-      if (metrics.length > 0) {
-        await this.saveMetrics(account.athleteId, metrics);
-      }
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar activity summaries: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  /**
-   * Import continuous heart rate
-   */
-  private async importContinuousHeartRate(): Promise<void> {
-    // Implementation for continuous heart rate import
-    // This would use /v3/users/{user-id}/continuous-heart-rate endpoints
-    this.logger.debug('Continuous heart rate import not yet implemented');
-  }
-
-  /**
-   * Import sleep data
-   */
-  private async importSleep(account: ProviderAccount): Promise<void> {
-    const userId = Number.parseInt(account.externalUserId || '0', 10);
-    if (!userId) {
-      return;
-    }
-
-    try {
-      // Get sleep data for last 30 days
-      const endDate = new Date();
-      const startDate = new Date(endDate.getTime() - 30 * 24 * 60 * 60 * 1000);
-
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.get<PolarSleep[]>(
-            `${POLAR_API_BASE}/users/${userId}/sleep`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
-              },
-              params: {
-                start: startDate.toISOString().split('T')[0],
-                end: endDate.toISOString().split('T')[0],
-              },
-            },
-          );
-        },
-      );
-
-      const metrics: MetricRecord[] = [];
-
-      for (const sleep of data) {
-        const date = new Date(sleep.date);
-        this.addMetricIfDefined(
-          metrics,
-          MetricType.SLEEP_DURATION,
-          date,
-          sleep['total-sleep-time']
-            ? sleep['total-sleep-time'] / 3600
-            : undefined, // Convert to hours
-        );
-        this.addMetricIfDefined(
-          metrics,
-          MetricType.SLEEP_DEEP_DURATION,
-          date,
-          sleep['deep-sleep'] ? sleep['deep-sleep'] / 3600 : undefined,
-        );
-        this.addMetricIfDefined(
-          metrics,
-          MetricType.SLEEP_LIGHT_DURATION,
-          date,
-          sleep['light-sleep'] ? sleep['light-sleep'] / 3600 : undefined,
-        );
-        this.addMetricIfDefined(
-          metrics,
-          MetricType.SLEEP_REM_DURATION,
-          date,
-          sleep['rem-sleep'] ? sleep['rem-sleep'] / 3600 : undefined,
-        );
-        this.addMetricIfDefined(
-          metrics,
-          MetricType.SLEEP_AWAKE_DURATION,
-          date,
-          sleep['awake-duration'] ? sleep['awake-duration'] / 3600 : undefined,
-        );
-        this.addMetricIfDefined(
-          metrics,
-          MetricType.SLEEP_SCORE,
-          date,
-          sleep['sleep-score'],
-        );
-      }
-
-      if (metrics.length > 0) {
-        await this.saveMetrics(account.athleteId, metrics);
-      }
-    } catch (error) {
-      this.logger.error(
-        `Failed to import Polar sleep: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-
-  /**
-   * Create activity transaction
-   */
-  private async createActivityTransaction(
-    account: ProviderAccount,
-    userId: number,
-  ): Promise<PolarActivityTransaction | null> {
-    try {
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.post<PolarActivityTransaction>(
-            `${POLAR_API_BASE}/users/${userId}/activity-transactions`,
-            null,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
-              },
-            },
-          );
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 204) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Get activity transaction details
-   */
-  private async getActivityTransaction(
-    account: ProviderAccount,
-    userId: number,
-    transactionId: number,
-  ): Promise<PolarActivityTransactionResponse | null> {
-    try {
-      const data = await this.makeAuthenticatedRequest(
-        account,
-        async (accessToken) => {
-          return axios.get<PolarActivityTransactionResponse>(
-            `${POLAR_API_BASE}/users/${userId}/activity-transactions/${transactionId}`,
-            {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-                Accept: 'application/json',
-              },
-            },
-          );
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) {
-        return null;
-      }
-      throw error;
-    }
-  }
-
-  /**
-   * Save metrics
-   */
-  private async saveMetrics(
-    athleteId: number,
-    metrics: MetricRecord[],
-  ): Promise<void> {
-    if (metrics.length === 0) {
-      return;
-    }
-
-    for (const metric of metrics) {
-      try {
-        await this.prisma.athleteMetric.upsert({
-          where: {
-            athleteId_type_date: {
-              athleteId: athleteId,
-              type: metric.type as MetricType,
-              date: metric.date,
-            },
-          },
-          create: {
-            athleteId: athleteId,
-            type: metric.type as MetricType,
-            date: metric.date,
-            value: roundMetricValue(metric.value),
-          },
-          update: {
-            value: roundMetricValue(metric.value),
+      saved = await this.prisma.$transaction(async (tx) => {
+        const event = await tx.event.create({
+          data: {
+            athleteId: account.athleteId,
+            name: activity.name,
+            type: EventType.ACTIVITY,
+            // A queued activity comes back with its dates as strings
+            startDate: new Date(activity.startDate),
+            endDate: new Date(activity.endDate),
           },
         });
+        return tx.eventActivity.create({
+          data: {
+            eventId: event.eventId,
+            provider: ConnectorProvider.POLAR,
+            externalId: exercise.id,
+            distance: roundDistance(exercise.distance ?? 0) ?? 0,
+            movingTime: duration,
+            averageSpeed:
+              duration > 0 && exercise.distance
+                ? (roundSpeed(exercise.distance / duration) ?? 0)
+                : 0,
+            maxSpeed: 0,
+            elevationGain: 0,
+            kilojoules: exercise.calories
+              ? roundEnergy(exercise.calories * KCAL_TO_KJ)
+              : null,
+            averageHeartrate: exercise.heart_rate?.average
+              ? roundHeartrate(exercise.heart_rate.average)
+              : null,
+            maxHeartrate: exercise.heart_rate?.maximum
+              ? roundHeartrate(exercise.heart_rate.maximum)
+              : null,
+            sport: mapPolarSport(exercise),
+          },
+        });
+      });
+    } catch (error) {
+      // A webhook and the hourly sync can race for the same exercise
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const winner = await this.prisma.eventActivity.findFirst({
+          where: { externalId: activity.externalId },
+        });
+        if (winner) return { activity: winner, created: false };
+      }
+      throw error;
+    }
+
+    await this.importActivityFile(account, saved);
+    return { activity: saved, created: true };
+  }
+
+  /**
+   * Attach the recording. FIT carries every sensor; GPX, for what FIT can't
+   * give, has the route. An activity without one keeps its summary.
+   */
+  private async importActivityFile(
+    account: ProviderAccount,
+    activity: EventActivity,
+  ): Promise<void> {
+    const exerciseId = encodeURIComponent(activity.externalId ?? '');
+    let stream: ActivityStream | null = null;
+
+    for (const type of ['fit', 'gpx'] as const) {
+      try {
+        const file = await this.request<ArrayBuffer>(
+          account,
+          `/exercises/${exerciseId}/${type}`,
+          { responseType: 'arraybuffer', timeout: 60_000 },
+        );
+        if (!file) continue;
+        const parsed = await this.activityFileParserService.parseByFileType(
+          file,
+          type === 'fit' ? 'FIT' : 'GPX',
+        );
+        stream = parsed.stream;
+        break;
       } catch (error) {
+        if (error instanceof ProviderRateLimitError) throw error;
         this.logger.warn(
-          `Failed to save metric ${metric.type} for athlete ${athleteId}: ${error instanceof Error ? error.message : String(error)}`,
+          `Polar ${type} failed for activity ${activity.eventActivityId}: ${error instanceof Error ? error.message : String(error)}`,
         );
       }
+    }
+    if (!stream) return;
+
+    await this.prisma.eventActivity.update({
+      where: { eventActivityId: activity.eventActivityId },
+      // A corrected activity keeps its corrections over the new recording
+      data: await streamUpdate(
+        this.prisma,
+        activity.eventActivityId,
+        compressActivityStream(stream),
+      ),
+    });
+  }
+
+  /** Sync what Polar holds: 28 days of each kind, its longest list */
+  async syncAccountMetrics(providerAccountId: number): Promise<void> {
+    const account = await this.activeAccount(providerAccountId);
+    if (!account?.importMetricsEnabled) return;
+
+    // One failing endpoint leaves the others; all failing is worth a retry
+    const failures: unknown[] = [];
+    const safely = async <T>(path: string): Promise<T | null> => {
+      try {
+        return await this.request<T>(account, path);
+      } catch (error) {
+        if (error instanceof ProviderRateLimitError) throw error;
+        failures.push(error);
+        this.logger.warn(
+          `Polar ${path} failed for account ${providerAccountId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return null;
+      }
+    };
+
+    const days = await safely<PolarDailyActivity[]>('/users/activities');
+    const sleep = await safely<{ nights?: PolarSleep[] }>('/users/sleep');
+    const recharge = await safely<{ recharges?: PolarNightlyRecharge[] }>(
+      '/users/nightly-recharge',
+    );
+    const physical = await safely<PolarPhysicalInfo>('/users/physical-info');
+    if (failures.length === 4) throw failures[0];
+
+    const metrics = [
+      ...mapPolarDailyActivity(days ?? []),
+      ...mapPolarSleep(sleep?.nights ?? []),
+      ...mapPolarNightlyRecharge(recharge?.recharges ?? []),
+      ...(physical ? mapPolarPhysicalInfo(physical, new Date()) : []),
+    ];
+    await this.saveMetrics(account.athleteId, metrics);
+    this.logger.log(
+      `Synced ${metrics.length} Polar metrics for account ${providerAccountId}`,
+    );
+  }
+
+  private async saveMetrics(
+    athleteId: number,
+    metrics: PolarMetricRecord[],
+  ): Promise<void> {
+    for (const { type, date, value } of metrics) {
+      const rounded = roundMetricValue(value);
+      await this.prisma.athleteMetric.upsert({
+        where: { athleteId_type_date: { athleteId, type, date } },
+        create: { athleteId, type, date, value: rounded },
+        update: { value: rounded },
+      });
     }
   }
 
   /**
-   * Add metric if value is defined
+   * Webhooks are the fast path, this the safety net: a lost delivery, or a
+   * webhook Polar turned off, delays a session by an hour at most. Polar
+   * keeps exercises for 30 days, so none is lost.
    */
-  private addMetricIfDefined(
-    target: MetricRecord[],
-    type: MetricType,
-    date: Date,
-    value: number | undefined | null,
-  ): void {
-    if (value !== undefined && value !== null && Number.isFinite(value)) {
-      target.push({
-        type,
-        date,
-        value,
-      });
+  @Cron('20 * * * *', { timeZone: 'UTC' })
+  async queueHourlySync(): Promise<void> {
+    if (!this.isSchedulingInstance()) return;
+    await this.ensureWebhook();
+
+    const accounts = await this.activeAccountIds({
+      importActivitiesEnabled: true,
+    });
+    for (const [index, id] of accounts.entries()) {
+      // Spread the requests over ten minutes
+      await this.queueService.addPolarSyncJob(
+        id,
+        Math.round((index / accounts.length) * 600_000),
+      );
     }
+  }
+
+  /** Daily: ACTIVITY_SUMMARY and SLEEP may not cover every watch */
+  @Cron('50 4 * * *', { timeZone: 'UTC' })
+  async queueDailyMetricsSync(): Promise<void> {
+    if (!this.isSchedulingInstance()) return;
+    const accounts = await this.activeAccountIds({
+      importMetricsEnabled: true,
+    });
+    for (const [index, id] of accounts.entries()) {
+      // Spread the requests over an hour
+      await this.queueService.addPolarMetricsJob(
+        id,
+        Math.round((index / accounts.length) * 3_600_000) + 60_000,
+      );
+    }
+  }
+
+  /** The API and the worker run the same image: one of them queues */
+  private isSchedulingInstance(): boolean {
+    return (
+      this.configService.get('ENABLE_ACTIVITY_IMPORT') === true &&
+      Boolean(this.configService.get('POLAR_CLIENT_ID'))
+    );
+  }
+
+  private async activeAccountIds(
+    where: Prisma.ProviderAccountWhereInput,
+  ): Promise<number[]> {
+    const accounts = await this.prisma.providerAccount.findMany({
+      where: { ...where, provider: ConnectorProvider.POLAR, status: 'active' },
+      select: { providerAccountId: true },
+    });
+    return accounts.map((account) => account.providerAccountId);
   }
 }

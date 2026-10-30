@@ -40,6 +40,14 @@ export type SuuntoNotificationJobData =
       from: number;
     };
 
+/** Polar work, out of the webhook and spread away from Polar's quota */
+export type PolarNotificationJobData =
+  | { kind: 'exercise'; providerAccountId: number; exerciseId: string }
+  | { kind: 'sync'; providerAccountId: number }
+  | { kind: 'metrics'; providerAccountId: number };
+
+const POLAR_WEBHOOK_SECRET_KEY = 'openathlete:polar:webhook-secret';
+
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
@@ -61,7 +69,61 @@ export class QueueService {
     private readonly garminNotificationQueue: Queue<GarminNotificationJobData>,
     @InjectQueue('suunto-notification')
     private readonly suuntoNotificationQueue: Queue<SuuntoNotificationJobData>,
+    @InjectQueue('polar-notification')
+    private readonly polarNotificationQueue: Queue<PolarNotificationJobData>,
   ) {}
+
+  /** Polar may notify an exercise twice: import it once */
+  async addPolarExerciseJob(
+    providerAccountId: number,
+    exerciseId: string,
+  ): Promise<void> {
+    await this.polarNotificationQueue.add(
+      'exercise',
+      { kind: 'exercise', providerAccountId, exerciseId },
+      { jobId: `polar-exercise-${exerciseId}` },
+    );
+  }
+
+  async addPolarSyncJob(providerAccountId: number, delayMs = 0): Promise<void> {
+    await this.polarNotificationQueue.add(
+      'sync',
+      { kind: 'sync', providerAccountId },
+      {
+        jobId: `polar-sync-${providerAccountId}-${Math.floor(Date.now() / 3_600_000)}-${delayMs}`,
+        delay: delayMs,
+      },
+    );
+  }
+
+  /** The delay gathers the events of a watch sync into one request set */
+  async addPolarMetricsJob(
+    providerAccountId: number,
+    delayMs = 60_000,
+  ): Promise<void> {
+    await this.polarNotificationQueue.add(
+      'metrics',
+      { kind: 'metrics', providerAccountId },
+      {
+        jobId: `polar-metrics-${providerAccountId}-${Math.floor((Date.now() + delayMs) / 60_000)}`,
+        delay: delayMs,
+      },
+    );
+  }
+
+  /**
+   * Polar shows a webhook's signing key once. The API verifies with what the
+   * worker may have created, so the key lives in Redis, which both share.
+   */
+  async getPolarWebhookSecret(): Promise<string | null> {
+    const redis = await this.polarNotificationQueue.client;
+    return redis.get(POLAR_WEBHOOK_SECRET_KEY);
+  }
+
+  async setPolarWebhookSecret(secret: string): Promise<void> {
+    const redis = await this.polarNotificationQueue.client;
+    await redis.set(POLAR_WEBHOOK_SECRET_KEY, secret);
+  }
 
   /** Suunto retries a webhook it thinks failed: import the workout once */
   async addSuuntoWorkoutJob(

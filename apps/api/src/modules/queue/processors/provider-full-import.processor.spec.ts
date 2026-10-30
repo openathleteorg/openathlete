@@ -15,7 +15,6 @@ import { ProviderFullImportProcessor } from './provider-full-import.processor';
 // The real provider services load ESM-only SDKs; the tests pass fakes
 jest.mock('../../providers-sync/providers', () => ({
   GarminProviderService: class {},
-  PolarProviderService: class {},
   StravaProviderService: class {},
   SuuntoProviderService: class {},
 }));
@@ -41,7 +40,6 @@ function setup(account: object | null = activeStrava) {
     prisma as never,
     strava as never,
     garmin as never,
-    { queueFullImport: jest.fn() } as never,
     { queueFullImport: jest.fn() } as never,
   );
   return { prisma, strava, garmin, processor };
