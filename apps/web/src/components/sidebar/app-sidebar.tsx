@@ -2,7 +2,6 @@ import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
 import { MobileAccountControls } from '@/components/mobile/mobile-account-controls';
-import { AskButton } from '@/components/sidebar/ask-button';
 import { CollapsedAthleteMenu } from '@/components/sidebar/collapsed-athlete-menu';
 import { NavMain } from '@/components/sidebar/nav-main';
 import { NavUser } from '@/components/sidebar/nav-user';
@@ -185,7 +184,6 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         <SpaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <AskButton />
         <NavMain
           items={
             showAthleteSelector

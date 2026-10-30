@@ -1,6 +1,5 @@
 import { useStatisticsOverviewQuery } from '@/api/statistics';
 import { InsightBanner } from '@/components/ui/insight-banner';
-import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
 import { getDominantSport } from '@/utils/insights';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
@@ -15,7 +14,6 @@ interface P {
 
 /** Hidden on one sport: the sentence compares sports with each other */
 export function StatisticsInsight({ athleteId, period, sport }: P) {
-  const { openChat } = useChatbot();
   const { data: overview } = useStatisticsOverviewQuery(
     {
       athleteId,
@@ -33,7 +31,6 @@ export function StatisticsInsight({ athleteId, period, sport }: P) {
         sport: sportTypeLabelMap[dominant.sport.sport],
         share: Math.round(dominant.share * 100),
       })}
-      actions={[{ label: m.insight_ask_coach(), onClick: openChat }]}
     />
   );
 }

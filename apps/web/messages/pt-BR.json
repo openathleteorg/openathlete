@@ -1752,7 +1752,5 @@
   "insight_form_fatigue": "Forma em {form}: a fadiga está dominando, uma semana mais leve ajudaria.",
   "insight_form_fresh": "Forma em {form}: você tem margem para aumentar o volume.",
   "insight_dominant_sport": "{sport} ocupa {share}% do tempo neste período.",
-  "insight_stale_metrics": "Métricas sem atualização há mais de seis meses: {count}.",
-  "insight_ask_coach": "Perguntar ao coach de IA",
-  "sidebar_ask": "Perguntar ao OpenAthlete"
+  "insight_stale_metrics": "Métricas sem atualização há mais de seis meses: {count}."
 }

@@ -8,7 +8,6 @@ import { InsightBanner } from '@/components/ui/insight-banner';
 import { MetricTile } from '@/components/ui/metric-tile';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useChatbot } from '@/contexts/chatbot';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
@@ -42,7 +41,6 @@ export function AthleteDashboardHeader({
   athleteId,
 }: AthleteDashboardHeaderProps) {
   const isMobile = isCapacitor();
-  const { openChat } = useChatbot();
   const {
     data: upcomingCompetitionsData = [],
     isLoading: isLoadingCompetitions,
@@ -116,7 +114,6 @@ export function AthleteDashboardHeader({
         <InsightBanner
           className="mx-4 mb-4 md:mx-0"
           text={formInsight[getFormStatus(form)]({ form: formatForm(form) })}
-          actions={[{ label: m.insight_ask_coach(), onClick: openChat }]}
         />
       )}
       <Card className="mx-4 mb-6 md:mx-0">
