@@ -110,6 +110,7 @@ export function SummarySection({
         label={m.statistics_load()}
         value={Math.round(overview.totals.load).toLocaleString()}
         info={<MetricInfo metric="trimp" />}
+        className="col-span-2 md:col-span-1"
         {...tile('load')}
       />
     </div>

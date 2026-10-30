@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { cn } from '@/utils/shadcn';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -16,6 +17,7 @@ interface P {
   compared: number | null;
   /** The figure bucket by bucket */
   sparkline?: number[];
+  className?: string;
 }
 
 function Sparkline({ values }: { values: number[] }) {
@@ -76,9 +78,10 @@ export function StatTile({
   current,
   compared,
   sparkline,
+  className,
 }: P) {
   return (
-    <Card data-stat-tile className="gap-0 py-0">
+    <Card data-stat-tile className={cn('gap-0 py-0', className)}>
       <CardContent className="space-y-1 p-4">
         <div className="flex min-h-6 items-center justify-between gap-1">
           <span className="text-sm text-muted-foreground">{label}</span>

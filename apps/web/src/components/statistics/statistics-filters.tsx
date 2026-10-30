@@ -1,13 +1,16 @@
+import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { getDateLocale } from '@/utils/locales';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
+import { useState } from 'react';
 
 import { SPORT_GROUPS, SPORT_TYPE, SportGroup } from '@openathlete/shared';
 
 import { Button } from '../ui/button';
 import { DatePicker } from '../ui/date-picker';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 import {
   Select,
   SelectContent,
@@ -49,15 +52,6 @@ const COMPARISON_LABELS: Record<StatisticsComparison, () => string> = {
   lastYear: m.statistics_compare_last_year,
 };
 
-const SECTIONS = [
-  { id: 'volume', label: m.statistics_section_volume },
-  { id: 'regularity', label: m.statistics_section_regularity },
-  { id: 'load', label: m.statistics_section_load },
-  { id: 'intensity', label: m.statistics_section_intensity },
-  { id: 'performance', label: m.statistics_section_performance },
-  { id: 'trends', label: m.statistics_section_trends },
-];
-
 const TRIGGER = 'h-11 w-full md:h-9 md:w-auto md:min-w-40';
 
 interface P {
@@ -65,7 +59,10 @@ interface P {
   sports: SPORT_TYPE[];
 }
 
-/** Stays on screen on desktop: on a phone, it would take too much of it. */
+/**
+ * Stays on screen on desktop. On a phone a line sums the filters up and opens
+ * them in a sheet: they would otherwise take half of the screen.
+ */
 export function StatisticsFilters({ filters, sports }: P) {
   const { period, periodType, offset, sport, group, comparison } = filters;
   // A group only says something for an athlete with several of its sports
@@ -73,6 +70,8 @@ export function StatisticsFilters({ filters, sports }: P) {
     (key) =>
       SPORT_GROUPS[key].filter((value) => sports.includes(value)).length > 1,
   );
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
   const canStep = periodType !== 'all' && periodType !== 'custom';
   const dayAndMonth = (date: Date) =>
     date.toLocaleString(getDateLocale(getLocale()), {
@@ -81,11 +80,19 @@ export function StatisticsFilters({ filters, sports }: P) {
       year: 'numeric',
     });
 
-  return (
-    <div
-      data-statistics-filters
-      className="z-20 -mx-4 space-y-2 border-b bg-background/95 px-4 py-2 backdrop-blur md:sticky md:top-0 md:-mx-8 md:px-8"
-    >
+  const sportLabel = sport
+    ? sportTypeLabelMap[sport]
+    : group
+      ? GROUP_LABELS[group]()
+      : m.statistics_all_sports();
+  const summary = [
+    PERIOD_LABELS[periodType](),
+    sportLabel,
+    ...(comparison === 'none' ? [] : [COMPARISON_LABELS[comparison]()]),
+  ].join(' · ');
+
+  const fields = (
+    <>
       <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
         <Select
           value={periodType}
@@ -189,20 +196,6 @@ export function StatisticsFilters({ filters, sports }: P) {
           )}
         </div>
       </div>
-      <nav
-        aria-label={m.statistics_sections_label()}
-        className="-mx-1 flex gap-1 overflow-x-auto text-sm"
-      >
-        {SECTIONS.map(({ id, label }) => (
-          <a
-            key={id}
-            href={`#${id}`}
-            className="flex min-h-11 shrink-0 items-center rounded px-2 text-muted-foreground hover:text-foreground md:min-h-0 md:py-1"
-          >
-            {label()}
-          </a>
-        ))}
-      </nav>
       {periodType === 'custom' && period && (
         <div className="grid grid-cols-2 gap-2 md:flex">
           <DatePicker
@@ -224,6 +217,37 @@ export function StatisticsFilters({ filters, sports }: P) {
           />
         </div>
       )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          variant="outline"
+          className="h-11 w-full justify-between font-normal"
+          data-statistics-filters
+          onClick={() => setOpen(true)}
+        >
+          <span className="truncate">{summary}</span>
+          <SlidersHorizontal className="size-4 shrink-0" />
+        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent>
+            <DialogTitle>{m.statistics_filters()}</DialogTitle>
+            <div className="space-y-2">{fields}</div>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  }
+
+  return (
+    <div
+      data-statistics-filters
+      className="z-20 -mx-8 space-y-2 border-b bg-background/95 px-8 py-2 backdrop-blur sticky top-0"
+    >
+      {fields}
     </div>
   );
 }

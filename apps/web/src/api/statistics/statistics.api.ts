@@ -3,12 +3,15 @@ import client, { routes } from '@/utils/axios';
 import {
   SPORT_TYPE,
   SportGroup,
+  StatisticsCardiacCostDto,
   StatisticsDaysDto,
+  StatisticsDurabilityDto,
   StatisticsFiltersDto,
   StatisticsIntensityDto,
   StatisticsLoadDto,
   StatisticsLongRunsDto,
   StatisticsOverviewDto,
+  StatisticsTerrainDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
   statisticsFiltersSchema,
@@ -63,6 +66,27 @@ export class StatisticsAPI {
     params: StatisticsSectionParams,
   ): Promise<StatisticsLongRunsDto> {
     const res = await client.get(routes.statistics.longRuns, { params });
+    return res.data;
+  }
+
+  static async getTerrain(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsTerrainDto> {
+    const res = await client.get(routes.statistics.terrain, { params });
+    return res.data;
+  }
+
+  static async getCardiacCost(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsCardiacCostDto> {
+    const res = await client.get(routes.statistics.cardiacCost, { params });
+    return res.data;
+  }
+
+  static async getDurability(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsDurabilityDto> {
+    const res = await client.get(routes.statistics.durability, { params });
     return res.data;
   }
 

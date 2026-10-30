@@ -28,10 +28,10 @@ import { SportDistributionChart } from '../charts/sport-distribution-chart';
 import { Card, CardContent } from '../ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '../ui/chart';
 import { SkeletonChart } from '../ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { bucketLabel, bucketTick } from './stat-chart-format';
 import { StatSection } from './stat-section';
 import { Period } from './statistics-period';
+import { SegmentTabs } from './statistics-tabs';
 import {
   OTHER_SPORTS,
   VolumeMetric,
@@ -64,19 +64,18 @@ export function VolumeSection({
       id="volume"
       title={m.statistics_section_volume()}
       actions={
-        <Tabs
+        <SegmentTabs
+          secondary
+          label={m.statistics_section_volume()}
           value={metric}
-          onValueChange={(value) => setMetric(value as VolumeMetric)}
-        >
-          <TabsList className="w-full md:w-auto">
-            <TabsTrigger value="movingTime">{m.duration()}</TabsTrigger>
-            <TabsTrigger value="distance">{m.distance()}</TabsTrigger>
-            <TabsTrigger value="elevationGain">
-              {m.elevation_gain()}
-            </TabsTrigger>
-            <TabsTrigger value="count">{m.statistics_activities()}</TabsTrigger>
-          </TabsList>
-        </Tabs>
+          onChange={setMetric}
+          items={[
+            { id: 'movingTime', label: m.duration },
+            { id: 'distance', label: m.distance },
+            { id: 'elevationGain', label: m.elevation_gain },
+            { id: 'count', label: m.statistics_activities },
+          ]}
+        />
       }
     >
       {(visible) => (

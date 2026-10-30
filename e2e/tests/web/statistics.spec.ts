@@ -36,28 +36,20 @@ test('statistics read the last weeks, by section, with filters in the URL', asyn
   await calendar.scrollIntoViewIfNeeded();
   await expect(calendar.locator('[title]').first()).toBeAttached();
 
-  await page.locator('#intensity').scrollIntoViewIfNeeded();
-  await expect(page.getByText('at least three heart rate zones')).toBeVisible();
-
-  const tsb = page.locator('[data-tsb-chart]');
-  await tsb.scrollIntoViewIfNeeded();
-  await expect(tsb).toBeVisible();
+  await page.getByRole('tab', { name: 'Load' }).click();
+  await expect(page).toHaveURL(/view=load/);
+  await expect(page.locator('[data-tsb-chart]')).toBeVisible();
   await expect(page.getByText('Daily load')).toBeVisible();
   await expect(page.getByText('Estimate').first()).toBeVisible();
 
-  // A sport brings its trends, and the choice stays in the URL
-  await expect(page.getByText('Choose a sport').first()).toBeVisible();
+  // A sport stays in the URL, from one view to the next
   await page.getByRole('combobox', { name: 'Sport' }).click();
   await page.getByRole('option', { name: 'Running', exact: true }).click();
   await expect(page).toHaveURL(/sport=RUNNING/);
-  const pace = page.locator('[data-trend="speed"]');
-  await pace.scrollIntoViewIfNeeded();
-  // One run: a single point, without a line to draw
-  await expect(pace.locator('circle[r="3"]').first()).toBeVisible();
-
-  const performance = page.locator('#performance');
-  await performance.scrollIntoViewIfNeeded();
-  await expect(performance.getByText('New records')).toBeVisible();
+  await page.getByRole('tab', { name: 'Trends' }).click();
+  await expect(
+    page.locator('[data-trend="speed"]').locator('circle[r="3"]').first(),
+  ).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole('combobox', { name: 'Sport' })).toContainText(

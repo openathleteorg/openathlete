@@ -60,6 +60,21 @@ const COPY: Record<
     what: m.metric_critical_speed_what,
     limits: m.metric_critical_speed_limits,
   },
+  cardiacCost: {
+    name: m.statistics_cost_title,
+    what: m.metric_cost_what,
+    limits: m.metric_cost_limits,
+  },
+  drift: {
+    name: m.statistics_durability_title,
+    what: m.metric_drift_what,
+    limits: m.metric_drift_limits,
+  },
+  recordCoherence: {
+    name: m.statistics_coherence_title,
+    what: m.metric_coherence_what,
+    limits: m.metric_coherence_limits,
+  },
   criticalSwimSpeed: {
     name: m.statistics_critical_swim,
     what: m.metric_critical_swim_what,

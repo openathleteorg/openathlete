@@ -223,27 +223,24 @@ function Trends({
   );
 }
 
-/** Averages mix badly across sports: they need one to be chosen. */
-export function TrendsSection({ athleteId, period, compared, sport }: P) {
+/** Averages mix badly across sports: they read on one. */
+export function TrendsSection({
+  athleteId,
+  period,
+  compared,
+  sport,
+}: Omit<P, 'sport'> & { sport: SPORT_TYPE }) {
   return (
     <StatSection id="trends" title={m.statistics_section_trends()}>
-      {(visible) =>
-        sport ? (
-          <Trends
-            athleteId={athleteId}
-            period={period}
-            compared={compared}
-            sport={sport}
-            visible={visible}
-          />
-        ) : (
-          <Card className="gap-0 py-0">
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              {m.statistics_trends_pick_sport()}
-            </CardContent>
-          </Card>
-        )
-      }
+      {(visible) => (
+        <Trends
+          athleteId={athleteId}
+          period={period}
+          compared={compared}
+          sport={sport}
+          visible={visible}
+        />
+      )}
     </StatSection>
   );
 }

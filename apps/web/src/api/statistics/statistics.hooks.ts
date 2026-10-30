@@ -94,6 +94,36 @@ export const useStatisticsLongRunsQuery = (
     queryKey: [statisticsKeys.longRuns, ...paramsKey(params)],
   });
 
+export const useStatisticsTerrainQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getTerrain(params),
+    queryKey: [statisticsKeys.terrain, ...paramsKey(params)],
+  });
+
+export const useStatisticsCardiacCostQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getCardiacCost(params),
+    queryKey: [statisticsKeys.cardiacCost, ...paramsKey(params)],
+  });
+
+export const useStatisticsDurabilityQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getDurability(params),
+    queryKey: [statisticsKeys.durability, ...paramsKey(params)],
+  });
+
 export const useStatisticsTrendsQuery = (
   params: StatisticsSectionParams & { sport: SPORT_TYPE },
   enabled: boolean,

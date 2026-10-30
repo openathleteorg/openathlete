@@ -126,6 +126,40 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  cardiacCost: {
+    verdict: 'estimate',
+    formula: 'median HR by band of grade adjusted speed or power',
+    sources: [
+      {
+        label: 'Vesterinen et al. 2014',
+        url: 'https://doi.org/10.1519/JSC.0000000000000349',
+      },
+    ],
+  },
+  drift: {
+    verdict: 'estimate',
+    formula: '(last third - first third) / first third, 60 min or more',
+    sources: [
+      {
+        label: 'Smyth et al. 2022',
+        url: 'https://doi.org/10.1007/s40279-022-01680-5',
+      },
+      {
+        label: 'Coyle & González-Alonso 2001',
+        url: 'https://doi.org/10.1097/00003677-200104000-00009',
+      },
+    ],
+  },
+  recordCoherence: {
+    verdict: 'estimate',
+    formula: 'T2 = T1 × (D2 / D1)^k, k 1.04-1.08 (to 1.15 for the marathon)',
+    sources: [
+      {
+        label: 'Vickers & Vertosick 2016',
+        url: 'https://doi.org/10.1186/s13102-016-0052-y',
+      },
+    ],
+  },
   criticalSwimSpeed: {
     verdict: 'reserved',
     formula: 'CSS = (400 - 200) / (T400 - T200)',

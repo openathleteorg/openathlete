@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import {
+  BestRecordDto,
   RECORD_TYPE,
   SPORT_CONFIG,
   SPORT_TYPE,
@@ -26,14 +27,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Skeleton, SkeletonChart } from '../ui/skeleton';
 import {
+  missingDistances,
+  recordCoherence,
+  speedRecords,
+} from './capacity-data';
+import {
   CriticalFit,
   criticalFit,
   criticalSwimSpeed,
   parseSwimTime,
 } from './critical-model';
 import { MetricInfo } from './metric-info';
+import { QuantileChart } from './quantile-chart';
+import { QuickRead } from './quick-read';
 import { StatSection } from './stat-section';
 import { Period } from './statistics-period';
+import { SegmentTabs } from './statistics-tabs';
 
 interface P {
   athleteId: number;
@@ -44,6 +53,9 @@ interface P {
 
 const CURVES = [RECORD_TYPE.SPEED, RECORD_TYPE.POWER];
 
+/** Riegel's exponents come from road running */
+const RUNNING_FOR_COHERENCE = new Set([SPORT_TYPE.RUNNING]);
+
 function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
   const unit = SPORT_CONFIG[sport].speedUnit;
   const isSpeed = fit.kind === 'speed';
@@ -51,7 +63,7 @@ function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
     ? `${formatSpeed(fit.critical, unit)} ${formatSpeedUnit(unit)}`
     : `${Math.round(fit.critical)} W`;
   const range = isSpeed
-    ? `${formatSpeed(Math.max(fit.critical - fit.margin, 0.1), unit)} – ${formatSpeed(fit.critical + fit.margin, unit)}`
+    ? `${formatSpeed(fit.critical + fit.margin, unit)} – ${formatSpeed(Math.max(fit.critical - fit.margin, 0.1), unit)}`
     : `${Math.round(fit.critical - fit.margin)} – ${Math.round(fit.critical + fit.margin)} W`;
   return (
     <Card className="gap-0 py-0" data-critical={fit.kind}>
@@ -76,6 +88,68 @@ function CriticalCard({ fit, sport }: { fit: CriticalFit; sport: SPORT_TYPE }) {
               .join(', '),
           })}
         </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** Whether the records agree: which distance sits behind the others */
+function CoherenceCard({ records }: { records: BestRecordDto[] }) {
+  const anchors = speedRecords(records)
+    .map(({ distance }) => distance!)
+    .filter((distance) => distance < 21097.5)
+    .sort((a, b) => a - b);
+  const [chosen, setChosen] = useState<number>();
+  const anchor = chosen && anchors.includes(chosen) ? chosen : anchors[0];
+  const points = anchor ? recordCoherence(records, anchor) : [];
+  if (points.filter(({ actual }) => actual !== null).length < 2) return null;
+  const missing = missingDistances(records).map(formatRecordDistance);
+  return (
+    <Card className="gap-0 py-0 md:col-span-2" data-coherence>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
+        <CardTitle className="text-sm font-medium">
+          {m.statistics_coherence_title()}
+        </CardTitle>
+        <MetricInfo metric="recordCoherence" />
+      </CardHeader>
+      <CardContent className="space-y-3 p-4 pt-0">
+        <SegmentTabs
+          secondary
+          label={m.statistics_coherence_title()}
+          value={String(anchor)}
+          onChange={(value) => setChosen(Number(value))}
+          items={anchors.map((distance) => ({
+            id: String(distance),
+            label: () => formatRecordDistance(distance),
+          }))}
+        />
+        <QuantileChart
+          label={m.statistics_coherence_expected()}
+          otherLabel={m.statistics_coherence_actual()}
+          otherAsDots
+          points={points.map((point) => ({
+            x: point.distance / 1000,
+            low: point.fast,
+            median: point.expected,
+            high: point.slow,
+            other: point.actual,
+          }))}
+          logX
+          formatX={(km) => formatRecordDistance(km * 1000)}
+          formatY={(seconds) => formatDuration(Math.round(seconds))}
+        />
+        {missing.length > 0 && (
+          <QuickRead
+            lines={[
+              {
+                kind: 'limit',
+                text: m.statistics_coherence_missing({
+                  distances: missing.join(', '),
+                }),
+              },
+            ]}
+          />
+        )}
       </CardContent>
     </Card>
   );
@@ -220,6 +294,9 @@ function Performance({
   return (
     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {swimming && <CriticalSwimCard />}
+      {RUNNING_FOR_COHERENCE.has(sport) && (
+        <CoherenceCard records={allTime.data} />
+      )}
       {fit && <CriticalCard fit={fit} sport={sport} />}
       {newRecords.length > 0 && (
         <Card
@@ -287,11 +364,20 @@ function Performance({
 }
 
 /** What the athlete can do, for one sport: curves mix badly across sports. */
-export function PerformanceSection({ athleteId, period, compared, sport }: P) {
+export function PerformanceSection({
+  athleteId,
+  period,
+  compared,
+  sport,
+}: Omit<P, 'sport'> & { sport: SPORT_TYPE }) {
   return (
-    <StatSection id="performance" title={m.statistics_section_performance()}>
+    <StatSection
+      plain
+      id="performance"
+      title={m.statistics_section_performance()}
+    >
       {(visible) =>
-        sport && period ? (
+        period && (
           <Performance
             athleteId={athleteId}
             period={period}
@@ -299,12 +385,6 @@ export function PerformanceSection({ athleteId, period, compared, sport }: P) {
             sport={sport}
             visible={visible}
           />
-        ) : (
-          <Card className="gap-0 py-0">
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              {m.statistics_performance_pick_sport()}
-            </CardContent>
-          </Card>
         )
       }
     </StatSection>

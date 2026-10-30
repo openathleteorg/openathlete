@@ -165,20 +165,22 @@ async function prepare(
   await setHeartRateProfile(request, athlete);
   for (const session of sessions)
     await importSession(request, athlete, session);
-  await waitForIntensity(request, athlete, athleteId);
+  await waitForIntensity(
+    request,
+    athlete,
+    athleteId,
+    sessions.reduce((sum, { minutes }) => sum + minutes, 0),
+  );
   await signIn(page, athlete);
 }
 
-async function reachEverySection(page: Page) {
-  for (const id of [
-    'volume',
-    'regularity',
-    'load',
-    'intensity',
-    'performance',
-    'trends',
-  ]) {
-    await page.locator(`#${id}`).scrollIntoViewIfNeeded();
+/** Scrolls to the sections of a view, which load as they near the screen */
+async function open(page: Page, query: string) {
+  await page.goto(`/dashboard/statistics?${query}`);
+  const sections = page.locator('section[aria-labelledby]');
+  await sections.first().waitFor();
+  for (const section of await sections.all()) {
+    await section.scrollIntoViewIfNeeded();
   }
   await page.waitForLoadState('networkidle');
 }
@@ -192,26 +194,31 @@ for (const profile of PROFILES) {
     const problems = trackPageProblems(page);
     await prepare(page, request, profile.sessions);
 
-    await page.goto(
-      `/dashboard/statistics?sport=${profile.sport}&compare=previous`,
-    );
+    const scope = `sport=${profile.sport}&compare=previous`;
+    await open(page, scope);
     await expect(page.locator('[data-stat-tile]').first()).toBeVisible();
-    await reachEverySection(page);
-
     await expect(page.getByRole('combobox', { name: 'Sport' })).toContainText(
       profile.label,
     );
+
+    await open(page, `${scope}&view=load`);
     await expect(page.locator('[data-intensity]')).toBeVisible();
     await expect(page.locator('[data-default-zones]')).toBeVisible();
     await expect(page.locator('[data-tsb-chart]')).toBeVisible();
     await expect(page.getByText('Load comes from heart rate')).toHaveCount(0);
+    await expect(page.locator('[data-steady="efficiency"]')).toHaveCount(
+      profile.steady ? 1 : 0,
+    );
 
+    await open(page, `${scope}&view=trends`);
     for (const trend of profile.trends) {
       await expect(page.locator(`[data-trend="${trend}"]`)).toBeVisible();
     }
     for (const trend of profile.noTrends) {
       await expect(page.locator(`[data-trend="${trend}"]`)).toHaveCount(0);
     }
+
+    await open(page, `${scope}&view=capacities&capacity=performance`);
     if (profile.critical) {
       await expect(
         page.locator(`[data-critical="${profile.critical}"]`),
@@ -219,9 +226,9 @@ for (const profile of PROFILES) {
     } else {
       await expect(page.locator('[data-critical]')).toHaveCount(0);
     }
-    await expect(page.locator('[data-steady="efficiency"]')).toHaveCount(
-      profile.steady ? 1 : 0,
-    );
+
+    await open(page, `${scope}&view=capacities`);
+    await expect(page.locator('[data-capacity-profile]')).toBeVisible();
 
     const overflows = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth,
@@ -244,9 +251,7 @@ test('a swimmer works out their critical swim speed from a test', async ({
 }) => {
   test.setTimeout(60_000);
   await prepare(page, request, weeks(2, swim));
-  await page.goto('/dashboard/statistics?sport=SWIMMING');
-  await page.locator('[data-stat-tile]').first().waitFor();
-  await page.locator('#performance').scrollIntoViewIfNeeded();
+  await open(page, 'sport=SWIMMING&view=capacities&capacity=performance');
   const card = page.locator('[data-critical-swim]');
   await card.getByLabel('200 m').fill('3:00');
   await card.getByLabel('400 m').fill('6:20');
@@ -281,12 +286,72 @@ test('the page compares two periods section by section', async ({
 }) => {
   test.setTimeout(60_000);
   await prepare(page, request, weeks(14, run));
-  await page.goto(
-    '/dashboard/statistics?sport=RUNNING&period=weeks12&compare=previous',
-  );
-  await reachEverySection(page);
+  const scope = 'sport=RUNNING&period=weeks12&compare=previous';
+  await open(page, scope);
   await expect(page.locator('[data-volume]')).toContainText('Compared period');
+  await open(page, `${scope}&view=load`);
   await expect(page.locator('[data-intensity-compared]')).toBeVisible();
+});
+
+test('a runner reads their capacities, from terrain to coherence', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(90_000);
+  // Altitude rolls, so the outing meets several slopes
+  const hilly = (daysAgo: number): Session => ({
+    sport: 'TRAIL_RUNNING',
+    daysAgo,
+    minutes: 70,
+    speed: 2.5,
+    heartrate: steadyHeartrate,
+    climb: (minute) => [8, 12, 16, 24, -8, -14][minute % 6],
+  });
+  await prepare(page, request, [
+    ...weeks(4, run),
+    hilly(6),
+    hilly(13),
+    hilly(20),
+    hilly(27),
+  ]);
+  const problems = trackPageProblems(page);
+
+  const trail = 'sport=TRAIL_RUNNING&view=capacities';
+  await open(page, `${trail}&capacity=terrain`);
+  await expect(page.locator('[data-terrain="climb"]')).toBeVisible();
+  await expect(page.locator('[data-quick-read]')).toContainText('Limit');
+
+  await open(page, `${trail}&capacity=endurance`);
+  await expect(page.locator('[data-durability]')).toBeVisible();
+
+  await open(page, 'sport=RUNNING&view=capacities&capacity=physiology');
+  await expect(page.locator('[data-cardiac-cost="speed"]')).toBeVisible();
+
+  await open(page, 'sport=RUNNING&view=capacities&capacity=performance');
+  await expect(page.locator('[data-coherence]')).toBeVisible();
+
+  await open(page, 'sport=RUNNING&view=capacities');
+  await expect(page.locator('[data-capacity-profile]')).toContainText(
+    'capacities can be read',
+  );
+  expect(problems).toEqual([]);
+});
+
+test('a view opens on the main sport, without a dead end', async ({
+  page,
+  request,
+}) => {
+  test.setTimeout(60_000);
+  await prepare(page, request, [...run(0), ...swim(0)]);
+  await page.goto('/dashboard/statistics');
+  await page.getByRole('tab', { name: 'Trends' }).click();
+  await expect(page).toHaveURL(/view=trends/);
+  await expect(page.getByRole('tab', { name: 'Running' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await page.getByRole('tab', { name: 'Swimming' }).click();
+  await expect(page).toHaveURL(/sport=SWIMMING/);
 });
 
 test('a coach reads the statistics of their athlete', async ({
@@ -301,9 +366,7 @@ test('a coach reads the statistics of their athlete', async ({
   await signIn(page, coach);
   const problems = trackPageProblems(page);
 
-  await page.goto(`/dashboard/statistics/${athleteId}?sport=RUNNING`);
-  await expect(page.locator('[data-stat-tile]').first()).toBeVisible();
-  await reachEverySection(page);
+  await page.goto(`/dashboard/statistics/${athleteId}?sport=RUNNING&view=load`);
   await expect(page.locator('[data-intensity]')).toBeVisible();
   expect(problems).toEqual([]);
 });
@@ -324,13 +387,24 @@ for (const [locale, section] of [
     await context.addCookies([
       { name: 'OA_LOCALE', value: locale, url: WEB_URL },
     ]);
-    await page.goto('/dashboard/statistics?sport=RUNNING');
-    await expect(page.locator('[data-stat-tile]').first()).toBeVisible();
-    await reachEverySection(page);
+    await open(page, 'sport=RUNNING');
     await expect(
       page.getByRole('heading', { name: section, exact: true }),
     ).toBeVisible();
     // Paraglide falls back on the key's name when a message is missing
-    await expect(page.locator('body')).not.toContainText(/statistics_|metric_/);
+    for (const query of [
+      'view=load',
+      'view=trends',
+      'view=capacities',
+      'view=capacities&capacity=terrain',
+      'view=capacities&capacity=endurance',
+      'view=capacities&capacity=physiology',
+      'view=capacities&capacity=performance',
+    ]) {
+      await open(page, `sport=RUNNING&${query}`);
+      await expect(page.locator('body')).not.toContainText(
+        /statistics_|metric_/,
+      );
+    }
   });
 }

@@ -12,8 +12,8 @@ export interface Session {
   /** Heart rate at each minute */
   heartrate: (minute: number) => number;
   watts?: (minute: number) => number;
-  /** Metres climbed per minute */
-  climb?: number;
+  /** Metres climbed each minute */
+  climb?: number | ((minute: number) => number);
   name?: string;
 }
 
@@ -48,14 +48,17 @@ export async function importSession(
   start.setUTCHours(7, 0, 0, 0);
   // Two identical files would be taken for the same activity
   const lon = (5 + Math.random()).toFixed(6);
+  const { climb = 0 } = session;
+  let altitude = 500;
   const points = Array.from({ length: minutes + 1 }, (_, i) => {
+    altitude += typeof climb === 'number' ? climb : climb(i);
     const time = new Date(start.getTime() + i * 60_000).toISOString();
     const lat = 45 + (i * speed * 60) / 111_195;
     const sensors = [
       `<hr>${Math.round(heartrate(i))}</hr>`,
       watts ? `<power>${Math.round(watts(i))}</power>` : '',
     ].join('');
-    return `<trkpt lat="${lat.toFixed(6)}" lon="${lon}"><ele>${500 + i * (session.climb ?? 0)}</ele><time>${time}</time><extensions>${sensors}</extensions></trkpt>`;
+    return `<trkpt lat="${lat.toFixed(6)}" lon="${lon}"><ele>${altitude}</ele><time>${time}</time><extensions>${sensors}</extensions></trkpt>`;
   }).join('');
   const gpx = `<?xml version="1.0"?><gpx version="1.1" creator="openathlete-e2e" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${sport}</name><trkseg>${points}</trkseg></trk></gpx>`;
   // Imports run in serializable transactions: parallel tests can collide
@@ -86,6 +89,8 @@ export async function waitForIntensity(
   request: APIRequestContext,
   athlete: TestAthlete,
   athleteId: number,
+  /** Minutes of the sessions imported: the worker takes them one by one */
+  minutes = 1,
 ) {
   const from = new Date(Date.now() - 200 * 24 * 3600 * 1000).toISOString();
   const to = new Date().toISOString();
@@ -99,7 +104,11 @@ export async function waitForIntensity(
         const { buckets } = (await response.json()) as {
           buckets: { low: number; middle: number; high: number }[];
         };
-        return buckets.some((b) => b.low + b.middle + b.high > 0);
+        const seconds = buckets.reduce(
+          (sum, b) => sum + b.low + b.middle + b.high,
+          0,
+        );
+        return seconds >= minutes * 60 * 0.9;
       },
       { timeout: 30_000 },
     )

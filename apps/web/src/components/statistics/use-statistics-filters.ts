@@ -34,7 +34,28 @@ const oneOf = <T extends string>(
   fallback: T,
 ): T => (options.includes(value as T) ? (value as T) : fallback);
 
+export const STATISTICS_VIEWS = [
+  'overview',
+  'load',
+  'capacities',
+  'trends',
+] as const;
+export type StatisticsView = (typeof STATISTICS_VIEWS)[number];
+
+export const STATISTICS_CAPACITIES = [
+  'profile',
+  'terrain',
+  'endurance',
+  'physiology',
+  'performance',
+] as const;
+export type StatisticsCapacity = (typeof STATISTICS_CAPACITIES)[number];
+
 export interface StatisticsFiltersState {
+  view: StatisticsView;
+  setView: (view: StatisticsView) => void;
+  capacity: StatisticsCapacity;
+  setCapacity: (capacity: StatisticsCapacity) => void;
   periodType: StatisticsPeriodType;
   offset: number;
   sport: SPORT_TYPE | null;
@@ -58,6 +79,12 @@ export function useStatisticsFilters(
   firstActivityDate: Date | null | undefined,
 ): StatisticsFiltersState {
   const [params, setParams] = useSearchParams();
+  const view = oneOf(STATISTICS_VIEWS, params.get('view'), 'overview');
+  const capacity = oneOf(
+    STATISTICS_CAPACITIES,
+    params.get('capacity'),
+    'profile',
+  );
   const periodType = oneOf(
     STATISTICS_PERIODS,
     params.get('period'),
@@ -120,6 +147,11 @@ export function useStatisticsFilters(
   );
 
   return {
+    view,
+    capacity,
+    setCapacity: (next) =>
+      update({ capacity: next === 'profile' ? null : next }),
+    setView: (next) => update({ view: next === 'overview' ? null : next }),
     periodType,
     offset,
     sport,

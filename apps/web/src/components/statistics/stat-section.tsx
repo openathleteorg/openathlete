@@ -8,12 +8,14 @@ interface P {
   id: string;
   /** Beside the title: the choices of the section */
   actions?: ReactNode;
+  /** A tab above already names it: the title stays for screen readers */
+  plain?: boolean;
   /** Gets whether the section came near the screen, to load its data */
   children: (visible: boolean) => ReactNode;
 }
 
 /** A part of the page: it asks for its data once the user gets close. */
-export function StatSection({ title, id, actions, children }: P) {
+export function StatSection({ title, id, actions, plain, children }: P) {
   const ref = useRef<HTMLElement>(null);
   const visible = useInView(ref, { once: true, margin: '300px' });
   const [open, setOpen] = useState(true);
@@ -24,7 +26,18 @@ export function StatSection({ title, id, actions, children }: P) {
       aria-labelledby={`${id}-title`}
       className="space-y-3 scroll-mt-36"
     >
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+      {plain && (
+        <h2 id={`${id}-title`} className="sr-only">
+          {title}
+        </h2>
+      )}
+      <div
+        className={
+          plain
+            ? 'hidden'
+            : 'flex flex-col gap-2 md:flex-row md:items-center md:justify-between'
+        }
+      >
         <button
           type="button"
           aria-expanded={open}
@@ -39,9 +52,11 @@ export function StatSection({ title, id, actions, children }: P) {
           <ChevronDown
             className={`size-4 text-muted-foreground transition-transform ${open ? '' : '-rotate-90'}`}
           />
-          <h2 id={`${id}-title`} className="text-lg font-semibold">
-            {title}
-          </h2>
+          {!plain && (
+            <h2 id={`${id}-title`} className="text-lg font-semibold">
+              {title}
+            </h2>
+          )}
         </button>
         {open && actions}
       </div>
