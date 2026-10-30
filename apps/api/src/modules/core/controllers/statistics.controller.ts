@@ -157,6 +157,28 @@ export class StatisticsController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('long-runs')
+  @ApiOperation({
+    summary: 'Runs well beyond the usual longest',
+    description:
+      'Runs of the period over 10% longer than the longest of the 30 days before them.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiResponse({ status: 400, description: 'Invalid period' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getLongRuns(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsSectionQuerySchema))
+    query: GetStatisticsSectionQueryDto,
+  ) {
+    return this.statisticsService.getLongRuns(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('trends')
   @ApiOperation({
     summary: "How a sport's averages evolve",

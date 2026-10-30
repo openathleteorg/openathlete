@@ -50,6 +50,11 @@ const COPY: Record<
     what: m.metric_decoupling_what,
     limits: m.metric_decoupling_limits,
   },
+  longRun: {
+    name: m.statistics_long_runs,
+    what: m.metric_long_run_what,
+    limits: m.metric_long_run_limits,
+  },
   criticalSpeed: {
     name: m.statistics_critical_speed,
     what: m.metric_critical_speed_what,

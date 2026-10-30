@@ -4,6 +4,7 @@ export const statisticsKeys = {
   overview: 'StatisticsAPI.overview',
   volume: 'StatisticsAPI.volume',
   days: 'StatisticsAPI.days',
+  longRuns: 'StatisticsAPI.longRuns',
   intensity: 'StatisticsAPI.intensity',
   trends: 'StatisticsAPI.trends',
   load: 'StatisticsAPI.load',

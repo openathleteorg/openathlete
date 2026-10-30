@@ -48,7 +48,12 @@ export function StatisticsView({ athleteId }: P) {
         compared={compared}
         sport={sport}
       />
-      <TrendsSection athleteId={athleteId} period={period} sport={sport} />
+      <TrendsSection
+        athleteId={athleteId}
+        period={period}
+        compared={compared}
+        sport={sport}
+      />
     </div>
   );
 }

@@ -24,6 +24,7 @@ type Bucket = StatisticsTrendsDto['buckets'][number];
 interface P {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
   sport: SPORT_TYPE | null;
 }
 
@@ -87,6 +88,22 @@ function sportTrends(sport: SPORT_TYPE): Trend[] {
       unit: cadenceFactor(sport) === 2 ? m.steps_per_minute() : 'rpm',
       color: 'var(--chart-5)',
     },
+    config.showPower && {
+      key: 'weightedPower',
+      title: m.statistics_weighted_power(),
+      value: (bucket) => bucket.weightedWatts,
+      format: (value) => `${Math.round(value)}`,
+      unit: 'W',
+      color: 'var(--chart-1)',
+    },
+    config.showElevation && {
+      key: 'verticalSpeed',
+      title: m.statistics_vertical_speed(),
+      value: (bucket) => bucket.verticalSpeed,
+      format: (value) => `${Math.round(value)}`,
+      unit: m.statistics_metres_per_hour(),
+      color: 'var(--chart-3)',
+    },
     config.showDistance && {
       key: 'distance',
       title: m.average_distance_per_activity(),
@@ -127,6 +144,7 @@ function TrendsSkeleton() {
 function Trends({
   athleteId,
   period,
+  compared,
   sport,
   visible,
 }: Omit<P, 'sport'> & { sport: SPORT_TYPE; visible: boolean }) {
@@ -138,6 +156,15 @@ function Trends({
       sport,
     },
     visible && !!period,
+  );
+  const { data: previous } = useStatisticsTrendsQuery(
+    {
+      athleteId,
+      from: compared?.start ?? new Date(0),
+      to: compared?.end ?? new Date(0),
+      sport,
+    },
+    visible && !!compared,
   );
   if (!data) return <TrendsSkeleton />;
 
@@ -175,11 +202,19 @@ function Trends({
               color={trend.color}
               formatValue={trend.format}
               formatTooltip={(value) => `${trend.format(value)} ${trend.unit}`}
-              data={data.buckets.map((bucket) => ({
-                period: bucket.period,
-                partial: bucket.partial,
-                value: trend.value(bucket),
-              }))}
+              comparedLabel={
+                compared ? m.statistics_series_compared() : undefined
+              }
+              data={data.buckets.map((bucket, index) => {
+                // Periods have the same length: buckets line up by rank
+                const before = compared && previous?.buckets[index];
+                return {
+                  period: bucket.period,
+                  partial: bucket.partial,
+                  value: trend.value(bucket),
+                  compared: before ? trend.value(before) : null,
+                };
+              })}
             />
           </CardContent>
         </Card>
@@ -189,7 +224,7 @@ function Trends({
 }
 
 /** Averages mix badly across sports: they need one to be chosen. */
-export function TrendsSection({ athleteId, period, sport }: P) {
+export function TrendsSection({ athleteId, period, compared, sport }: P) {
   return (
     <StatSection id="trends" title={m.statistics_section_trends()}>
       {(visible) =>
@@ -197,6 +232,7 @@ export function TrendsSection({ athleteId, period, sport }: P) {
           <Trends
             athleteId={athleteId}
             period={period}
+            compared={compared}
             sport={sport}
             visible={visible}
           />

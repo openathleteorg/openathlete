@@ -42,6 +42,15 @@ const COMPARISON_LABELS: Record<StatisticsComparison, () => string> = {
   lastYear: m.statistics_compare_last_year,
 };
 
+const SECTIONS = [
+  { id: 'volume', label: m.statistics_section_volume },
+  { id: 'regularity', label: m.statistics_section_regularity },
+  { id: 'load', label: m.statistics_section_load },
+  { id: 'intensity', label: m.statistics_section_intensity },
+  { id: 'performance', label: m.statistics_section_performance },
+  { id: 'trends', label: m.statistics_section_trends },
+];
+
 const TRIGGER = 'h-11 w-full md:h-9 md:w-auto md:min-w-40';
 
 interface P {
@@ -49,7 +58,7 @@ interface P {
   sports: SPORT_TYPE[];
 }
 
-/** Stays on screen while the page scrolls: it governs every section. */
+/** Stays on screen on desktop: on a phone, it would take too much of it. */
 export function StatisticsFilters({ filters, sports }: P) {
   const { period, periodType, offset, sport, comparison } = filters;
   const canStep = periodType !== 'all' && periodType !== 'custom';
@@ -63,7 +72,7 @@ export function StatisticsFilters({ filters, sports }: P) {
   return (
     <div
       data-statistics-filters
-      className="sticky top-0 z-20 -mx-4 space-y-2 border-b bg-background/95 px-4 py-2 backdrop-blur md:-mx-8 md:px-8"
+      className="z-20 -mx-4 space-y-2 border-b bg-background/95 px-4 py-2 backdrop-blur md:sticky md:top-0 md:-mx-8 md:px-8"
     >
       <div className="grid grid-cols-2 gap-2 md:flex md:flex-wrap md:items-center">
         <Select
@@ -159,6 +168,20 @@ export function StatisticsFilters({ filters, sports }: P) {
           )}
         </div>
       </div>
+      <nav
+        aria-label={m.statistics_sections_label()}
+        className="-mx-1 flex gap-1 overflow-x-auto text-sm"
+      >
+        {SECTIONS.map(({ id, label }) => (
+          <a
+            key={id}
+            href={`#${id}`}
+            className="flex min-h-11 shrink-0 items-center rounded px-2 text-muted-foreground hover:text-foreground md:min-h-0 md:py-1"
+          >
+            {label()}
+          </a>
+        ))}
+      </nav>
       {periodType === 'custom' && period && (
         <div className="grid grid-cols-2 gap-2 md:flex">
           <DatePicker

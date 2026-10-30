@@ -83,6 +83,15 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  longRun: {
+    verdict: 'reserved',
+    sources: [
+      {
+        label: 'Frandsen et al. 2025',
+        url: 'https://doi.org/10.1136/bjsports-2024-109380',
+      },
+    ],
+  },
   criticalSpeed: {
     verdict: 'estimate',
     sources: [

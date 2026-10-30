@@ -19,7 +19,7 @@ export function StatSection({ title, id, actions, children }: P) {
       ref={ref}
       id={id}
       aria-labelledby={`${id}-title`}
-      className="space-y-3 scroll-mt-20"
+      className="space-y-3 scroll-mt-36"
     >
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <h2 id={`${id}-title`} className="text-lg font-semibold">

@@ -276,6 +276,23 @@ describe('StatisticsService (PostgreSQL)', () => {
     );
   });
 
+  it('finds the runs well beyond the longest of the month before', async () => {
+    await activity('usual', '2026-03-01T08:00:00Z', { distance: 10000 });
+    await activity('same', '2026-03-05T08:00:00Z', { distance: 10500 });
+    await activity('far', '2026-03-10T08:00:00Z', { distance: 15000 });
+    await activity('much later', '2026-05-20T08:00:00Z', { distance: 16000 });
+
+    const { runs } = await service.getLongRuns(athlete, period);
+    expect(runs).toEqual([
+      expect.objectContaining({
+        name: 'far',
+        date: '2026-03-10',
+        distance: 15000,
+        longest: 10500,
+      }),
+    ]);
+  });
+
   it('weighs averages by the time in motion', async () => {
     await activity('long', '2026-03-10T08:00:00Z', {
       movingTime: 9000,

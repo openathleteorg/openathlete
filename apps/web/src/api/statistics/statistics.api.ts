@@ -6,6 +6,7 @@ import {
   StatisticsFiltersDto,
   StatisticsIntensityDto,
   StatisticsLoadDto,
+  StatisticsLongRunsDto,
   StatisticsOverviewDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
@@ -53,6 +54,13 @@ export class StatisticsAPI {
     params: StatisticsSectionParams,
   ): Promise<StatisticsIntensityDto> {
     const res = await client.get(routes.statistics.intensity, { params });
+    return res.data;
+  }
+
+  static async getLongRuns(
+    params: StatisticsSectionParams,
+  ): Promise<StatisticsLongRunsDto> {
+    const res = await client.get(routes.statistics.longRuns, { params });
     return res.data;
   }
 

@@ -135,6 +135,10 @@ export const statisticsTrendsSchema = z.object({
       averageHeartrate: z.number().nullable(),
       averageCadence: z.number().nullable(),
       averageWatts: z.number().nullable(),
+      /** Power weighted towards hard efforts, as the device gave it */
+      weightedWatts: z.number().nullable(),
+      /** Metres climbed per hour in motion */
+      verticalSpeed: z.number().nullable(),
     }),
   ),
 });
@@ -169,6 +173,23 @@ export const statisticsIntensitySchema = z.object({
   ),
 });
 export type StatisticsIntensityDto = z.infer<typeof statisticsIntensitySchema>;
+
+export const statisticsLongRunsSchema = z.object({
+  /** Runs well beyond the longest of the 30 days before them, latest first */
+  runs: z.array(
+    z.object({
+      eventId: z.number(),
+      name: z.string(),
+      /** YYYY-MM-DD */
+      date: z.string(),
+      /** Metres */
+      distance: z.number(),
+      /** Metres: the longest run of the 30 days before */
+      longest: z.number(),
+    }),
+  ),
+});
+export type StatisticsLongRunsDto = z.infer<typeof statisticsLongRunsSchema>;
 
 export const statisticsLoadSchema = z.object({
   granularity: z.enum(['day', 'week']),

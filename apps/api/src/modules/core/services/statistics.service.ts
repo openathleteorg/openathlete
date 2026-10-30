@@ -16,6 +16,7 @@ import {
   StatisticsFiltersDto,
   StatisticsIntensityDto,
   StatisticsLoadDto,
+  StatisticsLongRunsDto,
   StatisticsOverviewDto,
   StatisticsTotalsDto,
   StatisticsTrendsDto,
@@ -43,6 +44,10 @@ const LOAD_DAILY_MAX_DAYS = 400;
 /** A steady outing lasts, and stays mostly below the first threshold */
 const STEADY_MIN_SECONDS = 40 * 60;
 const STEADY_LOW_SHARE = 0.8;
+
+/** The lowest increase over the month's longest run the study links to injury */
+const LONG_RUN_RATIO = 1.1;
+const LONG_RUNS_SHOWN = 5;
 
 /** How far planned sessions carry the form curve */
 const PROJECTION_DAYS = 42;
@@ -306,6 +311,47 @@ export class StatisticsService {
     };
   }
 
+  /**
+   * Runs much longer than the longest of the month before. The association
+   * with injury was seen on single runs, in running only (Frandsen 2025).
+   */
+  async getLongRuns(
+    user: AuthUser,
+    { athleteId, from, to }: GetStatisticsSectionQueryDto,
+  ): Promise<StatisticsLongRunsDto> {
+    const timeZone = await this.readableTimeZone(user, athleteId);
+    const runs = await this.prisma.$queryRaw<StatisticsLongRunsDto['runs']>`
+      SELECT * FROM (
+        SELECT e.event_id AS "eventId", e.name, e.start_date,
+          ${this.bucketOf('day', timeZone)} AS date,
+          a.distance,
+          max(a.distance) OVER (
+            ORDER BY e.start_date
+            RANGE BETWEEN INTERVAL '30 days' PRECEDING
+              AND INTERVAL '1 millisecond' PRECEDING
+          ) AS longest
+        FROM event e
+        JOIN event_activity a ON a.event_id = e.event_id
+        WHERE e.athlete_id = ${athleteId}
+          AND e.type = 'ACTIVITY'
+          AND a.sport IN ('RUNNING', 'TRAIL_RUNNING')
+          AND e.start_date <= ${to}
+      ) run
+      WHERE run.start_date >= ${from}
+        AND run.distance > run.longest * ${LONG_RUN_RATIO}
+      ORDER BY run.start_date DESC
+      LIMIT ${LONG_RUNS_SHOWN}`;
+    return {
+      runs: runs.map(({ eventId, name, date, distance, longest }) => ({
+        eventId,
+        name,
+        date,
+        distance,
+        longest,
+      })),
+    };
+  }
+
   /** How the averages of a sport evolve, bucket by bucket. */
   async getTrends(
     user: AuthUser,
@@ -331,7 +377,9 @@ export class StatisticsService {
         (${timeWeighted(Prisma.sql`a.average_gap_speed`)})::float8 AS "averageGapSpeed",
         (${timeWeighted(Prisma.sql`a.average_heartrate`)})::float8 AS "averageHeartrate",
         (${timeWeighted(Prisma.sql`a.average_cadence`)})::float8 AS "averageCadence",
-        (${timeWeighted(Prisma.sql`a.average_watts`)})::float8 AS "averageWatts"
+        (${timeWeighted(Prisma.sql`a.average_watts`)})::float8 AS "averageWatts",
+        (${timeWeighted(Prisma.sql`a.weighted_average_watts`)})::float8 AS "weightedWatts",
+        (sum(a.elevation_gain) * 3600 / nullif(sum(a.moving_time), 0))::float8 AS "verticalSpeed"
       ${this.activitiesOf(athleteId, from, to, sport)}
       GROUP BY 1`;
 
@@ -352,6 +400,8 @@ export class StatisticsService {
         averageHeartrate: null,
         averageCadence: null,
         averageWatts: null,
+        weightedWatts: null,
+        verticalSpeed: null,
         ...byPeriod.get(bucket.period),
         ...bucket,
       })),
