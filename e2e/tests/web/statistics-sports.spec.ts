@@ -282,7 +282,7 @@ test('the page compares two periods section by section', async ({
   test.setTimeout(60_000);
   await prepare(page, request, weeks(14, run));
   await page.goto(
-    '/dashboard/statistics?sport=RUNNING&period=days7&compare=previous',
+    '/dashboard/statistics?sport=RUNNING&period=weeks12&compare=previous',
   );
   await reachEverySection(page);
   await expect(page.locator('[data-volume]')).toContainText('Compared period');

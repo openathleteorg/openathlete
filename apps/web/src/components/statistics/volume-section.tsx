@@ -128,13 +128,15 @@ function VolumeCharts({
   const locale = getDateFnsLocale(getLocale());
 
   const { rows: bars, series } = volumeChartData(volume?.buckets ?? [], metric);
+  const granularity = volume?.granularity ?? 'week';
   // Periods have the same length: buckets line up by rank
   const totals = before && compared ? chartTotals(before.buckets, metric) : [];
+  // Day by day, rest days turn the line into noise
+  const overlaid = !!compared && granularity !== 'day';
   const rows = bars.map((row, index) => ({
     ...row,
     compared: totals[index],
   }));
-  const granularity = volume?.granularity ?? 'week';
   const unit: Record<VolumeMetric, string> = {
     movingTime: 'h',
     distance: m.kilometers(),
@@ -186,7 +188,7 @@ function VolumeCharts({
                     </span>
                   </li>
                 ))}
-                {compared && (
+                {overlaid && (
                   <li className="flex items-center gap-1.5">
                     <span className="w-4 border-t-2 border-dashed border-muted-foreground" />
                     <span className="text-muted-foreground">
@@ -286,7 +288,7 @@ function VolumeCharts({
                       ))}
                     </Bar>
                   ))}
-                  {compared && (
+                  {overlaid && (
                     <Line
                       dataKey="compared"
                       type="linear"
