@@ -167,6 +167,38 @@ describe('GarminProviderService.processNotification', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
+  it('saves pushed data without pulling anything', async () => {
+    const { service, prisma } = setup([account]);
+
+    await service.processNotification(
+      {
+        summaryType: 'dailies',
+        userId: 'u1',
+        entry: { summaryId: 'd', calendarDate: '2026-10-27', steps: 1000 },
+      },
+      { lastAttempt: false },
+    );
+
+    expect(mockedGet).not.toHaveBeenCalled();
+    expect(prisma.$transaction).toHaveBeenCalled();
+  });
+
+  it('drops pushed data of unknown users, with nothing left to answer', async () => {
+    const { service, prisma } = setup([]);
+
+    await service.processNotification(
+      {
+        summaryType: 'dailies',
+        userId: 'gone',
+        entry: { summaryId: 'd', calendarDate: '2026-10-27', steps: 1000 },
+      },
+      { lastAttempt: false },
+    );
+
+    expect(mockedGet).not.toHaveBeenCalled();
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
   it('refuses callback URLs outside Garmin', async () => {
     const { service } = setup([account]);
 
