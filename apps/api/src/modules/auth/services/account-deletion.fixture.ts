@@ -63,6 +63,10 @@ export const accountFixtureSql = [
   `INSERT INTO training_load_calculation (training_load_calculation_id, type, athlete_id, updated_at) VALUES (3701, 'TRIMP', 2001, ${now})`,
   `INSERT INTO training_load_entry (date, value, calculation_id, activity_id, updated_at) VALUES ('2026-01-06', 80, 3701, 3501, ${now})`,
 
+  // Personal API credentials/receipts are owned by each athlete and cascade.
+  `INSERT INTO garmin_personal_connection (id, athlete_id, encrypted_credentials, updated_at) VALUES (8001, 2001, 'fixture-encrypted-personal-key', ${now}), (8002, 2002, 'coach-encrypted-personal-key', ${now})`,
+  `INSERT INTO garmin_personal_item (connection_id, external_id, event_activity_id) VALUES (8001, 'personal-activity', 3501), (8002, 'coach-personal-activity', NULL)`,
+
   // Competition and note
   `INSERT INTO event (event_id, start_date, end_date, name, type, athlete_id, updated_at) VALUES (3003, '2026-05-01', '2026-05-01', 'Race', 'COMPETITION', 2001, ${now}), (3004, '2026-01-07', '2026-01-07', 'Note', 'NOTE', 2001, ${now})`,
   `INSERT INTO event_competition (event_id, sport, related_activity_id) VALUES (3003, 'RUNNING', 3501)`,

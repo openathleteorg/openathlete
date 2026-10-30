@@ -32,6 +32,7 @@ export class InstanceController {
       properties: {
         googleSignIn: { type: 'boolean' },
         email: { type: 'boolean' },
+        garminPersonalApi: { type: 'boolean' },
         providers: {
           type: 'array',
           items: { type: 'string', enum: Object.values(ConnectorProvider) },
@@ -59,6 +60,7 @@ export class InstanceController {
       googleSignIn: !!get('FIREBASE_SERVICE_ACCOUNT_JSON'),
       email: !!emailTransportKind(get),
       providers: configuredProviders(get),
+      garminPersonalApi: get('GARMIN_PERSONAL_API_ENABLED') === true,
       // The first account is always allowed: it is the administrator's
       signup:
         mode !== 'open' && (await this.prisma.user.count()) === 0

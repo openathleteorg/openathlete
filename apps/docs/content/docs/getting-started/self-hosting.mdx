@@ -63,6 +63,7 @@ Leave a variable empty to disable the feature:
 | Device sync                                       | `STRAVA_*`, `GARMIN_*`, `POLAR_*`, `SUUNTO_*`              |
 | Single sign-on (OpenID Connect)                   | `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_NAME` (see below) |
 | AI load estimation fallback for planned sessions  | `ENABLE_TRAINING_LOAD_ESTIMATION`                          |
+| Garmin Personal API (self-hosted personal use only) | `GARMIN_PERSONAL_API_ENABLED=true` (default: off) |
 | Billing                                           | `STRIPE_*` (not needed for self-hosting)                   |
 
 #### Email
@@ -88,7 +89,13 @@ Every API variable is documented in `apps/api/.env.example`.
 
 ### Device sync
 
-Each provider needs an app registered in its developer program. Users can always import FIT and GPX files instead (Settings > Connectors).
+The OAuth connectors below need an app registered in their developer program.
+[Garmin Personal API](/docs/guides/garmin-personal-api) is a **self-hosted personal-use
+option, off by default**. Set `GARMIN_PERSONAL_API_ENABLED=true` to enable it.
+Personal keys access the key owner's own data; they are not for instances serving
+other people. The hosted OpenAthlete service must leave this option disabled.
+Activity imports require their own consent and an enabled import worker.
+Users can always import FIT and GPX files instead (Settings > Connectors).
 
 | Provider | Developer program                                                                                                                       | Callback URL to declare           |
 | -------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- |

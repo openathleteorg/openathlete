@@ -1,0 +1,143 @@
+---
+title: Garmin Personal API
+description: Import your own Garmin Connect activities with a personal API key
+---
+
+Garmin Personal API is a **self-hosted personal-use option, off by default**.
+Enable it by setting `GARMIN_PERSONAL_API_ENABLED=true` in the instance environment
+and restarting the API and any separate import worker. It then appears in
+**Settings > Connectors**. Leave it disabled on the hosted service.
+
+Personal keys give access to the key owner's own data, not to instances serving
+other people. They do not replace the Garmin Business API for commercial services.
+The option is independent of the shared Garmin business connector and requires no
+instance-wide Garmin client ID or secret. See [Garmin's overview](https://developer.garmin.com/gc-developer-program/overview/)
+and [Personal API FAQ](https://developer.garmin.com/gc-developer-program/personal/personal-faq/).
+
+## Connect your account
+
+1. Follow [Garmin's Personal API setup instructions](https://developer.garmin.com/gc-developer-program/personal/personal-api/)
+   to generate a key in Garmin Connect on the web. Garmin displays it once; choose
+   an expiry appropriate for your use.
+2. In OpenAthlete, open **Settings > Connectors > Garmin Personal API** and enter
+   the key. Save validates both the key and access to Garmin's profile endpoint.
+3. Enable activity imports separately. Saving a key alone imports nothing.
+4. Select an inclusive range of up to 28 calendar days and start an import.
+   Repeat with older ranges for historical data.
+5. Optionally enable automatic sync. It runs hourly and looks back seven calendar
+   days. The automatic window uses UTC calendar dates; Garmin applies its own
+   account-local date filtering, so activities near midnight may appear on the
+   following pull.
+
+The status distinguishes queued/running work, completion, partial results and
+failures. Counts distinguish newly imported activities, existing recordings,
+recordings needing review, unsupported files skipped, failed files and pending
+activity-processing jobs.
+Unsupported FIT recordings are counted separately as skipped, not as matches or
+failed downloads. Preferences are locked while a pull is queued or running;
+disconnecting remains available to stop it. API callers receive HTTP 409
+`sync_in_progress` if they attempt a preference change during that period.
+
+A request queues work; it does not mean import has finished. Each pull stops at
+1,000 recordings and reports truncation; use a smaller date range if needed.
+
+## Data and duplicate handling
+
+This first version imports activity FIT files, including streams and segments
+supported by OpenAthlete's existing FIT parser. It does not import daily health
+metrics or export planned workouts. Multisport children are excluded from search;
+explicitly unsupported FIT files are skipped, while malformed files remain
+retryable failures rather than being guessed.
+
+Explicitly unsupported files (multisport recordings, non-activity FIT files or
+recordings exceeding the parser's sample/lap limits) retain a receipt with their
+reason. Subsequent pulls count them as skipped without downloading them again.
+These receipts persist across reconnects; this version has no reset/retry action
+for them. Corrupt archives, ambiguous parser failures and transient network or
+database errors do not create a permanent skipped receipt and can be retried.
+
+A 403 from an activity download is treated as an access failure for that recording:
+the batch continues, the key remains saved, and a later pull may retry the file.
+Garmin's download reference does not specify that a 403 proves an invalid key.
+A rejected key exchange still requires a replacement key; a bearer-token 401
+triggers the existing single renewal attempt. Activity writes use the same
+15-second transaction timeout as manual FIT imports.
+
+Stable Garmin activity IDs are recorded per athlete, so repeated pulls do not
+create another activity. Deleting an imported activity locally does not cause it
+to reappear on the next pull. Imports and receipts commit together; a retry can
+resume scheduling derived processing after a lost queue acknowledgement.
+
+If a corresponding Garmin business activity already exists, its Garmin ID is
+matched. Otherwise, an existing activity within 30 seconds of the FIT start time
+must be the only candidate and agree on sport, elapsed duration (within 30 seconds)
+and positive distance (within 50 metres or 1%). A match preserves the existing
+activity, including edits and training links. It does not replace its streams.
+Ambiguous overlaps are withheld and counted as needing review. This version has
+no review-resolution screen; the original recording remains untouched.
+
+**Arrival order matters:** existing business/Strava imports can be recognized by
+this connector, but the upstream business/Strava importers do not consult Personal
+API receipts. Later imports through those other connections, or concurrent imports
+through different providers, can still create duplicates. Use one automatic source
+for an overlapping recording until shared reconciliation supports both orders.
+
+## Credentials and disconnecting
+
+The browser never receives a saved key or token. Both are encrypted at rest using
+an athlete-bound key derived from the instance's `HASH_PEPPER`. Keys and tokens are
+excluded from account exports, sync-job payloads and API error responses.
+Garmin returns a bearer token valid for up to 24 hours (or the key's earlier expiry).
+OpenAthlete exchanges the key again when needed; there is no OAuth refresh token.
+
+Disconnect removes the stored credentials and invalidates queued/in-flight imports.
+Previously imported activities and duplicate-prevention receipts remain. To revoke
+the key itself, revoke it in Garmin Connect too. A revoked or expired key requires
+a replacement in OpenAthlete. Deleting an OpenAthlete account removes its connection
+and receipts. Back up `HASH_PEPPER` with the database; changing it makes existing
+credentials unreadable, requiring users to reconnect.
+
+## Self-hosting and API contract
+
+Apply the normal database migrations and deploy API and web from the same release.
+The migrations add `garmin_personal_connection` and `garmin_personal_item`,
+including a nullable `skip_reason` receipt field. Existing provider accounts and
+activities are not rewritten. Redis and an API worker with
+`ENABLE_ACTIVITY_IMPORT=true` are required for pulls; activity analysis requires
+`ENABLE_ACTIVITY_PROCESSING=true`. These workers may run in the API container or a
+separate worker container, as described in the [self-hosting guide](/docs/getting-started/self-hosting).
+No Garmin Personal key belongs in a shared `.env` file.
+
+
+`GET /api/instance` advertises `garminPersonalApi: true` only when
+`GARMIN_PERSONAL_API_ENABLED=true`; otherwise it reports `false` and connection
+endpoints return HTTP 503 with `PROVIDER_NOT_CONFIGURED`. No Personal API queue,
+processor or hourly scheduler is registered while disabled.
+Older servers omit the flag and the new web UI hides the connection. All connection
+endpoints require the current user's JWT; callers cannot supply another athlete ID:
+
+| Method | Path (under `/api`) | Body |
+| --- | --- | --- |
+| GET | `/provider/garmin-personal` | None; sanitized connection state |
+| POST | `/provider/garmin-personal` | `{ apiKey, activities, automatic }` |
+| PATCH | `/provider/garmin-personal` | `{ activities, automatic }` |
+| DELETE | `/provider/garmin-personal` | None; disconnect |
+| POST | `/provider/garmin-personal/sync` | `{ startDate, endDate }`; HTTP 202 `{ queued }` |
+
+Dates use `YYYY-MM-DD`; unknown fields are rejected. The shared DTOs define the
+status and result contracts. Garmin's [official OpenAPI reference](https://developer.garmin.com/gc-developer-program/personal/swagger-docs/)
+and [reference Python client](https://github.com/garmin/connect-personal-api-python)
+describe the HTTPS key exchange, paginated activity search and zipped FIT download.
+
+### Upgrading an unreleased preview
+
+The pre-merge migration was renamed from `20261026120000_garmin_personal_api`
+to `20261030120000_garmin_personal_api` to follow upstream's existing migrations.
+Its SQL is unchanged. Fresh installations require no special steps.
+
+If a preview database already applied the old name, back it up and reconcile that
+completed Prisma migration record to the new name during the upgrade, after
+verifying that its checksum matches the new file and that the new name has not
+already been applied. Do not replay the SQL against the existing tables or delete
+their data. Coordinate the history change with the application version being
+deployed; do not change a running preview's history in advance.

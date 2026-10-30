@@ -147,6 +147,7 @@ model EventNote {
 /// normalization factors, and can be linked to a planned training session.
 /// Activities can have segments, feedback questions, and extracted injury information.
 model EventActivity {
+  garminPersonalItems GarminPersonalItem[]
   // primary key
   eventActivityId Int @id @default(autoincrement()) @map("event_activity_id")
 
