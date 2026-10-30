@@ -237,6 +237,7 @@ model EventActivity {
   weather             EventActivityWeather?
   normalization       EventActivityNormalization?
   trainingLoadEntries TrainingLoadEntry[]
+  profileBins         ActivityProfileBin[]
   messageThread       MessageThread?              @relation("ActivityCommentThread") // comment thread for this activity
   segments            ActivitySegment[]
   feedbackQuestions   ActivityFeedbackQuestion[]
@@ -387,4 +388,24 @@ model Cycle {
 
   @@index([trainingPlanId])
   @@map("cycle")
+}
+
+/// What a recording says of an athlete, summed up so statistics never read the
+/// stream: one row per slope, speed or power band of an activity, and one per
+/// drift. Recomputed from the stream, it holds nothing of its own.
+model ActivityProfileBin {
+  /// GRADE: percent; SPEED: half km/h; POWER: 10 W; DRIFT_*: always 0
+  bin     Int
+  /// Time the row stands for
+  seconds Float
+  /// GRADE: vertical m/h; SPEED and POWER: mean heart rate; DRIFT_*: percent
+  value   Float
+  kind    ActivityProfileKind
+
+  // relationships
+  eventActivity   EventActivity @relation(fields: [eventActivityId], references: [eventActivityId], onDelete: Cascade)
+  eventActivityId Int           @map("event_activity_id")
+
+  @@id([eventActivityId, kind, bin])
+  @@map("activity_profile_bin")
 }

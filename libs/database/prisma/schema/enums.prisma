@@ -451,3 +451,14 @@ enum CycleKind {
 
   @@map("cycle_kind")
 }
+
+enum ActivityProfileKind {
+  GRADE
+  SPEED
+  POWER
+  DRIFT_PACE
+  DRIFT_HEARTRATE
+  DRIFT_POWER
+
+  @@map("activity_profile_kind")
+}

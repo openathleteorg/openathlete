@@ -311,6 +311,72 @@ describe('StatisticsService (PostgreSQL)', () => {
     ]);
   });
 
+  async function profile(
+    eventId: number,
+    kind: 'GRADE' | 'SPEED' | 'DRIFT_PACE',
+    bin: number,
+    seconds: number,
+    value: number,
+  ) {
+    const { eventActivityId } = (await prisma.eventActivity.findUnique({
+      where: { eventId },
+    }))!;
+    await prisma.activityProfileBin.create({
+      data: { eventActivityId, kind, bin, seconds, value },
+    });
+  }
+
+  it('reads the median vertical speed of a slope across activities', async () => {
+    for (const [index, value] of [600, 700, 800].entries()) {
+      const session = await activity(
+        `climb ${index}`,
+        `2026-03-1${index}T08:00:00Z`,
+      );
+      await profile(session.eventId, 'GRADE', 10, 600, value);
+      // In passing: too short to count
+      await profile(session.eventId, 'GRADE', 20, 10, 900);
+    }
+    const { bins, classes } = await service.getTerrain(athlete, {
+      ...period,
+      sport: 'RUNNING' as SPORT_TYPE,
+    });
+    expect(bins).toEqual([
+      { bin: 10, low: 650, median: 700, high: 750, count: 3 },
+    ]);
+    // 100 + 116.7 + 133.3 m at 10%, and the passing bits above 20%
+    expect(classes[0].from).toBe(10);
+    expect(classes[0].climbed).toBeCloseTo(350, 0);
+  });
+
+  it('wants several activities before showing a slope', async () => {
+    const session = await activity('once', '2026-03-10T08:00:00Z');
+    await profile(session.eventId, 'GRADE', 10, 600, 700);
+    const { bins } = await service.getTerrain(athlete, {
+      ...period,
+      sport: 'RUNNING' as SPORT_TYPE,
+    });
+    expect(bins).toEqual([]);
+  });
+
+  it('reads heart rate by speed, in km/h', async () => {
+    for (const [index, value] of [140, 150, 160].entries()) {
+      const session = await activity(
+        `run ${index}`,
+        `2026-03-1${index}T08:00:00Z`,
+      );
+      await profile(session.eventId, 'SPEED', 21, 600, value);
+    }
+    expect(
+      await service.getCardiacCost(athlete, {
+        ...period,
+        sport: 'RUNNING' as SPORT_TYPE,
+      }),
+    ).toEqual({
+      unit: 'speed',
+      bins: [{ bin: 10.5, low: 145, median: 150, high: 155, count: 3 }],
+    });
+  });
+
   it('weighs averages by the time in motion', async () => {
     await activity('long', '2026-03-10T08:00:00Z', {
       movingTime: 9000,

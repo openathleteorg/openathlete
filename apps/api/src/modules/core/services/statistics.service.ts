@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { Athlete, Prisma } from '@openathlete/database';
+import { ActivityProfileKind, Athlete, Prisma } from '@openathlete/database';
 import {
   GetStatisticsOverviewQueryDto,
   GetStatisticsSectionQueryDto,
@@ -14,12 +14,15 @@ import {
   SPORT_GROUPS,
   SPORT_TYPE,
   SportGroup,
+  StatisticsCardiacCostDto,
   StatisticsDaysDto,
+  StatisticsDurabilityDto,
   StatisticsFiltersDto,
   StatisticsIntensityDto,
   StatisticsLoadDto,
   StatisticsLongRunsDto,
   StatisticsOverviewDto,
+  StatisticsTerrainDto,
   StatisticsTotalsDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
@@ -31,6 +34,7 @@ import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { durabilityClasses } from '../helpers/durability';
 import { statisticsBuckets } from '../helpers/statistics-buckets';
 import {
   addUtcDays,
@@ -53,6 +57,10 @@ const LONG_RUNS_SHOWN = 5;
 
 /** Lower bounds of the zones an account starts with */
 const DEFAULT_HR_ZONE_MINS = [0, 132, 143, 153, 164];
+
+/** A band read in passing says nothing: it needs some time, on several days */
+const MIN_BIN_SECONDS = 60;
+const MIN_BIN_ACTIVITIES = 3;
 
 /** How far planned sessions carry the form curve */
 const PROJECTION_DAYS = 42;
@@ -373,6 +381,111 @@ export class StatisticsService {
         longest,
       })),
     };
+  }
+
+  /** Medians across activities of one kind of profile bin */
+  private profileQuantiles(
+    kind: ActivityProfileKind,
+    { athleteId, from, to, sport }: GetStatisticsTrendsQueryDto,
+    scale = 1,
+  ) {
+    return this.prisma.$queryRaw<
+      {
+        bin: number;
+        low: number;
+        median: number;
+        high: number;
+        count: number;
+      }[]
+    >`
+      SELECT p.bin * ${scale}::float8 AS bin,
+        percentile_cont(0.25) WITHIN GROUP (ORDER BY p.value)::float8 AS low,
+        percentile_cont(0.5) WITHIN GROUP (ORDER BY p.value)::float8 AS median,
+        percentile_cont(0.75) WITHIN GROUP (ORDER BY p.value)::float8 AS high,
+        count(*)::int AS count
+      FROM activity_profile_bin p
+      JOIN event_activity a ON a.event_activity_id = p.event_activity_id
+      JOIN event e ON e.event_id = a.event_id
+      WHERE p.kind = ${kind}::activity_profile_kind
+        AND p.seconds >= ${MIN_BIN_SECONDS}
+        AND e.athlete_id = ${athleteId}
+        AND e.type = 'ACTIVITY'
+        AND e.start_date >= ${from}
+        AND e.start_date <= ${to}
+        AND a.sport = ${sport}::sport_type
+      GROUP BY p.bin
+      HAVING count(*) >= ${MIN_BIN_ACTIVITIES}
+      ORDER BY p.bin`;
+  }
+
+  /** Vertical speed by slope, and where the metres were climbed. */
+  async getTerrain(
+    user: AuthUser,
+    query: GetStatisticsTrendsQueryDto,
+  ): Promise<StatisticsTerrainDto> {
+    const { athleteId, from, to, sport } = query;
+    await this.assertCanRead(user, athleteId);
+    const [bins, classes] = await Promise.all([
+      this.profileQuantiles('GRADE', query),
+      this.prisma.$queryRaw<StatisticsTerrainDto['classes']>`
+        SELECT least(abs(p.bin) / 5, 4)::int * 5 AS "from",
+          coalesce(sum(p.value * p.seconds / 3600) FILTER (WHERE p.bin > 0), 0)::float8 AS climbed,
+          coalesce(sum(p.value * p.seconds / 3600) FILTER (WHERE p.bin < 0), 0)::float8 AS descended
+        FROM activity_profile_bin p
+        JOIN event_activity a ON a.event_activity_id = p.event_activity_id
+        JOIN event e ON e.event_id = a.event_id
+        WHERE p.kind = 'GRADE'
+          AND e.athlete_id = ${athleteId}
+          AND e.type = 'ACTIVITY'
+          AND e.start_date >= ${from}
+          AND e.start_date <= ${to}
+          AND a.sport = ${sport}::sport_type
+        GROUP BY 1
+        ORDER BY 1`,
+    ]);
+    return { bins, classes };
+  }
+
+  /** Heart rate at each speed or power: lower at the same output is fitter. */
+  async getCardiacCost(
+    user: AuthUser,
+    query: GetStatisticsTrendsQueryDto,
+  ): Promise<StatisticsCardiacCostDto> {
+    await this.assertCanRead(user, query.athleteId);
+    const [speed, power] = await Promise.all([
+      this.profileQuantiles('SPEED', query, 0.5),
+      this.profileQuantiles('POWER', query, 10),
+    ]);
+    return power.length >= speed.length
+      ? { unit: 'power', bins: power }
+      : { unit: 'speed', bins: speed };
+  }
+
+  /** How efforts hold over time, by the length of the outing. */
+  async getDurability(
+    user: AuthUser,
+    { athleteId, from, to, sport }: GetStatisticsTrendsQueryDto,
+  ): Promise<StatisticsDurabilityDto> {
+    await this.assertCanRead(user, athleteId);
+    const rows = await this.prisma.$queryRaw<
+      {
+        kind: StatisticsDurabilityDto['outings'][number]['kind'];
+        hours: number;
+        percent: number;
+      }[]
+    >`
+      SELECT p.kind::text AS kind, (p.seconds / 3600)::float8 AS hours,
+        p.value::float8 AS percent
+      FROM activity_profile_bin p
+      JOIN event_activity a ON a.event_activity_id = p.event_activity_id
+      JOIN event e ON e.event_id = a.event_id
+      WHERE p.kind IN ('DRIFT_PACE', 'DRIFT_POWER', 'DRIFT_HEARTRATE')
+        AND e.athlete_id = ${athleteId}
+        AND e.type = 'ACTIVITY'
+        AND e.start_date >= ${from}
+        AND e.start_date <= ${to}
+        AND a.sport = ${sport}::sport_type`;
+    return durabilityClasses(rows);
   }
 
   /** How the averages of a sport evolve, bucket by bucket. */

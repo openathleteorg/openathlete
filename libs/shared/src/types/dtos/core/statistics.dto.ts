@@ -211,6 +211,64 @@ export const statisticsLongRunsSchema = z.object({
 });
 export type StatisticsLongRunsDto = z.infer<typeof statisticsLongRunsSchema>;
 
+const quantilesSchema = z.object({
+  /** Middle half of the activities, and their median */
+  low: z.number(),
+  median: z.number(),
+  high: z.number(),
+  /** Activities behind the figure */
+  count: z.number(),
+});
+
+const profileBinSchema = quantilesSchema.extend({
+  /** Percent of slope, km/h or watts */
+  bin: z.number(),
+});
+
+export const statisticsTerrainSchema = z.object({
+  bins: z.array(profileBinSchema),
+  /** Metres climbed and descended by class of slope */
+  classes: z.array(
+    z.object({
+      /** Lower bound of the class, in percent */
+      from: z.number(),
+      climbed: z.number(),
+      descended: z.number(),
+    }),
+  ),
+});
+export type StatisticsTerrainDto = z.infer<typeof statisticsTerrainSchema>;
+
+export const statisticsCardiacCostSchema = z.object({
+  /** The output heart rate is read against */
+  unit: z.enum(['speed', 'power']),
+  bins: z.array(profileBinSchema),
+});
+export type StatisticsCardiacCostDto = z.infer<
+  typeof statisticsCardiacCostSchema
+>;
+
+export const statisticsDurabilitySchema = z.object({
+  /** How much the output dropped and the heart rate rose, by outing length */
+  series: z.array(
+    z.object({
+      kind: z.enum(['DRIFT_PACE', 'DRIFT_POWER', 'DRIFT_HEARTRATE']),
+      classes: z.array(quantilesSchema.extend({ fromHours: z.number() })),
+    }),
+  ),
+  /** Every outing, for the cloud */
+  outings: z.array(
+    z.object({
+      kind: z.enum(['DRIFT_PACE', 'DRIFT_POWER', 'DRIFT_HEARTRATE']),
+      hours: z.number(),
+      percent: z.number(),
+    }),
+  ),
+});
+export type StatisticsDurabilityDto = z.infer<
+  typeof statisticsDurabilitySchema
+>;
+
 export const statisticsLoadSchema = z.object({
   granularity: z.enum(['day', 'week']),
   /** A week holds its total load, and its form on its last day */

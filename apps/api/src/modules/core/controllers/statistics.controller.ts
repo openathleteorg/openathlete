@@ -199,6 +199,75 @@ export class StatisticsController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('terrain')
+  @ApiOperation({
+    summary: 'Vertical speed by slope',
+    description:
+      'Median vertical speed and its middle half by percent of slope, read on the activities of a sport, and the metres climbed and descended by class of slope.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getTerrain(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getTerrain(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('cardiac-cost')
+  @ApiOperation({
+    summary: 'Heart rate by speed or power',
+    description:
+      'Median heart rate and its middle half at each band of grade adjusted speed, or of power on a bike.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getCardiacCost(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getCardiacCost(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('durability')
+  @ApiOperation({
+    summary: 'How efforts hold over time',
+    description:
+      'Drift of output and heart rate between the first and last third of outings of an hour or more, by their length.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getDurability(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getDurability(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('trends')
   @ApiOperation({
     summary: "How a sport's averages evolve",
