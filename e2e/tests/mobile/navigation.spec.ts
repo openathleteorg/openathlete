@@ -49,6 +49,17 @@ test('the finder opens from the top bar, full screen', async ({ page }) => {
   await expect(finder.getByRole('combobox')).toBeVisible();
 });
 
+test('the install view lists the stores to come and the web app', async ({
+  page,
+}) => {
+  await page.goto('/dashboard/profile');
+
+  await page.getByRole('button', { name: 'Install app' }).tap();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.locator('[data-install-channel]')).toHaveCount(3);
+  await expect(dialog.getByText('Coming soon')).toHaveCount(2);
+});
+
 test('fits the screen without horizontal scrolling', async ({ page }) => {
   for (const name of [
     'today',

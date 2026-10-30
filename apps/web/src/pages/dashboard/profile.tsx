@@ -6,12 +6,14 @@ import { useAuthContext, useUserRoles } from '@/contexts/auth';
 import { useSpaceContext } from '@/contexts/space';
 import { useLanguageSync } from '@/hooks/use-language-sync';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePushPermission } from '@/hooks/use-push-permission';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { SUPPORTED_LOCALES, getLocaleName } from '@/utils/locales';
 import { useSettingsTabs } from '@/views/dashboard/settings-view/use-settings-tabs';
 import {
+  Bell,
   Bike,
   Bot,
   ChevronRight,
@@ -32,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 import { UserRole } from '@openathlete/shared';
 
@@ -125,6 +128,33 @@ function PickerRow({
   );
 }
 
+/** Whether this device gets notifications; only the apps can. */
+function NotificationsRow() {
+  const { permission, enable } = usePushPermission();
+  if (permission === 'unsupported') return null;
+  const status = {
+    granted: m.push_status_on(),
+    denied: m.push_status_off(),
+    prompt: m.push_enable(),
+  }[permission];
+
+  return (
+    <button
+      type="button"
+      data-notifications-row
+      className={rowClass}
+      onClick={() => {
+        if (permission === 'prompt') void enable();
+        if (permission === 'denied') toast.info(m.push_denied_hint());
+      }}
+    >
+      <Bell className="size-5 shrink-0 text-muted-foreground" />
+      <span className="min-w-0 flex-1 truncate">{m.notifications()}</span>
+      <span className="text-muted-foreground">{status}</span>
+    </button>
+  );
+}
+
 /** The Me tab: who is signed in, and everything that is set up once. */
 function MeScreen() {
   const { user, logout } = useAuthContext();
@@ -186,6 +216,7 @@ function MeScreen() {
         {appTabs.map((tab) => (
           <SettingRow key={tab} tab={tab} label={tabLabels[tab]} />
         ))}
+        <NotificationsRow />
         <PickerRow
           icon={Globe}
           label={m.language()}

@@ -75,7 +75,7 @@ export function AppTabBar() {
                   className="relative size-[1.3125rem]"
                   strokeWidth={isActive ? 2.25 : 1.75}
                 />
-                {tab.id === 'coach' && unread > 0 && (
+                {tab.id === 'messages' && unread > 0 && (
                   <UnreadBadge
                     count={unread}
                     className="absolute -top-1 right-1.5"

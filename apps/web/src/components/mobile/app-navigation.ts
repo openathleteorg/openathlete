@@ -30,8 +30,8 @@ const calendar: AppTab = {
 };
 
 const conversations: AppTab = {
-  id: 'coach',
-  label: m.nav_tab_coach,
+  id: 'messages',
+  label: m.messages,
   icon: MessageCircle,
   path: getPath(['dashboard', 'messages']),
   sections: ['messages'],
@@ -74,7 +74,7 @@ const COACH_TABS: AppTab[] = [
     sections: ['coach', 'summary'],
   },
   calendar,
-  { ...conversations, label: m.messages },
+  conversations,
   me,
 ];
 

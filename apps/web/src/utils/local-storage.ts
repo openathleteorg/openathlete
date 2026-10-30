@@ -4,6 +4,7 @@ export const CALENDAR_COLORED_BY = 'calendar_colored_by';
 export const SIDEBAR_OPEN_STATES = 'sidebar_open_states';
 export const CURRENT_SPACE = 'current_space';
 export const MOBILE_SERVER_URL = 'openathlete_mobile_server_url';
+export const PUSH_PROMPT_DISMISSED = 'openathlete_push_prompt_dismissed';
 export const SUPPORT_REMINDER_DISMISSED =
   'openathlete_support_reminder_dismissed';
 export const FIRST_SEEN_AT = 'openathlete_first_seen_at';

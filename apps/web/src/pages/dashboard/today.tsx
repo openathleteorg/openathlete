@@ -18,6 +18,7 @@ import {
   formatCompactDuration,
   formatCompactKilometers,
 } from '@/components/calendar/utils/week-summary';
+import { PushPromptCard } from '@/components/mobile/push-prompt-card';
 import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -338,6 +339,8 @@ function TodayScreen() {
           </span>
         </Link>
       )}
+
+      {coming.length > 0 && <PushPromptCard />}
 
       {coming.length > 0 && (
         <Section title={m.today_coming_up()}>

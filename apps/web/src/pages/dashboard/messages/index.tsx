@@ -14,7 +14,6 @@ import { PageLoader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { UnreadBadge } from '@/components/ui/unread-badge';
-import { useSpaceContext } from '@/contexts/space';
 import { useAppBar } from '@/hooks/use-app-bar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
@@ -53,7 +52,6 @@ export function MessagesPage() {
   >(null);
   const [mobileView, setMobileView] = useState<'list' | 'conversation'>('list');
   const isMobile = useIsMobile();
-  const { space } = useSpaceContext();
   const { data: messageThreads, isLoading: isLoadingMessageThreads } =
     useGetMessageThreadsQuery();
   const createMessageThreadMutation = useCreateMessageThreadMutation();
@@ -163,8 +161,7 @@ export function MessagesPage() {
     setNewThreadDialogOpen(true);
   }, [setNewThreadDialogOpen]);
 
-  const pageTitle =
-    isMobile && space === 'ATHLETE' ? m.nav_tab_coach() : m.messages();
+  const pageTitle = m.messages();
   const conversationTitle = activeId
     ? messageThreads?.find((t) => t.messageThreadId === activeMessageThreadId)
         ?.title || m.message_thread_title({ id: activeId })

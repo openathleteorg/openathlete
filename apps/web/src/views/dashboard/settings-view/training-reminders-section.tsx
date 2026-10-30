@@ -1,9 +1,12 @@
 import { useGetMeQuery, useUpdateAccountMutation } from '@/api/user';
 import { userKeys } from '@/api/user/user.keys';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { usePushPermission } from '@/hooks/use-push-permission';
 import { m } from '@/paraglide/messages';
 import { useQueryClient } from '@tanstack/react-query';
+import { Bell } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { SettingsSection } from './settings-section';
@@ -12,6 +15,7 @@ import { SettingsSection } from './settings-section';
 export function TrainingRemindersSection() {
   const queryClient = useQueryClient();
   const { data: me } = useGetMeQuery();
+  const { permission, enable } = usePushPermission();
   const updateMutation = useUpdateAccountMutation({
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: [userKeys.getMe] }),
@@ -36,6 +40,21 @@ export function TrainingRemindersSection() {
           disabled={!me || updateMutation.isPending}
         />
       </div>
+      {permission === 'prompt' && (
+        <Button
+          variant="outline"
+          className="mt-4 h-11 w-full"
+          onClick={() => void enable()}
+        >
+          <Bell className="size-4" />
+          {m.push_enable_on_device()}
+        </Button>
+      )}
+      {permission === 'denied' && (
+        <p className="mt-4 text-sm text-muted-foreground">
+          {m.push_denied_hint()}
+        </p>
+      )}
     </SettingsSection>
   );
 }

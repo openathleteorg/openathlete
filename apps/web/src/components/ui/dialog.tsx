@@ -140,7 +140,7 @@ function DialogContent({
           className={cn(
             'ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute z-10 transition-opacity focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0',
             sheet
-              ? "flex size-11 items-center justify-center rounded-full text-muted-foreground [&_svg:not([class*='size-'])]:size-5"
+              ? "flex size-11 items-center justify-center rounded-full text-muted-foreground focus:ring-0 focus:ring-offset-0 focus-visible:ring-2 [&_svg:not([class*='size-'])]:size-5"
               : "top-4 right-4 rounded-xs opacity-70 hover:opacity-100 [&_svg:not([class*='size-'])]:size-4",
             sheet === 'bottom' && 'top-2 right-2',
             sheet === 'full' && 'top-[calc(0.25rem+var(--safe-top))] right-1',
