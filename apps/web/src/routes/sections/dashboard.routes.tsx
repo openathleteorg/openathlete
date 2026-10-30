@@ -24,6 +24,12 @@ const IndexPage = lazy(() =>
   })),
 );
 
+const TodayPage = lazy(() =>
+  import('@/pages/dashboard/today').then((module) => ({
+    default: module.TodayPage,
+  })),
+);
+
 const CalendarPage = lazy(() =>
   import('@/pages/dashboard/calendar').then((module) => ({
     default: module.CalendarPage,
@@ -128,6 +134,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'onboarding']),
         element: <OnboardingPage />,
+      },
+      {
+        path: getPath(['dashboard', 'today']),
+        element: <TodayPage />,
       },
       {
         path: getPath(['dashboard', 'calendar']),

@@ -5,11 +5,14 @@ import { EventDetails } from '@/components/event-details/event-details';
 import { EventHeading } from '@/components/event-details/event-heading';
 import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/ui/loader';
+import { useAppBar } from '@/hooks/use-app-bar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
 import { isCapacitor } from '@/utils/capacitor';
 import { ArrowLeft, Link as LinkIcon } from 'lucide-react';
+import { useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -36,6 +39,11 @@ export function ActivityView({ eventId }: P) {
       ? navigate(getPath(['dashboard', 'calendar']))
       : navigate(-1);
 
+  const isMobile = useIsMobile();
+  const eventName = event?.name;
+  const appBar = useMemo(() => ({ title: eventName, back: true }), [eventName]);
+  useAppBar(appBar);
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(window.location.href);
@@ -53,20 +61,22 @@ export function ActivityView({ eventId }: P) {
     <div className="mx-auto w-full max-w-6xl space-y-4 p-4" data-activity-page>
       {event && found && <title>{event.name}</title>}
       <div className="flex items-start gap-2">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-11 shrink-0"
-          onClick={goBack}
-          aria-label={m.ui_back()}
-        >
-          <ArrowLeft className="size-5" />
-        </Button>
+        {!isMobile && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-11 shrink-0"
+            onClick={goBack}
+            aria-label={m.ui_back()}
+          >
+            <ArrowLeft className="size-5" />
+          </Button>
+        )}
         {event && found && (
           <>
-            <div className="min-w-0 flex-1 space-y-1 pt-2">
+            <div className="min-w-0 flex-1 space-y-1 md:pt-2">
               <h1 className="font-semibold">
-                <EventHeading event={event} />
+                <EventHeading event={event} hideName={isMobile} />
               </h1>
               <p className="text-sm text-muted-foreground">
                 {new Date(event.startDate).toLocaleString(getLocale(), {

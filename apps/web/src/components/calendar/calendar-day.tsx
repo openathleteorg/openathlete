@@ -184,7 +184,8 @@ export function CalendarDay({
     <div
       className={cn(
         'group/day min-h-32 flex-1 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/30 select-none',
-        variant === 'week' && 'min-w-0 min-h-64 border-b md:border-b-0',
+        variant === 'week' &&
+          'min-w-0 min-h-20 border-b md:min-h-64 md:border-b-0',
         isOver ? 'bg-gray-100 dark:bg-gray-800/50' : '',
         fileOver &&
           'bg-primary/10 outline-2 -outline-offset-2 outline-dashed outline-primary',

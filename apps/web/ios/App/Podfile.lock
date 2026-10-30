@@ -1,11 +1,13 @@
 PODS:
-  - Capacitor (8.5.2):
+  - Capacitor (8.5.3):
     - CapacitorCordova
+  - CapacitorApp (8.1.2):
+    - Capacitor
   - CapacitorBrowser (8.0.5):
     - Capacitor
   - CapacitorCommunitySafeArea (8.0.1):
     - Capacitor
-  - CapacitorCordova (8.5.2)
+  - CapacitorCordova (8.5.3)
   - CapacitorFirebaseAuthentication (8.5.2):
     - Capacitor
     - CapacitorFirebaseAuthentication/Lite (= 8.5.2)
@@ -13,13 +15,15 @@ PODS:
   - CapacitorFirebaseAuthentication/Lite (8.5.2):
     - Capacitor
     - FirebaseAuth (~> 12.7)
+  - CapacitorHaptics (8.0.2):
+    - Capacitor
   - CapacitorPushNotifications (8.1.3):
     - Capacitor
   - CapacitorStatusBar (8.0.4):
     - Capacitor
   - CapacitorVoiceRecorder (7.0.6):
     - Capacitor
-  - CapgoNativePurchases (8.8.3):
+  - CapgoNativePurchases (8.9.6):
     - Capacitor
   - Firebase/Core (12.8.0):
     - Firebase/CoreOnly
@@ -147,15 +151,17 @@ PODS:
   - RecaptchaInterop (101.0.0)
 
 DEPENDENCIES:
-  - "Capacitor (from `../../../../node_modules/.pnpm/@capacitor+ios@8.5.2_@capacitor+core@8.5.2/node_modules/@capacitor/ios`)"
-  - "CapacitorBrowser (from `../../../../node_modules/.pnpm/@capacitor+browser@8.0.5_@capacitor+core@8.5.2/node_modules/@capacitor/browser`)"
-  - "CapacitorCommunitySafeArea (from `../../../../node_modules/.pnpm/@capacitor-community+safe-area@8.0.1_@capacitor+core@8.5.2/node_modules/@capacitor-community/safe-area`)"
-  - "CapacitorCordova (from `../../../../node_modules/.pnpm/@capacitor+ios@8.5.2_@capacitor+core@8.5.2/node_modules/@capacitor/ios`)"
-  - "CapacitorFirebaseAuthentication (from `../../../../node_modules/.pnpm/@capacitor-firebase+authentication@8.5.2_@capacitor+core@8.5.2_firebase@12.19.0/node_modules/@capacitor-firebase/authentication`)"
-  - "CapacitorPushNotifications (from `../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.2/node_modules/@capacitor/push-notifications`)"
-  - "CapacitorStatusBar (from `../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.2/node_modules/@capacitor/status-bar`)"
-  - "CapacitorVoiceRecorder (from `../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.2_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.2_/node_modules/capacitor-voice-recorder`)"
-  - "CapgoNativePurchases (from `../../../../node_modules/.pnpm/@capgo+native-purchases@8.8.3_@capacitor+core@8.5.2/node_modules/@capgo/native-purchases`)"
+  - "Capacitor (from `../../../../node_modules/.pnpm/@capacitor+ios@8.5.3_@capacitor+core@8.5.3/node_modules/@capacitor/ios`)"
+  - "CapacitorApp (from `../../../../node_modules/.pnpm/@capacitor+app@8.1.2_@capacitor+core@8.5.3/node_modules/@capacitor/app`)"
+  - "CapacitorBrowser (from `../../../../node_modules/.pnpm/@capacitor+browser@8.0.5_@capacitor+core@8.5.3/node_modules/@capacitor/browser`)"
+  - "CapacitorCommunitySafeArea (from `../../../../node_modules/.pnpm/@capacitor-community+safe-area@8.0.1_@capacitor+core@8.5.3/node_modules/@capacitor-community/safe-area`)"
+  - "CapacitorCordova (from `../../../../node_modules/.pnpm/@capacitor+ios@8.5.3_@capacitor+core@8.5.3/node_modules/@capacitor/ios`)"
+  - "CapacitorFirebaseAuthentication (from `../../../../node_modules/.pnpm/@capacitor-firebase+authentication@8.5.2_@capacitor+core@8.5.3_firebase@12.19.0/node_modules/@capacitor-firebase/authentication`)"
+  - "CapacitorHaptics (from `../../../../node_modules/.pnpm/@capacitor+haptics@8.0.2_@capacitor+core@8.5.3/node_modules/@capacitor/haptics`)"
+  - "CapacitorPushNotifications (from `../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.3/node_modules/@capacitor/push-notifications`)"
+  - "CapacitorStatusBar (from `../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.3/node_modules/@capacitor/status-bar`)"
+  - "CapacitorVoiceRecorder (from `../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.3_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.3_/node_modules/capacitor-voice-recorder`)"
+  - "CapgoNativePurchases (from `../../../../node_modules/.pnpm/@capgo+native-purchases@8.9.6_@capacitor+core@8.5.3/node_modules/@capgo/native-purchases`)"
   - Firebase/Core (~> 12.7)
   - Firebase/Messaging (~> 12.7)
 
@@ -182,34 +188,40 @@ SPEC REPOS:
 
 EXTERNAL SOURCES:
   Capacitor:
-    :path: "../../../../node_modules/.pnpm/@capacitor+ios@8.5.2_@capacitor+core@8.5.2/node_modules/@capacitor/ios"
+    :path: "../../../../node_modules/.pnpm/@capacitor+ios@8.5.3_@capacitor+core@8.5.3/node_modules/@capacitor/ios"
+  CapacitorApp:
+    :path: "../../../../node_modules/.pnpm/@capacitor+app@8.1.2_@capacitor+core@8.5.3/node_modules/@capacitor/app"
   CapacitorBrowser:
-    :path: "../../../../node_modules/.pnpm/@capacitor+browser@8.0.5_@capacitor+core@8.5.2/node_modules/@capacitor/browser"
+    :path: "../../../../node_modules/.pnpm/@capacitor+browser@8.0.5_@capacitor+core@8.5.3/node_modules/@capacitor/browser"
   CapacitorCommunitySafeArea:
-    :path: "../../../../node_modules/.pnpm/@capacitor-community+safe-area@8.0.1_@capacitor+core@8.5.2/node_modules/@capacitor-community/safe-area"
+    :path: "../../../../node_modules/.pnpm/@capacitor-community+safe-area@8.0.1_@capacitor+core@8.5.3/node_modules/@capacitor-community/safe-area"
   CapacitorCordova:
-    :path: "../../../../node_modules/.pnpm/@capacitor+ios@8.5.2_@capacitor+core@8.5.2/node_modules/@capacitor/ios"
+    :path: "../../../../node_modules/.pnpm/@capacitor+ios@8.5.3_@capacitor+core@8.5.3/node_modules/@capacitor/ios"
   CapacitorFirebaseAuthentication:
-    :path: "../../../../node_modules/.pnpm/@capacitor-firebase+authentication@8.5.2_@capacitor+core@8.5.2_firebase@12.19.0/node_modules/@capacitor-firebase/authentication"
+    :path: "../../../../node_modules/.pnpm/@capacitor-firebase+authentication@8.5.2_@capacitor+core@8.5.3_firebase@12.19.0/node_modules/@capacitor-firebase/authentication"
+  CapacitorHaptics:
+    :path: "../../../../node_modules/.pnpm/@capacitor+haptics@8.0.2_@capacitor+core@8.5.3/node_modules/@capacitor/haptics"
   CapacitorPushNotifications:
-    :path: "../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.2/node_modules/@capacitor/push-notifications"
+    :path: "../../../../node_modules/.pnpm/@capacitor+push-notifications@8.1.3_@capacitor+core@8.5.3/node_modules/@capacitor/push-notifications"
   CapacitorStatusBar:
-    :path: "../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.2/node_modules/@capacitor/status-bar"
+    :path: "../../../../node_modules/.pnpm/@capacitor+status-bar@8.0.4_@capacitor+core@8.5.3/node_modules/@capacitor/status-bar"
   CapacitorVoiceRecorder:
-    :path: "../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.2_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.2_/node_modules/capacitor-voice-recorder"
+    :path: "../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.3_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.3_/node_modules/capacitor-voice-recorder"
   CapgoNativePurchases:
-    :path: "../../../../node_modules/.pnpm/@capgo+native-purchases@8.8.3_@capacitor+core@8.5.2/node_modules/@capgo/native-purchases"
+    :path: "../../../../node_modules/.pnpm/@capgo+native-purchases@8.9.6_@capacitor+core@8.5.3/node_modules/@capgo/native-purchases"
 
 SPEC CHECKSUMS:
-  Capacitor: 89067779e14fb7ea56af07b4817f45d1f0c2a269
+  Capacitor: 2f67eaeb8ed79909cd35b5e7439a5c2a9ca58e0f
+  CapacitorApp: 7b7e43debe505bc61beedb83796aa1368c86078b
   CapacitorBrowser: f94f92654e92a97981bf346b3681af76527dace0
   CapacitorCommunitySafeArea: 91738f4ae7f47d2d94e06e429e16fb73cd8fdc48
-  CapacitorCordova: 5bec5648cbd09a176ce34ce5e7b6cdabb2c8a327
+  CapacitorCordova: 0b7326439c7a09fc5d20eced5e0dab986327a493
   CapacitorFirebaseAuthentication: 826e1dae433819492daff947f3d674d1579a6ee7
+  CapacitorHaptics: 296f771ecd89c7a1bd92a7b6826a7d268e2e70f5
   CapacitorPushNotifications: a31b62e18764ab855537dfcdade1e6ecf5aba29f
   CapacitorStatusBar: ff844df1f126da6c4fbc4028272425fa3a91e7e3
   CapacitorVoiceRecorder: 9158861be982f32d411769723a4d813d6ce46135
-  CapgoNativePurchases: a8d952f7a28d148176f755783488f1f8e4328cf2
+  CapgoNativePurchases: d7a08ed3e94ba4408bb64b70fbb00adeb2266386
   Firebase: 9a58fdbc9d8655ed7b79a19cf9690bb007d3d46d
   FirebaseAnalytics: f20bbad8cb7f65d8a5eaefeb424ae8800a31bdfc
   FirebaseAppCheckInterop: ba3dc604a89815379e61ec2365101608d365cf7d
@@ -229,6 +241,6 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RecaptchaInterop: 11e0b637842dfb48308d242afc3f448062325aba
 
-PODFILE CHECKSUM: bc71d1861572f18e29eaad96a7e49d9bec18b6a8
+PODFILE CHECKSUM: acb24b4b7576ea2597ccf5d1dce394f9313bbdc3
 
-COCOAPODS: 1.17.0
+COCOAPODS: 1.16.2

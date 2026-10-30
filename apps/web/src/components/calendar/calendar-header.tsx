@@ -1,6 +1,7 @@
 import { PageTitle } from '@/components/ui/page-title';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
@@ -37,13 +38,21 @@ import {
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarDayActions } from './calendar-day-actions';
 import { CalendarDisplaySettings } from './calendar-display-settings';
+import { CalendarMobileHeader } from './calendar-mobile-header';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { ComplianceLegend } from './compliance-badge';
 import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { COLORED_BY, coloredByLabelMap } from './types/filter';
 
-export function CalendarHeader() {
+interface P {
+  /** The day a phone plans on, which its week strip selects */
+  planningDate: Date;
+  onPlanningDateChange: (day: Date) => void;
+}
+
+export function CalendarHeader({ planningDate, onPlanningDateChange }: P) {
+  const isMobile = useIsMobile();
   const {
     nextMonth,
     prevMonth,
@@ -139,6 +148,51 @@ export function CalendarHeader() {
       }, 200); // Match sidebar animation duration
     }
   };
+
+  const viewOptions = (
+    <>
+      <Select
+        value={coloredBy || ''}
+        onValueChange={(c) => {
+          if (c === '') {
+            setColoredBy(null);
+          } else {
+            setColoredBy(c as COLORED_BY);
+          }
+        }}
+      >
+        <SelectTrigger className="flex-1 md:flex-none">
+          <SelectValue placeholder={m.colored_by()} />
+        </SelectTrigger>
+        <SelectContent>
+          {Object.values(COLORED_BY).map((colorProfile) => (
+            <SelectItem key={colorProfile} value={colorProfile}>
+              {coloredByLabelMap[colorProfile]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <SportSelect
+        selected={sportFilter}
+        onChange={(sport) => handleChangeSportFilter(sport)}
+      />
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <CalendarMobileHeader
+        selectedDay={planningDate}
+        onSelectDay={onPlanningDateChange}
+        options={
+          <>
+            {viewOptions}
+            <CalendarDisplaySettings withLabel />
+          </>
+        }
+      />
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3 px-4 md:px-0">
@@ -250,31 +304,7 @@ export function CalendarHeader() {
           {/* Icon only on laptops, where the row is short of room */}
           <span className="hidden xl:inline">{m.template_library()}</span>
         </Button>
-        <Select
-          value={coloredBy || ''}
-          onValueChange={(c) => {
-            if (c === '') {
-              setColoredBy(null);
-            } else {
-              setColoredBy(c as COLORED_BY);
-            }
-          }}
-        >
-          <SelectTrigger className="flex-1 md:flex-none">
-            <SelectValue placeholder={m.colored_by()} />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.values(COLORED_BY).map((colorProfile) => (
-              <SelectItem key={colorProfile} value={colorProfile}>
-                {coloredByLabelMap[colorProfile]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <SportSelect
-          selected={sportFilter}
-          onChange={(sport) => handleChangeSportFilter(sport)}
-        />
+        {viewOptions}
         <Button
           variant="ghost"
           size="icon"

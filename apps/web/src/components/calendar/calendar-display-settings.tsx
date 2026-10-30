@@ -55,20 +55,25 @@ function Field({
 }
 
 /** What cards and week summaries show, saved with the account */
-export function CalendarDisplaySettings() {
+export function CalendarDisplaySettings({
+  withLabel,
+}: {
+  withLabel?: boolean;
+}) {
   const { display, updateDisplay } = useCalendarContext();
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
+          variant={withLabel ? 'outline' : 'ghost'}
+          size={withLabel ? 'default' : 'icon'}
           aria-label={m.calendar_display_title()}
           title={m.calendar_display_title()}
-          className="text-muted-foreground"
+          className={withLabel ? 'h-12 justify-start' : 'text-muted-foreground'}
         >
           <Settings2 className="size-4" />
+          {withLabel && m.calendar_display_title()}
         </Button>
       </PopoverTrigger>
       <PopoverContent

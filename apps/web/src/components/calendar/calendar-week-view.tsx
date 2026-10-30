@@ -52,7 +52,7 @@ export function CalendarWeekView({
   return (
     <div
       data-calendar-week
-      className="space-y-3 px-4 md:px-0"
+      className="space-y-3 px-4 pt-3 pb-24 md:p-0"
       aria-busy={isLoading}
     >
       {/* The summary sits beside the days once there is room for both */}

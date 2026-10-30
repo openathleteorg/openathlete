@@ -19,7 +19,11 @@ The same build ships to Vercel (hosted), to the Docker image (self-hosted) and t
 - **Design**: colours, fonts and radii are variables in `src/theme/index.css`; never hardcode a hex or a gray utility. Use `PageTitle`, `SectionLabel`, `MetricTile` and `InsightBanner` from `components/ui` rather than restyling them in a view.
 - **Server state**: React Query hooks only. Don't copy query data into local state.
 - **Forms**: React Hook Form with a Zod schema, built from `libs/shared` when the API validates the same data, and the `RHF*` fields in `components/hook-form` (they show validation messages). Show API errors with `toast.error`.
-- **Small screens**: below 768px the dashboard uses `MobileWebHeader` and the sidebar drawer. Check new pages at 390px: no horizontal scroll, touch targets of 44px.
+- **Small screens**: below 768px, in a browser as in the native apps, the dashboard is `AppShell` (`components/mobile`): tabs at the bottom (`app-navigation.ts`), a stack of screens, and sheets.
+  - A screen sets its top bar with `useAppBar` (title, trailing buttons, `fullHeight`, `hideTabBar`).
+  - `Dialog` opens as a bottom sheet, or full screen with `mobileFullscreen`; menus, selects and popovers become sheets in `theme/index.css`. Don't rebuild this per component.
+  - Pad fixed elements with `--safe-top`, `--safe-bottom` and `--tab-bar-space`, never `env()` directly.
+  - Check new pages at 390px: no horizontal scroll, touch targets of 44px.
 - **Native apps**: guard native-only code with `isCapacitor()` from `@/utils/capacitor`. The Capacitor projects (`android/`, `ios/`) are built and published by fastlane (`fastlane/Fastfile`, `docs/mobile-releases.md`); never set a version in them, the release tag does. Build-time `VITE_*` values for the apps come from GitHub variables, since a native bundle cannot read them at runtime.
 - **Third parties**: nothing may load or send data unless its build variable is set. PostHog, Contentsquare and error monitoring are opt-in (`utils/analytics.ts`, `utils/error-monitoring.ts`). The E2E test `makes no third-party request` enforces this.
 - **Consent (GDPR)**: analytics and session recordings start only through `whenConsentGranted` (`utils/consent.ts`), after the user accepts the banner. A new tracker goes through it too, and is listed in the website privacy policy.

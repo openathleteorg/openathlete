@@ -2,24 +2,63 @@ import { expect, test } from '@playwright/test';
 
 import { trackPageProblems } from '../../support/page-health';
 
-test('navigates through the drawer menu', async ({ page }) => {
+test('moves between the tabs of the app', async ({ page }) => {
   const problems = trackPageProblems(page);
-  await page.goto('/dashboard/calendar');
+  await page.goto('/dashboard');
 
-  const menu = page.locator('[data-mobile-menu-trigger]');
-  await expect(menu).toBeVisible();
-  await menu.click();
-  await expect(menu).toHaveAttribute('aria-expanded', 'true');
+  await expect(page).toHaveURL(/\/dashboard\/today/);
+  const tab = (id: string) => page.locator(`[data-app-tab="${id}"]`);
 
-  await page.getByRole('link', { name: 'Statistics' }).click();
+  await tab('calendar').tap();
+  await expect(page).toHaveURL(/\/dashboard\/calendar/);
+  await expect(tab('calendar')).toHaveAttribute('aria-current', 'page');
 
+  await tab('progress').tap();
   await expect(page).toHaveURL(/\/dashboard\/statistics/);
-  await expect(menu).toHaveAttribute('aria-expanded', 'false');
+
+  await page.getByRole('link', { name: 'Records' }).tap();
+  await expect(page).toHaveURL(/\/dashboard\/records/);
+  await expect(tab('progress')).toHaveAttribute('aria-current', 'page');
+
+  // A tab comes back on the screen it was left on
+  await tab('me').tap();
+  await tab('progress').tap();
+  await expect(page).toHaveURL(/\/dashboard\/records/);
   expect(problems).toEqual([]);
 });
 
+test('settings open from the Me tab and come back to it', async ({ page }) => {
+  await page.goto('/dashboard/profile');
+
+  await page.locator('[data-settings-link="equipment"]').tap();
+  await expect(page).toHaveURL(/tab=equipment/);
+  // A pushed screen has its way back instead of the tabs
+  await expect(page.locator('[data-app-tab-bar]')).toHaveCount(0);
+
+  await page.locator('[data-app-back]').tap();
+  await expect(page).toHaveURL(/\/dashboard\/profile/);
+  await expect(page.locator('[data-app-tab-bar]')).toBeVisible();
+});
+
+test('the finder opens from the top bar, full screen', async ({ page }) => {
+  await page.goto('/dashboard/today');
+
+  await page.locator('[data-app-finder]').tap();
+  const finder = page.getByRole('dialog');
+  await expect(finder).toHaveAttribute('data-sheet', 'full');
+  await expect(finder.getByRole('combobox')).toBeVisible();
+});
+
 test('fits the screen without horizontal scrolling', async ({ page }) => {
-  for (const name of ['calendar', 'statistics', 'settings']) {
+  for (const name of [
+    'today',
+    'calendar',
+    'statistics',
+    'records',
+    'metrics',
+    'messages',
+    'profile',
+  ]) {
     await page.goto(`/dashboard/${name}`);
     await page.waitForLoadState('networkidle');
 

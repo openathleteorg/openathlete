@@ -41,7 +41,9 @@ const config: CapacitorConfig = {
     includePlugins: [
       '@capacitor-community/safe-area',
       '@capacitor-firebase/authentication',
+      '@capacitor/app',
       '@capacitor/browser',
+      '@capacitor/haptics',
       '@capacitor/push-notifications',
       '@capacitor/status-bar',
       'capacitor-voice-recorder',

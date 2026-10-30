@@ -2,7 +2,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
-import { useEffect, useId, useRef, useState } from 'react';
+import { Plus } from 'lucide-react';
 
 import { Event } from '@openathlete/shared';
 
@@ -14,7 +14,8 @@ interface P {
   events: Event[];
   cycleSegments?: CycleDaySegment[];
   isToday: boolean;
-  isCurrentMonth: boolean;
+  isSelected: boolean;
+  onPlan?: (day: Date) => void;
 }
 
 export function CalendarMobileDay({
@@ -22,144 +23,66 @@ export function CalendarMobileDay({
   events,
   cycleSegments = [],
   isToday,
-  isCurrentMonth,
+  isSelected,
+  onPlan,
 }: P) {
-  const eventsViewportRef = useRef<HTMLDivElement>(null);
-  const eventsContentRef = useRef<HTMLDivElement>(null);
-  const [hasOverflow, setHasOverflow] = useState(false);
-  const scrollHintId = useId();
-
-  useEffect(() => {
-    const viewport = eventsViewportRef.current;
-    const content = eventsContentRef.current;
-    if (!viewport || !content) {
-      setHasOverflow(false);
-      return;
-    }
-
-    const updateOverflow = () => {
-      setHasOverflow(viewport.scrollHeight > viewport.clientHeight + 1);
-    };
-    updateOverflow();
-    const observer = new ResizeObserver(updateOverflow);
-    observer.observe(viewport);
-    observer.observe(content);
-    return () => observer.disconnect();
-  }, [events.length]);
-
-  const dayOfMonth = day.getDate();
   const dayName = day.toLocaleString(getDateLocale(getLocale()), {
-    weekday: 'long',
-  });
-  const monthName = day.toLocaleString(getDateLocale(getLocale()), {
-    month: 'short',
+    weekday: 'short',
   });
 
   return (
     <div
       data-mobile-calendar-day={day.toLocaleDateString('en-CA')}
-      className={cn('flex flex-col bg-background', 'border-b border-border')}
+      data-selected={isSelected || undefined}
+      className="flex gap-3 border-b border-border/60 px-4 py-2.5"
     >
-      <div className={cn('flex items-center justify-between px-4 py-3')}>
-        <div className="flex items-center gap-3">
-          <div
-            className={cn(
-              'flex flex-col items-center justify-center min-w-[48px]',
-              isToday && 'text-gray-900 font-bold',
-              !isCurrentMonth && 'opacity-40',
-            )}
-          >
-            <span className="text-xs uppercase tracking-wide text-muted-foreground">
-              {dayName.slice(0, 3)}
-            </span>
-            <span
-              className={cn(
-                'text-2xl font-semibold',
-                isToday && 'text-red-500',
-              )}
-            >
-              {dayOfMonth}
-            </span>
-          </div>
-          <div className="flex flex-col">
-            <span
-              className={cn(
-                'text-sm font-medium',
-                isToday && 'text-primary',
-                !isCurrentMonth && 'opacity-40',
-              )}
-            >
-              {monthName}
-            </span>
-          </div>
-          {isToday && <div className="h-1.5 w-1.5 rounded-full bg-primary" />}
-        </div>
-        {events.length > 0 && (
-          <div className="text-sm text-muted-foreground">
-            {events.length} {events.length === 1 ? m.event() : m.events()}
-          </div>
-        )}
-      </div>
-      {cycleSegments.length > 0 && (
-        <div className="px-4 pb-2 flex flex-wrap gap-2">
-          {cycleSegments.map((segment, idx) => (
-            <div
-              key={`${segment.cycle.cycleId}-${idx}`}
-              className="flex items-center gap-1.5"
-            >
-              <div
-                className="h-2 w-2 rounded-full"
-                style={{
-                  backgroundColor: segment.cycle.color || '#3b82f6',
-                }}
-              />
-              <span className="text-xs font-medium text-foreground">
-                {segment.cycle.name}
-              </span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {events.length > 0 && (
-        <div className="px-4 pb-4">
-          <div
-            ref={eventsViewportRef}
-            data-mobile-day-events
-            role="region"
-            aria-label={m.calendar_day_events_label({
-              date: day.toLocaleDateString(getDateLocale(getLocale())),
-            })}
-            aria-describedby={hasOverflow ? scrollHintId : undefined}
-            tabIndex={hasOverflow ? 0 : undefined}
-            className={cn(
-              'max-h-[min(20rem,50dvh)] overflow-y-auto rounded-sm focus-visible:outline-2 focus-visible:outline-ring',
-              hasOverflow && 'overscroll-y-contain',
-            )}
-            style={{ scrollbarWidth: 'thin' }}
-          >
-            <div ref={eventsContentRef} className="flex flex-col gap-2">
-              {[...events]
-                .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
-                .map((event) => (
-                  <CalendarEvent key={event.eventId} event={event} />
-                ))}
-            </div>
-          </div>
-          {hasOverflow && (
-            <p id={scrollHintId} className="mt-2 text-xs text-muted-foreground">
-              {m.calendar_day_scroll_hint()}
-            </p>
+      <div className="flex w-10 shrink-0 flex-col items-center pt-0.5">
+        <span className="text-[0.6875rem] font-medium text-muted-foreground uppercase">
+          {dayName.replace('.', '')}
+        </span>
+        <span
+          className={cn(
+            'flex size-8 items-center justify-center rounded-full text-lg font-semibold',
+            isToday && 'bg-primary text-primary-foreground',
           )}
-        </div>
-      )}
-
-      {events.length === 0 && cycleSegments.length === 0 && (
-        <div className="px-4 pb-4">
-          <p className="text-sm text-muted-foreground text-center py-2">
-            {m.no_events()}
-          </p>
-        </div>
+        >
+          {day.getDate()}
+        </span>
+      </div>
+      <div className="flex min-h-11 min-w-0 flex-1 flex-col justify-center gap-2">
+        {cycleSegments.map((segment, index) => (
+          <div
+            key={`${segment.cycle.cycleId}-${index}`}
+            className="flex items-center gap-1.5"
+          >
+            <span
+              className="size-2 rounded-full"
+              style={{
+                backgroundColor: segment.cycle.color || 'var(--primary)',
+              }}
+            />
+            <span className="truncate text-xs font-medium">
+              {segment.cycle.name}
+            </span>
+          </div>
+        ))}
+        {[...events]
+          .sort((a, b) => a.startDate.getTime() - b.startDate.getTime())
+          .map((event) => (
+            <CalendarEvent key={event.eventId} event={event} />
+          ))}
+      </div>
+      {onPlan && events.length === 0 && (
+        <button
+          type="button"
+          aria-label={m.calendar_plan_on_day({
+            date: day.toLocaleDateString(getDateLocale(getLocale())),
+          })}
+          className="-mr-2 flex size-11 shrink-0 items-center justify-center self-start rounded-full text-muted-foreground/70 active:bg-accent"
+          onClick={() => onPlan(day)}
+        >
+          <Plus className="size-5" />
+        </button>
       )}
     </div>
   );

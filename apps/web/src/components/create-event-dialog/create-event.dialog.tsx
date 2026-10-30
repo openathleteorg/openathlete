@@ -459,8 +459,12 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             athleteId={athleteId ?? undefined}
           />
 
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4">
-            <Button type="submit" className="flex-1" isLoading={isSubmitting}>
+          <div className="flex flex-col items-stretch gap-3 max-md:sticky max-md:-bottom-4 max-md:z-10 max-md:-mx-4 max-md:border-t max-md:bg-background max-md:px-4 max-md:pt-3 max-md:pb-[calc(0.75rem+var(--safe-bottom))] md:flex-row md:items-center md:gap-4">
+            <Button
+              type="submit"
+              className="flex-1 max-md:min-h-12 max-md:text-base"
+              isLoading={isSubmitting}
+            >
               {edit ? m.save() : m.create()}
             </Button>
             {edit && !isTemplate && 'event' in rest && rest.event && (

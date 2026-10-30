@@ -1,12 +1,9 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-  useSidebar,
-} from '@/components/ui/sidebar';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { FinderProvider } from '@/contexts/finder';
 import { SpaceConsumer, SpaceProvider } from '@/contexts/space';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { PageActionsProvider } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
-import { isCapacitor } from '@/utils/capacitor';
 import {
   DndContext,
   DragOverlay,
@@ -31,8 +28,8 @@ import {
   DraggableData,
   DraggableType,
 } from '../create-event-from-template-dialog/dnd-types';
-import { MobileLayout } from '../mobile/mobile-layout';
-import { MobileWebHeader } from '../mobile/mobile-web-header';
+import { AppBarProvider } from '../mobile/app-bar-provider';
+import { AppShell } from '../mobile/app-shell';
 import { PlanImportHandler } from '../plan-import-handler';
 import { AppSidebar } from '../sidebar/app-sidebar';
 import { SportIcon } from '../sport-icon/sport-icon';
@@ -43,7 +40,7 @@ interface P {
 
 function LayoutContent({ children }: P) {
   const { onDragStart, onDragEnd, activeItem } = useSharedDnd() || {};
-  const { isMobile, openMobile } = useSidebar();
+  const isMobile = useIsMobile();
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -168,20 +165,22 @@ function LayoutContent({ children }: P) {
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
     >
-      <AppSidebar />
+      {!isMobile && <AppSidebar />}
       <SpaceConsumer>
-        {isCapacitor() ? (
-          <MobileLayout>{children}</MobileLayout>
+        {isMobile ? (
+          <PageActionsProvider>
+            <AppBarProvider>
+              <AppShell>{children}</AppShell>
+              <TemplateLibrarySidebar />
+            </AppBarProvider>
+          </PageActionsProvider>
         ) : (
           <>
             <div className="flex min-w-0 flex-1 bg-background md:my-2 md:mr-2 md:overflow-hidden md:rounded-xl">
               <TemplateLibrarySidebar />
-              <SidebarInset className="min-w-0 flex-1 max-md:pt-[calc(4rem+env(safe-area-inset-top))]">
-                <MobileWebHeader />
-                {children}
-              </SidebarInset>
+              <SidebarInset className="min-w-0 flex-1">{children}</SidebarInset>
             </div>
-            {!(isMobile && openMobile) && <ChatBubble />}
+            <ChatBubble />
             <ChatWindow />
           </>
         )}

@@ -9,24 +9,24 @@ import { ChatInput } from '@/components/chatbot/chat-input';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { MessageSearch } from '@/components/messages/message-search';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
-import { MobileHeader } from '@/components/mobile/mobile-header';
 import { Button } from '@/components/ui/button';
 import { PageLoader } from '@/components/ui/loader';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { UnreadBadge } from '@/components/ui/unread-badge';
-import { useSetPageActions } from '@/hooks/use-page-actions';
+import { useSpaceContext } from '@/contexts/space';
+import { useAppBar } from '@/hooks/use-app-bar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { AnalyticsEvent } from '@/utils/analytics-events';
-import { isCapacitor } from '@/utils/capacitor';
 import type { MessageSearchTarget } from '@/utils/message-search';
 import { calculateUnreadCount } from '@/utils/messages';
 import { cn } from '@/utils/shadcn';
 import { motion } from 'framer-motion';
 import { MessageCircle, Plus, Trash2 } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { AgentThread, MessageThread } from '@openathlete/shared';
 
@@ -52,8 +52,8 @@ export function MessagesPage() {
     number | null
   >(null);
   const [mobileView, setMobileView] = useState<'list' | 'conversation'>('list');
-  const isMobile = isCapacitor();
-  const mainRef = useRef<HTMLElement | null>(null);
+  const isMobile = useIsMobile();
+  const { space } = useSpaceContext();
   const { data: messageThreads, isLoading: isLoadingMessageThreads } =
     useGetMessageThreadsQuery();
   const createMessageThreadMutation = useCreateMessageThreadMutation();
@@ -138,45 +138,6 @@ export function MessagesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threads, activeId, isMobile]);
 
-  useEffect(() => {
-    if (!isMobile || mobileView !== 'conversation') return;
-
-    const mainElement = document.querySelector(
-      'main[class*="overflow-y-auto"]',
-    ) as HTMLElement;
-
-    const layoutContainer = document.querySelector(
-      'div.flex.min-h-screen.flex-col',
-    );
-    const layoutHeader = layoutContainer?.querySelector(
-      'header[class*="sticky"]',
-    ) as HTMLElement;
-    const messageHeaderContainer = document.querySelector(
-      '[data-message-header]',
-    );
-    const messageHeader = messageHeaderContainer?.querySelector('header');
-
-    if (layoutHeader && layoutHeader !== messageHeader) {
-      layoutHeader.style.display = 'none';
-    }
-
-    if (mainElement) {
-      mainRef.current = mainElement;
-      mainElement.style.overflow = 'hidden';
-    }
-
-    return () => {
-      if (mainRef.current) {
-        mainRef.current.style.overflow = '';
-        mainRef.current.style.height = '';
-        mainRef.current.style.maxHeight = '';
-      }
-      if (layoutHeader && layoutHeader !== messageHeader) {
-        layoutHeader.style.display = '';
-      }
-    };
-  }, [isMobile, mobileView]);
-
   const handleThreadClick = useCallback(
     (threadId: number) => {
       setActiveId(threadId);
@@ -202,29 +163,45 @@ export function MessagesPage() {
     setNewThreadDialogOpen(true);
   }, [setNewThreadDialogOpen]);
 
-  const pageTitle = m.messages();
+  const pageTitle =
+    isMobile && space === 'ATHLETE' ? m.nav_tab_coach() : m.messages();
   const conversationTitle = activeId
     ? messageThreads?.find((t) => t.messageThreadId === activeMessageThreadId)
         ?.title || m.message_thread_title({ id: activeId })
     : pageTitle;
 
-  const createAction = useMemo(
+  const inConversation = mobileView === 'conversation';
+  const appBar = useMemo(
     () => ({
-      label: m.chatbot_new_conversation(),
-      icon: Plus,
-      onClick: handleNewConversation,
+      title: inConversation ? conversationTitle : pageTitle,
+      back: inConversation,
+      onBack: inConversation ? handleBackToList : undefined,
+      hideTabBar: inConversation,
+      fullHeight: inConversation,
+      trailing: inConversation ? (
+        <MessageSearch
+          activeThreadId={activeId}
+          onSelect={handleSearchResult}
+        />
+      ) : (
+        <>
+          <MessageSearch onSelect={handleSearchResult} />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-11 rounded-full"
+            aria-label={m.chatbot_new_conversation()}
+            onClick={handleNewConversation}
+          >
+            <Plus className="size-5" />
+          </Button>
+        </>
+      ),
     }),
-    [handleNewConversation],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [inConversation, conversationTitle, pageTitle, activeId],
   );
-
-  const mobileActions = useMemo(() => {
-    if (isMobile && mobileView === 'list') {
-      return [createAction];
-    }
-    return [];
-  }, [isMobile, mobileView, createAction]);
-
-  useSetPageActions(mobileActions);
+  useAppBar(appBar);
 
   const handleCreateMessageThread = useCallback(
     (participantUserIds: number[]) => {
@@ -283,99 +260,84 @@ export function MessagesPage() {
   if (isMobile) {
     if (mobileView === 'list') {
       return (
-        <div className="flex h-full bg-background flex-col">
-          <div className="flex-shrink-0 px-4 py-2 border-b border-border bg-background">
-            <div className="flex items-center justify-between gap-2 mb-2">
-              <p className="text-xs text-muted-foreground">
-                {formatConversationCount(threads?.length || 0)}
-              </p>
-              <MessageSearch onSelect={handleSearchResult} />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant={filter === 'all' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilter('all')}
-                className="h-7 text-xs"
+        <div className="flex flex-col bg-background">
+          <div className="flex gap-2 px-4 pt-1 pb-2">
+            {(['all', 'unread'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={filter === value}
+                className={cn(
+                  'flex h-9 items-center rounded-full px-4 text-sm font-medium',
+                  filter === value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary text-secondary-foreground',
+                )}
+                onClick={() => setFilter(value)}
               >
-                {m.messages_filter_all()}
-              </Button>
-              <Button
-                variant={filter === 'unread' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setFilter('unread')}
-                className="h-7 text-xs"
-              >
-                {m.messages_filter_unread()}
-              </Button>
-            </div>
+                {value === 'all'
+                  ? m.messages_filter_all()
+                  : m.messages_filter_unread()}
+              </button>
+            ))}
           </div>
-          <ScrollArea className="flex-1 min-h-0">
-            <div className="p-2 space-y-1">
-              {filter === 'unread' && threads?.length === 0 && (
-                <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                  {m.messages_no_unread()}
-                </p>
-              )}
-              {threads?.map((thread: AgentThread | MessageThread) => {
-                const threadId = (thread as MessageThread).messageThreadId;
-                const threadTitle = thread.title;
-                const threadCreatedAt = thread.createdAt;
-                const unreadCount = currentUser
-                  ? calculateUnreadCount(
-                      thread as MessageThread,
-                      currentUser.userId,
-                    )
-                  : 0;
-                return (
-                  <motion.button
-                    key={threadId}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
+          {filter === 'unread' && threads?.length === 0 && (
+            <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+              {m.messages_no_unread()}
+            </p>
+          )}
+          <div className="divide-y divide-border/60">
+            {threads?.map((thread: AgentThread | MessageThread) => {
+              const threadId = (thread as MessageThread).messageThreadId;
+              const unreadCount = currentUser
+                ? calculateUnreadCount(
+                    thread as MessageThread,
+                    currentUser.userId,
+                  )
+                : 0;
+              return (
+                <div key={threadId} className="flex items-center pr-2">
+                  <button
+                    type="button"
+                    data-message-thread={threadId}
+                    className="flex min-h-16 min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left active:bg-accent"
                     onClick={() => {
                       setSearchTarget(null);
                       handleThreadClick(threadId);
                     }}
-                    className={cn(
-                      'group w-full flex items-start gap-3 p-3 rounded-lg text-left',
-                      'transition-colors',
-                      'hover:bg-accent',
-                      activeId === threadId && 'bg-accent',
-                    )}
                   >
-                    <MessageCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-medium text-sm truncate">
-                          {threadTitle
-                            ? threadTitle.length > 25
-                              ? threadTitle.substring(0, 25) + '...'
-                              : threadTitle
-                            : m.message_thread_title({ id: threadId })}
-                        </h3>
-                        {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(threadCreatedAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {(allThreads?.length || 0) > 1 && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
-                        onClick={(e) => handleDeleteConversation(threadId, e)}
-                        disabled={deleteThreadMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
-          </ScrollArea>
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-secondary">
+                      <MessageCircle className="size-5" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[0.9375rem] font-medium">
+                        {thread.title ||
+                          m.message_thread_title({ id: threadId })}
+                      </span>
+                      <span className="block text-sm text-muted-foreground">
+                        {new Date(thread.createdAt).toLocaleDateString(
+                          getLocale(),
+                        )}
+                      </span>
+                    </span>
+                    {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
+                  </button>
+                  {(allThreads?.length || 0) > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-11 rounded-full text-muted-foreground"
+                      aria-label={m.delete_()}
+                      onClick={(e) => handleDeleteConversation(threadId, e)}
+                      disabled={deleteThreadMutation.isPending}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           <NewMessageThreadDialog
             open={newThreadDialogOpen}
@@ -388,70 +350,24 @@ export function MessagesPage() {
     }
 
     return (
-      <div
-        className="flex bg-background flex-col overflow-hidden"
-        style={{
-          height:
-            'calc(100dvh - 56px - 8px - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-          maxHeight:
-            'calc(100dvh - 56px - 8px- env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-        }}
-        data-message-header
-      >
-        <div className="flex-shrink-0">
-          <MobileHeader
-            title={conversationTitle}
-            showBack={true}
-            onBack={handleBackToList}
-          />
+      <div className="flex min-h-0 flex-1 flex-col bg-background">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          {activeId && (
+            <MessageMessages
+              messageThreadId={activeId}
+              searchTarget={searchTarget}
+            />
+          )}
         </div>
-
-        <div className="flex justify-end px-3 border-b">
-          <MessageSearch
-            activeThreadId={activeId}
-            onSelect={handleSearchResult}
-          />
+        <div className="shrink-0 border-t bg-background p-3 pb-[calc(0.75rem+var(--safe-bottom))]">
+          {activeId && (
+            <ChatInput
+              threadId={activeId}
+              onSendMessage={handleSendMessage}
+              isStreaming={isStreaming}
+            />
+          )}
         </div>
-
-        {/* Messages */}
-        {activeId ? (
-          <>
-            <div
-              className="flex-1 min-h-0 overflow-y-auto overscroll-contain"
-              style={{
-                WebkitOverflowScrolling: 'touch',
-              }}
-            >
-              <MessageMessages
-                messageThreadId={activeId}
-                searchTarget={searchTarget}
-              />
-            </div>
-
-            <Separator className="flex-shrink-0" />
-            <div className="flex-shrink-0 p-4 bg-background">
-              <ChatInput
-                threadId={activeId}
-                onSendMessage={handleSendMessage}
-                isStreaming={isStreaming}
-              />
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <MessageCircle className="h-16 w-16 mx-auto mb-4 opacity-20" />
-              <p>{m.chatbot_select_or_create()}</p>
-            </div>
-          </div>
-        )}
-
-        <NewMessageThreadDialog
-          open={newThreadDialogOpen}
-          onOpenChange={setNewThreadDialogOpen}
-          onConfirm={handleCreateMessageThread}
-          isLoading={createMessageThreadMutation.isPending}
-        />
       </div>
     );
   }

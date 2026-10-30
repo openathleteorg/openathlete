@@ -12,7 +12,6 @@ const PAGES = [
   'metrics',
   'settings',
   'messages',
-  'profile',
 ];
 
 for (const name of PAGES) {

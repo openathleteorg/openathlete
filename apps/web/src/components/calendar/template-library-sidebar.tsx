@@ -11,6 +11,7 @@ import {
   useUpdateFolderMutation,
 } from '@/api/event-template-folder';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { DragEndEvent, DragOverlay } from '@dnd-kit/core';
@@ -49,6 +50,7 @@ import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-c
 const TEMPLATE_LIBRARY_SIDEBAR_WIDTH = '20rem';
 
 export function TemplateLibrarySidebar() {
+  const isMobile = useIsMobile();
   const { open, close } = useTemplateLibrarySidebar();
   const { state: mainSidebarState } = useSidebar();
   const { registerSidebarHandler } = useSharedDnd() || {};
@@ -301,15 +303,21 @@ export function TemplateLibrarySidebar() {
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed inset-y-0 z-[9] hidden h-svh transition-[left,opacity] duration-200 ease-linear md:flex flex-col bg-sidebar border-r border-sidebar-border',
-          open ? 'opacity-100' : 'opacity-0 pointer-events-none',
+          'fixed inset-y-0 z-[9] flex h-svh flex-col bg-sidebar transition-[left,opacity] duration-200 ease-linear md:border-r md:border-sidebar-border',
+          // A full screen over the tabs on a phone
+          'max-md:z-40 max-md:pt-[var(--safe-top)] max-md:pb-[var(--safe-bottom)]',
+          open ? 'opacity-100' : 'opacity-0 pointer-events-none max-md:hidden',
         )}
-        style={{
-          left: open
-            ? leftPosition
-            : `calc(${leftPosition} - ${TEMPLATE_LIBRARY_SIDEBAR_WIDTH})`,
-          width: TEMPLATE_LIBRARY_SIDEBAR_WIDTH,
-        }}
+        style={
+          isMobile
+            ? { left: 0, width: '100%' }
+            : {
+                left: open
+                  ? leftPosition
+                  : `calc(${leftPosition} - ${TEMPLATE_LIBRARY_SIDEBAR_WIDTH})`,
+                width: TEMPLATE_LIBRARY_SIDEBAR_WIDTH,
+              }
+        }
       >
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -319,7 +327,8 @@ export function TemplateLibrarySidebar() {
               variant="ghost"
               size="icon"
               onClick={close}
-              className="h-8 w-8"
+              className="size-11 md:size-8"
+              aria-label={m.ui_close()}
             >
               <X className="h-4 w-4" />
             </Button>

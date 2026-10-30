@@ -1,12 +1,13 @@
-import { useCurrentSubscription } from '@/api/subscription';
 import { PageTitle } from '@/components/ui/page-title';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUserRoles } from '@/contexts/auth';
+import { useAppBar } from '@/hooks/use-app-bar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { SubscriptionSettingsPage } from '@/pages/dashboard/settings/subscription';
 import { m } from '@/paraglide/messages';
-import { purchaseChannel } from '@/utils/capacitor';
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { getPath } from '@/routes/paths';
+import { useEffect, useMemo, useState } from 'react';
+import { Navigate, useSearchParams } from 'react-router-dom';
 
 import { AgentsTab } from './agents/agents-tab';
 import { AiTab } from './ai/ai-tab';
@@ -18,47 +19,16 @@ import { EquipmentTab } from './equipment-tab';
 import { InvitationsTab } from './invitations-tab';
 import { ProfileTab } from './profile-tab';
 import { TrainingZonesTab } from './training-zones-tab';
+import { useSettingsTabs } from './use-settings-tabs';
 
 export function SettingsView() {
   const roles = useUserRoles();
-  const { data: subscription } = useCurrentSubscription();
-  // Nothing to subscribe to on instances without billing, nor in the
-  // Android app; the iOS app sells through the App Store when it is set up
-  const channel = purchaseChannel();
-  const showSubscription =
-    Boolean(subscription?.billingEnabled) &&
-    (channel === 'stripe' ||
-      (channel === 'app-store' && Boolean(subscription?.appStoreEnabled)));
+  const { allowedTabs, tabLabels, showSubscription } = useSettingsTabs();
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || 'connectors');
 
-  const allowedTabs = [
-    'connectors',
-    'profile',
-    'equipment',
-    'training_zones',
-    'ai',
-    'agents',
-    ...(roles?.includes('COACH') ? ['athletes'] : []),
-    ...(roles?.includes('ATHLETE') ? ['coaches'] : []),
-    'invitations',
-    ...(showSubscription ? ['subscription'] : []),
-    'contribute',
-  ];
-  const tabLabels: Record<string, string> = {
-    connectors: m.connectors(),
-    profile: m.profile(),
-    equipment: m.equipment(),
-    training_zones: m.training_zones(),
-    ai: m.ai_settings_tab(),
-    agents: m.mcp_tab(),
-    athletes: m.athletes(),
-    coaches: m.coaches(),
-    invitations: m.invitations(),
-    subscription: m.subscription(),
-    contribute: m.contribute(),
-  };
   const visibleTab = allowedTabs.includes(activeTab) ? activeTab : 'connectors';
 
   // Update active tab when URL param changes
@@ -74,25 +44,25 @@ export function SettingsView() {
     setSearchParams({ tab: value });
   };
 
+  const appBar = useMemo(
+    () => ({ title: tabLabels[visibleTab], back: true }),
+    [tabLabels[visibleTab]], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+  useAppBar(appBar);
+
+  // On a phone, the Me tab is the list of settings
+  if (isMobile && !tabParam) {
+    return <Navigate to={getPath(['dashboard', 'profile'])} replace />;
+  }
+
   return (
     <div className="w-full p-4 md:p-8">
       <PageTitle desktopOnly>{m.settings()}</PageTitle>
-      <Tabs value={visibleTab} onValueChange={handleTabChange} className="mt-4">
-        <label className="block md:hidden">
-          <span className="sr-only">{m.settings()}</span>
-          <select
-            data-mobile-settings-select
-            className="h-12 w-full rounded-md border bg-background px-3 text-base text-foreground"
-            value={visibleTab}
-            onChange={(event) => handleTabChange(event.target.value)}
-          >
-            {allowedTabs.map((tab) => (
-              <option key={tab} value={tab}>
-                {tabLabels[tab]}
-              </option>
-            ))}
-          </select>
-        </label>
+      <Tabs
+        value={visibleTab}
+        onValueChange={handleTabChange}
+        className="md:mt-4"
+      >
         <div className="hidden md:block overflow-x-auto -mx-4 md:mx-0 px-4 md:px-0">
           <TabsList className="w-max md:w-auto flex-nowrap md:flex-wrap min-w-full md:min-w-0">
             <TabsTrigger value="connectors">{m.connectors()}</TabsTrigger>
@@ -116,39 +86,39 @@ export function SettingsView() {
             <TabsTrigger value="contribute">{m.contribute()}</TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="connectors" className="mt-6">
+        <TabsContent value="connectors" className="md:mt-6">
           <ConnectorsTab />
         </TabsContent>
-        <TabsContent value="profile" className="mt-6">
+        <TabsContent value="profile" className="md:mt-6">
           <ProfileTab />
         </TabsContent>
-        <TabsContent value="equipment" className="mt-6">
+        <TabsContent value="equipment" className="md:mt-6">
           <EquipmentTab />
         </TabsContent>
-        <TabsContent value="training_zones" className="mt-6">
+        <TabsContent value="training_zones" className="md:mt-6">
           <TrainingZonesTab />
         </TabsContent>
-        <TabsContent value="ai" className="mt-6">
+        <TabsContent value="ai" className="md:mt-6">
           <AiTab />
         </TabsContent>
-        <TabsContent value="agents" className="mt-6">
+        <TabsContent value="agents" className="md:mt-6">
           <AgentsTab />
         </TabsContent>
-        <TabsContent value="athletes" className="mt-6">
+        <TabsContent value="athletes" className="md:mt-6">
           <AthletesTab />
         </TabsContent>
-        <TabsContent value="coaches" className="mt-6">
+        <TabsContent value="coaches" className="md:mt-6">
           <CoachesTab />
         </TabsContent>
-        <TabsContent value="invitations" className="mt-6">
+        <TabsContent value="invitations" className="md:mt-6">
           <InvitationsTab />
         </TabsContent>
         {showSubscription && (
-          <TabsContent value="subscription" className="mt-6">
+          <TabsContent value="subscription" className="md:mt-6">
             <SubscriptionSettingsPage />
           </TabsContent>
         )}
-        <TabsContent value="contribute" className="mt-6">
+        <TabsContent value="contribute" className="md:mt-6">
           <ContributeTab />
         </TabsContent>
       </Tabs>

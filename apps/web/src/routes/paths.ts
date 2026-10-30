@@ -40,6 +40,8 @@ export const paths: Paths = {
     root: ROOTS.DASHBOARD,
     onboarding: `${ROOTS.DASHBOARD}/onboarding`,
     coach: `${ROOTS.DASHBOARD}/coach`,
+    // The first tab of the app on a phone
+    today: `${ROOTS.DASHBOARD}/today`,
     calendar: {
       root: `${ROOTS.DASHBOARD}/calendar`,
       athleteId: `${ROOTS.DASHBOARD}/calendar/:athleteId`,
