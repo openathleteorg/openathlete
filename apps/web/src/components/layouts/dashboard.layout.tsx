@@ -3,6 +3,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { FinderProvider } from '@/contexts/finder';
 import { SpaceConsumer, SpaceProvider } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { isCapacitor } from '@/utils/capacitor';
@@ -199,7 +200,9 @@ export function DashboardLayout({ children }: P) {
       <SidebarProvider>
         <TemplateLibrarySidebarProvider>
           <SharedDndProvider>
-            <LayoutContent>{children}</LayoutContent>
+            <FinderProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </FinderProvider>
           </SharedDndProvider>
         </TemplateLibrarySidebarProvider>
       </SidebarProvider>

@@ -1752,5 +1752,10 @@
   "insight_form_fatigue": "Form at {form}: fatigue is taking over, a lighter week would help.",
   "insight_form_fresh": "Form at {form}: you have room to add volume.",
   "insight_dominant_sport": "{sport} takes up {share}% of the time in this period.",
-  "insight_stale_metrics": "Metrics not updated for over six months: {count}."
+  "insight_stale_metrics": "Metrics not updated for over six months: {count}.",
+  "finder_open": "Search",
+  "finder_placeholder": "Find an athlete, an activity or a page…",
+  "finder_empty": "Nothing found.",
+  "finder_activities": "Activities",
+  "finder_pages": "Pages"
 }

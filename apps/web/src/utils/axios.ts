@@ -44,6 +44,7 @@ export const routes = {
     getMyEvents: '/event',
     season: '/event/season',
     getUpcomingCompetitions: '/event/upcoming-competitions',
+    search: '/event/search',
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,
     activityCorrections: (eventId: Event['eventId']) =>

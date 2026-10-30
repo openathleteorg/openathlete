@@ -1752,5 +1752,10 @@
   "insight_form_fatigue": "Forma em {form}: a fadiga está dominando, uma semana mais leve ajudaria.",
   "insight_form_fresh": "Forma em {form}: você tem margem para aumentar o volume.",
   "insight_dominant_sport": "{sport} ocupa {share}% do tempo neste período.",
-  "insight_stale_metrics": "Métricas sem atualização há mais de seis meses: {count}."
+  "insight_stale_metrics": "Métricas sem atualização há mais de seis meses: {count}.",
+  "finder_open": "Buscar",
+  "finder_placeholder": "Encontre um atleta, uma atividade ou uma página…",
+  "finder_empty": "Nenhum resultado.",
+  "finder_activities": "Atividades",
+  "finder_pages": "Páginas"
 }
