@@ -28,6 +28,7 @@ export * from './records.dto';
 export * from './statistics.dto';
 export * from './instance.dto';
 export * from './calendar-display.dto';
+export * from './hidden-activity-tracks.dto';
 export * from './calendar-day.dto';
 export * from './season.dto';
 export * from './activity-correction.dto';

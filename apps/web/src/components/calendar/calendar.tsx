@@ -36,7 +36,6 @@ import { type PageAction } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
 import { activityPath } from '@/routes/paths';
 import { AnalyticsEvent } from '@/utils/analytics-events';
-import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
 import { cn } from '@/utils/shadcn';
 import { DragEndEvent } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
@@ -122,20 +121,26 @@ export function Calendar({
   const isMobile = useIsMobile();
   const [planningDate, setPlanningDate] = useState(() => new Date());
   const [planSheetOpen, setPlanSheetOpen] = useState(false);
-  const [view, setViewState] = useState<CalendarView>(() => {
+  const { display, updateDisplay } = useCalendarDisplay();
+  // A link can ask for a view without changing the saved one
+  const [chosenView, setChosenView] = useState<CalendarView | null>(() => {
     const requested = new URLSearchParams(window.location.search).get('view');
-    const saved = requested ?? getItem('calendar_view');
-    return saved === 'week' || saved === 'season' ? saved : 'month';
+    return requested === 'week' ||
+      requested === 'season' ||
+      requested === 'month'
+      ? requested
+      : null;
   });
+  const view = chosenView ?? display.view;
   const calendarData = useCalendarData({ events, view });
   const { goToWeek, displayedMonth } = calendarData;
   const setView = useCallback(
     (next: CalendarView) => {
       if (next === 'week') goToWeek(displayedMonth);
-      setViewState(next);
-      setItem('calendar_view', next);
+      setChosenView(next);
+      updateDisplay((current) => ({ ...current, view: next }));
     },
-    [goToWeek, displayedMonth],
+    [goToWeek, displayedMonth, updateDisplay],
   );
   const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
   const { available: hasAIAccess } = useAiTaskAvailable(
@@ -159,7 +164,6 @@ export function Calendar({
     return { start, end };
   }, [weekRangeStart, weekRangeEnd]);
 
-  const { display, updateDisplay } = useCalendarDisplay();
   // Files import into the signed-in athlete's own activities only
   const { data: myAthlete } = useGetMyAthleteQuery();
   const ownCalendar = !athleteId || athleteId === myAthlete?.athleteId;
@@ -454,10 +458,12 @@ export function Calendar({
   const [filter, setFilter] = useState<(event: Event) => boolean>(
     () => () => true,
   );
-  const [coloredBy, setColoredBy] = useState<COLORED_BY | null>(() => {
-    const savedValue = getItem(CALENDAR_COLORED_BY);
-    return savedValue ? (savedValue as COLORED_BY) : null;
-  });
+  const coloredBy = display.coloredBy as COLORED_BY | null;
+  const setColoredBy = useCallback(
+    (next: COLORED_BY | null) =>
+      updateDisplay((current) => ({ ...current, coloredBy: next })),
+    [updateDisplay],
+  );
   const updateEventMutation = useUpdateEventMutation();
   const duplicateEventMutation = useDuplicateEventMutation({
     onSuccess: (duplicated) => {
@@ -553,15 +559,6 @@ export function Calendar({
     },
     [updateCycleMutation, queryClient],
   );
-
-  // Persist coloredBy to localStorage
-  useEffect(() => {
-    if (coloredBy) {
-      setItem(CALENDAR_COLORED_BY, coloredBy);
-    } else {
-      setItem(CALENDAR_COLORED_BY, '');
-    }
-  }, [coloredBy]);
 
   const memoizedValue = useMemo<CalendarContextType>(
     () => ({

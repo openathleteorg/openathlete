@@ -10,6 +10,10 @@ export const updateAthleteSettingsDtoSchema = z.object({
     .array(z.nativeEnum(METRIC_TYPE))
     .max(Object.values(METRIC_TYPE).length)
     .optional(),
+  dismissedRecordSuspects: z
+    .array(z.number().int().positive())
+    .max(5000)
+    .optional(),
 });
 
 export type UpdateAthleteSettingsDto = z.infer<

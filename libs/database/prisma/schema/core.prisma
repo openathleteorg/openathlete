@@ -41,6 +41,10 @@ model User {
   trainingReminderSentOn DateTime? @map("training_reminder_sent_on") @db.Date
   /// What calendar cards and summaries show (see calendarDisplaySchema)
   calendarDisplay     Json?        @map("calendar_display")
+  /// Tracks hidden from activity charts, per sport (see hiddenActivityTracksSchema)
+  hiddenActivityTracks Json?       @map("hidden_activity_tracks")
+  /// When the user dismissed the request to support the project
+  supportReminderDismissedAt DateTime? @map("support_reminder_dismissed_at")
   /// When the user allowed their data to be sent to third-party AI
   /// providers; no AI runs on their data while unset (App Store 5.1.2(i), GDPR)
   aiDataSharingConsentAt DateTime? @map("ai_data_sharing_consent_at")

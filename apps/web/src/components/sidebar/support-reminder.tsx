@@ -1,32 +1,35 @@
 import { useGetConnectedProvidersQuery } from '@/api/provider';
 import { useCurrentSubscription } from '@/api/subscription';
+import { useGetMeQuery, useUpdateAccountMutation } from '@/api/user';
+import { userKeys } from '@/api/user/user.keys';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
 import { m } from '@/paraglide/messages';
 import {
   BUY_ME_A_COFFEE_URL,
-  dismissSupportReminder,
-  firstSeenAt,
-  isSupportReminderDismissed,
   shouldShowSupportReminder,
 } from '@/utils/support-reminder';
+import { useQueryClient } from '@tanstack/react-query';
 import { Coffee, X } from 'lucide-react';
-import { useState } from 'react';
+
+import { User } from '@openathlete/shared';
 
 /** Asks self-hosters for a coffee once, at the foot of the sidebar */
 export function SupportReminder() {
   const { state, isMobile } = useSidebar();
   const { data: subscription } = useCurrentSubscription();
   const { data: providers } = useGetConnectedProvidersQuery();
-  const [dismissed, setDismissed] = useState(isSupportReminderDismissed);
-  const [firstSeen] = useState(() => firstSeenAt());
+  const queryClient = useQueryClient();
+  const { data: me } = useGetMeQuery();
+  const { mutate: updateAccount } = useUpdateAccountMutation();
 
   const visible =
     subscription !== undefined &&
+    me !== undefined &&
     shouldShowSupportReminder({
       billingEnabled: subscription.billingEnabled,
-      dismissed,
-      firstSeenAt: firstSeen,
+      dismissed: Boolean(me.supportReminderDismissedAt),
+      accountCreatedAt: new Date(me.createdAt),
       fullImportsCompletedAt: (providers ?? []).map(
         (provider) => provider.fullImportCompletedAt,
       ),
@@ -35,8 +38,10 @@ export function SupportReminder() {
   if (!visible || (state === 'collapsed' && !isMobile)) return null;
 
   const dismiss = () => {
-    dismissSupportReminder();
-    setDismissed(true);
+    queryClient.setQueryData<User>([userKeys.getMe], (old) =>
+      old ? { ...old, supportReminderDismissedAt: new Date() } : old,
+    );
+    updateAccount({ supportReminderDismissed: true });
   };
 
   return (

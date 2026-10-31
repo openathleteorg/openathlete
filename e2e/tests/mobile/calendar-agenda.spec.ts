@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test';
 test('the agenda plans on the day picked in the week strip', async ({
   page,
 }) => {
-  await page.goto('/dashboard/calendar');
+  await page.goto('/dashboard/calendar?view=month');
 
   const strip = page.locator('[data-calendar-week-strip]');
   await expect(strip.getByRole('button')).toHaveCount(7);
@@ -27,7 +27,7 @@ test('the agenda plans on the day picked in the week strip', async ({
 });
 
 test('view options open as a sheet and close again', async ({ page }) => {
-  await page.goto('/dashboard/calendar');
+  await page.goto('/dashboard/calendar?view=month');
 
   await page.locator('[data-calendar-options]').tap();
   const sheet = page.getByRole('dialog');

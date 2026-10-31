@@ -31,6 +31,7 @@ import {
 import { RecordsSummary } from '@/components/records/records-summary';
 import { RecordsYearsTable } from '@/components/records/records-years-table';
 import { TrainingPacesCard } from '@/components/records/training-paces-card';
+import { useDismissedSuspects } from '@/components/records/use-dismissed-suspects';
 import { SportSelect } from '@/components/sport-select/sport-select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -66,28 +67,6 @@ const YEAR_COLORS = [
 ];
 const yearColor = (index: number) => YEAR_COLORS[index % YEAR_COLORS.length];
 
-const DISMISSED_KEY = 'records_dismissed_suspects';
-
-/** Suspect activities the athlete vouched for: they should not nag again. */
-function useDismissedSuspects() {
-  const [dismissed, setDismissed] = useState<number[]>(() => {
-    try {
-      const stored: unknown = JSON.parse(
-        localStorage.getItem(DISMISSED_KEY) ?? '[]',
-      );
-      return Array.isArray(stored) ? (stored as number[]) : [];
-    } catch {
-      return [];
-    }
-  });
-  const dismiss = (ids: number[]) => {
-    const next = [...new Set([...dismissed, ...ids])];
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify(next));
-    setDismissed(next);
-  };
-  return { dismissed, dismiss };
-}
-
 export function RecordsView({ athleteId }: P) {
   const { data: sports, isPending: isLoadingSports } =
     useGetRecordSportsQuery(athleteId);
@@ -112,7 +91,7 @@ export function RecordsView({ athleteId }: P) {
     position: number;
   } | null>(null);
   const [openEventId, setOpenEventId] = useState<number | null>(null);
-  const { dismissed, dismiss } = useDismissedSuspects();
+  const { dismissed, dismiss } = useDismissedSuspects(athleteId);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
 
   const dateFormat = useMemo(

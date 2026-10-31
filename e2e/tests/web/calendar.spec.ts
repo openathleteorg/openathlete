@@ -2,7 +2,7 @@ import { type Page, expect, test } from '@playwright/test';
 
 // Planning a session must not depend on knowing the right click
 async function emptyDay(page: Page) {
-  await page.goto('/dashboard/calendar');
+  await page.goto('/dashboard/calendar?view=month');
   // The last cell belongs to the next month and holds no event
   const day = page.locator('[data-calendar-day]').last();
   await expect(day).toBeVisible();
@@ -36,7 +36,7 @@ test('each day has a plan button for the mouse and the keyboard', async ({
 });
 
 test('the calendar bar has a Plan button', async ({ page }) => {
-  await page.goto('/dashboard/calendar');
+  await page.goto('/dashboard/calendar?view=month');
 
   await page.locator('[data-calendar-header-plan]').click();
   await page.getByRole('menuitem', { name: 'Plan a competition' }).click();
@@ -55,7 +55,7 @@ test('the right click keeps working', async ({ page }) => {
 });
 
 test('dragging across days still creates a cycle', async ({ page }) => {
-  await page.goto('/dashboard/calendar');
+  await page.goto('/dashboard/calendar?view=month');
   // Raw mouse moves do not wait for the loading overlay to go
   await page.waitForLoadState('networkidle');
   // Two days later in the same week, both on screen

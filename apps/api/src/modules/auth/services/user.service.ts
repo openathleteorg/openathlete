@@ -133,6 +133,9 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        hiddenActivityTracks: true,
+        supportReminderDismissedAt: true,
+        createdAt: true,
       },
     });
   };
@@ -404,6 +407,10 @@ export class UserService {
         timeZone: data.timeZone,
         trainingReminders: data.trainingReminders,
         calendarDisplay: data.calendarDisplay,
+        hiddenActivityTracks: data.hiddenActivityTracks,
+        supportReminderDismissedAt: data.supportReminderDismissed
+          ? new Date()
+          : undefined,
       },
       select: {
         firstName: true,
@@ -412,6 +419,8 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        hiddenActivityTracks: true,
+        supportReminderDismissedAt: true,
       },
     });
   };

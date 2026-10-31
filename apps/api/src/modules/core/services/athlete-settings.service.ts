@@ -69,6 +69,10 @@ export class AthleteSettingsService {
       ...new Set(dto.pinnedMetrics as MetricType[]),
     ];
 
+    const dismissedRecordSuspects = dto.dismissedRecordSuspects && [
+      ...new Set(dto.dismissedRecordSuspects),
+    ];
+
     // Upsert settings
     const settings = await this.prisma.athleteSettings.upsert({
       where: { athleteId: athleteId },
@@ -78,6 +82,7 @@ export class AthleteSettingsService {
         requireComment: dto.requireComment ?? false,
         requireFeedbackQuestions: dto.requireFeedbackQuestions ?? true,
         ...(pinnedMetrics && { pinnedMetrics }),
+        ...(dismissedRecordSuspects && { dismissedRecordSuspects }),
       },
       update: {
         ...(dto.requireRpe !== undefined && { requireRpe: dto.requireRpe }),
@@ -88,6 +93,7 @@ export class AthleteSettingsService {
           requireFeedbackQuestions: dto.requireFeedbackQuestions,
         }),
         ...(pinnedMetrics && { pinnedMetrics }),
+        ...(dismissedRecordSuspects && { dismissedRecordSuspects }),
       },
     });
 

@@ -21,6 +21,9 @@ model AthleteSettings {
   /// Metrics at the top of the metrics page, in the order they were pinned
   pinnedMetrics            MetricType[] @default([HRV_LAST_NIGHT_AVG, HR_REST, SLEEP_DURATION, SLEEP_SCORE, WEIGHT]) @map("pinned_metrics")
 
+  /// Activities with suspect records that the athlete vouched for
+  dismissedRecordSuspects  Int[] @default([]) @map("dismissed_record_suspects")
+
   // relationships
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId])
   athleteId Int     @unique @map("athlete_id")

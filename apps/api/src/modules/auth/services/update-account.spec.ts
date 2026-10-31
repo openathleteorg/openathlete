@@ -40,6 +40,9 @@ describe('account update', () => {
         form: true,
       },
       wellness: true,
+      view: 'month',
+      seasonMonths: 6,
+      coloredBy: null,
     });
   });
 });
