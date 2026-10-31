@@ -12,7 +12,6 @@ import {
   METRIC_TYPE,
   createMetricDtoSchema,
   metricCalculationMap,
-  metricsByCategory,
 } from '@openathlete/shared';
 
 import {
@@ -24,12 +23,15 @@ import {
 } from '../hook-form';
 import { Button } from '../ui/button';
 import { SelectItem } from '../ui/select';
+import { metricCategories } from './metric-utils';
 
 interface MetricFormProps {
   onSubmit: (values: CreateMetricDto) => void;
   defaultValues?: Partial<AthleteMetric>;
   className?: string;
   hideTypeSelector?: boolean;
+  /** An entry keeps its day: the API only changes its value and notes */
+  lockDate?: boolean;
   isLoading?: boolean;
 }
 
@@ -38,6 +40,7 @@ export function MetricForm({
   defaultValues,
   className,
   hideTypeSelector = false,
+  lockDate = false,
   isLoading,
 }: MetricFormProps) {
   const methods = useForm<CreateMetricDto>({
@@ -82,12 +85,6 @@ export function MetricForm({
     onSubmit(data);
   });
 
-  const categoriesWithLabels = {
-    [m.health_composition()]: metricsByCategory.health_composition,
-    [m.cardiac()]: metricsByCategory.cardiac,
-    [m.performance_physiology()]: metricsByCategory.performance_physiology,
-  };
-
   return (
     <FormProvider
       methods={methods}
@@ -102,25 +99,29 @@ export function MetricForm({
             required
             placeholder={m.select_metric_type()}
           >
-            {Object.entries(categoriesWithLabels).map(
-              ([category, types], idx) => (
-                <div key={category}>
-                  {idx > 0 && <div className="h-px bg-border my-1" />}
-                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                    {category}
-                  </div>
-                  {types.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {metricTypeLabelMap[type]}
-                    </SelectItem>
-                  ))}
+            {metricCategories().map(({ key, label, types }, idx) => (
+              <div key={key}>
+                {idx > 0 && <div className="h-px bg-border my-1" />}
+                <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                  {label}
                 </div>
-              ),
-            )}
+                {types.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {metricTypeLabelMap[type]}
+                  </SelectItem>
+                ))}
+              </div>
+            ))}
           </RHFSelect>
         )}
 
-        <RHFDatePicker name="date" label={m.date()} required max={new Date()} />
+        <RHFDatePicker
+          name="date"
+          label={m.date()}
+          required
+          max={new Date()}
+          disabled={lockDate}
+        />
 
         <div className="space-y-2">
           <RHFTextField

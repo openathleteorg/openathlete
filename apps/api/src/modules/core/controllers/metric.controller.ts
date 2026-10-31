@@ -1,6 +1,7 @@
 import { ZodValidationPipe } from 'nestjs-zod';
 
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -300,6 +301,13 @@ export class MetricController {
     example: 1,
     required: false,
   })
+  @ApiQuery({
+    name: 'from',
+    type: String,
+    description: 'Optional first day to return (YYYY-MM-DD)',
+    example: '2026-01-15',
+    required: false,
+  })
   @ApiResponse({
     status: 200,
     description: 'List of metrics retrieved successfully',
@@ -337,8 +345,18 @@ export class MetricController {
     @Query('type') type?: string,
     @Query('athleteId', new ParseIntPipe({ optional: true }))
     athleteId?: Athlete['athleteId'],
+    @Query('from') from?: string,
   ) {
-    return this.metricService.getMetrics(user, type as MetricType, athleteId);
+    const fromDate = from ? new Date(from) : undefined;
+    if (fromDate && Number.isNaN(fromDate.getTime())) {
+      throw new BadRequestException('Invalid from date');
+    }
+    return this.metricService.getMetrics(
+      user,
+      type as MetricType,
+      athleteId,
+      fromDate,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

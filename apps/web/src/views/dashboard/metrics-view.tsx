@@ -1,126 +1,67 @@
-import {
-  AthleteMetric,
-  useCreateMetricMutation,
-  useGetLatestMetricsQuery,
-} from '@/api/metric';
+import { useGetLatestMetricsQuery, useGetMetricsQuery } from '@/api/metric';
 import { InjuryLogsTable } from '@/components/metrics/injury-logs-table';
-import { MetricCard } from '@/components/metrics/metric-card';
-import { MetricChart } from '@/components/metrics/metric-chart';
-import { MetricForm } from '@/components/metrics/metric-form';
+import { MetricDetail } from '@/components/metrics/metric-detail';
+import { MetricList } from '@/components/metrics/metric-list';
+import { MetricQuickEntry } from '@/components/metrics/metric-quick-entry';
+import { usePinnedMetrics } from '@/components/metrics/use-pinned-metrics';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { InsightBanner } from '@/components/ui/insight-banner';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { PageTitle } from '@/components/ui/page-title';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useSetPageActions } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
-import { countStaleMetrics } from '@/utils/insights';
-import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
+import { subDays } from 'date-fns';
+import { Plus } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 
-import {
-  CreateMetricDto,
-  METRIC_TYPE,
-  metricsByCategory,
-} from '@openathlete/shared';
+import { METRIC_TYPE } from '@openathlete/shared';
+
+/** Enough for the 60 values of a baseline, without years of daily data */
+const LIST_WINDOW_DAYS = 120;
 
 interface P {
   athleteId?: number;
 }
 
 export function MetricsView({ athleteId }: P) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedMetric, setSelectedMetric] = useState<{
-    type: METRIC_TYPE;
-    data: AthleteMetric | null;
-  } | null>(null);
-  const [expandedCategories, setExpandedCategories] = useState<
-    Record<string, boolean>
-  >({});
+  const isMobile = useIsMobile();
+  const [chosen, setChosen] = useState<METRIC_TYPE | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isQuickEntryOpen, setIsQuickEntryOpen] = useState(false);
 
-  const { data: latestMetrics = {}, isPending: isLoadingMetrics } =
+  const from = useMemo(
+    () => subDays(new Date(), LIST_WINDOW_DAYS).toISOString().slice(0, 10),
+    [],
+  );
+  const { data: latest = {}, isPending: isLoadingLatest } =
     useGetLatestMetricsQuery(athleteId);
-  const createMetric = useCreateMetricMutation();
+  const { data: metrics = [], isPending: isLoadingMetrics } =
+    useGetMetricsQuery(undefined, athleteId, from);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
+  const { pinned, togglePinned } = usePinnedMetrics(athleteId);
 
-  const handleMetricCardClick = (type: METRIC_TYPE) => {
-    setSelectedMetric({
-      type,
-      data: latestMetrics[type] || null,
-    });
-    setIsDialogOpen(true);
+  const firstPinnedWithData = pinned.find((type) => latest[type]);
+  const firstWithData = Object.keys(latest)[0] as METRIC_TYPE | undefined;
+  const selected =
+    chosen ?? firstPinnedWithData ?? firstWithData ?? pinned[0] ?? null;
+
+  const handleSelect = (type: METRIC_TYPE) => {
+    setChosen(type);
+    setIsDetailOpen(true);
   };
 
-  const handleAddNewMetric = useCallback(() => {
-    setSelectedMetric(null);
-    setIsDialogOpen(true);
-  }, []);
-
-  const handleSubmit = async (values: CreateMetricDto) => {
-    await createMetric.mutateAsync({ body: values, athleteId });
-    setIsDialogOpen(false);
-    setSelectedMetric(null);
-  };
-
-  // Sort metrics: non-null first, then by original order
-  const sortMetrics = (
-    metrics: METRIC_TYPE[],
-    latestMetrics: Record<string, AthleteMetric | null>,
-  ): METRIC_TYPE[] => {
-    return [...metrics].sort((a, b) => {
-      const aHasData =
-        latestMetrics[a] !== null && latestMetrics[a] !== undefined;
-      const bHasData =
-        latestMetrics[b] !== null && latestMetrics[b] !== undefined;
-
-      // Non-null first
-      if (aHasData && !bHasData) return -1;
-      if (!aHasData && bHasData) return 1;
-
-      // Then maintain original order (by index in original array)
-      return metrics.indexOf(a) - metrics.indexOf(b);
-    });
-  };
-
-  // Get sorted and limited metrics for each category
-  const getMetricsForCategory = (
-    categoryKey: string,
-    allMetrics: METRIC_TYPE[],
-  ) => {
-    const sorted = sortMetrics(allMetrics, latestMetrics);
-    const isExpanded = expandedCategories[categoryKey] || false;
-    const displayed = isExpanded ? sorted : sorted.slice(0, 8);
-    const hasMore = sorted.length > 8;
-
-    return { sorted, displayed, hasMore };
-  };
-
-  const healthMetricsData = getMetricsForCategory(
-    'health_composition',
-    metricsByCategory.health_composition,
+  const openQuickEntry = useCallback(() => setIsQuickEntryOpen(true), []);
+  const actions = useMemo(
+    () => [
+      { label: m.metrics_enter_values(), icon: Plus, onClick: openQuickEntry },
+    ],
+    [openQuickEntry],
   );
-  const cardiacMetricsData = getMetricsForCategory(
-    'cardiac',
-    metricsByCategory.cardiac,
-  );
-  const performanceMetricsData = getMetricsForCategory(
-    'performance_physiology',
-    metricsByCategory.performance_physiology,
-  );
-
-  const toggleCategory = (categoryKey: string) => {
-    setExpandedCategories((prev) => ({
-      ...prev,
-      [categoryKey]: !prev[categoryKey],
-    }));
-  };
+  useSetPageActions(actions);
 
   const pageTitle = isCurrentUser
     ? m.my_metrics()
@@ -129,199 +70,76 @@ export function MetricsView({ athleteId }: P) {
         lastName: athlete?.user?.lastName || '',
       });
 
-  // Actions for mobile header - memoized to prevent recreating on each render
-  const actions = useMemo(
-    () => [
-      {
-        label: m.add_metric(),
-        icon: Plus,
-        onClick: handleAddNewMetric,
-      },
-    ],
-    [handleAddNewMetric],
+  const detail = selected && (
+    <MetricDetail
+      // Each metric starts on its own range and with an empty form
+      key={selected}
+      type={selected}
+      pinned={pinned.includes(selected)}
+      onTogglePinned={() => togglePinned(selected)}
+      athleteId={athleteId}
+    />
   );
 
-  useSetPageActions(actions);
-
-  const staleMetrics = countStaleMetrics(Object.values(latestMetrics));
-
   return (
-    <div className="w-full p-4 md:p-8 space-y-6">
+    <div className="w-full space-y-5 p-4 md:p-8">
       <div className="flex items-center justify-between gap-2">
         <PageTitle desktopOnly>{pageTitle}</PageTitle>
-        <Button onClick={handleAddNewMetric} className="hidden md:flex">
-          <Plus className="h-4 w-4 mr-2" />
-          {m.add_metric()}
+        <Button onClick={openQuickEntry} className="hidden md:flex">
+          <Plus className="mr-2 h-4 w-4" />
+          {m.metrics_enter_values()}
         </Button>
       </div>
-      {staleMetrics > 0 && (
-        <InsightBanner
-          text={m.insight_stale_metrics({ count: staleMetrics })}
-        />
+
+      <Tabs defaultValue="tracking" className="gap-4">
+        <TabsList>
+          <TabsTrigger value="tracking">{m.metrics_tab_tracking()}</TabsTrigger>
+          <TabsTrigger value="injuries">{m.injury_logs()}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tracking">
+          {isLoadingLatest || isLoadingMetrics ? (
+            <div className="space-y-2 lg:max-w-sm">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <Skeleton key={index} className="h-14 rounded-lg" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[22rem_minmax(0,1fr)] lg:gap-8">
+              <MetricList
+                metrics={metrics}
+                latest={latest}
+                pinned={pinned}
+                selected={isMobile ? null : selected}
+                onSelect={handleSelect}
+              />
+              {!isMobile && detail}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="injuries">
+          <InjuryLogsTable athleteId={athleteId} />
+        </TabsContent>
+      </Tabs>
+
+      {isMobile && (
+        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+          <DialogContent mobileFullscreen>
+            <DialogTitle>
+              {selected ? metricTypeLabelMap[selected] : m.metrics()}
+            </DialogTitle>
+            {detail}
+          </DialogContent>
+        </Dialog>
       )}
 
-      {/* Health & Body Composition Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">{m.health_composition()}</h2>
-          {healthMetricsData.hasMore && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleCategory('health_composition')}
-            >
-              {expandedCategories['health_composition'] ? (
-                <>
-                  {m.show_less_metrics()}
-                  <ChevronUp className="h-4 w-4 ml-2" />
-                </>
-              ) : (
-                <>
-                  {m.show_all_metrics()}
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {isLoadingMetrics
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-lg" />
-              ))
-            : healthMetricsData.displayed.map((type) => (
-                <MetricCard
-                  key={type}
-                  type={type}
-                  metric={latestMetrics[type] || null}
-                  onClick={() => handleMetricCardClick(type)}
-                />
-              ))}
-        </div>
-      </div>
-
-      {/* Cardiac Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">{m.cardiac()}</h2>
-          {cardiacMetricsData.hasMore && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleCategory('cardiac')}
-            >
-              {expandedCategories['cardiac'] ? (
-                <>
-                  {m.show_less_metrics()}
-                  <ChevronUp className="h-4 w-4 ml-2" />
-                </>
-              ) : (
-                <>
-                  {m.show_all_metrics()}
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {isLoadingMetrics
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-lg" />
-              ))
-            : cardiacMetricsData.displayed.map((type) => (
-                <MetricCard
-                  key={type}
-                  type={type}
-                  metric={latestMetrics[type] || null}
-                  onClick={() => handleMetricCardClick(type)}
-                />
-              ))}
-        </div>
-      </div>
-
-      {/* Performance Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">
-            {m.performance_physiology()}
-          </h2>
-          {performanceMetricsData.hasMore && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => toggleCategory('performance_physiology')}
-            >
-              {expandedCategories['performance_physiology'] ? (
-                <>
-                  {m.show_less_metrics()}
-                  <ChevronUp className="h-4 w-4 ml-2" />
-                </>
-              ) : (
-                <>
-                  {m.show_all_metrics()}
-                  <ChevronDown className="h-4 w-4 ml-2" />
-                </>
-              )}
-            </Button>
-          )}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {isLoadingMetrics
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-24 rounded-lg" />
-              ))
-            : performanceMetricsData.displayed.map((type) => (
-                <MetricCard
-                  key={type}
-                  type={type}
-                  metric={latestMetrics[type] || null}
-                  onClick={() => handleMetricCardClick(type)}
-                />
-              ))}
-        </div>
-      </div>
-
-      {/* Chart Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {m.metrics()} {m.ui_evolution_suffix()}{' '}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <MetricChart athleteId={athleteId} />
-        </CardContent>
-      </Card>
-
-      {/* Injury Logs Section */}
-      <InjuryLogsTable athleteId={athleteId} />
-
-      {/* Dialog for adding/editing metric */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {selectedMetric ? m.edit_metric() : m.add_metric()}
-            </DialogTitle>
-          </DialogHeader>
-          <MetricForm
-            onSubmit={handleSubmit}
-            defaultValues={
-              selectedMetric
-                ? {
-                    type: selectedMetric.type,
-                    value: selectedMetric.data?.value,
-                    date: selectedMetric.data?.date,
-                    notes: selectedMetric.data?.notes || undefined,
-                  }
-                : undefined
-            }
-            hideTypeSelector={!!selectedMetric}
-            isLoading={createMetric.isPending}
-          />
-        </DialogContent>
-      </Dialog>
+      <MetricQuickEntry
+        open={isQuickEntryOpen}
+        onOpenChange={setIsQuickEntryOpen}
+        latest={latest}
+        athleteId={athleteId}
+      />
     </div>
   );
 }

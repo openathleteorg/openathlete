@@ -15,12 +15,13 @@ import { metricKeys } from './metric.keys';
 export const useGetMetricsQuery = (
   type?: METRIC_TYPE,
   athleteId?: number,
+  from?: string,
   opt?: QueryOptions<Awaited<ReturnType<typeof MetricAPI.getMetrics>>>,
 ) => {
   return useQuery({
     ...opt,
-    queryKey: [metricKeys.getMetrics, type, athleteId],
-    queryFn: () => MetricAPI.getMetrics(type, athleteId),
+    queryKey: [metricKeys.getMetrics, type, athleteId, from],
+    queryFn: () => MetricAPI.getMetrics(type, athleteId, from),
   });
 };
 

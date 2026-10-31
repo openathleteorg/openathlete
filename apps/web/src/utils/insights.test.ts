@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { countStaleMetrics, getDominantSport } from './insights';
+import { getDominantSport } from './insights';
 
 describe('getDominantSport', () => {
   it('names the sport that takes most of the time', () => {
@@ -26,23 +26,5 @@ describe('getDominantSport', () => {
   it('says nothing about a single sport or an empty period', () => {
     expect(getDominantSport([{ movingTime: 10 }])).toBeNull();
     expect(getDominantSport([{ movingTime: 0 }, { movingTime: 0 }])).toBeNull();
-  });
-});
-
-describe('countStaleMetrics', () => {
-  const now = new Date('2026-10-30T12:00:00Z');
-
-  it('counts values older than six months and skips missing ones', () => {
-    expect(
-      countStaleMetrics(
-        [
-          { date: '2025-11-12' },
-          { date: new Date('2026-10-21') },
-          null,
-          undefined,
-        ],
-        now,
-      ),
-    ).toBe(1);
   });
 });
