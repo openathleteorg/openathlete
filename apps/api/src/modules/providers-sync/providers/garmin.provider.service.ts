@@ -1064,6 +1064,19 @@ export class GarminProviderService
         );
         return;
       }
+      // Without an account there is no token to pull with: a retry can't help
+      if (!account && (status === 400 || status === 401)) {
+        this.logger.debug(
+          `Garmin activity file ${activityId ?? ''} answered ${status} for a user without an account`,
+        );
+        return;
+      }
+      // The file is requested as binary: axios' message hides Garmin's reason
+      if (status === 400 || status === 401) {
+        this.logger.warn(
+          `Garmin activity file ${activityId ?? ''} answered ${status}: ${garminErrorMessage(error)}`,
+        );
+      }
       throw error;
     }
 

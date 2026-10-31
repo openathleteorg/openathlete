@@ -167,6 +167,29 @@ describe('GarminProviderService.processNotification', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
+  it('drops activity files of unknown users, which no retry can pull', async () => {
+    const { service } = setup([]);
+    mockedGet.mockRejectedValue(
+      Object.assign(new Error('Bad Request'), {
+        isAxiosError: true,
+        response: { status: 400, data: {} },
+      }),
+    );
+
+    await expect(
+      service.processNotification(
+        {
+          summaryType: 'activityFiles',
+          userId: 'gone',
+          callbackURL:
+            'https://apis.garmin.com/wellness-api/rest/activityFile?id=1&token=t',
+          entry: { fileType: 'FIT', activityId: 1 },
+        },
+        { lastAttempt: false },
+      ),
+    ).resolves.toBeUndefined();
+  });
+
   it('saves pushed data without pulling anything', async () => {
     const { service, prisma } = setup([account]);
 
