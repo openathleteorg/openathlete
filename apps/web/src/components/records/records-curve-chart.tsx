@@ -23,6 +23,8 @@ interface P {
   sport: SPORT_TYPE;
   series: LabelledSeries[];
   className?: string;
+  /** Called with the distance or duration chosen on the chart */
+  onSelect?: (position: number) => void;
 }
 
 /**
@@ -37,7 +39,13 @@ function valueDomain(values: number[]): [number, number] {
 }
 
 /** One record type along distance or duration, one line per series. */
-export function RecordsCurveChart({ metric, sport, series, className }: P) {
+export function RecordsCurveChart({
+  metric,
+  sport,
+  series,
+  className,
+  onSelect,
+}: P) {
   // A period without any record of this kind has nothing to draw
   const drawn = series.filter((s) =>
     s.records.some((record) => record.type === metric.type),
@@ -57,7 +65,15 @@ export function RecordsCurveChart({ metric, sport, series, className }: P) {
       )}
       className={className ?? 'h-[260px] w-full'}
     >
-      <LineChart data={data} margin={{ left: 8, right: 16, top: 8 }}>
+      <LineChart
+        data={data}
+        margin={{ left: 8, right: 16, top: 8 }}
+        onClick={(chart) => {
+          const position = Number(chart?.activeLabel);
+          if (onSelect && Number.isFinite(position)) onSelect(position);
+        }}
+        className={onSelect ? 'cursor-pointer' : undefined}
+      >
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="position"

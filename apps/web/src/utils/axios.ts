@@ -99,6 +99,12 @@ export const routes = {
   record: {
     getRecords: '/record',
     getRecordSports: '/record/sports',
+    getRecordHistory: '/record/history',
+    getRecordEfforts: '/record/efforts',
+    getRecordExclusions: '/record/exclusions',
+    createRecordExclusion: '/record/exclusions',
+    deleteRecordExclusion: (recordExclusionId: number) =>
+      `/record/exclusions/${recordExclusionId}`,
   },
   equipment: {
     getMyEquipment: '/equipment',

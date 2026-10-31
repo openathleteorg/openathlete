@@ -56,6 +56,7 @@ export const accountFixtureSql = [
   `INSERT INTO event_activity_normalization_factor (factor, time_seconds, percent, event_activity_normalization_id, updated_at) VALUES ('SLOPE', 10, 0.1, 3601, ${now})`,
   `INSERT INTO event_activity_weather (samples, event_activity_id, updated_at) VALUES ('[]', 3501, ${now})`,
   `INSERT INTO record (distance, date, athlete_id, event_activity_id, type, value, updated_at) VALUES (1000, '2026-01-06', 2001, 3501, 'SPEED', 4, ${now}), (5000, '2026-01-06', 2001, NULL, 'SPEED', 3.5, ${now})`,
+  `INSERT INTO record_exclusion (event_activity_id, type, distance) VALUES (3501, 'SPEED', 42195)`,
   `INSERT INTO activity_feedback_question (question_text, event_activity_id, updated_at) VALUES ('How was it?', 3501, ${now})`,
   `INSERT INTO activity_feedback_embedding (text_content, embedding, event_activity_id, updated_at) VALUES ('felt good', array_fill(0, ARRAY[1536])::vector, 3501, ${now})`,
   `INSERT INTO activity_segment (segment_type, order_index, start_time_seconds, end_time_seconds, event_activity_id, updated_at) VALUES ('LAP', 0, 0, 300, 3501, ${now})`,

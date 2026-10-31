@@ -135,4 +135,204 @@ describe('RecordService (PostgreSQL)', () => {
       'RUNNING',
     ]);
   });
+
+  describe('exclusions', () => {
+    const owner = {
+      ...athlete,
+      coachAthletes: [],
+    } as unknown as AuthUser;
+    const stranger = {
+      userId: 999,
+      email: 'stranger@example.com',
+      coachAthletes: [],
+    } as unknown as AuthUser;
+
+    /** Two runs: the fixture's and a slower one, each with a pace and a heart rate record. */
+    async function seed() {
+      await prisma.recordExclusion.deleteMany();
+      await prisma.record.deleteMany();
+      const event = await prisma.event.create({
+        data: {
+          name: 'Slower run',
+          type: 'ACTIVITY',
+          startDate: new Date('2025-02-01'),
+          endDate: new Date('2025-02-01'),
+          athleteId: DELETED_ATHLETE_ID,
+          activity: {
+            create: {
+              sport: 'RUNNING',
+              distance: 5000,
+              elevationGain: 0,
+              movingTime: 1500,
+              averageSpeed: 3,
+              maxSpeed: 4,
+              externalId: 'slower-run',
+            },
+          },
+        },
+        include: { activity: true },
+      });
+      const slower = event.activity!.eventActivityId;
+      const records = (
+        eventActivityId: number,
+        date: string,
+        pace: number,
+        heartRate: number,
+      ) =>
+        prisma.record.createMany({
+          data: [
+            { type: 'SPEED' as const, distance: 1000, value: pace },
+            { type: 'SPEED' as const, distance: 5000, value: pace * 5 },
+            { type: 'HEARTRATE' as const, duration: 60, value: heartRate },
+          ].map((record) => ({
+            ...record,
+            date: new Date(date),
+            athleteId: DELETED_ATHLETE_ID,
+            eventActivityId,
+          })),
+        });
+      await records(3501, '2026-01-06', 100, 210);
+      await records(slower, '2025-02-01', 240, 180);
+      return slower;
+    }
+
+    const best = async () =>
+      Object.fromEntries(
+        (await service.getRecords(athlete, { sport: 'RUNNING' })).map((r) => [
+          `${r.type}:${r.distance ?? r.duration}`,
+          r.value,
+        ]),
+      );
+
+    beforeEach(() => {
+      service = new RecordService(prisma, new CaslAbilityFactory());
+    });
+
+    it('leaves out one effort, a record type or a whole activity', async () => {
+      await seed();
+      expect(await best()).toEqual({
+        'SPEED:1000': 100,
+        'SPEED:5000': 500,
+        'HEARTRATE:60': 210,
+      });
+
+      const effort = await service.createExclusion(owner, {
+        eventActivityId: 3501,
+        type: 'SPEED' as never,
+        distance: 1000,
+      });
+      expect(await best()).toEqual({
+        'SPEED:1000': 240,
+        'SPEED:5000': 500,
+        'HEARTRATE:60': 210,
+      });
+
+      const metric = await service.createExclusion(owner, {
+        eventActivityId: 3501,
+        type: 'SPEED' as never,
+      });
+      expect(await best()).toEqual({
+        'SPEED:1000': 240,
+        'SPEED:5000': 1200,
+        'HEARTRATE:60': 210,
+      });
+
+      await service.createExclusion(owner, { eventActivityId: 3501 });
+      expect((await best())['HEARTRATE:60']).toBe(180);
+
+      await service.deleteExclusion(owner, effort.recordExclusionId);
+      await service.deleteExclusion(owner, metric.recordExclusionId);
+      expect(
+        await service.getExclusions(athlete, { sport: 'RUNNING' }),
+      ).toHaveLength(1);
+    });
+
+    it('survives the records being computed again', async () => {
+      await seed();
+      await service.createExclusion(owner, { eventActivityId: 3501 });
+      await prisma.record.deleteMany({ where: { eventActivityId: 3501 } });
+      await prisma.record.create({
+        data: {
+          type: 'SPEED',
+          distance: 1000,
+          value: 100,
+          date: new Date('2026-01-06'),
+          athleteId: DELETED_ATHLETE_ID,
+          eventActivityId: 3501,
+        },
+      });
+      expect((await best())['SPEED:1000']).toBe(240);
+    });
+
+    it('does not repeat an exclusion', async () => {
+      await seed();
+      const input = {
+        eventActivityId: 3501,
+        type: 'SPEED' as never,
+        distance: 1000,
+      };
+      const first = await service.createExclusion(owner, input);
+      const second = await service.createExclusion(owner, input);
+      expect(second.recordExclusionId).toBe(first.recordExclusionId);
+    });
+
+    it("refuses another athlete's activity", async () => {
+      await seed();
+      await expect(
+        service.createExclusion(stranger, { eventActivityId: 3501 }),
+      ).rejects.toThrow('Not allowed');
+      const { recordExclusionId } = await service.createExclusion(owner, {
+        eventActivityId: 3501,
+      });
+      await expect(
+        service.deleteExclusion(stranger, recordExclusionId),
+      ).rejects.toThrow('Not allowed');
+    });
+
+    it('reads the years and podium, without what is excluded', async () => {
+      await seed();
+      const kilometre = async () => {
+        const history = await service.getHistory(athlete, { sport: 'RUNNING' });
+        const atKilometre = (r: { type: string; distance: number | null }) =>
+          r.type === 'SPEED' && r.distance === 1000;
+        return {
+          years: history.years
+            .filter(atKilometre)
+            .map((r) => [r.year, r.value]),
+          podium: history.podium.filter(atKilometre).map((r) => r.value),
+        };
+      };
+
+      expect(await kilometre()).toEqual({
+        years: [
+          [2025, 240],
+          [2026, 100],
+        ],
+        podium: [100, 240],
+      });
+
+      await service.createExclusion(owner, { eventActivityId: 3501 });
+      expect(await kilometre()).toEqual({
+        years: [[2025, 240]],
+        podium: [240],
+      });
+    });
+
+    it('lists every effort, the excluded ones marked', async () => {
+      await seed();
+      const { recordExclusionId } = await service.createExclusion(owner, {
+        eventActivityId: 3501,
+        type: 'SPEED' as never,
+      });
+      const efforts = await service.getEfforts(athlete, {
+        sport: 'RUNNING' as never,
+        type: 'SPEED' as never,
+        distance: 1000,
+      });
+      expect(efforts.map((e) => [e.value, e.exclusionId])).toEqual([
+        [100, recordExclusionId],
+        [240, null],
+      ]);
+    });
+  });
 });

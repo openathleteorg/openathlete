@@ -103,6 +103,21 @@ export function formatRecordTime(record: ChartRecord): string {
   return formatDuration(record.value);
 }
 
+/** A record's headline, and what qualifies it: a time and its pace, or watts. */
+export function formatRecordValue(
+  metric: RecordMetric,
+  record: ChartRecord,
+  sport: SPORT_TYPE,
+): { value: string; unit: string } {
+  const plotted = metric.format(metric.plotted(record, sport), sport);
+  return metric.type === RECORD_TYPE.SPEED
+    ? {
+        value: formatRecordTime(record),
+        unit: `${plotted} ${metric.unit(sport)}`,
+      }
+    : { value: plotted, unit: metric.unit(sport) };
+}
+
 export type CurveSeries<R extends ChartRecord = ChartRecord> = {
   key: string;
   records: R[];

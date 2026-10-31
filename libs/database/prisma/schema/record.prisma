@@ -43,3 +43,29 @@ model Record {
   @@index([athleteId, type, date])
   @@map("record")
 }
+
+/// An effort the athlete or their coach set aside from their records: a GPS
+/// jump, a faulty sensor, a ride filed as a run. Records are deleted and
+/// recomputed with their activity, so this points at the activity and at what
+/// to skip in it, never at a record row.
+/// No type: the whole activity. A type alone: all of it in the activity. With
+/// a distance or a duration: that one effort.
+model RecordExclusion {
+  // primary key
+  recordExclusionId Int @id @default(autoincrement()) @map("record_exclusion_id")
+
+  // fields
+  type     RecordType?
+  distance Float?
+  duration Int?
+
+  // relationships
+  eventActivity   EventActivity @relation(fields: [eventActivityId], references: [eventActivityId], onDelete: Cascade)
+  eventActivityId Int           @map("event_activity_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([eventActivityId])
+  @@map("record_exclusion")
+}

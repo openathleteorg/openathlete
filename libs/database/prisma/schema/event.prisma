@@ -230,6 +230,7 @@ model EventActivity {
   relatedTraining     EventTraining?
   relatedCompetition  EventCompetition?
   records             Record[]
+  recordExclusions    RecordExclusion[]
   /// Raced rather than trained: set by the athlete
   isRace              Boolean                     @default(false) @map("is_race")
   equipment           Equipment?                  @relation(fields: [equipmentId], references: [equipmentId])
