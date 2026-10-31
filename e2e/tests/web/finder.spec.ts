@@ -42,6 +42,8 @@ test('a coach finds an athlete and their activities with the keyboard', async ({
   await signIn(page, coach);
   await page.goto('/dashboard/coach');
 
+  // The shortcut listens once the dashboard has mounted
+  await expect(page.getByRole('button', { name: /Search/ })).toBeVisible();
   await page.keyboard.press('ControlOrMeta+k');
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('combobox').fill('session');
