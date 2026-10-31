@@ -18,11 +18,12 @@ jest.mock('axios', () => {
   return {
     __esModule: true,
     ...actual,
-    default: { ...actual, get: jest.fn() },
+    default: { ...actual, get: jest.fn(), delete: jest.fn() },
   };
 });
 
 const mockedGet = axios.get as jest.Mock;
+const mockedDelete = axios.delete as jest.Mock;
 
 describe('parseGarminNotifications', () => {
   it('queues pings and pushes, but not deregistrations', () => {
@@ -188,6 +189,24 @@ describe('GarminProviderService.processNotification', () => {
         { lastAttempt: false },
       ),
     ).resolves.toBeUndefined();
+  });
+
+  it('deregisters a revoked account still holding a refresh token', async () => {
+    const revoked = { ...account, status: 'revoked' } as ProviderAccount;
+    const { service } = setup([revoked]);
+    jest
+      .spyOn(service, 'refreshAccessToken')
+      .mockResolvedValue({ access_token: 'fresh' });
+    mockedDelete.mockResolvedValue({ status: 204 });
+
+    await service.deleteUserRegistration(revoked);
+
+    expect(mockedDelete).toHaveBeenCalledWith(
+      expect.stringContaining('/registration'),
+      expect.objectContaining({
+        headers: { Authorization: 'Bearer fresh' },
+      }),
+    );
   });
 
   it('saves pushed data without pulling anything', async () => {

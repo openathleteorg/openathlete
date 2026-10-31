@@ -514,7 +514,12 @@ export class GarminProviderService
    * account here.
    */
   async deleteUserRegistration(account: ProviderAccount): Promise<void> {
-    const accessToken = await this.getValidAccessToken(account);
+    // getValidAccessToken refuses a revoked account, which stays registered
+    // at Garmin until this call
+    const accessToken =
+      account.status !== 'active' && account.refreshToken
+        ? (await this.refreshAccessToken(account.refreshToken)).access_token
+        : await this.getValidAccessToken(account);
     try {
       await axios.delete(`${GARMIN_USER_API}/registration`, {
         headers: { Authorization: `Bearer ${accessToken}` },
