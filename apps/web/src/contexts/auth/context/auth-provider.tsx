@@ -93,10 +93,6 @@ export function AuthProvider({ children }: Props) {
         // Not awaited: reminders can wait, the app should not
         void saveTimeZone(user.timeZone);
 
-        posthog.identify(user.userId.toString(), {
-          roles: user.roles,
-        });
-
         dispatch({
           type: Types.INITIAL,
           payload: {
@@ -124,10 +120,6 @@ export function AuthProvider({ children }: Props) {
           await saveLanguageChoice(user.language);
           // Not awaited: reminders can wait, the app should not
           void saveTimeZone(user.timeZone);
-
-          posthog.identify(user.userId.toString(), {
-            roles: user.roles,
-          });
 
           dispatch({
             type: Types.INITIAL,

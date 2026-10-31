@@ -154,7 +154,7 @@ services:
       ENABLE_TRAINING_LOAD_ESTIMATION: ${ENABLE_TRAINING_LOAD_ESTIMATION:-false}
 
       # Error monitoring (optional)
-      BETTER_STACK_DSN: ${BETTER_STACK_DSN:-}
+      POSTHOG_PROJECT_TOKEN: ${POSTHOG_PROJECT_TOKEN:-}
     depends_on:
       postgres:
         condition: service_healthy

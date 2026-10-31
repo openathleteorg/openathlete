@@ -1,33 +1,49 @@
-import * as Sentry from '@sentry/react';
+import posthog, { type PostHog } from 'posthog-js';
 
-import { whenConsentGranted } from './consent';
+import { getConsent } from './consent';
 
-let isInitialized = false;
+const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN as
+  string | undefined;
 
-// Set at build time by each deployment; unset disables error monitoring, so
-// self-hosted instances never report to the OpenAthlete cloud project.
-const ERROR_MONITORING_DSN = import.meta.env.VITE_ERROR_MONITORING_DSN;
+let errorClient: PostHog | undefined;
 
+/**
+ * Error reports are legitimate interest, so they run before and without
+ * consent, on their own PostHog instance: it stores nothing on the device and
+ * can only send exceptions. Once consent is given the main instance takes over,
+ * which ties errors to the user and their session recording.
+ *
+ * Unset token: nothing starts, so self-hosted instances report nothing.
+ */
 export function initErrorMonitoring() {
-  if (isInitialized || import.meta.env.DEV || !ERROR_MONITORING_DSN) {
-    return;
-  }
+  if (errorClient || import.meta.env.DEV || !posthogToken) return;
 
-  Sentry.init({
-    dsn: ERROR_MONITORING_DSN,
-    environment: import.meta.env.MODE,
-    integrations: [Sentry.browserTracingIntegration()],
-    tracesSampleRate: 0.25,
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1,
-  });
-
-  // Error reports are legitimate interest; session recordings need consent
-  whenConsentGranted(() =>
-    Sentry.addIntegration(
-      Sentry.replayIntegration({ maskAllText: true, blockAllMedia: false }),
-    ),
+  errorClient = posthog.init(
+    posthogToken,
+    {
+      api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST as string | undefined,
+      persistence: 'memory',
+      autocapture: false,
+      capture_pageview: false,
+      capture_pageleave: false,
+      capture_dead_clicks: false,
+      capture_performance: false,
+      rageclick: false,
+      disable_session_recording: true,
+      disable_surveys: true,
+      advanced_disable_flags: true,
+      capture_exceptions: true,
+      before_send: (event) =>
+        event?.event === '$exception' && getConsent() !== 'granted'
+          ? event
+          : null,
+    },
+    'errors',
   );
+}
 
-  isInitialized = true;
+/** Reports an error the app caught, which autocapture cannot see. */
+export function reportError(error: unknown) {
+  const client = getConsent() === 'granted' ? posthog : errorClient;
+  if (client?.__loaded) client.captureException(error);
 }

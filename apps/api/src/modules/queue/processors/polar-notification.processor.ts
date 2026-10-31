@@ -1,7 +1,10 @@
 import { Job } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { PolarProviderService } from '../../providers-sync/providers';
 import { PolarNotificationJobData } from '../queue.service';
@@ -19,6 +22,7 @@ export class PolarNotificationProcessor extends WorkerHost {
   constructor(
     @Inject(forwardRef(() => PolarProviderService))
     private readonly polarProviderService: PolarProviderService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
   }
@@ -41,6 +45,7 @@ export class PolarNotificationProcessor extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<PolarNotificationJobData>, error: Error) {
+    reportJobFailure(this.analytics, job, error);
     const final = job.attemptsMade >= (job.opts.attempts ?? 1);
     const message = `Polar ${job.data.kind} job failed for account ${job.data.providerAccountId} (attempt ${job.attemptsMade}): ${error.message}`;
     if (final) {

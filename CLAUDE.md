@@ -70,7 +70,7 @@ Behaviour changes come with tests at the lowest level that can catch the regress
   - `apps/api/.env.example`;
   - the compose files, if self-hosters need it;
   - the self-hosting docs table.
-- **Optional integrations** (Stripe, Brevo, Firebase, Sentry): create clients lazily. When the integration is unconfigured, degrade cleanly: feature off, or HTTP 503 on its endpoints. Never crash at boot.
+- **Optional integrations** (Stripe, Brevo, Firebase, PostHog): create clients lazily. When the integration is unconfigured, degrade cleanly: feature off, or HTTP 503 on its endpoints. Never crash at boot.
 - **AI**: users bring their own keys and models; instance keys are a fallback that depends on the user's plan. All model calls go through `modules/ai` (see `apps/api/CLAUDE.md`).
 - **Slow or bulk work** (provider history, AI calls, processing) runs in BullMQ jobs, never in an HTTP request.
 - **Translations**: every user-facing string is a Paraglide message in `en`, `fr`, `it`, `es` and `pt-BR`. `pnpm check:locale-parity` must pass.

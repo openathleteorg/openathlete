@@ -11,6 +11,7 @@ import {
   ForbiddenException,
   Get,
   NotFoundException,
+  Optional,
   Param,
   ParseIntPipe,
   Post,
@@ -47,6 +48,8 @@ import {
   createCheckoutSessionDtoSchema,
 } from '@openathlete/shared';
 
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+
 import { JwtUser } from '../../auth/decorators/user.decorator';
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { UserTypeGuard } from '../../auth/guards/user-type.guard';
@@ -66,6 +69,7 @@ export class SubscriptionController {
     private readonly featureAccessService: FeatureAccessService,
     private readonly appleStoreService: AppleStoreService,
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   @Get('current')
@@ -415,6 +419,11 @@ export class SubscriptionController {
       dto.successUrl,
       dto.cancelUrl,
     );
+
+    // Sent from here: the redirect to Stripe often cuts off the browser's event
+    await this.analytics?.capture(user.userId, 'checkout_started', {
+      interval: dto.interval,
+    });
 
     return {
       sessionId: session.id,

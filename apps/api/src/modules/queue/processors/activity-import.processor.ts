@@ -4,7 +4,10 @@ import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { ConnectorProvider } from '@openathlete/database';
+import { ConnectorProvider, EventType } from '@openathlete/database';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -16,6 +19,8 @@ import {
   SuuntoProviderService,
 } from '../../providers-sync/providers';
 import { ActivityImportJobData, QueueService } from '../queue.service';
+
+const FIRST_ACTIVITIES_REPORTED = 5;
 
 @Processor('activity-import', {
   concurrency: 3,
@@ -35,15 +40,37 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly suuntoProviderService: SuuntoProviderService,
     private readonly queueService: QueueService,
     @Optional() private readonly emitter?: EventEmitter2,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
   }
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<ActivityImportJobData>, error: Error) {
+    reportJobFailure(this.analytics, job, error);
     this.logger.error(
       `Job ${job.id} (${job.data?.activity?.externalId || 'unknown'}) failed: ${error.message}`,
       error.stack,
+    );
+  }
+
+  // A history import brings thousands of activities: only its first ones say
+  // something, that the account works
+  private async reportImport(
+    account: { athleteId: number; provider: string },
+    bulkImport?: boolean,
+  ) {
+    if (!this.analytics?.enabled) return;
+    if (bulkImport) {
+      const imported = await this.prisma.event.count({
+        where: { athleteId: account.athleteId, type: EventType.ACTIVITY },
+      });
+      if (imported > FIRST_ACTIVITIES_REPORTED) return;
+    }
+    await this.analytics.captureForAthlete(
+      account.athleteId,
+      'activity_imported',
+      { provider: account.provider, bulk: Boolean(bulkImport) },
     );
   }
 
@@ -119,6 +146,7 @@ export class ActivityImportProcessor extends WorkerHost {
           }),
         );
       }
+      if (created) await this.reportImport(account, bulkImport);
       await job.updateProgress(60);
 
       const activityWithStream = await this.prisma.eventActivity.findUnique({

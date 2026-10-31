@@ -73,7 +73,7 @@ The web bundle inside the apps is built in CI, so it needs the same `VITE_*` set
 
 ```bash
 gh variable set VITE_FIREBASE_API_KEY --body "..."      # and the other VITE_FIREBASE_*,
-gh variable set VITE_ERROR_MONITORING_DSN --body "..."  # VITE_PUBLIC_POSTHOG_*, VITE_WEB_URL,
+gh variable set VITE_PUBLIC_POSTHOG_PROJECT_TOKEN --body "..."  # VITE_PUBLIC_POSTHOG_HOST, VITE_WEB_URL,
                                                         # VITE_WEBSITE_URL... as on Vercel
 gh variable set PLAY_TRACK --body "alpha"   # Play track for test builds: internal (default) or alpha (closed testing)
 gh variable set MOBILE_RELEASES --body "true"

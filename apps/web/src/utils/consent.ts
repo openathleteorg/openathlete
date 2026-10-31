@@ -7,7 +7,7 @@ import { useSyncExternalStore } from 'react';
  *
  * Bump the version when the list of trackers changes: everyone is asked again.
  */
-const STORAGE_KEY = 'openathlete-tracking-consent-v1';
+const STORAGE_KEY = 'openathlete-tracking-consent-v2';
 
 export type TrackingConsent = 'granted' | 'denied';
 
@@ -18,8 +18,7 @@ const onGrantedCallbacks: Array<() => void> = [];
 export function isConsentRequired(): boolean {
   return Boolean(
     import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN ||
-    import.meta.env.VITE_CONTENTSQUARE_TAG_ID ||
-    import.meta.env.VITE_ERROR_MONITORING_DSN,
+    import.meta.env.VITE_CONTENTSQUARE_TAG_ID,
   );
 }
 

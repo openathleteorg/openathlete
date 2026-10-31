@@ -71,7 +71,6 @@ describe('tracking consent', () => {
   it('asks only when this build has trackers', async () => {
     vi.stubEnv('VITE_PUBLIC_POSTHOG_PROJECT_TOKEN', '');
     vi.stubEnv('VITE_CONTENTSQUARE_TAG_ID', '');
-    vi.stubEnv('VITE_ERROR_MONITORING_DSN', '');
     expect((await load()).isConsentRequired()).toBe(false);
 
     vi.stubEnv('VITE_PUBLIC_POSTHOG_PROJECT_TOKEN', 'phc_test');

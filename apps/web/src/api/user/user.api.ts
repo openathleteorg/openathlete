@@ -63,6 +63,10 @@ export class UserAPI {
     return res.data;
   }
 
+  static async setAnalyticsConsent(granted: boolean): Promise<void> {
+    await client.put(routes.user.analyticsConsent, { granted });
+  }
+
   static async deleteAccount(): Promise<{ success: boolean }> {
     const res = await client.delete(routes.user.deleteAccount);
     return res.data;

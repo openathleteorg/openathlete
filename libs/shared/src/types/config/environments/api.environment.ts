@@ -485,11 +485,17 @@ export const ApiEnvSchema = z
       .describe('Enable training load estimation processing'),
 
     // Monitoring & Error Tracking
-    BETTER_STACK_DSN: z
+    POSTHOG_PROJECT_TOKEN: z
       .string()
-      .url('BETTER_STACK_DSN must be a valid URL')
       .optional()
-      .describe('Better Stack (Sentry) DSN for error tracking and monitoring'),
+      .describe(
+        'PostHog project token. Unset: no error, log or event leaves the API',
+      ),
+    POSTHOG_HOST: z
+      .string()
+      .url('POSTHOG_HOST must be a valid URL')
+      .default('https://eu.i.posthog.com')
+      .describe('PostHog ingestion host'),
 
     // Normalization processor configuration (optional)
     NORMALIZATION_MIN_MOVING_SPEED_MS: z

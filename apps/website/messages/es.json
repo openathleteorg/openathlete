@@ -46,7 +46,7 @@
   "privacy_policy_processors_title": "Proveedores de servicios",
   "privacy_policy_processors_list_1": "OVHcloud (Francia): servidores y base de datos del servicio.",
   "privacy_policy_processors_list_2": "Vercel (Estados Unidos): distribución del sitio web y de la aplicación web (registros técnicos como las direcciones IP).",
-  "privacy_policy_processors_list_3": "Better Stack (región de datos de la Unión Europea): seguimiento de errores y registros.",
+  "privacy_policy_processors_list_3": "PostHog (región de datos de la Unión Europea): informes de errores y registros del servidor, sin nombre de usuario.",
   "privacy_policy_processors_list_4": "PostHog y Contentsquare: analítica de producto y grabaciones de sesión enmascaradas, solo si las aceptas.",
   "privacy_policy_processors_list_5": "Brevo (Francia): correos electrónicos transaccionales, como el restablecimiento de contraseña y las invitaciones.",
   "privacy_policy_processors_list_6": "Stripe: pago de las suscripciones.",

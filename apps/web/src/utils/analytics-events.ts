@@ -5,10 +5,12 @@
  * Manual verification: PostHog → Live events while walking through:
  * onboarding, OAuth connect, calendar CRUD, AI dialogs, subscription, messages.
  *
- * Suggested dashboards / funnels:
- * - Activation: user_signed_up → onboarding_step_completed → provider_connect_completed → event_created
- * - Retention (weekly): event_created, event_updated, messages_message_sent, provider_sync_preference_changed
- * - Monetization: ai_paywall_viewed → subscription_upgrade_initiated
+ * The API sends what the browser cannot see, for users who consented:
+ * account_created, activity_imported, provider_connection_lost,
+ * athlete_invited, coach_invited, athlete_linked, coach_linked, checkout_started,
+ * subscription_started, subscription_renewed, subscription_payment_failed,
+ * subscription_cancel_scheduled, subscription_ended, subscription_refunded,
+ * account_deleted. The funnels are in PostHog ("Churn funnels" dashboard).
  */
 
 export const AnalyticsEvent = {
@@ -28,6 +30,7 @@ export const AnalyticsEvent = {
   ai_paywall_viewed: 'ai_paywall_viewed',
   subscription_manage_billing_opened: 'subscription_manage_billing_opened',
   subscription_checkout_failed: 'subscription_checkout_failed',
+  checkout_abandoned: 'checkout_abandoned',
   messages_thread_created: 'messages_thread_created',
   messages_thread_deleted: 'messages_thread_deleted',
   messages_message_sent: 'messages_message_sent',

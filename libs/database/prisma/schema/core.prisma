@@ -44,6 +44,9 @@ model User {
   /// When the user allowed their data to be sent to third-party AI
   /// providers; no AI runs on their data while unset (App Store 5.1.2(i), GDPR)
   aiDataSharingConsentAt DateTime? @map("ai_data_sharing_consent_at")
+  /// When the user accepted product analytics; the API sends no event about
+  /// them while unset (GDPR)
+  analyticsConsentAt  DateTime?    @map("analytics_consent_at")
 
   // relationships
   athlete                   Athlete?

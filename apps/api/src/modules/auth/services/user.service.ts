@@ -7,6 +7,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -32,6 +33,10 @@ import {
 import { Language } from 'src/common/constants/languages.constant';
 import { maskEmail } from 'src/common/utils/mask-email';
 import { SendEmailEvent } from 'src/events';
+import {
+  AnalyticsService,
+  stableUuid,
+} from 'src/modules/analytics/analytics.service';
 import { emailTransportKind } from 'src/modules/notification/services/email-transport.service';
 import {
   PrismaService,
@@ -44,6 +49,8 @@ import { AccountDeletionService } from './account-deletion.service';
 import { AthleteInvitationService } from './athlete-invitation.service';
 import { CoachInvitationService } from './coach-invitation.service';
 import { TokenService } from './token.service';
+
+const NEW_ACCOUNT_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class UserService {
@@ -58,10 +65,40 @@ export class UserService {
     private invitationService: AthleteInvitationService,
     private coachInvitationService: CoachInvitationService,
     private readonly accountDeletionService: AccountDeletionService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     this.HASH_PEPPER = this.configService.get('HASH_PEPPER')
       ? Buffer.from(this.configService.get('HASH_PEPPER'))
       : undefined;
+  }
+
+  /**
+   * The browser sends the banner's choice, which server-side events follow.
+   * Signing up precedes it, so a new account is reported here: this covers
+   * every way of signing up, dated from the account.
+   */
+  async setAnalyticsConsent(userId: number, granted: boolean): Promise<void> {
+    const before = await this.prisma.user.findUniqueOrThrow({
+      where: { userId },
+      select: { analyticsConsentAt: true, createdAt: true },
+    });
+    if (Boolean(before.analyticsConsentAt) === granted) return;
+
+    await this.prisma.user.update({
+      where: { userId },
+      data: { analyticsConsentAt: granted ? new Date() : null },
+    });
+    if (granted && Date.now() - before.createdAt.getTime() < NEW_ACCOUNT_MS) {
+      this.analytics?.send(
+        userId,
+        'account_created',
+        {},
+        {
+          timestamp: before.createdAt,
+          uuid: stableUuid(`account_created:${userId}`),
+        },
+      );
+    }
   }
 
   async findOneOrFail(where: Prisma.UserWhereInput): Promise<UserRow> {

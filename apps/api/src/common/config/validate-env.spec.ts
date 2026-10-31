@@ -14,7 +14,7 @@ describe('validateEnv', () => {
       ...required,
       GARMIN_REDIRECT_URI: '',
       BREVO_FROM_EMAIL: '',
-      BETTER_STACK_DSN: '',
+      POSTHOG_PROJECT_TOKEN: '',
     });
 
     expect(env.GARMIN_REDIRECT_URI).toBeUndefined();

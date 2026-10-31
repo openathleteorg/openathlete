@@ -1,10 +1,12 @@
 import { Job } from 'bullmq';
 
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { ActivityImportedEvent } from 'src/events';
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { CalendarWebSocketService } from '../../calendar/services/calendar-websocket.service';
 import { ActivityPipelineService } from '../../core/services/pipeline/activity-pipeline.service';
@@ -24,8 +26,14 @@ export class ActivityProcessingProcessor extends WorkerHost {
     @Optional()
     @Inject(forwardRef(() => CalendarWebSocketService))
     private readonly calendarWebSocketService?: CalendarWebSocketService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job, error: Error) {
+    reportJobFailure(this.analytics, job, error);
   }
 
   async process(job: Job<ActivityProcessingJobData>) {

@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@openathlete/database';
 
 import { AccountDeletingEvent } from 'src/events';
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
 
@@ -28,12 +29,14 @@ export class AccountDeletionService {
     private readonly stripeService: StripeService,
     // Absent from the CLI, which loads no listeners
     @Optional() private readonly eventEmitter?: EventEmitter2,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   async deleteAccount(userId: number): Promise<void> {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { userId },
       select: {
+        analyticsConsentAt: true,
         athlete: { select: { athleteId: true } },
         subscription: {
           select: { stripeSubscriptionId: true, status: true },
@@ -101,6 +104,9 @@ export class AccountDeletionService {
     );
 
     this.logger.log(`Account deleted for user ${userId}`);
+    // After the fact, and read before: the consent went with the row
+    if (user.analyticsConsentAt)
+      this.analytics?.send(userId, 'account_deleted');
   }
 
   private async deleteEvents(tx: Tx, eventIds: number[]) {

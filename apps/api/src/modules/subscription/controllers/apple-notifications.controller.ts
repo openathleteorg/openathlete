@@ -11,6 +11,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Optional,
   Post,
   ServiceUnavailableException,
 } from '@nestjs/common';
@@ -22,11 +23,21 @@ import {
   appleNotificationDtoSchema,
 } from '@openathlete/shared';
 
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+
 import {
   AppleStoreService,
   VerifiedAppleNotification,
 } from '../apple/apple-store.service';
 import { SubscriptionService } from '../services/subscription.service';
+
+// The notifications that say something of churn; the rest is bookkeeping
+const APPLE_EVENTS: Record<string, string> = {
+  DID_RENEW: 'subscription_renewed',
+  DID_FAIL_TO_RENEW: 'subscription_payment_failed',
+  EXPIRED: 'subscription_ended',
+  REFUND: 'subscription_refunded',
+};
 
 @ApiTags('Subscription')
 @SkipThrottle()
@@ -37,6 +48,7 @@ export class AppleNotificationsController {
   constructor(
     private readonly appleStoreService: AppleStoreService,
     private readonly subscriptionService: SubscriptionService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   @Post()
@@ -100,6 +112,13 @@ export class AppleNotificationsController {
         this.logger.log(
           `No subscription linked to App Store transaction ${transaction.originalTransactionId} yet`,
         );
+      }
+      const event = APPLE_EVENTS[notification.notificationType ?? ''];
+      if (subscription && event) {
+        await this.analytics?.capture(subscription.userId, event, {
+          store: 'apple',
+          subtype: notification.subtype,
+        });
       }
     }
     return { received: true };

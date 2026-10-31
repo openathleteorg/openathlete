@@ -23,7 +23,8 @@ import {
 import { format } from 'date-fns';
 import { Download, ExternalLink, FileText } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
@@ -68,6 +69,14 @@ export function SubscriptionSettingsPage() {
   const portalMutation = useCustomerPortal();
   const createCheckout = useCreateCheckout();
   const posthog = usePostHog();
+
+  // Back from Stripe. Having paid is reported by the webhook; leaving the
+  // payment page is known only here
+  const [searchParams] = useSearchParams();
+  const leftCheckout = searchParams.get('canceled') === 'true';
+  useEffect(() => {
+    if (leftCheckout) posthog.capture(AnalyticsEvent.checkout_abandoned);
+  }, [leftCheckout, posthog]);
 
   const [isLoadingPortal, setIsLoadingPortal] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);

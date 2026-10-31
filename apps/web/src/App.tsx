@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { RouterProvider } from 'react-router-dom';
 
 import { ConsentBanner } from './components/consent';
+import { ConsentSync } from './components/consent/consent-sync';
 import { ServerSelection } from './components/mobile/server-selection';
 import { StatusBarThemeSync } from './components/status-bar-theme-sync';
 import { Toaster } from './components/ui/sonner';
@@ -24,6 +25,7 @@ function AppContent() {
             <RouterProvider router={router} />
             <Toaster />
             <ConsentBanner />
+            <ConsentSync />
           </AuthConsumer>
         </ChatbotProvider>
       </QueryClientProvider>

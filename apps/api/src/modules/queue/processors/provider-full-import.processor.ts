@@ -1,9 +1,18 @@
 import { Job, UnrecoverableError, Worker } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { HttpException, Inject, Logger, forwardRef } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  Logger,
+  Optional,
+  forwardRef,
+} from '@nestjs/common';
 
 import { ConnectorProvider, ProviderAccount } from '@openathlete/database';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { FullImportResult } from '../../providers-sync/base/base-provider.service';
@@ -37,6 +46,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
     private readonly garminProviderService: GarminProviderService,
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
   }
@@ -95,6 +105,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
   /** Once every attempt failed, let the user request the import again. */
   @OnWorkerEvent('failed')
   async onFailed(job: Job<ProviderFullImportJobData>, error: Error) {
+    reportJobFailure(this.analytics, job, error);
     this.logger.error(
       `Historical import for account ${job.data.providerAccountId} failed (attempt ${job.attemptsMade}): ${error.message}`,
       error.stack,
