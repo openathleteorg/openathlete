@@ -61,6 +61,7 @@ import {
   FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
+  isRefreshTokenRejected,
 } from '../base';
 import {
   ImportResult,
@@ -68,6 +69,7 @@ import {
   ProviderImportCapability,
 } from '../base';
 import { providerRedirectUri } from '../base/provider-urls';
+import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
   GarminDailyPartial,
@@ -128,6 +130,10 @@ function garminErrorMessage(error: unknown): string {
   const data: unknown = error.response?.data;
   if (isObject(data) && typeof data.errorMessage === 'string') {
     return data.errorMessage;
+  }
+  // OAuth errors: invalid_grant says more than the status
+  if (isObject(data) && typeof data.error === 'string') {
+    return `${error.message}: ${data.error}`;
   }
   // Activity files are requested as binary, so is their error body
   if (data instanceof ArrayBuffer || Buffer.isBuffer(data)) {
@@ -532,25 +538,33 @@ export class GarminProviderService
     }
   }
 
-  /** Disconnects the account here and at Garmin, and forgets its tokens. */
+  /**
+   * Disconnects the account here and at Garmin. A failure at Garmin keeps the
+   * refresh token, the only way to deregister: the next notification or
+   * account deletion tries again. Otherwise the tokens are forgotten.
+   */
   async disconnect(account: ProviderAccount): Promise<void> {
+    let keepRefreshToken = false;
     try {
       await this.deleteUserRegistration(account);
     } catch (error) {
       this.logger.error(
-        `Failed to delete Garmin user registration for account ${account.providerAccountId}: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to delete Garmin user registration for account ${account.providerAccountId}: ${garminErrorMessage(error)}`,
       );
+      keepRefreshToken =
+        !(error instanceof InvalidRefreshTokenError) &&
+        !isRefreshTokenRejected(error);
     }
-    await this.revokeLocally(account.providerAccountId);
+    await this.revokeLocally(account.providerAccountId, keepRefreshToken);
   }
 
-  private revokeLocally(providerAccountId: number) {
+  private revokeLocally(providerAccountId: number, keepRefreshToken = false) {
     return this.prisma.providerAccount.update({
       where: { providerAccountId },
       data: {
         status: 'revoked',
         accessToken: '',
-        refreshToken: null,
+        ...(keepRefreshToken ? {} : { refreshToken: null }),
         expiresAt: null,
       },
     });

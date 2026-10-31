@@ -44,7 +44,7 @@ export interface OAuthConfig {
  * OAuth answers 400 invalid_grant to a dead refresh token, some providers
  * 401. Other 400s (a wrong client secret) say nothing about the user's token.
  */
-function isRefreshTokenRejected(error: unknown): boolean {
+export function isRefreshTokenRejected(error: unknown): boolean {
   if (!isAxiosError(error)) return false;
   const { status, data } = error.response ?? {};
   if (status === 401) return true;

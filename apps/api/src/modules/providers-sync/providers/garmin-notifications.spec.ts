@@ -209,6 +209,34 @@ describe('GarminProviderService.processNotification', () => {
     );
   });
 
+  it('keeps the refresh token to deregister later when Garmin fails', async () => {
+    const { service, prisma } = setup([account]);
+    jest.spyOn(service, 'getValidAccessToken').mockResolvedValue('token');
+    mockedDelete.mockRejectedValue(new Error('Garmin is down'));
+
+    await service.disconnect(account);
+
+    const { data } = prisma.providerAccount.update.mock.calls[0][0];
+    expect(data.status).toBe('revoked');
+    expect(data).not.toHaveProperty('refreshToken');
+  });
+
+  it('forgets a refresh token Garmin rejected: it can never deregister', async () => {
+    const revoked = { ...account, status: 'revoked' } as ProviderAccount;
+    const { service, prisma } = setup([revoked]);
+    jest.spyOn(service, 'refreshAccessToken').mockRejectedValue(
+      Object.assign(new Error('Request failed with status code 400'), {
+        isAxiosError: true,
+        response: { status: 400, data: { error: 'invalid_grant' } },
+      }),
+    );
+
+    await service.disconnect(revoked);
+
+    const { data } = prisma.providerAccount.update.mock.calls[0][0];
+    expect(data.refreshToken).toBeNull();
+  });
+
   it('saves pushed data without pulling anything', async () => {
     const { service, prisma } = setup([account]);
 
