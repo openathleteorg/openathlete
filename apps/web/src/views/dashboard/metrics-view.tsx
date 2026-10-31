@@ -42,7 +42,11 @@ export function MetricsView({ athleteId }: P) {
   const { data: metrics = [], isPending: isLoadingMetrics } =
     useGetMetricsQuery(undefined, athleteId, from);
   const { athlete, isCurrentUser } = useAthleteInfo({ athleteId });
-  const { pinned, togglePinned } = usePinnedMetrics(athleteId);
+  const {
+    pinned,
+    togglePinned,
+    isPending: isLoadingPinned,
+  } = usePinnedMetrics(athleteId ?? 0);
 
   const firstPinnedWithData = pinned.find((type) => latest[type]);
   const firstWithData = Object.keys(latest)[0] as METRIC_TYPE | undefined;
@@ -98,7 +102,7 @@ export function MetricsView({ athleteId }: P) {
         </TabsList>
 
         <TabsContent value="tracking">
-          {isLoadingLatest || isLoadingMetrics ? (
+          {isLoadingLatest || isLoadingMetrics || isLoadingPinned ? (
             <div className="space-y-2 lg:max-w-sm">
               {Array.from({ length: 6 }).map((_, index) => (
                 <Skeleton key={index} className="h-14 rounded-lg" />

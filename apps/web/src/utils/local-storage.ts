@@ -8,7 +8,6 @@ export const PUSH_PROMPT_DISMISSED = 'openathlete_push_prompt_dismissed';
 export const SUPPORT_REMINDER_DISMISSED =
   'openathlete_support_reminder_dismissed';
 export const FIRST_SEEN_AT = 'openathlete_first_seen_at';
-export const METRICS_PINNED = 'openathlete_metrics_pinned';
 
 export const getItem = (key: string) => localStorage.getItem(key);
 export const setItem = (key: string, value: string) =>

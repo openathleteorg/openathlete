@@ -18,6 +18,8 @@ model AthleteSettings {
   requireComment           Boolean @default(false) @map("require_comment")
   /// Enable feedback questions after activity import
   requireFeedbackQuestions Boolean @default(true) @map("require_feedback_questions")
+  /// Metrics at the top of the metrics page, in the order they were pinned
+  pinnedMetrics            MetricType[] @default([HRV_LAST_NIGHT_AVG, HR_REST, SLEEP_DURATION, SLEEP_SCORE, WEIGHT]) @map("pinned_metrics")
 
   // relationships
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId])

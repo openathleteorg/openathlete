@@ -68,9 +68,21 @@ test('follows a metric, then adds, edits and deletes its values', async ({
   });
   expect(await entries.json()).toHaveLength(1);
 
-  // Pinning survives a reload
+  // Pinning is stored with the athlete, so it follows them across devices
   await page.locator('[data-metric-row="WEIGHT"]').click();
   await weight.getByRole('button', { name: 'Unpin' }).click();
+  const me = await (
+    await request.get(`${API_URL}/athlete/me`, { headers })
+  ).json();
+  await expect
+    .poll(async () => {
+      const settings = await request.get(
+        `${API_URL}/athlete/${me.athleteId}/settings`,
+        { headers },
+      );
+      return (await settings.json()).pinnedMetrics;
+    })
+    .not.toContain('WEIGHT');
   await page.reload();
   await expect(hrv).toBeVisible();
   await page.locator('[data-metric-row="WEIGHT"]').click();

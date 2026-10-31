@@ -614,6 +614,12 @@ export class AthleteController {
           description: 'Whether comments are required',
           example: true,
         },
+        pinnedMetrics: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Metrics at the top of the metrics page',
+          example: ['WEIGHT', 'HR_REST'],
+        },
         requireFeedbackQuestions: {
           type: 'boolean',
           description: 'Whether feedback questions are required',

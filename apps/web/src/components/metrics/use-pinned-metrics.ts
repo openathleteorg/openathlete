@@ -1,45 +1,47 @@
-import { METRICS_PINNED, getItem, setItem } from '@/utils/local-storage';
-import { useCallback, useState } from 'react';
+import {
+  useGetAthleteSettingsQuery,
+  useUpdateAthleteSettingsMutation,
+} from '@/api/athlete';
+import { athleteKeys } from '@/api/athlete/athlete.keys';
+import { m } from '@/paraglide/messages';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
+import { toast } from 'sonner';
 
-import { METRIC_TYPE } from '@openathlete/shared';
+import { AthleteSettings, METRIC_TYPE } from '@openathlete/shared';
 
-/** What most athletes follow day to day, until they choose for themselves */
-const DEFAULT_PINNED = [
-  METRIC_TYPE.HRV_LAST_NIGHT_AVG,
-  METRIC_TYPE.HR_REST,
-  METRIC_TYPE.SLEEP_DURATION,
-  METRIC_TYPE.SLEEP_SCORE,
-  METRIC_TYPE.WEIGHT,
-];
+const NONE: METRIC_TYPE[] = [];
 
-const read = (key: string): METRIC_TYPE[] | null => {
-  try {
-    const stored: unknown = JSON.parse(getItem(key) ?? 'null');
-    if (!Array.isArray(stored)) return null;
-    const known = Object.values(METRIC_TYPE) as string[];
-    return stored.filter((type): type is METRIC_TYPE => known.includes(type));
-  } catch {
-    return null;
-  }
-};
-
-/** A coach pins per athlete: what matters differs from one to the next */
-export function usePinnedMetrics(athleteId?: number) {
-  const key = `${METRICS_PINNED}_${athleteId ?? 'me'}`;
-  const [pinned, setPinned] = useState(() => read(key) ?? DEFAULT_PINNED);
+/** Stored with the athlete: the same list on every device, and for their coach */
+export function usePinnedMetrics(athleteId: number) {
+  const queryClient = useQueryClient();
+  const { data: settings, isPending } = useGetAthleteSettingsQuery(athleteId);
+  const updateSettings = useUpdateAthleteSettingsMutation(athleteId);
+  const pinned = (settings?.pinnedMetrics as METRIC_TYPE[] | undefined) ?? NONE;
 
   const togglePinned = useCallback(
     (type: METRIC_TYPE) => {
-      setPinned((current) => {
-        const next = current.includes(type)
-          ? current.filter((other) => other !== type)
-          : [...current, type];
-        setItem(key, JSON.stringify(next));
-        return next;
-      });
+      const next = pinned.includes(type)
+        ? pinned.filter((other) => other !== type)
+        : [...pinned, type];
+      const key = athleteKeys.getAthleteSettings(athleteId);
+      // Pinning answers at once: the list moves before the API replies
+      queryClient.setQueryData<AthleteSettings>(
+        key,
+        (current) => current && { ...current, pinnedMetrics: next },
+      );
+      updateSettings.mutate(
+        { pinnedMetrics: next },
+        {
+          onError: () => {
+            toast.error(m.metrics_save_failed());
+            queryClient.invalidateQueries({ queryKey: key });
+          },
+        },
+      );
     },
-    [key],
+    [athleteId, pinned, queryClient, updateSettings],
   );
 
-  return { pinned, togglePinned };
+  return { pinned, togglePinned, isPending };
 }

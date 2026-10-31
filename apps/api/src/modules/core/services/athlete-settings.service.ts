@@ -6,6 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
+import { MetricType } from '@openathlete/database';
 import { UpdateAthleteSettingsDto } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -64,6 +65,10 @@ export class AthleteSettingsService {
       throw new ForbiddenException('Not allowed to update this athlete');
     }
 
+    const pinnedMetrics = dto.pinnedMetrics && [
+      ...new Set(dto.pinnedMetrics as MetricType[]),
+    ];
+
     // Upsert settings
     const settings = await this.prisma.athleteSettings.upsert({
       where: { athleteId: athleteId },
@@ -72,6 +77,7 @@ export class AthleteSettingsService {
         requireRpe: dto.requireRpe ?? false,
         requireComment: dto.requireComment ?? false,
         requireFeedbackQuestions: dto.requireFeedbackQuestions ?? true,
+        ...(pinnedMetrics && { pinnedMetrics }),
       },
       update: {
         ...(dto.requireRpe !== undefined && { requireRpe: dto.requireRpe }),
@@ -81,6 +87,7 @@ export class AthleteSettingsService {
         ...(dto.requireFeedbackQuestions !== undefined && {
           requireFeedbackQuestions: dto.requireFeedbackQuestions,
         }),
+        ...(pinnedMetrics && { pinnedMetrics }),
       },
     });
 
