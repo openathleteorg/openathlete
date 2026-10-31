@@ -173,6 +173,7 @@ model ProviderWorkoutExport {
 
   @@unique([athleteId, provider, workoutId, plannedDate])
   @@index([status, plannedDate])
+  @@index([workoutId])
   @@map("provider_workout_export")
 }
 

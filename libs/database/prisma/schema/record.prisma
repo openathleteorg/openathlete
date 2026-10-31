@@ -41,6 +41,7 @@ model Record {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([athleteId, type, date])
+  @@index([eventActivityId])
   @@map("record")
 }
 

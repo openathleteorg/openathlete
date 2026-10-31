@@ -66,6 +66,12 @@ export class AccountDeletionService {
 
     await this.prisma.$transaction(
       async (tx) => {
+        // Before the activities: each one would otherwise clear its records
+        // one by one
+        if (athleteId) {
+          await tx.record.deleteMany({ where: { athleteId } });
+        }
+
         const templateEvents = await tx.eventTemplate.findMany({
           where: { userId },
           select: { eventId: true },
@@ -156,7 +162,6 @@ export class AccountDeletionService {
       where: { trainingZone: ofAthlete },
     });
     await tx.trainingZone.deleteMany({ where: ofAthlete });
-    await tx.record.deleteMany({ where: ofAthlete });
     await tx.equipment.deleteMany({ where: ofAthlete });
     await tx.providerWorkoutExport.deleteMany({ where: ofAthlete });
     await tx.providerAccount.deleteMany({ where: ofAthlete });

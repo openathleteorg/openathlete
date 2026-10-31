@@ -324,6 +324,7 @@ model EventActivityNormalizationFactor {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([eventActivityNormalizationId])
   @@map("event_activity_normalization_factor")
 }
 
