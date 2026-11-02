@@ -24,7 +24,7 @@ export function useCalendarDisplay() {
     [me?.calendarDisplay],
   );
   // Hook options: the settings popover may close before the request ends
-  const save = useUpdateAccountMutation({
+  const { mutate: save } = useUpdateAccountMutation({
     onError: () => {
       queryClient.invalidateQueries({ queryKey: [userKeys.getMe] });
       toast.error(m.calendar_display_save_failed());
@@ -40,7 +40,7 @@ export function useCalendarDisplay() {
       queryClient.setQueryData<User>([userKeys.getMe], (old) =>
         old ? { ...old, calendarDisplay: next } : old,
       );
-      save.mutate({ calendarDisplay: next });
+      save({ calendarDisplay: next });
     },
     [queryClient, save],
   );

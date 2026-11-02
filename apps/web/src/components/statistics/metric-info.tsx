@@ -10,6 +10,11 @@ const COPY: Record<
   MetricKey,
   { name: () => string; what: () => string; limits: () => string }
 > = {
+  sessionRpe: {
+    name: m.metric_srpe_name,
+    what: m.metric_srpe_what,
+    limits: m.metric_srpe_limits,
+  },
   trimp: {
     name: m.metric_trimp_name,
     what: m.metric_trimp_what,
@@ -30,15 +35,70 @@ const COPY: Record<
     what: m.metric_tsb_what,
     limits: m.metric_tsb_limits,
   },
+  intensityDistribution: {
+    name: m.statistics_section_intensity,
+    what: m.metric_intensity_what,
+    limits: m.metric_intensity_limits,
+  },
+  efficiency: {
+    name: m.statistics_efficiency,
+    what: m.metric_efficiency_what,
+    limits: m.metric_efficiency_limits,
+  },
+  decoupling: {
+    name: m.statistics_decoupling,
+    what: m.metric_decoupling_what,
+    limits: m.metric_decoupling_limits,
+  },
+  longRun: {
+    name: m.statistics_long_runs,
+    what: m.metric_long_run_what,
+    limits: m.metric_long_run_limits,
+  },
   criticalSpeed: {
     name: m.statistics_critical_speed,
     what: m.metric_critical_speed_what,
     limits: m.metric_critical_speed_limits,
   },
+  cardiacCost: {
+    name: m.statistics_cost_title,
+    what: m.metric_cost_what,
+    limits: m.metric_cost_limits,
+  },
+  drift: {
+    name: m.statistics_durability_title,
+    what: m.metric_drift_what,
+    limits: m.metric_drift_limits,
+  },
+  recordCoherence: {
+    name: m.statistics_coherence_title,
+    what: m.metric_coherence_what,
+    limits: m.metric_coherence_limits,
+  },
+  racePrediction: {
+    name: m.statistics_predictions_title,
+    what: m.metric_prediction_what,
+    limits: m.metric_prediction_limits,
+  },
+  hrvTrend: {
+    name: m.statistics_recovery_hrv,
+    what: m.metric_hrv_what,
+    limits: m.metric_hrv_limits,
+  },
+  criticalSwimSpeed: {
+    name: m.statistics_critical_swim,
+    what: m.metric_critical_swim_what,
+    limits: m.metric_critical_swim_limits,
+  },
   criticalPower: {
     name: m.statistics_critical_power,
     what: m.metric_critical_power_what,
     limits: m.metric_critical_power_limits,
+  },
+  monotony: {
+    name: m.statistics_monotony,
+    what: m.metric_monotony_what,
+    limits: m.metric_monotony_limits,
   },
   gap: { name: m.gap, what: m.metric_gap_what, limits: m.metric_gap_limits },
 };
@@ -49,7 +109,7 @@ interface P {
 
 /** What a derived figure is, where it comes from and how far to trust it. */
 export function MetricInfo({ metric }: P) {
-  const { verdict, sources } = METRIC_REGISTRY[metric];
+  const { verdict, sources, formula } = METRIC_REGISTRY[metric];
   const copy = COPY[metric];
   const estimate = verdict === 'estimate';
   return (
@@ -72,6 +132,9 @@ export function MetricInfo({ metric }: P) {
         <PopoverContent className="w-72 space-y-2 text-sm">
           <p className="font-medium">{copy.name()}</p>
           <p>{copy.what()}</p>
+          <p className="font-mono text-xs break-words text-muted-foreground">
+            {formula}
+          </p>
           <p className="text-muted-foreground">
             <span className="font-medium">{m.metric_limits()}</span>{' '}
             {copy.limits()}

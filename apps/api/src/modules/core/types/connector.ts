@@ -371,75 +371,43 @@ export interface PolarOAuthTokenResponse {
   access_token: string;
   token_type: string;
   expires_in: number;
-  x_user_id: number; // Polar Ecosystem user id
+  x_user_id: number; // Same id as polar-user-id, also on an already registered user
 }
 
 export interface PolarUser {
   'polar-user-id': number;
   'member-id': string;
   'registration-date': string;
-  'polar-user-id-uri': string;
 }
 
-export interface PolarExerciseTransaction {
-  'transaction-id': number;
-  'resource-uri': string;
-}
-
-export interface PolarExerciseTransactionResponse {
-  'transaction-id': number;
-  exercises?: string[]; // Array of exercise URLs (may be in resource-uri format)
-}
-
+/** The non-transactional exercise, in snake case unlike the deprecated one */
 export interface PolarExercise {
-  'exercise-id': string;
-  'upload-time': string;
-  'polar-user': string;
-  device: string;
-  'device-id': string;
-  'start-time': string;
-  'start-time-utc-offset': number;
-  duration: string; // ISO 8601 duration
-  calories?: number;
-  distance?: number;
-  'heart-rate'?: {
+  id: string;
+  upload_time?: string;
+  device?: string;
+  start_time: string; // Local time, without a zone
+  start_time_utc_offset?: number; // Minutes
+  duration?: string; // ISO 8601 duration
+  calories?: number; // Kilocalories
+  distance?: number; // Meters
+  heart_rate?: {
     average?: number;
     maximum?: number;
   };
-  'training-load'?: number;
+  training_load?: number;
   sport?: string;
-  'has-route'?: boolean;
-  'club-id'?: number;
-  'club-name'?: string;
-  notes?: string;
-  'resource-uri': string;
+  detailed_sport_info?: string;
+  has_route?: boolean;
 }
 
-export interface PolarActivityTransaction {
-  'transaction-id': number;
-  'resource-uri': string;
-}
-
-export interface PolarActivityTransactionResponse {
-  'transaction-id': number;
-  activities: string[]; // Array of activity URLs
-}
-
-export interface PolarActivitySummary {
-  date: string; // ISO date
+export interface PolarDailyActivity {
+  start_time?: string; // Local time, without a zone
+  active_duration?: string; // ISO 8601 duration
+  daily_activity?: number; // Percentage of the daily goal
   calories?: number;
-  'active-calories'?: number;
+  active_calories?: number;
   steps?: number;
-  'daily-activity'?: number; // seconds
-  'low-activity'?: number; // seconds
-  'medium-activity'?: number; // seconds
-  'high-activity'?: number; // seconds
-  'heart-rate'?: {
-    average?: number;
-    maximum?: number;
-    minimum?: number;
-  };
-  'resource-uri': string;
+  distance_from_steps?: number; // Meters
 }
 
 export interface PolarWebhookPayload {
@@ -450,52 +418,50 @@ export interface PolarWebhookPayload {
     | 'CONTINUOUS_HEART_RATE'
     | 'ACTIVITY_SUMMARY'
     | 'PHYSICAL_INFORMATION'
-    | 'NIGHTLY_RECHARGE'
-    | 'SLEEPWISE';
+    | 'SLEEP_WISE_CIRCADIAN_BEDTIME'
+    | 'SLEEP_WISE_ALERTNESS';
   user_id?: number; // AccessLink user id (not present for PING)
   entity_id?: string;
   timestamp: string; // ISO 8601
   url?: string; // Resource URL
 }
 
-export interface PolarWebhookCreateRequest {
+export interface PolarWebhook {
+  id: string;
   events: string[];
   url: string;
+  active?: boolean;
 }
 
-export interface PolarWebhookCreateResponse {
-  'webhook-id': number;
-  'signature-secret-key': string; // IMPORTANT: Save this, only returned once
-  events: string[];
-  url: string;
-  'resource-uri': string;
+export interface PolarCreatedWebhook {
+  data: PolarWebhook & {
+    signature_secret_key: string; // Only returned here
+  };
 }
 
 export interface PolarSleep {
-  'polar-user': string;
   date: string;
-  'sleep-start-time'?: string;
-  'sleep-end-time'?: string;
-  continuity?: number;
-  'continuity-class'?: number;
-  'light-sleep'?: number; // seconds
-  'deep-sleep'?: number; // seconds
-  'rem-sleep'?: number; // seconds
-  'sleep-cycles'?: number;
-  'total-sleep-time'?: number; // seconds
-  'sleep-score'?: number;
-  'resource-uri': string;
-  'awake-duration'?: number; // seconds
+  light_sleep?: number; // Seconds
+  deep_sleep?: number; // Seconds
+  rem_sleep?: number; // Seconds
+  unrecognized_sleep_stage?: number; // Seconds
+  total_interruption_duration?: number; // Seconds
+  sleep_score?: number;
 }
 
-export interface PolarContinuousHeartRate {
-  'polar-user': string;
+export interface PolarNightlyRecharge {
   date: string;
-  'heart-rate-samples'?: Array<{
-    'heart-rate': number;
-    'recording-time': string;
-  }>;
-  'resource-uri': string;
+  heart_rate_variability_avg?: number;
+  breathing_rate_avg?: number;
+}
+
+export interface PolarPhysicalInfo {
+  weight?: number;
+  height?: number;
+  modified?: string;
+  maximum_heart_rate?: number;
+  resting_heart_rate?: number;
+  vo2_max?: number;
 }
 
 // Suunto Workout API Types

@@ -14,6 +14,7 @@ import { format, parseISO } from 'date-fns';
 import { ReactNode, useMemo } from 'react';
 import {
   Bar,
+  BarChart,
   CartesianGrid,
   ComposedChart,
   Line,
@@ -24,21 +25,34 @@ import {
   YAxis,
 } from 'recharts';
 
+import { SPORT_TYPE, SportGroup } from '@openathlete/shared';
+
+import { ExportButton } from '../statistics/export-button';
 import { MetricInfo } from '../statistics/metric-info';
 import { Period } from '../statistics/statistics-period';
 
 interface TrainingLoadChartProps {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
+  sport: SPORT_TYPE | null;
+  group: SportGroup | null;
   /** Off until the chart comes near the screen */
   enabled: boolean;
 }
+
+/** Fitness reaches 95% of a steady load after three time constants */
+const COLD_START_DAYS = 126;
 
 const COLORS = {
   load: 'var(--chart-5)',
   ctl: 'var(--chart-1)',
   atl: 'var(--chart-2)',
   tsb: 'var(--chart-3)',
+  ctlCompared: 'var(--muted-foreground)',
+  ctlProjected: 'var(--chart-1)',
+  atlProjected: 'var(--chart-2)',
+  tsbProjected: 'var(--chart-3)',
 };
 
 const TSB_ZONES = [
@@ -70,7 +84,7 @@ function Legend({
           />
           <span className="text-muted-foreground">{item.label}</span>
           {item.value !== undefined && (
-            <span className="font-mono font-medium tabular-nums">
+            <span className="font-medium tabular-nums">
               {item.value.toFixed(1)}
             </span>
           )}
@@ -84,6 +98,9 @@ function Legend({
 export function TrainingLoadChart({
   athleteId,
   period,
+  compared,
+  sport,
+  group,
   enabled,
 }: TrainingLoadChartProps) {
   const dateFnsLocale = getDateFnsLocale(getLocale());
@@ -92,17 +109,41 @@ export function TrainingLoadChart({
       athleteId,
       from: period?.start ?? new Date(0),
       to: period?.end ?? new Date(0),
+      sport: sport ?? undefined,
+      group: group ?? undefined,
     },
     enabled && !!period,
   );
+  const { data: before } = useStatisticsLoadQuery(
+    {
+      athleteId,
+      from: compared?.start ?? new Date(0),
+      to: compared?.end ?? new Date(0),
+      sport: sport ?? undefined,
+      group: group ?? undefined,
+    },
+    enabled && !!compared,
+  );
   const chartData = useMemo(
     () =>
-      (data?.points ?? []).map((point) => ({
-        ...point,
-        // A plain date: parseISO reads it at local midnight
-        date: parseISO(point.date).getTime(),
-      })),
-    [data],
+      (data?.points ?? []).map((point, index, points) => {
+        // Drawn apart, dashed, starting from the last real day
+        const planned = point.projected || points[index + 1]?.projected;
+        return {
+          ...point,
+          // A plain date: parseISO reads it at local midnight
+          date: parseISO(point.date).getTime(),
+          ctl: point.projected ? undefined : point.ctl,
+          atl: point.projected ? undefined : point.atl,
+          tsb: point.projected ? undefined : point.tsb,
+          // Periods have the same length: days line up by rank
+          ctlCompared: compared ? before?.points[index]?.ctl : undefined,
+          ctlProjected: planned ? point.ctl : undefined,
+          atlProjected: planned ? point.atl : undefined,
+          tsbProjected: planned ? point.tsb : undefined,
+        };
+      }),
+    [data, before, compared],
   );
 
   const labels: Record<Series, string> = {
@@ -110,6 +151,10 @@ export function TrainingLoadChart({
     ctl: m.fitness_ctl(),
     atl: m.fatigue_atl(),
     tsb: m.tsb_balance(),
+    ctlCompared: `${m.fitness_ctl()} (${m.statistics_series_compared()})`,
+    ctlProjected: `${m.fitness_ctl()} (${m.statistics_projected()})`,
+    atlProjected: `${m.fatigue_atl()} (${m.statistics_projected()})`,
+    tsbProjected: `${m.tsb_balance()} (${m.statistics_projected()})`,
   };
   const config = Object.fromEntries(
     (Object.keys(COLORS) as Series[]).map((key) => [
@@ -118,7 +163,7 @@ export function TrainingLoadChart({
     ]),
   );
   // Values at the end of the period, shown next to each legend entry
-  const latest = chartData[chartData.length - 1];
+  const latest = [...chartData].reverse().find((point) => !point.projected);
   const tickDate = (value: number) =>
     format(new Date(value), 'dd MMM', { locale: dateFnsLocale });
   const tooltip = (
@@ -140,7 +185,7 @@ export function TrainingLoadChart({
                 style={{ backgroundColor: COLORS[name as Series] }}
               />
               {labels[name as Series]}
-              <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+              <span className="ml-auto font-medium tabular-nums text-foreground">
                 {Number(value).toFixed(1)}
               </span>
             </div>
@@ -150,7 +195,7 @@ export function TrainingLoadChart({
     />
   );
 
-  const tsbValues = chartData.map((point) => point.tsb);
+  const tsbValues = (data?.points ?? []).map((point) => point.tsb);
   const tsbDomain: [number, number] = [
     Math.floor(Math.min(TSB_OVERREACHING - 10, ...tsbValues) / 10) * 10,
     Math.ceil(Math.max(TSB_DETRAINING + 10, ...tsbValues) / 10) * 10,
@@ -168,6 +213,12 @@ export function TrainingLoadChart({
           </div>
         ) : chartData.length > 0 ? (
           <div className="space-y-6">
+            {(data.historyDays ?? 0) < COLD_START_DAYS &&
+              chartData.some((point) => point.load > 0) && (
+                <p className="text-sm text-muted-foreground">
+                  {m.statistics_load_short_history()}
+                </p>
+              )}
             {chartData.every((point) => point.load === 0) && (
               <p className="text-sm text-muted-foreground">
                 {m.statistics_load_empty()}
@@ -200,6 +251,19 @@ export function TrainingLoadChart({
                   />
                   <YAxis width={40} tick={{ fontSize: 11 }} />
                   {tooltip}
+                  {data.races.map((race) => (
+                    <ReferenceLine
+                      key={race}
+                      x={parseISO(race).getTime()}
+                      stroke="var(--muted-foreground)"
+                      strokeDasharray="2 2"
+                      label={{
+                        value: m.statistics_race(),
+                        position: 'insideTopLeft',
+                        fontSize: 10,
+                      }}
+                    />
+                  ))}
                   <Bar
                     dataKey="load"
                     fill={COLORS.load}
@@ -208,18 +272,48 @@ export function TrainingLoadChart({
                     isAnimationActive={false}
                   />
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="ctl"
                     stroke={COLORS.ctl}
                     strokeWidth={2.5}
                     dot={false}
                     isAnimationActive={false}
                   />
+                  {compared && (
+                    <Line
+                      type="linear"
+                      dataKey="ctlCompared"
+                      stroke={COLORS.ctlCompared}
+                      strokeWidth={1.5}
+                      strokeDasharray="2 3"
+                      connectNulls
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  )}
                   <Line
-                    type="monotone"
+                    type="linear"
+                    dataKey="ctlProjected"
+                    stroke={COLORS.ctl}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="linear"
                     dataKey="atl"
                     stroke={COLORS.atl}
                     strokeWidth={2.5}
+                    dot={false}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="linear"
+                    dataKey="atlProjected"
+                    stroke={COLORS.atl}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
                     dot={false}
                     isAnimationActive={false}
                   />
@@ -288,16 +382,90 @@ export function TrainingLoadChart({
                   />
                   {tooltip}
                   <Line
-                    type="monotone"
+                    type="linear"
                     dataKey="tsb"
                     stroke={COLORS.tsb}
                     strokeWidth={2.5}
                     dot={false}
                     isAnimationActive={false}
                   />
+                  <Line
+                    type="linear"
+                    dataKey="tsbProjected"
+                    stroke={COLORS.tsb}
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                    dot={false}
+                    isAnimationActive={false}
+                  />
                 </LineChart>
               </ChartContainer>
             </div>
+            <div className="flex justify-end">
+              <ExportButton
+                name="load"
+                header={['date', 'load', 'ctl', 'atl', 'tsb', 'session_rpe']}
+                rows={() =>
+                  data.points.map((point) => [
+                    point.date,
+                    point.load,
+                    point.ctl,
+                    point.atl,
+                    point.tsb,
+                    point.sessionRpe,
+                  ])
+                }
+              />
+            </div>
+            {data.monotony !== null && (
+              <p
+                className="flex items-center gap-1 text-sm text-muted-foreground"
+                data-monotony
+              >
+                {m.statistics_monotony()}
+                <span className="font-medium text-foreground tabular-nums">
+                  {data.monotony.toFixed(2)}
+                </span>
+                <MetricInfo metric="monotony" />
+              </p>
+            )}
+            {chartData.some((point) => point.sessionRpe > 0) && (
+              <div className="space-y-2" data-session-rpe>
+                <p className="flex items-center gap-1 text-sm text-muted-foreground">
+                  {m.metric_srpe_name()} <MetricInfo metric="sessionRpe" />
+                </p>
+                <ChartContainer
+                  config={{
+                    sessionRpe: {
+                      label: m.metric_srpe_name(),
+                      color: COLORS.load,
+                    },
+                  }}
+                  className="h-[120px] w-full"
+                >
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+                  >
+                    <XAxis
+                      dataKey="date"
+                      type="number"
+                      scale="time"
+                      domain={['dataMin', 'dataMax']}
+                      tickFormatter={tickDate}
+                      tick={{ fontSize: 11 }}
+                      minTickGap={32}
+                    />
+                    <YAxis width={40} tick={{ fontSize: 11 }} />
+                    <Bar
+                      dataKey="sessionRpe"
+                      fill={COLORS.load}
+                      isAnimationActive={false}
+                    />
+                  </BarChart>
+                </ChartContainer>
+              </div>
+            )}
           </div>
         ) : (
           <div className="py-8 text-center text-sm text-muted-foreground">

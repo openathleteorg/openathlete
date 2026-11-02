@@ -134,7 +134,7 @@ export function CalendarView() {
         isMobile ? 'p-0' : 'p-4 md:p-8',
       )}
     >
-      {space === 'ATHLETE' && (
+      {space === 'ATHLETE' && !isMobile && (
         <AthleteDashboardHeader athleteId={athlete?.athleteId} />
       )}
       <div className="flex-1 min-h-0">

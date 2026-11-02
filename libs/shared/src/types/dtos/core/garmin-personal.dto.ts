@@ -63,6 +63,8 @@ export const garminPersonalResultSchema = z
 export const garminPersonalStatusSchema = z
   .object({
     connected: z.boolean(),
+    /** Server deadline; optional for clients talking to older releases. */
+    activeUntil: z.string().datetime().nullable().optional(),
     preferences: garminPersonalPreferencesSchema,
     status: z.enum([
       'disconnected',

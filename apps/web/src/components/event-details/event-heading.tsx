@@ -12,13 +12,20 @@ import { SportIcon } from '../sport-icon/sport-icon';
 import { Badge } from '../ui/badge';
 
 /** The sport, name and badges of an event, as its dialog and page title */
-export function EventHeading({ event }: { event: Event }) {
+export function EventHeading({
+  event,
+  hideName,
+}: {
+  event: Event;
+  /** When the app bar already shows it */
+  hideName?: boolean;
+}) {
   return (
     <div className="flex flex-wrap items-center gap-2 grow text-sm md:text-base">
       {event.type !== EVENT_TYPE.NOTE && event.sport && (
         <SportIcon sport={event.sport} />
       )}
-      <span className="break-words">{event.name}</span>
+      {!hideName && <span className="break-words">{event.name}</span>}
       <Badge className="text-xs">{eventTypeLabelMap[event.type]}</Badge>
       {event.type === EVENT_TYPE.ACTIVITY && event.isRace && (
         <Badge variant="outline" className="text-xs" data-race-badge>

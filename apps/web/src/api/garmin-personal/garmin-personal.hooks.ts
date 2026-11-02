@@ -9,8 +9,18 @@ import { garminPersonalKeys } from './garmin-personal.keys';
 export function personalPollingInterval(
   status: GarminPersonalStatus['status'] | undefined,
   queuedForMs: number,
+  activeUntil?: string | null,
+  now = Date.now(),
 ) {
   if (status === 'running') return 3000;
+  if (status === 'queued' && activeUntil) {
+    const remaining = Date.parse(activeUntil) - now;
+    if (remaining <= 0) return 1000;
+    return Math.min(
+      queuedForMs < 15000 ? 3000 : 30000,
+      Math.max(1000, remaining + 100),
+    );
+  }
   if (status !== 'queued' || queuedForMs >= 120000) return false;
   return queuedForMs < 15000 ? 3000 : 15000;
 }
@@ -27,6 +37,7 @@ export function useGarminPersonalStatus(userId: number) {
       return personalPollingInterval(
         status,
         queuedAt.current === null ? 0 : Date.now() - queuedAt.current,
+        query.state.data?.activeUntil,
       );
     },
   });

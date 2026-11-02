@@ -1,7 +1,10 @@
 import { Job } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { SuuntoProviderService } from '../../providers-sync/providers';
 import { SuuntoNotificationJobData } from '../queue.service';
@@ -19,6 +22,7 @@ export class SuuntoNotificationProcessor extends WorkerHost {
   constructor(
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
   }
@@ -39,6 +43,7 @@ export class SuuntoNotificationProcessor extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<SuuntoNotificationJobData>, error: Error) {
+    reportJobFailure(this.analytics, job, error);
     const final = job.attemptsMade >= (job.opts.attempts ?? 1);
     const message = `Suunto ${job.data.kind} notification failed (attempt ${job.attemptsMade}): ${error.message}`;
     if (final) {

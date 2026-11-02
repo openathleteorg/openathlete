@@ -16,7 +16,7 @@ export function DistanceStat({ label, distance }: P) {
         {label && <div className="text-sm font-semibold">{label}</div>}
         <div>
           {formatDistance(distance, 'km')}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">
+          <span className="text-muted-foreground text-sm">
             {m.kilometers()}
           </span>
         </div>
@@ -24,15 +24,11 @@ export function DistanceStat({ label, distance }: P) {
       <PopoverContent>
         <div>
           {formatDistance(distance, 'm')}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">
-            {m.meters()}
-          </span>
+          <span className="text-muted-foreground text-sm">{m.meters()}</span>
         </div>
         <div>
           {formatDistance(distance, 'mi')}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">
-            {m.miles()}
-          </span>
+          <span className="text-muted-foreground text-sm">{m.miles()}</span>
         </div>
       </PopoverContent>
     </Popover>

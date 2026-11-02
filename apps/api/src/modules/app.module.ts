@@ -1,5 +1,3 @@
-import { SentryGlobalFilter, SentryModule } from '@sentry/nestjs/setup';
-
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
@@ -22,6 +20,8 @@ import {
 
 import { AgentModule } from './agent/agent.module';
 import { AiModule } from './ai';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { ExceptionReportingFilter } from './analytics/exception.filter';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
 import { CalendarModule } from './calendar/calendar.module';
@@ -30,7 +30,7 @@ import { InstanceModule } from './instance/instance.module';
 import { McpModule } from './mcp/mcp.module';
 import { MessagesModule } from './messages/messages.module';
 import { NotificationModule } from './notification';
-import { PrismaService } from './prisma/services/prisma.service';
+import { PrismaModule } from './prisma/prisma.module';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { QueueModule } from './queue';
 import { SeoPlanModule } from './seo/seo-plan.module';
@@ -38,6 +38,8 @@ import { SubscriptionModule } from './subscription';
 
 @Module({
   imports: [
+    PrismaModule,
+    AnalyticsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       validate: validateEnv,
@@ -46,7 +48,6 @@ import { SubscriptionModule } from './subscription';
         abortEarly: false,
       },
     }),
-    SentryModule.forRoot(),
     ThrottlerModule.forRoot(DEFAULT_RATE_LIMIT),
     AuthModule,
     CoreModule,
@@ -67,13 +68,12 @@ import { SubscriptionModule } from './subscription';
   providers: [
     {
       provide: APP_FILTER,
-      useClass: SentryGlobalFilter,
+      useClass: ExceptionReportingFilter,
     },
     {
       provide: APP_GUARD,
       useClass: AppThrottlerGuard,
     },
-    PrismaService,
     NotificationListener,
     // Only register listeners that depend on activity processing
     // if ENABLE_ACTIVITY_PROCESSING is true so they run on the same instances.

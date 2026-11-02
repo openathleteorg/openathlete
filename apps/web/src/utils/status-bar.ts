@@ -10,7 +10,7 @@ export async function initStatusBar() {
 
   try {
     if (isIOS()) {
-      await StatusBar.setOverlaysWebView({ overlay: false });
+      await StatusBar.setOverlaysWebView({ overlay: true });
     }
     if (isAndroid()) {
       document.documentElement.setAttribute(

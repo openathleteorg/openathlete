@@ -5,7 +5,6 @@ import { PassportModule } from '@nestjs/passport';
 
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { PrismaService } from '../prisma/services/prisma.service';
 import { SubscriptionModule } from '../subscription';
 import { AuthController, UserController } from './controllers';
 import { OidcController } from './controllers/oidc.controller';
@@ -47,7 +46,6 @@ import { JwtStrategy } from './strategies';
     JwtStrategy,
     CaslAbilityFactory,
     UserTypeGuard,
-    PrismaService,
   ],
   exports: [
     CaslAbilityFactory,

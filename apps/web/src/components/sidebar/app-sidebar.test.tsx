@@ -15,6 +15,9 @@ const state = vi.hoisted(() => ({
   }[],
 }));
 
+vi.mock('@/contexts/finder', () => ({
+  useFinder: () => ({ openFinder: vi.fn() }),
+}));
 vi.mock('@/api/athlete', () => ({
   useGetMyCoachedAthletesQuery: () => ({ data: state.athletes }),
 }));
@@ -30,9 +33,6 @@ vi.mock('@/components/sidebar/space-switcher', () => ({
 }));
 vi.mock('@/components/sidebar/support-reminder', () => ({
   SupportReminder: () => null,
-}));
-vi.mock('@/components/mobile/mobile-account-controls', () => ({
-  MobileAccountControls: () => null,
 }));
 // Every message renders as its key.
 vi.mock('@/paraglide/messages', () => ({

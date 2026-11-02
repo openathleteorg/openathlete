@@ -14,10 +14,18 @@ test('the records page fits a phone screen', async ({ page, request }) => {
   await page.goto('/dashboard/records');
   await expect(page.locator('[data-records-metric="SPEED"]')).toBeVisible();
 
-  // Wide tables scroll inside their card, the page itself does not
+  // Years wrap inside each row: the page never scrolls sideways
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
     ),
   ).toBe(true);
+
+  // Every year stays readable, and a record opens in a sheet
+  const row = page.locator('[data-record-row="1 km"]');
+  await expect(row.locator('[data-record-year]').first()).toBeVisible();
+  await row.click();
+  await expect(
+    page.getByRole('dialog').getByText('Best efforts'),
+  ).toBeVisible();
 });

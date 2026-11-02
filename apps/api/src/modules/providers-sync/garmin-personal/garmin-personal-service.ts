@@ -38,6 +38,7 @@ import {
 } from './garmin-personal-client';
 
 export const PERSONAL_QUEUE = 'garmin-personal-sync';
+export const PERSONAL_QUEUE_TTL_MS = 5 * 60000;
 export interface PersonalJob extends GarminPersonalSync {
   connectionId: number;
   version: number;
@@ -99,9 +100,72 @@ export class GarminPersonalService {
     if (!athlete) throw new ForbiddenException();
     return athlete.athleteId;
   }
+  private activeUntil(c: GarminPersonalConnection | null): Date | null {
+    if (!c) return null;
+    if (c.leaseUntil && c.leaseUntil.getTime() > Date.now())
+      return c.leaseUntil;
+    if (c.status === 'queued') {
+      const deadline = new Date(
+        (c.queuedAt ?? c.updatedAt).getTime() + PERSONAL_QUEUE_TTL_MS,
+      );
+      if (deadline.getTime() > Date.now()) return deadline;
+    }
+    return null;
+  }
+  private async recoverStale(
+    tx: Prisma.TransactionClient,
+    c: GarminPersonalConnection,
+  ) {
+    if (!['queued', 'running'].includes(c.status) || this.activeUntil(c))
+      return c;
+    // Match the whole lease snapshot: a heartbeat/claim racing this write wins
+    // rather than being erased. Bumping version invalidates abandoned jobs.
+    await tx.garminPersonalConnection.updateMany({
+      where: {
+        id: c.id,
+        version: c.version,
+        status: c.status,
+        leaseId: c.leaseId,
+        leaseUntil: c.leaseUntil,
+        queuedAt: c.queuedAt,
+        updatedAt: c.updatedAt,
+      },
+      data: {
+        status: 'failed',
+        error: 'unavailable',
+        version: { increment: 1 },
+        leaseId: null,
+        leaseUntil: null,
+        queuedAt: null,
+      },
+    });
+    return tx.garminPersonalConnection.findUniqueOrThrow({
+      where: { id: c.id },
+    });
+  }
+  private async readConnection(athleteId: number) {
+    const observed = await this.prisma.garminPersonalConnection.findUnique({
+      where: { athleteId },
+    });
+    // Normal status polling must not wait on a large activity write's lock.
+    if (
+      !observed ||
+      !['queued', 'running'].includes(observed.status) ||
+      this.activeUntil(observed)
+    )
+      return observed;
+    return this.prisma.$transaction(async (tx) => {
+      await this.lock(tx, athleteId);
+      const c = await tx.garminPersonalConnection.findUnique({
+        where: { athleteId },
+      });
+      return c ? this.recoverStale(tx, c) : null;
+    });
+  }
   private statusOf(c: GarminPersonalConnection | null): GarminPersonalStatus {
     return garminPersonalStatusSchema.parse({
       connected: !!c?.encryptedCredentials,
+      activeUntil: this.activeUntil(c)?.toISOString() ?? null,
       preferences: c
         ? { activities: c.activities, automatic: c.automatic }
         : defaults,
@@ -112,11 +176,7 @@ export class GarminPersonalService {
     });
   }
   async status(userId: number) {
-    return this.statusOf(
-      await this.prisma.garminPersonalConnection.findUnique({
-        where: { athleteId: await this.athlete(userId) },
-      }),
-    );
+    return this.statusOf(await this.readConnection(await this.athlete(userId)));
   }
   async connect(userId: number, dto: ConnectGarminPersonal) {
     const athleteId = await this.athlete(userId);
@@ -149,6 +209,7 @@ export class GarminPersonalService {
         result: Prisma.DbNull,
         leaseId: null,
         leaseUntil: null,
+        queuedAt: null,
       };
       const c = await tx.garminPersonalConnection.upsert({
         where: { athleteId },
@@ -160,20 +221,26 @@ export class GarminPersonalService {
   }
   async preferences(userId: number, preferences: GarminPersonalPreferences) {
     const athleteId = await this.athlete(userId);
+    if (this.activeUntil(await this.readConnection(athleteId)))
+      throw new ConflictException('sync_in_progress');
     await this.prisma.$transaction(async (tx) => {
       await this.lock(tx, athleteId);
-      const c = await tx.garminPersonalConnection.findUnique({
+      let c = await tx.garminPersonalConnection.findUnique({
         where: { athleteId },
       });
       if (!c?.encryptedCredentials || c.status === 'key_required')
         throw new BadRequestException('key_required');
+      c = await this.recoverStale(tx, c);
+      if (this.activeUntil(c)) throw new ConflictException('sync_in_progress');
       // The conditional write also covers a worker acquiring its lease after
       // this transaction read the connection. Do not invalidate an active job.
       const changed = await tx.garminPersonalConnection.updateMany({
         where: {
           id: c.id,
           version: c.version,
-          status: { notIn: ['queued', 'running'] },
+          status: c.status,
+          queuedAt: c.queuedAt,
+          updatedAt: c.updatedAt,
           OR: [{ leaseUntil: null }, { leaseUntil: { lt: new Date() } }],
         },
         data: {
@@ -181,6 +248,7 @@ export class GarminPersonalService {
           version: { increment: 1 },
           leaseId: null,
           leaseUntil: null,
+          queuedAt: null,
           status: 'idle',
           error: null,
         },
@@ -202,6 +270,7 @@ export class GarminPersonalService {
           version: { increment: 1 },
           leaseId: null,
           leaseUntil: null,
+          queuedAt: null,
           error: null,
         },
       });
@@ -209,23 +278,32 @@ export class GarminPersonalService {
     return this.status(userId);
   }
   async enqueue(userId: number, range: GarminPersonalSync) {
-    const c = await this.prisma.garminPersonalConnection.findUnique({
-      where: { athleteId: await this.athlete(userId) },
-    });
-    if (!c?.encryptedCredentials || c.status === 'key_required')
-      throw new BadRequestException('key_required');
-    if (!c.activities) throw new BadRequestException('imports_disabled');
-    const jobId = `personal-${c.id}-${c.version}-${range.startDate}-${range.endDate}-${Math.floor(Date.now() / 60000)}`;
     if (!this.jobs) throw new BadRequestException('PROVIDER_NOT_CONFIGURED');
-    const existing = await this.jobs.getJob(jobId);
-    if (existing)
-      return {
-        queued: !['completed', 'failed'].includes(await existing.getState()),
-      };
-    await this.prisma.garminPersonalConnection.updateMany({
-      where: { id: c.id, version: c.version, status: { not: 'running' } },
-      data: { status: 'queued', error: null },
+    const athleteId = await this.athlete(userId);
+    const c = await this.prisma.$transaction(async (tx) => {
+      await this.lock(tx, athleteId);
+      let c = await tx.garminPersonalConnection.findUnique({
+        where: { athleteId },
+      });
+      if (!c?.encryptedCredentials || c.status === 'key_required')
+        throw new BadRequestException('key_required');
+      c = await this.recoverStale(tx, c);
+      if (!c.activities) throw new BadRequestException('imports_disabled');
+      if (this.activeUntil(c)) return null;
+      return tx.garminPersonalConnection.update({
+        where: { id: c.id },
+        data: {
+          version: { increment: 1 },
+          status: 'queued',
+          queuedAt: new Date(),
+          leaseId: null,
+          leaseUntil: null,
+          error: null,
+        },
+      });
     });
+    if (!c) return { queued: true };
+    const jobId = `personal-${c.id}-${c.version}`;
     try {
       await this.jobs.add(
         'pull',
@@ -241,7 +319,7 @@ export class GarminPersonalService {
     } catch {
       await this.prisma.garminPersonalConnection.updateMany({
         where: { id: c.id, version: c.version, status: 'queued' },
-        data: { status: 'failed', error: 'unavailable' },
+        data: { status: 'failed', queuedAt: null, error: 'unavailable' },
       });
       throw new BadRequestException('unavailable');
     }
@@ -410,9 +488,10 @@ export class GarminPersonalService {
   }
   async run(job: PersonalJob) {
     if (this.config.get('GARMIN_PERSONAL_API_ENABLED') !== true) return;
-    const c = await this.prisma.garminPersonalConnection.findUnique({
+    const stored = await this.prisma.garminPersonalConnection.findUnique({
       where: { id: job.connectionId },
     });
+    const c = stored ? await this.readConnection(stored.athleteId) : null;
     if (!c?.encryptedCredentials || c.version !== job.version || !c.activities)
       return;
     if (c.status === 'key_required')
@@ -428,6 +507,7 @@ export class GarminPersonalService {
         leaseId,
         leaseUntil: new Date(Date.now() + 1200000),
         status: 'running',
+        queuedAt: null,
         error: null,
       },
     });

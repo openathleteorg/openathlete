@@ -2,10 +2,17 @@ import client, { routes } from '@/utils/axios';
 
 import {
   SPORT_TYPE,
+  SportGroup,
+  StatisticsCardiacCostDto,
   StatisticsDaysDto,
+  StatisticsDurabilityDto,
   StatisticsFiltersDto,
+  StatisticsIntensityDto,
   StatisticsLoadDto,
+  StatisticsLongRunsDto,
   StatisticsOverviewDto,
+  StatisticsRecoveryDto,
+  StatisticsTerrainDto,
   StatisticsTrendsDto,
   StatisticsVolumeDto,
   statisticsFiltersSchema,
@@ -16,6 +23,7 @@ export interface StatisticsSectionParams {
   from: Date;
   to: Date;
   sport?: SPORT_TYPE;
+  group?: SportGroup;
 }
 
 export class StatisticsAPI {
@@ -48,6 +56,48 @@ export class StatisticsAPI {
     return res.data;
   }
 
+  static async getIntensity(
+    params: StatisticsSectionParams,
+  ): Promise<StatisticsIntensityDto> {
+    const res = await client.get(routes.statistics.intensity, { params });
+    return res.data;
+  }
+
+  static async getLongRuns(
+    params: StatisticsSectionParams,
+  ): Promise<StatisticsLongRunsDto> {
+    const res = await client.get(routes.statistics.longRuns, { params });
+    return res.data;
+  }
+
+  static async getTerrain(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsTerrainDto> {
+    const res = await client.get(routes.statistics.terrain, { params });
+    return res.data;
+  }
+
+  static async getCardiacCost(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsCardiacCostDto> {
+    const res = await client.get(routes.statistics.cardiacCost, { params });
+    return res.data;
+  }
+
+  static async getDurability(
+    params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  ): Promise<StatisticsDurabilityDto> {
+    const res = await client.get(routes.statistics.durability, { params });
+    return res.data;
+  }
+
+  static async getRecovery(
+    params: StatisticsSectionParams,
+  ): Promise<StatisticsRecoveryDto> {
+    const res = await client.get(routes.statistics.recovery, { params });
+    return res.data;
+  }
+
   static async getTrends(
     params: StatisticsSectionParams & { sport: SPORT_TYPE },
   ): Promise<StatisticsTrendsDto> {
@@ -56,7 +106,7 @@ export class StatisticsAPI {
   }
 
   static async getLoad(
-    params: Omit<StatisticsSectionParams, 'sport'>,
+    params: StatisticsSectionParams,
   ): Promise<StatisticsLoadDto> {
     const res = await client.get(routes.statistics.load, { params });
     return res.data;

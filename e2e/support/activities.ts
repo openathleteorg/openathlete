@@ -22,18 +22,24 @@ export async function importRecentRun(
     return `<trkpt lat="${(45 + (i * 180) / 111_195).toFixed(6)}" lon="5.000000"><time>${time}</time></trkpt>`;
   }).join('');
   const gpx = `<?xml version="1.0"?><gpx version="1.1" creator="openathlete-e2e" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>${sport}</name><trkseg>${points}</trkseg></trk></gpx>`;
-  const response = await request.post(`${API_URL}/activity-import/gpx`, {
-    headers: apiHeaders(undefined, athlete.accessToken),
-    multipart: {
-      file: {
-        name: `${sport}-${daysAgo}.gpx`,
-        mimeType: 'application/gpx+xml',
-        buffer: Buffer.from(gpx),
+  const post = () =>
+    request.post(`${API_URL}/activity-import/gpx`, {
+      headers: apiHeaders(undefined, athlete.accessToken),
+      multipart: {
+        file: {
+          name: `${sport}-${daysAgo}.gpx`,
+          mimeType: 'application/gpx+xml',
+          buffer: Buffer.from(gpx),
+        },
+        name: `${sport} session`,
+        sport,
       },
-      name: `${sport} session`,
-      sport,
-    },
-  });
+    });
+  // Imports run in serializable transactions: parallel tests can collide
+  let response = await post();
+  for (let attempt = 0; response.status() === 409 && attempt < 5; attempt++) {
+    response = await post();
+  }
   expect(response.status(), await response.text()).toBe(201);
   return (await response.json()) as { eventId: number; name: string };
 }

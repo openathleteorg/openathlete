@@ -19,7 +19,8 @@ import {
   getAllowedOrigins,
   isPublicCorsPath,
 } from './common/utils/cors.util';
-import './instrument';
+import { AnalyticsService } from './modules/analytics/analytics.service';
+import { RemoteLogger } from './modules/analytics/remote-logger';
 import { AppModule } from './modules/app.module';
 
 async function bootstrap() {
@@ -42,6 +43,17 @@ async function bootstrap() {
   app.use(rejectOversizedArrays);
 
   const configService = app.get(ConfigService<ApiEnvSchemaType, true>);
+
+  app.enableShutdownHooks();
+  const posthogToken = configService.get('POSTHOG_PROJECT_TOKEN');
+  if (posthogToken) {
+    const logger = new RemoteLogger(
+      posthogToken,
+      configService.get('POSTHOG_HOST'),
+    );
+    app.useLogger(logger);
+    app.get(AnalyticsService).flushOnShutdown(() => logger.shutdown());
+  }
 
   // Only trust X-Forwarded-For from proxies on private networks (Traefik,
   // Docker) by default, so rate limits see the real client IP and it cannot

@@ -14,6 +14,7 @@ import {
 import { cadenceFactor } from '../activity-analysis/tracks';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Skeleton, SkeletonChart } from '../ui/skeleton';
+import { ExportButton } from './export-button';
 import { MetricInfo } from './metric-info';
 import { StatChart } from './stat-chart';
 import { StatSection } from './stat-section';
@@ -24,6 +25,7 @@ type Bucket = StatisticsTrendsDto['buckets'][number];
 interface P {
   athleteId: number;
   period: Period | null;
+  compared: Period | null;
   sport: SPORT_TYPE | null;
 }
 
@@ -87,6 +89,22 @@ function sportTrends(sport: SPORT_TYPE): Trend[] {
       unit: cadenceFactor(sport) === 2 ? m.steps_per_minute() : 'rpm',
       color: 'var(--chart-5)',
     },
+    config.showPower && {
+      key: 'weightedPower',
+      title: m.statistics_weighted_power(),
+      value: (bucket) => bucket.weightedWatts,
+      format: (value) => `${Math.round(value)}`,
+      unit: 'W',
+      color: 'var(--chart-1)',
+    },
+    config.showElevation && {
+      key: 'verticalSpeed',
+      title: m.statistics_vertical_speed(),
+      value: (bucket) => bucket.verticalSpeed,
+      format: (value) => `${Math.round(value)}`,
+      unit: m.statistics_metres_per_hour(),
+      color: 'var(--chart-3)',
+    },
     config.showDistance && {
       key: 'distance',
       title: m.average_distance_per_activity(),
@@ -127,6 +145,7 @@ function TrendsSkeleton() {
 function Trends({
   athleteId,
   period,
+  compared,
   sport,
   visible,
 }: Omit<P, 'sport'> & { sport: SPORT_TYPE; visible: boolean }) {
@@ -138,6 +157,15 @@ function Trends({
       sport,
     },
     visible && !!period,
+  );
+  const { data: previous } = useStatisticsTrendsQuery(
+    {
+      athleteId,
+      from: compared?.start ?? new Date(0),
+      to: compared?.end ?? new Date(0),
+      sport,
+    },
+    visible && !!compared,
   );
   if (!data) return <TrendsSkeleton />;
 
@@ -157,6 +185,18 @@ function Trends({
     <div
       className={`grid grid-cols-1 gap-4 transition-opacity md:grid-cols-2 ${isFetching ? 'opacity-70' : ''}`}
     >
+      <div className="flex justify-end md:col-span-2">
+        <ExportButton
+          name="trends"
+          header={['period', ...trends.map(({ key }) => key)]}
+          rows={() =>
+            data.buckets.map((bucket) => [
+              bucket.period,
+              ...trends.map((trend) => trend.value(bucket)),
+            ])
+          }
+        />
+      </div>
       {trends.map((trend) => (
         <Card key={trend.key} data-trend={trend.key} className="gap-0 py-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-2">
@@ -175,11 +215,19 @@ function Trends({
               color={trend.color}
               formatValue={trend.format}
               formatTooltip={(value) => `${trend.format(value)} ${trend.unit}`}
-              data={data.buckets.map((bucket) => ({
-                period: bucket.period,
-                partial: bucket.partial,
-                value: trend.value(bucket),
-              }))}
+              comparedLabel={
+                compared ? m.statistics_series_compared() : undefined
+              }
+              data={data.buckets.map((bucket, index) => {
+                // Periods have the same length: buckets line up by rank
+                const before = compared && previous?.buckets[index];
+                return {
+                  period: bucket.period,
+                  partial: bucket.partial,
+                  value: trend.value(bucket),
+                  compared: before ? trend.value(before) : null,
+                };
+              })}
             />
           </CardContent>
         </Card>
@@ -188,26 +236,24 @@ function Trends({
   );
 }
 
-/** Averages mix badly across sports: they need one to be chosen. */
-export function TrendsSection({ athleteId, period, sport }: P) {
+/** Averages mix badly across sports: they read on one. */
+export function TrendsSection({
+  athleteId,
+  period,
+  compared,
+  sport,
+}: Omit<P, 'sport'> & { sport: SPORT_TYPE }) {
   return (
     <StatSection id="trends" title={m.statistics_section_trends()}>
-      {(visible) =>
-        sport ? (
-          <Trends
-            athleteId={athleteId}
-            period={period}
-            sport={sport}
-            visible={visible}
-          />
-        ) : (
-          <Card className="gap-0 py-0">
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              {m.statistics_trends_pick_sport()}
-            </CardContent>
-          </Card>
-        )
-      }
+      {(visible) => (
+        <Trends
+          athleteId={athleteId}
+          period={period}
+          compared={compared}
+          sport={sport}
+          visible={visible}
+        />
+      )}
     </StatSection>
   );
 }

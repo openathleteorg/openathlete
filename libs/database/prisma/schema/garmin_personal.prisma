@@ -10,6 +10,7 @@ model GarminPersonalConnection {
   status               String               @default("idle")
   leaseId              String?              @map("lease_id")
   leaseUntil           DateTime?            @map("lease_until")
+  queuedAt             DateTime?            @map("queued_at")
   error                String?
   result               Json?
   lastSyncedAt         DateTime?            @map("last_synced_at")
@@ -35,5 +36,6 @@ model GarminPersonalItem {
   createdAt         DateTime                 @default(now()) @map("created_at")
 
   @@unique([connectionId, externalId])
+  @@index([eventActivityId])
   @@map("garmin_personal_item")
 }

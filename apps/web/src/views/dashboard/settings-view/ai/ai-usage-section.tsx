@@ -5,6 +5,8 @@ import { cn } from '@/utils/shadcn';
 
 import { AiAccessDto } from '@openathlete/shared';
 
+import { SettingsPanel, SettingsSection } from '../settings-section';
+
 /**
  * This month's AI usage: the included allowance on the instance keys, and
  * what ran on the user's own keys (billed to them by their provider).
@@ -25,51 +27,52 @@ export function AiUsageSection({ access }: { access: AiAccessDto }) {
   const percent = Math.round((usage.hostedBudgetUsed ?? 0) * 100);
 
   return (
-    <section className="space-y-3 rounded-lg border p-4">
-      <h3 className="font-medium">{m.ai_usage_title()}</h3>
-      {showAllowance && (
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
-            <span>{m.ai_usage_included()}</span>
-            <span className="text-muted-foreground">
-              {m.ai_usage_percent_used({ percent })}
-            </span>
-          </div>
-          <div
-            role="progressbar"
-            aria-label={m.ai_usage_included()}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={percent}
-            className="h-2 overflow-hidden rounded-full bg-muted"
-          >
+    <SettingsSection title={m.ai_usage_title()}>
+      <SettingsPanel padded className="space-y-3 divide-y-0">
+        {showAllowance && (
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
+              <span>{m.ai_usage_included()}</span>
+              <span className="text-muted-foreground">
+                {m.ai_usage_percent_used({ percent })}
+              </span>
+            </div>
             <div
+              role="progressbar"
+              aria-label={m.ai_usage_included()}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={percent}
+              className="h-2 overflow-hidden rounded-full bg-muted"
+            >
+              <div
+                className={cn(
+                  'h-full rounded-full',
+                  hostedQuotaExhausted ? 'bg-destructive' : 'bg-primary',
+                )}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <p
               className={cn(
-                'h-full rounded-full',
-                hostedQuotaExhausted ? 'bg-destructive' : 'bg-primary',
+                'text-sm',
+                hostedQuotaExhausted
+                  ? 'text-destructive'
+                  : 'text-muted-foreground',
               )}
-              style={{ width: `${percent}%` }}
-            />
+            >
+              {hostedQuotaExhausted
+                ? m.ai_usage_exhausted({ date: resetsOn })
+                : m.ai_usage_resets({ date: resetsOn })}
+            </p>
           </div>
-          <p
-            className={cn(
-              'text-sm',
-              hostedQuotaExhausted
-                ? 'text-destructive'
-                : 'text-muted-foreground',
-            )}
-          >
-            {hostedQuotaExhausted
-              ? m.ai_usage_exhausted({ date: resetsOn })
-              : m.ai_usage_resets({ date: resetsOn })}
+        )}
+        {usage.ownKeyTokens > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {m.ai_usage_own_keys({ tokens: tokens(usage.ownKeyTokens) })}
           </p>
-        </div>
-      )}
-      {usage.ownKeyTokens > 0 && (
-        <p className="text-sm text-muted-foreground">
-          {m.ai_usage_own_keys({ tokens: tokens(usage.ownKeyTokens) })}
-        </p>
-      )}
-    </section>
+        )}
+      </SettingsPanel>
+    </SettingsSection>
   );
 }

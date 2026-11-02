@@ -1,12 +1,11 @@
 import { useAiAccessQuery } from '@/api/ai-settings';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
 import { purchaseChannel } from '@/utils/capacitor';
-import { ShieldCheck } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 
+import { SettingsPanel, SettingsRow } from '../settings-section';
 import { AiDataSharingSection } from './ai-data-sharing-section';
 import { AiKeysSection } from './ai-keys-section';
 import { AiModelsSection } from './ai-models-section';
@@ -17,39 +16,34 @@ export function AiTab() {
   const [, setSearchParams] = useSearchParams();
 
   return (
-    <div className="space-y-6">
-      <Alert>
-        <ShieldCheck className="size-4" />
-        <AlertTitle>{m.ai_settings_title()}</AlertTitle>
-        <AlertDescription>{m.ai_settings_description()}</AlertDescription>
-      </Alert>
-
+    <div className="space-y-8">
       {access?.hostedAccess && (
-        <Alert>
-          <SparklesIcon className="size-4" />
-          <AlertTitle>{m.ai_hosted_included_title()}</AlertTitle>
-          <AlertDescription>
-            {m.ai_hosted_included_description()}
-          </AlertDescription>
-        </Alert>
+        <SettingsPanel>
+          <SettingsRow
+            leading={<SparklesIcon className="size-5" />}
+            title={m.ai_hosted_included_title()}
+            description={m.ai_hosted_included_description()}
+          />
+        </SettingsPanel>
       )}
 
       {access?.upgradeUnlocksHosted && purchaseChannel() !== null && (
-        <Alert>
-          <SparklesIcon className="size-4" />
-          <AlertTitle>{m.ai_upgrade_title()}</AlertTitle>
-          <AlertDescription className="flex flex-col gap-3">
-            <span>{m.ai_upgrade_description()}</span>
+        <SettingsPanel>
+          <SettingsRow
+            stacked
+            leading={<SparklesIcon className="size-5" />}
+            title={m.ai_upgrade_title()}
+            description={m.ai_upgrade_description()}
+          >
             <Button
               variant="outline"
               size="sm"
-              className="w-fit"
               onClick={() => setSearchParams({ tab: 'subscription' })}
             >
               {m.ai_setup_view_plans()}
             </Button>
-          </AlertDescription>
-        </Alert>
+          </SettingsRow>
+        </SettingsPanel>
       )}
 
       <AiDataSharingSection />

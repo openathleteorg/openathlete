@@ -87,7 +87,7 @@ function NumberWithUnitFieldAdapter({
         )}
       />
       <div className="rounded-l-none rounded-r-md border border-l-0 shadow-xs py-1.25 px-3 text-base shrink-0">
-        <span className="text-md text-gray-500">{unit}</span>
+        <span className="text-md text-muted-foreground">{unit}</span>
       </div>
     </div>
   );

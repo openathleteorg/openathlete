@@ -7,6 +7,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { m } from '@/paraglide/messages';
+import { SettingsPanel } from '@/views/dashboard/settings-view/settings-section';
 import { useMemo } from 'react';
 
 import {
@@ -57,62 +58,67 @@ export function TrainingZoneTable({ zones }: TrainingZoneTableProps) {
       {displayData.map((config, configIdx) => {
         return (
           <div key={configIdx} className="space-y-2">
-            <h3 className="text-sm font-semibold text-muted-foreground">
+            <h3 className="px-1 text-sm font-medium text-muted-foreground">
               {describeSports(config.sports)}
             </h3>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{m.name()}</TableHead>
-                  <TableHead>{m.description()}</TableHead>
-                  <TableHead className="text-right">{m.min()}</TableHead>
-                  <TableHead className="text-right">{m.max()}</TableHead>
-                  <TableHead>{m.color()}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {config.zones.map(
-                  (
-                    item: {
-                      zone: TrainingZone & { values: TrainingZoneValue[] };
-                      value: TrainingZoneValue;
+            <SettingsPanel className="divide-y-0 px-2">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{m.name()}</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      {m.description()}
+                    </TableHead>
+                    <TableHead className="text-right">{m.min()}</TableHead>
+                    <TableHead className="text-right">{m.max()}</TableHead>
+                    <TableHead>{m.color()}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {config.zones.map(
+                    (
+                      item: {
+                        zone: TrainingZone & { values: TrainingZoneValue[] };
+                        value: TrainingZoneValue;
+                      },
+                      idx: number,
+                    ) => {
+                      // Check if this is the last zone in the entire zones array
+                      const isLastZone =
+                        config.zones.length === zones.length &&
+                        idx === config.zones.length - 1;
+                      return (
+                        <TableRow key={idx}>
+                          <TableCell>{item.zone.name}</TableCell>
+                          <TableCell className="hidden text-muted-foreground text-sm sm:table-cell">
+                            {item.zone.description}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {item.value.min}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {item.value.max}
+                            {isLastZone &&
+                              item.zone.type !==
+                                TRAINING_ZONE_TYPE.HEARTRATE && (
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  +
+                                </span>
+                              )}
+                          </TableCell>
+                          <TableCell>
+                            <div
+                              className="w-6 h-6 rounded-full border"
+                              style={{ backgroundColor: item.zone.color }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
                     },
-                    idx: number,
-                  ) => {
-                    // Check if this is the last zone in the entire zones array
-                    const isLastZone =
-                      config.zones.length === zones.length &&
-                      idx === config.zones.length - 1;
-                    return (
-                      <TableRow key={idx}>
-                        <TableCell>{item.zone.name}</TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {item.zone.description}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {item.value.min}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {item.value.max}
-                          {isLastZone &&
-                            item.zone.type !== TRAINING_ZONE_TYPE.HEARTRATE && (
-                              <span className="text-xs text-muted-foreground ml-1">
-                                +
-                              </span>
-                            )}
-                        </TableCell>
-                        <TableCell>
-                          <div
-                            className="w-6 h-6 rounded-full border"
-                            style={{ backgroundColor: item.zone.color }}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  },
-                )}
-              </TableBody>
-            </Table>
+                  )}
+                </TableBody>
+              </Table>
+            </SettingsPanel>
           </div>
         );
       })}

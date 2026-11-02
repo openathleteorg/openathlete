@@ -40,6 +40,11 @@ export const calendarDisplaySchema = z.object({
     }),
   /** Sleep, HRV, resting HR and daily form under each day, when recorded */
   wellness: z.boolean().catch(true),
+  view: z.enum(['month', 'week', 'season']).catch('month'),
+  /** Months the season view spans */
+  seasonMonths: z.union([z.literal(6), z.literal(12)]).catch(6),
+  /** What event colors mean; none reads as the event type */
+  coloredBy: z.enum(['TYPE', 'SPORT', 'RPE']).nullable().catch(null),
 });
 
 export type CalendarDisplay = z.infer<typeof calendarDisplaySchema>;

@@ -263,6 +263,127 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     expect(client.activities).not.toHaveBeenCalled();
     expect((await connection()).leaseId).toBe('other-worker');
   });
+  it('bounds queued work without a worker, unlocks it, and invalidates a lost Redis job', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    await service.enqueue(DELETED_USER_ID, range);
+    const job = [...jobs.values()][0].data;
+    const c = await connection();
+    expect((await service.status(DELETED_USER_ID)).activeUntil).not.toBeNull();
+    await expect(
+      service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      }),
+    ).rejects.toThrow('sync_in_progress');
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { queuedAt: new Date(Date.now() - 6 * 60000) },
+    });
+    jobs.clear();
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'failed',
+      error: 'unavailable',
+      activeUntil: null,
+    });
+    await expect(service.run(job)).resolves.toBeUndefined();
+    expect(client.activities).not.toHaveBeenCalled();
+    await service.enqueue(DELETED_USER_ID, range);
+    const replacement = [...jobs.values()][0].data;
+    expect(replacement.version).toBeGreaterThan(job.version);
+    await expect(service.run(replacement)).resolves.toMatchObject({
+      imported: 1,
+    });
+  });
+  it.each(['queued', 'running'] as const)(
+    'recovers stale %s directly through PATCH without requiring a status visit',
+    async (status) => {
+      await service.connect(DELETED_USER_ID, dto);
+      const c = await connection();
+      await prisma.garminPersonalConnection.update({
+        where: { id: c.id },
+        data: {
+          status,
+          queuedAt: new Date(Date.now() - 6 * 60000),
+          leaseId: status === 'running' ? 'crashed-worker' : null,
+          leaseUntil: status === 'running' ? new Date(Date.now() - 1000) : null,
+        },
+      });
+      const response = await send('', 'PATCH', {
+        activities: false,
+        automatic: false,
+      });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        status: 'idle',
+        activeUntil: null,
+        preferences: { activities: false },
+      });
+      expect((await connection()).version).toBeGreaterThan(c.version);
+      expect((await connection()).encryptedCredentials).toBe(
+        c.encryptedCredentials,
+      );
+    },
+  );
+  it('preserves a live heartbeat when status and preferences are read', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    const c = await connection();
+    const leaseUntil = new Date(Date.now() + 60000);
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { status: 'running', leaseId: 'live-worker', leaseUntil },
+    });
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'running',
+      activeUntil: leaseUntil.toISOString(),
+    });
+    await expect(
+      service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      }),
+    ).rejects.toThrow('sync_in_progress');
+    expect((await connection()).version).toBe(c.version);
+  });
+  it('prevents an expired worker from writing after recovery and a preference change', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    let release: (value: Buffer) => void = () => {};
+    let started: () => void = () => {};
+    const ready = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    client.download.mockImplementationOnce(() => {
+      started();
+      return new Promise<Buffer>((resolve) => {
+        release = resolve;
+      });
+    });
+    const running = run();
+    await ready;
+    const c = await connection();
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { leaseUntil: new Date(Date.now() - 1000) },
+    });
+    try {
+      expect(await service.status(DELETED_USER_ID)).toMatchObject({
+        status: 'failed',
+        activeUntil: null,
+      });
+      await service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      });
+    } finally {
+      release(activityZip());
+    }
+    await expect(running).rejects.toMatchObject({ code: 'key_required' });
+    expect(await prisma.garminPersonalItem.count()).toBe(0);
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'idle',
+      error: null,
+      preferences: { activities: false },
+    });
+  });
   it('requires a replacement key after decryption failure and refuses another queued pull', async () => {
     await service.connect(DELETED_USER_ID, dto);
     const c = await connection();

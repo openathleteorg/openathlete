@@ -91,3 +91,25 @@ export function criticalFit(
     efforts: usable,
   };
 }
+
+/**
+ * Critical swim speed from a 200 m and a 400 m swum flat out, in m/s. Needs a
+ * real test: the distance-time line says nothing on easy swims.
+ */
+export function criticalSwimSpeed(
+  seconds200: number,
+  seconds400: number,
+): number | null {
+  if (seconds200 <= 0 || seconds400 <= seconds200) return null;
+  return 200 / (seconds400 - seconds200);
+}
+
+/** "3:05", or a number of seconds */
+export function parseSwimTime(text: string): number | null {
+  const match = /^\s*(?:(\d+):)?(\d{1,3})\s*$/.exec(text);
+  if (!match) return null;
+  const minutes = Number(match[1] ?? 0);
+  const seconds = Number(match[2]);
+  if (match[1] !== undefined && seconds >= 60) return null;
+  return minutes * 60 + seconds;
+}

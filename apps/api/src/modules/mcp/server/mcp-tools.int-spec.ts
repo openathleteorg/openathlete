@@ -20,6 +20,7 @@ import { EventSeriesService } from 'src/modules/core/services/event-series.servi
 import { EventService } from 'src/modules/core/services/event.service';
 import { MetricService } from 'src/modules/core/services/metric.service';
 import { RecordService } from 'src/modules/core/services/record.service';
+import { StatisticsService } from 'src/modules/core/services/statistics.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { TrainingZoneService } from 'src/modules/core/services/training-zone.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -80,6 +81,11 @@ describe('MCP tools (PostgreSQL)', () => {
       new TrainingLoadService(prisma, abilities),
       new TrainingZoneService(prisma, abilities),
       new RecordService(prisma, abilities),
+      new StatisticsService(
+        prisma,
+        abilities,
+        new TrainingLoadService(prisma, abilities),
+      ),
     );
   });
 
@@ -283,6 +289,16 @@ describe('MCP tools (PostgreSQL)', () => {
         { kind: 'recovery', durationSeconds: 120 },
       ],
     });
+  });
+
+  it('reads capacities with the figures of the statistics page', async () => {
+    const { call } = await connect(athlete);
+    const result = data<{
+      verticalSpeedBySlope: unknown[];
+      heartRateByOutput: { unit: string };
+    }>(await call('get_capacities', { sport: 'RUNNING' }));
+    expect(result.verticalSpeedBySlope).toEqual([]);
+    expect(result.heartRateByOutput.unit).toBe('km/h');
   });
 
   it('saves nothing when one session is wrong, and says what is', async () => {

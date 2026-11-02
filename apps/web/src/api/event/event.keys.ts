@@ -5,6 +5,7 @@ export const eventKeys = {
   getMyEvents: 'EventAPI.getMyEvents',
   getUpcomingCompetitions: 'EventAPI.getUpcomingCompetitions',
   getSeasonEvents: 'EventAPI.getSeasonEvents',
+  searchActivities: 'EventAPI.searchActivities',
   getEvent: 'EventAPI.getEvent',
   getEventStream: 'EventAPI.getEventStream',
   getEventWeather: 'EventAPI.getEventWeather',

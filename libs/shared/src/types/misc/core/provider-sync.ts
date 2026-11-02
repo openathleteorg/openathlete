@@ -53,11 +53,13 @@ const providerSpecificCapabilities: Partial<
     importMetrics: false,
     supportsFullImport: false,
   },
+  // Polar's API is read-only, and only serves what reached Flow after the
+  // user connected, for 30 days: no export and no history to request
   POLAR: {
     importActivities: true,
     exportWorkouts: false,
     importMetrics: true,
-    supportsFullImport: true,
+    supportsFullImport: false,
   },
 };
 

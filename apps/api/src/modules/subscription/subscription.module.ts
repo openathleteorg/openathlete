@@ -1,7 +1,6 @@
 import { Module, forwardRef } from '@nestjs/common';
 
 import { AuthModule } from '../auth/auth.module';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { AppleStoreService } from './apple/apple-store.service';
 import { AppleNotificationsController } from './controllers/apple-notifications.controller';
 import { StripeWebhookController } from './controllers/stripe-webhook.controller';
@@ -19,7 +18,6 @@ import { SubscriptionService } from './services/subscription.service';
     AppleNotificationsController,
   ],
   providers: [
-    PrismaService,
     StripeService,
     AppleStoreService,
     SubscriptionService,

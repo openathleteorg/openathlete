@@ -1,7 +1,7 @@
 import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
-import { MobileAccountControls } from '@/components/mobile/mobile-account-controls';
+import { FinderButton } from '@/components/finder/finder-button';
 import { CollapsedAthleteMenu } from '@/components/sidebar/collapsed-athlete-menu';
 import { NavMain } from '@/components/sidebar/nav-main';
 import { NavUser } from '@/components/sidebar/nav-user';
@@ -155,7 +155,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   }, [athletes, space]);
 
   return (
-    <Sidebar collapsible="icon" {...props}>
+    <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <div className="flex items-center justify-between gap-2 px-0.5 py-1 w-full">
           <Link
@@ -184,6 +184,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         <SpaceSwitcher />
       </SidebarHeader>
       <SidebarContent>
+        <FinderButton />
         <NavMain
           items={
             showAthleteSelector
@@ -199,7 +200,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <SupportReminder />
-        {isMobile ? <MobileAccountControls /> : <NavUser />}
+        <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

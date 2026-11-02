@@ -16,23 +16,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { SkeletonTableRow } from '@/components/ui/skeleton';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAthleteLimit } from '@/hooks/use-feature-access';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
+import { MoreHorizontal } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { SettingsSection } from './settings-section';
+import { SentInvitationsSection } from './sent-invitations-section';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from './settings-section';
 
 export function AthletesTab() {
   const { data: athletes, isPending: isLoadingAthletes } =
@@ -68,15 +73,8 @@ export function AthletesTab() {
       toast.error(m.failed_to_cancel_invitation());
     },
   });
-  const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Dialog
         open={alertsAthleteId !== null}
         onOpenChange={(open) => !open && setAlertsAthleteId(null)}
@@ -94,8 +92,6 @@ export function AthletesTab() {
         </DialogContent>
       </Dialog>
       <SettingsSection
-        title={m.athletes()}
-        description={m.athletes_tab_description()}
         action={
           <Button
             size="sm"
@@ -111,120 +107,84 @@ export function AthletesTab() {
           </Button>
         }
       >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{m.name()}</TableHead>
-              <TableHead>{m.email()}</TableHead>
-              <TableHead className="text-right">{m.actions()}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoadingAthletes
-              ? Array.from({ length: 3 }).map((_, i) => (
-                  <SkeletonTableRow key={i} colCount={3} />
-                ))
-              : athletes?.map((athlete) => (
-                  <TableRow key={athlete.athleteId}>
-                    <TableCell>
-                      {athlete.user?.firstName} {athlete.user?.lastName}
-                    </TableCell>
-                    <TableCell>{athlete.user?.email}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setAlertsAthleteId(athlete.athleteId)}
-                        >
-                          {m.activity_alert_settings_title()}
-                        </Button>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={() =>
-                            nav(
-                              getPath(['dashboard', 'calendar']) +
-                                `/${athlete.athleteId}`,
-                            )
-                          }
-                        >
-                          {m.view_calendar()}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setDeleteAthleteDialog(athlete.athleteId);
-                          }}
-                        >
-                          {m.delete_()}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </SettingsSection>
-      {sentInvitationsLoading ? (
-        <SettingsSection
-          title={m.sent_invitations_to_athletes()}
-          description={m.sent_invitations_to_athletes_description()}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.email()}</TableHead>
-                <TableHead>{m.invitation_sent_at()}</TableHead>
-                <TableHead className="text-right">{m.actions()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Array.from({ length: 2 }).map((_, i) => (
-                <SkeletonTableRow key={i} colCount={3} />
-              ))}
-            </TableBody>
-          </Table>
-        </SettingsSection>
-      ) : sentInvitations && sentInvitations.length > 0 ? (
-        <SettingsSection
-          title={m.sent_invitations_to_athletes()}
-          description={m.sent_invitations_to_athletes_description()}
-        >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.email()}</TableHead>
-                <TableHead>{m.invitation_sent_at()}</TableHead>
-                <TableHead className="text-right">{m.actions()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sentInvitations.map((invitation) => (
-                <TableRow key={invitation.athleteInvitationId}>
-                  <TableCell>{invitation.email}</TableCell>
-                  <TableCell>{formatDate(invitation.createdAt)}</TableCell>
-                  <TableCell className="text-right">
+        {isLoadingAthletes ? (
+          <SettingsRowsSkeleton count={3} />
+        ) : !athletes?.length ? (
+          <SettingsEmpty>{m.no_athletes_yet()}</SettingsEmpty>
+        ) : (
+          <SettingsPanel>
+            {athletes.map((athlete) => (
+              <SettingsRow
+                key={athlete.athleteId}
+                title={`${athlete.user?.firstName} ${athlete.user?.lastName}`}
+                description={athlete.user?.email}
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:inline-flex"
+                  onClick={() =>
+                    nav(
+                      getPath(['dashboard', 'calendar']) +
+                        `/${athlete.athleteId}`,
+                    )
+                  }
+                >
+                  {m.view_calendar()}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="sm"
+                      variant="ghost"
+                      size="icon"
+                      className="max-md:w-11"
+                      aria-label={`${m.actions()} ${athlete.user?.firstName} ${athlete.user?.lastName}`}
+                    >
+                      <MoreHorizontal className="size-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      className="sm:hidden"
                       onClick={() =>
-                        cancelInvitationMutation.mutate(
-                          invitation.athleteInvitationId,
+                        nav(
+                          getPath(['dashboard', 'calendar']) +
+                            `/${athlete.athleteId}`,
                         )
                       }
-                      disabled={cancelInvitationMutation.isPending}
                     >
-                      {m.cancel_invitation()}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </SettingsSection>
-      ) : null}
+                      {m.view_calendar()}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setAlertsAthleteId(athlete.athleteId)}
+                    >
+                      {m.activity_alert_settings_title()}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => setDeleteAthleteDialog(athlete.athleteId)}
+                    >
+                      {m.delete_()}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </SettingsRow>
+            ))}
+          </SettingsPanel>
+        )}
+      </SettingsSection>
+      <SentInvitationsSection
+        title={m.sent_invitations_to_athletes()}
+        description={m.sent_invitations_to_athletes_description()}
+        invitations={sentInvitations?.map((invitation) => ({
+          id: invitation.athleteInvitationId,
+          email: invitation.email,
+          createdAt: invitation.createdAt,
+        }))}
+        isLoading={sentInvitationsLoading}
+        isCancelling={cancelInvitationMutation.isPending}
+        onCancel={(id) => cancelInvitationMutation.mutate(id)}
+      />
 
       <InviteAthleteDialog
         open={inviteAthleteDialog}

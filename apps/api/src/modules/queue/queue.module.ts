@@ -8,16 +8,17 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 import { AiModule } from '../ai/ai.module';
 import { CalendarModule } from '../calendar/calendar.module';
 import { CoreModule } from '../core';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
 import { GarminNotificationProcessor } from './processors/garmin-notification.processor';
+import { PolarNotificationProcessor } from './processors/polar-notification.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
 import { SuuntoNotificationProcessor } from './processors/suunto-notification.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { QueueService } from './queue.service';
 import { GapBackfillService } from './services/gap-backfill.service';
+import { IntensityBackfillService } from './services/intensity-backfill.service';
 import { RecordsBackfillService } from './services/records-backfill.service';
 import { TrainingLoadEstimationService } from './services/training-load-estimation.service';
 
@@ -300,6 +301,23 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'polar-notification',
+      defaultJobOptions: {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 30_000,
+        },
+        removeOnComplete: {
+          age: 24 * 3600,
+          count: 5000,
+        },
+        removeOnFail: {
+          age: 7 * 24 * 3600,
+        },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'suunto-notification',
       defaultJobOptions: {
         attempts: 5,
@@ -335,7 +353,6 @@ function parseRedisUrl(redisUrl: string): {
     }),
   ],
   providers: [
-    PrismaService,
     QueueService,
     TrainingLoadEstimationService,
     // Note: We use process.env here because ConfigService is not available
@@ -346,6 +363,7 @@ function parseRedisUrl(redisUrl: string): {
           ProviderFullImportProcessor,
           GarminNotificationProcessor,
           SuuntoNotificationProcessor,
+          PolarNotificationProcessor,
         ]
       : []),
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
@@ -353,6 +371,7 @@ function parseRedisUrl(redisUrl: string): {
           ActivityProcessingProcessor,
           RecordsBackfillService,
           GapBackfillService,
+          IntensityBackfillService,
         ]
       : []),
     ...(process.env.ENABLE_TRAINING_LOAD_ESTIMATION === 'true'

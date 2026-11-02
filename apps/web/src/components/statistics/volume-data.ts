@@ -60,6 +60,14 @@ export function volumeChartData(
   return { rows, series };
 }
 
+/** All sports of each bucket, in the display units of the chart */
+export function chartTotals(
+  buckets: StatisticsVolumeDto['buckets'],
+  metric: VolumeMetric,
+): number[] {
+  return bucketTotals(buckets, metric).map((total) => total * SCALE[metric]);
+}
+
 /** A figure per bucket, for a sparkline */
 export function bucketTotals(
   buckets: StatisticsVolumeDto['buckets'],

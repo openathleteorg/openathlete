@@ -112,6 +112,14 @@ export class ProviderExportService {
       });
     }
 
+    // A session described in text only has nothing a watch could follow
+    if (normalized.steps.length === 0) {
+      this.logger.debug(
+        `Skip export (no steps) athlete=${athleteId} provider=${provider} workout=${workoutId} date=${date}`,
+      );
+      return { skipped: true };
+    }
+
     const key = {
       athleteId_provider_workoutId_plannedDate: {
         athleteId: athleteId,

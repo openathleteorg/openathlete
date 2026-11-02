@@ -1,7 +1,10 @@
 import { Job } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
+import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { GarminProviderService } from '../../providers-sync/providers';
 import { GarminNotificationJobData } from '../queue.service';
@@ -20,6 +23,7 @@ export class GarminNotificationProcessor extends WorkerHost {
   constructor(
     @Inject(forwardRef(() => GarminProviderService))
     private readonly garminProviderService: GarminProviderService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
   }
@@ -33,6 +37,7 @@ export class GarminNotificationProcessor extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<GarminNotificationJobData>, error: Error) {
+    reportJobFailure(this.analytics, job, error);
     const final = job.attemptsMade >= (job.opts.attempts ?? 1);
     const message = `Garmin ${job.data.summaryType} notification for user ${job.data.userId} failed (attempt ${job.attemptsMade}): ${error.message}`;
     if (final) {

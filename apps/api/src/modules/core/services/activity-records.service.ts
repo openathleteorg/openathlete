@@ -6,12 +6,13 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { uncompressActivityStream } from '../helpers/activity-stream';
 import { computeRecords } from '../helpers/record';
+import { isPlausibleRecord } from '../helpers/record-plausibility';
 
 /**
  * Bump when computeRecords changes: activities computed with an older
  * version are recomputed in the background (RecordsBackfillService).
  */
-export const RECORDS_VERSION = 2;
+export const RECORDS_VERSION = 3;
 
 @Injectable()
 export class ActivityRecordsService {
@@ -23,6 +24,7 @@ export class ActivityRecordsService {
       where: { eventActivityId },
       select: {
         stream: true,
+        sport: true,
         event: { select: { athleteId: true, startDate: true } },
       },
     });
@@ -34,7 +36,7 @@ export class ActivityRecordsService {
             uncompressActivityStream(
               activity.stream as CompressedActivityStream,
             ),
-          )
+          ).filter((record) => isPlausibleRecord(record, activity.sport))
         : [];
 
     await this.prisma.$transaction(async (tx) => {

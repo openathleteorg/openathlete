@@ -10,13 +10,16 @@ import { bucketLabel, bucketTick } from './stat-chart-format';
 
 /** Fits the values: a flat line stays in the middle, not on the axis */
 function paddedDomain([min, max]: readonly [number, number]): [number, number] {
-  const padding = (max - min) * 0.15 || max * 0.1 || 1;
+  // A minimum span: near equal values would all print the same tick
+  const padding = Math.max((max - min) * 0.15, max * 0.1) || 1;
   return [Math.max(0, min - padding), max + padding];
 }
 
 export interface StatPoint {
   period: string;
   value: number | null;
+  /** The same bucket of the compared period */
+  compared?: number | null;
   partial: boolean;
 }
 
@@ -24,6 +27,8 @@ interface P {
   data: StatPoint[];
   granularity: StatisticsGranularity;
   label: string;
+  /** Name of the dashed line, when there is one */
+  comparedLabel?: string;
   formatValue: (value: number) => string;
   /** With its unit, for the tooltip */
   formatTooltip?: (value: number) => string;
@@ -39,6 +44,7 @@ export function StatChart({
   data,
   granularity,
   label,
+  comparedLabel,
   formatValue,
   formatTooltip = formatValue,
   color = 'var(--chart-1)',
@@ -80,10 +86,10 @@ export function StatChart({
                   ? `${text} (${m.statistics_partial_period()})`
                   : text;
               }}
-              formatter={(value) => (
+              formatter={(value, name) => (
                 <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
-                  {label}
-                  <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                  {name === 'compared' ? comparedLabel : label}
+                  <span className="ml-auto font-medium tabular-nums text-foreground">
                     {formatTooltip(Number(value))}
                   </span>
                 </div>
@@ -91,6 +97,18 @@ export function StatChart({
             />
           }
         />
+        {comparedLabel && (
+          <Line
+            type="linear"
+            dataKey="compared"
+            stroke="var(--muted-foreground)"
+            strokeWidth={1.5}
+            strokeDasharray="4 4"
+            connectNulls
+            dot={false}
+            isAnimationActive={false}
+          />
+        )}
         <Line
           type="linear"
           dataKey="value"

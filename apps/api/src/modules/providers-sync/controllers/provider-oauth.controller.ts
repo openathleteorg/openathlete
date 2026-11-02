@@ -404,6 +404,10 @@ export class ProviderOAuthController {
       }
     }
 
+    if (providerEnum === ConnectorProvider.POLAR) {
+      await this.polarProviderService.disconnect(account);
+    }
+
     // Update status to revoked instead of deleting
     await this.prisma.providerAccount.update({
       where: {
@@ -634,6 +638,14 @@ export class ProviderOAuthController {
       data,
     });
 
+    // Polar sends webhooks for new data only: fetch the days it already has
+    if (
+      providerEnum === ConnectorProvider.POLAR &&
+      body.importMetricsEnabled === true
+    ) {
+      await this.queueService.addPolarMetricsJob(account.providerAccountId, 0);
+    }
+
     return { success: true };
   }
 
@@ -646,7 +658,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Trigger full historical activity import',
     description:
-      'Queues a full historical import of all activities from a connected provider and returns immediately: the worker lists the history and imports activities progressively, and fullImportCompletedAt is set once every activity is queued. Only providers that support full import (Strava, Garmin, Polar, Suunto) can use this endpoint. Activity import must be enabled for the provider. If a full import is already in progress (requested less than 24 hours ago), the request is rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
+      'Queues a full historical import of all activities from a connected provider and returns immediately: the worker lists the history and imports activities progressively, and fullImportCompletedAt is set once every activity is queued. Only providers that support full import (Strava, Garmin, Suunto) can use this endpoint. Activity import must be enabled for the provider. If a full import is already in progress (requested less than 24 hours ago), the request is rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
   })
   @ApiParam({
     name: 'provider',
@@ -913,11 +925,14 @@ export class ProviderOAuthController {
    * Handles all Polar webhook events (EXERCISE, SLEEP, etc.)
    */
   @SkipThrottle()
+  // Polar counts any other status as a failure, 201 included: it then refuses
+  // to create the webhook, and turns it off after 7 days
+  @HttpCode(HttpStatus.OK)
   @Post('polar/webhook')
   @ApiOperation({
     summary: 'Polar webhook event handler',
     description:
-      "Receives and processes webhook events from Polar AccessLink. Handles multiple event types: EXERCISE (new activity available), SLEEP (sleep data available), ACTIVITY_SUMMARY (activity summary data), CONTINUOUS_HEART_RATE (heart rate data). The webhook signature is verified using the polar-webhook-signature header. Events are processed based on the account's import preferences (activities, metrics). Only events matching enabled import types are processed.",
+      "Receives and processes webhook events from Polar AccessLink. Handles multiple event types: EXERCISE (new activity available), SLEEP (sleep data available), ACTIVITY_SUMMARY (activity summary data), PHYSICAL_INFORMATION (weight, heart rate settings). The webhook signature is verified using the polar-webhook-signature header. Events are processed based on the account's import preferences (activities, metrics). Only events matching enabled import types are processed.",
   })
   @ApiBody({
     description: 'Polar webhook payload',
@@ -930,12 +945,13 @@ export class ProviderOAuthController {
             'EXERCISE',
             'SLEEP',
             'ACTIVITY_SUMMARY',
-            'CONTINUOUS_HEART_RATE',
+            'PHYSICAL_INFORMATION',
+            'PING',
           ],
           description: 'Type of Polar webhook event',
           example: 'EXERCISE',
         },
-        userId: {
+        user_id: {
           type: 'number',
           description: 'Polar user ID',
           example: 63661436,
@@ -960,7 +976,7 @@ export class ProviderOAuthController {
           example: 'https://www.polaraccesslink.com/v3/exercises/123456789',
         },
       },
-      required: ['event', 'userId'],
+      required: ['event'],
     },
   })
   @ApiResponse({
@@ -980,46 +996,15 @@ export class ProviderOAuthController {
   })
   async polarWebhook(
     @Body() body: PolarWebhookPayload,
-    @Req() request: { headers: Record<string, string | string[]> },
+    @Req() request: RawBodyRequest<Request>,
+    @Headers('polar-webhook-signature') signature?: string,
   ) {
-    this.logger.log(
-      `Received Polar webhook request: event=${body.event}, userId=${body.user_id}`,
+    await this.polarProviderService.handleWebhook(
+      body,
+      request.rawBody,
+      signature,
     );
-
-    // Extract signature from headers (can be string or string[])
-    const signatureHeader = request.headers['polar-webhook-signature'];
-    const signature =
-      typeof signatureHeader === 'string'
-        ? signatureHeader
-        : Array.isArray(signatureHeader)
-          ? signatureHeader[0]
-          : undefined;
-
-    const eventHeader = request.headers['polar-webhook-event'];
-    const event =
-      typeof eventHeader === 'string'
-        ? eventHeader
-        : Array.isArray(eventHeader)
-          ? eventHeader[0]
-          : undefined;
-
-    this.logger.debug(
-      `Polar webhook headers - Event: ${event}, Signature: ${signature ? 'present' : 'missing'}`,
-    );
-
-    try {
-      await this.polarProviderService.handleWebhook(body, signature);
-      this.logger.log(
-        `Polar webhook processed successfully: event=${body.event}`,
-      );
-      return { success: true };
-    } catch (error) {
-      this.logger.error(
-        `Polar webhook processing failed: ${error instanceof Error ? error.message : String(error)}`,
-        error instanceof Error ? error.stack : undefined,
-      );
-      throw error;
-    }
+    return { success: true };
   }
 
   /**

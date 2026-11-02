@@ -38,6 +38,7 @@ import {
   DuplicateEventDto,
   DuplicateWorkoutDto,
   EVENT_TYPE,
+  EventSearchQuery,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
   SeasonEvent,
@@ -47,6 +48,7 @@ import {
   createEventDtoSchema,
   duplicateEventDtoSchema,
   duplicateWorkoutSchema,
+  eventSearchQuerySchema,
   reorderWorkoutStepsSchema,
   repeatEventDtoSchema,
   shiftEventsDtoSchema,
@@ -386,6 +388,29 @@ export class EventController {
       coach === 'true',
       athleteId ? Number(athleteId) : undefined,
     );
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('search')
+  @ApiOperation({
+    summary: 'Search activities by name',
+    description:
+      'Finds up to 20 activities whose name contains the text, newest first, among those the user can read: their own and those of the athletes they coach.',
+  })
+  @ApiQuery({ name: 'q', type: String, example: 'trail', required: true })
+  @ApiResponse({ status: 200, description: 'Matching activities' })
+  @ApiResponse({ status: 400, description: 'Text shorter than 2 characters' })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  searchActivities(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(eventSearchQuerySchema))
+    query: EventSearchQuery,
+  ) {
+    return this.eventService.searchActivities(user, query.q);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

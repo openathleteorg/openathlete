@@ -18,7 +18,7 @@ import {
   garminPersonalSyncSchema,
 } from '@openathlete/shared';
 
-import { SettingsSection } from './settings-section';
+import { SettingsPanel, SettingsSection } from './settings-section';
 
 function statusLabel(status: GarminPersonalStatus['status']) {
   switch (status) {
@@ -140,150 +140,151 @@ function PersonalConnection({ userId }: { userId: number }) {
     <SettingsSection
       title={m.garmin_personal_title()}
       description={m.garmin_personal_description()}
-      contentClassName="space-y-4 pt-4"
     >
-      <a
-        className="text-sm underline"
-        href="https://developer.garmin.com/gc-developer-program/personal/personal-api/"
-        target="_blank"
-        rel="noreferrer"
-      >
-        {m.garmin_personal_instructions()}
-      </a>
-      {status.isPending ? (
-        <p>{m.garmin_personal_loading()}</p>
-      ) : status.isError ? (
-        <p role="alert">{m.garmin_personal_request_failed()}</p>
-      ) : (
-        <>
-          {value?.connected && value.status !== 'key_required' && (
-            <p>{m.garmin_personal_key_accepted()}</p>
-          )}
-          <p role="status">{statusLabel(value?.status ?? 'disconnected')}</p>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="garmin-personal-activities"
-              disabled={busy || running}
-              checked={selected.activities}
-              onCheckedChange={(v) => setPreference('activities', v === true)}
-            />
-            <Label htmlFor="garmin-personal-activities">
-              {m.garmin_personal_consent()}
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="garmin-personal-automatic"
-              disabled={busy || running}
-              checked={selected.automatic}
-              onCheckedChange={(v) => setPreference('automatic', v === true)}
-            />
-            <Label htmlFor="garmin-personal-automatic">
-              {m.garmin_personal_automatic()}
-            </Label>
-          </div>
-          {running && (
-            <p className="text-sm text-muted-foreground">
-              {m.garmin_personal_preferences_locked()}
-            </p>
-          )}
-          <form
-            className="space-y-2"
-            onSubmit={(e) => {
-              e.preventDefault();
-              connect.mutate({ apiKey, ...selected });
-            }}
-          >
-            <Label htmlFor="garmin-personal-key">
-              {m.garmin_personal_key()}
-            </Label>
-            <Input
-              id="garmin-personal-key"
-              type="password"
-              autoComplete="off"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              maxLength={4096}
-              disabled={busy}
-            />
-            <Button type="submit" disabled={busy || apiKey.trim().length < 8}>
-              {m.garmin_personal_save()}
-            </Button>
-          </form>
-          {value?.connected && (
-            <>
-              <div className="flex flex-wrap gap-3">
-                <div>
-                  <Label htmlFor="garmin-personal-start">
-                    {m.garmin_personal_start()}
-                  </Label>
-                  <Input
-                    id="garmin-personal-start"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="garmin-personal-end">
-                    {m.garmin_personal_end()}
-                  </Label>
-                  <Input
-                    id="garmin-personal-end"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-              </div>
+      <SettingsPanel padded className="space-y-4 divide-y-0">
+        <a
+          className="text-sm underline"
+          href="https://developer.garmin.com/gc-developer-program/personal/personal-api/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          {m.garmin_personal_instructions()}
+        </a>
+        {status.isPending ? (
+          <p>{m.garmin_personal_loading()}</p>
+        ) : status.isError ? (
+          <p role="alert">{m.garmin_personal_request_failed()}</p>
+        ) : (
+          <>
+            {value?.connected && value.status !== 'key_required' && (
+              <p>{m.garmin_personal_key_accepted()}</p>
+            )}
+            <p role="status">{statusLabel(value?.status ?? 'disconnected')}</p>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="garmin-personal-activities"
+                disabled={busy || running}
+                checked={selected.activities}
+                onCheckedChange={(v) => setPreference('activities', v === true)}
+              />
+              <Label htmlFor="garmin-personal-activities">
+                {m.garmin_personal_consent()}
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="garmin-personal-automatic"
+                disabled={busy || running}
+                checked={selected.automatic}
+                onCheckedChange={(v) => setPreference('automatic', v === true)}
+              />
+              <Label htmlFor="garmin-personal-automatic">
+                {m.garmin_personal_automatic()}
+              </Label>
+            </div>
+            {running && (
               <p className="text-sm text-muted-foreground">
-                {m.garmin_personal_range_hint()}
+                {m.garmin_personal_preferences_locked()}
               </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  onClick={pull}
-                  disabled={busy || running || !selected.activities}
-                >
-                  {m.garmin_personal_sync()}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => disconnect.mutate()}
-                  disabled={busy}
-                >
-                  {m.garmin_personal_disconnect()}
-                </Button>
-              </div>
-              {value.error && (
-                <p role="alert">
-                  {value.error === 'rate_limited'
-                    ? m.garmin_personal_rate_limited()
-                    : value.status === 'key_required'
-                      ? m.garmin_personal_key_required()
-                      : m.garmin_personal_import_failed()}
+            )}
+            <form
+              className="space-y-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                connect.mutate({ apiKey, ...selected });
+              }}
+            >
+              <Label htmlFor="garmin-personal-key">
+                {m.garmin_personal_key()}
+              </Label>
+              <Input
+                id="garmin-personal-key"
+                type="password"
+                autoComplete="off"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                maxLength={4096}
+                disabled={busy}
+              />
+              <Button type="submit" disabled={busy || apiKey.trim().length < 8}>
+                {m.garmin_personal_save()}
+              </Button>
+            </form>
+            {value?.connected && (
+              <>
+                <div className="flex flex-wrap gap-3">
+                  <div>
+                    <Label htmlFor="garmin-personal-start">
+                      {m.garmin_personal_start()}
+                    </Label>
+                    <Input
+                      id="garmin-personal-start"
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="garmin-personal-end">
+                      {m.garmin_personal_end()}
+                    </Label>
+                    <Input
+                      id="garmin-personal-end"
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {m.garmin_personal_range_hint()}
                 </p>
-              )}
-              {value.result && (
-                <p>
-                  {m.garmin_personal_result({
-                    imported: String(value.result.imported),
-                    existing: String(value.result.matched),
-                    review: String(value.result.needsReview),
-                    failed: String(value.result.failed),
-                    pending: String(value.result.pending),
-                  })}
-                  {(value.result.skipped ?? 0) > 0
-                    ? ` ${m.garmin_personal_skipped({ count: String(value.result.skipped) })}`
-                    : ''}
-                  {value.result.truncated
-                    ? ` ${m.garmin_personal_truncated()}`
-                    : ''}
-                </p>
-              )}
-            </>
-          )}
-        </>
-      )}
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={pull}
+                    disabled={busy || running || !selected.activities}
+                  >
+                    {m.garmin_personal_sync()}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => disconnect.mutate()}
+                    disabled={busy}
+                  >
+                    {m.garmin_personal_disconnect()}
+                  </Button>
+                </div>
+                {value.error && (
+                  <p role="alert">
+                    {value.error === 'rate_limited'
+                      ? m.garmin_personal_rate_limited()
+                      : value.status === 'key_required'
+                        ? m.garmin_personal_key_required()
+                        : m.garmin_personal_import_failed()}
+                  </p>
+                )}
+                {value.result && (
+                  <p>
+                    {m.garmin_personal_result({
+                      imported: String(value.result.imported),
+                      existing: String(value.result.matched),
+                      review: String(value.result.needsReview),
+                      failed: String(value.result.failed),
+                      pending: String(value.result.pending),
+                    })}
+                    {(value.result.skipped ?? 0) > 0
+                      ? ` ${m.garmin_personal_skipped({ count: String(value.result.skipped) })}`
+                      : ''}
+                    {value.result.truncated
+                      ? ` ${m.garmin_personal_truncated()}`
+                      : ''}
+                  </p>
+                )}
+              </>
+            )}
+          </>
+        )}
+      </SettingsPanel>
     </SettingsSection>
   );
 }

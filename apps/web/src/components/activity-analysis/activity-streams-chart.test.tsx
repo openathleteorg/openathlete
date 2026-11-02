@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, useState } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,6 +11,19 @@ import { ActivityStreamsChart } from './activity-streams-chart';
 import { XAxisKind, xSeries } from './stream-range';
 
 vi.mock('@/hooks/use-training-zones', () => ({ useTrainingZones: () => [] }));
+const updateAccount = vi.hoisted(() => vi.fn());
+vi.mock('@/api/user', async () => {
+  const { useQuery } = await import('@tanstack/react-query');
+  return {
+    useGetMeQuery: () =>
+      useQuery({
+        queryKey: ['UserAPI.getMe'],
+        queryFn: () => ({}),
+        staleTime: Infinity,
+      }),
+    useUpdateAccountMutation: () => ({ mutate: updateAccount }),
+  };
+});
 // Every message renders as its key
 vi.mock('@/paraglide/messages', () => ({
   m: new Proxy({}, { get: (_target, key) => () => String(key) }),
@@ -35,17 +49,22 @@ const stream = {
   altitude: range(101, () => 50),
 };
 
+const queryClient = new QueryClient();
+queryClient.setQueryData(['UserAPI.getMe'], {});
+
 function Harness() {
   const [xAxis, setXAxis] = useState<XAxisKind>('distance');
   const series = xSeries(stream, xAxis)!;
   return (
-    <ActivityDetailsSelectionProvider
-      fullDomain={[series[0], series[series.length - 1]]}
-      xAxis={xAxis}
-      onXAxisChange={setXAxis}
-    >
-      <ActivityStreamsChart stream={stream} sport={SPORT_TYPE.RUNNING} />
-    </ActivityDetailsSelectionProvider>
+    <QueryClientProvider client={queryClient}>
+      <ActivityDetailsSelectionProvider
+        fullDomain={[series[0], series[series.length - 1]]}
+        xAxis={xAxis}
+        onXAxisChange={setXAxis}
+      >
+        <ActivityStreamsChart stream={stream} sport={SPORT_TYPE.RUNNING} />
+      </ActivityDetailsSelectionProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -121,16 +140,18 @@ describe('ActivityStreamsChart', () => {
     expect(container.querySelector('[data-selection-stats]')).toBeNull();
   });
 
-  it('hides a track and remembers it for the sport', () => {
+  it('hides a track and remembers it for the sport', async () => {
     act(() =>
       container
         .querySelector<HTMLButtonElement>('[data-track-toggle="altitude"]')!
         .click(),
     );
-    expect(container.querySelector('[data-track="altitude"]')).toBeNull();
-    expect(localStorage.getItem('activity-hidden-tracks:RUNNING')).toContain(
-      'altitude',
+    await vi.waitFor(() =>
+      expect(container.querySelector('[data-track="altitude"]')).toBeNull(),
     );
+    expect(updateAccount).toHaveBeenCalledWith({
+      hiddenActivityTracks: { RUNNING: ['temperature', 'altitude'] },
+    });
   });
 
   it('switches to time, dropping the selection', () => {

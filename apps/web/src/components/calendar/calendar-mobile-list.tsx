@@ -1,36 +1,39 @@
 import { Loader } from '@/components/ui/loader';
 import { m } from '@/paraglide/messages';
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { EVENT_TYPE } from '@openathlete/shared';
 
 import { CalendarMobileDay } from './calendar-mobile-day';
-import { CalendarMobileScrollToToday } from './calendar-mobile-scroll-to-today';
 import { CalendarMobileWeekHeader } from './calendar-mobile-week-header';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { calculateCyclesForDay } from './utils/cycle-day-layout';
 
 interface P {
   isLoading?: boolean;
+  selectedDay: Date;
+  onSelectedDayChange: (day: Date) => void;
+  onPlanDay?: (day: Date) => void;
 }
 
 type ListItem =
   | { type: 'week-header'; week: Date[]; weekIndex: number }
   | { type: 'day'; day: Date; dayIndex: number };
 
-export function CalendarMobileList({ isLoading }: P) {
-  const { displayedWeeks, events, cycles, displayedMonth } =
-    useCalendarContext();
+export function CalendarMobileList({
+  isLoading,
+  selectedDay,
+  onSelectedDayChange,
+  onPlanDay,
+}: P) {
+  const { displayedWeeks, events, cycles, allowCreate } = useCalendarContext();
 
   const parentRef = useRef<HTMLDivElement>(null);
-  const [currentScrollIndex, setCurrentScrollIndex] = useState<number | null>(
-    null,
-  );
-  const [isScrollingToToday, setIsScrollingToToday] = useState(false);
-  const hasScrolledToTodayRef = useRef(false);
-  const scrollAttemptsRef = useRef(0);
-  const wasLoadingRef = useRef(isLoading);
+  // Set while scrolling to a tapped day: the scroll must not change it back
+  const programmaticScroll = useRef(false);
+  const initialScrollDone = useRef(false);
+  const scrolledDay = useRef<string | null>(null);
 
   const items: ListItem[] = useMemo(() => {
     const result: ListItem[] = [];
@@ -53,27 +56,29 @@ export function CalendarMobileList({ isLoading }: P) {
     return result;
   }, [displayedWeeks]);
 
-  const todayIndex = useMemo(() => {
-    return items.findIndex(
-      (item) =>
-        item.type === 'day' &&
-        item.day.toDateString() === new Date().toDateString(),
-    );
-  }, [items]);
+  const dayIndex = useCallback(
+    (date: Date) =>
+      items.findIndex(
+        (item) =>
+          item.type === 'day' &&
+          item.day.toDateString() === date.toDateString(),
+      ),
+    [items],
+  );
 
   const virtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => parentRef.current,
     estimateSize: (index) => {
       if (index >= items.length || index < 0) {
-        return 120;
+        return 72;
       }
       const item = items[index];
       if (!item) {
-        return 120;
+        return 72;
       }
       if (item.type === 'week-header') {
-        return 272;
+        return 45;
       }
       const dayEvents = events.filter(
         (event) =>
@@ -85,172 +90,59 @@ export function CalendarMobileList({ isLoading }: P) {
           ),
       );
       const cycleSegments = calculateCyclesForDay(cycles, item.day);
-      const dayHeaderHeight = 76;
-      let cycleHeight = 0;
-      if (cycleSegments.length > 0) {
-        cycleHeight = 48;
-      }
-      let eventHeight = 0;
-      if (dayEvents.length > 0) {
-        // Only estimate the capped viewport; rendered rows are measured below.
-        eventHeight =
-          16 +
-          Math.min(320, dayEvents.length * 40 + (dayEvents.length - 1) * 8);
-      }
-      const emptyStateHeight =
-        dayEvents.length === 0 && cycleSegments.length === 0 ? 52 : 0;
-
-      const calculatedHeight =
-        dayHeaderHeight + cycleHeight + eventHeight + emptyStateHeight;
-
-      return Math.max(calculatedHeight, 56);
+      return (
+        21 + Math.max(44, dayEvents.length * 72 + cycleSegments.length * 24)
+      );
     },
     overscan: 10,
   });
 
+  // Opens on today, or on the day already selected
   useEffect(() => {
-    const updateScrollIndex = () => {
-      const virtualItems = virtualizer.getVirtualItems();
-      if (virtualItems.length > 0) {
-        const firstVisibleIndex = virtualItems[0]?.index ?? 0;
-        if (firstVisibleIndex >= 0 && firstVisibleIndex < items.length) {
-          setCurrentScrollIndex((prev) => {
-            if (prev !== firstVisibleIndex) {
-              return firstVisibleIndex;
-            }
-            return prev;
-          });
-        }
-      } else if (currentScrollIndex === null && items.length > 0) {
-        setCurrentScrollIndex(0);
-      }
+    if (isLoading || initialScrollDone.current) return;
+    const index = dayIndex(selectedDay);
+    if (index < 0) return;
+    initialScrollDone.current = true;
+    scrolledDay.current = selectedDay.toDateString();
+    virtualizer.scrollToIndex(index, { align: 'start' });
+    // Rows above are measured as they render: settle on the day once more
+    const frame = requestAnimationFrame(() =>
+      virtualizer.scrollToIndex(index, { align: 'start' }),
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [isLoading, dayIndex, selectedDay, virtualizer]);
+
+  // A day picked in the week strip
+  useEffect(() => {
+    if (!initialScrollDone.current) return;
+    if (scrolledDay.current === selectedDay.toDateString()) return;
+    const index = dayIndex(selectedDay);
+    if (index < 0) return;
+    scrolledDay.current = selectedDay.toDateString();
+    programmaticScroll.current = true;
+    virtualizer.scrollToIndex(index, { align: 'start', behavior: 'smooth' });
+    const timeout = window.setTimeout(() => {
+      programmaticScroll.current = false;
+    }, 600);
+    return () => window.clearTimeout(timeout);
+  }, [selectedDay, dayIndex, virtualizer]);
+
+  // The week strip follows the list
+  useEffect(() => {
+    const element = parentRef.current;
+    if (!element) return;
+    const onScroll = () => {
+      if (programmaticScroll.current) return;
+      const first = virtualizer.getVirtualItemForOffset(element.scrollTop + 1);
+      const item = first && items[first.index];
+      const day = item?.type === 'day' ? item.day : item?.week[0];
+      if (!day || scrolledDay.current === day.toDateString()) return;
+      scrolledDay.current = day.toDateString();
+      onSelectedDayChange(day);
     };
-
-    const scrollElement = parentRef.current;
-    if (scrollElement && items.length > 0) {
-      updateScrollIndex();
-      scrollElement.addEventListener('scroll', updateScrollIndex, {
-        passive: true,
-      });
-
-      const intervalId = setInterval(updateScrollIndex, 200);
-
-      return () => {
-        scrollElement.removeEventListener('scroll', updateScrollIndex);
-        clearInterval(intervalId);
-      };
-    }
-  }, [virtualizer, items.length, currentScrollIndex]);
-
-  useEffect(() => {
-    const justFinishedLoading = wasLoadingRef.current && !isLoading;
-    wasLoadingRef.current = isLoading;
-
-    if (isLoading || items.length === 0) {
-      return;
-    }
-
-    if (justFinishedLoading || displayedMonth) {
-      scrollAttemptsRef.current = 0;
-      hasScrolledToTodayRef.current = false;
-    }
-
-    if (
-      todayIndex >= 0 &&
-      parentRef.current &&
-      items.length > todayIndex &&
-      !hasScrolledToTodayRef.current
-    ) {
-      setIsScrollingToToday(true);
-
-      const scrollToToday = () => {
-        scrollAttemptsRef.current += 1;
-        if (scrollAttemptsRef.current > 20) {
-          setCurrentScrollIndex(todayIndex);
-          hasScrolledToTodayRef.current = true;
-          setIsScrollingToToday(false);
-          return;
-        }
-
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            try {
-              const totalSize = virtualizer.getTotalSize();
-              const virtualItems = virtualizer.getVirtualItems();
-
-              const isReady =
-                totalSize > 0 &&
-                todayIndex >= 0 &&
-                todayIndex < items.length &&
-                virtualItems.length > 0;
-
-              if (isReady) {
-                const hasCalculatedPositions =
-                  virtualItems.some(
-                    (item) => Math.abs(item.index - todayIndex) <= 5,
-                  ) || totalSize > 1000;
-
-                if (hasCalculatedPositions) {
-                  virtualizer.scrollToIndex(todayIndex, {
-                    align: 'start',
-                    behavior: 'auto',
-                  });
-                  hasScrolledToTodayRef.current = true;
-                  setTimeout(() => {
-                    const updatedVirtualItems = virtualizer.getVirtualItems();
-                    if (updatedVirtualItems.length > 0) {
-                      setCurrentScrollIndex(
-                        updatedVirtualItems[0]?.index ?? todayIndex,
-                      );
-                    } else {
-                      setCurrentScrollIndex(todayIndex);
-                    }
-                    setIsScrollingToToday(false);
-                  }, 200);
-                } else {
-                  setTimeout(scrollToToday, 50);
-                }
-              } else {
-                setTimeout(scrollToToday, 50);
-              }
-            } catch {
-              setCurrentScrollIndex(todayIndex);
-              hasScrolledToTodayRef.current = true;
-              setIsScrollingToToday(false);
-            }
-          });
-        });
-      };
-
-      const delay = justFinishedLoading ? 300 : 100;
-      const timeoutId = setTimeout(scrollToToday, delay);
-
-      return () => {
-        clearTimeout(timeoutId);
-        setIsScrollingToToday(false);
-      };
-    } else if (items.length > 0 && !hasScrolledToTodayRef.current) {
-      setCurrentScrollIndex(0);
-      hasScrolledToTodayRef.current = true;
-    }
-  }, [
-    displayedMonth,
-    todayIndex,
-    items.length,
-    virtualizer,
-    isLoading,
-    events.length,
-    cycles.length,
-  ]);
-
-  const handleScrollToToday = () => {
-    if (todayIndex >= 0) {
-      virtualizer.scrollToIndex(todayIndex, {
-        align: 'start',
-        behavior: 'smooth',
-      });
-    }
-  };
+    element.addEventListener('scroll', onScroll, { passive: true });
+    return () => element.removeEventListener('scroll', onScroll);
+  }, [items, onSelectedDayChange, virtualizer]);
 
   if (isLoading) {
     return (
@@ -275,26 +167,9 @@ export function CalendarMobileList({ isLoading }: P) {
     <div
       ref={parentRef}
       data-mobile-calendar-list
-      className="w-full overflow-auto bg-background scrollbar-hide relative"
-      style={{
-        contain: 'strict',
-        height:
-          'calc(100vh - 56px - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-        minHeight: '500px',
-        maxHeight:
-          'calc(100vh - 56px - 64px - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-      }}
+      className="relative h-full w-full overflow-auto overscroll-contain bg-background pb-24 scrollbar-hide"
+      style={{ contain: 'strict' }}
     >
-      {isScrollingToToday && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm z-20">
-          <div className="flex flex-col items-center gap-2">
-            <Loader size="lg" />
-            <p className="text-sm text-muted-foreground">{m.loading()}</p>
-          </div>
-        </div>
-      )}
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
@@ -315,9 +190,6 @@ export function CalendarMobileList({ isLoading }: P) {
           const isToday =
             item.type === 'day' &&
             item.day.toDateString() === new Date().toDateString();
-          const isCurrentMonth =
-            item.type === 'day' &&
-            item.day.getMonth() === displayedMonth.getMonth();
 
           if (item.type === 'week-header') {
             const weekEvents = events.filter(
@@ -375,19 +247,15 @@ export function CalendarMobileList({ isLoading }: P) {
                 events={dayEvents}
                 cycleSegments={cycleSegments}
                 isToday={isToday}
-                isCurrentMonth={isCurrentMonth}
+                isSelected={
+                  item.day.toDateString() === selectedDay.toDateString()
+                }
+                onPlan={allowCreate ? onPlanDay : undefined}
               />
             </div>
           );
         })}
       </div>
-      <CalendarMobileScrollToToday
-        scrollToToday={handleScrollToToday}
-        todayIndex={todayIndex}
-        currentScrollIndex={currentScrollIndex}
-        items={items}
-        virtualizer={virtualizer}
-      />
     </div>
   );
 }

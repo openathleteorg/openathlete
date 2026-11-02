@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 
 import type { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { PrismaService } from '../prisma/services/prisma.service';
 import { SubscriptionModule } from '../subscription/subscription.module';
 import { AiSettingsController } from './controllers/ai-settings.controller';
 import { mastraModelRegistry } from './model-registry';
@@ -26,7 +25,6 @@ import { AiService } from './services/ai.service';
   imports: [forwardRef(() => SubscriptionModule)],
   controllers: [AiSettingsController],
   providers: [
-    PrismaService,
     AiPolicyService,
     AiProviderCatalogService,
     AiModelResolverService,

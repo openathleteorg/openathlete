@@ -1,4 +1,5 @@
 import { m } from '@/paraglide/messages';
+import { cn } from '@/utils/shadcn';
 import { ArrowDownRight, ArrowUpRight } from 'lucide-react';
 import { ReactNode } from 'react';
 
@@ -16,6 +17,7 @@ interface P {
   compared: number | null;
   /** The figure bucket by bucket */
   sparkline?: number[];
+  className?: string;
 }
 
 function Sparkline({ values }: { values: number[] }) {
@@ -31,9 +33,14 @@ function Sparkline({ values }: { values: number[] }) {
     <svg
       viewBox="0 0 100 24"
       preserveAspectRatio="none"
-      className="h-6 w-full text-chart-1"
+      className="h-6 w-full text-foreground/70"
       aria-hidden
     >
+      <polygon
+        points={`0,24 ${points} 100,24`}
+        fill="currentColor"
+        opacity={0.08}
+      />
       <polyline
         points={points}
         fill="none"
@@ -71,16 +78,17 @@ export function StatTile({
   current,
   compared,
   sparkline,
+  className,
 }: P) {
   return (
-    <Card data-stat-tile className="gap-0 py-0">
+    <Card data-stat-tile className={cn('gap-0 py-0', className)}>
       <CardContent className="space-y-1 p-4">
         <div className="flex min-h-6 items-center justify-between gap-1">
           <span className="text-sm text-muted-foreground">{label}</span>
           {info}
         </div>
         <div className="flex items-baseline justify-between gap-2">
-          <span className="text-xl font-bold tabular-nums md:text-2xl">
+          <span className="text-xl font-semibold tracking-tight md:text-2xl">
             {value}
             {unit && (
               <span className="ml-1 text-sm font-normal text-muted-foreground">

@@ -8,7 +8,11 @@ import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
-import { SettingsSection } from './settings-section';
+import {
+  SettingsPanel,
+  SettingsRow,
+  SettingsSection,
+} from './settings-section';
 
 /** Tracking choice and data export (GDPR portability). */
 export function PrivacySection() {
@@ -36,31 +40,39 @@ export function PrivacySection() {
     <SettingsSection
       title={m.privacy_section_title()}
       description={m.privacy_section_description()}
-      contentClassName="space-y-6 pt-4"
     >
-      <ConsentSettings />
-      <div className="space-y-3">
+      <SettingsPanel>
+        <ConsentSettings />
         <div>
-          <p className="font-medium">{m.data_export_title()}</p>
-          <p className="text-sm text-muted-foreground">
-            {m.data_export_description()}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="export-streams"
-            checked={includeStreams}
-            onCheckedChange={(checked) => setIncludeStreams(checked === true)}
-          />
-          <Label htmlFor="export-streams" className="font-normal">
+          <SettingsRow
+            stacked
+            title={m.data_export_title()}
+            description={m.data_export_description()}
+          >
+            <Button
+              variant="outline"
+              onClick={handleExport}
+              disabled={isExporting}
+            >
+              <Download className="size-4" />
+              {isExporting
+                ? m.data_export_preparing()
+                : m.data_export_download()}
+            </Button>
+          </SettingsRow>
+          <Label
+            htmlFor="export-streams"
+            className="flex min-h-11 items-center gap-2 border-t px-4 py-2 font-normal"
+          >
+            <Checkbox
+              id="export-streams"
+              checked={includeStreams}
+              onCheckedChange={(checked) => setIncludeStreams(checked === true)}
+            />
             {m.data_export_include_streams()}
           </Label>
         </div>
-        <Button variant="outline" onClick={handleExport} disabled={isExporting}>
-          <Download className="size-4" />
-          {isExporting ? m.data_export_preparing() : m.data_export_download()}
-        </Button>
-      </div>
+      </SettingsPanel>
     </SettingsSection>
   );
 }

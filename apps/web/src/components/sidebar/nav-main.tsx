@@ -98,6 +98,7 @@ export function NavMain({
                         <SidebarMenuSubItem key={subItem.title}>
                           <SidebarMenuSubButton
                             asChild
+                            isActive={pathname === subItem.url}
                             className={
                               isMobile ? 'min-h-11 text-base' : undefined
                             }
@@ -108,9 +109,6 @@ export function NavMain({
                                 pathname === subItem.url ? 'page' : undefined
                               }
                               onClick={handleLinkClick}
-                              className={
-                                pathname === subItem.url ? 'font-bold' : ''
-                              }
                             >
                               {subItem.icon && <subItem.icon />}
                               <span>{subItem.title}</span>
@@ -126,15 +124,14 @@ export function NavMain({
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   asChild
+                  isActive={pathname === item.url}
                   className={isMobile ? 'min-h-11 text-base' : undefined}
                 >
                   <Link
                     to={item.url || '#'}
                     aria-current={pathname === item.url ? 'page' : undefined}
                     onClick={handleLinkClick}
-                    className={`flex items-center gap-2 ${
-                      pathname === item.url ? 'font-bold' : ''
-                    }`}
+                    className="flex items-center gap-2"
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>

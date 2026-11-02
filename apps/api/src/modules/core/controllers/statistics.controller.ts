@@ -64,6 +64,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
   @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
+  @ApiQuery({
     name: 'compareFrom',
     type: String,
     format: 'date-time',
@@ -98,6 +103,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })
@@ -121,6 +131,11 @@ export class StatisticsController {
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
   @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })
@@ -130,6 +145,147 @@ export class StatisticsController {
     query: GetStatisticsSectionQueryDto,
   ) {
     return this.statisticsService.getDays(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('intensity')
+  @ApiOperation({
+    summary: 'Time in the intensity domains',
+    description:
+      "Seconds below, between and above the two thresholds, from the athlete's heart rate zones, bucket by bucket, with efficiency and aerobic decoupling on steady outings.",
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
+  @ApiResponse({ status: 400, description: 'Invalid period' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getIntensity(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsSectionQuerySchema))
+    query: GetStatisticsSectionQueryDto,
+  ) {
+    return this.statisticsService.getIntensity(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('long-runs')
+  @ApiOperation({
+    summary: 'Runs well beyond the usual longest',
+    description:
+      'Runs of the period over 10% longer than the longest of the 30 days before them.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiResponse({ status: 400, description: 'Invalid period' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getLongRuns(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsSectionQuerySchema))
+    query: GetStatisticsSectionQueryDto,
+  ) {
+    return this.statisticsService.getLongRuns(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('terrain')
+  @ApiOperation({
+    summary: 'Vertical speed by slope',
+    description:
+      'Median vertical speed and its middle half by percent of slope, read on the activities of a sport, and the metres climbed and descended by class of slope.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getTerrain(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getTerrain(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('cardiac-cost')
+  @ApiOperation({
+    summary: 'Heart rate by speed or power',
+    description:
+      'Median heart rate and its middle half at each band of grade adjusted speed, or of power on a bike.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getCardiacCost(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getCardiacCost(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('durability')
+  @ApiOperation({
+    summary: 'How efforts hold over time',
+    description:
+      'Drift of output and heart rate between the first and last third of outings of an hour or more, by their length.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType })
+  @ApiResponse({ status: 400, description: 'Invalid period or sport' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getDurability(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsTrendsQuerySchema))
+    query: GetStatisticsTrendsQueryDto,
+  ) {
+    return this.statisticsService.getDurability(user, query);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('recovery')
+  @ApiOperation({
+    summary: 'Wellness measures of a period',
+    description:
+      'Heart rate variability, resting heart rate and sleep, day by day, with the week before the period for rolling means.',
+  })
+  @ApiQuery({ name: 'athleteId', type: Number })
+  @ApiQuery({ name: 'from', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiResponse({ status: 400, description: 'Invalid period' })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getRecovery(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(getStatisticsSectionQuerySchema))
+    query: GetStatisticsSectionQueryDto,
+  ) {
+    return this.statisticsService.getRecovery(user, query);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -161,11 +317,17 @@ export class StatisticsController {
   @ApiOperation({
     summary: 'Load and form of a period',
     description:
-      'TRIMP load, fitness (CTL), fatigue (ATL) and form (TSB), by day, or by week on periods over 400 days.',
+      'TRIMP load, session RPE, fitness (CTL), fatigue (ATL) and form (TSB), by day, or by week on periods over 400 days, of one sport or all of them. Without a sport, a period reaching today goes on six weeks over the planned sessions.',
   })
   @ApiQuery({ name: 'athleteId', type: Number })
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })
   @ApiQuery({ name: 'to', type: String, format: 'date-time' })
+  @ApiQuery({ name: 'sport', enum: SportType, required: false })
+  @ApiQuery({
+    name: 'group',
+    enum: ['RUNNING', 'CYCLING', 'SKIING'],
+    required: false,
+  })
   @ApiResponse({ status: 400, description: 'Invalid period' })
   @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
   @ApiResponse({ status: 404, description: 'Athlete not found' })

@@ -78,52 +78,59 @@ async function handleFCMToken(token: string): Promise<void> {
   }
 }
 
-export async function initializePushNotifications(): Promise<void> {
-  if (!isCapacitor()) {
-    return;
-  }
+export type PushPermission = 'granted' | 'denied' | 'prompt' | 'unsupported';
 
-  try {
-    let permStatus = await PushNotifications.checkPermissions();
+let listening = false;
 
-    if (permStatus.receive === 'prompt') {
-      permStatus = await PushNotifications.requestPermissions();
-    }
-
-    if (permStatus.receive !== 'granted') {
-      return;
-    }
-
+/** Again at each sign-in: the token goes to whoever is signed in now. */
+async function register(): Promise<void> {
+  if (!listening) {
+    listening = true;
     PushNotifications.addListener('registration', async (token) => {
       await handleFCMToken(token.value);
     });
-
     PushNotifications.addListener('registrationError', (error) => {
       console.error(
         '[PushNotifications] Registration error:',
         JSON.stringify(error),
       );
     });
+  }
 
-    await PushNotifications.register();
+  await PushNotifications.register();
+}
 
-    // PushNotifications.addListener(
-    //   'pushNotificationActionPerformed',
-    //   (action) => {
-    //     // const data = action.notification.data;
-    //     // if (data?.type === 'activity_processed' && data?.eventId) {
-    //     //   const url = `/dashboard/calendar?eventId=${data.eventId}`;
-    //     //   if (Capacitor.isNativePlatform()) {
-    //     //     window.location.href = url;
-    //     //   } else {
-    //     //     window.location.href = url;
-    //     //   }
-    //     // }
-    //   },
-    // );
+function toPermission(receive: string): PushPermission {
+  if (receive === 'granted' || receive === 'denied') return receive;
+  return 'prompt';
+}
+
+export async function getPushPermission(): Promise<PushPermission> {
+  if (!isCapacitor()) return 'unsupported';
+  const { receive } = await PushNotifications.checkPermissions();
+  return toPermission(receive);
+}
+
+/**
+ * Registers a device that already allows notifications. It never asks: the
+ * system prompt is shown once, so it waits for a reason the user can see,
+ * through enablePushNotifications.
+ */
+export async function initializePushNotifications(): Promise<void> {
+  try {
+    if ((await getPushPermission()) === 'granted') await register();
   } catch (error) {
     console.error('Failed to initialize push notifications:', error);
   }
+}
+
+/** Shows the system prompt, from a tap on an explained action. */
+export async function enablePushNotifications(): Promise<PushPermission> {
+  if (!isCapacitor()) return 'unsupported';
+  const { receive } = await PushNotifications.requestPermissions();
+  const permission = toPermission(receive);
+  if (permission === 'granted') await register();
+  return permission;
 }
 
 /**

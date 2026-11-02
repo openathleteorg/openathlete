@@ -17,8 +17,20 @@ const sectionOptions = (enabled: boolean) => ({
   placeholderData: keepPreviousData,
 });
 
-const paramsKey = ({ athleteId, from, to, sport }: StatisticsSectionParams) =>
-  [athleteId, from.toISOString(), to.toISOString(), sport ?? null] as const;
+const paramsKey = ({
+  athleteId,
+  from,
+  to,
+  sport,
+  group,
+}: StatisticsSectionParams) =>
+  [
+    athleteId,
+    from.toISOString(),
+    to.toISOString(),
+    sport ?? null,
+    group ?? null,
+  ] as const;
 
 export const useStatisticsFiltersQuery = (athleteId: number) =>
   useQuery({
@@ -62,6 +74,66 @@ export const useStatisticsDaysQuery = (
     queryKey: [statisticsKeys.days, ...paramsKey(params)],
   });
 
+export const useStatisticsIntensityQuery = (
+  params: StatisticsSectionParams,
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getIntensity(params),
+    queryKey: [statisticsKeys.intensity, ...paramsKey(params)],
+  });
+
+export const useStatisticsLongRunsQuery = (
+  params: StatisticsSectionParams,
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getLongRuns(params),
+    queryKey: [statisticsKeys.longRuns, ...paramsKey(params)],
+  });
+
+export const useStatisticsTerrainQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getTerrain(params),
+    queryKey: [statisticsKeys.terrain, ...paramsKey(params)],
+  });
+
+export const useStatisticsCardiacCostQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getCardiacCost(params),
+    queryKey: [statisticsKeys.cardiacCost, ...paramsKey(params)],
+  });
+
+export const useStatisticsDurabilityQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getDurability(params),
+    queryKey: [statisticsKeys.durability, ...paramsKey(params)],
+  });
+
+export const useStatisticsRecoveryQuery = (
+  params: StatisticsSectionParams,
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getRecovery(params),
+    queryKey: [statisticsKeys.recovery, ...paramsKey(params)],
+  });
+
 export const useStatisticsTrendsQuery = (
   params: StatisticsSectionParams & { sport: SPORT_TYPE },
   enabled: boolean,
@@ -73,7 +145,7 @@ export const useStatisticsTrendsQuery = (
   });
 
 export const useStatisticsLoadQuery = (
-  params: Omit<StatisticsSectionParams, 'sport'>,
+  params: StatisticsSectionParams,
   enabled: boolean,
 ) =>
   useQuery({

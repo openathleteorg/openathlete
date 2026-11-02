@@ -6,8 +6,8 @@ import {
 } from '@/api/equipment';
 import { ConfirmAction } from '@/components/confirm-action';
 import { EquipmentForm } from '@/components/equipment/equipment-form';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -15,15 +15,20 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
-import { Pencil, Trash } from 'lucide-react';
+import { Bike, Footprints, Pencil, Trash } from 'lucide-react';
 import { useState } from 'react';
 
 import { EQUIPMENT_TYPE, Equipment, SPORT_TYPE } from '@openathlete/shared';
 
-import { SettingsSection } from './settings-section';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from './settings-section';
 
 export function EquipmentTab() {
   const [isOpen, setIsOpen] = useState(false);
@@ -86,8 +91,6 @@ export function EquipmentTab() {
       }}
     >
       <SettingsSection
-        title={m.equipment()}
-        description={m.equipment_tab_description()}
         action={
           <DialogTrigger asChild>
             <Button size="sm">{m.add_equipment()}</Button>
@@ -95,98 +98,58 @@ export function EquipmentTab() {
         }
       >
         {isLoadingEquipment ? (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <Skeleton className="h-6 w-24" />
-                  <div className="flex items-center space-x-2">
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <SettingsRowsSkeleton count={3} />
         ) : equipment.length === 0 ? (
-          <div className="text-sm text-muted-foreground">
-            {m.no_equipment()}
-          </div>
+          <SettingsEmpty>{m.no_equipment()}</SettingsEmpty>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {equipment.map((item) => (
-              <Card key={item.equipmentId}>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleEdit(item)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleDeleteClick(item.equipmentId)}
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        {m.type()}
-                      </span>
-                      <span className="text-sm font-medium">
-                        {item.type === EQUIPMENT_TYPE.SHOE
-                          ? m.shoe()
-                          : m.bike()}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        {m.total_distance()}
-                      </span>
-                      <span className="text-sm font-medium">
-                        {(item.totalDistance / 1000).toFixed(1)} km
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">
-                        {m.sports()}
-                      </span>
-                      <span className="text-sm font-medium">
-                        {item.sports
-                          .map((sport) => sportTypeLabelMap[sport])
-                          .join(', ')}
-                      </span>
-                    </div>
-                    {item.isDefault && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">
+          <SettingsPanel>
+            {equipment.map((item) => {
+              const isShoe = item.type === EQUIPMENT_TYPE.SHOE;
+              const Icon = isShoe ? Footprints : Bike;
+              return (
+                <SettingsRow
+                  key={item.equipmentId}
+                  leading={<Icon className="size-5" />}
+                  title={
+                    <span className="flex flex-wrap items-center gap-2">
+                      {item.name}
+                      {item.isDefault && (
+                        <Badge variant="secondary">
                           {m.default_equipment()}
-                        </span>
-                        <span className="text-sm font-medium">✓</span>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                        </Badge>
+                      )}
+                    </span>
+                  }
+                  description={[
+                    isShoe ? m.shoe() : m.bike(),
+                    item.sports
+                      .map((sport) => sportTypeLabelMap[sport])
+                      .join(', '),
+                    `${(item.totalDistance / 1000).toFixed(1)} km`,
+                  ].join(' · ')}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="max-md:w-11"
+                    aria-label={`${m.edit_equipment()} ${item.name}`}
+                    onClick={() => handleEdit(item)}
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="max-md:w-11"
+                    aria-label={`${m.delete_equipment()} ${item.name}`}
+                    onClick={() => handleDeleteClick(item.equipmentId)}
+                  >
+                    <Trash className="size-4" />
+                  </Button>
+                </SettingsRow>
+              );
+            })}
+          </SettingsPanel>
         )}
       </SettingsSection>
       <DialogContent>

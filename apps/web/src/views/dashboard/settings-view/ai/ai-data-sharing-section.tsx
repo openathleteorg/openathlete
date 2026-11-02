@@ -6,7 +6,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 
-import { SettingsSection } from '../settings-section';
+import { SettingsPanel, SettingsSection } from '../settings-section';
 
 /** Settings > AI: what is shared, with whom, and the switch to stop it */
 export function AiDataSharingSection() {
@@ -22,18 +22,21 @@ export function AiDataSharingSection() {
           ? m.ai_sharing_allowed()
           : m.ai_sharing_not_allowed()
       }
-      contentClassName="space-y-5 pt-6"
+      action={
+        <Button
+          variant={access.dataSharingConsent ? 'outline' : 'default'}
+          onClick={() => save(!access.dataSharingConsent)}
+          disabled={isPending}
+        >
+          {access.dataSharingConsent
+            ? m.ai_sharing_withdraw()
+            : m.ai_sharing_allow()}
+        </Button>
+      }
     >
-      <AiDataSharingDetails access={access} />
-      <Button
-        variant={access.dataSharingConsent ? 'outline' : 'default'}
-        onClick={() => save(!access.dataSharingConsent)}
-        disabled={isPending}
-      >
-        {access.dataSharingConsent
-          ? m.ai_sharing_withdraw()
-          : m.ai_sharing_allow()}
-      </Button>
+      <SettingsPanel padded className="divide-y-0">
+        <AiDataSharingDetails access={access} />
+      </SettingsPanel>
     </SettingsSection>
   );
 }

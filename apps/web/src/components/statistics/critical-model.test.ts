@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { BestRecordDto, RECORD_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
-import { criticalFit } from './critical-model';
+import {
+  criticalFit,
+  criticalSwimSpeed,
+  parseSwimTime,
+} from './critical-model';
 
 const base = {
   recordId: 1,
@@ -72,5 +76,29 @@ describe('criticalFit', () => {
   it('stays out of the sports it was not tested in', () => {
     expect(criticalFit(perfect, SPORT_TYPE.TRAIL_RUNNING)).toBeNull();
     expect(criticalFit(perfect, SPORT_TYPE.SWIMMING)).toBeNull();
+  });
+});
+
+describe('criticalSwimSpeed', () => {
+  it('reads the slope between the two distances', () => {
+    expect(criticalSwimSpeed(180, 380)).toBe(1);
+  });
+
+  it('refuses times that cannot be a test', () => {
+    expect(criticalSwimSpeed(380, 180)).toBeNull();
+    expect(criticalSwimSpeed(0, 180)).toBeNull();
+  });
+});
+
+describe('parseSwimTime', () => {
+  it('reads minutes and seconds, or seconds', () => {
+    expect(parseSwimTime('3:05')).toBe(185);
+    expect(parseSwimTime('185')).toBe(185);
+  });
+
+  it('refuses anything else', () => {
+    expect(parseSwimTime('3:75')).toBeNull();
+    expect(parseSwimTime('fast')).toBeNull();
+    expect(parseSwimTime('')).toBeNull();
   });
 });

@@ -659,7 +659,7 @@ export function OnboardingView() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-6 fixed top-0 left-0 w-full h-full z-50">
+    <div className="fixed top-0 left-0 z-50 flex h-full min-h-dvh w-full flex-col items-center justify-center overflow-y-auto bg-background p-4 pt-[calc(1rem+var(--safe-top))] pb-[calc(1rem+var(--safe-bottom))] sm:p-6">
       <div className="mb-4 sm:mb-8">
         <img
           src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}

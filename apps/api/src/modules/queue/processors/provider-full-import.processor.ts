@@ -1,16 +1,24 @@
 import { Job, UnrecoverableError, Worker } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
-import { HttpException, Inject, Logger, forwardRef } from '@nestjs/common';
+import {
+  HttpException,
+  Inject,
+  Logger,
+  Optional,
+  forwardRef,
+} from '@nestjs/common';
 
 import { ConnectorProvider, ProviderAccount } from '@openathlete/database';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { FullImportResult } from '../../providers-sync/base/base-provider.service';
 import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
   GarminProviderService,
-  PolarProviderService,
   StravaProviderService,
   SuuntoProviderService,
 } from '../../providers-sync/providers';
@@ -36,10 +44,9 @@ export class ProviderFullImportProcessor extends WorkerHost {
     private readonly stravaProviderService: StravaProviderService,
     @Inject(forwardRef(() => GarminProviderService))
     private readonly garminProviderService: GarminProviderService,
-    @Inject(forwardRef(() => PolarProviderService))
-    private readonly polarProviderService: PolarProviderService,
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
   }
@@ -98,6 +105,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
   /** Once every attempt failed, let the user request the import again. */
   @OnWorkerEvent('failed')
   async onFailed(job: Job<ProviderFullImportJobData>, error: Error) {
+    reportJobFailure(this.analytics, job, error);
     this.logger.error(
       `Historical import for account ${job.data.providerAccountId} failed (attempt ${job.attemptsMade}): ${error.message}`,
       error.stack,
@@ -118,8 +126,6 @@ export class ProviderFullImportProcessor extends WorkerHost {
         return this.stravaProviderService.queueFullImport(account);
       case ConnectorProvider.GARMIN:
         return this.garminProviderService.queueFullImport(account);
-      case ConnectorProvider.POLAR:
-        return this.polarProviderService.queueFullImport(account);
       case ConnectorProvider.SUUNTO:
         return this.suuntoProviderService.queueFullImport(account);
       default:

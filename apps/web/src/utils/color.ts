@@ -156,13 +156,13 @@ export const getSportColor = (sport: SPORT_TYPE) => {
 export const getEventTypeColor = (type: EVENT_TYPE) => {
   switch (type) {
     case 'ACTIVITY':
-      return 'bg-green-100 hover:bg-green-200 dark:bg-green-900 dark:hover:bg-green-900 border-green-200 dark:border-green-800/50';
+      return 'bg-event-activity hover:bg-event-activity-hover border-event-activity-border';
     case 'COMPETITION':
-      return 'bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-900 border-red-200 dark:border-red-800/50';
+      return 'bg-event-competition hover:bg-event-competition-hover border-event-competition-border';
     case 'NOTE':
-      return 'bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900 dark:hover:bg-yellow-900 border-yellow-200 dark:border-yellow-800/50';
+      return 'bg-event-note hover:bg-event-note-hover border-event-note-border';
     case 'TRAINING':
-      return 'bg-blue-100 hover:bg-blue-200 dark:bg-blue-900 dark:hover:bg-blue-900 border-blue-200 dark:border-blue-800/50';
+      return 'bg-event-training hover:bg-event-training-hover border-event-training-border';
   }
 };
 

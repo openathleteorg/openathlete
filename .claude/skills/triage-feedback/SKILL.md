@@ -16,7 +16,7 @@ description: Gather OpenAthlete user feedback from GitHub (issues, PRs, discussi
   ```
   For each item with activity, read the body and the last comments.
 - **Discord**: `DISCORD_FEEDBACK.md` at the repository root. It is a local export, kept out of git through `.git/info/exclude`, and must never be committed or quoted publicly. Check its "Extrait le" date; if it is old, ask the maintainer for a fresh export.
-- **Production errors**: when the Better Stack MCP is connected to the OpenAthlete account, look for errors matching the reports.
+- **Production errors**: when the PostHog MCP is connected to the OpenAthlete project, look in Error Tracking for errors matching the reports.
 
 ## Triage
 

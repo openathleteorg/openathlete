@@ -24,7 +24,14 @@ function startAnalytics() {
   if (posthogToken) {
     posthog.init(posthogToken, {
       api_host: import.meta.env.VITE_PUBLIC_POSTHOG_HOST as string | undefined,
+      // The host can be our /ingest proxy, which ad blockers leave alone
+      ui_host: 'https://eu.posthog.com',
       defaults: '2026-01-30',
+      capture_exceptions: true,
+      capture_dead_clicks: true,
+      // The screens show health data: recordings keep the layout and the
+      // clicks, never the text
+      session_recording: { maskAllInputs: true, maskTextSelector: '*' },
     });
   }
 

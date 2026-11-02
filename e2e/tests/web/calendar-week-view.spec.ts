@@ -1,8 +1,16 @@
 import { expect, test } from '@playwright/test';
 
+import { createAthlete } from '../../support/api';
+import { signIn } from '../../support/browser';
+
+// The view is saved with the account: an account of its own leaves others alone
+test.use({ storageState: { cookies: [], origins: [] } });
+
 test('switches to week view, navigates, and remembers the selected view', async ({
   page,
+  request,
 }) => {
+  await signIn(page, await createAthlete(request));
   await page.goto('/dashboard/calendar');
   await page.getByRole('tab', { name: 'Week', exact: true }).click();
   const week = page.locator('[data-calendar-week]');
@@ -32,7 +40,11 @@ test('switches to week view, navigates, and remembers the selected view', async 
   await expect(week).toHaveCount(0);
 });
 
-test('opens week view from a direct calendar link', async ({ page }) => {
+test('opens week view from a direct calendar link', async ({
+  page,
+  request,
+}) => {
+  await signIn(page, await createAthlete(request));
   await page.goto('/dashboard/calendar?view=week');
   await expect(
     page.locator('[data-calendar-week] [data-calendar-day]'),

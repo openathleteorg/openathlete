@@ -12,6 +12,7 @@ import { EventSeriesService } from 'src/modules/core/services/event-series.servi
 import { EventService } from 'src/modules/core/services/event.service';
 import { MetricService } from 'src/modules/core/services/metric.service';
 import { RecordService } from 'src/modules/core/services/record.service';
+import { StatisticsService } from 'src/modules/core/services/statistics.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
 import { TrainingZoneService } from 'src/modules/core/services/training-zone.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -30,6 +31,7 @@ export type ToolDeps = {
   load: TrainingLoadService;
   zones: TrainingZoneService;
   records: RecordService;
+  statistics: StatisticsService;
 };
 
 export type ToolRegistrar = (

@@ -34,6 +34,7 @@ export function CalendarEventDetailsDialog({
     <Dialog onOpenChange={(o) => !o && onClose()} open={open}>
       <DialogContent
         mobileFullscreen
+        data-event-details
         className={cn(
           'sm:max-w-4xl',
           event?.type === EVENT_TYPE.ACTIVITY && 'sm:max-w-6xl',

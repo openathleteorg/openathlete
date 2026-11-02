@@ -6,6 +6,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   forwardRef,
 } from '@nestjs/common';
 import { BadRequestException as BadRequestException2 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { InvitationStatus } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { FeatureAccessService } from 'src/modules/subscription';
 
@@ -39,7 +41,17 @@ export class CoachInvitationService {
     private eventEmitter: EventEmitter2,
     @Inject(forwardRef(() => FeatureAccessService))
     private featureAccessService: FeatureAccessService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
+
+  private async reportLinked(coachUserId: number, athleteId: number) {
+    await this.analytics?.capture(coachUserId, 'athlete_linked', {
+      invited_by: 'athlete',
+    });
+    await this.analytics?.captureForAthlete(athleteId, 'coach_linked', {
+      invited_by: 'athlete',
+    });
+  }
 
   async generateInvitationToken(): Promise<string> {
     return randomUUID();
@@ -133,6 +145,8 @@ export class CoachInvitationService {
         }),
       );
 
+      await this.analytics?.capture(athleteUserId, 'coach_invited');
+
       return invitation;
     } else {
       // User doesn't exist, create invitation with token for account creation
@@ -193,6 +207,8 @@ export class CoachInvitationService {
           language: athleteUser.language,
         }),
       );
+
+      await this.analytics?.capture(athleteUserId, 'coach_invited');
 
       return invitation;
     }
@@ -285,6 +301,7 @@ export class CoachInvitationService {
         },
       });
     });
+    await this.reportLinked(coachUserId, athlete.athleteId);
   }
 
   private async coach(coachUserId: number) {
@@ -350,6 +367,7 @@ export class CoachInvitationService {
         },
       });
     });
+    await this.reportLinked(coachUserId, athlete.athleteId);
   }
 
   async rejectInvitation(coachUserId: number, invitationId: number) {

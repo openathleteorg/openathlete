@@ -1,10 +1,12 @@
 import axios, { isAxiosError } from 'axios';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { ConnectorProvider, ProviderAccount } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
+
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
@@ -42,7 +44,7 @@ export interface OAuthConfig {
  * OAuth answers 400 invalid_grant to a dead refresh token, some providers
  * 401. Other 400s (a wrong client secret) say nothing about the user's token.
  */
-function isRefreshTokenRejected(error: unknown): boolean {
+export function isRefreshTokenRejected(error: unknown): boolean {
   if (!isAxiosError(error)) return false;
   const { status, data } = error.response ?? {};
   if (status === 401) return true;
@@ -57,6 +59,11 @@ export abstract class BaseProviderService {
   protected readonly logger: Logger;
   protected abstract readonly provider: ConnectorProvider;
   protected abstract readonly oauthConfig: OAuthConfig;
+
+  // A property, so that the five providers keep their constructors
+  @Optional()
+  @Inject(AnalyticsService)
+  protected readonly analytics?: AnalyticsService;
 
   constructor(
     protected readonly prisma: PrismaService,
@@ -233,6 +240,11 @@ export abstract class BaseProviderService {
             status: 'revoked' as const,
           },
         });
+        await this.analytics?.captureForAthlete(
+          account.athleteId,
+          'provider_connection_lost',
+          { provider: this.provider },
+        );
 
         throw new InvalidRefreshTokenError(
           this.provider,

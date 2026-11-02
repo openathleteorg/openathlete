@@ -128,7 +128,7 @@ function EventMetrics({
   if (!parts.length) return null;
 
   return (
-    <div className="flex w-full flex-wrap justify-between gap-x-2 text-xs font-medium tabular-nums text-gray-500 dark:text-gray-400">
+    <div className="flex w-full flex-wrap justify-between gap-x-2 text-xs font-medium tabular-nums text-muted-foreground">
       {parts.map((part) => (
         <span key={part}>{part}</span>
       ))}
@@ -290,7 +290,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
       case COLORED_BY.SPORT: {
         const sport = event.type !== EVENT_TYPE.NOTE ? event.sport : null;
         if (sport === null)
-          return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
+          return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-border/50';
         return getSportColor(sport);
       }
       case COLORED_BY.RPE: {
@@ -302,7 +302,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               ? event.goalRpe
               : null;
         if (rpe === null)
-          return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-gray-200 dark:border-gray-700/50';
+          return 'bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/40 dark:hover:bg-gray-800/50 border-border/50';
         return getLowSaturatedRpeColor(rpe);
       }
     }
@@ -419,7 +419,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               <div
                 className={cn(
                   'font-medium px-1 break-words',
-                  compact ? 'text-xs line-clamp-1' : 'text-sm',
+                  compact ? 'text-xs line-clamp-1' : 'text-[13px]',
                   // Two lines in narrow day cells rather than a few letters
                   detailed ? 'whitespace-normal' : !compact && 'line-clamp-2',
                 )}
@@ -472,7 +472,7 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
                   'workout' in event &&
                   event.workout &&
                   event.workout.steps.length > 0 && (
-                    <ActivityIcon className="inline-block w-3 h-3 mr-1 text-gray-600 dark:text-gray-400" />
+                    <ActivityIcon className="inline-block w-3 h-3 mr-1 text-muted-foreground" />
                   )}
                 {event.name}
               </div>

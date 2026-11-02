@@ -25,7 +25,11 @@ import {
 } from '@openathlete/shared';
 
 import { PrivacySection } from './privacy-section';
-import { SettingsSection } from './settings-section';
+import {
+  SettingsPanel,
+  SettingsRow,
+  SettingsSection,
+} from './settings-section';
 import { TrainingRemindersSection } from './training-reminders-section';
 
 export function ProfileTab() {
@@ -70,26 +74,10 @@ export function ProfileTab() {
     updateAccountMutation.mutate(data),
   );
   return (
-    <div className="space-y-6">
-      {isCapacitor() && (
-        <SettingsSection
-          title={m.mobile_server_title()}
-          description={m.mobile_server_switch_warning()}
-        >
-          <div className="flex flex-col items-start gap-3">
-            <p className="break-all text-sm">{getApiBaseUrl()}</p>
-            <Button variant="outline" onClick={openServerSelection}>
-              {m.mobile_server_change()}
-            </Button>
-          </div>
-        </SettingsSection>
-      )}
-      <SettingsSection
-        title={m.profile()}
-        description={m.update_profile_information()}
-      >
-        <FormProvider methods={methods} onSubmit={onSubmit}>
-          <div className="flex w-full max-w-md flex-col gap-4">
+    <div className="space-y-8">
+      <FormProvider methods={methods} onSubmit={onSubmit}>
+        <SettingsPanel padded className="divide-y-0">
+          <div className="grid gap-4 sm:grid-cols-2">
             <RHFTextField
               name="firstName"
               type="text"
@@ -113,35 +101,53 @@ export function ProfileTab() {
               <SelectItem value="FEMALE">{m.gender_female()}</SelectItem>
               <SelectItem value="OTHER">{m.gender_other()}</SelectItem>
             </RHFSelect>
+          </div>
+          <div className="mt-4 flex justify-end">
             <Button
               type="submit"
-              className="w-fit"
+              className="w-full sm:w-fit"
               isLoading={updateAccountMutation.isPending}
             >
               {m.update()}
             </Button>
           </div>
-        </FormProvider>
-      </SettingsSection>
+        </SettingsPanel>
+      </FormProvider>
       {athlete?.athleteId && (
         <SessionValidationSettingsCard athleteId={athlete.athleteId} />
       )}
       {athlete?.athleteId && <TrainingRemindersSection />}
       <PrivacySection />
-      <SettingsSection
-        title={m.delete_account()}
-        description={m.delete_account_description()}
-      >
-        <div className="flex w-full max-w-md flex-col gap-4">
+      {isCapacitor() && (
+        <SettingsSection title={m.mobile_server_title()}>
+          <SettingsPanel>
+            <SettingsRow
+              stacked
+              title={<span className="break-all">{getApiBaseUrl()}</span>}
+              description={m.mobile_server_switch_warning()}
+            >
+              <Button variant="outline" onClick={openServerSelection}>
+                {m.mobile_server_change()}
+              </Button>
+            </SettingsRow>
+          </SettingsPanel>
+        </SettingsSection>
+      )}
+      <SettingsPanel>
+        <SettingsRow
+          stacked
+          title={m.delete_account()}
+          description={m.delete_account_description()}
+        >
           <Button
-            variant="destructive"
-            className="w-fit"
+            variant="outline"
+            className="text-destructive-foreground"
             onClick={() => setDeleteDialogOpen(true)}
           >
             {m.delete_account()}
           </Button>
-        </div>
-      </SettingsSection>
+        </SettingsRow>
+      </SettingsPanel>
       <ConfirmAction
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

@@ -45,7 +45,7 @@ export function ActivityTrainingLoadStats({
         <ActivityIcon className="h-4 w-4 text-muted-foreground" />
         <span>
           {trimp.value.toFixed(0)}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">
+          <span className="text-muted-foreground text-sm">
             {m.trimp_unit()}
           </span>
         </span>

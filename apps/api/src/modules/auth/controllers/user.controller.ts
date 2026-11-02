@@ -9,6 +9,7 @@ import {
   Get,
   Patch,
   Post,
+  Put,
   Query,
   Res,
   UseGuards,
@@ -37,6 +38,10 @@ import {
   passwordResetSchema,
   updateAccountDtoSchema,
 } from '@openathlete/shared';
+import {
+  AnalyticsConsentDto,
+  analyticsConsentDtoSchema,
+} from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 import { RATE_LIMITS } from 'src/common/security/rate-limits';
@@ -54,6 +59,19 @@ export class UserController {
     private userService: UserService,
     private readonly accountExportService: AccountExportService,
   ) {}
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Put('me/analytics-consent')
+  @ApiOperation({ summary: 'Record the choice made in the consent banner' })
+  @ApiResponse({ status: 200, description: 'Choice recorded' })
+  async setAnalyticsConsent(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(analyticsConsentDtoSchema))
+    { granted }: AnalyticsConsentDto,
+  ): Promise<void> {
+    await this.userService.setAnalyticsConsent(user.userId, granted);
+  }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()

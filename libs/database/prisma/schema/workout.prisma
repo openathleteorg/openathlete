@@ -64,6 +64,7 @@ model WorkoutStep {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([workoutId, orderIndex])
+  @@index([repeatParentId])
   @@map("workout_step")
 }
 

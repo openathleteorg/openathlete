@@ -139,7 +139,7 @@ export function EventFormFields({
             }}
           />
           {!!goalDistanceValue && !!goalDurationValue && (
-            <div className="text-xs md:text-sm text-gray-500 flex flex-col md:flex-row md:items-center gap-1 md:gap-0 col-span-1 md:col-span-2">
+            <div className="text-xs md:text-sm text-muted-foreground flex flex-col md:flex-row md:items-center gap-1 md:gap-0 col-span-1 md:col-span-2">
               <span>
                 {m.pace()}:{' '}
                 {formatSpeed(

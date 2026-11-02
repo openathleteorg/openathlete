@@ -34,8 +34,12 @@ failures. Counts distinguish newly imported activities, existing recordings,
 recordings needing review, unsupported files skipped, failed files and pending
 activity-processing jobs.
 Unsupported FIT recordings are counted separately as skipped, not as matches or
-failed downloads. Preferences are locked while a pull is queued or running;
-disconnecting remains available to stop it. API callers receive HTTP 409
+failed downloads. Preferences are locked for up to five minutes while a pull waits in the queue,
+and while a running worker holds its renewable lease (up to twenty minutes between
+heartbeats). Expired queued work and crashed-worker leases recover to a retryable
+failure when status is read, settings are changed or another pull is requested;
+old jobs are invalidated so they cannot resume after recovery.
+Disconnecting remains available to stop it. API callers receive HTTP 409
 `sync_in_progress` if they attempt a preference change during that period.
 
 A request queues work; it does not mean import has finished. Each pull stops at
@@ -100,8 +104,9 @@ credentials unreadable, requiring users to reconnect.
 ## Self-hosting and API contract
 
 Apply the normal database migrations and deploy API and web from the same release.
-The migrations add `garmin_personal_connection` and `garmin_personal_item`,
-including a nullable `skip_reason` receipt field. Existing provider accounts and
+The migration adds `garmin_personal_connection` and `garmin_personal_item`,
+including a nullable `skip_reason` receipt field and an activity foreign-key index.
+The connection records the queue time to bound waiting jobs. Existing provider accounts and
 activities are not rewritten. Redis and an API worker with
 `ENABLE_ACTIVITY_IMPORT=true` are required for pulls; activity analysis requires
 `ENABLE_ACTIVITY_PROCESSING=true`. These workers may run in the API container or a
@@ -128,16 +133,3 @@ Dates use `YYYY-MM-DD`; unknown fields are rejected. The shared DTOs define the
 status and result contracts. Garmin's [official OpenAPI reference](https://developer.garmin.com/gc-developer-program/personal/swagger-docs/)
 and [reference Python client](https://github.com/garmin/connect-personal-api-python)
 describe the HTTPS key exchange, paginated activity search and zipped FIT download.
-
-### Upgrading an unreleased preview
-
-The pre-merge migration was renamed from `20261026120000_garmin_personal_api`
-to `20261030120000_garmin_personal_api` to follow upstream's existing migrations.
-Its SQL is unchanged. Fresh installations require no special steps.
-
-If a preview database already applied the old name, back it up and reconcile that
-completed Prisma migration record to the new name during the upgrade, after
-verifying that its checksum matches the new file and that the new name has not
-already been applied. Do not replay the SQL against the existing tables or delete
-their data. Coordinate the history change with the application version being
-deployed; do not change a running preview's history in advance.

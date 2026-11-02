@@ -136,8 +136,8 @@ describe('TrainingZoneBulkEditor', () => {
     [...container.querySelectorAll('[data-testid=hr-zone-preview]')].map(
       (item) => item.textContent,
     );
-  const sportSelectors = () =>
-    [...container.querySelectorAll('[role=combobox]')].map((item) =>
+  const profileNames = () =>
+    [...container.querySelectorAll('[data-zone-profile]')].map((item) =>
       item.textContent?.trim(),
     );
   const saveDisabled = () => button('save').disabled;
@@ -187,7 +187,7 @@ describe('TrainingZoneBulkEditor', () => {
 
   it('starts new zones with every sport, shown as "All sports"', async () => {
     await render();
-    expect(sportSelectors()).toEqual(Array(6).fill('all_sports'));
+    expect(profileNames()).toEqual(['all_sports']);
 
     await save();
     expect(api.post).toHaveBeenCalledTimes(6);
@@ -213,7 +213,7 @@ describe('TrainingZoneBulkEditor', () => {
     await type('zones-hr-rest', '60');
     // Manual keeps the bpm limits; the reserve gives the same ranges back.
     await click('hr_zones_manual');
-    expect(field('zone-2-min')!.value).toBe('141');
+    expect(field('zone-1-max')!.value).toBe('140');
     expect(field('zones-hr-max')).toBeNull();
     await click('hr_zones_reserve_percent');
     expect(previews()[2]).toBe('141–154 bpm');
@@ -260,9 +260,8 @@ describe('TrainingZoneBulkEditor', () => {
 
   it('applies custom percentages and the default ones', async () => {
     await render();
-    await type('zone-3-min', '75');
-    // The previous zone ends where this one starts.
-    expect(field('zone-2-max')!.value).toBe('75');
+    await type('zone-2-max', '75');
+    // The next zone starts where this one ends.
     expect(previews().slice(2, 4)).toEqual(['120–149 bpm', '150–159 bpm']);
     await type('zone-3-max', '70');
     expect(saveDisabled()).toBe(true);
@@ -278,7 +277,7 @@ describe('TrainingZoneBulkEditor', () => {
     expect(field('zones-hr-max')).toBeNull();
     expect(container.textContent).not.toContain('hr_zones_percentage_help');
     expect(field('zone-0-min')!.value).toBe('100');
-    expect(sportSelectors()).toEqual(Array(5).fill('sport_running'));
+    expect(profileNames()).toEqual(['sport_running']);
 
     await click('percent_of_max_heart_rate');
     expect(field('zone-0-min')!.value).toBe('50');
@@ -308,15 +307,9 @@ describe('TrainingZoneBulkEditor', () => {
   it('asks for missing references before converting saved zones', async () => {
     await render({ zones: savedZones(), hrRest: null });
     await click('hr_zones_reserve_percent');
-    const dialog = () => document.body.querySelector('[role=dialog]');
-    expect(dialog()?.querySelector('#zones-hr-rest')).not.toBeNull();
-    // The dialog's own Cancel, not the editor's.
-    await act(async () =>
-      [...dialog()!.querySelectorAll('button')]
-        .find((item) => item.textContent?.trim() === 'cancel')!
-        .click(),
-    );
-    await waitFor(() => !dialog());
+    expect(field('zones-hr-rest')).not.toBeNull();
+    // The first Cancel is the question's, not the editor's.
+    await click('cancel');
     expect(completed).toBe(0);
     expect(field('zone-0-min')!.value).toBe('100');
     expect(field('zones-hr-max')).toBeNull();
@@ -324,7 +317,6 @@ describe('TrainingZoneBulkEditor', () => {
     await click('hr_zones_reserve_percent');
     await type('zones-hr-rest', '60');
     await click('hr_zones_convert_limits');
-    await waitFor(() => !dialog());
     expect(previews()).toHaveLength(5);
     expect(previews()[0]).toBe('100–119 bpm');
     expect(api.patch).not.toHaveBeenCalled();
@@ -350,11 +342,14 @@ describe('TrainingZoneBulkEditor', () => {
 
   it('does not delete a removed zone twice when retrying', async () => {
     await render({ zones: savedZones() });
-    await act(async () =>
-      container
-        .querySelector<HTMLButtonElement>('[aria-label="delete_ Zone 5"]')!
-        .click(),
-    );
+    const press = (label: string) =>
+      act(async () =>
+        container
+          .querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!
+          .click(),
+      );
+    await press('zones_customize Zone 5');
+    await press('delete_ Zone 5');
     api.patch.mockRejectedValueOnce(new Error('offline'));
     await save();
     expect(toast.error).toHaveBeenCalled();
@@ -362,6 +357,26 @@ describe('TrainingZoneBulkEditor', () => {
     await save();
     expect(completed).toBe(1);
     expect(api.delete.mock.calls).toEqual([['/training-zone/704']]);
+  });
+
+  it('needs a sport before saving zones made for one', async () => {
+    await render({ zones: savedZones() });
+    await click('zones_add_sport');
+    expect(profileNames()).toEqual(['sport_running', 'select_sports']);
+    expect(saveDisabled()).toBe(true);
+    expect(alerts()).toContain('hr_zones_invalid');
+
+    // Dropping the set brings back the zones as they were
+    await act(async () =>
+      container
+        .querySelector<HTMLButtonElement>('[aria-label="zones_remove_sport"]')!
+        .click(),
+    );
+    expect(profileNames()).toEqual(['sport_running']);
+    expect(saveDisabled()).toBe(false);
+    await save();
+    expect(api.post).not.toHaveBeenCalled();
+    expect(api.delete).not.toHaveBeenCalled();
   });
 
   it('leaves power zones without heart-rate options', async () => {

@@ -2,7 +2,6 @@ import { useSeasonEventsQuery } from '@/api/event';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { getItem, setItem } from '@/utils/local-storage';
 import { getDateFnsLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import {
@@ -19,6 +18,7 @@ import { Skeleton } from '../ui/skeleton';
 import { CalendarWeeklyLoadChart } from './calendar-weekly-load-chart';
 import { CompetitionPriorityBadge } from './competition-priority-badge';
 import { useCalendarContext } from './hooks/use-calendar-context';
+import { useCalendarDisplay } from './hooks/use-calendar-display';
 import {
   cycleBackground,
   cycleKindIcon,
@@ -34,8 +34,6 @@ import {
 } from './utils/season';
 import { getUtcWeekKey, getWeekEnd, getWeekStart } from './utils/week';
 import { formatCompactDuration } from './utils/week-summary';
-
-const SEASON_LENGTH_KEY = 'calendar_season_months';
 
 type Drag =
   | { mode: 'create'; from: number; to: number }
@@ -107,13 +105,10 @@ export function CalendarSeasonView() {
     setView,
     goToWeek,
   } = useCalendarContext();
-  const [length, setLengthState] = useState<SeasonLength>(() =>
-    Number(getItem(SEASON_LENGTH_KEY)) === 12 ? 12 : 6,
-  );
-  const setLength = (next: SeasonLength) => {
-    setLengthState(next);
-    setItem(SEASON_LENGTH_KEY, String(next));
-  };
+  const { display, updateDisplay } = useCalendarDisplay();
+  const length: SeasonLength = display.seasonMonths;
+  const setLength = (next: SeasonLength) =>
+    updateDisplay((current) => ({ ...current, seasonMonths: next }));
 
   const range = useMemo(
     () => seasonRange(displayedMonth, length),

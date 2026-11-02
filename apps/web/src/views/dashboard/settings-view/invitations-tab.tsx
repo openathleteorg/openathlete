@@ -9,20 +9,66 @@ import {
   useRejectInvitationMutation as useCoachRejectInvitationMutation,
 } from '@/api/coach';
 import { Button } from '@/components/ui/button';
-import { SkeletonTableRow } from '@/components/ui/skeleton';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { useUserRoles } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { toast } from 'sonner';
 
-import { SettingsSection } from './settings-section';
+import {
+  SettingsEmpty,
+  SettingsPanel,
+  SettingsRow,
+  SettingsRowsSkeleton,
+  SettingsSection,
+} from './settings-section';
+
+type Invitation = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+function InvitationRows({
+  invitations,
+  isPending,
+  onAccept,
+  onReject,
+}: {
+  invitations: Invitation[];
+  isPending: boolean;
+  onAccept: (id: number) => void;
+  onReject: (id: number) => void;
+}) {
+  return (
+    <SettingsPanel>
+      {invitations.map((invitation) => (
+        <SettingsRow
+          key={invitation.id}
+          stacked
+          title={invitation.name}
+          description={invitation.email}
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={() => onReject(invitation.id)}
+            disabled={isPending}
+          >
+            {m.reject()}
+          </Button>
+          <Button
+            size="sm"
+            className="flex-1 sm:flex-none"
+            onClick={() => onAccept(invitation.id)}
+            disabled={isPending}
+          >
+            {m.accept()}
+          </Button>
+        </SettingsRow>
+      ))}
+    </SettingsPanel>
+  );
+}
 
 export function InvitationsTab() {
   const roles = useUserRoles();
@@ -82,96 +128,32 @@ export function InvitationsTab() {
     (athleteInvitations && athleteInvitations.length > 0) ||
     (coachInvitations && coachInvitations.length > 0);
 
-  if (isLoading) {
-    return (
-      <SettingsSection
-        title={m.invitations()}
-        description={m.pending_invitations_description()}
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{m.coach()}</TableHead>
-              <TableHead>{m.email()}</TableHead>
-              <TableHead className="text-right">{m.actions()}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 2 }).map((_, i) => (
-              <SkeletonTableRow key={i} colCount={3} />
-            ))}
-          </TableBody>
-        </Table>
-      </SettingsSection>
-    );
-  }
+  if (isLoading) return <SettingsRowsSkeleton />;
 
   if (!hasInvitations) {
-    return (
-      <SettingsSection
-        title={m.invitations()}
-        description={m.pending_invitations_description()}
-      >
-        <div className="text-center text-sm text-muted-foreground">
-          {m.no_pending_invitations()}
-        </div>
-      </SettingsSection>
-    );
+    return <SettingsEmpty>{m.no_pending_invitations()}</SettingsEmpty>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {isAthlete && athleteInvitations && athleteInvitations.length > 0 && (
         <SettingsSection
           title={m.invitations_from_coaches()}
           description={m.invitations_from_coaches_description()}
         >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.coach()}</TableHead>
-                <TableHead>{m.email()}</TableHead>
-                <TableHead className="text-right">{m.actions()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {athleteInvitations.map((invitation) => (
-                <TableRow key={invitation.athleteInvitationId}>
-                  <TableCell>
-                    {invitation.user.firstName} {invitation.user.lastName}
-                  </TableCell>
-                  <TableCell>{invitation.user.email}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          rejectAthleteInvitation.mutate(
-                            invitation.athleteInvitationId,
-                          );
-                        }}
-                        disabled={rejectAthleteInvitation.isPending}
-                      >
-                        {m.reject()}
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          acceptAthleteInvitation.mutate(
-                            invitation.athleteInvitationId,
-                          );
-                        }}
-                        disabled={acceptAthleteInvitation.isPending}
-                      >
-                        {m.accept()}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <InvitationRows
+            invitations={athleteInvitations.map((invitation) => ({
+              id: invitation.athleteInvitationId,
+              name: `${invitation.user.firstName} ${invitation.user.lastName}`,
+              email: invitation.user.email,
+            }))}
+            isPending={
+              acceptAthleteInvitation.isPending ||
+              rejectAthleteInvitation.isPending
+            }
+            onAccept={(id) => acceptAthleteInvitation.mutate(id)}
+            onReject={(id) => rejectAthleteInvitation.mutate(id)}
+          />
         </SettingsSection>
       )}
 
@@ -180,53 +162,18 @@ export function InvitationsTab() {
           title={m.invitations_from_athletes()}
           description={m.invitations_from_athletes_description()}
         >
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{m.athlete()}</TableHead>
-                <TableHead>{m.email()}</TableHead>
-                <TableHead className="text-right">{m.actions()}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {coachInvitations.map((invitation) => (
-                <TableRow key={invitation.coachInvitationId}>
-                  <TableCell>
-                    {invitation.athleteUser.firstName}{' '}
-                    {invitation.athleteUser.lastName}
-                  </TableCell>
-                  <TableCell>{invitation.athleteUser.email}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          rejectCoachInvitation.mutate(
-                            invitation.coachInvitationId,
-                          );
-                        }}
-                        disabled={rejectCoachInvitation.isPending}
-                      >
-                        {m.reject()}
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          acceptCoachInvitation.mutate(
-                            invitation.coachInvitationId,
-                          );
-                        }}
-                        disabled={acceptCoachInvitation.isPending}
-                      >
-                        {m.accept()}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <InvitationRows
+            invitations={coachInvitations.map((invitation) => ({
+              id: invitation.coachInvitationId,
+              name: `${invitation.athleteUser.firstName} ${invitation.athleteUser.lastName}`,
+              email: invitation.athleteUser.email,
+            }))}
+            isPending={
+              acceptCoachInvitation.isPending || rejectCoachInvitation.isPending
+            }
+            onAccept={(id) => acceptCoachInvitation.mutate(id)}
+            onReject={(id) => rejectCoachInvitation.mutate(id)}
+          />
         </SettingsSection>
       )}
     </div>

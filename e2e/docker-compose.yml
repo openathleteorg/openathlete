@@ -17,6 +17,8 @@ x-api-env: &api-env
   CORS_ORIGINS: http://localhost:18080
   # Users can point AI features at the fake-llm service
   AI_ALLOW_CUSTOM_ENDPOINTS: 'true'
+  # Default remains bare/off; opt in only for the targeted real-startup smoke.
+  GARMIN_PERSONAL_API_ENABLED: '${E2E_GARMIN_PERSONAL_API_ENABLED:-false}'
 
 services:
   postgres:

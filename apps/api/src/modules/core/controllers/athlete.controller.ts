@@ -614,6 +614,19 @@ export class AthleteController {
           description: 'Whether comments are required',
           example: true,
         },
+        pinnedMetrics: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Metrics at the top of the metrics page',
+          example: ['WEIGHT', 'HR_REST'],
+        },
+        dismissedRecordSuspects: {
+          type: 'array',
+          items: { type: 'number' },
+          description:
+            'Activities with suspect records the athlete vouched for',
+          example: [12, 34],
+        },
         requireFeedbackQuestions: {
           type: 'boolean',
           description: 'Whether feedback questions are required',

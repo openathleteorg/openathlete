@@ -6,8 +6,12 @@ import { defineConfig } from 'vite';
 
 import { APP_LOCALE_COOKIE } from './src/utils/locale-cookie';
 
+// Only the hosted builds have the key: the others ship no source map
+const posthogApiKey = process.env.POSTHOG_API_KEY;
+
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(async () => ({
+  build: { sourcemap: posthogApiKey ? ('hidden' as const) : false },
   plugins: [
     paraglideVitePlugin({
       project: './project.inlang',
@@ -19,6 +23,13 @@ export default defineConfig({
     }),
     react(),
     tailwindcss(),
+    posthogApiKey &&
+      (await import('@posthog/rollup-plugin')).default({
+        personalApiKey: posthogApiKey,
+        projectId: process.env.POSTHOG_PROJECT_ID,
+        host: 'https://eu.posthog.com',
+        sourcemaps: { deleteAfterUpload: true },
+      }),
   ],
   resolve: {
     alias: {
@@ -36,4 +47,4 @@ export default defineConfig({
     host: true,
     port: 5173,
   },
-});
+}));

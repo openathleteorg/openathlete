@@ -4,7 +4,6 @@ import { AuthModule } from '../auth';
 import { CalendarModule } from '../calendar/calendar.module';
 import { OAuthTokensModule } from '../mcp/auth/oauth-tokens.module';
 import { MessagesModule } from '../messages/messages.module';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { QueueModule } from '../queue';
 import { EventController } from './controllers';
@@ -50,6 +49,7 @@ import { ActivityPipelineService } from './services/pipeline/activity-pipeline.s
 import {
   EquipmentProcessor,
   GapProcessor,
+  IntensityProcessor,
   NormalizationProcessor,
   RecordsProcessor,
   TrainingMatchProcessor,
@@ -98,7 +98,6 @@ import { WeatherService } from './services/weather/weather.service';
     AthleteSettingsService,
     CoachService,
     StatisticsService,
-    PrismaService,
     RecordService,
     EquipmentService,
     InjuryService,
@@ -125,6 +124,7 @@ import { WeatherService } from './services/weather/weather.service';
     NormalizationProcessor,
     TrainingMatchProcessor,
     EquipmentProcessor,
+    IntensityProcessor,
     {
       provide: ActivityPipelineService,
       useFactory: (
@@ -134,6 +134,7 @@ import { WeatherService } from './services/weather/weather.service';
         weather: WeatherProcessor,
         normalization: NormalizationProcessor,
         trainingMatch: TrainingMatchProcessor,
+        intensity: IntensityProcessor,
       ) =>
         new ActivityPipelineService([
           equipment,
@@ -142,6 +143,7 @@ import { WeatherService } from './services/weather/weather.service';
           weather,
           normalization,
           trainingMatch,
+          intensity,
         ]),
       inject: [
         EquipmentProcessor,
@@ -150,6 +152,7 @@ import { WeatherService } from './services/weather/weather.service';
         WeatherProcessor,
         NormalizationProcessor,
         TrainingMatchProcessor,
+        IntensityProcessor,
       ],
     },
   ],
@@ -158,6 +161,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityRecordsService,
     ActivityPipelineService,
     GapProcessor,
+    IntensityProcessor,
     NormalizationProcessor,
     ActivityDetailService,
     TrainingLoadService,
@@ -165,6 +169,7 @@ import { WeatherService } from './services/weather/weather.service';
     CycleService,
     ActivityFileParserService,
     // For the MCP server's tools
+    StatisticsService,
     EventBulkService,
     EventSeriesService,
     MetricService,

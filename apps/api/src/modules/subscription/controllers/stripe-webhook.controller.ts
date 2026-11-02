@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Optional,
   Post,
   RawBodyRequest,
   Req,
@@ -18,6 +19,10 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
+import {
+  AnalyticsService,
+  stableUuid,
+} from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { StripeService } from '../services/stripe.service';
@@ -38,6 +43,7 @@ export class StripeWebhookController {
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   @Post()
@@ -105,25 +111,51 @@ export class StripeWebhookController {
       switch (event.type) {
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
-          await this.handleCheckoutSessionCompleted(session);
+          await this.handleCheckoutSessionCompleted(session, event.id);
           break;
         }
 
         case 'customer.subscription.updated': {
           const subscription = event.data.object as Stripe.Subscription;
-          await this.handleSubscriptionUpdated(subscription);
+          await this.handleSubscriptionUpdated(subscription, event.id);
           break;
         }
 
         case 'customer.subscription.deleted': {
           const subscription = event.data.object as Stripe.Subscription;
-          await this.handleSubscriptionDeleted(subscription);
+          await this.handleSubscriptionDeleted(subscription, event.id);
           break;
         }
 
         case 'invoice.paid': {
           const invoice = event.data.object as Stripe.Invoice;
-          await this.handleInvoicePaid(invoice);
+          await this.handleInvoicePaid(invoice, event.id);
+          break;
+        }
+
+        case 'invoice.payment_failed': {
+          const invoice = event.data.object as Stripe.Invoice;
+          await this.reportForCustomer(
+            invoice.customer,
+            'subscription_payment_failed',
+            event.id,
+            {
+              attempt: invoice.attempt_count,
+              amount: invoice.amount_due / 100,
+              currency: invoice.currency,
+            },
+          );
+          break;
+        }
+
+        case 'charge.refunded': {
+          const charge = event.data.object as Stripe.Charge;
+          await this.reportForCustomer(
+            charge.customer,
+            'subscription_refunded',
+            event.id,
+            { amount: charge.amount_refunded / 100, currency: charge.currency },
+          );
           break;
         }
 
@@ -138,6 +170,7 @@ export class StripeWebhookController {
 
   private async handleCheckoutSessionCompleted(
     session: Stripe.Checkout.Session,
+    eventId: string,
   ) {
     if (session.mode !== 'subscription') {
       return;
@@ -193,6 +226,20 @@ export class StripeWebhookController {
 
     this.logger.log(`Supporter subscription created for user ${userId}`);
 
+    await this.analytics?.capture(
+      numericUserId,
+      'subscription_started',
+      {
+        store: 'stripe',
+        amount: (session.amount_total ?? 0) / 100,
+        currency: session.currency,
+      },
+      {
+        uuid: stableUuid(eventId),
+        set: { plan: 'SUPPORTER', store: 'stripe' },
+      },
+    );
+
     const user = await this.prisma.user.findUnique({
       where: { userId: numericUserId },
       select: { email: true, firstName: true },
@@ -214,11 +261,33 @@ export class StripeWebhookController {
     }
   }
 
-  private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
+  private async handleSubscriptionUpdated(
+    subscription: Stripe.Subscription,
+    eventId: string,
+  ) {
     try {
-      await this.subscriptionService.updateSubscriptionFromWebhook(
-        subscription,
-      );
+      const previous = await this.prisma.subscription.findUnique({
+        where: { stripeSubscriptionId: subscription.id },
+        select: { cancelAtPeriodEnd: true },
+      });
+      const updated =
+        await this.subscriptionService.updateSubscriptionFromWebhook(
+          subscription,
+        );
+      // Also catches cancellations made in the Stripe portal
+      if (
+        previous &&
+        previous.cancelAtPeriodEnd !== updated.cancelAtPeriodEnd
+      ) {
+        await this.analytics?.capture(
+          updated.userId,
+          updated.cancelAtPeriodEnd
+            ? 'subscription_cancel_scheduled'
+            : 'subscription_cancel_reverted',
+          { store: 'stripe' },
+          { uuid: stableUuid(eventId) },
+        );
+      }
     } catch (e) {
       if (e instanceof SubscriptionUserMissingError) {
         this.logger.error(
@@ -231,10 +300,20 @@ export class StripeWebhookController {
     this.logger.log(`Subscription updated: ${subscription.id}`);
   }
 
-  private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
+  private async handleSubscriptionDeleted(
+    subscription: Stripe.Subscription,
+    eventId: string,
+  ) {
     try {
-      await this.subscriptionService.updateSubscriptionFromWebhook(
-        subscription,
+      const { userId } =
+        await this.subscriptionService.updateSubscriptionFromWebhook(
+          subscription,
+        );
+      await this.analytics?.capture(
+        userId,
+        'subscription_ended',
+        { store: 'stripe' },
+        { uuid: stableUuid(eventId), set: { plan: 'FREE' } },
       );
     } catch (e) {
       if (e instanceof SubscriptionUserMissingError) {
@@ -248,9 +327,39 @@ export class StripeWebhookController {
     this.logger.log(`Subscription deleted: ${subscription.id}`);
   }
 
-  private async handleInvoicePaid(invoice: Stripe.Invoice) {
-    // Invoice paid events are handled automatically by Stripe
-    // We can add additional logic here if needed (e.g., send confirmation email)
+  private async handleInvoicePaid(invoice: Stripe.Invoice, eventId: string) {
     this.logger.log(`Invoice paid: ${invoice.id}`);
+    // The first invoice is the checkout, already reported
+    if (invoice.billing_reason === 'subscription_cycle') {
+      await this.reportForCustomer(
+        invoice.customer,
+        'subscription_renewed',
+        eventId,
+        { amount: invoice.amount_paid / 100, currency: invoice.currency },
+      );
+    }
+  }
+
+  private async reportForCustomer(
+    customer: string | Stripe.Customer | Stripe.DeletedCustomer | null,
+    event: string,
+    eventId: string,
+    properties: Record<string, string | number | null>,
+  ) {
+    const stripeCustomerId =
+      typeof customer === 'string' ? customer : customer?.id;
+    if (!stripeCustomerId) return;
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { stripeCustomerId },
+      select: { userId: true },
+    });
+    if (subscription) {
+      await this.analytics?.capture(
+        subscription.userId,
+        event,
+        { store: 'stripe', ...properties },
+        { uuid: stableUuid(eventId) },
+      );
+    }
   }
 }

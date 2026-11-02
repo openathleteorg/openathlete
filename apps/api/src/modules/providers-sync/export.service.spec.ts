@@ -11,7 +11,7 @@ jest.mock('./adapters', () => ({
 const normalized = {
   sport: 'RUNNING',
   title: 'Intervals',
-  steps: [],
+  steps: [{ orderIndex: 0 }],
 } as unknown as NormalizedWorkout;
 
 function setup(existing: Record<string, unknown> | null) {
@@ -66,6 +66,19 @@ describe('ProviderExportService.upsertPlannedExport', () => {
     expect(result).toEqual({ skipped: true, externalId: '55' });
     expect(again.garmin.upsertPlannedWorkout).not.toHaveBeenCalled();
     expect(again.prisma.providerWorkoutExport.upsert).not.toHaveBeenCalled();
+  });
+
+  it('skips a session without steps, which is no failure', async () => {
+    const { service, prisma, garmin } = setup(null);
+
+    const result = await service.upsertPlannedExport({
+      ...params,
+      normalized: { ...normalized, steps: [] },
+    });
+
+    expect(result).toEqual({ skipped: true });
+    expect(garmin.upsertPlannedWorkout).not.toHaveBeenCalled();
+    expect(prisma.providerWorkoutExport.upsert).not.toHaveBeenCalled();
   });
 
   it('only treats exports of other days as stale', async () => {

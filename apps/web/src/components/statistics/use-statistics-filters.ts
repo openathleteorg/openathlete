@@ -1,7 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { SPORT_TYPE, endOfDay, startOfDay } from '@openathlete/shared';
+import {
+  SPORT_GROUPS,
+  SPORT_TYPE,
+  SportGroup,
+  endOfDay,
+  startOfDay,
+} from '@openathlete/shared';
 
 import {
   Period,
@@ -28,17 +34,40 @@ const oneOf = <T extends string>(
   fallback: T,
 ): T => (options.includes(value as T) ? (value as T) : fallback);
 
+export const STATISTICS_VIEWS = [
+  'overview',
+  'load',
+  'capacities',
+  'trends',
+  'review',
+] as const;
+export type StatisticsView = (typeof STATISTICS_VIEWS)[number];
+
+export const STATISTICS_CAPACITIES = [
+  'profile',
+  'terrain',
+  'endurance',
+  'physiology',
+  'performance',
+] as const;
+export type StatisticsCapacity = (typeof STATISTICS_CAPACITIES)[number];
+
 export interface StatisticsFiltersState {
+  view: StatisticsView;
+  setView: (view: StatisticsView) => void;
+  capacity: StatisticsCapacity;
+  setCapacity: (capacity: StatisticsCapacity) => void;
   periodType: StatisticsPeriodType;
   offset: number;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
   comparison: StatisticsComparison;
   /** Null until the first activity is known, for the whole history */
   period: Period | null;
   compared: Period | null;
   setPeriodType: (type: StatisticsPeriodType) => void;
   setOffset: (offset: number) => void;
-  setSport: (sport: SPORT_TYPE | null) => void;
+  setSport: (sport: SPORT_TYPE | null, group?: SportGroup | null) => void;
   setComparison: (comparison: StatisticsComparison) => void;
   setCustomPeriod: (period: Period) => void;
 }
@@ -51,6 +80,12 @@ export function useStatisticsFilters(
   firstActivityDate: Date | null | undefined,
 ): StatisticsFiltersState {
   const [params, setParams] = useSearchParams();
+  const view = oneOf(STATISTICS_VIEWS, params.get('view'), 'overview');
+  const capacity = oneOf(
+    STATISTICS_CAPACITIES,
+    params.get('capacity'),
+    'profile',
+  );
   const periodType = oneOf(
     STATISTICS_PERIODS,
     params.get('period'),
@@ -61,6 +96,11 @@ export function useStatisticsFilters(
   const sport = Object.values(SPORT_TYPE).includes(sportParam as SPORT_TYPE)
     ? (sportParam as SPORT_TYPE)
     : null;
+  const groupParam = params.get('group');
+  const group =
+    !sport && groupParam && groupParam in SPORT_GROUPS
+      ? (groupParam as SportGroup)
+      : null;
   const comparison = oneOf(
     STATISTICS_COMPARISONS,
     params.get('compare'),
@@ -108,9 +148,15 @@ export function useStatisticsFilters(
   );
 
   return {
+    view,
+    capacity,
+    setCapacity: (next) =>
+      update({ capacity: next === 'profile' ? null : next }),
+    setView: (next) => update({ view: next === 'overview' ? null : next }),
     periodType,
     offset,
     sport,
+    group,
     comparison,
     period,
     compared: period && comparedPeriod(period, comparison),
@@ -123,7 +169,8 @@ export function useStatisticsFilters(
           : { from: null, to: null }),
       }),
     setOffset: (next) => update({ offset: next === 0 ? null : String(next) }),
-    setSport: (next) => update({ sport: next }),
+    setSport: (next, nextGroup = null) =>
+      update({ sport: next, group: nextGroup }),
     setComparison: (next) => update({ compare: next === 'none' ? null : next }),
     setCustomPeriod: ({ start, end }) =>
       update({ period: 'custom', from: dateKey(start), to: dateKey(end) }),

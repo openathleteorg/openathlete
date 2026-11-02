@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { AiModule } from '../ai';
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core/core.module';
-import { PrismaService } from '../prisma/services/prisma.service';
 import { SubscriptionModule } from '../subscription';
 import { WebSocketModule } from '../websocket/websocket.module';
 import { AIFeaturesController } from './controllers/ai-features.controller';
@@ -19,7 +18,6 @@ import { EventModificationService } from './services/event-modification.service'
     WebSocketModule,
   ],
   controllers: [AIFeaturesController],
-  providers: [EventGenerationService, EventModificationService, PrismaService],
-  exports: [],
+  providers: [EventGenerationService, EventModificationService],
 })
 export class AgentModule {}

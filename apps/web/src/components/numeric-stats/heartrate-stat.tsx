@@ -39,9 +39,7 @@ export function HeartrateStat({ label, heartrate, sport, athleteId }: P) {
         <div className="text-sm font-semibold">{label}</div>
         <div>
           {heartrate}{' '}
-          <span className="text-gray-500 dark:text-gray-400 text-sm">
-            {m.bpm()}
-          </span>
+          <span className="text-muted-foreground text-sm">{m.bpm()}</span>
         </div>
       </PopoverTrigger>
       <PopoverContent>
@@ -49,7 +47,7 @@ export function HeartrateStat({ label, heartrate, sport, athleteId }: P) {
         {percentOfMax !== null && (
           <div>
             {percentOfMax}
-            <span className="text-gray-500 dark:text-gray-400 text-sm">
+            <span className="text-muted-foreground text-sm">
               {' '}
               {m.percent_of_max_heart_rate()}
             </span>

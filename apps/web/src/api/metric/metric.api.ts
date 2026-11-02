@@ -21,11 +21,13 @@ export class MetricAPI {
   static async getMetrics(
     type?: METRIC_TYPE,
     athleteId?: number,
+    from?: string,
   ): Promise<AthleteMetric[]> {
     const res = await client.get(routes.metric.getMetrics, {
       params: {
         ...(type && { type }),
         ...(athleteId && { athleteId }),
+        ...(from && { from }),
       },
     });
     return res.data;

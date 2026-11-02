@@ -8,6 +8,7 @@ import {
   DuplicateWorkoutDto,
   Event,
   EventNormalizationFactorDto,
+  EventSearchResult,
   GetEventWeatherResponseDto,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
@@ -95,6 +96,11 @@ export class EventAPI {
     });
     const data = res.data as Event[];
     return data.map((event) => mapEvent(event));
+  }
+
+  static async searchActivities(q: string): Promise<EventSearchResult[]> {
+    const res = await client.get(routes.event.search, { params: { q } });
+    return res.data as EventSearchResult[];
   }
 
   /** Applies a correction over the activity's recording, returns it */

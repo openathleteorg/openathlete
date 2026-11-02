@@ -70,7 +70,7 @@ function ElevationFieldAdapter({
         )}
       />
       <div className="rounded-l-none rounded-r-md border border-l-0 shadow-xs py-1.25 px-3 text-base">
-        <span className="text-md text-gray-500">{m.meters()}</span>
+        <span className="text-md text-muted-foreground">{m.meters()}</span>
       </div>
     </div>
   );

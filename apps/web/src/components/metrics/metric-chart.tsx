@@ -1,155 +1,178 @@
-import { AthleteMetric, useGetMetricHistoryQuery } from '@/api/metric';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from '@/components/ui/chart';
-import { SkeletonChart } from '@/components/ui/skeleton';
+import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getMetricUnit } from '@/utils/metric-unit';
-import { cn } from '@/utils/shadcn';
-import { format } from 'date-fns';
-import { useMemo, useState } from 'react';
-import { Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
+import { useMemo } from 'react';
+import {
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  ReferenceArea,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
-import { METRIC_TYPE, metricsByCategory } from '@openathlete/shared';
+import { METRIC_TYPE } from '@openathlete/shared';
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+  MetricAnalysis,
+  formatMetricValue,
+  hasOwnUnit,
+  metricDayNumber,
+} from './metric-stats';
+import { useMetricDateLabel } from './metric-utils';
 
-interface MetricChartProps {
-  className?: string;
-  initialType?: METRIC_TYPE;
-  athleteId?: number;
+/** Round axis steps. An axis from 0 would flatten every change that matters. */
+function roundTicks(low: number, high: number) {
+  const span = high - low || Math.abs(high) * 0.1 || 1;
+  const magnitude = 10 ** Math.floor(Math.log10(span / 4));
+  const step =
+    [1, 2, 5, 10]
+      .map((factor) => factor * magnitude)
+      .find((candidate) => candidate >= span / 4) ?? magnitude;
+  const first = Math.floor(low / step);
+  const last = Math.max(Math.ceil(high / step), first + 1);
+  return Array.from({ length: last - first + 1 }, (_, index) =>
+    Number(((first + index) * step).toFixed(2)),
+  );
 }
 
-export function MetricChart({
-  className,
-  initialType,
-  athleteId,
-}: MetricChartProps) {
-  const [selectedType, setSelectedType] = useState<METRIC_TYPE>(
-    initialType || METRIC_TYPE.WEIGHT,
+interface ChartRow {
+  dayNumber: number;
+  day: string;
+  value: number;
+  trend: number;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: { payload: ChartRow }[];
+  type: METRIC_TYPE;
+  dateLabel: (day: string) => string;
+}
+
+function MetricTooltip({ active, payload, type, dateLabel }: TooltipProps) {
+  const row = payload?.[0]?.payload;
+  if (!active || !row) return null;
+  return (
+    <div className="rounded-lg border bg-background px-2.5 py-1.5 text-xs tabular-nums shadow-sm">
+      <span className="font-semibold">
+        {formatMetricValue(type, row.value)}
+        {!hasOwnUnit(type) && ` ${getMetricUnit(type)}`}
+      </span>
+      <span className="text-muted-foreground"> · {dateLabel(row.day)}</span>
+    </div>
   );
+}
 
-  const { data: history = [], isPending: isLoading } = useGetMetricHistoryQuery(
-    selectedType,
-    athleteId,
-  );
+interface P {
+  type: METRIC_TYPE;
+  analysis: MetricAnalysis;
+  /** Days shown, counted back from the last value */
+  days: number;
+}
 
-  const chartData = useMemo(() => {
-    return history.map((metric: AthleteMetric) => ({
-      date: format(new Date(metric.date), 'dd/MM/yyyy'),
-      value: metric.value,
-      fullDate: new Date(metric.date),
-      notes: metric.notes,
-    }));
-  }, [history]);
+export function MetricChart({ type, analysis, days }: P) {
+  const dateLabel = useMetricDateLabel();
+  const { points, trend, baseline, last } = analysis;
 
-  const categoriesWithLabels = {
-    [m.health_composition()]: metricsByCategory.health_composition,
-    [m.cardiac()]: metricsByCategory.cardiac,
-    [m.performance_physiology()]: metricsByCategory.performance_physiology,
-  };
+  const { rows, first, end } = useMemo(() => {
+    const end = last ? metricDayNumber(last.day) : 0;
+    const first = end - days + 1;
+    const rows: ChartRow[] = points
+      .map((point, index) => ({
+        day: point.day,
+        dayNumber: metricDayNumber(point.day),
+        value: point.value,
+        trend: trend[index].value,
+      }))
+      .filter((row) => row.dayNumber >= first);
+    return { rows, first, end };
+  }, [points, trend, last, days]);
+
+  const ticks = useMemo(() => {
+    const values = rows.map((row) => row.value);
+    if (baseline) values.push(baseline.low, baseline.high);
+    return roundTicks(Math.min(...values), Math.max(...values));
+  }, [rows, baseline]);
 
   return (
-    <div className={cn('space-y-4', className)}>
-      <div className="flex items-center justify-between">
-        <Select
-          value={selectedType}
-          onValueChange={(v) => setSelectedType(v as METRIC_TYPE)}
-        >
-          <SelectTrigger className="w-[300px]">
-            <SelectValue placeholder={m.select_metric_to_view()} />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(categoriesWithLabels).map(
-              ([category, types], idx) => (
-                <div key={category}>
-                  {idx > 0 && <div className="h-px bg-border my-1" />}
-                  <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                    {category}
-                  </div>
-                  {types.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {metricTypeLabelMap[type]}
-                    </SelectItem>
-                  ))}
-                </div>
-              ),
-            )}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {isLoading ? (
-        <SkeletonChart />
-      ) : chartData.length > 0 ? (
-        <ChartContainer
-          config={{
-            value: {
-              label: metricTypeLabelMap[selectedType],
-              color: 'var(--chart-1)',
-            },
+    <ChartContainer
+      config={{ value: { label: metricTypeLabelMap[type] } }}
+      className="h-[260px] w-full"
+      role="img"
+      aria-label={m.metrics_chart_label({
+        metric: metricTypeLabelMap[type],
+      })}
+    >
+      <ComposedChart
+        data={rows}
+        margin={{ top: 8, right: 8, left: 0, bottom: 0 }}
+      >
+        <CartesianGrid vertical={false} stroke="var(--border)" />
+        <XAxis
+          dataKey="dayNumber"
+          type="number"
+          domain={[first, end]}
+          tickFormatter={(dayNumber: number) =>
+            dateLabel(
+              new Date(dayNumber * 86_400_000).toISOString().slice(0, 10),
+            )
+          }
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          minTickGap={48}
+          tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+        />
+        <YAxis
+          type="number"
+          domain={[ticks[0], ticks[ticks.length - 1]]}
+          ticks={ticks}
+          tickFormatter={(value: number) => String(value)}
+          tickLine={false}
+          axisLine={false}
+          width={40}
+          tick={{ fill: 'var(--muted-foreground)', fontSize: 11 }}
+        />
+        {baseline && (
+          <ReferenceArea
+            y1={baseline.low}
+            y2={baseline.high}
+            fill="var(--chart-2)"
+            fillOpacity={0.12}
+            stroke="none"
+            ifOverflow="extendDomain"
+          />
+        )}
+        <ChartTooltip
+          cursor={{ stroke: 'var(--border)' }}
+          content={<MetricTooltip type={type} dateLabel={dateLabel} />}
+        />
+        <Line
+          dataKey="value"
+          stroke={baseline ? 'none' : 'var(--chart-2)'}
+          strokeWidth={2}
+          dot={{
+            r: baseline ? 2 : 3.5,
+            fill: 'var(--chart-2)',
+            fillOpacity: baseline ? 0.4 : 1,
+            stroke: 'none',
           }}
-          className="h-[400px] w-full"
-        >
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} tickMargin={10} />
-              <YAxis
-                tick={{ fontSize: 12 }}
-                tickMargin={10}
-                label={{
-                  value: getMetricUnit(selectedType),
-                  angle: -90,
-                  position: 'insideLeft',
-                  style: { fontSize: 12 },
-                }}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    formatter={(value) => (
-                      <>
-                        {value} {getMetricUnit(selectedType)}
-                      </>
-                    )}
-                  />
-                }
-              />
-              <Line
-                type="monotone"
-                dataKey="value"
-                stroke="var(--chart-1)"
-                strokeWidth={3}
-                dot={{
-                  r: 6,
-                  fill: 'var(--chart-1)',
-                  stroke: 'hsl(var(--background))',
-                  strokeWidth: 2,
-                }}
-                activeDot={{
-                  r: 8,
-                  fill: 'var(--chart-1)',
-                  stroke: 'hsl(var(--background))',
-                  strokeWidth: 2,
-                }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      ) : (
-        <div className="h-[400px] flex items-center justify-center border rounded-lg bg-muted/50">
-          <p className="text-muted-foreground">{m.no_data_for_metric()}</p>
-        </div>
-      )}
-    </div>
+          activeDot={{ r: 5, fill: 'var(--chart-2)', stroke: 'none' }}
+          isAnimationActive={false}
+        />
+        {baseline && (
+          <Line
+            dataKey="trend"
+            stroke="var(--chart-2)"
+            strokeWidth={2}
+            dot={false}
+            activeDot={false}
+            isAnimationActive={false}
+          />
+        )}
+      </ComposedChart>
+    </ChartContainer>
   );
 }

@@ -7,6 +7,7 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
 import {
   SPORT_TYPE,
+  SportGroup,
   StatisticsDaysDto,
   formatDuration,
   getSportConfig,
@@ -23,6 +24,7 @@ interface P {
   athleteId: number;
   period: Period | null;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
 }
 
 const LEVELS = [
@@ -41,9 +43,10 @@ function Calendar({
   const locale = getDateFnsLocale(getLocale());
   return (
     <div className="overflow-x-auto" data-activity-calendar>
-      <div className="flex w-max gap-[3px]">
+      {/* Fills the card; on a phone the year scrolls instead of shrinking */}
+      <div className="flex min-w-[720px] gap-[3px]">
         {weeks.map((week, index) => (
-          <div key={index} className="flex flex-col gap-[3px]">
+          <div key={index} className="flex flex-1 flex-col gap-[3px]">
             {week.map((cell, dayIndex) =>
               cell ? (
                 <div
@@ -52,10 +55,10 @@ function Calendar({
                     date: format(parseISO(cell.date), 'PP', { locale }),
                     time: formatDuration(cell.movingTime),
                   })}
-                  className={`size-3 rounded-[2px] ${LEVELS[cell.level]}`}
+                  className={`aspect-square w-full rounded-[2px] ${LEVELS[cell.level]}`}
                 />
               ) : (
-                <div key={dayIndex} className="size-3" />
+                <div key={dayIndex} className="aspect-square w-full" />
               ),
             )}
           </div>
@@ -165,7 +168,7 @@ function Regularity({
                     formatter={(value, name) => (
                       <div className="flex w-full items-center gap-2 text-xs text-muted-foreground">
                         {labels[name as keyof typeof labels]}
-                        <span className="ml-auto font-mono font-medium tabular-nums text-foreground">
+                        <span className="ml-auto font-medium tabular-nums text-foreground">
                           {Math.round(Number(value))} {unit}
                         </span>
                       </div>
@@ -218,7 +221,7 @@ function Regularity({
 }
 
 /** The year as a whole: it does not follow the period, but the year it ends. */
-export function RegularitySection({ athleteId, period, sport }: P) {
+export function RegularitySection({ athleteId, period, sport, group }: P) {
   const year = (period?.end ?? new Date()).getFullYear();
   return (
     <StatSection id="regularity" title={m.statistics_section_regularity()}>
@@ -227,6 +230,7 @@ export function RegularitySection({ athleteId, period, sport }: P) {
           athleteId={athleteId}
           year={year}
           sport={sport}
+          group={group}
           visible={visible && !!period}
         />
       )}
@@ -238,11 +242,13 @@ function RegularityData({
   athleteId,
   year,
   sport,
+  group,
   visible,
 }: {
   athleteId: number;
   year: number;
   sport: SPORT_TYPE | null;
+  group: SportGroup | null;
   visible: boolean;
 }) {
   const { data } = useStatisticsDaysQuery(
@@ -251,6 +257,7 @@ function RegularityData({
       from: new Date(year - 1, 0, 1),
       to: new Date(year, 11, 31, 23, 59, 59),
       sport: sport ?? undefined,
+      group: group ?? undefined,
     },
     visible,
   );

@@ -226,6 +226,7 @@ export class MetricService {
     user: AuthUser,
     type?: MetricType,
     athleteId?: Athlete['athleteId'],
+    from?: Date,
   ): Promise<AthleteMetric[]> {
     const ability = await this.abilities.getFor({ user });
 
@@ -271,6 +272,7 @@ export class MetricService {
       where: {
         athleteId: targetAthleteId,
         ...(type && { type }),
+        ...(from && { date: { gte: from } }),
       },
       orderBy: [{ type: 'asc' }, { date: 'desc' }],
     });

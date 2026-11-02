@@ -32,15 +32,6 @@ export const formStatusDotClass: Record<FormStatus, string> = {
   detraining: 'bg-blue-500',
 };
 
-export const formStatusBackgroundClass: Record<FormStatus, string> = {
-  overtraining:
-    'from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30',
-  optimal:
-    'from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30',
-  detraining:
-    'from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30',
-};
-
 /** Signed, rounded form value: "+12", "-4", "0" */
 export const formatForm = (tsb: number) => {
   const rounded = Math.round(tsb);

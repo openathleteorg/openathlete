@@ -32,17 +32,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Loader } from '@/components/ui/loader';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { type PageAction, useSetPageActions } from '@/hooks/use-page-actions';
+import { type PageAction } from '@/hooks/use-page-actions';
 import { m } from '@/paraglide/messages';
+import { activityPath } from '@/routes/paths';
 import { AnalyticsEvent } from '@/utils/analytics-events';
-import { CALENDAR_COLORED_BY, getItem, setItem } from '@/utils/local-storage';
+import { cn } from '@/utils/shadcn';
 import { DragEndEvent } from '@dnd-kit/core';
 import { useQueryClient } from '@tanstack/react-query';
 import { format, isValid, parseISO } from 'date-fns';
 import {
   Activity,
   Award,
-  ChevronDown,
   Copy,
   Plus,
   Sparkles,
@@ -51,6 +51,7 @@ import {
 import { usePostHog } from 'posthog-js/react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
@@ -69,7 +70,6 @@ import { CreateCycleDialog } from '../create-cycle-dialog';
 import { CreateEventDialog } from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
 import { ImportFitDialog } from '../import-fit-dialog/import-fit-dialog';
-import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarBody } from './calendar-body';
 import { CalendarBulkDelete } from './calendar-bulk-delete';
 import { CalendarEventDetailsDialog } from './calendar-event-details.dialog';
@@ -77,9 +77,7 @@ import { CalendarHeader } from './calendar-header';
 import { CalendarMobileList } from './calendar-mobile-list';
 import { CalendarSeasonView } from './calendar-season-view';
 import { CalendarShortcutsDialog } from './calendar-shortcuts-dialog';
-import { CalendarViewToggle } from './calendar-view-toggle';
 import { CalendarWeekView } from './calendar-week-view';
-import { ComplianceLegend } from './compliance-badge';
 import { CalendarContext } from './contexts/calendar-context';
 import { EventClipboardProvider } from './contexts/event-clipboard-context';
 import { EventContextMenuProvider } from './contexts/event-context-menu-context';
@@ -122,20 +120,27 @@ export function Calendar({
   const posthog = usePostHog();
   const isMobile = useIsMobile();
   const [planningDate, setPlanningDate] = useState(() => new Date());
-  const [view, setViewState] = useState<CalendarView>(() => {
+  const [planSheetOpen, setPlanSheetOpen] = useState(false);
+  const { display, updateDisplay } = useCalendarDisplay();
+  // A link can ask for a view without changing the saved one
+  const [chosenView, setChosenView] = useState<CalendarView | null>(() => {
     const requested = new URLSearchParams(window.location.search).get('view');
-    const saved = requested ?? getItem('calendar_view');
-    return saved === 'week' || saved === 'season' ? saved : 'month';
+    return requested === 'week' ||
+      requested === 'season' ||
+      requested === 'month'
+      ? requested
+      : null;
   });
+  const view = chosenView ?? display.view;
   const calendarData = useCalendarData({ events, view });
   const { goToWeek, displayedMonth } = calendarData;
   const setView = useCallback(
     (next: CalendarView) => {
       if (next === 'week') goToWeek(displayedMonth);
-      setViewState(next);
-      setItem('calendar_view', next);
+      setChosenView(next);
+      updateDisplay((current) => ({ ...current, view: next }));
     },
-    [goToWeek, displayedMonth],
+    [goToWeek, displayedMonth, updateDisplay],
   );
   const { data: cycles } = useGetMyCyclesQuery(undefined, athleteId);
   const { available: hasAIAccess } = useAiTaskAvailable(
@@ -159,7 +164,6 @@ export function Calendar({
     return { start, end };
   }, [weekRangeStart, weekRangeEnd]);
 
-  const { display, updateDisplay } = useCalendarDisplay();
   // Files import into the signed-in athlete's own activities only
   const { data: myAthlete } = useGetMyAthleteQuery();
   const ownCalendar = !athleteId || athleteId === myAthlete?.athleteId;
@@ -393,9 +397,26 @@ export function Calendar({
     };
   }, [athleteId, queryClient, refetchWeeklyLoadSummary]);
 
+  // ?event= opens a session from another screen, such as Today
   const [eventDetailsOpened, setEventDetailsOpened] = useState<
     Event['eventId'] | null
-  >(null);
+  >(() => {
+    const id = new URLSearchParams(window.location.search).get('event');
+    return id ? Number(id) : null;
+  });
+  // A finished activity is a screen of its own on a phone, not a dialog
+  const navigate = useNavigate();
+  const openEventDetails = useCallback(
+    (eventId: Event['eventId'] | null) => {
+      const event = calendarData.events.find((e) => e.eventId === eventId);
+      if (isMobile && event?.type === EVENT_TYPE.ACTIVITY) {
+        navigate(activityPath(event.eventId));
+      } else {
+        setEventDetailsOpened(eventId);
+      }
+    },
+    [calendarData.events, isMobile, navigate],
+  );
   const [createEventDialog, setCreateEventDialog] = useState<{
     date: Date;
     type: EVENT_TYPE;
@@ -437,10 +458,12 @@ export function Calendar({
   const [filter, setFilter] = useState<(event: Event) => boolean>(
     () => () => true,
   );
-  const [coloredBy, setColoredBy] = useState<COLORED_BY | null>(() => {
-    const savedValue = getItem(CALENDAR_COLORED_BY);
-    return savedValue ? (savedValue as COLORED_BY) : null;
-  });
+  const coloredBy = display.coloredBy as COLORED_BY | null;
+  const setColoredBy = useCallback(
+    (next: COLORED_BY | null) =>
+      updateDisplay((current) => ({ ...current, coloredBy: next })),
+    [updateDisplay],
+  );
   const updateEventMutation = useUpdateEventMutation();
   const duplicateEventMutation = useDuplicateEventMutation({
     onSuccess: (duplicated) => {
@@ -537,15 +560,6 @@ export function Calendar({
     [updateCycleMutation, queryClient],
   );
 
-  // Persist coloredBy to localStorage
-  useEffect(() => {
-    if (coloredBy) {
-      setItem(CALENDAR_COLORED_BY, coloredBy);
-    } else {
-      setItem(CALENDAR_COLORED_BY, '');
-    }
-  }, [coloredBy]);
-
   const memoizedValue = useMemo<CalendarContextType>(
     () => ({
       ...calendarData,
@@ -558,7 +572,7 @@ export function Calendar({
       },
       createEventFromTemplate: setCreateEventFromTemplateDialog,
       createEventWithAI: setAIGenerateEventDialog,
-      openEventDetails: setEventDetailsOpened,
+      openEventDetails,
       eventDetailsOpened,
       editEvent: (eventId) => setEditEventDialog(eventId),
       showShortcuts: () => setShortcutsOpen(true),
@@ -799,8 +813,6 @@ export function Calendar({
     return actions;
   }, [isMobile, allowCreate, hasAIAccess, planningDate]);
 
-  useSetPageActions(mobileActions);
-
   // Handle global mouse up to end drag selection and cycle resize
   useEffect(() => {
     const handleGlobalMouseUp = () => {
@@ -846,74 +858,45 @@ export function Calendar({
   }, [dragSelection, cycleResize, updateCycleDates]);
 
   return (
-    <div className="flex flex-col gap-3">
-      {mobileActions.length > 0 && (
-        <div
-          data-calendar-planning-toolbar
-          className="flex flex-wrap items-end gap-3 px-4 py-2 md:hidden"
-        >
-          <label className="flex min-w-36 flex-1 flex-col gap-1 text-sm font-medium">
-            {m.date()}
-            <Input
-              type="date"
-              className="h-11"
-              value={format(planningDate, 'yyyy-MM-dd')}
-              onChange={(event) => {
-                const date = parseISO(event.target.value);
-                if (isValid(date)) setPlanningDate(date);
-              }}
-            />
-          </label>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button className="h-11" data-calendar-plan-trigger>
-                <Plus className="size-4" />
-                {m.plan()}
-                <ChevronDown className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="max-w-[calc(100vw-2rem)]"
-            >
-              {mobileActions.map((action) => (
-                <DropdownMenuItem
-                  key={action.label}
-                  onSelect={action.onClick}
-                  className="min-h-11"
-                >
-                  {action.icon && <action.icon className="size-4" />}
-                  {action.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+    <div
+      className={cn(
+        'flex flex-col',
+        isMobile ? (view === 'month' ? 'h-full min-h-0' : '') : 'gap-3',
       )}
+    >
       <EventClipboardProvider>
         <EventContextMenuProvider>
           <CalendarContext.Provider value={memoizedValue}>
             <CalendarBulkDelete
               header={
-                !isMobile || view !== 'month' ? (
-                  <CalendarHeader />
-                ) : (
-                  <div className="flex flex-wrap gap-2 px-4">
-                    <CalendarViewToggle />
-                    <BulkWorkoutSelectButton />
-                    <ComplianceLegend className="w-full" />
-                  </div>
-                )
+                <CalendarHeader
+                  planningDate={planningDate}
+                  onPlanningDateChange={setPlanningDate}
+                />
               }
             >
-              <div className={isMobile ? 'w-full flex-1' : 'relative'}>
+              <div
+                className={
+                  isMobile
+                    ? 'min-h-0 w-full flex-1 overflow-hidden'
+                    : 'relative'
+                }
+              >
                 {view === 'week' ? (
                   <CalendarWeekView isLoading={isLoading} />
                 ) : view === 'season' ? (
                   <CalendarSeasonView />
                 ) : isMobile ? (
                   <div className="w-full h-full">
-                    <CalendarMobileList isLoading={isLoading} />
+                    <CalendarMobileList
+                      isLoading={isLoading}
+                      selectedDay={planningDate}
+                      onSelectedDayChange={setPlanningDate}
+                      onPlanDay={(day) => {
+                        setPlanningDate(day);
+                        setPlanSheetOpen(true);
+                      }}
+                    />
                   </div>
                 ) : (
                   <>
@@ -1035,6 +1018,46 @@ export function Calendar({
                 }}
               />
             </CalendarBulkDelete>
+            {mobileActions.length > 0 && (
+              <DropdownMenu
+                open={planSheetOpen}
+                onOpenChange={setPlanSheetOpen}
+              >
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    size="icon"
+                    data-calendar-plan-trigger
+                    aria-label={m.plan()}
+                    className="fixed right-4 bottom-[calc(var(--tab-bar-space)+1rem)] z-30 size-14 rounded-full shadow-lg active:scale-95"
+                  >
+                    <Plus className="size-6" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <label className="flex items-center justify-between gap-3 px-2 pb-2 text-sm font-medium">
+                    {m.date()}
+                    <Input
+                      type="date"
+                      className="h-11 w-auto"
+                      value={format(planningDate, 'yyyy-MM-dd')}
+                      onChange={(event) => {
+                        const date = parseISO(event.target.value);
+                        if (isValid(date)) setPlanningDate(date);
+                      }}
+                    />
+                  </label>
+                  {mobileActions.map((action) => (
+                    <DropdownMenuItem
+                      key={action.label}
+                      onSelect={action.onClick}
+                    >
+                      {action.icon && <action.icon className="size-5" />}
+                      {action.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </CalendarContext.Provider>
         </EventContextMenuProvider>
       </EventClipboardProvider>

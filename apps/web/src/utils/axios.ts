@@ -21,6 +21,7 @@ export const routes = {
     createAccount: '/user',
     updateAccount: '/user',
     deleteAccount: '/user',
+    analyticsConsent: '/user/me/analytics-consent',
     exportData: '/user/me/export',
     updateLanguage: '/user/language',
     passwordReset: '/user/password-reset',
@@ -44,6 +45,7 @@ export const routes = {
     getMyEvents: '/event',
     season: '/event/season',
     getUpcomingCompetitions: '/event/upcoming-competitions',
+    search: '/event/search',
     getEvent: (eventId: Event['eventId']) => `/event/${eventId}`,
     getEventStream: (eventId: Event['eventId']) => `/event/${eventId}/stream`,
     activityCorrections: (eventId: Event['eventId']) =>
@@ -97,6 +99,12 @@ export const routes = {
   record: {
     getRecords: '/record',
     getRecordSports: '/record/sports',
+    getRecordHistory: '/record/history',
+    getRecordEfforts: '/record/efforts',
+    getRecordExclusions: '/record/exclusions',
+    createRecordExclusion: '/record/exclusions',
+    deleteRecordExclusion: (recordExclusionId: number) =>
+      `/record/exclusions/${recordExclusionId}`,
   },
   equipment: {
     getMyEquipment: '/equipment',
@@ -157,6 +165,12 @@ export const routes = {
     overview: '/statistics/overview',
     volume: '/statistics/volume',
     days: '/statistics/days',
+    recovery: '/statistics/recovery',
+    terrain: '/statistics/terrain',
+    cardiacCost: '/statistics/cardiac-cost',
+    durability: '/statistics/durability',
+    longRuns: '/statistics/long-runs',
+    intensity: '/statistics/intensity',
     trends: '/statistics/trends',
     load: '/statistics/load',
   },

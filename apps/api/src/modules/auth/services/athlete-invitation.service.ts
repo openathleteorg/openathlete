@@ -6,6 +6,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   forwardRef,
 } from '@nestjs/common';
 import { BadRequestException as BadRequestException2 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import { InvitationStatus } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { FeatureAccessService } from 'src/modules/subscription';
 
@@ -38,7 +40,17 @@ export class AthleteInvitationService {
     private eventEmitter: EventEmitter2,
     @Inject(forwardRef(() => FeatureAccessService))
     private featureAccessService: FeatureAccessService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
+
+  private async reportLinked(coachUserId: number, athleteId: number) {
+    await this.analytics?.capture(coachUserId, 'athlete_linked', {
+      invited_by: 'coach',
+    });
+    await this.analytics?.captureForAthlete(athleteId, 'coach_linked', {
+      invited_by: 'coach',
+    });
+  }
 
   async generateInvitationToken(): Promise<string> {
     return randomUUID();
@@ -129,6 +141,8 @@ export class AthleteInvitationService {
           }),
         );
 
+        await this.analytics?.capture(coachUserId, 'athlete_invited');
+
         return invitation;
       }
     }
@@ -190,6 +204,8 @@ export class AthleteInvitationService {
         language: coachUser.language,
       }),
     );
+
+    await this.analytics?.capture(coachUserId, 'athlete_invited');
 
     return invitation;
   }
@@ -293,6 +309,7 @@ export class AthleteInvitationService {
         },
       });
     });
+    await this.reportLinked(invitation.userId, athlete.athleteId);
   }
 
   async acceptInvitation(athleteUserId: number, invitationId: number) {
@@ -351,6 +368,7 @@ export class AthleteInvitationService {
         },
       });
     });
+    await this.reportLinked(invitation.userId, athlete.athleteId);
   }
 
   async rejectInvitation(athleteUserId: number, invitationId: number) {

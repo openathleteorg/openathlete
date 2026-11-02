@@ -29,6 +29,7 @@ import {
   CreateEventDto,
   DuplicateWorkoutDto,
   EVENT_TYPE,
+  EventSearchResult,
   ReorderWorkoutStepsDto,
   SPORT_TYPE,
   SeasonEvent,
@@ -101,6 +102,8 @@ function normalizeStepForLoadComparison(step: ComparableStep): unknown {
   };
 }
 
+const SEARCH_RESULTS_LIMIT = 20;
+
 @Injectable()
 export class EventService {
   private readonly logger = new Logger(EventService.name);
@@ -134,6 +137,10 @@ export class EventService {
             | 'stream'
             | 'recordsVersion'
             | 'gapVersion'
+            | 'intensityVersion'
+            | 'intensitySeconds'
+            | 'efficiencyFactor'
+            | 'decouplingPercent'
             | 'originalStream'
             | 'originalSummary'
           > & {
@@ -239,6 +246,51 @@ export class EventService {
     });
 
     return events.map((e) => this.prismaEventToEvent(e));
+  }
+
+  /** Activities whose name contains the text, for the finder */
+  async searchActivities(
+    user: AuthUser,
+    text: string,
+  ): Promise<EventSearchResult[]> {
+    const ability = await this.abilities.getFor({ user });
+    const events = await this.prisma.event.findMany({
+      where: {
+        AND: [
+          accessibleBy(ability, 'read').Event,
+          { type: EVENT_TYPE.ACTIVITY },
+          { name: { contains: text, mode: 'insensitive' } },
+        ],
+      },
+      select: {
+        eventId: true,
+        name: true,
+        startDate: true,
+        athleteId: true,
+        activity: { select: { sport: true } },
+        athlete: {
+          select: { user: { select: { firstName: true, lastName: true } } },
+        },
+      },
+      orderBy: { startDate: 'desc' },
+      take: SEARCH_RESULTS_LIMIT,
+    });
+
+    return events.flatMap((event) => {
+      if (!event.activity || !event.athleteId) return [];
+      const owner = event.athlete?.user;
+      return [
+        {
+          eventId: event.eventId,
+          name: event.name,
+          startDate: event.startDate,
+          sport: event.activity.sport as SPORT_TYPE,
+          athleteId: event.athleteId,
+          athleteName:
+            `${owner?.firstName ?? ''} ${owner?.lastName ?? ''}`.trim(),
+        },
+      ];
+    });
   }
 
   /**
@@ -1643,6 +1695,10 @@ export class EventService {
         | 'stream'
         | 'recordsVersion'
         | 'gapVersion'
+        | 'intensityVersion'
+        | 'intensitySeconds'
+        | 'efficiencyFactor'
+        | 'decouplingPercent'
         | 'originalStream'
         | 'originalSummary'
       > | null;

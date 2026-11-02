@@ -1,4 +1,5 @@
 export * from './activity-import.dto';
+export * from './event-search.dto';
 export * from './create-event.dto';
 export * from './update-event.dto';
 export * from './duplicate-event.dto';
@@ -27,6 +28,7 @@ export * from './records.dto';
 export * from './statistics.dto';
 export * from './instance.dto';
 export * from './calendar-display.dto';
+export * from './hidden-activity-tracks.dto';
 export * from './calendar-day.dto';
 export * from './season.dto';
 export * from './garmin-personal.dto';

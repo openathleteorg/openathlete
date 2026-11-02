@@ -91,13 +91,13 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
 
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-gray-500" />
+            <Calendar className="w-5 h-5 text-muted-foreground" />
             <div className="flex flex-col">
               <span className="text-sm font-medium">
                 {format(startDate, 'MMM d, yyyy')} -{' '}
                 {format(endDate, 'MMM d, yyyy')}
               </span>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-muted-foreground">
                 {duration} {duration === 1 ? m.day() : m.days()} • {weeks}{' '}
                 {weeks === 1 ? m.week() : m.weeks()}
               </span>
@@ -113,7 +113,7 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   {m.description()}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                   {cycle.description}
                 </p>
               </div>
@@ -121,7 +121,7 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
           )}
 
           {!cycle.description && (
-            <div className="text-sm text-gray-400 italic">
+            <div className="text-sm text-muted-foreground/70 italic">
               {m.no_description_provided()}
             </div>
           )}

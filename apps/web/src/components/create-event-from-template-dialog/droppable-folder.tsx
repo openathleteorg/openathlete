@@ -288,7 +288,7 @@ export function DroppableFolder({
               <div
                 ref={setEmptyDropRef}
                 className={`
-                  text-sm text-gray-400 italic p-4 ml-6
+                  text-sm text-muted-foreground/70 italic p-4 ml-6
                   border-2 border-dashed rounded-lg
                   transition-colors cursor-pointer
                   ${isOverEmpty || isOverContent ? 'bg-blue-50 border-blue-300' : 'border-gray-200 hover:border-gray-300'}

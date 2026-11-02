@@ -1,46 +1,51 @@
-import { useCallback, useState } from 'react';
+import { useGetMeQuery, useUpdateAccountMutation } from '@/api/user';
+import { userKeys } from '@/api/user/user.keys';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo } from 'react';
 
-import { SPORT_TYPE } from '@openathlete/shared';
+import {
+  SPORT_TYPE,
+  User,
+  readHiddenActivityTracks,
+} from '@openathlete/shared';
 
 import { TrackKey } from './tracks';
 
 // Temperature duplicates the weather tab: off until asked for
 const DEFAULT_HIDDEN: TrackKey[] = ['temperature'];
 
-const storageKey = (sport: SPORT_TYPE) => `activity-hidden-tracks:${sport}`;
-
-function read(sport: SPORT_TYPE): TrackKey[] {
-  try {
-    const stored = localStorage.getItem(storageKey(sport));
-    const parsed: unknown = stored ? JSON.parse(stored) : null;
-    return Array.isArray(parsed) ? (parsed as TrackKey[]) : DEFAULT_HIDDEN;
-  } catch {
-    return DEFAULT_HIDDEN;
-  }
-}
-
-/**
- * The tracks the athlete hid, remembered per sport on this device: what a
- * cyclist wants to see differs from a runner's. Storing what is hidden
- * rather than shown lets new tracks appear by default.
- */
+/** The tracks the athlete hid, per sport, saved with their account */
 export function useHiddenTracks(sport: SPORT_TYPE) {
-  const [hidden, setHidden] = useState<TrackKey[]>(() => read(sport));
+  const queryClient = useQueryClient();
+  const { data: me } = useGetMeQuery();
+  const { mutate: updateAccount } = useUpdateAccountMutation();
+
+  const hidden = useMemo(
+    () =>
+      (readHiddenActivityTracks(me?.hiddenActivityTracks)[sport] as
+        TrackKey[] | undefined) ?? DEFAULT_HIDDEN,
+    [me?.hiddenActivityTracks, sport],
+  );
 
   const toggle = useCallback(
-    (track: TrackKey) =>
-      setHidden((current) => {
-        const next = current.includes(track)
+    (track: TrackKey) => {
+      const stored = readHiddenActivityTracks(
+        queryClient.getQueryData<User>([userKeys.getMe])?.hiddenActivityTracks,
+      );
+      const current =
+        (stored[sport] as TrackKey[] | undefined) ?? DEFAULT_HIDDEN;
+      const next = {
+        ...stored,
+        [sport]: current.includes(track)
           ? current.filter((key) => key !== track)
-          : [...current, track];
-        try {
-          localStorage.setItem(storageKey(sport), JSON.stringify(next));
-        } catch {
-          // Private browsing: the choice lasts for this view only
-        }
-        return next;
-      }),
-    [sport],
+          : [...current, track],
+      };
+      queryClient.setQueryData<User>([userKeys.getMe], (old) =>
+        old ? { ...old, hiddenActivityTracks: next } : old,
+      );
+      updateAccount({ hiddenActivityTracks: next });
+    },
+    [queryClient, sport, updateAccount],
   );
 
   return { hidden, toggle };
