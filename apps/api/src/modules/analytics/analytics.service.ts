@@ -26,13 +26,13 @@ export interface CaptureOptions {
 
 /** Same key, same id: a retried webhook stays one event in PostHog. */
 export function stableUuid(key: string): string {
-  const hex = createHash('md5').update(key).digest('hex');
+  const hex = createHash('sha256').update(key).digest('hex');
   return [
     hex.slice(0, 8),
     hex.slice(8, 12),
     hex.slice(12, 16),
     hex.slice(16, 20),
-    hex.slice(20),
+    hex.slice(20, 32),
   ].join('-');
 }
 
