@@ -108,7 +108,7 @@ describe('calendar feed (PostgreSQL)', () => {
     expect(feed).not.toContain('SUMMARY:Run');
   });
 
-  it('gives a session its time, details and link', async () => {
+  it('gives a session its details and link', async () => {
     await prisma.user.update({
       where: { userId: DELETED_USER_ID },
       data: { language: 'EN' },
@@ -161,8 +161,6 @@ describe('calendar feed (PostgreSQL)', () => {
       await feeds.renderFeed(await feeds.getOrCreateToken(athlete)),
     );
 
-    const start = session.startDate.toISOString().replace(/[-:]|\.\d+/g, '');
-    expect(feed).toContain(`DTSTART:${start}`);
     expect(feed).toContain(
       'DESCRIPTION:Sport: Running\\nDistance: 10 km\\n\\nEasy\\, then fast\\n\\nWorkout:\\n- Steady · 10 min · 3:20 min/km',
     );
@@ -172,7 +170,7 @@ describe('calendar feed (PostgreSQL)', () => {
     );
   });
 
-  it("puts a note on the athlete's day, not UTC's", async () => {
+  it("puts an event on the athlete's day, not UTC's", async () => {
     await prisma.user.update({
       where: { userId: DELETED_USER_ID },
       data: { timeZone: 'Asia/Tokyo' },

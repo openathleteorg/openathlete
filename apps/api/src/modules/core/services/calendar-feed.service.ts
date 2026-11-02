@@ -173,18 +173,15 @@ function newToken(): string {
 }
 
 /**
- * Sessions and races keep their time. Notes have none: they fill their days,
- * which are the athlete's and not UTC's, or a note near midnight would move
- * to the neighbouring day. An all-day end is exclusive, hence the extra day.
+ * Events fill their days, which are the athlete's and not UTC's, or one near
+ * midnight would move to the neighbouring day. An all-day end is exclusive,
+ * hence the extra day.
  */
 function feedDates(
-  event: { type: EventType; startDate: Date; endDate: Date },
+  event: { startDate: Date; endDate: Date },
   timeZone: string,
-): { start: Date; end: Date; allDay: boolean } {
+): { start: Date; end: Date; allDay: true } {
   const { startDate, endDate } = event;
-  if (event.type !== EventType.NOTE) {
-    return { start: startDate, end: endDate, allDay: false };
-  }
   const lastInstant = new Date(
     Math.max(startDate.getTime(), endDate.getTime() - 1),
   );
