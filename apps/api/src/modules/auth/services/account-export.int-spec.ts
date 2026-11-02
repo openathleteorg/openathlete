@@ -38,6 +38,7 @@ const EXPORTED_TABLES = [
   'cycle',
   'equipment',
   'event',
+  'garmin_personal_connection',
   'event_template',
   'message',
   'provider_account',
@@ -48,6 +49,8 @@ const EXPORTED_TABLES = [
   'training_zone',
 ];
 const NOT_EXPORTED_TABLES = {
+  garmin_personal_item:
+    'technical source identity, local deletion and processing receipts; activity data is exported through events',
   activity_chat_notice:
     'automatic delivery/suppression receipts, not human-authored content',
   athlete_invitation: 'pending invitations sent to other people',

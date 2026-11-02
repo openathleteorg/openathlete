@@ -66,6 +66,15 @@ export const ApiEnvSchema = z
       })
       .describe('Secret key used to sign and verify JWT tokens'),
 
+    GARMIN_PERSONAL_API_ENABLED: z
+      .string()
+      .optional()
+      .default('false')
+      .transform((value) => value === 'true')
+      .describe(
+        'Opt in to Garmin Personal API for self-hosted personal use only',
+      ),
+
     // Database
     DATABASE_URL: z
       .string()

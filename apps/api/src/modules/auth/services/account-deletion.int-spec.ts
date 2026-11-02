@@ -131,6 +131,8 @@ describe('AccountDeletionService (PostgreSQL)', () => {
     // conversation with the message they wrote
     expect(await rowCounts()).toEqual({
       user: 1,
+      garmin_personal_connection: 1,
+      garmin_personal_item: 1,
       athlete: 1,
       ai_credential: 1,
       ai_model_preference: 1,

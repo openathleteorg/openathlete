@@ -47,6 +47,7 @@ test('hides what the instance has not set up', async ({ page, request }) => {
   const instance = await request.get(`${API_URL}/instance`);
   expect(await instance.json()).toEqual({
     googleSignIn: false,
+    garminPersonalApi: false,
     email: false,
     providers: [],
     signup: 'open',

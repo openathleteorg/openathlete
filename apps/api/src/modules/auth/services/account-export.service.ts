@@ -112,6 +112,15 @@ export class AccountExportService {
         cycles: { include: { weeks: true } },
         trainingLoadCalculations: { include: { entries: true } },
         records: true,
+        garminPersonalConnection: {
+          select: {
+            activities: true,
+            automatic: true,
+            status: true,
+            lastSyncedAt: true,
+            createdAt: true,
+          },
+        },
         // Connection details only, never the OAuth tokens
         providerAccounts: {
           select: {

@@ -44,6 +44,7 @@ import {
 } from '@openathlete/shared';
 
 import { CalendarFeedSection } from './calendar-feed-section';
+import { GarminPersonalSection } from './garmin-personal-section';
 import {
   SettingsPanel,
   SettingsRow,
@@ -225,6 +226,7 @@ export function ConnectorsTab() {
 
   return (
     <div className="space-y-8">
+      {instance?.garminPersonalApi && <GarminPersonalSection />}
       {isLoadingConnected ? (
         <SettingsRowsSkeleton count={SUPPORTED_PROVIDERS.length} />
       ) : providers.length === 0 ? (
