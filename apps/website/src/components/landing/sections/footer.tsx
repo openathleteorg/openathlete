@@ -5,6 +5,7 @@ import { Container } from '@/components/landing/container';
 import { APP_URL, BUY_ME_A_COFFEE_URL } from '@/config';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
+import { isConsentRequired, setConsent } from '@/utils/analytics';
 import { DEFAULT_LOCALE, isSupportedLocale } from '@/utils/locales';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -204,6 +205,17 @@ export function Footer() {
                   {m.footer_terms_of_sale()}
                 </Link>
               </li>
+              {isConsentRequired() && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => setConsent(null)}
+                    className="cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {m.footer_consent_settings()}
+                  </button>
+                </li>
+              )}
               <li>
                 <a
                   href="mailto:contact@openathlete.org"

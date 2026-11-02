@@ -1,6 +1,7 @@
+import { ConsentBanner } from '@/components/consent/consent-banner';
 import { HtmlLang } from '@/components/seo/html-lang';
 import { setLocale } from '@/paraglide/runtime.js';
-import { isSupportedLocale } from '@/utils/locales';
+import { DEFAULT_LOCALE, isSupportedLocale } from '@/utils/locales';
 import { notFound } from 'next/navigation';
 import Script from 'next/script';
 
@@ -58,7 +59,16 @@ export default async function LocaleLayout({
       />
       {/* Client-side fallback for lang attribute */}
       <HtmlLang locale={locale} />
-      <Providers locale={locale}>{children}</Providers>
+      <Providers locale={locale}>
+        {children}
+        <ConsentBanner
+          privacyPolicyHref={
+            locale === DEFAULT_LOCALE
+              ? '/privacy-policy'
+              : `/${locale}/privacy-policy`
+          }
+        />
+      </Providers>
     </>
   );
 }

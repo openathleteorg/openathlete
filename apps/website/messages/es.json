@@ -53,7 +53,7 @@
   "privacy_policy_processors_list_7": "Google Firebase: inicio de sesión con Google y notificaciones push en el móvil.",
   "privacy_policy_processors_list_8": "Proveedores de IA: no se les envía nada hasta que lo permitas en la aplicación (Ajustes > IA muestra qué se envía y a quién, y permite retirar el permiso). Con tu propia clave de API, el proveedor que elijas trata los datos que necesita cada función de IA, conforme a tu acuerdo con él. Con la IA incluida en tu plan, OpenAI y Google los tratan en nuestro nombre, y OpenAI transcribe las notas de voz que grabas.",
   "privacy_policy_cookies_title": "Cookies y seguimiento",
-  "privacy_policy_cookies_content": "La aplicación guarda en tu dispositivo lo que necesita para funcionar (tu sesión iniciada y tus preferencias). La analítica de producto y las grabaciones de sesión solo se activan después de que las aceptes en el aviso de consentimiento, y puedes cambiar tu elección en cualquier momento en Ajustes > Perfil. Rechazarlas no limita ninguna función.",
+  "privacy_policy_cookies_content": "La aplicación guarda en tu dispositivo lo que necesita para funcionar (tu sesión iniciada y tus preferencias). La analítica de producto y las grabaciones de sesión solo se activan después de que las aceptes en el aviso de consentimiento, y puedes cambiar tu elección en cualquier momento en Ajustes > Perfil. Rechazarlas no limita ninguna función. El sitio web solo mide las visitas con PostHog después de que aceptes en su aviso, y nunca graba sesiones; puedes cambiar tu elección al final de cada página.",
   "privacy_policy_self_hosting_title": "Instancias autoalojadas",
   "privacy_policy_self_hosting_content": "OpenAthlete es de código abierto y se puede autoalojar. En una instancia que no se ejecute en openathlete.org, su operador es responsable de tus datos; ninguno de ellos se envía a OpenAthlete.",
   "privacy_policy_contact_content": "Si tienes preguntas o solicitudes relacionadas con la privacidad, escríbenos a contact@openathlete.org.",
@@ -616,5 +616,10 @@
   "terms_disputes_content": "Las reclamaciones pueden enviarse a tristan@openathlete.org; respondemos en un plazo de 15 días. Conforme a los artículos L611-1 y siguientes del Código de Consumo francés, los clientes consumidores pueden recurrir después, de forma gratuita, a un mediador de consumo. El vendedor está en proceso de adhesión a un mediador; sus datos se indicarán aquí.",
   "terms_law_title": "10. Legislación aplicable y modificaciones",
   "terms_law_content": "Estas condiciones se rigen por la legislación francesa. Los clientes consumidores pueden presentar una reclamación ante los tribunales de su lugar de residencia o del lugar de ejecución del contrato, y conservan la protección de las disposiciones imperativas de su país de residencia. Las condiciones aplicables son las aceptadas al suscribirse; una nueva versión se aplica a partir de la siguiente renovación tras haberse notificado por correo electrónico con al menos 30 días de antelación.",
-  "footer_terms_of_sale": "Condiciones de venta"
+  "footer_terms_of_sale": "Condiciones de venta",
+  "consent_title": "Tu privacidad",
+  "consent_description": "Nos gustaría medir las visitas a este sitio para mejorarlo. No se recoge nada hasta que aceptes, y puedes cambiar de opinión al final de cada página.",
+  "consent_accept": "Aceptar",
+  "consent_refuse": "Rechazar",
+  "footer_consent_settings": "Cambiar mi elección de estadísticas"
 }
