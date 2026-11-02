@@ -1,4 +1,3 @@
-import { BullModule } from '@nestjs/bullmq';
 import { Module, forwardRef } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -14,15 +13,15 @@ import { ProviderOAuthController } from './controllers/provider-oauth.controller
 import { StravaSyncController } from './controllers/strava-sync.controller';
 import { ProviderExportService } from './export.service';
 import { GarminPersonalClient } from './garmin-personal/garmin-personal-client';
-import { GarminPersonalController } from './garmin-personal/garmin-personal-controller';
+import {
+  GarminPersonalController,
+  GarminPersonalEnabledGuard,
+} from './garmin-personal/garmin-personal-controller';
 import {
   GarminPersonalProcessor,
   GarminPersonalScheduler,
 } from './garmin-personal/garmin-personal-processor';
-import {
-  GarminPersonalService,
-  PERSONAL_QUEUE,
-} from './garmin-personal/garmin-personal-service';
+import { GarminPersonalService } from './garmin-personal/garmin-personal-service';
 import {
   CorosProviderService,
   GarminProviderService,
@@ -35,7 +34,6 @@ import { ProviderExportScheduler } from './scheduler.service';
 @Module({
   imports: [
     ScheduleModule.forRoot(),
-    BullModule.registerQueue({ name: PERSONAL_QUEUE }),
     AuthModule,
     forwardRef(() => CoreModule),
     EventEmitterModule,
@@ -50,7 +48,9 @@ import { ProviderExportScheduler } from './scheduler.service';
     PrismaService,
     GarminPersonalClient,
     GarminPersonalService,
-    ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
+    GarminPersonalEnabledGuard,
+    ...(process.env.GARMIN_PERSONAL_API_ENABLED === 'true' &&
+    process.env.ENABLE_ACTIVITY_IMPORT === 'true'
       ? [GarminPersonalProcessor, GarminPersonalScheduler]
       : []),
     GarminAdapter,

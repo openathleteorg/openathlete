@@ -53,30 +53,41 @@ export type GarminPersonalPreferences = z.infer<
 >;
 export type ConnectGarminPersonal = z.infer<typeof connectGarminPersonalSchema>;
 export type GarminPersonalSync = z.infer<typeof garminPersonalSyncSchema>;
-export interface GarminPersonalResult {
-  imported: number;
-  matched: number;
-  needsReview: number;
-  failed: number;
-  pending: number;
-  truncated: boolean;
-}
-export interface GarminPersonalStatus {
-  connected: boolean;
-  preferences: GarminPersonalPreferences;
-  status:
-    | 'disconnected'
-    | 'idle'
-    | 'queued'
-    | 'running'
-    | 'completed'
-    | 'partial'
-    | 'failed'
-    | 'key_required';
-  error: string | null;
-  lastSyncedAt: string | null;
-  result: GarminPersonalResult | null;
-}
+export const garminPersonalResultSchema = z
+  .object({
+    imported: z.number().int().nonnegative(),
+    matched: z.number().int().nonnegative(),
+    // Older persisted results predate terminal unsupported-file receipts.
+    skipped: z.number().int().nonnegative().default(0),
+    needsReview: z.number().int().nonnegative(),
+    failed: z.number().int().nonnegative(),
+    pending: z.number().int().nonnegative(),
+    truncated: z.boolean(),
+  })
+  .strict();
+export const garminPersonalStatusSchema = z
+  .object({
+    connected: z.boolean(),
+    /** Server deadline; optional for clients talking to older releases. */
+    activeUntil: z.string().datetime().nullable().optional(),
+    preferences: garminPersonalPreferencesSchema,
+    status: z.enum([
+      'disconnected',
+      'idle',
+      'queued',
+      'running',
+      'completed',
+      'partial',
+      'failed',
+      'key_required',
+    ]),
+    error: z.string().nullable(),
+    lastSyncedAt: z.string().datetime().nullable(),
+    result: garminPersonalResultSchema.nullable(),
+  })
+  .strict();
+export type GarminPersonalResult = z.infer<typeof garminPersonalResultSchema>;
+export type GarminPersonalStatus = z.infer<typeof garminPersonalStatusSchema>;
 
 export const garminPersonalReviewSummarySchema = activityReviewSummarySchema;
 export type GarminPersonalReviewSummary = ActivityReviewSummary;

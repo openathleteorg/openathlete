@@ -10,7 +10,11 @@ const MAX_BYTES = 25 * 1024 * 1024;
 export class GarminPersonalError extends Error {
   constructor(
     readonly code:
-      'key_required' | 'rate_limited' | 'unavailable' | 'invalid_response',
+      | 'key_required'
+      | 'rate_limited'
+      | 'unavailable'
+      | 'invalid_response'
+      | 'access_denied',
   ) {
     super(code);
   }
@@ -65,11 +69,14 @@ export class GarminPersonalClient {
         ? error.response?.status
         : undefined;
       throw new GarminPersonalError(
-        status === 401 || status === 403
+        status === 401 ||
+          (status === 403 && method === 'POST' && path === TOKEN_PATH)
           ? 'key_required'
-          : status === 429
-            ? 'rate_limited'
-            : 'unavailable',
+          : status === 403
+            ? 'access_denied'
+            : status === 429
+              ? 'rate_limited'
+              : 'unavailable',
       );
     }
   }

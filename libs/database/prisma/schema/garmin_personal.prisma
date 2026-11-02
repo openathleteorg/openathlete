@@ -10,6 +10,7 @@ model GarminPersonalConnection {
   status               String               @default("idle")
   leaseId              String?              @map("lease_id")
   leaseUntil           DateTime?            @map("lease_until")
+  queuedAt             DateTime?            @map("queued_at")
   error                String?
   result               Json?
   lastSyncedAt         DateTime?            @map("last_synced_at")
@@ -30,10 +31,12 @@ model GarminPersonalItem {
   eventActivity     EventActivity?           @relation(fields: [eventActivityId], references: [eventActivityId], onDelete: SetNull)
   processingPending Boolean                  @default(false) @map("processing_pending")
   needsReview       Boolean                  @default(false) @map("needs_review")
+  skipReason        String?                  @map("skip_reason")
   reviewSummary     Json?                    @map("review_summary")
   reviewDecision    Json?                    @map("review_decision")
   createdAt         DateTime                 @default(now()) @map("created_at")
 
   @@unique([connectionId, externalId])
+  @@index([eventActivityId])
   @@map("garmin_personal_item")
 }

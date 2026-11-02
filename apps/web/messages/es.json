@@ -1725,5 +1725,7 @@
   "activity_review_start": "Inicio",
   "activity_review_details_failed": "No se pudieron cargar los detalles. Reintenta aquí; no hace falta repetir la importación.",
   "activity_review_retry_details": "Reintentar detalles",
-  "activity_review_unavailable": "Detalles no disponibles. Para grabaciones antiguas de Garmin, reconecta y permite el acceso a las actividades."
+  "activity_review_unavailable": "Detalles no disponibles. Para grabaciones antiguas de Garmin, reconecta y permite el acceso a las actividades.",
+  "garmin_personal_preferences_locked": "No se pueden cambiar las preferencias mientras una importación está en cola o en curso.",
+  "garmin_personal_skipped": "Archivos no compatibles omitidos: {count}."
 }

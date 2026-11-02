@@ -91,7 +91,7 @@ describe('Garmin documented Personal API transport', () => {
   });
   it.each([
     [401, 'key_required'],
-    [403, 'key_required'],
+    [403, 'access_denied'],
     [429, 'rate_limited'],
     [500, 'unavailable'],
   ])(
@@ -114,6 +114,19 @@ describe('Garmin documented Personal API transport', () => {
       }
     },
   );
+  it('treats a rejected key exchange as a key problem but not a forbidden activity download', async () => {
+    request.mockRejectedValue({
+      isAxiosError: true,
+      response: { status: 403 },
+    });
+    await expect(client.authorize(credentials.apiKey)).rejects.toMatchObject({
+      code: 'key_required',
+    });
+    await expect(client.download(credentials, '123')).rejects.toMatchObject({
+      code: 'access_denied',
+    });
+    expect(request).toHaveBeenCalledTimes(2);
+  });
   it('rejects unexpected pagination envelopes and oversized pages', async () => {
     request.mockResolvedValueOnce({ data: '{}' }).mockResolvedValueOnce({
       data: JSON.stringify(

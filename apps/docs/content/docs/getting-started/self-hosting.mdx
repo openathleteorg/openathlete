@@ -363,3 +363,7 @@ docker compose up -d
 - [Architecture Overview](/docs/architecture/overview) - Understand the system
 - [API Reference](/docs/api) - Integrate with your instance
 - [Contributing](/docs/contributing) - Help improve OpenAthlete
+
+### Garmin Personal API
+
+Set `GARMIN_PERSONAL_API_ENABLED=true` on your API container to opt in to Garmin Personal API for self-hosted personal use. It is disabled by default. Each user connects their own key and grants activity-import consent. Import workers additionally require `ENABLE_ACTIVITY_IMPORT=true`.

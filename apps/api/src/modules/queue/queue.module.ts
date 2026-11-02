@@ -124,6 +124,9 @@ function parseRedisUrl(redisUrl: string): {
 
 @Module({
   imports: [
+    ...(process.env.GARMIN_PERSONAL_API_ENABLED === 'true'
+      ? [BullModule.registerQueue({ name: 'garmin-personal-sync' })]
+      : []),
     AiModule,
     ConfigModule,
     EventEmitterModule,
@@ -131,7 +134,12 @@ function parseRedisUrl(redisUrl: string): {
     forwardRef(() => ProvidersSyncModule),
     forwardRef(() => CalendarModule),
     BullModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [
+        ...(process.env.GARMIN_PERSONAL_API_ENABLED === 'true'
+          ? [BullModule.registerQueue({ name: 'garmin-personal-sync' })]
+          : []),
+        ConfigModule,
+      ],
       inject: [ConfigService],
       useFactory: (configService: ConfigService<ApiEnvSchemaType, true>) => {
         const redisUrl = configService.get('REDIS_URL');
@@ -343,6 +351,6 @@ function parseRedisUrl(redisUrl: string): {
       ? [TrainingLoadEstimationProcessor]
       : []),
   ],
-  exports: [QueueService, TrainingLoadEstimationService],
+  exports: [QueueService, TrainingLoadEstimationService, BullModule],
 })
 export class QueueModule {}

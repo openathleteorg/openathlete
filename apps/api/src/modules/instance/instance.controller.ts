@@ -57,7 +57,7 @@ export class InstanceController {
         maxSamples: 100000,
         maxBodyBytes: 20 * 1024 * 1024,
       },
-      garminPersonalApi: true,
+      garminPersonalApi: get('GARMIN_PERSONAL_API_ENABLED') === true,
       activityReview: true,
       // The first account is always allowed: it is the administrator's
       signup:

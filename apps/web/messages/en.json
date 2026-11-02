@@ -1725,5 +1725,7 @@
   "activity_review_start": "Start",
   "activity_review_details_failed": "Details could not be loaded. Retry here; you do not need to rerun an import.",
   "activity_review_retry_details": "Retry details",
-  "activity_review_unavailable": "Recording details are unavailable. For older Garmin recordings, reconnect and enable activity access to retrieve them."
+  "activity_review_unavailable": "Recording details are unavailable. For older Garmin recordings, reconnect and enable activity access to retrieve them.",
+  "garmin_personal_preferences_locked": "Preferences cannot be changed while an import is queued or running.",
+  "garmin_personal_skipped": "Unsupported files skipped: {count}."
 }

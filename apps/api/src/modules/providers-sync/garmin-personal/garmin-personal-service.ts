@@ -10,6 +10,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
   forwardRef,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -27,6 +28,7 @@ import {
   MAX_ACTIVITY_FILE_BYTES,
   ResolveGarminPersonalReview,
   garminPersonalReviewSummarySchema,
+  garminPersonalStatusSchema,
   resolveGarminPersonalReviewSchema,
 } from '@openathlete/shared';
 
@@ -42,6 +44,7 @@ import {
 } from './garmin-personal-client';
 
 export const PERSONAL_QUEUE = 'garmin-personal-sync';
+export const PERSONAL_QUEUE_TTL_MS = 5 * 60000;
 export interface PersonalJob extends GarminPersonalSync {
   connectionId: number;
   version: number;
@@ -49,6 +52,7 @@ export interface PersonalJob extends GarminPersonalSync {
 const emptyResult = (): GarminPersonalResult => ({
   imported: 0,
   matched: 0,
+  skipped: 0,
   needsReview: 0,
   failed: 0,
   pending: 0,
@@ -84,8 +88,10 @@ export class GarminPersonalService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly client: GarminPersonalClient,
-    config: ConfigService<ApiEnvSchemaType, true>,
-    @InjectQueue(PERSONAL_QUEUE) private readonly jobs: Queue<PersonalJob>,
+    private readonly config: ConfigService<ApiEnvSchemaType, true>,
+    @Optional()
+    @InjectQueue(PERSONAL_QUEUE)
+    private readonly jobs: Queue<PersonalJob> | undefined,
     @Inject(forwardRef(() => QueueService))
     private readonly processing: QueueService,
   ) {
@@ -100,24 +106,83 @@ export class GarminPersonalService {
     if (!athlete) throw new ForbiddenException();
     return athlete.athleteId;
   }
+  private activeUntil(c: GarminPersonalConnection | null): Date | null {
+    if (!c) return null;
+    if (c.leaseUntil && c.leaseUntil.getTime() > Date.now())
+      return c.leaseUntil;
+    if (c.status === 'queued') {
+      const deadline = new Date(
+        (c.queuedAt ?? c.updatedAt).getTime() + PERSONAL_QUEUE_TTL_MS,
+      );
+      if (deadline.getTime() > Date.now()) return deadline;
+    }
+    return null;
+  }
+  private async recoverStale(
+    tx: Prisma.TransactionClient,
+    c: GarminPersonalConnection,
+  ) {
+    if (!['queued', 'running'].includes(c.status) || this.activeUntil(c))
+      return c;
+    // Match the whole lease snapshot: a heartbeat/claim racing this write wins
+    // rather than being erased. Bumping version invalidates abandoned jobs.
+    await tx.garminPersonalConnection.updateMany({
+      where: {
+        id: c.id,
+        version: c.version,
+        status: c.status,
+        leaseId: c.leaseId,
+        leaseUntil: c.leaseUntil,
+        queuedAt: c.queuedAt,
+        updatedAt: c.updatedAt,
+      },
+      data: {
+        status: 'failed',
+        error: 'unavailable',
+        version: { increment: 1 },
+        leaseId: null,
+        leaseUntil: null,
+        queuedAt: null,
+      },
+    });
+    return tx.garminPersonalConnection.findUniqueOrThrow({
+      where: { id: c.id },
+    });
+  }
+  private async readConnection(athleteId: number) {
+    const observed = await this.prisma.garminPersonalConnection.findUnique({
+      where: { athleteId },
+    });
+    // Normal status polling must not wait on a large activity write's lock.
+    if (
+      !observed ||
+      !['queued', 'running'].includes(observed.status) ||
+      this.activeUntil(observed)
+    )
+      return observed;
+    return this.prisma.$transaction(async (tx) => {
+      await this.lock(tx, athleteId);
+      const c = await tx.garminPersonalConnection.findUnique({
+        where: { athleteId },
+      });
+      return c ? this.recoverStale(tx, c) : null;
+    });
+  }
   private statusOf(c: GarminPersonalConnection | null): GarminPersonalStatus {
-    return {
+    return garminPersonalStatusSchema.parse({
       connected: !!c?.encryptedCredentials,
+      activeUntil: this.activeUntil(c)?.toISOString() ?? null,
       preferences: c
         ? { activities: c.activities, automatic: c.automatic }
         : defaults,
-      status: (c?.status ?? 'disconnected') as GarminPersonalStatus['status'],
+      status: c?.status ?? 'disconnected',
       error: c?.error ?? null,
       lastSyncedAt: c?.lastSyncedAt?.toISOString() ?? null,
-      result: (c?.result as unknown as GarminPersonalResult | null) ?? null,
-    };
+      result: c?.result ?? null,
+    });
   }
   async status(userId: number) {
-    return this.statusOf(
-      await this.prisma.garminPersonalConnection.findUnique({
-        where: { athleteId: await this.athlete(userId) },
-      }),
-    );
+    return this.statusOf(await this.readConnection(await this.athlete(userId)));
   }
   async connect(userId: number, dto: ConnectGarminPersonal) {
     const athleteId = await this.athlete(userId);
@@ -150,6 +215,7 @@ export class GarminPersonalService {
         result: Prisma.DbNull,
         leaseId: null,
         leaseUntil: null,
+        queuedAt: null,
       };
       const c = await tx.garminPersonalConnection.upsert({
         where: { athleteId },
@@ -161,24 +227,39 @@ export class GarminPersonalService {
   }
   async preferences(userId: number, preferences: GarminPersonalPreferences) {
     const athleteId = await this.athlete(userId);
+    if (this.activeUntil(await this.readConnection(athleteId)))
+      throw new ConflictException('sync_in_progress');
     await this.prisma.$transaction(async (tx) => {
       await this.lock(tx, athleteId);
-      const c = await tx.garminPersonalConnection.findUnique({
+      let c = await tx.garminPersonalConnection.findUnique({
         where: { athleteId },
       });
-      if (!c?.encryptedCredentials)
+      if (!c?.encryptedCredentials || c.status === 'key_required')
         throw new BadRequestException('key_required');
-      await tx.garminPersonalConnection.update({
-        where: { id: c.id },
+      c = await this.recoverStale(tx, c);
+      if (this.activeUntil(c)) throw new ConflictException('sync_in_progress');
+      // The conditional write also covers a worker acquiring its lease after
+      // this transaction read the connection. Do not invalidate an active job.
+      const changed = await tx.garminPersonalConnection.updateMany({
+        where: {
+          id: c.id,
+          version: c.version,
+          status: c.status,
+          queuedAt: c.queuedAt,
+          updatedAt: c.updatedAt,
+          OR: [{ leaseUntil: null }, { leaseUntil: { lt: new Date() } }],
+        },
         data: {
           ...preferences,
           version: { increment: 1 },
           leaseId: null,
           leaseUntil: null,
+          queuedAt: null,
           status: 'idle',
           error: null,
         },
       });
+      if (!changed.count) throw new ConflictException('sync_in_progress');
     });
     return this.status(userId);
   }
@@ -195,6 +276,7 @@ export class GarminPersonalService {
           version: { increment: 1 },
           leaseId: null,
           leaseUntil: null,
+          queuedAt: null,
           error: null,
         },
       });
@@ -202,21 +284,32 @@ export class GarminPersonalService {
     return this.status(userId);
   }
   async enqueue(userId: number, range: GarminPersonalSync) {
-    const c = await this.prisma.garminPersonalConnection.findUnique({
-      where: { athleteId: await this.athlete(userId) },
+    if (!this.jobs) throw new BadRequestException('PROVIDER_NOT_CONFIGURED');
+    const athleteId = await this.athlete(userId);
+    const c = await this.prisma.$transaction(async (tx) => {
+      await this.lock(tx, athleteId);
+      let c = await tx.garminPersonalConnection.findUnique({
+        where: { athleteId },
+      });
+      if (!c?.encryptedCredentials || c.status === 'key_required')
+        throw new BadRequestException('key_required');
+      c = await this.recoverStale(tx, c);
+      if (!c.activities) throw new BadRequestException('imports_disabled');
+      if (this.activeUntil(c)) return null;
+      return tx.garminPersonalConnection.update({
+        where: { id: c.id },
+        data: {
+          version: { increment: 1 },
+          status: 'queued',
+          queuedAt: new Date(),
+          leaseId: null,
+          leaseUntil: null,
+          error: null,
+        },
+      });
     });
-    if (!c?.encryptedCredentials) throw new BadRequestException('key_required');
-    if (!c.activities) throw new BadRequestException('imports_disabled');
-    const jobId = `personal-${c.id}-${c.version}-${range.startDate}-${range.endDate}-${Math.floor(Date.now() / 60000)}`;
-    const existing = await this.jobs.getJob(jobId);
-    if (existing)
-      return {
-        queued: !['completed', 'failed'].includes(await existing.getState()),
-      };
-    await this.prisma.garminPersonalConnection.updateMany({
-      where: { id: c.id, version: c.version, status: { not: 'running' } },
-      data: { status: 'queued', error: null },
-    });
+    if (!c) return { queued: true };
+    const jobId = `personal-${c.id}-${c.version}`;
     try {
       await this.jobs.add(
         'pull',
@@ -232,7 +325,7 @@ export class GarminPersonalService {
     } catch {
       await this.prisma.garminPersonalConnection.updateMany({
         where: { id: c.id, version: c.version, status: 'queued' },
-        data: { status: 'failed', error: 'unavailable' },
+        data: { status: 'failed', queuedAt: null, error: 'unavailable' },
       });
       throw new BadRequestException('unavailable');
     }
@@ -263,77 +356,80 @@ export class GarminPersonalService {
     name: string,
     fit: ReturnType<typeof prepareManualFit>,
   ) {
-    return this.prisma.$transaction(async (tx) => {
-      await this.current(tx, c, 'activities');
-      const identity = { connectionId: c.id, externalId };
-      const existing = await tx.garminPersonalItem.findUnique({
-        where: { connectionId_externalId: identity },
-      });
-      if (existing) return { item: existing, created: false };
-      const original = await tx.eventActivity.findFirst({
-        where: {
-          provider: 'GARMIN',
-          externalId,
-          event: { athleteId: c.athleteId },
-        },
-      });
-      const near = original
-        ? []
-        : await tx.event.findMany({
-            where: {
-              athleteId: c.athleteId,
-              type: 'ACTIVITY',
-              startDate: {
-                gte: new Date(fit.startDate.getTime() - 30000),
-                lte: new Date(fit.startDate.getTime() + 30000),
+    return this.prisma.$transaction(
+      async (tx) => {
+        await this.current(tx, c, 'activities');
+        const identity = { connectionId: c.id, externalId };
+        const existing = await tx.garminPersonalItem.findUnique({
+          where: { connectionId_externalId: identity },
+        });
+        if (existing) return { item: existing, created: false };
+        const original = await tx.eventActivity.findFirst({
+          where: {
+            provider: 'GARMIN',
+            externalId,
+            event: { athleteId: c.athleteId },
+          },
+        });
+        const near = original
+          ? []
+          : await tx.event.findMany({
+              where: {
+                athleteId: c.athleteId,
+                type: 'ACTIVITY',
+                startDate: {
+                  gte: new Date(fit.startDate.getTime() - 30000),
+                  lte: new Date(fit.startDate.getTime() + 30000),
+                },
               },
-            },
-            include: { activity: true },
-          });
-      // Only a unique close recording with comparable sport, time and distance can match.
-      // An edited or ambiguous candidate is left untouched and uncounted for review.
-      const matches = near.filter(
-        (v) =>
-          v.activity?.sport === fit.activity.sport &&
-          Math.abs(
-            v.endDate.getTime() -
-              v.startDate.getTime() -
-              (fit.endDate.getTime() - fit.startDate.getTime()),
-          ) <= 30000 &&
-          fit.activity.distance > 0 &&
-          Math.abs(v.activity.distance - fit.activity.distance) <=
-            Math.max(50, fit.activity.distance * 0.01),
-      );
-      let activity =
-        original ??
-        (near.length === 1 && matches.length === 1
-          ? matches[0].activity
-          : null);
-      const needsReview = !activity && near.length > 0;
-      let created = false;
-      if (!activity && !needsReview) {
-        activity = await this.createImportedActivity(
-          tx,
-          c,
-          externalId,
-          name,
-          fit,
+              include: { activity: true },
+            });
+        // Only a unique close recording with comparable sport, time and distance can match.
+        // An edited or ambiguous candidate is left untouched and uncounted for review.
+        const matches = near.filter(
+          (v) =>
+            v.activity?.sport === fit.activity.sport &&
+            Math.abs(
+              v.endDate.getTime() -
+                v.startDate.getTime() -
+                (fit.endDate.getTime() - fit.startDate.getTime()),
+            ) <= 30000 &&
+            fit.activity.distance > 0 &&
+            Math.abs(v.activity.distance - fit.activity.distance) <=
+              Math.max(50, fit.activity.distance * 0.01),
         );
-        created = true;
-      }
-      const item = await tx.garminPersonalItem.create({
-        data: {
-          ...identity,
-          eventActivityId: activity?.eventActivityId,
-          processingPending: created,
-          needsReview,
-          reviewSummary: needsReview
-            ? json(this.reviewSummary(name, fit))
-            : Prisma.DbNull,
-        },
-      });
-      return { item, created };
-    });
+        let activity =
+          original ??
+          (near.length === 1 && matches.length === 1
+            ? matches[0].activity
+            : null);
+        const needsReview = !activity && near.length > 0;
+        let created = false;
+        if (!activity && !needsReview) {
+          activity = await this.createImportedActivity(
+            tx,
+            c,
+            externalId,
+            name,
+            fit,
+          );
+          created = true;
+        }
+        const item = await tx.garminPersonalItem.create({
+          data: {
+            ...identity,
+            eventActivityId: activity?.eventActivityId,
+            processingPending: created,
+            needsReview,
+            reviewSummary: needsReview
+              ? json(this.reviewSummary(name, fit))
+              : Prisma.DbNull,
+          },
+        });
+        return { item, created };
+      },
+      { timeout: 15000 },
+    );
   }
   private reviewSummary(
     name: string,
@@ -461,9 +557,20 @@ export class GarminPersonalService {
     if (!c.encryptedCredentials || !c.activities)
       throw new BadRequestException('imports_disabled');
     try {
-      let credentials = JSON.parse(
-        this.cipher.decrypt(c.athleteId, c.encryptedCredentials),
-      ) as PersonalCredentials;
+      let credentials: PersonalCredentials;
+      try {
+        credentials = JSON.parse(
+          this.cipher.decrypt(c.athleteId, c.encryptedCredentials),
+        ) as PersonalCredentials;
+        if (
+          !credentials?.apiKey ||
+          !credentials.token ||
+          !Number.isFinite(credentials.expiresAt)
+        )
+          throw new Error();
+      } catch {
+        throw new GarminPersonalError('key_required');
+      }
       const renew = async () => {
         credentials = await this.client.authorize(credentials.apiKey);
         const updated = await this.prisma.garminPersonalConnection.updateMany({
@@ -564,62 +671,65 @@ export class GarminPersonalService {
       item.needsReview && decision.action === 'import'
         ? await this.reviewFit(item.connection, item.externalId)
         : null;
-    const saved = await this.prisma.$transaction(async (tx) => {
-      await this.lock(tx, item.connection.athleteId);
-      const current = await tx.garminPersonalItem.findUniqueOrThrow({
-        where: { id },
-      });
-      if (!current.needsReview) {
-        const previous = resolveGarminPersonalReviewSchema.safeParse(
-          current.reviewDecision,
-        );
-        if (
-          !previous.success ||
-          previous.data.action !== decision.action ||
-          (decision.action === 'link' &&
-            previous.data.action === 'link' &&
-            previous.data.eventActivityId !== decision.eventActivityId)
-        )
-          throw new ConflictException('Review already resolved');
-        return current;
-      }
-      let eventActivityId: number | null = null;
-      if (decision.action === 'link') {
-        const target = await tx.eventActivity.findFirst({
-          where: {
-            eventActivityId: decision.eventActivityId,
-            event: { athleteId: item.connection.athleteId },
-          },
-          select: { eventActivityId: true },
+    const saved = await this.prisma.$transaction(
+      async (tx) => {
+        await this.lock(tx, item.connection.athleteId);
+        const current = await tx.garminPersonalItem.findUniqueOrThrow({
+          where: { id },
         });
-        if (!target) throw new NotFoundException();
-        eventActivityId = target.eventActivityId;
-      } else if (decision.action === 'import') {
-        await this.currentReview(tx, item.connection);
-        const summary = garminPersonalReviewSummarySchema.safeParse(
-          current.reviewSummary,
-        );
-        eventActivityId = (
-          await this.createImportedActivity(
-            tx,
-            item.connection,
-            item.externalId,
-            summary.success ? summary.data.name : `Garmin ${item.externalId}`,
-            fit!,
+        if (!current.needsReview) {
+          const previous = resolveGarminPersonalReviewSchema.safeParse(
+            current.reviewDecision,
+          );
+          if (
+            !previous.success ||
+            previous.data.action !== decision.action ||
+            (decision.action === 'link' &&
+              previous.data.action === 'link' &&
+              previous.data.eventActivityId !== decision.eventActivityId)
           )
-        ).eventActivityId;
-      }
-      // Linking changes only the receipt, preserving all edits, streams and training links on the existing activity.
-      return tx.garminPersonalItem.update({
-        where: { id },
-        data: {
-          eventActivityId,
-          needsReview: false,
-          reviewDecision: json(decision),
-          processingPending: decision.action === 'import',
-        },
-      });
-    });
+            throw new ConflictException('Review already resolved');
+          return current;
+        }
+        let eventActivityId: number | null = null;
+        if (decision.action === 'link') {
+          const target = await tx.eventActivity.findFirst({
+            where: {
+              eventActivityId: decision.eventActivityId,
+              event: { athleteId: item.connection.athleteId },
+            },
+            select: { eventActivityId: true },
+          });
+          if (!target) throw new NotFoundException();
+          eventActivityId = target.eventActivityId;
+        } else if (decision.action === 'import') {
+          await this.currentReview(tx, item.connection);
+          const summary = garminPersonalReviewSummarySchema.safeParse(
+            current.reviewSummary,
+          );
+          eventActivityId = (
+            await this.createImportedActivity(
+              tx,
+              item.connection,
+              item.externalId,
+              summary.success ? summary.data.name : `Garmin ${item.externalId}`,
+              fit!,
+            )
+          ).eventActivityId;
+        }
+        // Linking changes only the receipt, preserving all edits, streams and training links on the existing activity.
+        return tx.garminPersonalItem.update({
+          where: { id },
+          data: {
+            eventActivityId,
+            needsReview: false,
+            reviewDecision: json(decision),
+            processingPending: decision.action === 'import',
+          },
+        });
+      },
+      { timeout: 15000 },
+    );
     let pending = saved.processingPending;
     if (pending && saved.eventActivityId) {
       try {
@@ -642,12 +752,66 @@ export class GarminPersonalService {
     }
     return { resolved: true, pending };
   }
+  private async storeSkippedActivity(
+    c: GarminPersonalConnection,
+    externalId: string,
+    reason: string,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.current(tx, c, 'activities');
+      // Preserve existing matches, local-deletion tombstones and review receipts.
+      return tx.garminPersonalItem.upsert({
+        where: { connectionId_externalId: { connectionId: c.id, externalId } },
+        create: { connectionId: c.id, externalId, skipReason: reason },
+        update: {},
+      });
+    });
+  }
+
+  private async importDownloadedActivity(
+    c: GarminPersonalConnection,
+    externalId: string,
+    name: string,
+    download: () => Promise<Buffer>,
+  ) {
+    const archive = await download();
+    let fit: ReturnType<typeof prepareManualFit>;
+    try {
+      fit = prepareManualFit(
+        await new FitParserStrategy().parse(
+          Uint8Array.from(extractPersonalFit(archive)).buffer,
+        ),
+      );
+    } catch (error) {
+      // Only explicit policy rejections are permanent. Corrupt/truncated files,
+      // failed downloads, parse errors and database errors remain retryable.
+      if (
+        error instanceof BadRequestException &&
+        [
+          'FIT_MULTISPORT_UNSUPPORTED',
+          'FIT_NOT_ACTIVITY',
+          'FIT_LIMIT',
+        ].includes(error.message)
+      ) {
+        return {
+          item: await this.storeSkippedActivity(c, externalId, error.message),
+          created: false,
+        };
+      }
+      throw error;
+    }
+    return this.storeActivity(c, externalId, name, fit);
+  }
   async run(job: PersonalJob) {
-    const c = await this.prisma.garminPersonalConnection.findUnique({
+    if (this.config.get('GARMIN_PERSONAL_API_ENABLED') !== true) return;
+    const stored = await this.prisma.garminPersonalConnection.findUnique({
       where: { id: job.connectionId },
     });
+    const c = stored ? await this.readConnection(stored.athleteId) : null;
     if (!c?.encryptedCredentials || c.version !== job.version || !c.activities)
       return;
+    if (c.status === 'key_required')
+      throw new GarminPersonalError('key_required');
     const leaseId = randomUUID();
     const claim = await this.prisma.garminPersonalConnection.updateMany({
       where: {
@@ -659,15 +823,29 @@ export class GarminPersonalService {
         leaseId,
         leaseUntil: new Date(Date.now() + 1200000),
         status: 'running',
+        queuedAt: null,
         error: null,
       },
     });
-    if (!claim.count) throw new ConflictException('Sync already running');
+    if (!claim.count) return;
     const result = emptyResult();
     try {
-      let credentials = JSON.parse(
-        this.cipher.decrypt(c.athleteId, c.encryptedCredentials),
-      ) as PersonalCredentials;
+      let credentials: PersonalCredentials;
+      try {
+        credentials = JSON.parse(
+          this.cipher.decrypt(c.athleteId, c.encryptedCredentials),
+        ) as PersonalCredentials;
+        if (
+          !credentials?.apiKey ||
+          !credentials.token ||
+          !Number.isFinite(credentials.expiresAt)
+        )
+          throw new Error();
+      } catch {
+        // A restored database with a different pepper or corrupt ciphertext
+        // cannot recover without a new key. Never keep retrying it hourly.
+        throw new GarminPersonalError('key_required');
+      }
       const persist = async () => {
         const updated = await this.prisma.garminPersonalConnection.updateMany({
           where: { id: c.id, version: c.version, leaseId },
@@ -721,26 +899,17 @@ export class GarminPersonalService {
               });
               const saved = old
                 ? { item: old, created: false }
-                : await this.storeActivity(
+                : await this.importDownloadedActivity(
                     c,
                     activity.activityId,
                     activity.activityName ?? 'Garmin',
-                    prepareManualFit(
-                      await new FitParserStrategy().parse(
-                        Uint8Array.from(
-                          extractPersonalFit(
-                            await request(() =>
-                              this.client.download(
-                                credentials,
-                                activity.activityId,
-                              ),
-                            ),
-                          ),
-                        ).buffer,
+                    () =>
+                      request(() =>
+                        this.client.download(credentials, activity.activityId),
                       ),
-                    ),
                   );
-              if (saved.item.needsReview) result.needsReview++;
+              if (saved.item.skipReason) result.skipped++;
+              else if (saved.item.needsReview) result.needsReview++;
               else if (saved.created) result.imported++;
               else result.matched++;
               if (saved.item.processingPending && saved.item.eventActivityId) {
@@ -764,7 +933,8 @@ export class GarminPersonalService {
             } catch (error) {
               if (
                 error instanceof GarminPersonalError &&
-                error.code !== 'invalid_response'
+                error.code !== 'invalid_response' &&
+                error.code !== 'access_denied'
               )
                 throw error;
               result.failed++;

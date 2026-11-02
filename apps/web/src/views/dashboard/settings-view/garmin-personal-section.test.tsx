@@ -138,6 +138,17 @@ describe('Garmin Personal settings', () => {
       'garmin_personal_queued',
     );
     expect(button('garmin_personal_sync').disabled).toBe(true);
+    expect(
+      element
+        .querySelector('#garmin-personal-activities')
+        ?.getAttribute('data-disabled'),
+    ).not.toBeNull();
+    expect(
+      element
+        .querySelector('#garmin-personal-automatic')
+        ?.getAttribute('data-disabled'),
+    ).not.toBeNull();
+    expect(element.textContent).toContain('garmin_personal_preferences_locked');
     expect(element.querySelector('#garmin-personal-key')).toBeNull();
     expect(element.textContent).not.toContain('garmin_personal_disconnect');
     expect(api.sync).not.toHaveBeenCalled();

@@ -1725,5 +1725,7 @@
   "activity_review_start": "Início",
   "activity_review_details_failed": "Não foi possível carregar os detalhes. Tente aqui; não é necessário repetir a importação.",
   "activity_review_retry_details": "Tentar detalhes novamente",
-  "activity_review_unavailable": "Detalhes indisponíveis. Para registros antigos do Garmin, reconecte e permita o acesso às atividades."
+  "activity_review_unavailable": "Detalhes indisponíveis. Para registros antigos do Garmin, reconecte e permita o acesso às atividades.",
+  "garmin_personal_preferences_locked": "As preferências não podem ser alteradas enquanto uma importação está na fila ou em andamento.",
+  "garmin_personal_skipped": "Arquivos não compatíveis ignorados: {count}."
 }

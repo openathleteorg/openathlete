@@ -23,6 +23,7 @@ import { AccountDeletionService } from '../../auth/services/account-deletion.ser
 import { AccountExportService } from '../../auth/services/account-export.service';
 import { ActivityRecording } from '../../core/helpers/activity-recording';
 import { ActivityReconciliationService } from '../../core/services/activity-reconciliation.service';
+import { InstanceController } from '../../instance/instance.controller';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
 import {
@@ -53,7 +54,7 @@ jest.mock('@garmin/fitsdk', () => {
   return { ...sdk, Decoder };
 });
 
-function activityZip() {
+function activityZip(sport = 'cycling', fileType = 'activity') {
   const sdk = process.getBuiltinModule('module').createRequire(__filename)(
     '@garmin/fitsdk',
   );
@@ -61,7 +62,7 @@ function activityZip() {
   const start =
     (Date.parse('2020-01-02T09:00:00Z') - Date.UTC(1989, 11, 31)) / 1000;
   encoder.onMesg(0, {
-    type: 'activity',
+    type: fileType,
     manufacturer: 'development',
     product: 1,
     timeCreated: start,
@@ -80,7 +81,7 @@ function activityZip() {
     totalTimerTime: 2,
     totalDistance: 6,
     totalAscent: 0,
-    sport: 'cycling',
+    sport,
   });
   const zip = new AdmZip();
   zip.addFile('synthetic-ride.fit', Buffer.from(encoder.close()));
@@ -103,6 +104,12 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
   let reconciliation: ActivityReconciliationService;
   let app: INestApplication;
   let origin: string;
+  let enabled = true;
+  const config = {
+    get: (key: string) =>
+      key === 'GARMIN_PERSONAL_API_ENABLED' ? enabled : undefined,
+    getOrThrow: () => 'test-only-instance-pepper',
+  };
   const jobs = new Map<
     string,
     { data: PersonalJob; getState: () => Promise<string> }
@@ -153,9 +160,7 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     service = new GarminPersonalService(
       prisma,
       client as unknown as GarminPersonalClient,
-      {
-        getOrThrow: () => 'test-only-instance-pepper',
-      } as unknown as ConfigService<ApiEnvSchemaType, true>,
+      config as unknown as ConfigService<ApiEnvSchemaType, true>,
       queue as unknown as Queue<PersonalJob>,
       processing as unknown as QueueService,
     );
@@ -167,8 +172,14 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
       processing as unknown as QueueService,
     );
     const module = await Test.createTestingModule({
-      controllers: [GarminPersonalController, ActivityReviewController],
+      controllers: [
+        GarminPersonalController,
+        ActivityReviewController,
+        InstanceController,
+      ],
       providers: [
+        { provide: ConfigService, useValue: config },
+        { provide: PrismaService, useValue: prisma },
         { provide: GarminPersonalService, useValue: service },
         { provide: ActivityReviewService, useValue: shared },
       ],
@@ -192,6 +203,7 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     await prisma.$disconnect();
   });
   beforeEach(async () => {
+    enabled = true;
     const tables = await prisma.$queryRaw<
       { table_name: string }[]
     >`SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE' AND table_name <> '_prisma_migrations'`;
@@ -212,6 +224,199 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     ]);
     client.download.mockResolvedValue(activityZip());
     processing.addActivityProcessingJob.mockReset().mockResolvedValue({});
+  });
+  it('hides the capability and rejects every connection route when disabled', async () => {
+    enabled = false;
+    const instance = await fetch(origin + '/instance').then((r) => r.json());
+    expect(instance.garminPersonalApi).toBe(false);
+    for (const [path, method] of [
+      ['', 'GET'],
+      ['', 'POST'],
+      ['', 'PATCH'],
+      ['', 'DELETE'],
+      ['/sync', 'POST'],
+    ]) {
+      const response = await send(
+        path,
+        method,
+        method === 'POST' || method === 'PATCH' ? {} : undefined,
+      );
+      expect(response.status).toBe(503);
+      expect(await response.json()).toMatchObject({
+        message: 'PROVIDER_NOT_CONFIGURED',
+      });
+    }
+    expect(client.authorize).not.toHaveBeenCalled();
+    expect(await prisma.garminPersonalConnection.count()).toBe(0);
+  });
+  it('advertises the capability only when enabled', async () => {
+    expect(
+      (await fetch(origin + '/instance').then((r) => r.json()))
+        .garminPersonalApi,
+    ).toBe(true);
+  });
+  it('does not claim work when disabled, even for previously queued jobs', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    enabled = false;
+    await expect(run()).resolves.toBeUndefined();
+    expect(client.activities).not.toHaveBeenCalled();
+    expect((await connection()).leaseId).toBeNull();
+  });
+  it('treats a held lease as a no-op without fetching Garmin or changing its owner', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    const c = await connection();
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: {
+        leaseId: 'other-worker',
+        leaseUntil: new Date(Date.now() + 60000),
+        status: 'running',
+      },
+    });
+    await expect(run()).resolves.toBeUndefined();
+    expect(client.activities).not.toHaveBeenCalled();
+    expect((await connection()).leaseId).toBe('other-worker');
+  });
+  it('bounds queued work without a worker, unlocks it, and invalidates a lost Redis job', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    await service.enqueue(DELETED_USER_ID, range);
+    const job = [...jobs.values()][0].data;
+    const c = await connection();
+    expect((await service.status(DELETED_USER_ID)).activeUntil).not.toBeNull();
+    await expect(
+      service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      }),
+    ).rejects.toThrow('sync_in_progress');
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { queuedAt: new Date(Date.now() - 6 * 60000) },
+    });
+    jobs.clear();
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'failed',
+      error: 'unavailable',
+      activeUntil: null,
+    });
+    await expect(service.run(job)).resolves.toBeUndefined();
+    expect(client.activities).not.toHaveBeenCalled();
+    await service.enqueue(DELETED_USER_ID, range);
+    const replacement = [...jobs.values()][0].data;
+    expect(replacement.version).toBeGreaterThan(job.version);
+    await expect(service.run(replacement)).resolves.toMatchObject({
+      imported: 1,
+    });
+  });
+  it.each(['queued', 'running'] as const)(
+    'recovers stale %s directly through PATCH without requiring a status visit',
+    async (status) => {
+      await service.connect(DELETED_USER_ID, dto);
+      const c = await connection();
+      await prisma.garminPersonalConnection.update({
+        where: { id: c.id },
+        data: {
+          status,
+          queuedAt: new Date(Date.now() - 6 * 60000),
+          leaseId: status === 'running' ? 'crashed-worker' : null,
+          leaseUntil: status === 'running' ? new Date(Date.now() - 1000) : null,
+        },
+      });
+      const response = await send('', 'PATCH', {
+        activities: false,
+        automatic: false,
+      });
+      expect(response.status).toBe(200);
+      expect(await response.json()).toMatchObject({
+        status: 'idle',
+        activeUntil: null,
+        preferences: { activities: false },
+      });
+      expect((await connection()).version).toBeGreaterThan(c.version);
+      expect((await connection()).encryptedCredentials).toBe(
+        c.encryptedCredentials,
+      );
+    },
+  );
+  it('preserves a live heartbeat when status and preferences are read', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    const c = await connection();
+    const leaseUntil = new Date(Date.now() + 60000);
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { status: 'running', leaseId: 'live-worker', leaseUntil },
+    });
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'running',
+      activeUntil: leaseUntil.toISOString(),
+    });
+    await expect(
+      service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      }),
+    ).rejects.toThrow('sync_in_progress');
+    expect((await connection()).version).toBe(c.version);
+  });
+  it('prevents an expired worker from writing after recovery and a preference change', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    let release: (value: Buffer) => void = () => {};
+    let started: () => void = () => {};
+    const ready = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    client.download.mockImplementationOnce(() => {
+      started();
+      return new Promise<Buffer>((resolve) => {
+        release = resolve;
+      });
+    });
+    const running = run();
+    await ready;
+    const c = await connection();
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { leaseUntil: new Date(Date.now() - 1000) },
+    });
+    try {
+      expect(await service.status(DELETED_USER_ID)).toMatchObject({
+        status: 'failed',
+        activeUntil: null,
+      });
+      await service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      });
+    } finally {
+      release(activityZip());
+    }
+    await expect(running).rejects.toMatchObject({ code: 'key_required' });
+    expect(await prisma.garminPersonalItem.count()).toBe(0);
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'idle',
+      error: null,
+      preferences: { activities: false },
+    });
+  });
+  it('requires a replacement key after decryption failure and refuses another queued pull', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    const c = await connection();
+    await prisma.garminPersonalConnection.update({
+      where: { id: c.id },
+      data: { encryptedCredentials: 'v1:corrupt:credential:value' },
+    });
+    await expect(run()).rejects.toMatchObject({ code: 'key_required' });
+    expect(client.activities).not.toHaveBeenCalled();
+    expect(await service.status(DELETED_USER_ID)).toMatchObject({
+      status: 'key_required',
+      error: 'key_required',
+    });
+    expect((await connection()).leaseId).toBeNull();
+    await expect(service.enqueue(DELETED_USER_ID, range)).rejects.toThrow(
+      'key_required',
+    );
+    await service.connect(DELETED_USER_ID, dto);
+    await expect(run()).resolves.toMatchObject({ imported: 1 });
   });
   it('requires authentication, rejects client-selected owners and stores credentials only encrypted', async () => {
     expect((await send('', 'GET', undefined, 0)).status).toBe(401);
@@ -292,6 +497,133 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     const outcomes = await Promise.allSettled([run(), run()]);
     expect(outcomes.some((v) => v.status === 'fulfilled')).toBe(true);
     expect(await prisma.garminPersonalItem.count()).toBe(1);
+  });
+  it.each([
+    ['multisport', 'activity', 'FIT_MULTISPORT_UNSUPPORTED'],
+    ['cycling', 'course', 'FIT_NOT_ACTIVITY'],
+  ])(
+    'retains unsupported %s/%s files without re-downloading or counting them as matched',
+    async (sport, fileType, reason) => {
+      client.download.mockResolvedValue(activityZip(sport, fileType));
+      await service.connect(DELETED_USER_ID, dto);
+      expect(await run()).toMatchObject({
+        imported: 0,
+        matched: 0,
+        failed: 0,
+        skipped: 1,
+      });
+      expect(await run()).toMatchObject({
+        imported: 0,
+        matched: 0,
+        failed: 0,
+        skipped: 1,
+      });
+      expect(client.download).toHaveBeenCalledTimes(1);
+      const item = await prisma.garminPersonalItem.findFirstOrThrow();
+      expect(item).toMatchObject({
+        skipReason: reason,
+        eventActivityId: null,
+        needsReview: false,
+        processingPending: false,
+      });
+      expect((await connection()).status).toBe('completed');
+    },
+  );
+  it('keeps malformed/truncated archives retryable without a permanent receipt', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    client.download
+      .mockResolvedValueOnce(Buffer.from('truncated ZIP'))
+      .mockResolvedValue(activityZip());
+    expect(await run()).toMatchObject({ imported: 0, failed: 1, skipped: 0 });
+    expect(await prisma.garminPersonalItem.count()).toBe(0);
+    expect(await run()).toMatchObject({ imported: 1, failed: 0, skipped: 0 });
+    expect(client.download).toHaveBeenCalledTimes(2);
+  });
+  it('keeps transient download failures retryable without a permanent receipt', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    client.download.mockRejectedValueOnce(
+      new GarminPersonalError('unavailable'),
+    );
+    await expect(run()).rejects.toMatchObject({ code: 'unavailable' });
+    expect(await prisma.garminPersonalItem.count()).toBe(0);
+    expect(await run()).toMatchObject({ imported: 1 });
+  });
+  it('continues after a download access denial and permits a later successful retry without replacing the key', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    client.activities.mockResolvedValue([
+      { activityId: 'denied' },
+      { activityId: 'allowed' },
+    ]);
+    client.download.mockRejectedValueOnce(
+      new GarminPersonalError('access_denied'),
+    );
+    expect(await run()).toMatchObject({ imported: 1, failed: 1, skipped: 0 });
+    expect((await connection()).status).toBe('partial');
+    expect((await connection()).error).toBeNull();
+    expect(
+      await prisma.garminPersonalItem.findFirst({
+        where: { externalId: 'denied' },
+      }),
+    ).toBeNull();
+    expect(await run()).toMatchObject({ matched: 2, failed: 0 });
+    expect(client.authorize).toHaveBeenCalledTimes(1);
+    expect(client.download).toHaveBeenCalledTimes(3);
+  });
+  it('allows an activity write to take longer than the default five-second transaction', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    await prisma.$executeRawUnsafe(
+      `CREATE FUNCTION test_slow_personal_insert() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN PERFORM pg_sleep(5.2); RETURN NEW; END $$`,
+    );
+    await prisma.$executeRawUnsafe(
+      `CREATE TRIGGER test_slow_personal_insert BEFORE INSERT ON event_activity FOR EACH ROW EXECUTE FUNCTION test_slow_personal_insert()`,
+    );
+    try {
+      expect(await run()).toMatchObject({ imported: 1, failed: 0 });
+    } finally {
+      await prisma.$executeRawUnsafe(
+        'DROP TRIGGER test_slow_personal_insert ON event_activity',
+      );
+      await prisma.$executeRawUnsafe(
+        'DROP FUNCTION test_slow_personal_insert()',
+      );
+    }
+  }, 20000);
+  it('rejects preference changes during an active import without aborting it', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    const original = await connection();
+    let release: (value: Buffer) => void = () => {};
+    let started: () => void = () => {};
+    const ready = new Promise<void>((resolve) => {
+      started = resolve;
+    });
+    client.download.mockImplementationOnce(() => {
+      started();
+      return new Promise<Buffer>((resolve) => {
+        release = resolve;
+      });
+    });
+    const running = run();
+    await ready;
+    try {
+      const response = await send('', 'PATCH', {
+        activities: false,
+        automatic: false,
+      });
+      expect(response.status).toBe(409);
+      expect(await response.json()).toMatchObject({
+        message: 'sync_in_progress',
+      });
+      expect((await connection()).version).toBe(original.version);
+    } finally {
+      release(activityZip());
+    }
+    await expect(running).resolves.toMatchObject({ imported: 1 });
+    await expect(
+      service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      }),
+    ).resolves.toMatchObject({ preferences: { activities: false } });
   });
   it('matches an existing Strava recording without changing edits or training links', async () => {
     await service.connect(DELETED_USER_ID, dto);
@@ -429,6 +761,13 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     await service.enqueue(DELETED_USER_ID, range);
     expect(queue.add).toHaveBeenCalledTimes(1);
     expect(JSON.stringify([...jobs.values()])).not.toContain(dto.apiKey);
+    await expect(
+      service.preferences(DELETED_USER_ID, {
+        activities: false,
+        automatic: false,
+      }),
+    ).rejects.toThrow('sync_in_progress');
+    await run();
     await service.preferences(DELETED_USER_ID, {
       activities: false,
       automatic: false,
@@ -683,6 +1022,21 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     expect((await service.reviews(DELETED_USER_ID)).total).toBe(0);
   });
 
+  it('keeps review download access denials retryable without rejecting the saved key', async () => {
+    const item = await pendingReview();
+    await prisma.$executeRaw`UPDATE garmin_personal_item SET review_summary = NULL WHERE id = ${item.id}`;
+    client.download.mockRejectedValueOnce(
+      new GarminPersonalError('access_denied'),
+    );
+    await expect(
+      service.previewReview(DELETED_USER_ID, item.id),
+    ).rejects.toMatchObject({ message: 'access_denied' });
+    expect((await connection()).status).not.toBe('key_required');
+    await expect(
+      service.previewReview(DELETED_USER_ID, item.id),
+    ).resolves.toEqual({ loaded: true });
+    expect(client.authorize).toHaveBeenCalledTimes(1);
+  });
   it('marks the connection key as rejected only when Garmin actually rejects renewal during review', async () => {
     const item = await pendingReview();
     await prisma.$executeRaw`UPDATE garmin_personal_item SET review_summary = NULL WHERE id = ${item.id}`;

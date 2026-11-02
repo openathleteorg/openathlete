@@ -1725,5 +1725,7 @@
   "activity_review_start": "Début",
   "activity_review_details_failed": "Impossible de charger les détails. Réessayez ici, sans relancer un import.",
   "activity_review_retry_details": "Réessayer les détails",
-  "activity_review_unavailable": "Détails indisponibles. Pour les anciens enregistrements Garmin, reconnectez-vous et autorisez l’accès aux activités."
+  "activity_review_unavailable": "Détails indisponibles. Pour les anciens enregistrements Garmin, reconnectez-vous et autorisez l’accès aux activités.",
+  "garmin_personal_preferences_locked": "Les préférences ne peuvent pas être modifiées pendant qu’un import est en attente ou en cours.",
+  "garmin_personal_skipped": "Fichiers non pris en charge ignorés : {count}."
 }

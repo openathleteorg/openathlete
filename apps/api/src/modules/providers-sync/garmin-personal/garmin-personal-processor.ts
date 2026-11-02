@@ -1,10 +1,11 @@
-import { Job } from 'bullmq';
+import { Job, UnrecoverableError } from 'bullmq';
 
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { GarminPersonalError } from './garmin-personal-client';
 import {
   GarminPersonalService,
   PERSONAL_QUEUE,
@@ -16,8 +17,14 @@ export class GarminPersonalProcessor extends WorkerHost {
   constructor(private readonly personal: GarminPersonalService) {
     super();
   }
-  process(job: Job<PersonalJob>) {
-    return this.personal.run(job.data);
+  async process(job: Job<PersonalJob>) {
+    try {
+      return await this.personal.run(job.data);
+    } catch (error) {
+      if (error instanceof GarminPersonalError && error.code === 'key_required')
+        throw new UnrecoverableError('key_required');
+      throw error;
+    }
   }
 }
 

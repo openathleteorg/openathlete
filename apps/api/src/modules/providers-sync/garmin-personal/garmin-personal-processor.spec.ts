@@ -1,6 +1,7 @@
-import { Job } from 'bullmq';
+import { Job, UnrecoverableError } from 'bullmq';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { GarminPersonalError } from './garmin-personal-client';
 import {
   GarminPersonalProcessor,
   GarminPersonalScheduler,
@@ -26,6 +27,21 @@ describe('Garmin Personal scheduling', () => {
       imported: 1,
     });
     expect(run).toHaveBeenCalledWith(data);
+  });
+  it('does not retry a rejected key but preserves transient failures for BullMQ retries', async () => {
+    const run = jest
+      .fn()
+      .mockRejectedValueOnce(new GarminPersonalError('key_required'))
+      .mockRejectedValueOnce(new GarminPersonalError('rate_limited'));
+    const processor = new GarminPersonalProcessor({
+      run,
+    } as unknown as GarminPersonalService);
+    await expect(
+      processor.process({ data: {} } as Job<PersonalJob>),
+    ).rejects.toBeInstanceOf(UnrecoverableError);
+    await expect(
+      processor.process({ data: {} } as Job<PersonalJob>),
+    ).rejects.toMatchObject({ code: 'rate_limited' });
   });
   it('pulls seven UTC days only for opted-in accounts and continues after one enqueue failure', async () => {
     jest.useFakeTimers().setSystemTime(new Date('2026-01-02T00:05:00Z'));
