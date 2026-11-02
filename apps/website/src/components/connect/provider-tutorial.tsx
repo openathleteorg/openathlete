@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle, MousePointerClick, Settings } from 'lucide-react';
 import * as React from 'react';
 
-type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
+type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS';
 
 interface ProviderTutorialProps {
   provider: Provider;
@@ -39,7 +39,7 @@ const itemVariants = {
 
 const getStepMessages = (provider: Provider, step: number) => {
   const key = provider.toLowerCase() as
-    'garmin' | 'strava' | 'suunto' | 'polar';
+    'garmin' | 'strava' | 'suunto' | 'polar' | 'coros';
   return {
     title: (
       m[

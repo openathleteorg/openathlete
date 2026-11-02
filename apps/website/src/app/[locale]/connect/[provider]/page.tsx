@@ -12,7 +12,13 @@ import { notFound } from 'next/navigation';
 
 import { generateMetadata as generatePageMetadata } from '../../../metadata';
 
-const VALID_PROVIDERS = ['garmin', 'strava', 'suunto', 'polar'] as const;
+const VALID_PROVIDERS = [
+  'garmin',
+  'strava',
+  'suunto',
+  'polar',
+  'coros',
+] as const;
 type ProviderSlug = (typeof VALID_PROVIDERS)[number];
 
 function isValidProvider(provider: string): provider is ProviderSlug {
@@ -21,8 +27,9 @@ function isValidProvider(provider: string): provider is ProviderSlug {
 
 function toProviderEnum(
   provider: ProviderSlug,
-): 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' {
-  return provider.toUpperCase() as 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
+): 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS' {
+  return provider.toUpperCase() as
+    'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS';
 }
 
 // eslint-disable-next-line react-refresh/only-export-components

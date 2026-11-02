@@ -13,7 +13,7 @@ import * as React from 'react';
 
 import { BrandLogo } from '../landing/brand-logo';
 
-type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
+type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS';
 
 interface ProviderHeroProps {
   provider: Provider;
@@ -56,7 +56,7 @@ const titleVariants = {
 
 const getProviderMessages = (provider: Provider) => {
   const key = provider.toLowerCase() as
-    'garmin' | 'strava' | 'suunto' | 'polar';
+    'garmin' | 'strava' | 'suunto' | 'polar' | 'coros';
   return {
     title: (m[`connect_${key}_hero_title` as keyof typeof m] as () => string)(),
     subtitle: (

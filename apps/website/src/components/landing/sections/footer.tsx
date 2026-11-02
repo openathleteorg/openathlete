@@ -172,6 +172,14 @@ export function Footer() {
                   Polar
                 </Link>
               </li>
+              <li>
+                <Link
+                  href={getLocalizedPath('/connect/coros')}
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  COROS
+                </Link>
+              </li>
             </ul>
           </div>
 

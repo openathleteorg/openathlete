@@ -17,7 +17,7 @@ import {
   getProviderSyncCapabilities,
 } from '@openathlete/shared';
 
-type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
+type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS';
 
 interface ProviderCapabilitiesProps {
   provider: Provider;
@@ -35,7 +35,7 @@ const getCapabilityMessages = (
   capability: keyof typeof capabilityIcons,
 ) => {
   const key = provider.toLowerCase() as
-    'garmin' | 'strava' | 'suunto' | 'polar';
+    'garmin' | 'strava' | 'suunto' | 'polar' | 'coros';
   const capabilityKey = capability
     .replace(/([A-Z])/g, '_$1')
     .toLowerCase()

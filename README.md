@@ -56,7 +56,7 @@ OpenAthlete is a different proposition: comparable tracking and analysis in an o
 - 🔒 **You Own Your Data** — Self-hostable, full export, no lock-in
 - 🔍 **Transparent Algorithms** — Training load formulas (CTL/ATL/TSB) are in the code, auditable, customizable
 - 📊 **Comprehensive Tracking** — Workouts, fitness/fatigue/form metrics, progression visualizations
-- 🔗 **Device Integrations** — Activities from Strava, Garmin, Polar and Suunto; planned workouts sent to Garmin and Suunto watches (Coros coming); FIT and GPX file import
+- 🔗 **Device Integrations** — Activities from Strava, Garmin, Polar, Suunto and COROS; planned workouts sent to Garmin, Suunto and COROS watches; FIT and GPX file import
 - 📱 **On your phone** — Installable web app on iPhone and Android; iOS app in beta ([TestFlight](https://testflight.apple.com/join/1hBg4mR1))
 - 🤖 **AI Assistance** — Modest helpers for session generation and load monitoring (not a replacement for a coach)
 - 🌐 **Open Source** — AGPLv3, community-driven, sustainably funded
@@ -354,7 +354,7 @@ OpenAthlete is actively developed. Here's what's coming next:
 
 - 🧩 **Modular Training Logic** - Custom goals, coach import, and flexible training methodologies
 - 📈 **Enhanced Dashboards** - Intuitive data visualizations and performance analytics
-- 🔗 **More Integrations** - Wahoo, Coros, Zwift, Oura, and more
+- 🔗 **More Integrations** - Wahoo, Zwift, Oura, and more
 - 📅 **Weekly Training View** - Better calendar and planning interface
 - 🏃 **Advanced AI Features** - More intelligent training suggestions and injury prevention
 - 📱 **Mobile App Enhancements** - Improved mobile experience and offline support

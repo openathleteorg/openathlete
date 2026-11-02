@@ -1,1 +1,7 @@
-export { StravaLogo, GarminLogo, SuuntoLogo, PolarLogo } from './providers';
+export {
+  StravaLogo,
+  GarminLogo,
+  SuuntoLogo,
+  PolarLogo,
+  CorosLogo,
+} from './providers';

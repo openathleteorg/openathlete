@@ -3,7 +3,7 @@
 import { useTheme } from 'next-themes';
 import Image from 'next/image';
 
-type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
+type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS';
 
 interface ProviderLogoProps {
   provider: Provider;
@@ -31,6 +31,10 @@ export function ProviderLogo({
     POLAR: {
       light: '/providers/polar.svg',
       dark: '/providers/polar_dark.svg',
+    },
+    COROS: {
+      light: '/providers/coros.png',
+      dark: '/providers/coros_dark.png',
     },
   };
 
