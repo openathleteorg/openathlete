@@ -1,4 +1,7 @@
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import {
@@ -20,6 +23,9 @@ if (!databaseUrl)
 
 const DAY = 24 * 3600 * 1000;
 
+/** Long iCal lines are folded on their way out */
+const unfold = (feed: string) => feed.replace(/\r\n /g, '');
+
 const userOf = (userId: number, athleteId: number | null) =>
   ({
     userId,
@@ -37,7 +43,9 @@ describe('calendar feed (PostgreSQL)', () => {
   beforeAll(async () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
     await prisma.$connect();
-    feeds = new CalendarFeedService(prisma);
+    feeds = new CalendarFeedService(prisma, {
+      get: () => 'https://app.example',
+    } as unknown as ConfigService<ApiEnvSchemaType, true>);
   });
 
   afterAll(async () => {
@@ -98,6 +106,100 @@ describe('calendar feed (PostgreSQL)', () => {
     expect(feed).not.toContain('Not mine');
     // Activities never show
     expect(feed).not.toContain('SUMMARY:Run');
+  });
+
+  it('gives a session its time, details and link', async () => {
+    await prisma.user.update({
+      where: { userId: DELETED_USER_ID },
+      data: { language: 'EN' },
+    });
+    await prisma.athleteMetric.createMany({
+      data: [
+        {
+          athleteId: DELETED_ATHLETE_ID,
+          type: 'VMA',
+          value: 12,
+          date: new Date('2026-01-01'),
+        },
+        {
+          athleteId: DELETED_ATHLETE_ID,
+          type: 'VMA',
+          value: 18,
+          date: new Date('2026-06-01'),
+        },
+      ],
+    });
+    const session = await plan(DELETED_ATHLETE_ID, 'Tempo', 3);
+    await prisma.eventTraining.update({
+      where: { eventId: session.eventId },
+      data: {
+        description: 'Easy, then fast',
+        goalDistance: 10000,
+        workout: {
+          create: {
+            steps: {
+              create: {
+                orderIndex: 0,
+                stepType: 'STEADY',
+                durationType: 'TIME',
+                durationValue: 600,
+                targets: {
+                  create: {
+                    targetType: 'PACE',
+                    targetValue: 1,
+                    metricType: 'VMA',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const feed = unfold(
+      await feeds.renderFeed(await feeds.getOrCreateToken(athlete)),
+    );
+
+    const start = session.startDate.toISOString().replace(/[-:]|\.\d+/g, '');
+    expect(feed).toContain(`DTSTART:${start}`);
+    expect(feed).toContain(
+      'DESCRIPTION:Sport: Running\\nDistance: 10 km\\n\\nEasy\\, then fast\\n\\nWorkout:\\n- Steady · 10 min · 3:20 min/km',
+    );
+    expect(feed).toContain('CATEGORIES:Session,Running');
+    expect(feed).toContain(
+      `URL;VALUE=URI:https://app.example/dashboard/calendar?event=${session.eventId}`,
+    );
+  });
+
+  it("puts a note on the athlete's day, not UTC's", async () => {
+    await prisma.user.update({
+      where: { userId: DELETED_USER_ID },
+      data: { timeZone: 'Asia/Tokyo' },
+    });
+    // Tomorrow 23:30 UTC is the morning of the day after, in Tokyo
+    const startDate = new Date(Date.now() + DAY);
+    startDate.setUTCHours(23, 30, 0, 0);
+    await prisma.event.create({
+      data: {
+        name: 'Ski trip',
+        type: 'NOTE',
+        startDate,
+        endDate: new Date(startDate.getTime() + 3600_000),
+        athleteId: DELETED_ATHLETE_ID,
+        note: { create: { description: 'Rest' } },
+      },
+    });
+
+    const feed = await feeds.renderFeed(await feeds.getOrCreateToken(athlete));
+
+    const day = (offset: number) =>
+      new Date(startDate.getTime() + offset * DAY)
+        .toISOString()
+        .slice(0, 10)
+        .replaceAll('-', '');
+    expect(feed).toContain(`DTSTART;VALUE=DATE:${day(1)}`);
+    expect(feed).toContain(`DTEND;VALUE=DATE:${day(2)}`);
   });
 
   it('revokes the previous URL when the token is regenerated', async () => {

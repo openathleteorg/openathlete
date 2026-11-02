@@ -6,12 +6,20 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { EventType } from '@openathlete/database';
+import { ApiEnvSchemaType } from '@openathlete/shared';
 
+import { Language } from 'src/common/constants/languages.constant';
+import { formatZoned, validTimeZone } from 'src/common/utils/time-zone';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import {
+  FEED_EVENT_SELECT,
+  describeFeedEvent,
+} from '../helpers/calendar-feed-event';
 import { addUtcDays } from '../helpers/training-load';
 
 /** 256 random bits, URL-safe: 43 base64url characters */
@@ -32,7 +40,10 @@ const FEED_DAYS_AFTER = 365;
  */
 @Injectable()
 export class CalendarFeedService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService<ApiEnvSchemaType, true>,
+  ) {}
 
   /** The token of the user's feed, created on the first request */
   async getOrCreateToken(user: AuthUser): Promise<string> {
@@ -74,31 +85,51 @@ export class CalendarFeedService {
     }
     const athlete = await this.prisma.athlete.findUnique({
       where: { calendarFeedToken: token },
-      select: { athleteId: true },
+      select: {
+        athleteId: true,
+        user: { select: { language: true, timeZone: true } },
+      },
     });
     if (!athlete) {
       throw new UnauthorizedException();
     }
+    const { athleteId } = athlete;
 
     const now = new Date();
-    const events = await this.prisma.event.findMany({
-      where: {
-        athleteId: athlete.athleteId,
-        type: { not: EventType.ACTIVITY },
-        startDate: {
-          gte: addUtcDays(now, -FEED_DAYS_BEFORE),
-          lte: addUtcDays(now, FEED_DAYS_AFTER),
+    const [events, metrics, zones] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          athleteId,
+          type: { not: EventType.ACTIVITY },
+          startDate: {
+            gte: addUtcDays(now, -FEED_DAYS_BEFORE),
+            lte: addUtcDays(now, FEED_DAYS_AFTER),
+          },
         },
-      },
-      select: {
-        eventId: true,
-        name: true,
-        type: true,
-        startDate: true,
-        endDate: true,
-      },
-      orderBy: { startDate: 'asc' },
-    });
+        select: FEED_EVENT_SELECT,
+        orderBy: { startDate: 'asc' },
+      }),
+      this.prisma.athleteMetric.findMany({
+        where: { athleteId },
+        distinct: ['type'],
+        select: { type: true, value: true },
+        orderBy: [{ type: 'asc' }, { date: 'desc' }],
+      }),
+      this.prisma.trainingZone.findMany({
+        where: { athleteId },
+        select: { trainingZoneId: true, name: true },
+      }),
+    ]);
+
+    const language = athlete.user.language as Language;
+    const timeZone = validTimeZone(athlete.user.timeZone);
+    const metricValues = Object.fromEntries(
+      metrics.map(({ type, value }) => [type, value]),
+    );
+    const zoneNames = new Map(
+      zones.map((zone) => [zone.trainingZoneId, zone.name]),
+    );
+    const appUrl = this.config.get('APP_URL', { infer: true });
 
     const calendar = ical({
       name: 'OpenAthlete',
@@ -106,14 +137,23 @@ export class CalendarFeedService {
       method: ICalCalendarMethod.PUBLISH,
     });
     for (const event of events) {
+      const url = appUrl
+        ? `${appUrl}/dashboard/calendar?event=${event.eventId}`
+        : null;
+      const { description, categories } = describeFeedEvent(event, {
+        language,
+        metrics: metricValues,
+        zoneNames,
+        url,
+      });
       calendar.createEvent({
         // Stable across polls, so calendar apps update events in place
         id: `openathlete-event-${event.eventId}`,
-        start: event.startDate,
-        end: event.endDate,
-        allDay: true,
+        ...feedDates(event, timeZone),
         summary: event.name,
-        description: `Type: ${event.type.toLowerCase()}`,
+        description,
+        categories: categories.map((name) => ({ name })),
+        url,
       });
     }
     return calendar.toString();
@@ -130,4 +170,32 @@ export class CalendarFeedService {
 
 function newToken(): string {
   return randomBytes(TOKEN_BYTES).toString('base64url');
+}
+
+/**
+ * Sessions and races keep their time. Notes have none: they fill their days,
+ * which are the athlete's and not UTC's, or a note near midnight would move
+ * to the neighbouring day. An all-day end is exclusive, hence the extra day.
+ */
+function feedDates(
+  event: { type: EventType; startDate: Date; endDate: Date },
+  timeZone: string,
+): { start: Date; end: Date; allDay: boolean } {
+  const { startDate, endDate } = event;
+  if (event.type !== EventType.NOTE) {
+    return { start: startDate, end: endDate, allDay: false };
+  }
+  const lastInstant = new Date(
+    Math.max(startDate.getTime(), endDate.getTime() - 1),
+  );
+  return {
+    start: zonedDay(startDate, timeZone),
+    end: addUtcDays(zonedDay(lastInstant, timeZone), 1),
+    allDay: true,
+  };
+}
+
+/** The athlete's calendar day of `instant`, as midnight UTC */
+function zonedDay(instant: Date, timeZone: string): Date {
+  return new Date(`${formatZoned(instant, timeZone).slice(0, 10)}T00:00:00Z`);
 }
