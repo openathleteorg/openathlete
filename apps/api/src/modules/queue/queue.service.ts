@@ -44,6 +44,16 @@ export type PolarNotificationJobData =
   | { kind: 'sync'; providerAccountId: number }
   | { kind: 'metrics'; providerAccountId: number };
 
+/** COROS has no webhooks: its activities and metrics are polled */
+export type CorosSyncJobData =
+  | { kind: 'sync'; providerAccountId: number }
+  | { kind: 'metrics'; providerAccountId: number }
+  | {
+      kind: 'history-batch';
+      providerAccountId: number;
+      activities: ImportedActivity[];
+    };
+
 const POLAR_WEBHOOK_SECRET_KEY = 'openathlete:polar:webhook-secret';
 
 export interface ActivityProcessingJobData {
@@ -69,7 +79,47 @@ export class QueueService {
     private readonly suuntoNotificationQueue: Queue<SuuntoNotificationJobData>,
     @InjectQueue('polar-notification')
     private readonly polarNotificationQueue: Queue<PolarNotificationJobData>,
+    @InjectQueue('coros-sync')
+    private readonly corosSyncQueue: Queue<CorosSyncJobData>,
   ) {}
+
+  async addCorosSyncJob(providerAccountId: number, delayMs = 0): Promise<void> {
+    await this.corosSyncQueue.add(
+      'sync',
+      { kind: 'sync', providerAccountId },
+      {
+        jobId: `coros-sync-${providerAccountId}-${Math.floor(Date.now() / 1_800_000)}`,
+        delay: delayMs,
+      },
+    );
+  }
+
+  async addCorosMetricsJob(
+    providerAccountId: number,
+    delayMs = 0,
+  ): Promise<void> {
+    await this.corosSyncQueue.add(
+      'metrics',
+      { kind: 'metrics', providerAccountId },
+      {
+        jobId: `coros-metrics-${providerAccountId}-${Math.floor(Date.now() / 3_600_000)}`,
+        delay: delayMs,
+      },
+    );
+  }
+
+  /** History comes in daily batches: see CorosProviderService.queueFullImport */
+  async addCorosHistoryBatchJob(
+    providerAccountId: number,
+    activities: ImportedActivity[],
+    delayMs: number,
+  ): Promise<void> {
+    await this.corosSyncQueue.add(
+      'history-batch',
+      { kind: 'history-batch', providerAccountId, activities },
+      { delay: delayMs },
+    );
+  }
 
   /** Polar may notify an exercise twice: import it once */
   async addPolarExerciseJob(

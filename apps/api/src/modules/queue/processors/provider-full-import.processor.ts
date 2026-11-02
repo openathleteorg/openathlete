@@ -18,6 +18,7 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 import { FullImportResult } from '../../providers-sync/base/base-provider.service';
 import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
+  CorosProviderService,
   GarminProviderService,
   StravaProviderService,
   SuuntoProviderService,
@@ -46,6 +47,8 @@ export class ProviderFullImportProcessor extends WorkerHost {
     private readonly garminProviderService: GarminProviderService,
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
+    @Inject(forwardRef(() => CorosProviderService))
+    private readonly corosProviderService: CorosProviderService,
     @Optional() private readonly analytics?: AnalyticsService,
   ) {
     super();
@@ -128,6 +131,8 @@ export class ProviderFullImportProcessor extends WorkerHost {
         return this.garminProviderService.queueFullImport(account);
       case ConnectorProvider.SUUNTO:
         return this.suuntoProviderService.queueFullImport(account);
+      case ConnectorProvider.COROS:
+        return this.corosProviderService.queueFullImport(account);
       default:
         throw new Error(
           `Historical import is not available for ${account.provider}`,

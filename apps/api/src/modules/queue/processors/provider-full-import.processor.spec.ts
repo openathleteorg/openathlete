@@ -41,6 +41,7 @@ function setup(account: object | null = activeStrava) {
     strava as never,
     garmin as never,
     { queueFullImport: jest.fn() } as never,
+    { queueFullImport: jest.fn() } as never,
   );
   return { prisma, strava, garmin, processor };
 }

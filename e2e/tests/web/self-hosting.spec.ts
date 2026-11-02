@@ -48,14 +48,20 @@ test('hides what the instance has not set up', async ({ page, request }) => {
   expect(await instance.json()).toEqual({
     googleSignIn: false,
     email: false,
-    providers: [],
+    // COROS is the one connector that needs no setup
+    providers: ['COROS'],
     signup: 'open',
     oidc: { name: 'Fake IdP' },
   });
 
   await page.goto('/dashboard/settings?tab=connectors');
-  await expect(page.locator('[data-connectors-unavailable]')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Connect' })).toHaveCount(0);
+  await expect(page.locator('[data-connectors-unavailable]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Connect' }).click();
+  // COROS has one server per region: the account's owner tells which
+  await expect(
+    page.getByRole('heading', { name: 'Where is your COROS account?' }),
+  ).toBeVisible();
+  await page.keyboard.press('Escape');
   // Files remain the way in
   await expect(page.locator('[data-import-fit-trigger]')).toBeVisible();
 });

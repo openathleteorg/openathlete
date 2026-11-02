@@ -21,4 +21,10 @@ describe('configured providers', () => {
       ),
     ).toEqual(['STRAVA']);
   });
+
+  it('offers COROS, which needs no credentials, once it can come back', () => {
+    expect(
+      configuredProviders(env({ APP_URL: 'https://app.example.org' })),
+    ).toEqual(['COROS']);
+  });
 });

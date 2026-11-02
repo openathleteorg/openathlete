@@ -1,6 +1,10 @@
 import client, { routes } from '@/utils/axios';
 
-import { ConnectorProvider, ProviderPreferencesDto } from '@openathlete/shared';
+import {
+  ConnectorProvider,
+  CorosRegion,
+  ProviderPreferencesDto,
+} from '@openathlete/shared';
 
 export interface ConnectedProvider {
   provider: ConnectorProvider;
@@ -15,7 +19,7 @@ export interface ConnectedProvider {
 
 export interface GetOAuthUriResponse {
   uri: string;
-  codeVerifier?: string; // For PKCE providers like Garmin
+  codeVerifier?: string; // For PKCE providers: Garmin, COROS
 }
 
 export interface ImportAllActivitiesResponse {
@@ -26,10 +30,16 @@ export interface ImportAllActivitiesResponse {
 }
 
 export class ProviderAPI {
-  static async getOAuthUri(
-    provider: ConnectorProvider,
-  ): Promise<GetOAuthUriResponse> {
-    const res = await client.get(routes.provider.getOAuthUri(provider));
+  static async getOAuthUri({
+    provider,
+    region,
+  }: {
+    provider: ConnectorProvider;
+    region?: CorosRegion;
+  }): Promise<GetOAuthUriResponse> {
+    const res = await client.get(routes.provider.getOAuthUri(provider), {
+      params: { region },
+    });
     return res.data;
   }
 

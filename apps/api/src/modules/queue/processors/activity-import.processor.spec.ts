@@ -41,6 +41,7 @@ function setup(created: boolean) {
     {} as never,
     {} as never,
     {} as never,
+    {} as never,
     queue as never,
     emitter as never,
   );

@@ -13,6 +13,7 @@ import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { ImportResult } from '../../providers-sync/base/provider-import.interface';
 import {
+  CorosProviderService,
   GarminProviderService,
   PolarProviderService,
   StravaProviderService,
@@ -38,6 +39,8 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly polarProviderService: PolarProviderService,
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
+    @Inject(forwardRef(() => CorosProviderService))
+    private readonly corosProviderService: CorosProviderService,
     private readonly queueService: QueueService,
     @Optional() private readonly emitter?: EventEmitter2,
     @Optional() private readonly analytics?: AnalyticsService,
@@ -123,6 +126,11 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       } else if (account.provider === ConnectorProvider.SUUNTO) {
         result = await this.suuntoProviderService.importActivity(
+          account,
+          activity,
+        );
+      } else if (account.provider === ConnectorProvider.COROS) {
+        result = await this.corosProviderService.importActivity(
           account,
           activity,
         );

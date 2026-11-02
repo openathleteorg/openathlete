@@ -11,6 +11,7 @@ import { CoreModule } from '../core';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
+import { CorosSyncProcessor } from './processors/coros-sync.processor';
 import { GarminNotificationProcessor } from './processors/garmin-notification.processor';
 import { PolarNotificationProcessor } from './processors/polar-notification.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
@@ -298,6 +299,23 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'coros-sync',
+      defaultJobOptions: {
+        attempts: 5,
+        backoff: {
+          type: 'exponential',
+          delay: 60_000,
+        },
+        removeOnComplete: {
+          age: 24 * 3600,
+          count: 5000,
+        },
+        removeOnFail: {
+          age: 7 * 24 * 3600,
+        },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'polar-notification',
       defaultJobOptions: {
         attempts: 5,
@@ -361,6 +379,7 @@ function parseRedisUrl(redisUrl: string): {
           GarminNotificationProcessor,
           SuuntoNotificationProcessor,
           PolarNotificationProcessor,
+          CorosSyncProcessor,
         ]
       : []),
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'

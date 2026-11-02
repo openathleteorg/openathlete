@@ -104,6 +104,11 @@ model ProviderAccount {
   status                  ProviderAccountStatus @default(active)
   /// External user ID from the provider (for webhook matching)
   externalUserId          String?               @map("external_user_id")
+  /// OAuth client this account's tokens belong to, for providers that
+  /// register a client per connection (COROS)
+  oauthClientId           String?               @map("oauth_client_id")
+  /// Provider region holding this account, whose API serves it (COROS)
+  region                  String?
   /// Whether to automatically import activities from this provider
   importActivitiesEnabled Boolean               @default(true) @map("import_activities_enabled")
   /// Whether to export planned workouts to this provider

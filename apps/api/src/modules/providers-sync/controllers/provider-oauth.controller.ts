@@ -14,6 +14,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   RawBodyRequest,
   Req,
   Res,
@@ -38,6 +39,8 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { ConnectorProvider } from '@openathlete/database';
 import type { ApiEnvSchemaType } from '@openathlete/shared';
 import {
+  COROS_REGIONS,
+  CorosRegion,
   ProviderPreferencesDto,
   getProviderSyncCapabilities,
   isFullImportInProgress,
@@ -121,7 +124,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Get OAuth authorization URI for a provider',
     description:
-      'Generates the OAuth authorization URI for connecting a fitness provider account. Supported providers: STRAVA, GARMIN, SUUNTO, COROS, POLAR. For Garmin (which uses PKCE flow), also returns a code_verifier that must be securely stored by the client and sent back during token exchange. The client should redirect the user to the returned URI to initiate the OAuth flow.',
+      'Generates the OAuth authorization URI for connecting a fitness provider account. Supported providers: STRAVA, GARMIN, SUUNTO, COROS, POLAR. Garmin and COROS use the PKCE flow: the response also holds a code verifier that the client stores and sends back during token exchange. The client should redirect the user to the returned URI to initiate the OAuth flow.',
   })
   @ApiParam({
     name: 'provider',
@@ -129,6 +132,12 @@ export class ProviderOAuthController {
     enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive)',
     example: 'strava',
+  })
+  @ApiQuery({
+    name: 'region',
+    required: false,
+    enum: COROS_REGIONS,
+    description: 'Region of the COROS account (COROS only)',
   })
   @ApiResponse({
     status: 200,
@@ -146,7 +155,7 @@ export class ProviderOAuthController {
           type: 'string',
           nullable: true,
           description:
-            'PKCE code verifier (only for Garmin). Must be stored securely and sent back during token exchange.',
+            'PKCE code verifier (Garmin and COROS). Must be stored securely and sent back during token exchange.',
           example: 'abc123def456...',
         },
       },
@@ -162,7 +171,10 @@ export class ProviderOAuthController {
     description:
       'PROVIDER_NOT_CONFIGURED - the connector is not set up on this instance',
   })
-  getAuthorizationUri(@Param('provider') provider: string) {
+  async getAuthorizationUri(
+    @Param('provider') provider: string,
+    @Query('region') region?: string,
+  ) {
     const providerEnum = provider.toUpperCase() as ConnectorProvider;
     this.assertConfigured(providerEnum);
 
@@ -178,7 +190,12 @@ export class ProviderOAuthController {
       case ConnectorProvider.SUUNTO:
         return { uri: this.suuntoProviderService.getAuthorizationUri() };
       case ConnectorProvider.COROS:
-        return { uri: this.corosProviderService.getAuthorizationUri() };
+        if (!COROS_REGIONS.includes(region as CorosRegion)) {
+          throw new BadRequestException('Unknown COROS region');
+        }
+        return this.corosProviderService.getAuthorizationUriForRegion(
+          region as CorosRegion,
+        );
       case ConnectorProvider.POLAR:
         return { uri: this.polarProviderService.getAuthorizationUri() };
       default:
@@ -208,7 +225,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Connect provider account via OAuth',
     description:
-      "Exchanges the OAuth authorization code for access and refresh tokens, then saves the provider account linked to the authenticated user's athlete profile. For Garmin (PKCE flow), the codeVerifier parameter is required and must match the one returned during authorization URI generation. Each provider has specific handling: Strava extracts athlete information, Garmin uses PKCE verification, Suunto extracts external user ID from JWT token, Coros and Polar use standard OAuth flows.",
+      "Exchanges the OAuth authorization code for access and refresh tokens, then saves the provider account linked to the authenticated user's athlete profile. For Garmin (PKCE flow), the codeVerifier parameter is required and must match the one returned during authorization URI generation. Each provider has specific handling: Strava extracts athlete information, Garmin uses PKCE verification, Suunto extracts external user ID from JWT token, COROS uses PKCE with a client registered for the connection, Polar uses a standard OAuth flow.",
   })
   @ApiParam({
     name: 'provider',
@@ -230,7 +247,7 @@ export class ProviderOAuthController {
         codeVerifier: {
           type: 'string',
           description:
-            'PKCE code verifier (required for Garmin, optional for others)',
+            'PKCE code verifier (required for Garmin and COROS, optional for others)',
           example: 'xyz789uvw012...',
         },
       },
@@ -315,15 +332,14 @@ export class ProviderOAuthController {
         });
       }
       case ConnectorProvider.COROS: {
-        const tokenResponse =
-          await this.corosProviderService.exchangeCodeForTokens(code);
-        return this.corosProviderService.saveProviderAccount({
-          athleteId: athlete.athleteId,
-          accessToken: tokenResponse.access_token,
-          refreshToken: tokenResponse.refresh_token || '',
-          expiresIn: tokenResponse.expires_in,
-          scopes: tokenResponse.scope,
-        });
+        if (!body.codeVerifier) {
+          throw new BadRequestException('codeVerifier is required for COROS');
+        }
+        return this.corosProviderService.connect(
+          code,
+          body.codeVerifier,
+          athlete.athleteId,
+        );
       }
       case ConnectorProvider.POLAR: {
         return this.polarProviderService.connect(code, athlete.athleteId);
@@ -645,6 +661,12 @@ export class ProviderOAuthController {
     ) {
       await this.queueService.addPolarMetricsJob(account.providerAccountId, 0);
     }
+    if (
+      providerEnum === ConnectorProvider.COROS &&
+      body.importMetricsEnabled === true
+    ) {
+      await this.queueService.addCorosMetricsJob(account.providerAccountId);
+    }
 
     return { success: true };
   }
@@ -658,7 +680,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Trigger full historical activity import',
     description:
-      'Queues a full historical import of all activities from a connected provider and returns immediately: the worker lists the history and imports activities progressively, and fullImportCompletedAt is set once every activity is queued. Only providers that support full import (Strava, Garmin, Suunto) can use this endpoint. Activity import must be enabled for the provider. If a full import is already in progress (requested less than 24 hours ago), the request is rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
+      'Queues a full historical import of all activities from a connected provider and returns immediately: the worker lists the history and imports activities progressively, and fullImportCompletedAt is set once every activity is queued. Only providers that support full import (Strava, Garmin, Suunto, COROS) can use this endpoint. COROS serves 50 activity files a day, so its history then arrives over days. Activity import must be enabled for the provider. If a full import is already in progress (requested less than 24 hours ago), the request is rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
   })
   @ApiParam({
     name: 'provider',

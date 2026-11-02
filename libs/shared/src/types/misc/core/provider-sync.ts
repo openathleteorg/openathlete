@@ -50,8 +50,8 @@ const providerSpecificCapabilities: Partial<
   COROS: {
     importActivities: true,
     exportWorkouts: true,
-    importMetrics: false,
-    supportsFullImport: false,
+    importMetrics: true,
+    supportsFullImport: true,
   },
   // Polar's API is read-only, and only serves what reached Flow after the
   // user connected, for 30 days: no export and no history to request
@@ -62,6 +62,11 @@ const providerSpecificCapabilities: Partial<
     supportsFullImport: false,
   },
 };
+
+/** COROS keeps each account in one region, each with its own server */
+export const COROS_REGIONS = ['eu', 'us', 'cn'] as const;
+
+export type CorosRegion = (typeof COROS_REGIONS)[number];
 
 export function getProviderSyncCapabilities(
   provider: ConnectorProvider,
