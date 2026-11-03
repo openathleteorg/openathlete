@@ -18,13 +18,19 @@ The address of the server is in **Settings › AI agents**:
 `https://api.openathlete.org/mcp` on openathlete.org, or
 `https://<your domain>/api/mcp` on a self-hosted instance.
 
-**Claude** (claude.ai, desktop and mobile apps): open **Settings ›
-Connectors › Add custom connector**, paste the address, then **Connect**.
-Claude opens OpenAthlete: sign in if needed and choose **Allow**.
+**Claude** (claude.ai and the desktop app; connectors then work in the
+mobile apps too): open **Customize › Connectors**, choose **+ › Add custom
+connector**, paste the address, then **Connect**. Claude opens OpenAthlete:
+sign in if needed and choose **Allow**. The free plan allows one custom
+connector; on Team and Enterprise plans an owner adds it in **Organization
+settings › Connectors**.
 
-**ChatGPT**: turn on developer mode in **Settings › Apps & Connectors**,
-create a connector with the address and OAuth authentication, then allow it
-in OpenAthlete.
+**ChatGPT**: open **Plugins**, choose **+ › Add custom MCP server**, paste
+the address, choose OAuth and create it as a plugin, then allow it in
+OpenAthlete. Mention it with `@` in a chat. When we checked (November 2026),
+custom MCP servers with write actions were available on the Business,
+Enterprise and Edu plans, and read-only on Pro; your Plugins page has the
+final word.
 
 **Claude Code**:
 
