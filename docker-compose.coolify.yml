@@ -188,9 +188,37 @@ services:
     networks:
       - openathlete
 
+  # Idles until the Coolify scheduled task "backup" (command `backup`, nightly)
+  # sends the database to the restic repository. See deploy/coolify/backup.
+  backup:
+    build:
+      context: deploy/coolify/backup
+    image: openathlete-backup:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
+      RESTIC_CACHE_DIR: /cache
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: auto
+      BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
+    volumes:
+      - backup_cache:/cache
+    networks:
+      - openathlete
+
 volumes:
   postgres_data:
   redis_data:
+  backup_cache:
 
 networks:
   openathlete:
