@@ -212,6 +212,7 @@ export function TrainingCompetitionDetails({ event }: P) {
               <WorkoutSummary
                 workout={event.workout}
                 sport={(event as TrainingEvent).sport}
+                athleteId={event.athleteId}
               />
             </CardContent>
           </Card>

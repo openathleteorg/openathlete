@@ -187,6 +187,14 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   }, [startDateValue, goalDurationValue, type, setValue]);
 
   const isTemplate = edit && 'isTemplate' in rest && !!rest.isTemplate;
+  // Zone targets are ids of the session athlete's zones: the event's when
+  // editing, the calendar's when creating. A template has no athlete: the
+  // signed-in user's zones (remapped when it is applied to an athlete).
+  const workoutAthleteId = isTemplate
+    ? null
+    : edit && 'event' in rest && rest.event
+      ? (rest.event.athleteId ?? null)
+      : (athleteId ?? null);
   const { data: myAthlete } = useGetMyAthleteQuery();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const queryClient = useQueryClient();
@@ -457,7 +465,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             workoutSteps={workoutSteps}
             setWorkoutSteps={setWorkoutSteps}
             sportValue={sportValue}
-            athleteId={athleteId ?? undefined}
+            athleteId={workoutAthleteId}
           />
 
           <div className="flex flex-col items-stretch gap-3 max-md:sticky max-md:-bottom-4 max-md:z-10 max-md:-mx-4 max-md:border-t max-md:bg-background max-md:px-4 max-md:pt-3 max-md:pb-[calc(0.75rem+var(--safe-bottom))] md:flex-row md:items-center md:gap-4">

@@ -10,6 +10,7 @@ import type {
 import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
 import { WorkoutBuilder, WorkoutGraph } from '../../workout';
+import { WorkoutAthleteContext } from '../../workout/workout-athlete-context';
 import { cleanWorkoutSteps } from '../utils/workout-helpers';
 
 type CreateProps = {
@@ -30,7 +31,8 @@ type WorkoutSectionProps = {
   workoutSteps: CreateWorkoutStepDto[];
   setWorkoutSteps: (steps: CreateWorkoutStepDto[]) => void;
   sportValue?: SPORT_TYPE;
-  athleteId?: number;
+  /** The session's athlete; null for a template (the user's own zones) */
+  athleteId?: number | null;
 };
 
 export function WorkoutSection({
@@ -205,13 +207,16 @@ export function WorkoutSection({
             />
           </div>
         ) : null}
-        <WorkoutBuilder
-          workout={existingWorkout}
-          hideMetadataForm={true}
-          hideActions={true}
-          onStepsChange={handleStepsChange}
-          sport={sportValue ?? SPORT_TYPE.RUNNING}
-        />
+        {/* Zone pickers and badges inside use the session athlete's zones */}
+        <WorkoutAthleteContext.Provider value={athleteId ?? null}>
+          <WorkoutBuilder
+            workout={existingWorkout}
+            hideMetadataForm={true}
+            hideActions={true}
+            onStepsChange={handleStepsChange}
+            sport={sportValue ?? SPORT_TYPE.RUNNING}
+          />
+        </WorkoutAthleteContext.Provider>
       </div>
     </div>
   );

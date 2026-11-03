@@ -21,9 +21,15 @@ interface WorkoutSummaryProps {
   workout: WorkoutDto;
   /** Distance steps without a pace are estimated at this sport's pace */
   sport?: SPORT_TYPE;
+  /** The session's athlete: zone targets and metrics are theirs */
+  athleteId?: number | null;
 }
 
-export function WorkoutSummary({ workout, sport }: WorkoutSummaryProps) {
+export function WorkoutSummary({
+  workout,
+  sport,
+  athleteId,
+}: WorkoutSummaryProps) {
   const estimatedDuration = calculateWorkoutDuration(workout, undefined, sport);
   const totalDistance = calculateWorkoutDistance(workout);
 
@@ -76,6 +82,7 @@ export function WorkoutSummary({ workout, sport }: WorkoutSummaryProps) {
                         key={idx}
                         target={target}
                         showAbsoluteValues={true}
+                        athleteId={athleteId}
                       />
                     ),
                   )}

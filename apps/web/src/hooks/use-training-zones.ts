@@ -2,15 +2,15 @@ import { useGetMyAthleteQuery } from '@/api/athlete';
 import { TrainingZoneAPI } from '@/api/training-zone/training-zone.api';
 import { trainingZoneKeys } from '@/api/training-zone/training-zone.keys';
 import { m } from '@/paraglide/messages';
+import {
+  AthleteZone,
+  ZoneOption,
+  zoneOptions,
+} from '@/utils/training-zone-options';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
-import {
-  SPORT_TYPE,
-  TRAINING_ZONE_TYPE,
-  TrainingZone,
-  TrainingZoneValue,
-} from '@openathlete/shared';
+import { SPORT_TYPE, TRAINING_ZONE_TYPE } from '@openathlete/shared';
 
 const DEFAULT_TRAINING_ZONES = [
   {
@@ -56,81 +56,52 @@ const DEFAULT_TRAINING_ZONES = [
 ];
 
 /**
- * The zones of a type and sport: the athlete's whose data is shown when
- * `athleteId` is given (a coach reading an athlete's activity), else the
- * signed-in athlete's; default heart rate zones when there are none.
+ * Every training zone of an athlete: the athlete's whose data is shown when
+ * `athleteId` is given (a coach reading or planning for an athlete), else the
+ * signed-in athlete's. Zone ids are per athlete: resolve and pick zones of the
+ * athlete a session belongs to, never the viewer's.
+ */
+export function useAthleteTrainingZones(athleteId?: number | null) {
+  const { data: athlete, isLoading: isLoadingMine } = useGetMyAthleteQuery();
+  const forOther =
+    athleteId !== undefined &&
+    athleteId !== null &&
+    athlete?.athleteId !== athleteId;
+  const { data: otherZones, isLoading: isLoadingOther } = useQuery({
+    queryKey: [trainingZoneKeys.getAllForAthlete, athleteId],
+    queryFn: (): Promise<AthleteZone[]> =>
+      TrainingZoneAPI.getAllForAthlete(athleteId!),
+    enabled: forOther,
+  });
+  return {
+    zones: forOther ? otherZones : athlete?.trainingZones,
+    isLoading: forOther ? isLoadingOther : isLoadingMine,
+  };
+}
+
+/**
+ * The zones of a type and sport of an athlete (see `useAthleteTrainingZones`);
+ * default heart rate zones when there are none, to read data against. Those
+ * have negative ids: never store them as a workout target.
  */
 export function useTrainingZones(
   type: TRAINING_ZONE_TYPE,
   sport?: SPORT_TYPE,
   athleteId?: number,
-) {
-  const { data: athlete } = useGetMyAthleteQuery();
-  const forOther = athleteId !== undefined && athlete?.athleteId !== athleteId;
-  const { data: otherZones } = useQuery({
-    queryKey: [trainingZoneKeys.getAllForAthlete, athleteId],
-    queryFn: (): Promise<(TrainingZone & { values: TrainingZoneValue[] })[]> =>
-      TrainingZoneAPI.getAllForAthlete(athleteId!),
-    enabled: forOther,
-  });
-  const zones = forOther ? otherZones : athlete?.trainingZones;
-
-  const trainingZones = useMemo(
-    () =>
-      zones
-        ?.filter((zone) => zone.type === type)
-        .sort((a, b) => a.index - b.index),
-    [zones, type],
-  );
-
-  const finalTrainingZones = useMemo(() => {
-    return trainingZones?.map((zone) => {
-      const values = zone.values.filter((value) => {
-        if (sport) {
-          return value.sports.includes(sport);
-        }
-        return true;
-      });
-
-      if (values.length === 0) {
-        return null;
-      }
-
-      return {
-        id: zone.trainingZoneId,
-        name: zone.name,
-        description: zone.description,
-        color: zone.color,
-        min: values[0].min,
-        max: values[0].max,
-      };
-    });
-  }, [trainingZones, sport]);
+): ZoneOption[] {
+  const { zones } = useAthleteTrainingZones(athleteId);
 
   // Stable between renders: callers memoise what they compute from it
   return useMemo(() => {
-    const filteredTrainingZones = finalTrainingZones
-      ?.filter((zone) => zone !== null)
-      .map((zone) => zone as Exclude<typeof zone, null>);
-
-    if (!filteredTrainingZones || filteredTrainingZones.length === 0) {
-      const defaultZones = DEFAULT_TRAINING_ZONES.find(
-        (zone) => zone.type === type,
-      )?.values;
-      if (defaultZones) {
-        // Add temporary IDs for default zones (negative IDs to avoid conflicts)
-        return defaultZones.map((zone, index) => ({
-          id: -(index + 1), // Negative IDs for default zones
-          name: zone.name,
-          description: zone.description,
-          color: zone.color,
-          min: zone.min,
-          max: zone.max,
-        }));
-      }
-      return [];
-    }
-
-    return filteredTrainingZones;
-  }, [finalTrainingZones, type]);
+    const options = zoneOptions(zones, type, sport);
+    if (options.length > 0) return options;
+    const defaultZones = DEFAULT_TRAINING_ZONES.find(
+      (zone) => zone.type === type,
+    )?.values;
+    // Negative ids: they belong to no athlete
+    return (defaultZones ?? []).map((zone, index) => ({
+      id: -(index + 1),
+      ...zone,
+    }));
+  }, [zones, type, sport]);
 }

@@ -8,6 +8,8 @@ import { getTargetIntensity } from './target-intensity';
  * @param target - Target object with type, unit, and values
  * @param getMetricLabel - Optional function to get metric label (for i18n)
  * @param metrics - Optional record of metric types to their values for calculating absolute values
+ * @param trainingZones - The zones of the athlete the workout belongs to
+ * @param unknownZoneLabel - Shown for a zone id that is not one of them
  * @returns Human-readable formatted target
  */
 export function formatTarget(
@@ -15,6 +17,7 @@ export function formatTarget(
   getMetricLabel?: (metricType: string) => string,
   metrics?: Record<string, { value: number } | number>,
   trainingZones?: TrainingZone[],
+  unknownZoneLabel?: string,
 ): string {
   const { targetType, targetMin, targetMax, targetValue, metricType } = target;
 
@@ -43,7 +46,8 @@ export function formatTarget(
     if (zone) {
       return zone.name;
     }
-    return `Zone ${targetValue}`;
+    // The raw id means nothing to a reader
+    return unknownZoneLabel ?? `Zone ${targetValue}`;
   }
 
   // If metricType is set, values are percentages (0-1)
