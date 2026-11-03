@@ -10,8 +10,12 @@ import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+import { ActivityDuplicateService } from '../../core/services/activity-duplicate.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
-import { ImportResult } from '../../providers-sync/base/provider-import.interface';
+import {
+  ImportResult,
+  ImportedActivity,
+} from '../../providers-sync/base/provider-import.interface';
 import {
   CorosProviderService,
   GarminProviderService,
@@ -42,6 +46,8 @@ export class ActivityImportProcessor extends WorkerHost {
     @Inject(forwardRef(() => CorosProviderService))
     private readonly corosProviderService: CorosProviderService,
     private readonly queueService: QueueService,
+    @Inject(forwardRef(() => ActivityDuplicateService))
+    private readonly duplicates: ActivityDuplicateService,
     @Optional() private readonly emitter?: EventEmitter2,
     @Optional() private readonly analytics?: AnalyticsService,
   ) {
@@ -77,6 +83,29 @@ export class ActivityImportProcessor extends WorkerHost {
     );
   }
 
+  /**
+   * The athlete's activity from another source (another provider, an
+   * uploaded file) recording the same workout. An activity this source saved
+   * before goes on to its provider, which updates or returns it as today.
+   */
+  private async savedCopy(
+    account: { athleteId: number; provider: ConnectorProvider },
+    activity: ImportedActivity,
+  ) {
+    const known = await this.prisma.eventActivity.findUnique({
+      where: { externalId: activity.externalId },
+      select: { eventActivityId: true },
+    });
+    if (known) return null;
+    return this.duplicates.findDuplicate(account.athleteId, {
+      source: account.provider,
+      // A queued activity comes back with its dates as strings
+      startDate: new Date(activity.startDate),
+      endDate: new Date(activity.endDate),
+      movingTime: activity.duration ?? null,
+    });
+  }
+
   async process(job: Job<ActivityImportJobData>) {
     const { providerAccountId, activity, bulkImport } = job.data;
 
@@ -104,6 +133,16 @@ export class ActivityImportProcessor extends WorkerHost {
           `Skipping import for provider account ${providerAccountId}: import disabled`,
         );
         return;
+      }
+
+      // Skipped rather than saved twice: a later sync or webhook of the same
+      // activity comes here again and is skipped again
+      const copy = await this.savedCopy(account, activity);
+      if (copy) {
+        this.logger.debug(
+          `Skipping ${account.provider} activity ${activity.externalId}: event ${copy.eventId} from another source records the same workout`,
+        );
+        return { success: true, skipped: 'duplicate', eventId: copy.eventId };
       }
 
       await job.updateProgress(30);

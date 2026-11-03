@@ -29,6 +29,7 @@ import {
 import { prepareManualGpx } from '../helpers/manual-gpx-import';
 import { prepareManualTcx } from '../helpers/manual-tcx-import';
 import { FitParserStrategy } from '../helpers/strategies/fit-parser.strategy';
+import { ActivityDuplicateService } from './activity-duplicate.service';
 
 export type ManualFitFile = {
   originalname: string;
@@ -47,6 +48,7 @@ export class ManualFitImportService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly queue: QueueService,
+    private readonly duplicates: ActivityDuplicateService,
     @Optional() private readonly emitter?: EventEmitter2,
   ) {}
 
@@ -191,7 +193,21 @@ export class ManualFitImportService {
               startDate: fit.startDate,
             },
           });
-          if (sameStart)
+          // The same workout synced from a provider, which started within
+          // minutes of the file and lasted as long, is refused too
+          const syncedCopy =
+            sameStart ??
+            (await this.duplicates.findDuplicate(
+              athlete.athleteId,
+              {
+                source: 'FILE',
+                startDate: fit.startDate,
+                endDate: fit.endDate,
+                movingTime: fit.activity.movingTime,
+              },
+              tx,
+            ));
+          if (syncedCopy)
             throw new ConflictException(`${format}_DUPLICATE_TIME`);
           const event = await tx.event.create({
             data: {

@@ -30,6 +30,7 @@ import {
 } from './services';
 import { ActivityCorrectionsService } from './services/activity-corrections.service';
 import { ActivityDetailService } from './services/activity-detail.service';
+import { ActivityDuplicateService } from './services/activity-duplicate.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { ActivityRecordsService } from './services/activity-records.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
@@ -90,6 +91,7 @@ import { WeatherService } from './services/weather/weather.service';
   ],
   providers: [
     EventService,
+    ActivityDuplicateService,
     ManualFitImportService,
     WorkoutService,
     EventTemplateService,
@@ -158,6 +160,7 @@ import { WeatherService } from './services/weather/weather.service';
   ],
   exports: [
     EventService,
+    ActivityDuplicateService,
     ActivityRecordsService,
     ActivityPipelineService,
     GapProcessor,

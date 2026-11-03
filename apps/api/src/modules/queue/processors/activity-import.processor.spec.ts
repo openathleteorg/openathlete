@@ -14,22 +14,38 @@ jest.mock('../../providers-sync/providers', () => ({
   SuuntoProviderService: class {},
 }));
 
+jest.mock('../../core/services/activity-duplicate.service', () => ({
+  ActivityDuplicateService: class {},
+}));
+
 const saved = { eventActivityId: 31, eventId: 30 };
 
-function setup(created: boolean) {
+function setup(
+  created: boolean,
+  {
+    known = false,
+    copy = null,
+  }: { known?: boolean; copy?: { eventId: number } | null } = {},
+) {
   const prisma = {
     providerAccount: {
       findUnique: jest.fn().mockResolvedValue({
         providerAccountId: 7,
+        athleteId: 70,
         provider: ConnectorProvider.STRAVA,
         status: 'active',
         importActivitiesEnabled: true,
       }),
     },
     eventActivity: {
-      findUnique: jest.fn().mockResolvedValue({ stream: {} }),
+      findUnique: jest
+        .fn()
+        // The same source's copy, looked up by its id first
+        .mockResolvedValueOnce(known ? { eventActivityId: 31 } : null)
+        .mockResolvedValue({ stream: {} }),
     },
   };
+  const duplicates = { findDuplicate: jest.fn().mockResolvedValue(copy) };
   const strava = {
     importActivity: jest.fn().mockResolvedValue({ activity: saved, created }),
   };
@@ -43,16 +59,22 @@ function setup(created: boolean) {
     {} as never,
     {} as never,
     queue as never,
+    duplicates as never,
     emitter as never,
   );
-  return { processor, emitter, queue };
+  return { processor, emitter, queue, strava, duplicates };
 }
 
 const job = (bulkImport = false) =>
   ({
     data: {
       providerAccountId: 7,
-      activity: { externalId: 'strava-1' },
+      activity: {
+        externalId: 'strava-1',
+        startDate: '2026-01-06T07:00:00.000Z',
+        endDate: '2026-01-06T08:00:00.000Z',
+        duration: 3600,
+      },
       bulkImport,
     },
     updateProgress: jest.fn(),
@@ -86,5 +108,32 @@ describe('ActivityImportProcessor', () => {
     const { processor, emitter } = setup(true);
     await processor.process(job(true));
     expect(emitter.emit).not.toHaveBeenCalled();
+  });
+
+  it('skips an activity another source already saved', async () => {
+    const { processor, strava, queue, emitter, duplicates } = setup(true, {
+      copy: { eventId: 12 },
+    });
+    await expect(processor.process(job())).resolves.toMatchObject({
+      success: true,
+      skipped: 'duplicate',
+      eventId: 12,
+    });
+    expect(duplicates.findDuplicate).toHaveBeenCalledWith(70, {
+      source: ConnectorProvider.STRAVA,
+      startDate: new Date('2026-01-06T07:00:00.000Z'),
+      endDate: new Date('2026-01-06T08:00:00.000Z'),
+      movingTime: 3600,
+    });
+    expect(strava.importActivity).not.toHaveBeenCalled();
+    expect(queue.addActivityProcessingJob).not.toHaveBeenCalled();
+    expect(emitter.emit).not.toHaveBeenCalled();
+  });
+
+  it('leaves an activity this source saved to its provider', async () => {
+    const { processor, strava, duplicates } = setup(false, { known: true });
+    await processor.process(job());
+    expect(duplicates.findDuplicate).not.toHaveBeenCalled();
+    expect(strava.importActivity).toHaveBeenCalled();
   });
 });

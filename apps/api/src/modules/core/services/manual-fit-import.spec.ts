@@ -20,6 +20,7 @@ import {
   prepareManualFit,
 } from '../helpers/manual-fit-import';
 import { FitParserStrategy } from '../helpers/strategies/fit-parser.strategy';
+import { ActivityDuplicateService } from './activity-duplicate.service';
 import { ManualFitImportService } from './manual-fit-import.service';
 
 jest.mock('@garmin/fitsdk', () => {
@@ -144,13 +145,16 @@ function setup() {
     addActivityProcessingJob: jest.fn().mockResolvedValue(undefined),
   };
   const emitter = { emit: jest.fn() };
+  const duplicates = { findDuplicate: jest.fn().mockResolvedValue(null) };
   return {
     db,
     queue,
     emitter,
+    duplicates,
     service: new ManualFitImportService(
       db as unknown as PrismaService,
       queue as unknown as QueueService,
+      duplicates as unknown as ActivityDuplicateService,
       emitter as unknown as EventEmitter2,
     ),
   };
@@ -335,6 +339,25 @@ describe('Manual FIT ownership and persistence', () => {
     await expect(
       service.import(athlete, fixture(), 'Test'),
     ).rejects.toBeInstanceOf(ConflictException);
+    expect(db.event.create).not.toHaveBeenCalled();
+  });
+  test('refuses a file of a workout a provider already synced', async () => {
+    const { db, duplicates, service } = setup();
+    duplicates.findDuplicate.mockResolvedValue({
+      eventId: 42,
+      eventActivityId: 43,
+    });
+    await expect(service.import(athlete, fixture(), 'Test')).rejects.toThrow(
+      'FIT_DUPLICATE_TIME',
+    );
+    expect(duplicates.findDuplicate).toHaveBeenCalledWith(
+      4,
+      expect.objectContaining({
+        source: 'FILE',
+        startDate: new Date('2020-01-02T09:00:00Z'),
+      }),
+      db,
+    );
     expect(db.event.create).not.toHaveBeenCalled();
   });
   test('same-file retry reuses existing activity and can retry queue submission', async () => {
