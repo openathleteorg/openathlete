@@ -485,7 +485,8 @@ extension HealthKitLocalService {
           guard let snapshot = try workoutStore.load(binding: binding), !snapshot.hasMore else {
             throw CancellationError()
           }
-          for workout in snapshot.workouts.values.sorted(by: { $0.start < $1.start })
+          // Use the bounded upload window for recent workouts before older enrichments.
+          for workout in snapshot.workouts.values.sorted(by: { $0.start > $1.start })
           where config.workoutReceipts[workout.uuid] != workout.revision {
             if Date() >= deadline { throw CancellationError() }
             let body = try HealthWorkoutUpload.body(workout)
