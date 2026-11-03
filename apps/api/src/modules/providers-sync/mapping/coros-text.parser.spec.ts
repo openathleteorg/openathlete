@@ -2,6 +2,7 @@ import { MetricType } from '@openathlete/database';
 
 import {
   CorosFormatError,
+  corosExcerpt,
   parseDailyValues,
   parseFitUrl,
   parseIdInPlan,
@@ -55,6 +56,27 @@ describe('COROS sport records', () => {
         'No sport records found from 2020-01-01 to 2020-01-02.',
       ),
     ).toEqual([]);
+  });
+
+  it('accepts the other ways COROS says there is nothing', () => {
+    for (const empty of [
+      'No data found for the specified period.',
+      'No records found',
+      'null',
+      'Sport Records — 2026-11-02 to 2026-11-03 (0 records)',
+      'Data not available yet',
+    ]) {
+      expect(parseSportRecords(empty)).toEqual([]);
+    }
+  });
+
+  it('keeps a short excerpt for logs, without emails', () => {
+    const excerpt = corosExcerpt(
+      `Owner: jane.doe@example.org\n${'x'.repeat(500)}`,
+    );
+    expect(excerpt).toContain('Owner: <email>');
+    expect(excerpt).not.toContain('jane');
+    expect(excerpt.length).toBeLessThanOrEqual(300);
   });
 
   it('refuses an answer it cannot read', () => {

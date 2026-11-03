@@ -84,16 +84,37 @@ function parseSportRecord(block: string): CorosSportRecord {
   };
 }
 
+/**
+ * COROS words "nothing in this range" several ways depending on the tool and
+ * the day: "No sport records found…", "No data found", "(0 records)", "null".
+ */
+export function isCorosNoData(text: string): boolean {
+  const trimmed = text.trim();
+  return (
+    /^No\b[^\n]*\bfound\b/i.test(trimmed) ||
+    /not available yet/i.test(trimmed) ||
+    /^null$/i.test(trimmed) ||
+    /\(0 records?\)/i.test(trimmed)
+  );
+}
+
 export function parseSportRecords(text: string): CorosSportRecord[] {
   const blocks = text
     .split(/\n(?=\s*\d+\.\s+\S)/)
     .filter((block) => /^\s*\d+\.\s+\S/.test(block));
   if (blocks.length > 0) return blocks.map(parseSportRecord);
   // No activity is normal, unlike a header announcing some that we can't read
-  if (/No sport records found/i.test(text) || /\(0 records?\)/.test(text)) {
-    return [];
-  }
+  if (isCorosNoData(text)) return [];
   throw new CorosFormatError('no readable sport record');
+}
+
+/** The start of an answer, for a log: enough to fix a parser, not a dump */
+export function corosExcerpt(text: string, length = 300): string {
+  return text
+    .slice(0, length)
+    .replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '<email>')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**

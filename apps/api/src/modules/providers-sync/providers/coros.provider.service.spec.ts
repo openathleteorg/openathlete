@@ -178,6 +178,29 @@ describe('CorosProviderService', () => {
     ).rejects.toThrow('COROS getActivityDetail failed');
   });
 
+  it('treats a failure written in a successful answer as a failure', async () => {
+    const { service, prisma } = buildService();
+    post.mockResolvedValue(
+      toolAnswer(
+        'High risk of session context pollution. Resolution Strategy:',
+      ),
+    );
+    await expect(
+      service.callTool(account, 'querySportRecords'),
+    ).rejects.toThrow('COROS querySportRecords failed');
+    expect(prisma.providerAccount.update).not.toHaveBeenCalled();
+
+    post.mockResolvedValue(toolAnswer('Error: token expired'));
+    await expect(
+      service.callTool(account, 'querySportRecords'),
+    ).rejects.toThrow('COROS querySportRecords failed');
+    // The next call refreshes it, as after a 401
+    expect(prisma.providerAccount.update).toHaveBeenCalledWith({
+      where: { providerAccountId: 1 },
+      data: { expiresAt: new Date(0) },
+    });
+  });
+
   it('queues only the activities it does not hold', async () => {
     const { service, prisma, queue } = buildService();
     prisma.providerAccount.findUnique.mockResolvedValue({

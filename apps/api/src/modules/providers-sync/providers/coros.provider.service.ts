@@ -57,6 +57,7 @@ import {
   CorosFormatError,
   CorosMetricRecord,
   CorosSportRecord,
+  corosExcerpt,
   parseDailyValues,
   parseFitUrl,
   parseSleepOverview,
@@ -134,6 +135,19 @@ export function toolText(result: McpToolResult | undefined): string {
 }
 
 const isQuotaMessage = (text: string) => /quota|limit|exceed|额度/i.test(text);
+
+/**
+ * COROS also reports failures in a successful answer, without isError: a
+ * guard against what it takes for a runaway AI client, or an expired token.
+ */
+export function isCorosErrorText(text: string): boolean {
+  return /tool call anomalies|session context pollution|resolution strategy:|LLM capability boundary|token expired|invalid_grant/i.test(
+    text,
+  );
+}
+
+const isExpiredTokenText = (text: string) =>
+  /token expired|invalid_grant/i.test(text);
 
 function sessionNumber(
   parsed: ActivityParseResult | null,
@@ -374,12 +388,19 @@ export class CorosProviderService
       throw new Error(`COROS ${name} failed: ${body.error.message}`);
     }
     const text = toolText(body.result);
-    if (body.result?.isError) {
+    if (body.result?.isError || isCorosErrorText(text)) {
       this.logger.warn(
-        `COROS ${name} failed for account ${account.providerAccountId}: ${text.slice(0, 300)}`,
+        `COROS ${name} failed for account ${account.providerAccountId}: ${corosExcerpt(text)}`,
       );
       if (isQuotaMessage(text)) {
         throw new ProviderRateLimitError('COROS', QUOTA_RETRY_MS);
+      }
+      if (isExpiredTokenText(text)) {
+        // Have the next call refresh it, as after a 401
+        await this.prisma.providerAccount.update({
+          where: { providerAccountId: account.providerAccountId },
+          data: { expiresAt: new Date(0) },
+        });
       }
       throw new Error(`COROS ${name} failed`);
     }
@@ -397,7 +418,17 @@ export class CorosProviderService
       sportTypeCodes: [ALL_SPORTS_CODE],
       limit: RECORDS_PER_REQUEST,
     });
-    return parseSportRecords(text);
+    try {
+      return parseSportRecords(text);
+    } catch (error) {
+      // The format is undocumented: what it looked like is what fixes it
+      if (error instanceof CorosFormatError) {
+        this.logger.warn(
+          `COROS querySportRecords unreadable for account ${account.providerAccountId}: ${corosExcerpt(text)}`,
+        );
+      }
+      throw error;
+    }
   }
 
   private toImportedActivity(record: CorosSportRecord): ImportedActivity {
