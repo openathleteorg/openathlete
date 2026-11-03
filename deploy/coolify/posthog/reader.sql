@@ -20,6 +20,8 @@ alter role posthog_reader password :'reader_password';
 alter role posthog_reader connection limit 4;
 alter role posthog_reader set default_transaction_read_only = on;
 alter role posthog_reader set statement_timeout = '15min';
+-- The hosted database does not grant it to PUBLIC.
+grant usage on schema public to posthog_reader;
 
 -- A thread involves several people: it is visible only when all of them
 -- consented. The owner runs this check, as the reader cannot see the others.
