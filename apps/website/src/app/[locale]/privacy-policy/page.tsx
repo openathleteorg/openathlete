@@ -9,7 +9,7 @@ import { generateMetadata as pageMetadata } from '../../metadata';
 type Props = { params: Promise<{ locale: string }> };
 
 // Update when the policy changes; never the build date
-const LAST_UPDATED = '2026-11-02';
+const LAST_UPDATED = '2026-11-03';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
