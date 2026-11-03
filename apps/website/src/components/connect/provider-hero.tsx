@@ -5,7 +5,7 @@ import { TrackedLink } from '@/components/site/tracked-link';
 import { signupUrl } from '@/lib/links';
 import { m } from '@/paraglide/messages';
 import { type SupportedLocale, localePath } from '@/utils/locales';
-import { ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 import { type Connector, providerMessage } from './data';
@@ -83,6 +83,13 @@ export function ProviderHero({
               <Check className="size-4 text-mint-strong" />
               {m.connect_hero_free()}
             </p>
+            <Link
+              href={localePath(locale, `/ai/${connector.slug}`)}
+              className="mt-3 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-ink underline-offset-4 hover:underline"
+            >
+              <Sparkles className="size-4 text-orchid-strong" />
+              {m.connect_ai_link({ brand: connector.name })}
+            </Link>
           </div>
           <Reveal delay={0.1} className="mx-auto w-full max-w-md lg:col-span-5">
             <SyncLink

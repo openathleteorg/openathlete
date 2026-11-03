@@ -130,6 +130,12 @@ export function ogContent(
         `OpenAthlete vs ${competitor.name}`;
     }
   }
+  if (!title && segments[0] === 'ai' && segments[1]) {
+    title = first(
+      [`aib_${segments[1]}_h1`, `aig_${segments[1]}_seo_title`],
+      locale,
+    );
+  }
   if (!title && segments[0] === 'connect' && segments[1]) {
     title = first([`connect_${segments[1]}_h1`], locale);
   }

@@ -1,3 +1,4 @@
+import { AI_BRAND_SLUGS } from '@/components/ai-brand/data';
 import { CONNECTOR_SLUGS } from '@/components/connect/data';
 import { getAllPosts, getPostLocales } from '@/content/blog';
 import { COMPARISONS_CHECKED_ON, COMPETITORS } from '@/content/competitors';
@@ -42,13 +43,18 @@ function staticPaths(dir = APP_DIR, base = ''): string[] {
   return paths;
 }
 
+/** Pages that only redirect elsewhere: a sitemap must list final URLs. */
+const REDIRECTS = new Set(['/ai', '/self-hosting']);
+
 /** Every public page of the site, with the languages it exists in. */
 export function siteRoutes(): SiteRoute[] {
-  const routes: SiteRoute[] = staticPaths().map((path) => ({
-    path,
-    locales: SUPPORTED_LOCALES,
-    lastModified: KNOWN_DATES[path],
-  }));
+  const routes: SiteRoute[] = staticPaths()
+    .filter((path) => !REDIRECTS.has(path))
+    .map((path) => ({
+      path,
+      locales: SUPPORTED_LOCALES,
+      lastModified: KNOWN_DATES[path],
+    }));
 
   for (const post of getAllPosts()) {
     routes.push({
@@ -66,6 +72,9 @@ export function siteRoutes(): SiteRoute[] {
       locales: SUPPORTED_LOCALES,
       lastModified: COMPARISONS_CHECKED_ON,
     });
+  }
+  for (const brand of AI_BRAND_SLUGS) {
+    routes.push({ path: `/ai/${brand}`, locales: SUPPORTED_LOCALES });
   }
   for (const provider of CONNECTOR_SLUGS) {
     routes.push({ path: `/connect/${provider}`, locales: SUPPORTED_LOCALES });

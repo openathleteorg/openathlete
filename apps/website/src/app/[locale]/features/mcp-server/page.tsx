@@ -66,6 +66,7 @@ export default async function McpServerPage({ params }: Props) {
     {
       title: m.features_mcp_setup_claude_title(),
       sub: m.features_mcp_setup_claude_sub(),
+      guide: '/ai/claude',
       steps: [
         m.features_mcp_setup_claude_1(),
         m.features_mcp_setup_claude_2(),
@@ -75,6 +76,7 @@ export default async function McpServerPage({ params }: Props) {
     {
       title: m.features_mcp_setup_chatgpt_title(),
       sub: m.features_mcp_setup_chatgpt_sub(),
+      guide: '/ai/chatgpt',
       steps: [
         m.features_mcp_setup_chatgpt_1(),
         m.features_mcp_setup_chatgpt_2(),
@@ -306,6 +308,14 @@ export default async function McpServerPage({ params }: Props) {
                     <Code>{setup.code!}</Code>
                   )}
                 </div>
+                {setup.guide && (
+                  <ArrowLink
+                    href={localePath(locale, setup.guide)}
+                    className="mt-5"
+                  >
+                    {m.features_mcp_setup_guide()}
+                  </ArrowLink>
+                )}
               </RevealItem>
             ))}
           </RevealGroup>

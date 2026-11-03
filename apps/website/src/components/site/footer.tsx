@@ -88,6 +88,8 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
           <Column title={m.site_footer_product()}>
             <Item href={p('/features')}>{m.site_nav_features()}</Item>
             <Item href={p('/features/ai-coach')}>{m.site_nav_ai()}</Item>
+            <Item href={p('/ai/claude')}>{m.site_footer_with_claude()}</Item>
+            <Item href={p('/ai/chatgpt')}>{m.site_footer_with_chatgpt()}</Item>
             <Item href={p('/connect')}>{m.site_nav_integrations()}</Item>
             <Item href={p('/pricing')}>{m.site_nav_pricing()}</Item>
             <Item href={p('/mobile')}>{m.site_nav_mobile()}</Item>

@@ -9,6 +9,7 @@ import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   BookOpen,
+  Bot,
   Building2,
   Calculator,
   ChevronDown,
@@ -70,6 +71,12 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             label: m.site_nav_ai({}, { locale: ml }),
             description: m.site_nav_ai_desc({}, { locale: ml }),
             icon: <Sparkles />,
+          },
+          {
+            href: p('/ai/claude'),
+            label: m.site_nav_assistants({}, { locale: ml }),
+            description: m.site_nav_assistants_desc({}, { locale: ml }),
+            icon: <Bot />,
           },
           {
             href: p('/connect'),
