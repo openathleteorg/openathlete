@@ -395,7 +395,7 @@ export default async function FeaturesPage({ params }: Props) {
               <PhoneShot
                 src={shots.mobileHome}
                 alt={m.features_hub_mobile_link()}
-                className="absolute right-4 -bottom-28 w-[34%] max-w-[10rem] rotate-6 sm:right-8 [&_img]:aspect-[9/19.5] [&_img]:object-cover [&_img]:object-top"
+                className="absolute right-4 -bottom-28 w-[34%] max-w-[10rem] rotate-6 sm:right-8"
               />
             </Reveal>
             <Reveal

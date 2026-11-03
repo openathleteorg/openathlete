@@ -572,7 +572,7 @@ export function HomeMobile({ locale }: { locale: SupportedLocale }) {
               <ArrowUpRight className="size-4" />
             </Link>
           </Reveal>
-          <Reveal delay={0.1} className="relative mx-auto h-[22rem] w-[19rem]">
+          <Reveal delay={0.1} className="relative mx-auto h-[26rem] w-[19rem]">
             <PhoneShot
               src={shots.mobileCalendar}
               alt={m.home_mobile_title()}

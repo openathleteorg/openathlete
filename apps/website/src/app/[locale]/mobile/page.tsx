@@ -208,18 +208,18 @@ export default async function MobilePage({ params }: Props) {
               <PhoneShot
                 src={shots.mobileCalendar}
                 alt={m.mobile_shot_alt_calendar()}
-                className="absolute top-12 left-0 w-[38%] -rotate-6 [&_img]:aspect-[9/19.5] [&_img]:object-cover [&_img]:object-top"
+                className="absolute top-12 left-0 w-[38%] -rotate-6"
               />
               <PhoneShot
                 src={shots.mobileHome}
                 alt={m.mobile_shot_alt_home()}
                 priority
-                className="absolute top-0 left-1/2 z-10 w-[44%] -translate-x-1/2 [&_img]:aspect-[9/19.5] [&_img]:object-cover [&_img]:object-top"
+                className="absolute top-0 left-1/2 z-10 w-[44%] -translate-x-1/2"
               />
               <PhoneShot
                 src={shots.mobileWorkout}
                 alt={m.mobile_shot_alt_workout()}
-                className="absolute top-12 right-0 w-[38%] rotate-6 [&_img]:aspect-[9/19.5] [&_img]:object-cover [&_img]:object-top"
+                className="absolute top-12 right-0 w-[38%] rotate-6"
               />
             </Reveal>
           </div>
@@ -294,7 +294,7 @@ export default async function MobilePage({ params }: Props) {
                   <PhoneShot
                     src={shot}
                     alt={alt}
-                    className="mx-auto w-full max-w-[13rem] [&_img]:aspect-[9/19.5] [&_img]:object-cover [&_img]:object-top"
+                    className="mx-auto w-full max-w-[13rem]"
                   />
                 </div>
                 <h3 className="mt-6 font-semibold">
