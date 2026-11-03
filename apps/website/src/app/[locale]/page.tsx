@@ -31,6 +31,8 @@ export async function generateMetadata({ params }: Props) {
     locale,
     title: m.home_seo_title(),
     description: m.home_seo_description(),
+    // Drawn by marketing/studio (screens of the app), not by the /og route
+    image: `/social/home-${locale}.jpg`,
   });
 }
 
