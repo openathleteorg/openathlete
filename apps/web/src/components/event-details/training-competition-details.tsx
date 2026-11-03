@@ -209,7 +209,10 @@ export function TrainingCompetitionDetails({ event }: P) {
                 maxHeight={80}
                 athleteId={event.athleteId ?? undefined}
               />
-              <WorkoutSummary workout={event.workout} />
+              <WorkoutSummary
+                workout={event.workout}
+                sport={(event as TrainingEvent).sport}
+              />
             </CardContent>
           </Card>
         )}

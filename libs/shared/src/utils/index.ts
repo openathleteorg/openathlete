@@ -17,12 +17,15 @@ export {
   countWorkoutSteps,
   validateWorkoutStructure,
   estimateStepDurationFromDistance,
+  defaultSpeedForSport,
+  isDurationSetByHand,
   paceToSpeed,
   speedToPace,
   speedMsToKmh,
   kmhToSpeedMs,
 } from './workout.utils';
 export type {
+  DurationStep,
   WorkoutValidationError,
   WorkoutValidationResult,
 } from './workout.utils';

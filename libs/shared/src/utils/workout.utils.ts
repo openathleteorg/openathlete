@@ -9,16 +9,75 @@ import {
   WORKOUT_TARGET_TYPE,
 } from '../types/misc';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
+import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
 
 // ============================================================================
 // Workout Calculations
 // ============================================================================
 
 /**
- * Default speed in m/s when no pace target is available
- * ~5:00 min/km = 3.33 m/s (easy running pace)
+ * Speed in m/s when a distance step has no pace target: an easy pace for
+ * the sport. A swim at running pace would last a third of its real time.
  */
-const DEFAULT_SPEED_MS = 3.33;
+const DEFAULT_SPEED_MS = 3.33; // ~5:00 min/km, easy running
+
+const SWIM_SPEED_MS = 0.95; // ~1:45 /100 m
+const ROAD_BIKE_SPEED_MS = 8.3; // ~30 km/h
+const OFF_ROAD_BIKE_SPEED_MS = 5.5; // ~20 km/h
+const PADDLE_SPEED_MS = 2.5; // ~9 km/h
+const SKI_SPEED_MS = 4.2; // ~15 km/h
+const ROW_SPEED_MS = 3.9; // ~2:08 /500 m
+
+const DEFAULT_SPEED_BY_SPORT: Partial<Record<SPORT_TYPE, number>> = {
+  [SPORT_TYPE.SWIMMING]: SWIM_SPEED_MS,
+  [SPORT_TYPE.RUNNING]: DEFAULT_SPEED_MS,
+  [SPORT_TYPE.VIRTUAL_RUN]: DEFAULT_SPEED_MS,
+  [SPORT_TYPE.TRAIL_RUNNING]: 2.8, // ~6:00 min/km
+  [SPORT_TYPE.CYCLING]: ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.VIRTUAL_RIDE]: ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.E_BIKE_RIDE]: ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.VELOMOBILE]: ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.GRAVEL_RIDE]: 7, // ~25 km/h
+  [SPORT_TYPE.MOUNTAIN_BIKE_RIDE]: OFF_ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.E_MOUNTAIN_BIKE_RIDE]: OFF_ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.HANDCYCLE]: OFF_ROAD_BIKE_SPEED_MS,
+  [SPORT_TYPE.WALK]: 1.4, // ~5 km/h
+  [SPORT_TYPE.HIKING]: 1.2,
+  [SPORT_TYPE.SNOWSHOE]: 1.1,
+  [SPORT_TYPE.ROWING]: ROW_SPEED_MS,
+  [SPORT_TYPE.VIRTUAL_ROW]: ROW_SPEED_MS,
+  [SPORT_TYPE.CANOEING]: PADDLE_SPEED_MS,
+  [SPORT_TYPE.KAYAKING]: PADDLE_SPEED_MS,
+  [SPORT_TYPE.STAND_UP_PADDLING]: 1.8,
+  [SPORT_TYPE.NORDIC_SKI]: SKI_SPEED_MS,
+  [SPORT_TYPE.ROLLER_SKI]: SKI_SPEED_MS,
+  [SPORT_TYPE.INLINE_SKATE]: OFF_ROAD_BIKE_SPEED_MS,
+};
+
+/** The easy speed (m/s) a distance step of this sport is estimated at */
+export function defaultSpeedForSport(sport?: SPORT_TYPE | null): number {
+  return (sport && DEFAULT_SPEED_BY_SPORT[sport]) || DEFAULT_SPEED_MS;
+}
+
+/**
+ * What the duration estimate reads of a workout: stored steps, the steps
+ * of a form and those of an AI answer all fit
+ */
+type DurationTarget = Pick<
+  WorkoutStepTargetDto,
+  'targetValue' | 'targetMin' | 'targetMax'
+> & { targetType: string; metricType?: string | null };
+
+export type DurationStep = {
+  stepType: string;
+  durationType?: string | null;
+  durationValue?: number | null;
+  targets?: readonly DurationTarget[] | null;
+  repeatBlock?: {
+    repetitions: number;
+    childSteps?: readonly DurationStep[] | null;
+  } | null;
+};
 
 /**
  * Default metric values for average athletes when metrics are not available
@@ -65,7 +124,7 @@ function getMetricValue(
  * This is a simplified version that avoids circular dependency with target-intensity.ts
  */
 function extractPaceSpeed(
-  target: WorkoutStepTargetDto,
+  target: DurationTarget,
   metrics?: Record<string, { value: number } | number>,
 ): number | null {
   const { targetValue, targetMin, targetMax, metricType } = target;
@@ -127,11 +186,13 @@ function extractPaceSpeed(
  * Estimate step duration from distance using pace targets
  * @param step - Workout step with durationType === DISTANCE
  * @param metrics - Optional athlete metrics for target intensity calculation
+ * @param sport - The session's sport, for the speed without a pace target
  * @returns Estimated duration in seconds, or null if cannot estimate
  */
 export function estimateStepDurationFromDistance(
-  step: WorkoutStepDto,
+  step: DurationStep,
   metrics?: Record<string, { value: number } | number>,
+  sport?: SPORT_TYPE | null,
 ): number | null {
   if (
     step.durationType !== WORKOUT_DURATION_TYPE.DISTANCE ||
@@ -145,8 +206,7 @@ export function estimateStepDurationFromDistance(
 
   // Try to find a PACE target
   const paceTarget = step.targets?.find(
-    (target: WorkoutStepTargetDto) =>
-      target.targetType === WORKOUT_TARGET_TYPE.PACE,
+    (target) => target.targetType === WORKOUT_TARGET_TYPE.PACE,
   );
 
   if (paceTarget) {
@@ -155,7 +215,7 @@ export function estimateStepDurationFromDistance(
 
   // If no pace target found or speed couldn't be determined, use default
   if (speedMs === null || speedMs <= 0) {
-    speedMs = DEFAULT_SPEED_MS;
+    speedMs = defaultSpeedForSport(sport);
   }
 
   // Calculate duration: time = distance / speed
@@ -167,11 +227,13 @@ export function estimateStepDurationFromDistance(
  * Counts both TIME-based steps and estimates DISTANCE-based steps using pace targets
  * @param workout - Workout to calculate duration for
  * @param metrics - Optional athlete metrics for estimating distance-based durations
+ * @param sport - The session's sport, for distance steps without a pace target
  * @returns Total duration in seconds, or null if no calculable steps
  */
 export function calculateWorkoutDuration(
-  workout: WorkoutDto,
+  workout: { steps?: readonly DurationStep[] | null },
   metrics?: Record<string, { value: number } | number>,
+  sport?: SPORT_TYPE | null,
 ): number | null {
   if (!workout.steps || workout.steps.length === 0) {
     return null;
@@ -180,7 +242,7 @@ export function calculateWorkoutDuration(
   let totalSeconds = 0;
   let hasCalculableDuration = false;
 
-  const calculateStepDuration = (step: WorkoutStepDto): number | null => {
+  const calculateStepDuration = (step: DurationStep): number | null => {
     // TIME-based steps: use durationValue directly
     if (
       step.durationType === WORKOUT_DURATION_TYPE.TIME &&
@@ -192,7 +254,11 @@ export function calculateWorkoutDuration(
 
     // DISTANCE-based steps: estimate using pace targets
     if (step.durationType === WORKOUT_DURATION_TYPE.DISTANCE) {
-      const estimatedDuration = estimateStepDurationFromDistance(step, metrics);
+      const estimatedDuration = estimateStepDurationFromDistance(
+        step,
+        metrics,
+        sport,
+      );
       if (estimatedDuration !== null) {
         hasCalculableDuration = true;
         return estimatedDuration;
@@ -227,6 +293,24 @@ export function calculateWorkoutDuration(
   }
 
   return hasCalculableDuration ? totalSeconds : null;
+}
+
+/** Within a minute, a planned duration is the workout's own total */
+const SAME_DURATION_TOLERANCE_S = 60;
+
+/**
+ * Whether a session's planned duration was set on purpose rather than taken
+ * from its workout: the coach's figure must then survive a change of steps.
+ * @param goalDuration - The planned duration, in seconds
+ * @param workoutDuration - The workout's computed total, in seconds
+ */
+export function isDurationSetByHand(
+  goalDuration: number | null | undefined,
+  workoutDuration: number | null | undefined,
+): boolean {
+  if (goalDuration === null || goalDuration === undefined) return false;
+  if (workoutDuration === null || workoutDuration === undefined) return true;
+  return Math.abs(goalDuration - workoutDuration) >= SAME_DURATION_TOLERANCE_S;
 }
 
 /**

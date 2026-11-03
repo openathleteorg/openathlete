@@ -2,9 +2,11 @@ import { z } from 'zod';
 
 import {
   CreateWorkoutStepDto,
+  SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
+  calculateWorkoutDuration,
 } from '@openathlete/shared';
 
 /**
@@ -300,16 +302,14 @@ export function zoneIdsOf(workout: Workout): number[] {
   ];
 }
 
-/** Seconds of the timed steps, repeats included */
-export function workoutSeconds(workout: Workout): number {
-  return workout.reduce(
-    (total, item) =>
-      total +
-      (item.kind === 'repeat'
-        ? item.times *
-          item.steps.reduce((sum, step) => sum + (step.durationSeconds ?? 0), 0)
-        : (item.durationSeconds ?? 0)),
-    0,
+/**
+ * Planned seconds of a workout, repeats included: the same estimate as the
+ * web app's, distances at the pace of their target or of the sport
+ */
+export function workoutSeconds(workout: Workout, sport?: SPORT_TYPE): number {
+  return Math.round(
+    calculateWorkoutDuration({ steps: toStoredWorkout(workout) }, {}, sport) ??
+      0,
   );
 }
 

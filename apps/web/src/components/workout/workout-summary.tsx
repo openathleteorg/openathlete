@@ -3,6 +3,7 @@ import * as m from '@/paraglide/messages';
 import { getStepTypeLabel } from '@/utils/workout';
 
 import {
+  type SPORT_TYPE,
   type WorkoutDto,
   type WorkoutStepDto,
   type WorkoutStepTargetDto,
@@ -18,10 +19,12 @@ import { TypeIcon } from './type-icon';
 
 interface WorkoutSummaryProps {
   workout: WorkoutDto;
+  /** Distance steps without a pace are estimated at this sport's pace */
+  sport?: SPORT_TYPE;
 }
 
-export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
-  const estimatedDuration = calculateWorkoutDuration(workout);
+export function WorkoutSummary({ workout, sport }: WorkoutSummaryProps) {
+  const estimatedDuration = calculateWorkoutDuration(workout, undefined, sport);
   const totalDistance = calculateWorkoutDistance(workout);
 
   const renderStep = (step: WorkoutStepDto, index: number, isChild = false) => {
@@ -133,7 +136,7 @@ export function WorkoutSummary({ workout }: WorkoutSummaryProps) {
                   {m.workout_estimated_duration()}:
                 </span>
                 <span className="ml-2 font-medium">
-                  {formatDuration(estimatedDuration)}
+                  {formatDuration(Math.round(estimatedDuration))}
                 </span>
               </div>
             )}

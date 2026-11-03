@@ -1,4 +1,4 @@
-import { createWorkoutSchema } from '@openathlete/shared';
+import { SPORT_TYPE, createWorkoutSchema } from '@openathlete/shared';
 
 import {
   Workout,
@@ -177,9 +177,34 @@ describe('agent workout format', () => {
     );
   });
 
-  it('counts the timed seconds and lists the zones used', () => {
-    expect(workoutSeconds(intervals)).toBe(900 + 6 * 300);
+  it('counts the planned seconds and lists the zones used', () => {
+    // 2 km at 82.5% of a default 15 km/h VMA, as the web app estimates it
+    expect(workoutSeconds(intervals)).toBe(
+      900 + 6 * 300 + Math.round(2000 / ((0.825 * 15) / 3.6)),
+    );
     expect(zoneIdsOf(intervals)).toEqual([11]);
+  });
+
+  it('estimates distances at the pace of the sport', () => {
+    const swim: Workout = [
+      { kind: 'warmup', durationSeconds: 900 },
+      {
+        kind: 'repeat',
+        times: 4,
+        steps: [
+          { kind: 'work', distanceMeters: 250 },
+          { kind: 'recovery', durationSeconds: 60 },
+        ],
+      },
+      { kind: 'cooldown', durationSeconds: 300 },
+    ];
+    // 1000 m at about 1:45 /100 m, not at a running pace
+    const minutes = workoutSeconds(swim, SPORT_TYPE.SWIMMING) / 60;
+    expect(minutes).toBeGreaterThan(40);
+    expect(minutes).toBeLessThan(45);
+    expect(workoutSeconds(swim, SPORT_TYPE.RUNNING)).toBeLessThan(
+      workoutSeconds(swim, SPORT_TYPE.SWIMMING),
+    );
   });
 
   it('refuses a repeat inside a repeat and unreadable paces', () => {
