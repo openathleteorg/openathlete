@@ -22,10 +22,12 @@ export function useWorkoutDuration(
   sport: SPORT_TYPE | undefined,
   getValues: UseFormGetValues<EventFormValues>,
   setValue: UseFormSetValue<EventFormValues>,
+  /** The session's athlete, whose paces estimate it; null: the signed-in user */
+  athleteId: number | null = null,
 ) {
   const { data: athlete, isLoading: athleteLoading } = useGetMyAthleteQuery();
   const { data: latestMetrics = {}, isLoading: metricsLoading } =
-    useGetLatestMetricsQuery(athlete?.athleteId);
+    useGetLatestMetricsQuery(athleteId ?? athlete?.athleteId);
   // Before the metrics arrive, the total of a stored session would differ
   // from the one it was saved with, and read as set by hand
   const metricsReady = !athleteLoading && !metricsLoading;

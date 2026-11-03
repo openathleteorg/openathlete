@@ -131,6 +131,16 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const goalDurationValue = watch('goalDuration');
   const sportValue = watch('sport');
 
+  const isTemplate = edit && 'isTemplate' in rest && !!rest.isTemplate;
+  // Zone targets are ids of the session athlete's zones: the event's when
+  // editing, the calendar's when creating. A template has no athlete: the
+  // signed-in user's zones (remapped when it is applied to an athlete).
+  const workoutAthleteId = isTemplate
+    ? null
+    : edit && 'event' in rest && rest.event
+      ? (rest.event.athleteId ?? null)
+      : (athleteId ?? null);
+
   // The planned duration follows the workout until the coach sets it
   const {
     calculatedDuration,
@@ -138,7 +148,13 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     setDurationByHand,
     followWorkout,
     adoptStepsDuration,
-  } = useWorkoutDuration(workoutSteps, sportValue, getValues, setValue);
+  } = useWorkoutDuration(
+    workoutSteps,
+    sportValue,
+    getValues,
+    setValue,
+    workoutAthleteId,
+  );
 
   // Get current event data for AI modification
   const { currentEventData } = useCurrentEventData(
@@ -186,15 +202,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     }
   }, [startDateValue, goalDurationValue, type, setValue]);
 
-  const isTemplate = edit && 'isTemplate' in rest && !!rest.isTemplate;
-  // Zone targets are ids of the session athlete's zones: the event's when
-  // editing, the calendar's when creating. A template has no athlete: the
-  // signed-in user's zones (remapped when it is applied to an athlete).
-  const workoutAthleteId = isTemplate
-    ? null
-    : edit && 'event' in rest && rest.event
-      ? (rest.event.athleteId ?? null)
-      : (athleteId ?? null);
   const { data: myAthlete } = useGetMyAthleteQuery();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const queryClient = useQueryClient();
