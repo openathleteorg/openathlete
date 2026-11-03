@@ -1,12 +1,17 @@
 import { eventKeys } from '@/api/event/event.keys';
 import { trainingLoadKeys } from '@/api/training-load/training-load.keys';
 import {
+  MutationOptions,
   QueryClient,
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 
-import { ImportedActivityDto, SPORT_TYPE } from '@openathlete/shared';
+import {
+  ImportedActivityDto,
+  RemoveDuplicateActivitiesResponseDto,
+  SPORT_TYPE,
+} from '@openathlete/shared';
 
 import { ActivityImportAPI } from './activity-import.api';
 
@@ -62,5 +67,18 @@ export function useImportTcxMutation() {
       sport?: SPORT_TYPE;
     }) => ActivityImportAPI.importTcx(file, name, sport),
     onSuccess: (result) => refreshImported(queryClient, result),
+  });
+}
+
+/**
+ * The removal runs in the background: the calendar refreshes when the API
+ * announces the deletions over its websocket.
+ */
+export function useRemoveDuplicateActivitiesMutation(
+  opt?: MutationOptions<RemoveDuplicateActivitiesResponseDto, Error, void>,
+) {
+  return useMutation({
+    ...opt,
+    mutationFn: () => ActivityImportAPI.removeDuplicates(),
   });
 }

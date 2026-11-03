@@ -7,6 +7,7 @@ import { MessagesModule } from '../messages/messages.module';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { QueueModule } from '../queue';
 import { EventController } from './controllers';
+import { ActivityDuplicatesController } from './controllers/activity-duplicates.controller';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
 import { AthleteController } from './controllers/athlete.controller';
 import { CoachController } from './controllers/coach.controller';
@@ -73,6 +74,7 @@ import { WeatherService } from './services/weather/weather.service';
     forwardRef(() => ProvidersSyncModule),
   ],
   controllers: [
+    ActivityDuplicatesController,
     ActivityFeedbackController,
     EventController,
     EventTemplateController,

@@ -1193,17 +1193,31 @@ export class EventService {
       where: {
         AND: [{ eventId: eventId }, accessibleBy(ability, 'delete').Event],
       },
-      include: {
-        activity: true,
-        training: {
-          include: { workout: true },
-        },
-      },
+      select: { eventId: true },
     });
 
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    return this.removeEvent(eventId);
+  }
+
+  /**
+   * Deletes an event and the rows that depend on it, without access check:
+   * for callers that already checked it, or background jobs acting for the
+   * athlete (duplicate removal). `notify: false` leaves the calendar refresh
+   * to a caller deleting several events.
+   */
+  async removeEvent(eventId: Event['eventId'], { notify = true } = {}) {
+    const event = await this.prisma.event.findUniqueOrThrow({
+      where: { eventId },
+      include: {
+        training: {
+          include: { workout: true },
+        },
+      },
+    });
 
     if (event.training?.workout?.workoutId) {
       await this.providerExportService.deleteExportsForWorkout({
@@ -1251,7 +1265,7 @@ export class EventService {
       where: { eventId: eventId },
     });
 
-    if (event.athleteId) {
+    if (event.athleteId && notify) {
       this.calendarWebSocketService?.notifyWeeklyLoadUpdated(event.athleteId, {
         eventId,
         reason: 'event_deleted',

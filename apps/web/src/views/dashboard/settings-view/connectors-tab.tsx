@@ -45,6 +45,7 @@ import {
 } from '@openathlete/shared';
 
 import { CalendarFeedSection } from './calendar-feed-section';
+import { DuplicateActivitiesSection } from './duplicate-activities-section';
 import {
   SettingsPanel,
   SettingsRow,
@@ -453,6 +454,8 @@ export function ConnectorsTab() {
           <ImportFitDialog />
         </SettingsSection>
       )}
+
+      {roles?.includes('ATHLETE') && <DuplicateActivitiesSection />}
 
       {roles?.includes('ATHLETE') && <CalendarFeedSection />}
 

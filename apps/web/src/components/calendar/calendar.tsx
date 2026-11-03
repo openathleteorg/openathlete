@@ -374,6 +374,13 @@ export function Calendar({
           break;
         }
         case 'weekly_load_updated': {
+          // Deleted elsewhere: another device, or the removal of duplicate
+          // activities, which runs in the background
+          if (event.payload.reason === 'event_deleted') {
+            queryClient.invalidateQueries({
+              queryKey: [eventKeys.getMyEvents],
+            });
+          }
           queryClient.invalidateQueries({
             queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
           });

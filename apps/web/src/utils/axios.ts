@@ -33,6 +33,7 @@ export const routes = {
     fit: '/activity-import/fit',
     gpx: '/activity-import/gpx',
     tcx: '/activity-import/tcx',
+    removeDuplicates: '/activity-duplicates/removal',
   },
   event: {
     create: '/event',

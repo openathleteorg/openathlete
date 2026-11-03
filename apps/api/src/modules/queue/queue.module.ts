@@ -12,6 +12,7 @@ import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { ActivityImportProcessor } from './processors/activity-import.processor';
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
 import { CorosSyncProcessor } from './processors/coros-sync.processor';
+import { DuplicateActivitiesProcessor } from './processors/duplicate-activities.processor';
 import { GarminNotificationProcessor } from './processors/garmin-notification.processor';
 import { PolarNotificationProcessor } from './processors/polar-notification.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
@@ -263,6 +264,22 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'duplicate-activities',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 10_000,
+        },
+        removeOnComplete: {
+          age: 24 * 3600,
+        },
+        removeOnFail: {
+          age: 7 * 24 * 3600,
+        },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'provider-full-import',
       defaultJobOptions: {
         // Provider APIs rate limit history listing: retry slowly
@@ -385,6 +402,7 @@ function parseRedisUrl(redisUrl: string): {
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'
       ? [
           ActivityProcessingProcessor,
+          DuplicateActivitiesProcessor,
           RecordsBackfillService,
           GapBackfillService,
           IntensityBackfillService,

@@ -56,3 +56,15 @@ export interface ImportedActivityDto {
   processingQueued: boolean;
   warnings: ActivityImportWarning[];
 }
+
+/**
+ * Answer to a request to remove duplicate activities (the same workout
+ * synced from two sources). The removal runs in the background.
+ */
+export const removeDuplicateActivitiesResponseSchema = z
+  .object({ queued: z.literal(true) })
+  .strict();
+
+export type RemoveDuplicateActivitiesResponseDto = z.infer<
+  typeof removeDuplicateActivitiesResponseSchema
+>;

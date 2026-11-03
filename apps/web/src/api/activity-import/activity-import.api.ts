@@ -1,6 +1,10 @@
 import client, { routes } from '@/utils/axios';
 
-import { ImportedActivityDto, SPORT_TYPE } from '@openathlete/shared';
+import {
+  ImportedActivityDto,
+  RemoveDuplicateActivitiesResponseDto,
+  SPORT_TYPE,
+} from '@openathlete/shared';
 
 export class ActivityImportAPI {
   /** One FIT file of a recorded activity, saved for the signed-in athlete. */
@@ -43,6 +47,17 @@ export class ActivityImportAPI {
     const res = await client.post<ImportedActivityDto>(
       routes.activityImport.tcx,
       body,
+    );
+    return res.data;
+  }
+
+  /**
+   * Queues the removal of the activities saved twice from two sources. The
+   * calendar refreshes when the removal is done.
+   */
+  static async removeDuplicates() {
+    const res = await client.post<RemoveDuplicateActivitiesResponseDto>(
+      routes.activityImport.removeDuplicates,
     );
     return res.data;
   }

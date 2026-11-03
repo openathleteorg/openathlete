@@ -56,6 +56,11 @@ export type CorosSyncJobData =
 
 const POLAR_WEBHOOK_SECRET_KEY = 'openathlete:polar:webhook-secret';
 
+/** Removal of an athlete's activities saved twice, from two sources */
+export interface DuplicateActivitiesJobData {
+  athleteId: number;
+}
+
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
@@ -81,6 +86,8 @@ export class QueueService {
     private readonly polarNotificationQueue: Queue<PolarNotificationJobData>,
     @InjectQueue('coros-sync')
     private readonly corosSyncQueue: Queue<CorosSyncJobData>,
+    @InjectQueue('duplicate-activities')
+    private readonly duplicateActivitiesQueue: Queue<DuplicateActivitiesJobData>,
   ) {}
 
   async addCorosSyncJob(providerAccountId: number, delayMs = 0): Promise<void> {
@@ -254,6 +261,25 @@ export class QueueService {
     await this.fullImportQueue.add(
       'full-import',
       { providerAccountId },
+      { jobId },
+    );
+  }
+
+  /**
+   * Queue the removal of an athlete's duplicate activities. A removal
+   * already waiting or running covers a second request.
+   */
+  async addDuplicateActivitiesJob(athleteId: number): Promise<void> {
+    const jobId = `duplicate-activities-${athleteId}`;
+    const existing = await this.duplicateActivitiesQueue.getJob(jobId);
+    if (existing) {
+      const state = await existing.getState();
+      if (state !== 'completed' && state !== 'failed') return;
+      await existing.remove();
+    }
+    await this.duplicateActivitiesQueue.add(
+      'remove-duplicates',
+      { athleteId },
       { jobId },
     );
   }
