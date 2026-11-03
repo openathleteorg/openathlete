@@ -88,3 +88,13 @@ The fork keeps one branch for implemented iPhone work and one branch per future 
 | `docs/hammerhead-integration-status` | Hammerhead investigation only; deferred |
 
 The intermediate HealthKit API, iOS, integration and proposal branches are superseded by `feature/healthkit-sync`. The custom MCP OAuth branch is retired: the common branch has no MCP differences from upstream, which already contains PR #96. Additional experimental MCP documentation/tests are not part of this iPhone PR. Historical refs and personal build overrides are retained in private local backups, rather than republished as archive branches. Personal signing, instance URLs and credentials remain outside tracked files.
+
+## Newest-first automatic uploads (2026-11-03)
+
+Automatic workout uploads now process pending recordings by descending start time. Recent workouts get the bounded background upload window before older recording enrichments. Acknowledged revisions remain skipped, older pending recordings remain cached, and the once-per-hour attempt limit is unchanged. This changes upload priority; it does not remove iOS background execution limits.
+
+Validation: 25 HealthKit Swift tests, the production Capacitor bridge regression, all 990 API/web unit tests and repository type checks passed. The full fastlane iOS check and signed Release archive for build `2026110301` passed, including signature verification and both Health purpose strings. App Store Connect accepted the TestFlight upload for build `2026110301`; Apple processing and distribution follow upload acceptance. Device acceptance of the new ordering remains separate from build verification.
+
+Local build repair: `bundle install` with the locked Gemfile followed by `bundle exec pod install --deployment` restored CocoaPods 1.17.0 and aligned the installed Pods with the existing lockfile (native-purchases 8.9.6). No tracked dependency versions changed. Bundler's local tools path is stored in ignored configuration so the installation can persist outside temporary storage. Personal signing and server configuration remain ignored.
+
+Remaining check limitations: the repository verification command stops on existing web import-formatting warnings; independently run type/unit checks passed. The Android fastlane check was attempted but its local Java trust store rejects the Gradle download with a PKIX certificate-chain error. Neither limitation was bypassed or reported as passing.
