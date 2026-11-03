@@ -96,9 +96,26 @@ async function findIds(athlete: Tokens): Promise<Ids> {
   };
 }
 
-const VIEWPORTS: Record<Device, { width: number; height: number; isMobile: boolean; hasTouch: boolean }> = {
+interface Viewport {
+  width: number;
+  height: number;
+  isMobile: boolean;
+  hasTouch: boolean;
+  /** Safe-area insets, as Capacitor reports them in the native apps. */
+  safeArea?: { top: number; bottom: number };
+}
+
+// The phone is an iPhone 15 Pro: the website draws its status bar, Dynamic
+// Island and home indicator over the insets, so content must clear them
+const VIEWPORTS: Record<Device, Viewport> = {
   desktop: { width: 1440, height: 900, isMobile: false, hasTouch: false },
-  mobile: { width: 390, height: 844, isMobile: true, hasTouch: true },
+  mobile: {
+    width: 393,
+    height: 852,
+    isMobile: true,
+    hasTouch: true,
+    safeArea: { top: 59, bottom: 34 },
+  },
 };
 
 async function newContext(browser: Browser, tokens: Tokens, shot: Shot): Promise<BrowserContext> {
@@ -124,6 +141,18 @@ async function newContext(browser: Browser, tokens: Tokens, shot: Shot): Promise
     },
     { tokens, space: shot.who === 'coach' ? 'COACH' : 'ATHLETE', theme: shot.theme ?? 'light' },
   );
+  if (device.safeArea) {
+    // The app's theme reads these before env(safe-area-inset-*). The safe
+    // area plugin rewrites them inline on start, hence a rule that wins.
+    // Added once the head exists: an earlier element would be dropped
+    await context.addInitScript(({ top, bottom }) => {
+      document.addEventListener('DOMContentLoaded', () => {
+        const style = document.createElement('style');
+        style.textContent = `:root { --safe-area-inset-top: ${top}px !important; --safe-area-inset-bottom: ${bottom}px !important; }`;
+        document.head.appendChild(style);
+      });
+    }, device.safeArea);
+  }
   return context;
 }
 
@@ -179,9 +208,15 @@ const scrollTo = (text: string | RegExp, offset = 24, which: 'first' | 'last' = 
   await (which === 'last' ? matches.last() : matches.first())
     .evaluate((el, off) => {
       el.scrollIntoView({ block: 'start' });
-      const scroller = el.closest('main') ?? document.scrollingElement;
-      scroller?.scrollBy(0, -off);
-      window.scrollBy(0, -off);
+      // Pages scroll in <main> or the window, sheets in their own container
+      let scroller: Element | null = el.parentElement;
+      while (scroller && scroller !== document.body) {
+        const { overflowY } = getComputedStyle(scroller);
+        if (/(auto|scroll)/.test(overflowY) && scroller.scrollHeight > scroller.clientHeight) break;
+        scroller = scroller.parentElement;
+      }
+      if (scroller && scroller !== document.body) scroller.scrollBy(0, -off);
+      else window.scrollBy(0, -off);
     }, offset);
 };
 
@@ -343,14 +378,14 @@ export const SHOTS: Shot[] = [
     who: 'athlete',
     device: 'mobile',
     path: (ids) => `/dashboard/activity/${ids.activity.longTrail}`,
-    prepare: scrollTo(/^Statistics$/, 16, 'last'),
+    prepare: scrollTo(/^Statistics$/, 16 + 59, 'last'),
   },
   {
     name: 'mobile-workout-detail',
     who: 'athlete',
     device: 'mobile',
     path: '/dashboard/today',
-    prepare: steps(async (p) => p.getByText('6 × 1000 m').first().click(), scrollTo(/^Description$/)),
+    prepare: steps(async (p) => p.getByText('6 × 1000 m').first().click(), scrollTo(/^Description$/, 16 + 59)),
   },
   {
     name: 'mobile-messages',
