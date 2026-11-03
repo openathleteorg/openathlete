@@ -1,101 +1,87 @@
-<!-- PROJECT LOGO -->
 <p align="center">
-  <a href="https://github.com/openathleteorg/openathlete">
-   <img src="/doc/imgs/openathlete-showcase.png" alt="OpenAthlete Logo">
+  <a href="https://openathlete.org">
+    <img src="doc/imgs/readme-hero.webp" alt="OpenAthlete: serious endurance training, without the subscription">
   </a>
+</p>
 
-  <h3 align="center">OpenAthlete</h3>
+<h3 align="center">Serious endurance training. Without the subscription.</h3>
 
-  <p align="center">
-    The ethical alternative to TrainingPeaks and Strava.
-    <br />
-    <br />
-    OpenAthlete is open source under the AGPLv3, built so you can own your training data: self-host, export, and avoid vendor lock-in. Core hosting and processing are oriented toward the European Union with GDPR-minded defaults.
-    <br />
-    <a href="https://openathlete.org"><strong>Learn more »</strong></a>
-    <br />
-    <br />
-    <a href="https://discord.gg/j4PP6tDwuP">Discord</a>
-    ·
-    <a href="https://openathlete.org">Website</a>
-    ·
-    <a href="https://docs.openathlete.org">Documentation</a>
-    ·
-    <a href="https://api.openathlete.org/docs">API Docs</a>
-    ·
-    <a href="https://github.com/openathleteorg/openathlete/issues">Issues</a>
-  </p>
+<p align="center">
+  The open-source training platform for runners, trail runners, triathletes, cyclists and their coaches.
+  <br />
+  Plan your season, send structured workouts to your watch, see what every session did to your fitness.
+  <br />
+  <br />
+  <a href="https://app.openathlete.org/auth/create-account"><strong>Create a free account »</strong></a>
+  <br />
+  <br />
+  <a href="https://openathlete.org">Website</a>
+  ·
+  <a href="https://docs.openathlete.org">Documentation</a>
+  ·
+  <a href="https://docs.openathlete.org/docs/getting-started/self-hosting">Self-hosting</a>
+  ·
+  <a href="https://discord.gg/j4PP6tDwuP">Discord</a>
+  ·
+  <a href="https://api.openathlete.org/docs">API</a>
 </p>
 
 <p align="center">
-   <a href="https://github.com/openathleteorg/openathlete/stargazers"><img src="https://img.shields.io/github/stars/openathleteorg/openathlete" alt="Github Stars"></a>
+   <a href="https://github.com/openathleteorg/openathlete/stargazers"><img src="https://img.shields.io/github/stars/openathleteorg/openathlete" alt="GitHub stars"></a>
    <a href="https://github.com/openathleteorg/openathlete/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
-   <a href="https://github.com/openathleteorg/openathlete/pulse"><img src="https://img.shields.io/github/commit-activity/m/openathleteorg/openathlete" alt="Commits-per-month"></a>
-   <a href="https://testflight.apple.com/join/1hBg4mR1"><img src="https://img.shields.io/badge/TestFlight-iOS%20App-blue" alt="iOS App"></a>
-   <a href="https://api.openathlete.org/docs"><img src="https://img.shields.io/badge/API-Swagger-green" alt="API Docs"></a>
-   <a href="https://docs.openathlete.org"><img src="https://img.shields.io/badge/Docs-Online-brightgreen" alt="Documentation"></a>
+   <a href="https://github.com/openathleteorg/openathlete/releases"><img src="https://img.shields.io/github/v/release/openathleteorg/openathlete" alt="Latest release"></a>
+   <a href="https://github.com/openathleteorg/openathlete/pulse"><img src="https://img.shields.io/github/commit-activity/m/openathleteorg/openathlete" alt="Commits per month"></a>
+   <a href="https://testflight.apple.com/join/1hBg4mR1"><img src="https://img.shields.io/badge/iOS-TestFlight-blue" alt="iOS on TestFlight"></a>
    <a href="https://discord.gg/j4PP6tDwuP"><img src="https://img.shields.io/badge/Discord-Community-5865F2" alt="Discord"></a>
    <a href="https://buymeacoffee.com/openathlete"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee"></a>
-   <a href="https://github.com/openathleteorg/openathlete/issues?q=is:issue+is:open+label:%22help+wanted%22"><img src="https://img.shields.io/badge/Help%20Wanted-Contribute-blue"></a>
-   <a href="https://github.com/openathleteorg/openathlete/issues?q=is:issue+is:open+label:%22good+first+issue%22"><img src="https://img.shields.io/badge/Good%20First%20Issue-Start%20Here-green"></a>
 </p>
 
-<!-- ABOUT THE PROJECT -->
+## Why OpenAthlete
 
-## About the Project
+Training platforms keep years of your data, charge coaches per athlete, and can be bought or shut down. Today's Plan closed in 2024; TrainingPeaks has belonged to Garmin since July 2026.
 
-# Training infrastructure that respects athletes
+OpenAthlete is free on our servers in France and free on yours. The code is public under AGPL-3.0, the training-load formulas are in this repository, and you can export everything at any time. It is built by an independent developer and ultra runner in Grenoble, with no investors.
 
-Endurance athletes feed years of intimate training data into proprietary U.S. platforms such as TrainingPeaks, Strava, and Garmin Connect, with little practical say in how that data is processed, monetized, or retained.
+## What it does
 
-OpenAthlete is a different proposition: comparable tracking and analysis in an open-source stack, hosted in the EU when you use managed infrastructure, self-hostable when you prefer your own hardware, and with training-load logic you can read and adapt in the repository. It is maintained by an ultra-trail runner based in Grenoble.
+<img src="doc/imgs/readme-plan.webp" alt="Training calendar on desktop and phone">
 
-### Key Features
+**Plan.** A calendar that thinks in seasons, weeks and sessions: training blocks, A/B/C races, illness and travel periods that move the sessions they cover, whole weeks copied or shifted with undo, and a calendar feed for Google, Apple or Outlook.
 
-- 🇪🇺 **EU-Hosted & GDPR-Native** — Data processed in the European Union
-- 🔒 **You Own Your Data** — Self-hostable, full export, no lock-in
-- 🔍 **Transparent Algorithms** — Training load formulas (CTL/ATL/TSB) are in the code, auditable, customizable
-- 📊 **Comprehensive Tracking** — Workouts, fitness/fatigue/form metrics, progression visualizations
-- 🔗 **Device Integrations** — Activities from Strava, Garmin, Polar, Suunto and COROS; planned workouts sent to Garmin, Suunto and COROS watches; FIT and GPX file import
-- 📱 **On your phone** — Installable web app on iPhone and Android; iOS app in beta ([TestFlight](https://testflight.apple.com/join/1hBg4mR1))
-- 🤖 **AI Assistance** — Modest helpers for session generation and load monitoring (not a replacement for a coach)
-- 🌐 **Open Source** — AGPLv3, community-driven, sustainably funded
+**Build and sync.** Structured workouts with targets from your own zones (pace, power, heart rate, % of VMA or FTP), a reusable library, and delivery to **Garmin, COROS and Suunto** watches at the next sync.
 
-### Comparison
+<img src="doc/imgs/readme-analyse.webp" alt="Activity analysis with the AI read of the session">
 
-| Feature | 🟢 OpenAthlete Cloud | 🔵 TrainingPeaks | 🟠 Strava | 🟣 Intervals.icu |
+**Analyse.** Activities from **Garmin, COROS, Suunto, Polar and Strava**, or FIT, GPX and TCX files. Each interval graded against the plan, detected climbs, time in zones, aerobic decoupling, pace adjusted for gradient and weather, and non-destructive fixes for heart-rate spikes.
+
+<img src="doc/imgs/readme-progress.webp" alt="Records and recovery metrics">
+
+**Progress.** Records by distance and duration, year against year; critical speed and power; fitness, fatigue and form (CTL, ATL, TSB) from heart rate or perceived effort, projected over your planned sessions; HRV, resting heart rate and sleep from your watch. Every metric says what it measures and where it stops being reliable.
+
+<img src="doc/imgs/readme-coach.webp" alt="Coach dashboard and coach–athlete messages">
+
+**Coach.** Compliance, volume and form for every athlete on one screen, alerts for reported pain, inactivity and unread messages, planning for several athletes at once, comments and real-time chat. Five athletes free, unlimited with Supporter.
+
+**AI, on your terms.** Generate or edit a session from a sentence, get a short read of each activity and three questions on how it felt. Bring your own key (OpenAI, Anthropic, Google, Mistral, OpenRouter, DeepSeek, xAI, Groq, or a local model when self-hosted), pick the model per feature, or use the allowance included with Supporter. Nothing reaches an AI provider until you allow it. An **MCP server** lets Claude, ChatGPT or Cursor read your training and plan sessions straight into your calendar.
+
+**Mobile.** The web app is built for phones and installs on the home screen. iOS and Android apps are in testing ([TestFlight](https://testflight.apple.com/join/1hBg4mR1)).
+
+## How it compares
+
+| | OpenAthlete | TrainingPeaks | intervals.icu | Strava |
 | --- | --- | --- | --- | --- |
-| **Open source code** | ✅ AGPLv3 | ❌ | ❌ | ❌ |
-| **Self-hostable option** | ✅ Free | ❌ | ❌ | ❌ |
-| **Data hosted in EU** | ✅ France | ❌ US | ❌ US | ⚠️ Mixed |
-| **GDPR-native** | ✅ | ⚠️ | ⚠️ | ⚠️ |
-| **Transparent algorithms** | ✅ Code audit | ❌ Black box | ❌ Black box | ⚠️ Partial |
-| **Full data export** | ✅ Native | ⚠️ Limited | ⚠️ Limited | ✅ |
-| **CTL/ATL/TSB tracking** | ✅ | ✅ | ❌ | ✅ |
-| **AI session generation** | ✅ Your key, or included for Supporters | ⚠️ Premium | ❌ | ❌ |
-| **Price** | Free, or 5€/mo (50€/yr) as a Supporter | $19.99/mo | $11.99/mo | Free (donation) |
+| Open source, self-hostable | ✅ AGPL-3.0 | ❌ | ❌ | ❌ |
+| Planned workouts sent to the watch | ✅ Free (Garmin, COROS, Suunto) | Premium only | ✅ | ❌ |
+| Fitness / fatigue / form | ✅ Formulas in the code | ✅ | ✅ | Subscription |
+| AI | Your key, or included with Supporter; MCP server | — | Connector (Supporter) | — |
+| Coaching | 5 athletes free, unlimited €50/yr | From $21.99/mo + per-athlete fees | Supporter | — |
+| Athlete price | Free (Supporter €5/mo or €50/yr, optional) | $19.95/mo or $134.99/yr | Free ($4/mo Supporter) | €59.99/yr |
 
-## Recognition
+Prices from each vendor's pricing page, checked on 3 November 2026 (USD before tax). Detailed, sourced comparisons: [openathlete.org/compare](https://openathlete.org/compare).
 
-OpenAthlete is built by athletes, for athletes. We're proud to be part of the open-source community and grateful for all contributors who help make this platform better.
+## Built with
 
-### Built With
-
-- [React 19](https://react.dev/) - Modern UI framework
-- [NestJS](https://nestjs.com/) - Scalable Node.js backend
-- [TypeScript](https://www.typescriptlang.org/) - Type-safe development
-- [Prisma](https://www.prisma.io/) - Next-generation ORM
-- [PostgreSQL](https://www.postgresql.org/) - Robust database
-- [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS
-- [ShadCN UI](https://ui.shadcn.com/) - Beautiful component library
-- [Vite](https://vitejs.dev/) - Next-generation frontend tooling
-- Various LLM providers (configurable)
-
-<!-- ## Stay Up-to-Date
-
-OpenAthlete is actively developed and we're constantly adding new features. Watch **releases** of this repository to be notified of future updates:
-
-![openathlete-star-github](https://user-images.githubusercontent.com/8019099/154853944-a9e3c999-3da3-4048-b149-b4f73893c6fb.gif) -->
+React 19 and Vite (web, with Capacitor for iOS and Android), NestJS 11 with BullMQ jobs and Mastra agents (API), Prisma and PostgreSQL with pgvector, Redis, Next.js (website), Paraglide (5 languages), Tailwind CSS.
 
 <!-- GETTING STARTED -->
 
@@ -118,75 +104,28 @@ Here is what you need to be able to run OpenAthlete.
 
 ### Setup
 
-1. Clone the repo into a public GitHub repository (or fork https://github.com/openathleteorg/openathlete/fork):
+```sh
+git clone https://github.com/openathleteorg/openathlete.git
+cd openathlete
+nvm use && pnpm install
 
-   ```sh
-   git clone https://github.com/openathleteorg/openathlete.git
-   cd openathlete
-   ```
+# PostgreSQL (with pgvector) and Redis
+docker compose -f docker-compose.dev.yml up -d
 
-2. Install packages with pnpm
+# Environment files, then edit them if needed
+for f in apps/api apps/web libs/database; do cp $f/.env.example $f/.env; done
 
-   ```sh
-   pnpm install
-   ```
+# Prisma client, shared package, database
+pnpm database run db:generate && pnpm shared build && pnpm database run db:deploy
 
-3. Set up your environment variables
+pnpm dev   # API on http://localhost:3000, web app on http://localhost:5173
+```
 
-   - **Frontend**: Copy `apps/web/.env.example` to `apps/web/.env` and update with your configuration
-   - **Backend**: Copy `apps/api/.env.example` to `apps/api/.env` and update with your configuration
-   - At minimum, you'll need:
-     - `DATABASE_URL` - PostgreSQL connection string
-     - `JWT_SECRET` - Secret key for JWT tokens (generate with `openssl rand -base64 32`)
-     - `VITE_API_URL` - Backend API URL (for frontend)
-
-4. Setup Node version
-
-   If your Node version does not meet the project's requirements, use nvm:
-
-   ```sh
-   nvm use
-   ```
-
-   You first might need to install the specific version and then use it:
-
-   ```sh
-   nvm install && nvm use
-   ```
-
-5. Build shared packages
-
-   ```sh
-   pnpm shared build
-   ```
-
-6. Set up the database using Prisma
-
-   In a development environment, run:
-
-   ```sh
-   pnpm database run db:migrate dev
-   ```
-
-   In a production environment, run:
-
-   ```sh
-   pnpm database run db:deploy
-   ```
-
-7. Run (in development mode)
-
-   ```sh
-   pnpm dev
-   ```
-
-   This will start:
-   - **Frontend** at `http://localhost:5173`
-   - **Backend API** at `http://localhost:3000`
+Run the same checks as CI with `scripts/verify.sh` (add `--integration`, `--build` or `--e2e` for the slower suites).
 
 ### Development Tips
 
-2. Run type checking before committing:
+1. Run type checking before committing:
 
    ```sh
    pnpm tsc:check
@@ -324,14 +263,16 @@ For detailed deployment instructions, see our [self-hosting documentation](https
 
 ```properties
 DATABASE_URL="postgresql://user:password@host:5432/openathlete"
-JWT_SECRET="your-secret-key"
+REDIS_URL="redis://host:6379"
+JWT_SECRET_KEY="generate with: openssl rand -base64 32"
+HASH_PEPPER="generate with: openssl rand -base64 32"
 NODE_ENV="production"
 ```
 
 #### Frontend Required Variables
 
 ```properties
-VITE_API_URL="https://api.your-domain.com"
+VITE_API_BASE_URL="https://api.your-domain.com"
 ```
 
 For a complete list of environment variables, see the `.env.example` files in each app directory.
@@ -340,9 +281,9 @@ For a complete list of environment variables, see the `.env.example` files in ea
 
 > OpenAthlete is built by one developer in Grenoble, supported by the community. There are three ways to help the project thrive:
 >
-> - **Become a Supporter on OpenAthlete Cloud** — The Cloud is free; the Supporter subscription (5€/month or 50€/year) funds development and adds unlimited coached athletes and AI included every month. See [openathlete.org](https://openathlete.org).
-> - **Buy me a coffee** — One-off support without using the cloud. [buymeacoffee.com/openathlete](https://buymeacoffee.com/openathlete).
-> - **Contribute code or feedback** — Star the repo, open issues, send PRs, join the [Discord](https://discord.gg/j4PP6tDwuP).
+> - **Become a Supporter** on [openathlete.org](https://openathlete.org/pricing): €5/month or €50/year. It pays for the servers and adds AI on our keys and unlimited coached athletes.
+> - **Buy a coffee**: one-off support, even if you self-host. [buymeacoffee.com/openathlete](https://buymeacoffee.com/openathlete).
+> - **Contribute**: star the repo, open issues, send pull requests, translate, or join the [Discord](https://discord.gg/j4PP6tDwuP).
 >
 > Self-hosting is fully supported and always free, with no limits. Supporters fund the project's long-term sustainability.
 
@@ -355,9 +296,8 @@ OpenAthlete is actively developed. Here's what's coming next:
 - 🧩 **Modular Training Logic** - Custom goals, coach import, and flexible training methodologies
 - 📈 **Enhanced Dashboards** - Intuitive data visualizations and performance analytics
 - 🔗 **More Integrations** - Wahoo, Zwift, Oura, and more
-- 📅 **Weekly Training View** - Better calendar and planning interface
-- 🏃 **Advanced AI Features** - More intelligent training suggestions and injury prevention
-- 📱 **Mobile App Enhancements** - Improved mobile experience and offline support
+- 👥 **Clubs** - Club accounts with several coaches and groups
+- 📱 **Native apps** - iOS and Android apps in the stores
 
 See our [GitHub Issues](https://github.com/openathleteorg/openathlete/issues) for a detailed list of proposed features and known issues.
 
