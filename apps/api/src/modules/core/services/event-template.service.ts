@@ -14,6 +14,7 @@ import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { remapZonesForAthlete } from '../helpers/workout-zones';
 import { EVENT_INCLUDES } from './event-includes';
 import { EventService } from './event.service';
 
@@ -349,11 +350,19 @@ export class EventTemplateService {
       });
 
       if (templateWorkout && newEvent.training) {
+        // The template keeps the zones of the session it was made from: the
+        // athlete it is applied to gets their own equivalent zones
+        const templateSteps = await remapZonesForAthlete(
+          this.prisma,
+          athleteId,
+          newEvent.training.sport,
+          templateWorkout.steps,
+        );
         const createdWorkout = await this.prisma.workout.create({
           data: {
             eventTrainingId: newEvent.training.eventTrainingId,
             steps: {
-              create: templateWorkout.steps.map((step) => ({
+              create: templateSteps.map((step) => ({
                 orderIndex: step.orderIndex,
                 stepType: step.stepType,
                 name: step.name,

@@ -453,7 +453,8 @@ function formatTarget(target: WorkoutTarget): string {
     max === undefined ? `${min}` : `${min}-${max}`;
   switch (target.type) {
     case 'zone':
-      return target.zoneName ?? `zone ${target.zoneId}`;
+      // Not one of the athlete's zones: say so rather than pass the id off
+      return target.zoneName ?? `unknown zone ${target.zoneId}`;
     case 'pace':
       return `${span(target.min, target.max)}/km`;
     case 'heart_rate':

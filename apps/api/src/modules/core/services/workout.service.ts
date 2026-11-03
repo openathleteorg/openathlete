@@ -18,6 +18,7 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { remapZonesForAthlete } from '../helpers/workout-zones';
 import { EventService } from './event.service';
 
 @Injectable()
@@ -180,11 +181,20 @@ export class WorkoutService {
 
     const sourceWorkout = sourceEvent.training.workout;
     const sourceDto = mapPrismaWorkoutToDto(sourceWorkout);
+    // The target may be another athlete's session: zones are per athlete
+    const steps = targetEvent.athleteId
+      ? await remapZonesForAthlete(
+          this.prisma,
+          targetEvent.athleteId,
+          targetEvent.training.sport,
+          sourceDto.steps,
+        )
+      : sourceDto.steps;
 
     await this.prisma.workout.create({
       data: {
         eventTrainingId: targetEvent.training.eventTrainingId,
-        ...mapWorkoutDtoToPrisma({ steps: sourceDto.steps }),
+        ...mapWorkoutDtoToPrisma({ steps }),
       },
       include: {
         steps: {

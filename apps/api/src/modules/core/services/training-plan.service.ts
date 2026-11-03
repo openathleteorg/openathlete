@@ -11,6 +11,7 @@ import {
 
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { remapZonesForAthlete } from '../helpers/workout-zones';
 
 @Injectable()
 export class TrainingPlanService {
@@ -171,7 +172,13 @@ export class TrainingPlanService {
               steps: session.workout.steps || [],
             });
             if (parsed.success) {
-              const stepsForCreate = parsed.data.steps;
+              // The AI may answer with zones that are not the athlete's
+              const stepsForCreate = await remapZonesForAthlete(
+                this.prisma,
+                athleteId,
+                createdEvent.training.sport,
+                parsed.data.steps,
+              );
               const workoutData = mapWorkoutDtoToPrisma({
                 steps: stepsForCreate,
               });
