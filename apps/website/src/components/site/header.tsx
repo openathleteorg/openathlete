@@ -13,6 +13,7 @@ import {
   Building2,
   Calculator,
   ChevronDown,
+  Gauge,
   LayoutGrid,
   Menu,
   MessagesSquare,
@@ -135,6 +136,11 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             href: p('/training-plans'),
             label: m.site_nav_training_plans({}, { locale: ml }),
             icon: <Timer />,
+          },
+          {
+            href: p('/pace-charts'),
+            label: m.pacechart_nav_label({}, { locale: ml }),
+            icon: <Gauge />,
           },
           {
             href: DOCS_URL,

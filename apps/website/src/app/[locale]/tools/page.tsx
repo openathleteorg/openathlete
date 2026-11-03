@@ -9,7 +9,7 @@ import { TOOLS } from '@/components/tools/registry';
 import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl } from '@/utils/locales';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Gauge } from 'lucide-react';
 import Link from 'next/link';
 
 import { generateMetadata as pageMetadata } from '../../metadata';
@@ -124,6 +124,27 @@ export default async function ToolsPage({ params }: Props) {
               );
             })}
           </RevealGroup>
+          <Reveal className="mt-5">
+            <Link
+              href={localePath(locale, '/pace-charts')}
+              className="group flex flex-col gap-4 rounded-[1.5rem] border border-dashed border-ink/20 bg-paper p-7 transition-colors hover:border-ink/40 sm:flex-row sm:items-center sm:justify-between sm:p-8"
+            >
+              <span className="flex items-start gap-5">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-coral/15 text-coral-strong">
+                  <Gauge className="size-6" />
+                </span>
+                <span>
+                  <span className="block text-[1.25rem] font-semibold tracking-[-0.02em] text-ink">
+                    {m.pacechart_tools_card_title()}
+                  </span>
+                  <span className="mt-1 block text-[0.98rem] leading-relaxed text-muted-foreground">
+                    {m.pacechart_tools_card_body()}
+                  </span>
+                </span>
+              </span>
+              <ArrowRight className="size-5 shrink-0 text-ink transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Reveal>
         </Container>
       </section>
 

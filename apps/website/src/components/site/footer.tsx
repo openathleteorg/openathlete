@@ -119,6 +119,7 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
             <Item href={p('/training-plans')}>
               {m.site_nav_training_plans()}
             </Item>
+            <Item href={p('/pace-charts')}>{m.pacechart_nav_label()}</Item>
             <Item href={DOCS_URL}>{m.site_nav_docs()}</Item>
           </Column>
 

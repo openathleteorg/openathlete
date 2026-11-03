@@ -2,6 +2,7 @@ import { AI_BRAND_SLUGS } from '@/components/ai-brand/data';
 import { CONNECTOR_SLUGS } from '@/components/connect/data';
 import { getAllPosts, getPostLocales } from '@/content/blog';
 import { COMPARISONS_CHECKED_ON, COMPETITORS } from '@/content/competitors';
+import { paceChartPaths } from '@/lib/pace-charts/data';
 import { listPlans } from '@/lib/training-plans/catalog';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@/utils/locales';
 import { existsSync, readdirSync, statSync } from 'fs';
@@ -78,6 +79,12 @@ export function siteRoutes(): SiteRoute[] {
   }
   for (const provider of CONNECTOR_SLUGS) {
     routes.push({ path: `/connect/${provider}`, locales: SUPPORTED_LOCALES });
+  }
+  for (const { distance, time } of paceChartPaths()) {
+    routes.push({
+      path: `/pace-charts/${distance}/${time}`,
+      locales: SUPPORTED_LOCALES,
+    });
   }
 
   return routes.sort((a, b) => a.path.localeCompare(b.path));
