@@ -1,3 +1,4 @@
+import { AI_BRAND_SLUGS } from '@/components/ai-brand/data';
 import { ArrowLink } from '@/components/features/kit';
 import { McpChat } from '@/components/features/mcp-visuals';
 import {
@@ -885,7 +886,9 @@ export function AiGuidePage({ locale, brand }: Props) {
                 {m.aig_rel_watches_body()}
               </p>
               <ul className="mt-4 flex flex-wrap gap-2">
-                {PROVIDERS.map((provider) => (
+                {PROVIDERS.filter((provider) =>
+                  AI_BRAND_SLUGS.includes(provider.slug),
+                ).map((provider) => (
                   <li key={provider.slug}>
                     <Link
                       href={localePath(locale, `/ai/${provider.slug}`)}

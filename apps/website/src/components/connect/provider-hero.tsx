@@ -1,3 +1,4 @@
+import { AI_BRAND_SLUGS } from '@/components/ai-brand/data';
 import { buttonStyles } from '@/components/site/button';
 import { Container } from '@/components/site/layout-primitives';
 import { Reveal } from '@/components/site/reveal';
@@ -83,13 +84,15 @@ export function ProviderHero({
               <Check className="size-4 text-mint-strong" />
               {m.connect_hero_free()}
             </p>
-            <Link
-              href={localePath(locale, `/ai/${connector.slug}`)}
-              className="mt-3 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-ink underline-offset-4 hover:underline"
-            >
-              <Sparkles className="size-4 text-orchid-strong" />
-              {m.connect_ai_link({ brand: connector.name })}
-            </Link>
+            {AI_BRAND_SLUGS.includes(connector.slug) && (
+              <Link
+                href={localePath(locale, `/ai/${connector.slug}`)}
+                className="mt-3 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-ink underline-offset-4 hover:underline"
+              >
+                <Sparkles className="size-4 text-orchid-strong" />
+                {m.connect_ai_link({ brand: connector.name })}
+              </Link>
+            )}
           </div>
           <Reveal delay={0.1} className="mx-auto w-full max-w-md lg:col-span-5">
             <SyncLink

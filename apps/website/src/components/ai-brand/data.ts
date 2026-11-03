@@ -148,30 +148,6 @@ export const AI_BRANDS: AiBrand[] = [
       },
     ],
   },
-  {
-    slug: 'strava',
-    name: 'Strava',
-    logo: '/providers/strava.svg',
-    logoDark: '/providers/strava.svg',
-    width: 608,
-    watch: false,
-    wellness: false,
-    history: 'full',
-    chatTools: ['get_activities', 'get_training_volume', 'get_training_load'],
-    prompts: [
-      ['get_activities', 'get_capacities'],
-      ['get_training_volume', 'get_athlete_context', 'plan_sessions'],
-      ['get_records'],
-      ['get_training_load'],
-      ['get_calendar'],
-    ],
-    sources: [
-      {
-        label: 'Strava support, “Strava MCP Connector”',
-        url: 'https://support.strava.com/hc/articles/46190267796237',
-      },
-    ],
-  },
 ];
 
 export const AI_BRAND_SLUGS = AI_BRANDS.map((brand) => brand.slug);

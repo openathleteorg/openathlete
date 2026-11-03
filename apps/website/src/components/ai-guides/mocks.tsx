@@ -105,42 +105,43 @@ const HISTORY: Record<string, () => string> = {
   coros: m.aig_step2_history_all,
   suunto: m.aig_step2_history_30,
   polar: m.aig_step2_history_none,
-  strava: m.aig_step2_history_all,
 };
 
 export function ConnectorsMock() {
   return (
     <Frame label={m.aig_step2_mock_title()}>
       <ul className="divide-y divide-border">
-        {PROVIDERS.map((provider, index) => (
-          <li
-            key={provider.slug}
-            className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-          >
-            <span className="grid h-8 w-20 shrink-0 place-items-start">
-              <Image
-                src={provider.logo}
-                alt=""
-                width={provider.width}
-                height={120}
-                className="h-4 w-auto max-w-20 object-contain"
-              />
-            </span>
-            <span className="min-w-0 flex-1 truncate font-mono text-[0.68rem] text-muted-foreground">
-              {HISTORY[provider.slug]()}
-            </span>
-            {index === 0 ? (
-              <span className="flex items-center gap-1 rounded-full bg-mint/20 px-2.5 py-1 text-[0.7rem] font-medium text-mint-strong">
-                <Check className="size-3" />
-                {m.aig_step2_connected()}
+        {PROVIDERS.filter((provider) => provider.slug in HISTORY).map(
+          (provider, index) => (
+            <li
+              key={provider.slug}
+              className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+            >
+              <span className="grid h-8 w-20 shrink-0 place-items-start">
+                <Image
+                  src={provider.logo}
+                  alt=""
+                  width={provider.width}
+                  height={120}
+                  className="h-4 w-auto max-w-20 object-contain"
+                />
               </span>
-            ) : (
-              <span className="rounded-full border border-border px-2.5 py-1 text-[0.7rem] font-medium">
-                {m.aig_step2_connect()}
+              <span className="min-w-0 flex-1 truncate font-mono text-[0.68rem] text-muted-foreground">
+                {HISTORY[provider.slug]()}
               </span>
-            )}
-          </li>
-        ))}
+              {index === 0 ? (
+                <span className="flex items-center gap-1 rounded-full bg-mint/20 px-2.5 py-1 text-[0.7rem] font-medium text-mint-strong">
+                  <Check className="size-3" />
+                  {m.aig_step2_connected()}
+                </span>
+              ) : (
+                <span className="rounded-full border border-border px-2.5 py-1 text-[0.7rem] font-medium">
+                  {m.aig_step2_connect()}
+                </span>
+              )}
+            </li>
+          ),
+        )}
       </ul>
     </Frame>
   );
