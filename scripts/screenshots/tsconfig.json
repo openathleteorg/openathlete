@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "resolveJsonModule": true,
+    "typeRoots": ["../../libs/database/node_modules/@types"],
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@playwright/test": ["../../e2e/node_modules/@playwright/test"]
+    }
+  },
+  "include": ["*.ts", "lib/*.ts"]
+}

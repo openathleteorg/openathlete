@@ -1,0 +1,13 @@
+# Moves the dev databases to ports that rarely clash with other local stacks,
+# and gives them their own project name and volumes so the screenshot seed
+# never touches a regular dev database:
+#
+#   docker compose -p openathlete-screenshots \
+#     -f docker-compose.dev.yml -f scripts/screenshots/compose.override.yml up -d
+services:
+  postgres:
+    ports: !override
+      - '127.0.0.1:5434:5432'
+  redis:
+    ports: !override
+      - '127.0.0.1:6380:6379'
