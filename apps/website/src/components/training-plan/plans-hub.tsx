@@ -13,7 +13,7 @@ import {
   planStats,
   plansFor,
 } from '@/lib/training-plans/catalog';
-import { sportLabel } from '@/lib/training-plans/labels';
+import { distanceLabel, sportLabel } from '@/lib/training-plans/labels';
 import { loadPlan } from '@/lib/training-plans/plan-loader';
 import { m } from '@/paraglide/messages';
 import {
@@ -46,7 +46,7 @@ const SPORTS = [
   },
 ];
 
-/** Running plans as rows: goal, length, load, race pace. */
+/** Running plans as rows, one table per race: goal, length, load, race pace. */
 async function PlanList({ locale }: { locale: SupportedLocale }) {
   const plans = await Promise.all(
     plansFor('running').map(async (entry) => {
@@ -59,64 +59,95 @@ async function PlanList({ locale }: { locale: SupportedLocale }) {
       return { entry, data, stats: planStats(data) };
     }),
   );
+  // plansFor already orders by race, then goal time
+  const groups = [...new Set(plans.map((plan) => plan.entry.distance))].map(
+    (distance) => ({
+      distance,
+      plans: plans.filter((plan) => plan.entry.distance === distance),
+    }),
+  );
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-white">
-      <table className="w-full min-w-[38rem] text-left">
-        <thead className="bg-paper">
-          <tr className="kicker text-muted-foreground">
-            <th className="px-6 py-4 font-medium">{m.plans_hub_col_goal()}</th>
-            <th className="px-4 py-4 font-medium">{m.plans_hub_col_weeks()}</th>
-            <th className="px-4 py-4 font-medium">
-              {m.plans_hub_col_sessions()}
-            </th>
-            <th className="px-4 py-4 font-medium">{m.plans_hub_col_peak()}</th>
-            <th className="px-4 py-4 font-medium">{m.plans_hub_col_pace()}</th>
-            <th className="px-6 py-4" />
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {plans.map(({ entry, data, stats }) => (
-            <tr
-              key={entry.path}
-              className="group relative transition-colors hover:bg-paper/60"
-            >
-              <td className="px-6 py-5">
-                <Link
-                  href={localePath(locale, entry.path)}
-                  className="font-semibold text-ink after:absolute after:inset-0"
-                >
-                  <span className="font-mono text-[1.2rem]">
-                    {data.plan.timeTarget
-                      ? formatGoalTime(data.plan.timeTarget)
-                      : entry.variant}
-                  </span>
-                  <span className="ml-3 text-[0.9rem] font-normal text-muted-foreground">
-                    {data.plan.name}
-                  </span>
-                </Link>
-              </td>
-              <td className="px-4 py-5 font-mono tabular-nums">
-                {stats.weeks}
-              </td>
-              <td className="px-4 py-5 font-mono tabular-nums">{stats.runs}</td>
-              <td className="px-4 py-5 font-mono tabular-nums">
-                {stats.peakKm} km
-              </td>
-              <td className="px-4 py-5 font-mono tabular-nums">
-                {stats.paceSeconds
-                  ? `${formatPace(stats.paceSeconds)} /km`
-                  : '–'}
-              </td>
-              <td className="px-6 py-5 text-right">
-                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-ink">
-                  {m.plans_hub_view()}
-                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
-                </span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-12">
+      {groups.map((group) => (
+        <div key={group.distance}>
+          <div className="mb-4 flex items-baseline justify-between gap-4">
+            <h3 className="text-[1.3rem] font-semibold tracking-[-0.02em] text-ink">
+              {distanceLabel(group.distance, true)}
+            </h3>
+            <span className="font-mono text-[0.8rem] text-muted-foreground">
+              {m.plans_hub_group_count({ count: String(group.plans.length) })}
+            </span>
+          </div>
+          <div className="overflow-x-auto rounded-2xl border border-border bg-white">
+            <table className="w-full min-w-[38rem] text-left">
+              <thead className="bg-paper">
+                <tr className="kicker text-muted-foreground">
+                  <th className="px-6 py-4 font-medium">
+                    {m.plans_hub_col_goal()}
+                  </th>
+                  <th className="px-4 py-4 font-medium">
+                    {m.plans_hub_col_weeks()}
+                  </th>
+                  <th className="px-4 py-4 font-medium">
+                    {m.plans_hub_col_sessions()}
+                  </th>
+                  <th className="px-4 py-4 font-medium">
+                    {m.plans_hub_col_peak()}
+                  </th>
+                  <th className="px-4 py-4 font-medium">
+                    {m.plans_hub_col_pace()}
+                  </th>
+                  <th className="px-6 py-4" />
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {group.plans.map(({ entry, data, stats }) => (
+                  <tr
+                    key={entry.path}
+                    className="group relative transition-colors hover:bg-paper/60"
+                  >
+                    <td className="px-6 py-5">
+                      <Link
+                        href={localePath(locale, entry.path)}
+                        className="font-semibold text-ink after:absolute after:inset-0"
+                      >
+                        <span className="font-mono text-[1.2rem] whitespace-nowrap">
+                          {data.plan.timeTarget
+                            ? formatGoalTime(data.plan.timeTarget)
+                            : entry.variant}
+                        </span>
+                        <span className="ml-3 text-[0.9rem] font-normal text-muted-foreground">
+                          {data.plan.name}
+                        </span>
+                      </Link>
+                    </td>
+                    <td className="px-4 py-5 font-mono tabular-nums">
+                      {stats.weeks}
+                    </td>
+                    <td className="px-4 py-5 font-mono tabular-nums">
+                      {stats.runs}
+                    </td>
+                    <td className="px-4 py-5 font-mono whitespace-nowrap tabular-nums">
+                      {stats.peakKm} km
+                    </td>
+                    <td className="px-4 py-5 font-mono whitespace-nowrap tabular-nums">
+                      {stats.paceSeconds
+                        ? `${formatPace(stats.paceSeconds)} /km`
+                        : '–'}
+                    </td>
+                    <td className="px-6 py-5 text-right">
+                      <span className="inline-flex items-center gap-1.5 text-sm font-medium whitespace-nowrap text-ink">
+                        {m.plans_hub_view()}
+                        <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -191,7 +222,7 @@ export async function PlansHub({
         <ItemListStructuredData
           name={title}
           items={listed.map((entry) => ({
-            name: `${entry.distance} ${entry.variant}`,
+            name: `${distanceLabel(entry.distance, true)} ${entry.variant}`,
             url: localizedUrl(locale, entry.path),
           }))}
         />

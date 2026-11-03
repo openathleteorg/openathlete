@@ -13,9 +13,22 @@ import {
   plansFor,
 } from '@/lib/training-plans/catalog';
 import { distanceLabel, sportLabel } from '@/lib/training-plans/labels';
+import {
+  paceAtShare,
+  referenceVma,
+  runningPlanSpec,
+} from '@/lib/training-plans/specs';
+import {
+  bandUse,
+  planBands,
+  sessionTargets,
+  targetLabel,
+  targetTone,
+} from '@/lib/training-plans/targets';
 import { m } from '@/paraglide/messages';
 import {
   type SupportedLocale,
+  htmlLang,
   localePath,
   localizedUrl,
 } from '@/utils/locales';
@@ -101,6 +114,104 @@ function VolumeChart({
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+/** "40 min", "1h45": the goal time of a plan from its URL. */
+function otherTime(plan: PlanEntry): string {
+  const spec = runningPlanSpec(plan.distance, plan.variant);
+  return spec ? formatGoalTime(spec.goalSeconds) : plan.variant;
+}
+
+type PlanSession =
+  SEOPlanData['cycles'][number]['weeks'][number]['sessions'][number];
+
+/** "62–70% VMA", "Goal pace 5:41/km": what the watch will aim for. */
+function TargetChips({ session }: { session: PlanSession }) {
+  const targets = sessionTargets(session);
+  if (!targets.length) return null;
+  return (
+    <span className="mt-1.5 flex flex-wrap gap-1.5">
+      {targets.map((target) => {
+        const label = targetLabel(target);
+        return (
+          <span
+            key={label}
+            className={cn(
+              'rounded-full px-2 py-0.5 font-mono text-[0.7rem] font-medium whitespace-nowrap',
+              targetTone(target),
+            )}
+          >
+            {label}
+          </span>
+        );
+      })}
+    </span>
+  );
+}
+
+/** Every VMA band of the plan, in paces for the VMA it is written for. */
+function ReferencePaces({
+  locale,
+  entry,
+  data,
+  time,
+  pace,
+}: {
+  locale: SupportedLocale;
+  entry: PlanEntry;
+  data: SEOPlanData;
+  time: string;
+  pace: string;
+}) {
+  const spec = runningPlanSpec(entry.distance, entry.variant);
+  if (!spec) return null;
+  const vma = referenceVma(spec);
+  const rows = planBands(data).map((band) => ({
+    use: bandUse(band),
+    target: targetLabel({ kind: 'vma', ...band }),
+    pace: `${formatPace(paceAtShare(vma, band.max))}–${formatPace(paceAtShare(vma, band.min))}`,
+  }));
+  rows.push({ use: m.tplan_zone_goal(), target: time, pace });
+  return (
+    <div className="mt-10">
+      <h3 className="text-[1.1rem] font-semibold text-ink">
+        {m.tplan_ref_title({ vma: vma.toLocaleString(htmlLang(locale)) })}
+      </h3>
+      <p className="mt-1.5 text-[0.92rem] leading-relaxed text-muted-foreground">
+        {m.tplan_ref_lead()}
+      </p>
+      <div className="mt-4 overflow-x-auto rounded-xl border border-border bg-white">
+        <table className="w-full text-left text-[0.88rem]">
+          <thead className="bg-paper">
+            <tr className="text-[0.75rem] text-muted-foreground">
+              <th className="px-4 py-2.5 font-medium">
+                {m.tplan_ref_col_use()}
+              </th>
+              <th className="px-4 py-2.5 font-medium">
+                {m.tplan_ref_col_target()}
+              </th>
+              <th className="px-4 py-2.5 text-right font-medium">
+                {m.tplan_ref_col_pace()} /km
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {rows.map((row) => (
+              <tr key={row.target}>
+                <td className="px-3 py-2.5 text-ink sm:px-4">{row.use}</td>
+                <td className="px-4 py-2.5 font-mono text-[0.8rem] whitespace-nowrap text-muted-foreground">
+                  {row.target}
+                </td>
+                <td className="px-4 py-2.5 text-right font-mono whitespace-nowrap text-ink tabular-nums">
+                  {row.pace}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -210,6 +321,10 @@ export function PlanDetail({
             <p className="mt-4 text-[1.02rem] leading-relaxed text-muted-foreground">
               {m.tplan_schedule_lead()}
             </p>
+            <p className="mt-5 flex gap-3 rounded-xl border border-border bg-paper px-4 py-3 text-[0.92rem] leading-relaxed text-ink">
+              <Watch className="mt-0.5 size-4 shrink-0 text-mint-strong" />
+              {m.tplan_targets_note()}
+            </p>
             {!translated && (
               <p className="mt-6 rounded-xl border border-sky/40 bg-sky/10 px-4 py-3 text-[0.92rem] text-ink">
                 {m.tplan_fallback()}
@@ -240,7 +355,7 @@ export function PlanDetail({
                   </div>
                 </div>
                 <div className="mt-5 overflow-x-auto rounded-2xl border border-border">
-                  <table className="w-full min-w-[40rem] text-left text-[0.92rem]">
+                  <table className="w-full text-left text-[0.92rem]">
                     <tbody className="divide-y divide-border">
                       {cycle.weeks.map((week) => {
                         const sessions = [...week.sessions].sort(
@@ -254,28 +369,31 @@ export function PlanDetail({
                             0,
                           ) / 1000;
                         return (
-                          <tr key={week.weekNumber} className="align-top">
+                          <tr
+                            key={week.weekNumber}
+                            className="block align-top sm:table-row"
+                          >
                             <th
                               scope="row"
-                              className="w-44 bg-paper px-5 py-4 font-normal"
+                              className="flex flex-wrap items-baseline gap-x-3 bg-paper px-5 py-3 font-normal sm:table-cell sm:w-44 sm:py-4"
                             >
-                              <span className="block font-semibold text-ink">
+                              <span className="font-semibold text-ink sm:block">
                                 {m.tplan_week({
                                   week: String(week.weekNumber),
                                 })}
                               </span>
                               {week.theme && (
-                                <span className="mt-0.5 block text-[0.82rem] text-muted-foreground">
+                                <span className="text-[0.82rem] text-muted-foreground sm:mt-0.5 sm:block">
                                   {week.theme}
                                 </span>
                               )}
-                              <span className="mt-2 inline-block font-mono text-[0.8rem] text-ink">
+                              <span className="ml-auto font-mono text-[0.8rem] text-ink sm:mt-2 sm:ml-0 sm:inline-block">
                                 {m.tplan_week_total({
                                   km: String(Math.round(km)),
                                 })}
                               </span>
                             </th>
-                            <td className="px-5 py-3">
+                            <td className="block px-4 py-2 sm:table-cell sm:px-5 sm:py-3">
                               <ul className="divide-y divide-border/70">
                                 {sessions.map((session, index) => (
                                   <li
@@ -289,15 +407,10 @@ export function PlanDetail({
                                       <span className="font-medium text-ink">
                                         {session.name}
                                       </span>
-                                      {session.workout?.steps?.length ? (
-                                        <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-mint/20 px-2 py-0.5 align-middle text-[0.7rem] font-medium text-mint-strong">
-                                          <Watch className="size-3" />
-                                          {m.tplan_structured()}
-                                        </span>
-                                      ) : null}
                                       <span className="block text-muted-foreground">
                                         {session.description}
                                       </span>
+                                      <TargetChips session={session} />
                                     </span>
                                   </li>
                                 ))}
@@ -318,7 +431,7 @@ export function PlanDetail({
       <Section tone="paper" className="!py-16 sm:!py-24">
         <Container>
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
-            <Reveal>
+            <Reveal className="min-w-0">
               <h2 className="display-3 text-ink">{m.tplan_paces_title()}</h2>
               <p className="mt-4 text-[1.02rem] leading-relaxed text-[#2b3354]">
                 {m.tplan_paces_body({ time, pace })}
@@ -339,8 +452,15 @@ export function PlanDetail({
                   </Link>
                 ))}
               </div>
+              <ReferencePaces
+                locale={locale}
+                entry={entry}
+                data={data}
+                time={time}
+                pace={pace}
+              />
             </Reveal>
-            <Reveal delay={0.1}>
+            <Reveal delay={0.1} className="min-w-0">
               <div className="ink-band relative overflow-hidden rounded-2xl p-7 sm:p-8">
                 <div className="dot-grid absolute inset-0 opacity-40" />
                 <div className="relative">
@@ -379,7 +499,10 @@ export function PlanDetail({
                     'rounded-xl border border-border bg-white px-5 py-3 font-mono text-[1.05rem] font-semibold text-ink transition-colors hover:border-ink/25',
                   )}
                 >
-                  {other.variant}
+                  <span className="mr-2 font-sans text-[0.85rem] font-medium text-muted-foreground">
+                    {distanceLabel(other.distance, true)}
+                  </span>
+                  {otherTime(other)}
                 </Link>
               ))}
             </div>

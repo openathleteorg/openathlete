@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components -- route helpers, not a component module */
 import { generateMetadata as pageMetadata } from '@/app/metadata';
 import { PlanDetail } from '@/components/training-plan/plan-detail';
+import { TrailPlanDetail } from '@/components/training-plan/trail-plan-detail';
 import { SUPPORTED_LOCALES, initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
 import type { Metadata } from 'next';
@@ -14,6 +15,7 @@ import {
 } from './catalog';
 import { distanceLabel } from './labels';
 import { loadPlan } from './plan-loader';
+import { trailTitleValues } from './trail';
 
 /**
  * The three plan routes (running, trail, triathlon) differ only by the name
@@ -61,6 +63,19 @@ export async function planMetadata(
     distance,
     variant,
   );
+  if (sport === 'trail') {
+    const trail = trailTitleValues(locale, distance, data);
+    const metadata = pageMetadata({
+      locale,
+      path: entry.path,
+      title: m.trailplan_seo_title(trail),
+      description: m.trailplan_seo_description(trail),
+      locales: entry.locales,
+    });
+    return entry.locales.includes(locale)
+      ? metadata
+      : { ...metadata, robots: { index: false, follow: true } };
+  }
   const values = {
     distance: distanceLabel(distance),
     time: data.plan.timeTarget ? formatGoalTime(data.plan.timeTarget) : variant,
@@ -97,5 +112,7 @@ export async function PlanRoutePage({
     distance,
     variant,
   );
+  if (sport === 'trail')
+    return <TrailPlanDetail locale={locale} entry={entry} data={data} />;
   return <PlanDetail locale={locale} entry={entry} data={data} />;
 }

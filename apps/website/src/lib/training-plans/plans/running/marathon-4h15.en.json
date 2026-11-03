@@ -1,107 +1,94 @@
 {
   "plan": {
-    "name": "Marathon Goal 4h15",
-    "description": "12-week plan designed to achieve a 4h15 marathon. 4 sessions per week focusing on progressiveness and controlled volume. Ideal for a regular recreational runner.",
-    "goal": "Marathon in 4h15",
+    "name": "Marathon in 4h15: 16-week plan",
+    "description": "16 weeks, 4 runs a week, to run a marathon in 4h15 (6:03/km). Written for a VMA around 13 km/h. Week 1 is about 29 km; the biggest week reaches 54 km and the longest run lasts 2h45. Every session has its targets: a share of VMA for easy runs and intervals, your goal pace for race-pace work.",
+    "goal": "Run a marathon in 4h15",
     "sportType": "RUNNING",
     "distance": 42195,
-    "duration": 12,
+    "duration": 16,
     "timeTarget": 15300
   },
   "cycles": [
     {
-      "name": "Phase 1: General Development",
-      "description": "Building aerobic base and speed development. Accustoming the body to running 4 times a week.",
+      "name": "Base",
+      "description": "Easy volume, short fast reps and strides. The long run grows a little each week. Week 4 is lighter, to absorb the work.",
       "phase": "BASE",
       "color": "#3b82f6",
       "weeks": [
         {
           "weekNumber": 1,
-          "theme": "Resumption and Adaptation",
+          "theme": "Base",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Easy Run",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "Run at total conversational pace.",
-              "goalDuration": 2700,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Playful Fartlek",
-              "sport": "RUNNING",
-              "description": "45 min including 8x 30s fast / 30s slow to energize the stride without exhaustion.",
-              "goalDuration": 2700,
-              "goalRpe": 6,
+              "description": "15 min warm-up, 7 × (1 min fast at 92–97% VMA / 1 min easy), 10 min cool-down.",
+              "goalDistance": 5800,
+              "goalDuration": 2340,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "7 × 1 min",
                     "durationType": "OPEN",
-                    "name": "8x 30s/30s",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 8,
+                      "repetitions": 7,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
                           "durationType": "TIME",
-                          "durationValue": 30,
+                          "durationValue": 60,
                           "targets": [
                             {
-                              "targetType": "RPE",
-                              "targetValue": 7
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 60,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -109,45 +96,108 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Recovery Run",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "30 to 40 minutes, very easy pace.",
-              "goalDuration": 2400,
-              "goalRpe": 2,
+              "description": "35 min easy (62–70% VMA).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 2400,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Easy run + strides",
+              "sport": "RUNNING",
+              "description": "35 min easy (62–70% VMA), then 6 strides of 20 s: fast but relaxed, walk back between them.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Stride",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
               "dayOfWeek": 0,
-              "name": "Weekly Long Run",
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "1h15 pure endurance. The pillar of the week.",
-              "goalDuration": 4500,
-              "goalRpe": 3,
+              "description": "1h25 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 12200,
+              "goalDuration": 5100,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 4500,
+                    "durationValue": 5100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -158,91 +208,78 @@
         },
         {
           "weekNumber": 2,
-          "theme": "Volume Increase",
+          "theme": "Base",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Easy Run",
+              "name": "30/30 intervals",
               "sport": "RUNNING",
-              "description": "Steady easy run.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Short Intervals",
-              "sport": "RUNNING",
-              "description": "10x 30s/30s. Slightly more intensity volume than last week.",
-              "goalDuration": 3000,
-              "goalRpe": 7,
+              "description": "15 min warm-up, 12 × (30 s at 100–105% VMA / 30 s jog), 10 min cool-down.",
+              "goalDistance": 5600,
+              "goalDuration": 2220,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "12 × 30 s",
                     "durationType": "OPEN",
-                    "name": "10x 30s/30s",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 10,
+                      "repetitions": 12,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
                           "durationType": "TIME",
                           "durationValue": 30,
                           "targets": [
                             {
-                              "targetType": "RPE",
-                              "targetValue": 8
+                              "targetType": "PACE",
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
                           "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -250,22 +287,85 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "45 min easy.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min easy (62–70% VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Tempo run",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 15 min steady (80–84% VMA), 10 min cool-down.",
+              "goalDistance": 6200,
+              "goalDuration": 2400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Tempo",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -274,21 +374,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Long Run",
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "1h20 endurance run.",
-              "goalDuration": 4800,
-              "goalRpe": 3,
+              "description": "1h40 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 14300,
+              "goalDuration": 6000,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 4800,
+                    "durationValue": 6000,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -299,91 +404,78 @@
         },
         {
           "weekNumber": 3,
-          "theme": "Threshold Introduction",
+          "theme": "Base",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "30/30 intervals",
               "sport": "RUNNING",
-              "description": "50 min fundamental endurance.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Short Threshold",
-              "sport": "RUNNING",
-              "description": "3 repetitions of 6 minutes at a sustained pace (Half-Marathon/10km effort).",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min warm-up, 14 × (30 s at 100–105% VMA / 30 s jog), 10 min cool-down.",
+              "goalDistance": 6000,
+              "goalDuration": 2340,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "14 × 30 s",
                     "durationType": "OPEN",
-                    "name": "3x 6min Threshold",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 14,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
                           "durationType": "TIME",
-                          "durationValue": 360,
+                          "durationValue": 30,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.5
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 30,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -391,22 +483,85 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Recovery Jog",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "45 min recovery.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min easy (62–70% VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Tempo run",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 20 min steady (80–84% VMA), 10 min cool-down.",
+              "goalDistance": 7100,
+              "goalDuration": 2700,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Tempo",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -415,21 +570,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Long Run",
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "1h30 endurance run.",
-              "goalDuration": 5400,
-              "goalRpe": 3,
+              "description": "1h50 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 5400,
+                    "durationValue": 6600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -440,91 +600,83 @@
         },
         {
           "weekNumber": 4,
-          "theme": "Assimilation (Recovery Week)",
+          "theme": "Easier week",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Short Easy Run",
+              "name": "Easy run + strides",
               "sport": "RUNNING",
-              "description": "40 min easy.",
-              "goalDuration": 2400,
-              "goalRpe": 2,
+              "description": "35 min easy (62–70% VMA), then 6 strides of 20 s: fast but relaxed, walk back between them.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 2400,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Speed Recall",
-              "sport": "RUNNING",
-              "description": "A few short accelerations (6x 45s) to keep rhythm without fatigue.",
-              "goalDuration": 2700,
-              "goalRpe": 5,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 20 s",
                     "durationType": "OPEN",
-                    "name": "6x 45s/45s",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Stride",
                           "durationType": "TIME",
-                          "durationValue": 45,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 6
-                            }
-                          ]
+                          "durationValue": 20,
+                          "targets": []
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 45,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 40,
+                          "targets": []
                         }
                       ]
                     }
-                  },
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "35 min easy (62–70% VMA).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
                   {
-                    "stepType": "COOLDOWN",
+                    "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 600,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -532,45 +684,80 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
+              "dayOfWeek": 5,
+              "name": "Easy run + strides",
               "sport": "RUNNING",
-              "description": "30 min very easy.",
-              "goalDuration": 1800,
-              "goalRpe": 2,
+              "description": "35 min easy (62–70% VMA), then 6 strides of 20 s: fast but relaxed, walk back between them.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Stride",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
               "dayOfWeek": 0,
-              "name": "Moderate Long Run",
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "1h10 endurance.",
-              "goalDuration": 4200,
-              "goalRpe": 3,
+              "description": "1h15 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 10700,
+              "goalDuration": 4500,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 4200,
+                    "durationValue": 4500,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -582,98 +769,85 @@
       ]
     },
     {
-      "name": "Phase 2: Specific Development",
-      "description": "Core of the training. Longer runs and work at Marathon Pace (4h15 = ~6:02/km).",
-      "phase": "SPECIFIC",
+      "name": "Build",
+      "description": "VMA intervals and threshold work, longer long runs. Week 8 is lighter, to absorb the work.",
+      "phase": "BASE",
       "color": "#10b981",
       "weeks": [
         {
           "weekNumber": 5,
-          "theme": "Volume and Threshold",
+          "theme": "Build",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "VMA intervals",
               "sport": "RUNNING",
-              "description": "50 min endurance.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Long Threshold",
-              "sport": "RUNNING",
-              "description": "2 x 10 minutes at Threshold pace (faster than marathon pace).",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min warm-up, 8 × 400 m at 100–105% VMA with 90 s jog between, 10 min cool-down.",
+              "goalDistance": 8200,
+              "goalDuration": 3060,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "8 × 400 m",
                     "durationType": "OPEN",
-                    "name": "2x 10min Threshold",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 2,
+                      "repetitions": 8,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
-                          "durationType": "TIME",
-                          "durationValue": 600,
+                          "name": "Fast",
+                          "durationType": "DISTANCE",
+                          "durationValue": 400,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.6
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 180,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 90,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -681,22 +855,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "45 min easy.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min easy (62–70% VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Threshold",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 3 × 8 min at threshold (85–88% VMA) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Threshold",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -705,21 +960,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Long Run",
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "1h40 endurance.",
-              "goalDuration": 6000,
-              "goalRpe": 3,
+              "description": "1h50 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 6000,
+                    "durationValue": 6600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -730,25 +990,106 @@
         },
         {
           "weekNumber": 6,
-          "theme": "Marathon Pace (MP)",
+          "theme": "Build",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "VMA intervals",
               "sport": "RUNNING",
-              "description": "55 min endurance.",
-              "goalDuration": 3300,
+              "description": "15 min warm-up, 5 × 800 m at 95–100% VMA with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 8800,
+              "goalDuration": 3240,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "5 × 800 m",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
+                          "durationType": "DISTANCE",
+                          "durationValue": 800,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "45 min easy (62–70% VMA).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 3300,
+                    "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -756,133 +1097,57 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Pyramid Intervals",
+              "dayOfWeek": 5,
+              "name": "Tempo run",
               "sport": "RUNNING",
-              "description": "Varying paces: 4' - 6' - 8' - 4' fast.",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min warm-up, 25 min steady (80–84% VMA), 10 min cool-down.",
+              "goalDistance": 8000,
+              "goalDuration": 3000,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "INTERVAL_ACTIVE",
+                    "name": "Tempo",
                     "durationType": "TIME",
-                    "durationValue": 240,
+                    "durationValue": 1500,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 5.5
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 360,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.6
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 480,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.7
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 240,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.5
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
-              "sport": "RUNNING",
-              "description": "45 min easy.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -891,44 +1156,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Specific Long Run",
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "1h45 with 20 min at Marathon Pace (6:02/km) in the middle.",
-              "goalDuration": 6300,
+              "description": "2h05 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 17900,
+              "goalDuration": 7500,
               "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
                     "stepType": "STEADY",
-                    "name": "MP Block",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 7500,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 2100,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -939,91 +1186,78 @@
         },
         {
           "weekNumber": 7,
-          "theme": "Max Volume - Week 1",
+          "theme": "Build",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Long intervals",
               "sport": "RUNNING",
-              "description": "1h endurance.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Long Threshold",
-              "sport": "RUNNING",
-              "description": "3 x 8 minutes at Threshold pace.",
-              "goalDuration": 4200,
-              "goalRpe": 7,
+              "description": "15 min warm-up, 5 × 1 km at 92–97% VMA with 2 min 30 s jog between, 10 min cool-down.",
+              "goalDistance": 10100,
+              "goalDuration": 3720,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "5 × 1 km",
                     "durationType": "OPEN",
-                    "name": "3x 8min Threshold",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 5,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
-                          "durationType": "TIME",
-                          "durationValue": 480,
+                          "name": "Fast",
+                          "durationType": "DISTANCE",
+                          "durationValue": 1000,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.6
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 150,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1031,22 +1265,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "50 min easy.",
-              "goalDuration": 3000,
-              "goalRpe": 2,
+              "description": "45 min easy (62–70% VMA).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 3000,
+                    "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Threshold",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 4 × 8 min at threshold (85–88% VMA) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 10500,
+              "goalDuration": 3900,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "4 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Threshold",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1055,21 +1370,82 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Long Run",
+              "name": "Long run with marathon pace",
               "sport": "RUNNING",
-              "description": "2h00 fundamental endurance. Conditioning the joints.",
-              "goalDuration": 7200,
-              "goalRpe": 3,
+              "description": "2h20 in all, with 2 × 10 min at marathon pace (6:03/km) and 5 min easy between them. The rest easy (62–70% VMA).",
+              "goalDistance": 20500,
+              "goalDuration": 8400,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 7200,
+                    "durationValue": 4200,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Easy",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1080,213 +1456,78 @@
         },
         {
           "weekNumber": 8,
-          "theme": "Marathon Specific",
+          "theme": "Easier week",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "1h endurance.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Marathon Pace",
-              "sport": "RUNNING",
-              "description": "2 x 15 min at target pace (4h15 pace).",
-              "goalDuration": 4200,
-              "goalRpe": 6,
+              "description": "15 min warm-up, 6 × (1 min fast at 92–97% VMA / 1 min easy), 10 min cool-down.",
+              "goalDistance": 5500,
+              "goalDuration": 2220,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 1 min",
                     "durationType": "OPEN",
-                    "name": "2x 15min MP",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 2,
+                      "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
                           "durationType": "TIME",
-                          "durationValue": 900,
+                          "durationValue": 60,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 180,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 60,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
-              "sport": "RUNNING",
-              "description": "45 min easy.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 0,
-              "name": "Specific Long Run",
-              "sport": "RUNNING",
-              "description": "2h15, including 2x20min marathon pace. Key session.",
-              "goalDuration": 8100,
-              "goalRpe": 4,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "name": "MP Block",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
                         "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "name": "Active Recov",
-                    "durationType": "TIME",
-                    "durationValue": 300,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "name": "MP Block",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 2400,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "weekNumber": 9,
-          "theme": "Recovery Week (Before Peak)",
-          "sessions": [
-            {
-              "dayOfWeek": 2,
-              "name": "Easy Run",
-              "sport": "RUNNING",
-              "description": "45 min easy.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1294,90 +1535,108 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "MP Reminders",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "30 min warmup + 15 min marathon pace + 10 min cool down.",
-              "goalDuration": 3300,
-              "goalRpe": 4,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 1800,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 900,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Rest / Short Jog",
-              "sport": "RUNNING",
-              "description": "30 min very easy.",
-              "goalDuration": 1800,
-              "goalRpe": 1,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 1800,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 1
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 0,
-              "name": "Long Run",
-              "sport": "RUNNING",
-              "description": "1h40 endurance. Recharging the batteries.",
-              "goalDuration": 6000,
+              "description": "40 min easy (62–70% VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 6000,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Easy run + strides",
+              "sport": "RUNNING",
+              "description": "40 min easy (62–70% VMA), then 6 strides of 20 s: fast but relaxed, walk back between them.",
+              "goalDistance": 6600,
+              "goalDuration": 2760,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Stride",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run",
+              "sport": "RUNNING",
+              "description": "1h30 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 12900,
+              "goalDuration": 5400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1389,98 +1648,85 @@
       ]
     },
     {
-      "name": "Phase 3: Peak & Taper",
-      "description": "The longest run, then progressive tapering to arrive fresh at the start line.",
-      "phase": "TAPER",
+      "name": "Marathon pace",
+      "description": "Marathon pace in the long runs and in midweek blocks: the biggest weeks of the plan. Week 12 is lighter, to absorb the work.",
+      "phase": "SPECIFIC",
       "color": "#f59e0b",
       "weeks": [
         {
-          "weekNumber": 10,
-          "theme": "Peak Fitness (Longest Run)",
+          "weekNumber": 9,
+          "theme": "Race pace",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Threshold",
               "sport": "RUNNING",
-              "description": "1h endurance.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Threshold / MP",
-              "sport": "RUNNING",
-              "description": "3 x 10 min marathon pace to lock in the rhythm.",
-              "goalDuration": 3600,
-              "goalRpe": 6,
+              "description": "15 min warm-up, 3 × 8 min at threshold (85–88% VMA) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "3 × 8 min",
                     "durationType": "OPEN",
-                    "name": "3x 10min MP",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 3,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Threshold",
                           "durationType": "TIME",
-                          "durationValue": 600,
+                          "durationValue": 480,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
                           "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1488,22 +1734,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "45 min easy.",
+              "description": "45 min easy (62–70% VMA).",
+              "goalDistance": 6400,
               "goalDuration": 2700,
-              "goalRpe": 2,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
                     "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Marathon pace",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 3 × 3 km at marathon pace (6:03/km) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 13300,
+              "goalDuration": 5100,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1512,33 +1839,296 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "The Longest Run",
+              "name": "Long run with marathon pace",
               "sport": "RUNNING",
-              "description": "2h30, the longest run of the plan. 80% endurance, finish with 15' marathon pace if feeling good.",
-              "goalDuration": 9000,
-              "goalRpe": 5,
+              "description": "2h20 in all, with 2 × 15 min at marathon pace (6:03/km) and 5 min easy between them. The rest easy (62–70% VMA). Drink and take your race-day gels on the way, to test them.",
+              "goalDistance": 20700,
+              "goalDuration": 8400,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 8100,
+                    "durationValue": 3900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
+                    "stepType": "REPEAT",
+                    "name": "2 × 15 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "TIME",
+                          "durationValue": 900,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Easy",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
                     "stepType": "STEADY",
-                    "name": "MP Finish",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": "Race pace",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Long intervals",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 5 × 1 km at 92–97% VMA with 2 min 30 s jog between, 10 min cool-down.",
+              "goalDistance": 10100,
+              "goalDuration": 3720,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
                     "durationValue": 900,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "5 × 1 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
+                          "durationType": "DISTANCE",
+                          "durationValue": 1000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "50 min easy (62–70% VMA).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Marathon pace",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 2 × 4 km at marathon pace (6:03/km) with 3 min jog between, 10 min cool-down.",
+              "goalDistance": 12300,
+              "goalDuration": 4740,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 4 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "DISTANCE",
+                          "durationValue": 4000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run",
+              "sport": "RUNNING",
+              "description": "2h35 at an easy, even pace (62–70% VMA). Drink and take your race-day gels on the way, to test them.",
+              "goalDistance": 22200,
+              "goalDuration": 9300,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 9300,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1549,91 +2139,78 @@
         },
         {
           "weekNumber": 11,
-          "theme": "Start of Tapering",
+          "theme": "Biggest week",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Short Endurance",
+              "name": "Threshold",
               "sport": "RUNNING",
-              "description": "45 min easy.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Pace Reminder",
-              "sport": "RUNNING",
-              "description": "2 x 10 min marathon pace, but reduced total volume.",
-              "goalDuration": 2700,
-              "goalRpe": 5,
+              "description": "15 min warm-up, 2 × 12 min at threshold (85–88% VMA) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 8500,
+              "goalDuration": 3180,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
                     "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "2 × 12 min",
                     "durationType": "OPEN",
-                    "name": "2x 10min MP",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 2,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Threshold",
                           "durationType": "TIME",
-                          "durationValue": 600,
+                          "durationValue": 720,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
                           "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Cool-down",
                     "durationType": "TIME",
-                    "durationValue": 300,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1641,22 +2218,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Easy Jog",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "30 min very easy.",
-              "goalDuration": 1800,
-              "goalRpe": 2,
+              "description": "50 min easy (62–70% VMA).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 3000,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Marathon pace",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 3 × 3 km at marathon pace (6:03/km) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 13300,
+              "goalDuration": 5100,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1665,21 +2323,82 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Light Long Run",
+              "name": "Long run with marathon pace",
               "sport": "RUNNING",
-              "description": "1h20 endurance.",
-              "goalDuration": 4800,
-              "goalRpe": 3,
+              "description": "2h45 in all, with 3 × 15 min at marathon pace (6:03/km) and 5 min easy between them. The rest easy (62–70% VMA). Drink and take your race-day gels on the way, to test them.",
+              "goalDistance": 24600,
+              "goalDuration": 9900,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 4800,
+                    "durationValue": 3900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 15 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "TIME",
+                          "durationValue": 900,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Easy",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1690,25 +2409,78 @@
         },
         {
           "weekNumber": 12,
-          "theme": "Race Week",
+          "theme": "Easier week",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Shake-out Run",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "30 min very slow to get blood flowing.",
-              "goalDuration": 1800,
-              "goalRpe": 1,
+              "description": "15 min warm-up, 6 × (1 min fast at 92–97% VMA / 1 min easy), 10 min cool-down.",
+              "goalDistance": 5500,
+              "goalDuration": 2220,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "STEADY",
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 1
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 1 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1716,53 +2488,79 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Activation",
+              "dayOfWeek": 3,
+              "name": "Easy run",
               "sport": "RUNNING",
-              "description": "20 min easy + 3 accelerations of 30s. Just for neural activation.",
-              "goalDuration": 1500,
+              "description": "40 min easy (62–70% VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
+                    "stepType": "STEADY",
+                    "name": "Easy",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Easy run + strides",
+              "sport": "RUNNING",
+              "description": "40 min easy (62–70% VMA), then 6 strides of 20 s: fast but relaxed, walk back between them.",
+              "goalDistance": 6600,
+              "goalDuration": 2760,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 20 s",
                     "durationType": "OPEN",
-                    "name": "3x 30s Accel",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Stride",
                           "durationType": "TIME",
-                          "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "PACE",
-                              "targetValue": 5.0
-                            }
-                          ]
+                          "durationValue": 20,
+                          "targets": []
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Jog",
                           "durationType": "TIME",
-                          "durationValue": 60,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 1
-                            }
-                          ]
+                          "durationValue": 40,
+                          "targets": []
                         }
                       ]
                     }
@@ -1771,32 +2569,988 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Total Rest",
+              "dayOfWeek": 0,
+              "name": "Long run",
               "sport": "RUNNING",
-              "description": "Complete rest, hydration, and carb loading.",
-              "goalDuration": 0,
-              "goalRpe": 0
+              "description": "1h50 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 6600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 13,
+          "theme": "Race pace",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Threshold",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 3 × 8 min at threshold (85–88% VMA) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Threshold",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "50 min easy (62–70% VMA).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Marathon pace",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 2 × 5 km at marathon pace (6:03/km) with 3 min jog between, 10 min cool-down.",
+              "goalDistance": 14300,
+              "goalDuration": 5460,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 5 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "DISTANCE",
+                          "durationValue": 5000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
             },
             {
               "dayOfWeek": 0,
-              "name": "MARATHON",
+              "name": "Long run with marathon pace",
               "sport": "RUNNING",
-              "description": "Race Day. Cautious start, objective consistency 6:02/km.",
+              "description": "2h40 in all, with 2 × 20 min at marathon pace (6:03/km) and 5 min easy between them. The rest easy (62–70% VMA). Drink and take your race-day gels on the way, to test them.",
+              "goalDistance": 23800,
+              "goalDuration": 9600,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 4200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 20 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "TIME",
+                          "durationValue": 1200,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Easy",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Taper",
+      "description": "Less volume, a little intensity to stay sharp, and you start the race fresh.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 14,
+          "theme": "Taper",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Threshold",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 2 × 10 min at threshold (85–88% VMA) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 7800,
+              "goalDuration": 2940,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Threshold",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "45 min easy (62–70% VMA).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Marathon pace",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 2 × 4 km at marathon pace (6:03/km) with 3 min jog between, 10 min cool-down.",
+              "goalDistance": 12300,
+              "goalDuration": 4740,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 4 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "DISTANCE",
+                          "durationValue": 4000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with marathon pace",
+              "sport": "RUNNING",
+              "description": "2h00 in all, with 2 × 10 min at marathon pace (6:03/km) and 5 min easy between them. The rest easy (62–70% VMA).",
+              "goalDistance": 17600,
+              "goalDuration": 7200,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 3300,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Easy",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 15,
+          "theme": "Taper",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "VMA intervals",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 6 × 400 m at 100–105% VMA with 90 s jog between, 10 min cool-down.",
+              "goalDistance": 7000,
+              "goalDuration": 2700,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 400 m",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Fast",
+                          "durationType": "DISTANCE",
+                          "durationValue": 400,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "35 min easy (62–70% VMA).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Marathon pace",
+              "sport": "RUNNING",
+              "description": "15 min warm-up, 2 × 3 km at marathon pace (6:03/km) with 2 min jog between, 10 min cool-down.",
+              "goalDistance": 10100,
+              "goalDuration": 3900,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Warm-up",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Cool-down",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run",
+              "sport": "RUNNING",
+              "description": "1h25 at an easy, even pace (62–70% VMA).",
+              "goalDistance": 12200,
+              "goalDuration": 5100,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 5100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 16,
+          "theme": "Race week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Easy run with goal pace",
+              "sport": "RUNNING",
+              "description": "35 min easy, with 2 × 5 min at marathon pace (6:03/km) in the second half.",
+              "goalDistance": 5200,
+              "goalDuration": 2100,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 5 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Goal pace",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Easy",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 360,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "30 min easy (62–70% VMA).",
+              "goalDistance": 4300,
+              "goalDuration": 1800,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Easy run + strides",
+              "sport": "RUNNING",
+              "description": "25 min easy (62–70% VMA), then 4 strides of 20 s: fast but relaxed, walk back between them.",
+              "goalDistance": 4200,
+              "goalDuration": 1740,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Easy",
+                    "durationType": "TIME",
+                    "durationValue": 1500,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "4 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Stride",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Jog",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Race day: marathon",
+              "sport": "RUNNING",
+              "description": "Race day. Settle at marathon pace (6:03/km) from the start and hold it; only speed up in the last kilometres if your legs say yes.",
               "goalDistance": 42195,
               "goalDuration": 15300,
               "goalRpe": 9,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "STEADY",
-                    "name": "Race",
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Race day: marathon",
                     "durationType": "DISTANCE",
                     "durationValue": 42195,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 2.72,
+                        "targetMax": 2.796,
+                        "targetValue": null,
+                        "metricType": null
                       }
                     ]
                   }

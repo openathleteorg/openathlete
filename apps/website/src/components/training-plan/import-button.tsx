@@ -6,6 +6,7 @@ import { useMessageLocale } from '@/i18n/client';
 import { signupUrl } from '@/lib/links';
 import { m } from '@/paraglide/messages';
 import { track } from '@/utils/analytics';
+import { cn } from '@/utils/shadcn';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -50,11 +51,14 @@ export function ImportButton({
       type="button"
       onClick={handleImport}
       disabled={loading}
-      className={buttonStyles({
-        variant: tone === 'dark' ? 'primary' : 'light',
-        size: 'lg',
-        className: 'disabled:opacity-80',
-      })}
+      className={cn(
+        buttonStyles({
+          variant: tone === 'dark' ? 'primary' : 'light',
+          size: 'lg',
+        }),
+        // Long labels (pt-BR, it) wrap on a phone instead of overflowing
+        'h-auto min-h-12 max-w-full py-2.5 text-center whitespace-normal disabled:opacity-80',
+      )}
     >
       {loading ? (
         <>

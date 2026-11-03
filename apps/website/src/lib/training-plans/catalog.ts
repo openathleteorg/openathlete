@@ -4,6 +4,8 @@ import { join } from 'path';
 
 import type { SEOPlanData } from '@openathlete/shared';
 
+import { DISTANCE_ORDER, type RunningDistance, runningPlanSpec } from './specs';
+
 export type PlanSport = 'running' | 'trail' | 'triathlon';
 
 export interface PlanEntry {
@@ -57,10 +59,24 @@ export function listPlans(): PlanEntry[] {
     }));
 }
 
+/** Shortest race first, then fastest goal first. */
+function planOrder(plan: PlanEntry): [number, number] {
+  const distance = DISTANCE_ORDER.indexOf(plan.distance as RunningDistance);
+  const spec = runningPlanSpec(plan.distance, plan.variant);
+  return [
+    distance === -1 ? DISTANCE_ORDER.length : distance,
+    spec?.goalSeconds ?? Infinity,
+  ];
+}
+
 export function plansFor(sport: PlanSport): PlanEntry[] {
   return listPlans()
     .filter((plan) => plan.sport === sport)
-    .sort((a, b) => a.variant.localeCompare(b.variant));
+    .sort((a, b) => {
+      const [da, ta] = planOrder(a);
+      const [db, tb] = planOrder(b);
+      return da - db || ta - tb || a.variant.localeCompare(b.variant);
+    });
 }
 
 /** Facts shown in plan lists and headers. */
@@ -79,13 +95,17 @@ export function planStats(data: SEOPlanData) {
     weeks: data.plan.duration,
     runs,
     weeklyKm,
-    peakKm: Math.round(Math.max(...weeklyKm)),
+    // The last week holds the race: the biggest training week is the figure
+    peakKm: Math.round(
+      Math.max(...(weeklyKm.length > 1 ? weeklyKm.slice(0, -1) : weeklyKm)),
+    ),
     paceSeconds,
   };
 }
 
-/** "4h00" from 14400 seconds. */
+/** "4h00" from 14400 seconds, "50 min" under an hour. */
 export function formatGoalTime(seconds: number): string {
+  if (seconds < 3600) return `${Math.round(seconds / 60)} min`;
   const h = Math.floor(seconds / 3600);
   const min = Math.round((seconds % 3600) / 60);
   return `${h}h${String(min).padStart(2, '0')}`;

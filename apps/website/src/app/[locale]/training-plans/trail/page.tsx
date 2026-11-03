@@ -1,4 +1,4 @@
-import { PlansHub } from '@/components/training-plan/plans-hub';
+import { TrailPlansHub } from '@/components/training-plan/trail-plans-hub';
 import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
 
@@ -19,7 +19,5 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function Page({ params }: Props) {
   const locale = initLocale((await params).locale);
-  return (
-    <PlansHub locale={locale} sport="trail" title={m.plans_hub_trail_h1()} />
-  );
+  return <TrailPlansHub locale={locale} />;
 }
