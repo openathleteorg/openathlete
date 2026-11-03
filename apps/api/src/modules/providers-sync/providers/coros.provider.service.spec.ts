@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { ProviderAccount } from '@openathlete/database';
 
+import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
   CorosProviderService,
@@ -189,16 +190,42 @@ describe('CorosProviderService', () => {
       service.callTool(account, 'querySportRecords'),
     ).rejects.toThrow('COROS querySportRecords failed');
     expect(prisma.providerAccount.update).not.toHaveBeenCalled();
+  });
 
-    post.mockResolvedValue(toolAnswer('Error: token expired'));
+  const REFUSED =
+    'Client authentication credentials missing, expired, or identity mismatched. Diagnostic advice: Verify COROS App login status';
+
+  it('refreshes a refused token once and carries on', async () => {
+    const { service, prisma } = buildService();
+    prisma.providerAccount.update.mockResolvedValue({ accessToken: 'new' });
+    post
+      .mockResolvedValueOnce(toolAnswer(REFUSED))
+      .mockResolvedValueOnce({ data: { access_token: 'new', expires_in: 60 } })
+      .mockResolvedValueOnce(toolAnswer('No sport records found'));
+
+    await expect(service.callTool(account, 'querySportRecords')).resolves.toBe(
+      'No sport records found',
+    );
+    expect(post.mock.calls[1][0]).toBe('https://mcpus.coros.com/oauth2/token');
+    expect(post.mock.calls[2][2].headers.Authorization).toBe('Bearer new');
+  });
+
+  it('asks for a reconnection when a fresh token is refused too', async () => {
+    const { service, prisma } = buildService();
+    prisma.providerAccount.update.mockResolvedValue({ accessToken: 'new' });
+    post
+      .mockResolvedValueOnce(toolAnswer(REFUSED))
+      .mockResolvedValueOnce({ data: { access_token: 'new', expires_in: 60 } })
+      .mockResolvedValueOnce(toolAnswer(REFUSED));
+
     await expect(
       service.callTool(account, 'querySportRecords'),
-    ).rejects.toThrow('COROS querySportRecords failed');
-    // The next call refreshes it, as after a 401
-    expect(prisma.providerAccount.update).toHaveBeenCalledWith({
+    ).rejects.toBeInstanceOf(InvalidRefreshTokenError);
+    expect(prisma.providerAccount.update).toHaveBeenLastCalledWith({
       where: { providerAccountId: 1 },
-      data: { expiresAt: new Date(0) },
+      data: { status: 'revoked' },
     });
+    expect(post).toHaveBeenCalledTimes(3);
   });
 
   it('queues only the activities it does not hold', async () => {

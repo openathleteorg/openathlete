@@ -52,6 +52,7 @@ import {
   ProviderImportCapability,
 } from '../base/provider-import.interface';
 import { providerRedirectUri } from '../base/provider-urls';
+import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
   CorosFormatError,
@@ -138,16 +139,23 @@ const isQuotaMessage = (text: string) => /quota|limit|exceed|额度/i.test(text)
 
 /**
  * COROS also reports failures in a successful answer, without isError: a
- * guard against what it takes for a runaway AI client, or an expired token.
+ * guard against what it takes for a runaway AI client.
  */
 export function isCorosErrorText(text: string): boolean {
-  return /tool call anomalies|session context pollution|resolution strategy:|LLM capability boundary|token expired|invalid_grant/i.test(
+  return /tool call anomalies|session context pollution|resolution strategy:|LLM capability boundary/i.test(
     text,
   );
 }
 
-const isExpiredTokenText = (text: string) =>
-  /token expired|invalid_grant/i.test(text);
+/**
+ * COROS refusing the token in a successful answer: "Client authentication
+ * credentials missing, expired, or identity mismatched…"
+ */
+export function isCorosAuthText(text: string): boolean {
+  return /authentication credentials|identity mismatch|token expired|invalid_grant/i.test(
+    text,
+  );
+}
 
 function sessionNumber(
   parsed: ActivityParseResult | null,
@@ -344,6 +352,7 @@ export class CorosProviderService
     account: ProviderAccount,
     name: string,
     args: Record<string, unknown> = {},
+    retried = false,
   ): Promise<string> {
     const accessToken = await this.getValidAccessToken(account);
     let body: McpResponse;
@@ -388,19 +397,37 @@ export class CorosProviderService
       throw new Error(`COROS ${name} failed: ${body.error.message}`);
     }
     const text = toolText(body.result);
+    if (isCorosAuthText(text)) {
+      if (!retried) {
+        // A refreshed token may be all it takes; refreshing also tells a
+        // revoked grant, which marks the account for reconnection
+        return this.callTool(
+          { ...account, expiresAt: new Date(0) },
+          name,
+          args,
+          true,
+        );
+      }
+      // Still refused with a fresh token: the athlete must connect again
+      this.logger.warn(
+        `COROS refused the credentials of account ${account.providerAccountId}, marking it as revoked: ${corosExcerpt(text)}`,
+      );
+      await this.prisma.providerAccount.update({
+        where: { providerAccountId: account.providerAccountId },
+        data: { status: 'revoked' },
+      });
+      throw new InvalidRefreshTokenError(
+        'COROS',
+        account.providerAccountId,
+        account.athleteId,
+      );
+    }
     if (body.result?.isError || isCorosErrorText(text)) {
       this.logger.warn(
         `COROS ${name} failed for account ${account.providerAccountId}: ${corosExcerpt(text)}`,
       );
       if (isQuotaMessage(text)) {
         throw new ProviderRateLimitError('COROS', QUOTA_RETRY_MS);
-      }
-      if (isExpiredTokenText(text)) {
-        // Have the next call refresh it, as after a 401
-        await this.prisma.providerAccount.update({
-          where: { providerAccountId: account.providerAccountId },
-          data: { expiresAt: new Date(0) },
-        });
       }
       throw new Error(`COROS ${name} failed`);
     }
