@@ -9,9 +9,9 @@ export const articleClientRetention: BlogPost = {
       es: 'Retención de clientes: por qué los atletas se van (y cómo conservarlos)',
     },
     description: {
-      en: "Athletes leave when they don't see progress or feel ignored. Learn how data visualization and AI alerts increase perceived value and reduce churn.",
-      fr: 'Les athlètes partent quand ils ne voient pas de progrès ou se sentent ignorés. Découvrez comment la visualisation de données et les alertes IA augmentent la valeur perçue et réduisent le taux de désabonnement.',
-      es: 'Los atletas se van cuando no ven progresos o se sienten ignorados. Descubre cómo la visualización de datos y las alertas de IA aumentan el valor percibido y reducen las bajas.',
+      en: 'Why coached athletes quit (no visible progress, feeling ignored, lost motivation) and what a coach can do about each, from progress charts to check-ins.',
+      fr: "Pourquoi vos athlètes arrêtent le coaching (progrès invisibles, sentiment d'abandon, motivation en berne) et comment réagir avant qu'ils partent.",
+      es: 'Por qué los atletas dejan a su entrenador (no ven progresos, se sienten ignorados, pierden la motivación) y qué hacer en cada caso antes de que se vayan.',
     },
     excerpt: {
       en: 'Understanding why athletes quit is the first step to keeping them. See how transparency, progress visualization, and proactive communication reduce churn rates.',
@@ -35,7 +35,7 @@ export const articleClientRetention: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Sarah was a great athlete. She followed every plan. She gave
@@ -103,12 +103,12 @@ export const articleClientRetention: BlogPost = {
             tracking
           </li>
           <li>
-            <strong>Goal progress:</strong> Visual progress bars toward race
-            goals
+            <strong>Race countdown:</strong> Days left to the next race and a
+            season view of the weeks leading up to it
           </li>
           <li>
-            <strong>Comparative analysis:</strong> "You're 12% faster than 3
-            months ago"
+            <strong>Comparative analysis:</strong> Any period against the
+            previous one or the same period last year, plus records year by year
           </li>
         </ul>
 
@@ -120,25 +120,25 @@ export const articleClientRetention: BlogPost = {
 
         <h2>The Proactive Communication Solution</h2>
         <p>
-          OpenAthlete prevents the "feel ignored" problem through AI-powered
-          alerts:
+          OpenAthlete prevents the "feel ignored" problem through alerts on the
+          coach dashboard:
         </p>
         <ul>
           <li>
-            <strong>Automatic check-ins:</strong> AI detects when athletes
-            haven't logged sessions
+            <strong>Inactivity:</strong> Athletes with no activity for several
+            days are flagged
           </li>
           <li>
-            <strong>Progress celebrations:</strong> Notifications when athletes
-            hit milestones
+            <strong>Activity notices:</strong> New activities, RPE changes and
+            athlete comments appear automatically in your conversation
           </li>
           <li>
-            <strong>Concern alerts:</strong> Flags when RPE patterns suggest
-            issues
+            <strong>Pain reports:</strong> Pain mentioned in post-activity
+            answers shows up with its location and score
           </li>
           <li>
-            <strong>Encouragement messages:</strong> Automated positive
-            reinforcement
+            <strong>Unread messages:</strong> Athletes waiting for an answer are
+            listed
           </li>
         </ul>
 
@@ -153,20 +153,16 @@ export const articleClientRetention: BlogPost = {
         <p>OpenAthlete keeps athletes motivated through:</p>
         <ul>
           <li>
-            <strong>Clear goal setting:</strong> Specific, measurable targets
-            with progress tracking
+            <strong>Clear goal setting:</strong> Races with a target time,
+            distance or elevation and an A/B/C priority
           </li>
           <li>
-            <strong>Contextual explanations:</strong> Athletes understand why
-            each session matters
+            <strong>Contextual explanations:</strong> Notes on each session and
+            each step tell athletes why it matters
           </li>
           <li>
-            <strong>Success visualization:</strong> Seeing how current training
-            builds toward goals
-          </li>
-          <li>
-            <strong>Community features:</strong> (Future) Connecting athletes
-            with similar goals
+            <strong>Success visualization:</strong> Fitness and form projected
+            over the planned weeks up to race day
           </li>
         </ul>
 
@@ -193,33 +189,31 @@ export const articleClientRetention: BlogPost = {
 
         <p>OpenAthlete makes your value visible. Athletes see:</p>
         <ul>
-          <li>AI analyzing their data 24/7</li>
-          <li>Automatic plan adjustments</li>
-          <li>Injury risk alerts</li>
+          <li>A short AI read of each new activity</li>
+          <li>Each session graded against the plan</li>
+          <li>Pain they report reaching their coach</li>
           <li>Progress tracking and visualization</li>
           <li>Proactive communication</li>
         </ul>
 
         <p>When value is visible, retention improves.</p>
 
-        <h2>Real-World Impact</h2>
-        <p>Coaches using OpenAthlete report:</p>
+        <h2>What to Measure</h2>
+        <p>Four numbers worth tracking in your own coaching business:</p>
         <ul>
           <li>
-            <strong>30% reduction in churn:</strong> Better engagement = higher
-            retention
+            <strong>Churn:</strong> How many athletes leave each quarter
           </li>
           <li>
-            <strong>25% increase in athlete satisfaction:</strong> Clear
-            progress = happier athletes
+            <strong>Athlete satisfaction:</strong> Ask, briefly, every few
+            months
           </li>
           <li>
-            <strong>40% improvement in plan adherence:</strong> Better
-            understanding = better execution
+            <strong>Plan adherence:</strong> Sessions done versus planned
           </li>
           <li>
-            <strong>50% reduction in "ghost" athletes:</strong> Proactive alerts
-            = better communication
+            <strong>"Ghost" athletes:</strong> Athletes who stop logging without
+            a word
           </li>
         </ul>
 
@@ -232,23 +226,24 @@ export const articleClientRetention: BlogPost = {
 
         <h2>The Early Warning System</h2>
         <p>
-          OpenAthlete's AI acts as an early warning system for retention risks:
+          OpenAthlete's coach dashboard acts as an early warning system for
+          retention risks:
         </p>
         <ul>
           <li>
-            <strong>Decreased engagement:</strong> Alerts when athletes stop
-            logging sessions
+            <strong>Decreased engagement:</strong> Flags athletes who stop
+            logging activities
           </li>
           <li>
-            <strong>Performance stagnation:</strong> Flags when progress
-            plateaus
+            <strong>Never started:</strong> Flags athletes who have never logged
+            an activity
           </li>
           <li>
-            <strong>Communication gaps:</strong> Reminds coaches to check in
+            <strong>Communication gaps:</strong> Shows which athletes have
+            unread messages waiting
           </li>
           <li>
-            <strong>Motivation drops:</strong> Detects when RPE patterns suggest
-            disengagement
+            <strong>Pain:</strong> Shows pain reported in post-activity answers
           </li>
         </ul>
 
@@ -272,8 +267,8 @@ export const articleClientRetention: BlogPost = {
 
         <p>
           OpenAthlete provides the tools to deliver all of this. Data
-          visualization shows progress. AI alerts enable proactive
-          communication. Contextual explanations build understanding. Progress
+          visualization shows progress. Coach dashboard alerts prompt you to
+          reach out. Session notes and comments build understanding. Progress
           tracking maintains motivation.
         </p>
 
@@ -287,16 +282,15 @@ export const articleClientRetention: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and discover how data visualization, AI alerts, and proactive
-          communication can reduce your churn rate and improve athlete
-          retention.
+          and see how progress charts, coach alerts and proactive communication
+          can help you keep your athletes.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Sarah était une excellente athlète. Elle suivait chaque plan. Elle
@@ -368,12 +362,13 @@ export const articleClientRetention: BlogPost = {
             suivi d'adhésion
           </li>
           <li>
-            <strong>Progrès vers les objectifs :</strong> Barres de progression
-            visuelles vers les objectifs de course
+            <strong>Compte à rebours :</strong> Les jours restants avant la
+            prochaine course et une vue saison des semaines qui y mènent
           </li>
           <li>
-            <strong>Analyse comparative :</strong> "Vous êtes 12% plus rapide
-            qu'il y a 3 mois"
+            <strong>Analyse comparative :</strong> N'importe quelle période
+            comparée à la précédente ou à la même période l'an dernier, et les
+            records année par année
           </li>
         </ul>
 
@@ -386,25 +381,27 @@ export const articleClientRetention: BlogPost = {
 
         <h2>La Solution de Communication Proactive</h2>
         <p>
-          OpenAthlete prévient le problème "se sentent ignorés" à travers des
-          alertes alimentées par l'IA :
+          OpenAthlete prévient le problème "se sentent ignorés" grâce aux
+          alertes du tableau de bord coach :
         </p>
         <ul>
           <li>
-            <strong>Vérifications automatiques :</strong> L'IA détecte quand les
-            athlètes n'ont pas enregistré de séances
+            <strong>Inactivité :</strong> Les athlètes sans activité depuis
+            plusieurs jours sont signalés
           </li>
           <li>
-            <strong>Célébrations de progrès :</strong> Notifications quand les
-            athlètes atteignent des jalons
+            <strong>Notifications d'activité :</strong> Nouvelles activités,
+            changements de RPE et commentaires de l'athlète arrivent
+            automatiquement dans votre conversation
           </li>
           <li>
-            <strong>Alertes de préoccupation :</strong> Drapeaux quand les
-            modèles de RPE suggèrent des problèmes
+            <strong>Douleurs signalées :</strong> Une douleur mentionnée dans
+            les réponses après l'activité apparaît avec sa localisation et son
+            intensité
           </li>
           <li>
-            <strong>Messages d'encouragement :</strong> Renforcement positif
-            automatisé
+            <strong>Messages non lus :</strong> Les athlètes qui attendent une
+            réponse sont listés
           </li>
         </ul>
 
@@ -420,20 +417,16 @@ export const articleClientRetention: BlogPost = {
         <p>OpenAthlete maintient la motivation des athlètes à travers :</p>
         <ul>
           <li>
-            <strong>Définition d'objectifs clairs :</strong> Cibles spécifiques
-            et mesurables avec suivi des progrès
+            <strong>Définition d'objectifs clairs :</strong> Des courses avec un
+            objectif de temps, de distance ou de dénivelé et une priorité A/B/C
           </li>
           <li>
-            <strong>Explications contextuelles :</strong> Les athlètes
-            comprennent pourquoi chaque séance compte
+            <strong>Explications contextuelles :</strong> Des notes sur chaque
+            séance et chaque étape expliquent à l'athlète pourquoi elle compte
           </li>
           <li>
-            <strong>Visualisation du succès :</strong> Voir comment
-            l'entraînement actuel construit vers les objectifs
-          </li>
-          <li>
-            <strong>Fonctionnalités communautaires :</strong> (Futur) Connecter
-            les athlètes avec des objectifs similaires
+            <strong>Visualisation du succès :</strong> La forme projetée sur les
+            semaines planifiées jusqu'au jour de la course
           </li>
         </ul>
 
@@ -467,35 +460,33 @@ export const articleClientRetention: BlogPost = {
 
         <p>OpenAthlete rend votre valeur visible. Les athlètes voient :</p>
         <ul>
-          <li>L'IA analysant leurs données 24/7</li>
-          <li>Des ajustements de plan automatiques</li>
-          <li>Des alertes de risque de blessure</li>
+          <li>Une courte lecture de chaque nouvelle activité par l'IA</li>
+          <li>Chaque séance comparée au plan</li>
+          <li>Les douleurs qu'ils signalent transmises à leur coach</li>
           <li>Le suivi et la visualisation des progrès</li>
           <li>La communication proactive</li>
         </ul>
 
         <p>Quand la valeur est visible, la rétention s'améliore.</p>
 
-        <h2>Impact Concret</h2>
-        <p>Les coachs utilisant OpenAthlete rapportent :</p>
+        <h2>Ce qu'il faut mesurer</h2>
+        <p>Quatre chiffres à suivre dans votre propre activité de coach :</p>
         <ul>
           <li>
-            <strong>30% de réduction du désabonnement :</strong> Meilleur
-            engagement = rétention plus élevée
+            <strong>Le taux de départ :</strong> Combien d'athlètes partent
+            chaque trimestre
           </li>
           <li>
-            <strong>
-              25% d'augmentation de la satisfaction des athlètes :
-            </strong>{' '}
-            Progrès clairs = athlètes plus heureux
+            <strong>La satisfaction des athlètes :</strong> Posez-leur la
+            question, brièvement, tous les quelques mois
           </li>
           <li>
-            <strong>40% d'amélioration de l'adhésion au plan :</strong>{' '}
-            Meilleure compréhension = meilleure exécution
+            <strong>Le respect du plan :</strong> Séances réalisées par rapport
+            aux séances prévues
           </li>
           <li>
-            <strong>50% de réduction des athlètes "fantômes" :</strong> Alertes
-            proactives = meilleure communication
+            <strong>Les athlètes "fantômes" :</strong> Ceux qui cessent
+            d'enregistrer sans rien dire
           </li>
         </ul>
 
@@ -509,25 +500,25 @@ export const articleClientRetention: BlogPost = {
 
         <h2>Le Système d'Alerte Précoce</h2>
         <p>
-          L'IA d'OpenAthlete agit comme un système d'alerte précoce pour les
-          risques de rétention :
+          Le tableau de bord coach d'OpenAthlete agit comme un système d'alerte
+          précoce pour les risques de départ :
         </p>
         <ul>
           <li>
-            <strong>Engagement diminué :</strong> Alertes quand les athlètes
-            arrêtent d'enregistrer des séances
+            <strong>Engagement diminué :</strong> Signale les athlètes qui
+            n'enregistrent plus d'activités
           </li>
           <li>
-            <strong>Stagnation de performance :</strong> Drapeaux quand les
-            progrès plafonnent
+            <strong>Jamais démarré :</strong> Signale les athlètes qui n'ont
+            encore enregistré aucune activité
           </li>
           <li>
-            <strong>Écarts de communication :</strong> Rappelle aux coachs de
-            vérifier
+            <strong>Écarts de communication :</strong> Indique quels athlètes
+            ont des messages non lus en attente
           </li>
           <li>
-            <strong>Chutes de motivation :</strong> Détecte quand les modèles de
-            RPE suggèrent un désengagement
+            <strong>Douleurs :</strong> Affiche les douleurs signalées dans les
+            réponses après l'activité
           </li>
         </ul>
 
@@ -553,9 +544,10 @@ export const articleClientRetention: BlogPost = {
 
         <p>
           OpenAthlete fournit les outils pour livrer tout cela. La visualisation
-          de données montre les progrès. Les alertes IA permettent une
-          communication proactive. Les explications contextuelles construisent
-          la compréhension. Le suivi des progrès maintient la motivation.
+          de données montre les progrès. Les alertes du tableau de bord coach
+          vous incitent à prendre contact. Les notes de séance et les
+          commentaires construisent la compréhension. Le suivi des progrès
+          maintient la motivation.
         </p>
 
         <p>
@@ -572,16 +564,15 @@ export const articleClientRetention: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et découvrez comment la visualisation de données, les alertes IA et la
-          communication proactive peuvent réduire votre taux de désabonnement et
-          améliorer la rétention des athlètes.
+          et voyez comment les graphiques de progression, les alertes coach et
+          une communication proactive peuvent vous aider à garder vos athlètes.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Sarah era una gran atleta. Seguía cada plan. Daba un feedback
@@ -653,12 +644,12 @@ export const articleClientRetention: BlogPost = {
             completadas y seguimiento de la adherencia
           </li>
           <li>
-            <strong>Progreso hacia el objetivo:</strong> barras de progreso
-            visuales hacia los objetivos de carrera
+            <strong>Cuenta atrás:</strong> los días que quedan para la próxima
+            carrera y una vista de temporada de las semanas previas
           </li>
           <li>
-            <strong>Análisis comparativo:</strong> «Eres un 12 % más rápido que
-            hace 3 meses»
+            <strong>Análisis comparativo:</strong> cualquier periodo frente al
+            anterior o al mismo periodo del año pasado, y los récords año a año
           </li>
         </ul>
 
@@ -670,24 +661,27 @@ export const articleClientRetention: BlogPost = {
 
         <h2>La solución: comunicación proactiva</h2>
         <p>
-          OpenAthlete evita el problema de «me siento ignorado» con alertas
-          impulsadas por IA:
+          OpenAthlete evita el problema de «me siento ignorado» con las alertas
+          del panel del entrenador:
         </p>
         <ul>
           <li>
-            <strong>Seguimientos automáticos:</strong> la IA detecta cuándo un
-            atleta no ha registrado sus sesiones
+            <strong>Inactividad:</strong> se señalan los atletas sin actividad
+            desde hace varios días
           </li>
           <li>
-            <strong>Celebración de logros:</strong> notificaciones cuando los
-            atletas alcanzan un hito
+            <strong>Avisos de actividad:</strong> las nuevas actividades, los
+            cambios de RPE y los comentarios del atleta llegan automáticamente a
+            vuestra conversación
           </li>
           <li>
-            <strong>Alertas de riesgo:</strong> avisos cuando los patrones de
-            RPE apuntan a un problema
+            <strong>Dolor indicado:</strong> el dolor mencionado en las
+            respuestas tras la actividad aparece con su localización y su
+            intensidad
           </li>
           <li>
-            <strong>Mensajes de ánimo:</strong> refuerzo positivo automatizado
+            <strong>Mensajes sin leer:</strong> se listan los atletas que
+            esperan una respuesta
           </li>
         </ul>
 
@@ -702,20 +696,16 @@ export const articleClientRetention: BlogPost = {
         <p>OpenAthlete mantiene a los atletas motivados gracias a:</p>
         <ul>
           <li>
-            <strong>Objetivos claros:</strong> metas concretas y medibles con
-            seguimiento del progreso
+            <strong>Objetivos claros:</strong> carreras con un objetivo de
+            tiempo, distancia o desnivel y una prioridad A/B/C
           </li>
           <li>
-            <strong>Explicaciones en contexto:</strong> los atletas entienden
-            por qué importa cada sesión
+            <strong>Explicaciones en contexto:</strong> las notas de cada sesión
+            y de cada paso explican al atleta por qué importa
           </li>
           <li>
-            <strong>Visualización del éxito:</strong> ver cómo el entrenamiento
-            actual construye hacia sus objetivos
-          </li>
-          <li>
-            <strong>Funciones de comunidad:</strong> (próximamente) conectar a
-            atletas con objetivos similares
+            <strong>Visualización del éxito:</strong> la forma proyectada sobre
+            las semanas planificadas hasta el día de la carrera
           </li>
         </ul>
 
@@ -744,33 +734,32 @@ export const articleClientRetention: BlogPost = {
 
         <p>OpenAthlete hace visible tu valor. Los atletas ven:</p>
         <ul>
-          <li>Una IA que analiza sus datos 24/7</li>
-          <li>Ajustes automáticos del plan</li>
-          <li>Alertas de riesgo de lesión</li>
+          <li>Una breve lectura de cada nueva actividad por parte de la IA</li>
+          <li>Cada sesión comparada con el plan</li>
+          <li>El dolor que indican, transmitido a su entrenador</li>
           <li>Seguimiento y visualización del progreso</li>
           <li>Comunicación proactiva</li>
         </ul>
 
         <p>Cuando el valor se ve, la retención mejora.</p>
 
-        <h2>Impacto real</h2>
-        <p>Los entrenadores que usan OpenAthlete observan:</p>
+        <h2>Qué medir</h2>
+        <p>Cuatro cifras que conviene seguir en tu propio negocio:</p>
         <ul>
           <li>
-            <strong>Un 30 % menos de bajas:</strong> más implicación = más
-            retención
+            <strong>Bajas:</strong> cuántos atletas se van cada trimestre
           </li>
           <li>
-            <strong>Un 25 % más de satisfacción de los atletas:</strong>{' '}
-            progreso claro = atletas más contentos
+            <strong>Satisfacción de los atletas:</strong> pregúntales,
+            brevemente, cada pocos meses
           </li>
           <li>
-            <strong>Un 40 % más de adherencia al plan:</strong> mejor
-            comprensión = mejor ejecución
+            <strong>Adherencia al plan:</strong> sesiones hechas frente a
+            sesiones previstas
           </li>
           <li>
-            <strong>Un 50 % menos de atletas «fantasma»:</strong> alertas
-            proactivas = mejor comunicación
+            <strong>Atletas «fantasma»:</strong> los que dejan de registrar sin
+            decir nada
           </li>
         </ul>
 
@@ -783,25 +772,25 @@ export const articleClientRetention: BlogPost = {
 
         <h2>El sistema de alerta temprana</h2>
         <p>
-          La IA de OpenAthlete funciona como un sistema de alerta temprana ante
-          los riesgos de baja:
+          El panel del entrenador de OpenAthlete funciona como un sistema de
+          alerta temprana ante los riesgos de baja:
         </p>
         <ul>
           <li>
-            <strong>Menor implicación:</strong> te avisa cuando un atleta deja
-            de registrar sesiones
+            <strong>Menor implicación:</strong> señala a los atletas que dejan
+            de registrar actividades
           </li>
           <li>
-            <strong>Estancamiento del rendimiento:</strong> señala cuándo el
-            progreso se estanca
+            <strong>Sin empezar:</strong> señala a los atletas que todavía no
+            han registrado ninguna actividad
           </li>
           <li>
-            <strong>Vacíos de comunicación:</strong> recuerda a los entrenadores
-            que contacten con sus atletas
+            <strong>Vacíos de comunicación:</strong> muestra qué atletas tienen
+            mensajes sin leer
           </li>
           <li>
-            <strong>Bajones de motivación:</strong> detecta cuándo los patrones
-            de RPE apuntan a una falta de implicación
+            <strong>Dolor:</strong> muestra el dolor indicado en las respuestas
+            tras la actividad
           </li>
         </ul>
 
@@ -826,9 +815,10 @@ export const articleClientRetention: BlogPost = {
 
         <p>
           OpenAthlete te da las herramientas para conseguir todo esto. La
-          visualización de datos muestra el progreso. Las alertas de IA permiten
-          una comunicación proactiva. Las explicaciones en contexto generan
-          comprensión. El seguimiento del progreso mantiene la motivación.
+          visualización de datos muestra el progreso. Las alertas del panel te
+          invitan a dar el primer paso. Las notas de sesión y los comentarios
+          generan comprensión. El seguimiento del progreso mantiene la
+          motivación.
         </p>
 
         <p>
@@ -842,9 +832,9 @@ export const articleClientRetention: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y descubre cómo la visualización de datos, las alertas de IA y la
-          comunicación proactiva pueden reducir tu tasa de bajas y mejorar la
-          retención de tus atletas.
+          y descubre cómo los gráficos de progreso, las alertas para el
+          entrenador y una comunicación proactiva pueden ayudarte a conservar a
+          tus atletas.
         </p>
       </div>
     );

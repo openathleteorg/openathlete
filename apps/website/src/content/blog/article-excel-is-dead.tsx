@@ -9,14 +9,14 @@ export const articleExcelIsDead: BlogPost = {
       es: 'Excel ha muerto: por qué las hojas de cálculo estáticas frenan a tus atletas',
     },
     description: {
-      en: 'Direct comparison: Excel vs modern coaching software. Excel = no notifications, no sync, no auto-analysis. OpenAthlete = alive, interactive, time-saving.',
-      fr: "Comparaison directe : Excel vs logiciel de coaching moderne. Excel = pas de notifications, pas de synchronisation, pas d'analyse auto. OpenAthlete = vivant, interactif, gain de temps.",
-      es: 'Comparativa directa: Excel frente a un software de entrenamiento moderno. Excel = sin notificaciones, sin sincronización, sin análisis automático. OpenAthlete = vivo, interactivo y te ahorra tiempo.',
+      en: 'What coaching from Excel really costs: hours of copy-paste, no watch sync, no load tracking. A side-by-side with dedicated coaching software.',
+      fr: 'Ce que coûte vraiment le coaching sur Excel : des heures de copier-coller, aucune synchro montre, aucun suivi de charge. Le comparatif avec un vrai outil.',
+      es: 'Lo que cuesta de verdad entrenar con Excel: horas de copiar y pegar, sin sincronizar relojes ni seguir la carga. Comparativa con un software dedicado.',
     },
     excerpt: {
-      en: "Excel spreadsheets can't notify athletes, sync with watches, or analyze patterns. See how much time you're wasting copying and pasting cells when AI could do it automatically.",
-      fr: "Les tableurs Excel ne peuvent pas notifier les athlètes, synchroniser avec les montres ou analyser les modèles. Voyez combien de temps vous perdez à copier et coller des cellules quand l'IA pourrait le faire automatiquement.",
-      es: 'Las hojas de Excel no pueden avisar a tus atletas, sincronizarse con sus relojes ni analizar patrones. Descubre cuánto tiempo pierdes copiando y pegando celdas cuando la IA podría hacerlo automáticamente.',
+      en: "Excel spreadsheets can't notify athletes, sync with watches, or analyze patterns. See how much time you're wasting copying and pasting cells when software could do it for you.",
+      fr: 'Les tableurs Excel ne peuvent pas notifier les athlètes, synchroniser avec les montres ou analyser les modèles. Voyez combien de temps vous perdez à copier et coller des cellules quand un logiciel pourrait le faire à votre place.',
+      es: 'Las hojas de Excel no pueden avisar a tus atletas, sincronizarse con sus relojes ni analizar patrones. Descubre cuánto tiempo pierdes copiando y pegando celdas cuando un software podría hacerlo por ti.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleExcelIsDead: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             It's Sunday evening. You're copying and pasting training data from
@@ -115,8 +115,8 @@ export const articleExcelIsDead: BlogPost = {
         <p>
           With modern coaching software, this drops to 15-20 minutes per athlete
           per week. The math is simple:{' '}
-          <strong>you save 70 hours per week</strong> for a 20-athlete roster.
-          That's time you can spend on what actually matters—coaching.
+          <strong>you save around 24 hours per week</strong> for a 20-athlete
+          roster. That's time you can spend on what actually matters—coaching.
         </p>
 
         <h2>The Communication Gap</h2>
@@ -139,8 +139,8 @@ export const articleExcelIsDead: BlogPost = {
         <p>With OpenAthlete:</p>
         <ol>
           <li>You update the plan</li>
-          <li>The athlete gets an instant notification</li>
-          <li>The plan syncs to their watch automatically</li>
+          <li>The athlete's calendar updates instantly</li>
+          <li>The session reaches their Garmin, Suunto or COROS watch</li>
         </ol>
 
         <p>
@@ -167,9 +167,9 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete automatically imports from Strava, Garmin, TrainingPeaks,
-          and other platforms. Data flows in real-time. You see patterns as they
-          develop, not after they've become problems.
+          OpenAthlete automatically imports from Strava, Garmin, Polar, Suunto
+          and COROS, and takes FIT, GPX and TCX files. Data flows in real-time.
+          You see patterns as they develop, not after they've become problems.
         </p>
 
         <h2>The Analysis Gap</h2>
@@ -192,9 +192,12 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete's AI analyzes all this automatically. It detects patterns
-          you might miss. It alerts you to risks before they become problems. It
-          suggests adjustments based on data, not guesswork.
+          OpenAthlete does much of this for you. Fitness, fatigue and form are
+          computed from every activity and projected over planned sessions.
+          Weekly load is compared with a recommended range. Sleep and HRV sit
+          next to each day, and pain reported after a session shows up on the
+          coach dashboard. The decisions stay yours, based on data, not
+          guesswork.
         </p>
 
         <h2>The Sync Problem</h2>
@@ -211,12 +214,12 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete syncs directly to Garmin, Suunto, Polar, and other
-          devices. When you create a plan, it automatically appears on the
+          OpenAthlete sends structured sessions to Garmin, Suunto and COROS
+          watches. When you create a plan, it automatically appears on the
           athlete's watch. No manual entry. No errors. No excuses.
         </p>
 
-        <h2>Real-World Comparison</h2>
+        <h2>Two Coaches, Side by Side</h2>
         <p>
           <strong>Coach A (Excel):</strong>
         </p>
@@ -232,10 +235,10 @@ export const articleExcelIsDead: BlogPost = {
           <strong>Coach B (OpenAthlete):</strong>
         </p>
         <ul>
-          <li>Spends 5 hours/week on admin</li>
-          <li>Manages 50 athletes effectively</li>
+          <li>Spends far less time on admin</li>
+          <li>Has room for more athletes</li>
           <li>Provides real-time feedback</li>
-          <li>Prevents problems proactively</li>
+          <li>Spots problems earlier</li>
           <li>Retains athletes through better service</li>
         </ul>
 
@@ -266,16 +269,16 @@ export const articleExcelIsDead: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and reclaim the 30+ hours per week you're spending on Excel. Your
-          athletes will thank you. Your business will thank you. And you'll
-          finally have time to do what you became a coach to do—coach.
+          and reclaim the hours you're spending on Excel. Your athletes will
+          thank you. Your business will thank you. And you'll finally have time
+          to do what you became a coach to do—coach.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             C'est dimanche soir. Vous copiez et collez des données
@@ -360,7 +363,7 @@ export const articleExcelIsDead: BlogPost = {
         <p>
           Avec un logiciel de coaching moderne, cela tombe à 15-20 minutes par
           athlète par semaine. Le calcul est simple :{' '}
-          <strong>vous économisez 70 heures par semaine</strong> pour un
+          <strong>vous économisez environ 24 heures par semaine</strong> pour un
           effectif de 20 athlètes. C'est du temps que vous pouvez passer sur ce
           qui compte vraiment—coacher.
         </p>
@@ -391,8 +394,8 @@ export const articleExcelIsDead: BlogPost = {
         <p>Avec OpenAthlete :</p>
         <ol>
           <li>Vous mettez à jour le plan</li>
-          <li>L'athlète reçoit une notification instantanée</li>
-          <li>Le plan se synchronise automatiquement sur sa montre</li>
+          <li>Le calendrier de l'athlète se met à jour instantanément</li>
+          <li>La séance arrive sur sa montre Garmin, Suunto ou COROS</li>
         </ol>
 
         <p>
@@ -421,10 +424,10 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete importe automatiquement depuis Strava, Garmin,
-          TrainingPeaks et d'autres plateformes. Les données affluent en temps
-          réel. Vous voyez les modèles au fur et à mesure qu'ils se développent,
-          pas après qu'ils soient devenus des problèmes.
+          OpenAthlete importe automatiquement depuis Strava, Garmin, Polar,
+          Suunto et COROS, et accepte les fichiers FIT, GPX et TCX. Les données
+          affluent en temps réel. Vous voyez les modèles au fur et à mesure
+          qu'ils se développent, pas après qu'ils soient devenus des problèmes.
         </p>
 
         <h2>L'Écart d'Analyse</h2>
@@ -451,10 +454,13 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          L'IA d'OpenAthlete analyse tout cela automatiquement. Elle détecte les
-          modèles que vous pourriez manquer. Elle vous alerte des risques avant
-          qu'ils ne deviennent des problèmes. Elle suggère des ajustements basés
-          sur les données, pas sur des suppositions.
+          OpenAthlete en fait une bonne partie pour vous. La forme, la fatigue
+          et la fraîcheur sont calculées à partir de chaque activité et
+          projetées sur les séances planifiées. La charge hebdomadaire est
+          comparée à une fourchette recommandée. Le sommeil et la VFC
+          s'affichent à côté de chaque jour, et une douleur signalée après une
+          séance remonte dans le tableau de bord coach. Les décisions restent
+          les vôtres, fondées sur les données et non sur des suppositions.
         </p>
 
         <h2>Le Problème de Synchronisation</h2>
@@ -473,13 +479,13 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete se synchronise directement avec Garmin, Suunto, Polar et
-          d'autres appareils. Quand vous créez un plan, il apparaît
-          automatiquement sur la montre de l'athlète. Pas d'entrée manuelle. Pas
-          d'erreurs. Pas d'excuses.
+          OpenAthlete envoie les séances structurées sur les montres Garmin,
+          Suunto et COROS. Quand vous créez un plan, il apparaît automatiquement
+          sur la montre de l'athlète. Pas d'entrée manuelle. Pas d'erreurs. Pas
+          d'excuses.
         </p>
 
-        <h2>Comparaison Concrète</h2>
+        <h2>Deux Coachs Côte à Côte</h2>
         <p>
           <strong>Coach A (Excel) :</strong>
         </p>
@@ -495,10 +501,10 @@ export const articleExcelIsDead: BlogPost = {
           <strong>Coach B (OpenAthlete) :</strong>
         </p>
         <ul>
-          <li>Passe 5 heures/semaine sur l'administration</li>
-          <li>Gère 50 athlètes efficacement</li>
+          <li>Passe beaucoup moins de temps sur l'administration</li>
+          <li>Peut accueillir plus d'athlètes</li>
           <li>Fournit des retours en temps réel</li>
-          <li>Prévient les problèmes de manière proactive</li>
+          <li>Repère les problèmes plus tôt</li>
           <li>Retient les athlètes grâce à un meilleur service</li>
         </ul>
 
@@ -536,17 +542,16 @@ export const articleExcelIsDead: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et récupérez les 30+ heures par semaine que vous passez sur Excel. Vos
-          athlètes vous remercieront. Votre entreprise vous remerciera. Et vous
-          aurez enfin le temps de faire ce pour quoi vous êtes devenu
-          coach—coacher.
+          et récupérez les heures que vous passez sur Excel. Vos athlètes vous
+          remercieront. Votre entreprise vous remerciera. Et vous aurez enfin le
+          temps de faire ce pour quoi vous êtes devenu coach—coacher.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Es domingo por la noche. Estás copiando y pegando datos de
@@ -626,9 +631,9 @@ export const articleExcelIsDead: BlogPost = {
         <p>
           Con un software de entrenamiento moderno, esto baja a 15-20 minutos
           por atleta y semana. Las cuentas son sencillas:{' '}
-          <strong>ahorras 70 horas a la semana</strong> con una plantilla de 20
-          atletas. Es tiempo que puedes dedicar a lo que de verdad importa:
-          entrenar.
+          <strong>ahorras unas 24 horas a la semana</strong> con una plantilla
+          de 20 atletas. Es tiempo que puedes dedicar a lo que de verdad
+          importa: entrenar.
         </p>
 
         <h2>La brecha de comunicación</h2>
@@ -653,8 +658,8 @@ export const articleExcelIsDead: BlogPost = {
         <p>Con OpenAthlete:</p>
         <ol>
           <li>Actualizas el plan</li>
-          <li>El atleta recibe una notificación al instante</li>
-          <li>El plan se sincroniza automáticamente con su reloj</li>
+          <li>El calendario del atleta se actualiza al instante</li>
+          <li>La sesión llega a su reloj Garmin, Suunto o COROS</li>
         </ol>
 
         <p>
@@ -683,10 +688,10 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete importa automáticamente desde Strava, Garmin,
-          TrainingPeaks y otras plataformas. Los datos llegan en tiempo real.
-          Ves los patrones mientras se forman, no cuando ya se han convertido en
-          problemas.
+          OpenAthlete importa automáticamente desde Strava, Garmin, Polar,
+          Suunto y COROS, y acepta archivos FIT, GPX y TCX. Los datos llegan en
+          tiempo real. Ves los patrones mientras se forman, no cuando ya se han
+          convertido en problemas.
         </p>
 
         <h2>La brecha del análisis</h2>
@@ -711,10 +716,12 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          La IA de OpenAthlete analiza todo esto automáticamente. Detecta
-          patrones que podrías pasar por alto. Te avisa de los riesgos antes de
-          que se conviertan en problemas. Sugiere ajustes basados en datos, no
-          en conjeturas.
+          OpenAthlete hace buena parte de esto por ti. La forma, la fatiga y la
+          frescura se calculan a partir de cada actividad y se proyectan sobre
+          las sesiones planificadas. La carga semanal se compara con un rango
+          recomendado. El sueño y la VFC aparecen junto a cada día, y el dolor
+          indicado tras una sesión llega al panel del entrenador. Las decisiones
+          siguen siendo tuyas, basadas en datos y no en conjeturas.
         </p>
 
         <h2>El problema de la sincronización</h2>
@@ -731,13 +738,13 @@ export const articleExcelIsDead: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete se sincroniza directamente con Garmin, Suunto, Polar y
-          otros dispositivos. Cuando creas un plan, aparece automáticamente en
-          el reloj del atleta. Sin introducir nada a mano. Sin errores. Sin
+          OpenAthlete envía las sesiones estructuradas a los relojes Garmin,
+          Suunto y COROS. Cuando creas un plan, aparece automáticamente en el
+          reloj del atleta. Sin introducir nada a mano. Sin errores. Sin
           excusas.
         </p>
 
-        <h2>Comparativa real</h2>
+        <h2>Dos entrenadores, cara a cara</h2>
         <p>
           <strong>Entrenador A (Excel):</strong>
         </p>
@@ -753,10 +760,10 @@ export const articleExcelIsDead: BlogPost = {
           <strong>Entrenador B (OpenAthlete):</strong>
         </p>
         <ul>
-          <li>Dedica 5 horas/semana a tareas administrativas</li>
-          <li>Gestiona 50 atletas con eficacia</li>
+          <li>Dedica mucho menos tiempo a tareas administrativas</li>
+          <li>Tiene margen para más atletas</li>
           <li>Da feedback en tiempo real</li>
-          <li>Previene los problemas de forma proactiva</li>
+          <li>Detecta los problemas antes</li>
           <li>Fideliza a sus atletas gracias a un mejor servicio</li>
         </ul>
 
@@ -791,10 +798,9 @@ export const articleExcelIsDead: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y recupera las más de 30 horas semanales que dedicas a Excel. Tus
-          atletas te lo agradecerán. Tu negocio te lo agradecerá. Y por fin
-          tendrás tiempo para hacer aquello por lo que te hiciste entrenador:
-          entrenar.
+          y recupera las horas que dedicas a Excel. Tus atletas te lo
+          agradecerán. Tu negocio te lo agradecerá. Y por fin tendrás tiempo
+          para hacer aquello por lo que te hiciste entrenador: entrenar.
         </p>
       </div>
     );

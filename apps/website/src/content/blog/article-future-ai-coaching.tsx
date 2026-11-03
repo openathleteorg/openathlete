@@ -9,9 +9,9 @@ export const articleFutureAiCoaching: BlogPost = {
       es: 'El futuro de la IA en el entrenamiento deportivo',
     },
     description: {
-      en: 'Thought Leadership: "AI won\'t replace coaches, but coaches using AI will replace those who don\'t."',
-      fr: "Leadership d'Opinion : \"L'IA ne remplacera pas les coachs, mais les coachs utilisant l'IA remplaceront ceux qui ne le font pas.\"",
-      es: 'Visión de futuro: «La IA no sustituirá a los entrenadores, pero los entrenadores que usen IA sustituirán a los que no lo hagan».',
+      en: 'What AI will take over in coaching (data analysis, routine planning) and what stays with the coach: strategy, judgment and the relationship.',
+      fr: "Ce que l'IA va prendre en charge dans le coaching (analyse, planification courante) et ce qui reste au coach : stratégie, jugement, relation.",
+      es: 'Qué asumirá la IA en el entrenamiento (análisis de datos, planificación rutinaria) y qué sigue en manos del entrenador: estrategia, criterio y relación.',
     },
     excerpt: {
       en: "Explore the future of AI in sports coaching. AI won't replace coaches, but coaches who embrace AI will dominate the market.",
@@ -35,7 +35,7 @@ export const articleFutureAiCoaching: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             "AI won't replace coaches, but coaches using AI will replace those
@@ -60,7 +60,7 @@ export const articleFutureAiCoaching: BlogPost = {
         </ul>
 
         <p>
-          AI-powered coaching will replace manual, spreadsheet-based coaching.
+          AI-assisted coaching will replace manual, spreadsheet-based coaching.
           The question isn't "if"—it's "when."
         </p>
 
@@ -116,7 +116,7 @@ export const articleFutureAiCoaching: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             "L'IA ne remplacera pas les coachs, mais les coachs utilisant l'IA
@@ -204,7 +204,7 @@ export const articleFutureAiCoaching: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             «La IA no sustituirá a los entrenadores, pero los entrenadores que

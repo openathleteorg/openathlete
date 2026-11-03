@@ -1,150 +1,192 @@
-import { WebPageStructuredData } from '@/components/seo/structured-data';
-import { SITE_URL } from '@/config';
+import { LegalPage } from '@/components/legal/legal-page';
+import { BreadcrumbListStructuredData } from '@/components/seo/structured-data';
+import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
-import {
-  isSupportedLocale,
-  languageAlternates,
-  localePrefix,
-} from '@/utils/locales';
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { localizedUrl } from '@/utils/locales';
 
-/* eslint-disable react-refresh/only-export-components */
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
+import { generateMetadata as pageMetadata } from '../../metadata';
 
-  // Canonical URL should always point to the English version
-  const canonicalUrl = `${SITE_URL}/privacy-policy`;
-  return {
-    title: m.privacy_policy_title(),
-    description: m.privacy_policy_intro(),
-    alternates: {
-      canonical: canonicalUrl,
-      languages: languageAlternates('/privacy-policy'),
-    },
-  };
+type Props = { params: Promise<{ locale: string }> };
+
+// Update when the policy changes; never the build date
+const LAST_UPDATED = '2026-11-02';
+
+// eslint-disable-next-line react-refresh/only-export-components
+export async function generateMetadata({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  return pageMetadata({
+    locale,
+    path: '/privacy-policy',
+    title: `${m.privacy_policy_title()} | OpenAthlete`,
+    description: m.privacy_seo_description(),
+  });
 }
-/* eslint-enable react-refresh/only-export-components */
 
-export default async function PrivacyPolicyPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
+function List({ items }: { items: string[] }) {
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  );
+}
 
-  // Update when the policy changes; never the build date
-  const lastUpdated = '2026-11-02';
+export default async function PrivacyPolicyPage({ params }: Props) {
+  const locale = initLocale((await params).locale);
 
   return (
     <>
-      <WebPageStructuredData
-        title={m.privacy_policy_title()}
-        description={m.privacy_policy_intro()}
-        url={`${SITE_URL}${localePrefix(locale)}/privacy-policy`}
+      <BreadcrumbListStructuredData
+        items={[
+          { name: m.blog_home(), url: localizedUrl(locale) },
+          {
+            name: m.privacy_policy_title(),
+            url: localizedUrl(locale, '/privacy-policy'),
+          },
+        ]}
       />
-      <div className="mx-auto max-w-3xl p-8 space-y-8">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold">{m.privacy_policy_title()}</h1>
-          <p className="text-sm text-muted-foreground">
-            {m.privacy_policy_last_updated({ date: lastUpdated })}
-          </p>
-        </header>
-
-        <section className="prose prose-neutral dark:prose-invert">
-          <p>{m.privacy_policy_intro()}</p>
-
-          <h2>{m.privacy_policy_data_we_collect_title()}</h2>
-          <ul>
-            <li>{m.privacy_policy_data_we_collect_list_1()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_2()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_3()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_4()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_5()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_6()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_7()}</li>
-            <li>{m.privacy_policy_data_we_collect_list_8()}</li>
-          </ul>
-
-          <h2>{m.privacy_policy_how_we_use_title()}</h2>
-          <ul>
-            <li>{m.privacy_policy_how_we_use_list_1()}</li>
-            <li>{m.privacy_policy_how_we_use_list_2()}</li>
-            <li>{m.privacy_policy_how_we_use_list_3()}</li>
-            <li>{m.privacy_policy_how_we_use_list_4()}</li>
-            <li>{m.privacy_policy_how_we_use_list_5()}</li>
-            <li>{m.privacy_policy_how_we_use_list_6()}</li>
-          </ul>
-
-          <h2>{m.privacy_policy_legal_basis_title()}</h2>
-          <ul>
-            <li>{m.privacy_policy_legal_basis_list_1()}</li>
-            <li>{m.privacy_policy_legal_basis_list_2()}</li>
-            <li>{m.privacy_policy_legal_basis_list_3()}</li>
-          </ul>
-
-          <h2>{m.privacy_policy_sharing_title()}</h2>
-          <ul>
-            <li>{m.privacy_policy_sharing_list_1()}</li>
-            <li>{m.privacy_policy_sharing_list_2()}</li>
-            <li>{m.privacy_policy_sharing_list_3()}</li>
-            <li>{m.privacy_policy_sharing_list_4()}</li>
-          </ul>
-
-          <h2>{m.privacy_policy_processors_title()}</h2>
-          <ul>
-            <li>{m.privacy_policy_processors_list_1()}</li>
-            <li>{m.privacy_policy_processors_list_2()}</li>
-            <li>{m.privacy_policy_processors_list_3()}</li>
-            <li>{m.privacy_policy_processors_list_4()}</li>
-            <li>{m.privacy_policy_processors_list_5()}</li>
-            <li>{m.privacy_policy_processors_list_6()}</li>
-            <li>{m.privacy_policy_processors_list_7()}</li>
-            <li>{m.privacy_policy_processors_list_8()}</li>
-          </ul>
-
-          <h2>{m.privacy_policy_cookies_title()}</h2>
-          <p>{m.privacy_policy_cookies_content()}</p>
-
-          <h2>{m.privacy_policy_data_retention_title()}</h2>
-          <p>{m.privacy_policy_data_retention_content()}</p>
-
-          <h2>{m.privacy_policy_security_title()}</h2>
-          <p>{m.privacy_policy_security_content()}</p>
-
-          <h2>{m.privacy_policy_international_transfers_title()}</h2>
-          <p>{m.privacy_policy_international_transfers_content()}</p>
-
-          <h2>{m.privacy_policy_your_rights_title()}</h2>
-          <ul>
-            <li>{m.privacy_policy_your_rights_list_1()}</li>
-            <li>{m.privacy_policy_your_rights_list_2()}</li>
-            <li>{m.privacy_policy_your_rights_list_3()}</li>
-          </ul>
-
-          <h2>{m.privacy_policy_children_title()}</h2>
-          <p>{m.privacy_policy_children_content()}</p>
-
-          <h2>{m.privacy_policy_self_hosting_title()}</h2>
-          <p>{m.privacy_policy_self_hosting_content()}</p>
-
-          <h2>{m.privacy_policy_changes_title()}</h2>
-          <p>{m.privacy_policy_changes_content()}</p>
-
-          <h2>{m.privacy_policy_contact_title()}</h2>
-          <p>{m.privacy_policy_contact_content()}</p>
-        </section>
-      </div>
+      <LegalPage
+        locale={locale}
+        path="/privacy-policy"
+        title={m.privacy_policy_title()}
+        updated={LAST_UPDATED}
+        intro={<p>{m.privacy_policy_intro()}</p>}
+        sections={[
+          {
+            id: 'data-we-collect',
+            title: m.privacy_policy_data_we_collect_title(),
+            body: (
+              <List
+                items={[
+                  m.privacy_policy_data_we_collect_list_1(),
+                  m.privacy_policy_data_we_collect_list_2(),
+                  m.privacy_policy_data_we_collect_list_3(),
+                  m.privacy_policy_data_we_collect_list_4(),
+                  m.privacy_policy_data_we_collect_list_5(),
+                  m.privacy_policy_data_we_collect_list_6(),
+                  m.privacy_policy_data_we_collect_list_7(),
+                  m.privacy_policy_data_we_collect_list_8(),
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'how-we-use',
+            title: m.privacy_policy_how_we_use_title(),
+            body: (
+              <List
+                items={[
+                  m.privacy_policy_how_we_use_list_1(),
+                  m.privacy_policy_how_we_use_list_2(),
+                  m.privacy_policy_how_we_use_list_3(),
+                  m.privacy_policy_how_we_use_list_4(),
+                  m.privacy_policy_how_we_use_list_5(),
+                  m.privacy_policy_how_we_use_list_6(),
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'legal-basis',
+            title: m.privacy_policy_legal_basis_title(),
+            body: (
+              <List
+                items={[
+                  m.privacy_policy_legal_basis_list_1(),
+                  m.privacy_policy_legal_basis_list_2(),
+                  m.privacy_policy_legal_basis_list_3(),
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'sharing',
+            title: m.privacy_policy_sharing_title(),
+            body: (
+              <List
+                items={[
+                  m.privacy_policy_sharing_list_1(),
+                  m.privacy_policy_sharing_list_2(),
+                  m.privacy_policy_sharing_list_3(),
+                  m.privacy_policy_sharing_list_4(),
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'processors',
+            title: m.privacy_policy_processors_title(),
+            body: (
+              <List
+                items={[
+                  m.privacy_policy_processors_list_1(),
+                  m.privacy_policy_processors_list_2(),
+                  m.privacy_policy_processors_list_3(),
+                  m.privacy_policy_processors_list_4(),
+                  m.privacy_policy_processors_list_5(),
+                  m.privacy_policy_processors_list_6(),
+                  m.privacy_policy_processors_list_7(),
+                  m.privacy_policy_processors_list_8(),
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'cookies',
+            title: m.privacy_policy_cookies_title(),
+            body: <p>{m.privacy_policy_cookies_content()}</p>,
+          },
+          {
+            id: 'retention',
+            title: m.privacy_policy_data_retention_title(),
+            body: <p>{m.privacy_policy_data_retention_content()}</p>,
+          },
+          {
+            id: 'security',
+            title: m.privacy_policy_security_title(),
+            body: <p>{m.privacy_policy_security_content()}</p>,
+          },
+          {
+            id: 'transfers',
+            title: m.privacy_policy_international_transfers_title(),
+            body: <p>{m.privacy_policy_international_transfers_content()}</p>,
+          },
+          {
+            id: 'your-rights',
+            title: m.privacy_policy_your_rights_title(),
+            body: (
+              <List
+                items={[
+                  m.privacy_policy_your_rights_list_1(),
+                  m.privacy_policy_your_rights_list_2(),
+                  m.privacy_policy_your_rights_list_3(),
+                ]}
+              />
+            ),
+          },
+          {
+            id: 'children',
+            title: m.privacy_policy_children_title(),
+            body: <p>{m.privacy_policy_children_content()}</p>,
+          },
+          {
+            id: 'self-hosting',
+            title: m.privacy_policy_self_hosting_title(),
+            body: <p>{m.privacy_policy_self_hosting_content()}</p>,
+          },
+          {
+            id: 'changes',
+            title: m.privacy_policy_changes_title(),
+            body: <p>{m.privacy_policy_changes_content()}</p>,
+          },
+          {
+            id: 'contact',
+            title: m.privacy_policy_contact_title(),
+            body: <p>{m.privacy_policy_contact_content()}</p>,
+          },
+        ]}
+      />
     </>
   );
 }

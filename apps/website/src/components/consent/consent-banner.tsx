@@ -1,6 +1,7 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { buttonStyles } from '@/components/site/button';
+import { useMessageLocale } from '@/i18n/client';
 import { m } from '@/paraglide/messages';
 import {
   initAnalytics,
@@ -19,6 +20,7 @@ export function ConsentBanner({
 }: {
   privacyPolicyHref: string;
 }) {
+  const ml = useMessageLocale();
   const consent = useTrackingConsent();
 
   useEffect(() => {
@@ -32,35 +34,43 @@ export function ConsentBanner({
       role="dialog"
       aria-labelledby="consent-title"
       aria-describedby="consent-description"
-      className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-xl rounded-lg border bg-background p-4 shadow-lg sm:inset-x-auto sm:right-4"
+      className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-md rounded-2xl border border-border bg-white p-5 shadow-[0_24px_48px_-16px_rgb(5_12_52/0.35)] sm:inset-x-auto sm:right-5 sm:bottom-5"
     >
-      <p id="consent-title" className="font-medium">
-        {m.consent_title()}
+      <p id="consent-title" className="font-semibold text-ink">
+        {m.consent_title({}, { locale: ml })}
       </p>
       <p
         id="consent-description"
         className="mt-1 text-sm text-muted-foreground"
       >
-        {m.consent_description()}{' '}
+        {m.consent_description({}, { locale: ml })}{' '}
         <a href={privacyPolicyHref} className="underline hover:text-foreground">
-          {m.footer_privacy()}
+          {m.footer_privacy({}, { locale: ml })}
         </a>
       </p>
-      <div className="mt-3 flex gap-2">
-        <Button
-          variant="outline"
-          className="flex-1"
+      <div className="mt-4 flex gap-2">
+        <button
+          type="button"
+          className={buttonStyles({
+            variant: 'secondary',
+            size: 'sm',
+            className: 'flex-1',
+          })}
           onClick={() => setConsent('denied')}
         >
-          {m.consent_refuse()}
-        </Button>
-        <Button
-          variant="outline"
-          className="flex-1"
+          {m.consent_refuse({}, { locale: ml })}
+        </button>
+        <button
+          type="button"
+          className={buttonStyles({
+            variant: 'secondary',
+            size: 'sm',
+            className: 'flex-1',
+          })}
           onClick={() => setConsent('granted')}
         >
-          {m.consent_accept()}
-        </Button>
+          {m.consent_accept({}, { locale: ml })}
+        </button>
       </div>
     </div>
   );

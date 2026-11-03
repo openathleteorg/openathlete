@@ -1,55 +1,72 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { buttonStyles } from '@/components/site/button';
 import { API_URL, APP_URL } from '@/config';
+import { useMessageLocale } from '@/i18n/client';
+import { signupUrl } from '@/lib/links';
 import { m } from '@/paraglide/messages';
-import { ArrowRight } from 'lucide-react';
+import { track } from '@/utils/analytics';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-import { SEOPlanData } from '@openathlete/shared';
+import type { SEOPlanData } from '@openathlete/shared';
 
-interface ImportButtonProps {
+/**
+ * Stores the plan on the API for a few days and opens the app with its
+ * token: the app asks for a start date (and an account) and imports it.
+ */
+export function ImportButton({
+  planData,
+  placement,
+  tone = 'dark',
+}: {
   planData: SEOPlanData;
-  locale: string;
-}
-
-export function ImportButton({ planData }: ImportButtonProps) {
-  const [isLoading, setIsLoading] = useState(false);
+  placement: string;
+  tone?: 'dark' | 'light';
+}) {
+  const ml = useMessageLocale();
+  const [loading, setLoading] = useState(false);
 
   const handleImport = async () => {
-    setIsLoading(true);
+    setLoading(true);
+    track('cta_clicked', { placement, cta: 'import_plan' });
     try {
       const response = await fetch(`${API_URL}/seo-plan`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          planData,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ planData }),
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create temporary plan');
-      }
-
-      const { token } = await response.json();
-
-      const importUrl = `${APP_URL}/dashboard?planToken=${token}`;
-      window.location.href = importUrl;
-    } catch (error) {
-      console.error('Error importing plan:', error);
-      setIsLoading(false);
-      window.location.href = `${APP_URL}/auth/create-account`;
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      const { token } = (await response.json()) as { token: string };
+      window.location.href = `${APP_URL}/dashboard?planToken=${encodeURIComponent(token)}`;
+    } catch {
+      // The plan could not be stored: an account is still worth creating
+      window.location.href = signupUrl(placement);
     }
   };
 
   return (
-    <div className="flex justify-center">
-      <Button size="lg" onClick={handleImport} isLoading={isLoading}>
-        {m.training_plan_import_button()}
-        <ArrowRight className="ml-2 h-4 w-4" />
-      </Button>
-    </div>
+    <button
+      type="button"
+      onClick={handleImport}
+      disabled={loading}
+      className={buttonStyles({
+        variant: tone === 'dark' ? 'primary' : 'light',
+        size: 'lg',
+        className: 'disabled:opacity-80',
+      })}
+    >
+      {loading ? (
+        <>
+          <Loader2 className="animate-spin" />
+          {m.tplan_importing({}, { locale: ml })}
+        </>
+      ) : (
+        <>
+          {m.tplan_import({}, { locale: ml })}
+          <ArrowRight className="transition-transform group-hover/btn:translate-x-0.5" />
+        </>
+      )}
+    </button>
   );
 }

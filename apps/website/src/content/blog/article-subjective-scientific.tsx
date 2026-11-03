@@ -9,9 +9,9 @@ export const articleSubjectiveScientific: BlogPost = {
       es: 'Subjetivo pero científico: cómo cuantificar la fatiga mental',
     },
     description: {
-      en: 'Discover the brain-muscle connection in endurance sports. Learn why a session feels hard after a bad day at work and how RPE captures what watches miss.',
-      fr: "Découvrez la connexion cerveau-muscle dans les sports d'endurance. Apprenez pourquoi une séance semble dure après une mauvaise journée au travail et comment le RPE capture ce que les montres manquent.",
-      es: 'Descubre la conexión entre cerebro y músculo en los deportes de resistencia. Entiende por qué una sesión se te hace dura después de un mal día en el trabajo y cómo el RPE capta lo que los relojes no ven.',
+      en: "Why the same run feels harder after a bad day at work: how mental fatigue raises perceived effort, and how RPE records what your watch can't.",
+      fr: "Pourquoi la même sortie paraît plus dure après une mauvaise journée : la fatigue mentale gonfle l'effort perçu, et le RPE capte ce que la montre ignore.",
+      es: 'Por qué el mismo rodaje cuesta más tras un mal día de trabajo: la fatiga mental eleva el esfuerzo percibido y el RPE recoge lo que tu reloj no ve.',
     },
     excerpt: {
       en: "Mental fatigue affects performance in ways your watch can't measure. RPE bridges the gap between objective data and subjective reality, filling the void left by Strava and Garmin.",
@@ -36,7 +36,7 @@ export const articleSubjectiveScientific: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You had a terrible day at work. Deadlines, conflicts, stress. You
@@ -136,33 +136,35 @@ export const articleSubjectiveScientific: BlogPost = {
 
         <h2>The OpenAthlete Difference</h2>
         <p>
-          After every session, OpenAthlete asks for your RPE. This isn't
-          optional—it's essential. Here's why:
+          After every session, OpenAthlete asks how it went: an RPE field (your
+          coach can make it mandatory), or a few short questions, answered by
+          text, a tap or voice, from which the AI extracts your RPE. Here's why
+          it matters:
         </p>
 
-        <p>The platform analyzes your RPE in context:</p>
+        <p>OpenAthlete puts your RPE in context:</p>
         <ul>
           <li>
-            <strong>Historical patterns:</strong> Is this session harder than
-            usual for this pace?
+            <strong>Next to the numbers:</strong> RPE sits beside pace, heart
+            rate and power on each activity
           </li>
           <li>
-            <strong>Objective comparison:</strong> How does RPE compare to heart
-            rate and power?
+            <strong>Questions that fit the day:</strong> They cover feeling,
+            fatigue, sleep and pain, adapted to your recent load and injuries
           </li>
           <li>
-            <strong>Trend analysis:</strong> Are sessions consistently feeling
-            harder?
+            <strong>Session-RPE load:</strong> RPE × minutes, as an alternative
+            to heart-rate TRIMP
           </li>
           <li>
-            <strong>Recovery correlation:</strong> Does RPE align with sleep and
-            stress markers?
+            <strong>Recovery markers:</strong> Sleep, HRV, resting heart rate
+            and Hooper index on the calendar
           </li>
         </ul>
 
         <p>
-          When patterns emerge—like elevated RPE after stressful days—the AI
-          adapts. It might suggest:
+          When patterns emerge, like elevated RPE after stressful days, that's
+          your cue (or your coach's) to act:
         </p>
         <ul>
           <li>Reducing intensity for the next session</li>
@@ -270,9 +272,10 @@ export const articleSubjectiveScientific: BlogPost = {
         </ul>
 
         <p>
-          OpenAthlete makes this easy. After every imported session, you're
-          prompted for RPE. It takes 5 seconds, but it provides invaluable data
-          that transforms how you train.
+          OpenAthlete makes this easy. After every imported activity (with AI
+          turned on), you get a few short questions and the AI fills in your RPE
+          from your answers. It takes under a minute, and you build a record
+          your watch can't.
         </p>
 
         <h2>The Bottom Line</h2>
@@ -293,15 +296,14 @@ export const articleSubjectiveScientific: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and let AI analyze your RPE patterns, detect mental fatigue, and adapt
-          your training to your actual state—not just what your watch measures.
+          and log how each session felt next to what your watch measured.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous avez eu une journée terrible au travail. Délais, conflits,
@@ -414,33 +416,37 @@ export const articleSubjectiveScientific: BlogPost = {
 
         <h2>La Différence OpenAthlete</h2>
         <p>
-          Après chaque séance, OpenAthlete demande votre RPE. Ce n'est pas
-          optionnel—c'est essentiel. Voici pourquoi :
+          Après chaque séance, OpenAthlete vous demande comment elle s'est
+          passée : un champ RPE (que votre coach peut rendre obligatoire), ou
+          quelques questions courtes, auxquelles vous répondez par texte, d'un
+          tap ou à la voix, et dont l'IA extrait votre RPE. Voici pourquoi c'est
+          important :
         </p>
 
-        <p>La plateforme analyse votre RPE en contexte :</p>
+        <p>OpenAthlete replace votre RPE dans son contexte :</p>
         <ul>
           <li>
-            <strong>Modèles historiques :</strong> Cette séance est-elle plus
-            dure que d'habitude pour cette allure ?
+            <strong>À côté des chiffres :</strong> Le RPE s'affiche à côté de
+            l'allure, de la fréquence cardiaque et de la puissance de chaque
+            activité
           </li>
           <li>
-            <strong>Comparaison objective :</strong> Comment le RPE se
-            compare-t-il à la fréquence cardiaque et à la puissance ?
+            <strong>Des questions adaptées au jour :</strong> Ressenti, fatigue,
+            sommeil et douleur, selon votre charge récente et vos blessures
           </li>
           <li>
-            <strong>Analyse de tendance :</strong> Les séances deviennent-elles
-            constamment plus dures ?
+            <strong>Charge en RPE de séance :</strong> RPE × minutes, en
+            alternative au TRIMP cardiaque
           </li>
           <li>
-            <strong>Corrélation de récupération :</strong> Le RPE s'aligne-t-il
-            avec les marqueurs de sommeil et de stress ?
+            <strong>Marqueurs de récupération :</strong> Sommeil, VFC, fréquence
+            cardiaque de repos et indice de Hooper dans le calendrier
           </li>
         </ul>
 
         <p>
-          Quand des modèles émergent—comme un RPE élevé après des journées
-          stressantes—l'IA s'adapte. Elle pourrait suggérer :
+          Quand un schéma se dessine, comme un RPE élevé après des journées
+          stressantes, c'est à vous (ou à votre coach) d'agir :
         </p>
         <ul>
           <li>Réduire l'intensité pour la prochaine séance</li>
@@ -557,10 +563,10 @@ export const articleSubjectiveScientific: BlogPost = {
         </ul>
 
         <p>
-          OpenAthlete rend cela facile. Après chaque séance importée, vous êtes
-          invité à donner votre RPE. Cela prend 5 secondes, mais cela fournit
-          des données inestimables qui transforment votre façon de vous
-          entraîner.
+          OpenAthlete vous facilite la tâche. Après chaque activité importée (IA
+          activée), quelques questions courtes vous attendent et l'IA renseigne
+          votre RPE à partir de vos réponses. Cela prend moins d'une minute, et
+          vous construisez un historique que votre montre ne peut pas tenir.
         </p>
 
         <h2>En Résumé</h2>
@@ -585,16 +591,15 @@ export const articleSubjectiveScientific: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et laissez l'IA analyser vos modèles de RPE, détecter la fatigue
-          mentale et adapter votre entraînement à votre état réel—pas seulement
-          ce que votre montre mesure.
+          et notez le ressenti de chaque séance à côté de ce que votre montre a
+          mesuré.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Has tenido un día horrible en el trabajo. Plazos, conflictos,
@@ -703,33 +708,35 @@ export const articleSubjectiveScientific: BlogPost = {
 
         <h2>Lo que aporta OpenAthlete</h2>
         <p>
-          Después de cada sesión, OpenAthlete te pide tu RPE. No es opcional: es
-          esencial. Te explicamos por qué:
+          Después de cada sesión, OpenAthlete te pregunta cómo te fue: un campo
+          de RPE (tu entrenador puede hacerlo obligatorio) o unas preguntas
+          breves, que respondes por texto, con un toque o por voz, de las que la
+          IA extrae tu RPE. Te explicamos por qué importa:
         </p>
 
-        <p>La plataforma analiza tu RPE en contexto:</p>
+        <p>OpenAthlete pone tu RPE en contexto:</p>
         <ul>
           <li>
-            <strong>Patrones históricos:</strong> ¿Es esta sesión más dura de lo
-            habitual para este ritmo?
+            <strong>Junto a las cifras:</strong> el RPE aparece al lado del
+            ritmo, la frecuencia cardíaca y la potencia de cada actividad
           </li>
           <li>
-            <strong>Comparación objetiva:</strong> ¿Cómo se compara el RPE con
-            la frecuencia cardíaca y la potencia?
+            <strong>Preguntas adaptadas al día:</strong> sensaciones, fatiga,
+            sueño y dolor, según tu carga reciente y tus lesiones
           </li>
           <li>
-            <strong>Análisis de tendencias:</strong> ¿Se te hacen las sesiones
-            más duras de forma sistemática?
+            <strong>Carga por RPE de sesión:</strong> RPE × minutos, como
+            alternativa al TRIMP cardíaco
           </li>
           <li>
-            <strong>Relación con la recuperación:</strong> ¿Encaja el RPE con
-            los indicadores de sueño y estrés?
+            <strong>Indicadores de recuperación:</strong> sueño, VFC, frecuencia
+            cardíaca en reposo e índice de Hooper en el calendario
           </li>
         </ul>
 
         <p>
           Cuando aparecen patrones, como un RPE elevado después de días
-          estresantes, la IA se adapta. Puede sugerirte:
+          estresantes, te toca actuar a ti (o a tu entrenador):
         </p>
         <ul>
           <li>Reducir la intensidad de la siguiente sesión</li>
@@ -846,9 +853,10 @@ export const articleSubjectiveScientific: BlogPost = {
         </ul>
 
         <p>
-          OpenAthlete te lo pone fácil. Después de cada sesión importada, te
-          pide tu RPE. Te lleva 5 segundos, pero aporta datos valiosísimos que
-          transforman tu forma de entrenar.
+          OpenAthlete te lo pone fácil. Después de cada actividad importada (con
+          la IA activada), te esperan unas preguntas breves y la IA rellena tu
+          RPE a partir de tus respuestas. Te lleva menos de un minuto, y
+          construyes un historial que tu reloj no puede tener.
         </p>
 
         <h2>En resumen</h2>
@@ -870,9 +878,7 @@ export const articleSubjectiveScientific: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y deja que la IA analice tus patrones de RPE, detecte la fatiga mental
-          y adapte tu entrenamiento a tu estado real, no solo a lo que mide tu
-          reloj.
+          y anota cómo sentiste cada sesión junto a lo que midió tu reloj.
         </p>
       </div>
     );

@@ -9,9 +9,9 @@ export const articleYouthTalentDetection: BlogPost = {
       es: 'Detectar el talento y prevenir el abandono en jóvenes',
     },
     description: {
-      en: "Importance of monitoring RPE in young athletes who can't always articulate pain. Using data to protect young talent and prevent burnout.",
-      fr: "Importance de surveiller le RPE chez les jeunes athlètes qui ne peuvent pas toujours articuler la douleur. Utiliser les données pour protéger le jeune talent et prévenir l'épuisement.",
-      es: 'Por qué es importante controlar el RPE en los atletas jóvenes, que no siempre saben expresar el dolor. Usar los datos para proteger el talento joven y prevenir el agotamiento.',
+      en: "Young athletes rarely say when they're hurting. How RPE and simple load tracking reveal overreaching early, and which signs point to real talent.",
+      fr: 'Les jeunes athlètes disent rarement quand ils ont mal. Le RPE et un suivi de charge révèlent tôt la surcharge, et certains signes trahissent un talent.',
+      es: 'Los atletas jóvenes rara vez dicen cuándo les duele. El RPE y el control de la carga revelan pronto la sobrecarga, y algunas señales apuntan a talento.',
     },
     excerpt: {
       en: "Young athletes often can't articulate when they're in pain or overtrained. RPE monitoring and data analysis help detect talent and prevent dropout.",
@@ -35,7 +35,7 @@ export const articleYouthTalentDetection: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             A 15-year-old runner shows promise. She's fast, dedicated,
@@ -145,15 +145,15 @@ export const articleYouthTalentDetection: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and use data to protect young athletes, detect talent, and prevent
-          burnout.
+          and follow the RPE, reported pain and load of every young athlete you
+          coach.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Une coureuse de 15 ans montre du potentiel. Elle est rapide,
@@ -271,15 +271,15 @@ export const articleYouthTalentDetection: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et utilisez les données pour protéger les jeunes athlètes, détecter le
-          talent et prévenir l'épuisement.
+          et suivez le RPE, les douleurs signalées et la charge de chaque jeune
+          athlète que vous entraînez.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Una corredora de 15 años promete mucho. Es rápida, constante y no
@@ -393,8 +393,8 @@ export const articleYouthTalentDetection: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y usa los datos para proteger a los atletas jóvenes, detectar el
-          talento y prevenir el agotamiento.
+          y sigue el RPE, los dolores reportados y la carga de cada atleta joven
+          que entrenas.
         </p>
       </div>
     );

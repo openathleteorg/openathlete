@@ -9,14 +9,14 @@ export const articleGenerativeAiSports: BlogPost = {
       es: 'IA generativa en el deporte: ¿moda pasajera o revolución?',
     },
     description: {
-      en: "Demystify AI in sports training. Learn how generative AI doesn't replace coaches but processes data to instantly recalculate training plans when life happens.",
-      fr: "Démystifiez l'IA dans l'entraînement sportif. Découvrez comment l'IA générative ne remplace pas les coachs mais traite les données pour recalculer instantanément les plans d'entraînement quand la vie arrive.",
-      es: 'Desmitificamos la IA en el entrenamiento deportivo: la IA generativa no sustituye a los entrenadores, sino que procesa los datos para recalcular al instante los planes de entrenamiento cuando la vida se cruza en el camino.',
+      en: 'What generative AI does in training: patterns, sports-science rules, quick rewrites of a week after a missed session, and why the coach still decides.',
+      fr: "Ce que fait vraiment l'IA générative à l'entraînement : tendances, règles de physiologie, semaine revue après une séance manquée. Et le coach décide.",
+      es: 'Qué hace de verdad la IA generativa al entrenar: patrones, reglas científicas, rehacer la semana tras una sesión perdida. Y el entrenador decide.',
     },
     excerpt: {
-      en: "AI doesn't replace the coach—it processes data. See how AI instantly recalculates a week's plan after a missed session, unlike static PDF plans that become obsolete.",
-      fr: "L'IA ne remplace pas le coach—elle traite les données. Voyez comment l'IA recalcule instantanément un plan hebdomadaire après une séance manquée, contrairement aux plans PDF statiques qui deviennent obsolètes.",
-      es: 'La IA no sustituye al entrenador: procesa datos. Descubre cómo la IA recalcula al instante el plan de la semana tras una sesión perdida, a diferencia de los planes estáticos en PDF que se quedan obsoletos.',
+      en: "AI doesn't replace the coach—it processes data. See how AI can rework a week's plan after a missed session, unlike static PDF plans that become obsolete.",
+      fr: "L'IA ne remplace pas le coach—elle traite les données. Voyez comment l'IA peut revoir un plan hebdomadaire après une séance manquée, contrairement aux plans PDF statiques qui deviennent obsolètes.",
+      es: 'La IA no sustituye al entrenador: procesa datos. Descubre cómo la IA puede rehacer el plan de la semana tras una sesión perdida, a diferencia de los planes estáticos en PDF que se quedan obsoletos.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -36,7 +36,7 @@ export const articleGenerativeAiSports: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You missed Tuesday's workout because of a work emergency. Your
@@ -99,7 +99,7 @@ export const articleGenerativeAiSports: BlogPost = {
           work trip that forces you to miss your long run.
         </p>
 
-        <p>A static PDF plan is now useless. But AI-powered planning:</p>
+        <p>A static PDF plan is now useless. But AI-assisted planning:</p>
         <ul>
           <li>Detects your elevated RPE and reduced recovery</li>
           <li>Recognizes the missed Wednesday session</li>
@@ -115,7 +115,7 @@ export const articleGenerativeAiSports: BlogPost = {
           waiting. No guesswork.
         </p>
 
-        <h2>AI Doesn't Replace Coaches—It Empowers Them</h2>
+        <h2>AI Doesn't Replace Coaches—It Helps Them</h2>
         <p>
           The fear that AI will replace coaches is understandable but misplaced.
           Here's why:
@@ -150,7 +150,7 @@ export const articleGenerativeAiSports: BlogPost = {
           <li>Hits a ceiling at 20-25 athletes</li>
         </ul>
 
-        <p>With AI-powered planning:</p>
+        <p>With AI-assisted planning:</p>
         <ul>
           <li>Spends 15 hours per week on strategy and communication</li>
           <li>Prevents problems through proactive adjustments</li>
@@ -167,7 +167,7 @@ export const articleGenerativeAiSports: BlogPost = {
         <p>
           Traditional training plans are like printed maps. They're useful, but
           they can't account for road closures, traffic, or your current
-          location. AI-powered plans are like GPS—they adapt in real-time to
+          location. AI-assisted plans are like GPS—they adapt in real-time to
           your actual situation.
         </p>
 
@@ -201,15 +201,17 @@ export const articleGenerativeAiSports: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and experience how AI-powered planning adapts to your life while
-          keeping you on track toward your goals.
+          and see what it does today: mark an illness or a trip and it offers to
+          move the sessions it covers, the AI writes or edits a session from a
+          sentence, and through the MCP server Claude or ChatGPT can rework the
+          rest of your week straight in your calendar.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous avez manqué l'entraînement de mardi à cause d'une urgence au
@@ -399,15 +401,18 @@ export const articleGenerativeAiSports: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et découvrez comment la planification alimentée par l'IA s'adapte à
-          votre vie tout en vous gardant sur la voie de vos objectifs.
+          et voyez ce qu'il fait déjà : signalez une maladie ou un déplacement
+          et il propose de déplacer les séances concernées, l'IA rédige ou
+          modifie une séance à partir d'une phrase, et via le serveur MCP,
+          Claude ou ChatGPT peuvent revoir le reste de votre semaine directement
+          dans votre calendrier.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Te perdiste el entrenamiento del martes por una urgencia en el
@@ -590,8 +595,11 @@ export const articleGenerativeAiSports: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y comprueba cómo la planificación con IA se adapta a tu vida sin que
-          pierdas de vista tus objetivos.
+          y descubre lo que ya hace: marca una enfermedad o un viaje y te
+          propone mover las sesiones afectadas, la IA escribe o modifica una
+          sesión a partir de una frase y, a través del servidor MCP, Claude o
+          ChatGPT pueden rehacer el resto de tu semana directamente en tu
+          calendario.
         </p>
       </div>
     );

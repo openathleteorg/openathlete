@@ -1,109 +1,124 @@
-import { WebPageStructuredData } from '@/components/seo/structured-data';
-import { SITE_URL } from '@/config';
+import { LegalPage } from '@/components/legal/legal-page';
+import { BreadcrumbListStructuredData } from '@/components/seo/structured-data';
+import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
-import { isSupportedLocale, languageAlternates } from '@/utils/locales';
-import type { Metadata } from 'next';
+import { localePath, localizedUrl } from '@/utils/locales';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 
-/** Version of the terms; the app records it with each subscription. */
+import { generateMetadata as pageMetadata } from '../../metadata';
+
+type Props = { params: Promise<{ locale: string }> };
+
+// Update with the terms version accepted in the app; never the build date
 const LAST_UPDATED = '2026-10-05';
 
-/* eslint-disable react-refresh/only-export-components */
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  // Canonical URL should always point to the English version
-  const canonicalUrl = `${SITE_URL}/terms-of-sale`;
-  return {
-    title: m.terms_title(),
-    alternates: {
-      canonical: canonicalUrl,
-      languages: languageAlternates('/terms-of-sale'),
-    },
-  };
+// eslint-disable-next-line react-refresh/only-export-components
+export async function generateMetadata({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  return pageMetadata({
+    locale,
+    path: '/terms-of-sale',
+    title: `${m.terms_title()} | OpenAthlete`,
+    description: m.terms_seo_description(),
+  });
 }
-/* eslint-enable react-refresh/only-export-components */
 
-export default async function TermsOfSalePage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-  const prefix = locale === 'en' ? '' : `/${locale}`;
+export default async function TermsOfSalePage({ params }: Props) {
+  const locale = initLocale((await params).locale);
 
   return (
     <>
-      <WebPageStructuredData
-        title={m.terms_title()}
-        description={m.terms_intro()}
-        url={`${SITE_URL}${prefix}/terms-of-sale`}
+      <BreadcrumbListStructuredData
+        items={[
+          { name: m.blog_home(), url: localizedUrl(locale) },
+          {
+            name: m.terms_title(),
+            url: localizedUrl(locale, '/terms-of-sale'),
+          },
+        ]}
       />
-      <div className="mx-auto max-w-3xl p-8 space-y-8">
-        <header className="space-y-2">
-          <h1 className="text-3xl font-bold">{m.terms_title()}</h1>
-          <p className="text-sm text-muted-foreground">
-            {m.terms_last_updated({ date: LAST_UPDATED })}
-          </p>
-        </header>
-
-        <section className="prose prose-neutral dark:prose-invert">
-          <p>{m.terms_intro()}</p>
-
-          <h2>{m.terms_seller_title()}</h2>
-          <p>{m.terms_seller_content()}</p>
-
-          <h2>{m.terms_offer_title()}</h2>
-          <p>{m.terms_offer_content()}</p>
-          <ul>
-            <li>{m.terms_offer_list_1()}</li>
-            <li>{m.terms_offer_list_2()}</li>
-          </ul>
-          <p>{m.terms_offer_note()}</p>
-
-          <h2>{m.terms_price_title()}</h2>
-          <p>{m.terms_price_content()}</p>
-
-          <h2>{m.terms_order_title()}</h2>
-          <p>{m.terms_order_content()}</p>
-
-          <h2>{m.terms_duration_title()}</h2>
-          <p>{m.terms_duration_content()}</p>
-
-          <h2 id="withdrawal">{m.terms_withdrawal_title()}</h2>
-          <p>{m.terms_withdrawal_content()}</p>
-          <p>{m.terms_withdrawal_how()}</p>
-          <blockquote>{m.terms_withdrawal_form()}</blockquote>
-
-          <h2>{m.terms_warranty_title()}</h2>
-          <p>{m.terms_warranty_content()}</p>
-
-          <h2>{m.terms_data_title()}</h2>
-          <p>
-            {m.terms_data_content()}{' '}
-            <Link href={`${prefix}/privacy-policy`}>
-              {m.privacy_policy_title()}
-            </Link>
-          </p>
-
-          <h2>{m.terms_disputes_title()}</h2>
-          <p>{m.terms_disputes_content()}</p>
-
-          <h2>{m.terms_law_title()}</h2>
-          <p>{m.terms_law_content()}</p>
-        </section>
-      </div>
+      <LegalPage
+        locale={locale}
+        path="/terms-of-sale"
+        title={m.terms_title()}
+        updated={LAST_UPDATED}
+        intro={<p>{m.terms_intro()}</p>}
+        sections={[
+          {
+            id: 'seller',
+            title: m.terms_seller_title(),
+            body: <p>{m.terms_seller_content()}</p>,
+          },
+          {
+            id: 'offer',
+            title: m.terms_offer_title(),
+            body: (
+              <>
+                <p>{m.terms_offer_content()}</p>
+                <ul>
+                  <li>{m.terms_offer_list_1()}</li>
+                  <li>{m.terms_offer_list_2()}</li>
+                </ul>
+                <p>{m.terms_offer_note()}</p>
+              </>
+            ),
+          },
+          {
+            id: 'price',
+            title: m.terms_price_title(),
+            body: <p>{m.terms_price_content()}</p>,
+          },
+          {
+            id: 'order',
+            title: m.terms_order_title(),
+            body: <p>{m.terms_order_content()}</p>,
+          },
+          {
+            id: 'duration',
+            title: m.terms_duration_title(),
+            body: <p>{m.terms_duration_content()}</p>,
+          },
+          {
+            // Same anchor as the previous page, which links may point to
+            id: 'withdrawal',
+            title: m.terms_withdrawal_title(),
+            body: (
+              <>
+                <p>{m.terms_withdrawal_content()}</p>
+                <p>{m.terms_withdrawal_how()}</p>
+                <blockquote>{m.terms_withdrawal_form()}</blockquote>
+              </>
+            ),
+          },
+          {
+            id: 'warranty',
+            title: m.terms_warranty_title(),
+            body: <p>{m.terms_warranty_content()}</p>,
+          },
+          {
+            id: 'data',
+            title: m.terms_data_title(),
+            body: (
+              <p>
+                {m.terms_data_content()}{' '}
+                <Link href={localePath(locale, '/privacy-policy')}>
+                  {m.privacy_policy_title()}
+                </Link>
+              </p>
+            ),
+          },
+          {
+            id: 'disputes',
+            title: m.terms_disputes_title(),
+            body: <p>{m.terms_disputes_content()}</p>,
+          },
+          {
+            id: 'law',
+            title: m.terms_law_title(),
+            body: <p>{m.terms_law_content()}</p>,
+          },
+        ]}
+      />
     </>
   );
 }

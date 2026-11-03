@@ -1,127 +1,103 @@
-'use client';
-
-import { AnimatedBlobs } from '@/components/landing/animated-blobs';
-import { Container } from '@/components/landing/container';
-import { ProviderLogo } from '@/components/providers/provider-logos';
-import { Button } from '@/components/ui/button';
-import { APP_URL } from '@/config';
+import { buttonStyles } from '@/components/site/button';
+import { Container } from '@/components/site/layout-primitives';
+import { Reveal } from '@/components/site/reveal';
+import { TrackedLink } from '@/components/site/tracked-link';
+import { signupUrl } from '@/lib/links';
 import { m } from '@/paraglide/messages';
-import { motion } from 'framer-motion';
-import { ArrowRight } from 'lucide-react';
+import { type SupportedLocale, localePath } from '@/utils/locales';
+import { ArrowRight, Check } from 'lucide-react';
 import Link from 'next/link';
-import * as React from 'react';
 
-import { BrandLogo } from '../landing/brand-logo';
+import { type Connector, providerMessage } from './data';
+import { Breadcrumbs } from './parts';
+import { SyncLink } from './sync-link';
 
-type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR' | 'COROS';
-
-interface ProviderHeroProps {
-  provider: Provider;
-}
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.1,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  },
-};
-
-const titleVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1] as const,
-    },
-  },
-};
-
-const getProviderMessages = (provider: Provider) => {
-  const key = provider.toLowerCase() as
-    'garmin' | 'strava' | 'suunto' | 'polar' | 'coros';
-  return {
-    title: (m[`connect_${key}_hero_title` as keyof typeof m] as () => string)(),
-    subtitle: (
-      m[`connect_${key}_hero_subtitle` as keyof typeof m] as () => string
-    )(),
-    cta: (m[`connect_${key}_hero_cta` as keyof typeof m] as () => string)(),
-  };
-};
-
-export function ProviderHero({ provider }: ProviderHeroProps) {
-  const messages = getProviderMessages(provider);
-
+export function ProviderHero({
+  connector,
+  locale,
+}: {
+  connector: Connector;
+  locale: SupportedLocale;
+}) {
+  const placement = `connect_${connector.slug}_hero`;
   return (
-    <section className="relative overflow-hidden border-b bg-background py-20 sm:py-32">
-      {/* Background elements */}
-      <div className="absolute inset-0 z-0 bg-grid-pattern-fine opacity-30" />
-      <AnimatedBlobs />
-      <div className="absolute inset-0 z-[1] bg-gradient-to-b from-background/80 via-background/40 to-background" />
-
-      <Container className="relative z-10">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="mx-auto max-w-4xl text-center"
-        >
-          {/* Logos */}
-          <motion.div
-            variants={itemVariants}
-            className="mb-8 flex items-center justify-center gap-6"
-          >
-            <ProviderLogo provider={provider} className="h-12 w-auto" />
-            <div className="h-px w-12 bg-border" />
-            <BrandLogo className="h-18 w-auto" />
-          </motion.div>
-
-          {/* Title */}
-          <motion.h1
-            variants={titleVariants}
-            className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl"
-          >
-            {messages.title}
-          </motion.h1>
-
-          {/* Subtitle */}
-          <motion.p
-            variants={itemVariants}
-            className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl"
-          >
-            {messages.subtitle}
-          </motion.p>
-
-          {/* CTA */}
-          <motion.div
-            variants={itemVariants}
-            className="flex justify-center gap-4"
-          >
-            <Button asChild size="lg" className="group">
-              <Link href={`${APP_URL}/auth/create-account`}>
-                {messages.cta}
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+    <section className="relative -mt-[var(--header-height)] overflow-hidden pt-[calc(var(--header-height)+2.5rem)] pb-20 sm:pt-[calc(var(--header-height)+4rem)] sm:pb-28">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <div className="dot-grid absolute inset-0 [mask-image:radial-gradient(ellipse_70%_60%_at_70%_0%,black,transparent)]" />
+        <div className="absolute top-[-10rem] right-[-6rem] h-[30rem] w-[40rem] rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--sky)_30%,transparent),transparent)] blur-2xl" />
+        <div className="absolute top-[14rem] left-[-8rem] h-[24rem] w-[24rem] rounded-full bg-[radial-gradient(closest-side,color-mix(in_oklab,var(--orchid)_18%,transparent),transparent)] blur-2xl" />
+      </div>
+      <Container className="relative">
+        <Breadcrumbs
+          items={[
+            { name: m.connect_crumb_home(), href: localePath(locale, '/') },
+            {
+              name: m.site_nav_integrations(),
+              href: localePath(locale, '/connect'),
+            },
+            { name: connector.name },
+          ]}
+        />
+        <div className="mt-10 grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-7">
+            <p className="kicker flex items-center gap-2 text-sky-strong">
+              {m.connect_hero_kicker()}
+              {connector.isNew && (
+                <span className="rounded-full bg-coral/15 px-2 py-0.5 tracking-normal text-coral-strong normal-case">
+                  {m.connect_new_badge()}
+                </span>
+              )}
+            </p>
+            {/* No entrance animation: the headline is the largest paint */}
+            <h1 className="display-1 mt-4">
+              {providerMessage(connector.slug, 'h1')}
+            </h1>
+            <p className="lead mt-6 max-w-2xl">
+              {providerMessage(connector.slug, 'lead')}
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+              <TrackedLink
+                href={signupUrl(placement)}
+                event="cta_clicked"
+                properties={{ placement, cta: 'signup' }}
+                className={buttonStyles({
+                  size: 'lg',
+                  className: 'w-full sm:w-auto',
+                })}
+              >
+                {m.site_cta_start()}
+                <ArrowRight className="transition-transform group-hover/btn:translate-x-0.5" />
+              </TrackedLink>
+              <Link
+                href={localePath(locale, '/features/watch-sync')}
+                className={buttonStyles({
+                  variant: 'secondary',
+                  size: 'lg',
+                  className: 'w-full sm:w-auto',
+                })}
+              >
+                {m.connect_hero_secondary()}
               </Link>
-            </Button>
-          </motion.div>
-        </motion.div>
+            </div>
+            <p className="mt-5 flex items-center gap-1.5 text-[0.85rem] text-muted-foreground">
+              <Check className="size-4 text-mint-strong" />
+              {m.connect_hero_free()}
+            </p>
+          </div>
+          <Reveal delay={0.1} className="mx-auto w-full max-w-md lg:col-span-5">
+            <SyncLink
+              name={connector.name}
+              logo={connector.logo}
+              width={connector.width}
+              out={connector.support.workouts === 'yes'}
+              labels={{
+                in: m.connect_flow_in(),
+                out: m.connect_flow_out(),
+                noOut: m.connect_flow_no_out(),
+              }}
+            />
+          </Reveal>
+        </div>
       </Container>
     </section>
   );

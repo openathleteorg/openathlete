@@ -9,9 +9,9 @@ export const articleCoachAthleteCommunication: BlogPost = {
       es: 'Comunicación entre entrenador y atleta: el factor de éxito n.º 1',
     },
     description: {
-      en: "A perfect plan is useless if the athlete doesn't understand it. Learn why chat and contextualized comments directly on sessions (not lost in WhatsApp) are crucial.",
-      fr: "Un plan parfait est inutile si l'athlète ne le comprend pas. Découvrez pourquoi le chat et les commentaires contextualisés directement sur les séances (pas perdus dans WhatsApp) sont cruciaux.",
-      es: 'Un plan perfecto no sirve de nada si el atleta no lo entiende. Descubre por qué el chat y los comentarios en contexto, directamente en las sesiones (y no perdidos en WhatsApp), son clave.',
+      en: "Why a plan the athlete doesn't understand fails, and how comments on each session plus a coaching chat beat feedback lost in WhatsApp threads.",
+      fr: 'Pourquoi un plan mal compris échoue, et comment des commentaires sur chaque séance et un chat dédié remplacent les retours perdus dans WhatsApp.',
+      es: 'Por qué fracasa un plan que el atleta no entiende y cómo los comentarios en cada sesión y un chat propio superan al feedback perdido en WhatsApp.',
     },
     excerpt: {
       en: 'Communication is the foundation of successful coaching. See how contextualized feedback directly on training sessions beats scattered WhatsApp messages.',
@@ -35,7 +35,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You spent 2 hours crafting the perfect training plan. Every session
@@ -113,7 +113,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
           <li>The specific session it relates to</li>
           <li>The date and context</li>
           <li>The training data from that session</li>
-          <li>The athlete's progress history</li>
+          <li>The athlete and every coach who follows them</li>
         </ul>
 
         <p>
@@ -123,8 +123,8 @@ export const articleCoachAthleteCommunication: BlogPost = {
 
         <h2>Real-Time Feedback Loop</h2>
         <p>
-          After every session, OpenAthlete prompts athletes for RPE. This
-          creates an immediate feedback opportunity:
+          After every session, OpenAthlete asks athletes for their RPE (a coach
+          can make it required). This creates an immediate feedback opportunity:
         </p>
         <ol>
           <li>Athlete completes session</li>
@@ -150,23 +150,23 @@ export const articleCoachAthleteCommunication: BlogPost = {
         </p>
         <ul>
           <li>
-            <strong>Session linking:</strong> Reference specific sessions in
-            chat
+            <strong>Activity notices:</strong> New activities, RPE changes and
+            athlete comments appear automatically in your conversation
           </li>
           <li>
-            <strong>Data sharing:</strong> Share graphs, metrics, and insights
-            directly
+            <strong>Group conversations:</strong> Talk to several athletes at
+            once, in real time, with read receipts
           </li>
           <li>
-            <strong>Notification system:</strong> Athletes get notified of
-            important messages
+            <strong>Notification system:</strong> An email arrives when a
+            message goes unread
           </li>
           <li>
             <strong>Searchable history:</strong> Find past conversations easily
           </li>
           <li>
-            <strong>Organized threads:</strong> Keep training discussions
-            separate from casual chat
+            <strong>Organized threads:</strong> Feedback on a session stays in
+            that session's comments, separate from casual chat
           </li>
         </ul>
 
@@ -262,7 +262,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous avez passé 2 heures à créer le plan d'entraînement parfait.
@@ -342,7 +342,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
           <li>La séance spécifique à laquelle il se rapporte</li>
           <li>La date et le contexte</li>
           <li>Les données d'entraînement de cette séance</li>
-          <li>L'historique de progression de l'athlète</li>
+          <li>L'athlète et chacun des coachs qui le suivent</li>
         </ul>
 
         <p>
@@ -352,8 +352,9 @@ export const articleCoachAthleteCommunication: BlogPost = {
 
         <h2>Boucle de Retour en Temps Réel</h2>
         <p>
-          Après chaque séance, OpenAthlete invite les athlètes à donner leur
-          RPE. Cela crée une opportunité de retour immédiat :
+          Après chaque séance, OpenAthlete invite les athlètes à donner leur RPE
+          (le coach peut le rendre obligatoire). Cela crée une opportunité de
+          retour immédiat :
         </p>
         <ol>
           <li>L'athlète complète la séance</li>
@@ -381,24 +382,26 @@ export const articleCoachAthleteCommunication: BlogPost = {
         </p>
         <ul>
           <li>
-            <strong>Liaison de séance :</strong> Référencer des séances
-            spécifiques dans le chat
+            <strong>Notifications d'activité :</strong> Nouvelles activités,
+            changements de RPE et commentaires de l'athlète arrivent
+            automatiquement dans votre conversation
           </li>
           <li>
-            <strong>Partage de données :</strong> Partager des graphiques,
-            métriques et informations directement
+            <strong>Conversations de groupe :</strong> Échanger avec plusieurs
+            athlètes à la fois, en temps réel, avec accusés de lecture
           </li>
           <li>
-            <strong>Système de notification :</strong> Les athlètes sont
-            notifiés des messages importants
+            <strong>Système de notification :</strong> Un email part quand un
+            message reste non lu
           </li>
           <li>
             <strong>Historique recherchable :</strong> Trouver facilement les
             conversations passées
           </li>
           <li>
-            <strong>Fils organisés :</strong> Garder les discussions
-            d'entraînement séparées du chat casual
+            <strong>Fils organisés :</strong> Les retours sur une séance restent
+            dans les commentaires de cette séance, à l'écart des discussions
+            informelles
           </li>
         </ul>
 
@@ -510,7 +513,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Has pasado 2 horas diseñando el plan de entrenamiento perfecto. Cada
@@ -589,7 +592,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
           <li>La sesión concreta a la que se refiere</li>
           <li>La fecha y el contexto</li>
           <li>Los datos de entrenamiento de esa sesión</li>
-          <li>El historial de progreso del atleta</li>
+          <li>El atleta y cada entrenador que lo sigue</li>
         </ul>
 
         <p>
@@ -599,8 +602,9 @@ export const articleCoachAthleteCommunication: BlogPost = {
 
         <h2>Un ciclo de feedback en tiempo real</h2>
         <p>
-          Después de cada sesión, OpenAthlete pide a los atletas su RPE. Esto
-          crea una oportunidad inmediata de dar feedback:
+          Después de cada sesión, OpenAthlete pide a los atletas su RPE (el
+          entrenador puede hacerlo obligatorio). Esto crea una oportunidad
+          inmediata de dar feedback:
         </p>
         <ol>
           <li>El atleta completa la sesión</li>
@@ -628,24 +632,26 @@ export const articleCoachAthleteCommunication: BlogPost = {
         </p>
         <ul>
           <li>
-            <strong>Enlace a sesiones:</strong> menciona sesiones concretas en
-            el chat
+            <strong>Avisos de actividad:</strong> las nuevas actividades, los
+            cambios de RPE y los comentarios del atleta llegan automáticamente a
+            vuestra conversación
           </li>
           <li>
-            <strong>Datos compartidos:</strong> comparte gráficos, métricas y
-            análisis directamente
+            <strong>Conversaciones de grupo:</strong> habla con varios atletas a
+            la vez, en tiempo real y con confirmación de lectura
           </li>
           <li>
-            <strong>Notificaciones:</strong> los atletas reciben un aviso de los
-            mensajes importantes
+            <strong>Notificaciones:</strong> llega un correo cuando un mensaje
+            se queda sin leer
           </li>
           <li>
             <strong>Historial con búsqueda:</strong> encuentra fácilmente
             conversaciones anteriores
           </li>
           <li>
-            <strong>Conversaciones organizadas:</strong> separa las charlas
-            sobre entrenamiento de la conversación informal
+            <strong>Conversaciones organizadas:</strong> el feedback sobre una
+            sesión se queda en los comentarios de esa sesión, aparte de la
+            charla informal
           </li>
         </ul>
 

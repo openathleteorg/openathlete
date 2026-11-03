@@ -9,14 +9,14 @@ export const articleProgressiveOverload: BlogPost = {
       es: 'Sobrecarga progresiva: aumentar la intensidad sin romperte',
     },
     description: {
-      en: 'Educational guide on mesocycles and microcycles. Learn how AI smooths load increases to keep you in the progress zone, not the red zone.',
-      fr: "Guide éducatif sur les mésocycles et microcycles. Découvrez comment l'IA lisse les augmentations de charge pour vous garder dans la zone de progrès, pas la zone rouge.",
-      es: 'Guía didáctica sobre mesociclos y microciclos. Descubre cómo la IA suaviza los aumentos de carga para mantenerte en la zona de progreso y no en la zona roja.',
+      en: 'Microcycles, mesocycles and deload weeks explained: how fast to raise running volume, how to read acute vs chronic load, with a 12-week example.',
+      fr: "Microcycles, mésocycles, semaines allégées : à quel rythme augmenter votre volume et comment lire la charge aiguë et chronique, exemple à l'appui.",
+      es: 'Microciclos, mesociclos y semanas de descarga: cuánto subir el volumen, cómo leer la carga aguda y crónica, y un ejemplo de 12 semanas.',
     },
     excerpt: {
-      en: 'Progressive overload is essential for improvement, but increasing too fast causes injury. Learn how AI manages mesocycles and microcycles to optimize progress safely.',
-      fr: "La surcharge progressive est essentielle pour l'amélioration, mais augmenter trop vite cause des blessures. Découvrez comment l'IA gère les mésocycles et microcycles pour optimiser le progrès en sécurité.",
-      es: 'La sobrecarga progresiva es imprescindible para mejorar, pero subir demasiado rápido provoca lesiones. Descubre cómo la IA gestiona mesociclos y microciclos para que progreses de forma segura.',
+      en: 'Progressive overload is essential for improvement, but increasing too fast causes injury. Learn how mesocycles, microcycles and deload weeks keep progress safe.',
+      fr: "La surcharge progressive est essentielle pour l'amélioration, mais augmenter trop vite cause des blessures. Découvrez comment mésocycles, microcycles et semaines de décharge permettent de progresser sans casser.",
+      es: 'La sobrecarga progresiva es imprescindible para mejorar, pero subir demasiado rápido provoca lesiones. Descubre cómo los mesociclos, los microciclos y las semanas de descarga te permiten progresar sin romperte.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleProgressiveOverload: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You want to get faster. So you train harder. Week 1: 40km. Week 2:
@@ -118,31 +118,40 @@ export const articleProgressiveOverload: BlogPost = {
 
         <p>The result? Injuries, burnout, and stalled progress.</p>
 
-        <h2>How AI Manages Progressive Overload</h2>
-        <p>OpenAthlete's AI solves this by:</p>
-
+        <h2>How to Manage Progressive Overload</h2>
         <p>
-          <strong>1. Calculating Optimal Load Increases</strong>
-        </p>
-        <p>
-          Based on your current fitness, goals, and history, AI determines safe
-          load increases. Typically 5-10% per week, with deload weeks every 3-4
-          weeks.
+          Four habits fix most of it, and OpenAthlete puts the numbers for each
+          in one place:
         </p>
 
         <p>
-          <strong>2. Monitoring ACWR</strong>
+          <strong>1. Raising Load Gradually</strong>
         </p>
         <p>
-          AI tracks your Acute:Chronic Workload Ratio continuously. When ACWR
-          approaches 1.5 (danger zone), it reduces load automatically. This
-          prevents the spikes that cause injuries.
+          Keep increases to roughly 5-10% per week, with a deload week every 3-4
+          weeks. In OpenAthlete, the weekly summary shows load done and planned
+          against a recommended range, so a jump stands out before you run it.
+        </p>
+
+        <p>
+          <strong>2. Watching Acute vs Chronic Load</strong>
+        </p>
+        <p>
+          The Acute:Chronic Workload Ratio compares last week with the last
+          month or so. OpenAthlete tracks the same idea with fitness (CTL, 42
+          days), fatigue (ATL, 7 days) and form (TSB), projected over your
+          planned sessions. When fatigue climbs far above fitness, that's your
+          cue to back off. The app shows where the plan is heading; it doesn't
+          cut the load for you.
         </p>
 
         <p>
           <strong>3. Planning Mesocycles</strong>
         </p>
-        <p>AI structures training into mesocycles with clear phases:</p>
+        <p>
+          Structure training into mesocycles with clear phases (in OpenAthlete,
+          drawn as blocks on the season view):
+        </p>
         <ul>
           <li>Weeks 1-3: Build phase (increasing load)</li>
           <li>Week 4: Deload week (reduced load for adaptation)</li>
@@ -158,9 +167,10 @@ export const articleProgressiveOverload: BlogPost = {
           <strong>4. Adjusting Based on RPE</strong>
         </p>
         <p>
-          If your RPE is consistently elevated, AI reduces load even if volume
-          looks "safe" on paper. This prevents overreaching before it becomes
-          overtraining.
+          Log RPE after each session (or answer the short post-activity
+          questions, from which the AI extracts it). If your RPE stays elevated,
+          reduce load even if volume looks "safe" on paper. This prevents
+          overreaching before it becomes overtraining.
         </p>
 
         <h2>The Progress Zone vs. Red Zone</h2>
@@ -185,15 +195,15 @@ export const articleProgressiveOverload: BlogPost = {
         </ul>
 
         <p>
-          AI keeps you in the progress zone. When you drift toward the red zone,
-          it intervenes—reducing load, adding recovery, preventing problems
-          before they occur.
+          The goal is to stay in the progress zone. When you drift toward the
+          red zone, step in early: reduce load and add recovery before problems
+          occur.
         </p>
 
         <h2>Real-World Example</h2>
         <p>
           Sarah wanted to increase her weekly volume from 40km to 60km over 8
-          weeks. Without AI:
+          weeks. Too fast:
         </p>
         <ul>
           <li>Week 1: 40km</li>
@@ -203,7 +213,7 @@ export const articleProgressiveOverload: BlogPost = {
           <li>Week 5: Injured</li>
         </ul>
 
-        <p>With OpenAthlete's AI:</p>
+        <p>With gradual steps and deload weeks:</p>
         <ul>
           <li>Week 1: 40km</li>
           <li>Week 2: 42km (5% increase)</li>
@@ -236,10 +246,11 @@ export const articleProgressiveOverload: BlogPost = {
         </ul>
 
         <p>
-          AI manages all of this automatically. You don't have to calculate load
-          increases, plan deload weeks, or monitor ACWR manually. The system
-          does it for you, keeping you in the progress zone and out of the red
-          zone.
+          OpenAthlete doesn't make these calls for you, but it puts the pieces
+          side by side: weekly load against a recommended range, fitness,
+          fatigue and form projected over your plan, RPE on every session, and
+          training blocks on a season view. You or your coach decide, with the
+          numbers in front of you.
         </p>
 
         <p>
@@ -247,15 +258,15 @@ export const articleProgressiveOverload: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and let AI manage your progressive overload, ensuring you improve
-          consistently without breaking down.
+          and see your load ramp before you run it, so you improve without
+          breaking down.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous voulez devenir plus rapide. Donc vous vous entraînez plus dur.
@@ -343,32 +354,41 @@ export const articleProgressiveOverload: BlogPost = {
 
         <p>Le résultat ? Blessures, épuisement et progrès bloqués.</p>
 
-        <h2>Comment l'IA Gère la Surcharge Progressive</h2>
-        <p>L'IA d'OpenAthlete résout cela en :</p>
-
+        <h2>Comment Gérer la Surcharge Progressive</h2>
         <p>
-          <strong>1. Calculant les Augmentations de Charge Optimales</strong>
-        </p>
-        <p>
-          Basé sur votre forme actuelle, objectifs et historique, l'IA détermine
-          des augmentations de charge sûres. Typiquement 5-10% par semaine, avec
-          des semaines de décharge toutes les 3-4 semaines.
+          Quatre habitudes règlent l'essentiel, et OpenAthlete réunit les
+          chiffres de chacune au même endroit :
         </p>
 
         <p>
-          <strong>2. Surveillant l'ACWR</strong>
+          <strong>1. Augmenter la Charge Progressivement</strong>
         </p>
         <p>
-          L'IA suit votre Ratio Charge Aiguë:Chronique en continu. Quand l'ACWR
-          approche 1,5 (zone de danger), elle réduit la charge automatiquement.
-          Cela prévient les pics qui causent des blessures.
+          Limitez les hausses à environ 5-10 % par semaine, avec une semaine de
+          décharge toutes les 3-4 semaines. Dans OpenAthlete, le résumé
+          hebdomadaire affiche la charge réalisée et prévue face à une
+          fourchette recommandée : un bond saute aux yeux avant même de courir.
         </p>
 
         <p>
-          <strong>3. Planifiant les Mésocycles</strong>
+          <strong>2. Surveiller la Charge Aiguë et Chronique</strong>
         </p>
         <p>
-          L'IA structure l'entraînement en mésocycles avec des phases claires :
+          Le ratio charge aiguë/chronique (ACWR) compare la dernière semaine au
+          dernier mois environ. OpenAthlete suit la même idée avec la forme de
+          fond (CTL, 42 jours), la fatigue (ATL, 7 jours) et la fraîcheur (TSB),
+          projetées sur vos séances prévues. Quand la fatigue grimpe nettement
+          au-dessus de la forme de fond, c'est le signal pour lever le pied.
+          L'application montre où va le plan ; elle ne réduit pas la charge à
+          votre place.
+        </p>
+
+        <p>
+          <strong>3. Planifier les Mésocycles</strong>
+        </p>
+        <p>
+          Structurez l'entraînement en mésocycles aux phases claires (dans
+          OpenAthlete, sous forme de blocs dans la vue saison) :
         </p>
         <ul>
           <li>Semaines 1-3 : Phase de construction (augmentation de charge)</li>
@@ -385,12 +405,14 @@ export const articleProgressiveOverload: BlogPost = {
         </p>
 
         <p>
-          <strong>4. Ajustant Basé sur le RPE</strong>
+          <strong>4. Ajuster selon le RPE</strong>
         </p>
         <p>
-          Si votre RPE est constamment élevé, l'IA réduit la charge même si le
-          volume semble "sûr" sur papier. Cela prévient le surentraînement avant
-          qu'il ne devienne du surentraînement.
+          Notez votre RPE après chaque séance (ou répondez aux quelques
+          questions post-activité, dont l'IA l'extrait). Si votre RPE reste
+          élevé, réduisez la charge même si le volume semble « sûr » sur le
+          papier. Cela prévient le surentraînement avant qu'il ne devienne du
+          surentraînement.
         </p>
 
         <h2>La Zone de Progrès vs Zone Rouge</h2>
@@ -415,15 +437,15 @@ export const articleProgressiveOverload: BlogPost = {
         </ul>
 
         <p>
-          L'IA vous garde dans la zone de progrès. Quand vous dérivez vers la
-          zone rouge, elle intervient—réduisant la charge, ajoutant de la
-          récupération, prévenant les problèmes avant qu'ils ne surviennent.
+          L'objectif est de rester dans la zone de progrès. Quand vous dérivez
+          vers la zone rouge, réagissez tôt : réduisez la charge et ajoutez de
+          la récupération avant que les problèmes n'arrivent.
         </p>
 
         <h2>Exemple Concret</h2>
         <p>
           Sarah voulait augmenter son volume hebdomadaire de 40km à 60km sur 8
-          semaines. Sans IA :
+          semaines. Trop vite :
         </p>
         <ul>
           <li>Semaine 1 : 40km</li>
@@ -433,7 +455,7 @@ export const articleProgressiveOverload: BlogPost = {
           <li>Semaine 5 : Blessée</li>
         </ul>
 
-        <p>Avec l'IA d'OpenAthlete :</p>
+        <p>Avec des paliers progressifs et des semaines de décharge :</p>
         <ul>
           <li>Semaine 1 : 40km</li>
           <li>Semaine 2 : 42km (5% d'augmentation)</li>
@@ -466,10 +488,11 @@ export const articleProgressiveOverload: BlogPost = {
         </ul>
 
         <p>
-          L'IA gère tout cela automatiquement. Vous n'avez pas à calculer les
-          augmentations de charge, planifier les semaines de décharge ou
-          surveiller l'ACWR manuellement. Le système le fait pour vous, vous
-          gardant dans la zone de progrès et hors de la zone rouge.
+          OpenAthlete ne prend pas ces décisions à votre place, mais il met les
+          éléments côte à côte : charge hebdomadaire face à une fourchette
+          recommandée, forme, fatigue et fraîcheur projetées sur votre plan, RPE
+          de chaque séance et blocs d'entraînement dans la vue saison. Vous ou
+          votre coach décidez, chiffres sous les yeux.
         </p>
 
         <p>
@@ -480,15 +503,15 @@ export const articleProgressiveOverload: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et laissez l'IA gérer votre surcharge progressive, assurant que vous
-          vous améliorez constamment sans vous casser.
+          et voyez votre montée en charge avant de la courir, pour progresser
+          sans vous casser.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Quieres ser más rápido. Así que entrenas más fuerte. Semana 1: 40
@@ -575,31 +598,41 @@ export const articleProgressiveOverload: BlogPost = {
 
         <p>¿El resultado? Lesiones, agotamiento y progresos estancados.</p>
 
-        <h2>Cómo gestiona la IA la sobrecarga progresiva</h2>
-        <p>La IA de OpenAthlete lo resuelve así:</p>
-
+        <h2>Cómo gestionar la sobrecarga progresiva</h2>
         <p>
-          <strong>1. Calcula los aumentos de carga óptimos</strong>
-        </p>
-        <p>
-          A partir de tu forma actual, tus objetivos y tu historial, la IA
-          determina aumentos de carga seguros. Normalmente entre un 5 y un 10 %
-          por semana, con semanas de descarga cada 3-4 semanas.
+          Cuatro hábitos resuelven casi todo, y OpenAthlete reúne las cifras de
+          cada uno en un mismo sitio:
         </p>
 
         <p>
-          <strong>2. Vigila el ACWR</strong>
+          <strong>1. Sube la carga poco a poco</strong>
         </p>
         <p>
-          La IA sigue de forma continua tu ratio de carga aguda:crónica (ACWR).
-          Cuando el ACWR se acerca a 1,5 (zona de peligro), reduce la carga
-          automáticamente. Así evita los picos que provocan lesiones.
+          Limita los aumentos a un 5-10 % por semana, con una semana de descarga
+          cada 3-4 semanas. En OpenAthlete, el resumen semanal muestra la carga
+          hecha y planificada frente a un rango recomendado, así que un salto se
+          ve antes de correrlo.
+        </p>
+
+        <p>
+          <strong>2. Vigila la carga aguda y crónica</strong>
+        </p>
+        <p>
+          El ratio de carga aguda:crónica (ACWR) compara la última semana con el
+          último mes, más o menos. OpenAthlete sigue la misma idea con la forma
+          (CTL, 42 días), la fatiga (ATL, 7 días) y el estado de forma (TSB),
+          proyectados sobre tus sesiones planificadas. Cuando la fatiga sube muy
+          por encima de la forma, toca aflojar. La aplicación muestra hacia
+          dónde va el plan; no reduce la carga por ti.
         </p>
 
         <p>
           <strong>3. Planifica los mesociclos</strong>
         </p>
-        <p>La IA organiza el entrenamiento en mesociclos con fases claras:</p>
+        <p>
+          Organiza el entrenamiento en mesociclos con fases claras (en
+          OpenAthlete, como bloques en la vista de temporada):
+        </p>
         <ul>
           <li>Semanas 1-3: fase de desarrollo (carga creciente)</li>
           <li>Semana 4: semana de descarga (carga reducida para asimilar)</li>
@@ -616,9 +649,11 @@ export const articleProgressiveOverload: BlogPost = {
           <strong>4. Ajusta según el RPE</strong>
         </p>
         <p>
-          Si tu RPE se mantiene elevado, la IA reduce la carga aunque el volumen
-          parezca «seguro» sobre el papel. Así frena la sobrecarga excesiva
-          antes de que se convierta en sobreentrenamiento.
+          Anota tu RPE después de cada sesión (o responde a las breves preguntas
+          posactividad, de las que la IA lo extrae). Si tu RPE se mantiene
+          elevado, reduce la carga aunque el volumen parezca «seguro» sobre el
+          papel. Así frena la sobrecarga excesiva antes de que se convierta en
+          sobreentrenamiento.
         </p>
 
         <h2>Zona de progreso frente a zona roja</h2>
@@ -643,14 +678,15 @@ export const articleProgressiveOverload: BlogPost = {
         </ul>
 
         <p>
-          La IA te mantiene en la zona de progreso. Cuando te desvías hacia la
-          zona roja, interviene: reduce la carga, añade recuperación y evita los
-          problemas antes de que aparezcan.
+          El objetivo es quedarse en la zona de progreso. Cuando te desvías
+          hacia la zona roja, actúa pronto: reduce la carga y añade recuperación
+          antes de que aparezcan los problemas.
         </p>
 
         <h2>Un ejemplo real</h2>
         <p>
-          Sarah quería pasar de 40 km a 60 km semanales en 8 semanas. Sin IA:
+          Sarah quería pasar de 40 km a 60 km semanales en 8 semanas. Demasiado
+          rápido:
         </p>
         <ul>
           <li>Semana 1: 40 km</li>
@@ -660,7 +696,7 @@ export const articleProgressiveOverload: BlogPost = {
           <li>Semana 5: lesionada</li>
         </ul>
 
-        <p>Con la IA de OpenAthlete:</p>
+        <p>Con aumentos graduales y semanas de descarga:</p>
         <ul>
           <li>Semana 1: 40 km</li>
           <li>Semana 2: 42 km (un 5 % más)</li>
@@ -693,10 +729,11 @@ export const articleProgressiveOverload: BlogPost = {
         </ul>
 
         <p>
-          La IA gestiona todo esto automáticamente. No tienes que calcular los
-          aumentos de carga, planificar las semanas de descarga ni vigilar el
-          ACWR a mano. El sistema lo hace por ti y te mantiene en la zona de
-          progreso, lejos de la zona roja.
+          OpenAthlete no toma estas decisiones por ti, pero pone las piezas una
+          junto a otra: carga semanal frente a un rango recomendado, forma,
+          fatiga y estado de forma proyectados sobre tu plan, RPE de cada sesión
+          y bloques de entrenamiento en la vista de temporada. Tú o tu
+          entrenador decidís con las cifras delante.
         </p>
 
         <p>
@@ -704,8 +741,8 @@ export const articleProgressiveOverload: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y deja que la IA gestione tu sobrecarga progresiva para que mejores de
-          forma constante sin romperte.
+          y mira cómo sube tu carga antes de correrla, para mejorar sin
+          romperte.
         </p>
       </div>
     );

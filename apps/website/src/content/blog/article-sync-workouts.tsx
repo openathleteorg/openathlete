@@ -9,14 +9,14 @@ export const articleSyncWorkouts: BlogPost = {
       es: 'Cómo sincronizar entrenamientos con Garmin, Suunto y Polar',
     },
     description: {
-      en: 'Tutorial: "Gateway" article. Show how to sync manually, then show how OpenAthlete does it automatically.',
-      fr: 'Tutoriel : Article "passerelle". Montrez comment synchroniser manuellement, puis montrez comment OpenAthlete le fait automatiquement.',
-      es: 'Tutorial: artículo de «puerta de entrada». Cómo sincronizar a mano y cómo lo hace OpenAthlete de forma automática.',
+      en: 'How to get structured workouts onto a Garmin, Suunto or Polar watch by hand, and how OpenAthlete sends them to Garmin, Suunto and COROS for you.',
+      fr: 'Envoyer une séance structurée sur une montre Garmin, Suunto ou Polar à la main, et laisser OpenAthlete le faire pour vous vers Garmin, Suunto et COROS.',
+      es: 'Cómo pasar entrenamientos estructurados a un reloj Garmin, Suunto o Polar a mano, y cómo OpenAthlete los envía por ti a Garmin, Suunto y COROS.',
     },
     excerpt: {
-      en: 'Learn how to send workouts to your watch manually, then discover how OpenAthlete automates this process for seamless training execution.',
-      fr: "Apprenez comment envoyer des entraînements à votre montre manuellement, puis découvrez comment OpenAthlete automatise ce processus pour une exécution d'entraînement transparente.",
-      es: 'Aprende a enviar entrenamientos a tu reloj a mano y descubre cómo OpenAthlete automatiza el proceso para que ejecutes tus sesiones sin complicaciones.',
+      en: 'Learn how to send workouts to your watch manually, then see how OpenAthlete sends them to Garmin, Suunto and COROS for you.',
+      fr: 'Apprenez comment envoyer des entraînements à votre montre manuellement, puis voyez comment OpenAthlete les envoie pour vous vers Garmin, Suunto et COROS.',
+      es: 'Aprende a enviar entrenamientos a tu reloj a mano y descubre cómo OpenAthlete los envía por ti a Garmin, Suunto y COROS.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleSyncWorkouts: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You have a training plan. You want it on your watch. But how? Manual
@@ -46,8 +46,7 @@ export const articleSyncWorkouts: BlogPost = {
 
         <p>
           This guide shows you how to sync workouts to your watch—both manually
-          and automatically. Whether you use Garmin, Suunto, or Polar, we'll
-          cover the options.
+          and automatically. Garmin, Suunto or Polar: we'll cover the options.
         </p>
 
         <h2>Manual Sync Methods</h2>
@@ -92,8 +91,9 @@ export const articleSyncWorkouts: BlogPost = {
         <p>OpenAthlete automates this entire process:</p>
         <ul>
           <li>
-            <strong>One-click sync:</strong> Plans appear on your watch
-            instantly
+            <strong>Automatic sync:</strong> Connect your account once, and
+            planned structured workouts go to Garmin Connect, the Suunto app or
+            the COROS app, then to your watch at its next sync
           </li>
           <li>
             <strong>Automatic updates:</strong> When plans change, watch updates
@@ -103,8 +103,9 @@ export const articleSyncWorkouts: BlogPost = {
             <strong>Error-free:</strong> No manual entry mistakes
           </li>
           <li>
-            <strong>Multi-device:</strong> Works with Garmin, Suunto, Polar, and
-            more
+            <strong>Three brands:</strong> Garmin, Suunto and COROS (running,
+            trail and cycling on COROS). Polar doesn't receive workouts from
+            OpenAthlete yet, though your Polar activities are still imported
           </li>
         </ul>
 
@@ -112,7 +113,7 @@ export const articleSyncWorkouts: BlogPost = {
           <strong>How it works:</strong>
         </p>
         <ol>
-          <li>Coach creates plan in OpenAthlete</li>
+          <li>You or your coach plan sessions in OpenAthlete</li>
           <li>Plan syncs to athlete's watch automatically</li>
           <li>Athlete sees workout on watch, ready to execute</li>
           <li>When plan updates, watch updates automatically</li>
@@ -122,7 +123,7 @@ export const articleSyncWorkouts: BlogPost = {
         <p>
           Manual sync works, but it's tedious. Automatic sync saves time,
           prevents errors, and ensures your watch always has the latest plan.
-          OpenAthlete makes this seamless.
+          OpenAthlete does it for Garmin, Suunto and COROS.
         </p>
 
         <p>
@@ -130,14 +131,15 @@ export const articleSyncWorkouts: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and experience automatic workout sync to your watch.
+          and send your workouts to your Garmin, Suunto or COROS watch without
+          retyping them.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous avez un plan d'entraînement. Vous le voulez sur votre montre.
@@ -194,8 +196,10 @@ export const articleSyncWorkouts: BlogPost = {
         <p>OpenAthlete automatise tout ce processus :</p>
         <ul>
           <li>
-            <strong>Synchronisation en un clic :</strong> Les plans apparaissent
-            sur votre montre instantanément
+            <strong>Synchronisation automatique :</strong> Connectez votre
+            compte une fois, et les séances structurées prévues partent vers
+            Garmin Connect, l'app Suunto ou l'app COROS, puis sur votre montre à
+            sa prochaine synchronisation
           </li>
           <li>
             <strong>Mises à jour automatiques :</strong> Quand les plans
@@ -205,8 +209,9 @@ export const articleSyncWorkouts: BlogPost = {
             <strong>Sans erreur :</strong> Pas d'erreurs de saisie manuelle
           </li>
           <li>
-            <strong>Multi-appareil :</strong> Fonctionne avec Garmin, Suunto,
-            Polar et plus
+            <strong>Trois marques :</strong> Garmin, Suunto et COROS (course à
+            pied, trail et vélo chez COROS). Polar ne reçoit pas encore les
+            séances d'OpenAthlete, mais vos activités Polar sont bien importées
           </li>
         </ul>
 
@@ -214,7 +219,7 @@ export const articleSyncWorkouts: BlogPost = {
           <strong>Comment ça fonctionne :</strong>
         </p>
         <ol>
-          <li>Le coach crée le plan dans OpenAthlete</li>
+          <li>Vous ou votre coach planifiez les séances dans OpenAthlete</li>
           <li>
             Le plan se synchronise sur la montre de l'athlète automatiquement
           </li>
@@ -229,7 +234,7 @@ export const articleSyncWorkouts: BlogPost = {
           La synchronisation manuelle fonctionne, mais c'est fastidieux. La
           synchronisation automatique économise du temps, prévient les erreurs
           et assure que votre montre a toujours le dernier plan. OpenAthlete
-          rend cela transparent.
+          s'en charge pour Garmin, Suunto et COROS.
         </p>
 
         <p>
@@ -240,15 +245,15 @@ export const articleSyncWorkouts: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et découvrez la synchronisation automatique des entraînements sur
-          votre montre.
+          et envoyez vos séances sur votre montre Garmin, Suunto ou COROS sans
+          les ressaisir.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Tienes un plan de entrenamiento. Lo quieres en tu reloj. Pero ¿cómo?
@@ -305,8 +310,10 @@ export const articleSyncWorkouts: BlogPost = {
         <p>OpenAthlete automatiza todo el proceso:</p>
         <ul>
           <li>
-            <strong>Sincronización en un clic:</strong> los planes aparecen al
-            instante en tu reloj
+            <strong>Sincronización automática:</strong> conecta tu cuenta una
+            vez y los entrenamientos estructurados planificados llegan a Garmin
+            Connect, la app de Suunto o la app de COROS, y de ahí a tu reloj en
+            su siguiente sincronización
           </li>
           <li>
             <strong>Actualizaciones automáticas:</strong> cuando el plan cambia,
@@ -317,8 +324,9 @@ export const articleSyncWorkouts: BlogPost = {
             datos a mano
           </li>
           <li>
-            <strong>Multidispositivo:</strong> funciona con Garmin, Suunto,
-            Polar y más
+            <strong>Tres marcas:</strong> Garmin, Suunto y COROS (carrera, trail
+            y ciclismo en COROS). Polar todavía no recibe entrenamientos de
+            OpenAthlete, aunque tus actividades de Polar sí se importan
           </li>
         </ul>
 
@@ -326,7 +334,7 @@ export const articleSyncWorkouts: BlogPost = {
           <strong>Cómo funciona:</strong>
         </p>
         <ol>
-          <li>El entrenador crea el plan en OpenAthlete</li>
+          <li>Tú o tu entrenador planificáis las sesiones en OpenAthlete</li>
           <li>El plan se sincroniza automáticamente con el reloj del atleta</li>
           <li>El atleta ve la sesión en su reloj, lista para hacerla</li>
           <li>Cuando el plan cambia, el reloj se actualiza automáticamente</li>
@@ -336,8 +344,8 @@ export const articleSyncWorkouts: BlogPost = {
         <p>
           La sincronización manual funciona, pero es tediosa. La sincronización
           automática ahorra tiempo, evita errores y garantiza que tu reloj tenga
-          siempre la última versión del plan. OpenAthlete lo hace sin
-          complicaciones.
+          siempre la última versión del plan. OpenAthlete lo hace por ti con
+          Garmin, Suunto y COROS.
         </p>
 
         <p>
@@ -345,7 +353,8 @@ export const articleSyncWorkouts: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y prueba la sincronización automática de entrenamientos con tu reloj.
+          y envía tus entrenamientos a tu reloj Garmin, Suunto o COROS sin
+          volver a escribirlos.
         </p>
       </div>
     );

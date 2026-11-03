@@ -1,11 +1,69 @@
 import { ConsentBanner } from '@/components/consent/consent-banner';
-import { HtmlLang } from '@/components/seo/html-lang';
-import { setLocale } from '@/paraglide/runtime.js';
-import { DEFAULT_LOCALE, isSupportedLocale } from '@/utils/locales';
-import { notFound } from 'next/navigation';
-import Script from 'next/script';
+import {
+  OrganizationStructuredData,
+  WebSiteStructuredData,
+} from '@/components/seo/structured-data';
+import { Footer } from '@/components/site/footer';
+import { Header } from '@/components/site/header';
+import { LocaleSuggestion } from '@/components/site/locale-suggestion';
+import { SITE_URL } from '@/config';
+import { LocaleProvider } from '@/i18n/provider';
+import { SUPPORTED_LOCALES, initLocale } from '@/i18n/server';
+import { htmlLang, localePath } from '@/utils/locales';
+import type { Metadata, Viewport } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
 
-import { Providers } from '../providers';
+import '../globals.css';
+
+const geist = Geist({
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-geist',
+  display: 'swap',
+});
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
+  variable: '--font-geist-mono',
+  display: 'swap',
+});
+
+/* eslint-disable react-refresh/only-export-components */
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: { default: 'OpenAthlete', template: '%s | OpenAthlete' },
+  applicationName: 'OpenAthlete',
+  authors: [{ name: 'OpenAthlete' }],
+  creator: 'OpenAthlete',
+  formatDetection: { telephone: false },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  icons: {
+    icon: [{ url: '/favicon.png', type: 'image/png' }],
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#ffffff',
+  width: 'device-width',
+  initialScale: 1,
+};
+
+export function generateStaticParams() {
+  return SUPPORTED_LOCALES.map((locale) => ({ locale }));
+}
+
+export const dynamicParams = false;
+/* eslint-enable react-refresh/only-export-components */
 
 export default async function LocaleLayout({
   children,
@@ -14,61 +72,26 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-
-  // Validate locale
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  // Set locale for Paraglide (server-side)
-  setLocale(locale);
-
-  // The locale codes are valid HTML lang values
-  const htmlLang = locale;
+  const locale = initLocale((await params).locale);
 
   return (
-    <>
-      {/* Set HTML lang attribute synchronously before React renders */}
-      <Script
-        id="set-html-lang"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              if (typeof document !== 'undefined') {
-                document.documentElement.lang = '${htmlLang}';
-              }
-            })();
-          `,
-        }}
-      />
-      {/* Set locale synchronously before React renders */}
-      <Script
-        id="set-locale"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              if (typeof window !== 'undefined') {
-                window.__PARAGLIDE_LOCALE__ = '${locale}';
-              }
-            })();
-          `,
-        }}
-      />
-      {/* Client-side fallback for lang attribute */}
-      <HtmlLang locale={locale} />
-      <Providers locale={locale}>
-        {children}
-        <ConsentBanner
-          privacyPolicyHref={
-            locale === DEFAULT_LOCALE
-              ? '/privacy-policy'
-              : `/${locale}/privacy-policy`
-          }
-        />
-      </Providers>
-    </>
+    <html
+      lang={htmlLang(locale)}
+      className={`${geist.variable} ${geistMono.variable}`}
+    >
+      <body className="font-sans">
+        <OrganizationStructuredData />
+        <WebSiteStructuredData locale={locale} />
+        <LocaleProvider locale={locale}>
+          <LocaleSuggestion />
+          <Header />
+          <main id="main">{children}</main>
+          <Footer locale={locale} />
+          <ConsentBanner
+            privacyPolicyHref={localePath(locale, '/privacy-policy')}
+          />
+        </LocaleProvider>
+      </body>
+    </html>
   );
 }

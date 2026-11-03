@@ -9,9 +9,9 @@ export const article3: BlogPost = {
       es: 'Prevenir lesiones en el entrenamiento: un enfoque basado en datos',
     },
     description: {
-      en: 'Learn how data analysis and early warning systems can help prevent common endurance training injuries before they occur.',
-      fr: "Découvrez comment l'analyse de données et les systèmes d'alerte précoce peuvent aider à prévenir les blessures courantes de l'entraînement d'endurance avant qu'elles ne surviennent.",
-      es: 'Descubre cómo el análisis de datos y los sistemas de alerta temprana pueden ayudar a prevenir las lesiones más habituales del entrenamiento de resistencia antes de que aparezcan.',
+      en: 'The warning signs that come before most running injuries (load spikes, falling HRV, harder sessions) and how to adjust training when they appear.',
+      fr: "Les signaux qui précèdent la plupart des blessures (pics de charge, VFC en baisse, séances plus dures) et comment ajuster l'entraînement à temps.",
+      es: 'Las señales que preceden a la mayoría de las lesiones (picos de carga, VFC a la baja, sesiones más duras) y cómo ajustar el entrenamiento a tiempo.',
     },
     excerpt: {
       en: 'Most training injuries are preventable with the right data and early intervention. Discover how modern technology is making injury prevention more accessible.',
@@ -30,7 +30,7 @@ export const article3: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           Injury prevention is one of the most critical aspects of endurance
           training. Yet, many athletes and coaches struggle to identify warning
@@ -79,8 +79,8 @@ export const article3: BlogPost = {
         <h2>Proactive Adjustments</h2>
         <p>
           The key to injury prevention isn't just detecting problems—it's making
-          proactive adjustments. When warning signs appear, the system can
-          suggest:
+          proactive adjustments. When warning signs appear, the usual responses
+          are:
         </p>
         <ul>
           <li>Reduced training volume</li>
@@ -89,12 +89,15 @@ export const article3: BlogPost = {
           <li>Cross-training alternatives</li>
         </ul>
 
-        <h2>Real Results</h2>
+        <h2>What OpenAthlete Does</h2>
         <p>
-          Coaches using OpenAthlete report up to 30% reduction in
-          fatigue-related incidents. By catching problems early and making
-          timely adjustments, athletes can maintain consistent progress without
-          the setbacks that come with injury.
+          In OpenAthlete, a few short questions after each activity record
+          effort and any pain, answered by text, choice or voice. Reported pain
+          goes into an injury log and shows up in the coach's "To watch" list.
+          Fitness, fatigue and form are projected over planned sessions, so a
+          load spike is visible before it happens. By catching problems early
+          and making timely adjustments, athletes can maintain consistent
+          progress without the setbacks that come with injury.
         </p>
 
         <p>
@@ -107,7 +110,7 @@ export const article3: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           La prévention des blessures est l'un des aspects les plus critiques de
           l'entraînement d'endurance. Pourtant, de nombreux athlètes et coachs
@@ -163,7 +166,7 @@ export const article3: BlogPost = {
         <p>
           La clé de la prévention des blessures n'est pas seulement de détecter
           les problèmes—c'est de faire des ajustements proactifs. Lorsque des
-          signaux d'alerte apparaissent, le système peut suggérer :
+          signaux d'alerte apparaissent, les réponses habituelles sont :
         </p>
         <ul>
           <li>Réduction du volume d'entraînement</li>
@@ -172,11 +175,15 @@ export const article3: BlogPost = {
           <li>Alternatives de cross-training</li>
         </ul>
 
-        <h2>Résultats Réels</h2>
+        <h2>Ce que fait OpenAthlete</h2>
         <p>
-          Les coachs utilisant OpenAthlete rapportent jusqu'à 30% de réduction
-          des incidents liés à la fatigue. En détectant les problèmes tôt et en
-          faisant des ajustements rapides, les athlètes peuvent maintenir une
+          Dans OpenAthlete, quelques questions courtes après chaque activité
+          relèvent l'effort et les éventuelles douleurs, avec une réponse
+          écrite, à choix ou vocale. Une douleur signalée entre dans le suivi
+          des blessures et apparaît dans la liste « À surveiller » du coach. La
+          forme et la fatigue sont projetées sur les séances planifiées : un pic
+          de charge se voit avant d'arriver. En détectant les problèmes tôt et
+          en faisant des ajustements rapides, les athlètes peuvent maintenir une
           progression constante sans les revers qui accompagnent les blessures.
         </p>
 
@@ -191,7 +198,7 @@ export const article3: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           La prevención de lesiones es uno de los aspectos más importantes del
           entrenamiento de resistencia. Aun así, muchos atletas y entrenadores
@@ -242,8 +249,8 @@ export const article3: BlogPost = {
         <h2>Ajustes proactivos</h2>
         <p>
           La clave para prevenir lesiones no es solo detectar los problemas,
-          sino hacer ajustes proactivos. Cuando aparecen señales de alerta, el
-          sistema puede proponer:
+          sino hacer ajustes proactivos. Cuando aparecen señales de alerta, las
+          respuestas habituales son:
         </p>
         <ul>
           <li>Reducir el volumen de entrenamiento</li>
@@ -252,12 +259,16 @@ export const article3: BlogPost = {
           <li>Alternativas de entrenamiento cruzado</li>
         </ul>
 
-        <h2>Resultados reales</h2>
+        <h2>Lo que hace OpenAthlete</h2>
         <p>
-          Los entrenadores que usan OpenAthlete observan hasta un 30% menos de
-          incidencias relacionadas con la fatiga. Detectando los problemas a
-          tiempo y ajustando el plan en el momento oportuno, los atletas pueden
-          progresar de forma constante sin los parones que conlleva una lesión.
+          En OpenAthlete, unas pocas preguntas después de cada actividad
+          registran el esfuerzo y el posible dolor, con respuesta escrita, de
+          opción o por voz. El dolor indicado pasa a un registro de lesiones y
+          aparece en la lista «A vigilar» del entrenador. La forma y la fatiga
+          se proyectan sobre las sesiones planificadas, así que un pico de carga
+          se ve antes de que llegue. Detectando los problemas a tiempo y
+          ajustando el plan en el momento oportuno, los atletas pueden progresar
+          de forma constante sin los parones que conlleva una lesión.
         </p>
 
         <p>

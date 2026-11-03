@@ -1,182 +1,109 @@
-import { Container } from '@/components/landing/container';
-import { Footer, Navbar } from '@/components/landing/sections';
-import { BreadcrumbListStructuredData } from '@/components/seo/structured-data';
-import { WebPageStructuredData } from '@/components/seo/structured-data';
+import { postHref } from '@/components/blog/links';
+import { FeaturedPost, PostCard } from '@/components/blog/post-card';
+import {
+  BreadcrumbListStructuredData,
+  ItemListStructuredData,
+} from '@/components/seo/structured-data';
+import { CtaBand } from '@/components/site/cta-band';
+import { Container } from '@/components/site/layout-primitives';
+import { RevealGroup, RevealItem } from '@/components/site/reveal';
 import { SITE_URL } from '@/config';
 import { getAllPosts, getPostText } from '@/content/blog';
+import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
-import {
-  formatLongDate,
-  isSupportedLocale,
-  languageAlternates,
-  localePrefix,
-} from '@/utils/locales';
-import { Calendar, Clock } from 'lucide-react';
-import type { Metadata } from 'next';
-import Image from 'next/image';
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { localizedUrl } from '@/utils/locales';
 
-import { generateMetadata as generatePageMetadata } from '../../metadata';
+import { generateMetadata as pageMetadata } from '../../metadata';
 
-/* eslint-disable react-refresh/only-export-components */
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
+type Props = { params: Promise<{ locale: string }> };
 
-  const metadata = generatePageMetadata({ locale });
-  // Canonical URL should always point to the English version
-  const canonicalUrl = `${SITE_URL}/blog`;
-  return {
-    ...metadata,
-    title: m.blog_title(),
-    description: m.blog_description(),
-    alternates: {
-      canonical: canonicalUrl,
-      languages: languageAlternates('/blog'),
-    },
-  };
+// eslint-disable-next-line react-refresh/only-export-components
+export async function generateMetadata({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  return pageMetadata({
+    locale,
+    path: '/blog',
+    title: m.blog_seo_title(),
+    description: m.blog_seo_description(),
+  });
 }
-/* eslint-enable react-refresh/only-export-components */
 
-export default async function BlogPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  const posts = getAllPosts();
-  const blogUrl = `${SITE_URL}${localePrefix(locale)}/blog`;
+export default async function BlogPage({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  const [latest, ...rest] = getAllPosts();
 
   return (
     <>
-      <WebPageStructuredData
-        title={m.blog_title()}
-        description={m.blog_description()}
-        url={blogUrl}
-      />
       <BreadcrumbListStructuredData
         items={[
-          { name: m.blog_breadcrumb_home(), url: SITE_URL },
-          { name: m.blog_title(), url: blogUrl },
+          { name: m.blog_home(), url: localizedUrl(locale) },
+          { name: m.blog_kicker(), url: localizedUrl(locale, '/blog') },
         ]}
       />
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="py-12">
-          <Container>
-            <div className="mx-auto max-w-4xl">
-              <header className="mb-12 text-center">
-                <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                  {m.blog_title()}
-                </h1>
-                <p className="mt-4 text-lg text-muted-foreground">
-                  {m.blog_description()}
-                </p>
-              </header>
+      <ItemListStructuredData
+        name={m.blog_h1()}
+        items={getAllPosts().map((post) => ({
+          name: getPostText(post.metadata.title, locale),
+          url: `${SITE_URL}${postHref(locale, post)}`,
+        }))}
+      />
 
-              {posts.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">
-                    {m.blog_no_articles()}
+      <section className="relative overflow-hidden pt-16 pb-12 sm:pt-24 sm:pb-16">
+        <div className="dot-grid absolute inset-0 [mask-image:linear-gradient(180deg,black,transparent_85%)] opacity-70" />
+        <Container className="relative">
+          <div className="max-w-3xl">
+            <p className="kicker mb-5 text-muted-foreground">
+              {m.blog_kicker()}
+            </p>
+            <h1 className="display-1 text-ink">{m.blog_h1()}</h1>
+            <p className="lead mt-6 max-w-2xl">{m.blog_lead()}</p>
+          </div>
+        </Container>
+      </section>
+
+      {latest ? (
+        <>
+          <section className="pb-16 sm:pb-20">
+            <Container>
+              <FeaturedPost post={latest} locale={locale} />
+            </Container>
+          </section>
+
+          {rest.length > 0 && (
+            <section className="border-t border-border bg-paper py-16 sm:py-24">
+              <Container>
+                <div className="mb-10 flex items-end justify-between gap-6">
+                  <h2 className="display-3 text-ink">
+                    {m.blog_all_articles()}
+                  </h2>
+                  <p className="kicker text-muted-foreground">
+                    {m.blog_count({ count: String(rest.length + 1) })}
                   </p>
                 </div>
-              ) : (
-                <div className="space-y-8">
-                  {posts.map((post) => {
-                    const title = getPostText(post.metadata.title, locale);
-                    const excerpt = getPostText(post.metadata.excerpt, locale);
-                    const publishedDate = formatLongDate(
-                      post.metadata.publishedAt,
-                      locale,
-                    );
+                <RevealGroup className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {rest.map((post) => (
+                    <RevealItem key={post.metadata.slug} className="h-full">
+                      <PostCard post={post} locale={locale} />
+                    </RevealItem>
+                  ))}
+                </RevealGroup>
+              </Container>
+            </section>
+          )}
+        </>
+      ) : (
+        <Container className="pb-24">
+          <p className="text-muted-foreground">{m.blog_empty()}</p>
+        </Container>
+      )}
 
-                    return (
-                      <article
-                        key={post.metadata.slug}
-                        className="group rounded-lg border bg-card overflow-hidden shadow-sm transition-shadow hover:shadow-md"
-                      >
-                        <Link
-                          href={`/${locale}/blog/${post.metadata.slug}`}
-                          className="flex flex-row items-start"
-                        >
-                          {post.metadata.image && (
-                            <div className="min-h-48 h-full w-48 flex-shrink-0 overflow-hidden sm:h-56 sm:w-64">
-                              <Image
-                                src={post.metadata.image}
-                                alt={title}
-                                width={400}
-                                height={300}
-                                className="h-full w-full object-cover object-center transition-transform group-hover:scale-105"
-                              />
-                            </div>
-                          )}
-                          <div className="flex-1 p-6 flex flex-col min-h-[192px] sm:min-h-[224px]">
-                            <h2 className="text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">
-                              {title}
-                            </h2>
-                            <p className="mt-2 text-muted-foreground">
-                              {excerpt}
-                            </p>
-                            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <Calendar className="h-4 w-4" />
-                                <time dateTime={post.metadata.publishedAt}>
-                                  {publishedDate}
-                                </time>
-                              </div>
-                              {post.metadata.readingTime && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  <span>
-                                    {m.blog_read_time({
-                                      minutes: post.metadata.readingTime,
-                                    })}
-                                  </span>
-                                </div>
-                              )}
-                              {post.metadata.author && (
-                                <span>
-                                  {m.blog_by_author({
-                                    author: post.metadata.author.name,
-                                  })}
-                                </span>
-                              )}
-                            </div>
-                            {post.metadata.tags &&
-                              post.metadata.tags.length > 0 && (
-                                <div className="mt-4 flex flex-wrap gap-2">
-                                  {post.metadata.tags.map((tag) => (
-                                    <span
-                                      key={tag}
-                                      className="rounded-full bg-muted px-3 py-1 text-xs font-medium"
-                                    >
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                          </div>
-                        </Link>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </Container>
-        </div>
-        <Footer />
+      <div className="bg-paper pt-4">
+        <CtaBand
+          locale={locale}
+          placement="blog_index_final"
+          title={m.blog_final_title()}
+          body={m.blog_final_body()}
+        />
       </div>
     </>
   );

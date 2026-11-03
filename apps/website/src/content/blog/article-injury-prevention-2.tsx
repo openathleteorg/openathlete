@@ -4,19 +4,19 @@ export const articleInjuryPrevention2: BlogPost = {
   metadata: {
     slug: 'injury-prevention-2-when-algorithms-predict-the-break',
     title: {
-      en: 'Injury Prevention 2.0: When Algorithms Predict the Break',
-      fr: 'Prévention des Blessures 2.0 : Quand les Algorithmes Prédissent la Rupture',
-      es: 'Prevención de lesiones 2.0: cuando los algoritmos predicen la rotura',
+      en: 'Injury Prevention 2.0: Spotting Load Spikes Before the Break',
+      fr: 'Prévention des blessures 2.0 : repérer les pics de charge avant la rupture',
+      es: 'Prevención de lesiones 2.0: detectar los picos de carga antes de la rotura',
     },
     description: {
-      en: "Learn how Acute:Chronic Workload Ratio (ACWR) analysis prevents injuries. The danger isn't training hard—it's increasing load too fast. AI alerts you before it's too late.",
-      fr: "Apprenez comment l'analyse du Ratio Charge Aiguë:Chronique (ACWR) prévient les blessures. Le danger n'est pas de s'entraîner dur—c'est d'augmenter la charge trop vite. L'IA vous alerte avant qu'il ne soit trop tard.",
-      es: 'Descubre cómo el análisis del ratio de carga aguda:crónica (ACWR) previene lesiones. El peligro no es entrenar duro, sino aumentar la carga demasiado rápido. La IA te avisa antes de que sea tarde.',
+      en: 'What the acute:chronic workload ratio (ACWR) says about injury risk, why load spikes hurt more than hard training, and how to add volume safely.',
+      fr: "Ce que le ratio charge aiguë/chronique (ACWR) dit du risque de blessure, pourquoi les pics de charge font plus de dégâts que l'intensité.",
+      es: 'Qué dice el ratio de carga aguda:crónica (ACWR) sobre el riesgo de lesión, por qué los picos de carga son peligrosos y cómo subir volumen con seguridad.',
     },
     excerpt: {
-      en: "Most injuries happen when training load increases too quickly. ACWR analysis detects these spikes before they become problems. OpenAthlete alerts athletes before it's too late.",
-      fr: "La plupart des blessures surviennent quand la charge d'entraînement augmente trop rapidement. L'analyse ACWR détecte ces pics avant qu'ils ne deviennent des problèmes. OpenAthlete alerte les athlètes avant qu'il ne soit trop tard.",
-      es: 'La mayoría de las lesiones se producen cuando la carga de entrenamiento aumenta demasiado deprisa. El análisis del ACWR detecta estos picos antes de que se conviertan en problemas. OpenAthlete avisa a los atletas antes de que sea tarde.',
+      en: 'Most injuries happen when training load increases too quickly. ACWR analysis detects these spikes before they become problems. OpenAthlete shows your load, fitness and fatigue after every session.',
+      fr: "La plupart des blessures surviennent quand la charge d'entraînement augmente trop rapidement. L'analyse ACWR détecte ces pics avant qu'ils ne deviennent des problèmes. OpenAthlete affiche votre charge, votre forme et votre fatigue après chaque séance.",
+      es: 'La mayoría de las lesiones se producen cuando la carga de entrenamiento aumenta demasiado deprisa. El análisis del ACWR detecta estos picos antes de que se conviertan en problemas. OpenAthlete muestra tu carga, tu forma y tu fatiga después de cada sesión.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -36,7 +36,7 @@ export const articleInjuryPrevention2: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You're feeling great. Your training is going perfectly. You decide
@@ -123,21 +123,25 @@ export const articleInjuryPrevention2: BlogPost = {
           60km/week yet. You're in the injury risk zone.
         </p>
 
-        <h2>How AI Prevents This</h2>
+        <h2>How OpenAthlete Helps</h2>
         <p>
-          OpenAthlete calculates ACWR automatically after every session. It
-          tracks:
+          OpenAthlete calculates the load of every session automatically and
+          tracks the same idea with the classic fitness-fatigue model:
         </p>
         <ul>
-          <li>Your acute load (past 7 days)</li>
-          <li>Your chronic load (past 28 days)</li>
-          <li>The ratio between them</li>
-          <li>Trends over time</li>
+          <li>Fatigue (ATL): your load over roughly the past 7 days</li>
+          <li>Fitness (CTL): your load over roughly the past 42 days</li>
+          <li>Form (TSB): the gap between the two</li>
+          <li>
+            Your weekly load against a recommended range, projected over the
+            sessions you have planned
+          </li>
         </ul>
 
         <p>
-          When ACWR approaches 1.5, the system alerts you and your coach. It
-          might suggest:
+          When next week's planned load sits well above that range, you and your
+          coach see it in the calendar before the first run. Then it's your
+          call. You might:
         </p>
         <ul>
           <li>Reducing this week's volume by 10-15%</li>
@@ -146,29 +150,21 @@ export const articleInjuryPrevention2: BlogPost = {
           <li>Shifting intensity rather than volume</li>
         </ul>
 
-        <p>
-          This happens proactively—before you feel pain, before you're
-          sidelined, before your goals are derailed.
-        </p>
+        <p>The point is to decide before you feel pain, not after.</p>
 
         <h2>Beyond Simple Volume</h2>
-        <p>
-          ACWR isn't just about distance. OpenAthlete calculates load using
-          multiple factors:
-        </p>
+        <p>Load isn't just distance. OpenAthlete calculates it from:</p>
         <ul>
           <li>
-            <strong>Volume:</strong> Distance, duration, repetitions
+            <strong>Duration:</strong> how long the session lasted
           </li>
           <li>
-            <strong>Intensity:</strong> Pace, power, heart rate zones
+            <strong>Intensity:</strong> heart rate, weighted exponentially
+            (Banister TRIMP)
           </li>
           <li>
-            <strong>RPE:</strong> Perceived exertion (internal load)
-          </li>
-          <li>
-            <strong>Modality:</strong> Running vs cycling vs swimming (different
-            stress patterns)
+            <strong>RPE:</strong> perceived exertion × minutes (session RPE),
+            shown as an alternative
           </li>
         </ul>
 
@@ -180,15 +176,15 @@ export const articleInjuryPrevention2: BlogPost = {
 
         <h2>Real-World Example</h2>
         <p>
-          Marcus, a triathlete, was preparing for an Ironman. His training was
-          going well, and he felt strong. After a particularly good week, he
+          Picture Marcus, a triathlete preparing for an Ironman. His training
+          was going well, and he felt strong. After a particularly good week, he
           decided to add extra sessions.
         </p>
 
         <p>
-          OpenAthlete detected his ACWR spiking to 1.6—well into the danger
-          zone. It sent an alert to both Marcus and his coach, suggesting a 15%
-          volume reduction for the following week.
+          His coach looked at the load numbers: the last week was about 1.6
+          times his usual weekly load, well into the danger zone. The coach
+          suggested a 15% volume reduction for the following week.
         </p>
 
         <p>
@@ -210,10 +206,10 @@ export const articleInjuryPrevention2: BlogPost = {
 
         <h2>The Post-Session Analysis</h2>
         <p>
-          Here's where OpenAthlete's approach becomes powerful. After every
-          session, the platform asks for your RPE. This subjective data,
-          combined with objective metrics (pace, HR, power), creates a
-          comprehensive load picture.
+          After every session, OpenAthlete asks for your RPE (a coach can make
+          it mandatory, or the optional AI questions pick it up from your
+          answers). This subjective data, combined with objective metrics (pace,
+          HR, power), creates a comprehensive load picture.
         </p>
 
         <p>
@@ -228,9 +224,10 @@ export const articleInjuryPrevention2: BlogPost = {
         </ul>
 
         <p>
-          The AI cross-references this with ACWR. If both metrics suggest risk,
-          it takes action—adjusting future sessions, suggesting recovery,
-          alerting your coach.
+          OpenAthlete doesn't make the call for you. It puts the numbers side by
+          side, and any pain you mention in your post-session answers goes into
+          an injury log that shows up in your coach's "To watch" list. You and
+          your coach decide what to change.
         </p>
 
         <h2>The Bottom Line</h2>
@@ -251,19 +248,19 @@ export const articleInjuryPrevention2: BlogPost = {
         </p>
 
         <p>
-          <strong>Stop guessing, start training with AI today.</strong>{' '}
+          <strong>Stop guessing.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and let AI monitor your ACWR, alert you to risks, and keep you
-          training consistently toward your goals.
+          (free) and see your load, fitness and fatigue after every session,
+          with your coach looking at the same numbers.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous vous sentez bien. Votre entraînement se passe parfaitement.
@@ -362,21 +359,25 @@ export const articleInjuryPrevention2: BlogPost = {
           risque de blessure.
         </p>
 
-        <h2>Comment l'IA Prévent Cela</h2>
+        <h2>Ce qu'OpenAthlete vous montre</h2>
         <p>
-          OpenAthlete calcule l'ACWR automatiquement après chaque séance. Il
-          suit :
+          OpenAthlete calcule automatiquement la charge de chaque séance et suit
+          la même logique avec le modèle classique forme-fatigue :
         </p>
         <ul>
-          <li>Votre charge aiguë (7 derniers jours)</li>
-          <li>Votre charge chronique (28 derniers jours)</li>
-          <li>Le ratio entre eux</li>
-          <li>Les tendances dans le temps</li>
+          <li>Fatigue (ATL) : votre charge sur environ 7 jours</li>
+          <li>Forme de fond (CTL) : votre charge sur environ 42 jours</li>
+          <li>Fraîcheur (TSB) : l'écart entre les deux</li>
+          <li>
+            Votre charge hebdomadaire comparée à une fourchette recommandée,
+            projetée sur les séances prévues
+          </li>
         </ul>
 
         <p>
-          Quand l'ACWR approche 1,5, le système vous alerte, vous et votre
-          coach. Il pourrait suggérer :
+          Quand la charge prévue de la semaine suivante dépasse nettement cette
+          fourchette, vous et votre coach le voyez dans le calendrier avant la
+          première sortie. À vous de décider. Vous pouvez :
         </p>
         <ul>
           <li>Réduire le volume de cette semaine de 10-15%</li>
@@ -388,31 +389,24 @@ export const articleInjuryPrevention2: BlogPost = {
           <li>Déplacer l'intensité plutôt que le volume</li>
         </ul>
 
-        <p>
-          Cela se produit de manière proactive—avant que vous ressentiez la
-          douleur, avant que vous soyez sur la touche, avant que vos objectifs
-          ne soient déraillés.
-        </p>
+        <p>L'idée est de trancher avant d'avoir mal, pas après.</p>
 
         <h2>Au-Delà du Volume Simple</h2>
         <p>
-          L'ACWR ne concerne pas seulement la distance. OpenAthlete calcule la
-          charge en utilisant plusieurs facteurs :
+          La charge ne se résume pas à la distance. OpenAthlete la calcule à
+          partir de :
         </p>
         <ul>
           <li>
-            <strong>Volume :</strong> Distance, durée, répétitions
+            <strong>Durée :</strong> le temps passé à l'effort
           </li>
           <li>
-            <strong>Intensité :</strong> Allure, puissance, zones de fréquence
-            cardiaque
+            <strong>Intensité :</strong> la fréquence cardiaque, pondérée de
+            façon exponentielle (TRIMP de Banister)
           </li>
           <li>
-            <strong>RPE :</strong> Effort perçu (charge interne)
-          </li>
-          <li>
-            <strong>Modalité :</strong> Course vs vélo vs natation (modèles de
-            stress différents)
+            <strong>RPE :</strong> effort perçu × minutes (RPE de séance),
+            proposé comme alternative
           </li>
         </ul>
 
@@ -424,16 +418,16 @@ export const articleInjuryPrevention2: BlogPost = {
 
         <h2>Exemple Concret</h2>
         <p>
-          Marcus, un triathlète, se préparait pour un Ironman. Son entraînement
-          se passait bien, et il se sentait fort. Après une semaine
+          Imaginez Marcus, un triathlète qui préparait un Ironman. Son
+          entraînement se passait bien, et il se sentait fort. Après une semaine
           particulièrement bonne, il a décidé d'ajouter des séances
           supplémentaires.
         </p>
 
         <p>
-          OpenAthlete a détecté son ACWR qui montait à 1,6—bien dans la zone de
-          danger. Il a envoyé une alerte à Marcus et à son coach, suggérant une
-          réduction de volume de 15% pour la semaine suivante.
+          Son coach a regardé les chiffres de charge : la dernière semaine
+          représentait environ 1,6 fois sa charge habituelle, en pleine zone de
+          danger. Il a proposé de réduire le volume de 15 % la semaine suivante.
         </p>
 
         <p>
@@ -456,10 +450,11 @@ export const articleInjuryPrevention2: BlogPost = {
 
         <h2>L'Analyse Post-Séance</h2>
         <p>
-          C'est là que l'approche d'OpenAthlete devient puissante. Après chaque
-          séance, la plateforme demande votre RPE. Ces données subjectives,
-          combinées avec les métriques objectives (allure, FC, puissance),
-          créent une image complète de la charge.
+          Après chaque séance, OpenAthlete vous demande votre RPE (le coach peut
+          le rendre obligatoire, ou les questions IA facultatives le déduisent
+          de vos réponses). Ces données subjectives, combinées avec les
+          métriques objectives (allure, FC, puissance), créent une image
+          complète de la charge.
         </p>
 
         <p>
@@ -474,9 +469,10 @@ export const articleInjuryPrevention2: BlogPost = {
         </ul>
 
         <p>
-          L'IA croise cela avec l'ACWR. Si les deux métriques suggèrent un
-          risque, elle prend des mesures—ajustant les séances futures, suggérant
-          la récupération, alertant votre coach.
+          OpenAthlete ne décide pas à votre place. Il met les chiffres côte à
+          côte, et toute douleur mentionnée dans vos réponses après la séance
+          rejoint un journal des blessures, visible dans la liste « À surveiller
+          » de votre coach. C'est vous et votre coach qui décidez quoi changer.
         </p>
 
         <h2>En Résumé</h2>
@@ -498,22 +494,19 @@ export const articleInjuryPrevention2: BlogPost = {
         </p>
 
         <p>
-          <strong>
-            Arrêtez de deviner, commencez à vous entraîner avec l'IA dès
-            aujourd'hui.
-          </strong>{' '}
+          <strong>Arrêtez de deviner.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et laissez l'IA surveiller votre ACWR, vous alerter des risques et
-          vous garder en entraînement constant vers vos objectifs.
+          (gratuit) et suivez votre charge, votre forme et votre fatigue après
+          chaque séance, avec les mêmes chiffres sous les yeux de votre coach.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Te sientes genial. Tus entrenamientos van de maravilla. Decides
@@ -606,21 +599,25 @@ export const articleInjuryPrevention2: BlogPost = {
           lesión.
         </p>
 
-        <h2>Cómo lo previene la IA</h2>
+        <h2>Lo que te muestra OpenAthlete</h2>
         <p>
-          OpenAthlete calcula el ACWR automáticamente después de cada sesión.
-          Controla:
+          OpenAthlete calcula automáticamente la carga de cada sesión y sigue la
+          misma idea con el modelo clásico de forma y fatiga:
         </p>
         <ul>
-          <li>Tu carga aguda (últimos 7 días)</li>
-          <li>Tu carga crónica (últimos 28 días)</li>
-          <li>La relación entre ambas</li>
-          <li>Las tendencias a lo largo del tiempo</li>
+          <li>Fatiga (ATL): tu carga de aproximadamente los últimos 7 días</li>
+          <li>Forma (CTL): tu carga de aproximadamente los últimos 42 días</li>
+          <li>Frescura (TSB): la diferencia entre ambas</li>
+          <li>
+            Tu carga semanal frente a un rango recomendado, proyectada sobre las
+            sesiones planificadas
+          </li>
         </ul>
 
         <p>
-          Cuando el ACWR se acerca a 1,5, el sistema os avisa a ti y a tu
-          entrenador. Puede proponer:
+          Cuando la carga prevista de la semana siguiente supera claramente ese
+          rango, tú y tu entrenador lo veis en el calendario antes del primer
+          entrenamiento. La decisión es vuestra. Podéis:
         </p>
         <ul>
           <li>Reducir el volumen de esta semana un 10-15%</li>
@@ -629,31 +626,23 @@ export const articleInjuryPrevention2: BlogPost = {
           <li>Jugar con la intensidad en lugar del volumen</li>
         </ul>
 
-        <p>
-          Todo esto ocurre de forma proactiva: antes de que sientas dolor, antes
-          de que tengas que parar, antes de que tus objetivos se vayan al
-          traste.
-        </p>
+        <p>La idea es decidir antes de sentir dolor, no después.</p>
 
         <h2>Más allá del simple volumen</h2>
         <p>
-          El ACWR no va solo de distancia. OpenAthlete calcula la carga teniendo
-          en cuenta varios factores:
+          La carga no va solo de distancia. OpenAthlete la calcula a partir de:
         </p>
         <ul>
           <li>
-            <strong>Volumen:</strong> distancia, duración, repeticiones
+            <strong>Duración:</strong> cuánto duró la sesión
           </li>
           <li>
-            <strong>Intensidad:</strong> ritmo, potencia, zonas de frecuencia
-            cardíaca
+            <strong>Intensidad:</strong> la frecuencia cardíaca, ponderada de
+            forma exponencial (TRIMP de Banister)
           </li>
           <li>
-            <strong>RPE:</strong> esfuerzo percibido (carga interna)
-          </li>
-          <li>
-            <strong>Modalidad:</strong> carrera, ciclismo o natación (cada una
-            genera un estrés distinto)
+            <strong>RPE:</strong> esfuerzo percibido × minutos (RPE de sesión),
+            como alternativa
           </li>
         </ul>
 
@@ -666,15 +655,15 @@ export const articleInjuryPrevention2: BlogPost = {
 
         <h2>Un ejemplo real</h2>
         <p>
-          Marcus, triatleta, se estaba preparando para un Ironman. Sus
-          entrenamientos iban bien y se sentía fuerte. Después de una semana
-          especialmente buena, decidió añadir sesiones extra.
+          Imagina a Marcus, triatleta, preparando un Ironman. Sus entrenamientos
+          iban bien y se sentía fuerte. Después de una semana especialmente
+          buena, decidió añadir sesiones extra.
         </p>
 
         <p>
-          OpenAthlete detectó que su ACWR se disparaba hasta 1,6, de lleno en la
-          zona de peligro. Envió una alerta a Marcus y a su entrenador y propuso
-          reducir el volumen un 15% la semana siguiente.
+          Su entrenador miró los datos de carga: la última semana equivalía a
+          unas 1,6 veces su carga habitual, de lleno en la zona de peligro. Le
+          propuso reducir el volumen un 15% la semana siguiente.
         </p>
 
         <p>
@@ -696,10 +685,11 @@ export const articleInjuryPrevention2: BlogPost = {
 
         <h2>El análisis después de cada sesión</h2>
         <p>
-          Aquí es donde el enfoque de OpenAthlete marca la diferencia. Después
-          de cada sesión, la plataforma te pide tu RPE. Este dato subjetivo,
-          combinado con métricas objetivas (ritmo, FC, potencia), ofrece una
-          imagen completa de la carga.
+          Después de cada sesión, OpenAthlete te pide tu RPE (el entrenador
+          puede hacerlo obligatorio, o las preguntas de IA opcionales lo deducen
+          de tus respuestas). Este dato subjetivo, combinado con métricas
+          objetivas (ritmo, FC, potencia), ofrece una imagen completa de la
+          carga.
         </p>
 
         <p>
@@ -714,9 +704,10 @@ export const articleInjuryPrevention2: BlogPost = {
         </ul>
 
         <p>
-          La IA cruza este dato con el ACWR. Si ambas métricas apuntan a un
-          riesgo, actúa: ajusta las siguientes sesiones, propone recuperación y
-          avisa a tu entrenador.
+          OpenAthlete no decide por ti. Pone los datos uno al lado del otro, y
+          cualquier dolor que menciones en tus respuestas tras la sesión pasa a
+          un registro de lesiones que aparece en la lista «A vigilar» de tu
+          entrenador. Tú y tu entrenador decidís qué cambiar.
         </p>
 
         <h2>En resumen</h2>
@@ -737,12 +728,12 @@ export const articleInjuryPrevention2: BlogPost = {
         </p>
 
         <p>
-          <strong>Deja de adivinar y empieza hoy a entrenar con IA.</strong>{' '}
+          <strong>Deja de adivinar.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y deja que la IA controle tu ACWR, te avise de los riesgos y te ayude
-          a entrenar con regularidad hacia tus objetivos.
+          (gratis) y consulta tu carga, tu forma y tu fatiga después de cada
+          sesión, con tu entrenador mirando los mismos datos.
         </p>
       </div>
     );

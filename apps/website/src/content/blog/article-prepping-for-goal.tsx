@@ -9,14 +9,14 @@ export const articlePreppingForGoal: BlogPost = {
       es: 'Preparar un objetivo: adaptarse cuando la vida se cruza',
     },
     description: {
-      en: 'The problem with rigid PDF plans: "Missed Tuesday due to a meeting, now what?" Discover how dynamic AI rescheduling keeps you on track toward your goals.',
-      fr: 'Le problème avec les plans PDF rigides : "Manqué mardi à cause d\'une réunion, maintenant quoi ?" Découvrez comment le rééchelonnement dynamique de l\'IA vous garde sur la voie de vos objectifs.',
-      es: 'El problema de los planes rígidos en PDF: «Me salté el martes por una reunión, ¿y ahora qué?». Descubre cómo la reprogramación dinámica con IA te mantiene en el camino hacia tus objetivos.',
+      en: "Missed Tuesday's tempo run? How to move key sessions around work, travel and illness without losing sight of your marathon, with a worked example.",
+      fr: "Séance au seuil ratée mardi ? Comment replacer les séances clés autour du travail, des voyages ou d'une maladie sans perdre de vue votre marathon.",
+      es: '¿Te saltaste el tempo del martes? Cómo recolocar las sesiones clave en torno al trabajo, los viajes o una enfermedad sin perder de vista tu maratón.',
     },
     excerpt: {
-      en: 'Life happens. Meetings, travel, illness. Rigid training plans break when reality intervenes. AI-powered dynamic rescheduling adapts your plan instantly, keeping you on track.',
-      fr: "La vie arrive. Réunions, voyages, maladie. Les plans d'entraînement rigides se cassent quand la réalité intervient. Le rééchelonnement dynamique alimenté par l'IA adapte votre plan instantanément, vous gardant sur la voie.",
-      es: 'La vida pasa: reuniones, viajes, enfermedades. Los planes de entrenamiento rígidos se rompen en cuanto la realidad se impone. La reprogramación dinámica con IA adapta tu plan al instante y te mantiene en el buen camino.',
+      en: 'Life happens. Meetings, travel, illness. Rigid training plans break when reality intervenes. A plan in a calendar can bend instead: move the key sessions, drop an easy one, keep the goal.',
+      fr: "La vie arrive. Réunions, voyages, maladie. Les plans d'entraînement rigides se cassent quand la réalité intervient. Un plan dans un calendrier, lui, se déplace : on garde les séances clés, on sacrifie un footing, et l'objectif reste en vue.",
+      es: 'La vida pasa: reuniones, viajes, enfermedades. Los planes de entrenamiento rígidos se rompen en cuanto la realidad se impone. Un plan en un calendario, en cambio, se puede mover: conservas las sesiones clave, sacrificas un rodaje suave y mantienes el objetivo.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articlePreppingForGoal: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You're 6 weeks into a 16-week marathon plan. Tuesday was supposed to
@@ -80,38 +80,70 @@ export const articlePreppingForGoal: BlogPost = {
           Both lead to suboptimal results.
         </p>
 
-        <h2>The Dynamic Solution</h2>
-        <p>OpenAthlete's AI solves this with dynamic rescheduling:</p>
+        <h2>A Plan That Can Move</h2>
+        <p>
+          The fix isn't a smarter PDF. It's a plan that lives in a calendar you
+          can rearrange. In OpenAthlete:
+        </p>
 
         <p>
           <strong>When you miss a session:</strong>
         </p>
         <ul>
-          <li>AI instantly recalculates the week</li>
-          <li>Prioritizes critical sessions (hard workouts, long runs)</li>
-          <li>Moves or adjusts less critical sessions</li>
-          <li>Maintains periodization principles</li>
-          <li>Preserves your goal timeline</li>
+          <li>
+            Drag it to another day, or shift the rest of the week by a day (with
+            undo)
+          </li>
+          <li>
+            Keep the key sessions (hard workouts, long run) and drop an easy run
+            instead
+          </li>
+          <li>
+            Check the weekly summary: load done and planned against a
+            recommended range
+          </li>
+          <li>
+            Look at your projected form (TSB) for the coming days before you
+            commit
+          </li>
         </ul>
 
         <p>
           <strong>When you're traveling:</strong>
         </p>
         <ul>
-          <li>AI suggests travel-friendly alternatives</li>
-          <li>Adjusts intensity based on available equipment</li>
-          <li>Maintains training load despite constraints</li>
+          <li>Draw a Travel, Illness or Injury period on the calendar</li>
+          <li>
+            OpenAthlete offers to move the sessions it covers to after the
+            period, or to delete them
+          </li>
+          <li>Changes reach your Garmin, Suunto or COROS watch</li>
         </ul>
 
         <p>
           <strong>When you're fatigued:</strong>
         </p>
         <ul>
-          <li>AI detects elevated RPE patterns</li>
-          <li>Reduces intensity automatically</li>
-          <li>Adds recovery days</li>
-          <li>Resumes progression when ready</li>
+          <li>
+            Your RPE, sleep, HRV, resting heart rate and Hooper index sit next
+            to each day
+          </li>
+          <li>
+            After each activity, a few questions let the AI note your effort and
+            any pain; your coach sees reported pain
+          </li>
+          <li>
+            You or your coach decide to cut intensity or add a rest day: the
+            plan doesn't rewrite itself
+          </li>
         </ul>
+
+        <p>
+          If you'd rather not shuffle sessions by hand, connect Claude or
+          ChatGPT to OpenAthlete through its MCP server and ask it to adapt the
+          week. It reads your calendar and load, proposes changes, and writes
+          them to your calendar.
+        </p>
 
         <h2>Real-World Example</h2>
         <p>Mark was 8 weeks into marathon training. Original plan:</p>
@@ -130,14 +162,17 @@ export const articlePreppingForGoal: BlogPost = {
         </p>
 
         <p>
-          <strong>Without AI:</strong> Mark would skip Tuesday, try to do
-          intervals Wednesday (wrong day), skip Thursday, skip Friday, and
+          <strong>Without replanning:</strong> Mark would skip Tuesday, try to
+          do intervals Wednesday (wrong day), skip Thursday, skip Friday, and
           attempt long run Sunday (exhausted). Result: Poor week, lost fitness,
           demotivated.
         </p>
 
         <p>
-          <strong>With OpenAthlete AI:</strong>
+          <strong>
+            Replanned in OpenAthlete (by Mark, his coach, or an assistant
+            through MCP):
+          </strong>
         </p>
         <ul>
           <li>Tuesday: Skipped (work emergency)</li>
@@ -156,9 +191,9 @@ export const articlePreppingForGoal: BlogPost = {
 
         <h2>The Goal Preservation</h2>
         <p>
-          The key insight: dynamic rescheduling preserves your goals. When life
-          disrupts your plan, AI doesn't abandon your goal—it finds a new path
-          to reach it.
+          The key insight: good replanning preserves your goals. When life
+          disrupts your plan, you don't abandon the goal. You find a new path to
+          reach it.
         </p>
 
         <p>Consider your marathon goal. The critical elements are:</p>
@@ -170,9 +205,9 @@ export const articlePreppingForGoal: BlogPost = {
         </ul>
 
         <p>
-          When you miss a Tuesday tempo run, AI doesn't say "goal failed." It
-          says "how do we preserve these critical elements despite the
-          disruption?" It recalculates, reschedules, and keeps you moving toward
+          When you miss a Tuesday tempo run, the question isn't "goal failed?"
+          It's "how do we preserve these critical elements despite the
+          disruption?" Answer that, move the sessions, and keep moving toward
           your goal.
         </p>
 
@@ -208,10 +243,9 @@ export const articlePreppingForGoal: BlogPost = {
         </p>
 
         <p>
-          Rigid PDF plans break when reality intervenes. Dynamic AI-powered
-          plans adapt. They recalculate instantly, preserve critical sessions,
-          maintain training load, and keep you on track toward your goals—even
-          when life happens.
+          Rigid PDF plans break when reality intervenes. A plan in a calendar
+          bends: you move the key sessions, keep an eye on load, and stay on
+          track toward your goal, even when life happens.
         </p>
 
         <p>
@@ -225,15 +259,15 @@ export const articlePreppingForGoal: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and experience how dynamic rescheduling keeps you on track toward your
-          goals, no matter what life throws at you.
+          and plan in a calendar that moves with your week, no matter what life
+          throws at you.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous êtes à 6 semaines d'un plan marathon de 16 semaines. Mardi
@@ -285,42 +319,75 @@ export const articlePreppingForGoal: BlogPost = {
           incorrectement. Les deux mènent à des résultats sous-optimaux.
         </p>
 
-        <h2>La Solution Dynamique</h2>
+        <h2>Un Plan qui se Déplace</h2>
         <p>
-          L'IA d'OpenAthlete résout cela avec un rééchelonnement dynamique :
+          La solution n'est pas un PDF plus malin. C'est un plan rangé dans un
+          calendrier que vous pouvez réorganiser. Dans OpenAthlete :
         </p>
 
         <p>
           <strong>Quand vous manquez une séance :</strong>
         </p>
         <ul>
-          <li>L'IA recalcule instantanément la semaine</li>
           <li>
-            Priorise les séances critiques (entraînements durs, sorties longues)
+            Glissez-la sur un autre jour, ou décalez le reste de la semaine d'un
+            jour (avec annulation possible)
           </li>
-          <li>Déplace ou ajuste les séances moins critiques</li>
-          <li>Maintient les principes de périodisation</li>
-          <li>Préserve votre calendrier d'objectif</li>
+          <li>
+            Gardez les séances clés (séances dures, sortie longue) et sacrifiez
+            plutôt un footing
+          </li>
+          <li>
+            Consultez le résumé hebdomadaire : charge réalisée et prévue face à
+            une fourchette recommandée
+          </li>
+          <li>
+            Regardez votre forme projetée (TSB) sur les jours à venir avant de
+            trancher
+          </li>
         </ul>
 
         <p>
           <strong>Quand vous voyagez :</strong>
         </p>
         <ul>
-          <li>L'IA suggère des alternatives adaptées aux voyages</li>
-          <li>Ajuste l'intensité basée sur l'équipement disponible</li>
-          <li>Maintient la charge d'entraînement malgré les contraintes</li>
+          <li>
+            Tracez une période Voyage, Maladie ou Blessure sur le calendrier
+          </li>
+          <li>
+            OpenAthlete propose de reporter les séances concernées après la
+            période, ou de les supprimer
+          </li>
+          <li>
+            Les modifications arrivent sur votre montre Garmin, Suunto ou COROS
+          </li>
         </ul>
 
         <p>
           <strong>Quand vous êtes fatigué :</strong>
         </p>
         <ul>
-          <li>L'IA détecte les modèles de RPE élevé</li>
-          <li>Réduit l'intensité automatiquement</li>
-          <li>Ajoute des jours de récupération</li>
-          <li>Reprend la progression quand prêt</li>
+          <li>
+            Votre RPE, votre sommeil, votre VFC, votre fréquence cardiaque de
+            repos et votre indice de Hooper s'affichent à côté de chaque jour
+          </li>
+          <li>
+            Après chaque activité, quelques questions permettent à l'IA de noter
+            votre effort et vos éventuelles douleurs ; votre coach voit les
+            douleurs signalées
+          </li>
+          <li>
+            C'est vous ou votre coach qui décidez de baisser l'intensité ou
+            d'ajouter un jour de repos : le plan ne se réécrit pas tout seul
+          </li>
         </ul>
+
+        <p>
+          Si vous préférez ne pas déplacer les séances à la main, connectez
+          Claude ou ChatGPT à OpenAthlete via son serveur MCP et demandez-lui
+          d'adapter la semaine. Il lit votre calendrier et votre charge, propose
+          des changements et les inscrit dans votre calendrier.
+        </p>
 
         <h2>Exemple Concret</h2>
         <p>Mark était à 8 semaines d'entraînement marathon. Plan original :</p>
@@ -337,14 +404,17 @@ export const articlePreppingForGoal: BlogPost = {
         <p>Réalité : Urgence travail mardi, voyage jeudi, épuisé vendredi.</p>
 
         <p>
-          <strong>Sans IA :</strong> Mark sauterait mardi, essaierait de faire
-          intervalles mercredi (mauvais jour), sauterait jeudi, sauterait
-          vendredi, et tenterait sortie longue dimanche (épuisé). Résultat :
-          Mauvaise semaine, forme perdue, démotivé.
+          <strong>Sans replanification :</strong> Mark sauterait mardi,
+          essaierait de faire intervalles mercredi (mauvais jour), sauterait
+          jeudi, sauterait vendredi, et tenterait sortie longue dimanche
+          (épuisé). Résultat : Mauvaise semaine, forme perdue, démotivé.
         </p>
 
         <p>
-          <strong>Avec l'IA OpenAthlete :</strong>
+          <strong>
+            Replanifié dans OpenAthlete (par Mark, son coach ou un assistant via
+            MCP) :
+          </strong>
         </p>
         <ul>
           <li>Mardi : Sauté (urgence travail)</li>
@@ -367,9 +437,9 @@ export const articlePreppingForGoal: BlogPost = {
 
         <h2>La Préservation de l'Objectif</h2>
         <p>
-          L'idée clé : le rééchelonnement dynamique préserve vos objectifs.
-          Quand la vie perturbe votre plan, l'IA n'abandonne pas votre
-          objectif—elle trouve un nouveau chemin pour l'atteindre.
+          L'idée clé : bien replanifier préserve vos objectifs. Quand la vie
+          perturbe votre plan, vous n'abandonnez pas l'objectif : vous trouvez
+          un autre chemin pour l'atteindre.
         </p>
 
         <p>Considérez votre objectif marathon. Les éléments critiques sont :</p>
@@ -384,10 +454,10 @@ export const articlePreppingForGoal: BlogPost = {
         </ul>
 
         <p>
-          Quand vous manquez une sortie au seuil mardi, l'IA ne dit pas
-          "objectif échoué." Elle dit "comment préservons-nous ces éléments
-          critiques malgré la perturbation ?" Elle recalcule, rééchelonne et
-          vous garde en mouvement vers votre objectif.
+          Quand vous manquez une sortie au seuil mardi, la question n'est pas «
+          objectif raté ? » mais « comment préserver ces éléments critiques
+          malgré l'imprévu ? ». Répondez-y, déplacez les séances, et continuez
+          d'avancer vers votre objectif.
         </p>
 
         <h2>L'Avantage de la Flexibilité</h2>
@@ -425,11 +495,10 @@ export const articlePreppingForGoal: BlogPost = {
         </p>
 
         <p>
-          Les plans PDF rigides se cassent quand la réalité intervient. Les
-          plans dynamiques alimentés par l'IA s'adaptent. Ils recalculent
-          instantanément, préservent les séances critiques, maintiennent la
-          charge d'entraînement et vous gardent sur la voie vers vos
-          objectifs—même quand la vie arrive.
+          Les plans PDF rigides se cassent quand la réalité intervient. Un plan
+          dans un calendrier plie sans rompre : vous déplacez les séances clés,
+          vous surveillez la charge et vous gardez le cap sur votre objectif,
+          même quand la vie s'en mêle.
         </p>
 
         <p>
@@ -447,15 +516,15 @@ export const articlePreppingForGoal: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et découvrez comment le rééchelonnement dynamique vous garde sur la
-          voie vers vos objectifs, peu importe ce que la vie vous lance.
+          et planifiez dans un calendrier qui suit votre semaine, quoi que la
+          vie vous réserve.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Llevas 6 semanas de un plan de maratón de 16. El martes tocaba un
@@ -505,40 +574,72 @@ export const articlePreppingForGoal: BlogPost = {
           llevan a resultados por debajo de lo que podrías lograr.
         </p>
 
-        <h2>La solución dinámica</h2>
-        <p>La IA de OpenAthlete lo resuelve con la reprogramación dinámica:</p>
+        <h2>Un plan que se puede mover</h2>
+        <p>
+          La solución no es un PDF más listo. Es un plan que vive en un
+          calendario que puedes reorganizar. En OpenAthlete:
+        </p>
 
         <p>
           <strong>Cuando te saltas una sesión:</strong>
         </p>
         <ul>
-          <li>La IA recalcula la semana al instante</li>
           <li>
-            Prioriza las sesiones clave (entrenamientos duros, tiradas largas)
+            Arrástrala a otro día, o desplaza el resto de la semana un día (con
+            opción de deshacer)
           </li>
-          <li>Mueve o ajusta las sesiones menos importantes</li>
-          <li>Respeta los principios de periodización</li>
-          <li>Mantiene el calendario hacia tu objetivo</li>
+          <li>
+            Conserva las sesiones clave (entrenamientos duros, tirada larga) y
+            sacrifica mejor un rodaje suave
+          </li>
+          <li>
+            Consulta el resumen semanal: carga hecha y planificada frente a un
+            rango recomendado
+          </li>
+          <li>
+            Mira tu forma proyectada (TSB) para los próximos días antes de
+            decidir
+          </li>
         </ul>
 
         <p>
           <strong>Cuando estás de viaje:</strong>
         </p>
         <ul>
-          <li>La IA propone alternativas compatibles con el viaje</li>
-          <li>Ajusta la intensidad según el material disponible</li>
-          <li>Mantiene la carga de entrenamiento pese a las limitaciones</li>
+          <li>
+            Marca un periodo de Viaje, Enfermedad o Lesión en el calendario
+          </li>
+          <li>
+            OpenAthlete te propone mover las sesiones afectadas a después del
+            periodo, o eliminarlas
+          </li>
+          <li>Los cambios llegan a tu reloj Garmin, Suunto o COROS</li>
         </ul>
 
         <p>
           <strong>Cuando estás fatigado:</strong>
         </p>
         <ul>
-          <li>La IA detecta patrones de RPE elevado</li>
-          <li>Reduce la intensidad automáticamente</li>
-          <li>Añade días de recuperación</li>
-          <li>Retoma la progresión cuando estás listo</li>
+          <li>
+            Tu RPE, tu sueño, tu VFC, tu frecuencia cardíaca en reposo y tu
+            índice de Hooper aparecen junto a cada día
+          </li>
+          <li>
+            Después de cada actividad, unas preguntas permiten a la IA anotar tu
+            esfuerzo y cualquier dolor; tu entrenador ve los dolores reportados
+          </li>
+          <li>
+            Tú o tu entrenador decidís bajar la intensidad o añadir un día de
+            descanso: el plan no se reescribe solo
+          </li>
         </ul>
+
+        <p>
+          Si prefieres no mover las sesiones a mano, conecta Claude o ChatGPT a
+          OpenAthlete mediante su servidor MCP y pídele que adapte la semana.
+          Lee tu calendario y tu carga, propone cambios y los escribe en tu
+          calendario.
+        </p>
 
         <h2>Un ejemplo real</h2>
         <p>Mark llevaba 8 semanas preparando un maratón. Su plan original:</p>
@@ -558,15 +659,18 @@ export const articlePreppingForGoal: BlogPost = {
         </p>
 
         <p>
-          <strong>Sin IA:</strong> Mark se habría saltado el martes, habría
-          intentado hacer las series el miércoles (el día equivocado), se habría
-          saltado el jueves y el viernes, y habría intentado la tirada larga del
-          domingo agotado. Resultado: una mala semana, forma perdida y la
-          motivación por los suelos.
+          <strong>Sin replanificar:</strong> Mark se habría saltado el martes,
+          habría intentado hacer las series el miércoles (el día equivocado), se
+          habría saltado el jueves y el viernes, y habría intentado la tirada
+          larga del domingo agotado. Resultado: una mala semana, forma perdida y
+          la motivación por los suelos.
         </p>
 
         <p>
-          <strong>Con la IA de OpenAthlete:</strong>
+          <strong>
+            Replanificado en OpenAthlete (por Mark, su entrenador o un asistente
+            vía MCP):
+          </strong>
         </p>
         <ul>
           <li>Martes: sesión saltada (urgencia en el trabajo)</li>
@@ -591,9 +695,9 @@ export const articlePreppingForGoal: BlogPost = {
 
         <h2>Preservar el objetivo</h2>
         <p>
-          La idea clave: la reprogramación dinámica preserva tus objetivos.
-          Cuando la vida desbarata tu plan, la IA no renuncia a tu objetivo:
-          busca un nuevo camino para alcanzarlo.
+          La idea clave: replanificar bien preserva tus objetivos. Cuando la
+          vida desbarata tu plan, no renuncias al objetivo: buscas otro camino
+          para alcanzarlo.
         </p>
 
         <p>Piensa en tu objetivo de maratón. Los elementos clave son:</p>
@@ -607,10 +711,10 @@ export const articlePreppingForGoal: BlogPost = {
         </ul>
 
         <p>
-          Cuando te saltas el rodaje tempo del martes, la IA no dice «objetivo
-          fallido». Se pregunta «¿cómo preservamos estos elementos clave a pesar
-          del imprevisto?». Recalcula, reprograma y te sigue acercando a tu
-          objetivo.
+          Cuando te saltas el rodaje tempo del martes, la pregunta no es
+          «¿objetivo fallido?», sino «¿cómo preservamos estos elementos clave a
+          pesar del imprevisto?». Respóndela, mueve las sesiones y sigue
+          avanzando hacia tu objetivo.
         </p>
 
         <h2>La ventaja de la flexibilidad</h2>
@@ -646,10 +750,10 @@ export const articlePreppingForGoal: BlogPost = {
         </p>
 
         <p>
-          Los planes rígidos en PDF se rompen cuando la realidad se impone. Los
-          planes dinámicos con IA se adaptan. Recalculan al instante, conservan
-          las sesiones clave, mantienen la carga de entrenamiento y te mantienen
-          en el camino hacia tus objetivos, pase lo que pase.
+          Los planes rígidos en PDF se rompen cuando la realidad se impone. Un
+          plan en un calendario se dobla sin romperse: mueves las sesiones
+          clave, vigilas la carga y sigues en camino hacia tu objetivo, pase lo
+          que pase.
         </p>
 
         <p>
@@ -663,8 +767,8 @@ export const articlePreppingForGoal: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y comprueba cómo la reprogramación dinámica te mantiene en el camino
-          hacia tus objetivos, te ponga la vida lo que te ponga por delante.
+          y planifica en un calendario que se adapta a tu semana, te ponga la
+          vida lo que te ponga por delante.
         </p>
       </div>
     );

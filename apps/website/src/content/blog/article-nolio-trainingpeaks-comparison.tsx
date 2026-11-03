@@ -9,14 +9,14 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       es: 'Nolio vs TrainingPeaks vs OpenAthlete: comparativa 2025',
     },
     description: {
-      en: 'Honest comparison: TP = Complex/Data. Nolio = Community. OpenAthlete = AI, RPE, Injury Prevention. Best value/innovation ratio.',
-      fr: 'Comparaison honnête : TP = Complexe/Données. Nolio = Communauté. OpenAthlete = IA, RPE, Prévention Blessures. Meilleur ratio valeur/innovation.',
-      es: 'Una comparativa honesta: TP = complejidad y datos. Nolio = comunidad. OpenAthlete = IA, RPE y prevención de lesiones. La mejor relación entre valor e innovación.',
+      en: 'TrainingPeaks, Nolio and OpenAthlete compared: prices, watch sync, AI, coaching features and the weak points of each platform.',
+      fr: 'TrainingPeaks, Nolio et OpenAthlete comparés : prix, synchro montre, IA, outils de coaching et points faibles de chaque plateforme.',
+      es: 'TrainingPeaks, Nolio y OpenAthlete comparados: precios, sincronización con el reloj, IA, coaching y puntos débiles de cada plataforma.',
     },
     excerpt: {
-      en: 'Compare the top sports planning platforms. TrainingPeaks excels at data but is complex. Nolio focuses on community. OpenAthlete combines AI, RPE tracking, and injury prevention.',
-      fr: 'Comparez les meilleures plateformes de planification sportive. TrainingPeaks excelle aux données mais est complexe. Nolio se concentre sur la communauté. OpenAthlete combine IA, suivi RPE et prévention des blessures.',
-      es: 'Compara las principales plataformas de planificación deportiva. TrainingPeaks destaca en datos, pero es complejo. Nolio se centra en la comunidad. OpenAthlete combina IA, seguimiento del RPE y prevención de lesiones.',
+      en: 'Compare the top sports planning platforms. TrainingPeaks excels at data but is complex. Nolio is built for French coaches and clubs. OpenAthlete is free, open source and tracks RPE and pain, with AI on your own key.',
+      fr: "Comparez les meilleures plateformes de planification sportive. TrainingPeaks excelle aux données mais est complexe. Nolio est pensé pour les coachs et clubs français. OpenAthlete est gratuit, open source et suit le RPE et la douleur, avec l'IA sur votre propre clé.",
+      es: 'Compara las principales plataformas de planificación deportiva. TrainingPeaks destaca en datos, pero es complejo. Nolio está pensado para entrenadores y clubes franceses. OpenAthlete es gratuito, de código abierto y registra el RPE y el dolor, con IA en tu propia clave.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You're choosing a training platform. TrainingPeaks? Nolio?
@@ -66,9 +66,11 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
         </p>
         <ul>
           <li>Complex interface (steep learning curve)</li>
-          <li>No AI-powered planning</li>
-          <li>No RPE tracking</li>
-          <li>Limited injury prevention features</li>
+          <li>No built-in AI advertised</li>
+          <li>
+            Sending planned workouts to your watch needs Premium ($19.95/month
+            or $134.99/year, prices checked in November 2026)
+          </li>
           <li>Expensive for what you get</li>
         </ul>
 
@@ -77,42 +79,64 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
           maximum metrics and don't mind complexity.
         </p>
 
-        <h2>Nolio: The Community Platform</h2>
+        <h2>Nolio: The French Coaching Platform</h2>
         <p>
           <strong>Strengths:</strong>
         </p>
         <ul>
-          <li>Strong community features</li>
-          <li>Social training aspects</li>
-          <li>User-friendly interface</li>
+          <li>Free athlete tier (sync, structured workouts, analysis)</li>
+          <li>Native iOS and Android apps</li>
+          <li>
+            Club plans, and a partnership with the French athletics federation
+          </li>
         </ul>
 
         <p>
           <strong>Weaknesses:</strong>
         </p>
         <ul>
-          <li>Limited data analysis</li>
-          <li>No AI planning</li>
-          <li>No RPE tracking</li>
-          <li>Basic injury prevention</li>
+          <li>No AI advertised</li>
+          <li>
+            Coach plans are paid from the first athlete: €19.90/month for 3,
+            €29.90/month for 25
+          </li>
+          <li>Not open source, no self-hosting</li>
         </ul>
 
         <p>
-          <strong>Best for:</strong> Athletes who value community and social
-          aspects over deep analysis.
+          <strong>Best for:</strong> French-speaking coaches and clubs who want
+          native apps and club plans.
         </p>
 
-        <h2>OpenAthlete: The AI Innovation</h2>
+        <h2>OpenAthlete: The Open-Source Newcomer</h2>
         <p>
           <strong>Strengths:</strong>
         </p>
         <ul>
-          <li>AI-powered plan generation</li>
-          <li>RPE tracking and analysis</li>
-          <li>Advanced injury prevention (ACWR monitoring)</li>
-          <li>Dynamic rescheduling</li>
-          <li>Intuitive interface</li>
-          <li>Best value/innovation ratio</li>
+          <li>
+            AI that writes a structured session from a sentence, on your own
+            key; whole blocks can be planned from Claude or ChatGPT through the
+            MCP server
+          </li>
+          <li>
+            RPE tracking, plus post-session questions that log pain for the
+            coach
+          </li>
+          <li>
+            Fitness, fatigue and form (CTL, ATL, TSB), projected over planned
+            sessions
+          </li>
+          <li>
+            Illness, injury or travel periods that move the planned sessions
+          </li>
+          <li>
+            Planned workouts sent to Garmin, Suunto and COROS watches for free
+          </li>
+          <li>
+            Every feature free; Supporter (€5/month or €50/year) adds AI on our
+            keys and unlimited coached athletes (Free: 5). Open source and
+            self-hostable
+          </li>
         </ul>
 
         <p>
@@ -120,35 +144,38 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
         </p>
         <ul>
           <li>Smaller user base (newer platform)</li>
-          <li>Fewer historical data points</li>
+          <li>
+            No native apps in the stores yet (iOS and Android coming soon)
+          </li>
+          <li>No club entity, no marketplace for selling plans</li>
         </ul>
 
         <p>
-          <strong>Best for:</strong> Coaches and athletes who want AI-powered
-          planning, RPE tracking, and injury prevention without complexity.
+          <strong>Best for:</strong> Coaches and athletes who want RPE tracking,
+          open source and AI on their own terms, without paying per athlete.
         </p>
 
         <h2>The Bottom Line</h2>
         <p>
-          TrainingPeaks = Data complexity. Nolio = Community focus. OpenAthlete
-          = AI innovation with RPE and injury prevention. Choose based on what
-          matters most to you.
+          TrainingPeaks = deep data, at a price. Nolio = French coaching and
+          club plans with native apps. OpenAthlete = free, open source, RPE and
+          pain tracking, AI on your own key. Choose based on what matters most
+          to you.
         </p>
 
         <p>
-          <strong>Stop guessing, start training with AI today.</strong>{' '}
+          <strong>Try it for free.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and experience the best value/innovation ratio in sports planning
-          software.
+          and compare it with what you use today.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous choisissez une plateforme d'entraînement. TrainingPeaks ? Nolio
@@ -179,9 +206,11 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
         </p>
         <ul>
           <li>Interface complexe (courbe d'apprentissage raide)</li>
-          <li>Pas de planification alimentée par IA</li>
-          <li>Pas de suivi RPE</li>
-          <li>Fonctionnalités de prévention des blessures limitées</li>
+          <li>Pas d'IA intégrée mise en avant</li>
+          <li>
+            L'envoi des séances prévues sur la montre demande Premium (19,95 $
+            par mois ou 134,99 $ par an, prix relevés en novembre 2026)
+          </li>
           <li>Cher pour ce que vous obtenez</li>
         </ul>
 
@@ -191,42 +220,66 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
           la complexité.
         </p>
 
-        <h2>Nolio : La Plateforme Communautaire</h2>
+        <h2>Nolio : la plateforme de coaching française</h2>
         <p>
           <strong>Forces :</strong>
         </p>
         <ul>
-          <li>Fonctionnalités communautaires fortes</li>
-          <li>Aspects d'entraînement social</li>
-          <li>Interface conviviale</li>
+          <li>
+            Offre athlète gratuite (synchro, séances structurées, analyse)
+          </li>
+          <li>Applications iOS et Android natives</li>
+          <li>Offres clubs, et un partenariat avec la FFA</li>
         </ul>
 
         <p>
           <strong>Faiblesses :</strong>
         </p>
         <ul>
-          <li>Analyse de données limitée</li>
-          <li>Pas de planification IA</li>
-          <li>Pas de suivi RPE</li>
-          <li>Prévention des blessures de base</li>
+          <li>Pas d'IA annoncée</li>
+          <li>
+            Offres coach payantes dès le premier athlète : 19,90 €/mois pour 3,
+            29,90 €/mois pour 25
+          </li>
+          <li>Pas open source, pas d'auto-hébergement</li>
         </ul>
 
         <p>
-          <strong>Meilleur pour :</strong> Athlètes qui valorisent la communauté
-          et les aspects sociaux sur l'analyse approfondie.
+          <strong>Meilleur pour :</strong> les coachs et clubs francophones qui
+          veulent des applications natives et des offres clubs.
         </p>
 
-        <h2>OpenAthlete : L'Innovation IA</h2>
+        <h2>OpenAthlete : le nouveau venu open source</h2>
         <p>
           <strong>Forces :</strong>
         </p>
         <ul>
-          <li>Génération de plan alimentée par IA</li>
-          <li>Suivi et analyse RPE</li>
-          <li>Prévention avancée des blessures (surveillance ACWR)</li>
-          <li>Rééchelonnement dynamique</li>
-          <li>Interface intuitive</li>
-          <li>Meilleur ratio valeur/innovation</li>
+          <li>
+            Une IA qui écrit une séance structurée à partir d'une phrase, avec
+            votre propre clé ; des blocs entiers peuvent être planifiés depuis
+            Claude ou ChatGPT grâce au serveur MCP
+          </li>
+          <li>
+            Suivi du RPE, et questions après la séance qui signalent les
+            douleurs au coach
+          </li>
+          <li>
+            Forme, fatigue et fraîcheur (CTL, ATL, TSB), projetées sur les
+            séances prévues
+          </li>
+          <li>
+            Périodes de maladie, blessure ou voyage qui décalent les séances
+            prévues
+          </li>
+          <li>
+            Séances envoyées gratuitement sur les montres Garmin, Suunto et
+            COROS
+          </li>
+          <li>
+            Toutes les fonctionnalités gratuites ; l'offre Supporter (5 €/mois
+            ou 50 €/an) ajoute l'IA sur nos clés et les athlètes illimités
+            (gratuit : 5). Open source et auto-hébergeable
+          </li>
         </ul>
 
         <p>
@@ -234,39 +287,43 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
         </p>
         <ul>
           <li>Base d'utilisateurs plus petite (plateforme plus récente)</li>
-          <li>Moins de points de données historiques</li>
+          <li>
+            Pas encore d'applications natives dans les stores (iOS et Android
+            bientôt)
+          </li>
+          <li>
+            Pas de notion de club, pas de place de marché pour vendre des plans
+          </li>
         </ul>
 
         <p>
-          <strong>Meilleur pour :</strong> Coachs et athlètes qui veulent une
-          planification alimentée par IA, un suivi RPE et une prévention des
-          blessures sans complexité.
+          <strong>Meilleur pour :</strong> les coachs et athlètes qui veulent
+          suivre le RPE, de l'open source et une IA à leurs conditions, sans
+          payer par athlète.
         </p>
 
         <h2>En Résumé</h2>
         <p>
-          TrainingPeaks = Complexité des données. Nolio = Focus communautaire.
-          OpenAthlete = Innovation IA avec RPE et prévention des blessures.
-          Choisissez basé sur ce qui compte le plus pour vous.
+          TrainingPeaks = des données poussées, à un certain prix. Nolio = le
+          coaching à la française, avec offres clubs et applications natives.
+          OpenAthlete = gratuit, open source, suivi du RPE et des douleurs, IA
+          sur votre propre clé. Choisissez selon ce qui compte le plus pour
+          vous.
         </p>
 
         <p>
-          <strong>
-            Arrêtez de deviner, commencez à vous entraîner avec l'IA dès
-            aujourd'hui.
-          </strong>{' '}
+          <strong>Essayez gratuitement.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et découvrez le meilleur ratio valeur/innovation dans les logiciels de
-          planification sportive.
+          et comparez avec l'outil que vous utilisez aujourd'hui.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Estás eligiendo una plataforma de entrenamiento. ¿TrainingPeaks?
@@ -297,9 +354,12 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
         </p>
         <ul>
           <li>Interfaz compleja (curva de aprendizaje pronunciada)</li>
-          <li>Sin planificación con IA</li>
-          <li>Sin seguimiento del RPE</li>
-          <li>Funciones de prevención de lesiones limitadas</li>
+          <li>Sin IA integrada anunciada</li>
+          <li>
+            Enviar los entrenamientos planificados al reloj requiere Premium
+            (19,95 $/mes o 134,99 $/año, precios consultados en noviembre de
+            2026)
+          </li>
           <li>Caro para lo que ofrece</li>
         </ul>
 
@@ -309,42 +369,68 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
           complejidad.
         </p>
 
-        <h2>Nolio: la plataforma comunitaria</h2>
+        <h2>Nolio: la plataforma de coaching francesa</h2>
         <p>
           <strong>Puntos fuertes:</strong>
         </p>
         <ul>
-          <li>Buenas funciones de comunidad</li>
-          <li>Componente social del entrenamiento</li>
-          <li>Interfaz fácil de usar</li>
+          <li>
+            Plan gratuito para atletas (sincronización, sesiones estructuradas,
+            análisis)
+          </li>
+          <li>Apps nativas para iOS y Android</li>
+          <li>
+            Planes para clubes y acuerdo con la federación francesa de atletismo
+          </li>
         </ul>
 
         <p>
           <strong>Puntos débiles:</strong>
         </p>
         <ul>
-          <li>Análisis de datos limitado</li>
-          <li>Sin planificación con IA</li>
-          <li>Sin seguimiento del RPE</li>
-          <li>Prevención de lesiones básica</li>
+          <li>Sin IA anunciada</li>
+          <li>
+            Planes de entrenador de pago desde el primer atleta: 19,90 €/mes
+            para 3, 29,90 €/mes para 25
+          </li>
+          <li>No es de código abierto ni se puede autoalojar</li>
         </ul>
 
         <p>
-          <strong>Ideal para:</strong> atletas que valoran la comunidad y el
-          componente social por encima del análisis en profundidad.
+          <strong>Ideal para:</strong> entrenadores y clubes francófonos que
+          quieren apps nativas y planes para clubes.
         </p>
 
-        <h2>OpenAthlete: la innovación con IA</h2>
+        <h2>OpenAthlete: el recién llegado de código abierto</h2>
         <p>
           <strong>Puntos fuertes:</strong>
         </p>
         <ul>
-          <li>Generación de planes con IA</li>
-          <li>Seguimiento y análisis del RPE</li>
-          <li>Prevención de lesiones avanzada (monitorización del ACWR)</li>
-          <li>Reprogramación dinámica</li>
-          <li>Interfaz intuitiva</li>
-          <li>La mejor relación entre valor e innovación</li>
+          <li>
+            Una IA que escribe una sesión estructurada a partir de una frase,
+            con tu propia clave; se pueden planificar bloques enteros desde
+            Claude o ChatGPT con el servidor MCP
+          </li>
+          <li>
+            Seguimiento del RPE y preguntas tras la sesión que registran el
+            dolor para el entrenador
+          </li>
+          <li>
+            Forma, fatiga y frescura (CTL, ATL, TSB), proyectadas sobre las
+            sesiones planificadas
+          </li>
+          <li>
+            Periodos de enfermedad, lesión o viaje que mueven las sesiones
+            planificadas
+          </li>
+          <li>
+            Entrenamientos enviados gratis a relojes Garmin, Suunto y COROS
+          </li>
+          <li>
+            Todas las funciones gratis; Supporter (5 €/mes o 50 €/año) añade IA
+            con nuestras claves y atletas ilimitados (gratis: 5). Código abierto
+            y autoalojable
+          </li>
         </ul>
 
         <p>
@@ -352,29 +438,33 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
         </p>
         <ul>
           <li>Menor base de usuarios (plataforma más reciente)</li>
-          <li>Menos datos históricos</li>
+          <li>
+            Todavía sin apps nativas en las tiendas (iOS y Android,
+            próximamente)
+          </li>
+          <li>Sin entidad de club ni marketplace para vender planes</li>
         </ul>
 
         <p>
           <strong>Ideal para:</strong> entrenadores y atletas que quieren
-          planificación con IA, seguimiento del RPE y prevención de lesiones sin
-          complicaciones.
+          seguimiento del RPE, código abierto e IA a su manera, sin pagar por
+          atleta.
         </p>
 
         <h2>En resumen</h2>
         <p>
-          TrainingPeaks = complejidad de datos. Nolio = enfoque comunitario.
-          OpenAthlete = innovación con IA, RPE y prevención de lesiones. Elige
-          según lo que más te importe.
+          TrainingPeaks = datos a fondo, a un precio. Nolio = coaching a la
+          francesa, con planes para clubes y apps nativas. OpenAthlete =
+          gratuito, código abierto, seguimiento del RPE y del dolor, IA con tu
+          propia clave. Elige según lo que más te importe.
         </p>
 
         <p>
-          <strong>Deja de adivinar y empieza hoy a entrenar con IA.</strong>{' '}
+          <strong>Pruébalo gratis.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y descubre la mejor relación entre valor e innovación del software de
-          planificación deportiva.
+          y compáralo con lo que usas hoy.
         </p>
       </div>
     );

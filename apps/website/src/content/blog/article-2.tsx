@@ -9,14 +9,14 @@ export const article2: BlogPost = {
       es: 'Cómo la IA está transformando el entrenamiento de resistencia',
     },
     description: {
-      en: 'Explore the science behind AI-powered training analysis and how it helps prevent injuries while optimizing performance.',
-      fr: "Explorez la science derrière l'analyse d'entraînement assistée par IA et comment elle aide à prévenir les blessures tout en optimisant les performances.",
-      es: 'Explora la ciencia que hay detrás del análisis del entrenamiento asistido por IA y cómo ayuda a prevenir lesiones mientras optimiza el rendimiento.',
+      en: 'What AI can do with training data: load, HRV and sleep, pattern recognition and personalisation, and why it supports coaches rather than replacing them.',
+      fr: "Ce que l'IA peut faire des données d'entraînement : charge, VFC, sommeil, détection de tendances, et pourquoi elle aide le coach sans le remplacer.",
+      es: 'Qué puede hacer la IA con los datos de entrenamiento: carga, VFC, sueño y patrones, y por qué ayuda al entrenador en lugar de sustituirlo.',
     },
     excerpt: {
-      en: 'Artificial intelligence is revolutionizing how we understand and optimize endurance training, providing insights that were previously impossible to detect.',
-      fr: "L'intelligence artificielle révolutionne notre compréhension et notre optimisation de l'entraînement d'endurance, fournissant des informations qu'il était auparavant impossible de détecter.",
-      es: 'La inteligencia artificial está revolucionando la forma en que entendemos y optimizamos el entrenamiento de resistencia, con información que antes era imposible detectar.',
+      en: 'Artificial intelligence is changing how we read endurance training data, picking up patterns that are hard to see by eye.',
+      fr: "L'intelligence artificielle change notre façon de lire les données d'entraînement d'endurance et repère des tendances difficiles à voir à l'œil nu.",
+      es: 'La inteligencia artificial está cambiando la forma de leer los datos del entrenamiento de resistencia y detecta patrones difíciles de ver a simple vista.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -30,7 +30,7 @@ export const article2: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           The integration of artificial intelligence into endurance training is
           not just a trend—it's a fundamental shift in how we approach athlete
@@ -70,24 +70,25 @@ export const article2: BlogPost = {
 
         <h2>The Future of Coaching</h2>
         <p>
-          AI doesn't replace coaches—it empowers them. By automating repetitive
+          AI doesn't replace coaches—it helps them. By automating repetitive
           tasks and providing data-driven insights, coaches can focus on what
           they do best: building relationships, providing motivation, and making
           strategic decisions.
         </p>
 
         <p>
-          At OpenAthlete, we're committed to making these advanced capabilities
-          accessible to coaches and athletes at all levels. Our platform
-          combines cutting-edge AI with intuitive design, making sophisticated
-          training analysis available to everyone.
+          At OpenAthlete, the AI turns a sentence into a structured session,
+          writes a short read of each new activity and asks a few questions
+          after each one to record effort and pain. It runs only with your
+          consent, you can bring your own key from the provider you prefer, and
+          every feature is free.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           L'intégration de l'intelligence artificielle dans l'entraînement
           d'endurance n'est pas qu'une tendance—c'est un changement fondamental
@@ -138,17 +139,19 @@ export const article2: BlogPost = {
         </p>
 
         <p>
-          Chez OpenAthlete, nous nous engageons à rendre ces capacités avancées
-          accessibles aux coachs et aux athlètes de tous niveaux. Notre
-          plateforme combine une IA de pointe avec un design intuitif, rendant
-          l'analyse d'entraînement sophistiquée accessible à tous.
+          Chez OpenAthlete, l'IA transforme une phrase en séance structurée,
+          rédige une courte lecture de chaque nouvelle activité et pose quelques
+          questions après chacune pour relever l'effort et les douleurs. Elle ne
+          fonctionne qu'avec votre accord, vous pouvez utiliser votre propre clé
+          chez le fournisseur de votre choix, et toutes les fonctionnalités sont
+          gratuites.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           La llegada de la inteligencia artificial al entrenamiento de
           resistencia no es una simple moda: es un cambio de fondo en la forma
@@ -196,11 +199,11 @@ export const article2: BlogPost = {
         </p>
 
         <p>
-          En OpenAthlete nos hemos propuesto que estas capacidades avanzadas
-          estén al alcance de entrenadores y atletas de todos los niveles.
-          Nuestra plataforma combina una IA de vanguardia con un diseño
-          intuitivo, para que cualquiera pueda acceder a un análisis del
-          entrenamiento sofisticado.
+          En OpenAthlete, la IA convierte una frase en una sesión estructurada,
+          escribe una breve lectura de cada nueva actividad y hace unas pocas
+          preguntas después de cada una para registrar el esfuerzo y el dolor.
+          Solo funciona con tu consentimiento, puedes usar tu propia clave del
+          proveedor que prefieras y todas las funciones son gratuitas.
         </p>
       </div>
     );

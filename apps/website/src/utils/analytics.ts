@@ -15,6 +15,10 @@ type TrackingConsent = 'granted' | 'denied';
 
 const listeners = new Set<() => void>();
 let started = false;
+type PostHog = typeof import('posthog-js').default;
+let client: PostHog | null = null;
+/** Events fired while the SDK downloads, sent once it is ready. */
+const pending: Array<[string, Record<string, unknown>]> = [];
 
 export function isConsentRequired(): boolean {
   return Boolean(posthogToken);
@@ -72,6 +76,35 @@ function startAnalytics() {
       defaults: '2026-01-30',
       // The banner only announces audience measurement
       disable_session_recording: true,
+      // Same cookie on app.openathlete.org: a visitor who signs up after
+      // reading the site keeps one identity across both
+      cross_subdomain_cookie: true,
     });
+    client = posthog;
+    for (const [event, properties] of pending.splice(0)) {
+      posthog.capture(event, properties);
+    }
   });
+}
+
+/**
+ * Conversion events of the website. Without consent, or on a build without
+ * PostHog, they go nowhere.
+ */
+export type SiteEvent =
+  | 'cta_clicked'
+  | 'supporter_clicked'
+  | 'donation_clicked'
+  | 'github_clicked'
+  | 'self_host_clicked'
+  | 'pricing_period_changed'
+  | 'cost_calculator_changed'
+  | 'faq_opened'
+  | 'language_changed'
+  | 'mobile_waitlist_clicked';
+
+export function track(event: SiteEvent, properties: Record<string, unknown>) {
+  if (!started) return;
+  if (client) client.capture(event, properties);
+  else pending.push([event, properties]);
 }

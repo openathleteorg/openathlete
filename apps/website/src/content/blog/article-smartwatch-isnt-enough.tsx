@@ -9,14 +9,14 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       es: 'Por qué tu reloj inteligente no basta',
     },
     description: {
-      en: 'Watches capture "What", not "Why". They don\'t know you\'re prepping for an Ultra. You need a software layer (OpenAthlete) to give context to raw watch data.',
-      fr: 'Les montres capturent "Quoi", pas "Pourquoi". Elles ne savent pas que vous préparez un Ultra. Vous avez besoin d\'une couche logicielle (OpenAthlete) pour donner du contexte aux données brutes de la montre.',
-      es: 'Los relojes registran el «qué», no el «porqué». No saben que estás preparando un ultra. Necesitas una capa de software (OpenAthlete) que dé contexto a los datos en bruto del reloj.',
+      en: 'Your watch records pace and heart rate, not why a session went the way it did. The context it misses, and what a training platform adds on top.',
+      fr: "Votre montre enregistre allure et fréquence cardiaque, pas le pourquoi de la séance. Ce qui lui manque, et ce qu'une plateforme d'entraînement ajoute.",
+      es: 'Tu reloj registra ritmo y pulsaciones, pero no por qué la sesión salió así. Qué contexto le falta y qué aporta una plataforma de entrenamiento.',
     },
     excerpt: {
-      en: "Your Garmin or Apple Watch tracks metrics but can't interpret them. Learn why you need software to analyze patterns, provide context, and guide training decisions.",
-      fr: "Votre Garmin ou Apple Watch suit les métriques mais ne peut pas les interpréter. Découvrez pourquoi vous avez besoin d'un logiciel pour analyser les modèles, fournir du contexte et guider les décisions d'entraînement.",
-      es: 'Tu Garmin o tu Apple Watch registran métricas, pero no saben interpretarlas. Descubre por qué necesitas un software que analice patrones, aporte contexto y guíe tus decisiones de entrenamiento.',
+      en: "Your Garmin or Suunto tracks metrics but can't interpret them. Learn why you need software to analyze patterns, provide context, and guide training decisions.",
+      fr: "Votre Garmin ou Suunto suit les métriques mais ne peut pas les interpréter. Découvrez pourquoi vous avez besoin d'un logiciel pour analyser les modèles, fournir du contexte et guider les décisions d'entraînement.",
+      es: 'Tu Garmin o tu Suunto registran métricas, pero no saben interpretarlas. Descubre por qué necesitas un software que analice patrones, aporte contexto y guíe tus decisiones de entrenamiento.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleSmartwatchIsntEnough: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Your Garmin shows you ran 10km at 4:30/km pace with an average heart
@@ -154,18 +154,20 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             <strong>Imports watch data automatically:</strong> No manual entry
           </li>
           <li>
-            <strong>Analyzes patterns:</strong> Detects trends, improvements,
-            risks
+            <strong>Analyzes patterns:</strong> Fitness, fatigue and form over
+            time, records, trends by sport
           </li>
           <li>
             <strong>Provides context:</strong> Links sessions to your goals and
             plan
           </li>
           <li>
-            <strong>Generates insights:</strong> Tells you what the data means
+            <strong>Reads each session:</strong> A short AI summary with figures
+            (plan vs done, heat, heart-rate drift, comparison with recent weeks)
           </li>
           <li>
-            <strong>Suggests actions:</strong> Recommends what to do next
+            <strong>Suggests a next step:</strong> One suggestion per session;
+            you or your coach decide
           </li>
         </ul>
 
@@ -193,8 +195,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             easy recovery run."
           </li>
           <li>
-            "You're on track for your marathon goal. Keep this pace for tempo
-            runs."
+            "Weekly load: 410 of the 450 TRIMP planned, inside your recommended
+            range."
           </li>
         </ul>
 
@@ -219,11 +221,12 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             training plan
           </li>
           <li>
-            <strong>No RPE tracking:</strong> Can't capture internal load
+            <strong>RPE on the side:</strong> Perceived exertion is logged but
+            plays little part in the analysis
           </li>
           <li>
-            <strong>No injury prevention:</strong> Doesn't analyze load
-            progression
+            <strong>No coach view:</strong> Nowhere for a coach to plan your
+            sessions and follow them
           </li>
           <li>
             <strong>No recommendations:</strong> Shows what happened, not what
@@ -232,8 +235,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
         </ul>
 
         <p>
-          Strava is a social network with data. OpenAthlete is a training
-          intelligence platform.
+          Strava is a social network with data. OpenAthlete is a training log
+          and planner built around your plan.
         </p>
 
         <h2>The Bottom Line</h2>
@@ -269,7 +272,7 @@ export const articleSmartwatchIsntEnough: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Votre Garmin montre que vous avez couru 10km à 4:30/km avec une
@@ -409,19 +412,21 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             Pas de saisie manuelle
           </li>
           <li>
-            <strong>Analyse les modèles :</strong> Détecte les tendances,
-            améliorations, risques
+            <strong>Analyse les tendances :</strong> Forme, fatigue et fraîcheur
+            dans le temps, records, évolution par sport
           </li>
           <li>
             <strong>Fournit du contexte :</strong> Lie les séances à vos
             objectifs et plan
           </li>
           <li>
-            <strong>Génère des informations :</strong> Vous dit ce que
-            signifient les données
+            <strong>Lit chaque séance :</strong> Un court résumé de l'IA,
+            chiffres à l'appui (prévu contre réalisé, chaleur, dérive cardiaque,
+            comparaison avec les semaines précédentes)
           </li>
           <li>
-            <strong>Suggère des actions :</strong> Recommande quoi faire ensuite
+            <strong>Suggère une suite :</strong> Une suggestion par séance ;
+            vous ou votre coach décidez
           </li>
         </ul>
 
@@ -453,8 +458,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             une sortie de récupération facile."
           </li>
           <li>
-            "Vous êtes sur la bonne voie pour votre objectif marathon. Gardez
-            cette allure pour les sorties au seuil."
+            "Charge de la semaine : 410 TRIMP sur les 450 prévus, dans votre
+            fourchette recommandée."
           </li>
         </ul>
 
@@ -479,12 +484,12 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             séances à un plan d'entraînement
           </li>
           <li>
-            <strong>Pas de suivi RPE :</strong> Ne peut pas capturer la charge
-            interne
+            <strong>Le RPE au second plan :</strong> Le ressenti est enregistré
+            mais pèse peu dans l'analyse
           </li>
           <li>
-            <strong>Pas de prévention des blessures :</strong> N'analyse pas la
-            progression de charge
+            <strong>Pas d'espace coach :</strong> Aucun endroit où un coach
+            planifie vos séances et les suit
           </li>
           <li>
             <strong>Pas de recommandations :</strong> Montre ce qui s'est passé,
@@ -493,8 +498,9 @@ export const articleSmartwatchIsntEnough: BlogPost = {
         </ul>
 
         <p>
-          Strava est un réseau social avec des données. OpenAthlete est une
-          plateforme d'intelligence d'entraînement.
+          Strava est un réseau social avec des données. OpenAthlete est un
+          carnet d'entraînement et un outil de planification construits autour
+          de votre plan.
         </p>
 
         <h2>En Résumé</h2>
@@ -533,7 +539,7 @@ export const articleSmartwatchIsntEnough: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Tu Garmin indica que has corrido 10 km a 4:30/km con una frecuencia
@@ -660,20 +666,21 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             introducir nada a mano
           </li>
           <li>
-            <strong>Analiza patrones:</strong> detecta tendencias, mejoras y
-            riesgos
+            <strong>Analiza tendencias:</strong> forma, fatiga y estado de forma
+            a lo largo del tiempo, récords, evolución por deporte
           </li>
           <li>
             <strong>Aporta contexto:</strong> relaciona las sesiones con tus
             objetivos y tu plan
           </li>
           <li>
-            <strong>Genera conclusiones:</strong> te explica qué significan los
-            datos
+            <strong>Lee cada sesión:</strong> un breve resumen de la IA con
+            cifras (planificado frente a hecho, calor, deriva cardíaca,
+            comparación con las semanas anteriores)
           </li>
           <li>
-            <strong>Propone acciones:</strong> te recomienda qué hacer a
-            continuación
+            <strong>Propone un siguiente paso:</strong> una sugerencia por
+            sesión; tú o tu entrenador decidís
           </li>
         </ul>
 
@@ -704,8 +711,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             de recuperación».
           </li>
           <li>
-            «Vas por buen camino para tu objetivo de maratón. Mantén este ritmo
-            en los rodajes tempo».
+            «Carga semanal: 410 de los 450 TRIMP planificados, dentro de tu
+            rango recomendado».
           </li>
         </ul>
 
@@ -730,12 +737,12 @@ export const articleSmartwatchIsntEnough: BlogPost = {
             sesiones con un plan de entrenamiento
           </li>
           <li>
-            <strong>No registra el RPE:</strong> no puede captar la carga
-            interna
+            <strong>El RPE en segundo plano:</strong> el esfuerzo percibido se
+            registra, pero apenas cuenta en el análisis
           </li>
           <li>
-            <strong>No previene lesiones:</strong> no analiza cómo progresa la
-            carga
+            <strong>Sin espacio para el entrenador:</strong> no hay dónde un
+            entrenador planifique tus sesiones y las siga
           </li>
           <li>
             <strong>No da recomendaciones:</strong> muestra lo que ha pasado, no
@@ -744,8 +751,8 @@ export const articleSmartwatchIsntEnough: BlogPost = {
         </ul>
 
         <p>
-          Strava es una red social con datos. OpenAthlete es una plataforma de
-          inteligencia para el entrenamiento.
+          Strava es una red social con datos. OpenAthlete es un diario de
+          entrenamiento y un planificador construidos en torno a tu plan.
         </p>
 
         <h2>En resumen</h2>

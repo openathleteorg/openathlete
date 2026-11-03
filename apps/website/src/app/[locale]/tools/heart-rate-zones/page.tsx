@@ -1,88 +1,39 @@
-import { Footer } from '@/components/landing/sections/footer';
-import { Navbar } from '@/components/landing/sections/navbar';
-import { TopBar } from '@/components/landing/sections/topbar';
-import {
-  SoftwareApplicationStructuredData,
-  WebPageStructuredData,
-} from '@/components/seo/structured-data';
-import { HeartRateZones } from '@/components/tools/heart-rate-zones';
-import { SITE_URL } from '@/config';
+import { HeartRateZonesCalculator } from '@/components/tools/heart-rate-zones';
+import { ToolPage } from '@/components/tools/tool-page';
+import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
-import { isSupportedLocale } from '@/utils/locales';
-import { notFound } from 'next/navigation';
 
-import { generateMetadata as generatePageMetadata } from '../../../metadata';
+import { generateMetadata as pageMetadata } from '../../../metadata';
 
-/* eslint-disable react-refresh/only-export-components */
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
+type Props = { params: Promise<{ locale: string }> };
 
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  return generatePageMetadata({
+// eslint-disable-next-line react-refresh/only-export-components
+export async function generateMetadata({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  return pageMetadata({
     locale,
-    title: m.tool_heart_rate_title(),
-    description: m.tool_heart_rate_description(),
     path: '/tools/heart-rate-zones',
-    keywords: [
-      'heart rate zones',
-      'zones cardiaques',
-      'Karvonen formula',
-      'formule Karvonen',
-      'heart rate calculator',
-      'calculateur fréquence cardiaque',
-      'training zones',
-      "zones d'entraînement",
-      'target heart rate',
-      'fréquence cardiaque cible',
-      'aerobic base',
-      'endurance fondamentale',
-      'fat burning zone',
-      'zone brûlage graisses',
-    ],
+    title: m.tools_hr_seo_title(),
+    description: m.tools_hr_seo_description(),
   });
 }
-/* eslint-enable react-refresh/only-export-components */
 
-export default async function HeartRateZonesPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-
-  // Validate locale
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
+export default async function Page({ params }: Props) {
+  const locale = initLocale((await params).locale);
   return (
-    <>
-      <WebPageStructuredData
-        title={m.tool_heart_rate_title()}
-        description={m.tool_heart_rate_description()}
-        url={`${SITE_URL}/${locale}/tools/heart-rate-zones`}
-      />
-      <SoftwareApplicationStructuredData
-        name={m.tool_heart_rate_title()}
-        description={m.tool_heart_rate_description()}
-        url={`${SITE_URL}/${locale}/tools/heart-rate-zones`}
-        applicationCategory="HealthApplication"
-      />
-      <div className="min-h-screen bg-background">
-        <TopBar />
-        <Navbar />
-        <main className="py-16">
-          <HeartRateZones />
-        </main>
-        <Footer />
-      </div>
-    </>
+    <ToolPage
+      locale={locale}
+      slug="heart-rate-zones"
+      title={m.tools_hr_h1()}
+      lead={m.tools_hr_lead()}
+      description={m.tools_hr_seo_description()}
+      calculator={<HeartRateZonesCalculator />}
+      method={<p>{m.tools_hr_how_body()}</p>}
+      faq={[
+        { question: m.tools_hr_faq1_q(), answer: m.tools_hr_faq1_a() },
+        { question: m.tools_hr_faq2_q(), answer: m.tools_hr_faq2_a() },
+        { question: m.tools_hr_faq3_q(), answer: m.tools_hr_faq3_a() },
+      ]}
+    />
   );
 }

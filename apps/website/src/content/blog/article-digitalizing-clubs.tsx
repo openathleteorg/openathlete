@@ -9,9 +9,9 @@ export const articleDigitalizingClubs: BlogPost = {
       es: 'Digitaliza tu club deportivo: centraliza para ganar',
     },
     description: {
-      en: 'Club challenges: lost paper plans, level disparity. Using a platform to push "Template Plans" to groups (Beginner vs Elite) while monitoring individual health.',
-      fr: 'Défis des clubs : plans papier perdus, disparité de niveau. Utiliser une plateforme pour pousser des "Plans Modèles" aux groupes (Débutant vs Elite) tout en surveillant la santé individuelle.',
-      es: 'Los retos de los clubes: planes en papel que se pierden y niveles muy dispares. Usa una plataforma para enviar «planes plantilla» a cada grupo (principiante o élite) sin dejar de vigilar la salud de cada miembro.',
+      en: 'Lost paper plans, mixed levels, 50 members to follow: how a club can move training online with session templates, shared calendars and coach alerts.',
+      fr: "Plans papier perdus, niveaux hétérogènes, 50 membres à suivre : comment passer l'entraînement de votre club en ligne avec modèles et calendriers.",
+      es: 'Planes en papel perdidos, niveles dispares, 50 miembros que seguir: cómo pasar el entrenamiento de tu club a internet con plantillas y calendarios.',
     },
     excerpt: {
       en: 'Sports clubs struggle with lost plans, level disparities, and individual monitoring. Learn how digital platforms centralize training while maintaining individual attention.',
@@ -35,7 +35,7 @@ export const articleDigitalizingClubs: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Your triathlon club has 50 members. You print training plans for
@@ -81,17 +81,26 @@ export const articleDigitalizingClubs: BlogPost = {
         </p>
 
         <h2>The Digital Solution</h2>
-        <p>OpenAthlete solves this with template plans and group management:</p>
+        <p>
+          OpenAthlete has no club or group entity yet, but its coaching tools
+          cover much of the job:
+        </p>
 
         <p>
           <strong>Template Plans:</strong>
         </p>
         <ul>
-          <li>Create one plan for "Beginners"</li>
-          <li>Create one plan for "Intermediate"</li>
-          <li>Create one plan for "Elite"</li>
-          <li>Push each template to the appropriate group</li>
-          <li>All members get the plan instantly on their devices</li>
+          <li>Save sessions as templates in a "Beginners" folder</li>
+          <li>Do the same for "Intermediate"</li>
+          <li>And for "Elite"</li>
+          <li>
+            Drag templates onto each member's calendar, copy whole weeks, and
+            move or copy several sessions at once
+          </li>
+          <li>
+            Planned sessions reach members' Garmin, Suunto or COROS watches
+            automatically
+          </li>
         </ul>
 
         <p>
@@ -100,43 +109,48 @@ export const articleDigitalizingClubs: BlogPost = {
         <ul>
           <li>Track each member's completion</li>
           <li>Monitor RPE and recovery</li>
-          <li>Detect overtraining risks</li>
-          <li>Alert coaches to concerns</li>
+          <li>See reported pain and inactivity on the coach dashboard</li>
+          <li>Let several coaches follow the same member</li>
         </ul>
 
         <p>
           <strong>Centralized Communication:</strong>
         </p>
         <ul>
-          <li>Announcements reach all members</li>
+          <li>Group conversations reach everyone you add</li>
           <li>Group discussions stay organized</li>
           <li>Individual feedback is contextual</li>
         </ul>
 
-        <h2>Real-World Example</h2>
+        <h2>A Typical Setup</h2>
         <p>
-          The Riverside Triathlon Club had 60 members across three levels. They
-          struggled with:
+          Picture a triathlon club with 60 members across three levels. The
+          usual problems:
         </p>
         <ul>
-          <li>Lost paper plans (30% of members)</li>
+          <li>Lost paper plans</li>
           <li>Members asking "what should I do today?"</li>
           <li>No visibility into who was training</li>
           <li>Injury concerns going unnoticed</li>
         </ul>
 
-        <p>After implementing OpenAthlete:</p>
+        <p>With OpenAthlete, a realistic setup looks like this:</p>
         <ul>
-          <li>Template plans pushed to three groups</li>
-          <li>All members received plans on their watches</li>
-          <li>Coaches monitored completion rates</li>
-          <li>AI alerted to fatigue patterns</li>
+          <li>
+            Each coach follows their own members (5 on the free plan, unlimited
+            with Supporter)
+          </li>
+          <li>Template sessions dropped onto each member's calendar</li>
+          <li>Sessions synced to members' watches</li>
+          <li>Coaches check completion rates</li>
+          <li>Reported pain and inactivity show up on the coach dashboard</li>
           <li>Individual adjustments made easily</li>
         </ul>
 
         <p>
-          Result: 90% plan adherence (up from 60%), zero lost plans, better
-          injury prevention, happier members.
+          What you get: no lost plans, a clear view of who trains, and pain
+          reports that reach a coach. What it doesn't do yet: a club-wide
+          dashboard, or assigning a session to a whole group in one click.
         </p>
 
         <h2>The Bottom Line</h2>
@@ -152,15 +166,15 @@ export const articleDigitalizingClubs: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and discover how digital club management scales your impact while
-          maintaining individual attention.
+          and see how its coaching tools can work for your club without losing
+          individual attention.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Votre club de triathlon a 50 membres. Vous imprimez des plans
@@ -211,21 +225,24 @@ export const articleDigitalizingClubs: BlogPost = {
 
         <h2>La Solution Numérique</h2>
         <p>
-          OpenAthlete résout cela avec des plans modèles et la gestion de groupe
-          :
+          OpenAthlete n'a pas encore de notion de club ou de groupe, mais ses
+          outils de coaching couvrent une bonne partie du travail :
         </p>
 
         <p>
           <strong>Plans Modèles :</strong>
         </p>
         <ul>
-          <li>Créer un plan pour "Débutants"</li>
-          <li>Créer un plan pour "Intermédiaires"</li>
-          <li>Créer un plan pour "Elite"</li>
-          <li>Pousser chaque modèle au groupe approprié</li>
+          <li>Enregistrer des séances modèles dans un dossier "Débutants"</li>
+          <li>Faire de même pour "Intermédiaires"</li>
+          <li>Et pour "Elite"</li>
           <li>
-            Tous les membres reçoivent le plan instantanément sur leurs
-            appareils
+            Glisser les modèles dans le calendrier de chaque membre, copier des
+            semaines entières, déplacer ou copier plusieurs séances à la fois
+          </li>
+          <li>
+            Les séances planifiées arrivent automatiquement sur les montres
+            Garmin, Suunto ou COROS des membres
           </li>
         </ul>
 
@@ -235,43 +252,59 @@ export const articleDigitalizingClubs: BlogPost = {
         <ul>
           <li>Suivre la complétion de chaque membre</li>
           <li>Surveiller RPE et récupération</li>
-          <li>Détecter les risques de surentraînement</li>
-          <li>Alerter les coachs aux préoccupations</li>
+          <li>
+            Voir les douleurs signalées et l'inactivité dans le tableau de bord
+            coach
+          </li>
+          <li>Permettre à plusieurs coachs de suivre le même membre</li>
         </ul>
 
         <p>
           <strong>Communication Centralisée :</strong>
         </p>
         <ul>
-          <li>Les annonces atteignent tous les membres</li>
+          <li>
+            Les conversations de groupe touchent toutes les personnes ajoutées
+          </li>
           <li>Les discussions de groupe restent organisées</li>
           <li>Les retours individuels sont contextuels</li>
         </ul>
 
-        <h2>Exemple Concret</h2>
+        <h2>Une Organisation Type</h2>
         <p>
-          Le Club de Triathlon Riverside avait 60 membres sur trois niveaux. Ils
-          luttaient avec :
+          Prenons un club de triathlon de 60 membres répartis sur trois niveaux.
+          Les problèmes habituels :
         </p>
         <ul>
-          <li>Plans papier perdus (30% des membres)</li>
+          <li>Plans papier perdus</li>
           <li>Membres demandant "que devrais-je faire aujourd'hui ?"</li>
           <li>Aucune visibilité sur qui s'entraînait</li>
           <li>Préoccupations de blessure non remarquées</li>
         </ul>
 
-        <p>Après avoir implémenté OpenAthlete :</p>
+        <p>Avec OpenAthlete, une organisation réaliste ressemble à ceci :</p>
         <ul>
-          <li>Plans modèles poussés à trois groupes</li>
-          <li>Tous les membres ont reçu les plans sur leurs montres</li>
-          <li>Les coachs ont surveillé les taux de complétion</li>
-          <li>L'IA a alerté aux modèles de fatigue</li>
-          <li>Ajustements individuels faits facilement</li>
+          <li>
+            Chaque coach suit ses propres membres (5 avec l'offre gratuite, sans
+            limite avec Supporter)
+          </li>
+          <li>
+            Des séances modèles déposées dans le calendrier de chaque membre
+          </li>
+          <li>Des séances synchronisées sur les montres des membres</li>
+          <li>Des coachs qui suivent les taux de réalisation</li>
+          <li>
+            Les douleurs signalées et l'inactivité visibles dans le tableau de
+            bord coach
+          </li>
+          <li>Des ajustements individuels faciles</li>
         </ul>
 
         <p>
-          Résultat : 90% d'adhésion au plan (contre 60%), zéro plan perdu,
-          meilleure prévention des blessures, membres plus heureux.
+          Ce que vous y gagnez : plus de plans perdus, une vue claire de qui
+          s'entraîne, et des douleurs signalées qui arrivent jusqu'à un coach.
+          Ce que l'outil ne fait pas encore : un tableau de bord à l'échelle du
+          club, ou l'envoi d'une séance à tout un groupe en un clic.
         </p>
 
         <h2>En Résumé</h2>
@@ -290,15 +323,15 @@ export const articleDigitalizingClubs: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et découvrez comment la gestion numérique de club fait évoluer votre
-          impact tout en maintenant l'attention individuelle.
+          et voyez comment ses outils de coaching peuvent servir votre club sans
+          sacrifier l'attention individuelle.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Tu club de triatlón tiene 50 miembros. Imprimes planes de
@@ -348,18 +381,27 @@ export const articleDigitalizingClubs: BlogPost = {
         </p>
 
         <h2>La solución digital</h2>
-        <p>OpenAthlete lo resuelve con planes plantilla y gestión de grupos:</p>
+        <p>
+          OpenAthlete todavía no tiene una entidad de club o de grupo, pero sus
+          herramientas de entrenador cubren buena parte del trabajo:
+        </p>
 
         <p>
           <strong>Planes plantilla:</strong>
         </p>
         <ul>
-          <li>Crea un plan para «Principiantes»</li>
-          <li>Crea un plan para «Intermedios»</li>
-          <li>Crea un plan para «Élite»</li>
-          <li>Envía cada plantilla al grupo que corresponda</li>
           <li>
-            Todos los miembros reciben el plan al instante en sus dispositivos
+            Guarda sesiones como plantillas en una carpeta «Principiantes»
+          </li>
+          <li>Haz lo mismo para «Intermedios»</li>
+          <li>Y para «Élite»</li>
+          <li>
+            Arrastra las plantillas al calendario de cada miembro, copia semanas
+            enteras y mueve o copia varias sesiones a la vez
+          </li>
+          <li>
+            Las sesiones planificadas llegan automáticamente a los relojes
+            Garmin, Suunto o COROS de los miembros
           </li>
         </ul>
 
@@ -369,43 +411,53 @@ export const articleDigitalizingClubs: BlogPost = {
         <ul>
           <li>Comprueba qué sesiones completa cada miembro</li>
           <li>Vigila el RPE y la recuperación</li>
-          <li>Detecta riesgos de sobreentrenamiento</li>
-          <li>Avisa a los entrenadores cuando algo preocupa</li>
+          <li>
+            Ve el dolor indicado y la inactividad en el panel del entrenador
+          </li>
+          <li>Permite que varios entrenadores sigan al mismo miembro</li>
         </ul>
 
         <p>
           <strong>Comunicación centralizada:</strong>
         </p>
         <ul>
-          <li>Los anuncios llegan a todos los miembros</li>
+          <li>
+            Las conversaciones de grupo llegan a todas las personas añadidas
+          </li>
           <li>Las conversaciones de grupo siguen ordenadas</li>
           <li>Los comentarios individuales llegan con su contexto</li>
         </ul>
 
-        <h2>Un ejemplo real</h2>
+        <h2>Una organización tipo</h2>
         <p>
-          El Riverside Triathlon Club tenía 60 miembros repartidos en tres
-          niveles. Sus problemas eran:
+          Imagina un club de triatlón con 60 miembros repartidos en tres
+          niveles. Los problemas habituales:
         </p>
         <ul>
-          <li>Planes en papel perdidos (el 30 % de los miembros)</li>
+          <li>Planes en papel perdidos</li>
           <li>Miembros preguntando «¿qué me toca hoy?»</li>
           <li>Ninguna visibilidad sobre quién entrenaba</li>
           <li>Señales de lesión que pasaban desapercibidas</li>
         </ul>
 
-        <p>Después de adoptar OpenAthlete:</p>
+        <p>Con OpenAthlete, una organización realista sería así:</p>
         <ul>
-          <li>Planes plantilla enviados a los tres grupos</li>
-          <li>Todos los miembros recibieron los planes en su reloj</li>
-          <li>Los entrenadores siguieron el grado de cumplimiento</li>
-          <li>La IA avisó de patrones de fatiga</li>
-          <li>Los ajustes individuales se hicieron sin esfuerzo</li>
+          <li>
+            Cada entrenador sigue a sus propios miembros (5 con el plan
+            gratuito, sin límite con Supporter)
+          </li>
+          <li>Sesiones plantilla en el calendario de cada miembro</li>
+          <li>Sesiones sincronizadas con los relojes de los miembros</li>
+          <li>Los entrenadores siguen el grado de cumplimiento</li>
+          <li>El dolor indicado y la inactividad aparecen en el panel</li>
+          <li>Los ajustes individuales se hacen sin esfuerzo</li>
         </ul>
 
         <p>
-          Resultado: un 90 % de cumplimiento del plan (frente al 60 %), ningún
-          plan perdido, mejor prevención de lesiones y miembros más contentos.
+          Lo que ganas: ningún plan perdido, una visión clara de quién entrena y
+          un dolor indicado que llega a un entrenador. Lo que todavía no hace:
+          un panel a escala de club o asignar una sesión a todo un grupo con un
+          clic.
         </p>
 
         <h2>En resumen</h2>
@@ -421,8 +473,8 @@ export const articleDigitalizingClubs: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y descubre cómo la gestión digital del club multiplica tu impacto sin
-          renunciar a la atención individual.
+          y descubre cómo sus herramientas de entrenador pueden servir a tu club
+          sin renunciar a la atención individual.
         </p>
       </div>
     );

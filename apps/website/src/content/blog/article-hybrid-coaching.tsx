@@ -9,14 +9,14 @@ export const articleHybridCoaching: BlogPost = {
       es: 'Coaching híbrido: haz crecer tu negocio con IA',
     },
     description: {
-      en: 'Problem: Coaches cap at 20 athletes. Solution: AI generates structure (80%), coach adds human touch (20%). Result: Coach 50 people better than you coached 20.',
-      fr: "Problème : Les coachs plafonnent à 20 athlètes. Solution : L'IA génère la structure (80%), le coach ajoute la touche humaine (20%). Résultat : Coacher 50 personnes mieux que vous n'en coachiez 20.",
-      es: 'Problema: los entrenadores se estancan en 20 atletas. Solución: la IA genera la estructura (80 %) y el entrenador aporta el toque humano (20 %). Resultado: entrenas a 50 personas mejor de lo que entrenabas a 20.',
+      en: 'Stuck at 20 athletes? How to let AI draft the repetitive structure of training plans while you keep strategy, judgment and the relationship.',
+      fr: "Bloqué à 20 athlètes ? Comment confier à l'IA la structure répétitive des plans et garder pour vous la stratégie, le jugement et la relation.",
+      es: '¿Estancado en 20 atletas? Cómo dejar que la IA prepare la estructura repetitiva de los planes y quedarte con la estrategia, el criterio y la relación.',
     },
     excerpt: {
-      en: 'Learn how AI handles the repetitive planning tasks (80%) while coaches focus on strategy and relationships (20%). Scale from 20 to 50+ athletes without sacrificing quality.',
-      fr: "Découvrez comment l'IA gère les tâches de planification répétitives (80%) pendant que les coachs se concentrent sur la stratégie et les relations (20%). Passez de 20 à 50+ athlètes sans sacrifier la qualité.",
-      es: 'Descubre cómo la IA se encarga de las tareas repetitivas de planificación (80 %) mientras los entrenadores se centran en la estrategia y las relaciones (20 %). Pasa de 20 a más de 50 atletas sin sacrificar la calidad.',
+      en: 'Learn how AI can take on the repetitive planning tasks while coaches focus on strategy and relationships, so you can take on more athletes without sacrificing quality.',
+      fr: "Découvrez comment l'IA peut prendre en charge les tâches de planification répétitives pendant que les coachs se concentrent sur la stratégie et les relations, pour suivre plus d'athlètes sans sacrifier la qualité.",
+      es: 'Descubre cómo la IA puede encargarse de las tareas repetitivas de planificación mientras los entrenadores se centran en la estrategia y las relaciones, para llevar a más atletas sin sacrificar la calidad.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleHybridCoaching: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You're a great coach. Your athletes get results. Word spreads. More
@@ -85,15 +85,17 @@ export const articleHybridCoaching: BlogPost = {
         <p>
           Here's the insight:{' '}
           <strong>AI excels at the 80%. Humans excel at the 20%.</strong> Hybrid
-          coaching leverages both.
+          coaching uses both.
         </p>
 
         <h2>How Hybrid Coaching Works</h2>
-        <p>With OpenAthlete's AI-powered platform:</p>
+        <p>With OpenAthlete:</p>
 
         <p>
-          <strong>AI handles structure:</strong> The system generates training
-          plans based on:
+          <strong>AI handles structure:</strong> Connect Claude or ChatGPT to
+          OpenAthlete's MCP server and the assistant reads the athlete's zones,
+          load and history, then plans a whole block (up to 60 sessions) into
+          their calendar, based on:
         </p>
         <ul>
           <li>Athlete goals and current fitness</li>
@@ -115,9 +117,8 @@ export const articleHybridCoaching: BlogPost = {
         </ul>
 
         <p>
-          The result? You spend 80% less time on planning and calculations, but
-          your athletes get better plans because AI never forgets periodization
-          principles or makes calculation errors.
+          The result? You spend much less time on planning and calculations, and
+          you keep the final say on every session.
         </p>
 
         <h2>The Scaling Math</h2>
@@ -155,15 +156,17 @@ export const articleHybridCoaching: BlogPost = {
         </p>
 
         <p>
-          <strong>AI eliminates human error:</strong> It never forgets to
-          account for recovery. It never miscalculates load. It never loses
-          track of periodization. Your plans become more consistent, not less.
+          <strong>Software removes calculation errors:</strong> Load, volume and
+          form are computed from every activity, and fitness and fatigue are
+          projected over the planned weeks. Your plans become more consistent,
+          not less.
         </p>
 
         <p>
-          <strong>AI provides 24/7 monitoring:</strong> While you sleep, AI
-          watches for overtraining signals, load spikes, and recovery issues. It
-          alerts you to problems before they become crises.
+          <strong>Monitoring runs around the clock:</strong> Every new activity
+          gets a short AI read and a few questions for the athlete, and reported
+          pain or inactivity shows up on your dashboard before your next
+          check-in.
         </p>
 
         <p>
@@ -177,28 +180,36 @@ export const articleHybridCoaching: BlogPost = {
           improves, not declines.
         </p>
 
-        <h2>Real-World Example</h2>
+        <h2>What It Looks Like</h2>
         <p>
-          Sarah, a triathlon coach, was maxed out at 18 athletes. She was
-          working 65 hours per week, mostly on planning and data entry. She was
-          turning away potential clients because she physically couldn't take on
-          more.
+          Picture a triathlon coach maxed out at 18 athletes, working 65 hours
+          per week, mostly on planning and data entry, and turning away
+          potential clients.
         </p>
 
-        <p>After switching to OpenAthlete's hybrid approach:</p>
+        <p>With OpenAthlete, the week could look like this:</p>
         <ul>
-          <li>AI generates initial plans for all athletes</li>
-          <li>Sarah reviews and adjusts (15 minutes per athlete per week)</li>
-          <li>AI handles all data import and analysis</li>
-          <li>AI monitors for issues and alerts Sarah</li>
-          <li>Sarah focuses on strategy, motivation, and relationships</li>
+          <li>
+            Claude or ChatGPT, through the MCP server, drafts each athlete's
+            next block into their calendar
+          </li>
+          <li>The coach reviews and adjusts each block</li>
+          <li>
+            Activities import automatically from Strava, Garmin, Polar, Suunto
+            and COROS
+          </li>
+          <li>
+            The coach dashboard flags reported pain, inactivity and unread
+            messages
+          </li>
+          <li>The coach focuses on strategy, motivation, and relationships</li>
         </ul>
 
         <p>
-          Result: Sarah now coaches 45 athletes in 35 hours per week. Her
-          athletes report better results because plans are more consistent and
-          she has more time for strategic coaching. Her revenue increased 2.5x.
-          Her work-life balance improved dramatically.
+          How many more athletes that makes room for depends on the coach; we
+          have no figures to promise. On OpenAthlete Cloud, coaching more than 5
+          athletes needs Supporter (€5/month); a self-hosted instance has no
+          limit.
         </p>
 
         <h2>The Competitive Advantage</h2>
@@ -245,8 +256,8 @@ export const articleHybridCoaching: BlogPost = {
             <strong>Review and adjust:</strong> Add your strategic input
           </li>
           <li>
-            <strong>Monitor AI alerts:</strong> Use AI insights to guide your
-            decisions
+            <strong>Watch the coach dashboard:</strong> Use its alerts to guide
+            your decisions
           </li>
           <li>
             <strong>Focus on relationships:</strong> Spend freed-up time on what
@@ -259,8 +270,8 @@ export const articleHybridCoaching: BlogPost = {
         </ol>
 
         <p>
-          Most coaches see results within the first month. By month three,
-          they're coaching more athletes in less time with better results.
+          Give it a month before judging. By then you'll know which parts of
+          your week the tools really take off your plate.
         </p>
 
         <h2>The Bottom Line</h2>
@@ -289,7 +300,7 @@ export const articleHybridCoaching: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous êtes un excellent coach. Vos athlètes obtiennent des résultats.
@@ -346,11 +357,13 @@ export const articleHybridCoaching: BlogPost = {
         </p>
 
         <h2>Comment Fonctionne le Coaching Hybride</h2>
-        <p>Avec la plateforme alimentée par l'IA d'OpenAthlete :</p>
+        <p>Avec OpenAthlete :</p>
 
         <p>
-          <strong>L'IA gère la structure :</strong> Le système génère des plans
-          d'entraînement basés sur :
+          <strong>L'IA gère la structure :</strong> Connectez Claude ou ChatGPT
+          au serveur MCP d'OpenAthlete : l'assistant lit les zones, la charge et
+          l'historique de l'athlète, puis planifie un bloc entier (jusqu'à 60
+          séances) dans son calendrier, en s'appuyant sur :
         </p>
         <ul>
           <li>Les objectifs et la forme actuelle de l'athlète</li>
@@ -372,10 +385,8 @@ export const articleHybridCoaching: BlogPost = {
         </ul>
 
         <p>
-          Le résultat ? Vous passez 80% moins de temps sur la planification et
-          les calculs, mais vos athlètes obtiennent de meilleurs plans parce que
-          l'IA n'oublie jamais les principes de périodisation ou ne fait pas
-          d'erreurs de calcul.
+          Le résultat ? Vous passez beaucoup moins de temps sur la planification
+          et les calculs, et vous gardez le dernier mot sur chaque séance.
         </p>
 
         <h2>Les Mathématiques de l'Évolutivité</h2>
@@ -414,17 +425,17 @@ export const articleHybridCoaching: BlogPost = {
         </p>
 
         <p>
-          <strong>L'IA élimine l'erreur humaine :</strong> Elle n'oublie jamais
-          de tenir compte de la récupération. Elle ne calcule jamais mal la
-          charge. Elle ne perd jamais la trace de la périodisation. Vos plans
-          deviennent plus cohérents, pas moins.
+          <strong>Le logiciel supprime les erreurs de calcul :</strong> La
+          charge, le volume et la forme sont calculés à partir de chaque
+          activité, et la forme et la fatigue sont projetées sur les semaines
+          planifiées. Vos plans deviennent plus cohérents, pas moins.
         </p>
 
         <p>
-          <strong>L'IA fournit une surveillance 24/7 :</strong> Pendant que vous
-          dormez, l'IA surveille les signaux de surentraînement, les pics de
-          charge et les problèmes de récupération. Elle vous alerte des
-          problèmes avant qu'ils ne deviennent des crises.
+          <strong>Le suivi tourne en continu :</strong> Chaque nouvelle activité
+          reçoit une courte lecture par l'IA et quelques questions pour
+          l'athlète, et les douleurs signalées ou l'inactivité apparaissent dans
+          votre tableau de bord avant votre prochain point.
         </p>
 
         <p>
@@ -439,31 +450,39 @@ export const articleHybridCoaching: BlogPost = {
           meilleur coaching. La qualité s'améliore, ne décline pas.
         </p>
 
-        <h2>Exemple Concret</h2>
+        <h2>À Quoi Cela Ressemble</h2>
         <p>
-          Sarah, une coach de triathlon, était au maximum à 18 athlètes. Elle
-          travaillait 65 heures par semaine, principalement sur la planification
-          et la saisie de données. Elle refusait des clients potentiels parce
-          qu'elle ne pouvait physiquement pas en prendre plus.
+          Imaginez une coach de triathlon plafonnée à 18 athlètes, qui travaille
+          65 heures par semaine, surtout sur la planification et la saisie de
+          données, et qui refuse des clients.
         </p>
 
-        <p>Après être passée à l'approche hybride d'OpenAthlete :</p>
+        <p>Avec OpenAthlete, sa semaine pourrait ressembler à ceci :</p>
         <ul>
-          <li>L'IA génère les plans initiaux pour tous les athlètes</li>
-          <li>Sarah révise et ajuste (15 minutes par athlète par semaine)</li>
-          <li>L'IA gère tout l'import et l'analyse de données</li>
-          <li>L'IA surveille les problèmes et alerte Sarah</li>
           <li>
-            Sarah se concentre sur la stratégie, la motivation et les relations
+            Claude ou ChatGPT, via le serveur MCP, prépare le prochain bloc de
+            chaque athlète dans son calendrier
+          </li>
+          <li>La coach révise et ajuste chaque bloc</li>
+          <li>
+            Les activités arrivent automatiquement depuis Strava, Garmin, Polar,
+            Suunto et COROS
+          </li>
+          <li>
+            Le tableau de bord coach signale les douleurs, l'inactivité et les
+            messages non lus
+          </li>
+          <li>
+            La coach se concentre sur la stratégie, la motivation et les
+            relations
           </li>
         </ul>
 
         <p>
-          Résultat : Sarah coache maintenant 45 athlètes en 35 heures par
-          semaine. Ses athlètes rapportent de meilleurs résultats parce que les
-          plans sont plus cohérents et elle a plus de temps pour le coaching
-          stratégique. Ses revenus ont augmenté de 2,5x. Son équilibre
-          travail-vie s'est considérablement amélioré.
+          Combien d'athlètes de plus cela permet de suivre dépend de chaque
+          coach : nous n'avons pas de chiffres à promettre. Sur OpenAthlete
+          Cloud, coacher plus de 5 athlètes demande l'offre Supporter (5 €/mois)
+          ; une instance auto-hébergée n'a aucune limite.
         </p>
 
         <h2>L'Avantage Concurrentiel</h2>
@@ -511,8 +530,8 @@ export const articleHybridCoaching: BlogPost = {
             stratégique
           </li>
           <li>
-            <strong>Surveillez les alertes de l'IA :</strong> Utilisez les
-            informations de l'IA pour guider vos décisions
+            <strong>Suivez le tableau de bord coach :</strong> Servez-vous de
+            ses alertes pour guider vos décisions
           </li>
           <li>
             <strong>Concentrez-vous sur les relations :</strong> Passez le temps
@@ -525,9 +544,8 @@ export const articleHybridCoaching: BlogPost = {
         </ol>
 
         <p>
-          La plupart des coachs voient des résultats dans le premier mois. Au
-          troisième mois, ils coachent plus d'athlètes en moins de temps avec de
-          meilleurs résultats.
+          Laissez-vous un mois avant de juger. Vous saurez alors quelles parties
+          de votre semaine les outils vous enlèvent vraiment.
         </p>
 
         <h2>En Résumé</h2>
@@ -561,7 +579,7 @@ export const articleHybridCoaching: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Eres un gran entrenador. Tus atletas consiguen resultados. Se corre
@@ -618,11 +636,13 @@ export const articleHybridCoaching: BlogPost = {
         </p>
 
         <h2>Cómo funciona el coaching híbrido</h2>
-        <p>Con la plataforma de OpenAthlete impulsada por IA:</p>
+        <p>Con OpenAthlete:</p>
 
         <p>
-          <strong>La IA se encarga de la estructura:</strong> El sistema genera
-          planes de entrenamiento basados en:
+          <strong>La IA se encarga de la estructura:</strong> Conecta Claude o
+          ChatGPT al servidor MCP de OpenAthlete y el asistente lee las zonas,
+          la carga y el historial del atleta, y planifica un bloque entero
+          (hasta 60 sesiones) en su calendario, basándose en:
         </p>
         <ul>
           <li>Los objetivos y la forma actual del atleta</li>
@@ -644,9 +664,8 @@ export const articleHybridCoaching: BlogPost = {
         </ul>
 
         <p>
-          ¿El resultado? Dedicas un 80 % menos de tiempo a planificar y
-          calcular, pero tus atletas reciben mejores planes, porque la IA nunca
-          olvida los principios de periodización ni comete errores de cálculo.
+          ¿El resultado? Dedicas mucho menos tiempo a planificar y calcular, y
+          sigues teniendo la última palabra en cada sesión.
         </p>
 
         <h2>Las cuentas del crecimiento</h2>
@@ -688,17 +707,17 @@ export const articleHybridCoaching: BlogPost = {
         </p>
 
         <p>
-          <strong>La IA elimina el error humano:</strong> Nunca se olvida de
-          tener en cuenta la recuperación. Nunca calcula mal la carga. Nunca
-          pierde el hilo de la periodización. Tus planes ganan en coherencia, no
-          la pierden.
+          <strong>El software elimina los errores de cálculo:</strong> La carga,
+          el volumen y la forma se calculan a partir de cada actividad, y la
+          forma y la fatiga se proyectan sobre las semanas planificadas. Tus
+          planes ganan en coherencia, no la pierden.
         </p>
 
         <p>
-          <strong>La IA vigila las 24 horas:</strong> Mientras duermes, la IA
-          está atenta a las señales de sobreentrenamiento, los picos de carga y
-          los problemas de recuperación. Te avisa antes de que los problemas se
-          conviertan en crisis.
+          <strong>El seguimiento no se detiene:</strong> Cada nueva actividad
+          recibe una breve lectura de la IA y unas pocas preguntas para el
+          atleta, y el dolor indicado o la inactividad aparecen en tu panel
+          antes de tu siguiente revisión.
         </p>
 
         <p>
@@ -713,33 +732,39 @@ export const articleHybridCoaching: BlogPost = {
           acompañamiento. La calidad mejora, no empeora.
         </p>
 
-        <h2>Un ejemplo real</h2>
+        <h2>Cómo sería en la práctica</h2>
         <p>
-          Sarah, entrenadora de triatlón, había tocado techo con 18 atletas.
-          Trabajaba 65 horas a la semana, sobre todo planificando e
-          introduciendo datos. Rechazaba a posibles clientes porque,
-          sencillamente, no podía asumir más.
+          Imagina a una entrenadora de triatlón que ha tocado techo con 18
+          atletas, trabaja 65 horas a la semana, sobre todo planificando e
+          introduciendo datos, y rechaza a posibles clientes.
         </p>
 
-        <p>Tras pasarse al enfoque híbrido de OpenAthlete:</p>
+        <p>Con OpenAthlete, su semana podría ser así:</p>
         <ul>
-          <li>La IA genera los planes iniciales de todos sus atletas</li>
-          <li>Sarah los revisa y ajusta (15 minutos por atleta a la semana)</li>
           <li>
-            La IA se encarga de toda la importación y el análisis de datos
+            Claude o ChatGPT, a través del servidor MCP, prepara el siguiente
+            bloque de cada atleta en su calendario
           </li>
-          <li>La IA vigila posibles problemas y avisa a Sarah</li>
+          <li>La entrenadora revisa y ajusta cada bloque</li>
           <li>
-            Sarah se centra en la estrategia, la motivación y las relaciones
+            Las actividades llegan automáticamente desde Strava, Garmin, Polar,
+            Suunto y COROS
+          </li>
+          <li>
+            El panel del entrenador señala el dolor indicado, la inactividad y
+            los mensajes sin leer
+          </li>
+          <li>
+            La entrenadora se centra en la estrategia, la motivación y las
+            relaciones
           </li>
         </ul>
 
         <p>
-          Resultado: Sarah entrena ahora a 45 atletas en 35 horas a la semana.
-          Sus atletas dicen obtener mejores resultados porque los planes son más
-          coherentes y ella tiene más tiempo para el trabajo estratégico. Sus
-          ingresos se han multiplicado por 2,5. Y su equilibrio entre trabajo y
-          vida personal ha mejorado muchísimo.
+          Cuántos atletas más le permite llevar depende de cada entrenador: no
+          tenemos cifras que prometer. En OpenAthlete Cloud, entrenar a más de 5
+          atletas requiere Supporter (5 €/mes); una instancia autoalojada no
+          tiene límite.
         </p>
 
         <h2>La ventaja competitiva</h2>
@@ -786,8 +811,8 @@ export const articleHybridCoaching: BlogPost = {
             <strong>Revisar y ajustar:</strong> Añade tu visión estratégica
           </li>
           <li>
-            <strong>Seguir las alertas de la IA:</strong> Usa la información de
-            la IA para guiar tus decisiones
+            <strong>Seguir el panel del entrenador:</strong> Usa sus alertas
+            para guiar tus decisiones
           </li>
           <li>
             <strong>Centrarte en las relaciones:</strong> Dedica el tiempo que
@@ -800,9 +825,8 @@ export const articleHybridCoaching: BlogPost = {
         </ol>
 
         <p>
-          La mayoría de los entrenadores ven resultados durante el primer mes.
-          Al tercer mes, ya entrenan a más atletas en menos tiempo y con mejores
-          resultados.
+          Date un mes antes de juzgar. Para entonces sabrás qué partes de tu
+          semana te quitan de verdad las herramientas.
         </p>
 
         <h2>En resumen</h2>

@@ -9,14 +9,14 @@ export const articleOvertrainingSigns: BlogPost = {
       es: '5 señales de sobreentrenamiento (y cómo evitarlo)',
     },
     description: {
-      en: 'Classic list: mood, sleep, performance. Solution: Continuous monitoring via OpenAthlete as a safeguard.',
-      fr: 'Liste classique : humeur, sommeil, performance. Solution : Surveillance continue via OpenAthlete comme sauvegarde.',
-      es: 'La lista clásica: estado de ánimo, sueño, rendimiento. La solución: la monitorización continua de OpenAthlete como red de seguridad.',
+      en: 'The 5 signs of overtraining (mood, sleep, performance, RPE, fatigue), why they creep up on you, and which numbers to watch so you catch them early.',
+      fr: 'Les 5 signes du surentraînement (humeur, sommeil, performance, RPE, fatigue), pourquoi ils passent inaperçus et quels chiffres surveiller.',
+      es: 'Las 5 señales del sobreentrenamiento (ánimo, sueño, rendimiento, RPE, fatiga), por qué pasan desapercibidas y qué datos vigilar para detectarlas.',
     },
     excerpt: {
-      en: 'Learn the 5 key signs of overtraining: mood changes, sleep disruption, performance decline, elevated RPE, and persistent fatigue. Discover how continuous monitoring prevents it.',
-      fr: "Apprenez les 5 signes clés du surentraînement : changements d'humeur, perturbation du sommeil, déclin de performance, RPE élevé et fatigue persistante. Découvrez comment la surveillance continue le prévient.",
-      es: 'Conoce las 5 señales clave del sobreentrenamiento: cambios de humor, alteraciones del sueño, caída del rendimiento, RPE elevado y fatiga persistente. Descubre cómo la monitorización continua ayuda a prevenirlo.',
+      en: 'Learn the 5 key signs of overtraining: mood changes, sleep disruption, performance decline, elevated RPE, and persistent fatigue. See which numbers to watch to catch it early.',
+      fr: "Apprenez les 5 signes clés du surentraînement : changements d'humeur, perturbation du sommeil, déclin de performance, RPE élevé et fatigue persistante. Découvrez quels chiffres surveiller pour le repérer tôt.",
+      es: 'Conoce las 5 señales clave del sobreentrenamiento: cambios de humor, alteraciones del sueño, caída del rendimiento, RPE elevado y fatiga persistente. Descubre qué datos vigilar para detectarlo a tiempo.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleOvertrainingSigns: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You're training hard. You're pushing your limits. You're making
@@ -108,48 +108,52 @@ export const articleOvertrainingSigns: BlogPost = {
 
         <h2>How to Prevent Overtraining</h2>
         <p>
-          Prevention is better than cure. OpenAthlete prevents overtraining
-          through:
+          Prevention is better than cure. OpenAthlete won't diagnose
+          overtraining, but it puts the early signs in one place:
         </p>
         <ul>
           <li>
-            <strong>ACWR monitoring:</strong> Alerts when load spikes
+            <strong>Load tracking:</strong> fitness, fatigue and form, and your
+            weekly load against a recommended range
           </li>
           <li>
-            <strong>RPE tracking:</strong> Detects elevated effort patterns
+            <strong>RPE tracking:</strong> effort logged after each session, so
+            a creeping RPE shows up
           </li>
           <li>
-            <strong>Recovery analysis:</strong> Monitors sleep and stress
+            <strong>Recovery data:</strong> sleep, HRV and resting heart rate
+            from Garmin, Polar, Suunto or COROS (or entered by hand), next to
+            each day of your calendar
           </li>
           <li>
-            <strong>Automatic adjustments:</strong> Reduces load when risks
-            detected
+            <strong>Post-session questions:</strong> a few questions on fatigue,
+            sleep and pain after each activity (optional AI feature)
           </li>
           <li>
-            <strong>Proactive alerts:</strong> Warns before problems occur
+            <strong>Coach visibility:</strong> pain you report shows up in your
+            coach's "To watch" list
           </li>
         </ul>
 
         <h2>The Bottom Line</h2>
         <p>
-          Overtraining is preventable. Know the signs. Monitor your data. Use AI
-          to detect patterns early. Don't wait until it's too late.
+          Overtraining is preventable. Know the signs. Monitor your data, and
+          act on the patterns early. Don't wait until it's too late.
         </p>
 
         <p>
-          <strong>Stop guessing, start training with AI today.</strong>{' '}
+          <strong>Stop guessing.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and let continuous monitoring prevent overtraining before it derails
-          your progress.
+          (free) and keep your load, RPE and recovery data in one place.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous vous entraînez dur. Vous poussez vos limites. Vous progressez.
@@ -227,55 +231,56 @@ export const articleOvertrainingSigns: BlogPost = {
 
         <h2>Comment Prévenir le Surentraînement</h2>
         <p>
-          La prévention est meilleure que la guérison. OpenAthlete prévient le
-          surentraînement à travers :
+          Mieux vaut prévenir que guérir. OpenAthlete ne diagnostique pas le
+          surentraînement, mais il rassemble les premiers signes au même endroit
+          :
         </p>
         <ul>
           <li>
-            <strong>Surveillance ACWR :</strong> Alertes quand la charge
-            augmente
+            <strong>Suivi de la charge :</strong> forme, fatigue et fraîcheur,
+            et votre charge hebdomadaire face à une fourchette recommandée
           </li>
           <li>
-            <strong>Suivi RPE :</strong> Détecte les modèles d'effort élevé
+            <strong>Suivi RPE :</strong> l'effort noté après chaque séance, pour
+            voir un RPE qui grimpe
           </li>
           <li>
-            <strong>Analyse de récupération :</strong> Surveille sommeil et
-            stress
+            <strong>Données de récupération :</strong> sommeil, VFC et fréquence
+            cardiaque au repos depuis Garmin, Polar, Suunto ou COROS (ou saisis
+            à la main), affichés jour par jour dans le calendrier
           </li>
           <li>
-            <strong>Ajustements automatiques :</strong> Réduit la charge quand
-            risques détectés
+            <strong>Questions après la séance :</strong> quelques questions sur
+            la fatigue, le sommeil et les douleurs après chaque activité
+            (fonction IA facultative)
           </li>
           <li>
-            <strong>Alertes proactives :</strong> Avertit avant que les
-            problèmes ne surviennent
+            <strong>Visibilité pour le coach :</strong> les douleurs signalées
+            apparaissent dans la liste « À surveiller » de votre coach
           </li>
         </ul>
 
         <h2>En Résumé</h2>
         <p>
           Le surentraînement est évitable. Connaissez les signes. Surveillez vos
-          données. Utilisez l'IA pour détecter les modèles tôt. N'attendez pas
-          qu'il soit trop tard.
+          données et réagissez tôt aux tendances. N'attendez pas qu'il soit trop
+          tard.
         </p>
 
         <p>
-          <strong>
-            Arrêtez de deviner, commencez à vous entraîner avec l'IA dès
-            aujourd'hui.
-          </strong>{' '}
+          <strong>Arrêtez de deviner.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et laissez la surveillance continue prévenir le surentraînement avant
-          qu'il ne fasse dérailler vos progrès.
+          (gratuit) et gardez votre charge, votre RPE et vos données de
+          récupération au même endroit.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Entrenas duro. Llevas tus límites al máximo. Progresas. Y, de
@@ -351,46 +356,48 @@ export const articleOvertrainingSigns: BlogPost = {
 
         <h2>Cómo prevenir el sobreentrenamiento</h2>
         <p>
-          Más vale prevenir que curar. OpenAthlete previene el
-          sobreentrenamiento gracias a:
+          Más vale prevenir que curar. OpenAthlete no diagnostica el
+          sobreentrenamiento, pero reúne las primeras señales en un solo lugar:
         </p>
         <ul>
           <li>
-            <strong>Monitorización del ACWR:</strong> avisa cuando la carga se
-            dispara
+            <strong>Control de la carga:</strong> forma, fatiga y frescura, y tu
+            carga semanal frente a un rango recomendado
           </li>
           <li>
-            <strong>Seguimiento del RPE:</strong> detecta patrones de esfuerzo
-            elevado
+            <strong>Seguimiento del RPE:</strong> el esfuerzo anotado tras cada
+            sesión, para ver si el RPE va subiendo
           </li>
           <li>
-            <strong>Análisis de la recuperación:</strong> vigila el sueño y el
-            estrés
+            <strong>Datos de recuperación:</strong> sueño, VFC y frecuencia
+            cardíaca en reposo desde Garmin, Polar, Suunto o COROS (o
+            introducidos a mano), día a día en el calendario
           </li>
           <li>
-            <strong>Ajustes automáticos:</strong> reduce la carga cuando detecta
-            riesgos
+            <strong>Preguntas tras la sesión:</strong> unas pocas preguntas
+            sobre fatiga, sueño y dolor después de cada actividad (función de IA
+            opcional)
           </li>
           <li>
-            <strong>Alertas proactivas:</strong> te avisa antes de que surjan
-            los problemas
+            <strong>Visibilidad para el entrenador:</strong> el dolor que
+            indicas aparece en la lista «A vigilar» de tu entrenador
           </li>
         </ul>
 
         <h2>En resumen</h2>
         <p>
           El sobreentrenamiento se puede prevenir. Conoce las señales. Controla
-          tus datos. Usa la IA para detectar patrones a tiempo. No esperes a que
-          sea demasiado tarde.
+          tus datos y actúa pronto ante los patrones. No esperes a que sea
+          demasiado tarde.
         </p>
 
         <p>
-          <strong>Deja de adivinar y empieza hoy a entrenar con IA.</strong>{' '}
+          <strong>Deja de adivinar.</strong>{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y deja que la monitorización continua frene el sobreentrenamiento
-          antes de que eche por tierra tu progreso.
+          (gratis) y ten tu carga, tu RPE y tus datos de recuperación en un solo
+          lugar.
         </p>
       </div>
     );

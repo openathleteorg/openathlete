@@ -9,9 +9,9 @@ export const articleRpeVsHr: BlogPost = {
       es: 'RPE o frecuencia cardíaca: por qué tu corazón no lo cuenta todo',
     },
     description: {
-      en: 'Discover why RPE (Rate of Perceived Exertion) and internal load matter more than heart rate alone. Learn how AI cross-references both to prevent overtraining.',
-      fr: "Découvrez pourquoi le RPE (Ressenti) et la charge interne comptent plus que la fréquence cardiaque seule. Apprenez comment l'IA croise les deux pour prévenir le surentraînement.",
-      es: 'Descubre por qué el RPE (esfuerzo percibido) y la carga interna importan más que la frecuencia cardíaca por sí sola, y cómo la IA cruza ambos datos para prevenir el sobreentrenamiento.',
+      en: 'Heart rate measures the work; RPE shows what it cost you. Why internal load matters, what skews heart rate, and how to read the two together.',
+      fr: "La fréquence cardiaque mesure le travail, le RPE ce qu'il vous coûte. Pourquoi la charge interne compte, ce qui fausse la FC et comment lire les deux.",
+      es: 'La frecuencia cardíaca mide el trabajo; el RPE, lo que te cuesta. Por qué importa la carga interna, qué altera la FC y cómo leer ambos datos juntos.',
     },
     excerpt: {
       en: "Your heart rate shows external load, but RPE reveals internal load. Stress, sleep, and mental fatigue impact performance in ways your watch can't measure.",
@@ -30,7 +30,7 @@ export const articleRpeVsHr: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You just finished a 10K run. Your heart rate averaged 165
@@ -121,16 +121,30 @@ export const articleRpeVsHr: BlogPost = {
           internal load (RPE)—cross-referenced intelligently.
         </p>
 
-        <h2>How AI Bridges the Gap</h2>
+        <h2>How OpenAthlete Bridges the Gap</h2>
         <p>
-          This is where OpenAthlete's AI becomes essential. After every session,
-          the platform asks for your RPE. It then analyzes:
+          OpenAthlete keeps both sides of the picture on each session. After an
+          activity, you log your RPE (your coach can make it mandatory), or
+          answer three or four short questions from which the AI extracts it.
+          Next to it you get:
         </p>
         <ul>
-          <li>Your RPE relative to your historical patterns</li>
-          <li>Your RPE relative to the external load (pace, HR, power)</li>
-          <li>Trends over time—are sessions feeling harder?</li>
-          <li>Correlation with sleep, stress, and recovery markers</li>
+          <li>
+            Pace, heart rate and power from your watch, graded against the
+            planned session
+          </li>
+          <li>
+            Aerobic decoupling: does heart rate drift away from pace as the
+            session goes on?
+          </li>
+          <li>
+            Session-RPE load (RPE × minutes) as an alternative to heart-rate
+            TRIMP
+          </li>
+          <li>
+            Last night's sleep, HRV and resting heart rate on the calendar, if
+            your watch records them
+          </li>
         </ul>
 
         <p>
@@ -145,18 +159,21 @@ export const articleRpeVsHr: BlogPost = {
         </ul>
 
         <p>
-          The AI detects these patterns before they become problems. It might
-          suggest reducing intensity, adding a recovery day, or investigating
-          sleep quality. This proactive approach prevents the injuries and
-          burnout that derail so many athletes.
+          Spotting the pattern is still your job, or your coach's: OpenAthlete
+          puts the numbers side by side, it doesn't diagnose you. Pain you
+          mention in the post-activity questions goes into an injury log and
+          shows up on your coach's dashboard. Catch it early and you can reduce
+          intensity, add a recovery day or look at your sleep before it turns
+          into an injury.
         </p>
 
         <h2>Real-World Example</h2>
         <p>
           Sarah, a marathon runner, noticed her RPE was consistently 2-3 points
           higher than normal for the same pace and heart rate. Her watch showed
-          everything was fine—she was hitting her zones. But OpenAthlete flagged
-          the pattern and suggested she reduce volume by 20% for a week.
+          everything was fine—she was hitting her zones. But her coach, seeing
+          her RPE next to pace and heart rate in OpenAthlete, spotted the
+          pattern and cut her volume by 20% for a week.
         </p>
 
         <p>
@@ -179,15 +196,14 @@ export const articleRpeVsHr: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and let AI cross-reference your external and internal load to keep you
-          healthy and progressing.
+          and see your RPE next to your heart rate, session after session.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous venez de terminer un 10K. Votre fréquence cardiaque moyenne
@@ -286,23 +302,29 @@ export const articleRpeVsHr: BlogPost = {
           allure, puissance) et charge interne (RPE)—croisées intelligemment.
         </p>
 
-        <h2>Comment l'IA Comble l'Écart</h2>
+        <h2>Comment OpenAthlete Comble l'Écart</h2>
         <p>
-          C'est là que l'IA d'OpenAthlete devient essentielle. Après chaque
-          séance, la plateforme demande votre RPE. Elle analyse ensuite :
+          OpenAthlete garde les deux faces du tableau sur chaque séance. Après
+          une activité, vous notez votre RPE (votre coach peut le rendre
+          obligatoire), ou vous répondez à trois ou quatre questions courtes
+          dont l'IA l'extrait. À côté, vous retrouvez :
         </p>
         <ul>
-          <li>Votre RPE par rapport à vos modèles historiques</li>
           <li>
-            Votre RPE par rapport à la charge externe (allure, FC, puissance)
+            L'allure, la fréquence cardiaque et la puissance de votre montre,
+            comparées à la séance prévue
           </li>
           <li>
-            Les tendances dans le temps—les séances deviennent-elles plus dures
-            ?
+            Le découplage aérobie : la fréquence cardiaque dérive-t-elle par
+            rapport à l'allure au fil de la séance ?
           </li>
           <li>
-            La corrélation avec le sommeil, le stress et les marqueurs de
-            récupération
+            La charge en RPE de séance (RPE × minutes), en alternative au TRIMP
+            cardiaque
+          </li>
+          <li>
+            Le sommeil de la nuit, la VFC et la fréquence cardiaque de repos
+            dans le calendrier, si votre montre les mesure
           </li>
         </ul>
 
@@ -318,11 +340,13 @@ export const articleRpeVsHr: BlogPost = {
         </ul>
 
         <p>
-          L'IA détecte ces modèles avant qu'ils ne deviennent des problèmes.
-          Elle peut suggérer de réduire l'intensité, d'ajouter un jour de
-          récupération, ou d'investiguer la qualité du sommeil. Cette approche
-          proactive prévient les blessures et l'épuisement qui font dérailler
-          tant d'athlètes.
+          Repérer ce schéma reste votre travail, ou celui de votre coach :
+          OpenAthlete met les chiffres côte à côte, il ne pose pas de
+          diagnostic. Les douleurs mentionnées dans les questions post-activité
+          alimentent un journal des blessures et remontent dans le tableau de
+          bord du coach. Repéré tôt, le signal vous laisse le temps de baisser
+          l'intensité, d'ajouter un jour de récupération ou de regarder votre
+          sommeil avant la blessure.
         </p>
 
         <h2>Exemple Concret</h2>
@@ -330,8 +354,9 @@ export const articleRpeVsHr: BlogPost = {
           Sarah, une marathonienne, a remarqué que son RPE était constamment 2-3
           points plus élevé que la normale pour la même allure et fréquence
           cardiaque. Sa montre montrait que tout allait bien—elle atteignait ses
-          zones. Mais OpenAthlete a signalé le modèle et a suggéré de réduire le
-          volume de 20% pendant une semaine.
+          zones. Mais son coach, qui voyait son RPE à côté de l'allure et de la
+          fréquence cardiaque dans OpenAthlete, a repéré le schéma et réduit son
+          volume de 20 % pendant une semaine.
         </p>
 
         <p>
@@ -358,15 +383,15 @@ export const articleRpeVsHr: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et laissez l'IA croiser votre charge externe et interne pour vous
-          garder en bonne santé et progresser.
+          et voyez votre RPE à côté de votre fréquence cardiaque, séance après
+          séance.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Acabas de terminar un 10K. Tu frecuencia cardíaca media ha sido de
@@ -464,21 +489,29 @@ export const articleRpeVsHr: BlogPost = {
           forma inteligente.
         </p>
 
-        <h2>Cómo la IA une ambos mundos</h2>
+        <h2>Cómo une OpenAthlete ambos mundos</h2>
         <p>
-          Aquí es donde la IA de OpenAthlete se vuelve imprescindible. Después
-          de cada sesión, la plataforma te pide tu RPE. Luego analiza:
+          OpenAthlete mantiene las dos caras del cuadro en cada sesión. Después
+          de una actividad, anotas tu RPE (tu entrenador puede hacerlo
+          obligatorio) o respondes a tres o cuatro preguntas breves de las que
+          la IA lo extrae. Junto a él tienes:
         </p>
         <ul>
-          <li>Tu RPE en relación con tus patrones históricos</li>
-          <li>Tu RPE en relación con la carga externa (ritmo, FC, potencia)</li>
           <li>
-            Las tendencias a lo largo del tiempo: ¿se te hacen más duras las
-            sesiones?
+            El ritmo, la frecuencia cardíaca y la potencia de tu reloj,
+            comparados con la sesión planificada
           </li>
           <li>
-            La correlación con el sueño, el estrés y los marcadores de
-            recuperación
+            El desacoplamiento aeróbico: ¿la frecuencia cardíaca se separa del
+            ritmo a medida que avanza la sesión?
+          </li>
+          <li>
+            La carga por RPE de sesión (RPE × minutos), como alternativa al
+            TRIMP cardíaco
+          </li>
+          <li>
+            El sueño de la noche, la VFC y la frecuencia cardíaca en reposo en
+            el calendario, si tu reloj los registra
           </li>
         </ul>
 
@@ -494,10 +527,12 @@ export const articleRpeVsHr: BlogPost = {
         </ul>
 
         <p>
-          La IA detecta estos patrones antes de que se conviertan en problemas.
-          Puede proponerte bajar la intensidad, añadir un día de recuperación o
-          revisar la calidad de tu sueño. Este enfoque proactivo evita las
-          lesiones y el agotamiento que frenan a tantos atletas.
+          Detectar el patrón sigue siendo tarea tuya o de tu entrenador:
+          OpenAthlete pone las cifras una junto a otra, no te diagnostica. Los
+          dolores que mencionas en las preguntas posactividad van a un registro
+          de lesiones y aparecen en el panel de tu entrenador. Si lo detectas
+          pronto, puedes bajar la intensidad, añadir un día de recuperación o
+          revisar tu sueño antes de que acabe en lesión.
         </p>
 
         <h2>Un ejemplo real</h2>
@@ -505,8 +540,9 @@ export const articleRpeVsHr: BlogPost = {
           Sarah, maratoniana, se dio cuenta de que su RPE era sistemáticamente 2
           o 3 puntos más alto de lo normal para el mismo ritmo y la misma
           frecuencia cardíaca. Su reloj decía que todo iba bien: estaba dentro
-          de sus zonas. Pero OpenAthlete detectó el patrón y le propuso reducir
-          el volumen un 20% durante una semana.
+          de sus zonas. Pero su entrenador, que veía su RPE junto al ritmo y la
+          frecuencia cardíaca en OpenAthlete, detectó el patrón y le redujo el
+          volumen un 20 % durante una semana.
         </p>
 
         <p>
@@ -530,8 +566,7 @@ export const articleRpeVsHr: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y deja que la IA cruce tu carga externa y tu carga interna para que
-          sigas sano y progresando.
+          y ve tu RPE junto a tu frecuencia cardíaca, sesión tras sesión.
         </p>
       </div>
     );

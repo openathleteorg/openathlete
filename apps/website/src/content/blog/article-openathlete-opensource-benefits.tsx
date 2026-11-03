@@ -9,9 +9,9 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       es: 'Por qué importa el código abierto: cómo OpenAthlete protege tu privacidad e impulsa la innovación',
     },
     description: {
-      en: 'Discover why OpenAthlete being open source matters for your privacy, data security, and training innovation. Learn about transparency, self-hosting, community-driven development, and why open source is the future of sports technology.',
-      fr: "Découvrez pourquoi le fait qu'OpenAthlete soit open source compte pour votre confidentialité, la sécurité de vos données et l'innovation d'entraînement. Apprenez-en sur la transparence, l'auto-hébergement, le développement communautaire et pourquoi l'open source est l'avenir de la technologie sportive.",
-      es: 'Descubre por qué es importante que OpenAthlete sea de código abierto para tu privacidad, la seguridad de tus datos y la innovación en el entrenamiento. Conoce la transparencia, el autoalojamiento, el desarrollo impulsado por la comunidad y por qué el código abierto es el futuro de la tecnología deportiva.',
+      en: 'Why OpenAthlete is open source: what you can check in the code, how self-hosting keeps your training data on your server, and what AGPL means.',
+      fr: "Pourquoi OpenAthlete est open source : ce que vous pouvez vérifier dans le code, l'auto-hébergement pour garder vos données chez vous, la licence AGPL.",
+      es: 'Por qué OpenAthlete es de código abierto: qué puedes comprobar en el código, cómo el autoalojamiento deja tus datos en tu servidor y qué implica la AGPL.',
     },
     excerpt: {
       en: 'Open source software gives you control, transparency, and security. OpenAthlete is open source, meaning you can verify how your data is processed, self-host on your infrastructure, and contribute to improvements. Discover why this matters for athletes and coaches.',
@@ -41,7 +41,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Your training data is personal. Your health metrics are sensitive.
@@ -122,8 +122,9 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             exactly how your training data is processed, stored, and analyzed
           </li>
           <li>
-            <strong>No Hidden Tracking:</strong> No secret analytics, no hidden
-            data collection—everything is visible in the code
+            <strong>No Hidden Tracking:</strong> On the Cloud, analytics only
+            run if you accept them; a self-hosted instance sends nothing to
+            OpenAthlete, and an automated test checks it
           </li>
           <li>
             <strong>GDPR Compliance:</strong> Open source makes it easier to
@@ -333,8 +334,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             your own infrastructure, independent of our cloud service
           </li>
           <li>
-            <strong>Data Portability:</strong> Your data is stored in standard
-            formats—you can export it anytime
+            <strong>Data Portability:</strong> Export all your data as one JSON
+            file anytime, and your activities stay on your watch account
           </li>
           <li>
             <strong>Fork Capability:</strong> If you don't like our direction,
@@ -362,8 +363,9 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             licensing fees
           </li>
           <li>
-            <strong>No Per-User Costs:</strong> Add as many athletes or coaches
-            as you want without additional costs
+            <strong>No Per-User Costs:</strong> Self-hosted, add as many
+            athletes and coaches as you want; on the Cloud, coaching is free up
+            to 5 athletes and unlimited with Supporter (€5/month or €50/year)
           </li>
           <li>
             <strong>Self-Hosting Savings:</strong> For organizations,
@@ -484,8 +486,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             your infrastructure
           </li>
           <li>
-            <strong>Scalability:</strong> Add unlimited members without per-user
-            licensing costs
+            <strong>Scalability:</strong> On your own instance, add unlimited
+            members without per-user licensing costs
           </li>
           <li>
             <strong>Compliance:</strong> Meet strict data protection
@@ -507,9 +509,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
         </p>
 
         <p>
-          <strong>
-            OpenAthlete is leading this change in sports technology.
-          </strong>{' '}
+          <strong>OpenAthlete wants to bring this to sports technology.</strong>{' '}
           We believe that athletes and coaches deserve:
         </p>
         <ul>
@@ -550,17 +550,11 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
         </ol>
 
         <p>
-          <strong>
-            Join the open source revolution in sports technology. Your data,
-            your control, your innovation.
-          </strong>
+          <strong>Your data, your control, and code you can read.</strong>
         </p>
 
         <p>
-          <a
-            href="https://app.openathlete.org/auth/create-account"
-            className="inline-flex items-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-          >
+          <a href="https://app.openathlete.org/auth/create-account">
             Get Started with OpenAthlete →
           </a>
         </p>
@@ -608,7 +602,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vos données d'entraînement sont personnelles. Vos métriques de santé
@@ -697,8 +691,10 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             traitées, stockées et analysées
           </li>
           <li>
-            <strong>Pas de Suivi Caché :</strong> Pas d'analytics secrètes, pas
-            de collecte de données cachée—tout est visible dans le code
+            <strong>Pas de Suivi Caché :</strong> sur le Cloud, la mesure
+            d'audience ne fonctionne que si vous l'acceptez ; une instance
+            auto-hébergée n'envoie rien à OpenAthlete, et un test automatisé le
+            vérifie
           </li>
           <li>
             <strong>Conformité RGPD :</strong> L'open source facilite la
@@ -929,8 +925,9 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             service cloud
           </li>
           <li>
-            <strong>Portabilité des Données :</strong> Vos données sont stockées
-            dans des formats standard—vous pouvez les exporter à tout moment
+            <strong>Portabilité des Données :</strong> exportez toutes vos
+            données dans un fichier JSON à tout moment, et vos activités restent
+            sur le compte de votre montre
           </li>
           <li>
             <strong>Capacité de Fork :</strong> Si vous n'aimez pas notre
@@ -962,8 +959,10 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             payer de frais de licence
           </li>
           <li>
-            <strong>Pas de Coûts par Utilisateur :</strong> Ajoutez autant
-            d'athlètes ou de coachs que vous voulez sans coûts supplémentaires
+            <strong>Pas de Coûts par Utilisateur :</strong> en auto-hébergement,
+            ajoutez autant d'athlètes et de coachs que vous voulez ; sur le
+            Cloud, le coaching est gratuit jusqu'à 5 athlètes et illimité avec
+            Supporter (5 €/mois ou 50 €/an)
           </li>
           <li>
             <strong>Économies d'Auto-Hébergement :</strong> Pour les
@@ -1093,8 +1092,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             garder toutes les données dans votre infrastructure
           </li>
           <li>
-            <strong>Évolutivité :</strong> Ajoutez des membres illimités sans
-            coûts de licence par utilisateur
+            <strong>Évolutivité :</strong> sur votre propre instance, ajoutez
+            des membres illimités sans coûts de licence par utilisateur
           </li>
           <li>
             <strong>Conformité :</strong> Répondez aux exigences strictes de
@@ -1117,7 +1116,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
 
         <p>
           <strong>
-            OpenAthlete mène ce changement dans la technologie sportive.
+            OpenAthlete veut apporter cela à la technologie sportive.
           </strong>{' '}
           Nous croyons que les athlètes et les coachs méritent :
         </p>
@@ -1166,16 +1165,12 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
 
         <p>
           <strong>
-            Rejoignez la révolution open source dans la technologie sportive.
-            Vos données, votre contrôle, votre innovation.
+            Vos données, votre contrôle, et un code que vous pouvez lire.
           </strong>
         </p>
 
         <p>
-          <a
-            href="https://app.openathlete.org/auth/create-account"
-            className="inline-flex items-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-          >
+          <a href="https://app.openathlete.org/auth/create-account">
             Commencez avec OpenAthlete →
           </a>
         </p>
@@ -1229,7 +1224,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Tus datos de entrenamiento son personales. Tus métricas de salud son
@@ -1312,8 +1307,9 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             datos de entrenamiento
           </li>
           <li>
-            <strong>Sin seguimiento oculto:</strong> ni analíticas secretas ni
-            recogida de datos a escondidas; todo está a la vista en el código
+            <strong>Sin seguimiento oculto:</strong> en la nube, la analítica
+            solo funciona si la aceptas; una instancia autoalojada no envía nada
+            a OpenAthlete, y una prueba automática lo comprueba
           </li>
           <li>
             <strong>Cumplimiento del RGPD:</strong> el código abierto facilita
@@ -1538,8 +1534,9 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             servicio en la nube
           </li>
           <li>
-            <strong>Portabilidad de los datos:</strong> tus datos se guardan en
-            formatos estándar; puedes exportarlos cuando quieras
+            <strong>Portabilidad de los datos:</strong> exporta todos tus datos
+            en un archivo JSON cuando quieras, y tus actividades siguen en la
+            cuenta de tu reloj
           </li>
           <li>
             <strong>Posibilidad de bifurcar:</strong> si no te gusta el rumbo
@@ -1570,8 +1567,10 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             licencias
           </li>
           <li>
-            <strong>Sin costes por usuario:</strong> añade tantos atletas o
-            entrenadores como quieras sin coste adicional
+            <strong>Sin costes por usuario:</strong> autoalojado, añade tantos
+            atletas y entrenadores como quieras; en la nube, el coaching es
+            gratis hasta 5 atletas e ilimitado con Supporter (5 €/mes o 50
+            €/año)
           </li>
           <li>
             <strong>Ahorro con el autoalojamiento:</strong> para las
@@ -1701,8 +1700,8 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
             todos los datos dentro de tu infraestructura
           </li>
           <li>
-            <strong>Escalabilidad:</strong> añade miembros sin límite y sin
-            costes de licencia por usuario
+            <strong>Escalabilidad:</strong> en tu propia instancia, añade
+            miembros sin límite y sin costes de licencia por usuario
           </li>
           <li>
             <strong>Cumplimiento normativo:</strong> cumple requisitos estrictos
@@ -1725,7 +1724,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
 
         <p>
           <strong>
-            OpenAthlete lidera este cambio en la tecnología deportiva.
+            OpenAthlete quiere llevar esto a la tecnología deportiva.
           </strong>{' '}
           Creemos que los atletas y los entrenadores merecen:
         </p>
@@ -1772,17 +1771,11 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
         </ol>
 
         <p>
-          <strong>
-            Únete a la revolución del código abierto en la tecnología deportiva.
-            Tus datos, tu control, tu innovación.
-          </strong>
+          <strong>Tus datos, tu control y un código que puedes leer.</strong>
         </p>
 
         <p>
-          <a
-            href="https://app.openathlete.org/auth/create-account"
-            className="inline-flex items-center rounded-md bg-primary px-6 py-3 text-base font-medium text-primary-foreground shadow-sm hover:bg-primary/90 transition-colors"
-          >
+          <a href="https://app.openathlete.org/auth/create-account">
             Empieza con OpenAthlete →
           </a>
         </p>

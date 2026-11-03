@@ -9,9 +9,9 @@ export const articleCognitiveLoad: BlogPost = {
       es: 'Entender la carga cognitiva en los deportes de resistencia',
     },
     description: {
-      en: 'Brain/Legs link. How mental fatigue affects performance. How the app notes mental RPE to adapt future sessions.',
-      fr: "Lien Cerveau/Jambes. Comment la fatigue mentale affecte les performances. Comment l'app note le RPE mental pour adapter les séances futures.",
-      es: 'El vínculo entre cerebro y piernas. Cómo la fatiga mental afecta al rendimiento. Cómo la app registra el RPE mental para adaptar las próximas sesiones.',
+      en: 'How mental fatigue makes the same pace feel harder, where cognitive load comes from, and how RPE helps you spot it and adjust training.',
+      fr: "Comment la fatigue mentale rend la même allure plus dure, d'où vient la charge cognitive et comment le RPE vous aide à la repérer pour ajuster.",
+      es: 'Cómo la fatiga mental hace que el mismo ritmo cueste más, de dónde viene la carga cognitiva y cómo el RPE te ayuda a detectarla y ajustar.',
     },
     excerpt: {
       en: 'Mental fatigue directly impacts physical performance. Learn how cognitive load affects endurance and how RPE tracking helps adapt training.',
@@ -35,7 +35,7 @@ export const articleCognitiveLoad: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You're running an ultramarathon. Your legs feel fine. Your heart
@@ -87,15 +87,16 @@ export const articleCognitiveLoad: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete tracks this pattern and adapts training
-          accordingly—reducing intensity when cognitive load is high, allowing
-          recovery when needed.
+          In OpenAthlete, a few questions after each activity ask about feeling,
+          fatigue and sleep, and the RPE is filled in from the answers. You or
+          your coach see it next to pace and heart rate, and can lighten the
+          next sessions when cognitive load is high.
         </p>
 
         <h2>The Bottom Line</h2>
         <p>
           Cognitive load matters. Mental fatigue impacts performance. RPE
-          tracking helps detect it. AI helps adapt training to account for it.
+          tracking helps detect it. Adjusting the plan accounts for it.
         </p>
 
         <p>
@@ -103,14 +104,15 @@ export const articleCognitiveLoad: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and let AI track cognitive load and adapt your training accordingly.
+          and log your RPE and feeling after every session, so you can adapt
+          your training.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous courez un ultramarathon. Vos jambes se sentent bien. Votre
@@ -162,16 +164,18 @@ export const articleCognitiveLoad: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete suit ce modèle et adapte l'entraînement en
-          conséquence—réduisant l'intensité quand la charge cognitive est
-          élevée, permettant la récupération quand nécessaire.
+          Dans OpenAthlete, quelques questions après chaque activité portent sur
+          les sensations, la fatigue et le sommeil, et le RPE est déduit des
+          réponses. Vous ou votre coach le voyez à côté de l'allure et de la
+          fréquence cardiaque, et pouvez alléger les séances suivantes quand la
+          charge cognitive est forte.
         </p>
 
         <h2>En Résumé</h2>
         <p>
           La charge cognitive compte. La fatigue mentale impacte les
-          performances. Le suivi RPE aide à la détecter. L'IA aide à adapter
-          l'entraînement pour en tenir compte.
+          performances. Le suivi RPE aide à la détecter. Ajuster le plan permet
+          d'en tenir compte.
         </p>
 
         <p>
@@ -182,15 +186,15 @@ export const articleCognitiveLoad: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et laissez l'IA suivre la charge cognitive et adapter votre
-          entraînement en conséquence.
+          et notez votre RPE et vos sensations après chaque séance pour adapter
+          votre entraînement.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Estás corriendo un ultramaratón. Las piernas responden. Tu
@@ -243,16 +247,18 @@ export const articleCognitiveLoad: BlogPost = {
         </p>
 
         <p>
-          OpenAthlete detecta este patrón y adapta el entrenamiento en
-          consecuencia: reduce la intensidad cuando la carga cognitiva es alta y
-          te deja recuperar cuando lo necesitas.
+          En OpenAthlete, unas pocas preguntas después de cada actividad tratan
+          sobre las sensaciones, la fatiga y el sueño, y el RPE se deduce de las
+          respuestas. Tú o tu entrenador lo veis junto al ritmo y la frecuencia
+          cardíaca, y podéis aligerar las siguientes sesiones cuando la carga
+          cognitiva es alta.
         </p>
 
         <h2>En resumen</h2>
         <p>
           La carga cognitiva importa. La fatiga mental afecta al rendimiento. El
-          seguimiento del RPE ayuda a detectarla. La IA ayuda a adaptar el
-          entrenamiento para tenerla en cuenta.
+          seguimiento del RPE ayuda a detectarla. Ajustar el plan permite
+          tenerla en cuenta.
         </p>
 
         <p>
@@ -260,8 +266,8 @@ export const articleCognitiveLoad: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y deja que la IA siga tu carga cognitiva y adapte tu entrenamiento en
-          consecuencia.
+          y registra tu RPE y tus sensaciones después de cada sesión para
+          adaptar tu entrenamiento.
         </p>
       </div>
     );

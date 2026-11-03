@@ -4,19 +4,19 @@ export const article1: BlogPost = {
   metadata: {
     slug: 'introducing-openathlete',
     title: {
-      en: 'Introducing OpenAthlete: AI-Powered Endurance Coaching',
+      en: 'Introducing OpenAthlete: Endurance Coaching with AI',
       fr: "Présentation d'OpenAthlete : Coaching d'endurance assisté par IA",
       es: 'Te presentamos OpenAthlete: entrenamiento de resistencia asistido por IA',
     },
     description: {
-      en: 'Discover how OpenAthlete revolutionizes endurance coaching with AI-powered planning, analysis, and fatigue prevention.',
-      fr: "Découvrez comment OpenAthlete révolutionne le coaching d'endurance avec une planification, une analyse et une prévention de la fatigue assistées par IA.",
-      es: 'Descubre cómo OpenAthlete revoluciona el entrenamiento de resistencia con planificación, análisis y prevención de la fatiga asistidos por IA.',
+      en: 'What OpenAthlete is: a free, open-source platform to plan training, sync your watch, analyse sessions and coach athletes, with optional AI.',
+      fr: "Ce qu'est OpenAthlete : une plateforme libre et gratuite pour planifier, synchroniser votre montre, analyser vos séances et coacher, IA en option.",
+      es: 'Qué es OpenAthlete: una plataforma libre y gratuita para planificar, sincronizar tu reloj, analizar sesiones y entrenar a atletas, con IA opcional.',
     },
     excerpt: {
-      en: 'OpenAthlete combines cutting-edge AI technology with proven training methodologies to help coaches and athletes achieve better results while preventing injuries.',
-      fr: "OpenAthlete combine une technologie IA de pointe avec des méthodologies d'entraînement éprouvées pour aider les coachs et les athlètes à obtenir de meilleurs résultats tout en prévenant les blessures.",
-      es: 'OpenAthlete combina tecnología de IA de vanguardia con metodologías de entrenamiento probadas para ayudar a entrenadores y atletas a lograr mejores resultados mientras previenen lesiones.',
+      en: 'OpenAthlete combines AI with proven training methods to help coaches and athletes plan better and spot warning signs such as pain early.',
+      fr: "OpenAthlete associe l'IA à des méthodes d'entraînement éprouvées pour aider coachs et athlètes à mieux planifier et à repérer tôt les signaux d'alerte, comme la douleur.",
+      es: 'OpenAthlete combina la IA con métodos de entrenamiento probados para ayudar a entrenadores y atletas a planificar mejor y detectar pronto señales de alerta como el dolor.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -30,9 +30,9 @@ export const article1: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
-          Welcome to OpenAthlete, the next-generation platform for endurance
+          Welcome to OpenAthlete, an open-source platform for endurance
           coaching. We're excited to introduce a solution that combines
           artificial intelligence with proven training methodologies to help
           coaches and athletes achieve their goals more efficiently.
@@ -48,13 +48,14 @@ export const article1: BlogPost = {
 
         <h2>Our Solution</h2>
         <p>
-          OpenAthlete leverages AI to analyze these variables in real-time,
-          providing coaches and athletes with:
+          OpenAthlete brings your watch data, your plan and your feedback
+          together, with AI where it helps, providing coaches and athletes with:
         </p>
         <ul>
           <li>
-            <strong>Intelligent Planning:</strong> AI suggests training sessions
-            adapted to the athlete's current load, goals, and recovery status.
+            <strong>Intelligent Planning:</strong> AI turns a sentence into a
+            structured session built on the athlete's zones and latest metrics,
+            and fitness, fatigue and form are projected over the planned weeks.
           </li>
           <li>
             <strong>Automatic Analysis:</strong> Each completed session is
@@ -62,24 +63,23 @@ export const article1: BlogPost = {
             objectives.
           </li>
           <li>
-            <strong>Fatigue Prevention:</strong> Early detection of overload
-            signals helps prevent injuries and overreaching before they occur.
+            <strong>Early Warnings:</strong> After each activity, a few short
+            questions record effort and pain; reported pain goes into an injury
+            log and shows up in the coach's alerts.
           </li>
         </ul>
 
         <h2>Built for Coaches and Athletes</h2>
         <p>
-          Whether you're a professional coach managing multiple athletes or an
-          athlete training independently, OpenAthlete adapts to your needs. Our
-          platform saves coaches up to 50% of their planning time while
-          improving training quality and athlete satisfaction.
+          OpenAthlete works for a coach managing several athletes and for an
+          athlete training alone. Coaches plan on each athlete's calendar, reuse
+          templates and move or copy whole weeks, and every feature is free.
         </p>
 
         <h2>What's Next</h2>
         <p>
-          We're currently in beta and working with select coaches and athletes
-          to refine our platform. If you're interested in joining our beta
-          program,{' '}
+          OpenAthlete is open source and built in the open with the coaches and
+          athletes who use it. If you'd like to try it,{' '}
           <a href="https://app.openathlete.org/auth/create-account">sign up</a>{' '}
           and help shape the future of endurance coaching.
         </p>
@@ -88,13 +88,13 @@ export const article1: BlogPost = {
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
-          Bienvenue sur OpenAthlete, la plateforme nouvelle génération pour le
-          coaching d'endurance. Nous sommes ravis de présenter une solution qui
-          combine l'intelligence artificielle avec des méthodologies
-          d'entraînement éprouvées pour aider les coachs et les athlètes à
-          atteindre leurs objectifs plus efficacement.
+          Bienvenue sur OpenAthlete, une plateforme open source pour le coaching
+          d'endurance. Nous sommes ravis de présenter une solution qui combine
+          l'intelligence artificielle avec des méthodologies d'entraînement
+          éprouvées pour aider les coachs et les athlètes à atteindre leurs
+          objectifs plus efficacement.
         </p>
 
         <h2>Le Défi</h2>
@@ -109,14 +109,16 @@ export const article1: BlogPost = {
 
         <h2>Notre Solution</h2>
         <p>
-          OpenAthlete utilise l'IA pour analyser ces variables en temps réel,
-          offrant aux coachs et aux athlètes :
+          OpenAthlete réunit les données de votre montre, votre plan et vos
+          ressentis, avec de l'IA là où elle est utile, et offre aux coachs et
+          aux athlètes :
         </p>
         <ul>
           <li>
-            <strong>Planification Intelligente :</strong> L'IA suggère des
-            séances d'entraînement adaptées à la charge actuelle de l'athlète, à
-            ses objectifs et à son statut de récupération.
+            <strong>Planification Intelligente :</strong> L'IA transforme une
+            phrase en séance structurée à partir des zones et des dernières
+            métriques de l'athlète, et la forme est projetée sur les semaines
+            planifiées.
           </li>
           <li>
             <strong>Analyse Automatique :</strong> Chaque séance terminée est
@@ -124,26 +126,25 @@ export const article1: BlogPost = {
             objectifs d'entraînement.
           </li>
           <li>
-            <strong>Prévention de la Fatigue :</strong> La détection précoce des
-            signaux de surcharge aide à prévenir les blessures et le
-            surentraînement avant qu'ils ne surviennent.
+            <strong>Signaux d'Alerte :</strong> Après chaque activité, quelques
+            questions courtes relèvent l'effort et les douleurs ; une douleur
+            signalée entre dans le suivi des blessures et remonte dans les
+            alertes du coach.
           </li>
         </ul>
 
         <h2>Conçu pour les Coachs et les Athlètes</h2>
         <p>
-          Que vous soyez un coach professionnel gérant plusieurs athlètes ou un
-          athlète s'entraînant indépendamment, OpenAthlete s'adapte à vos
-          besoins. Notre plateforme fait économiser jusqu'à 50% du temps de
-          planification aux coachs tout en améliorant la qualité de
-          l'entraînement et la satisfaction des athlètes.
+          OpenAthlete sert aussi bien le coach qui suit plusieurs athlètes que
+          l'athlète qui s'entraîne seul. Le coach planifie dans le calendrier de
+          chaque athlète, réutilise ses modèles et déplace ou copie des semaines
+          entières, et toutes les fonctionnalités sont gratuites.
         </p>
 
         <h2>Et Maintenant ?</h2>
         <p>
-          Nous sommes actuellement en phase bêta et travaillons avec des coachs
-          et des athlètes sélectionnés pour affiner notre plateforme. Si vous
-          êtes intéressé à rejoindre notre programme bêta,{' '}
+          OpenAthlete est open source et se construit avec les coachs et les
+          athlètes qui l'utilisent. Si vous souhaitez l'essayer,{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             inscrivez-vous
           </a>{' '}
@@ -154,14 +155,13 @@ export const article1: BlogPost = {
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
-          Te damos la bienvenida a OpenAthlete, la plataforma de nueva
-          generación para el entrenamiento de resistencia. Nos hace mucha
-          ilusión presentarte una solución que combina la inteligencia
-          artificial con metodologías de entrenamiento probadas para ayudar a
-          entrenadores y atletas a alcanzar sus objetivos de forma más
-          eficiente.
+          Te damos la bienvenida a OpenAthlete, una plataforma de código abierto
+          para el entrenamiento de resistencia. Nos hace mucha ilusión
+          presentarte una solución que combina la inteligencia artificial con
+          metodologías de entrenamiento probadas para ayudar a entrenadores y
+          atletas a alcanzar sus objetivos de forma más eficiente.
         </p>
 
         <h2>El reto</h2>
@@ -175,14 +175,15 @@ export const article1: BlogPost = {
 
         <h2>Nuestra solución</h2>
         <p>
-          OpenAthlete utiliza la IA para analizar estas variables en tiempo real
-          y ofrece a entrenadores y atletas:
+          OpenAthlete reúne los datos de tu reloj, tu plan y tus sensaciones,
+          con IA donde aporta algo, y ofrece a entrenadores y atletas:
         </p>
         <ul>
           <li>
-            <strong>Planificación inteligente:</strong> la IA propone sesiones
-            de entrenamiento adaptadas a la carga actual del atleta, a sus
-            objetivos y a su estado de recuperación.
+            <strong>Planificación inteligente:</strong> la IA convierte una
+            frase en una sesión estructurada a partir de las zonas y las últimas
+            métricas del atleta, y la forma se proyecta sobre las semanas
+            planificadas.
           </li>
           <li>
             <strong>Análisis automático:</strong> cada sesión completada se
@@ -190,26 +191,25 @@ export const article1: BlogPost = {
             objetivos de entrenamiento.
           </li>
           <li>
-            <strong>Prevención de la fatiga:</strong> la detección temprana de
-            las señales de sobrecarga ayuda a prevenir lesiones y el
-            sobreentrenamiento antes de que aparezcan.
+            <strong>Señales de alerta:</strong> después de cada actividad, unas
+            pocas preguntas registran el esfuerzo y el dolor; el dolor indicado
+            pasa a un registro de lesiones y aparece en las alertas del
+            entrenador.
           </li>
         </ul>
 
         <h2>Pensada para entrenadores y atletas</h2>
         <p>
-          Tanto si eres un entrenador profesional que gestiona a varios atletas
-          como si eres un atleta que entrena por su cuenta, OpenAthlete se
-          adapta a tus necesidades. Nuestra plataforma ahorra a los entrenadores
-          hasta un 50% de su tiempo de planificación, a la vez que mejora la
-          calidad del entrenamiento y la satisfacción de los atletas.
+          OpenAthlete sirve tanto al entrenador que lleva a varios atletas como
+          al atleta que entrena por su cuenta. El entrenador planifica en el
+          calendario de cada atleta, reutiliza plantillas y mueve o copia
+          semanas enteras, y todas las funciones son gratuitas.
         </p>
 
         <h2>Próximos pasos</h2>
         <p>
-          Ahora mismo estamos en fase beta y trabajamos con un grupo de
-          entrenadores y atletas para pulir la plataforma. Si te interesa unirte
-          a nuestro programa beta,{' '}
+          OpenAthlete es de código abierto y se construye junto a los
+          entrenadores y atletas que lo usan. Si quieres probarlo,{' '}
           <a href="https://app.openathlete.org/auth/create-account">
             regístrate
           </a>{' '}

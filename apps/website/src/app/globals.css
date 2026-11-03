@@ -4,52 +4,54 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Same palette as the app (apps/web/src/theme/index.css): navy ink, neutrals
+ * leaning towards the navy, and the four colours of the logo as accents.
+ * The site is light only: the dark bands are drawn with `ink` on purpose.
+ */
 :root {
-  --background: oklch(1 0 0);
+  --background: #ffffff;
   --foreground: #050c34;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
+  --card: #ffffff;
+  --card-foreground: #050c34;
+  --popover: #ffffff;
+  --popover-foreground: #050c34;
   --primary: #050c34;
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --primary-foreground: #fafbff;
+  --secondary: #f2f3f8;
+  --secondary-foreground: #050c34;
+  --muted: #f2f3f8;
+  --muted-foreground: #5e6684;
+  --accent: #f2f3f8;
+  --accent-foreground: #050c34;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: #e7e9f1;
+  --input: #dfe2ec;
+  --ring: #a4abc4;
   --radius: 0.625rem;
-}
 
-.dark {
-  --background: oklch(0.2 0.01 265);
-  --foreground: oklch(0.95 0.01 265);
-  --card: oklch(0.23 0.01 265);
-  --card-foreground: oklch(0.95 0.01 265);
-  --popover: oklch(0.23 0.01 265);
-  --popover-foreground: oklch(0.95 0.01 265);
-  --primary: oklch(0.95 0.01 265);
-  --primary-foreground: oklch(0.2 0.01 265);
-  --secondary: oklch(0.3 0.01 265);
-  --secondary-foreground: oklch(0.95 0.01 265);
-  --muted: oklch(0.3 0.01 265);
-  --muted-foreground: oklch(0.65 0.01 265);
-  --accent: oklch(0.3 0.01 265);
-  --accent-foreground: oklch(0.95 0.01 265);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.3 0.01 265);
-  --input: oklch(0.3 0.01 265);
-  --ring: oklch(0.45 0.01 265);
+  --ink: #050c34;
+  --ink-2: #0b1648;
+  --ink-soft: #9aa4d6;
+  --paper: #f7f8fb;
+  --sky: #6ec1fc;
+  --orchid: #d078f7;
+  --coral: #ff8c5c;
+  --mint: #4cffa9;
+  /* Readable on white, for text and icons */
+  --sky-strong: #1f7fd1;
+  --orchid-strong: #9b3fd0;
+  --coral-strong: #e2582a;
+  --mint-strong: #0e9f6e;
+
+  --header-height: 4rem;
 }
 
 @theme inline {
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -69,47 +71,190 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-sky: var(--sky);
+  --color-orchid: var(--orchid);
+  --color-coral: var(--coral);
+  --color-mint: var(--mint);
+  --color-sky-strong: var(--sky-strong);
+  --color-orchid-strong: var(--orchid-strong);
+  --color-coral-strong: var(--coral-strong);
+  --color-mint-strong: var(--mint-strong);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --animate-marquee: marquee var(--marquee-duration, 40s) linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-padding-top: calc(var(--header-height) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings:
+      'ss01' on,
+      'cv11' on;
+    text-rendering: optimizeLegibility;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--sky) 35%, transparent);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
   }
 }
 
-@layer utilities {
-  /* Grid pattern amélioré */
-  .bg-grid-pattern {
-    background-image:
-      linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
+@layer components {
+  /* Display type: tight, heavy, like the app's page titles but bigger */
+  .display-1 {
+    font-size: clamp(2.5rem, 5.6vw, 4.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+    font-weight: 620;
+  }
+  .display-2 {
+    font-size: clamp(2rem, 3.8vw, 3.2rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+    font-weight: 600;
+  }
+  /* Section titles that sit in a narrow column next to a visual */
+  .display-2-side {
+    font-size: clamp(1.9rem, 3vw, 2.6rem);
+    line-height: 1.05;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  .display-3 {
+    font-size: clamp(1.5rem, 2.6vw, 2.1rem);
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+    font-weight: 600;
+  }
+  .lead {
+    font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+    line-height: 1.55;
+    letter-spacing: -0.01em;
+    @apply text-muted-foreground;
+  }
+  .kicker {
+    @apply font-mono text-[0.72rem] font-medium tracking-[0.14em] uppercase;
   }
 
-  .dark .bg-grid-pattern {
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  /* The logo's four colours, for thin rules and highlights */
+  .brand-gradient {
+    background-image: linear-gradient(
+      90deg,
+      var(--sky),
+      var(--orchid),
+      var(--coral),
+      var(--mint)
+    );
+  }
+  .brand-gradient-text {
+    background-image: linear-gradient(
+      100deg,
+      var(--sky-strong) 0%,
+      var(--orchid-strong) 40%,
+      var(--coral-strong) 75%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
-  /* Grid pattern plus fin pour un look tech */
-  .bg-grid-pattern-fine {
+  /* Dark band: navy with a faint aurora of the logo colours */
+  .ink-band {
+    background-color: var(--ink);
+    color: #eef1ff;
     background-image:
-      linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
-    background-size: 20px 20px;
+      radial-gradient(
+        60rem 30rem at 85% -10%,
+        color-mix(in oklab, var(--orchid) 22%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 28rem at 0% 110%,
+        color-mix(in oklab, var(--sky) 18%, transparent),
+        transparent 60%
+      );
   }
 
-  .dark .bg-grid-pattern-fine {
-    background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  .dot-grid {
+    background-image: radial-gradient(
+      color-mix(in oklab, var(--ink) 12%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+  .ink-band .dot-grid,
+  .dot-grid-light {
+    background-image: radial-gradient(
+      rgb(255 255 255 / 0.09) 1px,
+      transparent 1px
+    );
+    background-size: 22px 22px;
+  }
+
+  /* Screenshot frame */
+  .shot {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: white;
+    box-shadow:
+      0 1px 0 rgb(5 12 52 / 0.04),
+      0 12px 24px -12px rgb(5 12 52 / 0.18),
+      0 40px 80px -24px rgb(5 12 52 / 0.22);
+    overflow: hidden;
+  }
+
+  .fade-mask-x {
+    mask-image: linear-gradient(
+      90deg,
+      transparent,
+      black 10%,
+      black 90%,
+      transparent
+    );
+  }
+  .fade-mask-b {
+    mask-image: linear-gradient(180deg, black 70%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -1,89 +1,57 @@
-import { Footer } from '@/components/landing/sections/footer';
-import { Navbar } from '@/components/landing/sections/navbar';
-import { TopBar } from '@/components/landing/sections/topbar';
-import {
-  SoftwareApplicationStructuredData,
-  WebPageStructuredData,
-} from '@/components/seo/structured-data';
-import { VMACalculator } from '@/components/tools/vma-calculator';
-import { SITE_URL } from '@/config';
+import { ToolPage } from '@/components/tools/tool-page';
+import { VmaCalculator } from '@/components/tools/vma-calculator';
+import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
-import { isSupportedLocale } from '@/utils/locales';
-import { notFound } from 'next/navigation';
 
-import { generateMetadata as generatePageMetadata } from '../../../metadata';
+import { generateMetadata as pageMetadata } from '../../../metadata';
 
-/* eslint-disable react-refresh/only-export-components */
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
+type Props = { params: Promise<{ locale: string }> };
 
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  return generatePageMetadata({
+// eslint-disable-next-line react-refresh/only-export-components
+export async function generateMetadata({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  return pageMetadata({
     locale,
-    title: m.tool_vma_title(),
-    description: m.tool_vma_description(),
     path: '/tools/vma',
-    keywords: [
-      'VMA',
-      'vitesse maximale aérobie',
-      'maximum aerobic speed',
-      'VMA calculator',
-      'calculateur VMA',
-      'running calculator',
-      'calculateur course à pied',
-      'training pace',
-      'allure entraînement',
-      'cooper test',
-      'test cooper',
-      'demi-cooper test',
-      'test demi-cooper',
-      'running training',
-      'entraînement course à pied',
-    ],
+    title: m.tools_vma_seo_title(),
+    description: m.tools_vma_seo_description(),
   });
 }
-/* eslint-enable react-refresh/only-export-components */
 
-export default async function VMACalculatorPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-
-  // Validate locale
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
+export default async function Page({ params }: Props) {
+  const locale = initLocale((await params).locale);
   return (
-    <>
-      <WebPageStructuredData
-        title={m.tool_vma_title()}
-        description={m.tool_vma_description()}
-        url={`${SITE_URL}/${locale}/tools/vma`}
-      />
-      <SoftwareApplicationStructuredData
-        name={m.tool_vma_title()}
-        description={m.tool_vma_description()}
-        url={`${SITE_URL}/${locale}/tools/vma`}
-        applicationCategory="HealthApplication"
-      />
-      <div className="min-h-screen bg-background">
-        <TopBar />
-        <Navbar />
-        <main className="py-16">
-          <VMACalculator />
-        </main>
-        <Footer />
-      </div>
-    </>
+    <ToolPage
+      locale={locale}
+      slug="vma"
+      title={m.tools_vma_h1()}
+      lead={m.tools_vma_lead()}
+      description={m.tools_vma_seo_description()}
+      calculator={<VmaCalculator />}
+      method={<p>{m.tools_vma_how_body()}</p>}
+      extra={
+        <div className="mt-10">
+          <h3 className="text-[1.15rem] font-semibold text-ink">
+            {m.tools_vma_protocols_title()}
+          </h3>
+          <ul className="mt-4 space-y-3 text-[0.98rem] leading-relaxed text-[#2b3354]">
+            {[
+              m.tools_vma_protocol_half(),
+              m.tools_vma_protocol_cooper(),
+              m.tools_vma_protocol_race(),
+            ].map((item) => (
+              <li key={item} className="border-l-2 border-sky pl-4">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      }
+      faq={[
+        { question: m.tools_vma_faq1_q(), answer: m.tools_vma_faq1_a() },
+        { question: m.tools_vma_faq2_q(), answer: m.tools_vma_faq2_a() },
+        { question: m.tools_vma_faq3_q(), answer: m.tools_vma_faq3_a() },
+      ]}
+    />
   );
 }

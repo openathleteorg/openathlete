@@ -9,9 +9,9 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       es: 'Deja de entrenar según «cómo te sientes» (en el mal sentido)',
     },
     description: {
-      en: 'Learn the difference between "listening to your body" (good) and "random training" (bad). Discover the discipline of a structured calendar that exports to your watch.',
-      fr: 'Apprenez la différence entre "écouter votre corps" (bien) et "entraînement aléatoire" (mauvais). Découvrez la discipline d\'un calendrier structuré qui s\'exporte sur votre montre.',
-      es: 'Aprende la diferencia entre «escuchar a tu cuerpo» (bien) y «entrenar al azar» (mal). Descubre la disciplina de un calendario estructurado que se exporta a tu reloj.',
+      en: 'Listening to your body is not the same as training on mood. How to tell them apart, and how a structured plan on your watch keeps you consistent.',
+      fr: "Écouter son corps n'est pas s'entraîner selon l'humeur. Comment faire la différence, et pourquoi un plan structuré sur votre montre vous rend régulier.",
+      es: 'Escuchar a tu cuerpo no es entrenar según el humor. Cómo distinguir ambas cosas y por qué un plan estructurado en tu reloj te ayuda a ser constante.',
     },
     excerpt: {
       en: 'There\'s a difference between listening to your body and training randomly. Structured training with discipline beats "feeling-based" workouts every time.',
@@ -35,7 +35,7 @@ export const articleStopTrainingOnFeeling: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             You wake up. You feel great. You decide to push hard today—maybe a
@@ -156,24 +156,26 @@ export const articleStopTrainingOnFeeling: BlogPost = {
         <p>OpenAthlete solves this by providing structure with flexibility:</p>
         <ul>
           <li>
-            <strong>Structured plans:</strong> AI generates periodized training
-            based on your goals
+            <strong>Structured plans:</strong> Build sessions in the workout
+            builder, start from the free plan generator, or have Claude or
+            ChatGPT plan a block through the MCP server
           </li>
           <li>
-            <strong>Automatic adjustments:</strong> Plans adapt when you miss
-            sessions or show fatigue
+            <strong>Easy adjustments:</strong> Drag a session to another day,
+            shift a week, or mark an illness period and move the sessions it
+            covers
           </li>
           <li>
-            <strong>Watch integration:</strong> Plans sync directly to your
-            Garmin, Suunto, or Polar
+            <strong>Watch integration:</strong> Structured workouts go straight
+            to your Garmin, Suunto or COROS
           </li>
           <li>
             <strong>RPE monitoring:</strong> Tracks how sessions feel relative
             to targets
           </li>
           <li>
-            <strong>Smart modifications:</strong> Adjusts intensity when
-            recovery is low
+            <strong>Recovery in view:</strong> Sleep, HRV, resting heart rate
+            and form next to each day, so you adjust on signals, not mood
           </li>
         </ul>
 
@@ -222,10 +224,13 @@ export const articleStopTrainingOnFeeling: BlogPost = {
 
         <p>He switched to OpenAthlete's structured approach:</p>
         <ul>
-          <li>AI generated a 16-week plan toward his marathon goal</li>
+          <li>
+            He generated a 16-week marathon plan on the OpenAthlete website and
+            imported it
+          </li>
           <li>Plans synced to his Garmin watch</li>
           <li>He followed the plan, even on days he didn't "feel like it"</li>
-          <li>AI adjusted when he showed fatigue (based on RPE data)</li>
+          <li>He eased off when his RPE stayed high for the same paces</li>
         </ul>
 
         <p>
@@ -258,16 +263,15 @@ export const articleStopTrainingOnFeeling: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and get a structured plan that syncs to your watch, adapts to your
-          recovery, and guides you toward your goals—even on days you don't
-          "feel like it."
+          and build a structured plan that lands on your Garmin, Suunto or COROS
+          watch, so it's ready even on days you don't "feel like it."
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Vous vous réveillez. Vous vous sentez bien. Vous décidez de pousser
@@ -410,24 +414,27 @@ export const articleStopTrainingOnFeeling: BlogPost = {
         </p>
         <ul>
           <li>
-            <strong>Plans structurés :</strong> L'IA génère un entraînement
-            périodisé basé sur vos objectifs
+            <strong>Plans structurés :</strong> Construisez vos séances avec
+            l'éditeur, partez du générateur de plans gratuit, ou faites
+            planifier un bloc par Claude ou ChatGPT via le serveur MCP
           </li>
           <li>
-            <strong>Ajustements automatiques :</strong> Les plans s'adaptent
-            quand vous manquez des séances ou montrez de la fatigue
+            <strong>Ajustements simples :</strong> Glissez une séance sur un
+            autre jour, décalez une semaine, ou déclarez une période de maladie
+            et déplacez les séances concernées
           </li>
           <li>
-            <strong>Intégration montre :</strong> Les plans se synchronisent
-            directement sur votre Garmin, Suunto ou Polar
+            <strong>Intégration montre :</strong> Les séances structurées
+            partent directement sur votre Garmin, Suunto ou COROS
           </li>
           <li>
             <strong>Surveillance RPE :</strong> Suit comment les séances se
             sentent par rapport aux cibles
           </li>
           <li>
-            <strong>Modifications intelligentes :</strong> Ajuste l'intensité
-            quand la récupération est faible
+            <strong>Récupération sous les yeux :</strong> Sommeil, VFC,
+            fréquence cardiaque de repos et forme à côté de chaque jour, pour
+            ajuster selon des signaux et non l'humeur
           </li>
         </ul>
 
@@ -476,15 +483,15 @@ export const articleStopTrainingOnFeeling: BlogPost = {
         <p>Il est passé à l'approche structurée d'OpenAthlete :</p>
         <ul>
           <li>
-            L'IA a généré un plan de 16 semaines vers son objectif marathon
+            Il a généré un plan marathon de 16 semaines sur le site
+            d'OpenAthlete et l'a importé
           </li>
           <li>Les plans se synchronisaient sur sa montre Garmin</li>
           <li>
             Il suivait le plan, même les jours où il "n'en avait pas envie"
           </li>
           <li>
-            L'IA ajustait quand il montrait de la fatigue (basé sur les données
-            RPE)
+            Il levait le pied quand son RPE restait élevé aux mêmes allures
           </li>
         </ul>
 
@@ -522,16 +529,15 @@ export const articleStopTrainingOnFeeling: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et obtenez un plan structuré qui se synchronise sur votre montre,
-          s'adapte à votre récupération et vous guide vers vos objectifs—même
-          les jours où vous "n'en avez pas envie."
+          et construisez un plan structuré qui arrive sur votre montre Garmin,
+          Suunto ou COROS, prêt même les jours où vous « n'en avez pas envie ».
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Te levantas. Te sientes genial. Decides apretar hoy: quizá un tempo,
@@ -657,24 +663,27 @@ export const articleStopTrainingOnFeeling: BlogPost = {
         <p>OpenAthlete lo resuelve ofreciéndote estructura con flexibilidad:</p>
         <ul>
           <li>
-            <strong>Planes estructurados:</strong> la IA genera un entrenamiento
-            periodizado según tus objetivos
+            <strong>Planes estructurados:</strong> crea tus sesiones con el
+            editor, parte del generador de planes gratuito o haz que Claude o
+            ChatGPT planifiquen un bloque mediante el servidor MCP
           </li>
           <li>
-            <strong>Ajustes automáticos:</strong> los planes se adaptan cuando
-            te saltas sesiones o muestras fatiga
+            <strong>Ajustes sencillos:</strong> arrastra una sesión a otro día,
+            desplaza una semana o marca un periodo de enfermedad y mueve las
+            sesiones afectadas
           </li>
           <li>
-            <strong>Integración con el reloj:</strong> los planes se sincronizan
-            directamente con tu Garmin, Suunto o Polar
+            <strong>Integración con el reloj:</strong> los entrenamientos
+            estructurados llegan directamente a tu Garmin, Suunto o COROS
           </li>
           <li>
             <strong>Seguimiento del RPE:</strong> registra cómo sientes las
             sesiones en comparación con los objetivos
           </li>
           <li>
-            <strong>Modificaciones inteligentes:</strong> ajusta la intensidad
-            cuando tu recuperación es baja
+            <strong>La recuperación a la vista:</strong> sueño, VFC, frecuencia
+            cardíaca en reposo y forma junto a cada día, para ajustar según
+            señales y no según el humor
           </li>
         </ul>
 
@@ -723,13 +732,12 @@ export const articleStopTrainingOnFeeling: BlogPost = {
         <p>Se pasó al enfoque estructurado de OpenAthlete:</p>
         <ul>
           <li>
-            La IA generó un plan de 16 semanas hacia su objetivo de maratón
+            Generó un plan de maratón de 16 semanas en la web de OpenAthlete y
+            lo importó
           </li>
           <li>Los planes se sincronizaban con su reloj Garmin</li>
           <li>Siguió el plan, incluso los días en que «no le apetecía»</li>
-          <li>
-            La IA hacía ajustes cuando mostraba fatiga (según sus datos de RPE)
-          </li>
+          <li>Aflojaba cuando su RPE se mantenía alto a los mismos ritmos</li>
         </ul>
 
         <p>
@@ -762,9 +770,8 @@ export const articleStopTrainingOnFeeling: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y consigue un plan estructurado que se sincroniza con tu reloj, se
-          adapta a tu recuperación y te guía hacia tus objetivos, incluso los
-          días en que «no te apetece».
+          y crea un plan estructurado que llega a tu reloj Garmin, Suunto o
+          COROS, listo incluso los días en que «no te apetece».
         </p>
       </div>
     );

@@ -1,296 +1,214 @@
 'use client';
 
-import { Container } from '@/components/landing/container';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { TimeInput } from '@/components/ui/time-input';
+import { useLocale, useMessageLocale } from '@/i18n/client';
 import { m } from '@/paraglide/messages';
-import { useMemo, useState } from 'react';
+import { DATE_LOCALES } from '@/utils/locales';
+import { useState } from 'react';
 
-type TestType = 'demi-cooper' | 'cooper' | '5km' | '10km';
+import {
+  BigResult,
+  CalculatorShell,
+  DurationField,
+  Field,
+  NumberField,
+  Segmented,
+} from './fields';
+import {
+  RACE_DISTANCES,
+  type RaceId,
+  formatNumber,
+  paceFromSpeed,
+  parseDuration,
+} from './format';
 
-function parseTime(timeStr: string): number {
-  const parts = timeStr.split(':').map(Number);
-  if (parts.length === 3) {
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+type Source = 'half-cooper' | 'cooper' | 'race';
+
+/** Share of VMA a trained runner usually holds over each distance. */
+const RACE_SHARE: Record<RaceId, number> = {
+  '5k': 0.95,
+  '10k': 0.9,
+  half: 0.85,
+  marathon: 0.8,
+};
+
+const ZONES = [
+  { id: 'easy', from: 0.6, to: 0.7 },
+  { id: 'marathon', from: 0.75, to: 0.8 },
+  { id: 'threshold', from: 0.85, to: 0.9 },
+  { id: '10k', from: 0.9, to: 0.95 },
+  { id: 'vma', from: 0.95, to: 1.05 },
+] as const;
+
+const ZONE_COLORS = ['#6ec1fc', '#4cffa9', '#ffd36e', '#ff8c5c', '#d078f7'];
+
+export function VmaCalculator() {
+  const ml = useMessageLocale();
+  const locale = DATE_LOCALES[useLocale()];
+  const [source, setSource] = useState<Source>('half-cooper');
+  const [meters, setMeters] = useState('1500');
+  const [race, setRace] = useState<RaceId>('10k');
+  const [time, setTime] = useState('48:00');
+
+  const raceKm = RACE_DISTANCES.find((d) => d.id === race)!.km;
+  let vma = 0;
+  if (source === 'race') {
+    const seconds = parseDuration(time);
+    if (seconds > 0) vma = ((raceKm / seconds) * 3600) / RACE_SHARE[race];
+  } else {
+    const minutes = source === 'half-cooper' ? 6 : 12;
+    vma = ((Number(meters) || 0) / 1000) * (60 / minutes);
   }
-  if (parts.length === 2) {
-    return parts[0] * 60 + parts[1];
-  }
-  return parts[0] || 0;
-}
+  const valid = vma > 5 && vma < 30;
 
-function calculateVMA(
-  distance: number,
-  timeSeconds: number,
-  testType: TestType,
-): number | null {
-  if (!distance || !timeSeconds || timeSeconds <= 0) {
-    return null;
-  }
-
-  // For fixed time tests (Demi-Cooper, Cooper)
-  if (testType === 'demi-cooper' || testType === 'cooper') {
-    // VMA = Distance (m) / Time (s) × 3.6
-    return (distance / timeSeconds) * 3.6;
-  }
-
-  // For race performances (5km, 10km)
-  // VMA ≈ Average speed × 1.1
-  const averageSpeedKmh = (distance / 1000 / timeSeconds) * 3600;
-  return averageSpeedKmh * 1.1;
-}
-
-function calculateTrainingPace(vma: number, percentage: number): number {
-  return vma * (percentage / 100);
-}
-
-export function VMACalculator() {
-  const [distance, setDistance] = useState<string>('1400');
-  const [time, setTime] = useState<string>('00:06:00');
-  const [testType, setTestType] = useState<TestType>('demi-cooper');
-
-  // Update default values when test type changes
-  const handleTestTypeChange = (newTestType: TestType) => {
-    setTestType(newTestType);
-
-    // Set fixed time for time-based tests
-    if (newTestType === 'demi-cooper') {
-      setTime('00:06:00');
-    } else if (newTestType === 'cooper') {
-      setTime('00:12:00');
-    }
-
-    // Set fixed distance for race tests
-    if (newTestType === '5km') {
-      setDistance('5000');
-    } else if (newTestType === '10km') {
-      setDistance('10000');
-    }
+  const zoneLabels: Record<(typeof ZONES)[number]['id'], [string, string]> = {
+    easy: [
+      m.tools_vma_z_easy({}, { locale: ml }),
+      m.tools_vma_z_easy_use({}, { locale: ml }),
+    ],
+    marathon: [
+      m.tools_vma_z_marathon({}, { locale: ml }),
+      m.tools_vma_z_marathon_use({}, { locale: ml }),
+    ],
+    threshold: [
+      m.tools_vma_z_threshold({}, { locale: ml }),
+      m.tools_vma_z_threshold_use({}, { locale: ml }),
+    ],
+    '10k': [
+      m.tools_vma_z_10k({}, { locale: ml }),
+      m.tools_vma_z_10k_use({}, { locale: ml }),
+    ],
+    vma: [
+      m.tools_vma_z_vma({}, { locale: ml }),
+      m.tools_vma_z_vma_use({}, { locale: ml }),
+    ],
+  };
+  const raceLabels: Record<RaceId, string> = {
+    '5k': m.tools_common_5k({}, { locale: ml }),
+    '10k': m.tools_common_10k({}, { locale: ml }),
+    half: m.tools_common_half({}, { locale: ml }),
+    marathon: m.tools_common_marathon({}, { locale: ml }),
   };
 
-  const timeSeconds = useMemo(() => parseTime(time), [time]);
-  const distanceNum = useMemo(() => parseFloat(distance) || 0, [distance]);
-
-  const vma = useMemo(() => {
-    return calculateVMA(distanceNum, timeSeconds, testType);
-  }, [distanceNum, timeSeconds, testType]);
-
-  const endurancePace = useMemo(() => {
-    if (!vma) return null;
-    return calculateTrainingPace(vma, 65);
-  }, [vma]);
-
-  const thresholdPace = useMemo(() => {
-    if (!vma) return null;
-    return calculateTrainingPace(vma, 85);
-  }, [vma]);
-
   return (
-    <Container>
-      <div className="mx-auto max-w-4xl">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl mb-4">
-            {m.tool_vma_title()}
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            {m.tool_vma_description()}
+    <CalculatorShell
+      inputs={
+        <>
+          <Field label={m.tools_vma_source({}, { locale: ml })}>
+            <Segmented
+              label={m.tools_vma_source({}, { locale: ml })}
+              value={source}
+              onChange={setSource}
+              options={[
+                {
+                  value: 'half-cooper',
+                  label: m.tools_vma_test_half_cooper({}, { locale: ml }),
+                },
+                {
+                  value: 'cooper',
+                  label: m.tools_vma_test_cooper({}, { locale: ml }),
+                },
+                {
+                  value: 'race',
+                  label: m.tools_vma_test_race({}, { locale: ml }),
+                },
+              ]}
+            />
+          </Field>
+          {source === 'race' ? (
+            <>
+              <Field label={m.tools_vma_race_distance({}, { locale: ml })}>
+                <Segmented
+                  label={m.tools_vma_race_distance({}, { locale: ml })}
+                  value={race}
+                  onChange={setRace}
+                  options={RACE_DISTANCES.map((d) => ({
+                    value: d.id,
+                    label: raceLabels[d.id],
+                  }))}
+                />
+              </Field>
+              <DurationField
+                label={m.tools_vma_race_time({}, { locale: ml })}
+                hint={`${m.tools_common_time_hint({}, { locale: ml })}. ${m.tools_vma_protocol_race({}, { locale: ml })}`}
+                value={time}
+                onChange={setTime}
+              />
+            </>
+          ) : (
+            <NumberField
+              label={m.tools_vma_distance_m({}, { locale: ml })}
+              hint={
+                source === 'half-cooper'
+                  ? m.tools_vma_protocol_half({}, { locale: ml })
+                  : m.tools_vma_protocol_cooper({}, { locale: ml })
+              }
+              value={meters}
+              onChange={setMeters}
+              suffix="m"
+              min={0}
+              step={10}
+            />
+          )}
+        </>
+      }
+      result={
+        <>
+          <BigResult
+            label={m.tools_vma_result({}, { locale: ml })}
+            value={valid ? formatNumber(vma, locale) : '–'}
+            unit="km/h"
+            sub={
+              valid
+                ? m.tools_vma_result_sub(
+                    { pace: paceFromSpeed(vma) },
+                    { locale: ml },
+                  )
+                : undefined
+            }
+          />
+          <p className="kicker mt-9 mb-3 text-ink-soft">
+            {m.tools_vma_zones_title({}, { locale: ml })}
           </p>
-        </div>
-
-        {/* Calculator */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle>Calculator</CardTitle>
-            <CardDescription>
-              Enter your test results to calculate your VMA
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div>
-              <Label htmlFor="test-type">{m.tool_vma_input_test_type()}</Label>
-              <Select
-                value={testType}
-                onValueChange={(value) =>
-                  handleTestTypeChange(value as TestType)
-                }
-              >
-                <SelectTrigger id="test-type" className="w-full mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="demi-cooper">
-                    {m.tool_vma_test_demi_cooper()}
-                  </SelectItem>
-                  <SelectItem value="cooper">
-                    {m.tool_vma_test_cooper()}
-                  </SelectItem>
-                  <SelectItem value="5km">{m.tool_vma_test_5km()}</SelectItem>
-                  <SelectItem value="10km">{m.tool_vma_test_10km()}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <div>
-                <Label htmlFor="distance">{m.tool_vma_input_distance()}</Label>
-                <Input
-                  id="distance"
-                  type="number"
-                  inputMode="decimal"
-                  value={distance}
-                  onChange={(e) => setDistance(e.target.value)}
-                  placeholder={
-                    testType === '5km'
-                      ? '5000'
-                      : testType === '10km'
-                        ? '10000'
-                        : '1400'
-                  }
-                  className="mt-2"
-                  min="0"
-                  disabled={testType === '5km' || testType === '10km'}
-                />
-                {testType === '5km' && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {m.tool_vma_fixed_distance_5km()}
-                  </p>
-                )}
-                {testType === '10km' && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {m.tool_vma_fixed_distance_10km()}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="time">{m.tool_vma_input_time()}</Label>
-                <TimeInput
-                  id="time"
-                  value={time}
-                  onChange={setTime}
-                  className="mt-2"
-                  disabled={testType === 'demi-cooper' || testType === 'cooper'}
-                />
-                {testType === 'demi-cooper' && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {m.tool_vma_fixed_time_demi_cooper()}
-                  </p>
-                )}
-                {testType === 'cooper' && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {m.tool_vma_fixed_time_cooper()}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {vma && (
-              <div className="pt-6 border-t">
-                <div className="text-center mb-6">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {m.tool_vma_result_title()}
-                  </p>
-                  <p className="text-5xl font-bold text-primary">
-                    {vma.toFixed(1)} km/h
-                  </p>
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {m.tool_vma_allure_endurance()}
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {endurancePace?.toFixed(1)} km/h
-                    </p>
-                  </div>
-                  <div className="p-4 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground mb-1">
-                      {m.tool_vma_allure_seuil()}
-                    </p>
-                    <p className="text-2xl font-semibold">
-                      {thresholdPace?.toFixed(1)} km/h
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Explanations */}
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>{m.tool_vma_explanation_title()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                {m.tool_vma_explanation_content()}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{m.tool_vma_how_to_title()}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h4 className="font-semibold mb-2">
-                  {m.tool_vma_test_demi_cooper()}
-                </h4>
-                <p className="text-muted-foreground text-sm">
-                  {m.tool_vma_how_to_demi_cooper()}
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">
-                  {m.tool_vma_test_cooper()}
-                </h4>
-                <p className="text-muted-foreground text-sm">
-                  {m.tool_vma_how_to_cooper()}
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-2">
-                  {m.tool_vma_test_5km()} / {m.tool_vma_test_10km()}
-                </h4>
-                <p className="text-muted-foreground text-sm">
-                  {m.tool_vma_how_to_race()}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>{m.tool_vma_training_title()}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                {m.tool_vma_training_content()}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </Container>
+          <ul className="divide-y divide-white/10 border-y border-white/10">
+            {ZONES.map((zone, index) => {
+              const [name, use] = zoneLabels[zone.id];
+              return (
+                <li
+                  key={zone.id}
+                  className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3"
+                >
+                  <span
+                    className="h-8 w-1 rounded-full"
+                    style={{ background: ZONE_COLORS[index] }}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-[0.95rem] font-medium text-white">
+                      {name}{' '}
+                      <span className="font-mono text-[0.75rem] text-ink-soft">
+                        {Math.round(zone.from * 100)}–
+                        {Math.round(zone.to * 100)}%
+                      </span>
+                    </span>
+                    <span className="block truncate text-[0.8rem] text-ink-soft">
+                      {use}
+                    </span>
+                  </span>
+                  <span className="text-right font-mono text-[0.92rem] text-white tabular-nums">
+                    {valid
+                      ? `${paceFromSpeed(vma * zone.from)}–${paceFromSpeed(vma * zone.to)}`
+                      : '–'}
+                    <span className="block text-[0.72rem] text-ink-soft">
+                      {valid
+                        ? `${formatNumber(vma * zone.from, locale)}–${formatNumber(vma * zone.to, locale)} km/h`
+                        : ''}
+                    </span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      }
+    />
   );
 }

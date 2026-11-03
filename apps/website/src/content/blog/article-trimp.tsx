@@ -9,14 +9,14 @@ export const articleTrimp: BlogPost = {
       es: '¿Qué es el TRIMP y cómo usarlo?',
     },
     description: {
-      en: "Technical definition of TRIMP (Training Impulse). Explain it's good but cardio-only. Show how our algorithm goes further.",
-      fr: "Définition technique du TRIMP (Training Impulse). Expliquez qu'il est bon mais cardio-seulement. Montrez comment notre algorithme va plus loin.",
-      es: 'Definición técnica del TRIMP (Training Impulse): por qué es útil pero solo mide la carga cardiovascular, y cómo nuestro algoritmo va más allá.',
+      en: "TRIMP (Training Impulse) explained: Banister's formula, what it measures, why it only sees cardiovascular stress, and how to pair it with session RPE.",
+      fr: "Le TRIMP (Training Impulse) expliqué : la formule de Banister, ce qu'elle mesure, pourquoi elle ne voit que le cardio et comment la compléter par le RPE.",
+      es: 'El TRIMP (Training Impulse) explicado: la fórmula de Banister, qué mide, por qué solo ve el estrés cardiovascular y cómo completarlo con el RPE de sesión.',
     },
     excerpt: {
-      en: "TRIMP calculates training load based on heart rate and duration. It's useful but limited to cardiovascular stress. Learn how OpenAthlete's algorithm incorporates more factors.",
-      fr: "Le TRIMP calcule la charge d'entraînement basée sur la fréquence cardiaque et la durée. C'est utile mais limité au stress cardiovasculaire. Découvrez comment l'algorithme d'OpenAthlete intègre plus de facteurs.",
-      es: 'El TRIMP calcula la carga de entrenamiento a partir de la frecuencia cardíaca y la duración. Es útil, pero se limita al estrés cardiovascular. Descubre cómo el algoritmo de OpenAthlete incorpora más factores.',
+      en: "TRIMP calculates training load based on heart rate and duration. It's useful but limited to cardiovascular stress. Learn how OpenAthlete pairs it with session RPE and fitness, fatigue and form curves.",
+      fr: "Le TRIMP calcule la charge d'entraînement basée sur la fréquence cardiaque et la durée. C'est utile mais limité au stress cardiovasculaire. Découvrez comment OpenAthlete le complète par le RPE de séance et les courbes de forme, de fatigue et de fraîcheur.",
+      es: 'El TRIMP calcula la carga de entrenamiento a partir de la frecuencia cardíaca y la duración. Es útil, pero se limita al estrés cardiovascular. Descubre cómo OpenAthlete lo completa con el RPE de sesión y las curvas de forma, fatiga y estado de forma.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -35,7 +35,7 @@ export const articleTrimp: BlogPost = {
   },
   ContentEn: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             TRIMP (Training Impulse) is a metric that quantifies training load.
@@ -46,13 +46,13 @@ export const articleTrimp: BlogPost = {
 
         <p>
           This article explains what TRIMP is, how it works, its limitations,
-          and how OpenAthlete's algorithm goes beyond TRIMP to provide a more
-          comprehensive training load assessment.
+          and how OpenAthlete uses it alongside session RPE and fitness and
+          fatigue curves.
         </p>
 
         <h2>What is TRIMP?</h2>
         <p>
-          TRIMP (Training Impulse) was developed by Dr. Eric Bannister in the
+          TRIMP (Training Impulse) was developed by Dr. Eric Banister in the
           1970s. It calculates training load using:
         </p>
         <ul>
@@ -62,7 +62,9 @@ export const articleTrimp: BlogPost = {
         </ul>
 
         <p>
-          Formula: TRIMP = Duration × Average HR × Heart Rate Reserve Factor
+          Formula: TRIMP = duration (min) × HRr × 0.64e^(1.92 × HRr) for men, or
+          × 0.86e^(1.67 × HRr) for women, where HRr = (average HR − resting HR)
+          / (max HR − resting HR)
         </p>
 
         <p>
@@ -103,39 +105,47 @@ export const articleTrimp: BlogPost = {
           </li>
         </ul>
 
-        <h2>Beyond TRIMP: OpenAthlete's Approach</h2>
-        <p>OpenAthlete's algorithm incorporates TRIMP but goes further:</p>
+        <h2>How OpenAthlete Uses TRIMP</h2>
+        <p>
+          OpenAthlete uses Banister's TRIMP as its load unit and builds around
+          it:
+        </p>
         <ul>
           <li>
-            <strong>TRIMP (cardiovascular load)</strong>
+            <strong>TRIMP per activity:</strong> exponential weighting and
+            gender coefficients, from your max and resting heart rate
           </li>
           <li>
-            <strong>RPE (internal load)</strong>
+            <strong>Session RPE as an alternative:</strong> Foster's RPE ×
+            minutes, for sessions where heart rate is missing or misleading
           </li>
           <li>
-            <strong>ACWR (load progression)</strong>
+            <strong>Fitness, fatigue and form:</strong> CTL (42 days), ATL (7
+            days) and TSB, projected over your planned sessions
           </li>
           <li>
-            <strong>Recovery markers (sleep, stress)</strong>
+            <strong>Load for planned sessions:</strong> estimated from
+            heart-rate targets, or from duration and target RPE, with an AI
+            estimate when targets are pace or power
           </li>
           <li>
-            <strong>Environmental factors</strong>
-          </li>
-          <li>
-            <strong>Injury risk detection</strong>
+            <strong>Weekly load:</strong> done and planned, against a
+            recommended range
           </li>
         </ul>
 
         <p>
-          This comprehensive approach provides a more accurate picture of
-          training stress and adaptation.
+          It doesn't fold sleep, heat or injury risk into a single score. Sleep,
+          HRV and resting heart rate sit next to the load on the calendar, and
+          heat and slope show up in each activity's analysis, so you read them
+          side by side instead of trusting a black box.
         </p>
 
         <h2>The Bottom Line</h2>
         <p>
-          TRIMP is a useful metric, but it's incomplete. OpenAthlete uses TRIMP
-          as one component of a comprehensive training load analysis that
-          includes RPE, ACWR, recovery, and injury prevention.
+          TRIMP is a useful metric, but it's incomplete. OpenAthlete pairs it
+          with session RPE, tracks it as fitness, fatigue and form, and shows
+          recovery data alongside, so its blind spots stay visible.
         </p>
 
         <p>
@@ -143,14 +153,15 @@ export const articleTrimp: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Sign up for OpenAthlete
           </a>{' '}
-          and get training load analysis that goes beyond TRIMP.
+          and see your TRIMP, fitness, fatigue and form computed from your own
+          heart-rate data.
         </p>
       </div>
     );
   },
   ContentFr: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             Le TRIMP (Training Impulse) est une métrique qui quantifie la charge
@@ -161,13 +172,13 @@ export const articleTrimp: BlogPost = {
 
         <p>
           Cet article explique ce qu'est le TRIMP, comment il fonctionne, ses
-          limitations et comment l'algorithme d'OpenAthlete va au-delà du TRIMP
-          pour fournir une évaluation plus complète de la charge d'entraînement.
+          limitations et comment OpenAthlete l'utilise avec le RPE de séance et
+          les courbes de forme et de fatigue.
         </p>
 
         <h2>Qu'est-ce que le TRIMP ?</h2>
         <p>
-          Le TRIMP (Training Impulse) a été développé par le Dr Eric Bannister
+          Le TRIMP (Training Impulse) a été développé par le Dr Eric Banister
           dans les années 1970. Il calcule la charge d'entraînement en utilisant
           :
         </p>
@@ -179,7 +190,11 @@ export const articleTrimp: BlogPost = {
           </li>
         </ul>
 
-        <p>Formule : TRIMP = Durée × FC Moyenne × Facteur de Réserve FC</p>
+        <p>
+          Formule : TRIMP = durée (min) × FCr × 0,64e^(1,92 × FCr) pour les
+          hommes, ou × 0,86e^(1,67 × FCr) pour les femmes, où FCr = (FC moyenne
+          − FC de repos) / (FC max − FC de repos)
+        </p>
 
         <p>
           Le résultat est un seul nombre représentant le stress d'entraînement
@@ -222,40 +237,49 @@ export const articleTrimp: BlogPost = {
           </li>
         </ul>
 
-        <h2>Au-Delà du TRIMP : L'Approche OpenAthlete</h2>
-        <p>L'algorithme d'OpenAthlete intègre le TRIMP mais va plus loin :</p>
+        <h2>Comment OpenAthlete Utilise le TRIMP</h2>
+        <p>
+          OpenAthlete prend le TRIMP de Banister comme unité de charge et
+          construit autour :
+        </p>
         <ul>
           <li>
-            <strong>TRIMP (charge cardiovasculaire)</strong>
+            <strong>TRIMP par activité :</strong> pondération exponentielle et
+            coefficients selon le sexe, à partir de vos FC max et de repos
           </li>
           <li>
-            <strong>RPE (charge interne)</strong>
+            <strong>RPE de séance en alternative :</strong> la méthode de Foster
+            (RPE × minutes), pour les séances où la fréquence cardiaque manque
+            ou trompe
           </li>
           <li>
-            <strong>ACWR (progression de charge)</strong>
+            <strong>Forme, fatigue et fraîcheur :</strong> CTL (42 jours), ATL
+            (7 jours) et TSB, projetées sur vos séances prévues
           </li>
           <li>
-            <strong>Marqueurs de récupération (sommeil, stress)</strong>
+            <strong>Charge des séances prévues :</strong> estimée à partir des
+            cibles cardiaques, ou de la durée et du RPE visé, avec une
+            estimation par l'IA quand les cibles sont en allure ou en puissance
           </li>
           <li>
-            <strong>Facteurs environnementaux</strong>
-          </li>
-          <li>
-            <strong>Détection de risque de blessure</strong>
+            <strong>Charge hebdomadaire :</strong> réalisée et prévue, face à
+            une fourchette recommandée
           </li>
         </ul>
-
         <p>
-          Cette approche complète fournit une image plus précise du stress
-          d'entraînement et de l'adaptation.
+          Il ne fond pas le sommeil, la chaleur ou le risque de blessure dans un
+          score unique. Sommeil, VFC et fréquence cardiaque de repos s'affichent
+          à côté de la charge dans le calendrier, et la chaleur comme la pente
+          apparaissent dans l'analyse de chaque activité : vous lisez tout côte
+          à côte, sans boîte noire.
         </p>
 
         <h2>En Résumé</h2>
         <p>
-          Le TRIMP est une métrique utile, mais elle est incomplète. OpenAthlete
-          utilise le TRIMP comme un composant d'une analyse complète de charge
-          d'entraînement qui inclut RPE, ACWR, récupération et prévention des
-          blessures.
+          Le TRIMP est une métrique utile, mais incomplète. OpenAthlete
+          l'associe au RPE de séance, le suit sous forme de forme, fatigue et
+          fraîcheur, et affiche les données de récupération à côté, pour que ses
+          angles morts restent visibles.
         </p>
 
         <p>
@@ -266,15 +290,15 @@ export const articleTrimp: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Inscrivez-vous sur OpenAthlete
           </a>{' '}
-          et obtenez une analyse de charge d'entraînement qui va au-delà du
-          TRIMP.
+          et voyez votre TRIMP, votre forme, votre fatigue et votre fraîcheur
+          calculés à partir de vos propres données cardiaques.
         </p>
       </div>
     );
   },
   ContentEs: () => {
     return (
-      <div className="prose prose-neutral dark:prose-invert max-w-none">
+      <div>
         <p>
           <strong>
             El TRIMP (Training Impulse) es una métrica que cuantifica la carga
@@ -285,13 +309,13 @@ export const articleTrimp: BlogPost = {
 
         <p>
           Este artículo explica qué es el TRIMP, cómo funciona, cuáles son sus
-          limitaciones y cómo el algoritmo de OpenAthlete va más allá del TRIMP
-          para ofrecer una evaluación más completa de la carga de entrenamiento.
+          limitaciones y cómo lo usa OpenAthlete junto al RPE de sesión y las
+          curvas de forma y fatiga.
         </p>
 
         <h2>¿Qué es el TRIMP?</h2>
         <p>
-          El TRIMP (Training Impulse) lo desarrolló el Dr. Eric Bannister en los
+          El TRIMP (Training Impulse) lo desarrolló el Dr. Eric Banister en los
           años setenta. Calcula la carga de entrenamiento a partir de:
         </p>
         <ul>
@@ -304,8 +328,9 @@ export const articleTrimp: BlogPost = {
         </ul>
 
         <p>
-          Fórmula: TRIMP = Duración × FC media × Factor de reserva de frecuencia
-          cardíaca
+          Fórmula: TRIMP = duración (min) × FCr × 0,64e^(1,92 × FCr) en hombres,
+          o × 0,86e^(1,67 × FCr) en mujeres, donde FCr = (FC media − FC en
+          reposo) / (FC máxima − FC en reposo)
         </p>
 
         <p>
@@ -348,40 +373,50 @@ export const articleTrimp: BlogPost = {
           </li>
         </ul>
 
-        <h2>Más allá del TRIMP: el enfoque de OpenAthlete</h2>
-        <p>El algoritmo de OpenAthlete incorpora el TRIMP, pero va más allá:</p>
+        <h2>Cómo usa OpenAthlete el TRIMP</h2>
+        <p>
+          OpenAthlete usa el TRIMP de Banister como unidad de carga y construye
+          a su alrededor:
+        </p>
         <ul>
           <li>
-            <strong>TRIMP (carga cardiovascular)</strong>
+            <strong>TRIMP por actividad:</strong> ponderación exponencial y
+            coeficientes según el sexo, a partir de tu FC máxima y en reposo
           </li>
           <li>
-            <strong>RPE (carga interna)</strong>
+            <strong>RPE de sesión como alternativa:</strong> el método de Foster
+            (RPE × minutos), para sesiones en las que la frecuencia cardíaca
+            falta o engaña
           </li>
           <li>
-            <strong>ACWR (progresión de la carga)</strong>
+            <strong>Forma, fatiga y estado de forma:</strong> CTL (42 días), ATL
+            (7 días) y TSB, proyectados sobre tus sesiones planificadas
           </li>
           <li>
-            <strong>Indicadores de recuperación (sueño, estrés)</strong>
+            <strong>Carga de las sesiones planificadas:</strong> estimada a
+            partir de los objetivos de frecuencia cardíaca, o de la duración y
+            el RPE previsto, con una estimación de la IA cuando los objetivos
+            son de ritmo o potencia
           </li>
           <li>
-            <strong>Factores ambientales</strong>
-          </li>
-          <li>
-            <strong>Detección del riesgo de lesión</strong>
+            <strong>Carga semanal:</strong> hecha y planificada, frente a un
+            rango recomendado
           </li>
         </ul>
-
         <p>
-          Este enfoque global ofrece una imagen más precisa del estrés del
-          entrenamiento y de la adaptación.
+          No mezcla el sueño, el calor ni el riesgo de lesión en una única
+          puntuación. El sueño, la VFC y la frecuencia cardíaca en reposo
+          aparecen junto a la carga en el calendario, y el calor y la pendiente,
+          en el análisis de cada actividad: lo lees todo en paralelo, sin caja
+          negra.
         </p>
 
         <h2>En resumen</h2>
         <p>
-          El TRIMP es una métrica útil, pero incompleta. OpenAthlete utiliza el
-          TRIMP como una pieza más de un análisis completo de la carga de
-          entrenamiento que incluye el RPE, el ACWR, la recuperación y la
-          prevención de lesiones.
+          El TRIMP es una métrica útil, pero incompleta. OpenAthlete lo combina
+          con el RPE de sesión, lo sigue como forma, fatiga y estado de forma, y
+          muestra los datos de recuperación al lado, para que sus puntos ciegos
+          sigan a la vista.
         </p>
 
         <p>
@@ -389,8 +424,8 @@ export const articleTrimp: BlogPost = {
           <a href="https://app.openathlete.org/auth/create-account">
             Regístrate en OpenAthlete
           </a>{' '}
-          y obtén un análisis de la carga de entrenamiento que va más allá del
-          TRIMP.
+          y consulta tu TRIMP, tu forma, tu fatiga y tu estado de forma
+          calculados con tus propios datos de frecuencia cardíaca.
         </p>
       </div>
     );

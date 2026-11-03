@@ -5,6 +5,8 @@ export interface LocalizedText {
   en: string;
   fr: string;
   es?: string;
+  it?: string;
+  'pt-br'?: string;
 }
 
 export interface BlogPostMetadata {
@@ -27,6 +29,8 @@ export interface BlogPost {
   metadata: BlogPostMetadata;
   ContentEn: () => ReactNode;
   ContentFr: () => ReactNode;
-  /** Without it, the Spanish page shows the English body. */
+  /** Without them, the page in that language shows the English body. */
   ContentEs?: () => ReactNode;
+  ContentIt?: () => ReactNode;
+  ContentPtBr?: () => ReactNode;
 }

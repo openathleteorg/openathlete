@@ -84,6 +84,8 @@ const CONTENT_BY_LOCALE = {
   en: 'ContentEn',
   fr: 'ContentFr',
   es: 'ContentEs',
+  it: 'ContentIt',
+  'pt-br': 'ContentPtBr',
 } as const satisfies Record<SupportedLocale, keyof BlogPost>;
 
 /** The post body in `locale`, or undefined when it is not translated. */
@@ -91,7 +93,8 @@ export function getPostContent(
   post: BlogPost,
   locale: SupportedLocale,
 ): (() => ReactNode) | undefined {
-  return post[CONTENT_BY_LOCALE[locale]];
+  const content = post[CONTENT_BY_LOCALE[locale]];
+  return typeof content === 'function' ? content : undefined;
 }
 
 /** Locales the post body is written in. */
