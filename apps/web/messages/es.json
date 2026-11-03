@@ -451,6 +451,8 @@
   "description": "Descripción",
   "goal_distance": "Distancia prevista",
   "goal_duration": "Duración prevista",
+  "goal_duration_follows_workout": "Sigue el total del entrenamiento. Modifícala para fijar la tuya.",
+  "goal_duration_use_workout_total": "Usar el total del entrenamiento ({duration})",
   "estimated_training_load": "Carga de entrenamiento estimada",
   "goal_elevation_gain": "Desnivel positivo previsto",
   "goal_rpe": "RPE previsto",

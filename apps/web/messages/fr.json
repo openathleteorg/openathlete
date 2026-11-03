@@ -430,6 +430,8 @@
   "description": "Description",
   "goal_distance": "Distance cible",
   "goal_duration": "Durée cible",
+  "goal_duration_follows_workout": "Suit le total de la séance. Modifiez-la pour fixer la vôtre.",
+  "goal_duration_use_workout_total": "Reprendre le total de la séance ({duration})",
   "estimated_training_load": "Charge estimée",
   "goal_elevation_gain": "Gain d'altitude cible",
   "goal_rpe": "RPE cible",

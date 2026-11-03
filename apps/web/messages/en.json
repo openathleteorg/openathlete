@@ -451,6 +451,8 @@
   "description": "Description",
   "goal_distance": "Goal Distance",
   "goal_duration": "Goal Duration",
+  "goal_duration_follows_workout": "Follows the workout total. Edit it to set your own.",
+  "goal_duration_use_workout_total": "Use the workout total ({duration})",
   "estimated_training_load": "Estimated Training Load",
   "goal_elevation_gain": "Goal Elevation Gain",
   "goal_rpe": "Goal RPE",

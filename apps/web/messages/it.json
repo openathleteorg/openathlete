@@ -451,6 +451,8 @@
   "description": "Descrizione",
   "goal_distance": "Distanza obiettivo",
   "goal_duration": "Durata obiettivo",
+  "goal_duration_follows_workout": "Segue il totale dell'allenamento. Modificala per impostare la tua.",
+  "goal_duration_use_workout_total": "Usa il totale dell'allenamento ({duration})",
   "estimated_training_load": "Carico di allenamento stimato",
   "goal_elevation_gain": "Dislivello obiettivo",
   "goal_rpe": "RPE obiettivo",

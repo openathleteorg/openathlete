@@ -1,25 +1,35 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
-import { useEffect, useMemo } from 'react';
-import { UseFormSetValue, UseFormWatch } from 'react-hook-form';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { UseFormGetValues, UseFormSetValue } from 'react-hook-form';
 
-import type { CreateWorkoutStepDto } from '@openathlete/shared';
+import type { CreateWorkoutStepDto, SPORT_TYPE } from '@openathlete/shared';
 
 import type { EventFormValues } from '../utils/event-form-schemas';
+import {
+  INITIAL_DURATION_MODE,
+  adoptDuration,
+  followWorkoutTotal,
+} from '../utils/planned-duration';
 import { calculateWorkoutDurationFromSteps } from '../utils/workout-helpers';
 
+/**
+ * The planned duration follows the workout's total until the coach sets it
+ * by hand; then it stays theirs until they ask for the total again.
+ */
 export function useWorkoutDuration(
   workoutSteps: CreateWorkoutStepDto[],
-  watch: UseFormWatch<EventFormValues>,
+  sport: SPORT_TYPE | undefined,
+  getValues: UseFormGetValues<EventFormValues>,
   setValue: UseFormSetValue<EventFormValues>,
 ) {
-  const startDateValue = watch('startDate');
-  const { data: athlete } = useGetMyAthleteQuery();
-  const { data: latestMetrics = {} } = useGetLatestMetricsQuery(
-    athlete?.athleteId,
-  );
+  const { data: athlete, isLoading: athleteLoading } = useGetMyAthleteQuery();
+  const { data: latestMetrics = {}, isLoading: metricsLoading } =
+    useGetLatestMetricsQuery(athlete?.athleteId);
+  // Before the metrics arrive, the total of a stored session would differ
+  // from the one it was saved with, and read as set by hand
+  const metricsReady = !athleteLoading && !metricsLoading;
 
-  // Convert metrics format for calculateWorkoutDuration
   const metricsForCalculation = useMemo(() => {
     const formatted: Record<string, { value: number }> = {};
     Object.entries(latestMetrics).forEach(([key, metric]) => {
@@ -30,30 +40,75 @@ export function useWorkoutDuration(
     return formatted;
   }, [latestMetrics]);
 
-  // Calculate total duration from workout steps
-  const calculatedDuration = useMemo(() => {
-    return calculateWorkoutDurationFromSteps(
-      workoutSteps,
-      metricsForCalculation,
-    );
-  }, [workoutSteps, metricsForCalculation]);
+  const totalOf = useCallback(
+    (steps: CreateWorkoutStepDto[], stepsSport = sport) => {
+      const total = calculateWorkoutDurationFromSteps(
+        steps,
+        metricsForCalculation,
+        stepsSport,
+      );
+      return total === null ? null : Math.round(total);
+    },
+    [metricsForCalculation, sport],
+  );
 
-  const hasStepsWithDuration = calculatedDuration !== null;
+  const calculatedDuration = useMemo(
+    () => totalOf(workoutSteps),
+    [totalOf, workoutSteps],
+  );
 
-  // Update goalDuration when calculated duration changes
+  const [mode, setMode] = useState(INITIAL_DURATION_MODE);
+
   useEffect(() => {
-    if (hasStepsWithDuration && calculatedDuration !== null && startDateValue) {
-      setValue('goalDuration', calculatedDuration);
-      // Update endDate based on calculated duration
-      const start = new Date(startDateValue);
-      const end = new Date(start);
-      end.setSeconds(start.getSeconds() + calculatedDuration);
-      setValue('endDate', end);
+    if (!metricsReady) return;
+    const next = followWorkoutTotal(
+      mode,
+      getValues('goalDuration'),
+      calculatedDuration,
+    );
+    if (next.mode !== mode) setMode(next.mode);
+    if (next.goalDuration !== undefined) {
+      setValue('goalDuration', next.goalDuration);
     }
-  }, [calculatedDuration, hasStepsWithDuration, setValue, startDateValue]);
+  }, [calculatedDuration, metricsReady, mode, getValues, setValue]);
+
+  /** The coach typed a duration: the workout no longer overwrites it */
+  const setDurationByHand = useCallback(
+    () => setMode({ manual: true, settled: true }),
+    [],
+  );
+
+  /** Back to the workout's total */
+  const followWorkout = useCallback(
+    () => setMode({ manual: false, settled: true }),
+    [],
+  );
+
+  /**
+   * New steps and duration together, as the AI returns them, with their
+   * sport: the form's has not re-rendered yet
+   */
+  const adoptStepsDuration = useCallback(
+    (
+      steps: CreateWorkoutStepDto[],
+      goalDuration: number | null | undefined,
+      stepsSport?: SPORT_TYPE,
+    ) => {
+      const adopted = adoptDuration(
+        goalDuration,
+        totalOf(steps, stepsSport ?? sport),
+      );
+      setMode(adopted.mode);
+      setValue('goalDuration', adopted.goalDuration);
+    },
+    [setValue, sport, totalOf],
+  );
 
   return {
     calculatedDuration,
-    hasStepsWithDuration,
+    durationSetByHand: mode.manual,
+    setDurationByHand,
+    followWorkout,
+    adoptStepsDuration,
   };
 }

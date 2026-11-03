@@ -6,6 +6,7 @@ import { UseFormSetValue } from 'react-hook-form';
 
 import { EVENT_TYPE, SPORT_TYPE, formatSpeed } from '@openathlete/shared';
 
+import { formatCompactDuration } from '../../calendar/utils/week-summary';
 import {
   RHFDatePicker,
   RHFDistance,
@@ -27,7 +28,12 @@ import { CompetitionPriorityField } from './competition-priority-field';
 
 type Props = {
   type: EVENT_TYPE;
-  hasStepsWithDuration: boolean;
+  /** The workout's estimated total in seconds, null without timed steps */
+  workoutDuration?: number | null;
+  /** The planned duration no longer follows the workout */
+  durationSetByHand?: boolean;
+  onDurationEdited?: () => void;
+  onFollowWorkout?: () => void;
   startDateValue?: Date;
   endDateValue?: Date;
   /** Equipment can only be chosen among the user's own */
@@ -42,7 +48,10 @@ type Props = {
 
 export function EventFormFields({
   type,
-  hasStepsWithDuration,
+  workoutDuration,
+  durationSetByHand,
+  onDurationEdited,
+  onFollowWorkout,
   startDateValue,
   endDateValue,
   canChooseEquipment,
@@ -82,18 +91,8 @@ export function EventFormFields({
       {!isTemplate &&
         (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION) && (
           <div className="col-span-1 md:col-span-2">
-            <RHFDatePicker
-              name="startDate"
-              label={m.start_date()}
-              onChange={(date) => {
-                if (date && !hasStepsWithDuration) {
-                  const duration = goalDurationValue || 3600; // 1 hour default
-                  const end = new Date(date);
-                  end.setSeconds(end.getSeconds() + duration);
-                  setValue('endDate', end);
-                }
-              }}
-            />
+            {/* The end follows in the dialog, from the planned duration */}
+            <RHFDatePicker name="startDate" label={m.start_date()} />
           </div>
         )}
       {!isTemplate && type === EVENT_TYPE.ACTIVITY && (
@@ -124,20 +123,30 @@ export function EventFormFields({
       {(type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION) && (
         <>
           <RHFDistance name="goalDistance" label={m.goal_distance()} />
-          <RHFDuration
-            name="goalDuration"
-            label={m.goal_duration()}
-            disabled={hasStepsWithDuration}
-            onChange={(value) => {
-              if (!hasStepsWithDuration && startDateValue) {
-                const start = new Date(startDateValue);
-                const duration = value || 3600; // Default 1 hour
-                const end = new Date(start);
-                end.setSeconds(start.getSeconds() + duration);
-                setValue('endDate', end);
-              }
-            }}
-          />
+          <div className="space-y-1">
+            {/* Editable even with a workout: the coach's figure wins */}
+            <RHFDuration
+              name="goalDuration"
+              label={m.goal_duration()}
+              onChange={() => onDurationEdited?.()}
+            />
+            {typeof workoutDuration === 'number' &&
+              (durationSetByHand ? (
+                <button
+                  type="button"
+                  className="text-left text-xs md:text-sm text-primary underline-offset-4 hover:underline max-md:min-h-11"
+                  onClick={onFollowWorkout}
+                >
+                  {m.goal_duration_use_workout_total({
+                    duration: formatCompactDuration(workoutDuration),
+                  })}
+                </button>
+              ) : (
+                <p className="text-xs md:text-sm text-muted-foreground">
+                  {m.goal_duration_follows_workout()}
+                </p>
+              ))}
+          </div>
           {!!goalDistanceValue && !!goalDurationValue && (
             <div className="text-xs md:text-sm text-muted-foreground flex flex-col md:flex-row md:items-center gap-1 md:gap-0 col-span-1 md:col-span-2">
               <span>
