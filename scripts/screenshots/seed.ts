@@ -992,6 +992,9 @@ async function main() {
   await queue.close();
   log(`${jobs.length} activities queued for processing (needs the API running with ENABLE_ACTIVITY_PROCESSING=true)`);
   await waitForProcessing(db, log);
+  // Processing may have called the AI providers with the placeholder keys:
+  // the settings would show them as rejected
+  await db.aiCredential.updateMany({ data: { lastError: null, lastErrorAt: null } });
 
   await db.$disconnect();
 }

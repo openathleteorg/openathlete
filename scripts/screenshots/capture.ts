@@ -122,7 +122,8 @@ async function newContext(browser: Browser, tokens: Tokens, shot: Shot): Promise
   const device = VIEWPORTS[shot.device ?? 'desktop'];
   const context = await browser.newContext({
     viewport: { width: device.width, height: device.height },
-    deviceScaleFactor: 2,
+    // 3 for store artwork (SCREENSHOT_SCALE=3), 2 for the website
+    deviceScaleFactor: Number(process.env.SCREENSHOT_SCALE ?? 2),
     isMobile: device.isMobile,
     hasTouch: device.hasTouch,
     locale: 'en-GB',
@@ -395,6 +396,16 @@ export const SHOTS: Shot[] = [
     prepare: async (p) => p.getByText(/^Julien Moreau, Camille/).first().click(),
   },
   { name: 'mobile-statistics', who: 'athlete', device: 'mobile', path: '/dashboard/statistics' },
+  {
+    name: 'mobile-statistics-load',
+    who: 'athlete',
+    device: 'mobile',
+    path: '/dashboard/statistics',
+    prepare: statisticsTab('Load'),
+  },
+  { name: 'mobile-records', who: 'athlete', device: 'mobile', path: '/dashboard/records' },
+  { name: 'mobile-metrics', who: 'athlete', device: 'mobile', path: '/dashboard/metrics' },
+  { name: 'mobile-coach-dashboard', who: 'coach', device: 'mobile', path: '/dashboard/coach' },
 ];
 
 async function main() {
