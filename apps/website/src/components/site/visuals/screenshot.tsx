@@ -72,7 +72,7 @@ export function PhoneShot({
       {/* Titanium edge, then the black bezel */}
       <div className="rounded-[17cqw] bg-gradient-to-b from-[#3a3f55] via-[#1b1f33] to-[#3a3f55] p-[0.9cqw] shadow-[0_40px_80px_-30px_rgb(5_12_52/0.55)]">
         <div className="rounded-[16.2cqw] bg-[#05060d] p-[3.6cqw]">
-          <div className="relative aspect-[393/852] overflow-hidden rounded-[12.6cqw] bg-white">
+          <div className="relative isolate aspect-[393/852] overflow-hidden rounded-[12.6cqw] bg-white [transform:translateZ(0)]">
             <Image
               src={src}
               alt={alt}
@@ -81,10 +81,12 @@ export function PhoneShot({
               placeholder={typeof src === 'string' ? 'empty' : 'blur'}
               className="absolute inset-0 h-full w-full object-cover object-top"
             />
-            {/* Status bar, over the 59 px top inset */}
+            {/* Status bar, over the 59 px top inset. Opaque on purpose: a
+              backdrop filter escapes the rounded clip once the frame is
+              rotated, and shows square corners over the bezel */}
             <div
               aria-hidden
-              className="absolute inset-x-0 top-0 flex h-[6.93%] items-center justify-between bg-white/90 px-[8.5cqw] pt-[1.2cqw] text-[#050c34] backdrop-blur-sm"
+              className="absolute inset-x-0 top-0 flex h-[6.93%] items-center justify-between bg-white px-[8.5cqw] pt-[1.2cqw] text-[#050c34]"
             >
               <span className="w-[22cqw] text-center text-[4.3cqw] leading-none font-semibold tracking-tight">
                 9:41
