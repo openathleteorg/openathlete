@@ -17,6 +17,8 @@ import {
   fetchAthleteZones,
   formatZonesByType,
   getLatestMetrics,
+  normalizeGoalDuration,
+  repsAsPoolLengths,
   validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
   withRetry,
@@ -79,9 +81,13 @@ ${buildWorkoutTargetsInstructions()}`;
         validateNoNestedRepeatBlocks(event.workout);
         validateWorkoutZoneTargets(event.workout, zoneIdMap, zones);
         convertWorkoutPaceTargetsToMs(event.workout);
+        repsAsPoolLengths(event.workout, event.sport);
       }
 
-      return event;
+      return {
+        ...event,
+        goalDuration: normalizeGoalDuration(event.goalDuration),
+      };
     });
   }
 }

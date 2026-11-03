@@ -1,6 +1,10 @@
 import { SportType } from '@openathlete/database';
 
-import { buildZonesContext } from './event-ai-helpers';
+import {
+  buildZonesContext,
+  normalizeGoalDuration,
+  repsAsPoolLengths,
+} from './event-ai-helpers';
 
 // The heart-rate zones every new athlete gets, which apply to every sport.
 const defaultZones = [
@@ -45,5 +49,57 @@ describe('buildZonesContext', () => {
     expect(context).toContain(
       'Values: 132-142 (sports: RUNNING, TRAIL_RUNNING), 120-135\n',
     );
+  });
+});
+
+describe('normalizeGoalDuration', () => {
+  test('keeps seconds and reads a short figure as minutes', () => {
+    expect(normalizeGoalDuration(2700)).toBe(2700);
+    // "45" for 45 minutes would plan a 45-second session
+    expect(normalizeGoalDuration(45)).toBe(2700);
+    expect(normalizeGoalDuration(2700.4)).toBe(2700);
+  });
+
+  test('leaves no duration alone', () => {
+    expect(normalizeGoalDuration(undefined)).toBeUndefined();
+    expect(normalizeGoalDuration(null)).toBeNull();
+    expect(normalizeGoalDuration(0)).toBeNull();
+  });
+});
+
+describe('repsAsPoolLengths', () => {
+  const lengths = () => ({
+    steps: [
+      { durationType: 'TIME', durationValue: 900 },
+      {
+        durationType: 'OPEN',
+        durationValue: null,
+        repeatBlock: {
+          childSteps: [
+            { durationType: 'REPS', durationValue: 8 },
+            { durationType: 'TIME', durationValue: 60 },
+          ],
+        },
+      },
+    ],
+  });
+
+  test('turns swim repetitions into 25 m lengths', () => {
+    const workout = lengths();
+    repsAsPoolLengths(workout, SportType.SWIMMING);
+    expect(workout.steps[1].repeatBlock?.childSteps[0]).toEqual({
+      durationType: 'DISTANCE',
+      durationValue: 200,
+    });
+    expect(workout.steps[0]).toEqual({
+      durationType: 'TIME',
+      durationValue: 900,
+    });
+  });
+
+  test('leaves the repetitions of other sports', () => {
+    const workout = lengths();
+    repsAsPoolLengths(workout, SportType.STRENGTH);
+    expect(workout).toEqual(lengths());
   });
 });

@@ -23,6 +23,8 @@ import {
   fetchAthleteZones,
   formatZonesByType,
   getLatestMetrics,
+  normalizeGoalDuration,
+  repsAsPoolLengths,
   validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
   withRetry,
@@ -201,9 +203,13 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
         validateNoNestedRepeatBlocks(event.workout);
         validateWorkoutZoneTargets(event.workout, zoneIdMap, zones);
         convertWorkoutPaceTargetsToMs(event.workout);
+        repsAsPoolLengths(event.workout, event.sport);
       }
 
-      return event;
+      return {
+        ...event,
+        goalDuration: normalizeGoalDuration(event.goalDuration),
+      };
     });
   }
 }

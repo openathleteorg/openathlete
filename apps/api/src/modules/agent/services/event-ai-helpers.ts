@@ -7,6 +7,7 @@ import {
 } from '@openathlete/database';
 import {
   METRIC_TYPE,
+  WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
   WorkoutStepDto,
@@ -395,6 +396,54 @@ export function validateWorkoutZoneTargets(
     );
   }
   return workout;
+}
+
+/** No session is planned shorter: a smaller duration was given in minutes */
+const SHORTEST_SESSION_SECONDS = 5 * 60;
+const POOL_LENGTH_METERS = 25;
+
+/**
+ * The session's planned duration in whole seconds. Models sometimes answer
+ * "45" for 45 minutes, which would plan a 45-second session.
+ */
+export function normalizeGoalDuration(
+  goalDuration: number | null | undefined,
+): number | null | undefined {
+  if (goalDuration === null || goalDuration === undefined) return goalDuration;
+  if (goalDuration <= 0) return null;
+  const seconds =
+    goalDuration < SHORTEST_SESSION_SECONDS
+      ? goalDuration * SECONDS_PER_MINUTE
+      : goalDuration;
+  return Math.round(seconds);
+}
+
+type StepWithDuration = {
+  durationType?: string | null;
+  durationValue?: number | null;
+  repeatBlock?: { childSteps?: StepWithDuration[] } | null;
+};
+
+/**
+ * A swim step counted in repetitions is a number of pool lengths ("8
+ * vasche"): as such it would add nothing to the session's duration.
+ */
+export function repsAsPoolLengths(
+  workout: { steps?: StepWithDuration[] } | null | undefined,
+  sport: string,
+): void {
+  if (sport !== SportType.SWIMMING || !workout?.steps) return;
+  const fix = (step: StepWithDuration) => {
+    if (
+      step.durationType === WORKOUT_DURATION_TYPE.REPS &&
+      step.durationValue
+    ) {
+      step.durationType = WORKOUT_DURATION_TYPE.DISTANCE;
+      step.durationValue = step.durationValue * POOL_LENGTH_METERS;
+    }
+    step.repeatBlock?.childSteps?.forEach(fix);
+  };
+  workout.steps.forEach(fix);
 }
 
 /**

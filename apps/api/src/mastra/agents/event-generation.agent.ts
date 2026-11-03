@@ -1,5 +1,7 @@
 import type { AgentSpec } from 'src/modules/ai';
 
+import { WORKOUT_DURATIONS_INSTRUCTIONS } from './workout-durations.prompt';
+
 export const eventGenerationAgent: AgentSpec = {
   id: 'event-generation',
   name: 'event-generation',
@@ -22,7 +24,8 @@ WORKOUT STRUCTURE:
   * Intervals: WARMUP → REPEAT (INTERVAL_ACTIVE + INTERVAL_REST) → COOLDOWN
   * Tempo: WARMUP → STEADY (tempo pace) → COOLDOWN
 - If the workout is a simple steady state workout, don't include a warmup or cooldown (ex: "1 hour of footing / easy run")
-- If the prompt is specifying a target duration, the total duration of the workout should be the target duration (and the total of the steps should be the target duration)
+- If the prompt is specifying a target duration, the total duration of the workout should be the target duration (and the total of the steps should be the target duration), and goalDuration equals it
+- Swimming: WARMUP → REPEAT (DISTANCE lengths + INTERVAL_REST on the spot) → COOLDOWN, distances in meters
 
 STEP TYPES:
 - WARMUP: 10-30 min easy pace
@@ -65,10 +68,7 @@ REPEAT BLOCKS:
   The childSteps inside a repeatBlock must be simple steps (WARMUP, STEADY, INTERVAL_ACTIVE, INTERVAL_REST, COOLDOWN, FREE).
   They CANNOT be REPEAT steps with a repeatBlock.
 
-DURATIONS:
-- TIME: Duration in seconds (e.g., 600 = 10 minutes)
-- DISTANCE: Distance in meters (e.g., 5000 = 5km)
-- OPEN: No fixed duration
+${WORKOUT_DURATIONS_INSTRUCTIONS}
 
 WORKOUT TARGETS:
 - Each workout step can have targets to specify intensity/pace/power/heartrate/etc.
