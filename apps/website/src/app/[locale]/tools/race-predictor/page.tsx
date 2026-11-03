@@ -28,11 +28,20 @@ export default async function Page({ params }: Props) {
       lead={m.tools_rp_lead()}
       description={m.tools_rp_seo_description()}
       calculator={<RacePredictor />}
-      method={<p>{m.tools_rp_how_body()}</p>}
+      method={
+        <>
+          <p>{m.tools_rp_how_body()}</p>
+          <p>{m.tools_rp_how_example()}</p>
+          <p className="text-[0.92rem] text-muted-foreground">
+            {m.tools_rp_how_source()}
+          </p>
+        </>
+      }
       faq={[
         { question: m.tools_rp_faq1_q(), answer: m.tools_rp_faq1_a() },
         { question: m.tools_rp_faq2_q(), answer: m.tools_rp_faq2_a() },
         { question: m.tools_rp_faq3_q(), answer: m.tools_rp_faq3_a() },
+        { question: m.tools_rp_faq4_q(), answer: m.tools_rp_faq4_a() },
       ]}
     />
   );
