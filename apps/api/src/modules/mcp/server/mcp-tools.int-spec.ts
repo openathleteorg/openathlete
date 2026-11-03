@@ -482,6 +482,44 @@ describe('MCP tools (PostgreSQL)', () => {
     ).toBe(1);
   });
 
+  it('keeps a duration set apart from the workout when the steps change', async () => {
+    const { call } = await connect(athlete);
+    const steps = (minutes: number) => [
+      { kind: 'steady', durationSeconds: minutes * 60 },
+    ];
+    const [byHand, following] = data<{ items: { eventId: number }[] }>(
+      await call('plan_sessions', {
+        sessions: [
+          {
+            date: '2026-10-08',
+            name: 'Swim 45',
+            sport: 'SWIMMING',
+            durationMinutes: 45,
+            workoutSteps: steps(24),
+          },
+          {
+            date: '2026-10-09',
+            name: 'Swim steps',
+            sport: 'SWIMMING',
+            workoutSteps: steps(24),
+          },
+        ],
+      }),
+    ).items;
+
+    for (const session of [byHand, following]) {
+      await call('update_session', {
+        eventId: session.eventId,
+        workoutSteps: steps(30),
+      });
+    }
+    const goalOf = async (eventId: number) =>
+      (await prisma.eventTraining.findUniqueOrThrow({ where: { eventId } }))
+        .goalDuration;
+    expect(await goalOf(byHand.eventId)).toBe(45 * 60);
+    expect(await goalOf(following.eventId)).toBe(30 * 60);
+  });
+
   it('records an illness and lists the sessions to adapt', async () => {
     const { call } = await connect(athlete);
     await call('plan_sessions', {

@@ -31,7 +31,7 @@ export const EVENT_TYPE_OF_KIND = {
   activity: 'ACTIVITY',
 } as const;
 
-const WORKOUT_STEPS_INCLUDE = {
+export const WORKOUT_STEPS_INCLUDE = {
   steps: {
     include: {
       targets: true,
