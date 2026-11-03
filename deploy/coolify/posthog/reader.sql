@@ -7,7 +7,7 @@
 -- embeddings, records and profile bins.
 --
 -- Apply as the database owner, and again after a migration that adds a table
--- or a column PostHog should see (new ones stay hidden until then):
+-- (new tables stay hidden until listed below):
 --   psql -v reader_password='...' -f reader.sql
 -- Idempotent.
 
@@ -118,11 +118,19 @@ insert into posthog_hidden values
 -- Start from nothing, so a table or column dropped from the lists loses access.
 revoke all on all tables in schema public from posthog_reader;
 
+-- Whole tables where nothing is hidden: PostHog's xmin sync reads a system
+-- column, which column grants cannot cover. Their new columns become visible,
+-- so a credential added to one of them must go in posthog_hidden.
+select format('grant select on public.%I to posthog_reader', t.tbl)
+from posthog_tables t
+where not exists (select from posthog_hidden h where h.tbl = t.tbl) \gexec
+
 select format('grant select (%s) on public.%I to posthog_reader',
               string_agg(quote_ident(c.column_name), ', ' order by c.ordinal_position), t.tbl)
 from posthog_tables t
 join information_schema.columns c on c.table_schema = 'public' and c.table_name = t.tbl
-where not exists (select from posthog_hidden h where h.tbl = t.tbl and h.col = c.column_name)
+where exists (select from posthog_hidden h where h.tbl = t.tbl)
+  and not exists (select from posthog_hidden h where h.tbl = t.tbl and h.col = c.column_name)
 group by t.tbl \gexec
 
 -- Fails here if a listed table no longer exists.
