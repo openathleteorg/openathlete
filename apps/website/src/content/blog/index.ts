@@ -24,12 +24,14 @@ import { articleSmartwatchIsntEnough } from './article-smartwatch-isnt-enough';
 import { articleStopTrainingOnFeeling } from './article-stop-training-on-feeling';
 import { articleSubjectiveScientific } from './article-subjective-scientific';
 import { articleSyncWorkouts } from './article-sync-workouts';
+import { articleTrainingpeaksGarminAlternatives } from './article-trainingpeaks-garmin-alternatives';
 import { articleTrimp } from './article-trimp';
 import { articleYouthTalentDetection } from './article-youth-talent-detection';
 import type { BlogPost, LocalizedText } from './types';
 
 // Export all blog posts
 export const blogPosts: BlogPost[] = [
+  articleTrainingpeaksGarminAlternatives,
   article1,
   article2,
   article3,
