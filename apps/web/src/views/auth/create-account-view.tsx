@@ -9,6 +9,7 @@ import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { currentLanguage } from '@/utils/language-choice';
 import { localizedNewPasswordSchema } from '@/utils/password';
+import { localizedPersonNameSchema } from '@/utils/person-name';
 import { RETURN_TO_PARAM, rememberReturnTo } from '@/utils/return-to';
 import { cn } from '@/utils/shadcn';
 import { signupRefusal } from '@/utils/signup';
@@ -38,7 +39,11 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   const [isVerifyingInvitation, setIsVerifyingInvitation] = useState(false);
   const methods = useForm<z.infer<typeof createAccountDtoSchema>>({
     resolver: zodResolver(
-      createAccountDtoSchema.extend({ password: localizedNewPasswordSchema() }),
+      createAccountDtoSchema.extend({
+        password: localizedNewPasswordSchema(),
+        firstName: localizedPersonNameSchema(),
+        lastName: localizedPersonNameSchema(),
+      }),
     ),
     defaultValues: {
       email: '',

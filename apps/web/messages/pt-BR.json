@@ -1943,5 +1943,6 @@
   "zones_add_sport": "Personalizar para um esporte",
   "zones_other_sports": "Outros esportes",
   "zones_remove_sport": "Remover estas zonas e usar as gerais",
-  "zones_customize": "Personalizar"
+  "zones_customize": "Personalizar",
+  "person_name_invalid": "Somente letras, no máximo {max} caracteres"
 }

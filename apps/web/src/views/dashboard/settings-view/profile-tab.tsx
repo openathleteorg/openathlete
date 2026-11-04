@@ -12,6 +12,7 @@ import { m } from '@/paraglide/messages';
 import { getApiBaseUrl, isCapacitor } from '@/utils/capacitor';
 import { revokeAppleSignIn } from '@/utils/firebase-auth';
 import { openServerSelection } from '@/utils/mobile-server';
+import { localizedPersonNameSchema } from '@/utils/person-name';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -60,7 +61,12 @@ export function ProfileTab() {
     },
   });
   const methods = useForm<z.infer<typeof updateAccountDtoSchema>>({
-    resolver: zodResolver(updateAccountDtoSchema),
+    resolver: zodResolver(
+      updateAccountDtoSchema.extend({
+        firstName: localizedPersonNameSchema().optional(),
+        lastName: localizedPersonNameSchema().optional(),
+      }),
+    ),
     defaultValues: {
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',

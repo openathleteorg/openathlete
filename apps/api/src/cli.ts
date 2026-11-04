@@ -44,6 +44,7 @@ async function main() {
     accountDeletion: app.get(AccountDeletionService),
     appUrl: config.get('APP_URL'),
     queueFullImports: (ids) => queueFullImports(config.get('REDIS_URL'), ids),
+    readInput,
   };
   try {
     process.exitCode = await runCommand(process.argv.slice(2), deps, (line) =>
@@ -93,6 +94,14 @@ async function queueFullImports(
     await queue.close();
     await connection.quit();
   }
+}
+
+async function readInput(): Promise<string> {
+  // Nothing piped in: an interactive terminal would wait forever
+  if (process.stdin.isTTY) return '';
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString('utf8');
 }
 
 void main();
