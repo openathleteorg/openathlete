@@ -265,6 +265,28 @@ export const ApiEnvSchema = z
         'Sender address of every email, for Brevo and SMTP. Default: BREVO_FROM_EMAIL, else noreply@openathlete.org',
       ),
 
+    EMAIL_FROM_NAME: z
+      .string()
+      .max(60)
+      .optional()
+      .describe('Sender name shown in inboxes. Default: OpenAthlete'),
+
+    EMAIL_REPLY_TO: z
+      .string()
+      .email('EMAIL_REPLY_TO must be a valid email address')
+      .optional()
+      .describe(
+        'Where replies to the emails go, when the sender address is not read (optional)',
+      ),
+
+    EMAIL_SIGNATURE: z
+      .string()
+      .max(60)
+      .optional()
+      .describe(
+        'Name that signs the emails written in person (onboarding, monthly recap, news): setting it turns those emails on (optional)',
+      ),
+
     // Single sign-on through an OpenID Connect provider (optional)
     OIDC_ISSUER: z
       .string()

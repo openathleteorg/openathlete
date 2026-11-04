@@ -121,6 +121,9 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      EMAIL_SIGNATURE: ${EMAIL_SIGNATURE:-}
       SIGNUP_NOTIFICATION_EMAIL: ${SIGNUP_NOTIFICATION_EMAIL:-}
 
       # AI (optional): users can bring their own keys in Settings > AI; keys

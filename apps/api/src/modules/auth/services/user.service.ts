@@ -369,7 +369,8 @@ export class UserService {
         to: normalizedEmail,
         params: {
           name: firstName,
-          dashboard_url: `${this.configService.get('APP_URL')}/dashboard`,
+          connections_url: `${this.configService.get('APP_URL')}/dashboard/settings?tab=connectors`,
+          signature: this.configService.get('EMAIL_SIGNATURE') || undefined,
         },
         language,
       }),

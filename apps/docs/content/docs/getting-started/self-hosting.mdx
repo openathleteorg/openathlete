@@ -77,6 +77,9 @@ Any SMTP server works: your mail provider's, a relay such as Postmark or Amazon 
 | `SMTP_USER`     | User name, if the server asks for one                                                       |
 | `SMTP_PASSWORD` | Password                                                                                    |
 | `EMAIL_FROM`    | The sender address, which the server must accept, e.g. `openathlete@example.org`           |
+| `EMAIL_FROM_NAME` | The sender name shown in inboxes. Default: `OpenAthlete`                                  |
+| `EMAIL_REPLY_TO` | Where replies go, when nobody reads the sender address                                     |
+| `EMAIL_SIGNATURE` | Your name, to sign onboarding tips, the monthly recap and news. Setting it turns those emails on; each user can turn them off. |
 
 Brevo works too, through its API: set `BREVO_API_KEY` instead (it wins when both are set) and `EMAIL_FROM` or `BREVO_FROM_EMAIL`.
 

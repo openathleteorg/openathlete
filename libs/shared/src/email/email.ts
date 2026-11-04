@@ -23,11 +23,11 @@ const emailSubjects: {
     PT_BR: 'Redefina sua senha',
   },
   welcome: {
-    ES: 'Te damos la bienvenida a OpenAthlete',
-    FR: 'Bienvenue sur OpenAthlete',
-    EN: 'Welcome to OpenAthlete',
-    IT: 'Benvenuto su OpenAthlete',
-    PT_BR: 'Boas-vindas ao OpenAthlete',
+    ES: 'Tu cuenta de OpenAthlete',
+    FR: 'Votre compte OpenAthlete',
+    EN: 'Your OpenAthlete account',
+    IT: 'Il tuo account OpenAthlete',
+    PT_BR: 'Sua conta OpenAthlete',
   },
   'subscription-confirmation': {
     ES: 'Gracias por apoyar OpenAthlete',
@@ -80,7 +80,12 @@ export const emailLibrary = {
   },
   welcome: {
     defaultSubject: emailSubjects.welcome,
-    props: {} as { name?: string; dashboard_url?: string },
+    props: {} as {
+      name?: string;
+      connections_url: string;
+      /** Who signs, on instances that write to their users in person */
+      signature?: string;
+    },
   },
   'subscription-confirmation': {
     defaultSubject: emailSubjects['subscription-confirmation'],

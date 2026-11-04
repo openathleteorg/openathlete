@@ -2,8 +2,8 @@ import { EmailLanguage } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 
-import { button, h1, note, p } from '../core/blocks';
-import { layout } from '../core/layout';
+import { button, heading, note, paragraph, quotes } from '../core/blocks';
+import { renderEmail } from '../core/layout';
 
 const translations = {
   ES: {
@@ -123,37 +123,30 @@ export function buildMessageThreadNotificationEmail({
   const title = t.title;
   const preview = t.preview(count);
 
-  const items = messages
-    .map((message) => {
-      const createdAt = new Date(message.createdAtIso);
-      const timeLabel = createdAt.toLocaleString(dateLocales[language], {
+  // Message contents are typed by users: the blocks escape them
+  const items = messages.map((message) => ({
+    body: message.contentSnippet,
+    caption: t.from(
+      message.senderName,
+      new Date(message.createdAtIso).toLocaleString(dateLocales[language], {
         hour: '2-digit',
         minute: '2-digit',
         day: '2-digit',
         month: '2-digit',
-      });
+      }),
+    ),
+  }));
 
-      return `<li style="margin-bottom:8px;font-size:14px;line-height:20px;">
-        <p style="margin:0 0 4px 0;">${message.contentSnippet}</p>
-        <small style="display:block;margin:0;font-size:12px;color:#6b7280;">${t.from(
-          message.senderName,
-          timeLabel,
-        )}</small>
-      </li>`;
-    })
-    .join('');
-
-  const content = [
-    h1(title),
-    p(t.intro(threadTitle)),
-    messages.length > 0
-      ? `<ul style="margin:0 0 16px 0;padding-left:20px;list-style-type:disc;">${items}</ul>`
-      : '',
-    inboxUrl ? button({ href: inboxUrl, label: t.openInbox }) : '',
-    note(t.footerNote),
-  ]
-    .filter(Boolean)
-    .join('');
-
-  return layout({ language, title, preview, contentHtml: content });
+  return renderEmail({
+    language,
+    title,
+    preview,
+    blocks: [
+      heading(title),
+      paragraph(t.intro(threadTitle)),
+      ...(items.length > 0 ? [quotes(items)] : []),
+      ...(inboxUrl ? [button({ href: inboxUrl, label: t.openInbox })] : []),
+      note(t.footerNote),
+    ],
+  });
 }

@@ -2,8 +2,8 @@ import { EmailLanguage } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 
-import { button, h1, note, p } from '../core/blocks';
-import { layout } from '../core/layout';
+import { button, heading, note, paragraph } from '../core/blocks';
+import { renderEmail } from '../core/layout';
 
 const translations = {
   ES: {
@@ -24,7 +24,7 @@ const translations = {
       'Nous avons reçu une demande pour réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe.',
     buttonLabel: 'Choisir un nouveau mot de passe',
     linkNote: (url: string) =>
-      `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur: ${url}`,
+      `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur : ${url}`,
     ignoreNote:
       "Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email.",
   },
@@ -72,13 +72,13 @@ export function buildPasswordResetEmail({
   const title = t.title;
   const preview = t.preview;
 
-  const content = [
-    h1(title),
-    p(t.description),
+  const blocks = [
+    heading(title),
+    paragraph(t.description),
     button({ href: url, label: t.buttonLabel }),
     note(t.linkNote(url)),
     note(t.ignoreNote),
-  ].join('');
+  ];
 
-  return layout({ language, title, preview, contentHtml: content });
+  return renderEmail({ language, title, preview, blocks });
 }

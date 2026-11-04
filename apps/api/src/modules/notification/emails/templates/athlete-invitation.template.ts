@@ -2,8 +2,8 @@ import { EmailLanguage } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 
-import { button, h1, note, p } from '../core/blocks';
-import { layout } from '../core/layout';
+import { button, heading, note, paragraph } from '../core/blocks';
+import { renderEmail } from '../core/layout';
 
 const translations = {
   ES: {
@@ -26,7 +26,7 @@ const translations = {
       `${coachName} vous invite à rejoindre OpenAthlete en tant qu'athlète. Cliquez sur le bouton ci-dessous pour créer votre compte et commencer à suivre vos entraînements.`,
     buttonLabel: 'Créer mon compte',
     linkNote: (url: string) =>
-      `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur: ${url}`,
+      `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur : ${url}`,
     expiryNote:
       "Cette invitation est valable pendant 7 jours. Si vous n'êtes pas intéressé, vous pouvez ignorer cet email.",
   },
@@ -81,13 +81,13 @@ export function buildAthleteInvitationEmail({
   const title = t.title;
   const preview = t.preview(coachName);
 
-  const content = [
-    h1(title),
-    p(t.description(coachName)),
+  const blocks = [
+    heading(title),
+    paragraph(t.description(coachName)),
     button({ href: url, label: t.buttonLabel }),
     note(t.linkNote(url)),
     note(t.expiryNote),
-  ].join('');
+  ];
 
-  return layout({ language, title, preview, contentHtml: content });
+  return renderEmail({ language, title, preview, blocks });
 }
