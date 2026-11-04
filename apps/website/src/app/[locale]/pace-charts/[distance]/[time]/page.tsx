@@ -34,7 +34,11 @@ import {
   inSentence,
   raceLabel,
 } from '@/lib/pace-charts/copy';
-import { distanceSpec, paceChartPaths } from '@/lib/pace-charts/data';
+import {
+  distanceSpec,
+  paceChartPaths,
+  planVariant,
+} from '@/lib/pace-charts/data';
 import { listPlans } from '@/lib/training-plans/catalog';
 import { m } from '@/paraglide/messages';
 import {
@@ -86,10 +90,17 @@ function resolve(distance: string, time: string): PaceChart {
 }
 
 function km(metres: number, locale: SupportedLocale) {
-  const value = metres / 1000;
+  const value = Math.round(metres / 100) / 10;
   return Number.isInteger(value)
     ? String(value)
     : formatNumber(value, toParaglideLocale(locale), 1);
+}
+
+/** A workout step: "800 m" under a kilometre, "3 km" from it. */
+function stepDistance(stepKm: number, locale: SupportedLocale) {
+  return stepKm < 1
+    ? `${Math.round(stepKm * 1000)} m`
+    : `${km(stepKm * 1000, locale)} km`;
 }
 
 const capitalize = (text: string) =>
@@ -113,15 +124,22 @@ export default async function Page({ params }: Props) {
   const title = copy.h1(values, o);
   const race = raceLabel(chart.spec.race, ml);
   const near = neighbours(chart.spec, time);
+  // 10K and 5K: the race is short enough to talk about the first km and to
+  // read on a track, so the grid shows laps instead of km markers
+  const short = chart.spec.gridEvery < 1000;
   const plan = listPlans().find(
     (p) =>
       p.sport === 'running' &&
       p.distance === chart.spec.planDistance &&
-      p.variant === time.replace('-', 'h'),
+      p.variant === planVariant(time),
   );
+  const lapSeconds = (chart.pace * chart.spec.gridEvery) / 1000;
 
   const faq = [
-    { question: copy.faq1(values, o), answer: m.pacechart_faq1_a(values) },
+    {
+      question: copy.faq1(values, o),
+      answer: (short ? m.pacechart_short_faq1_a : m.pacechart_faq1_a)(values),
+    },
     copy.faq2(chart, values, o),
     {
       question: m.pacechart_faq3_q(),
@@ -232,12 +250,15 @@ export default async function Page({ params }: Props) {
                 {m.pacechart_splits_title()}
               </h2>
               <p className="mt-5 text-[1.02rem] leading-relaxed text-[#2b3354]">
-                {m.pacechart_splits_body({
+                {(short
+                  ? m.pacechart_short_splits_body
+                  : m.pacechart_splits_body)({
                   pace: values.pace,
                   slow: formatPace(chart.firstHalfPace),
                   fast: formatPace(chart.secondHalfPace),
                   first: formatDuration(chart.halfway.first),
                   second: formatDuration(chart.halfway.second),
+                  km1: formatDuration(chart.pace),
                 })}
               </p>
             </Reveal>
@@ -291,25 +312,37 @@ export default async function Page({ params }: Props) {
           <div className="mt-16 sm:mt-20">
             <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
               <h3 className="display-3 text-ink">
-                {m.pacechart_perkm_title()}
+                {short ? m.pacechart_laps_title() : m.pacechart_perkm_title()}
               </h3>
               <p className="text-[0.88rem] text-muted-foreground">
-                {m.pacechart_perkm_note()}
+                {short
+                  ? m.pacechart_laps_note({ lap: formatDuration(lapSeconds) })
+                  : m.pacechart_perkm_note()}
               </p>
             </div>
-            <ol className="mt-6 grid grid-cols-3 gap-1.5 sm:grid-cols-4 sm:gap-2 lg:grid-cols-6">
-              {chart.everyKm.map((split) => (
+            <ol
+              className={cn(
+                'mt-6 grid gap-1.5 sm:gap-2',
+                short
+                  ? 'grid-cols-4 sm:grid-cols-5 lg:grid-cols-10'
+                  : 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-6',
+              )}
+            >
+              {chart.grid.map((split) => (
                 <li
                   key={split.metres}
                   className={cn(
                     'rounded-xl border px-2.5 py-2 sm:px-3 sm:py-2.5',
-                    split.metres % 5000 === 0 || split.metres === chart.metres
+                    split.metres % (short ? 2000 : 5000) === 0 ||
+                      split.metres === chart.metres
                       ? 'border-ink/15 bg-paper'
                       : 'border-border bg-white',
                   )}
                 >
                   <p className="font-mono text-[0.72rem] text-muted-foreground">
-                    {km(split.metres, locale)} km
+                    {short
+                      ? `${split.metres.toLocaleString(ml)} m`
+                      : `${km(split.metres, locale)} km`}
                   </p>
                   <p className="font-mono text-[0.88rem] sm:text-[0.98rem] font-semibold text-ink">
                     {formatDuration(split.even)}
@@ -506,7 +539,7 @@ export default async function Page({ params }: Props) {
                   </p>
                   <p className="shrink-0 font-mono text-[0.72rem] text-muted-foreground">
                     {m.pacechart_wo_total({
-                      km: String(chart.workout.km),
+                      km: km(chart.workout.km * 1000, locale),
                       duration: hoursLabel(chart.workout.seconds, ml),
                     })}
                   </p>
@@ -522,8 +555,8 @@ export default async function Page({ params }: Props) {
                     >
                       <span className="flex items-center gap-2.5">
                         <StepDot kind={step.kind} />
-                        <span className="w-12 font-mono text-muted-foreground">
-                          {step.km} km
+                        <span className="w-14 font-mono text-muted-foreground">
+                          {stepDistance(step.km, locale)}
                         </span>
                         <span
                           className={cn(
@@ -568,6 +601,16 @@ export default async function Page({ params }: Props) {
                   value: formatDuration(b.seconds),
                   note: m.pacechart_fit_race_note(),
                 })),
+                // The 5K has a single benchmark: its VDOT fills the row
+                ...(chart.benchmarks.length < 2
+                  ? [
+                      {
+                        label: m.pacechart_fit_vdot_label(),
+                        value: formatNumber(chart.vdot, ml),
+                        note: m.pacechart_fit_vdot_note(),
+                      },
+                    ]
+                  : []),
                 {
                   label: m.pacechart_fit_peak_label(),
                   value: `${chart.fit.peakKm[0]}–${chart.fit.peakKm[1]}`,
@@ -616,15 +659,22 @@ export default async function Page({ params }: Props) {
                 <p className="text-[1.1rem] font-semibold text-ink">
                   {plan
                     ? m.pacechart_fit_plan_title()
-                    : m.pacechart_fit_noplan_title()}
+                    : chart.spec.planDistance
+                      ? m.pacechart_fit_noplan_title()
+                      : m.pacechart_5k_noplan_title()}
                 </p>
                 <p className="mt-2 text-[0.93rem] leading-relaxed text-muted-foreground">
                   {plan
                     ? m.pacechart_fit_plan_body()
-                    : m.pacechart_fit_noplan_body()}
+                    : chart.spec.planDistance
+                      ? m.pacechart_fit_noplan_body()
+                      : m.pacechart_5k_noplan_body()}
                 </p>
                 <Link
-                  href={localePath(locale, plan?.path ?? '/training-plans')}
+                  href={localePath(
+                    locale,
+                    plan?.path ?? '/training-plans/running',
+                  )}
                   className={cn(
                     buttonStyles({ variant: 'secondary', size: 'md' }),
                     'mt-5',
@@ -711,7 +761,7 @@ export default async function Page({ params }: Props) {
         locale={locale}
         placement="pace_chart_final"
         title={m.pacechart_final_title(values)}
-        body={m.pacechart_final_body()}
+        body={short ? m.pacechart_short_final_body() : m.pacechart_final_body()}
       />
     </>
   );

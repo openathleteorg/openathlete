@@ -70,8 +70,16 @@ export default async function Page({ params }: Props) {
               { href: '/tools/grade-adjusted-pace', label: m.tools_gap_name() },
               { href: '/tools/race-predictor', label: m.tools_rp_name() },
               {
-                href: '/training-plans/trail',
-                label: m.tools_links_trail_plans(),
+                href: '/training-plans/trail/20km/800m',
+                label: m.tools_links_trail_20(),
+              },
+              {
+                href: '/training-plans/trail/30km/1000m',
+                label: m.tools_links_trail_30(),
+              },
+              {
+                href: '/training-plans/trail/50km/2500m',
+                label: m.tools_links_trail_50(),
               },
               { href: '/pace-charts', label: m.tools_links_pace_charts() },
               { href: '/features/watch-sync', label: m.tools_links_gap_app() },
