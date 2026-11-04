@@ -3,6 +3,7 @@ import { CONNECTOR_SLUGS } from '@/components/connect/data';
 import { getAllPosts, getPostLocales } from '@/content/blog';
 import { COMPARISONS_CHECKED_ON, COMPETITORS } from '@/content/competitors';
 import { paceChartPaths } from '@/lib/pace-charts/data';
+import { RACES } from '@/lib/races/data';
 import { listPlans } from '@/lib/training-plans/catalog';
 import { SUPPORTED_LOCALES, type SupportedLocale } from '@/utils/locales';
 import { existsSync, readdirSync, statSync } from 'fs';
@@ -85,6 +86,9 @@ export function siteRoutes(): SiteRoute[] {
       path: `/pace-charts/${distance}/${time}`,
       locales: SUPPORTED_LOCALES,
     });
+  }
+  for (const race of RACES) {
+    routes.push({ path: `/races/${race.slug}`, locales: SUPPORTED_LOCALES });
   }
 
   return routes.sort((a, b) => a.path.localeCompare(b.path));

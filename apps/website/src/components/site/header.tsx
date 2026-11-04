@@ -13,6 +13,7 @@ import {
   Building2,
   Calculator,
   ChevronDown,
+  Flag,
   Gauge,
   LayoutGrid,
   Menu,
@@ -141,6 +142,11 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             href: p('/pace-charts'),
             label: m.pacechart_nav_label({}, { locale: ml }),
             icon: <Gauge />,
+          },
+          {
+            href: p('/races'),
+            label: m.races_nav_label({}, { locale: ml }),
+            icon: <Flag />,
           },
           {
             href: DOCS_URL,
