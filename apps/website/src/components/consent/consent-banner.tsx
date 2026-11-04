@@ -12,7 +12,7 @@ import {
 import { useEffect } from 'react';
 
 /**
- * Asks before any tracking starts. Refusing is as easy as accepting, and the
+ * Asks before any cookie is set. Refusing is as easy as accepting, and the
  * choice can be changed from the footer.
  */
 export function ConsentBanner({
