@@ -2,6 +2,9 @@ import { ToolPage } from '@/components/tools/tool-page';
 import { VmaCalculator } from '@/components/tools/vma-calculator';
 import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
+import { localePath } from '@/utils/locales';
+import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
 import { generateMetadata as pageMetadata } from '../../../metadata';
 
@@ -45,6 +48,13 @@ export default async function Page({ params }: Props) {
               </li>
             ))}
           </ul>
+          <Link
+            href={localePath(locale, '/learn/vma')}
+            className="group mt-6 inline-flex items-center gap-1.5 text-[0.98rem] font-medium text-ink underline decoration-border underline-offset-4 transition-colors hover:decoration-ink"
+          >
+            {m.learn_link_vma()}
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+          </Link>
         </div>
       }
       faq={[

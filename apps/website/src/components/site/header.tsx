@@ -8,6 +8,7 @@ import { localePath } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  BookA,
   BookOpen,
   Bot,
   Building2,
@@ -147,6 +148,11 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             href: p('/races'),
             label: m.races_nav_label({}, { locale: ml }),
             icon: <Flag />,
+          },
+          {
+            href: p('/learn'),
+            label: m.learn_nav_label({}, { locale: ml }),
+            icon: <BookA />,
           },
           {
             href: DOCS_URL,

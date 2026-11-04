@@ -2,6 +2,7 @@ import { AI_BRAND_SLUGS } from '@/components/ai-brand/data';
 import { CONNECTOR_SLUGS } from '@/components/connect/data';
 import { getAllPosts, getPostLocales } from '@/content/blog';
 import { COMPARISONS_CHECKED_ON, COMPETITORS } from '@/content/competitors';
+import { learnTerms } from '@/content/learn';
 import { paceChartPaths } from '@/lib/pace-charts/data';
 import { RACES } from '@/lib/races/data';
 import { listPlans } from '@/lib/training-plans/catalog';
@@ -89,6 +90,13 @@ export function siteRoutes(): SiteRoute[] {
   }
   for (const race of RACES) {
     routes.push({ path: `/races/${race.slug}`, locales: SUPPORTED_LOCALES });
+  }
+  for (const term of learnTerms) {
+    routes.push({
+      path: `/learn/${term.slug}`,
+      locales: SUPPORTED_LOCALES,
+      lastModified: term.updatedAt,
+    });
   }
 
   return routes.sort((a, b) => a.path.localeCompare(b.path));
