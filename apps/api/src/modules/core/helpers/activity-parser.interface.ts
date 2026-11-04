@@ -9,7 +9,7 @@ export interface FitFileSegment {
 
 export interface ActivityParseResult {
   stream: ActivityStream;
-  /** FIT metadata is consumed only by manual activity import. */
+  /** FIT metadata from file_id and session messages. */
   fit?: {
     fileType: unknown;
     sessions: Array<Record<string, unknown>>;

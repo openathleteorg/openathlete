@@ -233,6 +233,13 @@ describe('Manual FIT parsing', () => {
     expect(result.details.stream).toEqual({});
     expect(result.warnings).toContain('FIT_NO_STREAM');
   });
+  test('extracts watch-reported workoutRpe from FIT session messages', async () => {
+    const withRpe = await parse(fixture({ session: { workoutRpe: 70 } }));
+    expect(withRpe.activity.rpe).toBe(0.7);
+
+    const withoutRpe = await parse(fixture());
+    expect(withoutRpe.activity.rpe).toBeNull();
+  });
   test('omits incomplete channels rather than shifting their timestamps', async () => {
     const result = await parse(fixture({ partial: true }));
     const stream = uncompressActivityStream(result.details.stream);

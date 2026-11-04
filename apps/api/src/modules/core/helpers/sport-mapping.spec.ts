@@ -1,6 +1,10 @@
 import { SportType } from '@openathlete/database';
 
-import { mapGarminActivityType } from './garmin';
+import {
+  extractGarminFitRpe,
+  mapGarminActivityType,
+  mapGarminRpe,
+} from './garmin';
 import { fitSport } from './manual-fit-import';
 import { stravaActivitySport } from './strava';
 import { mapSuuntoActivityId } from './suunto';
@@ -59,5 +63,31 @@ describe('Strava sport mapping', () => {
   it('falls back on type for payloads without sport_type', () => {
     expect(stravaActivitySport({ type: 'Run' })).toBe(SportType.RUNNING);
     expect(stravaActivitySport({})).toBe(SportType.OTHER);
+  });
+});
+
+describe('Garmin RPE mapping', () => {
+  it('maps Garmin 0-100 workoutRpe values to OpenAthlete 0.0-1.0 scale', () => {
+    expect(mapGarminRpe(10)).toBe(0.1);
+    expect(mapGarminRpe(50)).toBe(0.5);
+    expect(mapGarminRpe(70)).toBe(0.7);
+    expect(mapGarminRpe(100)).toBe(1);
+  });
+
+  it('ignores unset or out-of-range Garmin RPE values', () => {
+    expect(mapGarminRpe(0)).toBeUndefined();
+    expect(mapGarminRpe(-10)).toBeUndefined();
+    expect(mapGarminRpe(101)).toBeUndefined();
+    expect(mapGarminRpe(255)).toBeUndefined();
+    expect(mapGarminRpe(undefined)).toBeUndefined();
+    expect(mapGarminRpe(null)).toBeUndefined();
+  });
+
+  it('extracts workoutRpe from decoded FIT session messages', () => {
+    expect(extractGarminFitRpe([{ workoutRpe: 80 }])).toBe(0.8);
+    expect(extractGarminFitRpe([{}, { workoutRpe: 60 }])).toBe(0.6);
+    expect(extractGarminFitRpe([{ workoutRpe: 0 }])).toBeUndefined();
+    expect(extractGarminFitRpe([])).toBeUndefined();
+    expect(extractGarminFitRpe(undefined)).toBeUndefined();
   });
 });
