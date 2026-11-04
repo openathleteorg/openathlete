@@ -126,7 +126,11 @@ export function WorkoutBuilder({
   useEffect(() => {
     if (onStepsChange) {
       const cleanedSteps = prepareStepsForSave(steps);
-      lastEmittedStepsRef.current = JSON.stringify(cleanedSteps);
+      const serialized = JSON.stringify(cleanedSteps);
+      if (serialized === lastEmittedStepsRef.current) {
+        return;
+      }
+      lastEmittedStepsRef.current = serialized;
       onStepsChange(cleanedSteps);
     }
   }, [steps, onStepsChange, prepareStepsForSave]);
