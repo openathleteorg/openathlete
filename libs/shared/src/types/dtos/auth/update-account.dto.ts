@@ -17,6 +17,12 @@ export const updateAccountDtoSchema = z.object({
   calendarDisplay: calendarDisplaySchema.optional(),
   /** Tracks hidden from activity charts, per sport */
   hiddenActivityTracks: hiddenActivityTracksSchema.optional(),
+  /** Onboarding tips and alerts about the account, by email */
+  emailTips: z.boolean().optional(),
+  /** Monthly recap by email */
+  emailRecap: z.boolean().optional(),
+  /** News about the project, Supporter included: the server dates the consent */
+  emailNews: z.boolean().optional(),
   /** The server dates the dismissal: there is no way back from it */
   supportReminderDismissed: z.literal(true).optional(),
 });

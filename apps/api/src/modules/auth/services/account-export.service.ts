@@ -44,6 +44,9 @@ export class AccountExportService {
         language: true,
         timeZone: true,
         trainingReminders: true,
+        emailTips: true,
+        emailRecap: true,
+        emailNewsConsentAt: true,
         roles: true,
         onboardingCompleted: true,
         createdAt: true,
@@ -55,6 +58,8 @@ export class AccountExportService {
             createdAt: true,
           },
         },
+        // The onboarding, recap and news emails sent, and when
+        lifecycleEmails: { select: { kind: true, ref: true, sentAt: true } },
         athlete: { select: { athleteId: true } },
       },
     });

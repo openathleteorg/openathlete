@@ -25,6 +25,7 @@ import {
   updateAccountDtoSchema,
 } from '@openathlete/shared';
 
+import { EmailPreferencesSection } from './email-preferences-section';
 import { PrivacySection } from './privacy-section';
 import {
   SettingsPanel,
@@ -123,6 +124,7 @@ export function ProfileTab() {
         <SessionValidationSettingsCard athleteId={athlete.athleteId} />
       )}
       {athlete?.athleteId && <TrainingRemindersSection />}
+      <EmailPreferencesSection />
       <PrivacySection />
       {isCapacitor() && (
         <SettingsSection title={m.mobile_server_title()}>

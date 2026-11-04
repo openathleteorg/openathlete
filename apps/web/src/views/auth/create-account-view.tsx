@@ -3,6 +3,7 @@ import { AuthAPI } from '@/api/auth/auth.api';
 import { useInstanceInfoQuery } from '@/api/instance';
 import { useCreateAccountMutation } from '@/api/user';
 import { FormProvider, RHFTextField } from '@/components/hook-form';
+import { RHFCheckbox } from '@/components/hook-form/rhf-checkbox';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
@@ -52,6 +53,8 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
       lastName: '',
       invitationToken: invitationToken || undefined,
       coachInvitationToken: coachInvitationToken || undefined,
+      // Consent to news must be given, never assumed (CNIL)
+      emailNews: false,
     },
   });
 
@@ -194,6 +197,9 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
           required
           label={m.password()}
         />
+        {instance?.personalEmails && (
+          <RHFCheckbox name="emailNews" label={m.signup_email_news()} />
+        )}
         <Button
           type="submit"
           className="w-full"

@@ -13,6 +13,8 @@ export const createAccountDtoSchema = z.object({
   coachInvitationToken: z.string().optional(),
   /** Language the app is shown in, saved on the new account for its emails */
   language: emailLanguageSchema.optional(),
+  /** Asked for news about the project, Supporter included (unticked by default) */
+  emailNews: z.boolean().optional(),
 });
 
 export type CreateAccountDto = z.infer<typeof createAccountDtoSchema>;

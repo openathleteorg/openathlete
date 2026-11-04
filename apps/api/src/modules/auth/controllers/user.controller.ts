@@ -215,6 +215,19 @@ export class UserController {
           description:
             'Push notification the evening before planned training sessions',
         },
+        emailTips: {
+          type: 'boolean',
+          description: 'Onboarding tips and alerts about the account, by email',
+        },
+        emailRecap: {
+          type: 'boolean',
+          description: 'Monthly recap of the training, by email',
+        },
+        emailNews: {
+          type: 'boolean',
+          description:
+            'News about the project, Supporter included; true records the consent with its date',
+        },
       },
     },
   })

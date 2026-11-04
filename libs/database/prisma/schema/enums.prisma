@@ -462,3 +462,25 @@ enum ActivityProfileKind {
 
   @@map("activity_profile_kind")
 }
+
+/// The emails sent on their own, after what a user did or did not do
+enum LifecycleEmailKind {
+  /// No watch connected a day after signing up
+  CONNECT_REMINDER
+  /// Still nothing after four days: what got in the way?
+  CONNECT_QUESTION
+  /// The history arrived
+  IMPORT_DONE
+  /// Activities, but nothing planned and no race a week later
+  PLAN_NUDGE
+  /// The sync stopped without the user disconnecting it
+  CONNECTION_LOST
+  /// The past month in figures
+  MONTHLY_RECAP
+  /// Once, to those who asked for news: becoming a Supporter
+  SUPPORTER_ASK
+  /// A Supporter cancelled: why?
+  SUPPORTER_CANCELLED
+
+  @@map("lifecycle_email_kind")
+}

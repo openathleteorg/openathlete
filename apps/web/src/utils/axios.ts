@@ -29,6 +29,10 @@ export const routes = {
     completeOnboarding: '/user/complete-onboarding',
     updatePushToken: '/user/push-token',
   },
+  emails: {
+    unsubscribe: '/emails/unsubscribe',
+    resubscribe: '/emails/resubscribe',
+  },
   activityImport: {
     fit: '/activity-import/fit',
     gpx: '/activity-import/gpx',

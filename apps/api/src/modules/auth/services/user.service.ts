@@ -135,6 +135,9 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        emailTips: true,
+        emailRecap: true,
+        emailNewsConsentAt: true,
         createdAt: true,
       },
     });
@@ -235,6 +238,7 @@ export class UserService {
       invitationToken,
       coachInvitationToken,
       language,
+      emailNews,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
@@ -308,6 +312,8 @@ export class UserService {
           lastName: lastName,
           // The language the app was shown in; absent, the column's default
           language,
+          // Ticked by the person on the form, never by default
+          emailNewsConsentAt: emailNews ? new Date() : null,
           roles: [UserRole.ATHLETE, UserRole.COACH],
           athlete: {
             create: {
@@ -412,6 +418,14 @@ export class UserService {
         supportReminderDismissedAt: data.supportReminderDismissed
           ? new Date()
           : undefined,
+        emailTips: data.emailTips,
+        emailRecap: data.emailRecap,
+        emailNewsConsentAt:
+          data.emailNews === undefined
+            ? undefined
+            : data.emailNews
+              ? new Date()
+              : null,
       },
       select: {
         firstName: true,
@@ -422,6 +436,9 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        emailTips: true,
+        emailRecap: true,
+        emailNewsConsentAt: true,
       },
     });
   };

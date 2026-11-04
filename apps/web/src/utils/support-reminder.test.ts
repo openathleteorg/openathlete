@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { shouldShowSupportReminder } from './support-reminder';
+import {
+  shouldShowSupportReminder,
+  shouldShowSupporterReminder,
+} from './support-reminder';
 
 const platform = vi.hoisted(() => ({ name: 'web' }));
 vi.mock('@capacitor/core', () => ({
@@ -85,5 +88,46 @@ describe('shouldShowSupportReminder', () => {
     platform.name = 'web';
     vi.stubEnv('VITE_DISABLE_PAYMENTS', 'true');
     expect(shouldShowSupportReminder(due)).toBe(false);
+  });
+});
+
+describe('shouldShowSupporterReminder', () => {
+  const hosted = {
+    billingEnabled: true,
+    isSupporter: false,
+    dismissed: false,
+    fullImportsCompletedAt: [daysAgo(31).toISOString()],
+    now,
+  };
+
+  afterEach(() => {
+    platform.name = 'web';
+  });
+
+  it('asks a month after the history came in', () => {
+    expect(shouldShowSupporterReminder(hosted)).toBe(true);
+    expect(
+      shouldShowSupporterReminder({
+        ...hosted,
+        fullImportsCompletedAt: [null, daysAgo(10).toISOString()],
+      }),
+    ).toBe(false);
+  });
+
+  it('never asks Supporters, self-hosters, or once dismissed', () => {
+    expect(shouldShowSupporterReminder({ ...hosted, isSupporter: true })).toBe(
+      false,
+    );
+    expect(
+      shouldShowSupporterReminder({ ...hosted, billingEnabled: false }),
+    ).toBe(false);
+    expect(shouldShowSupporterReminder({ ...hosted, dismissed: true })).toBe(
+      false,
+    );
+  });
+
+  it('stays out of the native apps', () => {
+    platform.name = 'android';
+    expect(shouldShowSupporterReminder(hosted)).toBe(false);
   });
 });

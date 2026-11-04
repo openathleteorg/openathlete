@@ -431,6 +431,8 @@ export class ProviderOAuthController {
       },
       data: {
         status: 'revoked',
+        // No "your sync stopped" email for this one
+        disconnectedByUser: true,
       },
     });
 

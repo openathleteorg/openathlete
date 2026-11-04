@@ -128,7 +128,7 @@ describe('AccountDeletionService (PostgreSQL)', () => {
 
     // Only the coach's own data is left: their user and athlete profile,
     // their AI key and model choice, their agent's access, and the direct
-    // conversation with the message they wrote
+    // conversation with the message they wrote, and the email they were sent
     expect(await rowCounts()).toEqual({
       user: 1,
       athlete: 1,
@@ -140,6 +140,7 @@ describe('AccountDeletionService (PostgreSQL)', () => {
       message_thread: 1,
       message_thread_participant: 1,
       message: 1,
+      lifecycle_email: 1,
     });
 
     const coach = await prisma.user.findUnique({

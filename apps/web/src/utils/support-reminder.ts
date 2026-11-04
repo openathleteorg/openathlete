@@ -37,3 +37,32 @@ export function shouldShowSupportReminder({
   const usedFor = now.getTime() - accountCreatedAt.getTime();
   return usedFor >= DAYS_BEFORE_REMINDER * 24 * 60 * 60 * 1000;
 }
+
+interface SupporterReminderState {
+  billingEnabled: boolean;
+  isSupporter: boolean;
+  dismissed: boolean;
+  fullImportsCompletedAt: (string | null)[];
+  now: Date;
+}
+
+/**
+ * On the hosted instance, the same request points to Supporter, a month
+ * after the history came in: by then the app has proved itself. Only on
+ * the web, where Stripe sells it.
+ */
+export function shouldShowSupporterReminder({
+  billingEnabled,
+  isSupporter,
+  dismissed,
+  fullImportsCompletedAt,
+  now,
+}: SupporterReminderState): boolean {
+  if (!billingEnabled || isSupporter || dismissed) return false;
+  if (purchaseChannel() !== 'stripe') return false;
+  const monthAgo = now.getTime() - DAYS_BEFORE_REMINDER * 24 * 60 * 60 * 1000;
+  return fullImportsCompletedAt.some(
+    (completedAt) =>
+      completedAt !== null && new Date(completedAt).getTime() <= monthAgo,
+  );
+}

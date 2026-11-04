@@ -184,5 +184,7 @@ export class AccountDeletionService {
       where: { OR: [{ athleteUserId: userId }, { coachUserId: userId }] },
     });
     await tx.coachAthlete.deleteMany({ where: { userId } });
+    // Cascades too; said here so the list of what goes stays complete
+    await tx.lifecycleEmail.deleteMany({ where: { userId } });
   }
 }
