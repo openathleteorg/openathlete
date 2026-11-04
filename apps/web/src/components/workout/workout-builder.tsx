@@ -41,6 +41,7 @@ export function WorkoutBuilder({
   const [dialogState, setDialogState] = useState<DialogState>({ type: 'none' });
   const [idCounter, setIdCounter] = useState<number>(0);
   const prevWorkoutRef = useRef<WorkoutDto | null | undefined>(workout);
+  const lastEmittedStepsRef = useRef<string>('');
 
   const generateTempId = () => {
     const newId = -(Date.now() + idCounter);
@@ -79,6 +80,11 @@ export function WorkoutBuilder({
     [idCounter],
   );
 
+  const prepareStepsForSave = useCallback((stepsToClean: WorkoutStepDto[]) => {
+    const normalized = normalizeWorkoutForCreate({ steps: stepsToClean });
+    return normalized.steps as unknown as WorkoutStepDto[];
+  }, []);
+
   // Update steps when workout prop changes (only if workout actually changed)
   useEffect(() => {
     const prevWorkout = prevWorkoutRef.current;
@@ -95,6 +101,17 @@ export function WorkoutBuilder({
 
     // Only update if workout reference changed or step IDs changed
     if (prevWorkout !== workout || workoutStepsIds !== prevWorkoutStepsIds) {
+      const incomingCleaned = workout?.steps
+        ? JSON.stringify(
+            prepareStepsForSave(workout.steps as unknown as WorkoutStepDto[]),
+          )
+        : '';
+
+      if (incomingCleaned && incomingCleaned === lastEmittedStepsRef.current) {
+        prevWorkoutRef.current = workout;
+        return;
+      }
+
       if (workout?.steps && workout.steps.length > 0) {
         setSteps(
           ensureIdsAndOrder(workout.steps as unknown as WorkoutStepDto[]),
@@ -104,16 +121,12 @@ export function WorkoutBuilder({
       }
       prevWorkoutRef.current = workout;
     }
-  }, [workout, ensureIdsAndOrder]);
-
-  const prepareStepsForSave = useCallback((stepsToClean: WorkoutStepDto[]) => {
-    const normalized = normalizeWorkoutForCreate({ steps: stepsToClean });
-    return normalized.steps as unknown as WorkoutStepDto[];
-  }, []);
+  }, [workout, ensureIdsAndOrder, prepareStepsForSave]);
 
   useEffect(() => {
     if (onStepsChange) {
       const cleanedSteps = prepareStepsForSave(steps);
+      lastEmittedStepsRef.current = JSON.stringify(cleanedSteps);
       onStepsChange(cleanedSteps);
     }
   }, [steps, onStepsChange, prepareStepsForSave]);
