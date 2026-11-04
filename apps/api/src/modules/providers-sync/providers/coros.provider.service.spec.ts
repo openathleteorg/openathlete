@@ -6,6 +6,7 @@ import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error'
 import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
   CorosProviderService,
+  corosIssuer,
   parseMcpBody,
   toolText,
 } from './coros.provider.service';
@@ -273,6 +274,19 @@ describe('CorosProviderService', () => {
       40, 40, 15,
     ]);
     expect(calls.map(([, , delay]) => delay / 3_600_000)).toEqual([0, 25, 50]);
+  });
+});
+
+describe('corosIssuer', () => {
+  it('maps each region to its fixed COROS host', () => {
+    expect(corosIssuer('eu')).toBe('https://mcpeu.coros.com');
+    expect(corosIssuer('us')).toBe('https://mcpus.coros.com');
+    expect(corosIssuer('cn')).toBe('https://mcpcn.coros.com');
+  });
+
+  it('never builds a host from an unknown region', () => {
+    expect(corosIssuer('evil.example/')).toBe('https://mcpeu.coros.com');
+    expect(corosIssuer('constructor')).toBe('https://mcpeu.coros.com');
   });
 });
 
