@@ -1,3 +1,4 @@
+import { cn } from '@/utils/shadcn';
 import { LatLng, LatLngBounds, LatLngExpression } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo } from 'react';
@@ -52,7 +53,9 @@ export function Map({
     <MapContainer
       center={center as LatLngExpression}
       zoom={zoomLevel}
-      className={className}
+      // Leaflet stacks its panes up to z-index 1000: without a stacking
+      // context of its own the map covers the sticky headers
+      className={cn('isolate', className)}
     >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       <FitToSelection
