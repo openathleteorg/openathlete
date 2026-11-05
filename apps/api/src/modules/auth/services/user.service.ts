@@ -135,6 +135,8 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        supportReminderDismissCount: true,
+        supporterNudgeSeenAt: true,
         emailTips: true,
         emailRecap: true,
         emailNewsConsentAt: true,
@@ -418,6 +420,10 @@ export class UserService {
         supportReminderDismissedAt: data.supportReminderDismissed
           ? new Date()
           : undefined,
+        supportReminderDismissCount: data.supportReminderDismissed
+          ? { increment: 1 }
+          : undefined,
+        supporterNudgeSeenAt: data.supporterNudgeSeen ? new Date() : undefined,
         emailTips: data.emailTips,
         emailRecap: data.emailRecap,
         emailNewsConsentAt:
@@ -436,6 +442,8 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        supportReminderDismissCount: true,
+        supporterNudgeSeenAt: true,
         emailTips: true,
         emailRecap: true,
         emailNewsConsentAt: true,

@@ -25,6 +25,7 @@ import {
 import { ZonesCard } from '../../activity-analysis/zones-card';
 import { ActivityRecordsCharts } from '../../records/activity-records-charts';
 import { ChartRecord } from '../../records/record-metrics';
+import { ActivitySupporterNudge } from '../../supporter/activity-supporter-nudge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { ActivityDetailsMap } from '../activity-details-map';
 import { ActivityDetailsSelectionProvider } from '../activity-details-selection-context';
@@ -142,6 +143,7 @@ export function ActivityDetailsOverviewTab({
       {stream && <ZonesCard event={event} stream={stream} />}
       {stream && <DecouplingCard stream={stream} sport={event.sport} />}
       {feedbackCard}
+      <ActivitySupporterNudge event={event} isMyActivity={isMyActivity} />
       {!!event.records?.length && (
         <ActivityRecordsCharts
           records={event.records as ChartRecord[]}

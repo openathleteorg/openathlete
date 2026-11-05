@@ -45,6 +45,12 @@ model User {
   hiddenActivityTracks Json?       @map("hidden_activity_tracks")
   /// When the user dismissed the request to support the project
   supportReminderDismissedAt DateTime? @map("support_reminder_dismissed_at")
+  /// How many times the request was dismissed: on the hosted instance it
+  /// comes back a few times, then stops
+  supportReminderDismissCount Int    @default(0) @map("support_reminder_dismiss_count")
+  /// When the app last showed a Supporter mention in context (race, year
+  /// review, AI preview), so they stay rare
+  supporterNudgeSeenAt DateTime?     @map("supporter_nudge_seen_at")
   /// When the user allowed their data to be sent to third-party AI
   /// providers; no AI runs on their data while unset (App Store 5.1.2(i), GDPR)
   aiDataSharingConsentAt DateTime? @map("ai_data_sharing_consent_at")

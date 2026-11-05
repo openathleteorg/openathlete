@@ -78,6 +78,12 @@ export interface PlanConfig {
  */
 export const TERMS_OF_SALE_VERSION = '2026-10-05';
 
+/**
+ * Where the count of Supporters is headed: enough to cover the costs and
+ * give the project more time. Said in the app and in the Supporter email.
+ */
+export const SUPPORTER_GOAL = 100;
+
 /** Athletes a free account may coach on an instance with billing. */
 export const FREE_PLAN_MAX_ATHLETES = 5;
 

@@ -1,12 +1,9 @@
-import type { EmailLanguage } from '@openathlete/shared';
+import { type EmailLanguage, SUPPORTER_GOAL } from '@openathlete/shared';
 
 import { paragraph, signature } from '../../core/blocks';
 import { formatNumber } from '../../core/format';
 import { renderEmail } from '../../core/layout';
 import { LifecycleEmail, LifecycleEmailProps, greeting } from './common';
-
-/** Where the count of Supporters is headed, said in the email */
-export const SUPPORTER_GOAL = 100;
 
 // A letter, asked once: no layout, no pressure, true figures only
 const translations = {

@@ -253,6 +253,7 @@ export const routes = {
   },
   subscription: {
     current: '/subscription/current',
+    supporters: '/subscription/supporters',
     checkout: '/subscription/checkout',
     cancel: '/subscription/cancel',
     resume: '/subscription/resume',
