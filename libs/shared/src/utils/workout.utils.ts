@@ -4,12 +4,22 @@ import {
   WorkoutStepTargetDto,
 } from '../types/dtos/core/workout.dto';
 import {
+  TRAINING_ZONE_TYPE,
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
 } from '../types/misc';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
+
+export interface StepZoneLike {
+  trainingZoneId: number;
+  type?: string;
+  index?: number;
+  min?: number;
+  max?: number;
+  values?: { min: number; max: number; sports?: string[] }[];
+}
 
 // ============================================================================
 // Workout Calculations
@@ -182,17 +192,69 @@ function extractPaceSpeed(
   return null;
 }
 
+function extractStepSpeed(
+  step: Pick<DurationStep, 'targets'>,
+  metrics?: Record<string, { value: number } | number>,
+  sport?: SPORT_TYPE | null,
+  trainingZones?: StepZoneLike[],
+): number {
+  const paceTarget = step.targets?.find(
+    (target) => target.targetType === WORKOUT_TARGET_TYPE.PACE,
+  );
+  if (paceTarget) {
+    const speed = extractPaceSpeed(paceTarget, metrics);
+    if (speed !== null && speed > 0) return speed;
+  }
+
+  const zoneTarget = step.targets?.find(
+    (target) => target.targetType === WORKOUT_TARGET_TYPE.ZONE,
+  );
+  const zone = trainingZones?.find(
+    (z) => z.trainingZoneId === zoneTarget?.targetValue,
+  );
+  if (zone) {
+    const paceZone =
+      zone.type === TRAINING_ZONE_TYPE.PACE
+        ? zone
+        : trainingZones?.find(
+            (z) => z.type === TRAINING_ZONE_TYPE.PACE && z.index === zone.index,
+          );
+    const bounds = paceZone?.values?.[0] ?? paceZone ?? zone.values?.[0] ?? zone;
+    if (
+      paceZone &&
+      bounds.min !== undefined &&
+      bounds.max !== undefined &&
+      bounds.min > 0 &&
+      bounds.max > 0
+    ) {
+      return paceToSpeed((bounds.min + bounds.max) / 2);
+    }
+    if (bounds.min !== undefined && bounds.max !== undefined) {
+      const hrMax = getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? 190;
+      const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15;
+      const midHr = (bounds.min + bounds.max) / 2;
+      if (hrMax > 0 && midHr > 0) {
+        return kmhToSpeedMs(vma) * Math.min(1.15, Math.max(0.45, midHr / hrMax));
+      }
+    }
+  }
+
+  return defaultSpeedForSport(sport);
+}
+
 /**
  * Estimate step duration from distance using pace targets
  * @param step - Workout step with durationType === DISTANCE
  * @param metrics - Optional athlete metrics for target intensity calculation
  * @param sport - The session's sport, for the speed without a pace target
+ * @param trainingZones - Optional athlete training zones
  * @returns Estimated duration in seconds, or null if cannot estimate
  */
 export function estimateStepDurationFromDistance(
   step: DurationStep,
   metrics?: Record<string, { value: number } | number>,
   sport?: SPORT_TYPE | null,
+  trainingZones?: StepZoneLike[],
 ): number | null {
   if (
     step.durationType !== WORKOUT_DURATION_TYPE.DISTANCE ||
@@ -201,25 +263,36 @@ export function estimateStepDurationFromDistance(
     return null;
   }
 
-  const distanceMeters = step.durationValue;
-  let speedMs: number | null = null;
-
-  // Try to find a PACE target
-  const paceTarget = step.targets?.find(
-    (target) => target.targetType === WORKOUT_TARGET_TYPE.PACE,
+  return (
+    step.durationValue / extractStepSpeed(step, metrics, sport, trainingZones)
   );
+}
 
-  if (paceTarget) {
-    speedMs = extractPaceSpeed(paceTarget, metrics);
+/**
+ * Estimate step distance in meters from duration using pace/zone targets or default speed
+ * @param step - Workout step with durationType === TIME
+ * @param metrics - Optional athlete metrics for target intensity calculation
+ * @param sport - The session's sport, for the speed without a pace target
+ * @param trainingZones - Optional athlete training zones
+ * @returns Estimated distance in meters, or null if cannot estimate
+ */
+export function estimateStepDistanceFromDuration(
+  step: Pick<DurationStep, 'durationType' | 'durationValue' | 'targets'>,
+  metrics?: Record<string, { value: number } | number>,
+  sport?: SPORT_TYPE | null,
+  trainingZones?: StepZoneLike[],
+): number | null {
+  if (
+    step.durationType !== WORKOUT_DURATION_TYPE.TIME ||
+    !step.durationValue ||
+    step.durationValue <= 0
+  ) {
+    return null;
   }
 
-  // If no pace target found or speed couldn't be determined, use default
-  if (speedMs === null || speedMs <= 0) {
-    speedMs = defaultSpeedForSport(sport);
-  }
-
-  // Calculate duration: time = distance / speed
-  return distanceMeters / speedMs;
+  return (
+    step.durationValue * extractStepSpeed(step, metrics, sport, trainingZones)
+  );
 }
 
 /**
@@ -315,9 +388,14 @@ export function isDurationSetByHand(
 
 /**
  * Calculate total distance in meters for a workout
- * Only counts DISTANCE-based steps
+ * Counts both DISTANCE-based steps and estimates TIME-based steps using targets
  */
-export function calculateWorkoutDistance(workout: WorkoutDto): number | null {
+export function calculateWorkoutDistance(
+  workout: { steps?: readonly DurationStep[] | null },
+  metrics?: Record<string, { value: number } | number>,
+  sport?: SPORT_TYPE | null,
+  trainingZones?: StepZoneLike[],
+): number | null {
   if (!workout.steps || workout.steps.length === 0) {
     return null;
   }
@@ -325,13 +403,25 @@ export function calculateWorkoutDistance(workout: WorkoutDto): number | null {
   let totalMeters = 0;
   let hasDistanceDuration = false;
 
-  const calculateStepDistance = (step: WorkoutStepDto): number => {
+  const calculateStepDistance = (step: DurationStep): number => {
     if (
       step.durationType === WORKOUT_DURATION_TYPE.DISTANCE &&
       step.durationValue
     ) {
       hasDistanceDuration = true;
       return step.durationValue;
+    }
+    if (step.durationType === WORKOUT_DURATION_TYPE.TIME) {
+      const estimated = estimateStepDistanceFromDuration(
+        step,
+        metrics,
+        sport,
+        trainingZones,
+      );
+      if (estimated !== null) {
+        hasDistanceDuration = true;
+        return estimated;
+      }
     }
     return 0;
   };

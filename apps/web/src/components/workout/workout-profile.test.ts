@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  METRIC_TYPE,
   SPORT_TYPE,
   TRAINING_ZONE_TYPE,
   TrainingZone,
   TrainingZoneValue,
+  WorkoutDto,
   WorkoutStepDto,
+  calculateWorkoutDistance,
+  estimateStepDistanceFromDuration,
+  paceToSpeed,
   readCalendarDisplay,
 } from '@openathlete/shared';
 
@@ -106,5 +111,61 @@ describe('workout profile', () => {
     expect(readCalendarDisplay({ density: 'huge' }).density).toBe(
       'comfortable',
     );
+  });
+
+  it('estimates step and workout distance from duration and targets', () => {
+    const paceStep = step({
+      durationValue: 120,
+      targets: [{ targetType: 'PACE', targetValue: paceToSpeed(4) }],
+    });
+    expect(Math.round(estimateStepDistanceFromDuration(paceStep)!)).toBe(500);
+
+    const vmaStep = step({
+      durationValue: 120,
+      targets: [
+        { targetType: 'PACE', targetValue: 1, metricType: METRIC_TYPE.VMA },
+      ],
+    });
+    expect(
+      Math.round(
+        estimateStepDistanceFromDuration(vmaStep, {
+          [METRIC_TYPE.VMA]: { value: 18 },
+        })!,
+      ),
+    ).toBe(600);
+
+    const paceZone = {
+      trainingZoneId: 10,
+      index: 3,
+      type: TRAINING_ZONE_TYPE.PACE,
+      values: [{ min: 3.8, max: 4.2, sports: [SPORT_TYPE.RUNNING] }],
+    };
+    const zoneStep = step({
+      durationValue: 120,
+      targets: [{ targetType: 'ZONE', targetValue: 10 }],
+    });
+    expect(
+      Math.round(
+        estimateStepDistanceFromDuration(
+          zoneStep,
+          undefined,
+          SPORT_TYPE.RUNNING,
+          [paceZone],
+        )!,
+      ),
+    ).toBe(500);
+
+    const workout: WorkoutDto = {
+      eventTrainingId: 1,
+      steps: [
+        step({ durationType: 'DISTANCE', durationValue: 1000 }),
+        step({
+          stepType: 'REPEAT',
+          durationType: 'OPEN',
+          repeatBlock: { repetitions: 2, childSteps: [paceStep] },
+        }),
+      ],
+    };
+    expect(Math.round(calculateWorkoutDistance(workout)!)).toBe(2000);
   });
 });

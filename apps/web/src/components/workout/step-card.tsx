@@ -88,6 +88,7 @@ export function StepCard({
                 <DurationDisplay
                   durationType={step.durationType}
                   durationValue={step.durationValue}
+                  targets={step.targets}
                 />
               </span>
 
