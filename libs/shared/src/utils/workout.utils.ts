@@ -192,6 +192,38 @@ function extractPaceSpeed(
   return null;
 }
 
+function speedFromZone(
+  zone: StepZoneLike,
+  metrics?: Record<string, { value: number } | number>,
+  trainingZones?: StepZoneLike[],
+): number | null {
+  const paceZone =
+    zone.type === TRAINING_ZONE_TYPE.PACE
+      ? zone
+      : trainingZones?.find(
+          (z) => z.type === TRAINING_ZONE_TYPE.PACE && z.index === zone.index,
+        );
+  const bounds = paceZone?.values?.[0] ?? paceZone ?? zone.values?.[0] ?? zone;
+  if (
+    paceZone &&
+    bounds.min !== undefined &&
+    bounds.max !== undefined &&
+    bounds.min > 0 &&
+    bounds.max > 0
+  ) {
+    return paceToSpeed((bounds.min + bounds.max) / 2);
+  }
+  if (bounds.min !== undefined && bounds.max !== undefined) {
+    const hrMax = getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? 190;
+    const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15;
+    const midHr = (bounds.min + bounds.max) / 2;
+    if (hrMax > 0 && midHr > 0) {
+      return kmhToSpeedMs(vma) * Math.min(1.15, Math.max(0.45, midHr / hrMax));
+    }
+  }
+  return null;
+}
+
 function extractStepSpeed(
   step: Pick<DurationStep, 'targets'>,
   metrics?: Record<string, { value: number } | number>,
@@ -213,28 +245,52 @@ function extractStepSpeed(
     (z) => z.trainingZoneId === zoneTarget?.targetValue,
   );
   if (zone) {
-    const paceZone =
-      zone.type === TRAINING_ZONE_TYPE.PACE
-        ? zone
-        : trainingZones?.find(
-            (z) => z.type === TRAINING_ZONE_TYPE.PACE && z.index === zone.index,
-          );
-    const bounds = paceZone?.values?.[0] ?? paceZone ?? zone.values?.[0] ?? zone;
-    if (
-      paceZone &&
-      bounds.min !== undefined &&
-      bounds.max !== undefined &&
-      bounds.min > 0 &&
-      bounds.max > 0
-    ) {
-      return paceToSpeed((bounds.min + bounds.max) / 2);
-    }
-    if (bounds.min !== undefined && bounds.max !== undefined) {
+    const speed = speedFromZone(zone, metrics, trainingZones);
+    if (speed !== null && speed > 0) return speed;
+  }
+
+  const hrTarget = step.targets?.find(
+    (target) => target.targetType === WORKOUT_TARGET_TYPE.HEARTRATE,
+  );
+  if (hrTarget) {
+    const raw =
+      hrTarget.targetValue ??
+      (hrTarget.targetMin !== null &&
+      hrTarget.targetMin !== undefined &&
+      hrTarget.targetMax !== null &&
+      hrTarget.targetMax !== undefined
+        ? (hrTarget.targetMin + hrTarget.targetMax) / 2
+        : (hrTarget.targetMin ?? hrTarget.targetMax ?? null));
+    if (raw !== null && raw > 0) {
       const hrMax = getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? 190;
+      const hrRest = getMetricValue(METRIC_TYPE.HR_REST, metrics) ?? 60;
+      const hrBpm =
+        hrTarget.metricType === METRIC_TYPE.HR_RESERVE
+          ? hrRest +
+            raw *
+              (getMetricValue(METRIC_TYPE.HR_RESERVE, metrics) ??
+                hrMax - hrRest)
+          : hrTarget.metricType || raw <= 2
+            ? raw * hrMax
+            : raw;
+
+      const matchedHrZone = trainingZones?.find((z) => {
+        if (z.type !== TRAINING_ZONE_TYPE.HEARTRATE) return false;
+        const b = z.values?.[0] ?? z;
+        return b.min !== undefined && b.max !== undefined
+          ? hrBpm >= b.min && hrBpm <= b.max
+          : false;
+      });
+      if (matchedHrZone) {
+        const speed = speedFromZone(matchedHrZone, metrics, trainingZones);
+        if (speed !== null && speed > 0) return speed;
+      }
+
       const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15;
-      const midHr = (bounds.min + bounds.max) / 2;
-      if (hrMax > 0 && midHr > 0) {
-        return kmhToSpeedMs(vma) * Math.min(1.15, Math.max(0.45, midHr / hrMax));
+      if (hrMax > 0 && hrBpm > 0) {
+        return (
+          kmhToSpeedMs(vma) * Math.min(1.15, Math.max(0.45, hrBpm / hrMax))
+        );
       }
     }
   }

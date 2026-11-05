@@ -155,6 +155,27 @@ describe('workout profile', () => {
       ),
     ).toBe(500);
 
+    const hrZone = {
+      trainingZoneId: 11,
+      index: 3,
+      type: TRAINING_ZONE_TYPE.HEARTRATE,
+      values: [{ min: 160, max: 175, sports: [SPORT_TYPE.RUNNING] }],
+    };
+    const hrStep = step({
+      durationValue: 120,
+      targets: [{ targetType: 'HEARTRATE', targetMin: 165, targetMax: 170 }],
+    });
+    expect(
+      Math.round(
+        estimateStepDistanceFromDuration(
+          hrStep,
+          undefined,
+          SPORT_TYPE.RUNNING,
+          [hrZone, paceZone],
+        )!,
+      ),
+    ).toBe(500);
+
     const workout: WorkoutDto = {
       eventTrainingId: 1,
       steps: [
