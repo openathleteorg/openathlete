@@ -130,6 +130,12 @@ model ProviderAccount {
   /// Revoked from Settings by the user, as opposed to a connection that
   /// broke (refused token, revoked at the provider), which they are told of
   disconnectedByUser      Boolean               @default(false) @map("disconnected_by_user")
+  /// Writes OpenAthlete's analysis into the description of new activities
+  /// (Strava). Off for accounts connected before the feature: only a new
+  /// connection that grants write access starts with it on
+  activityDescriptionEnabled Boolean            @default(false) @map("activity_description_enabled")
+  /// Language of that analysis; null follows the user's language
+  activityDescriptionLanguage UserLanguage?     @map("activity_description_language")
 
   // relationships
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId])

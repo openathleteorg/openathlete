@@ -52,6 +52,7 @@ import {
   SettingsRowsSkeleton,
   SettingsSection,
 } from './settings-section';
+import { StravaActivityDescriptionRows } from './strava-activity-description';
 
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
@@ -384,6 +385,14 @@ export function ConnectorsTab() {
                       </SettingsRow>
                     );
                   })}
+                  {capabilities.writeActivityDescription && (
+                    <StravaActivityDescriptionRows
+                      account={providerDetails}
+                      onAuthorize={() =>
+                        getOAuthUriMutation.mutate({ provider })
+                      }
+                    />
+                  )}
                   {capabilities.supportsFullImport && (
                     <SettingsRow
                       stacked

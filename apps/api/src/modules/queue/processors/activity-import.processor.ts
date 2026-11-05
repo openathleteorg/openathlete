@@ -13,6 +13,10 @@ import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.
 import { ActivityDuplicateService } from '../../core/services/activity-duplicate.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import {
+  AFTER_DUPLICATE_DELAY_MS,
+  ActivityDescriptionService,
+} from '../../providers-sync/activity-description/activity-description.service';
+import {
   ImportResult,
   ImportedActivity,
 } from '../../providers-sync/base/provider-import.interface';
@@ -50,6 +54,9 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly duplicates: ActivityDuplicateService,
     @Optional() private readonly emitter?: EventEmitter2,
     @Optional() private readonly analytics?: AnalyticsService,
+    @Optional()
+    @Inject(forwardRef(() => ActivityDescriptionService))
+    private readonly descriptions?: ActivityDescriptionService,
   ) {
     super();
   }
@@ -142,6 +149,27 @@ export class ActivityImportProcessor extends WorkerHost {
         this.logger.debug(
           `Skipping ${account.provider} activity ${activity.externalId}: event ${copy.eventId} from another source records the same workout`,
         );
+        // The athlete records with a watch that also syncs here: the Strava
+        // activity is described from the copy already saved
+        if (
+          account.provider === ConnectorProvider.STRAVA &&
+          !bulkImport &&
+          this.descriptions
+        ) {
+          await this.descriptions
+            .schedule({
+              athleteId: account.athleteId,
+              stravaActivityId: activity.externalId,
+              eventActivityId: copy.eventActivityId,
+              startDate: new Date(activity.startDate),
+              delayMs: AFTER_DUPLICATE_DELAY_MS,
+            })
+            .catch((error: unknown) =>
+              this.logger.warn(
+                `Could not queue the Strava description of ${activity.externalId}: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
+        }
         return { success: true, skipped: 'duplicate', eventId: copy.eventId };
       }
 

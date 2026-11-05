@@ -1,4 +1,4 @@
-import { useSetOAuthTokenMutation } from '@/api/provider';
+import { ProviderAPI, useSetOAuthTokenMutation } from '@/api/provider';
 import { LoadingScreen } from '@/components/loading-screen';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
@@ -7,6 +7,8 @@ import {
   analyticsErrorCodeFromUnknown,
   consumeOauthConnectSource,
 } from '@/utils/analytics-events';
+import { ENABLE_DESCRIPTION_AFTER_OAUTH_KEY } from '@/utils/oauth';
+import { useQueryClient } from '@tanstack/react-query';
 import posthog from 'posthog-js';
 import { useEffect, useRef } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -14,13 +16,41 @@ import { toast } from 'sonner';
 
 import { ConnectorProvider } from '@openathlete/shared';
 
+/** The user came back from Strava's consent page to turn the analysis on */
+function takeDescriptionIntent() {
+  try {
+    const intent = localStorage.getItem(ENABLE_DESCRIPTION_AFTER_OAUTH_KEY);
+    localStorage.removeItem(ENABLE_DESCRIPTION_AFTER_OAUTH_KEY);
+    return intent === '1';
+  } catch {
+    return false;
+  }
+}
+
+async function enableActivityDescription(grantedScope: string | null) {
+  // Strava lets the user untick write access on its consent page
+  if (!grantedScope?.split(/[\s,]+/).includes('activity:write')) {
+    toast.warning(m.activity_description_write_refused());
+    return;
+  }
+  try {
+    await ProviderAPI.updatePreferences('STRAVA', {
+      activityDescriptionEnabled: true,
+    });
+    toast.success(m.activity_description_enabled());
+  } catch {
+    toast.error(m.activity_description_update_failed());
+  }
+}
+
 export function OAuthCallbackPage() {
   const { provider } = useParams();
   const [searchParams] = useSearchParams();
   const nav = useNavigate();
   const hasInitialized = useRef(false);
+  const queryClient = useQueryClient();
   const setOAuthTokenMutation = useSetOAuthTokenMutation({
-    onSuccess: () => {
+    onSuccess: async (_, { provider: connected, scope }) => {
       const source = consumeOauthConnectSource();
       const finalProvider = (provider || '').toUpperCase();
       posthog.capture(AnalyticsEvent.provider_connect_completed, {
@@ -28,9 +58,14 @@ export function OAuthCallbackPage() {
         source,
       });
       toast.success(m.connected_successfully());
+      if (connected === 'STRAVA' && takeDescriptionIntent()) {
+        await enableActivityDescription(scope ?? null);
+        await queryClient.invalidateQueries();
+      }
       nav(getPath(['dashboard', 'settings']));
     },
     onError: (error) => {
+      takeDescriptionIntent();
       const source = consumeOauthConnectSource();
       const finalProvider = (provider || '').toUpperCase();
       posthog.capture(AnalyticsEvent.provider_connect_failed, {
@@ -53,6 +88,8 @@ export function OAuthCallbackPage() {
     const validProviders = ['STRAVA', 'GARMIN', 'SUUNTO', 'COROS', 'POLAR'];
 
     const failInvalid = () => {
+      // Cancelled on the provider's page: a later connection starts afresh
+      takeDescriptionIntent();
       const source = consumeOauthConnectSource();
       posthog.capture(AnalyticsEvent.provider_connect_failed, {
         provider: finalProvider || 'unknown',
@@ -96,6 +133,10 @@ export function OAuthCallbackPage() {
       provider: finalProvider as ConnectorProvider,
       code,
       ...(codeVerifier && { codeVerifier }),
+      // Strava lists the scopes the user accepted on the redirect only
+      ...(searchParams.get('scope') && {
+        scope: searchParams.get('scope') ?? undefined,
+      }),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider, searchParams]);

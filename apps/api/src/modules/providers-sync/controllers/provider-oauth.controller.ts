@@ -60,7 +60,10 @@ import { configuredProviders } from '../base/provider-config';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
 import { GarminProviderService } from '../providers/garmin.provider.service';
 import { PolarProviderService } from '../providers/polar.provider.service';
-import { StravaProviderService } from '../providers/strava.provider.service';
+import {
+  StravaProviderService,
+  hasStravaWriteScope,
+} from '../providers/strava.provider.service';
 
 function toConnectorProvider(provider: ConnectorProvider): ConnectorProvider {
   return provider as unknown as ConnectorProvider;
@@ -287,7 +290,13 @@ export class ProviderOAuthController {
   async connectProvider(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
-    @Body() body: { code: string; codeVerifier?: string },
+    @Body()
+    body: {
+      code: string;
+      codeVerifier?: string;
+      /** Scopes the user accepted, from the redirect (Strava) */
+      scope?: string;
+    },
   ) {
     const { code } = body;
     const providerEnum = provider.toUpperCase() as ConnectorProvider;
@@ -296,7 +305,11 @@ export class ProviderOAuthController {
 
     switch (providerEnum) {
       case ConnectorProvider.STRAVA:
-        return this.stravaProviderService.connect(user, code);
+        return this.stravaProviderService.connect(
+          user,
+          code,
+          typeof body.scope === 'string' ? body.scope : undefined,
+        );
       case ConnectorProvider.GARMIN: {
         // Garmin PKCE requires code_verifier
         const codeVerifier = body.codeVerifier;
@@ -489,6 +502,25 @@ export class ProviderOAuthController {
             example: false,
             description: 'Whether metrics import is enabled',
           },
+          activityDescriptionEnabled: {
+            type: 'boolean',
+            example: true,
+            description:
+              "Whether OpenAthlete's analysis is written into new activities' descriptions (Strava)",
+          },
+          activityDescriptionLanguage: {
+            type: 'string',
+            nullable: true,
+            example: null,
+            description:
+              "Language of that analysis; null follows the user's language",
+          },
+          activityDescriptionAuthorized: {
+            type: 'boolean',
+            example: true,
+            description:
+              'Whether the connection allows editing activities; without it, the user connects again to turn the analysis on',
+          },
           fullImportRequestedAt: {
             type: 'string',
             format: 'date-time',
@@ -534,6 +566,11 @@ export class ProviderOAuthController {
       importActivitiesEnabled: account.importActivitiesEnabled,
       exportWorkoutsEnabled: account.exportWorkoutsEnabled,
       importMetricsEnabled: account.importMetricsEnabled,
+      activityDescriptionEnabled: account.activityDescriptionEnabled,
+      activityDescriptionLanguage: account.activityDescriptionLanguage,
+      activityDescriptionAuthorized:
+        account.provider === ConnectorProvider.STRAVA &&
+        hasStravaWriteScope(account.scopes),
       fullImportRequestedAt: account.fullImportRequestedAt,
       fullImportCompletedAt: account.fullImportCompletedAt,
     }));
@@ -578,6 +615,19 @@ export class ProviderOAuthController {
           description:
             'Enable/disable metrics import from provider (not all providers support this)',
           example: false,
+        },
+        activityDescriptionEnabled: {
+          type: 'boolean',
+          description:
+            "Enable/disable writing OpenAthlete's analysis into new activities' descriptions (Strava). Enabling needs a connection that allows editing activities",
+          example: true,
+        },
+        activityDescriptionLanguage: {
+          type: 'string',
+          nullable: true,
+          enum: ['FR', 'EN', 'IT', 'ES', 'PT_BR'],
+          description: "Language of that analysis; null follows the user's",
+          example: 'EN',
         },
       },
     },
@@ -647,6 +697,34 @@ export class ProviderOAuthController {
         );
       }
       data.importMetricsEnabled = body.importMetricsEnabled;
+    }
+
+    if (
+      body.activityDescriptionEnabled !== undefined ||
+      body.activityDescriptionLanguage !== undefined
+    ) {
+      if (!capabilities.writeActivityDescription) {
+        throw new BadRequestException(
+          `Writing activity descriptions is not available for ${provider}`,
+        );
+      }
+      // Accounts connected before the feature can't edit activities: the
+      // app sends the user through Strava's consent page first
+      if (
+        body.activityDescriptionEnabled === true &&
+        !hasStravaWriteScope(account.scopes)
+      ) {
+        throw new BadRequestException({
+          code: 'STRAVA_WRITE_SCOPE_REQUIRED',
+          message: 'Connect Strava again to allow editing activities',
+        });
+      }
+      if (body.activityDescriptionEnabled !== undefined) {
+        data.activityDescriptionEnabled = body.activityDescriptionEnabled;
+      }
+      if (body.activityDescriptionLanguage !== undefined) {
+        data.activityDescriptionLanguage = body.activityDescriptionLanguage;
+      }
     }
 
     await this.prisma.providerAccount.update({
@@ -885,7 +963,7 @@ export class ProviderOAuthController {
     body: {
       object_id: number;
       owner_id: number;
-      aspect_type: 'create' | 'delete';
+      aspect_type: 'create' | 'update' | 'delete';
     },
   ) {
     await this.stravaProviderService.handleWebhook(body);

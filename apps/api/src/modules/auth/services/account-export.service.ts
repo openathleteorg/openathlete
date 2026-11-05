@@ -127,6 +127,8 @@ export class AccountExportService {
             importActivitiesEnabled: true,
             exportWorkoutsEnabled: true,
             importMetricsEnabled: true,
+            activityDescriptionEnabled: true,
+            activityDescriptionLanguage: true,
             createdAt: true,
           },
         },
