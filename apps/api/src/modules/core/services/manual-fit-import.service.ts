@@ -158,6 +158,11 @@ export class ManualFitImportService {
     const store = () =>
       this.prisma.$transaction(
         async (tx) => {
+          // One import at a time per athlete, so two copies of a workout
+          // cannot both pass the checks below. Other athletes are not held
+          // up: a serializable transaction made their imports of the same
+          // moment fail with conflicts.
+          await tx.$executeRaw`SELECT pg_advisory_xact_lock(7139, ${athlete.athleteId}::int)`;
           const existing = await tx.eventActivity.findUnique({
             where: { externalId },
             include: { event: true },
@@ -234,28 +239,21 @@ export class ManualFitImportService {
             alreadyImported: false,
           };
         },
-        {
-          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-          timeout: 15000,
-        },
+        { timeout: 15000 },
       );
-    // Concurrent serializable imports, from other athletes too, can fail to
-    // serialize: retry them before reporting a conflict.
-    let saved: Awaited<ReturnType<typeof store>> | undefined;
-    for (let attempt = 1; !saved; attempt++) {
-      try {
-        saved = await store();
-      } catch (error) {
-        if (
-          !(error instanceof Prisma.PrismaClientKnownRequestError) ||
-          !['P2002', 'P2034'].includes(error.code)
-        )
-          throw error;
-        const existing = await findExisting();
-        if (existing) saved = { activity: existing, alreadyImported: true };
-        else if (error.code === 'P2002' || attempt >= 3)
-          throw new ConflictException(`${format}_CONFLICT`);
-      }
+    let saved: Awaited<ReturnType<typeof store>>;
+    try {
+      saved = await store();
+    } catch (error) {
+      // The same file saved meanwhile, outside this lock
+      if (
+        !(error instanceof Prisma.PrismaClientKnownRequestError) ||
+        error.code !== 'P2002'
+      )
+        throw error;
+      const existing = await findExisting();
+      if (!existing) throw new ConflictException(`${format}_CONFLICT`);
+      saved = { activity: existing, alreadyImported: true };
     }
     if (!saved.alreadyImported)
       this.emitter?.emit(
