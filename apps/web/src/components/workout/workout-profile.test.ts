@@ -176,6 +176,42 @@ describe('workout profile', () => {
       ),
     ).toBe(500);
 
+    const powerZone = {
+      trainingZoneId: 12,
+      index: 3,
+      type: TRAINING_ZONE_TYPE.POWER,
+      values: [{ min: 280, max: 320, sports: [SPORT_TYPE.RUNNING] }],
+    };
+    const powerStep = step({
+      durationValue: 120,
+      targets: [{ targetType: 'POWER', targetValue: 300 }],
+    });
+    expect(
+      Math.round(
+        estimateStepDistanceFromDuration(
+          powerStep,
+          undefined,
+          SPORT_TYPE.RUNNING,
+          [powerZone, paceZone],
+        )!,
+      ),
+    ).toBe(500);
+
+    const rpeStep = step({
+      durationValue: 120,
+      targets: [{ targetType: 'RPE', targetValue: 8 }],
+    });
+    expect(
+      Math.round(
+        estimateStepDistanceFromDuration(
+          rpeStep,
+          undefined,
+          SPORT_TYPE.RUNNING,
+          [paceZone],
+        )!,
+      ),
+    ).toBe(500);
+
     const workout: WorkoutDto = {
       eventTrainingId: 1,
       steps: [
