@@ -392,6 +392,28 @@ function extractStepSpeed(
     }
   }
 
+  // Fallback when no target is set: use the athlete's Zone 1-2 speed if zones exist
+  if (trainingZones && trainingZones.length > 0) {
+    for (const type of [
+      TRAINING_ZONE_TYPE.PACE,
+      TRAINING_ZONE_TYPE.HEARTRATE,
+      TRAINING_ZONE_TYPE.POWER,
+    ]) {
+      const sorted = trainingZones
+        .filter((z) => z.type === type)
+        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+      if (sorted.length > 0) {
+        const z1Speed = speedFromZone(sorted[0], metrics, trainingZones, sport);
+        const z2Speed =
+          sorted.length > 1
+            ? speedFromZone(sorted[1], metrics, trainingZones, sport)
+            : null;
+        if (z1Speed && z2Speed) return (z1Speed + z2Speed) / 2;
+        if (z1Speed) return z1Speed;
+      }
+    }
+  }
+
   return defaultSpeedForSport(sport);
 }
 

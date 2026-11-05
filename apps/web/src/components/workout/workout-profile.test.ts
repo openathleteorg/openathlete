@@ -212,6 +212,31 @@ describe('workout profile', () => {
       ),
     ).toBe(500);
 
+    // Step without target uses Zone 1-2 average speed when zones exist
+    const z1Pace = {
+      trainingZoneId: 1,
+      index: 0,
+      type: TRAINING_ZONE_TYPE.PACE,
+      values: [{ min: 5.5, max: 6.5, sports: [SPORT_TYPE.RUNNING] }], // 6:00/km -> 2.778 m/s
+    };
+    const z2Pace = {
+      trainingZoneId: 2,
+      index: 1,
+      type: TRAINING_ZONE_TYPE.PACE,
+      values: [{ min: 4.5, max: 5.5, sports: [SPORT_TYPE.RUNNING] }], // 5:00/km -> 3.333 m/s
+    };
+    const openStep = step({ durationValue: 120, targets: [] });
+    expect(
+      Math.round(
+        estimateStepDistanceFromDuration(
+          openStep,
+          undefined,
+          SPORT_TYPE.RUNNING,
+          [z1Pace, z2Pace],
+        )!,
+      ),
+    ).toBe(Math.round(120 * ((paceToSpeed(6) + paceToSpeed(5)) / 2)));
+
     const workout: WorkoutDto = {
       eventTrainingId: 1,
       steps: [
