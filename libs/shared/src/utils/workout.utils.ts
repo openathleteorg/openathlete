@@ -413,8 +413,7 @@ function extractStepSpeed(
       }
 
       if ((!sport || RUNNING_SPORTS.has(sport)) && hrMax > 0 && hrBpm > 0) {
-        const vma =
-          getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH;
+        const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH;
         return (
           kmhToSpeedMs(vma) *
           Math.min(

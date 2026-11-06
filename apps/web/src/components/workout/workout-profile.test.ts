@@ -303,7 +303,9 @@ describe('workout profile', () => {
         step({
           durationType: 'DISTANCE',
           durationValue: 40000,
-          targets: [{ targetType: 'HEARTRATE', targetMin: 140, targetMax: 150 }],
+          targets: [
+            { targetType: 'HEARTRATE', targetMin: 140, targetMax: 150 },
+          ],
         }),
       ],
     };
