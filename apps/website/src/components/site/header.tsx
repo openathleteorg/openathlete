@@ -92,7 +92,7 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             label: m.site_nav_mobile({}, { locale: ml }),
             description: m.site_nav_mobile_desc({}, { locale: ml }),
             icon: <Smartphone />,
-            badge: m.site_nav_soon({}, { locale: ml }),
+            badge: m.site_nav_new({}, { locale: ml }),
           },
         ],
       },

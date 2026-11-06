@@ -7,6 +7,8 @@ export const API_URL =
 
 export const BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/openathlete';
 export const GITHUB_URL = 'https://github.com/openathleteorg/openathlete';
+export const GOOGLE_PLAY_URL =
+  'https://play.google.com/store/apps/details?id=org.openathlete';
 export const DISCORD_URL = 'https://discord.gg/j4PP6tDwuP';
 export const DOCS_URL = 'https://docs.openathlete.org';
 export const SELF_HOSTING_DOCS_URL = `${DOCS_URL}/docs/getting-started/self-hosting`;
