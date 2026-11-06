@@ -11,6 +11,8 @@ import { getStepTypeColor, getStepTypeLabel } from '@/utils/workout';
 import { Edit2, MoreVertical, Trash2 } from 'lucide-react';
 
 import type {
+  SPORT_TYPE,
+  StepZoneLike,
   WorkoutStepDto as WorkoutStep,
   WorkoutStepTargetDto,
 } from '@openathlete/shared';
@@ -22,6 +24,9 @@ import { TypeIcon } from './type-icon';
 interface StepCardProps {
   step: WorkoutStep;
   index: number;
+  sport?: SPORT_TYPE;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   onEdit?: () => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
@@ -34,6 +39,9 @@ interface StepCardProps {
 export function StepCard({
   step,
   index,
+  sport,
+  metrics,
+  trainingZones,
   onEdit,
   onDelete,
   onDuplicate,
@@ -88,6 +96,10 @@ export function StepCard({
                 <DurationDisplay
                   durationType={step.durationType}
                   durationValue={step.durationValue}
+                  targets={step.targets}
+                  sport={sport}
+                  metrics={metrics}
+                  trainingZones={trainingZones}
                 />
               </span>
 
