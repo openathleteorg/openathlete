@@ -11,6 +11,7 @@ import {
 } from '../types/misc';
 import { METRIC_TYPE } from '../types/misc/core/metric-type.enum';
 import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
+import { getSportConfig } from './sport-config';
 
 export interface StepZoneLike {
   trainingZoneId: number;
@@ -90,17 +91,62 @@ export type DurationStep = {
 };
 
 /**
+ * Default physiological metrics and intensity clamps used when estimating
+ * speed from relative targets (%VMA, %HRmax, %HRR, %FTP, RPE) if the athlete
+ * has not recorded their own metrics or pace zones.
+ */
+const DEFAULT_VMA_KMH = 15; // Recreational runner MAS (~4:00 min/km pace)
+const DEFAULT_FTP_RUNNING_W = 275; // Average running functional threshold power (W)
+const DEFAULT_FTP_CYCLING_W = 225; // Average cycling functional threshold power (W)
+const DEFAULT_HR_MAX_BPM = 190; // Average adult max heart rate (bpm)
+const DEFAULT_HR_REST_BPM = 60; // Average adult resting heart rate (bpm)
+const DEFAULT_HR_RESERVE_BPM = DEFAULT_HR_MAX_BPM - DEFAULT_HR_REST_BPM; // Karvonen HR reserve (130 bpm)
+
+/**
+ * Speed scaling bounds when converting HR, power, or RPE ratios into speed:
+ * - MIN_INTENSITY_SPEED_RATIO (0.45): easy recovery floor (~45% of threshold/MAS)
+ * - MAX_HR_SPEED_RATIO (1.15): supramaximal ceiling for HR-derived speed (115% MAS)
+ * - MAX_POWER_SPEED_RATIO (1.3): anaerobic power ceiling (130% FTP speed)
+ * - RPE_BASE_SPEED_RATIO (0.55) + RPE_RANGE_SPEED_RATIO (0.6): maps RPE 1–10 onto ~0.6x–1.15x default speed
+ */
+const MIN_INTENSITY_SPEED_RATIO = 0.45;
+const MAX_HR_SPEED_RATIO = 1.15;
+const MAX_POWER_SPEED_RATIO = 1.3;
+const MIN_RPE_SPEED_RATIO = 0.6;
+const MAX_RPE_SPEED_RATIO = 1.25;
+const RPE_BASE_SPEED_RATIO = 0.55;
+const RPE_RANGE_SPEED_RATIO = 0.6;
+const MAX_RATIO_THRESHOLD = 2; // Target values <= 2 (e.g. 0.85) are ratios (85%) rather than raw bpm/watts
+
+const CYCLING_SPORTS = new Set<SPORT_TYPE>([
+  SPORT_TYPE.CYCLING,
+  SPORT_TYPE.VIRTUAL_RIDE,
+  SPORT_TYPE.GRAVEL_RIDE,
+  SPORT_TYPE.MOUNTAIN_BIKE_RIDE,
+  SPORT_TYPE.E_BIKE_RIDE,
+  SPORT_TYPE.E_MOUNTAIN_BIKE_RIDE,
+  SPORT_TYPE.VELOMOBILE,
+  SPORT_TYPE.HANDCYCLE,
+]);
+
+const RUNNING_SPORTS = new Set<SPORT_TYPE>([
+  SPORT_TYPE.RUNNING,
+  SPORT_TYPE.TRAIL_RUNNING,
+  SPORT_TYPE.VIRTUAL_RUN,
+]);
+
+/**
  * Default metric values for average athletes when metrics are not available
  */
 const DEFAULT_METRIC_VALUES: Record<string, number> = {
-  [METRIC_TYPE.VMA]: 15, // km/h - average VMA (~4:00 min/km pace)
-  [METRIC_TYPE.FTP_RUNNING]: 275, // W - average running FTP
-  [METRIC_TYPE.FTP_CYCLING]: 225, // W - average cycling FTP
-  [METRIC_TYPE.CRITICAL_POWER_RUNNING]: 275, // W - same as FTP_RUNNING
-  [METRIC_TYPE.CRITICAL_POWER_CYCLING]: 225, // W - same as FTP_CYCLING
-  [METRIC_TYPE.HR_MAX]: 190, // bpm - average max heart rate
-  [METRIC_TYPE.HR_REST]: 60, // bpm - average resting heart rate
-  [METRIC_TYPE.HR_RESERVE]: 130, // bpm - average HR reserve (HR_MAX - HR_REST)
+  [METRIC_TYPE.VMA]: DEFAULT_VMA_KMH,
+  [METRIC_TYPE.FTP_RUNNING]: DEFAULT_FTP_RUNNING_W,
+  [METRIC_TYPE.FTP_CYCLING]: DEFAULT_FTP_CYCLING_W,
+  [METRIC_TYPE.CRITICAL_POWER_RUNNING]: DEFAULT_FTP_RUNNING_W,
+  [METRIC_TYPE.CRITICAL_POWER_CYCLING]: DEFAULT_FTP_CYCLING_W,
+  [METRIC_TYPE.HR_MAX]: DEFAULT_HR_MAX_BPM,
+  [METRIC_TYPE.HR_REST]: DEFAULT_HR_REST_BPM,
+  [METRIC_TYPE.HR_RESERVE]: DEFAULT_HR_RESERVE_BPM,
 };
 
 /**
@@ -207,50 +253,95 @@ function resolveTargetMidpoint(target: DurationTarget): number | null {
   return target.targetMin ?? target.targetMax ?? null;
 }
 
+function getZoneBoundsForSport(
+  zone: StepZoneLike,
+  sport?: SPORT_TYPE | null,
+): { min: number; max: number } | null {
+  if (zone.values && zone.values.length > 0) {
+    const matched = zone.values.filter(
+      (value) => !sport || !value.sports || value.sports.includes(sport),
+    );
+    if (matched.length === 0) return null;
+    return { min: matched[0].min, max: matched[0].max };
+  }
+  if (zone.min !== undefined && zone.max !== undefined) {
+    return { min: zone.min, max: zone.max };
+  }
+  return null;
+}
+
 function speedFromZone(
   zone: StepZoneLike,
   metrics?: Record<string, { value: number } | number>,
   trainingZones?: StepZoneLike[],
   sport?: SPORT_TYPE | null,
 ): number | null {
+  const zoneBounds = getZoneBoundsForSport(zone, sport);
+  if (!zoneBounds) return null;
+
   const paceZone =
     zone.type === TRAINING_ZONE_TYPE.PACE
       ? zone
       : trainingZones?.find(
-          (z) => z.type === TRAINING_ZONE_TYPE.PACE && z.index === zone.index,
+          (z) =>
+            z.type === TRAINING_ZONE_TYPE.PACE &&
+            z.index === zone.index &&
+            getZoneBoundsForSport(z, sport) !== null,
         );
-  const bounds = paceZone?.values?.[0] ?? paceZone ?? zone.values?.[0] ?? zone;
+  const paceBounds = paceZone ? getZoneBoundsForSport(paceZone, sport) : null;
+  if (paceBounds && paceBounds.min > 0 && paceBounds.max > 0) {
+    return paceToSpeed((paceBounds.min + paceBounds.max) / 2);
+  }
+
+  const mid = (zoneBounds.min + zoneBounds.max) / 2;
+  if (mid <= 0) return null;
+
+  if (zone.type === TRAINING_ZONE_TYPE.POWER) {
+    const isCycling = Boolean(sport && CYCLING_SPORTS.has(sport));
+    const isRunning = !sport || RUNNING_SPORTS.has(sport);
+    if (!isCycling && !isRunning) return null;
+
+    const ftpKey = isCycling
+      ? METRIC_TYPE.FTP_CYCLING
+      : METRIC_TYPE.FTP_RUNNING;
+    const defaultFtp = isCycling
+      ? DEFAULT_FTP_CYCLING_W
+      : DEFAULT_FTP_RUNNING_W;
+    const ftp = getMetricValue(ftpKey, metrics) ?? defaultFtp;
+    const baseMs = isCycling
+      ? defaultSpeedForSport(sport)
+      : kmhToSpeedMs(
+          getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH,
+        );
+    if (ftp > 0) {
+      return (
+        baseMs *
+        Math.min(
+          MAX_POWER_SPEED_RATIO,
+          Math.max(MIN_INTENSITY_SPEED_RATIO, mid / ftp),
+        )
+      );
+    }
+  }
+
   if (
-    paceZone &&
-    bounds.min !== undefined &&
-    bounds.max !== undefined &&
-    bounds.min > 0 &&
-    bounds.max > 0
+    zone.type === TRAINING_ZONE_TYPE.HEARTRATE &&
+    (!sport || RUNNING_SPORTS.has(sport))
   ) {
-    return paceToSpeed((bounds.min + bounds.max) / 2);
-  }
-  if (bounds.min !== undefined && bounds.max !== undefined) {
-    const mid = (bounds.min + bounds.max) / 2;
-    if (zone.type === TRAINING_ZONE_TYPE.POWER) {
-      const ftpKey =
-        sport === SPORT_TYPE.CYCLING
-          ? METRIC_TYPE.FTP_CYCLING
-          : METRIC_TYPE.FTP_RUNNING;
-      const ftp = getMetricValue(ftpKey, metrics) ?? 250;
-      const baseMs =
-        sport === SPORT_TYPE.CYCLING
-          ? defaultSpeedForSport(sport)
-          : kmhToSpeedMs(getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15);
-      if (ftp > 0 && mid > 0) {
-        return baseMs * Math.min(1.3, Math.max(0.45, mid / ftp));
-      }
-    }
-    const hrMax = getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? 190;
-    const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15;
-    if (hrMax > 0 && mid > 0) {
-      return kmhToSpeedMs(vma) * Math.min(1.15, Math.max(0.45, mid / hrMax));
+    const hrMax =
+      getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? DEFAULT_HR_MAX_BPM;
+    const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH;
+    if (hrMax > 0) {
+      return (
+        kmhToSpeedMs(vma) *
+        Math.min(
+          MAX_HR_SPEED_RATIO,
+          Math.max(MIN_INTENSITY_SPEED_RATIO, mid / hrMax),
+        )
+      );
     }
   }
+
   return null;
 }
 
@@ -285,24 +376,24 @@ function extractStepSpeed(
   if (hrTarget) {
     const raw = resolveTargetMidpoint(hrTarget);
     if (raw !== null && raw > 0) {
-      const hrMax = getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? 190;
-      const hrRest = getMetricValue(METRIC_TYPE.HR_REST, metrics) ?? 60;
+      const hrMax =
+        getMetricValue(METRIC_TYPE.HR_MAX, metrics) ?? DEFAULT_HR_MAX_BPM;
+      const hrRest =
+        getMetricValue(METRIC_TYPE.HR_REST, metrics) ?? DEFAULT_HR_REST_BPM;
       const hrBpm =
         hrTarget.metricType === METRIC_TYPE.HR_RESERVE
           ? hrRest +
             raw *
               (getMetricValue(METRIC_TYPE.HR_RESERVE, metrics) ??
                 hrMax - hrRest)
-          : hrTarget.metricType || raw <= 2
+          : hrTarget.metricType || raw <= MAX_RATIO_THRESHOLD
             ? raw * hrMax
             : raw;
 
       const matchedHrZone = trainingZones?.find((z) => {
         if (z.type !== TRAINING_ZONE_TYPE.HEARTRATE) return false;
-        const b = z.values?.[0] ?? z;
-        return b.min !== undefined && b.max !== undefined
-          ? hrBpm >= b.min && hrBpm <= b.max
-          : false;
+        const b = getZoneBoundsForSport(z, sport);
+        return b ? hrBpm >= b.min && hrBpm <= b.max : false;
       });
       if (matchedHrZone) {
         const speed = speedFromZone(
@@ -313,13 +404,6 @@ function extractStepSpeed(
         );
         if (speed !== null && speed > 0) return speed;
       }
-
-      const vma = getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15;
-      if (hrMax > 0 && hrBpm > 0) {
-        return (
-          kmhToSpeedMs(vma) * Math.min(1.15, Math.max(0.45, hrBpm / hrMax))
-        );
-      }
     }
   }
 
@@ -329,20 +413,22 @@ function extractStepSpeed(
   if (powerTarget) {
     const raw = resolveTargetMidpoint(powerTarget);
     if (raw !== null && raw > 0) {
+      const isCycling = Boolean(sport && CYCLING_SPORTS.has(sport));
+      const isRunning = !sport || RUNNING_SPORTS.has(sport);
       const ftpKey =
         powerTarget.metricType ||
-        (sport === SPORT_TYPE.CYCLING
-          ? METRIC_TYPE.FTP_CYCLING
-          : METRIC_TYPE.FTP_RUNNING);
-      const ftp = getMetricValue(ftpKey, metrics) ?? 250;
-      const powerW = powerTarget.metricType || raw <= 2 ? raw * ftp : raw;
+        (isCycling ? METRIC_TYPE.FTP_CYCLING : METRIC_TYPE.FTP_RUNNING);
+      const defaultFtp = isCycling
+        ? DEFAULT_FTP_CYCLING_W
+        : DEFAULT_FTP_RUNNING_W;
+      const ftp = getMetricValue(ftpKey, metrics) ?? defaultFtp;
+      const powerW =
+        powerTarget.metricType || raw <= MAX_RATIO_THRESHOLD ? raw * ftp : raw;
 
       const matchedPowerZone = trainingZones?.find((z) => {
         if (z.type !== TRAINING_ZONE_TYPE.POWER) return false;
-        const b = z.values?.[0] ?? z;
-        return b.min !== undefined && b.max !== undefined
-          ? powerW >= b.min && powerW <= b.max
-          : false;
+        const b = getZoneBoundsForSport(z, sport);
+        return b ? powerW >= b.min && powerW <= b.max : false;
       });
       if (matchedPowerZone) {
         const speed = speedFromZone(
@@ -354,12 +440,19 @@ function extractStepSpeed(
         if (speed !== null && speed > 0) return speed;
       }
 
-      const baseMs =
-        sport === SPORT_TYPE.CYCLING
+      if ((isCycling || isRunning) && ftp > 0 && powerW > 0) {
+        const baseMs = isCycling
           ? defaultSpeedForSport(sport)
-          : kmhToSpeedMs(getMetricValue(METRIC_TYPE.VMA, metrics) ?? 15);
-      if (ftp > 0 && powerW > 0) {
-        return baseMs * Math.min(1.3, Math.max(0.45, powerW / ftp));
+          : kmhToSpeedMs(
+              getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH,
+            );
+        return (
+          baseMs *
+          Math.min(
+            MAX_POWER_SPEED_RATIO,
+            Math.max(MIN_INTENSITY_SPEED_RATIO, powerW / ftp),
+          )
+        );
       }
     }
   }
@@ -372,27 +465,33 @@ function extractStepSpeed(
     if (rpe !== null && rpe > 0) {
       const level = Math.min(4, Math.max(0, Math.ceil(rpe / 2) - 1));
       const paceZones = trainingZones
-        ?.filter((z) => z.type === TRAINING_ZONE_TYPE.PACE)
+        ?.filter(
+          (z) =>
+            z.type === TRAINING_ZONE_TYPE.PACE &&
+            getZoneBoundsForSport(z, sport) !== null,
+        )
         .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
       const matchedZone =
         paceZones?.[level] ??
-        trainingZones?.find(
-          (z) =>
-            z.type === TRAINING_ZONE_TYPE.PACE &&
-            (z.index === level || z.index === level + 1),
-        );
+        paceZones?.find((z) => z.index === level || z.index === level + 1);
       if (matchedZone) {
         const speed = speedFromZone(matchedZone, metrics, trainingZones, sport);
         if (speed !== null && speed > 0) return speed;
       }
       return (
         defaultSpeedForSport(sport) *
-        Math.min(1.25, Math.max(0.6, 0.55 + (rpe / 10) * 0.6))
+        Math.min(
+          MAX_RPE_SPEED_RATIO,
+          Math.max(
+            MIN_RPE_SPEED_RATIO,
+            RPE_BASE_SPEED_RATIO + (rpe / 10) * RPE_RANGE_SPEED_RATIO,
+          ),
+        )
       );
     }
   }
 
-  // Fallback when no target is set: use the athlete's Zone 1-2 speed if zones exist
+  // Fallback when no target is set: use the athlete's Zone 1-2 speed for this sport if zones exist
   if (trainingZones && trainingZones.length > 0) {
     for (const type of [
       TRAINING_ZONE_TYPE.PACE,
@@ -400,7 +499,9 @@ function extractStepSpeed(
       TRAINING_ZONE_TYPE.POWER,
     ]) {
       const sorted = trainingZones
-        .filter((z) => z.type === type)
+        .filter(
+          (z) => z.type === type && getZoneBoundsForSport(z, sport) !== null,
+        )
         .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
       if (sorted.length > 0) {
         const z1Speed = speedFromZone(sorted[0], metrics, trainingZones, sport);
@@ -462,6 +563,10 @@ export function estimateStepDistanceFromDuration(
     !step.durationValue ||
     step.durationValue <= 0
   ) {
+    return null;
+  }
+
+  if (sport && !getSportConfig(sport)?.showDistance) {
     return null;
   }
 

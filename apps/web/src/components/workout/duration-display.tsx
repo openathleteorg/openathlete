@@ -1,25 +1,21 @@
-import { useGetMyAthleteQuery } from '@/api/athlete';
-import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
-import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
 import { formatDuration } from '@/utils/workout';
 import { useMemo } from 'react';
 
 import {
   type SPORT_TYPE,
+  type StepZoneLike,
   WORKOUT_DURATION_TYPE,
   type WorkoutStepTargetDto,
   estimateStepDistanceFromDuration,
 } from '@openathlete/shared';
-
-import { useWorkoutAthleteId } from './workout-athlete-context';
-import { metricValues } from './workout-profile';
 
 interface DurationDisplayProps {
   durationType: WORKOUT_DURATION_TYPE;
   durationValue?: number | null;
   targets?: WorkoutStepTargetDto[];
   sport?: SPORT_TYPE;
-  athleteId?: number | null;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   className?: string;
 }
 
@@ -28,18 +24,10 @@ export function DurationDisplay({
   durationValue,
   targets,
   sport,
-  athleteId,
+  metrics,
+  trainingZones,
   className,
 }: DurationDisplayProps) {
-  const workoutAthleteId = useWorkoutAthleteId();
-  const ownerId = athleteId === undefined ? workoutAthleteId : athleteId;
-  const { data: me } = useGetMyAthleteQuery();
-  const { zones: trainingZones } = useAthleteTrainingZones(ownerId);
-  const { data: latestMetrics } = useGetLatestMetricsQuery(
-    ownerId ?? me?.athleteId,
-  );
-  const metrics = useMemo(() => metricValues(latestMetrics), [latestMetrics]);
-
   const formatted = formatDuration(durationType, durationValue);
 
   const estimatedDistance = useMemo(

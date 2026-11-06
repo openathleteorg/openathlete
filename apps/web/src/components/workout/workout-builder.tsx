@@ -1,3 +1,5 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -6,9 +8,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
 import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type { WorkoutDto, WorkoutStepDto } from '@openathlete/shared';
 import {
@@ -20,6 +23,8 @@ import {
 
 import { StepForm } from './step-form';
 import { StepList } from './step-list';
+import { useWorkoutAthleteId } from './workout-athlete-context';
+import { metricValues } from './workout-profile';
 
 interface WorkoutBuilderProps {
   workout?: WorkoutDto | null;
@@ -37,6 +42,14 @@ export function WorkoutBuilder({
   sport,
   onStepsChange,
 }: WorkoutBuilderProps) {
+  const workoutAthleteId = useWorkoutAthleteId();
+  const { data: me } = useGetMyAthleteQuery();
+  const { zones: trainingZones } = useAthleteTrainingZones(workoutAthleteId);
+  const { data: latestMetrics } = useGetLatestMetricsQuery(
+    workoutAthleteId ?? me?.athleteId,
+  );
+  const metrics = useMemo(() => metricValues(latestMetrics), [latestMetrics]);
+
   const [steps, setSteps] = useState<WorkoutStepDto[]>(workout?.steps || []);
   const [dialogState, setDialogState] = useState<DialogState>({ type: 'none' });
   const [idCounter, setIdCounter] = useState<number>(0);
@@ -338,6 +351,9 @@ export function WorkoutBuilder({
         ) : (
           <StepList
             steps={steps}
+            sport={sport}
+            metrics={metrics}
+            trainingZones={trainingZones}
             onReorder={setSteps}
             onEditStep={handleEditStep}
             onDeleteStep={handleDeleteStep}

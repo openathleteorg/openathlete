@@ -29,13 +29,20 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
-import { type WorkoutStepDto as WorkoutStep } from '@openathlete/shared';
+import {
+  type SPORT_TYPE,
+  type StepZoneLike,
+  type WorkoutStepDto as WorkoutStep,
+} from '@openathlete/shared';
 
 import { StepCard } from './step-card';
 import { StepForm } from './step-form';
 
 interface RepeatBlockInlineProps {
   step: WorkoutStep & { repeatBlock: NonNullable<WorkoutStep['repeatBlock']> };
+  sport?: SPORT_TYPE;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   onUpdate: (step: WorkoutStep) => void;
   onDelete: (stepId: number) => void;
   onAddChildStep: (
@@ -49,6 +56,9 @@ interface RepeatBlockInlineProps {
 interface SortableChildStepProps {
   step: WorkoutStep;
   index: number;
+  sport?: SPORT_TYPE;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   onEdit: () => void;
   onDelete: () => void;
 }
@@ -56,6 +66,9 @@ interface SortableChildStepProps {
 function SortableChildStep({
   step,
   index,
+  sport,
+  metrics,
+  trainingZones,
   onEdit,
   onDelete,
 }: SortableChildStepProps) {
@@ -99,6 +112,9 @@ function SortableChildStep({
         <StepCard
           step={step}
           index={index}
+          sport={sport}
+          metrics={metrics}
+          trainingZones={trainingZones}
           onEdit={onEdit}
           onDelete={onDelete}
         />
@@ -109,6 +125,9 @@ function SortableChildStep({
 
 export function RepeatBlockInline({
   step,
+  sport,
+  metrics,
+  trainingZones,
   onUpdate,
   onDelete,
   onAddChildStep,
@@ -317,6 +336,9 @@ export function RepeatBlockInline({
                         key={childStep.workoutStepId}
                         step={childStep}
                         index={childIndex + 1}
+                        sport={sport}
+                        metrics={metrics}
+                        trainingZones={trainingZones}
                         onEdit={() => handleEditChildStep(childStep)}
                         onDelete={() =>
                           onDeleteChildStep(
@@ -368,6 +390,7 @@ export function RepeatBlockInline({
             </DialogDescription>
           </DialogHeader>
           <StepForm
+            sport={sport}
             onSubmit={handleStepSubmit}
             onCancel={() => {
               setIsStepDialogOpen(false);

@@ -13,6 +13,7 @@ import {
   type WorkoutStepTargetDto,
   calculateWorkoutDistance,
   calculateWorkoutDuration,
+  estimateStepDistanceFromDuration,
   formatDistance,
   formatDuration,
 } from '@openathlete/shared';
@@ -48,6 +49,31 @@ export function WorkoutSummary({
     metrics,
     sport,
     trainingZones,
+  );
+  const hasEstimatedDistance = useMemo(
+    () =>
+      workout.steps.some((step: WorkoutStepDto) => {
+        if (step.stepType === 'REPEAT' && step.repeatBlock) {
+          return step.repeatBlock.childSteps.some(
+            (child: WorkoutStepDto) =>
+              estimateStepDistanceFromDuration(
+                child,
+                metrics,
+                sport,
+                trainingZones,
+              ) !== null,
+          );
+        }
+        return (
+          estimateStepDistanceFromDuration(
+            step,
+            metrics,
+            sport,
+            trainingZones,
+          ) !== null
+        );
+      }),
+    [workout.steps, metrics, sport, trainingZones],
   );
 
   const renderStep = (step: WorkoutStepDto, index: number, isChild = false) => {
@@ -90,7 +116,8 @@ export function WorkoutSummary({
                   durationValue={step.durationValue}
                   targets={step.targets}
                   sport={sport}
-                  athleteId={athleteId}
+                  metrics={metrics}
+                  trainingZones={trainingZones}
                 />
               )}
 
@@ -173,6 +200,7 @@ export function WorkoutSummary({
                   {m.workout_estimated_distance()}:
                 </span>
                 <span className="ml-2 font-medium">
+                  {hasEstimatedDistance ? '~' : ''}
                   {formatDistance(totalDistance, 'km')}
                 </span>
               </div>
