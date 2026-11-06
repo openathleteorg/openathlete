@@ -23,6 +23,10 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { AiProviderException, toAiProviderException } from '../ai.errors';
 import { AiCredentialCipher, apiKeyHint } from './ai-credential-cipher';
 import {
+  normalizeCredentialHeaders,
+  parseCredentialHeaders,
+} from './ai-credential-headers';
+import {
   AI_CREDENTIAL_CIPHER,
   AiModelResolverService,
 } from './ai-model-resolver.service';
@@ -54,7 +58,12 @@ export class AiSettingsService {
       where: { userId },
       orderBy: { createdAt: 'asc' },
     });
-    return credentials.map(toCredentialDto);
+    return credentials.map((credential) =>
+      toCredentialDto(
+        credential,
+        this.headerNames(credential.encryptedHeaders),
+      ),
+    );
   }
 
   async createCredential(
@@ -84,6 +93,7 @@ export class AiSettingsService {
     const provider = this.catalog
       .list()
       .find((item) => item.id === dto.provider);
+    const headers = normalizeCredentialHeaders(dto.headers);
     const credential = await this.prisma.aiCredential.create({
       data: {
         userId,
@@ -95,10 +105,24 @@ export class AiSettingsService {
             : (provider?.name ?? dto.provider)),
         encryptedApiKey: this.cipher.encrypt(dto.apiKey),
         apiKeyHint: apiKeyHint(dto.apiKey),
+        encryptedHeaders: Object.keys(headers).length
+          ? this.cipher.encrypt(JSON.stringify(headers))
+          : null,
         baseUrl: dto.baseUrl ?? null,
       },
     });
-    return toCredentialDto(credential);
+    return toCredentialDto(credential, Object.keys(headers));
+  }
+
+  private headerNames(encryptedHeaders: string | null): string[] {
+    if (!encryptedHeaders) return [];
+    try {
+      return Object.keys(
+        parseCredentialHeaders(this.cipher.decrypt(encryptedHeaders)),
+      );
+    } catch {
+      return [];
+    }
   }
 
   /** Also removes the model choices that used the key. */
@@ -213,13 +237,17 @@ export class AiSettingsService {
   }
 }
 
-function toCredentialDto(credential: AiCredential): AiCredentialDto {
+function toCredentialDto(
+  credential: AiCredential,
+  customHeaderNames: string[],
+): AiCredentialDto {
   return {
     aiCredentialId: credential.aiCredentialId,
     provider: credential.provider,
     label: credential.label,
     apiKeyHint: credential.apiKeyHint,
     baseUrl: credential.baseUrl,
+    customHeaderNames,
     lastError: credential.lastError,
     lastErrorAt: credential.lastErrorAt?.toISOString() ?? null,
     lastUsedAt: credential.lastUsedAt?.toISOString() ?? null,

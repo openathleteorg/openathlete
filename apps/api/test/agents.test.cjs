@@ -321,6 +321,51 @@ test('custom OpenAI-compatible endpoints get the schema in the prompt', async ()
   assert.deepEqual(result, { extractedRpe: 0.7 });
 });
 
+test('OpenCode Go sends the session header to its endpoint', async () => {
+  providersAnswer('OK');
+
+  await ai.generateText(
+    extractRpeAgent,
+    model({
+      id: 'opencode-go/kimi-k3',
+      apiKey: 'sk-opencode',
+      headers: { 'x-opencode-session': 'session-1' },
+    }),
+    'Hi',
+  );
+
+  const [request] = requests;
+  assert.equal(
+    request.url,
+    'https://opencode.ai/inference/go/openai/v1/chat/completions',
+  );
+  assert.equal(request.headers.get('authorization'), 'Bearer sk-opencode');
+  assert.equal(request.headers.get('x-opencode-session'), 'session-1');
+});
+
+test('OpenAI-compatible endpoints send the credential custom headers', async () => {
+  providersAnswer('OK');
+
+  await ai.generateText(
+    extractRpeAgent,
+    model({
+      providerId: 'custom',
+      modelId: 'llama3.1',
+      url: 'https://gateway.test/v1',
+      apiKey: 'sk-gateway',
+      headers: {
+        'x-opencode-session': 'session-1',
+        'x-custom-header': 'value',
+      },
+    }),
+    'Hi',
+  );
+
+  const [request] = requests;
+  assert.equal(request.headers.get('x-opencode-session'), 'session-1');
+  assert.equal(request.headers.get('x-custom-header'), 'value');
+});
+
 test('plain text generation returns the answer', async () => {
   providersAnswer('Nice session!');
 

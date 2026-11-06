@@ -114,6 +114,10 @@ export function AiKeysSection() {
                     {aiProviderName(providers, credential.provider)}
                     {credential.apiKeyHint && ` · ${credential.apiKeyHint}`}
                     {credential.baseUrl && ` · ${credential.baseUrl}`}
+                    {credential.customHeaderNames.length > 0 &&
+                      ` · ${m.ai_key_headers_configured({
+                        names: credential.customHeaderNames.join(', '),
+                      })}`}
                   </span>
                   {statusBadge(credential)}
                 </>

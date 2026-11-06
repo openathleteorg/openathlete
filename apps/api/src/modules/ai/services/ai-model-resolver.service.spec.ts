@@ -20,6 +20,7 @@ type Preference = {
     aiCredentialId: number;
     provider: string;
     encryptedApiKey: string;
+    encryptedHeaders: string | null;
     baseUrl: string | null;
   };
 };
@@ -31,6 +32,7 @@ function preference(
   modelId: string,
   apiKey: string,
   baseUrl: string | null = null,
+  headers?: Record<string, string>,
 ): Preference {
   return {
     userId,
@@ -40,6 +42,9 @@ function preference(
       aiCredentialId: userId * 10 + Object.keys(AiTask).indexOf(task),
       provider,
       encryptedApiKey: cipher.encrypt(apiKey),
+      encryptedHeaders: headers
+        ? cipher.encrypt(JSON.stringify(headers))
+        : null,
       baseUrl,
     },
   };
@@ -105,6 +110,7 @@ function setup({
       ({
         openai: ['OPENAI_API_KEY'],
         google: ['GOOGLE_API_KEY', 'GOOGLE_GENERATIVE_AI_API_KEY'],
+        'opencode-go': ['OPENCODE_API_KEY'],
       })[provider] ?? [],
   } as unknown as AiProviderCatalogService;
   const subscriptions = {
@@ -229,6 +235,56 @@ describe('AiModelResolverService', () => {
       });
     });
 
+    it("adds a key's custom headers to its model config", async () => {
+      const { resolver } = setup({
+        preferences: [
+          preference(
+            1,
+            AiTask.DEFAULT,
+            'openai',
+            'gpt-5-mini',
+            'sk-mine',
+            null,
+            { 'X-Custom-Header': 'value' },
+          ),
+        ],
+      });
+
+      const resolved = await resolver.resolveForUser(
+        AiTask.EVENT_GENERATION,
+        1,
+      );
+
+      expect(resolved.config).toMatchObject({
+        id: 'openai/gpt-5-mini',
+        headers: { 'x-custom-header': 'value' },
+      });
+    });
+
+    it('gives OpenCode Go a fresh session header on every call', async () => {
+      const { resolver } = setup({
+        preferences: [
+          preference(
+            1,
+            AiTask.DEFAULT,
+            'opencode-go',
+            'kimi-k3',
+            'sk-opencode',
+          ),
+        ],
+      });
+
+      const first = await resolver.resolveForUser(AiTask.EVENT_GENERATION, 1);
+      const second = await resolver.resolveForUser(AiTask.EVENT_GENERATION, 1);
+
+      expect(first.config.headers?.['x-opencode-session']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+      );
+      expect(first.config.headers?.['x-opencode-session']).not.toBe(
+        second.config.headers?.['x-opencode-session'],
+      );
+    });
+
     it('ignores custom endpoints once the instance disallows them', async () => {
       const { resolver } = setup({
         customEndpointsAllowed: false,
@@ -337,6 +393,25 @@ describe('AiModelResolverService', () => {
       ).resolves.toMatchObject({
         config: { id: 'google/gemini-2.5-flash', apiKey: 'g-instance' },
       });
+    });
+
+    it('also adds the OpenCode Go session header on hosted calls', async () => {
+      const { resolver } = setup({
+        hostedAccess: 'everyone',
+        env: {
+          AI_MODEL_EVENT_GENERATION: 'opencode-go/kimi-k3',
+          OPENCODE_API_KEY: 'sk-instance',
+        },
+      });
+
+      const resolved = await resolver.resolveForUser(
+        AiTask.EVENT_GENERATION,
+        1,
+      );
+
+      expect(resolved.config.headers?.['x-opencode-session']).toEqual(
+        expect.any(String),
+      );
     });
 
     it('reads model names without provider as OpenAI models', async () => {
