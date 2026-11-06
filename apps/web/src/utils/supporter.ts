@@ -3,8 +3,10 @@ import { getLocale } from '@/paraglide/runtime';
 
 import {
   BillingInterval,
+  CurrentSubscriptionDto,
   PLAN_CONFIGS,
   SubscriptionPlan,
+  SubscriptionStatus,
 } from '@openathlete/shared';
 
 const SUPPORTER_PRICES = PLAN_CONFIGS[SubscriptionPlan.SUPPORTER].prices!;
@@ -27,4 +29,14 @@ export function termsOfSaleUrl(): string {
     'https://openathlete.org'
   ).replace(/\/$/, '');
   return `${website}${getLocale() === 'fr' ? '/fr' : ''}/terms-of-sale`;
+}
+
+/** A Supporter, or one whose subscription has not run out yet */
+export function isActiveSupporter(
+  subscription: Pick<CurrentSubscriptionDto, 'plan' | 'status'>,
+): boolean {
+  return (
+    subscription.plan === SubscriptionPlan.SUPPORTER &&
+    subscription.status !== SubscriptionStatus.CANCELED
+  );
 }

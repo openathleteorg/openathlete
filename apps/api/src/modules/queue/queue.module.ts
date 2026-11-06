@@ -16,6 +16,7 @@ import { DuplicateActivitiesProcessor } from './processors/duplicate-activities.
 import { GarminNotificationProcessor } from './processors/garmin-notification.processor';
 import { PolarNotificationProcessor } from './processors/polar-notification.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
+import { StravaDescriptionProcessor } from './processors/strava-description.processor';
 import { SuuntoNotificationProcessor } from './processors/suunto-notification.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { QueueService } from './queue.service';
@@ -367,6 +368,23 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'strava-description',
+      defaultJobOptions: {
+        // Strava's quotas reset every 15 minutes: retry over about an hour
+        attempts: 4,
+        backoff: {
+          type: 'exponential',
+          delay: 5 * 60_000,
+        },
+        removeOnComplete: {
+          age: 7 * 24 * 3600,
+        },
+        removeOnFail: {
+          age: 7 * 24 * 3600,
+        },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'training-load-estimation',
       defaultJobOptions: {
         attempts: 3,
@@ -397,6 +415,7 @@ function parseRedisUrl(redisUrl: string): {
           SuuntoNotificationProcessor,
           PolarNotificationProcessor,
           CorosSyncProcessor,
+          StravaDescriptionProcessor,
         ]
       : []),
     ...(process.env.ENABLE_ACTIVITY_PROCESSING === 'true'

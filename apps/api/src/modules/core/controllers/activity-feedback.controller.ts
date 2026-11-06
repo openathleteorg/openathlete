@@ -54,7 +54,7 @@ export class ActivityFeedbackController {
   @ApiOperation({
     summary: 'Transcribe audio to text',
     description:
-      "Transcribes an audio file to text using OpenAI Whisper model. This endpoint is typically used to convert voice recordings of activity feedback into text format. The audio file is processed server-side using OpenAI's Whisper-1 model with French language detection. The transcription can then be used to fill in feedback answers or comments. Supports various audio formats (webm, mp4, ogg, wav, mpeg, mp3) with a maximum file size of 25MB.",
+      "Transcribes an audio file to text using OpenAI Whisper model. This endpoint is typically used to convert voice recordings of activity feedback into text format. The audio file is processed server-side using OpenAI's Whisper-1 model, in the user's app language. The transcription can then be used to fill in feedback answers or comments. Supports various audio formats (webm, mp4, ogg, wav, mpeg, mp3) with a maximum file size of 25MB.",
   })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

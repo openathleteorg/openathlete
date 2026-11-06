@@ -66,6 +66,16 @@ export function useCalendarData({
     setDisplayedMonth(prevMonth);
   }, [displayedMonth]);
 
+  /** Jumps straight to a day, years away if need be */
+  const goToDate = useCallback(
+    (date: Date) => {
+      if (view === 'week') return goToWeek(date);
+      setWeekStart(localWeekStart(date));
+      setDisplayedMonth(new Date(date.getFullYear(), date.getMonth(), 1));
+    },
+    [goToWeek, view],
+  );
+
   const goToCurrentMonth = useCallback(() => {
     setDisplayedMonth(new Date());
   }, []);
@@ -141,15 +151,16 @@ export function useCalendarData({
     }
 
     if (isMobile) {
-      const today = new Date();
+      // The same window as the events the page loads: around the displayed
+      // month, which is today's until the user jumps to another date
       const maxFutureDate = new Date(
-        today.getFullYear(),
-        today.getMonth() + 12,
+        displayedMonth.getFullYear(),
+        displayedMonth.getMonth() + 12,
         0,
       );
       const minPastDate = new Date(
-        today.getFullYear(),
-        today.getMonth() - 6,
+        displayedMonth.getFullYear(),
+        displayedMonth.getMonth() - 6,
         1,
       );
 
@@ -202,6 +213,7 @@ export function useCalendarData({
     nextMonth,
     prevMonth,
     goToCurrentMonth,
+    goToDate,
     weekStart,
     goToWeek,
     nextWeek,

@@ -116,7 +116,8 @@ export class WorkoutSyncListener {
 
     const workoutDto = mapPrismaWorkoutToDto(workoutRecord);
     const normalized = normalizeWorkoutForExport({
-      sport: sport as SPORT_TYPE,
+      // The payload can carry the sport from before the save
+      sport: (eventEntity?.training?.sport ?? sport) as SPORT_TYPE,
       title: eventEntity?.name || null,
       description: eventEntity?.training?.description || null,
       workout: workoutDto,

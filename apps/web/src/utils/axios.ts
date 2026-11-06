@@ -141,6 +141,7 @@ export const routes = {
       `/provider/${provider.toLowerCase()}/preferences`,
     importAllActivities: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/import-all`,
+    activityDescriptionPreview: '/provider/strava/activity-description/preview',
   },
   athlete: {
     getMyAthlete: '/athlete/me',
@@ -252,6 +253,7 @@ export const routes = {
   },
   subscription: {
     current: '/subscription/current',
+    supporters: '/subscription/supporters',
     checkout: '/subscription/checkout',
     cancel: '/subscription/cancel',
     resume: '/subscription/resume',

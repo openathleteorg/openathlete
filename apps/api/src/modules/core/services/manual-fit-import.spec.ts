@@ -139,6 +139,7 @@ function setup() {
       })),
     },
     $transaction: jest.fn(),
+    $executeRaw: jest.fn().mockResolvedValue(1),
   };
   db.$transaction.mockImplementation(async (fn) => fn(db));
   const queue = {
@@ -232,6 +233,13 @@ describe('Manual FIT parsing', () => {
     expect(result.activity.sport).toBe('WEIGHT_TRAINING');
     expect(result.details.stream).toEqual({});
     expect(result.warnings).toContain('FIT_NO_STREAM');
+  });
+  test('extracts watch-reported workoutRpe from FIT session messages', async () => {
+    const withRpe = await parse(fixture({ session: { workoutRpe: 70 } }));
+    expect(withRpe.activity.rpe).toBe(0.7);
+
+    const withoutRpe = await parse(fixture());
+    expect(withoutRpe.activity.rpe).toBeNull();
   });
   test('omits incomplete channels rather than shifting their timestamps', async () => {
     const result = await parse(fixture({ partial: true }));
@@ -421,33 +429,43 @@ describe('Manual FIT ownership and persistence', () => {
       expect(db.eventActivity.update).not.toHaveBeenCalled();
     },
   );
-  test('retries a transaction that failed to serialize with another import', async () => {
+  test('takes the athlete lock before checking for copies', async () => {
     const { db, service } = setup();
-    const serialization = new Prisma.PrismaClientKnownRequestError(
-      'could not serialize access',
-      { code: 'P2034', clientVersion: 'test' },
+    await service.import(athlete, fixture(), 'Test');
+    expect(db.$executeRaw).toHaveBeenCalledTimes(1);
+    expect(db.$executeRaw.mock.invocationCallOrder[0]).toBeLessThan(
+      db.eventActivity.findUnique.mock.invocationCallOrder[0],
     );
-    db.$transaction
-      .mockRejectedValueOnce(serialization)
-      .mockRejectedValueOnce(serialization);
-    expect(await service.import(athlete, fixture(), 'Test')).toMatchObject({
-      eventId: 90,
-      alreadyImported: false,
-    });
-    expect(db.$transaction).toHaveBeenCalledTimes(3);
   });
-  test('reports a conflict once retries are exhausted', async () => {
+  test('answers with the copy saved meanwhile by another request', async () => {
     const { db, service } = setup();
     db.$transaction.mockRejectedValue(
-      new Prisma.PrismaClientKnownRequestError('could not serialize access', {
-        code: 'P2034',
+      new Prisma.PrismaClientKnownRequestError('unique constraint', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+    db.eventActivity.findUnique.mockResolvedValue({
+      eventId: 91,
+      eventActivityId: 81,
+      event: { name: 'Earlier', startDate: new Date() },
+    });
+    expect(await service.import(athlete, fixture(), 'Test')).toMatchObject({
+      eventId: 91,
+      alreadyImported: true,
+    });
+  });
+  test('reports a conflict when a unique key fails with no copy', async () => {
+    const { db, service } = setup();
+    db.$transaction.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('unique constraint', {
+        code: 'P2002',
         clientVersion: 'test',
       }),
     );
     await expect(service.import(athlete, fixture(), 'Test')).rejects.toThrow(
       'FIT_CONFLICT',
     );
-    expect(db.$transaction).toHaveBeenCalledTimes(3);
   });
   test('queue failure reports a saved activity, not a failed import', async () => {
     const { queue, service } = setup();

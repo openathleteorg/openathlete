@@ -9,6 +9,7 @@ import {
 import { ActivityParseResult } from './activity-parser.interface';
 import { calculateSegmentMetrics } from './activity-segment';
 import { buildFitActivityDetails } from './fit-activity-details';
+import { extractGarminFitRpe } from './garmin';
 
 export const MAX_MANUAL_FIT_BYTES = MAX_ACTIVITY_FILE_BYTES;
 
@@ -171,6 +172,7 @@ export function prepareManualFit(parsed: ActivityParseResult) {
         positiveOrZero(session.totalWork) !== undefined
           ? Number(session.totalWork) / 1000
           : null,
+      rpe: extractGarminFitRpe(metadata.sessions) ?? null,
     },
   };
 }

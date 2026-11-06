@@ -1,8 +1,11 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  ActivityDescriptionPreviewQueryDto,
+  ActivityDescriptionPreviewResponseDto,
   ConnectorProvider,
   CorosRegion,
+  EmailLanguage,
   ProviderPreferencesDto,
 } from '@openathlete/shared';
 
@@ -13,6 +16,12 @@ export interface ConnectedProvider {
   importActivitiesEnabled: boolean;
   exportWorkoutsEnabled: boolean;
   importMetricsEnabled: boolean;
+  /** OpenAthlete's analysis written into new activities (Strava) */
+  activityDescriptionEnabled: boolean;
+  /** null: the user's language */
+  activityDescriptionLanguage: EmailLanguage | null;
+  /** The connection allows editing activities; otherwise connect again */
+  activityDescriptionAuthorized: boolean;
   fullImportRequestedAt: string | null;
   fullImportCompletedAt: string | null;
 }
@@ -47,14 +56,18 @@ export class ProviderAPI {
     provider,
     code,
     codeVerifier,
+    scope,
   }: {
     provider: ConnectorProvider;
     code: string;
     codeVerifier?: string;
+    /** Scopes the user accepted, from the redirect (Strava) */
+    scope?: string;
   }): Promise<void> {
     await client.post(routes.provider.setOAuthToken(provider), {
       code,
       ...(codeVerifier && { codeVerifier }),
+      ...(scope && { scope }),
     });
   }
 
@@ -78,6 +91,15 @@ export class ProviderAPI {
       routes.provider.updatePreferences(provider),
       payload,
     );
+    return res.data;
+  }
+
+  static async getActivityDescriptionPreview(
+    params: ActivityDescriptionPreviewQueryDto,
+  ): Promise<ActivityDescriptionPreviewResponseDto> {
+    const res = await client.get(routes.provider.activityDescriptionPreview, {
+      params,
+    });
     return res.data;
   }
 

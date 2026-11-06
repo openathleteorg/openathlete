@@ -30,3 +30,10 @@ export async function closeOAuthBrowser(): Promise<void> {
     await Browser.close();
   }
 }
+
+/**
+ * Set before Strava's consent page when the user turns the activity
+ * description on, read back on the OAuth callback to finish the job.
+ */
+export const ENABLE_DESCRIPTION_AFTER_OAUTH_KEY =
+  'oauth_enable_activity_description_STRAVA';

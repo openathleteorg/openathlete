@@ -23,8 +23,10 @@ export const updateAccountDtoSchema = z.object({
   emailRecap: z.boolean().optional(),
   /** News about the project, Supporter included: the server dates the consent */
   emailNews: z.boolean().optional(),
-  /** The server dates the dismissal: there is no way back from it */
+  /** The server dates and counts the dismissal: there is no way back from it */
   supportReminderDismissed: z.literal(true).optional(),
+  /** The app just showed a Supporter mention in context: the server dates it */
+  supporterNudgeSeen: z.literal(true).optional(),
 });
 
 export type UpdateAccountDto = z.infer<typeof updateAccountDtoSchema>;

@@ -2,7 +2,10 @@ import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { RHFNumberWithUnit } from '@/components/hook-form/rhf-number-with-unit';
 import { RHFRpe } from '@/components/hook-form/rhf-rpe';
-import { RHFVelocityPace } from '@/components/hook-form/rhf-velocity-pace';
+import {
+  RHFVelocityPace,
+  type VelocityUnit,
+} from '@/components/hook-form/rhf-velocity-pace';
 import { RHFZoneSelector } from '@/components/hook-form/rhf-zone-selector';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,7 +37,25 @@ import {
   SPORT_TYPE,
   WORKOUT_TARGET_TYPE,
   getCompatibleMetrics,
+  getSportConfig,
 } from '@openathlete/shared';
+
+/**
+ * Default unit for the pace input, based on the sport's usual speed unit
+ * (e.g. min/km for running, km/h for cycling)
+ */
+const getDefaultVelocityUnit = (sport?: SPORT_TYPE): VelocityUnit => {
+  if (!sport) return 'km_per_h';
+  switch (getSportConfig(sport)?.speedUnit) {
+    case 'min/km':
+    case 'min/mi':
+      return 'min_per_km';
+    case 'm/s':
+      return 'm_per_s';
+    default:
+      return 'km_per_h';
+  }
+};
 
 const TARGET_TYPES: { value: WORKOUT_TARGET_TYPE; getLabelFn: () => string }[] =
   [
@@ -217,6 +238,7 @@ export function TargetForm({
   const isZoneType = selectedTargetType === 'ZONE';
   const showRange = useRange && !isZoneType;
   const hasMetric = !!selectedMetricType;
+  const defaultVelocityUnit = getDefaultVelocityUnit(sport);
 
   const handleSubmit = (values: TargetFormValues) => {
     // Convert values from display format (0-100) to stored format (0-1) if metricType is set
@@ -363,6 +385,7 @@ export function TargetForm({
                 <RHFVelocityPace
                   name="targetMin"
                   label={m.target_form_min_value()}
+                  defaultUnit={defaultVelocityUnit}
                 />
               )}
               {hasMetric ? (
@@ -376,6 +399,7 @@ export function TargetForm({
                 <RHFVelocityPace
                   name="targetMax"
                   label={m.target_form_max_value()}
+                  defaultUnit={defaultVelocityUnit}
                 />
               )}
             </div>
@@ -390,6 +414,7 @@ export function TargetForm({
             <RHFVelocityPace
               name="targetValue"
               label={m.target_form_single_value()}
+              defaultUnit={defaultVelocityUnit}
             />
           )
         ) : selectedTargetType === 'HEARTRATE' ? (

@@ -18,6 +18,7 @@ import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { EVENT_TYPE } from '@openathlete/shared';
 
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
+import { CalendarGoToDate } from './calendar-go-to-date';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { ComplianceLegend } from './compliance-badge';
 import { useTemplateLibrarySidebar } from './contexts/template-library-sidebar-context';
@@ -116,7 +117,8 @@ function WeekStrip({
 
 /** The calendar's title, week strip and everything that adjusts the view. */
 export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
-  const { view, goToCurrentMonth, displayedMonth } = useCalendarContext();
+  const { view, goToCurrentMonth, goToDate, displayedMonth, weekStart } =
+    useCalendarContext();
   const [optionsOpen, setOptionsOpen] = useState(false);
   const { setOpen: setTemplatesOpen } = useTemplateLibrarySidebar();
   const locale = getDateFnsLocale(getLocale());
@@ -146,6 +148,15 @@ export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
               {m.nav_tab_today()}
             </Button>
           )}
+          <CalendarGoToDate
+            current={view === 'week' ? weekStart : titleDate}
+            onSelect={(date) => {
+              goToDate(date);
+              onSelectDay(date);
+            }}
+            variant="ghost"
+            className="size-11 rounded-full"
+          />
           <Button
             variant="ghost"
             size="icon"
@@ -160,7 +171,16 @@ export function CalendarMobileHeader({ selectedDay, onSelectDay, options }: P) {
       ),
       fullHeight: view === 'month',
     }),
-    [title, onToday, view, goToCurrentMonth, onSelectDay],
+    [
+      title,
+      titleDate,
+      weekStart,
+      onToday,
+      view,
+      goToCurrentMonth,
+      goToDate,
+      onSelectDay,
+    ],
   );
   useAppBar(appBar);
 

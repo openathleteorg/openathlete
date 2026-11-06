@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   shouldShowSupportReminder,
   shouldShowSupporterReminder,
+  supporterNudgeAllowed,
 } from './support-reminder';
 
 const platform = vi.hoisted(() => ({ name: 'web' }));
@@ -95,7 +96,8 @@ describe('shouldShowSupporterReminder', () => {
   const hosted = {
     billingEnabled: true,
     isSupporter: false,
-    dismissed: false,
+    dismissedAt: null,
+    dismissCount: 0,
     fullImportsCompletedAt: [daysAgo(31).toISOString()],
     now,
   };
@@ -114,20 +116,73 @@ describe('shouldShowSupporterReminder', () => {
     ).toBe(false);
   });
 
-  it('never asks Supporters, self-hosters, or once dismissed', () => {
+  it('comes back 90 days after being dismissed', () => {
+    const dismissed = { ...hosted, dismissCount: 1 };
+    expect(
+      shouldShowSupporterReminder({ ...dismissed, dismissedAt: daysAgo(89) }),
+    ).toBe(false);
+    expect(
+      shouldShowSupporterReminder({ ...dismissed, dismissedAt: daysAgo(90) }),
+    ).toBe(true);
+  });
+
+  it('stops for good after three dismissals', () => {
+    expect(
+      shouldShowSupporterReminder({
+        ...hosted,
+        dismissCount: 3,
+        dismissedAt: daysAgo(365),
+      }),
+    ).toBe(false);
+  });
+
+  it('never asks Supporters nor self-hosters', () => {
     expect(shouldShowSupporterReminder({ ...hosted, isSupporter: true })).toBe(
       false,
     );
     expect(
       shouldShowSupporterReminder({ ...hosted, billingEnabled: false }),
     ).toBe(false);
-    expect(shouldShowSupporterReminder({ ...hosted, dismissed: true })).toBe(
+  });
+
+  it('asks in the iOS app, which sells Supporter, never in the Android app', () => {
+    platform.name = 'ios';
+    expect(shouldShowSupporterReminder(hosted)).toBe(true);
+    platform.name = 'android';
+    expect(shouldShowSupporterReminder(hosted)).toBe(false);
+  });
+});
+
+describe('supporterNudgeAllowed', () => {
+  const hosted = {
+    billingEnabled: true,
+    isSupporter: false,
+    seenAt: null,
+    now,
+  };
+
+  afterEach(() => {
+    platform.name = 'web';
+  });
+
+  it('mentions Supporter once every two weeks at most', () => {
+    expect(supporterNudgeAllowed(hosted)).toBe(true);
+    expect(supporterNudgeAllowed({ ...hosted, seenAt: daysAgo(13) })).toBe(
       false,
+    );
+    expect(supporterNudgeAllowed({ ...hosted, seenAt: daysAgo(14) })).toBe(
+      true,
     );
   });
 
-  it('stays out of the native apps', () => {
+  it('never to Supporters, on self-hosted instances or in the Android app', () => {
+    expect(supporterNudgeAllowed({ ...hosted, isSupporter: true })).toBe(false);
+    expect(supporterNudgeAllowed({ ...hosted, billingEnabled: false })).toBe(
+      false,
+    );
     platform.name = 'android';
-    expect(shouldShowSupporterReminder(hosted)).toBe(false);
+    expect(supporterNudgeAllowed(hosted)).toBe(false);
+    platform.name = 'ios';
+    expect(supporterNudgeAllowed(hosted)).toBe(true);
   });
 });

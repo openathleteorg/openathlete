@@ -25,7 +25,10 @@ import { streamUpdate } from 'src/modules/core/helpers/activity-corrections';
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
 import { buildFitActivityDetails } from '../../core/helpers/fit-activity-details';
-import { mapGarminActivityType } from '../../core/helpers/garmin';
+import {
+  extractGarminFitRpe,
+  mapGarminActivityType,
+} from '../../core/helpers/garmin';
 import {
   roundCadence,
   roundDistance,
@@ -1106,13 +1109,19 @@ export class GarminProviderService
       fileType as 'FIT' | 'GPX',
     );
     const details = buildFitActivityDetails(parsed);
+    const fitRpe = extractGarminFitRpe(parsed.fit?.sessions);
     const { eventActivityId } = activity;
 
     await this.prisma.$transaction(async (tx) => {
       await tx.eventActivity.update({
         where: { eventActivityId },
         // A corrected activity keeps its corrections over the new recording
-        data: await streamUpdate(tx, eventActivityId, details.stream),
+        data: {
+          ...(await streamUpdate(tx, eventActivityId, details.stream)),
+          ...(activity.rpe == null && fitRpe !== undefined
+            ? { rpe: fitRpe }
+            : {}),
+        },
       });
       if (details.segments.length > 0) {
         await tx.activitySegment.deleteMany({ where: { eventActivityId } });

@@ -84,7 +84,9 @@ const sessionInput = z.object({
   date: localDate,
   time: localTime
     .optional()
-    .describe('Start time; omit when the athlete chooses (shown on the day)'),
+    .describe(
+      'Start time shown in the calendar and editable by the athlete; omitted, the session starts at 12:00',
+    ),
   ...sessionFields,
 });
 type SessionInput = z.infer<typeof sessionInput>;

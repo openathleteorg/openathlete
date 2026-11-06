@@ -91,6 +91,18 @@ export class SubscriptionService {
     private readonly stripeService: StripeService,
   ) {}
 
+  /** People whose Supporter subscription is running, the App Store's included */
+  async countSupporters(): Promise<number> {
+    return this.prisma.subscription.count({
+      where: {
+        plan: PrismaSubscriptionPlan.SUPPORTER,
+        status: {
+          in: [SubscriptionStatus.active, SubscriptionStatus.trialing],
+        },
+      },
+    });
+  }
+
   /**
    * Ensure a Stripe customer exists for this user and persist its ID.
    * Useful for flows like opening the billing portal when the user never checked out yet.
