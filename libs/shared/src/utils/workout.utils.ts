@@ -362,6 +362,10 @@ function extractStepSpeed(
     if (speed !== null && speed > 0) return speed;
   }
 
+  if (!trainingZones) {
+    return defaultSpeedForSport(sport);
+  }
+
   const zoneTarget = step.targets?.find(
     (target) => target.targetType === WORKOUT_TARGET_TYPE.ZONE,
   );
@@ -586,7 +590,8 @@ export function estimateStepDistanceFromDuration(
   }
 
   return (
-    step.durationValue * extractStepSpeed(step, metrics, sport, trainingZones)
+    step.durationValue *
+    extractStepSpeed(step, metrics, sport, trainingZones ?? [])
   );
 }
 
