@@ -62,7 +62,7 @@ export class AiSettingsController {
   @ApiOperation({
     summary: "List the user's AI keys",
     description:
-      'Keys are never returned, only their last characters (apiKeyHint) and their last error, if any.',
+      'Keys and custom header values are never returned, only the key hint, the custom header names and the last error, if any.',
   })
   listCredentials(@JwtUser() user: AuthUser) {
     return this.settings.listCredentials(user.userId);
@@ -72,7 +72,7 @@ export class AiSettingsController {
   @ApiOperation({
     summary: 'Add an AI key',
     description:
-      'Stores an API key for a provider, encrypted at rest. A base URL is only accepted when the instance allows custom endpoints.',
+      'Stores an API key for a provider, encrypted at rest, with optional custom headers for gateways that require them. A base URL is only accepted when the instance allows custom endpoints.',
   })
   @ApiResponse({ status: 201, description: 'Key stored' })
   @ApiResponse({
@@ -107,7 +107,7 @@ export class AiSettingsController {
   @ApiOperation({
     summary: 'Test an AI key with a model',
     description:
-      'Sends a one-word prompt to the model with the key. Returns ok, or the error code (AI_CREDENTIAL_REJECTED, AI_QUOTA_EXCEEDED, AI_PROVIDER_ERROR).',
+      'Sends a one-word prompt to the model with the key, through the same endpoint and custom headers as real generations. Returns ok, or the error code (AI_CREDENTIAL_REJECTED, AI_QUOTA_EXCEEDED, AI_PROVIDER_ERROR).',
   })
   testCredential(
     @JwtUser() user: AuthUser,

@@ -20,6 +20,11 @@ import {
   AiNotConfiguredException,
 } from '../ai.errors';
 import { AiCredentialCipher } from './ai-credential-cipher';
+import {
+  mergeCredentialHeaders,
+  parseCredentialHeaders,
+  providerHeaders,
+} from './ai-credential-headers';
 import { AiPolicyService } from './ai-policy.service';
 import { AiProviderCatalogService } from './ai-provider-catalog.service';
 import { AiUsageService } from './ai-usage.service';
@@ -29,8 +34,19 @@ export const AI_ENV = Symbol('AI_ENV');
 
 /** How Mastra reaches the model, with the key the call is billed to. */
 export type AiModelConfig =
-  | { id: `${string}/${string}`; apiKey: string; url?: string }
-  | { providerId: string; modelId: string; url: string; apiKey: string };
+  | {
+      id: `${string}/${string}`;
+      apiKey: string;
+      url?: string;
+      headers?: Record<string, string>;
+    }
+  | {
+      providerId: string;
+      modelId: string;
+      url: string;
+      apiKey: string;
+      headers?: Record<string, string>;
+    };
 
 export interface ResolvedAiModel {
   task: AiFeatureTask;
@@ -233,25 +249,43 @@ export class AiModelResolverService {
     credential: {
       provider: string;
       encryptedApiKey: string;
+      encryptedHeaders: string | null;
       baseUrl: string | null;
     },
     modelId: string,
   ): AiModelConfig {
     const apiKey =
       this.cipher.decrypt(credential.encryptedApiKey) || NO_API_KEY;
+    const headers = this.credentialHeaders(
+      credential.provider,
+      credential.encryptedHeaders,
+    );
+    const headerConfig = Object.keys(headers).length ? { headers } : {};
     if (credential.provider === CUSTOM_AI_PROVIDER) {
       return {
         providerId: CUSTOM_AI_PROVIDER,
         modelId,
         url: credential.baseUrl ?? '',
         apiKey,
+        ...headerConfig,
       };
     }
     return {
       id: `${credential.provider}/${modelId}`,
       apiKey,
       ...(credential.baseUrl ? { url: credential.baseUrl } : {}),
+      ...headerConfig,
     };
+  }
+
+  private credentialHeaders(
+    provider: string,
+    encryptedHeaders: string | null,
+  ): Record<string, string> {
+    const custom = encryptedHeaders
+      ? parseCredentialHeaders(this.cipher.decrypt(encryptedHeaders))
+      : {};
+    return mergeCredentialHeaders(provider, custom);
   }
 
   private async resolveOwnKey(
@@ -309,6 +343,7 @@ export class AiModelResolverService {
       .find(Boolean);
     if (!apiKey) return null;
 
+    const headers = providerHeaders(provider);
     return {
       task,
       source: 'hosted',
@@ -316,7 +351,11 @@ export class AiModelResolverService {
       provider,
       modelId,
       credentialId: null,
-      config: { id: `${provider}/${modelId}`, apiKey },
+      config: {
+        id: `${provider}/${modelId}`,
+        apiKey,
+        ...(Object.keys(headers).length ? { headers } : {}),
+      },
     };
   }
 

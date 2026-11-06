@@ -36,6 +36,11 @@ const registry: ModelRegistry = {
       apiKeyEnvVar: 'ANTHROPIC_API_KEY',
       models: ['claude-sonnet-4-5'],
     },
+    'opencode-go': {
+      name: 'OpenCode Go',
+      apiKeyEnvVar: 'OPENCODE_API_KEY',
+      models: ['kimi-k3'],
+    },
   },
   supportsStructuredOutput: () => undefined,
 };
@@ -128,6 +133,29 @@ describe('AiSettingsService (PostgreSQL)', () => {
     const listed = await service.listCredentials(athleteUserId);
     expect(JSON.stringify(listed)).not.toContain('supersecret');
     expect(listed[0]).not.toHaveProperty('encryptedApiKey');
+  });
+
+  it('stores custom headers encrypted and only returns their names', async () => {
+    const created = await service.createCredential(athleteUserId, {
+      provider: 'openai',
+      apiKey: 'sk-with-headers-0001',
+      headers: { 'X-Custom-Header': 'secret-header-value' },
+    });
+
+    expect(created.customHeaderNames).toEqual(['x-custom-header']);
+    expect(JSON.stringify(created)).not.toContain('secret-header-value');
+
+    const row = await prisma.aiCredential.findUniqueOrThrow({
+      where: { aiCredentialId: created.aiCredentialId },
+    });
+    expect(row.encryptedHeaders).not.toContain('secret-header-value');
+    expect(JSON.parse(cipher.decrypt(row.encryptedHeaders!))).toEqual({
+      'x-custom-header': 'secret-header-value',
+    });
+
+    const [listed] = await service.listCredentials(athleteUserId);
+    expect(listed.customHeaderNames).toEqual(['x-custom-header']);
+    expect(JSON.stringify(listed)).not.toContain('secret-header-value');
   });
 
   it('only lists the user’s own keys', async () => {
@@ -318,6 +346,26 @@ describe('AiSettingsService (PostgreSQL)', () => {
     });
     const [listed] = await service.listCredentials(athleteUserId);
     expect(listed.lastError).toBe(AiErrorCode.CREDENTIAL_REJECTED);
+  });
+
+  it('tests a key with the same headers real calls use', async () => {
+    const key = await service.createCredential(athleteUserId, {
+      provider: 'opencode-go',
+      apiKey: 'sk-opencode-00001',
+      headers: { 'X-Custom-Header': 'value' },
+    });
+
+    await expect(
+      service.testCredential(athleteUserId, key.aiCredentialId, 'kimi-k3'),
+    ).resolves.toEqual({ ok: true });
+    expect(ping).toHaveBeenCalledWith({
+      id: 'opencode-go/kimi-k3',
+      apiKey: 'sk-opencode-00001',
+      headers: {
+        'x-custom-header': 'value',
+        'x-opencode-session': expect.any(String),
+      },
+    });
   });
 
   it('describes access for an athlete to them and their coaches only', async () => {
