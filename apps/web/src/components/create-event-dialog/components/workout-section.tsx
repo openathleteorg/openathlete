@@ -1,3 +1,6 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
+import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import type {
@@ -11,6 +14,7 @@ import { EVENT_TYPE, SPORT_TYPE } from '@openathlete/shared';
 
 import { WorkoutBuilder, WorkoutGraph } from '../../workout';
 import { WorkoutAthleteContext } from '../../workout/workout-athlete-context';
+import { metricValues } from '../../workout/workout-profile';
 import { cleanWorkoutSteps } from '../utils/workout-helpers';
 
 type CreateProps = {
@@ -46,6 +50,12 @@ export function WorkoutSection({
   const edit = 'event' in props;
   const create = 'type' in props && 'date' in props;
   const isTraining = type === EVENT_TYPE.TRAINING;
+  const { data: me } = useGetMyAthleteQuery();
+  const { zones: trainingZones } = useAthleteTrainingZones(athleteId);
+  const { data: latestMetrics } = useGetLatestMetricsQuery(
+    athleteId ?? me?.athleteId,
+  );
+  const metrics = useMemo(() => metricValues(latestMetrics), [latestMetrics]);
 
   // Use ref to store previous workoutSteps content to avoid infinite loops
   const prevWorkoutStepsRef = useRef<string>('');
@@ -215,6 +225,8 @@ export function WorkoutSection({
             hideActions={true}
             onStepsChange={handleStepsChange}
             sport={sportValue ?? SPORT_TYPE.RUNNING}
+            metrics={metrics}
+            trainingZones={trainingZones}
           />
         </WorkoutAthleteContext.Provider>
       </div>
