@@ -270,20 +270,66 @@ describe('workout profile', () => {
       ),
     ).toBe(29880);
 
-    // 60 min Virtual Ride at 200 W uses cycling FTP (225 W) and road bike speed (8.3 m/s -> ~26.6 km)
+    // Rides keep the usual bike speed whatever the intensity: harder must
+    // never look slower than easy
     const virtualRide200W = step({
       durationValue: 3600,
       targets: [{ targetType: 'POWER', targetValue: 200 }],
     });
+    const rideAtHeartRate = step({
+      durationValue: 3600,
+      targets: [{ targetType: 'HEARTRATE', targetValue: 145 }],
+    });
+    const powerZone = {
+      trainingZoneId: 3,
+      index: 0,
+      type: TRAINING_ZONE_TYPE.POWER,
+      values: [{ min: 0, max: 120, sports: [] }],
+    };
+    for (const [ride, sport] of [
+      [virtualRide200W, SPORT_TYPE.VIRTUAL_RIDE],
+      [rideAtHeartRate, SPORT_TYPE.CYCLING],
+    ] as const) {
+      expect(
+        Math.round(
+          estimateStepDistanceFromDuration(ride, undefined, sport, [
+            powerZone,
+          ])!,
+        ),
+      ).toBe(29880);
+    }
+  });
+
+  it('ignores the default heart-rate zones for untargeted runs', () => {
+    // Every account starts with these: Zone 1 begins at 0 bpm
+    const defaultHrZones = [
+      [0, 131],
+      [132, 142],
+    ].map(([min, max], index) => ({
+      trainingZoneId: 10 + index,
+      index,
+      type: TRAINING_ZONE_TYPE.HEARTRATE,
+      values: [{ min, max, sports: [] }],
+    }));
+    const easyRun = step({ durationValue: 3600, targets: [] });
     expect(
       Math.round(
         estimateStepDistanceFromDuration(
-          virtualRide200W,
+          easyRun,
           undefined,
-          SPORT_TYPE.VIRTUAL_RIDE,
+          SPORT_TYPE.RUNNING,
+          defaultHrZones,
         )!,
       ),
-    ).toBe(Math.round(3600 * 8.3 * (200 / 225)));
+    ).toBe(
+      Math.round(
+        estimateStepDistanceFromDuration(
+          easyRun,
+          undefined,
+          SPORT_TYPE.RUNNING,
+        )!,
+      ),
+    );
   });
 
   it('returns null when estimating distance for sports with showDistance = false', () => {

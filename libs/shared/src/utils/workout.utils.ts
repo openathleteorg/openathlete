@@ -300,22 +300,13 @@ function speedFromZone(
   if (mid <= 0) return null;
 
   if (zone.type === TRAINING_ZONE_TYPE.POWER) {
-    const isCycling = Boolean(sport && CYCLING_SPORTS.has(sport));
-    const isRunning = !sport || RUNNING_SPORTS.has(sport);
-    if (!isCycling && !isRunning) return null;
+    if (sport && !RUNNING_SPORTS.has(sport)) return null;
 
-    const ftpKey = isCycling
-      ? METRIC_TYPE.FTP_CYCLING
-      : METRIC_TYPE.FTP_RUNNING;
-    const defaultFtp = isCycling
-      ? DEFAULT_FTP_CYCLING_W
-      : DEFAULT_FTP_RUNNING_W;
-    const ftp = getMetricValue(ftpKey, metrics) ?? defaultFtp;
-    const baseMs = isCycling
-      ? defaultSpeedForSport(sport)
-      : kmhToSpeedMs(
-          getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH,
-        );
+    const ftp =
+      getMetricValue(METRIC_TYPE.FTP_RUNNING, metrics) ?? DEFAULT_FTP_RUNNING_W;
+    const baseMs = kmhToSpeedMs(
+      getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH,
+    );
     if (ftp > 0) {
       return (
         baseMs *
@@ -363,6 +354,13 @@ function extractStepSpeed(
   }
 
   if (!trainingZones) {
+    return defaultSpeedForSport(sport);
+  }
+
+  // On a bike, speed follows terrain, wind and position far more than power
+  // or heart rate: scaling the usual speed by intensity made hard rides look
+  // slower than easy ones, so rides keep the sport's usual speed
+  if (sport && CYCLING_SPORTS.has(sport)) {
     return defaultSpeedForSport(sport);
   }
 
@@ -431,15 +429,9 @@ function extractStepSpeed(
   if (powerTarget) {
     const raw = resolveTargetMidpoint(powerTarget);
     if (raw !== null && raw > 0) {
-      const isCycling = Boolean(sport && CYCLING_SPORTS.has(sport));
       const isRunning = !sport || RUNNING_SPORTS.has(sport);
-      const ftpKey =
-        powerTarget.metricType ||
-        (isCycling ? METRIC_TYPE.FTP_CYCLING : METRIC_TYPE.FTP_RUNNING);
-      const defaultFtp = isCycling
-        ? DEFAULT_FTP_CYCLING_W
-        : DEFAULT_FTP_RUNNING_W;
-      const ftp = getMetricValue(ftpKey, metrics) ?? defaultFtp;
+      const ftpKey = powerTarget.metricType || METRIC_TYPE.FTP_RUNNING;
+      const ftp = getMetricValue(ftpKey, metrics) ?? DEFAULT_FTP_RUNNING_W;
       const powerW =
         powerTarget.metricType || raw <= MAX_RATIO_THRESHOLD ? raw * ftp : raw;
 
@@ -458,12 +450,10 @@ function extractStepSpeed(
         if (speed !== null && speed > 0) return speed;
       }
 
-      if ((isCycling || isRunning) && ftp > 0 && powerW > 0) {
-        const baseMs = isCycling
-          ? defaultSpeedForSport(sport)
-          : kmhToSpeedMs(
-              getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH,
-            );
+      if (isRunning && ftp > 0 && powerW > 0) {
+        const baseMs = kmhToSpeedMs(
+          getMetricValue(METRIC_TYPE.VMA, metrics) ?? DEFAULT_VMA_KMH,
+        );
         return (
           baseMs *
           Math.min(
@@ -509,27 +499,25 @@ function extractStepSpeed(
     }
   }
 
-  // Fallback when no target is set: use the athlete's Zone 1-2 speed for this sport if zones exist
+  // Fallback when no target is set: the athlete's Zone 1-2 pace for this
+  // sport. Only pace zones: every account starts with default heart-rate
+  // zones, whose Zone 1 (from 0 bpm) made easy runs look like 6:50/km
   if (trainingZones && trainingZones.length > 0) {
-    for (const type of [
-      TRAINING_ZONE_TYPE.PACE,
-      TRAINING_ZONE_TYPE.HEARTRATE,
-      TRAINING_ZONE_TYPE.POWER,
-    ]) {
-      const sorted = trainingZones
-        .filter(
-          (z) => z.type === type && getZoneBoundsForSport(z, sport) !== null,
-        )
-        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-      if (sorted.length > 0) {
-        const z1Speed = speedFromZone(sorted[0], metrics, trainingZones, sport);
-        const z2Speed =
-          sorted.length > 1
-            ? speedFromZone(sorted[1], metrics, trainingZones, sport)
-            : null;
-        if (z1Speed && z2Speed) return (z1Speed + z2Speed) / 2;
-        if (z1Speed) return z1Speed;
-      }
+    const sorted = trainingZones
+      .filter(
+        (z) =>
+          z.type === TRAINING_ZONE_TYPE.PACE &&
+          getZoneBoundsForSport(z, sport) !== null,
+      )
+      .sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+    if (sorted.length > 0) {
+      const z1Speed = speedFromZone(sorted[0], metrics, trainingZones, sport);
+      const z2Speed =
+        sorted.length > 1
+          ? speedFromZone(sorted[1], metrics, trainingZones, sport)
+          : null;
+      if (z1Speed && z2Speed) return (z1Speed + z2Speed) / 2;
+      if (z1Speed) return z1Speed;
     }
   }
 
