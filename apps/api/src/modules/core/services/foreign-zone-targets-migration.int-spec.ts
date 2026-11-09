@@ -10,13 +10,19 @@ if (!databaseUrl)
     'INTEGRATION_DATABASE_URL must point to a disposable test database',
   );
 
-const migrationSql = readFileSync(
-  join(
-    dirname(require.resolve('@openathlete/database/package.json')),
-    'prisma/schema/migrations/20261103120000_remap_foreign_zone_targets/migration.sql',
-  ),
-  'utf8',
-);
+const migration = (name: string) =>
+  readFileSync(
+    join(
+      dirname(require.resolve('@openathlete/database/package.json')),
+      `prisma/schema/migrations/${name}/migration.sql`,
+    ),
+    'utf8',
+  );
+const migrationSql = migration('20261103120000_remap_foreign_zone_targets');
+// Two statements, which a prepared query cannot hold: run one at a time
+const singleZoneStatements = migration('20261109140000_single_zone_targets')
+  .split(/;\s*\n(?=\s*WITH RECURSIVE)/)
+  .map((statement) => statement.trim());
 
 // The fixture: athlete 2001 (coached by the user of athlete 2002) has a
 // running training (event 3001) whose workout has a top level step (3301)
@@ -137,6 +143,32 @@ describe('remap_foreign_zone_targets migration (PostgreSQL)', () => {
     expect(await zoneOf(unknown)).toBe(-2);
     expect(await zoneOf(noEquivalent)).toBe(5300);
     expect(await zoneOf(template)).toBe(5101);
+  });
+
+  it('keeps the lower zone of a zone range, on the athlete zones', async () => {
+    // An AI warm-up from the coach's zone 2 to their zone 3
+    const range = (
+      await prisma.workoutStepTarget.create({
+        data: {
+          targetType: 'ZONE',
+          targetMin: 5101,
+          targetMax: 5102,
+          stepId: TOP_STEP,
+        },
+      })
+    ).workoutStepTargetId;
+    const single = await addTarget(REPEAT_CHILD_STEP, 2203);
+
+    expect(singleZoneStatements).toHaveLength(2);
+    for (const statement of singleZoneStatements)
+      await prisma.$executeRawUnsafe(statement);
+
+    expect(
+      await prisma.workoutStepTarget.findUniqueOrThrow({
+        where: { workoutStepTargetId: range },
+      }),
+    ).toMatchObject({ targetValue: 2202, targetMin: null, targetMax: null });
+    expect(await zoneOf(single)).toBe(2203);
   });
 
   it('changes nothing when it runs again', async () => {

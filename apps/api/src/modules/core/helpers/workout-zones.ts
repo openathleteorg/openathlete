@@ -11,7 +11,12 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
  * rather than rejecting the save.
  */
 
-type ZoneTargetLike = { targetType: string; targetValue?: number | null };
+type ZoneTargetLike = {
+  targetType: string;
+  targetValue?: number | null;
+  targetMin?: number | null;
+  targetMax?: number | null;
+};
 
 /** The step shapes in use: DTOs, Prisma rows, with or without repeats */
 export type StepWithZoneTargets = {
@@ -51,6 +56,53 @@ export function zoneTargetIds(steps: StepWithZoneTargets[]): number[] {
   return [...ids];
 }
 
+/** A copy of the steps with each target replaced by `map`'s targets */
+function mapTargets<S extends StepWithZoneTargets>(
+  steps: S[],
+  map: (target: ZoneTargetLike) => ZoneTargetLike[],
+): S[] {
+  const mapStep = <T extends StepWithZoneTargets>(step: T): T => {
+    const copy: T = { ...step };
+    if (step.targets) copy.targets = step.targets.flatMap(map);
+    if (step.childSteps) copy.childSteps = step.childSteps.map(mapStep);
+    if (step.repeatBlock?.childSteps) {
+      copy.repeatBlock = {
+        ...step.repeatBlock,
+        childSteps: step.repeatBlock.childSteps.map(mapStep),
+      };
+    }
+    return copy;
+  };
+  return steps.map(mapStep);
+}
+
+/**
+ * A ZONE target names one zone, in `targetValue`: the picker, the badges and
+ * the watch exports read nothing else. AI-generated sessions could hold a
+ * range of zone ids in `targetMin`/`targetMax` instead ("zones 2 to 3"),
+ * which showed as two raw ids and escaped the remapping. Such a target keeps
+ * its lower zone.
+ */
+export function singleZoneTargets<S extends StepWithZoneTargets>(
+  steps: S[],
+): S[] {
+  return mapTargets(steps, (target) =>
+    target.targetType === 'ZONE' &&
+    (target.targetValue === null || target.targetValue === undefined) &&
+    target.targetMin !== null &&
+    target.targetMin !== undefined
+      ? [
+          {
+            ...target,
+            targetValue: target.targetMin,
+            targetMin: null,
+            targetMax: null,
+          },
+        ]
+      : [target],
+  );
+}
+
 /**
  * A copy of the steps with each zone id replaced through `mapping`. A target
  * whose zone has no equivalent (null) is dropped: the step stays, open.
@@ -59,28 +111,14 @@ export function remapZoneTargets<S extends StepWithZoneTargets>(
   steps: S[],
   mapping: Map<number, number | null>,
 ): S[] {
-  const remapStep = <T extends StepWithZoneTargets>(step: T): T => {
-    const copy: T = { ...step };
-    if (step.targets) {
-      copy.targets = step.targets.flatMap((target) => {
-        if (!isZoneTarget(target) || !mapping.has(target.targetValue!))
-          return [target];
-        const zoneId = mapping.get(target.targetValue!);
-        return zoneId === null || zoneId === undefined
-          ? []
-          : [{ ...target, targetValue: zoneId }];
-      });
-    }
-    if (step.childSteps) copy.childSteps = step.childSteps.map(remapStep);
-    if (step.repeatBlock?.childSteps) {
-      copy.repeatBlock = {
-        ...step.repeatBlock,
-        childSteps: step.repeatBlock.childSteps.map(remapStep),
-      };
-    }
-    return copy;
-  };
-  return steps.map(remapStep);
+  return mapTargets(steps, (target) => {
+    if (!isZoneTarget(target) || !mapping.has(target.targetValue!))
+      return [target];
+    const zoneId = mapping.get(target.targetValue!);
+    return zoneId === null || zoneId === undefined
+      ? []
+      : [{ ...target, targetValue: zoneId }];
+  });
 }
 
 /** Whether a zone has bounds for the sport (an empty list means every sport) */
@@ -155,16 +193,17 @@ const isZoneId = (id: number) => Number.isInteger(id) && id > 0;
 
 /**
  * The steps with their zone targets pointing to the athlete's equivalent
- * zones: copies (templates, duplicates), AI plans, and leftovers sent back on
- * edit. Zones without an equivalent, default zones (negative ids) and unknown
+ * zones, one zone each: copies (templates, duplicates), AI plans, and
+ * leftovers sent back on edit. Zones without an equivalent, default zones (negative ids) and unknown
  * ids are dropped; the step stays, open.
  */
 export async function remapZonesForAthlete<S extends StepWithZoneTargets>(
   prisma: ZoneClient,
   athleteId: number,
   sport: string | null | undefined,
-  steps: S[],
+  workoutSteps: S[],
 ): Promise<S[]> {
+  const steps = singleZoneTargets(workoutSteps);
   const ids = zoneTargetIds(steps);
   if (!ids.length) return steps;
   const valid = ids.filter(isZoneId);

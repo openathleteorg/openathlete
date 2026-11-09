@@ -202,6 +202,36 @@ describe('with the database', () => {
     expect(client.trainingZone.findMany).not.toHaveBeenCalled();
   });
 
+  it("keeps the lower zone of a range, remapped to the athlete's", async () => {
+    // An AI warm-up "from the coach's zone 2 to their zone 3"
+    const remapped = await remap([
+      {
+        stepType: 'WARMUP',
+        targets: [
+          {
+            targetType: 'ZONE',
+            targetValue: null,
+            targetMin: 101,
+            targetMax: 102,
+          },
+        ],
+      },
+    ]);
+    expect(remapped).toEqual([
+      {
+        stepType: 'WARMUP',
+        targets: [
+          {
+            targetType: 'ZONE',
+            targetValue: 201,
+            targetMin: null,
+            targetMax: null,
+          },
+        ],
+      },
+    ]);
+  });
+
   it("remaps a coach's workout to the athlete's zones", async () => {
     const remapped = await remapZonesForAthlete(
       prisma(ZONES) as unknown as Client,
