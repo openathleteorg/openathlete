@@ -116,7 +116,8 @@ No Garmin Personal key belongs in a shared `.env` file.
 
 `GET /api/instance` advertises `garminPersonalApi: true` only when
 `GARMIN_PERSONAL_API_ENABLED=true`; otherwise it reports `false` and connection
-endpoints return HTTP 503 with `PROVIDER_NOT_CONFIGURED`. No Personal API queue,
+endpoints return HTTP 503 with `PROVIDER_NOT_CONFIGURED`, except `DELETE`, so users
+can still remove a key saved before the option was turned off. No Personal API queue,
 processor or hourly scheduler is registered while disabled.
 Older servers omit the flag and the new web UI hides the connection. All connection
 endpoints require the current user's JWT; callers cannot supply another athlete ID:
