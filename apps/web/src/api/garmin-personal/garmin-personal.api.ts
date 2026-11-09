@@ -5,6 +5,7 @@ import {
   GarminPersonalPreferences,
   GarminPersonalStatus,
   GarminPersonalSync,
+  GarminPersonalSyncResponse,
 } from '@openathlete/shared';
 
 const path = '/provider/garmin-personal';
@@ -17,5 +18,7 @@ export const GarminPersonalAPI = {
   disconnect: () =>
     client.delete<GarminPersonalStatus>(path).then((r) => r.data),
   sync: (body: GarminPersonalSync) =>
-    client.post<{ queued: boolean }>(`${path}/sync`, body).then((r) => r.data),
+    client
+      .post<GarminPersonalSyncResponse>(`${path}/sync`, body)
+      .then((r) => r.data),
 };

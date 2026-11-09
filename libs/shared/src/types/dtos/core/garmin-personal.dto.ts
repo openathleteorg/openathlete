@@ -48,6 +48,13 @@ export type GarminPersonalPreferences = z.infer<
 >;
 export type ConnectGarminPersonal = z.infer<typeof connectGarminPersonalSchema>;
 export type GarminPersonalSync = z.infer<typeof garminPersonalSyncSchema>;
+/** Response of POST /provider/garmin-personal/sync */
+export const garminPersonalSyncResponseSchema = z
+  .object({ queued: z.boolean() })
+  .strict();
+export type GarminPersonalSyncResponse = z.infer<
+  typeof garminPersonalSyncResponseSchema
+>;
 export const garminPersonalResultSchema = z
   .object({
     imported: z.number().int().nonnegative(),

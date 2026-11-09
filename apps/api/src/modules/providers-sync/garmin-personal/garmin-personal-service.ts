@@ -22,6 +22,7 @@ import {
   GarminPersonalResult,
   GarminPersonalStatus,
   GarminPersonalSync,
+  GarminPersonalSyncResponse,
   MAX_ACTIVITY_FILE_BYTES,
   garminPersonalStatusSchema,
 } from '@openathlete/shared';
@@ -277,7 +278,10 @@ export class GarminPersonalService {
     });
     return this.status(userId);
   }
-  async enqueue(userId: number, range: GarminPersonalSync) {
+  async enqueue(
+    userId: number,
+    range: GarminPersonalSync,
+  ): Promise<GarminPersonalSyncResponse> {
     if (!this.jobs) throw new BadRequestException('PROVIDER_NOT_CONFIGURED');
     const athleteId = await this.athlete(userId);
     const c = await this.prisma.$transaction(async (tx) => {
