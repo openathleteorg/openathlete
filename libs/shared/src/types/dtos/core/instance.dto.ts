@@ -9,6 +9,11 @@ export interface InstanceInfoDto {
   googleSignIn: boolean;
   /** Emails can be sent: password reset links, invitations, digests */
   email: boolean;
+  /**
+   * The onboarding tips, monthly recap and news emails go out (email plus
+   * EMAIL_SIGNATURE): the app offers their settings
+   */
+  personalEmails: boolean;
   /** Connectors users can connect */
   providers: ConnectorProvider[];
   /**

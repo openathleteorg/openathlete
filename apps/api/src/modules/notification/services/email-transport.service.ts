@@ -13,8 +13,15 @@ export interface OutgoingEmail {
   to: string;
   subject: string;
   html: string;
+  /** The same email in plain text, for clients and filters that read it */
+  text?: string;
+  /** Default: EMAIL_FROM_NAME, else OpenAthlete */
   senderName?: string;
+  /** Extra headers, such as List-Unsubscribe */
+  headers?: Record<string, string>;
 }
+
+const DEFAULT_SENDER_NAME = 'OpenAthlete';
 
 export type EmailTransportKind = 'brevo' | 'smtp';
 
@@ -46,6 +53,8 @@ export class EmailTransportService {
   private readonly get: ConfigGetter;
   private readonly kind: EmailTransportKind | undefined;
   private readonly fromEmail: string;
+  private readonly fromName: string;
+  private readonly replyTo: string | undefined;
   private smtp: Transporter | undefined;
 
   constructor(configService: ConfigService<ApiEnvSchemaType, true>) {
@@ -55,6 +64,8 @@ export class EmailTransportService {
       this.get('EMAIL_FROM') ||
       this.get('BREVO_FROM_EMAIL') ||
       DEFAULT_FROM_EMAIL;
+    this.fromName = this.get('EMAIL_FROM_NAME') || DEFAULT_SENDER_NAME;
+    this.replyTo = this.get('EMAIL_REPLY_TO') || undefined;
 
     if (!this.kind) {
       this.logger.warn(
@@ -78,10 +89,16 @@ export class EmailTransportService {
     }
     if (this.kind === 'smtp') {
       await this.smtpTransport().sendMail({
-        from: { name: email.senderName ?? '', address: this.fromEmail },
+        from: {
+          name: email.senderName ?? this.fromName,
+          address: this.fromEmail,
+        },
         to: email.to,
+        replyTo: this.replyTo,
         subject: email.subject,
         html: email.html,
+        text: email.text,
+        headers: email.headers,
       });
       return true;
     }
@@ -97,10 +114,16 @@ export class EmailTransportService {
         accept: 'application/json',
       },
       body: JSON.stringify({
-        sender: { email: this.fromEmail, name: email.senderName },
+        sender: {
+          email: this.fromEmail,
+          name: email.senderName ?? this.fromName,
+        },
         to: [{ email: email.to }],
+        ...(this.replyTo ? { replyTo: { email: this.replyTo } } : {}),
         subject: email.subject,
         htmlContent: email.html,
+        ...(email.text ? { textContent: email.text } : {}),
+        ...(email.headers ? { headers: email.headers } : {}),
       }),
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });

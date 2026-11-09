@@ -229,3 +229,41 @@ export const mapGarminActivityType = (type: string): SportType => {
       return SportType.OTHER;
   }
 };
+
+/**
+ * Converts Garmin's FIT `workoutRpe` (Borg CR10 0-10 scale multiplied 10x,
+ * so 10..100; 0 = unset) to OpenAthlete's 0.0-1.0 RPE scale.
+ */
+export const mapGarminRpe = (value: unknown): number | undefined => {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value <= 0 ||
+    value > 100
+  ) {
+    return undefined;
+  }
+
+  return Math.round(value) / 100;
+};
+
+/**
+ * Extracts the athlete's self-reported RPE from decoded FIT session messages
+ * (`workoutRpe`, FIT session field 193).
+ */
+export const extractGarminFitRpe = (
+  sessions: Array<Record<string, unknown>> | undefined,
+): number | undefined => {
+  if (!sessions?.length) {
+    return undefined;
+  }
+
+  for (const session of sessions) {
+    const rpe = mapGarminRpe(session.workoutRpe);
+    if (rpe !== undefined) {
+      return rpe;
+    }
+  }
+
+  return undefined;
+};

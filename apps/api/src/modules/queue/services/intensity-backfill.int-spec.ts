@@ -84,6 +84,34 @@ describe('intensity backfill (PostgreSQL)', () => {
     expect(activity.intensityVersion).toBe(INTENSITY_VERSION);
   });
 
+  it('keeps one profile when several refreshes of an activity overlap', async () => {
+    // A run at a steady 3 m/s: speed bins, keyed by (activity, kind, bin)
+    await prisma.eventActivity.update({
+      where: { eventActivityId: ACTIVITY_ID },
+      data: {
+        stream: compressActivityStream({
+          time: Array.from({ length: 601 }, (_, i) => i),
+          heartrate: Array.from({ length: 601 }, () => 120),
+          gap: Array.from({ length: 601 }, () => 3),
+        } as ActivityStream) as object,
+      },
+    });
+    const processor = new IntensityProcessor(prisma);
+    const ctx = { eventActivityId: ACTIVITY_ID, eventId: 3002 };
+
+    // The import pipeline and the backfill can pick the same activity at once
+    await Promise.all(Array.from({ length: 5 }, () => processor.run(ctx)));
+
+    const bins = await prisma.activityProfileBin.findMany({
+      where: { eventActivityId: ACTIVITY_ID, kind: 'SPEED' },
+    });
+    expect(bins).toHaveLength(1);
+    const activity = await prisma.eventActivity.findUniqueOrThrow({
+      where: { eventActivityId: ACTIVITY_ID },
+    });
+    expect(activity.intensityVersion).toBe(INTENSITY_VERSION);
+  });
+
   it('does nothing once every activity is up to date', async () => {
     await backfill.run();
     expect(await backfill.run()).toBe(0);

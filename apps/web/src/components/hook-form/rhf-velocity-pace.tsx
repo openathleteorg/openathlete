@@ -18,13 +18,15 @@ import {
   SelectValue,
 } from '../ui/select';
 
-type VelocityUnit = 'm_per_s' | 'km_per_h' | 'min_per_km';
+export type VelocityUnit = 'm_per_s' | 'km_per_h' | 'min_per_km';
 
 type Props = Omit<ComponentProps<'input'>, 'onChange'> & {
   name: string;
   label?: string;
   value?: number;
   onChange?: (value: number | undefined) => void;
+  /** Unit selected when the field first renders (defaults to km/h) */
+  defaultUnit?: VelocityUnit;
 };
 
 // Convert m/s to km/h
@@ -57,13 +59,15 @@ function VelocityPaceFieldAdapter({
   field,
   error,
   onChange,
+  defaultUnit = 'km_per_h',
   ...other
 }: {
   field: ControllerRenderProps<Record<string, unknown>, string>;
   error?: FieldError;
   onChange?: (value: number | undefined) => void;
+  defaultUnit?: VelocityUnit;
 } & Omit<ComponentProps<'input'>, 'onChange'>) {
-  const [unit, setUnit] = useState<VelocityUnit>('km_per_h');
+  const [unit, setUnit] = useState<VelocityUnit>(defaultUnit);
   const [valueInput, setValueInput] = useState<string>('');
   const [paceMinutes, setPaceMinutes] = useState<string>('');
   const [paceSeconds, setPaceSeconds] = useState<string>('');
@@ -265,6 +269,7 @@ export const RHFVelocityPace = ({
   label,
   value,
   onChange,
+  defaultUnit,
   ...other
 }: Props) => {
   const { control } = useFormContext();
@@ -284,6 +289,7 @@ export const RHFVelocityPace = ({
             field={field}
             error={error}
             onChange={onChange}
+            defaultUnit={defaultUnit}
             {...other}
           />
         )}

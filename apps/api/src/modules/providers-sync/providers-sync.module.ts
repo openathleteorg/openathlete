@@ -5,6 +5,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from '../auth';
 import { CoreModule } from '../core';
 import { QueueModule } from '../queue';
+import { ActivityDescriptionController } from './activity-description/activity-description.controller';
+import { ActivityDescriptionService } from './activity-description/activity-description.service';
 import { CorosAdapter } from './adapters/coros.adapter';
 import { GarminAdapter } from './adapters/garmin.adapter';
 import { SuuntoAdapter } from './adapters/suunto.adapter';
@@ -27,7 +29,8 @@ import { ProviderExportScheduler } from './scheduler.service';
     EventEmitterModule,
     forwardRef(() => QueueModule),
   ],
-  controllers: [ProviderOAuthController],
+  // Before the OAuth controller, whose :provider routes would catch its path
+  controllers: [ActivityDescriptionController, ProviderOAuthController],
   providers: [
     GarminAdapter,
     SuuntoAdapter,
@@ -39,8 +42,10 @@ import { ProviderExportScheduler } from './scheduler.service';
     SuuntoProviderService,
     CorosProviderService,
     PolarProviderService,
+    ActivityDescriptionService,
   ],
   exports: [
+    ActivityDescriptionService,
     ProviderExportService,
     StravaProviderService,
     GarminProviderService,

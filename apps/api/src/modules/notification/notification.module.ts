@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 
+import { EmailPreferencesController } from './controllers/email-preferences.controller';
+import { LifecycleEmailScheduler } from './lifecycle/lifecycle-email.scheduler';
 import {
   EmailTransportService,
   NotificationService,
@@ -13,8 +15,9 @@ import {
     NotificationService,
     PushNotificationService,
     TrainingReminderScheduler,
+    LifecycleEmailScheduler,
   ],
-  controllers: [],
+  controllers: [EmailPreferencesController],
   exports: [
     EmailTransportService,
     NotificationService,

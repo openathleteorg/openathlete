@@ -252,6 +252,15 @@ export async function PlansHub({
               ? SPORTS.find((item) => item.sport === sport)?.body()
               : m.plans_hub_lead()}
           </p>
+          {!sport && (
+            <Link
+              href={localePath(locale, '/races')}
+              className="mt-6 inline-flex items-center gap-1.5 text-[0.95rem] font-medium text-ink underline decoration-ink/25 underline-offset-4 hover:decoration-ink"
+            >
+              {m.races_link_plans()}
+              <ArrowRight className="size-4" />
+            </Link>
+          )}
         </Container>
       </section>
 

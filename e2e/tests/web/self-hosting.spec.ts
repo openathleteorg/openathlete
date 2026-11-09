@@ -48,6 +48,7 @@ test('hides what the instance has not set up', async ({ page, request }) => {
   expect(await instance.json()).toEqual({
     googleSignIn: false,
     email: false,
+    personalEmails: false,
     // COROS is the one connector that needs no setup
     providers: ['COROS'],
     signup: 'open',

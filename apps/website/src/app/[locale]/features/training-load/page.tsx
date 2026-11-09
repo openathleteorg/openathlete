@@ -166,6 +166,12 @@ export default async function TrainingLoadPage({ params }: Props) {
           <Reveal className="mt-8 max-w-3xl border-l-2 border-sky/60 pl-4 text-[0.95rem] leading-relaxed text-muted-foreground">
             {m.features_tl_formula_note()}
           </Reveal>
+          <ArrowLink
+            href={localePath(locale, '/learn/ctl-atl-tsb')}
+            className="mt-5 text-[0.95rem]"
+          >
+            {m.learn_link_ctl_atl_tsb()}
+          </ArrowLink>
         </Container>
       </Section>
 
@@ -197,6 +203,13 @@ export default async function TrainingLoadPage({ params }: Props) {
               <p className="mt-2 text-[0.9rem] text-white/55">
                 {m.features_tl_trimp_needs()}
               </p>
+              <ArrowLink
+                href={localePath(locale, '/learn/trimp')}
+                tone="light"
+                className="mt-5 text-[0.92rem]"
+              >
+                {m.learn_link_trimp()}
+              </ArrowLink>
             </Reveal>
             <Reveal delay={0.1} className="lg:col-span-7">
               <TrimpCalculator
@@ -219,6 +232,13 @@ export default async function TrainingLoadPage({ params }: Props) {
                 <p className="mt-2 text-[0.92rem] leading-relaxed text-white/65">
                   {m.features_tl_rpe_body()}
                 </p>
+                <ArrowLink
+                  href={localePath(locale, '/learn/session-rpe')}
+                  tone="light"
+                  className="mt-3 text-[0.88rem]"
+                >
+                  {m.learn_link_session_rpe()}
+                </ArrowLink>
               </div>
             </Reveal>
           </div>

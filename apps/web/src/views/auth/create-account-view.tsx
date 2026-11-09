@@ -3,12 +3,14 @@ import { AuthAPI } from '@/api/auth/auth.api';
 import { useInstanceInfoQuery } from '@/api/instance';
 import { useCreateAccountMutation } from '@/api/user';
 import { FormProvider, RHFTextField } from '@/components/hook-form';
+import { RHFCheckbox } from '@/components/hook-form/rhf-checkbox';
 import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { currentLanguage } from '@/utils/language-choice';
 import { localizedNewPasswordSchema } from '@/utils/password';
+import { localizedPersonNameSchema } from '@/utils/person-name';
 import { RETURN_TO_PARAM, rememberReturnTo } from '@/utils/return-to';
 import { cn } from '@/utils/shadcn';
 import { signupRefusal } from '@/utils/signup';
@@ -38,7 +40,11 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   const [isVerifyingInvitation, setIsVerifyingInvitation] = useState(false);
   const methods = useForm<z.infer<typeof createAccountDtoSchema>>({
     resolver: zodResolver(
-      createAccountDtoSchema.extend({ password: localizedNewPasswordSchema() }),
+      createAccountDtoSchema.extend({
+        password: localizedNewPasswordSchema(),
+        firstName: localizedPersonNameSchema(),
+        lastName: localizedPersonNameSchema(),
+      }),
     ),
     defaultValues: {
       email: '',
@@ -47,6 +53,8 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
       lastName: '',
       invitationToken: invitationToken || undefined,
       coachInvitationToken: coachInvitationToken || undefined,
+      // Consent to news must be given, never assumed (CNIL)
+      emailNews: false,
     },
   });
 
@@ -189,6 +197,9 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
           required
           label={m.password()}
         />
+        {instance?.personalEmails && (
+          <RHFCheckbox name="emailNews" label={m.signup_email_news()} />
+        )}
         <Button
           type="submit"
           className="w-full"

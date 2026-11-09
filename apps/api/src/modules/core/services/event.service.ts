@@ -903,6 +903,10 @@ export class EventService {
       },
     });
 
+    // One sync per save: two listeners exporting the same workout at once
+    // both create it on the device when it was never exported before
+    let workoutSyncEmitted = false;
+
     // Handle workout updates for training events
     if (event.type === 'TRAINING' && event.training && workout) {
       const existingWorkout = await this.prisma.workout.findUnique({
@@ -912,15 +916,17 @@ export class EventService {
       if (existingWorkout) {
         // Update existing workout
         if (workoutSteps) {
-          // Delete existing steps and create new ones
-          await this.prisma.workoutStep.deleteMany({
-            where: { workoutId: existingWorkout.workoutId },
-          });
-
+          // One nested write runs in a single transaction: if creating the new
+          // steps fails, the old ones are kept. Prisma runs the operations in
+          // key order, so deleteMany must come before create. Repeat-block
+          // child steps go with their parent step through the cascade.
           await this.prisma.workout.update({
             where: { workoutId: existingWorkout.workoutId },
             data: {
-              ...mapWorkoutDtoToPrisma({ steps: workoutSteps }),
+              steps: {
+                deleteMany: {},
+                ...mapWorkoutDtoToPrisma({ steps: workoutSteps }).steps,
+              },
             },
             include: {
               steps: {
@@ -949,6 +955,7 @@ export class EventService {
               updatedEvent.startDate,
               event.training.sport,
             );
+            workoutSyncEmitted = true;
           }
         }
       } else if (workoutSteps && workoutSteps.length > 0) {
@@ -991,6 +998,7 @@ export class EventService {
             updatedEvent.startDate,
             event.training.sport,
           );
+          workoutSyncEmitted = true;
         }
       }
     }
@@ -1011,9 +1019,12 @@ export class EventService {
       );
     }
 
-    // If date changed and there's a workout, emit event for new date too (skip for templates)
+    // If date changed and there's a workout, emit event for new date too
+    // (skip for templates, and when the workout sync above already carries
+    // the new date)
     if (
       !isTemplate &&
+      !workoutSyncEmitted &&
       event.type === 'TRAINING' &&
       event.training?.workout &&
       (startDate || endDate) &&

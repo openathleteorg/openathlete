@@ -61,6 +61,14 @@ export interface DuplicateActivitiesJobData {
   athleteId: number;
 }
 
+/** Writing OpenAthlete's analysis into a Strava activity's description */
+export interface StravaDescriptionJobData {
+  providerAccountId: number;
+  stravaActivityId: string;
+  /** The saved activity read, possibly a copy from another source */
+  eventActivityId: number;
+}
+
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
@@ -88,7 +96,23 @@ export class QueueService {
     private readonly corosSyncQueue: Queue<CorosSyncJobData>,
     @InjectQueue('duplicate-activities')
     private readonly duplicateActivitiesQueue: Queue<DuplicateActivitiesJobData>,
+    @InjectQueue('strava-description')
+    private readonly stravaDescriptionQueue: Queue<StravaDescriptionJobData>,
   ) {}
+
+  /**
+   * One job per Strava activity: the import and a duplicate skip of the same
+   * workout queue it once.
+   */
+  async addStravaDescriptionJob(
+    data: StravaDescriptionJobData,
+    delayMs: number,
+  ): Promise<void> {
+    await this.stravaDescriptionQueue.add('write', data, {
+      jobId: `strava-description-${data.stravaActivityId}`,
+      delay: delayMs,
+    });
+  }
 
   async addCorosSyncJob(providerAccountId: number, delayMs = 0): Promise<void> {
     await this.corosSyncQueue.add(

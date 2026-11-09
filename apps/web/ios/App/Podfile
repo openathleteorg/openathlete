@@ -22,9 +22,17 @@ def capacitor_pods
   pod 'CapacitorVoiceRecorder', :path => '../../../../node_modules/.pnpm/capacitor-voice-recorder@7.0.6_@capacitor+core@8.5.3_@capacitor+filesystem@8.1.4_@capacitor+core@8.5.3_/node_modules/capacitor-voice-recorder'
 end
 
+# Same path as Capacitor writes above, which changes with the plugin version
+def capacitor_plugin_path(name)
+  real = File.realpath(File.join(__dir__, '../../node_modules', name))
+  Pathname.new(real).relative_path_from(Pathname.new(__dir__)).to_s
+end
+
 target 'App' do
   capacitor_pods
   # Add your Pods here
+  # Google sign-in: the plugin leaves the GoogleSignIn SDK out by default
+  pod 'CapacitorFirebaseAuthentication/Google', :path => capacitor_plugin_path('@capacitor-firebase/authentication')
   pod 'Firebase/Core', '~> 12.7'
   pod 'Firebase/Messaging', '~> 12.7'
 end

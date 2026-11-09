@@ -120,6 +120,8 @@ export function Footer({ locale }: { locale: SupportedLocale }) {
               {m.site_nav_training_plans()}
             </Item>
             <Item href={p('/pace-charts')}>{m.pacechart_nav_label()}</Item>
+            <Item href={p('/races')}>{m.races_nav_label()}</Item>
+            <Item href={p('/learn')}>{m.learn_nav_label()}</Item>
             <Item href={DOCS_URL}>{m.site_nav_docs()}</Item>
           </Column>
 

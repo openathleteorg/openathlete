@@ -216,6 +216,17 @@ export function RepeatBlockInline({
     });
   };
 
+  const handleNameChange = (value: string) => {
+    onUpdate({
+      ...step,
+      name: value || null,
+      repeatBlock: {
+        ...step.repeatBlock,
+        childSteps: normalizedChildSteps,
+      },
+    });
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -285,8 +296,8 @@ export function RepeatBlockInline({
       <Card className="border-l-4 border-primary/40 p-2">
         <div className="p-2 space-y-1.5">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-primary">
+            <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0 w-full sm:w-auto">
+              <span className="font-semibold text-primary whitespace-nowrap">
                 {m.workout_step_repeat()}
               </span>
               <div className="flex items-center gap-1.5">
@@ -300,6 +311,15 @@ export function RepeatBlockInline({
                   className="w-16 h-8 text-sm"
                 />
               </div>
+              <Input
+                id={`repeat-name-${step.workoutStepId}`}
+                type="text"
+                placeholder={m.step_form_name()}
+                aria-label={m.step_form_name()}
+                value={step.name ?? ''}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className="flex-1 min-w-[160px] h-8 text-sm"
+              />
             </div>
             <Button
               type="button"

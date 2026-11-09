@@ -29,6 +29,10 @@ export const routes = {
     completeOnboarding: '/user/complete-onboarding',
     updatePushToken: '/user/push-token',
   },
+  emails: {
+    unsubscribe: '/emails/unsubscribe',
+    resubscribe: '/emails/resubscribe',
+  },
   activityImport: {
     fit: '/activity-import/fit',
     gpx: '/activity-import/gpx',
@@ -137,6 +141,7 @@ export const routes = {
       `/provider/${provider.toLowerCase()}/preferences`,
     importAllActivities: (provider: ConnectorProvider) =>
       `/provider/${provider.toLowerCase()}/import-all`,
+    activityDescriptionPreview: '/provider/strava/activity-description/preview',
   },
   athlete: {
     getMyAthlete: '/athlete/me',
@@ -248,6 +253,7 @@ export const routes = {
   },
   subscription: {
     current: '/subscription/current',
+    supporters: '/subscription/supporters',
     checkout: '/subscription/checkout',
     cancel: '/subscription/cancel',
     resume: '/subscription/resume',

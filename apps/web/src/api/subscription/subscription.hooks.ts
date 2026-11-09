@@ -13,6 +13,16 @@ export function useCurrentSubscription() {
   });
 }
 
+/** How many Supporters there are, asked only where the count is shown */
+export function useSupporterCountQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: subscriptionKeys.supporters(),
+    queryFn: () => SubscriptionAPI.getSupporterCount(),
+    enabled,
+    staleTime: 60 * 60 * 1000,
+  });
+}
+
 export function useCreateCheckout() {
   const queryClient = useQueryClient();
 

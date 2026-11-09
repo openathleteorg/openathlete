@@ -39,6 +39,7 @@ const EXPORTED_TABLES = [
   'equipment',
   'event',
   'event_template',
+  'lifecycle_email',
   'message',
   'provider_account',
   'record',

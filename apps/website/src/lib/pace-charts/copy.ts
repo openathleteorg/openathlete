@@ -8,6 +8,7 @@ import {
   formatNumber,
   formatPace,
   goalLabel,
+  goalMinutes,
 } from './chart';
 import { type PaceChartDistance, type RaceId, distanceSpec } from './data';
 
@@ -16,6 +17,8 @@ type Options = { locale: ParaglideLocale };
 /** Values every message of a chart page is filled with. */
 export interface ChartValues {
   time: string;
+  /** Whole minutes for goals under the hour, for "50-minute 10K"; else ''. */
+  minutes: string;
   pace: string;
   mile: string;
   speed: string;
@@ -28,6 +31,7 @@ export function chartValues(
 ): ChartValues {
   return {
     time: goalLabel(chart.slug, locale),
+    minutes: String(goalMinutes(chart.slug) ?? ''),
     pace: formatPace(chart.pace),
     mile: formatPace(chart.paceMile),
     speed: formatNumber(chart.speedKmh, locale),
@@ -88,6 +92,36 @@ const DISTANCE_COPY: Record<
     }),
     workoutTitle: (v, o) => m.pacechart_half_wo_title(v, o),
     workoutBody: (v, o) => m.pacechart_half_wo_body(v, o),
+  },
+  '10k': {
+    // "50-minute 10K" under the hour, "1:05 10K" from the hour
+    h1: (v, o) =>
+      v.minutes ? m.pacechart_10k_h1_min(v, o) : m.pacechart_10k_h1(v, o),
+    meta: (v, o) => m.pacechart_10k_meta(v, o),
+    faq1: (v, o) => m.pacechart_10k_faq1_q(v, o),
+    faq2: (chart, v, o) => ({
+      question: m.pacechart_10k_faq2_q(v, o),
+      answer: m.pacechart_10k_faq2_a(
+        { fivek: equivalent(chart, '5k'), half: equivalent(chart, 'half') },
+        o,
+      ),
+    }),
+    workoutTitle: (v, o) => m.pacechart_10k_wo_title(v, o),
+    workoutBody: (v, o) => m.pacechart_10k_wo_body(v, o),
+  },
+  '5k': {
+    h1: (v, o) => m.pacechart_5k_h1(v, o),
+    meta: (v, o) => m.pacechart_5k_meta(v, o),
+    faq1: (v, o) => m.pacechart_5k_faq1_q(v, o),
+    faq2: (chart, v, o) => ({
+      question: m.pacechart_5k_faq2_q(v, o),
+      answer: m.pacechart_5k_faq2_a(
+        { tenk: equivalent(chart, '10k'), half: equivalent(chart, 'half') },
+        o,
+      ),
+    }),
+    workoutTitle: (v, o) => m.pacechart_5k_wo_title(v, o),
+    workoutBody: (v, o) => m.pacechart_5k_wo_body(v, o),
   },
 };
 

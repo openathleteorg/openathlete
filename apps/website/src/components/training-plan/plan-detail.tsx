@@ -441,6 +441,9 @@ export function PlanDetail({
                   ['/tools/vma', m.tplan_paces_vma()],
                   ['/tools/race-predictor', m.tplan_paces_predictor()],
                   ['/tools/pace-calculator', m.tplan_paces_pace()],
+                  ...(entry.distance === 'marathon'
+                    ? [['/races', m.races_nav_label()]]
+                    : []),
                 ].map(([href, label]) => (
                   <Link
                     key={href}

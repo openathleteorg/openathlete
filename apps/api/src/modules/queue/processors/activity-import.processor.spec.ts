@@ -18,6 +18,14 @@ jest.mock('../../core/services/activity-duplicate.service', () => ({
   ActivityDuplicateService: class {},
 }));
 
+jest.mock(
+  '../../providers-sync/activity-description/activity-description.service',
+  () => ({
+    ActivityDescriptionService: class {},
+    AFTER_DUPLICATE_DELAY_MS: 180000,
+  }),
+);
+
 const saved = { eventActivityId: 31, eventId: 30 };
 
 function setup(
@@ -25,14 +33,19 @@ function setup(
   {
     known = false,
     copy = null,
-  }: { known?: boolean; copy?: { eventId: number } | null } = {},
+    provider = ConnectorProvider.STRAVA,
+  }: {
+    known?: boolean;
+    copy?: { eventId: number; eventActivityId: number } | null;
+    provider?: ConnectorProvider;
+  } = {},
 ) {
   const prisma = {
     providerAccount: {
       findUnique: jest.fn().mockResolvedValue({
         providerAccountId: 7,
         athleteId: 70,
-        provider: ConnectorProvider.STRAVA,
+        provider,
         status: 'active',
         importActivitiesEnabled: true,
       }),
@@ -51,6 +64,7 @@ function setup(
   };
   const queue = { addActivityProcessingJob: jest.fn() };
   const emitter = { emit: jest.fn() };
+  const descriptions = { schedule: jest.fn().mockResolvedValue(true) };
   const processor = new ActivityImportProcessor(
     prisma as never,
     strava as never,
@@ -61,8 +75,10 @@ function setup(
     queue as never,
     duplicates as never,
     emitter as never,
+    undefined,
+    descriptions as never,
   );
-  return { processor, emitter, queue, strava, duplicates };
+  return { processor, emitter, queue, strava, duplicates, descriptions };
 }
 
 const job = (bulkImport = false) =>
@@ -112,7 +128,7 @@ describe('ActivityImportProcessor', () => {
 
   it('skips an activity another source already saved', async () => {
     const { processor, strava, queue, emitter, duplicates } = setup(true, {
-      copy: { eventId: 12 },
+      copy: { eventId: 12, eventActivityId: 13 },
     });
     await expect(processor.process(job())).resolves.toMatchObject({
       success: true,
@@ -128,6 +144,41 @@ describe('ActivityImportProcessor', () => {
     expect(strava.importActivity).not.toHaveBeenCalled();
     expect(queue.addActivityProcessingJob).not.toHaveBeenCalled();
     expect(emitter.emit).not.toHaveBeenCalled();
+  });
+
+  it('describes a skipped Strava copy from the activity already saved', async () => {
+    const { processor, descriptions } = setup(true, {
+      copy: { eventId: 12, eventActivityId: 13 },
+    });
+    await processor.process(job());
+    expect(descriptions.schedule).toHaveBeenCalledWith({
+      athleteId: 70,
+      stravaActivityId: 'strava-1',
+      eventActivityId: 13,
+      startDate: new Date('2026-01-06T07:00:00.000Z'),
+      delayMs: 180000,
+    });
+  });
+
+  it('describes no skipped copy from a history import or another provider', async () => {
+    const copy = { eventId: 12, eventActivityId: 13 };
+    const bulk = setup(true, { copy });
+    await bulk.processor.process(job(true));
+    expect(bulk.descriptions.schedule).not.toHaveBeenCalled();
+
+    const garmin = setup(true, { copy, provider: ConnectorProvider.GARMIN });
+    await garmin.processor.process(job());
+    expect(garmin.descriptions.schedule).not.toHaveBeenCalled();
+  });
+
+  it('still skips the copy when its description cannot be queued', async () => {
+    const { processor, descriptions } = setup(true, {
+      copy: { eventId: 12, eventActivityId: 13 },
+    });
+    descriptions.schedule.mockRejectedValue(new Error('Redis down'));
+    await expect(processor.process(job())).resolves.toMatchObject({
+      skipped: 'duplicate',
+    });
   });
 
   it('leaves an activity this source saved to its provider', async () => {

@@ -17,7 +17,7 @@ import {
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
 import { PhoneShot } from '@/components/site/visuals/screenshot';
-import { GITHUB_URL } from '@/config';
+import { GITHUB_URL, GOOGLE_PLAY_URL } from '@/config';
 import { initLocale } from '@/i18n/server';
 import { signupUrl } from '@/lib/links';
 import { m } from '@/paraglide/messages';
@@ -60,12 +60,14 @@ function StatusCard({
   state,
   body,
   live,
+  action,
 }: {
   icon: ReactNode;
   name: string;
   state: string;
   body: string;
   live?: boolean;
+  action?: ReactNode;
 }) {
   return (
     <div
@@ -93,6 +95,7 @@ function StatusCard({
       <p className="mt-3 text-[0.9rem] leading-snug text-muted-foreground">
         {body}
       </p>
+      {action}
     </div>
   );
 }
@@ -189,16 +192,19 @@ export default async function MobilePage({ params }: Props) {
                   {m.site_cta_start()}
                   <ArrowRight className="transition-transform group-hover/btn:translate-x-0.5" />
                 </TrackedLink>
-                <a
-                  href="#install"
+                <TrackedLink
+                  href={GOOGLE_PLAY_URL}
+                  event="cta_clicked"
+                  properties={{ placement: 'mobile_hero', cta: 'google_play' }}
                   className={buttonStyles({
                     variant: 'secondary',
                     size: 'lg',
                     className: 'w-full sm:w-auto',
                   })}
                 >
-                  {m.mobile_cta_install()}
-                </a>
+                  <AndroidIcon className="size-4 text-mint-strong" />
+                  {m.mobile_cta_play()}
+                </TrackedLink>
               </div>
             </div>
             <Reveal
@@ -248,10 +254,25 @@ export default async function MobilePage({ params }: Props) {
             </RevealItem>
             <RevealItem>
               <StatusCard
+                live
                 icon={<AndroidIcon className="size-5 text-mint-strong" />}
                 name={m.mobile_status_android()}
-                state={m.mobile_status_soon()}
+                state={m.mobile_status_android_state()}
                 body={m.mobile_status_android_body()}
+                action={
+                  <TrackedLink
+                    href={GOOGLE_PLAY_URL}
+                    event="cta_clicked"
+                    properties={{
+                      placement: 'mobile_status',
+                      cta: 'google_play',
+                    }}
+                    className="mt-3 inline-flex items-center gap-1 text-[0.9rem] font-medium text-mint-strong hover:underline"
+                  >
+                    {m.mobile_cta_play()}
+                    <ArrowRight className="size-3.5" />
+                  </TrackedLink>
+                }
               />
             </RevealItem>
           </RevealGroup>

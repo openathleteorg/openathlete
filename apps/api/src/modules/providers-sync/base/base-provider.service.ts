@@ -300,11 +300,19 @@ export abstract class BaseProviderService {
     });
 
     if (existing) {
+      // Connected again: should it break later, the user hears of it again
+      await this.prisma.lifecycleEmail.deleteMany({
+        where: {
+          kind: 'CONNECTION_LOST',
+          ref: String(existing.providerAccountId),
+        },
+      });
       return this.prisma.providerAccount.update({
         where: {
           providerAccountId: existing.providerAccountId,
         },
         data: {
+          disconnectedByUser: false,
           accessToken: accessToken,
           refreshToken: refreshToken,
           expiresAt: expiresAt,

@@ -44,10 +44,21 @@ export function formatNumber(
   });
 }
 
-/** The goal as runners write it: "3:45" in English, "3h45" elsewhere. */
+/**
+ * The goal as runners write it: "3:45" in English, "3h45" elsewhere; under
+ * the hour, "50:00" in English and "50 min" elsewhere.
+ */
 export function goalLabel(slug: string, locale: ParaglideLocale): string {
+  if (!slug.includes('-')) {
+    return locale === 'en' ? `${slug}:00` : `${slug}\u00a0min`;
+  }
   const [hours, minutes] = slug.split('-');
   return locale === 'en' ? `${hours}:${minutes}` : `${hours}h${minutes}`;
+}
+
+/** Whole minutes of a goal under the hour ('50' → 50), else undefined. */
+export function goalMinutes(slug: string): number | undefined {
+  return slug.includes('-') ? undefined : Number(slug);
 }
 
 /** A duration rounded to the minute, written like a goal: "2:23", "2h23". */
@@ -84,7 +95,8 @@ export interface PaceChart {
   firstHalfPace: number;
   secondHalfPace: number;
   halfway: { even: number; first: number; second: number };
-  everyKm: Split[];
+  /** Every km marker, or every track lap on the short races. */
+  grid: Split[];
   checkpoints: Split[];
   equivalents: { race: RaceId; seconds: number; pace: number }[];
   benchmarks: { race: RaceId; seconds: number }[];
@@ -111,20 +123,21 @@ export function buildPaceChart(spec: DistanceSpec, slug: string): PaceChart {
         : (firstHalfPace * half + secondHalfPace * (at - half)) / 1000,
   });
 
-  const kms = Math.floor(metres / 1000);
-  const everyKm = [
-    ...Array.from({ length: kms }, (_, i) => split((i + 1) * 1000)),
-    split(metres),
-  ];
-  const checkpointMetres = [
-    ...Array.from(
-      { length: Math.floor(metres / 5000) },
-      (_, i) => (i + 1) * 5000,
-    ),
-    half,
-    metres,
-  ].sort((a, b) => a - b);
-  const checkpoints = [...new Set(checkpointMetres)].map(split);
+  const markers = (every: number, extra: number[]) =>
+    [
+      ...new Set([
+        ...Array.from(
+          { length: Math.floor(metres / every) },
+          (_, i) => (i + 1) * every,
+        ),
+        ...extra,
+        metres,
+      ]),
+    ]
+      .sort((a, b) => a - b)
+      .map(split);
+  const grid = markers(spec.gridEvery, []);
+  const checkpoints = markers(spec.checkpointEvery, [half]);
 
   const vdot = vdotFromPerformance(metres, seconds);
   const paces = trainingPaces(vdot);
@@ -162,7 +175,7 @@ export function buildPaceChart(spec: DistanceSpec, slug: string): PaceChart {
       first: (firstHalfPace * half) / 1000,
       second: seconds - (firstHalfPace * half) / 1000,
     },
-    everyKm,
+    grid,
     checkpoints,
     equivalents: spec.equivalents.map((race) => {
       const time = riegel(seconds, metres, RACE_METRES[race]);

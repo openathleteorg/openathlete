@@ -45,12 +45,25 @@ model User {
   hiddenActivityTracks Json?       @map("hidden_activity_tracks")
   /// When the user dismissed the request to support the project
   supportReminderDismissedAt DateTime? @map("support_reminder_dismissed_at")
+  /// How many times the request was dismissed: on the hosted instance it
+  /// comes back a few times, then stops
+  supportReminderDismissCount Int    @default(0) @map("support_reminder_dismiss_count")
+  /// When the app last showed a Supporter mention in context (race, year
+  /// review, AI preview), so they stay rare
+  supporterNudgeSeenAt DateTime?     @map("supporter_nudge_seen_at")
   /// When the user allowed their data to be sent to third-party AI
   /// providers; no AI runs on their data while unset (App Store 5.1.2(i), GDPR)
   aiDataSharingConsentAt DateTime? @map("ai_data_sharing_consent_at")
   /// When the user accepted product analytics; the API sends no event about
   /// them while unset (GDPR)
   analyticsConsentAt  DateTime?    @map("analytics_consent_at")
+  /// Onboarding tips and alerts about the account (sync stopped), by email
+  emailTips           Boolean      @default(true) @map("email_tips")
+  /// Monthly email recap of the training
+  emailRecap          Boolean      @default(true) @map("email_recap")
+  /// When the user asked for news about the project, Supporter included:
+  /// commercial emails need this consent (CNIL), unset by default
+  emailNewsConsentAt  DateTime?    @map("email_news_consent_at")
 
   // relationships
   athlete                   Athlete?
@@ -73,6 +86,7 @@ model User {
   subscription              Subscription?
   mcpGrants                 McpGrant[]
   oauthCodes                OAuthAuthorizationCode[]
+  lifecycleEmails           LifecycleEmail[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -119,6 +133,15 @@ model ProviderAccount {
   fullImportRequestedAt   DateTime?             @map("full_import_requested_at")
   /// Timestamp when a full historical import was completed
   fullImportCompletedAt   DateTime?             @map("full_import_completed_at")
+  /// Revoked from Settings by the user, as opposed to a connection that
+  /// broke (refused token, revoked at the provider), which they are told of
+  disconnectedByUser      Boolean               @default(false) @map("disconnected_by_user")
+  /// Writes OpenAthlete's analysis into the description of new activities
+  /// (Strava). Off for accounts connected before the feature: only a new
+  /// connection that grants write access starts with it on
+  activityDescriptionEnabled Boolean            @default(false) @map("activity_description_enabled")
+  /// Language of that analysis; null follows the user's language
+  activityDescriptionLanguage UserLanguage?     @map("activity_description_language")
 
   // relationships
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId])
@@ -204,4 +227,26 @@ model Token {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("token")
+}
+
+/// Emails of the onboarding, recap and news sequences already sent, so each
+/// goes out once (and so they stay spaced out)
+model LifecycleEmail {
+  // primary key
+  lifecycleEmailId Int @id @default(autoincrement()) @map("lifecycle_email_id")
+
+  // fields
+  kind   LifecycleEmailKind
+  /// What the email was about, when one kind can be sent more than once:
+  /// the month of a recap, the provider account of a lost connection
+  ref    String             @default("")
+  sentAt DateTime           @default(now()) @map("sent_at")
+
+  // relationships
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId Int  @map("user_id")
+
+  @@unique([userId, kind, ref])
+  @@index([userId, sentAt])
+  @@map("lifecycle_email")
 }

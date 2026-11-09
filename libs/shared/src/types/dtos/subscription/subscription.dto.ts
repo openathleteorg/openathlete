@@ -34,6 +34,14 @@ export type CurrentSubscriptionDto = z.infer<
   typeof currentSubscriptionDtoSchema
 >;
 
+/** How many people are Supporters today, and the goal */
+export const supporterCountDtoSchema = z.object({
+  count: z.number().int().nonnegative(),
+  goal: z.number().int().positive(),
+});
+
+export type SupporterCountDto = z.infer<typeof supporterCountDtoSchema>;
+
 /**
  * Create checkout session DTO
  */

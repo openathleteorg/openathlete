@@ -108,3 +108,27 @@ describe('SubscriptionController.recordAppleTransaction', () => {
     expect(subscriptionService.linkAppleTransaction).not.toHaveBeenCalled();
   });
 });
+
+describe('SubscriptionController.getSupporterCount', () => {
+  const controller = (billingEnabled: boolean) =>
+    new SubscriptionController(
+      { countSupporters: jest.fn().mockResolvedValue(37) } as never,
+      { billingEnabled } as never,
+      {} as never,
+      new TestAppleStoreService(),
+      {} as never,
+    );
+
+  it('gives the count of Supporters and the goal', async () => {
+    await expect(controller(true).getSupporterCount()).resolves.toEqual({
+      count: 37,
+      goal: 100,
+    });
+  });
+
+  it('answers 503 on an instance that sells nothing', async () => {
+    await expect(controller(false).getSupporterCount()).rejects.toThrow(
+      ServiceUnavailableException,
+    );
+  });
+});

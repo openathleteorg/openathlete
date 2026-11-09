@@ -44,6 +44,8 @@ import {
   CurrentSubscriptionDto,
   FeatureName,
   InvoiceDto,
+  SUPPORTER_GOAL,
+  SupporterCountDto,
   appleTransactionDtoSchema,
   createCheckoutSessionDtoSchema,
 } from '@openathlete/shared';
@@ -202,6 +204,38 @@ export class SubscriptionController {
       maxAthletes: await this.subscriptionService.getMaxAthletesForUser(userId),
       billingEnabled: this.stripeService.billingEnabled,
       appStoreEnabled: this.appleStoreService.enabled,
+    };
+  }
+
+  @Get('supporters')
+  @ApiOperation({
+    summary: 'Count the Supporters',
+    description:
+      'How many people are Supporters today and the goal the project aims for, shown next to the Supporter offer. Only on an instance that sells subscriptions.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'The count and the goal',
+    schema: {
+      type: 'object',
+      properties: {
+        count: { type: 'number', example: 37 },
+        goal: { type: 'number', example: SUPPORTER_GOAL },
+      },
+      required: ['count', 'goal'],
+    },
+  })
+  @ApiResponse({
+    status: 503,
+    description: 'This instance does not sell subscriptions',
+  })
+  async getSupporterCount(): Promise<SupporterCountDto> {
+    if (!this.stripeService.billingEnabled) {
+      throw new ServiceUnavailableException('BILLING_DISABLED');
+    }
+    return {
+      count: await this.subscriptionService.countSupporters(),
+      goal: SUPPORTER_GOAL,
     };
   }
 

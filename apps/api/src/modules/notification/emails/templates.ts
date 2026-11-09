@@ -1,5 +1,6 @@
-import { EmailPropsFromId } from '@openathlete/shared';
+import { EmailId, EmailLanguage, EmailPropsFromId } from '@openathlete/shared';
 
+import { RenderedEmail } from './core/layout';
 import { buildAthleteInvitationExistingEmail } from './templates/athlete-invitation-existing.template';
 import { buildAthleteInvitationEmail } from './templates/athlete-invitation.template';
 import { buildCoachInvitationExistingEmail } from './templates/coach-invitation-existing.template';
@@ -9,27 +10,17 @@ import { buildSignupNotificationEmail } from './templates/signup-notification.te
 import { buildSubscriptionConfirmationEmail } from './templates/subscription-confirmation.template';
 import { buildWelcomeEmail } from './templates/welcome.template';
 
-export const emailTemplates = {
-  'password-reset': buildPasswordResetEmail as (
-    props: EmailPropsFromId<'password-reset'>,
-  ) => string,
-  welcome: buildWelcomeEmail as (props: EmailPropsFromId<'welcome'>) => string,
-  'subscription-confirmation': buildSubscriptionConfirmationEmail as (
-    props: EmailPropsFromId<'subscription-confirmation'>,
-  ) => string,
-  'athlete-invitation': buildAthleteInvitationEmail as (
-    props: EmailPropsFromId<'athlete-invitation'>,
-  ) => string,
-  'athlete-invitation-existing': buildAthleteInvitationExistingEmail as (
-    props: EmailPropsFromId<'athlete-invitation-existing'>,
-  ) => string,
-  'coach-invitation-new': buildCoachInvitationNewEmail as (
-    props: EmailPropsFromId<'coach-invitation-new'>,
-  ) => string,
-  'coach-invitation-existing': buildCoachInvitationExistingEmail as (
-    props: EmailPropsFromId<'coach-invitation-existing'>,
-  ) => string,
-  'signup-notification': buildSignupNotificationEmail as (
-    props: EmailPropsFromId<'signup-notification'>,
-  ) => string,
+export const emailTemplates: {
+  [K in EmailId]: (
+    props: EmailPropsFromId<K> & { language?: EmailLanguage },
+  ) => RenderedEmail;
+} = {
+  'password-reset': buildPasswordResetEmail,
+  welcome: buildWelcomeEmail,
+  'subscription-confirmation': buildSubscriptionConfirmationEmail,
+  'athlete-invitation': buildAthleteInvitationEmail,
+  'athlete-invitation-existing': buildAthleteInvitationExistingEmail,
+  'coach-invitation-new': buildCoachInvitationNewEmail,
+  'coach-invitation-existing': buildCoachInvitationExistingEmail,
+  'signup-notification': buildSignupNotificationEmail,
 };

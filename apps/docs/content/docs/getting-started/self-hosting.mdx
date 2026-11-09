@@ -77,6 +77,9 @@ Any SMTP server works: your mail provider's, a relay such as Postmark or Amazon 
 | `SMTP_USER`     | User name, if the server asks for one                                                       |
 | `SMTP_PASSWORD` | Password                                                                                    |
 | `EMAIL_FROM`    | The sender address, which the server must accept, e.g. `openathlete@example.org`           |
+| `EMAIL_FROM_NAME` | The sender name shown in inboxes. Default: `OpenAthlete`                                  |
+| `EMAIL_REPLY_TO` | Where replies go, when nobody reads the sender address                                     |
+| `EMAIL_SIGNATURE` | Your name, to sign onboarding tips, the monthly recap and news. Setting it turns those emails on; each user can turn them off. |
 
 Brevo works too, through its API: set `BREVO_API_KEY` instead (it wins when both are set) and `EMAIL_FROM` or `BREVO_FROM_EMAIL`.
 
@@ -198,12 +201,14 @@ Commands run inside the API container:
 docker compose exec api openathlete list-users
 docker compose exec api openathlete reset-password ana@example.com
 docker compose exec api openathlete delete-user ana@example.com --yes
+docker compose exec -T api openathlete delete-users --yes < emails.txt
 docker compose exec api openathlete garmin-backfill
 ```
 
 - `list-users` lists the accounts with their id, name, roles and creation date.
 - `reset-password` prints a link to set a new password, valid 15 minutes, to pass on to the person.
 - `delete-user` deletes the account and all its data, as the user would from Settings; it asks for `--yes`.
+- `delete-users` does the same for every email of the file, one per line, after a wave of fake sign-ups for instance. Without `--yes` it only counts the accounts it would delete.
 - `garmin-backfill` asks Garmin to send the last 30 days of activities of every connected Garmin account again, after notifications were lost (the API was down for long, or failed to read them). Activities already imported are skipped.
 
 Without email (`SMTP_HOST` and `BREVO_API_KEY` empty), "Forgot your password?" still works: the reset link is written to the API logs instead of being sent, and the app tells the user to ask you for it. Find it with `docker compose logs api | grep "reset link"`.

@@ -6,6 +6,7 @@ import { Outlet, RouteObject } from 'react-router-dom';
 const Page500 = lazy(() => import('@/pages/500'));
 const Page403 = lazy(() => import('@/pages/403'));
 const Page404 = lazy(() => import('@/pages/404'));
+const UnsubscribePage = lazy(() => import('@/pages/emails/unsubscribe'));
 
 export const mainRoutes: RouteObject[] = [
   {
@@ -20,6 +21,8 @@ export const mainRoutes: RouteObject[] = [
       { path: '500', element: <Page500 /> },
       { path: '404', element: <Page404 /> },
       { path: '403', element: <Page403 /> },
+      // The unsubscribe link of the emails, which works signed out
+      { path: 'emails/unsubscribe', element: <UnsubscribePage /> },
     ],
   },
 ];

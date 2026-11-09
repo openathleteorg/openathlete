@@ -18,6 +18,7 @@ import { chartValues, distanceCopy, raceLabel } from '@/lib/pace-charts/copy';
 import { PACE_CHARTS, distanceSpec } from '@/lib/pace-charts/data';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl, toParaglideLocale } from '@/utils/locales';
+import { cn } from '@/utils/shadcn';
 import { ArrowRight, Calculator, Timer } from 'lucide-react';
 import Link from 'next/link';
 
@@ -87,11 +88,26 @@ export default async function PaceChartsHub({ params }: Props) {
             {m.pacechart_hub_h1()}
           </h1>
           <p className="lead mt-6 max-w-2xl">{m.pacechart_hub_lead()}</p>
+          <nav className="mt-8 flex flex-wrap gap-2">
+            {PACE_CHARTS.map((spec) => (
+              <a
+                key={spec.slug}
+                href={`#${spec.slug}`}
+                className="rounded-full border border-border bg-white px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-ink/25"
+              >
+                {raceLabel(spec.race, ml)}
+              </a>
+            ))}
+          </nav>
         </Container>
       </section>
 
       {PACE_CHARTS.map((spec) => (
-        <section key={spec.slug} className="pb-16 sm:pb-20">
+        <section
+          key={spec.slug}
+          id={spec.slug}
+          className="scroll-mt-24 pb-16 sm:pb-20"
+        >
           <Container>
             <div className="mb-6 flex items-baseline justify-between gap-4 border-b border-border pb-4">
               <h2 className="display-3 text-ink">{raceLabel(spec.race, ml)}</h2>
@@ -99,7 +115,15 @@ export default async function PaceChartsHub({ params }: Props) {
                 {m.pacechart_hub_count({ count: String(spec.goals.length) })}
               </p>
             </div>
-            <RevealGroup className="grid grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-6">
+            <RevealGroup
+              className={cn(
+                'grid grid-cols-3 gap-2 sm:gap-3',
+                // Eight goals fill one row instead of leaving two orphans
+                spec.goals.length === 8
+                  ? 'sm:grid-cols-4 lg:grid-cols-8'
+                  : 'lg:grid-cols-6',
+              )}
+            >
               {spec.goals.map((time) => {
                 const chart = buildPaceChart(spec, time);
                 return (

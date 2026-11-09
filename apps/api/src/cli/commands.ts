@@ -10,6 +10,8 @@ export const USAGE = `Usage: openathlete <command>
   list-users                  List the accounts of this instance
   reset-password <email>      Print a link to set a new password (valid 15 minutes)
   delete-user <email> --yes   Delete an account and all its data, for good
+  delete-users --yes          Same for every email read from the standard input,
+                              one per line (for waves of fake sign-ups)
   garmin-backfill             Ask Garmin to resend the last 30 days of activities
                               of every connected account (the worker imports them)`;
 
@@ -20,7 +22,12 @@ export interface CliDeps {
   appUrl: string;
   /** Queues the historical import of these provider accounts */
   queueFullImports: (providerAccountIds: number[]) => Promise<void>;
+  /** The whole standard input */
+  readInput: () => Promise<string>;
 }
+
+/** How often delete-users reports its progress */
+const PROGRESS_EVERY = 500;
 
 /**
  * Administration commands for self-hosted instances, run inside the API
@@ -101,6 +108,53 @@ export async function runCommand(
       await deps.accountDeletion.deleteAccount(user.userId);
       out(`Deleted ${user.email}`);
       return 0;
+    }
+
+    case 'delete-users': {
+      const emails = [
+        ...new Set(
+          (await deps.readInput())
+            .split(/\s+/)
+            .map((line) => line.trim().toLowerCase())
+            .filter(Boolean),
+        ),
+      ];
+      if (emails.length === 0) {
+        out('No email on the standard input');
+        return 1;
+      }
+      // Sign-up stores emails in lower case
+      const users = await deps.prisma.user.findMany({
+        where: { email: { in: emails } },
+        select: { userId: true, email: true },
+        orderBy: { userId: 'asc' },
+      });
+      const missing = emails.length - users.length;
+      if (!rest.includes('--yes')) {
+        out(
+          `This deletes ${users.length} account${users.length === 1 ? '' : 's'} and all their data for good${missing ? ` (${missing} email${missing === 1 ? ' matches' : 's match'} no account)` : ''}. Add --yes to confirm.`,
+        );
+        return 1;
+      }
+
+      let failed = 0;
+      for (const [index, user] of users.entries()) {
+        try {
+          await deps.accountDeletion.deleteAccount(user.userId);
+        } catch (error) {
+          failed++;
+          out(
+            `Could not delete user ${user.userId}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
+        if ((index + 1) % PROGRESS_EVERY === 0) {
+          out(`${index + 1}/${users.length}`);
+        }
+      }
+      out(
+        `Deleted ${users.length - failed} account${users.length - failed === 1 ? '' : 's'}${failed ? `, ${failed} failed` : ''}${missing ? `, ${missing} email${missing === 1 ? '' : 's'} matched no account` : ''}`,
+      );
+      return failed ? 1 : 0;
     }
 
     case 'garmin-backfill': {

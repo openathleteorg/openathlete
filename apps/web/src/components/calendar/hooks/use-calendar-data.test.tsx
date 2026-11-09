@@ -81,3 +81,31 @@ it('does not skip February when moving from a 31st and does not mutate the old d
   await act(async () => data.prevMonth());
   expect(data.displayedMonth.getMonth()).toBe(0);
 });
+it('jumps years back to a month, or to its week in week view', async () => {
+  await act(async () =>
+    root.render(<Harness date={new Date(2026, 10, 5)} view="month" />),
+  );
+  await act(async () => data.goToDate(new Date(2020, 2, 1)));
+  expect(data.displayedMonth.getFullYear()).toBe(2020);
+  expect(data.displayedMonth.getMonth()).toBe(2);
+
+  await act(async () =>
+    root.render(<Harness date={new Date(2026, 10, 5)} view="week" />),
+  );
+  await act(async () => data.goToDate(new Date(2020, 2, 1)));
+  // 1 March 2020 is a Sunday: its week starts on Monday 24 February
+  expect(dates()[0]).toBe('2020-2-24');
+});
+it('lists the weeks around the month jumped to on a phone', async () => {
+  state.mobile = true;
+  await act(async () =>
+    root.render(<Harness date={new Date(2026, 10, 5)} view="month" />),
+  );
+  await act(async () => data.goToDate(new Date(2020, 2, 1)));
+  const days = data.displayedWeeks.flat();
+  const keys = days.map((day) => day.toDateString());
+  expect(keys).toContain(new Date(2020, 2, 1).toDateString());
+  // Six months back and a year ahead of the month, as the page loads events
+  expect(days[0].getFullYear()).toBe(2019);
+  expect(days[days.length - 1].getFullYear()).toBe(2021);
+});

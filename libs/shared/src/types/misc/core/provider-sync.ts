@@ -5,6 +5,8 @@ export type ProviderSyncCapabilities = {
   exportWorkouts: boolean;
   importMetrics: boolean;
   supportsFullImport: boolean;
+  /** Writes OpenAthlete's analysis into new activities' descriptions */
+  writeActivityDescription: boolean;
 };
 
 const defaultCapabilities: ProviderSyncCapabilities = {
@@ -12,6 +14,7 @@ const defaultCapabilities: ProviderSyncCapabilities = {
   exportWorkouts: true,
   importMetrics: true,
   supportsFullImport: false,
+  writeActivityDescription: false,
 };
 
 const providerSpecificCapabilities: Partial<
@@ -22,36 +25,42 @@ const providerSpecificCapabilities: Partial<
     exportWorkouts: false,
     importMetrics: false,
     supportsFullImport: true,
+    writeActivityDescription: true,
   },
   GARMIN: {
     importActivities: true,
     exportWorkouts: true,
     importMetrics: true,
     supportsFullImport: true,
+    writeActivityDescription: false,
   },
   FITBIT: {
     importActivities: false,
     exportWorkouts: false,
     importMetrics: true,
     supportsFullImport: false,
+    writeActivityDescription: false,
   },
   APPLE_HEALTH: {
     importActivities: false,
     exportWorkouts: false,
     importMetrics: true,
     supportsFullImport: false,
+    writeActivityDescription: false,
   },
   SUUNTO: {
     importActivities: true,
     exportWorkouts: true,
     importMetrics: true,
     supportsFullImport: true,
+    writeActivityDescription: false,
   },
   COROS: {
     importActivities: true,
     exportWorkouts: true,
     importMetrics: true,
     supportsFullImport: true,
+    writeActivityDescription: false,
   },
   // Polar's API is read-only, and only serves what reached Flow after the
   // user connected, for 30 days: no export and no history to request
@@ -60,6 +69,7 @@ const providerSpecificCapabilities: Partial<
     exportWorkouts: false,
     importMetrics: true,
     supportsFullImport: false,
+    writeActivityDescription: false,
   },
 };
 

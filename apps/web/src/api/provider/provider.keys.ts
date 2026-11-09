@@ -4,4 +4,5 @@ export const providerKeys = {
   setOAuthToken: 'ProviderAPI.setOAuthToken',
   disconnect: 'ProviderAPI.disconnect',
   getConnected: 'ProviderAPI.getConnected',
+  activityDescriptionPreview: 'ProviderAPI.activityDescriptionPreview',
 } as const;

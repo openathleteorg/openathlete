@@ -5,6 +5,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateFnsLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
+import { withTimeOf } from '@/utils/with-time-of';
 import { format } from 'date-fns';
 import { CalendarIcon } from 'lucide-react';
 import { useState } from 'react';
@@ -26,7 +27,7 @@ export function DateTimePicker({ value, onChange, className }: P) {
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const handleDateSelect = (selectedDate: Date | undefined) => {
     if (selectedDate) {
-      onChange(selectedDate);
+      onChange(withTimeOf(selectedDate, value));
     }
   };
 

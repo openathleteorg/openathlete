@@ -8,11 +8,13 @@ import { localePath } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  BookA,
   BookOpen,
   Bot,
   Building2,
   Calculator,
   ChevronDown,
+  Flag,
   Gauge,
   LayoutGrid,
   Menu,
@@ -90,7 +92,7 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             label: m.site_nav_mobile({}, { locale: ml }),
             description: m.site_nav_mobile_desc({}, { locale: ml }),
             icon: <Smartphone />,
-            badge: m.site_nav_soon({}, { locale: ml }),
+            badge: m.site_nav_new({}, { locale: ml }),
           },
         ],
       },
@@ -141,6 +143,16 @@ function useMenus(): { groups: MenuGroup[]; links: MenuItem[] } {
             href: p('/pace-charts'),
             label: m.pacechart_nav_label({}, { locale: ml }),
             icon: <Gauge />,
+          },
+          {
+            href: p('/races'),
+            label: m.races_nav_label({}, { locale: ml }),
+            icon: <Flag />,
+          },
+          {
+            href: p('/learn'),
+            label: m.learn_nav_label({}, { locale: ml }),
+            icon: <BookA />,
           },
           {
             href: DOCS_URL,

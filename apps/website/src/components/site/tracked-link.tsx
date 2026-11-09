@@ -22,7 +22,7 @@ export function TrackedLink({
   ...props
 }: TrackedLinkProps) {
   const external = /^https?:\/\//.test(href);
-  const toApp = external && href.includes('app.openathlete.org');
+  const toApp = external && new URL(href).hostname === 'app.openathlete.org';
   const handleClick: ComponentProps<'a'>['onClick'] = (e) => {
     track(event, { href, ...properties });
     onClick?.(e);

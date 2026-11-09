@@ -95,24 +95,27 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       ? ('event' in rest && rest.event?.type) || EVENT_TYPE.TRAINING
       : EVENT_TYPE.TRAINING;
 
+  const planned =
+    type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION;
+
   // Calculate dates
   const startDate = useMemo(() => {
     if (create) {
-      return getStartDate(rest.date);
+      return getStartDate(rest.date, planned);
     } else if (edit) {
       return rest.event?.startDate;
     }
-  }, [create, edit, rest]);
+  }, [create, edit, rest, planned]);
 
   const endDate = useMemo(() => {
     if (create) {
       // Calculate endDate from startDate + 1 hour
-      const calculatedStartDate = getStartDate(rest.date);
+      const calculatedStartDate = getStartDate(rest.date, planned);
       return getEndDate(rest.date, calculatedStartDate);
     } else if (edit) {
       return rest.event?.endDate;
     }
-  }, [create, edit, rest]);
+  }, [create, edit, rest, planned]);
 
   // Initialize form
   const methods = useForm<EventFormValues>({

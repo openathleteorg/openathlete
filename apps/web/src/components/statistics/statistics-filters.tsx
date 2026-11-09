@@ -177,10 +177,34 @@ export function StatisticsFilters({ filters, sports }: P) {
               <ChevronLeft />
             </Button>
           )}
-          {period && (
-            <span className="text-sm text-muted-foreground tabular-nums">
-              {dayAndMonth(period.start)} {m.to()} {dayAndMonth(period.end)}
-            </span>
+          {periodType === 'year' && period ? (
+            // Picking a year beats a dozen clicks on the arrows
+            <Select
+              value={String(period.start.getFullYear())}
+              onValueChange={(value) =>
+                filters.setOffset(Number(value) - new Date().getFullYear())
+              }
+            >
+              <SelectTrigger
+                className="h-11 w-28 tabular-nums md:h-9"
+                aria-label={m.year()}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {filters.years.map((value) => (
+                  <SelectItem key={value} value={String(value)}>
+                    {value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            period && (
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {dayAndMonth(period.start)} {m.to()} {dayAndMonth(period.end)}
+              </span>
+            )
           )}
           {canStep && (
             <Button

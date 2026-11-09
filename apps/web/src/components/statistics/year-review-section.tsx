@@ -1,3 +1,4 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetRecordsQuery } from '@/api/record';
 import {
   useStatisticsDaysQuery,
@@ -13,6 +14,8 @@ import { useState } from 'react';
 
 import { formatDistance, formatDuration } from '@openathlete/shared';
 
+import { SupporterNudge } from '../supporter/supporter-nudge';
+import { useSupporterNudge } from '../supporter/use-supporter-nudge';
 import { Button } from '../ui/button';
 import { Card, CardContent } from '../ui/card';
 import { MetricTile } from '../ui/metric-tile';
@@ -26,6 +29,9 @@ interface P {
   athleteId: number;
   firstActivityDate: Date | null | undefined;
 }
+
+/** Active days before a year review mentions Supporter */
+const YEAR_REVIEW_NUDGE_MIN_DAYS = 30;
 
 function Review({
   athleteId,
@@ -45,6 +51,15 @@ function Review({
   const { data: records } = useGetRecordsQuery(
     { athleteId, from, to },
     { enabled: visible },
+  );
+  const { data: me } = useGetMyAthleteQuery();
+  // A year worth the name, looked at by its own athlete
+  const supporterNudge = useSupporterNudge(
+    'year_review',
+    String(year),
+    visible &&
+      me?.athleteId === athleteId &&
+      (days?.days.length ?? 0) >= YEAR_REVIEW_NUDGE_MIN_DAYS,
   );
   if (!days || !overview) {
     return (
@@ -145,6 +160,11 @@ function Review({
         <Share2 className="size-4" />
         {m.statistics_review_share()}
       </Button>
+      {supporterNudge && (
+        <SupporterNudge source="year_review">
+          {m.supporter_nudge_year_review({ year })}
+        </SupporterNudge>
+      )}
     </div>
   );
 }

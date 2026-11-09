@@ -2,8 +2,8 @@ import { EmailLanguage } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 
-import { button, h1, note, p } from '../core/blocks';
-import { layout } from '../core/layout';
+import { button, heading, note, paragraph } from '../core/blocks';
+import { renderEmail } from '../core/layout';
 
 const translations = {
   ES: {
@@ -26,7 +26,7 @@ const translations = {
       `${athleteName} vous invite à devenir son coach sur OpenAthlete. Vous pouvez accepter ou refuser cette invitation dans vos paramètres.`,
     buttonLabel: 'Voir les invitations',
     linkNote: (url: string) =>
-      `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur: ${url}`,
+      `Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur : ${url}`,
     settingsNote:
       'Vous pouvez gérer toutes vos invitations dans la section Paramètres de votre compte.',
   },
@@ -81,13 +81,13 @@ export function buildCoachInvitationExistingEmail({
   const title = t.title;
   const preview = t.preview(athleteName);
 
-  const content = [
-    h1(title),
-    p(t.description(athleteName)),
+  const blocks = [
+    heading(title),
+    paragraph(t.description(athleteName)),
     button({ href: url, label: t.buttonLabel }),
     note(t.linkNote(url)),
     note(t.settingsNote),
-  ].join('');
+  ];
 
-  return layout({ language, title, preview, contentHtml: content });
+  return renderEmail({ language, title, preview, blocks });
 }

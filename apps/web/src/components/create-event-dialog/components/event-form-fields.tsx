@@ -8,7 +8,6 @@ import { EVENT_TYPE, SPORT_TYPE, formatSpeed } from '@openathlete/shared';
 
 import { formatCompactDuration } from '../../calendar/utils/week-summary';
 import {
-  RHFDatePicker,
   RHFDistance,
   RHFDuration,
   RHFSelect,
@@ -92,7 +91,7 @@ export function EventFormFields({
         (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION) && (
           <div className="col-span-1 md:col-span-2">
             {/* The end follows in the dialog, from the planned duration */}
-            <RHFDatePicker name="startDate" label={m.start_date()} />
+            <RHFDateTimePicker name="startDate" label={m.start_date()} />
           </div>
         )}
       {!isTemplate && type === EVENT_TYPE.ACTIVITY && (

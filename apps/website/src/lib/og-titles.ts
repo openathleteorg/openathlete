@@ -1,6 +1,9 @@
 import { getPostBySlug, getPostText } from '@/content/blog';
 import { COMPETITORS } from '@/content/competitors';
+import { learnTerms } from '@/content/learn';
 import { paceChartTitle } from '@/lib/pace-charts/copy';
+import { raceText } from '@/lib/races/copy';
+import { raceBySlug } from '@/lib/races/data';
 import { listPlans } from '@/lib/training-plans/catalog';
 import { m } from '@/paraglide/messages';
 import { type SupportedLocale, toParaglideLocale } from '@/utils/locales';
@@ -60,10 +63,12 @@ const TITLES: Record<string, Candidates> = {
   '/tools/trail-time-estimator': ['tools_trail_h1'],
   '/tools/grade-adjusted-pace': ['tools_gap_h1'],
   '/pace-charts': ['pacechart_hub_h1'],
+  '/races': ['races_hub_h1'],
   '/training-plans': ['plans_hub_h1'],
   '/training-plans/running': ['plans_hub_running_h1'],
   '/training-plans/trail': ['plans_hub_trail_h1'],
   '/training-plans/triathlon': ['plans_hub_triathlon_h1'],
+  '/learn': ['learn_hub_h1'],
   '/legal-notice': ['legal_notice_title'],
   '/privacy-policy': ['privacy_policy_title'],
   '/terms-of-sale': ['terms_title'],
@@ -83,7 +88,9 @@ const SECTIONS: Record<string, string> = {
   blog: 'site_nav_blog',
   tools: 'site_nav_tools',
   'pace-charts': 'pacechart_nav_label',
+  races: 'races_nav_label',
   'training-plans': 'site_nav_training_plans',
+  learn: 'learn_nav_label',
   'legal-notice': 'legal_kicker',
   'privacy-policy': 'legal_kicker',
   'terms-of-sale': 'legal_kicker',
@@ -146,6 +153,14 @@ export function ogContent(
   }
   if (!title && segments[0] === 'pace-charts' && segments.length === 3) {
     title = paceChartTitle(segments[1], segments[2], toParaglideLocale(locale));
+  }
+  if (!title && segments[0] === 'learn' && segments[1]) {
+    const term = learnTerms.find((t) => t.slug === segments[1]);
+    if (term) title = term.title[locale];
+  }
+  if (!title && segments[0] === 'races' && segments[1]) {
+    const race = raceBySlug(segments[1]);
+    if (race) title = raceText(race, 'h1', toParaglideLocale(locale));
   }
   if (!title && segments[0] === 'training-plans' && segments.length === 4) {
     const plan = listPlans().find((p) => p.path === path);

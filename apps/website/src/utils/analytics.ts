@@ -1,9 +1,11 @@
 import { useSyncExternalStore } from 'react';
 
 /**
- * Website analytics are consent-based, as in the app: the hosted build sets
- * these variables, and without them nothing is loaded and no banner shows.
- * The host can be the app's /ingest proxy, which ad blockers leave alone.
+ * Every visit is measured, without cookies until the visitor accepts: PostHog
+ * then identifies them by a daily hash computed on its servers, and storage
+ * only starts with consent. The hosted build sets these variables; without
+ * them nothing is loaded and no banner shows. The host can be the app's
+ * /ingest proxy, which ad blockers leave alone.
  */
 const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST;
@@ -40,12 +42,7 @@ export function setConsent(value: TrackingConsent | null) {
   } catch {
     // Private mode: the choice lasts for this page only
   }
-  // A running tracker cannot be unloaded, and navigation here never reloads
-  if (started && value !== 'granted') {
-    window.location.reload();
-    return;
-  }
-  if (value === 'granted') startAnalytics();
+  if (client) applyConsent(client);
   listeners.forEach((listener) => listener());
 }
 
@@ -61,25 +58,38 @@ export function useTrackingConsent(): TrackingConsent | null {
   );
 }
 
-export function initAnalytics() {
-  if (getConsent() === 'granted') startAnalytics();
+/**
+ * Switches PostHog between cookies (accepted) and cookieless (refused or not
+ * chosen yet). Opting out also deletes the cookie set by an earlier consent.
+ */
+function applyConsent(posthog: PostHog) {
+  const granted = getConsent() === 'granted';
+  if (granted === posthog.has_opted_in_capturing()) return;
+  if (granted) posthog.opt_in_capturing({ captureEventName: false });
+  else posthog.opt_out_capturing();
 }
 
-function startAnalytics() {
+export function initAnalytics() {
   if (!posthogToken || started) return;
   started = true;
-  // Loaded on demand so that visitors who refuse never download the SDK
+  // Loaded after the page so that it never delays rendering
   void import('posthog-js').then(({ default: posthog }) => {
     posthog.init(posthogToken, {
       api_host: posthogHost,
       ui_host: 'https://eu.posthog.com',
       defaults: '2026-01-30',
+      // Visitors who have not accepted count as opted out, which captures
+      // without cookies or storage. Needs cookieless mode enabled in the
+      // PostHog project settings, or these events are dropped.
+      cookieless_mode: 'on_reject',
+      opt_out_capturing_by_default: true,
       // The banner only announces audience measurement
       disable_session_recording: true,
       // Same cookie on app.openathlete.org: a visitor who signs up after
       // reading the site keeps one identity across both
       cross_subdomain_cookie: true,
     });
+    applyConsent(posthog);
     client = posthog;
     for (const [event, properties] of pending.splice(0)) {
       posthog.capture(event, properties);
@@ -88,8 +98,8 @@ function startAnalytics() {
 }
 
 /**
- * Conversion events of the website. Without consent, or on a build without
- * PostHog, they go nowhere.
+ * Conversion events of the website, sent with or without consent. On a build
+ * without PostHog they go nowhere.
  */
 export type SiteEvent =
   | 'cta_clicked'

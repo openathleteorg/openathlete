@@ -88,7 +88,17 @@ const HISTORY_EMPTY_WINDOWS_LIMIT = 12;
 const METRICS_WINDOW_DAYS = 7;
 const MAX_FIT_BYTES = 64 * 1024 * 1024;
 
-export const corosIssuer = (region: string) => `https://mcp${region}.coros.com`;
+const COROS_ISSUERS: Record<CorosRegion, string> = {
+  eu: 'https://mcpeu.coros.com',
+  us: 'https://mcpus.coros.com',
+  cn: 'https://mcpcn.coros.com',
+};
+
+/** Fixed hosts only: a stored region is never spliced into a URL */
+export const corosIssuer = (region: string): string =>
+  Object.prototype.hasOwnProperty.call(COROS_ISSUERS, region)
+    ? COROS_ISSUERS[region as CorosRegion]
+    : COROS_ISSUERS.eu;
 
 /** What the client keeps between leaving for COROS and coming back */
 interface CorosPendingLogin {
