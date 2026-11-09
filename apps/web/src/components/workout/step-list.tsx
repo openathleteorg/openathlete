@@ -17,13 +17,20 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
 
-import type { WorkoutStepDto as WorkoutStep } from '@openathlete/shared';
+import type {
+  SPORT_TYPE,
+  StepZoneLike,
+  WorkoutStepDto as WorkoutStep,
+} from '@openathlete/shared';
 
 import { RepeatBlockInline } from './repeat-block-inline';
 import { StepCard } from './step-card';
 
 interface StepListProps {
   steps: WorkoutStep[];
+  sport?: SPORT_TYPE;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   onReorder: (reorderedSteps: WorkoutStep[]) => void;
   onEditStep: (step: WorkoutStep) => void;
   onDeleteStep: (stepId: number) => void;
@@ -39,6 +46,9 @@ interface StepListProps {
 interface SortableStepItemProps {
   step: WorkoutStep;
   index: number;
+  sport?: SPORT_TYPE;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   onEdit: () => void;
   onDelete: () => void;
   onUpdateRepeatBlock?: (step: WorkoutStep) => void;
@@ -53,6 +63,9 @@ interface SortableStepItemProps {
 function SortableStepItem({
   step,
   index,
+  sport,
+  metrics,
+  trainingZones,
   onEdit,
   onDelete,
   onUpdateRepeatBlock,
@@ -96,6 +109,9 @@ function SortableStepItem({
                 repeatBlock: NonNullable<WorkoutStep['repeatBlock']>;
               }
             }
+            sport={sport}
+            metrics={metrics}
+            trainingZones={trainingZones}
             onUpdate={onUpdateRepeatBlock || (() => {})}
             onDelete={onDelete}
             onAddChildStep={onAddChildStep || (() => {})}
@@ -106,6 +122,9 @@ function SortableStepItem({
           <StepCard
             step={step}
             index={index}
+            sport={sport}
+            metrics={metrics}
+            trainingZones={trainingZones}
             onEdit={onEdit}
             onDelete={onDelete}
           />
@@ -117,6 +136,9 @@ function SortableStepItem({
 
 export function StepList({
   steps,
+  sport,
+  metrics,
+  trainingZones,
   onReorder,
   onEditStep,
   onDeleteStep,
@@ -180,6 +202,9 @@ export function StepList({
               key={step.workoutStepId}
               step={step}
               index={index + 1}
+              sport={sport}
+              metrics={metrics}
+              trainingZones={trainingZones}
               onEdit={() => onEditStep(step)}
               onDelete={() => onDeleteStep(step.workoutStepId!)}
               onUpdateRepeatBlock={onUpdateRepeatBlock}

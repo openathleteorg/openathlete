@@ -1,6 +1,10 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
+import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
 import { Separator } from '@/components/ui/separator';
+import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
 import * as m from '@/paraglide/messages';
 import { getStepTypeLabel } from '@/utils/workout';
+import { useMemo } from 'react';
 
 import {
   type SPORT_TYPE,
@@ -9,6 +13,7 @@ import {
   type WorkoutStepTargetDto,
   calculateWorkoutDistance,
   calculateWorkoutDuration,
+  estimateStepDistanceFromDuration,
   formatDistance,
   formatDuration,
 } from '@openathlete/shared';
@@ -16,6 +21,7 @@ import {
 import { DurationDisplay } from './duration-display';
 import { TargetBadge } from './target-badge';
 import { TypeIcon } from './type-icon';
+import { metricValues } from './workout-profile';
 
 interface WorkoutSummaryProps {
   workout: WorkoutDto;
@@ -30,8 +36,45 @@ export function WorkoutSummary({
   sport,
   athleteId,
 }: WorkoutSummaryProps) {
-  const estimatedDuration = calculateWorkoutDuration(workout, undefined, sport);
-  const totalDistance = calculateWorkoutDistance(workout);
+  const { data: me } = useGetMyAthleteQuery();
+  const { zones: trainingZones } = useAthleteTrainingZones(athleteId);
+  const { data: latestMetrics } = useGetLatestMetricsQuery(
+    athleteId ?? me?.athleteId,
+  );
+  const metrics = useMemo(() => metricValues(latestMetrics), [latestMetrics]);
+
+  const estimatedDuration = calculateWorkoutDuration(workout, metrics, sport);
+  const totalDistance = calculateWorkoutDistance(
+    workout,
+    metrics,
+    sport,
+    trainingZones,
+  );
+  const hasEstimatedDistance = useMemo(
+    () =>
+      workout.steps.some((step: WorkoutStepDto) => {
+        if (step.stepType === 'REPEAT' && step.repeatBlock) {
+          return step.repeatBlock.childSteps.some(
+            (child: WorkoutStepDto) =>
+              estimateStepDistanceFromDuration(
+                child,
+                metrics,
+                sport,
+                trainingZones,
+              ) !== null,
+          );
+        }
+        return (
+          estimateStepDistanceFromDuration(
+            step,
+            metrics,
+            sport,
+            trainingZones,
+          ) !== null
+        );
+      }),
+    [workout.steps, metrics, sport, trainingZones],
+  );
 
   const renderStep = (step: WorkoutStepDto, index: number, isChild = false) => {
     const isRepeat = step.stepType === 'REPEAT' && step.repeatBlock;
@@ -71,6 +114,10 @@ export function WorkoutSummary({
                   className="text-sm text-muted-foreground flex-shrink-0"
                   durationType={step.durationType}
                   durationValue={step.durationValue}
+                  targets={step.targets}
+                  sport={sport}
+                  metrics={metrics}
+                  trainingZones={trainingZones}
                 />
               )}
 
@@ -153,6 +200,7 @@ export function WorkoutSummary({
                   {m.workout_estimated_distance()}:
                 </span>
                 <span className="ml-2 font-medium">
+                  {hasEstimatedDistance ? '~' : ''}
                   {formatDistance(totalDistance, 'km')}
                 </span>
               </div>

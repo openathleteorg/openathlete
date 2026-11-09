@@ -17,6 +17,7 @@ export {
   countWorkoutSteps,
   validateWorkoutStructure,
   estimateStepDurationFromDistance,
+  estimateStepDistanceFromDuration,
   defaultSpeedForSport,
   isDurationSetByHand,
   paceToSpeed,
@@ -26,6 +27,7 @@ export {
 } from './workout.utils';
 export type {
   DurationStep,
+  StepZoneLike,
   WorkoutValidationError,
   WorkoutValidationResult,
 } from './workout.utils';

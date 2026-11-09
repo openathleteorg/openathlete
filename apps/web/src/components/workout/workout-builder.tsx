@@ -10,7 +10,11 @@ import * as m from '@/paraglide/messages';
 import { Plus } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { WorkoutDto, WorkoutStepDto } from '@openathlete/shared';
+import type {
+  StepZoneLike,
+  WorkoutDto,
+  WorkoutStepDto,
+} from '@openathlete/shared';
 import {
   SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
@@ -24,6 +28,8 @@ import { StepList } from './step-list';
 interface WorkoutBuilderProps {
   workout?: WorkoutDto | null;
   sport: SPORT_TYPE;
+  metrics?: Record<string, { value: number } | number>;
+  trainingZones?: StepZoneLike[];
   hideMetadataForm?: boolean;
   hideActions?: boolean;
   onStepsChange?: (steps: WorkoutStepDto[]) => void;
@@ -35,6 +41,8 @@ type DialogState =
 export function WorkoutBuilder({
   workout,
   sport,
+  metrics,
+  trainingZones,
   onStepsChange,
 }: WorkoutBuilderProps) {
   const [steps, setSteps] = useState<WorkoutStepDto[]>(workout?.steps || []);
@@ -355,6 +363,9 @@ export function WorkoutBuilder({
         ) : (
           <StepList
             steps={steps}
+            sport={sport}
+            metrics={metrics}
+            trainingZones={trainingZones}
             onReorder={setSteps}
             onEditStep={handleEditStep}
             onDeleteStep={handleDeleteStep}
