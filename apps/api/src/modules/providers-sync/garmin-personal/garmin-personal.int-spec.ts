@@ -211,7 +211,7 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     client.download.mockResolvedValue(activityZip());
     processing.addActivityProcessingJob.mockReset().mockResolvedValue({});
   });
-  it('hides the capability and rejects every connection route when disabled', async () => {
+  it('hides the capability and rejects connection routes when disabled', async () => {
     enabled = false;
     const instance = await fetch(origin + '/instance').then((r) => r.json());
     expect(instance.garminPersonalApi).toBe(false);
@@ -219,7 +219,6 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
       ['', 'GET'],
       ['', 'POST'],
       ['', 'PATCH'],
-      ['', 'DELETE'],
       ['/sync', 'POST'],
     ]) {
       const response = await send(
@@ -234,6 +233,14 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
     }
     expect(client.authorize).not.toHaveBeenCalled();
     expect(await prisma.garminPersonalConnection.count()).toBe(0);
+  });
+  it('deletes the stored key even after the feature is disabled', async () => {
+    await service.connect(DELETED_USER_ID, dto);
+    enabled = false;
+    const response = await send('', 'DELETE');
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ status: 'disconnected' });
+    expect((await connection()).encryptedCredentials).toBeNull();
   });
   it('advertises the capability only when enabled', async () => {
     expect(

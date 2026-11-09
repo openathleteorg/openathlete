@@ -12,6 +12,7 @@ import {
   Post,
   ServiceUnavailableException,
   UseGuards,
+  applyDecorators,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
@@ -48,19 +49,27 @@ export class GarminPersonalEnabledGuard implements CanActivate {
   }
 }
 
+// Per route rather than on the class: disconnecting must keep working once an
+// administrator turns the feature off, so users can still delete their key.
+const RequiresGarminPersonal = () =>
+  applyDecorators(
+    UseGuards(GarminPersonalEnabledGuard),
+    ApiResponse({
+      status: 503,
+      description:
+        'Garmin Personal API is disabled on this instance (PROVIDER_NOT_CONFIGURED)',
+    }),
+  );
+
 @ApiTags('Provider')
 @ApiBearerAuth()
-@UseGuards(AuthGuard('jwt'), GarminPersonalEnabledGuard)
-@ApiResponse({
-  status: 503,
-  description:
-    'Garmin Personal API is disabled on this instance (PROVIDER_NOT_CONFIGURED)',
-})
+@UseGuards(AuthGuard('jwt'))
 @ApiResponse({ status: 401, description: 'Authentication required' })
 @Controller('provider/garmin-personal')
 export class GarminPersonalController {
   constructor(private readonly service: GarminPersonalService) {}
   @Get()
+  @RequiresGarminPersonal()
   @ApiResponse({
     status: 200,
     description: 'Sanitized connection state; never includes credentials',
@@ -72,6 +81,7 @@ export class GarminPersonalController {
     return this.service.status(user.userId);
   }
   @Post()
+  @RequiresGarminPersonal()
   @ApiResponse({
     status: 201,
     description: 'Sanitized connection state; never includes credentials',
@@ -88,6 +98,7 @@ export class GarminPersonalController {
     return this.service.connect(user.userId, body);
   }
   @Patch()
+  @RequiresGarminPersonal()
   @ApiResponse({
     status: 409,
     description:
@@ -115,12 +126,13 @@ export class GarminPersonalController {
   })
   @ApiOperation({
     summary:
-      'Delete your stored key and stop future pulls; keep imported activities',
+      'Delete your stored key and stop future pulls; keep imported activities. Works even when the feature is disabled',
   })
   disconnect(@JwtUser() user: AuthUser) {
     return this.service.disconnect(user.userId);
   }
   @Post('sync')
+  @RequiresGarminPersonal()
   @HttpCode(202)
   @Throttle(RATE_LIMITS.providerSync)
   @ApiResponse({
