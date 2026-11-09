@@ -261,11 +261,12 @@ export function mapSuuntoSleep(
           (d.WakeBeforeOffBedDuration ?? 0)
         : undefined,
     );
-    // Duration includes the time awake in bed: sleep is the stages
+    // Duration includes the time awake in bed: sleep is the stages, when the
+    // watch stages the whole night. Older watches (Suunto 9 Baro...) send
+    // only deep sleep, which is a part of the night, not all of it: without
+    // light sleep, sleep is the time in bed less the time awake.
     const staged =
-      deep !== undefined || light !== undefined || rem !== undefined
-        ? (deep ?? 0) + (light ?? 0) + (rem ?? 0)
-        : undefined;
+      light !== undefined ? (deep ?? 0) + light + (rem ?? 0) : undefined;
     const inBed = sum((d) => d.Duration);
     const asleep =
       staged ??
