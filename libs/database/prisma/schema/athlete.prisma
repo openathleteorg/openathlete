@@ -10,6 +10,7 @@
 /// Athletes can have training zones, records, equipment, training plans, and
 /// be coached by one or more coaches.
 model Athlete {
+  garminPersonalConnection GarminPersonalConnection?
   // primary key
   athleteId Int @id @default(autoincrement()) @map("athlete_id")
 

@@ -32,6 +32,7 @@ export class InstanceController {
       properties: {
         googleSignIn: { type: 'boolean' },
         email: { type: 'boolean' },
+        garminPersonalApi: { type: 'boolean' },
         personalEmails: {
           type: 'boolean',
           description:
@@ -65,6 +66,7 @@ export class InstanceController {
       email: !!emailTransportKind(get),
       personalEmails: !!emailTransportKind(get) && !!get('EMAIL_SIGNATURE'),
       providers: configuredProviders(get),
+      garminPersonalApi: get('GARMIN_PERSONAL_API_ENABLED') === true,
       // The first account is always allowed: it is the administrator's
       signup:
         mode !== 'open' && (await this.prisma.user.count()) === 0
