@@ -916,15 +916,17 @@ export class EventService {
       if (existingWorkout) {
         // Update existing workout
         if (workoutSteps) {
-          // Delete existing steps and create new ones
-          await this.prisma.workoutStep.deleteMany({
-            where: { workoutId: existingWorkout.workoutId },
-          });
-
+          // One nested write runs in a single transaction: if creating the new
+          // steps fails, the old ones are kept. Prisma runs the operations in
+          // key order, so deleteMany must come before create. Repeat-block
+          // child steps go with their parent step through the cascade.
           await this.prisma.workout.update({
             where: { workoutId: existingWorkout.workoutId },
             data: {
-              ...mapWorkoutDtoToPrisma({ steps: workoutSteps }),
+              steps: {
+                deleteMany: {},
+                ...mapWorkoutDtoToPrisma({ steps: workoutSteps }).steps,
+              },
             },
             include: {
               steps: {

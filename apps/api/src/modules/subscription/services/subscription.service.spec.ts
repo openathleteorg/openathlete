@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 
+import { Prisma } from '@openathlete/database';
 import { BillingInterval } from '@openathlete/shared';
 
 import {
@@ -51,6 +52,7 @@ function setup({
     user: { findUnique: jest.fn().mockResolvedValue({ userId: 7 }) },
     subscription: {
       findUnique: jest.fn().mockResolvedValue(stored),
+      findUniqueOrThrow: jest.fn().mockResolvedValue(stored),
       create: jest.fn(({ data }) =>
         Promise.resolve({ subscriptionId: 1, ...data }),
       ),
@@ -112,6 +114,39 @@ describe('SubscriptionService', () => {
       });
 
       await expect(service.canAddAthlete(7)).resolves.toBe(true);
+    });
+  });
+
+  describe('getOrCreateSubscription', () => {
+    it('creates a free subscription for a new account', async () => {
+      const { prisma, service } = setup();
+
+      await expect(service.getOrCreateSubscription(7)).resolves.toMatchObject({
+        userId: 7,
+        plan: 'FREE',
+      });
+      expect(prisma.subscription.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the subscription another request created at the same time', async () => {
+      const { prisma, service } = setup();
+      const created = { subscriptionId: 2, userId: 7, plan: 'FREE' };
+      prisma.subscription.create.mockRejectedValueOnce(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: 'test',
+        }),
+      );
+      prisma.subscription.findUniqueOrThrow.mockResolvedValueOnce(created);
+
+      await expect(service.getOrCreateSubscription(7)).resolves.toBe(created);
+    });
+
+    it('still fails on other database errors', async () => {
+      const { prisma, service } = setup();
+      prisma.subscription.create.mockRejectedValueOnce(new Error('down'));
+
+      await expect(service.getOrCreateSubscription(7)).rejects.toThrow('down');
     });
   });
 

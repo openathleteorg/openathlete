@@ -17,6 +17,7 @@ import {
 
 import {
   BillingProvider,
+  Prisma,
   BillingInterval as PrismaBillingInterval,
   SubscriptionPlan as PrismaSubscriptionPlan,
   Subscription,
@@ -159,20 +160,31 @@ export class SubscriptionService {
       throw e;
     }
 
-    let subscription = await this.getCurrentSubscription(userId);
+    const subscription = await this.getCurrentSubscription(userId);
+    if (subscription) return subscription;
 
-    if (!subscription) {
-      // Create free subscription by default
-      subscription = await this.prisma.subscription.create({
+    // Create free subscription by default
+    try {
+      return await this.prisma.subscription.create({
         data: {
           userId: userId,
           plan: SubscriptionPlan.FREE,
           status: SubscriptionStatus.active,
         },
       });
+    } catch (error) {
+      // A new account's first screens ask for it several times at once:
+      // all find nothing, and the database keeps the first one created
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        return await this.prisma.subscription.findUniqueOrThrow({
+          where: { userId },
+        });
+      }
+      throw error;
     }
-
-    return subscription;
   }
 
   /**

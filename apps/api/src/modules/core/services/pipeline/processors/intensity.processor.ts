@@ -64,12 +64,16 @@ export class IntensityProcessor implements ActivityProcessor {
       await this.zonesOf(athleteId, 'POWER', activity.sport),
     );
     const bins = activityProfile(stream, activity.sport);
-    await this.prisma.$transaction([
-      this.prisma.activityProfileBin.deleteMany({ where: { eventActivityId } }),
-      this.prisma.activityProfileBin.createMany({
+    await this.prisma.$transaction(async (tx) => {
+      // The pipeline and the backfill can refresh the same activity at once:
+      // without the lock, both delete, then the second insert hits the bins
+      // of the first and the whole refresh is lost
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(7138, ${eventActivityId}::int)`;
+      await tx.activityProfileBin.deleteMany({ where: { eventActivityId } });
+      await tx.activityProfileBin.createMany({
         data: bins.map((bin) => ({ ...bin, eventActivityId })),
-      }),
-      this.prisma.eventActivity.update({
+      });
+      await tx.eventActivity.update({
         where: { eventActivityId },
         data: {
           intensitySeconds: seconds,
@@ -77,7 +81,7 @@ export class IntensityProcessor implements ActivityProcessor {
           decouplingPercent,
           intensityVersion: INTENSITY_VERSION,
         },
-      }),
-    ]);
+      });
+    });
   }
 }
