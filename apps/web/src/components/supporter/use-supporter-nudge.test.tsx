@@ -3,7 +3,15 @@ import { userKeys } from '@/api/user/user.keys';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act } from 'react';
 import { type Root, createRoot } from 'react-dom/client';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 
 import { SubscriptionPlan, SubscriptionStatus } from '@openathlete/shared';
 
@@ -44,6 +52,13 @@ describe('useSupporterNudge', () => {
   let container: HTMLDivElement;
   let root: Root;
   let queryClient: QueryClient;
+
+  // Each test imports the hook afresh (it keeps the mention shown in module
+  // state). Transforming its module graph cold can outlast a test's timeout
+  // on a busy machine, so warm it once here
+  beforeAll(async () => {
+    await import('./use-supporter-nudge');
+  }, 60_000);
 
   beforeEach(() => {
     vi.resetModules();
