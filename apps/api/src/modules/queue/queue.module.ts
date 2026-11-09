@@ -13,6 +13,7 @@ import { ActivityImportProcessor } from './processors/activity-import.processor'
 import { ActivityProcessingProcessor } from './processors/activity-processing.processor';
 import { CorosSyncProcessor } from './processors/coros-sync.processor';
 import { DuplicateActivitiesProcessor } from './processors/duplicate-activities.processor';
+import { GarminHistoryBackfillProcessor } from './processors/garmin-history-backfill.processor';
 import { GarminNotificationProcessor } from './processors/garmin-notification.processor';
 import { PolarNotificationProcessor } from './processors/polar-notification.processor';
 import { ProviderFullImportProcessor } from './processors/provider-full-import.processor';
@@ -301,6 +302,24 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: 'garmin-history-backfill',
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 60_000,
+        },
+        // Kept for a month: a second backfill of the account meets these
+        // job ids and stops instead of requesting the windows again
+        removeOnComplete: {
+          age: 30 * 24 * 3600,
+        },
+        removeOnFail: {
+          age: 30 * 24 * 3600,
+        },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'garmin-notification',
       defaultJobOptions: {
         // An activity file can arrive before its activity is saved: retry
@@ -415,6 +434,7 @@ function parseRedisUrl(redisUrl: string): {
           ActivityImportProcessor,
           ProviderFullImportProcessor,
           GarminNotificationProcessor,
+          GarminHistoryBackfillProcessor,
           SuuntoNotificationProcessor,
           PolarNotificationProcessor,
           CorosSyncProcessor,

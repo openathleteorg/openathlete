@@ -87,17 +87,21 @@ describe('GarminProviderService.processNotification', () => {
         update: jest.fn(),
       },
       athleteMetric: { upsert: jest.fn((args) => args) },
+      eventActivity: { findMany: jest.fn().mockResolvedValue([]) },
       $transaction: jest.fn(),
     };
     const config = { get: jest.fn() };
-    const queue = { addActivityImportJobs: jest.fn() };
+    const queue = {
+      addActivityImportJobs: jest.fn(),
+      addGarminHistoryBackfillJob: jest.fn(),
+    };
     const service = new GarminProviderService(
       prisma as never,
       config as never,
       queue as never,
       {} as never,
     );
-    return { service, prisma };
+    return { service, prisma, queue };
   }
 
   beforeEach(() => mockedGet.mockReset());
@@ -318,5 +322,92 @@ describe('GarminProviderService.processNotification', () => {
     expect(mockedGet.mock.calls[1][1].params.summaryStartTimeInSeconds).toBe(
       Math.floor(conflictEnd.getTime() / 1000),
     );
+  });
+
+  const sharingAccount = {
+    ...account,
+    scopes: 'permissions:ACTIVITY_EXPORT',
+  } as unknown as ProviderAccount;
+
+  it('starts the history backfill behind the last 30 days', async () => {
+    const { service, queue } = setup([sharingAccount]);
+    mockedGet.mockResolvedValue({ status: 202, data: '' });
+
+    await service.queueFullImport(sharingAccount);
+
+    const { summaryStartTimeInSeconds } = mockedGet.mock.calls[0][1].params;
+    expect(queue.addGarminHistoryBackfillJob).toHaveBeenCalledWith(
+      1,
+      summaryStartTimeInSeconds,
+    );
+  });
+
+  it('completes the import even when the history backfill cannot start', async () => {
+    const { service, queue } = setup([sharingAccount]);
+    mockedGet.mockResolvedValue({ status: 202, data: '' });
+    queue.addGarminHistoryBackfillJob.mockRejectedValue(
+      new Error('Redis down'),
+    );
+
+    await expect(service.queueFullImport(sharingAccount)).resolves.toEqual({
+      queuedActivities: 0,
+      backfillRequested: true,
+    });
+  });
+
+  it('only recovers the last 30 days when asked to', async () => {
+    const { service, queue } = setup([sharingAccount]);
+    mockedGet.mockResolvedValue({ status: 202, data: '' });
+
+    await service.queueFullImport(sharingAccount, { deepHistory: false });
+
+    expect(queue.addGarminHistoryBackfillJob).not.toHaveBeenCalled();
+  });
+
+  it('imports backfilled activities as history, recent ones as new', async () => {
+    const { service, queue } = setup([account]);
+    const now = Math.floor(Date.now() / 1000);
+    mockedGet.mockResolvedValue({
+      data: [
+        {
+          summaryId: 'a',
+          activityId: 1,
+          activityType: 'RUNNING',
+          startTimeInSeconds: now - 3600,
+          durationInSeconds: 1800,
+        },
+        {
+          summaryId: 'b',
+          activityId: 2,
+          activityType: 'RUNNING',
+          startTimeInSeconds: now - 400 * 24 * 3600,
+          durationInSeconds: 1800,
+        },
+      ],
+    });
+
+    await service.processNotification(
+      {
+        summaryType: 'activities',
+        userId: 'u1',
+        callbackURL:
+          'https://apis.garmin.com/wellness-api/rest/activities?token=abc',
+        entry: {},
+      },
+      { lastAttempt: false },
+    );
+
+    const calls = queue.addActivityImportJobs.mock.calls as [
+      unknown,
+      { externalId: string }[],
+      boolean,
+    ][];
+    const byBulk = Object.fromEntries(
+      calls.map(([, activities, bulk]) => [
+        String(bulk),
+        activities.map((activity) => activity.externalId),
+      ]),
+    );
+    expect(byBulk).toEqual({ false: ['1'], true: ['2'] });
   });
 });

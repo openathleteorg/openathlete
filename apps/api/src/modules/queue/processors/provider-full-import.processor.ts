@@ -72,7 +72,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
 
     let result: FullImportResult;
     try {
-      result = await this.runProviderImport(account);
+      result = await this.runProviderImport(account, job.data);
     } catch (error) {
       // Out of quota: pause the whole queue, as the next accounts would be
       // refused too, and put the job back without spending an attempt
@@ -123,12 +123,15 @@ export class ProviderFullImportProcessor extends WorkerHost {
 
   private runProviderImport(
     account: ProviderAccount,
+    { recoverOnly }: ProviderFullImportJobData,
   ): Promise<FullImportResult> {
     switch (account.provider) {
       case ConnectorProvider.STRAVA:
         return this.stravaProviderService.queueFullImport(account);
       case ConnectorProvider.GARMIN:
-        return this.garminProviderService.queueFullImport(account);
+        return this.garminProviderService.queueFullImport(account, {
+          deepHistory: !recoverOnly,
+        });
       case ConnectorProvider.SUUNTO:
         return this.suuntoProviderService.queueFullImport(account);
       case ConnectorProvider.COROS:

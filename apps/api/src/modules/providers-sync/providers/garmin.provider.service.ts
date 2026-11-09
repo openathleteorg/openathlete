@@ -89,9 +89,16 @@ import {
   mapGarminSleeps,
   mapGarminUserMetrics,
 } from '../mapping/garmin-health.mapper';
+import { GARMIN_BACKFILL_WINDOW_SECONDS } from './garmin-backfill';
 
 const GARMIN_API_HOST = 'apis.garmin.com';
 const GARMIN_USER_API = `https://${GARMIN_API_HOST}/partner-gateway/rest/user`;
+
+/**
+ * Older activities come from a backfill: they are imported as history,
+ * without coach notices or weather lookups.
+ */
+const RECENT_ACTIVITY_MS = 7 * 24 * 60 * 60 * 1000;
 
 /** Permissions a Garmin user grants, stored in `scopes` with this prefix */
 const PERMISSIONS_PREFIX = 'permissions:';
@@ -262,7 +269,6 @@ export class GarminProviderService
   implements ProviderImportCapability, OnModuleDestroy
 {
   protected readonly provider = ConnectorProvider.GARMIN;
-  private readonly backfillWindowMs = 30 * 24 * 60 * 60 * 1000;
   private redis: Redis | null = null;
 
   constructor(
@@ -626,10 +632,15 @@ export class GarminProviderService
 
   /**
    * Garmin forbids pulling data outside of its notifications. History comes
-   * from a backfill request: Garmin then sends the past activities through
-   * the usual pings.
+   * from backfill requests: Garmin then sends the past activities through
+   * the usual pings. The last 30 days are requested here; older windows
+   * follow one job at a time (garmin-history-backfill), and their failure
+   * never fails this import.
    */
-  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
+  async queueFullImport(
+    account: ProviderAccount,
+    { deepHistory = true }: { deepHistory?: boolean } = {},
+  ): Promise<FullImportResult> {
     const permissions = await this.getAccountPermissions(account);
     if (permissions.length > 0 && !permissions.includes('ACTIVITY_EXPORT')) {
       throw new BadRequestException(
@@ -638,10 +649,39 @@ export class GarminProviderService
     }
 
     const end = Math.floor(Date.now() / 1000);
-    const start = end - Math.floor(this.backfillWindowMs / 1000);
+    const start = end - GARMIN_BACKFILL_WINDOW_SECONDS;
     const accessToken = await this.getValidAccessToken(account);
     await this.requestActivitiesBackfill(accessToken, start, end);
+
+    if (deepHistory) {
+      try {
+        await this.queueService.addGarminHistoryBackfillJob(
+          account.providerAccountId,
+          start,
+        );
+        this.logger.log(
+          `Garmin history backfill started for account ${account.providerAccountId}`,
+        );
+      } catch (error) {
+        this.logger.warn(
+          `Garmin history backfill not started for account ${account.providerAccountId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
     return { queuedActivities: 0, backfillRequested: true };
+  }
+
+  /**
+   * One window of the history backfill. Throws ProviderRateLimitError on
+   * 429, and a BadRequestException when Garmin refuses the window (400, 412).
+   */
+  async requestHistoryWindow(
+    account: ProviderAccount,
+    start: number,
+    end: number,
+  ): Promise<void> {
+    const accessToken = await this.getValidAccessToken(account);
+    await this.requestActivitiesBackfill(accessToken, start, end);
   }
 
   private async requestActivitiesBackfill(
@@ -962,10 +1002,18 @@ export class GarminProviderService
     const newActivities = activities.filter(
       (activity) => !existingById.has(activity.externalId),
     );
+    const recentSince = Date.now() - RECENT_ACTIVITY_MS;
+    const isRecent = (activity: ImportedActivity) =>
+      new Date(activity.startDate).getTime() >= recentSince;
     await this.queueService.addActivityImportJobs(
       account,
-      newActivities,
+      newActivities.filter(isRecent),
       false,
+    );
+    await this.queueService.addActivityImportJobs(
+      account,
+      newActivities.filter((activity) => !isRecent(activity)),
+      true,
     );
   }
 

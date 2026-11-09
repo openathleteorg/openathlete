@@ -7,6 +7,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ProviderAccount } from '@openathlete/database';
 
 import { ImportedActivity } from '../providers-sync/base/provider-import.interface';
+import {
+  GARMIN_BACKFILL_WINDOW_SECONDS,
+  GARMIN_HISTORY_FLOOR_SECONDS,
+} from '../providers-sync/providers/garmin-backfill';
 
 export interface ActivityImportJobData {
   providerAccountId: number;
@@ -16,6 +20,11 @@ export interface ActivityImportJobData {
 
 export interface ProviderFullImportJobData {
   providerAccountId: number;
+  /**
+   * Only recover lost notifications (openathlete garmin-backfill): Garmin
+   * history older than 30 days is not requested again.
+   */
+  recoverOnly?: boolean;
 }
 
 /** One entry of a Garmin ping or push notification */
@@ -26,6 +35,15 @@ export interface GarminNotificationJobData {
   /** Ping: where to pull the data. Push: absent, the entry is the data. */
   callbackURL?: string;
   entry: Record<string, unknown>;
+}
+
+/** One window of a Garmin account's history backfill, in epoch seconds */
+export interface GarminHistoryBackfillJobData {
+  providerAccountId: number;
+  start: number;
+  end: number;
+  /** Windows requested before this one, for progress logs */
+  window: number;
 }
 
 /** A Suunto webhook, handled out of the request: Suunto waits 2 seconds */
@@ -88,6 +106,8 @@ export class QueueService {
     private readonly fullImportQueue: Queue<ProviderFullImportJobData>,
     @InjectQueue('garmin-notification')
     private readonly garminNotificationQueue: Queue<GarminNotificationJobData>,
+    @InjectQueue('garmin-history-backfill')
+    private readonly garminHistoryQueue: Queue<GarminHistoryBackfillJobData>,
     @InjectQueue('suunto-notification')
     private readonly suuntoNotificationQueue: Queue<SuuntoNotificationJobData>,
     @InjectQueue('polar-notification')
@@ -262,6 +282,36 @@ export class QueueService {
             .digest('hex')}`,
         },
       })),
+    );
+  }
+
+  /**
+   * Queue the Garmin backfill window that ends at `end`. Windows after the
+   * first are aligned on a 30-day grid, so a second backfill of the same
+   * account reuses the job ids of the first and stops where it joins it.
+   */
+  async addGarminHistoryBackfillJob(
+    providerAccountId: number,
+    end: number,
+    window = 0,
+  ): Promise<void> {
+    const start = Math.max(
+      GARMIN_HISTORY_FLOOR_SECONDS,
+      (Math.ceil(end / GARMIN_BACKFILL_WINDOW_SECONDS) - 1) *
+        GARMIN_BACKFILL_WINDOW_SECONDS,
+    );
+    if (start >= end) return;
+    const jobId = `garmin-history-${providerAccountId}-${end}`;
+    // A failed window is requested again; a done or queued one is left alone
+    const existing = await this.garminHistoryQueue.getJob(jobId);
+    if (existing) {
+      if ((await existing.getState()) !== 'failed') return;
+      await existing.remove();
+    }
+    await this.garminHistoryQueue.add(
+      'window',
+      { providerAccountId, start, end, window },
+      { jobId },
     );
   }
 
