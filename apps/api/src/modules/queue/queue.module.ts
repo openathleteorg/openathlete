@@ -129,6 +129,9 @@ function parseRedisUrl(redisUrl: string): {
 
 @Module({
   imports: [
+    ...(process.env.GARMIN_PERSONAL_API_ENABLED === 'true'
+      ? [BullModule.registerQueue({ name: 'garmin-personal-sync' })]
+      : []),
     AiModule,
     ConfigModule,
     EventEmitterModule,
@@ -431,6 +434,6 @@ function parseRedisUrl(redisUrl: string): {
       ? [TrainingLoadEstimationProcessor]
       : []),
   ],
-  exports: [QueueService, TrainingLoadEstimationService],
+  exports: [QueueService, TrainingLoadEstimationService, BullModule],
 })
 export class QueueModule {}

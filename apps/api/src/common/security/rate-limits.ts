@@ -27,6 +27,8 @@ export const RATE_LIMITS = {
   accountLookup: { default: { limit: 30, ttl: MINUTE } },
   /** Unauthenticated routes that write to the database */
   publicWrite: { default: { limit: 20, ttl: 60 * MINUTE } },
+  /** Explicit provider catch-up imports can enqueue substantial downloads. */
+  providerSync: { default: { limit: 3, ttl: 15 * MINUTE } },
   /** Full account data export: heavy queries */
   dataExport: { default: { limit: 5, ttl: 60 * MINUTE } },
   /** Routes calling an AI provider on the user's key just to check it */
