@@ -6,6 +6,11 @@ import {
 } from '@/api/ai-settings';
 import { Button } from '@/components/ui/button';
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -15,9 +20,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { m } from '@/paraglide/messages';
 import { aiErrorMessage } from '@/utils/ai-errors';
-import { ExternalLink } from 'lucide-react';
+import { ChevronDown, ExternalLink } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -42,6 +48,8 @@ export function AddAiKeyDialog({ open, onOpenChange, providers }: Props) {
   const [baseUrl, setBaseUrl] = useState('');
   const [label, setLabel] = useState('');
   const [modelId, setModelId] = useState('');
+  const [headersText, setHeadersText] = useState('');
+  const [headersOpen, setHeadersOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const { data: preferences = [] } = useAiModelPreferencesQuery();
@@ -61,19 +69,35 @@ export function AddAiKeyDialog({ open, onOpenChange, providers }: Props) {
     setBaseUrl('');
     setLabel('');
     setModelId('');
+    setHeadersText('');
+    setHeadersOpen(false);
     setError(null);
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
+    const headers = parseHeaderLines(headersText);
+    if (!headers) {
+      setError(m.ai_key_headers_invalid());
+      return;
+    }
     const parsed = createAiCredentialDtoSchema.safeParse({
       provider: providerId ?? '',
       apiKey,
       label: label || undefined,
       baseUrl: provider?.requiresBaseUrl ? baseUrl : undefined,
+      headers: Object.keys(headers).length ? headers : undefined,
     });
-    if (!parsed.success || !provider) {
+    if (!parsed.success) {
+      setError(
+        parsed.error.issues.some((issue) => issue.path[0] === 'headers')
+          ? m.ai_key_headers_invalid()
+          : m.ai_key_form_invalid(),
+      );
+      return;
+    }
+    if (!provider) {
       setError(m.ai_key_form_invalid());
       return;
     }
@@ -162,6 +186,12 @@ export function AddAiKeyDialog({ open, onOpenChange, providers }: Props) {
             </div>
           )}
 
+          {providerId === 'opencode-go' && (
+            <p className="text-xs text-muted-foreground">
+              {m.ai_key_opencode_session_hint()}
+            </p>
+          )}
+
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="ai-key-api-key">
@@ -214,6 +244,44 @@ export function AddAiKeyDialog({ open, onOpenChange, providers }: Props) {
             />
           </div>
 
+          <Collapsible
+            open={headersOpen}
+            onOpenChange={setHeadersOpen}
+            className="space-y-2"
+          >
+            <CollapsibleTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="-ml-2 text-muted-foreground"
+              >
+                <ChevronDown
+                  className={
+                    headersOpen
+                      ? 'size-4 rotate-180 transition-transform'
+                      : 'size-4 transition-transform'
+                  }
+                />
+                {m.ai_key_headers()}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2">
+              <Textarea
+                id="ai-key-headers"
+                value={headersText}
+                onChange={(event) => setHeadersText(event.target.value)}
+                placeholder="X-Title: OpenAthlete"
+                aria-label={m.ai_key_headers()}
+                rows={3}
+                spellCheck={false}
+              />
+              <p className="text-xs text-muted-foreground">
+                {m.ai_key_headers_hint()}
+              </p>
+            </CollapsibleContent>
+          </Collapsible>
+
           {error && (
             <p role="alert" className="text-sm text-destructive">
               {error}
@@ -229,4 +297,19 @@ export function AddAiKeyDialog({ open, onOpenChange, providers }: Props) {
       </DialogContent>
     </Dialog>
   );
+}
+
+/** Parses "Name: value" lines; null when a line is not a header. */
+function parseHeaderLines(text: string): Record<string, string> | null {
+  const headers: Record<string, string> = {};
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const separator = trimmed.indexOf(':');
+    if (separator <= 0) return null;
+    const name = trimmed.slice(0, separator).trim();
+    if (!name) return null;
+    headers[name] = trimmed.slice(separator + 1).trim();
+  }
+  return headers;
 }

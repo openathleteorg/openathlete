@@ -35,6 +35,9 @@ model AiCredential {
   encryptedApiKey String    @map("encrypted_api_key")
   /// Last characters of the key, to recognise it in the settings
   apiKeyHint      String    @map("api_key_hint")
+  /// Extra HTTP headers (JSON, encrypted with AES-256-GCM) for gateways that
+  /// require them, such as OpenCode Go
+  encryptedHeaders String?  @map("encrypted_headers")
   /// Base URL of a custom OpenAI-compatible endpoint
   baseUrl         String?   @map("base_url")
   /// Last provider error (rejected key, exhausted quota...)

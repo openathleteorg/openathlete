@@ -14,6 +14,7 @@ const FEATURED_PROVIDERS = [
   'google',
   'mistral',
   'openrouter',
+  'opencode-go',
   'deepseek',
   'xai',
   'groq',

@@ -61,6 +61,82 @@ export const aiProviderSchema = z.object({
 });
 export type AiProvider = z.infer<typeof aiProviderSchema>;
 
+/** Bounds what one key can send; enough for gateways that ask for a few. */
+export const MAX_AI_CREDENTIAL_HEADERS = 20;
+
+/** Headers the API sets itself: a key must not override them. */
+const RESERVED_AI_CREDENTIAL_HEADERS = new Set([
+  'api-key',
+  'authorization',
+  'connection',
+  'content-encoding',
+  'content-length',
+  'content-type',
+  'cookie',
+  'expect',
+  'host',
+  'keep-alive',
+  'proxy-authorization',
+  'set-cookie',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+  'x-api-key',
+  'x-goog-api-key',
+]);
+
+const HEADER_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
+
+/**
+ * Header values must stay on one line and be printable ASCII: fetch refuses
+ * anything above 0xFF, which would break every call made with the key.
+ */
+const HEADER_VALUE_PATTERN = /^[\t\x20-\x7e]*$/;
+
+/**
+ * Extra HTTP headers sent with every request made with a key, for gateways
+ * that require one (OpenCode Go's x-opencode-session, for example).
+ */
+export const aiCredentialHeadersSchema = z
+  .record(
+    z
+      .string()
+      .min(1)
+      .max(100)
+      .regex(HEADER_NAME_PATTERN, 'Invalid header name'),
+    z.string().max(2000).regex(HEADER_VALUE_PATTERN, 'Invalid header value'),
+  )
+  .superRefine((headers, context) => {
+    const names = Object.keys(headers);
+    if (names.length > MAX_AI_CREDENTIAL_HEADERS) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `At most ${MAX_AI_CREDENTIAL_HEADERS} custom headers`,
+      });
+    }
+    const seen = new Set<string>();
+    for (const name of names) {
+      const normalized = name.toLowerCase();
+      if (RESERVED_AI_CREDENTIAL_HEADERS.has(normalized)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `The ${name} header cannot be overridden`,
+          path: [name],
+        });
+      }
+      if (seen.has(normalized)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Duplicate header ${name}`,
+          path: [name],
+        });
+      }
+      seen.add(normalized);
+    }
+  });
+export type AiCredentialHeaders = z.infer<typeof aiCredentialHeadersSchema>;
+
 export const createAiCredentialDtoSchema = z
   .object({
     provider: z.string().trim().min(1).max(100),
@@ -73,6 +149,7 @@ export const createAiCredentialDtoSchema = z
       .max(500)
       .refine((url) => /^https?:\/\//.test(url), 'Must be an http(s) URL')
       .optional(),
+    headers: aiCredentialHeadersSchema.optional(),
   })
   .refine(
     (dto) => dto.provider !== CUSTOM_AI_PROVIDER || Boolean(dto.baseUrl),
@@ -87,6 +164,8 @@ export interface AiCredentialDto {
   /** Last characters of the key; the key itself is never sent back */
   apiKeyHint: string;
   baseUrl: string | null;
+  /** Names only: custom header values are never sent back */
+  customHeaderNames: string[];
   lastError: string | null;
   lastErrorAt: string | null;
   lastUsedAt: string | null;
