@@ -12,6 +12,16 @@ import { GarminAdapter } from './adapters/garmin.adapter';
 import { SuuntoAdapter } from './adapters/suunto.adapter';
 import { ProviderOAuthController } from './controllers/provider-oauth.controller';
 import { ProviderExportService } from './export.service';
+import { GarminPersonalClient } from './garmin-personal/garmin-personal-client';
+import {
+  GarminPersonalController,
+  GarminPersonalEnabledGuard,
+} from './garmin-personal/garmin-personal-controller';
+import {
+  GarminPersonalProcessor,
+  GarminPersonalScheduler,
+} from './garmin-personal/garmin-personal-processor';
+import { GarminPersonalService } from './garmin-personal/garmin-personal-service';
 import {
   CorosProviderService,
   GarminProviderService,
@@ -29,9 +39,20 @@ import { ProviderExportScheduler } from './scheduler.service';
     EventEmitterModule,
     forwardRef(() => QueueModule),
   ],
-  // Before the OAuth controller, whose :provider routes would catch its path
-  controllers: [ActivityDescriptionController, ProviderOAuthController],
+  // Before the OAuth controller, whose :provider routes would catch their paths
+  controllers: [
+    ActivityDescriptionController,
+    GarminPersonalController,
+    ProviderOAuthController,
+  ],
   providers: [
+    GarminPersonalClient,
+    GarminPersonalService,
+    GarminPersonalEnabledGuard,
+    ...(process.env.GARMIN_PERSONAL_API_ENABLED === 'true' &&
+    process.env.ENABLE_ACTIVITY_IMPORT === 'true'
+      ? [GarminPersonalProcessor, GarminPersonalScheduler]
+      : []),
     GarminAdapter,
     SuuntoAdapter,
     CorosAdapter,
