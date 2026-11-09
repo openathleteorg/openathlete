@@ -190,6 +190,34 @@ describe('mapSuuntoSleep', () => {
       '2026-10-27': 7,
     });
   });
+
+  it('counts the whole night when the watch sends only deep sleep', () => {
+    // A Suunto 9 Baro night: 7:24 asleep, of which 2:26 deep, no other stage
+    const metrics = mapSuuntoSleep([
+      {
+        timestamp: '2026-11-02T21:53:00.000+01:00',
+        entryData: {
+          DeepSleepDuration: 8760,
+          Duration: 26640,
+          WakeAfterSleepOnsetDuration: 0,
+          SleepQualityScore: 70,
+          IsNap: false,
+          BedtimeStart: '2026-11-02T21:53:00.000+01:00',
+          BedtimeEnd: '2026-11-03T05:17:00.000+01:00',
+        },
+      },
+    ]);
+
+    expect(valuesOf(metrics, MetricType.SLEEP_DURATION)).toEqual({
+      '2026-11-03': 7.4,
+    });
+    expect(valuesOf(metrics, MetricType.SLEEP_DEEP_DURATION)).toEqual({
+      '2026-11-03': 2.43,
+    });
+    expect(
+      metrics.some((m) => m.type === MetricType.SLEEP_LIGHT_DURATION),
+    ).toBe(false);
+  });
 });
 
 describe('mapSuuntoRecovery', () => {
