@@ -342,11 +342,6 @@ export const ApiEnvSchema = z
       .optional()
       .describe('Google Generative AI API key (optional)'),
 
-    OPENCODE_API_KEY: z
-      .string()
-      .optional()
-      .describe('OpenCode Go API key for AI-powered features (optional)'),
-
     // Instance AI keys (above, and any provider's standard variable such as
     // ANTHROPIC_API_KEY) are "hosted AI". Users can always use their own keys.
     AI_HOSTED_ACCESS: z
