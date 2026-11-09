@@ -2,8 +2,8 @@ import { EmailLanguage } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 
-import { button, h1, note, p } from '../core/blocks';
-import { layout } from '../core/layout';
+import { button, heading, note, paragraph } from '../core/blocks';
+import { renderEmail } from '../core/layout';
 
 const translations = {
   ES: {
@@ -96,17 +96,17 @@ export function buildSubscriptionConfirmationEmail({
   const title = t.title;
   const preview = t.preview;
 
-  const content = [
-    h1(title),
-    p(t.greeting(name)),
-    p(t.perks),
-    p(t.description),
+  const blocks = [
+    heading(title),
+    paragraph(t.greeting(name)),
+    paragraph(t.perks),
+    paragraph(t.description),
     button({
       href: subscription_settings_url,
       label: t.buttonLabel,
     }),
     note(t.helpNote),
-  ].join('');
+  ];
 
-  return layout({ language, title, preview, contentHtml: content });
+  return renderEmail({ language, title, preview, blocks });
 }

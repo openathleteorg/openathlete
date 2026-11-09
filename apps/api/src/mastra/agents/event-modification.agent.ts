@@ -1,5 +1,7 @@
 import type { AgentSpec } from 'src/modules/ai';
 
+import { WORKOUT_DURATIONS_INSTRUCTIONS } from './workout-durations.prompt';
+
 export const eventModificationAgent: AgentSpec = {
   id: 'event-modification',
   name: 'event-modification',
@@ -77,10 +79,8 @@ REPEAT BLOCKS:
   The childSteps inside a repeatBlock must be simple steps (WARMUP, STEADY, INTERVAL_ACTIVE, INTERVAL_REST, COOLDOWN, FREE).
   They CANNOT be REPEAT steps with a repeatBlock.
 
-DURATIONS:
-- TIME: Duration in seconds (e.g., 600 = 10 minutes)
-- DISTANCE: Distance in meters (e.g., 5000 = 5km)
-- OPEN: No fixed duration
+${WORKOUT_DURATIONS_INSTRUCTIONS}
+- When modifying: keep the current goalDuration unless the request changes the session's length or states a new total
 
 WORKOUT TARGETS:
 - Each workout step can have targets to specify intensity/pace/power/heartrate/etc.

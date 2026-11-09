@@ -135,6 +135,11 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        supportReminderDismissCount: true,
+        supporterNudgeSeenAt: true,
+        emailTips: true,
+        emailRecap: true,
+        emailNewsConsentAt: true,
         createdAt: true,
       },
     });
@@ -235,6 +240,7 @@ export class UserService {
       invitationToken,
       coachInvitationToken,
       language,
+      emailNews,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
@@ -308,6 +314,8 @@ export class UserService {
           lastName: lastName,
           // The language the app was shown in; absent, the column's default
           language,
+          // Ticked by the person on the form, never by default
+          emailNewsConsentAt: emailNews ? new Date() : null,
           roles: [UserRole.ATHLETE, UserRole.COACH],
           athlete: {
             create: {
@@ -369,7 +377,8 @@ export class UserService {
         to: normalizedEmail,
         params: {
           name: firstName,
-          dashboard_url: `${this.configService.get('APP_URL')}/dashboard`,
+          connections_url: `${this.configService.get('APP_URL')}/dashboard/settings?tab=connectors`,
+          signature: this.configService.get('EMAIL_SIGNATURE') || undefined,
         },
         language,
       }),
@@ -411,6 +420,18 @@ export class UserService {
         supportReminderDismissedAt: data.supportReminderDismissed
           ? new Date()
           : undefined,
+        supportReminderDismissCount: data.supportReminderDismissed
+          ? { increment: 1 }
+          : undefined,
+        supporterNudgeSeenAt: data.supporterNudgeSeen ? new Date() : undefined,
+        emailTips: data.emailTips,
+        emailRecap: data.emailRecap,
+        emailNewsConsentAt:
+          data.emailNews === undefined
+            ? undefined
+            : data.emailNews
+              ? new Date()
+              : null,
       },
       select: {
         firstName: true,
@@ -421,6 +442,11 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        supportReminderDismissCount: true,
+        supporterNudgeSeenAt: true,
+        emailTips: true,
+        emailRecap: true,
+        emailNewsConsentAt: true,
       },
     });
   };

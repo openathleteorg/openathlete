@@ -134,7 +134,7 @@ export class MessageNotificationScheduler {
       const language = participant.user.language ?? Language.FR;
 
       try {
-        const htmlContent = buildMessageThreadNotificationEmail({
+        const { html, text } = buildMessageThreadNotificationEmail({
           threadTitle: participant.thread.title,
           messages: unreadMessages.map((message) => {
             const senderFirstName = message.sender.firstName || '';
@@ -161,8 +161,8 @@ export class MessageNotificationScheduler {
         await this.emailTransport.send({
           to: recipientEmail,
           subject: messageThreadNotificationSubject(language),
-          html: htmlContent,
-          senderName: 'OpenAthlete',
+          html,
+          text,
         });
         await (
           this.prisma as unknown as {

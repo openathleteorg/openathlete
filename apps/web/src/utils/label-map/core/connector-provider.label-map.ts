@@ -6,6 +6,6 @@ export const connectorProviderLabelMap: Record<ConnectorProvider, string> = {
   GARMIN: 'Garmin',
   APPLE_HEALTH: 'Apple Health',
   SUUNTO: 'Suunto',
-  COROS: 'Coros',
+  COROS: 'COROS',
   POLAR: 'Polar',
 };

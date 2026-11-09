@@ -1,0 +1,1961 @@
+{
+  "plan": {
+    "name": "Trail 20 km, 800 m D+: 10-week plan",
+    "description": "A 10-week plan for a 20 km trail race with about 800 m of climbing, on 3 runs a week plus optional strength. Hill repeats, uphill tempo, power hiking with poles and downhill technique. The long run grows to 2h and 850 m D+, with a lighter week every 3–4 weeks and a 2-week taper.",
+    "goal": "Finish a 20 km trail race with 800 m D+",
+    "sportType": "TRAIL_RUNNING",
+    "distance": 20000,
+    "duration": 10,
+    "timeTarget": null,
+    "elevationGainRange": {
+      "min": 640,
+      "max": 960
+    }
+  },
+  "cycles": [
+    {
+      "name": "Base",
+      "description": "Easy volume, short hill repeats and the first downhill drills. The long run grows by 10 to 15 minutes a week. Week 4 is lighter.",
+      "phase": "BASE",
+      "color": "#3b82f6",
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Hill repeats",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to the bottom of an 8–12% climb, then 6 × 1' uphill at 88–93% of max heart rate, jogging or walking back down as recovery. 10 min cool-down. Heart rate lags on short efforts: aim for the top of the range by the end of each rep, and keep the last rep as good as the first.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min, at home, no equipment. 3 rounds of: 12 step-ups per leg onto a chair or a sturdy step, 10 split squats per leg, 15 slow calf raises on a step (3 seconds down), 30 s single-leg balance per leg with eyes closed, 30 s side plank per side. Quads take the hit on descents and ankles on rough ground: this is cheap insurance.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "40 min easy on flat or rolling ground, 62–70% of VMA. You should be able to talk in full sentences.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h05 on trails with about 250 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes.",
+              "goalDuration": 3900,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 2,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "30/30 on the flat",
+              "sport": "RUNNING",
+              "description": "20 min easy, then 2 × (8 × 30\" fast / 30\" jog), 3 min easy between sets, 10 min cool-down. Fast = 95–100% of VMA, jog = 60%. Flat ground or a track.",
+              "goalDuration": 2940,
+              "goalDistance": 8000,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Fast"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Jog"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "INTERVAL_REST",
+                    "durationType": "TIME",
+                    "durationValue": 180,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Fast"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Jog"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min, at home, no equipment. 3 rounds of: 12 step-ups per leg onto a chair or a sturdy step, 10 split squats per leg, 15 slow calf raises on a step (3 seconds down), 30 s single-leg balance per leg with eyes closed, 30 s side plank per side. Quads take the hit on descents and ankles on rough ground: this is cheap insurance.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "45 min easy on flat or rolling ground, 62–70% of VMA. You should be able to talk in full sentences. Finish with 6 × 20\" strides, walking back.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h15 on trails with about 350 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes.",
+              "goalDuration": 4500,
+              "goalDistance": 9000,
+              "goalElevationGain": 350,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 3,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Hill repeats",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to the bottom of an 8–12% climb, then 8 × 1'30 uphill at 88–93% of max heart rate, jogging or walking back down as recovery. 10 min cool-down. Heart rate lags on short efforts: aim for the top of the range by the end of each rep, and keep the last rep as good as the first.",
+              "goalDuration": 3480,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min, at home, no equipment. 3 rounds of: 12 step-ups per leg onto a chair or a sturdy step, 10 split squats per leg, 15 slow calf raises on a step (3 seconds down), 30 s single-leg balance per leg with eyes closed, 30 s side plank per side. Quads take the hit on descents and ankles on rough ground: this is cheap insurance.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Downhill technique",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to a technical descent (roots, rocks, 10–20%). 6 × 1' downhill at a controlled effort (RPE 5/10), hiking back up as recovery. Quick, short steps, eyes 3–4 metres ahead, arms wide for balance, feet landing under your hips. Speed comes later: today is about feet you trust. 10 min easy to finish.",
+              "goalDuration": 2880,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Downhill, short quick steps"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Hike back up"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h25 on trails with about 450 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes. Bring your poles and use them on every long climb.",
+              "goalDuration": 5100,
+              "goalDistance": 9500,
+              "goalElevationGain": 450,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 4,
+          "theme": "Lighter week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "40 min easy on flat or rolling ground, 62–70% of VMA. You should be able to talk in full sentences. Finish with 6 × 20\" strides, walking back.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "20 min, at home, no equipment. 3 rounds of: 12 step-ups per leg onto a chair or a sturdy step, 10 split squats per leg, 15 slow calf raises on a step (3 seconds down), 30 s single-leg balance per leg with eyes closed, 30 s side plank per side. Quads take the hit on descents and ankles on rough ground: this is cheap insurance.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Downhill technique",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to a technical descent (roots, rocks, 10–20%). 5 × 1' downhill at a controlled effort (RPE 5/10), hiking back up as recovery. Quick, short steps, eyes 3–4 metres ahead, arms wide for balance, feet landing under your hips. Speed comes later: today is about feet you trust. 10 min easy to finish.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Downhill, short quick steps"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Hike back up"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h on trails with about 250 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes.",
+              "goalDuration": 3600,
+              "goalDistance": 7500,
+              "goalElevationGain": 250,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Build",
+      "description": "Longer hill repeats and uphill tempo, power hiking with poles, more D+ on the long run.",
+      "phase": "SPECIFIC",
+      "color": "#10b981",
+      "weeks": [
+        {
+          "weekNumber": 5,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Hill repeats",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to the bottom of an 8–12% climb, then 8 × 2' uphill at 90–95% of max heart rate, jogging or walking back down as recovery. 10 min cool-down. Heart rate lags on short efforts: aim for the top of the range by the end of each rep, and keep the last rep as good as the first.",
+              "goalDuration": 3960,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rounds of: 8 slow single-leg squats off a step per leg (5 seconds down: this is what descents do to your quads), 12 jumping step-ups per leg, 20 single-leg calf raises per leg, 10 single-leg deadlifts per leg, 45 s plank. Only 2 rounds in a lighter week.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Tempo on the flat",
+              "sport": "RUNNING",
+              "description": "15 min easy, 3 × 8' at 82–87% of VMA (comfortably hard, a few words at a time) with 2 min easy between, 10 min cool-down.",
+              "goalDuration": 3300,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h35 on trails with about 550 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes.",
+              "goalDuration": 5700,
+              "goalDistance": 10500,
+              "goalElevationGain": 550,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 6,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Long uphill tempo",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy, then 3 × 8' climbing steadily at 82–87% of max heart rate on a long, runnable climb (5–10%). Walk or jog down as recovery. 10 min cool-down. Hike if the grade forces you to, but keep the heart rate in range.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rounds of: 8 slow single-leg squats off a step per leg (5 seconds down: this is what descents do to your quads), 12 jumping step-ups per leg, 20 single-leg calf raises per leg, 10 single-leg deadlifts per leg, 45 s plank. Only 2 rounds in a lighter week.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "VMA intervals",
+              "sport": "RUNNING",
+              "description": "20 min easy, 6 × 3' at 90–95% of VMA with 2' jog recovery, 10 min cool-down. On the flat: the higher the ceiling, the easier every climb feels.",
+              "goalDuration": 3600,
+              "goalDistance": 10500,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h45 on trails with about 650 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes. Bring your poles and use them on every long climb.",
+              "goalDuration": 6300,
+              "goalDistance": 11000,
+              "goalElevationGain": 650,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 7,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Hill repeats",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to the bottom of an 8–12% climb, then 10 × 1'30 uphill at 88–93% of max heart rate, jogging or walking back down as recovery. 10 min cool-down. Heart rate lags on short efforts: aim for the top of the range by the end of each rep, and keep the last rep as good as the first.",
+              "goalDuration": 3900,
+              "goalDistance": 8500,
+              "goalElevationGain": 240,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rounds of: 8 slow single-leg squats off a step per leg (5 seconds down: this is what descents do to your quads), 12 jumping step-ups per leg, 20 single-leg calf raises per leg, 10 single-leg deadlifts per leg, 45 s plank. Only 2 rounds in a lighter week.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Downhill technique",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to a technical descent (roots, rocks, 10–20%). 8 × 1'15 downhill at a controlled effort (RPE 5/10), hiking back up as recovery. Quick, short steps, eyes 3–4 metres ahead, arms wide for balance, feet landing under your hips. Speed comes later: today is about feet you trust. 10 min easy to finish.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Downhill, short quick steps"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Hike back up"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h55 on trails with about 750 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes.",
+              "goalDuration": 6900,
+              "goalDistance": 11500,
+              "goalElevationGain": 750,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 8,
+          "theme": "Biggest week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Long uphill tempo",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy, then 3 × 10' climbing steadily at 82–87% of max heart rate on a long, runnable climb (5–10%). Walk or jog down as recovery. 10 min cool-down. Hike if the grade forces you to, but keep the heart rate in range.",
+              "goalDuration": 4680,
+              "goalDistance": 9500,
+              "goalElevationGain": 340,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Strength for trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 rounds of: 8 slow single-leg squats off a step per leg (5 seconds down: this is what descents do to your quads), 12 jumping step-ups per leg, 20 single-leg calf raises per leg, 10 single-leg deadlifts per leg, 45 s plank. Only 2 rounds in a lighter week.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Power hiking with poles",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min easy, then 5 × 5' power hiking up the steepest climb you have (15% and more), with poles, at 75–85% of max heart rate. Short steps, push down hard on the poles, and run the flatter bits. Easy descent between reps. This is how most people climb on race day: it deserves practice.",
+              "goalDuration": 3900,
+              "goalDistance": 7500,
+              "goalElevationGain": 340,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Power hike, poles"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h on trails with about 850 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes. Bring your poles and use them on every long climb. Run the last 25 min at race effort (75–82% of max heart rate).",
+              "goalDuration": 7200,
+              "goalDistance": 11500,
+              "goalElevationGain": 850,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Race effort"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Taper",
+      "description": "Two weeks to arrive fresh: volume drops by about a third, then by half, while a few short efforts keep the legs sharp. Nothing new, plenty of sleep.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 9,
+          "theme": "Taper",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Hill repeats",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy to the bottom of an 8–12% climb, then 6 × 2' uphill at 90–95% of max heart rate, jogging or walking back down as recovery. 10 min cool-down. Heart rate lags on short efforts: aim for the top of the range by the end of each rep, and keep the last rep as good as the first.",
+              "goalDuration": 3420,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Mobility and ankles (optional)",
+              "sport": "STRENGTH",
+              "description": "20 min of mobility: ankle circles and calf stretches, hip openers, 2 × 30 s single-leg balance per leg. Nothing that leaves you sore before the race.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "40 min easy on flat or rolling ground, 62–70% of VMA. You should be able to talk in full sentences. Finish with 6 × 20\" strides, walking back.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Long run with D+",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h20 on trails with about 450 m D+, at 65–75% of max heart rate. Run the flats and gentle climbs, power-hike anything steeper than 15%, and practise eating every 30–40 minutes.",
+              "goalDuration": 4800,
+              "goalDistance": 9000,
+              "goalElevationGain": 450,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": "Race week",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Long uphill tempo",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min easy, then 2 × 5' climbing steadily at 82–87% of max heart rate on a long, runnable climb (5–10%). Walk or jog down as recovery. 10 min cool-down. Hike if the grade forces you to, but keep the heart rate in range.",
+              "goalDuration": 2760,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Uphill"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Jog or walk down"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Easy run",
+              "sport": "RUNNING",
+              "description": "30 min easy on flat or rolling ground, 62–70% of VMA. You should be able to talk in full sentences. Finish with 6 × 20\" strides, walking back.",
+              "goalDuration": 2160,
+              "goalDistance": 5500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Race day: 20 km trail",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 km, about 800 m D+. Start slower than feels right: climbs at 75–82% of max heart rate, eat and drink from the first hour, and save your legs for the last descents.",
+              "goalDuration": 10800,
+              "goalDistance": 20000,
+              "goalElevationGain": 800,
+              "goalRpe": 9,
+              "workout": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

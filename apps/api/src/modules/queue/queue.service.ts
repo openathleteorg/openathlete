@@ -44,7 +44,30 @@ export type PolarNotificationJobData =
   | { kind: 'sync'; providerAccountId: number }
   | { kind: 'metrics'; providerAccountId: number };
 
+/** COROS has no webhooks: its activities and metrics are polled */
+export type CorosSyncJobData =
+  | { kind: 'sync'; providerAccountId: number }
+  | { kind: 'metrics'; providerAccountId: number }
+  | {
+      kind: 'history-batch';
+      providerAccountId: number;
+      activities: ImportedActivity[];
+    };
+
 const POLAR_WEBHOOK_SECRET_KEY = 'openathlete:polar:webhook-secret';
+
+/** Removal of an athlete's activities saved twice, from two sources */
+export interface DuplicateActivitiesJobData {
+  athleteId: number;
+}
+
+/** Writing OpenAthlete's analysis into a Strava activity's description */
+export interface StravaDescriptionJobData {
+  providerAccountId: number;
+  stravaActivityId: string;
+  /** The saved activity read, possibly a copy from another source */
+  eventActivityId: number;
+}
 
 export interface ActivityProcessingJobData {
   eventActivityId: number;
@@ -69,7 +92,65 @@ export class QueueService {
     private readonly suuntoNotificationQueue: Queue<SuuntoNotificationJobData>,
     @InjectQueue('polar-notification')
     private readonly polarNotificationQueue: Queue<PolarNotificationJobData>,
+    @InjectQueue('coros-sync')
+    private readonly corosSyncQueue: Queue<CorosSyncJobData>,
+    @InjectQueue('duplicate-activities')
+    private readonly duplicateActivitiesQueue: Queue<DuplicateActivitiesJobData>,
+    @InjectQueue('strava-description')
+    private readonly stravaDescriptionQueue: Queue<StravaDescriptionJobData>,
   ) {}
+
+  /**
+   * One job per Strava activity: the import and a duplicate skip of the same
+   * workout queue it once.
+   */
+  async addStravaDescriptionJob(
+    data: StravaDescriptionJobData,
+    delayMs: number,
+  ): Promise<void> {
+    await this.stravaDescriptionQueue.add('write', data, {
+      jobId: `strava-description-${data.stravaActivityId}`,
+      delay: delayMs,
+    });
+  }
+
+  async addCorosSyncJob(providerAccountId: number, delayMs = 0): Promise<void> {
+    await this.corosSyncQueue.add(
+      'sync',
+      { kind: 'sync', providerAccountId },
+      {
+        jobId: `coros-sync-${providerAccountId}-${Math.floor(Date.now() / 1_800_000)}`,
+        delay: delayMs,
+      },
+    );
+  }
+
+  async addCorosMetricsJob(
+    providerAccountId: number,
+    delayMs = 0,
+  ): Promise<void> {
+    await this.corosSyncQueue.add(
+      'metrics',
+      { kind: 'metrics', providerAccountId },
+      {
+        jobId: `coros-metrics-${providerAccountId}-${Math.floor(Date.now() / 3_600_000)}`,
+        delay: delayMs,
+      },
+    );
+  }
+
+  /** History comes in daily batches: see CorosProviderService.queueFullImport */
+  async addCorosHistoryBatchJob(
+    providerAccountId: number,
+    activities: ImportedActivity[],
+    delayMs: number,
+  ): Promise<void> {
+    await this.corosSyncQueue.add(
+      'history-batch',
+      { kind: 'history-batch', providerAccountId, activities },
+      { delay: delayMs },
+    );
+  }
 
   /** Polar may notify an exercise twice: import it once */
   async addPolarExerciseJob(
@@ -204,6 +285,25 @@ export class QueueService {
     await this.fullImportQueue.add(
       'full-import',
       { providerAccountId },
+      { jobId },
+    );
+  }
+
+  /**
+   * Queue the removal of an athlete's duplicate activities. A removal
+   * already waiting or running covers a second request.
+   */
+  async addDuplicateActivitiesJob(athleteId: number): Promise<void> {
+    const jobId = `duplicate-activities-${athleteId}`;
+    const existing = await this.duplicateActivitiesQueue.getJob(jobId);
+    if (existing) {
+      const state = await existing.getState();
+      if (state !== 'completed' && state !== 'failed') return;
+      await existing.remove();
+    }
+    await this.duplicateActivitiesQueue.add(
+      'remove-duplicates',
+      { athleteId },
       { jobId },
     );
   }

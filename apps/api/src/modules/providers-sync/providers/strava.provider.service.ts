@@ -41,6 +41,18 @@ import {
   ProviderImportCapability,
 } from '../base/provider-import.interface';
 import { providerRedirectUri } from '../base/provider-urls';
+import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
+
+/** Lets the app edit activities: needed to write their description */
+export const STRAVA_WRITE_SCOPE = 'activity:write';
+
+/** Strava lists the scopes the user accepted, comma or space separated */
+export function hasStravaWriteScope(scopes: string | null | undefined) {
+  return (scopes ?? '').split(/[\s,]+/).includes(STRAVA_WRITE_SCOPE);
+}
+
+// Strava's quotas reset every 15 minutes
+const STRAVA_RATE_LIMIT_RETRY_MS = 15 * 60 * 1000;
 
 @Injectable()
 export class StravaProviderService
@@ -85,7 +97,9 @@ export class StravaProviderService
         this.configService.get('APP_URL'),
         'strava',
       ),
-      scopes: ['read', 'activity:read_all'],
+      // The user can untick activity:write on Strava's consent page: the
+      // import works without it, only the activity description needs it
+      scopes: ['read', 'activity:read_all', STRAVA_WRITE_SCOPE],
     };
   }
 
@@ -229,7 +243,12 @@ export class StravaProviderService
   /**
    * Complete OAuth flow and save account
    */
-  async connect(user: AuthUser, code: string): Promise<ProviderAccount> {
+  async connect(
+    user: AuthUser,
+    code: string,
+    /** The scope query parameter of the OAuth redirect */
+    grantedScope?: string,
+  ): Promise<ProviderAccount> {
     const tokenResponse = await this.exchangeCodeForTokens(code);
 
     // Get athlete
@@ -247,16 +266,91 @@ export class StravaProviderService
     const tokenData = tokenResponse;
     const externalUserId = tokenData.athlete?.id?.toString();
 
+    const connectedBefore = await this.prisma.providerAccount.findFirst({
+      where: { athleteId: athlete.athleteId, provider: this.provider },
+      select: { providerAccountId: true },
+    });
+
     // Save provider account
     const account = await this.saveProviderAccount({
       athleteId: athlete.athleteId,
       accessToken: tokenResponse.access_token,
       refreshToken: tokenResponse.refresh_token ?? '',
-      scopes: tokenResponse.scope,
+      // Strava returns the accepted scopes on the redirect, not with the token
+      scopes: tokenResponse.scope ?? grantedScope,
       externalUserId,
     });
 
+    // On by default for new connections only: athletes who connected before
+    // the feature existed turn it on themselves from Settings
+    if (!connectedBefore && hasStravaWriteScope(account.scopes)) {
+      return this.prisma.providerAccount.update({
+        where: { providerAccountId: account.providerAccountId },
+        data: { activityDescriptionEnabled: true },
+      });
+    }
+
     return account;
+  }
+
+  private rethrowRateLimit(error: unknown): never {
+    if (isAxiosError(error) && error.response?.status === 429) {
+      throw new ProviderRateLimitError('Strava', STRAVA_RATE_LIMIT_RETRY_MS);
+    }
+    throw error;
+  }
+
+  /** The activity's current description, read just before it is rewritten */
+  async getActivityDescription(
+    account: ProviderAccount,
+    activityId: string,
+  ): Promise<string> {
+    const id = this.tryNormalizeStravaActivityId(activityId);
+    if (!id) throw new Error(`Invalid Strava activity id ${activityId}`);
+    try {
+      const activity = await this.makeAuthenticatedRequest(
+        account,
+        async (accessToken) => {
+          const response = await axios.get<{ description?: string | null }>(
+            this.getStravaActivityUrl(id),
+            {
+              headers: { Authorization: `Bearer ${accessToken}` },
+              timeout: 15000,
+            },
+          );
+          return response.data;
+        },
+      );
+      return activity.description ?? '';
+    } catch (error) {
+      this.rethrowRateLimit(error);
+    }
+  }
+
+  async updateActivityDescription(
+    account: ProviderAccount,
+    activityId: string,
+    description: string,
+  ): Promise<void> {
+    const id = this.tryNormalizeStravaActivityId(activityId);
+    if (!id) throw new Error(`Invalid Strava activity id ${activityId}`);
+    try {
+      await this.makeAuthenticatedRequest(account, async (accessToken) => {
+        await axios.put(
+          this.getStravaActivityUrl(id),
+          { description },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            timeout: 15000,
+          },
+        );
+      });
+    } catch (error) {
+      this.rethrowRateLimit(error);
+    }
   }
 
   /**
@@ -593,7 +687,8 @@ export class StravaProviderService
   async handleWebhook(payload: {
     object_id: number;
     owner_id: number;
-    aspect_type: 'create' | 'delete';
+    // Writing a description sends an update back: only creations import
+    aspect_type: 'create' | 'update' | 'delete';
   }): Promise<void> {
     this.logger.log(
       `Handling Strava webhook: objectId=${payload.object_id}, ownerId=${payload.owner_id}, aspectType=${payload.aspect_type}`,

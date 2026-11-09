@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-query';
 
 import {
+  ActivityDescriptionPreviewQueryDto,
   ConnectorProvider,
   ProviderPreferencesDto,
   isFullImportInProgress,
@@ -82,6 +83,17 @@ export const useGetConnectedProvidersQuery = (
   });
 };
 
+export const useActivityDescriptionPreviewQuery = (
+  params: ActivityDescriptionPreviewQueryDto,
+  { enabled = true }: { enabled?: boolean } = {},
+) => {
+  return useQuery({
+    queryKey: [providerKeys.activityDescriptionPreview, params],
+    queryFn: () => ProviderAPI.getActivityDescriptionPreview(params),
+    enabled,
+  });
+};
+
 export const useUpdateProviderPreferencesMutation = (
   opt?: MutationOptions<
     Awaited<ReturnType<typeof ProviderAPI.updatePreferences>>,
@@ -99,6 +111,9 @@ export const useUpdateProviderPreferencesMutation = (
         opt.onSuccess(data, variables, onMutateResult, context);
       }
       queryClient.invalidateQueries({ queryKey: [providerKeys.getConnected] });
+      queryClient.invalidateQueries({
+        queryKey: [providerKeys.activityDescriptionPreview],
+      });
     },
   });
 };

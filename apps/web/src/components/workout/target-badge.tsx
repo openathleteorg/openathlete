@@ -6,6 +6,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
+import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { cn } from '@/utils/shadcn';
 import { getTargetTypeLabel } from '@/utils/workout';
@@ -14,12 +16,16 @@ import { useMemo } from 'react';
 import type { WorkoutStepTargetDto } from '@openathlete/shared';
 import { SPORT_TYPE, formatTarget } from '@openathlete/shared';
 
+import { useWorkoutAthleteId } from './workout-athlete-context';
+
 interface TargetBadgeProps {
   target: WorkoutStepTargetDto;
   className?: string;
   showTooltip?: boolean;
   sport?: SPORT_TYPE;
   showAbsoluteValues?: boolean;
+  /** The athlete the workout belongs to; default: the workout's athlete */
+  athleteId?: number | null;
 }
 
 export function TargetBadge({
@@ -27,27 +33,16 @@ export function TargetBadge({
   className,
   showTooltip = true,
   showAbsoluteValues = false,
+  athleteId,
 }: TargetBadgeProps) {
-  const { data: athlete } = useGetMyAthleteQuery();
+  const workoutAthleteId = useWorkoutAthleteId();
+  const ownerId = athleteId === undefined ? workoutAthleteId : athleteId;
+  const { data: me } = useGetMyAthleteQuery();
+  // Zone ids and metrics are the session athlete's, not the viewer's
+  const { zones: trainingZones } = useAthleteTrainingZones(ownerId);
   const { data: latestMetrics = {} } = useGetLatestMetricsQuery(
-    showAbsoluteValues ? athlete?.athleteId : undefined,
+    showAbsoluteValues ? (ownerId ?? me?.athleteId) : undefined,
   );
-
-  // Get zone name if target is a ZONE type
-  // Since zone IDs are unique, we can search across all zone types
-  const zoneName = useMemo(() => {
-    if (
-      target.targetType === 'ZONE' &&
-      target.targetValue &&
-      athlete?.trainingZones
-    ) {
-      const zone = athlete.trainingZones.find(
-        (z) => z.trainingZoneId === target.targetValue,
-      );
-      return zone?.name;
-    }
-    return null;
-  }, [target, athlete]);
 
   // Convert metrics format from Record<string, AthleteMetric> to Record<string, { value: number }>
   const metricsForFormat = useMemo(() => {
@@ -60,28 +55,23 @@ export function TargetBadge({
     return converted;
   }, [latestMetrics]);
 
-  const formatted = useMemo(() => {
-    if (target.targetType === 'ZONE' && zoneName) {
-      return zoneName;
-    }
-    return formatTarget(
-      target,
-      (metricType) => {
-        return (
-          metricTypeLabelMap[metricType as keyof typeof metricTypeLabelMap] ||
-          metricType
-        );
-      },
-      showAbsoluteValues ? metricsForFormat : undefined,
-      athlete?.trainingZones || [],
-    );
-  }, [
-    target,
-    zoneName,
-    metricsForFormat,
-    showAbsoluteValues,
-    athlete?.trainingZones,
-  ]);
+  const formatted = useMemo(
+    () =>
+      formatTarget(
+        target,
+        (metricType) => {
+          return (
+            metricTypeLabelMap[metricType as keyof typeof metricTypeLabelMap] ||
+            metricType
+          );
+        },
+        showAbsoluteValues ? metricsForFormat : undefined,
+        trainingZones ?? [],
+        // Until the zones load, no verdict on the zone
+        trainingZones ? m.workout_target_unknown_zone() : '…',
+      ),
+    [target, metricsForFormat, showAbsoluteValues, trainingZones],
+  );
 
   const label = getTargetTypeLabel(target.targetType);
 

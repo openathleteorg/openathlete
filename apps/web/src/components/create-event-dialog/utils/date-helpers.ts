@@ -1,7 +1,11 @@
-export function getStartDate(date?: Date): Date | undefined {
+/**
+ * Where a new event starts on its day: planned sessions at midday, as the
+ * MCP tools place them, and a logged activity at 08:00.
+ */
+export function getStartDate(date?: Date, planned = false): Date | undefined {
   if (!date) return undefined;
   const d = new Date(date);
-  d.setHours(8, 0, 0, 0);
+  d.setHours(planned ? 12 : 8, 0, 0, 0);
   return d;
 }
 

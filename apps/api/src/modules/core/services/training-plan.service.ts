@@ -11,6 +11,8 @@ import {
 
 import { AuthUser } from '../../auth/decorators/user.decorator';
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { planSessionDayOffset } from '../helpers/plan-session-day';
+import { remapZonesForAthlete } from '../helpers/workout-zones';
 
 @Injectable()
 export class TrainingPlanService {
@@ -123,8 +125,10 @@ export class TrainingPlanService {
         for (const session of weekData.sessions) {
           // Calculate session date based on dayOfWeek
           const sessionDate = new Date(weekDatesData.start);
-          const dayOffset = session.dayOfWeek - sessionDate.getDay();
-          sessionDate.setDate(sessionDate.getDate() + dayOffset);
+          sessionDate.setDate(
+            sessionDate.getDate() +
+              planSessionDayOffset(session.dayOfWeek, sessionDate.getDay()),
+          );
           sessionDate.setHours(9, 0, 0, 0); // Default to 9 AM
 
           // Calculate end date (default to 1 hour duration if not specified)
@@ -171,7 +175,13 @@ export class TrainingPlanService {
               steps: session.workout.steps || [],
             });
             if (parsed.success) {
-              const stepsForCreate = parsed.data.steps;
+              // The AI may answer with zones that are not the athlete's
+              const stepsForCreate = await remapZonesForAthlete(
+                this.prisma,
+                athleteId,
+                createdEvent.training.sport,
+                parsed.data.steps,
+              );
               const workoutData = mapWorkoutDtoToPrisma({
                 steps: stepsForCreate,
               });

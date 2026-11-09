@@ -51,6 +51,7 @@ import {
   eventFormSchema,
 } from './utils/event-form-schemas';
 import { getFormDefaultValues } from './utils/form-default-values';
+import { plannedEndDate } from './utils/planned-duration';
 
 type P =
   | {
@@ -94,24 +95,27 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
       ? ('event' in rest && rest.event?.type) || EVENT_TYPE.TRAINING
       : EVENT_TYPE.TRAINING;
 
+  const planned =
+    type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION;
+
   // Calculate dates
   const startDate = useMemo(() => {
     if (create) {
-      return getStartDate(rest.date);
+      return getStartDate(rest.date, planned);
     } else if (edit) {
       return rest.event?.startDate;
     }
-  }, [create, edit, rest]);
+  }, [create, edit, rest, planned]);
 
   const endDate = useMemo(() => {
     if (create) {
       // Calculate endDate from startDate + 1 hour
-      const calculatedStartDate = getStartDate(rest.date);
+      const calculatedStartDate = getStartDate(rest.date, planned);
       return getEndDate(rest.date, calculatedStartDate);
     } else if (edit) {
       return rest.event?.endDate;
     }
-  }, [create, edit, rest]);
+  }, [create, edit, rest, planned]);
 
   // Initialize form
   const methods = useForm<EventFormValues>({
@@ -119,16 +123,40 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     defaultValues: getFormDefaultValues(rest, startDate, endDate),
   });
 
-  const { handleSubmit, setValue, watch } = methods;
+  const { handleSubmit, setValue, getValues, watch } = methods;
 
   // Manage workout steps
   const { workoutSteps, setWorkoutSteps } = useWorkoutSteps(rest);
 
-  // Calculate workout duration and update form
-  const { hasStepsWithDuration } = useWorkoutDuration(
+  // Watch form values for UI
+  const startDateValue = watch('startDate');
+  const goalDistanceValue = watch('goalDistance');
+  const goalDurationValue = watch('goalDuration');
+  const sportValue = watch('sport');
+
+  const isTemplate = edit && 'isTemplate' in rest && !!rest.isTemplate;
+  // Zone targets are ids of the session athlete's zones: the event's when
+  // editing, the calendar's when creating. A template has no athlete: the
+  // signed-in user's zones (remapped when it is applied to an athlete).
+  const workoutAthleteId = isTemplate
+    ? null
+    : edit && 'event' in rest && rest.event
+      ? (rest.event.athleteId ?? null)
+      : (athleteId ?? null);
+
+  // The planned duration follows the workout until the coach sets it
+  const {
+    calculatedDuration,
+    durationSetByHand,
+    setDurationByHand,
+    followWorkout,
+    adoptStepsDuration,
+  } = useWorkoutDuration(
     workoutSteps,
-    watch,
+    sportValue,
+    getValues,
     setValue,
+    workoutAthleteId,
   );
 
   // Get current event data for AI modification
@@ -165,28 +193,18 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     chooseSeriesScope,
   );
 
-  // Watch form values for UI
-  const startDateValue = watch('startDate');
-  const goalDistanceValue = watch('goalDistance');
-  const goalDurationValue = watch('goalDuration');
-  const sportValue = watch('sport');
-
-  // Calculate endDate automatically when startDate or goalDuration changes
+  // The session ends its planned duration after it starts, however set
   useEffect(() => {
     if (
       startDateValue &&
-      !hasStepsWithDuration &&
       (type === EVENT_TYPE.TRAINING || type === EVENT_TYPE.COMPETITION)
     ) {
-      const duration = goalDurationValue || 3600; // Default 1 hour
-      const start = new Date(startDateValue);
-      const end = new Date(start);
-      end.setSeconds(start.getSeconds() + duration);
-      setValue('endDate', end, { shouldValidate: false });
+      setValue('endDate', plannedEndDate(startDateValue, goalDurationValue), {
+        shouldValidate: false,
+      });
     }
-  }, [startDateValue, goalDurationValue, hasStepsWithDuration, type, setValue]);
+  }, [startDateValue, goalDurationValue, type, setValue]);
 
-  const isTemplate = edit && 'isTemplate' in rest && !!rest.isTemplate;
   const { data: myAthlete } = useGetMyAthleteQuery();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const queryClient = useQueryClient();
@@ -275,12 +293,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     }
     if (
       generatedEvent.type === EVENT_TYPE.TRAINING &&
-      'goalDuration' in generatedEvent
-    ) {
-      setValue('goalDuration', generatedEvent.goalDuration ?? null);
-    }
-    if (
-      generatedEvent.type === EVENT_TYPE.TRAINING &&
       'goalDistance' in generatedEvent
     ) {
       setValue('goalDistance', generatedEvent.goalDistance ?? null);
@@ -297,16 +309,21 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     ) {
       setValue('goalRpe', generatedEvent.goalRpe ?? null);
     }
-    if (
+    const generatedSteps =
       generatedEvent.type === EVENT_TYPE.TRAINING &&
       'workout' in generatedEvent &&
-      generatedEvent.workout &&
-      generatedEvent.workout.steps
-    ) {
-      setWorkoutSteps(generatedEvent.workout.steps);
-    } else {
-      // Allow creation even without steps
-      setWorkoutSteps([]);
+      generatedEvent.workout?.steps
+        ? generatedEvent.workout.steps
+        : // Allow creation even without steps
+          [];
+    setWorkoutSteps(generatedSteps);
+    // A total the coach stated ("45' in all") wins over the steps' estimate
+    if (generatedEvent.type === EVENT_TYPE.TRAINING) {
+      adoptStepsDuration(
+        generatedSteps,
+        generatedEvent.goalDuration,
+        generatedEvent.sport,
+      );
     }
   };
 
@@ -336,13 +353,6 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     if (
       isTraining &&
       trainingEventData &&
-      'goalDuration' in trainingEventData
-    ) {
-      setValue('goalDuration', trainingEventData.goalDuration ?? null);
-    }
-    if (
-      isTraining &&
-      trainingEventData &&
       'goalDistance' in trainingEventData
     ) {
       setValue('goalDistance', trainingEventData.goalDistance ?? null);
@@ -363,15 +373,21 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     // Always update workout steps for training events, even if empty
     // This ensures that AI modifications (including removal of steps) are reflected
     if (isTraining && trainingEventData) {
+      // Clear steps if workout is empty or doesn't exist
+      const modifiedSteps = trainingEventData.workout?.steps ?? [];
+      setWorkoutSteps(modifiedSteps);
+      // An unchanged duration keeps its mode: one that followed the old
+      // steps follows the new ones
       if (
-        trainingEventData.workout &&
-        trainingEventData.workout.steps &&
-        trainingEventData.workout.steps.length > 0
+        'goalDuration' in trainingEventData &&
+        (trainingEventData.goalDuration ?? null) !==
+          (getValues('goalDuration') ?? null)
       ) {
-        setWorkoutSteps(trainingEventData.workout.steps);
-      } else {
-        // Clear steps if workout is empty or doesn't exist
-        setWorkoutSteps([]);
+        adoptStepsDuration(
+          modifiedSteps,
+          trainingEventData.goalDuration,
+          trainingEventData.sport,
+        );
       }
     }
   };
@@ -431,7 +447,10 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
           <EventFormFields
             type={type}
             logging={create && type === EVENT_TYPE.ACTIVITY}
-            hasStepsWithDuration={hasStepsWithDuration}
+            workoutDuration={calculatedDuration}
+            durationSetByHand={durationSetByHand}
+            onDurationEdited={setDurationByHand}
+            onFollowWorkout={followWorkout}
             startDateValue={startDateValue}
             endDateValue={watch('endDate')}
             canChooseEquipment={
@@ -456,7 +475,7 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
             workoutSteps={workoutSteps}
             setWorkoutSteps={setWorkoutSteps}
             sportValue={sportValue}
-            athleteId={athleteId ?? undefined}
+            athleteId={workoutAthleteId}
           />
 
           <div className="flex flex-col items-stretch gap-3 max-md:sticky max-md:-bottom-4 max-md:z-10 max-md:-mx-4 max-md:border-t max-md:bg-background max-md:px-4 max-md:pt-3 max-md:pb-[calc(0.75rem+var(--safe-bottom))] md:flex-row md:items-center md:gap-4">

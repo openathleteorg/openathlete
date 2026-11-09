@@ -186,22 +186,12 @@ export const ApiEnvSchema = z
         'Notification secret of the Suunto app, to verify its webhooks (optional)',
       ),
 
-    // Coros OAuth (optional)
-    // COROS_CLIENT_ID: z
-    //   .string()
-    //   .optional()
-    //   .describe('Coros OAuth client ID (optional)'),
-
-    // COROS_CLIENT_SECRET: z
-    //   .string()
-    //   .optional()
-    //   .describe('Coros OAuth client secret (optional)'),
-
-    // COROS_REDIRECT_URI: z
-    //   .string()
-    //   .url('COROS_REDIRECT_URI must be a valid URL')
-    //   .optional()
-    //   .describe('Coros OAuth redirect URI (optional)'),
+    // Coros: no credentials, each connection registers its own OAuth client
+    COROS_REDIRECT_URI: z
+      .string()
+      .url('COROS_REDIRECT_URI must be a valid URL')
+      .optional()
+      .describe('Coros OAuth redirect URI. Defaults to APP_URL (optional)'),
 
     // Polar OAuth (optional)
     POLAR_CLIENT_ID: z
@@ -282,6 +272,28 @@ export const ApiEnvSchema = z
       .optional()
       .describe(
         'Sender address of every email, for Brevo and SMTP. Default: BREVO_FROM_EMAIL, else noreply@openathlete.org',
+      ),
+
+    EMAIL_FROM_NAME: z
+      .string()
+      .max(60)
+      .optional()
+      .describe('Sender name shown in inboxes. Default: OpenAthlete'),
+
+    EMAIL_REPLY_TO: z
+      .string()
+      .email('EMAIL_REPLY_TO must be a valid email address')
+      .optional()
+      .describe(
+        'Where replies to the emails go, when the sender address is not read (optional)',
+      ),
+
+    EMAIL_SIGNATURE: z
+      .string()
+      .max(60)
+      .optional()
+      .describe(
+        'Name that signs the emails written in person (onboarding, monthly recap, news): setting it turns those emails on (optional)',
       ),
 
     // Single sign-on through an OpenID Connect provider (optional)

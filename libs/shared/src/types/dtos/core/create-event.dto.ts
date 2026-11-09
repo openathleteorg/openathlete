@@ -14,8 +14,15 @@ export const trainingEventSchema = baseEventSchema.extend({
   type: z.literal(EVENT_TYPE.TRAINING),
   sport: z.nativeEnum(SPORT_TYPE),
   description: z.string(),
-  goalDistance: z.number().optional().nullable(),
-  goalDuration: z.number().optional().nullable(),
+  // Descriptions guide the AI generator, which writes this schema
+  goalDistance: z.number().optional().nullable().describe('Meters'),
+  goalDuration: z
+    .number()
+    .optional()
+    .nullable()
+    .describe(
+      'Planned duration of the whole session in seconds (45 min = 2700). Equals the total the coach states, even when the steps add up to less',
+    ),
   goalElevationGain: z.number().optional().nullable(),
   goalRpe: z.number().optional().nullable(),
   // Workout data for structured training sessions

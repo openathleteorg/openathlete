@@ -55,6 +55,33 @@ describe('EmailTransportService', () => {
     });
   });
 
+  it('sends the text part, the reply address, the sender name and headers to Brevo', async () => {
+    fetchMock.mockResolvedValue(new Response('{}', { status: 201 }));
+    const service = createService({
+      BREVO_API_KEY: 'key',
+      EMAIL_FROM: 'tristan@example.com',
+      EMAIL_FROM_NAME: 'Tristan · OpenAthlete',
+      EMAIL_REPLY_TO: 'hello@example.com',
+    });
+
+    await service.send({
+      ...email,
+      text: 'Hi',
+      headers: { 'List-Unsubscribe': '<https://x.org/u>' },
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(JSON.parse(init.body as string)).toEqual({
+      sender: { email: 'tristan@example.com', name: 'Tristan · OpenAthlete' },
+      to: [{ email: 'athlete@example.com' }],
+      replyTo: { email: 'hello@example.com' },
+      subject: 'Hi',
+      htmlContent: '<p>Hi</p>',
+      textContent: 'Hi',
+      headers: { 'List-Unsubscribe': '<https://x.org/u>' },
+    });
+  });
+
   it('falls back to the default sender address', async () => {
     fetchMock.mockResolvedValue(new Response('{}', { status: 201 }));
     await createService({ BREVO_API_KEY: 'key' }).send(email);
@@ -168,6 +195,25 @@ describe('EmailTransportService over SMTP', () => {
     expect(received[0].data).toContain('Subject: Hi');
     expect(received[0].data).toContain('<p>Hi</p>');
     expect(logins).toEqual([]);
+  });
+
+  it('names the sender, and passes the reply address, text and headers over SMTP', async () => {
+    await createService(
+      smtpEnv({
+        EMAIL_FROM_NAME: 'Tristan',
+        EMAIL_REPLY_TO: 'hello@example.com',
+      }),
+    ).send({
+      ...email,
+      text: 'Plain hi',
+      headers: { 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' },
+    });
+
+    const data = received[0].data;
+    expect(data).toContain('From: Tristan <team@example.com>');
+    expect(data).toContain('Reply-To: hello@example.com');
+    expect(data).toContain('List-Unsubscribe-Post: List-Unsubscribe=One-Click');
+    expect(data).toContain('Plain hi');
   });
 
   it('signs in when credentials are set', async () => {

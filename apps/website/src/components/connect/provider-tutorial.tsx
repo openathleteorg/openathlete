@@ -1,133 +1,76 @@
-'use client';
-
-import { Container } from '@/components/landing/container';
-import { Section } from '@/components/landing/section';
+import { shots } from '@/assets/screenshots';
+import { Container, Section } from '@/components/site/layout-primitives';
+import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
+import { Screenshot } from '@/components/site/visuals/screenshot';
 import { m } from '@/paraglide/messages';
-import { motion } from 'framer-motion';
-import { CheckCircle, MousePointerClick, Settings } from 'lucide-react';
-import * as React from 'react';
 
-type Provider = 'GARMIN' | 'STRAVA' | 'SUUNTO' | 'POLAR';
+import { type Connector, providerMessage } from './data';
 
-interface ProviderTutorialProps {
-  provider: Provider;
-}
-
-const stepIcons = [Settings, MousePointerClick, CheckCircle];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.2,
+export function ProviderTutorial({ connector }: { connector: Connector }) {
+  const provider = connector.name;
+  const steps = [
+    { title: m.connect_step_1_title(), body: m.connect_step_1_body() },
+    {
+      title: m.connect_step_2_title({ provider }),
+      body: providerMessage(connector.slug, 'step_2'),
     },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1] as const,
+    {
+      title: m.connect_step_3_title(),
+      body: providerMessage(connector.slug, 'step_3'),
     },
-  },
-};
-
-const getStepMessages = (provider: Provider, step: number) => {
-  const key = provider.toLowerCase() as
-    'garmin' | 'strava' | 'suunto' | 'polar';
-  return {
-    title: (
-      m[
-        `connect_${key}_tutorial_step_${step}_title` as keyof typeof m
-      ] as () => string
-    )(),
-    description: (
-      m[
-        `connect_${key}_tutorial_step_${step}_description` as keyof typeof m
-      ] as () => string
-    )(),
-  };
-};
-
-export function ProviderTutorial({ provider }: ProviderTutorialProps) {
-  const steps = [1, 2, 3].map((step) => ({
-    step,
-    Icon: stepIcons[step - 1],
-    ...getStepMessages(provider, step),
-  }));
-
+    {
+      title: m.connect_step_4_title(),
+      body: providerMessage(connector.slug, 'step_4'),
+    },
+  ];
   return (
-    <Section id="tutorial" className="bg-background">
+    <Section>
       <Container>
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            {(
-              m[
-                `connect_${provider.toLowerCase()}_tutorial_title` as keyof typeof m
-              ] as () => string
-            )()}
-          </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            {(
-              m[
-                `connect_${provider.toLowerCase()}_tutorial_subtitle` as keyof typeof m
-              ] as () => string
-            )()}
-          </p>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-4xl">
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-100px' }}
-            className="space-y-8"
-          >
-            {steps.map(({ step, Icon, title, description }) => (
-              <motion.div
-                key={step}
-                variants={itemVariants}
-                className="group relative overflow-hidden rounded-2xl border bg-card p-8 shadow-sm transition-all hover:shadow-md"
-              >
-                <div className="flex items-start gap-6">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border-2 border-primary bg-primary/10">
-                    <Icon className="h-8 w-8 text-primary" />
+        <div className="grid gap-14 lg:grid-cols-12 lg:gap-16">
+          <div className="lg:col-span-5">
+            <div className="lg:sticky lg:top-28">
+              <p className="kicker text-muted-foreground">
+                {m.connect_steps_kicker()}
+              </p>
+              <h2 className="display-2-side mt-4">
+                {m.connect_steps_title({ provider })}
+              </h2>
+              <Reveal delay={0.1} className="mt-10 hidden lg:block">
+                <Screenshot
+                  src={shots.integrations}
+                  alt={m.connect_steps_title({ provider })}
+                  chrome={false}
+                  sizes="420px"
+                />
+              </Reveal>
+            </div>
+          </div>
+          <RevealGroup className="relative lg:col-span-7">
+            <div
+              aria-hidden
+              className="brand-gradient absolute top-4 bottom-4 left-[1.1rem] w-[2px] opacity-40"
+            />
+            <div className="grid gap-10">
+              {steps.map((step, index) => (
+                <RevealItem key={step.title} className="relative flex gap-6">
+                  <span className="relative z-10 grid size-9 shrink-0 place-items-center rounded-full bg-ink font-mono text-[0.85rem] font-medium text-white ring-4 ring-white">
+                    {index + 1}
+                  </span>
+                  <div className="pt-1">
+                    <p className="kicker text-muted-foreground">
+                      {m.connect_step_label({ step: String(index + 1) })}
+                    </p>
+                    <h3 className="mt-1.5 text-xl font-semibold tracking-[-0.02em]">
+                      {step.title}
+                    </h3>
+                    <p className="mt-2 max-w-xl leading-relaxed text-muted-foreground">
+                      {step.body}
+                    </p>
                   </div>
-                  <div className="flex-1">
-                    <div className="mb-2 text-sm font-medium text-muted-foreground">
-                      {m.connect_tutorial_step_label({ step: step.toString() })}
-                    </div>
-                    <h3 className="mb-2 text-xl font-semibold">{title}</h3>
-                    <p className="text-muted-foreground">{description}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Success message */}
-          <motion.div
-            variants={itemVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="mt-12 rounded-2xl border-2 border-green-500/20 bg-green-500/5 p-8 text-center"
-          >
-            <CheckCircle className="mx-auto mb-4 h-12 w-12 text-green-500" />
-            <h3 className="text-xl font-semibold">
-              {(
-                m[
-                  `connect_${provider.toLowerCase()}_tutorial_success` as keyof typeof m
-                ] as () => string
-              )()}
-            </h3>
-          </motion.div>
+                </RevealItem>
+              ))}
+            </div>
+          </RevealGroup>
         </div>
       </Container>
     </Section>

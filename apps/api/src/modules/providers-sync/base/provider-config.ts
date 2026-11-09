@@ -13,11 +13,13 @@ const REQUIRED_ENV: Partial<
     'SUUNTO_SUBSCRIPTION_KEY',
   ],
   POLAR: ['POLAR_CLIENT_ID', 'POLAR_CLIENT_SECRET'],
+  // COROS registers a client per connection: it only needs to send users back
+  COROS: ['APP_URL'],
 };
 
 /**
  * Connectors this instance can offer. Self-hosted instances usually have
- * none: each one needs a developer account with the provider.
+ * COROS only: the others each need a developer account with the provider.
  */
 export function configuredProviders(
   get: (key: keyof ApiEnvSchemaType) => unknown,

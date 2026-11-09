@@ -7,12 +7,13 @@ import {
   useUpdateProviderPreferencesMutation,
 } from '@/api/provider';
 import { GarminLogo, StravaIcon } from '@/assets/icons';
-import { PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
+import { CorosLogo, PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
 import { ConfirmAction } from '@/components/confirm-action';
 import {
   ConnectorsUnavailable,
   offeredProviders,
 } from '@/components/connectors';
+import { CorosRegionDialog } from '@/components/connectors/coros-region-dialog';
 import { ImportFitDialog } from '@/components/import-fit-dialog/import-fit-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,6 +45,7 @@ import {
 } from '@openathlete/shared';
 
 import { CalendarFeedSection } from './calendar-feed-section';
+import { DuplicateActivitiesSection } from './duplicate-activities-section';
 import { GarminPersonalSection } from './garmin-personal-section';
 import {
   SettingsPanel,
@@ -51,17 +53,19 @@ import {
   SettingsRowsSkeleton,
   SettingsSection,
 } from './settings-section';
+import { StravaActivityDescriptionRows } from './strava-activity-description';
 
 const SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'STRAVA',
   'GARMIN',
   'SUUNTO',
   'POLAR',
-  // 'COROS',
+  'COROS',
 ];
 
 export function ConnectorsTab() {
   const posthog = usePostHog();
+  const [corosRegionOpen, setCorosRegionOpen] = useState(false);
   const [disconnectDialogOpen, setDisconnectDialogOpen] = useState(false);
   const [providerToDisconnect, setProviderToDisconnect] =
     useState<ConnectorProvider | null>(null);
@@ -86,7 +90,7 @@ export function ConnectorsTab() {
   );
 
   const getOAuthUriMutation = useGetOAuthUriMutation({
-    onSuccess: async (response, provider) => {
+    onSuccess: async (response, { provider }) => {
       setOauthConnectSourceForRedirect('settings');
       posthog?.capture(AnalyticsEvent.provider_connect_initiated, {
         provider,
@@ -179,7 +183,11 @@ export function ConnectorsTab() {
   };
 
   const handleConnect = (provider: ConnectorProvider) => {
-    getOAuthUriMutation.mutate(provider);
+    if (provider === 'COROS') {
+      setCorosRegionOpen(true);
+      return;
+    }
+    getOAuthUriMutation.mutate({ provider });
   };
 
   const handleDisconnect = (provider: ConnectorProvider) => {
@@ -203,6 +211,8 @@ export function ConnectorsTab() {
         return <PolarLogo className="h-6 w-auto" />;
       case 'SUUNTO':
         return <SuuntoLogo className="h-6 w-auto" />;
+      case 'COROS':
+        return <CorosLogo className="h-6 w-auto" />;
       default:
         return <Link2 className="h-5 w-5" />;
     }
@@ -377,6 +387,14 @@ export function ConnectorsTab() {
                       </SettingsRow>
                     );
                   })}
+                  {capabilities.writeActivityDescription && (
+                    <StravaActivityDescriptionRows
+                      account={providerDetails}
+                      onAuthorize={() =>
+                        getOAuthUriMutation.mutate({ provider })
+                      }
+                    />
+                  )}
                   {capabilities.supportsFullImport && (
                     <SettingsRow
                       stacked
@@ -448,7 +466,18 @@ export function ConnectorsTab() {
         </SettingsSection>
       )}
 
+      {roles?.includes('ATHLETE') && <DuplicateActivitiesSection />}
+
       {roles?.includes('ATHLETE') && <CalendarFeedSection />}
+
+      <CorosRegionDialog
+        open={corosRegionOpen}
+        onOpenChange={setCorosRegionOpen}
+        onSelect={(region) => {
+          setCorosRegionOpen(false);
+          getOAuthUriMutation.mutate({ provider: 'COROS', region });
+        }}
+      />
 
       <ConfirmAction
         open={disconnectDialogOpen}

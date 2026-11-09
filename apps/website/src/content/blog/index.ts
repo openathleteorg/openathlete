@@ -24,12 +24,14 @@ import { articleSmartwatchIsntEnough } from './article-smartwatch-isnt-enough';
 import { articleStopTrainingOnFeeling } from './article-stop-training-on-feeling';
 import { articleSubjectiveScientific } from './article-subjective-scientific';
 import { articleSyncWorkouts } from './article-sync-workouts';
+import { articleTrainingpeaksGarminAlternatives } from './article-trainingpeaks-garmin-alternatives';
 import { articleTrimp } from './article-trimp';
 import { articleYouthTalentDetection } from './article-youth-talent-detection';
 import type { BlogPost, LocalizedText } from './types';
 
 // Export all blog posts
 export const blogPosts: BlogPost[] = [
+  articleTrainingpeaksGarminAlternatives,
   article1,
   article2,
   article3,
@@ -84,6 +86,8 @@ const CONTENT_BY_LOCALE = {
   en: 'ContentEn',
   fr: 'ContentFr',
   es: 'ContentEs',
+  it: 'ContentIt',
+  'pt-br': 'ContentPtBr',
 } as const satisfies Record<SupportedLocale, keyof BlogPost>;
 
 /** The post body in `locale`, or undefined when it is not translated. */
@@ -91,7 +95,8 @@ export function getPostContent(
   post: BlogPost,
   locale: SupportedLocale,
 ): (() => ReactNode) | undefined {
-  return post[CONTENT_BY_LOCALE[locale]];
+  const content = post[CONTENT_BY_LOCALE[locale]];
+  return typeof content === 'function' ? content : undefined;
 }
 
 /** Locales the post body is written in. */

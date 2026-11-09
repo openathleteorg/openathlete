@@ -1,107 +1,94 @@
 {
   "plan": {
-    "name": "Objectif Marathon 4h15",
-    "description": "Plan de 12 semaines conçu pour atteindre 4h15 au marathon. 4 séances par semaine axées sur la progressivité et le volume maîtrisé. Idéal pour un profil récréatif régulier.",
-    "goal": "Marathon en 4h15",
+    "name": "Plan marathon en 4h15 : 16 semaines",
+    "description": "16 semaines, 4 sorties par semaine, pour courir un marathon en 4h15 (6:03/km). Écrit pour une VMA autour de 13 km/h. La première semaine fait environ 29 km ; la plus chargée atteint 54 km et la sortie la plus longue dure 2h45. Chaque séance a ses cibles : un pourcentage de VMA pour l’endurance et le fractionné, votre allure objectif pour le travail spécifique.",
+    "goal": "Courir un marathon en 4h15",
     "sportType": "RUNNING",
     "distance": 42195,
-    "duration": 12,
+    "duration": 16,
     "timeTarget": 15300
   },
   "cycles": [
     {
-      "name": "Phase 1 : Développement Général",
-      "description": "Construction du volume aérobie et développement de la VMA. On habitue le corps à courir 4 fois par semaine.",
+      "name": "Préparation générale",
+      "description": "Du volume facile, du fractionné court et des lignes droites. La sortie longue s’allonge un peu chaque semaine. La semaine 4 est allégée pour assimiler le travail.",
       "phase": "BASE",
       "color": "#3b82f6",
       "weeks": [
         {
           "weekNumber": 1,
-          "theme": "Reprise et Adaptation",
+          "theme": "Foncier",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance Fondamentale",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "Footing en aisance respiratoire totale.",
-              "goalDuration": 2700,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Fartlek ludique",
-              "sport": "RUNNING",
-              "description": "45 min dont 8x 30s vite / 30s lent pour dynamiser la foulée sans épuisement.",
-              "goalDuration": 2700,
-              "goalRpe": 6,
+              "description": "15 min d’échauffement, 7 × (1 min vite à 92–97 % VMA / 1 min trot), 10 min de retour au calme.",
+              "goalDistance": 5800,
+              "goalDuration": 2340,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "7 × 1 min",
                     "durationType": "OPEN",
-                    "name": "8x 30s/30s",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 8,
+                      "repetitions": 7,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
                           "durationType": "TIME",
-                          "durationValue": 30,
+                          "durationValue": 60,
                           "targets": [
                             {
-                              "targetType": "RPE",
-                              "targetValue": 7
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 60,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -109,45 +96,108 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Footing de récupération",
+              "dayOfWeek": 3,
+              "name": "Footing",
               "sport": "RUNNING",
-              "description": "30 à 40 minutes très souple.",
-              "goalDuration": 2400,
-              "goalRpe": 2,
+              "description": "35 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 2400,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Footing + lignes droites",
+              "sport": "RUNNING",
+              "description": "35 min en endurance fondamentale (62–70 % VMA), puis 6 lignes droites de 20 s, rapides mais relâchées, retour en marchant.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ligne droite",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue Hebdo",
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "1h15 en endurance pure. Le pilier de la semaine.",
-              "goalDuration": 4500,
-              "goalRpe": 3,
+              "description": "1h25 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 12200,
+              "goalDuration": 5100,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 4500,
+                    "durationValue": 5100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -158,91 +208,78 @@
         },
         {
           "weekNumber": 2,
-          "theme": "Augmentation du volume",
+          "theme": "Foncier",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance Fondamentale",
+              "name": "Fractionné 30/30",
               "sport": "RUNNING",
-              "description": "Footing régulier.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "VMA Courte",
-              "sport": "RUNNING",
-              "description": "10x 30s/30s. Un peu plus de volume d'intensité que la semaine passée.",
-              "goalDuration": 3000,
-              "goalRpe": 7,
+              "description": "15 min d’échauffement, 12 × (30 s à 100–105 % VMA / 30 s trot), 10 min de retour au calme.",
+              "goalDistance": 5600,
+              "goalDuration": 2220,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "12 × 30 s",
                     "durationType": "OPEN",
-                    "name": "10x 30s/30s",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 10,
+                      "repetitions": 12,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
                           "durationType": "TIME",
                           "durationValue": 30,
                           "targets": [
                             {
-                              "targetType": "RPE",
-                              "targetValue": 8
+                              "targetType": "PACE",
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
                           "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -250,22 +287,85 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Footing cool",
+              "dayOfWeek": 3,
+              "name": "Footing",
               "sport": "RUNNING",
-              "description": "45 min cool.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure soutenue",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 15 min à allure soutenue (80–84 % VMA), 10 min de retour au calme.",
+              "goalDistance": 6200,
+              "goalDuration": 2400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Allure soutenue",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -274,21 +374,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue",
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "1h20 en endurance.",
-              "goalDuration": 4800,
-              "goalRpe": 3,
+              "description": "1h40 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 14300,
+              "goalDuration": 6000,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 4800,
+                    "durationValue": 6000,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -299,91 +404,78 @@
         },
         {
           "weekNumber": 3,
-          "theme": "Introduction du Seuil",
+          "theme": "Foncier",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Fractionné 30/30",
               "sport": "RUNNING",
-              "description": "50 min endurance fondamentale.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Seuil court",
-              "sport": "RUNNING",
-              "description": "3 répétitions de 6 minutes à allure soutenue (semi-marathon/10km).",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min d’échauffement, 14 × (30 s à 100–105 % VMA / 30 s trot), 10 min de retour au calme.",
+              "goalDistance": 6000,
+              "goalDuration": 2340,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "14 × 30 s",
                     "durationType": "OPEN",
-                    "name": "3x 6min Seuil",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 14,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
                           "durationType": "TIME",
-                          "durationValue": 360,
+                          "durationValue": 30,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.5
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 30,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -391,22 +483,85 @@
               }
             },
             {
-              "dayOfWeek": 6,
+              "dayOfWeek": 3,
               "name": "Footing",
               "sport": "RUNNING",
-              "description": "45 min récupération.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure soutenue",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 20 min à allure soutenue (80–84 % VMA), 10 min de retour au calme.",
+              "goalDistance": 7100,
+              "goalDuration": 2700,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Allure soutenue",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -415,21 +570,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue",
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "1h30 en endurance.",
-              "goalDuration": 5400,
-              "goalRpe": 3,
+              "description": "1h50 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 5400,
+                    "durationValue": 6600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -440,91 +600,83 @@
         },
         {
           "weekNumber": 4,
-          "theme": "Assimilation (Semaine allégée)",
+          "theme": "Semaine allégée",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Footing court",
+              "name": "Footing + lignes droites",
               "sport": "RUNNING",
-              "description": "40 min cool.",
-              "goalDuration": 2400,
-              "goalRpe": 2,
+              "description": "35 min en endurance fondamentale (62–70 % VMA), puis 6 lignes droites de 20 s, rapides mais relâchées, retour en marchant.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 2400,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Rappels de vitesse",
-              "sport": "RUNNING",
-              "description": "Quelques accélérations courtes (6x 45s) pour garder le rythme sans fatiguer.",
-              "goalDuration": 2700,
-              "goalRpe": 5,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 20 s",
                     "durationType": "OPEN",
-                    "name": "6x 45s/45s",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ligne droite",
                           "durationType": "TIME",
-                          "durationValue": 45,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 6
-                            }
-                          ]
+                          "durationValue": 20,
+                          "targets": []
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 45,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 40,
+                          "targets": []
                         }
                       ]
                     }
-                  },
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "35 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
                   {
-                    "stepType": "COOLDOWN",
+                    "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 600,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -532,45 +684,80 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Footing cool",
+              "dayOfWeek": 5,
+              "name": "Footing + lignes droites",
               "sport": "RUNNING",
-              "description": "30 min très cool.",
-              "goalDuration": 1800,
-              "goalRpe": 2,
+              "description": "35 min en endurance fondamentale (62–70 % VMA), puis 6 lignes droites de 20 s, rapides mais relâchées, retour en marchant.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ligne droite",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue Modérée",
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "1h10 en endurance.",
-              "goalDuration": 4200,
-              "goalRpe": 3,
+              "description": "1h15 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 10700,
+              "goalDuration": 4500,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 4200,
+                    "durationValue": 4500,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -582,98 +769,85 @@
       ]
     },
     {
-      "name": "Phase 2 : Développement Spécifique",
-      "description": "Cœur de la préparation. Allongement des sorties longues et travail de l'allure cible Marathon (4h15 = ~6:02/km).",
-      "phase": "SPECIFIC",
+      "name": "Développement",
+      "description": "Fractionné VMA et travail au seuil, sorties longues plus longues. La semaine 8 est allégée pour assimiler le travail.",
+      "phase": "BASE",
       "color": "#10b981",
       "weeks": [
         {
           "weekNumber": 5,
-          "theme": "Volume et Seuil",
+          "theme": "Développement",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Fractionné VMA",
               "sport": "RUNNING",
-              "description": "50 min endurance.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Seuil long",
-              "sport": "RUNNING",
-              "description": "2 x 10 minutes allure Seuil (plus rapide que marathon).",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min d’échauffement, 8 × 400 m à 100–105 % VMA, récup 90 s trot, 10 min de retour au calme.",
+              "goalDistance": 8200,
+              "goalDuration": 3060,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "8 × 400 m",
                     "durationType": "OPEN",
-                    "name": "2x 10min Seuil",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 2,
+                      "repetitions": 8,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
-                          "durationType": "TIME",
-                          "durationValue": 600,
+                          "name": "Vite",
+                          "durationType": "DISTANCE",
+                          "durationValue": 400,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.6
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 180,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 90,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -681,22 +855,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
+              "dayOfWeek": 3,
               "name": "Footing",
               "sport": "RUNNING",
-              "description": "45 min cool.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Seuil",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 3 × 8 min au seuil (85–88 % VMA), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Seuil",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -705,21 +960,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue",
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "1h40 en endurance.",
-              "goalDuration": 6000,
-              "goalRpe": 3,
+              "description": "1h50 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 6000,
+                    "durationValue": 6600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -730,25 +990,106 @@
         },
         {
           "weekNumber": 6,
-          "theme": "Allure Marathon (AS42)",
+          "theme": "Développement",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Fractionné VMA",
               "sport": "RUNNING",
-              "description": "55 min endurance.",
-              "goalDuration": 3300,
+              "description": "15 min d’échauffement, 5 × 800 m à 95–100 % VMA, récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 8800,
+              "goalDuration": 3240,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "5 × 800 m",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
+                          "durationType": "DISTANCE",
+                          "durationValue": 800,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "45 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 3300,
+                    "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -756,133 +1097,57 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Fractionné Pyramidal",
+              "dayOfWeek": 5,
+              "name": "Allure soutenue",
               "sport": "RUNNING",
-              "description": "Varier les allures : 4' - 6' - 8' - 4' rapide.",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min d’échauffement, 25 min à allure soutenue (80–84 % VMA), 10 min de retour au calme.",
+              "goalDistance": 8000,
+              "goalDuration": 3000,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "INTERVAL_ACTIVE",
+                    "name": "Allure soutenue",
                     "durationType": "TIME",
-                    "durationValue": 240,
+                    "durationValue": 1500,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 5.5
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 360,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.6
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 480,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.7
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 240,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.5
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Footing",
-              "sport": "RUNNING",
-              "description": "45 min cool.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -891,44 +1156,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue Spécifique",
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "1h45 avec 20 min à allure marathon (6:02/km) au milieu.",
-              "goalDuration": 6300,
+              "description": "2h05 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 17900,
+              "goalDuration": 7500,
               "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
                     "stepType": "STEADY",
-                    "name": "Bloc Allure Marathon",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 7500,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 2100,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -939,91 +1186,78 @@
         },
         {
           "weekNumber": 7,
-          "theme": "Volume Max - Semaine 1",
+          "theme": "Développement",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "VMA longue",
               "sport": "RUNNING",
-              "description": "1h endurance.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Seuil Long",
-              "sport": "RUNNING",
-              "description": "3 x 8 minutes allure Seuil.",
-              "goalDuration": 4200,
-              "goalRpe": 7,
+              "description": "15 min d’échauffement, 5 × 1 km à 92–97 % VMA, récup 2 min 30 trot, 10 min de retour au calme.",
+              "goalDistance": 10100,
+              "goalDuration": 3720,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "5 × 1 km",
                     "durationType": "OPEN",
-                    "name": "3x 8min Seuil",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 5,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
-                          "durationType": "TIME",
-                          "durationValue": 480,
+                          "name": "Vite",
+                          "durationType": "DISTANCE",
+                          "durationValue": 1000,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.6
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 150,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1031,22 +1265,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
+              "dayOfWeek": 3,
               "name": "Footing",
               "sport": "RUNNING",
-              "description": "50 min cool.",
-              "goalDuration": 3000,
-              "goalRpe": 2,
+              "description": "45 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 3000,
+                    "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Seuil",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 4 × 8 min au seuil (85–88 % VMA), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 10500,
+              "goalDuration": 3900,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "4 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Seuil",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1055,21 +1370,82 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue",
+              "name": "Sortie longue avec allure spécifique",
               "sport": "RUNNING",
-              "description": "2h00 en endurance fondamentale. On habitue les articulations.",
-              "goalDuration": 7200,
-              "goalRpe": 3,
+              "description": "2h20 au total, dont 2 × 10 min à allure spécifique marathon (6:03/km), avec 5 min en endurance entre les blocs. Le reste en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 20500,
+              "goalDuration": 8400,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 7200,
+                    "durationValue": 4200,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Endurance",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1080,91 +1456,78 @@
         },
         {
           "weekNumber": 8,
-          "theme": "Spécifique Marathon",
+          "theme": "Semaine allégée",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "1h endurance.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Allure Marathon",
-              "sport": "RUNNING",
-              "description": "2 x 15 min à l'allure cible (4h15 pace).",
-              "goalDuration": 4200,
-              "goalRpe": 6,
+              "description": "15 min d’échauffement, 6 × (1 min vite à 92–97 % VMA / 1 min trot), 10 min de retour au calme.",
+              "goalDistance": 5500,
+              "goalDuration": 2220,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 1 min",
                     "durationType": "OPEN",
-                    "name": "2x 15min AS42",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 2,
+                      "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
                           "durationType": "TIME",
-                          "durationValue": 900,
+                          "durationValue": 60,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 180,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 60,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1172,212 +1535,108 @@
               }
             },
             {
-              "dayOfWeek": 6,
+              "dayOfWeek": 3,
               "name": "Footing",
               "sport": "RUNNING",
-              "description": "45 min cool.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 0,
-              "name": "Sortie Longue Spécifique",
-              "sport": "RUNNING",
-              "description": "2h15, incluant 2x20min allure marathon. Séance clé.",
-              "goalDuration": 8100,
-              "goalRpe": 4,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "name": "Bloc AS42",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "name": "Recup active",
-                    "durationType": "TIME",
-                    "durationValue": 300,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "name": "Bloc AS42",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 2400,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "weekNumber": 9,
-          "theme": "Semaine allégée (avant le pic)",
-          "sessions": [
-            {
-              "dayOfWeek": 2,
-              "name": "Footing",
-              "sport": "RUNNING",
-              "description": "45 min cool.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Rappels AS42",
-              "sport": "RUNNING",
-              "description": "30 min d'échauffement + 15 min allure marathon + 10 min calme.",
-              "goalDuration": 3300,
-              "goalRpe": 4,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 1800,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 900,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Repos / Footing court",
-              "sport": "RUNNING",
-              "description": "30 min très léger.",
-              "goalDuration": 1800,
-              "goalRpe": 1,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 1800,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 1
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 0,
-              "name": "Sortie Longue",
-              "sport": "RUNNING",
-              "description": "1h40 en endurance. On recharge les batteries.",
-              "goalDuration": 6000,
+              "description": "40 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 6000,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Footing + lignes droites",
+              "sport": "RUNNING",
+              "description": "40 min en endurance fondamentale (62–70 % VMA), puis 6 lignes droites de 20 s, rapides mais relâchées, retour en marchant.",
+              "goalDistance": 6600,
+              "goalDuration": 2760,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ligne droite",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Sortie longue",
+              "sport": "RUNNING",
+              "description": "1h30 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 12900,
+              "goalDuration": 5400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1389,98 +1648,85 @@
       ]
     },
     {
-      "name": "Phase 3 : Pic & Affûtage",
-      "description": "La plus longue sortie, puis la diminution progressive (Tapering) pour arriver frais au départ.",
-      "phase": "TAPER",
+      "name": "Spécifique marathon",
+      "description": "L’allure marathon dans les sorties longues et en séance de semaine : les plus grosses semaines du plan. La semaine 12 est allégée pour assimiler le travail.",
+      "phase": "SPECIFIC",
       "color": "#f59e0b",
       "weeks": [
         {
-          "weekNumber": 10,
-          "theme": "Le Pic de forme (Sortie la plus longue)",
+          "weekNumber": 9,
+          "theme": "Spécifique",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance",
+              "name": "Seuil",
               "sport": "RUNNING",
-              "description": "1h endurance.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Seuil / Allure Marathon",
-              "sport": "RUNNING",
-              "description": "3 x 10 min allure marathon pour bien mémoriser le rythme.",
-              "goalDuration": 3600,
-              "goalRpe": 6,
+              "description": "15 min d’échauffement, 3 × 8 min au seuil (85–88 % VMA), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "3 × 8 min",
                     "durationType": "OPEN",
-                    "name": "3x 10min AS42",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 3,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Seuil",
                           "durationType": "TIME",
-                          "durationValue": 600,
+                          "durationValue": 480,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
                           "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1488,22 +1734,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
+              "dayOfWeek": 3,
               "name": "Footing",
               "sport": "RUNNING",
-              "description": "45 min cool.",
+              "description": "45 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 6400,
               "goalDuration": 2700,
-              "goalRpe": 2,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
                     "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure spécifique marathon",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 3 × 3 km à allure spécifique marathon (6:03/km), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 13300,
+              "goalDuration": 5100,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1512,33 +1839,296 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "La Sortie XXL",
+              "name": "Sortie longue avec allure spécifique",
               "sport": "RUNNING",
-              "description": "2h30, sortie la plus longue du plan. 80% endurance, finir par 15' allure marathon si bonne sensation.",
-              "goalDuration": 9000,
-              "goalRpe": 5,
+              "description": "2h20 au total, dont 2 × 15 min à allure spécifique marathon (6:03/km), avec 5 min en endurance entre les blocs. Le reste en endurance fondamentale (62–70 % VMA). Buvez et prenez vos gels du jour J en route, pour les tester.",
+              "goalDistance": 20700,
+              "goalDuration": 8400,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 8100,
+                    "durationValue": 3900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
+                    "stepType": "REPEAT",
+                    "name": "2 × 15 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "TIME",
+                          "durationValue": 900,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Endurance",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
                     "stepType": "STEADY",
-                    "name": "Finish AS42",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": "Spécifique",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "VMA longue",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 5 × 1 km à 92–97 % VMA, récup 2 min 30 trot, 10 min de retour au calme.",
+              "goalDistance": 10100,
+              "goalDuration": 3720,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
                     "durationValue": 900,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "5 × 1 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
+                          "durationType": "DISTANCE",
+                          "durationValue": 1000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "50 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure spécifique marathon",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 2 × 4 km à allure spécifique marathon (6:03/km), récup 3 min trot, 10 min de retour au calme.",
+              "goalDistance": 12300,
+              "goalDuration": 4740,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 4 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "DISTANCE",
+                          "durationValue": 4000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Sortie longue",
+              "sport": "RUNNING",
+              "description": "2h35 à allure facile et régulière (62–70 % VMA). Buvez et prenez vos gels du jour J en route, pour les tester.",
+              "goalDistance": 22200,
+              "goalDuration": 9300,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 9300,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1549,91 +2139,78 @@
         },
         {
           "weekNumber": 11,
-          "theme": "Début de l'affûtage (Taper)",
+          "theme": "Semaine la plus chargée",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Endurance courte",
+              "name": "Seuil",
               "sport": "RUNNING",
-              "description": "45 min cool.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Rappel allure",
-              "sport": "RUNNING",
-              "description": "2 x 10 min allure marathon, mais volume total réduit.",
-              "goalDuration": 2700,
-              "goalRpe": 5,
+              "description": "15 min d’échauffement, 2 × 12 min au seuil (85–88 % VMA), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 8500,
+              "goalDuration": 3180,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
                     "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "2 × 12 min",
                     "durationType": "OPEN",
-                    "name": "2x 10min AS42",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 2,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Seuil",
                           "durationType": "TIME",
-                          "durationValue": 600,
+                          "durationValue": 720,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
                           "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
                     "durationType": "TIME",
-                    "durationValue": 300,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1641,22 +2218,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
+              "dayOfWeek": 3,
               "name": "Footing",
               "sport": "RUNNING",
-              "description": "30 min très cool.",
-              "goalDuration": 1800,
-              "goalRpe": 2,
+              "description": "50 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 3000,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure spécifique marathon",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 3 × 3 km à allure spécifique marathon (6:03/km), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 13300,
+              "goalDuration": 5100,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1665,21 +2323,82 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Sortie Longue Allégée",
+              "name": "Sortie longue avec allure spécifique",
               "sport": "RUNNING",
-              "description": "1h20 en endurance.",
-              "goalDuration": 4800,
-              "goalRpe": 3,
+              "description": "2h45 au total, dont 3 × 15 min à allure spécifique marathon (6:03/km), avec 5 min en endurance entre les blocs. Le reste en endurance fondamentale (62–70 % VMA). Buvez et prenez vos gels du jour J en route, pour les tester.",
+              "goalDistance": 24600,
+              "goalDuration": 9900,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 4800,
+                    "durationValue": 3900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 15 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "TIME",
+                          "durationValue": 900,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Endurance",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1690,25 +2409,78 @@
         },
         {
           "weekNumber": 12,
-          "theme": "Semaine de la course",
+          "theme": "Semaine allégée",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Décrassage",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "30 min très lent pour faire circuler le sang.",
-              "goalDuration": 1800,
-              "goalRpe": 1,
+              "description": "15 min d’échauffement, 6 × (1 min vite à 92–97 % VMA / 1 min trot), 10 min de retour au calme.",
+              "goalDistance": 5500,
+              "goalDuration": 2220,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "STEADY",
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 1
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 1 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1716,53 +2488,79 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Activation",
+              "dayOfWeek": 3,
+              "name": "Footing",
               "sport": "RUNNING",
-              "description": "20 min cool + 3 accélérations de 30s. Juste pour le tonus nerveux.",
-              "goalDuration": 1500,
+              "description": "40 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
+                    "stepType": "STEADY",
+                    "name": "Endurance",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Footing + lignes droites",
+              "sport": "RUNNING",
+              "description": "40 min en endurance fondamentale (62–70 % VMA), puis 6 lignes droites de 20 s, rapides mais relâchées, retour en marchant.",
+              "goalDistance": 6600,
+              "goalDuration": 2760,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 20 s",
                     "durationType": "OPEN",
-                    "name": "3x 30s Accél",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ligne droite",
                           "durationType": "TIME",
-                          "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "PACE",
-                              "targetValue": 5.0
-                            }
-                          ]
+                          "durationValue": 20,
+                          "targets": []
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
                           "durationType": "TIME",
-                          "durationValue": 60,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 1
-                            }
-                          ]
+                          "durationValue": 40,
+                          "targets": []
                         }
                       ]
                     }
@@ -1771,32 +2569,988 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Repos Complet",
+              "dayOfWeek": 0,
+              "name": "Sortie longue",
               "sport": "RUNNING",
-              "description": "Repos total, hydratation et chargement glucidique.",
-              "goalDuration": 0,
-              "goalRpe": 0
+              "description": "1h50 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 6600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 13,
+          "theme": "Spécifique",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Seuil",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 3 × 8 min au seuil (85–88 % VMA), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Seuil",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "50 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure spécifique marathon",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 2 × 5 km à allure spécifique marathon (6:03/km), récup 3 min trot, 10 min de retour au calme.",
+              "goalDistance": 14300,
+              "goalDuration": 5460,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 5 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "DISTANCE",
+                          "durationValue": 5000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
             },
             {
               "dayOfWeek": 0,
-              "name": "MARATHON",
+              "name": "Sortie longue avec allure spécifique",
               "sport": "RUNNING",
-              "description": "Jour J. Départ prudent, objectif régularité 6:02/km.",
+              "description": "2h40 au total, dont 2 × 20 min à allure spécifique marathon (6:03/km), avec 5 min en endurance entre les blocs. Le reste en endurance fondamentale (62–70 % VMA). Buvez et prenez vos gels du jour J en route, pour les tester.",
+              "goalDistance": 23800,
+              "goalDuration": 9600,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 4200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 20 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "TIME",
+                          "durationValue": 1200,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Endurance",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Affûtage",
+      "description": "Moins de volume, un peu d’intensité pour garder du jus : vous arrivez frais au départ.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 14,
+          "theme": "Affûtage",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Seuil",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 2 × 10 min au seuil (85–88 % VMA), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 7800,
+              "goalDuration": 2940,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Seuil",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "45 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure spécifique marathon",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 2 × 4 km à allure spécifique marathon (6:03/km), récup 3 min trot, 10 min de retour au calme.",
+              "goalDistance": 12300,
+              "goalDuration": 4740,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 4 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "DISTANCE",
+                          "durationValue": 4000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Sortie longue avec allure spécifique",
+              "sport": "RUNNING",
+              "description": "2h00 au total, dont 2 × 10 min à allure spécifique marathon (6:03/km), avec 5 min en endurance entre les blocs. Le reste en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 17600,
+              "goalDuration": 7200,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 3300,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Endurance",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 15,
+          "theme": "Affûtage",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Fractionné VMA",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 6 × 400 m à 100–105 % VMA, récup 90 s trot, 10 min de retour au calme.",
+              "goalDistance": 7000,
+              "goalDuration": 2700,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 400 m",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Vite",
+                          "durationType": "DISTANCE",
+                          "durationValue": 400,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "35 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Allure spécifique marathon",
+              "sport": "RUNNING",
+              "description": "15 min d’échauffement, 2 × 3 km à allure spécifique marathon (6:03/km), récup 2 min trot, 10 min de retour au calme.",
+              "goalDistance": 10100,
+              "goalDuration": 3900,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Échauffement",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Retour au calme",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Sortie longue",
+              "sport": "RUNNING",
+              "description": "1h25 à allure facile et régulière (62–70 % VMA).",
+              "goalDistance": 12200,
+              "goalDuration": 5100,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 5100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 16,
+          "theme": "Semaine de course",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Footing + rappel d’allure",
+              "sport": "RUNNING",
+              "description": "35 min en endurance fondamentale, avec 2 × 5 min à allure spécifique marathon (6:03/km) dans la seconde moitié.",
+              "goalDistance": 5200,
+              "goalDuration": 2100,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 5 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Allure spécifique",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Endurance",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 360,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Footing",
+              "sport": "RUNNING",
+              "description": "30 min en endurance fondamentale (62–70 % VMA).",
+              "goalDistance": 4300,
+              "goalDuration": 1800,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Footing + lignes droites",
+              "sport": "RUNNING",
+              "description": "25 min en endurance fondamentale (62–70 % VMA), puis 4 lignes droites de 20 s, rapides mais relâchées, retour en marchant.",
+              "goalDistance": 4200,
+              "goalDuration": 1740,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Endurance",
+                    "durationType": "TIME",
+                    "durationValue": 1500,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "4 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ligne droite",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Récup trot",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Jour J : marathon",
+              "sport": "RUNNING",
+              "description": "Jour de course. Calez-vous à allure spécifique marathon (6:03/km) dès le départ et tenez-la ; n’accélérez que dans les derniers kilomètres si les jambes répondent.",
               "goalDistance": 42195,
               "goalDuration": 15300,
               "goalRpe": 9,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "STEADY",
-                    "name": "Course",
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Jour J : marathon",
                     "durationType": "DISTANCE",
                     "durationValue": 42195,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 2.72,
+                        "targetMax": 2.796,
+                        "targetValue": null,
+                        "metricType": null
                       }
                     ]
                   }

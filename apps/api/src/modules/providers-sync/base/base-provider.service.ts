@@ -124,7 +124,10 @@ export abstract class BaseProviderService {
   /**
    * Refresh access token using refresh token
    */
-  async refreshAccessToken(refreshToken: string): Promise<OAuthTokenResponse> {
+  async refreshAccessToken(
+    refreshToken: string,
+    _?: ProviderAccount,
+  ): Promise<OAuthTokenResponse> {
     try {
       const { data } = await axios.post<OAuthTokenResponse>(
         this.oauthConfig.tokenUrl,
@@ -185,7 +188,10 @@ export abstract class BaseProviderService {
     );
 
     try {
-      const tokenResponse = await this.refreshAccessToken(account.refreshToken);
+      const tokenResponse = await this.refreshAccessToken(
+        account.refreshToken,
+        account,
+      );
 
       // Calculate expiration
       const expiresAt = tokenResponse.expires_in
@@ -268,6 +274,8 @@ export abstract class BaseProviderService {
     expiresIn?: number;
     scopes?: string;
     externalUserId?: string;
+    oauthClientId?: string;
+    region?: string;
   }): Promise<ProviderAccount> {
     const {
       athleteId,
@@ -276,6 +284,8 @@ export abstract class BaseProviderService {
       expiresIn,
       scopes,
       externalUserId,
+      oauthClientId,
+      region,
     } = params;
 
     const expiresAt = expiresIn
@@ -290,17 +300,27 @@ export abstract class BaseProviderService {
     });
 
     if (existing) {
+      // Connected again: should it break later, the user hears of it again
+      await this.prisma.lifecycleEmail.deleteMany({
+        where: {
+          kind: 'CONNECTION_LOST',
+          ref: String(existing.providerAccountId),
+        },
+      });
       return this.prisma.providerAccount.update({
         where: {
           providerAccountId: existing.providerAccountId,
         },
         data: {
+          disconnectedByUser: false,
           accessToken: accessToken,
           refreshToken: refreshToken,
           expiresAt: expiresAt,
           scopes: scopes ?? existing.scopes,
           status: 'active',
           externalUserId: externalUserId ?? existing.externalUserId,
+          oauthClientId: oauthClientId ?? existing.oauthClientId,
+          region: region ?? existing.region,
         },
       });
     }
@@ -315,6 +335,8 @@ export abstract class BaseProviderService {
         scopes: scopes ?? null,
         status: 'active',
         externalUserId: externalUserId ?? null,
+        oauthClientId: oauthClientId ?? null,
+        region: region ?? null,
       },
     });
   }

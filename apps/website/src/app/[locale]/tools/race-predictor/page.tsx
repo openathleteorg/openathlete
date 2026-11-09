@@ -1,88 +1,67 @@
-import { Footer } from '@/components/landing/sections/footer';
-import { Navbar } from '@/components/landing/sections/navbar';
-import { TopBar } from '@/components/landing/sections/topbar';
-import {
-  SoftwareApplicationStructuredData,
-  WebPageStructuredData,
-} from '@/components/seo/structured-data';
 import { RacePredictor } from '@/components/tools/race-predictor';
-import { SITE_URL } from '@/config';
+import { ToolPage } from '@/components/tools/tool-page';
+import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
-import { isSupportedLocale } from '@/utils/locales';
-import { notFound } from 'next/navigation';
+import { localePath } from '@/utils/locales';
+import { ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 
-import { generateMetadata as generatePageMetadata } from '../../../metadata';
+import { generateMetadata as pageMetadata } from '../../../metadata';
 
-/* eslint-disable react-refresh/only-export-components */
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
+type Props = { params: Promise<{ locale: string }> };
 
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  return generatePageMetadata({
+// eslint-disable-next-line react-refresh/only-export-components
+export async function generateMetadata({ params }: Props) {
+  const locale = initLocale((await params).locale);
+  return pageMetadata({
     locale,
-    title: m.tool_race_predictor_title(),
-    description: m.tool_race_predictor_description(),
     path: '/tools/race-predictor',
-    keywords: [
-      'race time predictor',
-      'prédicteur temps course',
-      'Riegel formula',
-      'formule Riegel',
-      'marathon time predictor',
-      'prédicteur marathon',
-      'race pace calculator',
-      'calculateur allure course',
-      'running time prediction',
-      'prédiction temps course',
-      'marathon pace',
-      'allure marathon',
-      'half marathon predictor',
-      'prédicteur semi-marathon',
-    ],
+    title: m.tools_rp_seo_title(),
+    description: m.tools_rp_seo_description(),
   });
 }
-/* eslint-enable react-refresh/only-export-components */
 
-export default async function RacePredictorPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-
-  // Validate locale
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
+export default async function Page({ params }: Props) {
+  const locale = initLocale((await params).locale);
   return (
-    <>
-      <WebPageStructuredData
-        title={m.tool_race_predictor_title()}
-        description={m.tool_race_predictor_description()}
-        url={`${SITE_URL}/${locale}/tools/race-predictor`}
-      />
-      <SoftwareApplicationStructuredData
-        name={m.tool_race_predictor_title()}
-        description={m.tool_race_predictor_description()}
-        url={`${SITE_URL}/${locale}/tools/race-predictor`}
-        applicationCategory="HealthApplication"
-      />
-      <div className="min-h-screen bg-background">
-        <TopBar />
-        <Navbar />
-        <main className="py-16">
-          <RacePredictor />
-        </main>
-        <Footer />
-      </div>
-    </>
+    <ToolPage
+      locale={locale}
+      slug="race-predictor"
+      title={m.tools_rp_h1()}
+      lead={m.tools_rp_lead()}
+      description={m.tools_rp_seo_description()}
+      calculator={<RacePredictor />}
+      extra={
+        <Link
+          href={localePath(locale, '/pace-charts')}
+          className="group mt-8 flex items-center justify-between gap-4 rounded-2xl border border-border bg-white p-5 transition-colors hover:border-ink/25"
+        >
+          <span>
+            <span className="block font-semibold text-ink">
+              {m.pacechart_tools_card_title()}
+            </span>
+            <span className="mt-1 block text-[0.92rem] leading-relaxed text-muted-foreground">
+              {m.pacechart_tools_card_body()}
+            </span>
+          </span>
+          <ArrowRight className="size-4 shrink-0 text-ink transition-transform group-hover:translate-x-1" />
+        </Link>
+      }
+      method={
+        <>
+          <p>{m.tools_rp_how_body()}</p>
+          <p>{m.tools_rp_how_example()}</p>
+          <p className="text-[0.92rem] text-muted-foreground">
+            {m.tools_rp_how_source()}
+          </p>
+        </>
+      }
+      faq={[
+        { question: m.tools_rp_faq1_q(), answer: m.tools_rp_faq1_a() },
+        { question: m.tools_rp_faq2_q(), answer: m.tools_rp_faq2_a() },
+        { question: m.tools_rp_faq3_q(), answer: m.tools_rp_faq3_a() },
+        { question: m.tools_rp_faq4_q(), answer: m.tools_rp_faq4_a() },
+      ]}
+    />
   );
 }

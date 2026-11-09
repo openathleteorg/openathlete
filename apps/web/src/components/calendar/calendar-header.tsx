@@ -38,6 +38,7 @@ import {
 import { BulkWorkoutSelectButton } from './bulk-workout-select-button';
 import { CalendarDayActions } from './calendar-day-actions';
 import { CalendarDisplaySettings } from './calendar-display-settings';
+import { CalendarGoToDate } from './calendar-go-to-date';
 import { CalendarMobileHeader } from './calendar-mobile-header';
 import { CalendarViewToggle } from './calendar-view-toggle';
 import { ComplianceLegend } from './compliance-badge';
@@ -57,6 +58,7 @@ export function CalendarHeader({ planningDate, onPlanningDateChange }: P) {
     nextMonth,
     prevMonth,
     goToCurrentMonth,
+    goToDate,
     displayedMonth,
     setFilter,
     coloredBy,
@@ -223,6 +225,10 @@ export function CalendarHeader({ planningDate, onPlanningDateChange }: P) {
           <ComplianceLegend className="mt-1" />
         </div>
         <div className="flex shrink-0 gap-2">
+          <CalendarGoToDate
+            current={isWeek ? weekStart : displayedMonth}
+            onSelect={goToDate}
+          />
           <Button
             size="icon"
             variant="secondary"

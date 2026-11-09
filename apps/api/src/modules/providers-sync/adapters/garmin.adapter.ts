@@ -156,19 +156,51 @@ export class GarminAdapter implements ProviderAdapter {
     let workoutId = previousWorkoutId
       ? await this.updateWorkout(accessToken, previousWorkoutId, garminWorkout)
       : null;
+    let created = false;
     if (!workoutId) {
       // New, or deleted in Garmin Connect meanwhile: its schedule went too
       workoutId = await this.createWorkout(accessToken, garminWorkout);
       previousScheduleId = null;
+      created = true;
     }
 
     // The schedule only changes with the workout id: the date is part of
     // the export, and another date is another export
-    const scheduleId =
-      previousScheduleId ??
-      (await this.createSchedule(accessToken, workoutId, input.date));
+    if (previousScheduleId) {
+      return { externalId: workoutId, scheduleId: previousScheduleId };
+    }
+    try {
+      const scheduleId = await this.createSchedule(
+        accessToken,
+        workoutId,
+        input.date,
+      );
+      return { externalId: workoutId, scheduleId };
+    } catch (error) {
+      // A failed export keeps no workout id: the next attempt would create
+      // the workout again, leaving this one in the athlete's library
+      if (created) await this.deleteCreatedWorkout(accessToken, workoutId);
+      throw error;
+    }
+  }
 
-    return { externalId: workoutId, scheduleId };
+  private async deleteCreatedWorkout(
+    accessToken: string,
+    workoutId: string,
+  ): Promise<void> {
+    try {
+      await this.request(
+        () =>
+          axios.delete(`${TRAINING_API}/workout/v2/${workoutId}`, {
+            headers: authHeaders(accessToken),
+          }),
+        { notFound: null },
+      );
+    } catch (error) {
+      this.logger.warn(
+        `Could not delete unscheduled Garmin workout ${workoutId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 
   private validateWorkout(workout: GarminWorkout): void {

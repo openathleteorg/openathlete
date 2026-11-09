@@ -30,6 +30,7 @@ function setup(users = [{ userId: 7, email: 'ana@example.com' }]) {
     accountDeletion: { deleteAccount: jest.fn() },
     appUrl: 'https://train.example.org/',
     queueFullImports: jest.fn(),
+    readInput: jest.fn().mockResolvedValue(''),
   } as unknown as CliDeps;
   const lines: string[] = [];
   const run = (...args: string[]) =>
@@ -68,6 +69,67 @@ describe('admin commands', () => {
 
     expect(await run('delete-user', 'ana@example.com', '--yes')).toBe(0);
     expect(deps.accountDeletion.deleteAccount).toHaveBeenCalledWith(7);
+  });
+
+  it('deletes the accounts of the emails read from the input', async () => {
+    const { deps, lines, run } = setup([
+      { userId: 7, email: 'ana@example.com' },
+      { userId: 9, email: 'bob@example.com' },
+    ]);
+    jest
+      .mocked(deps.readInput)
+      .mockResolvedValue(
+        'Ana@Example.com\nbob@example.com\n\nghost@example.com\n',
+      );
+    jest.mocked(deps.prisma.user.findMany).mockResolvedValue([
+      { userId: 7, email: 'ana@example.com' },
+      { userId: 9, email: 'bob@example.com' },
+    ] as never);
+
+    expect(await run('delete-users')).toBe(1);
+    expect(deps.accountDeletion.deleteAccount).not.toHaveBeenCalled();
+    expect(lines[0]).toBe(
+      'This deletes 2 accounts and all their data for good (1 email matches no account). Add --yes to confirm.',
+    );
+    expect(deps.prisma.user.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          email: {
+            in: ['ana@example.com', 'bob@example.com', 'ghost@example.com'],
+          },
+        },
+      }),
+    );
+
+    expect(await run('delete-users', '--yes')).toBe(0);
+    expect(deps.accountDeletion.deleteAccount).toHaveBeenCalledWith(7);
+    expect(deps.accountDeletion.deleteAccount).toHaveBeenCalledWith(9);
+    expect(lines.at(-1)).toBe('Deleted 2 accounts, 1 email matched no account');
+  });
+
+  it('keeps deleting when one account fails, and says so', async () => {
+    const { deps, lines, run } = setup();
+    jest
+      .mocked(deps.readInput)
+      .mockResolvedValue('ana@example.com\nbob@example.com');
+    jest.mocked(deps.prisma.user.findMany).mockResolvedValue([
+      { userId: 7, email: 'ana@example.com' },
+      { userId: 9, email: 'bob@example.com' },
+    ] as never);
+    jest
+      .mocked(deps.accountDeletion.deleteAccount)
+      .mockRejectedValueOnce(new Error('locked'));
+
+    expect(await run('delete-users', '--yes')).toBe(1);
+    expect(deps.accountDeletion.deleteAccount).toHaveBeenCalledTimes(2);
+    expect(lines).toContain('Could not delete user 7: locked');
+    expect(lines.at(-1)).toBe('Deleted 1 account, 1 failed');
+  });
+
+  it('refuses an empty input', async () => {
+    const { lines, run } = setup();
+    expect(await run('delete-users', '--yes')).toBe(1);
+    expect(lines).toEqual(['No email on the standard input']);
   });
 
   it('says when no account has the email', async () => {

@@ -1,107 +1,94 @@
 {
   "plan": {
-    "name": "Objetivo maratón 4h15",
-    "description": "Plan de 12 semanas para correr el maratón en 4h15. 4 sesiones semanales centradas en la progresión y en un volumen controlado. Ideal para un corredor popular habitual.",
-    "goal": "Maratón en 4h15",
+    "name": "Plan de maratón en 4h15: 16 semanas",
+    "description": "16 semanas, 4 salidas por semana, para correr un maratón en 4h15 (6:03/km). Pensado para una VAM de unos 13 km/h. La primera semana suma unos 29 km; la más cargada llega a 54 km y la tirada más larga dura 2h45. Cada sesión lleva sus objetivos: un porcentaje de la VAM para rodajes y series, tu ritmo objetivo para el trabajo a ritmo de carrera.",
+    "goal": "Correr un maratón en 4h15",
     "sportType": "RUNNING",
     "distance": 42195,
-    "duration": 12,
+    "duration": 16,
     "timeTarget": 15300
   },
   "cycles": [
     {
-      "name": "Fase 1: desarrollo general",
-      "description": "Construcción de la base aeróbica y desarrollo de la velocidad. El cuerpo se acostumbra a correr 4 veces por semana.",
+      "name": "Base",
+      "description": "Volumen suave, series cortas y rectas. La tirada larga crece un poco cada semana. La semana 4 es más suave para asimilar el trabajo.",
       "phase": "BASE",
       "color": "#3b82f6",
       "weeks": [
         {
           "weekNumber": 1,
-          "theme": "Vuelta y adaptación",
+          "theme": "Base",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Rodaje suave",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "Rodaje a ritmo totalmente conversacional.",
-              "goalDuration": 2700,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Fartlek lúdico",
-              "sport": "RUNNING",
-              "description": "45 min con 8x 30 s rápido / 30 s lento para dar dinamismo a la zancada sin agotarte.",
-              "goalDuration": 2700,
-              "goalRpe": 6,
+              "description": "15 min de calentamiento, 7 × (1 min rápido al 92–97 % de la VAM / 1 min suave), 10 min de vuelta a la calma.",
+              "goalDistance": 5800,
+              "goalDuration": 2340,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "7 × 1 min",
                     "durationType": "OPEN",
-                    "name": "8x 30 s/30 s",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 8,
+                      "repetitions": 7,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
                           "durationType": "TIME",
-                          "durationValue": 30,
+                          "durationValue": 60,
                           "targets": [
                             {
-                              "targetType": "RPE",
-                              "targetValue": 7
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 60,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -109,45 +96,108 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Rodaje de recuperación",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "De 30 a 40 minutos a ritmo muy suave.",
-              "goalDuration": 2400,
-              "goalRpe": 2,
+              "description": "35 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 2400,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Rodaje + rectas",
+              "sport": "RUNNING",
+              "description": "35 min de rodaje suave (62–70 % de la VAM) y después 6 rectas de 20 s, rápidas pero sueltas, volviendo andando.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Recta",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
               "dayOfWeek": 0,
-              "name": "Tirada larga semanal",
+              "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h15 de resistencia aeróbica pura. El pilar de la semana.",
-              "goalDuration": 4500,
-              "goalRpe": 3,
+              "description": "1h25 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 12200,
+              "goalDuration": 5100,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 4500,
+                    "durationValue": 5100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -158,91 +208,78 @@
         },
         {
           "weekNumber": 2,
-          "theme": "Aumento de volumen",
+          "theme": "Base",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Rodaje suave",
+              "name": "Series 30/30",
               "sport": "RUNNING",
-              "description": "Rodaje suave y regular.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Series cortas",
-              "sport": "RUNNING",
-              "description": "10x 30 s/30 s. Algo más de volumen de intensidad que la semana pasada.",
-              "goalDuration": 3000,
-              "goalRpe": 7,
+              "description": "15 min de calentamiento, 12 × (30 s al 100–105 % de la VAM / 30 s trotando), 10 min de vuelta a la calma.",
+              "goalDistance": 5600,
+              "goalDuration": 2220,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "12 × 30 s",
                     "durationType": "OPEN",
-                    "name": "10x 30 s/30 s",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 10,
+                      "repetitions": 12,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
                           "durationType": "TIME",
                           "durationValue": 30,
                           "targets": [
                             {
-                              "targetType": "RPE",
-                              "targetValue": 8
+                              "targetType": "PACE",
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
                           "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -250,22 +287,85 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "45 min suave.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo sostenido",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 15 min a ritmo sostenido (80–84 % de la VAM), 10 min de vuelta a la calma.",
+              "goalDistance": 6200,
+              "goalDuration": 2400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Ritmo sostenido",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -276,19 +376,24 @@
               "dayOfWeek": 0,
               "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h20 de rodaje en resistencia aeróbica.",
-              "goalDuration": 4800,
-              "goalRpe": 3,
+              "description": "1h40 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 14300,
+              "goalDuration": 6000,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 4800,
+                    "durationValue": 6000,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -299,91 +404,78 @@
         },
         {
           "weekNumber": 3,
-          "theme": "Introducción al umbral",
+          "theme": "Base",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica",
+              "name": "Series 30/30",
               "sport": "RUNNING",
-              "description": "50 min de resistencia aeróbica de base.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Umbral corto",
-              "sport": "RUNNING",
-              "description": "3 repeticiones de 6 minutos a ritmo sostenido (esfuerzo de media maratón/10 km).",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min de calentamiento, 14 × (30 s al 100–105 % de la VAM / 30 s trotando), 10 min de vuelta a la calma.",
+              "goalDistance": 6000,
+              "goalDuration": 2340,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "14 × 30 s",
                     "durationType": "OPEN",
-                    "name": "3x 6 min umbral",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 14,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
                           "durationType": "TIME",
-                          "durationValue": 360,
+                          "durationValue": 30,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.5
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 30,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -391,22 +483,85 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote de recuperación",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "45 min de recuperación.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo sostenido",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 20 min a ritmo sostenido (80–84 % de la VAM), 10 min de vuelta a la calma.",
+              "goalDistance": 7100,
+              "goalDuration": 2700,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Ritmo sostenido",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -417,19 +572,24 @@
               "dayOfWeek": 0,
               "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h30 de rodaje en resistencia aeróbica.",
-              "goalDuration": 5400,
-              "goalRpe": 3,
+              "description": "1h50 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 5400,
+                    "durationValue": 6600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -440,91 +600,83 @@
         },
         {
           "weekNumber": 4,
-          "theme": "Asimilación (semana de recuperación)",
+          "theme": "Semana de descarga",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Rodaje suave corto",
+              "name": "Rodaje + rectas",
               "sport": "RUNNING",
-              "description": "40 min suave.",
-              "goalDuration": 2400,
-              "goalRpe": 2,
+              "description": "35 min de rodaje suave (62–70 % de la VAM) y después 6 rectas de 20 s, rápidas pero sueltas, volviendo andando.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 2400,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Toques de velocidad",
-              "sport": "RUNNING",
-              "description": "Unas cuantas aceleraciones cortas (6x 45 s) para mantener el ritmo sin fatigarte.",
-              "goalDuration": 2700,
-              "goalRpe": 5,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 20 s",
                     "durationType": "OPEN",
-                    "name": "6x 45 s/45 s",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Recta",
                           "durationType": "TIME",
-                          "durationValue": 45,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 6
-                            }
-                          ]
+                          "durationValue": 20,
+                          "targets": []
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 45,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 40,
+                          "targets": []
                         }
                       ]
                     }
-                  },
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "35 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
                   {
-                    "stepType": "COOLDOWN",
+                    "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 600,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -532,45 +684,80 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 5,
+              "name": "Rodaje + rectas",
               "sport": "RUNNING",
-              "description": "30 min muy suave.",
-              "goalDuration": 1800,
-              "goalRpe": 2,
+              "description": "35 min de rodaje suave (62–70 % de la VAM) y después 6 rectas de 20 s, rápidas pero sueltas, volviendo andando.",
+              "goalDistance": 5900,
+              "goalDuration": 2460,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 2100,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Recta",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
             },
             {
               "dayOfWeek": 0,
-              "name": "Tirada larga moderada",
+              "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h10 de resistencia aeróbica.",
-              "goalDuration": 4200,
-              "goalRpe": 3,
+              "description": "1h15 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 10700,
+              "goalDuration": 4500,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 4200,
+                    "durationValue": 4500,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -582,98 +769,85 @@
       ]
     },
     {
-      "name": "Fase 2: desarrollo específico",
-      "description": "El núcleo del entrenamiento. Tiradas más largas y trabajo a ritmo maratón (4h15 = ~6:02/km).",
-      "phase": "SPECIFIC",
+      "name": "Desarrollo",
+      "description": "Series de VAM y trabajo de umbral, tiradas largas más largas. La semana 8 es más suave para asimilar el trabajo.",
+      "phase": "BASE",
       "color": "#10b981",
       "weeks": [
         {
           "weekNumber": 5,
-          "theme": "Volumen y umbral",
+          "theme": "Desarrollo",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica",
+              "name": "Series de VAM",
               "sport": "RUNNING",
-              "description": "50 min de resistencia aeróbica.",
-              "goalDuration": 3000,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Umbral largo",
-              "sport": "RUNNING",
-              "description": "2 x 10 minutos a ritmo de umbral (más rápido que el ritmo maratón).",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min de calentamiento, 8 × 400 m al 100–105 % de la VAM con 90 s de recuperación trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 8200,
+              "goalDuration": 3060,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "8 × 400 m",
                     "durationType": "OPEN",
-                    "name": "2x 10 min umbral",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 2,
+                      "repetitions": 8,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
-                          "durationType": "TIME",
-                          "durationValue": 600,
+                          "name": "Rápido",
+                          "durationType": "DISTANCE",
+                          "durationValue": 400,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.6
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 180,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 90,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -681,22 +855,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "45 min suave.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 2700,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Umbral",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 3 × 8 min a umbral (85–88 % de la VAM) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Umbral",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -707,19 +962,24 @@
               "dayOfWeek": 0,
               "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h40 de resistencia aeróbica.",
-              "goalDuration": 6000,
-              "goalRpe": 3,
+              "description": "1h50 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 6000,
+                    "durationValue": 6600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -730,25 +990,106 @@
         },
         {
           "weekNumber": 6,
-          "theme": "Ritmo maratón (RM)",
+          "theme": "Desarrollo",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica",
+              "name": "Series de VAM",
               "sport": "RUNNING",
-              "description": "55 min de resistencia aeróbica.",
-              "goalDuration": 3300,
+              "description": "15 min de calentamiento, 5 × 800 m al 95–100 % de la VAM con 2 min de recuperación trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 8800,
+              "goalDuration": 3240,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "5 × 800 m",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
+                          "durationType": "DISTANCE",
+                          "durationValue": 800,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 3300,
+                    "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -756,133 +1097,57 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Series en pirámide",
+              "dayOfWeek": 5,
+              "name": "Ritmo sostenido",
               "sport": "RUNNING",
-              "description": "Cambios de ritmo: 4' - 6' - 8' - 4' rápido.",
-              "goalDuration": 3600,
-              "goalRpe": 7,
+              "description": "15 min de calentamiento, 25 min a ritmo sostenido (80–84 % de la VAM), 10 min de vuelta a la calma.",
+              "goalDistance": 8000,
+              "goalDuration": 3000,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "INTERVAL_ACTIVE",
+                    "name": "Ritmo sostenido",
                     "durationType": "TIME",
-                    "durationValue": 240,
+                    "durationValue": 1500,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 5.5
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 360,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.6
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 480,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.7
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "durationType": "TIME",
-                    "durationValue": 120,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "durationType": "TIME",
-                    "durationValue": 240,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 5.5
+                        "targetMin": 0.8,
+                        "targetMax": 0.84,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
-              "sport": "RUNNING",
-              "description": "45 min suave.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -891,44 +1156,26 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Tirada larga específica",
+              "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h45 con 20 min a ritmo maratón (6:02/km) en la parte central.",
-              "goalDuration": 6300,
+              "description": "2h05 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 17900,
+              "goalDuration": 7500,
               "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
                     "stepType": "STEADY",
-                    "name": "Bloque a RM",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 7500,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 2100,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -939,91 +1186,78 @@
         },
         {
           "weekNumber": 7,
-          "theme": "Volumen máximo - semana 1",
+          "theme": "Desarrollo",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica",
+              "name": "Series largas",
               "sport": "RUNNING",
-              "description": "1h de resistencia aeróbica.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Umbral largo",
-              "sport": "RUNNING",
-              "description": "3 x 8 minutos a ritmo de umbral.",
-              "goalDuration": 4200,
-              "goalRpe": 7,
+              "description": "15 min de calentamiento, 5 × 1 km al 92–97 % de la VAM con 2 min 30 s de recuperación trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 10100,
+              "goalDuration": 3720,
+              "goalRpe": 8,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "5 × 1 km",
                     "durationType": "OPEN",
-                    "name": "3x 8 min umbral",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 5,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
-                          "durationType": "TIME",
-                          "durationValue": 480,
+                          "name": "Rápido",
+                          "durationType": "DISTANCE",
+                          "durationValue": 1000,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 5.6
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 150,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1031,22 +1265,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "50 min suave.",
-              "goalDuration": 3000,
-              "goalRpe": 2,
+              "description": "45 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 3000,
+                    "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Umbral",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 4 × 8 min a umbral (85–88 % de la VAM) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 10500,
+              "goalDuration": 3900,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "4 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Umbral",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1055,21 +1370,82 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Tirada larga",
+              "name": "Tirada larga con ritmo de maratón",
               "sport": "RUNNING",
-              "description": "2h00 de resistencia aeróbica de base. Para acostumbrar las articulaciones.",
-              "goalDuration": 7200,
-              "goalRpe": 3,
+              "description": "2h20 en total, con 2 × 10 min a ritmo de maratón (6:03/km) y 5 min suave entre bloques. El resto suave (62–70 % de la VAM).",
+              "goalDistance": 20500,
+              "goalDuration": 8400,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 7200,
+                    "durationValue": 4200,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Suave",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1080,91 +1456,78 @@
         },
         {
           "weekNumber": 8,
-          "theme": "Específico de maratón",
+          "theme": "Semana de descarga",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "1h de resistencia aeróbica.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Ritmo maratón",
-              "sport": "RUNNING",
-              "description": "2 x 15 min a ritmo objetivo (ritmo de 4h15).",
-              "goalDuration": 4200,
-              "goalRpe": 6,
+              "description": "15 min de calentamiento, 6 × (1 min rápido al 92–97 % de la VAM / 1 min suave), 10 min de vuelta a la calma.",
+              "goalDistance": 5500,
+              "goalDuration": 2220,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 1 min",
                     "durationType": "OPEN",
-                    "name": "2x 15 min RM",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 2,
+                      "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
                           "durationType": "TIME",
-                          "durationValue": 900,
+                          "durationValue": 60,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 180,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "durationValue": 60,
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1172,121 +1535,27 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "45 min suave.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
+              "description": "40 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 0,
-              "name": "Tirada larga específica",
-              "sport": "RUNNING",
-              "description": "2h15 con 2x 20 min a ritmo maratón. Sesión clave.",
-              "goalDuration": 8100,
-              "goalRpe": 4,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 3000,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "name": "Bloque a RM",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_REST",
-                    "name": "Rec. activa",
-                    "durationType": "TIME",
-                    "durationValue": 300,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "INTERVAL_ACTIVE",
-                    "name": "Bloque a RM",
-                    "durationType": "TIME",
-                    "durationValue": 1200,
-                    "targets": [
-                      {
-                        "targetType": "PACE",
-                        "targetValue": 6.03
-                      }
-                    ]
-                  },
-                  {
-                    "stepType": "COOLDOWN",
+                    "name": "Suave",
                     "durationType": "TIME",
                     "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        },
-        {
-          "weekNumber": 9,
-          "theme": "Semana de recuperación (antes del pico)",
-          "sessions": [
-            {
-              "dayOfWeek": 2,
-              "name": "Rodaje suave",
-              "sport": "RUNNING",
-              "description": "45 min suave.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1294,69 +1563,54 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Toques de RM",
+              "dayOfWeek": 5,
+              "name": "Rodaje + rectas",
               "sport": "RUNNING",
-              "description": "30 min de calentamiento + 15 min a ritmo maratón + 10 min de vuelta a la calma.",
-              "goalDuration": 3300,
-              "goalRpe": 4,
+              "description": "40 min de rodaje suave (62–70 % de la VAM) y después 6 rectas de 20 s, rápidas pero sueltas, volviendo andando.",
+              "goalDistance": 6600,
+              "goalDuration": 2760,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
-                    "durationType": "TIME",
-                    "durationValue": 1800,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  },
-                  {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 900,
+                    "durationValue": 2400,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
-                    "stepType": "COOLDOWN",
-                    "durationType": "TIME",
-                    "durationValue": 600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 6,
-              "name": "Descanso / rodaje corto",
-              "sport": "RUNNING",
-              "description": "30 min muy suave.",
-              "goalDuration": 1800,
-              "goalRpe": 1,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 1800,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 1
-                      }
-                    ]
+                    "stepType": "REPEAT",
+                    "name": "6 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Recta",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
                   }
                 ]
               }
@@ -1365,19 +1619,24 @@
               "dayOfWeek": 0,
               "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "1h40 de resistencia aeróbica. Para recargar las pilas.",
-              "goalDuration": 6000,
-              "goalRpe": 3,
+              "description": "1h30 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 12900,
+              "goalDuration": 5400,
+              "goalRpe": 4,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 6000,
+                    "durationValue": 5400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1389,98 +1648,85 @@
       ]
     },
     {
-      "name": "Fase 3: pico y puesta a punto",
-      "description": "La tirada más larga y, después, una reducción progresiva para llegar fresco a la salida.",
-      "phase": "TAPER",
+      "name": "Específico de maratón",
+      "description": "Ritmo de maratón en las tiradas largas y en bloques entre semana: las semanas más cargadas del plan. La semana 12 es más suave para asimilar el trabajo.",
+      "phase": "SPECIFIC",
       "color": "#f59e0b",
       "weeks": [
         {
-          "weekNumber": 10,
-          "theme": "Pico de forma (la tirada más larga)",
+          "weekNumber": 9,
+          "theme": "Ritmo de carrera",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica",
+              "name": "Umbral",
               "sport": "RUNNING",
-              "description": "1h de resistencia aeróbica.",
-              "goalDuration": 3600,
-              "goalRpe": 3,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 3600,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 3
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Umbral / RM",
-              "sport": "RUNNING",
-              "description": "3 x 10 min a ritmo maratón para fijar el ritmo.",
-              "goalDuration": 3600,
-              "goalRpe": 6,
+              "description": "15 min de calentamiento, 3 × 8 min a umbral (85–88 % de la VAM) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "3 × 8 min",
                     "durationType": "OPEN",
-                    "name": "3x 10 min RM",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 3,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Umbral",
                           "durationType": "TIME",
-                          "durationValue": 600,
+                          "durationValue": 480,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
                           "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
                     "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1488,22 +1734,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "45 min suave.",
+              "description": "45 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 6400,
               "goalDuration": 2700,
-              "goalRpe": 2,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
                     "durationValue": 2700,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 3 × 3 km a ritmo de maratón (6:03/km) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 13300,
+              "goalDuration": 5100,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1512,33 +1839,296 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "La tirada más larga",
+              "name": "Tirada larga con ritmo de maratón",
               "sport": "RUNNING",
-              "description": "2h30, la tirada más larga del plan. 80 % en resistencia aeróbica; termina con 15' a ritmo maratón si te encuentras bien.",
-              "goalDuration": 9000,
-              "goalRpe": 5,
+              "description": "2h20 en total, con 2 × 15 min a ritmo de maratón (6:03/km) y 5 min suave entre bloques. El resto suave (62–70 % de la VAM). Bebe y toma por el camino los geles del día de la carrera, para probarlos.",
+              "goalDistance": 20700,
+              "goalDuration": 8400,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 8100,
+                    "durationValue": 3900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
+                    "stepType": "REPEAT",
+                    "name": "2 × 15 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "TIME",
+                          "durationValue": 900,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Suave",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
                     "stepType": "STEADY",
-                    "name": "Final a RM",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": "Ritmo de carrera",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Series largas",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 5 × 1 km al 92–97 % de la VAM con 2 min 30 s de recuperación trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 10100,
+              "goalDuration": 3720,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
                     "durationValue": 900,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "5 × 1 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
+                          "durationType": "DISTANCE",
+                          "durationValue": 1000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 4 km a ritmo de maratón (6:03/km) con 3 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 12300,
+              "goalDuration": 4740,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 4 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "DISTANCE",
+                          "durationValue": 4000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga",
+              "sport": "RUNNING",
+              "description": "2h35 a ritmo cómodo y constante (62–70 % de la VAM). Bebe y toma por el camino los geles del día de la carrera, para probarlos.",
+              "goalDistance": 22200,
+              "goalDuration": 9300,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 9300,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1549,91 +2139,78 @@
         },
         {
           "weekNumber": 11,
-          "theme": "Inicio de la puesta a punto",
+          "theme": "Semana de más volumen",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Resistencia aeróbica corta",
+              "name": "Umbral",
               "sport": "RUNNING",
-              "description": "45 min suave.",
-              "goalDuration": 2700,
-              "goalRpe": 2,
-              "workout": {
-                "steps": [
-                  {
-                    "stepType": "STEADY",
-                    "durationType": "TIME",
-                    "durationValue": 2700,
-                    "targets": [
-                      {
-                        "targetType": "RPE",
-                        "targetValue": 2
-                      }
-                    ]
-                  }
-                ]
-              }
-            },
-            {
-              "dayOfWeek": 4,
-              "name": "Toque de ritmo",
-              "sport": "RUNNING",
-              "description": "2 x 10 min a ritmo maratón, pero con menos volumen total.",
-              "goalDuration": 2700,
-              "goalRpe": 5,
+              "description": "15 min de calentamiento, 2 × 12 min a umbral (85–88 % de la VAM) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 8500,
+              "goalDuration": 3180,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
                     "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
                     "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "2 × 12 min",
                     "durationType": "OPEN",
-                    "name": "2x 10 min RM",
+                    "targets": [],
                     "repeatBlock": {
                       "repetitions": 2,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Umbral",
                           "durationType": "TIME",
-                          "durationValue": 600,
+                          "durationValue": 720,
                           "targets": [
                             {
                               "targetType": "PACE",
-                              "targetValue": 6.03
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
                             }
                           ]
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
                           "durationValue": 120,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 3
-                            }
-                          ]
+                          "targets": []
                         }
                       ]
                     }
                   },
                   {
                     "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
                     "durationType": "TIME",
-                    "durationValue": 300,
+                    "durationValue": 600,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1641,22 +2218,103 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Trote suave",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "30 min muy suave.",
-              "goalDuration": 1800,
-              "goalRpe": 2,
+              "description": "50 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 3000,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 3 × 3 km a ritmo de maratón (6:03/km) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 13300,
+              "goalDuration": 5100,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1665,21 +2323,82 @@
             },
             {
               "dayOfWeek": 0,
-              "name": "Tirada larga suave",
+              "name": "Tirada larga con ritmo de maratón",
               "sport": "RUNNING",
-              "description": "1h20 de resistencia aeróbica.",
-              "goalDuration": 4800,
-              "goalRpe": 3,
+              "description": "2h45 en total, con 3 × 15 min a ritmo de maratón (6:03/km) y 5 min suave entre bloques. El resto suave (62–70 % de la VAM). Bebe y toma por el camino los geles del día de la carrera, para probarlos.",
+              "goalDistance": 24600,
+              "goalDuration": 9900,
+              "goalRpe": 6,
               "workout": {
                 "steps": [
                   {
                     "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 4800,
+                    "durationValue": 3900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 3
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 15 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "TIME",
+                          "durationValue": 900,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Suave",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1690,25 +2409,78 @@
         },
         {
           "weekNumber": 12,
-          "theme": "Semana de carrera",
+          "theme": "Semana de descarga",
           "sessions": [
             {
               "dayOfWeek": 2,
-              "name": "Rodaje de soltura",
+              "name": "Fartlek",
               "sport": "RUNNING",
-              "description": "30 min muy lento para activar la circulación.",
-              "goalDuration": 1800,
-              "goalRpe": 1,
+              "description": "15 min de calentamiento, 6 × (1 min rápido al 92–97 % de la VAM / 1 min suave), 10 min de vuelta a la calma.",
+              "goalDistance": 5500,
+              "goalDuration": 2220,
+              "goalRpe": 7,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "STEADY",
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
                     "durationType": "TIME",
-                    "durationValue": 1800,
+                    "durationValue": 900,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 1
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 1 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.92,
+                              "targetMax": 0.97,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   }
@@ -1716,53 +2488,79 @@
               }
             },
             {
-              "dayOfWeek": 4,
-              "name": "Activación",
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
               "sport": "RUNNING",
-              "description": "20 min suave + 3 aceleraciones de 30 s. Solo para activar el sistema nervioso.",
-              "goalDuration": 1500,
+              "description": "40 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5700,
+              "goalDuration": 2400,
               "goalRpe": 3,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "WARMUP",
+                    "stepType": "STEADY",
+                    "name": "Suave",
                     "durationType": "TIME",
-                    "durationValue": 1200,
+                    "durationValue": 2400,
                     "targets": [
                       {
-                        "targetType": "RPE",
-                        "targetValue": 2
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Rodaje + rectas",
+              "sport": "RUNNING",
+              "description": "40 min de rodaje suave (62–70 % de la VAM) y después 6 rectas de 20 s, rápidas pero sueltas, volviendo andando.",
+              "goalDistance": 6600,
+              "goalDuration": 2760,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
                       }
                     ]
                   },
                   {
                     "stepType": "REPEAT",
+                    "name": "6 × 20 s",
                     "durationType": "OPEN",
-                    "name": "3x 30 s aceleración",
+                    "targets": [],
                     "repeatBlock": {
-                      "repetitions": 3,
+                      "repetitions": 6,
                       "childSteps": [
                         {
                           "stepType": "INTERVAL_ACTIVE",
+                          "name": "Recta",
                           "durationType": "TIME",
-                          "durationValue": 30,
-                          "targets": [
-                            {
-                              "targetType": "PACE",
-                              "targetValue": 5.0
-                            }
-                          ]
+                          "durationValue": 20,
+                          "targets": []
                         },
                         {
                           "stepType": "INTERVAL_REST",
+                          "name": "Trote",
                           "durationType": "TIME",
-                          "durationValue": 60,
-                          "targets": [
-                            {
-                              "targetType": "RPE",
-                              "targetValue": 1
-                            }
-                          ]
+                          "durationValue": 40,
+                          "targets": []
                         }
                       ]
                     }
@@ -1771,32 +2569,988 @@
               }
             },
             {
-              "dayOfWeek": 6,
-              "name": "Descanso total",
+              "dayOfWeek": 0,
+              "name": "Tirada larga",
               "sport": "RUNNING",
-              "description": "Descanso total, hidratación y carga de hidratos.",
-              "goalDuration": 0,
-              "goalRpe": 0
+              "description": "1h50 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 15700,
+              "goalDuration": 6600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 6600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 13,
+          "theme": "Ritmo de carrera",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Umbral",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 3 × 8 min a umbral (85–88 % de la VAM) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 8800,
+              "goalDuration": 3300,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "3 × 8 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Umbral",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 7100,
+              "goalDuration": 3000,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 5 km a ritmo de maratón (6:03/km) con 3 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 14300,
+              "goalDuration": 5460,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 5 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "DISTANCE",
+                          "durationValue": 5000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
             },
             {
               "dayOfWeek": 0,
-              "name": "MARATÓN",
+              "name": "Tirada larga con ritmo de maratón",
               "sport": "RUNNING",
-              "description": "Día de carrera. Salida prudente y ritmo constante objetivo de 6:02/km.",
+              "description": "2h40 en total, con 2 × 20 min a ritmo de maratón (6:03/km) y 5 min suave entre bloques. El resto suave (62–70 % de la VAM). Bebe y toma por el camino los geles del día de la carrera, para probarlos.",
+              "goalDistance": 23800,
+              "goalDuration": 9600,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 4200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 20 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "TIME",
+                          "durationValue": 1200,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Suave",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Puesta a punto",
+      "description": "Menos volumen y algo de intensidad para mantener la chispa: llegas fresco a la salida.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 14,
+          "theme": "Puesta a punto",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Umbral",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 10 min a umbral (85–88 % de la VAM) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 7800,
+              "goalDuration": 2940,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Umbral",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.85,
+                              "targetMax": 0.88,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 6400,
+              "goalDuration": 2700,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 4 km a ritmo de maratón (6:03/km) con 3 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 12300,
+              "goalDuration": 4740,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 4 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "DISTANCE",
+                          "durationValue": 4000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga con ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "2h00 en total, con 2 × 10 min a ritmo de maratón (6:03/km) y 5 min suave entre bloques. El resto suave (62–70 % de la VAM).",
+              "goalDistance": 17600,
+              "goalDuration": 7200,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 3300,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 10 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Suave",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 15,
+          "theme": "Puesta a punto",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Series de VAM",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 6 × 400 m al 100–105 % de la VAM con 90 s de recuperación trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 7000,
+              "goalDuration": 2700,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "6 × 400 m",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Rápido",
+                          "durationType": "DISTANCE",
+                          "durationValue": 400,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 1,
+                              "targetMax": 1.05,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "35 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 5000,
+              "goalDuration": 2100,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Ritmo de maratón",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 3 km a ritmo de maratón (6:03/km) con 2 min trotando, 10 min de vuelta a la calma.",
+              "goalDistance": 10100,
+              "goalDuration": 3900,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "name": "Calentamiento",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 3 km",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "DISTANCE",
+                          "durationValue": 3000,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "name": "Vuelta a la calma",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga",
+              "sport": "RUNNING",
+              "description": "1h25 a ritmo cómodo y constante (62–70 % de la VAM).",
+              "goalDistance": 12200,
+              "goalDuration": 5100,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 5100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 16,
+          "theme": "Semana de carrera",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Rodaje con ritmo de carrera",
+              "sport": "RUNNING",
+              "description": "35 min de rodaje suave, con 2 × 5 min a ritmo de maratón (6:03/km) en la segunda mitad.",
+              "goalDistance": 5200,
+              "goalDuration": 2100,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "2 × 5 min",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Ritmo de carrera",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 2.72,
+                              "targetMax": 2.796,
+                              "targetValue": null,
+                              "metricType": null
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Suave",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 360,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "30 min de rodaje suave (62–70 % de la VAM).",
+              "goalDistance": 4300,
+              "goalDuration": 1800,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 5,
+              "name": "Rodaje + rectas",
+              "sport": "RUNNING",
+              "description": "25 min de rodaje suave (62–70 % de la VAM) y después 4 rectas de 20 s, rápidas pero sueltas, volviendo andando.",
+              "goalDistance": 4200,
+              "goalDuration": 1740,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "name": "Suave",
+                    "durationType": "TIME",
+                    "durationValue": 1500,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "name": "4 × 20 s",
+                    "durationType": "OPEN",
+                    "targets": [],
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "name": "Recta",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": []
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "name": "Trote",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": []
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Día de carrera: maratón",
+              "sport": "RUNNING",
+              "description": "Día de carrera. Ponte a ritmo de maratón (6:03/km) desde la salida y mantenlo; acelera solo en los últimos kilómetros si las piernas responden.",
               "goalDistance": 42195,
               "goalDuration": 15300,
               "goalRpe": 9,
               "workout": {
                 "steps": [
                   {
-                    "stepType": "STEADY",
-                    "name": "Carrera",
+                    "stepType": "INTERVAL_ACTIVE",
+                    "name": "Día de carrera: maratón",
                     "durationType": "DISTANCE",
                     "durationValue": 42195,
                     "targets": [
                       {
                         "targetType": "PACE",
-                        "targetValue": 6.03
+                        "targetMin": 2.72,
+                        "targetMax": 2.796,
+                        "targetValue": null,
+                        "metricType": null
                       }
                     ]
                   }

@@ -5,7 +5,7 @@ description: Add or change user-facing text in OpenAthlete (web app Paraglide ca
 
 # User-facing text
 
-Web app supported languages: English (`en`), French (`fr`), Italian (`it`), Spanish (`es`), and Brazilian Portuguese (`pt-BR`). The marketing website (`apps/website`) currently supports `en`, `fr`, and `es`. French users use the informal "tu" in AI-generated text and the formal "vous" in the UI, as the existing catalogs do. Brazilian Portuguese uses "você" and natural imperative forms.
+Web app supported languages: English (`en`), French (`fr`), Italian (`it`), Spanish (`es`), and Brazilian Portuguese (`pt-BR`). The marketing website (`apps/website`) supports the same five languages (`pt-br` in its URLs). French users use the informal "tu" in AI-generated text and the formal "vous" in the UI, as the existing catalogs do. Brazilian Portuguese uses "você" and natural imperative forms.
 
 ## Web app
 
@@ -30,7 +30,12 @@ Web app supported languages: English (`en`), French (`fr`), Italian (`it`), Span
 
 ## Website
 
-`apps/website/messages/{en,fr,es}.json`, compiled by `pnpm website translate`. `pnpm check:locale-parity` covers these catalogs too. Blog posts live in `apps/website/src/content/blog/`: English and French are required, Spanish (`es` metadata, `ContentEs`) is optional and falls back to English.
+`apps/website/messages/{en,fr,es,it,pt-BR}.json`, compiled by `pnpm website translate`. `pnpm check:locale-parity` covers these catalogs too.
+
+- Server components (pages, layouts, `generateMetadata`) start with `const locale = initLocale((await params).locale)` from `@/i18n/server`, then call `m.key()`: the locale is held per request, never globally.
+- Client components take the locale from context and pass it to each message: `const ml = useMessageLocale(); m.key({}, { locale: ml })` (`@/i18n/client`). Don't wrap the catalog in a proxy: it defeats tree-shaking and ships every message to the browser.
+- Blog posts live in `apps/website/src/content/blog/`: English and French are required; Spanish, Italian and Portuguese (`ContentEs`, `ContentIt`, `ContentPtBr`) are optional. A missing translation shows the English body, marked `noindex`, and hreflang lists only the real translations.
+- Competitor facts and prices are dated (`src/content/pricing.ts`, `src/content/competitors.ts`): update the date with the figures.
 
 ## Verify
 

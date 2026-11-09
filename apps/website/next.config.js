@@ -12,6 +12,22 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // Published briefly, withdrawn: Strava data is not offered to AI
+      // assistants
+      {
+        source: '/ai/strava',
+        destination: '/connect/strava',
+        permanent: true,
+      },
+      {
+        source: '/:locale(fr|es|it|pt-br)/ai/strava',
+        destination: '/:locale/connect/strava',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

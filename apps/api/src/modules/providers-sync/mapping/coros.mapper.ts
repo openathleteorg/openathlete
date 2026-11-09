@@ -2,7 +2,7 @@ import type { NormalizedWorkout } from '@openathlete/shared';
 
 import type { ProviderMapper, ProviderPlannedWorkoutPayload } from './index';
 
-// Coros supports structured intervals; similar simplification as others
+// The record of what was exported; the adapter sends coros-course.mapper's course
 
 function simplifyStep(
   step: NormalizedWorkout['steps'][number],

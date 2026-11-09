@@ -1,6 +1,6 @@
 import type {
   CreateWorkoutStepDto,
-  WorkoutDto,
+  SPORT_TYPE,
   WorkoutStepDto,
   WorkoutStepTarget,
 } from '@openathlete/shared';
@@ -11,26 +11,17 @@ import { calculateWorkoutDuration } from '@openathlete/shared';
  * Estimates duration for DISTANCE-based steps using pace targets
  * @param steps - Workout steps to calculate duration for
  * @param metrics - Optional athlete metrics for estimating distance-based durations
+ * @param sport - The session's sport, for distance steps without a pace
  */
 export function calculateWorkoutDurationFromSteps(
   steps: CreateWorkoutStepDto[],
   metrics?: Record<string, { value: number } | number>,
+  sport?: SPORT_TYPE,
 ): number | null {
   if (steps.length === 0) {
     return null;
   }
-
-  // Convert CreateWorkoutStepDto[] to WorkoutDto for calculation
-  const workout = {
-    steps: steps.map((step, index) => ({
-      ...step,
-      workoutStepId: -(Date.now() + index),
-      orderIndex: index,
-    })) as WorkoutStepDto[],
-    eventTrainingId: 0, // Not used by calculateWorkoutDuration
-  } as WorkoutDto;
-
-  return calculateWorkoutDuration(workout, metrics);
+  return calculateWorkoutDuration({ steps }, metrics, sport);
 }
 
 /**

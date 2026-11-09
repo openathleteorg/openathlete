@@ -1,0 +1,3960 @@
+{
+  "plan": {
+    "name": "Trail 50 km y 2500 m D+: plan de 16 semanas",
+    "description": "Un plan de 16 semanas para un trail de 50 km con unos 2500 m D+, con 4 a 5 salidas por semana y fuerza opcional. Cuestas, subidas a umbral, caminar rápido con bastones y técnica de bajada. La tirada larga llega a 4h y 2000 m D+, con una semana de descarga cada 3–4 semanas y 2 semanas de puesta a punto. Los fines de semana pasan a ser tiradas largas encadenadas.",
+    "goal": "Terminar un trail de 50 km y 2500 m D+",
+    "sportType": "TRAIL_RUNNING",
+    "distance": 50000,
+    "duration": 16,
+    "timeTarget": null,
+    "elevationGainRange": {
+      "min": 2000,
+      "max": 3000
+    }
+  },
+  "cycles": [
+    {
+      "name": "Base",
+      "description": "Volumen suave, cuestas cortas y los primeros ejercicios de bajada. La tirada larga crece de 10 a 15 minutos por semana. La semana 4 es más ligera.",
+      "phase": "BASE",
+      "color": "#3b82f6",
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min, en casa y sin material. 3 vueltas de: 12 subidas a un escalón o una silla por pierna, 10 zancadas por pierna, 15 elevaciones de talones lentas en un escalón (3 segundos para bajar), 30 s de equilibrio a una pierna con los ojos cerrados, 30 s de plancha lateral por lado. Los cuádriceps sufren en las bajadas y los tobillos en el terreno roto: es un seguro barato.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 6 × 1'30 cuesta arriba al 88–93 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 3060,
+              "goalDistance": 7000,
+              "goalElevationGain": 160,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h30 por sendero con unos 500 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 5400,
+              "goalDistance": 10000,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Rodaje suave por sendero",
+              "sport": "TRAIL_RUNNING",
+              "description": "45 min suave por sendero, unos 150 m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.",
+              "goalDuration": 2700,
+              "goalDistance": 6000,
+              "goalElevationGain": 150,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 2,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min, en casa y sin material. 3 vueltas de: 12 subidas a un escalón o una silla por pierna, 10 zancadas por pierna, 15 elevaciones de talones lentas en un escalón (3 segundos para bajar), 30 s de equilibrio a una pierna con los ojos cerrados, 30 s de plancha lateral por lado. Los cuádriceps sufren en las bajadas y los tobillos en el terreno roto: es un seguro barato.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "30/30 en llano",
+              "sport": "RUNNING",
+              "description": "20 min de calentamiento, luego 2 × (8 × 30\" rápido / 30\" trote), 3 min suaves entre series y 10 min de vuelta a la calma. Rápido = 95–100 % de la VAM, trote = 60 %. En llano o en pista.",
+              "goalDuration": 2940,
+              "goalDistance": 8000,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Rápido"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "INTERVAL_REST",
+                    "durationType": "TIME",
+                    "durationValue": 180,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Rápido"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras. Termina con 6 progresiones de 20\", vuelta andando.",
+              "goalDuration": 3360,
+              "goalDistance": 8500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h45 por sendero con unos 650 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 6300,
+              "goalDistance": 11000,
+              "goalElevationGain": 650,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Rodaje suave por sendero",
+              "sport": "TRAIL_RUNNING",
+              "description": "55 min suave por sendero, unos 200 m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.",
+              "goalDuration": 3300,
+              "goalDistance": 7000,
+              "goalElevationGain": 200,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 3,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min, en casa y sin material. 3 vueltas de: 12 subidas a un escalón o una silla por pierna, 10 zancadas por pierna, 15 elevaciones de talones lentas en un escalón (3 segundos para bajar), 30 s de equilibrio a una pierna con los ojos cerrados, 30 s de plancha lateral por lado. Los cuádriceps sufren en las bajadas y los tobillos en el terreno roto: es un seguro barato.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 8 × 1'30 cuesta arriba al 88–93 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 3480,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Umbral en llano",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 3 × 8' al 82–87 % de la VAM (exigente pero controlado, solo frases cortas), 2 min suaves entre bloques, 10 min de vuelta a la calma.",
+              "goalDuration": 3300,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h por sendero con unos 800 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Lleva los bastones y úsalos en cada subida larga.",
+              "goalDuration": 7200,
+              "goalDistance": 12000,
+              "goalElevationGain": 800,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Técnica de bajada",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min suaves hasta una bajada técnica (raíces, piedras, 10–20 %). 6 × 1' cuesta abajo a esfuerzo controlado (RPE 5/10), subiendo andando para recuperar. Pasos cortos y rápidos, la vista 3–4 metros por delante, brazos abiertos para equilibrarte, apoyos bajo la cadera. La velocidad llegará después: hoy se trata de pisar con confianza. 10 min suaves para terminar.",
+              "goalDuration": 2880,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bajada, pasos cortos y rápidos"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Subir andando"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 4,
+          "theme": "Semana de descarga",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "20 min, en casa y sin material. 3 vueltas de: 12 subidas a un escalón o una silla por pierna, 10 zancadas por pierna, 15 elevaciones de talones lentas en un escalón (3 segundos para bajar), 30 s de equilibrio a una pierna con los ojos cerrados, 30 s de plancha lateral por lado. Los cuádriceps sufren en las bajadas y los tobillos en el terreno roto: es un seguro barato.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras. Termina con 6 progresiones de 20\", vuelta andando.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 6 × 1' cuesta arriba al 88–93 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h30 por sendero con unos 500 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 5400,
+              "goalDistance": 10000,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Rodaje suave por sendero",
+              "sport": "TRAIL_RUNNING",
+              "description": "45 min suave por sendero, unos 150 m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.",
+              "goalDuration": 2700,
+              "goalDistance": 6000,
+              "goalElevationGain": 150,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Desarrollo",
+      "description": "Cuestas más largas y subidas a umbral, caminar rápido con bastones y más desnivel en la tirada larga. La semana 8 es más ligera para asimilar.",
+      "phase": "SPECIFIC",
+      "color": "#10b981",
+      "weeks": [
+        {
+          "weekNumber": 5,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 8 × 2' cuesta arriba al 90–95 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 3960,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "40 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Técnica de bajada",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min suaves hasta una bajada técnica (raíces, piedras, 10–20 %). 8 × 1' cuesta abajo a esfuerzo controlado (RPE 5/10), subiendo andando para recuperar. Pasos cortos y rápidos, la vista 3–4 metros por delante, brazos abiertos para equilibrarte, apoyos bajo la cadera. La velocidad llegará después: hoy se trata de pisar con confianza. 10 min suaves para terminar.",
+              "goalDuration": 3240,
+              "goalDistance": 7500,
+              "goalElevationGain": 170,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bajada, pasos cortos y rápidos"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Subir andando"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h15 por sendero con unos 1000 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 8100,
+              "goalDistance": 12500,
+              "goalElevationGain": 1000,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 8100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 1h15 por sendero con unos 400 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 4500,
+              "goalDistance": 8500,
+              "goalElevationGain": 400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 6,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Subida larga a umbral",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento, luego 3 × 8' subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Series de VAM",
+              "sport": "RUNNING",
+              "description": "20 min de calentamiento, 6 × 3' al 90–95 % de la VAM con 2' de trote, 10 min de vuelta a la calma. En llano: cuanto más alto el techo, más fáciles las subidas.",
+              "goalDuration": 3600,
+              "goalDistance": 10500,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h30 por sendero con unos 1200 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Lleva los bastones y úsalos en cada subida larga.",
+              "goalDuration": 9000,
+              "goalDistance": 13000,
+              "goalElevationGain": 1200,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 9000,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 1h20 por sendero con unos 500 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 4800,
+              "goalDistance": 8500,
+              "goalElevationGain": 500,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 7,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 10 × 2' cuesta arriba al 90–95 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 4500,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Caminar rápido con bastones",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min de calentamiento, luego 5 × 6' caminando rápido por la pendiente más dura que tengas (15 % o más), con bastones, al 75–85 % de la FC máx. Pasos cortos, empuja fuerte con los bastones y corre en los tramos más suaves. Baja tranquilo entre repeticiones. Así sube la mayoría el día de la carrera: merece entrenarse.",
+              "goalDuration": 4500,
+              "goalDistance": 8500,
+              "goalElevationGain": 400,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Caminar rápido, bastones"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h45 por sendero con unos 1400 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Lleva los bastones y úsalos en cada subida larga.",
+              "goalDuration": 9900,
+              "goalDistance": 13500,
+              "goalElevationGain": 1400,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 9900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 1h30 por sendero con unos 600 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 5400,
+              "goalDistance": 9000,
+              "goalElevationGain": 600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 8,
+          "theme": "Semana de descarga",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "20 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras. Termina con 6 progresiones de 20\", vuelta andando.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Subida larga a umbral",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento, luego 2 × 8' subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.",
+              "goalDuration": 3360,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h45 por sendero con unos 700 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 6300,
+              "goalDistance": 10500,
+              "goalElevationGain": 700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Rodaje suave por sendero",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h suave por sendero, unos 300 m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.",
+              "goalDuration": 3600,
+              "goalDistance": 7000,
+              "goalElevationGain": 300,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Específico",
+      "description": "Las semanas más duras: la tirada larga llega a 4h con 2000 m D+, con tramos a ritmo de carrera. Sábado y domingo se convierten en tiradas largas encadenadas, para aprender a correr con las piernas cansadas. La semana 12 es más ligera.",
+      "phase": "SPECIFIC",
+      "color": "#f59e0b",
+      "weeks": [
+        {
+          "weekNumber": 9,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Subida larga a umbral",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento, luego 3 × 10' subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.",
+              "goalDuration": 4680,
+              "goalDistance": 9500,
+              "goalElevationGain": 340,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Técnica de bajada",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min suaves hasta una bajada técnica (raíces, piedras, 10–20 %). 8 × 1'15 cuesta abajo a esfuerzo controlado (RPE 5/10), subiendo andando para recuperar. Pasos cortos y rápidos, la vista 3–4 metros por delante, brazos abiertos para equilibrarte, apoyos bajo la cadera. La velocidad llegará después: hoy se trata de pisar con confianza. 10 min suaves para terminar.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bajada, pasos cortos y rápidos"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Subir andando"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h por sendero con unos 1600 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Lleva los bastones y úsalos en cada subida larga.",
+              "goalDuration": 10800,
+              "goalDistance": 14000,
+              "goalElevationGain": 1600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 10800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 1h45 por sendero con unos 700 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 6300,
+              "goalDistance": 10500,
+              "goalElevationGain": 700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 8 × 2'30 cuesta arriba al 90–95 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 4440,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Umbral en llano",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 12' al 82–87 % de la VAM (exigente pero controlado, solo frases cortas), 2 min suaves entre bloques, 10 min de vuelta a la calma.",
+              "goalDuration": 3180,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h30 por sendero con unos 1800 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Haz los últimos 30 min a ritmo de carrera (75–82 % de la FC máx.).",
+              "goalDuration": 12600,
+              "goalDistance": 17000,
+              "goalElevationGain": 1800,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 10800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Ritmo de carrera"
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 1h45 por sendero con unos 800 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 6300,
+              "goalDistance": 9500,
+              "goalElevationGain": 800,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 11,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Subida larga a umbral",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento, luego 4 × 10' subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.",
+              "goalDuration": 5640,
+              "goalDistance": 11500,
+              "goalElevationGain": 440,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Caminar rápido con bastones",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min de calentamiento, luego 6 × 6' caminando rápido por la pendiente más dura que tengas (15 % o más), con bastones, al 75–85 % de la FC máx. Pasos cortos, empuja fuerte con los bastones y corre en los tramos más suaves. Baja tranquilo entre repeticiones. Así sube la mayoría el día de la carrera: merece entrenarse.",
+              "goalDuration": 5100,
+              "goalDistance": 9500,
+              "goalElevationGain": 470,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Caminar rápido, bastones"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 240,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h15 por sendero con unos 1700 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Lleva los bastones y úsalos en cada subida larga.",
+              "goalDuration": 11700,
+              "goalDistance": 15500,
+              "goalElevationGain": 1700,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 11700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 2h por sendero con unos 900 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 7200,
+              "goalDistance": 11000,
+              "goalElevationGain": 900,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 12,
+          "theme": "Semana de descarga",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "20 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras. Termina con 6 progresiones de 20\", vuelta andando.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 6 × 2' cuesta arriba al 90–95 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 3420,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h por sendero con unos 900 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 7200,
+              "goalDistance": 11000,
+              "goalElevationGain": 900,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Rodaje suave por sendero",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h suave por sendero, unos 300 m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.",
+              "goalDuration": 3600,
+              "goalDistance": 7000,
+              "goalElevationGain": 300,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 13,
+          "theme": "Semana más cargada",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Subida larga a umbral",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento, luego 3 × 12' subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.",
+              "goalDuration": 5220,
+              "goalDistance": 10500,
+              "goalElevationGain": 400,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 420,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "50 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 3000,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3000,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Técnica de bajada",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min suaves hasta una bajada técnica (raíces, piedras, 10–20 %). 8 × 1'15 cuesta abajo a esfuerzo controlado (RPE 5/10), subiendo andando para recuperar. Pasos cortos y rápidos, la vista 3–4 metros por delante, brazos abiertos para equilibrarte, apoyos bajo la cadera. La velocidad llegará después: hoy se trata de pisar con confianza. 10 min suaves para terminar.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bajada, pasos cortos y rápidos"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Subir andando"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "4h por sendero con unos 2000 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Lleva los bastones y úsalos en cada subida larga. Haz los últimos 40 min a ritmo de carrera (75–82 % de la FC máx.).",
+              "goalDuration": 14400,
+              "goalDistance": 20000,
+              "goalElevationGain": 2000,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 12000,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Ritmo de carrera"
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 2h por sendero con unos 1000 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 7200,
+              "goalDistance": 10000,
+              "goalElevationGain": 1000,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 7200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 14,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Fuerza para trail (opcional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 8 × 2'30 cuesta arriba al 90–95 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 4440,
+              "goalDistance": 9500,
+              "goalElevationGain": 300,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2700,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Umbral en llano",
+              "sport": "RUNNING",
+              "description": "15 min de calentamiento, 2 × 12' al 82–87 % de la VAM (exigente pero controlado, solo frases cortas), 2 min suaves entre bloques, 10 min de vuelta a la calma.",
+              "goalDuration": 3180,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 720,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Ensayo general",
+              "sport": "TRAIL_RUNNING",
+              "description": "3h30 por sendero con unos 1800 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos. Usa la ropa de carrera, la misma mochila y la misma comida: nada nuevo el día de la carrera.",
+              "goalDuration": 12600,
+              "goalDistance": 17000,
+              "goalElevationGain": 1800,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 12600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Tirada larga encadenada (día 2)",
+              "sport": "TRAIL_RUNNING",
+              "description": "Segunda tirada larga seguida, con las piernas cansadas: de eso se trata. 1h30 por sendero con unos 600 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 5400,
+              "goalDistance": 9000,
+              "goalElevationGain": 600,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5400,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Puesta a punto",
+      "description": "Dos semanas para llegar fresco: el volumen baja cerca de un tercio y luego a la mitad, con algunos esfuerzos cortos para mantener las piernas despiertas. Nada nuevo y mucho sueño.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 15,
+          "theme": "Puesta a punto",
+          "sessions": [
+            {
+              "dayOfWeek": 1,
+              "name": "Movilidad y tobillos (opcional)",
+              "sport": "STRENGTH",
+              "description": "20 min de movilidad: círculos de tobillo y estiramientos de gemelos, apertura de cadera, 2 × 30 s de equilibrio por pierna. Nada que deje agujetas antes de la carrera.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 2,
+              "name": "Subida larga a umbral",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento, luego 3 × 8' subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "40 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "45 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras. Termina con 6 progresiones de 20\", vuelta andando.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Tirada larga con desnivel",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h15 por sendero con unos 1000 m D+, al 65–75 % de la FC máx. Corre el llano y las pendientes suaves, camina rápido en todo lo que pase del 15 % y practica comer cada 30–40 minutos.",
+              "goalDuration": 8100,
+              "goalDistance": 12500,
+              "goalElevationGain": 1000,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 8100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Rodaje suave por sendero",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h suave por sendero, unos 300 m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.",
+              "goalDuration": 3600,
+              "goalDistance": 7000,
+              "goalElevationGain": 300,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 16,
+          "theme": "Semana de carrera",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Cuestas",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego 6 × 1'30 cuesta arriba al 88–93 % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.",
+              "goalDuration": 3060,
+              "goalDistance": 7000,
+              "goalElevationGain": 160,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Subida"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bajada al trote"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "35 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras.",
+              "goalDuration": 2100,
+              "goalDistance": 5500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2100,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Rodaje suave",
+              "sport": "RUNNING",
+              "description": "30 min suave por llano o terreno ondulado, al 62–70 % de la VAM. Tienes que poder hablar con frases enteras. Termina con 6 progresiones de 20\", vuelta andando.",
+              "goalDuration": 2160,
+              "goalDistance": 5500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 6,
+              "name": "Rodaje de activación",
+              "sport": "RUNNING",
+              "description": "20 min muy suaves con 4 progresiones cortas. Revisa el material, prepara el dorsal y acuéstate pronto.",
+              "goalDuration": 1260,
+              "goalDistance": 3000,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.68,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 4,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 7
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 70,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Día de carrera: trail de 50 km",
+              "sport": "TRAIL_RUNNING",
+              "description": "50 km, unos 2500 m D+. Sal más despacio de lo que te pide el cuerpo: subidas al 75–82 % de la FC máx., come y bebe desde la primera hora y guarda piernas para las últimas bajadas.",
+              "goalDuration": 32400,
+              "goalDistance": 50000,
+              "goalElevationGain": 2500,
+              "goalRpe": 9,
+              "workout": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

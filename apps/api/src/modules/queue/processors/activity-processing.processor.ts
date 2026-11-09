@@ -11,6 +11,7 @@ import { reportJobFailure } from 'src/modules/analytics/job-failure';
 import { CalendarWebSocketService } from '../../calendar/services/calendar-websocket.service';
 import { ActivityPipelineService } from '../../core/services/pipeline/activity-pipeline.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
+import { ActivityDescriptionService } from '../../providers-sync/activity-description/activity-description.service';
 import { ActivityProcessingJobData } from '../queue.service';
 
 @Processor('activity-processing', {
@@ -27,6 +28,9 @@ export class ActivityProcessingProcessor extends WorkerHost {
     @Inject(forwardRef(() => CalendarWebSocketService))
     private readonly calendarWebSocketService?: CalendarWebSocketService,
     @Optional() private readonly analytics?: AnalyticsService,
+    @Optional()
+    @Inject(forwardRef(() => ActivityDescriptionService))
+    private readonly descriptions?: ActivityDescriptionService,
   ) {
     super();
   }
@@ -62,6 +66,17 @@ export class ActivityProcessingProcessor extends WorkerHost {
           bulkImport,
         }),
       );
+
+      // A history import never writes to Strava: only activities as they come
+      if (!bulkImport && this.descriptions) {
+        await this.descriptions
+          .scheduleAfterProcessing(eventActivityId)
+          .catch((error: unknown) =>
+            this.logger.warn(
+              `Could not queue the Strava description of activity ${eventActivityId}: ${error instanceof Error ? error.message : String(error)}`,
+            ),
+          );
+      }
 
       // Notify that activity was processed
       if (this.calendarWebSocketService && athleteId) {

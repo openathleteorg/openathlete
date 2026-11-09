@@ -67,6 +67,7 @@ import {
   estimatePlannedSessionTrimp,
   getHeartRateProfile,
 } from '../helpers/training-load';
+import { remapZonesForAthlete } from '../helpers/workout-zones';
 import { EVENT_INCLUDES } from './event-includes';
 import { WorkoutService } from './workout.service';
 
@@ -523,7 +524,13 @@ export class EventService {
       if (!parsed.success) {
         throw new BadRequestException(parsed.error.format());
       }
-      const stepsForCreate = parsed.data.steps;
+      // Leftover zones of another athlete become the athlete's own
+      const stepsForCreate = await remapZonesForAthlete(
+        this.prisma,
+        finalAthleteId,
+        created.training.sport,
+        parsed.data.steps,
+      );
       const workoutData = await this.prisma.workout.create({
         data: {
           eventTrainingId: created.training.eventTrainingId,
@@ -854,6 +861,19 @@ export class EventService {
         }
       }
     }
+    // Leftover zones of another athlete become the athlete's own; a coach
+    // is never blocked from saving. Templates have no athlete: their zones
+    // are remapped once applied.
+    const workoutSteps =
+      event.athleteId && workout?.steps
+        ? await remapZonesForAthlete(
+            this.prisma,
+            event.athleteId,
+            (data.type === EVENT_TYPE.TRAINING ? data.sport : undefined) ??
+              event.training?.sport,
+            workout.steps,
+          )
+        : workout?.steps;
     const activityMoved =
       event.type === 'ACTIVITY' &&
       !!startDate &&
@@ -883,6 +903,10 @@ export class EventService {
       },
     });
 
+    // One sync per save: two listeners exporting the same workout at once
+    // both create it on the device when it was never exported before
+    let workoutSyncEmitted = false;
+
     // Handle workout updates for training events
     if (event.type === 'TRAINING' && event.training && workout) {
       const existingWorkout = await this.prisma.workout.findUnique({
@@ -891,7 +915,7 @@ export class EventService {
 
       if (existingWorkout) {
         // Update existing workout
-        if (workout.steps) {
+        if (workoutSteps) {
           // Delete existing steps and create new ones
           await this.prisma.workoutStep.deleteMany({
             where: { workoutId: existingWorkout.workoutId },
@@ -900,7 +924,7 @@ export class EventService {
           await this.prisma.workout.update({
             where: { workoutId: existingWorkout.workoutId },
             data: {
-              ...mapWorkoutDtoToPrisma({ steps: workout.steps }),
+              ...mapWorkoutDtoToPrisma({ steps: workoutSteps }),
             },
             include: {
               steps: {
@@ -929,10 +953,14 @@ export class EventService {
               updatedEvent.startDate,
               event.training.sport,
             );
+            workoutSyncEmitted = true;
           }
         }
-      } else if (workout && workout.steps && workout.steps.length > 0) {
-        const parsedUpdate = updateWorkoutSchema.safeParse(workout);
+      } else if (workoutSteps && workoutSteps.length > 0) {
+        const parsedUpdate = updateWorkoutSchema.safeParse({
+          ...workout,
+          steps: workoutSteps,
+        });
         if (!parsedUpdate.success) {
           throw new BadRequestException(parsedUpdate.error.format());
         }
@@ -968,6 +996,7 @@ export class EventService {
             updatedEvent.startDate,
             event.training.sport,
           );
+          workoutSyncEmitted = true;
         }
       }
     }
@@ -988,9 +1017,12 @@ export class EventService {
       );
     }
 
-    // If date changed and there's a workout, emit event for new date too (skip for templates)
+    // If date changed and there's a workout, emit event for new date too
+    // (skip for templates, and when the workout sync above already carries
+    // the new date)
     if (
       !isTemplate &&
+      !workoutSyncEmitted &&
       event.type === 'TRAINING' &&
       event.training?.workout &&
       (startDate || endDate) &&
@@ -1193,17 +1225,31 @@ export class EventService {
       where: {
         AND: [{ eventId: eventId }, accessibleBy(ability, 'delete').Event],
       },
-      include: {
-        activity: true,
-        training: {
-          include: { workout: true },
-        },
-      },
+      select: { eventId: true },
     });
 
     if (!event) {
       throw new NotFoundException('Event not found');
     }
+
+    return this.removeEvent(eventId);
+  }
+
+  /**
+   * Deletes an event and the rows that depend on it, without access check:
+   * for callers that already checked it, or background jobs acting for the
+   * athlete (duplicate removal). `notify: false` leaves the calendar refresh
+   * to a caller deleting several events.
+   */
+  async removeEvent(eventId: Event['eventId'], { notify = true } = {}) {
+    const event = await this.prisma.event.findUniqueOrThrow({
+      where: { eventId },
+      include: {
+        training: {
+          include: { workout: true },
+        },
+      },
+    });
 
     if (event.training?.workout?.workoutId) {
       await this.providerExportService.deleteExportsForWorkout({
@@ -1251,7 +1297,7 @@ export class EventService {
       where: { eventId: eventId },
     });
 
-    if (event.athleteId) {
+    if (event.athleteId && notify) {
       this.calendarWebSocketService?.notifyWeeklyLoadUpdated(event.athleteId, {
         eventId,
         reason: 'event_deleted',
@@ -1610,11 +1656,20 @@ export class EventService {
 
         if (duplicatedEventWithIncludes?.training) {
           const originalDto = mapPrismaWorkoutToDto(originalWorkout);
+          // Repairs zones of another athlete the original may still carry
+          const steps = duplicatedEventWithIncludes.athleteId
+            ? await remapZonesForAthlete(
+                this.prisma,
+                duplicatedEventWithIncludes.athleteId,
+                duplicatedEventWithIncludes.training.sport,
+                originalDto.steps,
+              )
+            : originalDto.steps;
           await this.prisma.workout.create({
             data: {
               eventTrainingId:
                 duplicatedEventWithIncludes.training.eventTrainingId,
-              ...mapWorkoutDtoToPrisma({ steps: originalDto.steps }),
+              ...mapWorkoutDtoToPrisma({ steps }),
             },
           });
         }

@@ -1,76 +1,100 @@
-import { SITE_URL } from '@/config';
-import { SUPPORTED_LOCALES } from '@/utils/locales';
-import Script from 'next/script';
+import {
+  CONTACT_EMAIL,
+  DISCORD_URL,
+  GITHUB_URL,
+  SITE_URL,
+  SUPPORTER_MONTHLY_EUR,
+  SUPPORTER_YEARLY_EUR,
+} from '@/config';
+import { type SupportedLocale, htmlLang, localizedUrl } from '@/utils/locales';
 
-interface StructuredDataProps {
-  type:
-    | 'Organization'
-    | 'WebSite'
-    | 'WebPage'
-    | 'FAQPage'
-    | 'BreadcrumbList'
-    | 'Article'
-    | 'SoftwareApplication';
-  data: Record<string, unknown>;
-}
-
-export function StructuredData({ type, data }: StructuredDataProps) {
-  const structuredData = {
-    '@context': 'https://schema.org',
-    '@type': type,
-    ...data,
-  };
-
+/** JSON-LD, rendered in the HTML so crawlers read it without JavaScript. */
+export function JsonLd({ data }: { data: Record<string, unknown> }) {
   return (
-    <Script
-      id={`structured-data-${type.toLowerCase()}`}
+    <script
       type="application/ld+json"
-      strategy="beforeInteractive"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify({ '@context': 'https://schema.org', ...data })
+          // A closing tag inside a string would end the script element
+          .replace(/</g, '\\u003c'),
+      }}
     />
   );
 }
 
 export function OrganizationStructuredData() {
   return (
-    <StructuredData
-      type="Organization"
+    <JsonLd
       data={{
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
         name: 'OpenAthlete',
         url: SITE_URL,
         logo: `${SITE_URL}/logo_dark.png`,
-        description:
-          'Open-source endurance training platform: EU-oriented hosting, AGPLv3, transparent load metrics, self-hosting, and full data export.',
-        contactPoint: {
-          '@type': 'ContactPoint',
-          email: 'contact@openathlete.org',
-          contactType: 'Customer Service',
-        },
-        sameAs: [
-          // Add social media links here when available
-        ],
+        email: CONTACT_EMAIL,
+        foundingLocation: 'Grenoble, France',
+        sameAs: [GITHUB_URL, DISCORD_URL],
       }}
     />
   );
 }
 
-export function WebSiteStructuredData() {
+export function WebSiteStructuredData({ locale }: { locale: SupportedLocale }) {
   return (
-    <StructuredData
-      type="WebSite"
+    <JsonLd
       data={{
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
         name: 'OpenAthlete',
-        url: SITE_URL,
-        description:
-          'Open-source endurance training platform with EU-oriented hosting, transparent algorithms, and athlete-owned data.',
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: {
-            '@type': 'EntryPoint',
-            urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
+        url: localizedUrl(locale),
+        inLanguage: htmlLang(locale),
+        publisher: { '@id': `${SITE_URL}/#organization` },
+      }}
+    />
+  );
+}
+
+/** The product, with its real prices: free, and the Supporter plan. */
+export function SoftwareApplicationStructuredData({
+  locale,
+  description,
+}: {
+  locale: SupportedLocale;
+  description: string;
+}) {
+  return (
+    <JsonLd
+      data={{
+        '@type': 'SoftwareApplication',
+        name: 'OpenAthlete',
+        url: localizedUrl(locale),
+        description,
+        applicationCategory: 'SportsApplication',
+        operatingSystem: 'Web, iOS, Android',
+        inLanguage: htmlLang(locale),
+        license: 'https://www.gnu.org/licenses/agpl-3.0.html',
+        isAccessibleForFree: true,
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        offers: [
+          {
+            '@type': 'Offer',
+            name: 'Free',
+            price: '0',
+            priceCurrency: 'EUR',
           },
-          'query-input': 'required name=search_term_string',
-        },
+          {
+            '@type': 'Offer',
+            name: 'Supporter (monthly)',
+            price: String(SUPPORTER_MONTHLY_EUR),
+            priceCurrency: 'EUR',
+          },
+          {
+            '@type': 'Offer',
+            name: 'Supporter (yearly)',
+            price: String(SUPPORTER_YEARLY_EUR),
+            priceCurrency: 'EUR',
+          },
+        ],
       }}
     />
   );
@@ -80,24 +104,22 @@ export function WebPageStructuredData({
   title,
   description,
   url,
+  locale = 'en',
 }: {
   title: string;
   description: string;
   url: string;
+  locale?: SupportedLocale;
 }) {
   return (
-    <StructuredData
-      type="WebPage"
+    <JsonLd
       data={{
+        '@type': 'WebPage',
         name: title,
         description,
         url,
-        inLanguage: SUPPORTED_LOCALES,
-        isPartOf: {
-          '@type': 'WebSite',
-          name: 'OpenAthlete',
-          url: SITE_URL,
-        },
+        inLanguage: htmlLang(locale),
+        isPartOf: { '@id': `${SITE_URL}/#website` },
       }}
     />
   );
@@ -105,25 +127,19 @@ export function WebPageStructuredData({
 
 export function FAQPageStructuredData({
   faqs,
-  url,
 }: {
   faqs: Array<{ question: string; answer: string }>;
-  url: string;
+  url?: string;
 }) {
   return (
-    <StructuredData
-      type="FAQPage"
+    <JsonLd
       data={{
+        '@type': 'FAQPage',
         mainEntity: faqs.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
-          acceptedAnswer: {
-            '@type': 'Answer',
-            text: faq.answer,
-          },
+          acceptedAnswer: { '@type': 'Answer', text: faq.answer },
         })),
-        url,
-        inLanguage: SUPPORTED_LOCALES,
       }}
     />
   );
@@ -135,9 +151,9 @@ export function BreadcrumbListStructuredData({
   items: Array<{ name: string; url: string }>;
 }) {
   return (
-    <StructuredData
-      type="BreadcrumbList"
+    <JsonLd
       data={{
+        '@type': 'BreadcrumbList',
         itemListElement: items.map((item, index) => ({
           '@type': 'ListItem',
           position: index + 1,
@@ -149,113 +165,154 @@ export function BreadcrumbListStructuredData({
   );
 }
 
-export function ArticleStructuredData({
+/** Kept for the pages that still pass a type and a payload. */
+export function StructuredData({
+  type,
+  data,
+}: {
+  type: string;
+  data: Record<string, unknown>;
+}) {
+  return <JsonLd data={{ '@type': type, ...data }} />;
+}
+
+/** A blog post. `inLanguage` is the language the body is written in. */
+export function BlogPostingStructuredData({
   title,
   description,
   url,
+  image,
   publishedAt,
   updatedAt,
-  author,
-  image,
-  inLanguage = SUPPORTED_LOCALES,
+  authorName,
+  inLanguage,
+  keywords,
 }: {
   title: string;
   description: string;
   url: string;
+  image?: string;
   publishedAt: string;
   updatedAt?: string;
-  author: { name: string; email?: string };
-  image?: string;
-  /** Language of the article body, which can differ from the page locale. */
-  inLanguage?: string | readonly string[];
+  authorName: string;
+  inLanguage: SupportedLocale;
+  keywords?: string[];
 }) {
   return (
-    <StructuredData
-      type="Article"
+    <JsonLd
       data={{
+        '@type': 'BlogPosting',
         headline: title,
         description,
         url,
+        mainEntityOfPage: url,
+        ...(image && { image }),
         datePublished: publishedAt,
-        dateModified: updatedAt || publishedAt,
+        dateModified: updatedAt ?? publishedAt,
+        inLanguage: htmlLang(inLanguage),
+        ...(keywords?.length && { keywords: keywords.join(', ') }),
         author: {
-          '@type': 'Person',
-          name: author.name,
-          ...(author.email && { email: author.email }),
-        },
-        publisher: {
           '@type': 'Organization',
-          name: 'OpenAthlete',
+          name: authorName,
           url: SITE_URL,
-          logo: {
-            '@type': 'ImageObject',
-            url: `${SITE_URL}/logo_dark.png`,
-          },
         },
-        ...(image && {
-          image: {
-            '@type': 'ImageObject',
-            url: image.startsWith('http') ? image : `${SITE_URL}${image}`,
-          },
-        }),
-        mainEntityOfPage: {
-          '@type': 'WebPage',
-          '@id': url,
-        },
-        inLanguage,
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        isPartOf: { '@id': `${SITE_URL}/#website` },
       }}
     />
   );
 }
 
-export { TrainingPlanStructuredData } from './training-plan-structured-data';
+/** A list of pages, for hubs (blog index, training plans). */
+export function ItemListStructuredData({
+  name,
+  items,
+}: {
+  name: string;
+  items: Array<{ name: string; url: string }>;
+}) {
+  return (
+    <JsonLd
+      data={{
+        '@type': 'ItemList',
+        name,
+        numberOfItems: items.length,
+        itemListElement: items.map((item, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          url: item.url,
+        })),
+      }}
+    />
+  );
+}
 
-export function SoftwareApplicationStructuredData({
+/** A free calculator that runs in the browser. */
+export function WebApplicationStructuredData({
   name,
   description,
   url,
-  applicationCategory = 'HealthApplication',
-  operatingSystem = 'Web',
-  offers = {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'EUR',
-  },
-  aggregateRating,
+  locale,
 }: {
   name: string;
   description: string;
   url: string;
-  applicationCategory?: string;
-  operatingSystem?: string;
-  offers?: {
-    '@type': string;
-    price: string;
-    priceCurrency: string;
-  };
-  aggregateRating?: {
-    '@type': 'AggregateRating';
-    ratingValue: string;
-    ratingCount: string;
-  };
+  locale: SupportedLocale;
 }) {
   return (
-    <StructuredData
-      type="SoftwareApplication"
+    <JsonLd
       data={{
+        '@type': 'WebApplication',
         name,
         description,
         url,
-        applicationCategory,
-        operatingSystem,
-        offers,
-        ...(aggregateRating && { aggregateRating }),
-        publisher: {
-          '@type': 'Organization',
-          name: 'OpenAthlete',
-          url: SITE_URL,
+        inLanguage: htmlLang(locale),
+        applicationCategory: 'SportsApplication',
+        browserRequirements: 'Requires JavaScript',
+        isAccessibleForFree: true,
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR' },
+        publisher: { '@id': `${SITE_URL}/#organization` },
+      }}
+    />
+  );
+}
+
+/** A training plan page: an article about an exercise plan. */
+export function TrainingPlanStructuredData({
+  title,
+  description,
+  url,
+  locale,
+  sport,
+  weeks,
+  sessionsPerWeek,
+}: {
+  title: string;
+  description: string;
+  url: string;
+  locale: SupportedLocale;
+  sport: string;
+  weeks: number;
+  sessionsPerWeek: number;
+}) {
+  return (
+    <JsonLd
+      data={{
+        '@type': 'Article',
+        headline: title,
+        description,
+        url,
+        inLanguage: htmlLang(locale),
+        isAccessibleForFree: true,
+        publisher: { '@id': `${SITE_URL}/#organization` },
+        about: {
+          '@type': 'ExercisePlan',
+          name: title,
+          exerciseType: sport,
+          activityDuration: `P${weeks}W`,
+          activityFrequency: `${sessionsPerWeek} sessions per week`,
         },
-        inLanguage: SUPPORTED_LOCALES,
       }}
     />
   );

@@ -94,8 +94,18 @@ export const createWorkoutStepDtoSchema = z
     z.object({
       stepType: z.nativeEnum(WORKOUT_STEP_TYPE),
       name: z.string().nullable().optional(),
-      durationType: z.nativeEnum(WORKOUT_DURATION_TYPE).nullable().optional(),
-      durationValue: z.number().nullable().optional(),
+      durationType: z
+        .nativeEnum(WORKOUT_DURATION_TYPE)
+        .nullable()
+        .optional()
+        .describe(
+          'TIME or DISTANCE for endurance steps (pool lengths are DISTANCE); REPS only for strength exercises',
+        ),
+      durationValue: z
+        .number()
+        .nullable()
+        .optional()
+        .describe('Seconds for TIME, meters for DISTANCE, count for REPS'),
       repeatTimes: z.number().nullable().optional(),
       restTime: z.number().nullable().optional(),
       notes: z.string().nullable().optional(),

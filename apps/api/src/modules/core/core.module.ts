@@ -7,6 +7,7 @@ import { MessagesModule } from '../messages/messages.module';
 import { ProvidersSyncModule } from '../providers-sync/providers-sync.module';
 import { QueueModule } from '../queue';
 import { EventController } from './controllers';
+import { ActivityDuplicatesController } from './controllers/activity-duplicates.controller';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
 import { AthleteController } from './controllers/athlete.controller';
 import { CoachController } from './controllers/coach.controller';
@@ -30,6 +31,7 @@ import {
 } from './services';
 import { ActivityCorrectionsService } from './services/activity-corrections.service';
 import { ActivityDetailService } from './services/activity-detail.service';
+import { ActivityDuplicateService } from './services/activity-duplicate.service';
 import { ActivityFeedbackService } from './services/activity-feedback.service';
 import { ActivityRecordsService } from './services/activity-records.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
@@ -72,6 +74,7 @@ import { WeatherService } from './services/weather/weather.service';
     forwardRef(() => ProvidersSyncModule),
   ],
   controllers: [
+    ActivityDuplicatesController,
     ActivityFeedbackController,
     EventController,
     EventTemplateController,
@@ -90,6 +93,7 @@ import { WeatherService } from './services/weather/weather.service';
   ],
   providers: [
     EventService,
+    ActivityDuplicateService,
     ManualFitImportService,
     WorkoutService,
     EventTemplateService,
@@ -158,6 +162,7 @@ import { WeatherService } from './services/weather/weather.service';
   ],
   exports: [
     EventService,
+    ActivityDuplicateService,
     ActivityRecordsService,
     ActivityPipelineService,
     GapProcessor,

@@ -67,9 +67,23 @@ export interface StatisticsFiltersState {
   compared: Period | null;
   setPeriodType: (type: StatisticsPeriodType) => void;
   setOffset: (offset: number) => void;
+  /** The years a calendar year can be picked from, newest first */
+  years: number[];
   setSport: (sport: SPORT_TYPE | null, group?: SportGroup | null) => void;
   setComparison: (comparison: StatisticsComparison) => void;
   setCustomPeriod: (period: Period) => void;
+}
+
+/** From this year back to the first activity's, or the last ten years */
+export function yearsSince(
+  firstActivityDate: Date | null | undefined,
+  now: Date,
+): number[] {
+  const last = now.getFullYear();
+  const first = firstActivityDate
+    ? Math.min(firstActivityDate.getFullYear(), last)
+    : last - 9;
+  return Array.from({ length: last - first + 1 }, (_, i) => last - i);
 }
 
 /**
@@ -169,6 +183,7 @@ export function useStatisticsFilters(
           : { from: null, to: null }),
       }),
     setOffset: (next) => update({ offset: next === 0 ? null : String(next) }),
+    years: yearsSince(firstActivityDate, new Date(`${today}T12:00:00`)),
     setSport: (next, nextGroup = null) =>
       update({ sport: next, group: nextGroup }),
     setComparison: (next) => update({ compare: next === 'none' ? null : next }),

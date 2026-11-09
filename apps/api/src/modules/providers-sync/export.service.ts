@@ -113,9 +113,12 @@ export class ProviderExportService {
     }
 
     // A session described in text only has nothing a watch could follow
-    if (normalized.steps.length === 0) {
+    if (
+      normalized.steps.length === 0 ||
+      adapter.canExport?.(normalized) === false
+    ) {
       this.logger.debug(
-        `Skip export (no steps) athlete=${athleteId} provider=${provider} workout=${workoutId} date=${date}`,
+        `Skip export (nothing to send) athlete=${athleteId} provider=${provider} workout=${workoutId} date=${date}`,
       );
       return { skipped: true };
     }

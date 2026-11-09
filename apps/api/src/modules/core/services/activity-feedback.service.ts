@@ -9,6 +9,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
+import { UserLanguage } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { ActivityFeedbackCompletedEvent } from 'src/events';
@@ -19,6 +20,19 @@ import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+
+/**
+ * Whisper's ISO 639-1 code for each app language. The user's language, which
+ * the web app keeps in sync with its interface, beats auto-detection on the
+ * short voice notes athletes record.
+ */
+export const WHISPER_LANGUAGE: Record<UserLanguage, string> = {
+  FR: 'fr',
+  EN: 'en',
+  IT: 'it',
+  ES: 'es',
+  PT_BR: 'pt',
+};
 
 @Injectable()
 export class ActivityFeedbackService {
@@ -337,12 +351,11 @@ export class ActivityFeedbackService {
     },
   ): Promise<{ text: string }> {
     // The recording goes to OpenAI: only with the user's permission
-    const { aiDataSharingConsentAt } = await this.prisma.user.findUniqueOrThrow(
-      {
+    const { aiDataSharingConsentAt, language } =
+      await this.prisma.user.findUniqueOrThrow({
         where: { userId: user.userId },
-        select: { aiDataSharingConsentAt: true },
-      },
-    );
+        select: { aiDataSharingConsentAt: true, language: true },
+      });
     if (!aiDataSharingConsentAt) throw new AiConsentRequiredException();
 
     try {
@@ -392,7 +405,7 @@ export class ActivityFeedbackService {
       const transcription = await this.openai.audio.transcriptions.create({
         file: fileForOpenAI as Uploadable,
         model: 'whisper-1',
-        language: 'fr',
+        language: WHISPER_LANGUAGE[language],
       });
 
       return { text: transcription.text };

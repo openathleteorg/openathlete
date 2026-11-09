@@ -24,6 +24,8 @@ export type CalendarContextType = {
   nextMonth: () => void;
   prevMonth: () => void;
   goToCurrentMonth: () => void;
+  /** Shows the month, or in week view the week, holding the date */
+  goToDate: (date: Date) => void;
   displayedWeeks: Date[][];
   createEvent: (date: Date, type: EVENT_TYPE) => void;
   createEventFromTemplate: (date: Date) => void;

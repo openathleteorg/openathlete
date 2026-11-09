@@ -9,6 +9,7 @@ import {
   SPORT_TYPE,
   TRAINING_ZONE_TYPE,
   WORKOUT_TARGET_TYPE,
+  defaultSpeedForSport,
   getTargetIntensity,
   kmhToSpeedMs,
 } from '@openathlete/shared';
@@ -440,10 +441,10 @@ function calculateStepDuration(
         metrics,
         sport,
         zonesByType,
-      );
-    if (estimatedSpeed) {
-      return step.durationValue / estimatedSpeed;
-    }
+      ) ||
+      // Same estimate as the session's planned duration
+      defaultSpeedForSport(sport);
+    return step.durationValue / estimatedSpeed;
   }
 
   // For other duration types, we'll use a default or calculate from repeat blocks

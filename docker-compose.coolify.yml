@@ -25,6 +25,10 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    # Loopback only: the PostHog data warehouse reaches it through an SSH
+    # tunnel, as the read-only role of deploy/coolify/posthog/reader.sql.
+    ports:
+      - "127.0.0.1:5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -75,6 +79,10 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      EMAIL_SIGNATURE: ${EMAIL_SIGNATURE:-}
       STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID:-}
       STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET:-}
       STRAVA_REDIRECT_URI: ${STRAVA_REDIRECT_URI:-}
@@ -92,8 +100,6 @@ services:
       SUUNTO_REDIRECT_URI: ${SUUNTO_REDIRECT_URI:-}
       SUUNTO_SUBSCRIPTION_KEY: ${SUUNTO_SUBSCRIPTION_KEY:-}
       SUUNTO_WEBHOOK_SECRET: ${SUUNTO_WEBHOOK_SECRET:-}
-      COROS_CLIENT_ID: ${COROS_CLIENT_ID:-}
-      COROS_CLIENT_SECRET: ${COROS_CLIENT_SECRET:-}
       COROS_REDIRECT_URI: ${COROS_REDIRECT_URI:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GOOGLE_GENERATIVE_AI_API_KEY: ${GOOGLE_GENERATIVE_AI_API_KEY:-}
@@ -152,6 +158,10 @@ services:
       HASH_PEPPER: ${HASH_PEPPER}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       BREVO_FROM_EMAIL: ${BREVO_FROM_EMAIL:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-}
+      EMAIL_REPLY_TO: ${EMAIL_REPLY_TO:-}
+      EMAIL_SIGNATURE: ${EMAIL_SIGNATURE:-}
       STRAVA_CLIENT_ID: ${STRAVA_CLIENT_ID:-}
       STRAVA_CLIENT_SECRET: ${STRAVA_CLIENT_SECRET:-}
       STRAVA_REDIRECT_URI: ${STRAVA_REDIRECT_URI:-}
@@ -190,9 +200,37 @@ services:
     networks:
       - openathlete
 
+  # Idles until the Coolify scheduled task "backup" (command `backup`, nightly)
+  # sends the database to the restic repository. See deploy/coolify/backup.
+  backup:
+    build:
+      context: deploy/coolify/backup
+    image: openathlete-backup:latest
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: ${POSTGRES_USER}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB}
+      RESTIC_REPOSITORY: ${RESTIC_REPOSITORY:-}
+      RESTIC_PASSWORD: ${RESTIC_PASSWORD:-}
+      RESTIC_CACHE_DIR: /cache
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_DEFAULT_REGION: auto
+      BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
+    volumes:
+      - backup_cache:/cache
+    networks:
+      - openathlete
+
 volumes:
   postgres_data:
   redis_data:
+  backup_cache:
 
 networks:
   openathlete:

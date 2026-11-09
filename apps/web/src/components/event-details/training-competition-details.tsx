@@ -79,6 +79,21 @@ export function TrainingCompetitionDetails({ event }: P) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div data-session-start>
+                  <div className="text-sm font-semibold">{m.start_date()}</div>
+                  <div>
+                    {new Date(event.startDate).toLocaleString(
+                      getDateLocale(getLocale()),
+                      {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      },
+                    )}
+                  </div>
+                </div>
                 {event.goalDuration && (
                   <DurationStat
                     label={m.goal_duration()}
@@ -209,7 +224,11 @@ export function TrainingCompetitionDetails({ event }: P) {
                 maxHeight={80}
                 athleteId={event.athleteId ?? undefined}
               />
-              <WorkoutSummary workout={event.workout} />
+              <WorkoutSummary
+                workout={event.workout}
+                sport={(event as TrainingEvent).sport}
+                athleteId={event.athleteId}
+              />
             </CardContent>
           </Card>
         )}

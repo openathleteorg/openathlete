@@ -1,12 +1,10 @@
 import { m } from '@/paraglide/messages';
 
-import type { WorkoutDto } from '@openathlete/shared';
 import {
   WORKOUT_DURATION_TYPE,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
 } from '@openathlete/shared';
-import { calculateWorkoutDuration as sharedCalculateWorkoutDuration } from '@openathlete/shared';
 
 /**
  * Format duration value based on duration type
@@ -149,18 +147,6 @@ export function getStepTypeColor(stepType: WORKOUT_STEP_TYPE): {
   };
   return colors[stepType] || colors.FREE;
 }
-
-/**
- * Calculate estimated total duration for a workout
- * Counts both TIME-based durations and estimates DISTANCE-based durations using pace targets
- * @param workout - Workout object
- * @param metrics - Optional athlete metrics for estimating distance-based durations
- * @returns Total duration in seconds
- */
-export const calculateWorkoutDuration = (
-  workout: WorkoutDto,
-  metrics?: Record<string, { value: number } | number>,
-): number => sharedCalculateWorkoutDuration(workout, metrics) ?? 0;
 
 /**
  * Get target type label

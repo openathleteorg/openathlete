@@ -6,6 +6,8 @@ import {
   EVENT_TYPE,
   SPORT_TYPE,
   UpdateEventDto,
+  calculateWorkoutDuration,
+  isDurationSetByHand,
 } from '@openathlete/shared';
 
 import {
@@ -20,6 +22,7 @@ import { AthleteScope, ToolError, athleteIdInput, run } from '../context';
 import { localDate, localTime } from '../dates';
 import {
   CALENDAR_INCLUDE,
+  WORKOUT_STEPS_INCLUDE,
   calendarItemSchema,
   toCalendarItem,
 } from '../presenters';
@@ -54,7 +57,9 @@ const sessionFields = {
     .min(1)
     .max(48 * 60)
     .optional()
-    .describe('Planned duration; default: the timed steps of the workout'),
+    .describe(
+      "Planned duration; default: the workout's estimated total. A changed workout keeps a duration set apart from its steps",
+    ),
   distanceKm: z.number().min(0.01).max(2000).optional(),
   elevationGainM: z.number().min(0).max(30000).optional(),
   rpe: z
@@ -79,7 +84,9 @@ const sessionInput = z.object({
   date: localDate,
   time: localTime
     .optional()
-    .describe('Start time; omit when the athlete chooses (shown on the day)'),
+    .describe(
+      'Start time shown in the calendar and editable by the athlete; omitted, the session starts at 12:00',
+    ),
   ...sessionFields,
 });
 type SessionInput = z.infer<typeof sessionInput>;
@@ -144,7 +151,7 @@ function toCreateDto(
   const seconds = input.durationMinutes
     ? Math.round(input.durationMinutes * 60)
     : input.workoutSteps
-      ? workoutSeconds(input.workoutSteps) || null
+      ? workoutSeconds(input.workoutSteps, input.sport) || null
       : null;
   const endDate = new Date(
     startDate.getTime() + (seconds ? seconds * 1000 : HOUR_MS),
@@ -264,6 +271,42 @@ export const registerCalendarWriteTools: ToolRegistrar = (
     };
   };
 
+  /**
+   * The planned duration a session takes with a new workout: its total,
+   * unless the stored duration was set apart from the old workout's, by a
+   * coach in the app or by an agent; that one stays (undefined: unchanged)
+   */
+  const durationOfNewWorkout = async (
+    eventId: number,
+    workout: Workout,
+    sport: SPORT_TYPE | undefined,
+  ): Promise<number | undefined> => {
+    const training = await prisma.eventTraining.findUnique({
+      where: { eventId },
+      select: {
+        sport: true,
+        goalDuration: true,
+        workout: { include: WORKOUT_STEPS_INCLUDE },
+      },
+    });
+    if (training) {
+      const before = training.workout
+        ? calculateWorkoutDuration(
+            training.workout,
+            {},
+            training.sport as SPORT_TYPE,
+          )
+        : null;
+      if (isDurationSetByHand(training.goalDuration, before)) return undefined;
+    }
+    return (
+      workoutSeconds(
+        workout,
+        sport ?? (training?.sport as SPORT_TYPE | undefined),
+      ) || undefined
+    );
+  };
+
   registerTool(
     server,
     'plan_sessions',
@@ -378,7 +421,13 @@ export const registerCalendarWriteTools: ToolRegistrar = (
             : event.startDate;
         const seconds = fields.durationMinutes
           ? Math.round(fields.durationMinutes * 60)
-          : undefined;
+          : event.type === 'TRAINING' && fields.workoutSteps
+            ? await durationOfNewWorkout(
+                eventId,
+                fields.workoutSteps,
+                fields.sport,
+              )
+            : undefined;
         const lengthMs = seconds
           ? seconds * 1000
           : event.endDate.getTime() - event.startDate.getTime();
@@ -420,15 +469,11 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           if (fields.priority) {
             throw new ToolError('priority is for races only.');
           }
-          const workoutTime =
-            fields.workoutSteps && !seconds
-              ? workoutSeconds(fields.workoutSteps)
-              : 0;
           dto = {
             type: EVENT_TYPE.TRAINING,
             ...(fields.name && { name: fields.name }),
             ...(fields.sport && { sport: fields.sport }),
-            ...plannedFields(fields, seconds ?? (workoutTime || undefined)),
+            ...plannedFields(fields, seconds),
             ...(fields.workoutSteps && {
               workout: { steps: toStoredWorkout(fields.workoutSteps) },
             }),

@@ -5,7 +5,7 @@ import {
   useGetOAuthUriMutation,
 } from '@/api/provider';
 import { GarminLogo, StravaIcon } from '@/assets/icons';
-import { PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
+import { CorosLogo, PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -25,11 +25,13 @@ import { connectorProviderLabelMap } from '@/utils/label-map/core/connector-prov
 import { openOAuthUrl } from '@/utils/oauth';
 import { CheckCircle2, Link2, Link2Off } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { ConnectorProvider } from '@openathlete/shared';
 
 import { ConnectorsUnavailable } from './connectors-unavailable';
+import { CorosRegionDialog } from './coros-region-dialog';
 import { offeredProviders } from './offered-providers';
 
 interface ConnectorsListProps {
@@ -45,6 +47,7 @@ const DEFAULT_SUPPORTED_PROVIDERS: ConnectorProvider[] = [
   'GARMIN',
   'SUUNTO',
   'POLAR',
+  'COROS',
 ];
 
 export function ConnectorsList({
@@ -54,6 +57,7 @@ export function ConnectorsList({
   oauthConnectSource = 'settings',
 }: ConnectorsListProps) {
   const posthog = usePostHog();
+  const [corosRegionOpen, setCorosRegionOpen] = useState(false);
   const {
     data: connectedProviders = [],
     isLoading: isLoadingConnectedAccounts,
@@ -68,7 +72,7 @@ export function ConnectorsList({
   );
 
   const getOAuthUriMutation = useGetOAuthUriMutation({
-    onSuccess: async (response, provider) => {
+    onSuccess: async (response, { provider }) => {
       setOauthConnectSourceForRedirect(oauthConnectSource);
       posthog?.capture(AnalyticsEvent.provider_connect_initiated, {
         provider,
@@ -111,7 +115,11 @@ export function ConnectorsList({
   };
 
   const handleConnect = (provider: ConnectorProvider) => {
-    getOAuthUriMutation.mutate(provider);
+    if (provider === 'COROS') {
+      setCorosRegionOpen(true);
+      return;
+    }
+    getOAuthUriMutation.mutate({ provider });
   };
 
   const handleDisconnect = (provider: ConnectorProvider) => {
@@ -128,6 +136,8 @@ export function ConnectorsList({
         return <PolarLogo className="h-6 w-auto" />;
       case 'SUUNTO':
         return <SuuntoLogo className="h-6 w-auto" />;
+      case 'COROS':
+        return <CorosLogo className="h-6 w-auto" />;
       default:
         return <Link2 className="h-5 w-5" />;
     }
@@ -241,6 +251,14 @@ export function ConnectorsList({
           })
         )}
       </div>
+      <CorosRegionDialog
+        open={corosRegionOpen}
+        onOpenChange={setCorosRegionOpen}
+        onSelect={(region) => {
+          setCorosRegionOpen(false);
+          getOAuthUriMutation.mutate({ provider: 'COROS', region });
+        }}
+      />
       {showSkip && onSkip && (
         <Button variant="ghost" onClick={onSkip} className="w-full">
           {m.onboarding_connectors_skip()}

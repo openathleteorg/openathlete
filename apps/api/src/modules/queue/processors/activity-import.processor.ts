@@ -10,9 +10,18 @@ import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+import { ActivityDuplicateService } from '../../core/services/activity-duplicate.service';
 import { PrismaService } from '../../prisma/services/prisma.service';
-import { ImportResult } from '../../providers-sync/base/provider-import.interface';
 import {
+  AFTER_DUPLICATE_DELAY_MS,
+  ActivityDescriptionService,
+} from '../../providers-sync/activity-description/activity-description.service';
+import {
+  ImportResult,
+  ImportedActivity,
+} from '../../providers-sync/base/provider-import.interface';
+import {
+  CorosProviderService,
   GarminProviderService,
   PolarProviderService,
   StravaProviderService,
@@ -38,9 +47,16 @@ export class ActivityImportProcessor extends WorkerHost {
     private readonly polarProviderService: PolarProviderService,
     @Inject(forwardRef(() => SuuntoProviderService))
     private readonly suuntoProviderService: SuuntoProviderService,
+    @Inject(forwardRef(() => CorosProviderService))
+    private readonly corosProviderService: CorosProviderService,
     private readonly queueService: QueueService,
+    @Inject(forwardRef(() => ActivityDuplicateService))
+    private readonly duplicates: ActivityDuplicateService,
     @Optional() private readonly emitter?: EventEmitter2,
     @Optional() private readonly analytics?: AnalyticsService,
+    @Optional()
+    @Inject(forwardRef(() => ActivityDescriptionService))
+    private readonly descriptions?: ActivityDescriptionService,
   ) {
     super();
   }
@@ -74,6 +90,29 @@ export class ActivityImportProcessor extends WorkerHost {
     );
   }
 
+  /**
+   * The athlete's activity from another source (another provider, an
+   * uploaded file) recording the same workout. An activity this source saved
+   * before goes on to its provider, which updates or returns it as today.
+   */
+  private async savedCopy(
+    account: { athleteId: number; provider: ConnectorProvider },
+    activity: ImportedActivity,
+  ) {
+    const known = await this.prisma.eventActivity.findUnique({
+      where: { externalId: activity.externalId },
+      select: { eventActivityId: true },
+    });
+    if (known) return null;
+    return this.duplicates.findDuplicate(account.athleteId, {
+      source: account.provider,
+      // A queued activity comes back with its dates as strings
+      startDate: new Date(activity.startDate),
+      endDate: new Date(activity.endDate),
+      movingTime: activity.duration ?? null,
+    });
+  }
+
   async process(job: Job<ActivityImportJobData>) {
     const { providerAccountId, activity, bulkImport } = job.data;
 
@@ -103,6 +142,37 @@ export class ActivityImportProcessor extends WorkerHost {
         return;
       }
 
+      // Skipped rather than saved twice: a later sync or webhook of the same
+      // activity comes here again and is skipped again
+      const copy = await this.savedCopy(account, activity);
+      if (copy) {
+        this.logger.debug(
+          `Skipping ${account.provider} activity ${activity.externalId}: event ${copy.eventId} from another source records the same workout`,
+        );
+        // The athlete records with a watch that also syncs here: the Strava
+        // activity is described from the copy already saved
+        if (
+          account.provider === ConnectorProvider.STRAVA &&
+          !bulkImport &&
+          this.descriptions
+        ) {
+          await this.descriptions
+            .schedule({
+              athleteId: account.athleteId,
+              stravaActivityId: activity.externalId,
+              eventActivityId: copy.eventActivityId,
+              startDate: new Date(activity.startDate),
+              delayMs: AFTER_DUPLICATE_DELAY_MS,
+            })
+            .catch((error: unknown) =>
+              this.logger.warn(
+                `Could not queue the Strava description of ${activity.externalId}: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
+        }
+        return { success: true, skipped: 'duplicate', eventId: copy.eventId };
+      }
+
       await job.updateProgress(30);
 
       let result: ImportResult;
@@ -123,6 +193,11 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       } else if (account.provider === ConnectorProvider.SUUNTO) {
         result = await this.suuntoProviderService.importActivity(
+          account,
+          activity,
+        );
+      } else if (account.provider === ConnectorProvider.COROS) {
+        result = await this.corosProviderService.importActivity(
           account,
           activity,
         );

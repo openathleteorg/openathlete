@@ -10,6 +10,7 @@ import {
 import { Language } from 'src/common/constants/languages.constant';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { RenderedEmail } from '../emails/core/layout';
 import { emailTemplates } from '../emails/templates';
 import { SendEmail } from '../types';
 import { EmailTransportService } from './email-transport.service';
@@ -42,18 +43,12 @@ export class NotificationService {
       const defaultSubject = emailLibrary[payload.type].defaultSubject;
       const subject = payload.subject || defaultSubject[language];
 
-      const buildHtml = emailTemplates[payload.type] as (
+      const build = emailTemplates[payload.type] as (
         props: EmailPropsFromId<T> & { language?: EmailLanguage },
-      ) => string;
-      const htmlContent = buildHtml
-        ? buildHtml({ ...payload.params, language })
-        : `<p>${subject}</p>`;
+      ) => RenderedEmail;
+      const { html, text } = build({ ...payload.params, language });
 
-      await this.emailTransport.send({
-        to: payload.to,
-        subject,
-        html: htmlContent,
-      });
+      await this.emailTransport.send({ to: payload.to, subject, html, text });
     } catch (error) {
       this.logger.error(
         `Error sending email: ${error instanceof Error ? error.message : String(error)}`,

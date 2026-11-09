@@ -33,6 +33,11 @@ export class InstanceController {
         googleSignIn: { type: 'boolean' },
         email: { type: 'boolean' },
         garminPersonalApi: { type: 'boolean' },
+        personalEmails: {
+          type: 'boolean',
+          description:
+            'Onboarding tips, monthly recap and news are sent: the app offers their settings',
+        },
         providers: {
           type: 'array',
           items: { type: 'string', enum: Object.values(ConnectorProvider) },
@@ -59,6 +64,7 @@ export class InstanceController {
     return {
       googleSignIn: !!get('FIREBASE_SERVICE_ACCOUNT_JSON'),
       email: !!emailTransportKind(get),
+      personalEmails: !!emailTransportKind(get) && !!get('EMAIL_SIGNATURE'),
       providers: configuredProviders(get),
       garminPersonalApi: get('GARMIN_PERSONAL_API_ENABLED') === true,
       // The first account is always allowed: it is the administrator's

@@ -1,124 +1,34 @@
-import { generateMetadata as generatePageMetadata } from '@/app/metadata';
-import { Container } from '@/components/landing/container';
-import { Footer, Navbar } from '@/components/landing/sections';
 import {
-  TrainingPlanStructuredData,
-  WebPageStructuredData,
-} from '@/components/seo/structured-data';
-import { TrainingPlanPage } from '@/components/training-plan/training-plan-page';
-import { SITE_URL } from '@/config';
-import { loadPlan } from '@/lib/training-plans/plan-loader';
-import {
-  formatTimeTarget,
-  parseTimeTarget,
-} from '@/lib/training-plans/utils/parse-time-target';
-import { isSupportedLocale, localePrefix } from '@/utils/locales';
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+  PlanRoutePage,
+  planMetadata,
+  planStaticParams,
+} from '@/lib/training-plans/plan-page';
 
-/* eslint-disable react-refresh/only-export-components */
-// The URL slug is English: Spanish titles name the race in Spanish
-const SPANISH_DISTANCES: Record<string, string> = {
-  marathon: 'maratón',
-  'half-marathon': 'media maratón',
+type Props = {
+  params: Promise<{ locale: string; distance: string; timeTarget: string }>;
 };
 
-function spanishDistance(distance: string) {
-  return SPANISH_DISTANCES[distance] ?? distance;
+/* eslint-disable react-refresh/only-export-components */
+export function generateStaticParams() {
+  return planStaticParams('running', 'timeTarget');
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string; distance: string; timeTarget: string }>;
-}): Promise<Metadata> {
+export const dynamicParams = false;
+
+export async function generateMetadata({ params }: Props) {
   const { locale, distance, timeTarget } = await params;
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  try {
-    const timeInSeconds = parseTimeTarget(timeTarget);
-    const timeDisplay =
-      timeInSeconds !== null ? formatTimeTarget(timeInSeconds) : timeTarget;
-
-    const title = {
-      en: `Free ${distance} ${timeDisplay} Training Plan`,
-      fr: `Plan d'entraînement ${distance} ${timeDisplay} gratuit`,
-      es: `Plan de entrenamiento gratuito para ${spanishDistance(distance)} en ${timeDisplay}`,
-    }[locale];
-    const description = {
-      en: `Free training plan for ${distance} in ${timeDisplay}. Complete plan with tips and week-by-week training schedule.`,
-      fr: `Plan d'entraînement gratuit pour ${distance} en ${timeDisplay}. Plan complet avec conseils et tableau d'entraînement semaine par semaine.`,
-      es: `Plan de entrenamiento gratuito para ${spanishDistance(distance)} en ${timeDisplay}. Plan completo con consejos y calendario de entrenamiento semana a semana.`,
-    }[locale];
-
-    const path = `/training-plans/running/${distance}/${timeTarget}`;
-    const metadata = generatePageMetadata({ locale, title, description, path });
-
-    return metadata;
-  } catch {
-    notFound();
-  }
+  return planMetadata('running', locale, distance, timeTarget);
 }
+/* eslint-enable react-refresh/only-export-components */
 
-export default async function RunningTrainingPlanPage({
-  params,
-}: {
-  params: Promise<{ locale: string; distance: string; timeTarget: string }>;
-}) {
+export default async function Page({ params }: Props) {
   const { locale, distance, timeTarget } = await params;
-
-  if (!isSupportedLocale(locale)) {
-    notFound();
-  }
-
-  try {
-    const planData = await loadPlan('running', distance, timeTarget, locale);
-    const path = `/training-plans/running/${distance}/${timeTarget}`;
-
-    const pageUrl = `${SITE_URL}${localePrefix(locale)}${path}`;
-
-    return (
-      <>
-        <WebPageStructuredData
-          title={
-            {
-              en: `${distance} ${timeTarget} Training Plan`,
-              fr: `Plan d'entraînement ${distance} ${timeTarget}`,
-              es: `Plan de entrenamiento ${spanishDistance(distance)} ${timeTarget}`,
-            }[locale]
-          }
-          description={
-            {
-              en: `Free training plan for ${distance}`,
-              fr: `Plan d'entraînement gratuit pour ${distance}`,
-              es: `Plan de entrenamiento gratuito para ${spanishDistance(distance)}`,
-            }[locale]
-          }
-          url={pageUrl}
-        />
-        <TrainingPlanStructuredData
-          planData={planData}
-          url={pageUrl}
-          locale={locale}
-        />
-        <div className="min-h-screen bg-background">
-          <Navbar />
-          <Container>
-            <TrainingPlanPage
-              planData={planData}
-              sport="running"
-              distance={distance}
-              variant={timeTarget}
-              locale={locale}
-            />
-          </Container>
-          <Footer />
-        </div>
-      </>
-    );
-  } catch {
-    notFound();
-  }
+  return (
+    <PlanRoutePage
+      sport="running"
+      locale={locale}
+      distance={distance}
+      variant={timeTarget}
+    />
+  );
 }

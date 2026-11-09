@@ -40,6 +40,7 @@ const EXPORTED_TABLES = [
   'event',
   'garmin_personal_connection',
   'event_template',
+  'lifecycle_email',
   'message',
   'provider_account',
   'record',

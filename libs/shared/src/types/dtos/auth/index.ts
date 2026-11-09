@@ -10,3 +10,4 @@ export * from './password-reset.dto';
 export * from './create-event-template.dto';
 export * from './password';
 export * from './oidc-login.dto';
+export * from './person-name';

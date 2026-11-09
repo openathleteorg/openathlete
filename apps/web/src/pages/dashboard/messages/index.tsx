@@ -222,16 +222,19 @@ export function MessagesPage() {
   const handleDeleteConversation = useCallback(
     (threadId: number, e: React.MouseEvent) => {
       e.stopPropagation();
-      // The last conversation stays, whatever the filter shows
-      if (allThreads && allThreads.length > 1) {
-        deleteThreadMutation.mutate(threadId, {
-          onSuccess: () => {
-            posthog?.capture(AnalyticsEvent.messages_thread_deleted);
-          },
-        });
-      }
+      // Deleting the last conversation is allowed: the page then starts an
+      // empty one, so a message sent to nobody can still be removed
+      deleteThreadMutation.mutate(threadId, {
+        onSuccess: () => {
+          posthog?.capture(AnalyticsEvent.messages_thread_deleted);
+          if (activeMessageThreadId === threadId) {
+            setActiveMessageThreadId(null);
+            setMobileView('list');
+          }
+        },
+      });
     },
-    [deleteThreadMutation, posthog, allThreads],
+    [deleteThreadMutation, posthog, activeMessageThreadId],
   );
 
   const handleSendMessage = useCallback(
@@ -319,18 +322,16 @@ export function MessagesPage() {
                     </span>
                     {unreadCount > 0 && <UnreadBadge count={unreadCount} />}
                   </button>
-                  {(allThreads?.length || 0) > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-11 rounded-full text-muted-foreground"
-                      aria-label={m.delete_()}
-                      onClick={(e) => handleDeleteConversation(threadId, e)}
-                      disabled={deleteThreadMutation.isPending}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-11 rounded-full text-muted-foreground"
+                    aria-label={m.delete_()}
+                    onClick={(e) => handleDeleteConversation(threadId, e)}
+                    disabled={deleteThreadMutation.isPending}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
                 </div>
               );
             })}
@@ -459,17 +460,16 @@ export function MessagesPage() {
                       {new Date(threadCreatedAt).toLocaleDateString()}
                     </p>
                   </div>
-                  {(allThreads?.length || 0) > 1 && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 opacity-0 group-hover:opacity-100 hover:bg-destructive/10 hover:text-destructive"
-                      onClick={(e) => handleDeleteConversation(threadId, e)}
-                      disabled={deleteThreadMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:bg-destructive/10 hover:text-destructive"
+                    aria-label={m.delete_()}
+                    onClick={(e) => handleDeleteConversation(threadId, e)}
+                    disabled={deleteThreadMutation.isPending}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </motion.button>
               );
             })}

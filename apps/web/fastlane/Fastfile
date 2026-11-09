@@ -149,6 +149,18 @@ platform :android do
 end
 
 platform :ios do
+  GOOGLE_SERVICE_PLIST = File.join(WEB_DIR, "ios/App/App/GoogleService-Info.plist")
+
+  # Info.plist registers it as a URL scheme: Google sign-in returns through
+  # it, and GoogleSignIn crashes the app when it is missing
+  def google_reversed_client_id
+    value = get_info_plist_value(path: GOOGLE_SERVICE_PLIST, key: "REVERSED_CLIENT_ID").to_s
+    return value unless value.empty?
+
+    UI.user_error!("GoogleService-Info.plist has no REVERSED_CLIENT_ID: enable Google sign-in in " \
+                   "Firebase, download the file again and update GOOGLE_SERVICE_INFO_PLIST_BASE64")
+  end
+
   def asc_api_key
     key_id, issuer_id, key = required_env("ASC_KEY_ID", "ASC_ISSUER_ID", "ASC_KEY_P8")
     app_store_connect_api_key(key_id: key_id, issuer_id: issuer_id, key_content: key)
@@ -159,8 +171,9 @@ platform :ios do
     sync_native("ios")
     # The Firebase config is a secret; CI builds with a stand-in so the
     # project's resource reference resolves
-    plist = File.join(WEB_DIR, "ios/App/App/GoogleService-Info.plist")
-    FileUtils.cp(File.join(__dir__, "ci/GoogleService-Info.placeholder.plist"), plist) unless File.exist?(plist)
+    unless File.exist?(GOOGLE_SERVICE_PLIST)
+      FileUtils.cp(File.join(__dir__, "ci/GoogleService-Info.placeholder.plist"), GOOGLE_SERVICE_PLIST)
+    end
     xcodebuild(
       workspace: XCODE_WORKSPACE,
       scheme: "App",
@@ -176,6 +189,7 @@ platform :ios do
   lane :release do
     ensure_no_local_env!
     version = mobile_version
+    reversed_client_id = google_reversed_client_id
     api_key = asc_api_key
     sync_native("ios")
 
@@ -214,7 +228,8 @@ platform :ios do
         configuration: "Release",
         export_method: "app-store",
         export_options: { provisioningProfiles: { APP_ID => profile } },
-        xcargs: "MARKETING_VERSION=#{version['marketingVersion']} CURRENT_PROJECT_VERSION=#{version['buildNumber']}",
+        xcargs: "MARKETING_VERSION=#{version['marketingVersion']} CURRENT_PROJECT_VERSION=#{version['buildNumber']} " \
+                "GOOGLE_REVERSED_CLIENT_ID=#{reversed_client_id}",
         output_directory: BUILD_DIR,
         clean: true,
       )

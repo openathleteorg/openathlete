@@ -2,8 +2,8 @@ import { EmailLanguage } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 
-import { h1, note, p } from '../core/blocks';
-import { layout } from '../core/layout';
+import { facts, heading, note, paragraph } from '../core/blocks';
+import { renderEmail } from '../core/layout';
 
 const translations = {
   ES: {
@@ -87,21 +87,19 @@ export function buildSignupNotificationEmail({
   const t = translations[language];
   const fullName = [firstName, lastName].filter(Boolean).join(' ') || undefined;
 
-  const content = [
-    h1(t.title),
-    p(t.intro(fullName)),
-    p(`<strong>${t.emailLabel}:</strong> ${email}`),
-    fullName ? p(`<strong>${t.nameLabel}:</strong> ${fullName}`) : '',
-    p(t.followUp),
-    note(t.note),
-  ]
-    .filter(Boolean)
-    .join('');
-
-  return layout({
+  return renderEmail({
     language,
     title: t.title,
     preview: t.preview,
-    contentHtml: content,
+    blocks: [
+      heading(t.title),
+      paragraph(t.intro(fullName)),
+      facts([
+        { label: t.emailLabel, value: email },
+        ...(fullName ? [{ label: t.nameLabel, value: fullName }] : []),
+      ]),
+      paragraph(t.followUp),
+      note(t.note),
+    ],
   });
 }

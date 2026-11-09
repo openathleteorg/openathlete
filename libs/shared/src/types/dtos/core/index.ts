@@ -23,6 +23,7 @@ export * from './training-load.dto';
 export * from './workout.dto';
 export * from './athlete-settings.dto';
 export * from './provider-preferences.dto';
+export * from './activity-description-preview.dto';
 export * from './injury.dto';
 export * from './records.dto';
 export * from './statistics.dto';

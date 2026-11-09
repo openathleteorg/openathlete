@@ -20,6 +20,10 @@ export default defineConfig(async () => ({
       // domain can set PARAGLIDE_LOCALE for every subdomain, and the first
       // cookie of that name wins over the one the app sets
       cookieName: APP_LOCALE_COOKIE,
+      // The iOS app runs on capacitor://, where WKWebView keeps no cookie:
+      // localStorage holds its choice. The cookie stays first for the web,
+      // where the E2E tests and older visits set it
+      strategy: ['cookie', 'localStorage', 'globalVariable', 'baseLocale'],
     }),
     react(),
     tailwindcss(),
@@ -40,9 +44,10 @@ export default defineConfig(async () => ({
     // Define global for socket.io-client
     global: 'globalThis',
   },
-  // Base path: use absolute path for web production, relative for Capacitor
-  // For Capacitor builds, override this with --base=./ in the build command
-  base: process.env.CAPACITOR === 'true' ? './' : '/',
+  // Absolute in the native apps too: they serve the build from the root, and
+  // with a relative base a reload on a nested route, such as a language
+  // switch, asks for /dashboard/assets/... and shows a blank screen
+  base: '/',
   server: {
     host: true,
     port: 5173,

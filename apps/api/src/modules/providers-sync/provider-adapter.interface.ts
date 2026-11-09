@@ -25,6 +25,8 @@ export interface DeletePlannedWorkoutInput {
 
 export interface ProviderAdapter {
   getProvider(): Provider;
+  /** Whether the provider takes this workout at all, such as its sport */
+  canExport?(normalized: NormalizedWorkout): boolean;
   upsertPlannedWorkout(
     input: UpsertPlannedWorkoutInput,
   ): Promise<UpsertPlannedWorkoutResult>;

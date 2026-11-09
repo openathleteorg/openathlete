@@ -100,6 +100,7 @@ export const accountFixtureSql = [
   `INSERT INTO oauth_client (client_id, name, redirect_uris, updated_at) VALUES ('client-1', 'Agent', '{https://agent.example/callback}', ${now})`,
   `INSERT INTO mcp_grant (mcp_grant_id, kind, name, scopes, token_hash, user_id, client_id, updated_at) VALUES (7101, 'OAUTH', 'Agent', '{read,write}', NULL, 1001, 'client-1', ${now}), (7102, 'PERSONAL_TOKEN', 'Script', '{read}', 'hash-1', 1001, NULL, ${now}), (7103, 'OAUTH', 'Agent', '{read}', NULL, 1002, 'client-1', ${now})`,
   `INSERT INTO mcp_token (token_hash, type, expires_at, grant_id) VALUES ('access-1', 'ACCESS', now(), 7101), ('access-2', 'ACCESS', now(), 7103)`,
+  `INSERT INTO lifecycle_email (kind, ref, user_id) VALUES ('CONNECT_REMINDER', '', 1001), ('MONTHLY_RECAP', '2026-10', 1001), ('MONTHLY_RECAP', '2026-10', 1002)`,
   `INSERT INTO oauth_authorization_code (code_hash, redirect_uri, code_challenge, scopes, resource, expires_at, client_id, user_id) VALUES ('code-1', 'https://agent.example/callback', 'x', '{read}', 'https://api.example/mcp', now(), 'client-1', 1001)`,
 
   // AI assistant conversation

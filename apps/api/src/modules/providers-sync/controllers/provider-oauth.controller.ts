@@ -14,6 +14,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   RawBodyRequest,
   Req,
   Res,
@@ -38,6 +39,8 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { ConnectorProvider } from '@openathlete/database';
 import type { ApiEnvSchemaType } from '@openathlete/shared';
 import {
+  COROS_REGIONS,
+  CorosRegion,
   ProviderPreferencesDto,
   getProviderSyncCapabilities,
   isFullImportInProgress,
@@ -57,7 +60,10 @@ import { configuredProviders } from '../base/provider-config';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
 import { GarminProviderService } from '../providers/garmin.provider.service';
 import { PolarProviderService } from '../providers/polar.provider.service';
-import { StravaProviderService } from '../providers/strava.provider.service';
+import {
+  StravaProviderService,
+  hasStravaWriteScope,
+} from '../providers/strava.provider.service';
 
 function toConnectorProvider(provider: ConnectorProvider): ConnectorProvider {
   return provider as unknown as ConnectorProvider;
@@ -121,7 +127,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Get OAuth authorization URI for a provider',
     description:
-      'Generates the OAuth authorization URI for connecting a fitness provider account. Supported providers: STRAVA, GARMIN, SUUNTO, COROS, POLAR. For Garmin (which uses PKCE flow), also returns a code_verifier that must be securely stored by the client and sent back during token exchange. The client should redirect the user to the returned URI to initiate the OAuth flow.',
+      'Generates the OAuth authorization URI for connecting a fitness provider account. Supported providers: STRAVA, GARMIN, SUUNTO, COROS, POLAR. Garmin and COROS use the PKCE flow: the response also holds a code verifier that the client stores and sends back during token exchange. The client should redirect the user to the returned URI to initiate the OAuth flow.',
   })
   @ApiParam({
     name: 'provider',
@@ -129,6 +135,12 @@ export class ProviderOAuthController {
     enum: Object.values(ConnectorProvider),
     description: 'Provider name (case-insensitive)',
     example: 'strava',
+  })
+  @ApiQuery({
+    name: 'region',
+    required: false,
+    enum: COROS_REGIONS,
+    description: 'Region of the COROS account (COROS only)',
   })
   @ApiResponse({
     status: 200,
@@ -146,7 +158,7 @@ export class ProviderOAuthController {
           type: 'string',
           nullable: true,
           description:
-            'PKCE code verifier (only for Garmin). Must be stored securely and sent back during token exchange.',
+            'PKCE code verifier (Garmin and COROS). Must be stored securely and sent back during token exchange.',
           example: 'abc123def456...',
         },
       },
@@ -162,7 +174,10 @@ export class ProviderOAuthController {
     description:
       'PROVIDER_NOT_CONFIGURED - the connector is not set up on this instance',
   })
-  getAuthorizationUri(@Param('provider') provider: string) {
+  async getAuthorizationUri(
+    @Param('provider') provider: string,
+    @Query('region') region?: string,
+  ) {
     const providerEnum = provider.toUpperCase() as ConnectorProvider;
     this.assertConfigured(providerEnum);
 
@@ -178,7 +193,12 @@ export class ProviderOAuthController {
       case ConnectorProvider.SUUNTO:
         return { uri: this.suuntoProviderService.getAuthorizationUri() };
       case ConnectorProvider.COROS:
-        return { uri: this.corosProviderService.getAuthorizationUri() };
+        if (!COROS_REGIONS.includes(region as CorosRegion)) {
+          throw new BadRequestException('Unknown COROS region');
+        }
+        return this.corosProviderService.getAuthorizationUriForRegion(
+          region as CorosRegion,
+        );
       case ConnectorProvider.POLAR:
         return { uri: this.polarProviderService.getAuthorizationUri() };
       default:
@@ -208,7 +228,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Connect provider account via OAuth',
     description:
-      "Exchanges the OAuth authorization code for access and refresh tokens, then saves the provider account linked to the authenticated user's athlete profile. For Garmin (PKCE flow), the codeVerifier parameter is required and must match the one returned during authorization URI generation. Each provider has specific handling: Strava extracts athlete information, Garmin uses PKCE verification, Suunto extracts external user ID from JWT token, Coros and Polar use standard OAuth flows.",
+      "Exchanges the OAuth authorization code for access and refresh tokens, then saves the provider account linked to the authenticated user's athlete profile. For Garmin (PKCE flow), the codeVerifier parameter is required and must match the one returned during authorization URI generation. Each provider has specific handling: Strava extracts athlete information, Garmin uses PKCE verification, Suunto extracts external user ID from JWT token, COROS uses PKCE with a client registered for the connection, Polar uses a standard OAuth flow.",
   })
   @ApiParam({
     name: 'provider',
@@ -230,7 +250,7 @@ export class ProviderOAuthController {
         codeVerifier: {
           type: 'string',
           description:
-            'PKCE code verifier (required for Garmin, optional for others)',
+            'PKCE code verifier (required for Garmin and COROS, optional for others)',
           example: 'xyz789uvw012...',
         },
       },
@@ -270,7 +290,13 @@ export class ProviderOAuthController {
   async connectProvider(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
-    @Body() body: { code: string; codeVerifier?: string },
+    @Body()
+    body: {
+      code: string;
+      codeVerifier?: string;
+      /** Scopes the user accepted, from the redirect (Strava) */
+      scope?: string;
+    },
   ) {
     const { code } = body;
     const providerEnum = provider.toUpperCase() as ConnectorProvider;
@@ -279,7 +305,11 @@ export class ProviderOAuthController {
 
     switch (providerEnum) {
       case ConnectorProvider.STRAVA:
-        return this.stravaProviderService.connect(user, code);
+        return this.stravaProviderService.connect(
+          user,
+          code,
+          typeof body.scope === 'string' ? body.scope : undefined,
+        );
       case ConnectorProvider.GARMIN: {
         // Garmin PKCE requires code_verifier
         const codeVerifier = body.codeVerifier;
@@ -315,15 +345,14 @@ export class ProviderOAuthController {
         });
       }
       case ConnectorProvider.COROS: {
-        const tokenResponse =
-          await this.corosProviderService.exchangeCodeForTokens(code);
-        return this.corosProviderService.saveProviderAccount({
-          athleteId: athlete.athleteId,
-          accessToken: tokenResponse.access_token,
-          refreshToken: tokenResponse.refresh_token || '',
-          expiresIn: tokenResponse.expires_in,
-          scopes: tokenResponse.scope,
-        });
+        if (!body.codeVerifier) {
+          throw new BadRequestException('codeVerifier is required for COROS');
+        }
+        return this.corosProviderService.connect(
+          code,
+          body.codeVerifier,
+          athlete.athleteId,
+        );
       }
       case ConnectorProvider.POLAR: {
         return this.polarProviderService.connect(code, athlete.athleteId);
@@ -415,6 +444,8 @@ export class ProviderOAuthController {
       },
       data: {
         status: 'revoked',
+        // No "your sync stopped" email for this one
+        disconnectedByUser: true,
       },
     });
 
@@ -471,6 +502,25 @@ export class ProviderOAuthController {
             example: false,
             description: 'Whether metrics import is enabled',
           },
+          activityDescriptionEnabled: {
+            type: 'boolean',
+            example: true,
+            description:
+              "Whether OpenAthlete's analysis is written into new activities' descriptions (Strava)",
+          },
+          activityDescriptionLanguage: {
+            type: 'string',
+            nullable: true,
+            example: null,
+            description:
+              "Language of that analysis; null follows the user's language",
+          },
+          activityDescriptionAuthorized: {
+            type: 'boolean',
+            example: true,
+            description:
+              'Whether the connection allows editing activities; without it, the user connects again to turn the analysis on',
+          },
           fullImportRequestedAt: {
             type: 'string',
             format: 'date-time',
@@ -516,6 +566,11 @@ export class ProviderOAuthController {
       importActivitiesEnabled: account.importActivitiesEnabled,
       exportWorkoutsEnabled: account.exportWorkoutsEnabled,
       importMetricsEnabled: account.importMetricsEnabled,
+      activityDescriptionEnabled: account.activityDescriptionEnabled,
+      activityDescriptionLanguage: account.activityDescriptionLanguage,
+      activityDescriptionAuthorized:
+        account.provider === ConnectorProvider.STRAVA &&
+        hasStravaWriteScope(account.scopes),
       fullImportRequestedAt: account.fullImportRequestedAt,
       fullImportCompletedAt: account.fullImportCompletedAt,
     }));
@@ -560,6 +615,19 @@ export class ProviderOAuthController {
           description:
             'Enable/disable metrics import from provider (not all providers support this)',
           example: false,
+        },
+        activityDescriptionEnabled: {
+          type: 'boolean',
+          description:
+            "Enable/disable writing OpenAthlete's analysis into new activities' descriptions (Strava). Enabling needs a connection that allows editing activities",
+          example: true,
+        },
+        activityDescriptionLanguage: {
+          type: 'string',
+          nullable: true,
+          enum: ['FR', 'EN', 'IT', 'ES', 'PT_BR'],
+          description: "Language of that analysis; null follows the user's",
+          example: 'EN',
         },
       },
     },
@@ -631,6 +699,34 @@ export class ProviderOAuthController {
       data.importMetricsEnabled = body.importMetricsEnabled;
     }
 
+    if (
+      body.activityDescriptionEnabled !== undefined ||
+      body.activityDescriptionLanguage !== undefined
+    ) {
+      if (!capabilities.writeActivityDescription) {
+        throw new BadRequestException(
+          `Writing activity descriptions is not available for ${provider}`,
+        );
+      }
+      // Accounts connected before the feature can't edit activities: the
+      // app sends the user through Strava's consent page first
+      if (
+        body.activityDescriptionEnabled === true &&
+        !hasStravaWriteScope(account.scopes)
+      ) {
+        throw new BadRequestException({
+          code: 'STRAVA_WRITE_SCOPE_REQUIRED',
+          message: 'Connect Strava again to allow editing activities',
+        });
+      }
+      if (body.activityDescriptionEnabled !== undefined) {
+        data.activityDescriptionEnabled = body.activityDescriptionEnabled;
+      }
+      if (body.activityDescriptionLanguage !== undefined) {
+        data.activityDescriptionLanguage = body.activityDescriptionLanguage;
+      }
+    }
+
     await this.prisma.providerAccount.update({
       where: {
         providerAccountId: account.providerAccountId,
@@ -645,6 +741,12 @@ export class ProviderOAuthController {
     ) {
       await this.queueService.addPolarMetricsJob(account.providerAccountId, 0);
     }
+    if (
+      providerEnum === ConnectorProvider.COROS &&
+      body.importMetricsEnabled === true
+    ) {
+      await this.queueService.addCorosMetricsJob(account.providerAccountId);
+    }
 
     return { success: true };
   }
@@ -658,7 +760,7 @@ export class ProviderOAuthController {
   @ApiOperation({
     summary: 'Trigger full historical activity import',
     description:
-      'Queues a full historical import of all activities from a connected provider and returns immediately: the worker lists the history and imports activities progressively, and fullImportCompletedAt is set once every activity is queued. Only providers that support full import (Strava, Garmin, Suunto) can use this endpoint. Activity import must be enabled for the provider. If a full import is already in progress (requested less than 24 hours ago), the request is rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
+      'Queues a full historical import of all activities from a connected provider and returns immediately: the worker lists the history and imports activities progressively, and fullImportCompletedAt is set once every activity is queued. Only providers that support full import (Strava, Garmin, Suunto, COROS) can use this endpoint. COROS serves 50 activity files a day, so its history then arrives over days. Activity import must be enabled for the provider. If a full import is already in progress (requested less than 24 hours ago), the request is rejected. If a full import was already completed, returns success without re-importing. Some providers may request a backfill, in which case the import completion date is set to null until backfill completes.',
   })
   @ApiParam({
     name: 'provider',
@@ -861,7 +963,7 @@ export class ProviderOAuthController {
     body: {
       object_id: number;
       owner_id: number;
-      aspect_type: 'create' | 'delete';
+      aspect_type: 'create' | 'update' | 'delete';
     },
   ) {
     await this.stravaProviderService.handleWebhook(body);

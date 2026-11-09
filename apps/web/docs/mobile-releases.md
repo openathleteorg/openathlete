@@ -2,11 +2,11 @@
 
 The iOS and Android apps are the web build wrapped by Capacitor. They are published by the same `vX.Y.Z` tag as the Docker images:
 
-| Step | Trigger | Where it goes |
-| --- | --- | --- |
-| Unsigned build of both apps | A pull request or push to `main` that touches the native projects (`.github/workflows/mobile.yml`) | Nowhere, it only checks they build |
-| Signed build, uploaded for testing | Pushing a `vX.Y.Z` tag (`.github/workflows/release.yml`) | TestFlight (internal testers) and the Google Play testing track |
-| Public release | Running **Mobile promote** from the Actions tab (`.github/workflows/mobile-promote.yml`) | App Store review and Google Play production |
+| Step                               | Trigger                                                                                            | Where it goes                                                   |
+| ---------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Unsigned build of both apps        | A pull request or push to `main` that touches the native projects (`.github/workflows/mobile.yml`) | Nowhere, it only checks they build                              |
+| Signed build, uploaded for testing | Pushing a `vX.Y.Z` tag (`.github/workflows/release.yml`)                                           | TestFlight (internal testers) and the Google Play testing track |
+| Public release                     | Running **Mobile promote** from the Actions tab (`.github/workflows/mobile-promote.yml`)           | App Store review and Google Play production                     |
 
 Everything runs through fastlane lanes in `apps/web/fastlane/Fastfile`, which you can also run by hand (see [Running lanes locally](#running-lanes-locally)).
 
@@ -14,10 +14,10 @@ Everything runs through fastlane lanes in `apps/web/fastlane/Fastfile`, which yo
 
 The tag is the only place a mobile version is set (`apps/web/scripts/mobile-version.ts`):
 
-| Tag | Android `versionName` | iOS version | Build number (both stores) |
-| --- | --- | --- | --- |
-| `v1.4.2-rc.3` | `1.4.2-rc.3` | `1.4.2` | `10400203` |
-| `v1.4.2` | `1.4.2` | `1.4.2` | `10400299` |
+| Tag           | Android `versionName` | iOS version | Build number (both stores) |
+| ------------- | --------------------- | ----------- | -------------------------- |
+| `v1.4.2-rc.3` | `1.4.2-rc.3`          | `1.4.2`     | `10400203`                 |
+| `v1.4.2`      | `1.4.2`               | `1.4.2`     | `10400299`                 |
 
 Build numbers always grow with the version, and a pre-release sorts before its stable release. Pre-release tags need a number (`-rc.1` to `-rc.98`), minor versions stop at 99 and patches at 999.
 
@@ -42,7 +42,7 @@ Mobile releases stay off until the `MOBILE_RELEASES` variable is `true`, so fork
    base64 -i distribution.p12 | gh secret set IOS_DISTRIBUTION_CERTIFICATE_BASE64
    gh secret set IOS_DISTRIBUTION_CERTIFICATE_PASSWORD --body "<p12 password>"
    ```
-3. **Firebase config.**
+3. **Firebase config.** Download it after enabling Google sign-in in Firebase (Authentication, Sign-in method), so it has `CLIENT_ID` and `REVERSED_CLIENT_ID`. The release lane registers `REVERSED_CLIENT_ID` as the app's URL scheme, which Google sign-in returns through, and stops when it is missing: GoogleSignIn would crash the app.
    ```bash
    base64 -i apps/web/ios/App/App/GoogleService-Info.plist | gh secret set GOOGLE_SERVICE_INFO_PLIST_BASE64
    ```
@@ -58,11 +58,11 @@ The provisioning profile needs no secret: each release creates a fresh one, with
    gh secret set ANDROID_KEY_ALIAS --body "<key alias>"
    gh secret set ANDROID_KEY_PASSWORD --body "<key password>"
    ```
-2. **Service account.** In Google Cloud, create a service account in any project and download a JSON key. Enable the Google Play Android Developer API in that project. In the Play Console, open Users and permissions, invite the service account's email, and give it, for the OpenAthlete app: *Release to production, exclude devices, and use Play App Signing* and *Release apps to testing tracks*.
+2. **Service account.** In Google Cloud, create a service account in any project and download a JSON key. Enable the Google Play Android Developer API in that project. In the Play Console, open Users and permissions, invite the service account's email, and give it, for the OpenAthlete app: _Release to production, exclude devices, and use Play App Signing_ and _Release apps to testing tracks_.
    ```bash
    gh secret set PLAY_SERVICE_ACCOUNT_JSON < service-account.json
    ```
-3. **Firebase config.**
+3. **Firebase config.** For Google sign-in, first add the SHA-1 fingerprints of the app signing key (Play Console, Test and release, App integrity) and of the upload key to the Android app in Firebase, then download the file: its `oauth_client` list must not be empty.
    ```bash
    base64 -i apps/web/android/app/google-services.json | gh secret set GOOGLE_SERVICES_JSON_BASE64
    ```
@@ -106,7 +106,7 @@ One-time setup:
 ## Releasing
 
 1. Push the tag, as for any release (see the `release` skill). The **Release** workflow uploads both apps next to the Docker images.
-2. iOS: the build reaches internal TestFlight testers once Apple has processed it (about 15 minutes), with the release notes as *What to Test*. Android: it reaches the `PLAY_TRACK` testers within minutes.
+2. iOS: the build reaches internal TestFlight testers once Apple has processed it (about 15 minutes), with the release notes as _What to Test_. Android: it reaches the `PLAY_TRACK` testers within minutes.
 3. Once it is tested, run **Mobile promote** from the Actions tab with the tag. Android goes to production right away. iOS is submitted for review, and you release it from App Store Connect once it is approved (automatic release is off).
 
 ## Running lanes locally
@@ -125,13 +125,13 @@ The release lanes read the secrets above as environment variables (`ANDROID_KEYS
 
 ## Troubleshooting
 
-| Error | Cause |
-| --- | --- |
-| `Version code ... has already been used` / `The bundle version must be higher` | The tag was released already. Push a new one. |
-| `Only releases with status draft may be created on draft app` | The app was never published: set `PLAY_RELEASE_STATUS=draft` (see above). |
-| `No profile for team ... matching ...` / certificate errors | The `.p12` is missing its private key, or the certificate was revoked. Export it again. |
-| `Provisioning profile ... doesn't include the ... capability` | The App ID lacks a capability the app's entitlements ask for. Enable it in Apple Developer, Identifiers; each release creates a fresh profile, so the next one picks it up. |
-| `Invalid Swift Support` / SDK version rejected | The runner's Xcode is older than Apple's minimum. Pick another `runs-on` image in `release.yml`. |
-| The iOS app quits at launch, logging `UIScene life cycle is required` | Since the iOS 27 SDK, apps must use scenes. Keep `ios/App/App/SceneDelegate.swift` and the scene manifest in `Info.plist`. |
-| `APPLE_PURCHASE_OF_ANOTHER_ACCOUNT` after a purchase or restore | The Apple ID's subscription belongs to another OpenAthlete account, the one logged in when it was bought. |
-| The iOS app shows no Supporter offer | `APPLE_IAP_APP_ID` is not set on the API, or the products are not available yet in App Store Connect. |
+| Error                                                                          | Cause                                                                                                                                                                       |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Version code ... has already been used` / `The bundle version must be higher` | The tag was released already. Push a new one.                                                                                                                               |
+| `Only releases with status draft may be created on draft app`                  | The app was never published: set `PLAY_RELEASE_STATUS=draft` (see above).                                                                                                   |
+| `No profile for team ... matching ...` / certificate errors                    | The `.p12` is missing its private key, or the certificate was revoked. Export it again.                                                                                     |
+| `Provisioning profile ... doesn't include the ... capability`                  | The App ID lacks a capability the app's entitlements ask for. Enable it in Apple Developer, Identifiers; each release creates a fresh profile, so the next one picks it up. |
+| `Invalid Swift Support` / SDK version rejected                                 | The runner's Xcode is older than Apple's minimum. Pick another `runs-on` image in `release.yml`.                                                                            |
+| The iOS app quits at launch, logging `UIScene life cycle is required`          | Since the iOS 27 SDK, apps must use scenes. Keep `ios/App/App/SceneDelegate.swift` and the scene manifest in `Info.plist`.                                                  |
+| `APPLE_PURCHASE_OF_ANOTHER_ACCOUNT` after a purchase or restore                | The Apple ID's subscription belongs to another OpenAthlete account, the one logged in when it was bought.                                                                   |
+| The iOS app shows no Supporter offer                                           | `APPLE_IAP_APP_ID` is not set on the API, or the products are not available yet in App Store Connect.                                                                       |

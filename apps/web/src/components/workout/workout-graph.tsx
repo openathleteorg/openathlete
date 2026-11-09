@@ -1,19 +1,24 @@
 import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useGetLatestMetricsQuery } from '@/api/metric/metric.hooks';
-import { useGetTrainingZones } from '@/api/training-zone/training-zone.hooks';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useAthleteTrainingZones } from '@/hooks/use-training-zones';
 import { m } from '@/paraglide/messages';
 import { formatDuration, getStepTypeLabel } from '@/utils/workout';
 import { useMemo } from 'react';
 
-import type { WorkoutDto, WorkoutStepTargetDto } from '@openathlete/shared';
+import type {
+  TrainingZone,
+  WorkoutDto,
+  WorkoutStepTargetDto,
+} from '@openathlete/shared';
 import { SPORT_TYPE, formatTarget } from '@openathlete/shared';
 
+import { useWorkoutAthleteId } from './workout-athlete-context';
 import {
   StepSegment,
   buildZonesByType,
@@ -26,7 +31,7 @@ interface WorkoutGraphProps {
   sport?: SPORT_TYPE;
   className?: string;
   maxHeight?: number;
-  athleteId?: number;
+  athleteId?: number | null;
 }
 
 const MIN_BAR_HEIGHT = 8; // pixels
@@ -80,12 +85,14 @@ function StepBar({
   segment,
   maxHeight,
   metrics,
+  zones,
 }: {
   segment: StepSegment;
   maxHeight: number;
   metrics?: Record<string, { value: number }>;
+  /** The zones of the workout's athlete, undefined while loading */
+  zones?: TrainingZone[];
 }) {
-  const { data: athlete } = useGetMyAthleteQuery();
   const height = Math.max(
     MIN_BAR_HEIGHT,
     (segment.intensity / 5) * maxHeight || MIN_BAR_HEIGHT,
@@ -146,7 +153,8 @@ function StepBar({
                           target,
                           undefined,
                           metrics,
-                          athlete?.trainingZones,
+                          zones,
+                          zones ? m.workout_target_unknown_zone() : '…',
                         )}
                       </span>
                     ),
@@ -172,20 +180,19 @@ export function WorkoutGraph({
   athleteId,
 }: WorkoutGraphProps) {
   const { data: myAthlete } = useGetMyAthleteQuery();
+  const workoutAthleteId = useWorkoutAthleteId();
 
-  // Get athlete data (use provided athleteId or fallback to current user's athlete)
-  const targetAthleteId = athleteId || myAthlete?.athleteId;
-  const { data: athleteZones } = useGetTrainingZones(targetAthleteId || 0, {
-    enabled: !!targetAthleteId,
-  } as Parameters<typeof useGetTrainingZones>[1]);
+  // The workout's athlete: its zone ids and metrics are theirs
+  const ownerId = athleteId ?? workoutAthleteId;
+  const targetAthleteId = ownerId ?? myAthlete?.athleteId;
+  const { zones: athleteZones } = useAthleteTrainingZones(ownerId);
   const { data: latestMetrics } = useGetLatestMetricsQuery(targetAthleteId, {
     enabled: !!targetAthleteId,
   } as Parameters<typeof useGetLatestMetricsQuery>[1]);
 
   const zonesByType = useMemo(
-    () =>
-      buildZonesByType(athleteZones || myAthlete?.trainingZones || [], sport),
-    [athleteZones, myAthlete, sport],
+    () => buildZonesByType(athleteZones ?? [], sport),
+    [athleteZones, sport],
   );
 
   const metrics = useMemo(() => metricValues(latestMetrics), [latestMetrics]);
@@ -264,6 +271,7 @@ export function WorkoutGraph({
                   segment={segment}
                   maxHeight={maxHeight}
                   metrics={metrics}
+                  zones={athleteZones}
                 />
               </div>
             );
