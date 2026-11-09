@@ -44,5 +44,23 @@ describe('AI credential headers', () => {
       aiCredentialHeadersSchema.safeParse({ 'x-opencode-session': 'id' })
         .success,
     ).toBe(true);
+    // Other providers' auth headers, in any case
+    expect(
+      aiCredentialHeadersSchema.safeParse({ 'X-Api-Key': 'key' }).success,
+    ).toBe(false);
+  });
+
+  it('refuses values fetch cannot send', () => {
+    // Above 0xFF, every call made with the key would throw
+    expect(
+      aiCredentialHeadersSchema.safeParse({ 'x-title': 'Coût 5 €' }).success,
+    ).toBe(false);
+    expect(
+      aiCredentialHeadersSchema.safeParse({ 'x-title': 'a\r\nb: c' }).success,
+    ).toBe(false);
+    expect(
+      aiCredentialHeadersSchema.safeParse({ 'x-title': 'OpenAthlete 1.0' })
+        .success,
+    ).toBe(true);
   });
 });

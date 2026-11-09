@@ -66,26 +66,33 @@ export const MAX_AI_CREDENTIAL_HEADERS = 20;
 
 /** Headers the API sets itself: a key must not override them. */
 const RESERVED_AI_CREDENTIAL_HEADERS = new Set([
+  'api-key',
   'authorization',
   'connection',
+  'content-encoding',
   'content-length',
   'content-type',
   'cookie',
+  'expect',
   'host',
+  'keep-alive',
   'proxy-authorization',
   'set-cookie',
+  'te',
+  'trailer',
   'transfer-encoding',
+  'upgrade',
+  'x-api-key',
+  'x-goog-api-key',
 ]);
 
 const HEADER_NAME_PATTERN = /^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/;
 
-/** Header values must stay on one line, without control characters. */
-function hasControlCharacter(value: string): boolean {
-  return Array.from(value).some((character) => {
-    const code = character.codePointAt(0) ?? 0;
-    return code < 32 || code === 127;
-  });
-}
+/**
+ * Header values must stay on one line and be printable ASCII: fetch refuses
+ * anything above 0xFF, which would break every call made with the key.
+ */
+const HEADER_VALUE_PATTERN = /^[\t\x20-\x7e]*$/;
 
 /**
  * Extra HTTP headers sent with every request made with a key, for gateways
@@ -98,10 +105,7 @@ export const aiCredentialHeadersSchema = z
       .min(1)
       .max(100)
       .regex(HEADER_NAME_PATTERN, 'Invalid header name'),
-    z
-      .string()
-      .max(2000)
-      .refine((value) => !hasControlCharacter(value), 'Invalid header value'),
+    z.string().max(2000).regex(HEADER_VALUE_PATTERN, 'Invalid header value'),
   )
   .superRefine((headers, context) => {
     const names = Object.keys(headers);

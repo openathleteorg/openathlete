@@ -271,9 +271,7 @@ export function AddAiKeyDialog({ open, onOpenChange, providers }: Props) {
                 id="ai-key-headers"
                 value={headersText}
                 onChange={(event) => setHeadersText(event.target.value)}
-                placeholder={
-                  'x-opencode-session: 123e4567-e89b-12d3-a456-426614174000'
-                }
+                placeholder="X-Title: OpenAthlete"
                 aria-label={m.ai_key_headers()}
                 rows={3}
                 spellCheck={false}
