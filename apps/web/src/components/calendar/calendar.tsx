@@ -955,6 +955,7 @@ export function Calendar({
                   setAIGenerateEventDialog(null);
                 }}
                 date={aiGenerateEventDialog || new Date()}
+                athleteId={athleteId}
                 onEventGenerated={(event) => {
                   setAIGenerateEventDialog(null);
                   setCreateEventDialog({

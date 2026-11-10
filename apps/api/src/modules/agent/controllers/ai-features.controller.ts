@@ -26,9 +26,11 @@ import {
   modifyEventDtoSchema,
 } from '@openathlete/shared';
 
-import { JwtUser, UserTypeGuard } from 'src/modules/auth';
+import { CaslAbilityFactory, JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { resolveSessionAthleteId } from '../services/event-ai-helpers';
 import { EventGenerationService } from '../services/event-generation.service';
 import { EventModificationService } from '../services/event-modification.service';
 
@@ -38,6 +40,8 @@ export class AIFeaturesController {
   constructor(
     private readonly eventGenerationService: EventGenerationService,
     private readonly eventModificationService: EventModificationService,
+    private readonly prismaService: PrismaService,
+    private readonly abilities: CaslAbilityFactory,
   ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -67,6 +71,12 @@ export class AIFeaturesController {
           format: 'date',
           description: 'ISO date string for the event date',
           example: '2024-01-15',
+        },
+        athleteId: {
+          type: 'number',
+          description:
+            "The session's athlete, whose zones and metrics the workout uses; default: the user's own athlete",
+          example: 12,
         },
       },
       required: ['prompt', 'date'],
@@ -231,7 +241,12 @@ export class AIFeaturesController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(generateEventDtoSchema)) dto: GenerateEventDto,
   ): Promise<GenerateEventResponseDto> {
-    const athleteId = user.athlete?.athleteId || user.userId;
+    const athleteId = await resolveSessionAthleteId(
+      this.prismaService,
+      this.abilities,
+      user,
+      dto.athleteId,
+    );
 
     const parsedDate = new Date(dto.date);
     const year = parsedDate.getFullYear();
@@ -567,7 +582,12 @@ export class AIFeaturesController {
     @JwtUser() user: AuthUser,
     @Body(new ZodValidationPipe(modifyEventDtoSchema)) dto: ModifyEventDto,
   ): Promise<ModifyEventResponseDto> {
-    const athleteId = user.athlete?.athleteId || user.userId;
+    const athleteId = await resolveSessionAthleteId(
+      this.prismaService,
+      this.abilities,
+      user,
+      dto.eventData.athleteId,
+    );
 
     const modifiedEvent =
       await this.eventModificationService.modifyTrainingEvent(

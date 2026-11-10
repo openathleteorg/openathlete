@@ -1,9 +1,20 @@
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
+
 import { SportType } from '@openathlete/database';
+
+import type { CaslAbilityFactory } from 'src/modules/auth';
+import type { AuthUser } from 'src/modules/auth/decorators/user.decorator';
+import type { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
   buildZonesContext,
   normalizeGoalDuration,
   repsAsPoolLengths,
+  resolveSessionAthleteId,
 } from './event-ai-helpers';
 
 // The heart-rate zones every new athlete gets, which apply to every sport.
@@ -101,5 +112,69 @@ describe('repsAsPoolLengths', () => {
     const workout = lengths();
     repsAsPoolLengths(workout, SportType.STRENGTH);
     expect(workout).toEqual(lengths());
+  });
+});
+
+describe('resolveSessionAthleteId', () => {
+  const coach: AuthUser = {
+    userId: 1,
+    email: 'coach@example.com',
+    athlete: { athleteId: 100 },
+  };
+  const athletes = [
+    { athleteId: 100, userId: 1 },
+    { athleteId: 200, userId: 2 },
+    { athleteId: 300, userId: 3 },
+  ];
+  const prisma = {
+    athlete: {
+      findUnique: ({ where }: { where: { athleteId: number } }) =>
+        Promise.resolve(
+          athletes.find((a) => a.athleteId === where.athleteId) ?? null,
+        ),
+    },
+  } as unknown as PrismaService;
+  // The coach coaches athlete 200, not 300
+  const abilities = {
+    getFor: () =>
+      Promise.resolve({
+        can: (_action: string, athlete: { athleteId: number }) =>
+          athlete.athleteId === 200,
+      }),
+  } as unknown as CaslAbilityFactory;
+
+  test("uses the coached athlete's id, whose zones the preview shows", async () => {
+    await expect(
+      resolveSessionAthleteId(prisma, abilities, coach, 200),
+    ).resolves.toBe(200);
+  });
+
+  test("defaults to the user's own athlete", async () => {
+    await expect(
+      resolveSessionAthleteId(prisma, abilities, coach, undefined),
+    ).resolves.toBe(100);
+    await expect(
+      resolveSessionAthleteId(prisma, abilities, coach, 100),
+    ).resolves.toBe(100);
+  });
+
+  test('refuses an athlete the user does not coach', async () => {
+    await expect(
+      resolveSessionAthleteId(prisma, abilities, coach, 300),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(
+      resolveSessionAthleteId(prisma, abilities, coach, 999),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  test('needs an athlete when the user has no profile of their own', async () => {
+    await expect(
+      resolveSessionAthleteId(
+        prisma,
+        abilities,
+        { ...coach, athlete: null },
+        undefined,
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

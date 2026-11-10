@@ -92,6 +92,7 @@ export function AIModifyEventDialog({
         const generatedEvent = await generateEventMutation.mutateAsync({
           prompt: data.prompt,
           date,
+          athleteId: eventData.athleteId,
         });
 
         toast.success(m.event_generated_successfully());

@@ -1,4 +1,11 @@
+import { subject } from '@casl/ability';
 import { z } from 'zod';
+
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import {
   AthleteMetric,
@@ -15,6 +22,8 @@ import {
 } from '@openathlete/shared';
 
 import { isRetryableAiError } from 'src/modules/ai/ai.errors';
+import { CaslAbilityFactory } from 'src/modules/auth';
+import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 export type TrainingEventSchema = z.infer<typeof trainingEventSchema>;
@@ -141,6 +150,35 @@ export function convertWorkoutPaceTargetsToMinPerKm(
     convertStepTargets(step, convertMsToMinPerKm),
   );
   return workout;
+}
+
+/**
+ * The athlete a generated session is for: the one the user plans for (a
+ * coach on an athlete's calendar), else their own athlete profile. Zone ids
+ * in the answer are this athlete's, so the session preview resolves them.
+ */
+export async function resolveSessionAthleteId(
+  prismaService: PrismaService,
+  abilities: CaslAbilityFactory,
+  user: AuthUser,
+  requestedAthleteId?: number | null,
+): Promise<number> {
+  const ownAthleteId = user.athlete?.athleteId;
+  if (!requestedAthleteId || requestedAthleteId === ownAthleteId) {
+    if (!ownAthleteId) {
+      throw new BadRequestException('athleteId is required');
+    }
+    return ownAthleteId;
+  }
+  const athlete = await prismaService.athlete.findUnique({
+    where: { athleteId: requestedAthleteId },
+  });
+  if (!athlete) throw new NotFoundException('Athlete not found');
+  const ability = await abilities.getFor({ user });
+  if (!ability.can('update', subject('Athlete', athlete))) {
+    throw new ForbiddenException('Not allowed to plan for this athlete');
+  }
+  return athlete.athleteId;
 }
 
 /**

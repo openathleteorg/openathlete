@@ -12,9 +12,10 @@ export function useGenerateEventMutation() {
   return useMutation<
     GenerateEventResponseDto,
     Error,
-    { prompt: string; date: Date }
+    { prompt: string; date: Date; athleteId?: number | null }
   >({
-    mutationFn: ({ prompt, date }) => AIFeaturesAPI.generateEvent(prompt, date),
+    mutationFn: ({ prompt, date, athleteId }) =>
+      AIFeaturesAPI.generateEvent(prompt, date, athleteId),
   });
 }
 

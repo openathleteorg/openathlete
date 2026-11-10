@@ -30,6 +30,8 @@ type P = {
   onClose: () => void;
   date: Date;
   onEventGenerated: (event: CreateEventDto) => void;
+  /** The session's athlete (a coach on an athlete's calendar) */
+  athleteId?: number;
   /** PostHog funnel attribution (no PII). */
   analyticsSource?: string;
 };
@@ -45,6 +47,7 @@ export function AIGenerateEventDialog({
   onClose,
   date,
   onEventGenerated,
+  athleteId,
   analyticsSource = 'calendar',
 }: P) {
   const posthog = usePostHog();
@@ -76,6 +79,7 @@ export function AIGenerateEventDialog({
       const generatedEvent = await generateEventMutation.mutateAsync({
         prompt: data.prompt,
         date,
+        athleteId,
       });
 
       const durationMs =

@@ -13,6 +13,8 @@ export class AIFeaturesAPI {
   static async generateEvent(
     prompt: string,
     date: Date,
+    /** The session's athlete: the workout uses their zones */
+    athleteId?: number | null,
   ): Promise<GenerateEventResponseDto> {
     const normalizedDate = new Date(date);
     normalizedDate.setHours(0, 0, 0, 0);
@@ -22,7 +24,8 @@ export class AIFeaturesAPI {
       {
         prompt,
         date: normalizedDate.toISOString(),
-      } as GenerateEventDto,
+        ...(athleteId ? { athleteId } : {}),
+      } satisfies GenerateEventDto,
     );
     const event = res.data;
     const trainingEvent = event as Extract<typeof event, { type: 'TRAINING' }>;
