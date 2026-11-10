@@ -92,6 +92,9 @@ model User {
   /// commercial emails need this consent (CNIL), unset by default
   emailNewsConsentAt  DateTime?    @map("email_news_consent_at")
 
+  /// Units the app shows values in
+  unitSystem          UnitSystem   @default(METRIC) @map("unit_system")
+
   // relationships
   athlete                   Athlete?
   coachAthletes             CoachAthlete[]

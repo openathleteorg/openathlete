@@ -23,6 +23,8 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
+import { getDefaultUnitSystem } from '@openathlete/shared';
+
 type Props = {
   className?: string;
   invitationToken?: string | null;
@@ -76,6 +78,7 @@ export function OAuthButtons({
         clubJoinToken,
         // Saved only if this sign-in creates the account
         language: currentLanguage(),
+        unitSystem: getDefaultUnitSystem(navigator.language),
       });
     } catch (error) {
       console.error('OAuth sign-in failed:', error);
@@ -106,6 +109,7 @@ export function OAuthButtons({
         coachInvitation: coachInvitationToken || undefined,
         clubJoin: clubJoinToken,
         language: currentLanguage(),
+        unitSystem: getDefaultUnitSystem(navigator.language),
       }),
     );
   };

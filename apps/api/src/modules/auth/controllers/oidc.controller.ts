@@ -23,6 +23,7 @@ import {
   OidcExchangeDto,
   emailLanguageSchema,
   oidcExchangeDtoSchema,
+  unitSystemSchema,
 } from '@openathlete/shared';
 
 import { RATE_LIMITS } from 'src/common/security/rate-limits';
@@ -34,6 +35,7 @@ const startQuerySchema = z.object({
   coachInvitation: z.string().max(200).optional(),
   clubJoin: z.string().max(200).optional(),
   language: emailLanguageSchema.optional(),
+  unitSystem: unitSystemSchema.optional(),
 });
 
 function cookieValue(req: Request, name: string): string | undefined {
@@ -73,7 +75,7 @@ export class OidcController {
   @ApiOperation({
     summary: 'Start an OpenID Connect sign-in',
     description:
-      "Redirects to the instance's OpenID Connect provider. 404 when OIDC_ISSUER and OIDC_CLIENT_ID are not set. Optional invitation tokens and language apply if the sign-in creates the account.",
+      "Redirects to the instance's OpenID Connect provider. 404 when OIDC_ISSUER and OIDC_CLIENT_ID are not set. Optional invitation tokens, language and unit system apply if the sign-in creates the account.",
   })
   @ApiResponse({ status: 302, description: 'To the provider' })
   async start(
@@ -86,6 +88,7 @@ export class OidcController {
       coachInvitationToken: query.coachInvitation,
       clubJoinToken: query.clubJoin,
       language: query.language,
+      unitSystem: query.unitSystem,
     });
     res
       .cookie(OIDC_STATE_COOKIE, cookie, this.cookieOptions(10 * 60 * 1000))
