@@ -144,3 +144,41 @@ test('a coach moves several planned workouts a day later', async ({
   expect(days).toEqual([11, 12]);
   expect(problems).toEqual([]);
 });
+
+test("a coach keeps private notes on an athlete, which the athlete can't read", async ({
+  page,
+  request,
+}) => {
+  const { coach, athlete, athleteId } = await createCoachWithAthlete(request);
+  await signInAsCoach(page, coach);
+  const problems = trackPageProblems(page);
+
+  await page.goto(`/dashboard/notes/${athleteId}`);
+  await page.getByRole('button', { name: 'New note' }).click();
+  await page.getByLabel('Title').fill('Running form');
+  await page
+    .getByRole('textbox', { name: 'Note', exact: true })
+    .fill('Drills to review: https://video.example/drills');
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await expect(page.getByText('Running form')).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'https://video.example/drills' }),
+  ).toHaveAttribute('href', 'https://video.example/drills');
+  // The general notes list it too, with the athlete it is about
+  await page.goto('/dashboard/notes');
+  await expect(page.getByText('Running form')).toBeVisible();
+  expect(problems).toEqual([]);
+
+  // The athlete reads only their own notes, none about them
+  const notes = await request.get(`${API_URL}/coach-notes`, {
+    headers: apiHeaders(undefined, athlete.accessToken),
+  });
+  expect(notes.status()).toBe(200);
+  expect(await notes.json()).toEqual([]);
+  const own = await request.get(
+    `${API_URL}/coach-notes?athleteId=${athleteId}`,
+    { headers: apiHeaders(undefined, athlete.accessToken) },
+  );
+  expect(await own.json()).toEqual([]);
+});

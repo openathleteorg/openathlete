@@ -146,6 +146,7 @@ describe('AppSidebar collapsed on desktop', () => {
       '/dashboard/statistics/102',
       '/dashboard/records/102',
       '/dashboard/metrics/102',
+      '/dashboard/notes/102',
       '/dashboard/settings/102',
     ]);
 

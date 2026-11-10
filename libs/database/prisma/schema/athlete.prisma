@@ -38,6 +38,7 @@ model Athlete {
   settings                 AthleteSettings?
   coachAlertSettings       CoachActivityAlertSettings[]
   injuries                 AthleteInjury[]
+  coachNotes               CoachNote[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

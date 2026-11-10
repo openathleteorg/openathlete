@@ -35,6 +35,7 @@ const EXPORTED_TABLES = [
   'athlete_settings',
   'coach_athlete',
   'coach_activity_alert_settings',
+  'coach_note',
   'cycle',
   'equipment',
   'event',
@@ -80,6 +81,7 @@ interface ExportDocument {
   coaching: { coaches: unknown[] };
   templates: { event: { name: string } }[];
   aiAssistant: { messages: { blocks: { content: string }[] }[] }[];
+  coachNotes: { title: string }[];
   aiSettings: { keys: unknown[] };
   messages: unknown[];
   events: {
@@ -155,6 +157,11 @@ describe('AccountExportService (PostgreSQL)', () => {
     ]);
     expect(data.templates[0].event.name).toBe('Template');
     expect(data.aiAssistant[0].messages[0].blocks[0].content).toBe('hi');
+    // The notes the user wrote, never those their coach wrote about them
+    expect(data.coachNotes.map((note) => note.title)).toEqual([
+      'Coach',
+      'Mine',
+    ]);
     expect(data.aiSettings.keys).toEqual([
       expect.objectContaining({ provider: 'openai', apiKeyHint: '••••1234' }),
     ]);

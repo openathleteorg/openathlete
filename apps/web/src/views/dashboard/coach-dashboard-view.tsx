@@ -27,6 +27,7 @@ import {
   Calendar,
   CheckCircle2,
   MessageCircle,
+  NotebookPen,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -74,7 +75,7 @@ function getPeriodDates(period: PeriodType): { start: Date; end: Date } {
 const name = (row: Row) =>
   `${row.firstName ?? ''} ${row.lastName ?? ''}`.trim() || row.email || '';
 
-const athletePath = (page: 'calendar' | 'metrics', row: Row) =>
+const athletePath = (page: 'calendar' | 'metrics' | 'notes', row: Row) =>
   `${getPath(['dashboard', page])}/${row.athleteId}`;
 
 function ComplianceBadge({ row }: { row: Row }) {
@@ -148,6 +149,11 @@ function Actions({ row }: { row: Row }) {
       <Button variant="ghost" size="icon" asChild title={m.metrics()}>
         <Link to={athletePath('metrics', row)} aria-label={m.metrics()}>
           <Activity className="h-4 w-4" />
+        </Link>
+      </Button>
+      <Button variant="ghost" size="icon" asChild title={m.coach_notes()}>
+        <Link to={athletePath('notes', row)} aria-label={m.coach_notes()}>
+          <NotebookPen className="h-4 w-4" />
         </Link>
       </Button>
       <Button
@@ -242,19 +248,27 @@ export function CoachDashboardView() {
           <PageTitle>{m.coach_dashboard()}</PageTitle>
           <p className="text-muted-foreground">{m.coach_dashboard_title()}</p>
         </div>
-        <Select
-          value={period}
-          onValueChange={(value) => setPeriod(value as PeriodType)}
-        >
-          <SelectTrigger className="w-35">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="week">{m.week()}</SelectItem>
-            <SelectItem value="month">{m.month()}</SelectItem>
-            <SelectItem value="year">{m.year()}</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link to={getPath(['dashboard', 'notes'])}>
+              <NotebookPen className="h-4 w-4" />
+              {m.coach_notes()}
+            </Link>
+          </Button>
+          <Select
+            value={period}
+            onValueChange={(value) => setPeriod(value as PeriodType)}
+          >
+            <SelectTrigger className="w-35">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="week">{m.week()}</SelectItem>
+              <SelectItem value="month">{m.month()}</SelectItem>
+              <SelectItem value="year">{m.year()}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading ? (

@@ -62,6 +62,11 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/metrics`,
       athleteId: `${ROOTS.DASHBOARD}/metrics/:athleteId`,
     },
+    // A coach's private notes: all of them, or one athlete's
+    notes: {
+      root: `${ROOTS.DASHBOARD}/notes`,
+      athleteId: `${ROOTS.DASHBOARD}/notes/:athleteId`,
+    },
     settings: {
       root: `${ROOTS.DASHBOARD}/settings`,
       athleteId: `${ROOTS.DASHBOARD}/settings/:athleteId`,

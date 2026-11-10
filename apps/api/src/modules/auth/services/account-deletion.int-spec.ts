@@ -143,6 +143,7 @@ describe('AccountDeletionService (PostgreSQL)', () => {
       message_thread_participant: 1,
       message: 1,
       lifecycle_email: 1,
+      coach_note: 1,
     });
 
     const coach = await prisma.user.findUnique({

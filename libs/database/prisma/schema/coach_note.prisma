@@ -1,0 +1,35 @@
+// ============================================================================
+// Coach Notes
+// ============================================================================
+// A coach's private notebook: observations, reminders and reference links
+// (videos, articles), about one athlete or general. Only the coach who wrote
+// a note reads it; athletes never see it.
+// ============================================================================
+
+model CoachNote {
+  // primary key
+  coachNoteId Int @id @default(autoincrement()) @map("coach_note_id")
+
+  // fields
+  title   String
+  /// Plain text; links are shown clickable
+  content String  @default("")
+  /// Pinned notes stay on top
+  pinned  Boolean @default(false)
+
+  // relationships
+  coach       User     @relation(fields: [coachUserId], references: [userId], onDelete: Cascade)
+  coachUserId Int      @map("coach_user_id")
+  /// The athlete the note is about; null for a general note. The note is
+  /// about the athlete, so it goes with their account.
+  athlete     Athlete? @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId   Int?     @map("athlete_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([coachUserId, athleteId])
+  @@index([athleteId])
+  @@map("coach_note")
+}

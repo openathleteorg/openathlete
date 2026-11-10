@@ -25,6 +25,7 @@ import {
   CogIcon,
   MedalIcon,
   MessageCircle,
+  NotebookPen,
   PieChart,
   User,
   Users,
@@ -67,6 +68,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           icon: MessageCircle,
           spaces: ['COACH'] as UserRole[],
         },
+        {
+          title: m.coach_notes(),
+          url: getPath(['dashboard', 'notes']),
+          icon: NotebookPen,
+          spaces: ['COACH'] as UserRole[],
+        },
       ];
       const athleteGroups: SidebarItem[] = (athletes || []).map((athlete) => ({
         title: athlete.user?.firstName + ' ' + athlete.user?.lastName,
@@ -97,6 +104,11 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
             title: m.metrics(),
             url: getPath(['dashboard', 'metrics']) + `/${athlete.athleteId}`,
             icon: Activity,
+          },
+          {
+            title: m.coach_notes(),
+            url: getPath(['dashboard', 'notes']) + `/${athlete.athleteId}`,
+            icon: NotebookPen,
           },
           {
             title: m.settings(),

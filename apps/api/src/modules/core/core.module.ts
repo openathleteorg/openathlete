@@ -10,6 +10,7 @@ import { EventController } from './controllers';
 import { ActivityDuplicatesController } from './controllers/activity-duplicates.controller';
 import { ActivityFeedbackController } from './controllers/activity-feedback.controller';
 import { AthleteController } from './controllers/athlete.controller';
+import { CoachNoteController } from './controllers/coach-note.controller';
 import { CoachController } from './controllers/coach.controller';
 import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
@@ -37,6 +38,7 @@ import { ActivityRecordsService } from './services/activity-records.service';
 import { AthleteSettingsService } from './services/athlete-settings.service';
 import { AthleteService } from './services/athlete.service';
 import { CalendarFeedService } from './services/calendar-feed.service';
+import { CoachNoteService } from './services/coach-note.service';
 import { CoachService } from './services/coach.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventBulkService } from './services/event-bulk.service';
@@ -84,6 +86,7 @@ import { WeatherService } from './services/weather/weather.service';
     StatisticsController,
     RecordController,
     EquipmentController,
+    CoachNoteController,
     InjuryController,
     MetricController,
     TrainingZoneController,
@@ -104,6 +107,7 @@ import { WeatherService } from './services/weather/weather.service';
     StatisticsService,
     RecordService,
     EquipmentService,
+    CoachNoteService,
     InjuryService,
     MetricService,
     TrainingZoneService,

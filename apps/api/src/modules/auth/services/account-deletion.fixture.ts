@@ -91,6 +91,14 @@ export const accountFixtureSql = [
   `INSERT INTO activity_chat_notice (coach_user_id, delivery_key, kind, event_name, rpe, event_id) VALUES (1002, 'RPE:fixture', 'RPE', 'Run', 6, 3002)`,
   `INSERT INTO coach_activity_alert_settings (coach_user_id, athlete_id) VALUES (1002, 2001)`,
 
+  // Private coach notes: the coach's about the athlete go with the athlete,
+  // the coach's general one stays, and the athlete's own notes go with them
+  `INSERT INTO coach_note (coach_note_id, title, content, coach_user_id, athlete_id, updated_at) VALUES
+    (9001, 'Knee', 'Watch the left knee', 1002, 2001, ${now}),
+    (9002, 'Drills', 'https://video.example/drills', 1002, NULL, ${now}),
+    (9003, 'Coach', 'About my coach', 1001, 2002, ${now}),
+    (9004, 'Mine', 'General', 1001, NULL, ${now})`,
+
   // AI provider keys and model choices (the coach keeps theirs)
   `INSERT INTO ai_credential (ai_credential_id, provider, label, encrypted_api_key, api_key_hint, user_id, updated_at) VALUES (7001, 'openai', 'OpenAI', 'v1:a:b:c', '••••1234', 1001, ${now}), (7002, 'anthropic', 'Anthropic', 'v1:a:b:c', '••••5678', 1002, ${now})`,
   `INSERT INTO ai_model_preference (task, model_id, user_id, ai_credential_id, updated_at) VALUES ('DEFAULT', 'gpt-5.1', 1001, 7001, ${now}), ('DEFAULT', 'claude-sonnet-4-5', 1002, 7002, ${now})`,

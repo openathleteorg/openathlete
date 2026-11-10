@@ -26,6 +26,8 @@ export const RHFTextarea = ({ name, label, ...other }: Props) => {
         render={({ field, fieldState: { error } }) => (
           <Textarea
             {...field}
+            // Ties the field to its label for screen readers
+            id={name}
             value={
               field.value === undefined || field.value === null
                 ? ''

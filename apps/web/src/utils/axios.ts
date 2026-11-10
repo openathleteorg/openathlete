@@ -117,6 +117,12 @@ export const routes = {
     updateEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
     deleteEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
   },
+  coachNote: {
+    list: '/coach-notes',
+    create: '/coach-notes',
+    update: (coachNoteId: number) => `/coach-notes/${coachNoteId}`,
+    delete: (coachNoteId: number) => `/coach-notes/${coachNoteId}`,
+  },
   metric: {
     getMetrics: '/metric',
     getLatestMetrics: '/metric/latest',

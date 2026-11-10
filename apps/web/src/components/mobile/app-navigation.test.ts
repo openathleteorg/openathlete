@@ -31,7 +31,13 @@ describe('app navigation', () => {
     expect(isTabRoot(athlete, '/dashboard/activity/12')).toBe(false);
     expect(isTabRoot(coach, '/dashboard/calendar/12')).toBe(false);
     expect(coachedAthleteId('/dashboard/records/12')).toBe('12');
+    expect(coachedAthleteId('/dashboard/notes/12')).toBe('12');
     expect(coachedAthleteId('/dashboard/activity/12')).toBeUndefined();
+  });
+
+  it("keeps a coach's notes in the athletes tab", () => {
+    expect(findTab(coach, '/dashboard/notes')?.id).toBe('athletes');
+    expect(isTabRoot(coach, '/dashboard/notes/12')).toBe(false);
   });
 
   it('gives coaches their athletes first', () => {

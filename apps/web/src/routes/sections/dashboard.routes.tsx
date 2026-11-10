@@ -84,6 +84,18 @@ const AthleteSettingsPage = lazy(() =>
   })),
 );
 
+const NotesPage = lazy(() =>
+  import('@/pages/dashboard/notes').then((module) => ({
+    default: module.NotesPage,
+  })),
+);
+
+const AthleteNotesPage = lazy(() =>
+  import('@/pages/dashboard/notes').then((module) => ({
+    default: module.AthleteNotesPage,
+  })),
+);
+
 const ActivityPage = lazy(() =>
   import('@/pages/dashboard/activity').then((module) => ({
     default: module.ActivityPage,
@@ -183,6 +195,14 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'metrics', 'athleteId']),
         element: <AthleteMetricsPage />,
+      },
+      {
+        path: getPath(['dashboard', 'notes']),
+        element: <NotesPage />,
+      },
+      {
+        path: getPath(['dashboard', 'notes', 'athleteId']),
+        element: <AthleteNotesPage />,
       },
       {
         path: getPath(['dashboard', 'settings']),

@@ -1,3 +1,4 @@
+import { CoachNotesSheet } from '@/components/coach-notes';
 import { PageTitle } from '@/components/ui/page-title';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAthleteInfo } from '@/hooks/use-athlete-info';
@@ -310,6 +311,10 @@ export function CalendarHeader({ planningDate, onPlanningDateChange }: P) {
           {/* Icon only on laptops, where the row is short of room */}
           <span className="hidden xl:inline">{m.template_library()}</span>
         </Button>
+        {/* A coach planning for an athlete keeps their notes at hand */}
+        {athleteId && !isCurrentUser && (
+          <CoachNotesSheet athleteId={athleteId} />
+        )}
         {viewOptions}
         <Button
           variant="ghost"

@@ -90,6 +90,22 @@ export class AccountExportService {
         },
       }),
     );
+    // The user's private notes as a coach, whoever they are about
+    write(
+      'coachNotes',
+      await this.prisma.coachNote.findMany({
+        where: { coachUserId: userId },
+        select: {
+          title: true,
+          content: true,
+          pinned: true,
+          athleteId: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { coachNoteId: 'asc' },
+      }),
+    );
     write('aiAssistant', await this.aiAssistant(userId));
     write('aiSettings', await this.aiSettings(userId));
 
