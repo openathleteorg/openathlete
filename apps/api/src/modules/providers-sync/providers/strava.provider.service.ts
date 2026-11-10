@@ -256,7 +256,43 @@ export class StravaProviderService
       externalUserId,
     });
 
+    await this.adoptUnitPreference(user.userId, tokenResponse);
+
     return account;
+  }
+
+  /**
+   * Starts a user who has not chosen their units on the ones they use on
+   * Strava. Only a detailed athlete carries the preference, which depends on
+   * the scopes granted; connecting must not fail for lack of it.
+   */
+  private async adoptUnitPreference(
+    userId: number,
+    tokens: OAuthTokenResponse,
+  ): Promise<void> {
+    try {
+      let preference = (
+        tokens.athlete as { measurement_preference?: string } | undefined
+      )?.measurement_preference;
+      if (!preference) {
+        const response = await fetch('https://www.strava.com/api/v3/athlete', {
+          headers: { Authorization: `Bearer ${tokens.access_token}` },
+        });
+        if (response.ok) {
+          const athlete = (await response.json()) as {
+            measurement_preference?: string;
+          };
+          preference = athlete.measurement_preference;
+        }
+      }
+      if (preference !== 'feet') return;
+      await this.prisma.user.updateMany({
+        where: { userId, unitSystemChosenAt: null },
+        data: { unitSystem: 'IMPERIAL' },
+      });
+    } catch (error) {
+      this.logger.warn(`Could not read the Strava unit preference: ${error}`);
+    }
   }
 
   /**

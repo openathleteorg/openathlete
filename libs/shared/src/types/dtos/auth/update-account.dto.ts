@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { isTimeZone } from '../../../utils/date';
 import { calendarDisplaySchema } from '../core/calendar-display.dto';
 import { hiddenActivityTracksSchema } from '../core/hidden-activity-tracks.dto';
+import { unitSystemSchema } from '../core/unit-system.dto';
 
 export const updateAccountDtoSchema = z.object({
   firstName: z.string().optional(),
@@ -18,6 +19,8 @@ export const updateAccountDtoSchema = z.object({
   hiddenActivityTracks: hiddenActivityTracksSchema.optional(),
   /** The server dates the dismissal: there is no way back from it */
   supportReminderDismissed: z.literal(true).optional(),
+  /** Units the app shows distances, weights and speeds in */
+  unitSystem: unitSystemSchema.optional(),
 });
 
 export type UpdateAccountDto = z.infer<typeof updateAccountDtoSchema>;

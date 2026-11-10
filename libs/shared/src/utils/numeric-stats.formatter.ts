@@ -64,7 +64,7 @@ export const formatSpeedUnit = (unit: SpeedUnit): string => {
     case 'km/h':
       return `km/h`;
     case 'mph':
-      return `m / h`;
+      return 'mph';
     case 'min/km':
       return 'min/km';
     case 'min/mi':
@@ -81,12 +81,12 @@ export const isPaceUnit = (unit: SpeedUnit): boolean => unit.startsWith('min/');
 
 /**
  * The distance a pace refers to, also the length of a split: 100 m for
- * swimmers, 500 m for rowers, a kilometre otherwise.
+ * swimmers, 500 m for rowers, a mile in imperial units, a kilometre otherwise.
  */
 export const paceDistanceMeters = (unit: SpeedUnit): number => {
   if (unit === 'min/100m') return 100;
   if (unit === 'min/500m') return 500;
-  if (unit === 'min/mi') return 1609.34;
+  if (unit === 'min/mi' || unit === 'mph') return 1609.34;
   return 1000;
 };
 
@@ -94,7 +94,7 @@ export const paceDistanceMeters = (unit: SpeedUnit): number => {
  * Formats a distance value to a human readable format.
  *
  * @param distance The distance value to format (in meters)
- * @param unit The unit to format the distance to (m, km, mi)
+ * @param unit The unit to format the distance to (m, yd, km, mi)
  * @returns The formatted distance value
  */
 export const formatDistance = (
@@ -108,6 +108,8 @@ export const formatDistance = (
       return `${(distance / 1000).toFixed(2)}`;
     case 'mi':
       return `${(distance / 1609.34).toFixed(2)}`;
+    case 'yd':
+      return `${(distance * 1.09361).toFixed(0)}`;
     default:
       return `${distance.toFixed(0)}`;
   }

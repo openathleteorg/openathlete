@@ -37,6 +37,28 @@ test('keeps display preferences with the account', async ({ request }) => {
   expect(refused.status()).toBe(400);
 });
 
+test('keeps the unit system with the account', async ({ request }) => {
+  const athlete = await createAthlete(request);
+  const headers = apiHeaders(undefined, athlete.accessToken);
+  const getMe = async () =>
+    (await request.get(`${API_URL}/user/me`, { headers })).json();
+
+  expect((await getMe()).unitSystem).toBe('METRIC');
+
+  const updated = await request.patch(`${API_URL}/user`, {
+    headers,
+    data: { unitSystem: 'IMPERIAL' },
+  });
+  expect(updated.ok(), await updated.text()).toBe(true);
+  expect((await getMe()).unitSystem).toBe('IMPERIAL');
+
+  const refused = await request.patch(`${API_URL}/user`, {
+    headers,
+    data: { unitSystem: 'NAUTICAL' },
+  });
+  expect(refused.status()).toBe(400);
+});
+
 test('keeps vouched record suspects with the athlete', async ({ request }) => {
   const athlete = await createAthlete(request);
   const headers = apiHeaders(undefined, athlete.accessToken);

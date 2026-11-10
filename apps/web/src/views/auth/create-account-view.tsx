@@ -22,7 +22,10 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import z from 'zod';
 
-import { createAccountDtoSchema } from '@openathlete/shared';
+import {
+  createAccountDtoSchema,
+  getDefaultUnitSystem,
+} from '@openathlete/shared';
 
 const PLAN_TOKEN_STORAGE_KEY = 'pendingPlanToken';
 
@@ -115,6 +118,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
       coachInvitationToken: coachInvitationToken || undefined,
       // Emails, starting with the welcome one, follow the app's language
       language: currentLanguage(),
+      unitSystem: getDefaultUnitSystem(navigator.language),
     };
     createAccountMutation.mutate(submitData);
   });

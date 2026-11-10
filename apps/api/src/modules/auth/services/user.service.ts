@@ -136,6 +136,7 @@ export class UserService {
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
         createdAt: true,
+        unitSystem: true,
       },
     });
   };
@@ -235,6 +236,7 @@ export class UserService {
       invitationToken,
       coachInvitationToken,
       language,
+      unitSystem,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
@@ -308,6 +310,7 @@ export class UserService {
           lastName: lastName,
           // The language the app was shown in; absent, the column's default
           language,
+          unitSystem,
           roles: [UserRole.ATHLETE, UserRole.COACH],
           athlete: {
             create: {
@@ -411,6 +414,8 @@ export class UserService {
         supportReminderDismissedAt: data.supportReminderDismissed
           ? new Date()
           : undefined,
+        unitSystem: data.unitSystem,
+        unitSystemChosenAt: data.unitSystem ? new Date() : undefined,
       },
       select: {
         firstName: true,
@@ -421,6 +426,7 @@ export class UserService {
         calendarDisplay: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
+        unitSystem: true,
       },
     });
   };

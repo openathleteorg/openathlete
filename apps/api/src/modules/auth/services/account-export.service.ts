@@ -44,6 +44,7 @@ export class AccountExportService {
         language: true,
         timeZone: true,
         trainingReminders: true,
+        unitSystem: true,
         roles: true,
         onboardingCompleted: true,
         createdAt: true,

@@ -11,6 +11,7 @@ export * from './sport-config';
 export * from './time-in-zones';
 export * from './cycle-colors';
 export * from './provider-import';
+export * from './units';
 export {
   calculateWorkoutDuration,
   calculateWorkoutDistance,

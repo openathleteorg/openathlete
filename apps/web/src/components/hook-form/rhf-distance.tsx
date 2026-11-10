@@ -1,3 +1,4 @@
+import { useUnits } from '@/hooks/use-unit';
 import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { ComponentProps, useEffect, useState } from 'react';
@@ -30,6 +31,7 @@ const UNIT_CONVERSION = {
   m: 1,
   km: 1000,
   mi: 1609.34,
+  yd: 0.9144,
 };
 
 /**
@@ -45,7 +47,8 @@ function DistanceFieldAdapter({
   error?: FieldError;
 } & ComponentProps<'input'>) {
   const [distanceInput, setDistanceInput] = useState<string>('');
-  const [unit, setUnit] = useState<DistanceUnit>('km');
+  const { distanceUnit } = useUnits();
+  const [unit, setUnit] = useState<DistanceUnit>(distanceUnit);
 
   // Convert stored value (in meters) to display value in selected unit
   useEffect(() => {
@@ -54,7 +57,8 @@ function DistanceFieldAdapter({
     } else {
       // Convert from meters to current unit
       const convertedValue = (field.value as number) / UNIT_CONVERSION[unit];
-      setDistanceInput(convertedValue.toString());
+      // Rounded: 3.1 mi stored in metres comes back as 3.1000000000000005
+      setDistanceInput(Number(convertedValue.toFixed(4)).toString());
     }
   }, [field.value, unit]);
 
@@ -109,6 +113,9 @@ function DistanceFieldAdapter({
           <SelectItem value="m">{m.meters()}</SelectItem>
           <SelectItem value="km">{m.kilometers()}</SelectItem>
           <SelectItem value="mi">{m.miles()}</SelectItem>
+          {distanceUnit === 'mi' && (
+            <SelectItem value="yd">{m.yards()}</SelectItem>
+          )}
         </SelectContent>
       </Select>
     </div>

@@ -462,3 +462,12 @@ enum ActivityProfileKind {
 
   @@map("activity_profile_kind")
 }
+
+/// Units a user sees distances, weights and speeds in. Values are always
+/// stored in metric
+enum UnitSystem {
+  METRIC
+  IMPERIAL
+
+  @@map("unit_system")
+}

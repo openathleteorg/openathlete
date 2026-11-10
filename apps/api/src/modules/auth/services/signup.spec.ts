@@ -141,6 +141,27 @@ describe('sign-up language', () => {
   });
 });
 
+describe('sign-up unit system', () => {
+  it('saves the unit system the app sends', async () => {
+    const { signUp, prisma } = setup();
+    await signUp({ unitSystem: 'IMPERIAL' });
+    expect(prisma.user.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ unitSystem: 'IMPERIAL' }),
+      }),
+    );
+  });
+
+  it('keeps the default unit system when the app sends none', async () => {
+    const { signUp, prisma } = setup();
+    await signUp();
+    const { data } = prisma.user.create.mock.calls[0][0] as {
+      data: { unitSystem?: string };
+    };
+    expect(data.unitSystem).toBeUndefined();
+  });
+});
+
 describe('sign-up with an invitation link', () => {
   it('refuses a spent or unknown link before creating the account', async () => {
     const { signUp, prisma } = setup();

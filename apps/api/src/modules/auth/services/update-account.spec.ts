@@ -19,6 +19,15 @@ describe('account update', () => {
     );
   });
 
+  it('accepts only the known unit systems', () => {
+    expect(
+      updateAccountDtoSchema.safeParse({ unitSystem: 'IMPERIAL' }).success,
+    ).toBe(true);
+    expect(
+      updateAccountDtoSchema.safeParse({ unitSystem: 'NAUTICAL' }).success,
+    ).toBe(false);
+  });
+
   it('stores calendar display settings as a full, valid preference', () => {
     const parsed = updateAccountDtoSchema.parse({
       calendarDisplay: { density: 'compact', card: { distance: false } },

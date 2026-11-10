@@ -52,6 +52,12 @@ model User {
   /// them while unset (GDPR)
   analyticsConsentAt  DateTime?    @map("analytics_consent_at")
 
+  /// Units the app shows values in
+  unitSystem          UnitSystem   @default(METRIC) @map("unit_system")
+  /// When the user chose it themselves: a provider's preference must not
+  /// replace a choice
+  unitSystemChosenAt  DateTime?    @map("unit_system_chosen_at")
+
   // relationships
   athlete                   Athlete?
   coachAthletes             CoachAthlete[]

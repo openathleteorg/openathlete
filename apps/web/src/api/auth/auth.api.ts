@@ -7,6 +7,7 @@ import {
   FirebaseLoginDto,
   LoginDto,
   OidcExchangeDto,
+  UnitSystem,
 } from '@openathlete/shared';
 
 export class AuthAPI {
@@ -34,6 +35,7 @@ export class AuthAPI {
     invitation?: string;
     coachInvitation?: string;
     language?: EmailLanguage;
+    unitSystem?: UnitSystem;
   }): string {
     const query = new URLSearchParams(
       Object.entries(params).filter(

@@ -34,6 +34,7 @@ type PendingSignIn = {
   invitationToken?: string;
   coachInvitationToken?: string;
   language?: CreateAccountDto['language'];
+  unitSystem?: CreateAccountDto['unitSystem'];
 };
 
 export type OidcStart = Omit<PendingSignIn, 'state' | 'nonce' | 'verifier'>;
@@ -206,6 +207,7 @@ export class OidcService {
         invitationToken: pending.invitationToken,
         coachInvitationToken: pending.coachInvitationToken,
         language: pending.language,
+        unitSystem: pending.unitSystem,
       });
       const { token } = await this.tokens.createToken(
         { userId: user.userId },

@@ -1,5 +1,7 @@
+import type { UnitSystem } from '../types/dtos/core/unit-system.dto';
 import { SpeedUnit } from '../types/misc/core/metrics';
 import { SPORT_TYPE } from '../types/misc/core/sport-type.enum';
+import { localSpeedUnit } from './units';
 
 export interface SportStatisticsConfig {
   /** Whether to show distance */
@@ -811,10 +813,14 @@ export const SPORT_CONFIG: Record<SPORT_TYPE, SportStatisticsConfig> = {
 };
 
 /**
- * Get the speed unit for a given sport
+ * The speed unit of a sport, in a unit system. `speedUnit` in the config is
+ * its metric unit, which the API and the stored values use
  */
-export function getSpeedUnitForSport(sport: SPORT_TYPE): SpeedUnit {
-  return SPORT_CONFIG[sport].speedUnit;
+export function getSpeedUnitForSport(
+  sport: SPORT_TYPE,
+  unitSystem: UnitSystem = 'METRIC',
+): SpeedUnit {
+  return localSpeedUnit(SPORT_CONFIG[sport].speedUnit, unitSystem);
 }
 
 /**

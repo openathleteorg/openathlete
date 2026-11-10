@@ -147,6 +147,13 @@ export class UserController {
             'Optional language of the app at sign-up, saved as the preferred language (default FR)',
           example: 'EN',
         },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description:
+            'Optional units the app shows values in (default METRIC)',
+          example: 'METRIC',
+        },
       },
       required: ['email', 'password', 'firstName', 'lastName'],
     },
@@ -214,6 +221,12 @@ export class UserController {
           type: 'boolean',
           description:
             'Push notification the evening before planned training sessions',
+        },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description: 'Units the app shows values in',
+          example: 'METRIC',
         },
       },
     },
@@ -304,6 +317,12 @@ export class UserController {
           type: 'string',
           enum: Object.values(UserLanguage),
           example: 'EN',
+        },
+        unitSystem: {
+          type: 'string',
+          enum: ['METRIC', 'IMPERIAL'],
+          description: 'Units the app shows values in',
+          example: 'METRIC',
         },
       },
     },
