@@ -240,6 +240,22 @@ describe('AiService', () => {
     ).toContain('Warm up in zone 1');
   });
 
+  it.each([
+    AiTask.FEEDBACK_EXTRACTION,
+    AiTask.TRAINING_LOAD_ESTIMATION,
+  ] as const)(
+    'keeps the generic prompt for %s, whose results a coach relies on',
+    async (task) => {
+      const { service, prisma } = setup('Never report pain as an injury');
+      generate.mockResolvedValue({ text: 'ok' });
+
+      await service.generateText(agent, { ...ownKeyModel, task }, 'Hi');
+
+      expect(prisma.aiCustomInstruction.findUnique).not.toHaveBeenCalled();
+      expect(agentConfigs[0]).toMatchObject({ instructions: 'Be helpful' });
+    },
+  );
+
   it('keeps the generic prompt on the instance keys', async () => {
     const { service, prisma } = setup('Warm up in zone 1');
     generate.mockResolvedValue({ text: 'ok' });

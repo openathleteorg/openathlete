@@ -46,10 +46,6 @@ function placeholder(task: AiInstructionTask): string {
       return m.ai_instructions_placeholder_workouts();
     case AiTask.POST_ACTIVITY_QUESTIONS:
       return m.ai_instructions_placeholder_post_activity_questions();
-    case AiTask.FEEDBACK_EXTRACTION:
-      return m.ai_instructions_placeholder_feedback_extraction();
-    case AiTask.TRAINING_LOAD_ESTIMATION:
-      return m.ai_instructions_placeholder_training_load_estimation();
     case AiTask.ACTIVITY_SUMMARY:
       return m.ai_instructions_placeholder_activity_summary();
   }
@@ -75,13 +71,17 @@ export function AiInstructionsSection() {
   );
 
   const handleSave = async () => {
-    await updateInstructions.mutateAsync({
-      instructions: AI_INSTRUCTION_TASKS.map((task) => ({
-        task,
-        instructions: draft[task].trim(),
-      })).filter((item) => item.instructions),
-    });
-    toast.success(m.ai_instructions_saved());
+    try {
+      await updateInstructions.mutateAsync({
+        instructions: AI_INSTRUCTION_TASKS.map((task) => ({
+          task,
+          instructions: draft[task].trim(),
+        })).filter((item) => item.instructions),
+      });
+      toast.success(m.ai_instructions_saved());
+    } catch {
+      toast.error(m.ai_instructions_save_failed());
+    }
   };
 
   return (

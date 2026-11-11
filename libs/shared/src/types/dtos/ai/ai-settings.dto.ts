@@ -211,19 +211,26 @@ export const AI_CUSTOM_INSTRUCTIONS_MAX_LENGTH = 4000;
  * Features the user can write instructions for. Workout editing has none of
  * its own: it follows workout generation's, so a workout is built the same
  * way whether it is created or changed.
+ *
+ * Feedback extraction and load estimation take none: they record injuries,
+ * effort and TRIMP that a coach relies on, so they stay the same for everyone.
  */
 export const AI_INSTRUCTION_TASKS = [
   AiTask.EVENT_GENERATION,
   AiTask.POST_ACTIVITY_QUESTIONS,
-  AiTask.FEEDBACK_EXTRACTION,
-  AiTask.TRAINING_LOAD_ESTIMATION,
   AiTask.ACTIVITY_SUMMARY,
 ] as const;
 export type AiInstructionTask = (typeof AI_INSTRUCTION_TASKS)[number];
 
-/** Whose instructions a feature follows. */
-export function instructionTaskFor(task: AiFeatureTask): AiInstructionTask {
-  return task === AiTask.EVENT_MODIFICATION ? AiTask.EVENT_GENERATION : task;
+/** Whose instructions a feature follows, if it takes any. */
+export function instructionTaskFor(
+  task: AiFeatureTask,
+): AiInstructionTask | null {
+  const followed =
+    task === AiTask.EVENT_MODIFICATION ? AiTask.EVENT_GENERATION : task;
+  return (AI_INSTRUCTION_TASKS as readonly AiTask[]).includes(followed)
+    ? (followed as AiInstructionTask)
+    : null;
 }
 
 /** The features following the instructions of an instruction task. */
