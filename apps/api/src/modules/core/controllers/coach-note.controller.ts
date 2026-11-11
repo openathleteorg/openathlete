@@ -10,6 +10,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -25,10 +26,13 @@ import {
 
 import {
   CoachNote,
+  CoachNotebook,
   CreateCoachNoteDto,
   UpdateCoachNoteDto,
+  UpdateCoachNotebookDto,
   createCoachNoteDtoSchema,
   updateCoachNoteDtoSchema,
+  updateCoachNotebookDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
@@ -61,6 +65,32 @@ export class CoachNoteController {
     athleteId?: number,
   ): Promise<CoachNote[]> {
     return this.coachNoteService.list(user, athleteId);
+  }
+
+  @Get('notebook')
+  @ApiOperation({
+    summary: "The user's general notebook",
+    description:
+      'One free text for every athlete, private like the notes. Empty, with updatedAt null, until the first save.',
+  })
+  @ApiResponse({ status: 200, description: '{ content, updatedAt }' })
+  getNotebook(@JwtUser() user: AuthUser): Promise<CoachNotebook> {
+    return this.coachNoteService.getNotebook(user);
+  }
+
+  @Put('notebook')
+  @ApiOperation({
+    summary: "Save the user's general notebook",
+    description: 'Replaces its whole text (100,000 characters at most).',
+  })
+  @ApiResponse({ status: 200, description: '{ content, updatedAt }' })
+  @ApiResponse({ status: 400, description: 'Text too long' })
+  saveNotebook(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(updateCoachNotebookDtoSchema))
+    dto: UpdateCoachNotebookDto,
+  ): Promise<CoachNotebook> {
+    return this.coachNoteService.saveNotebook(user, dto);
   }
 
   @Post()

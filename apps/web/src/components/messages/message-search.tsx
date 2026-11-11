@@ -18,6 +18,8 @@ import {
 import { Search } from 'lucide-react';
 import { useId, useMemo, useRef, useState } from 'react';
 
+import { withImagesAsLabel } from '@openathlete/shared';
+
 export function MessageSearch({
   activeThreadId,
   onSelect,
@@ -185,7 +187,7 @@ export function MessageSearch({
                         )}
                       </span>
                       <span className="block text-sm whitespace-pre-wrap line-clamp-3">
-                        {message.content}
+                        {withImagesAsLabel(message.content, '📷')}
                       </span>
                     </button>
                   </li>

@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { Message } from '@openathlete/shared';
 
+import { RichText } from '../images';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
 import { ActivityChatNotice } from './activity-chat-notice';
@@ -156,9 +157,10 @@ function MessageBubble({
                 {message.sender.firstName} {message.sender.lastName}
               </div>
             )}
-            <div className="whitespace-pre-wrap break-words">
-              {message.content}
-            </div>
+            <RichText
+              text={message.content}
+              linkClassName={isUser ? 'text-primary-foreground' : undefined}
+            />
 
             <div className="flex items-center gap-2 mt-2">
               <p className="text-xs opacity-60">{time}</p>

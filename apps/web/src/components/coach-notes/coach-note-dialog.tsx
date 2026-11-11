@@ -7,7 +7,7 @@ import { FormProvider } from '@/components/hook-form';
 import { RHFCheckbox } from '@/components/hook-form/rhf-checkbox';
 import { RHFSelect } from '@/components/hook-form/rhf-select';
 import { RHFTextField } from '@/components/hook-form/rhf-text-field';
-import { RHFTextarea } from '@/components/hook-form/rhf-textarea';
+import { ImageTextarea } from '@/components/images';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,11 +16,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { SelectItem } from '@/components/ui/select';
 import { m } from '@/paraglide/messages';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -28,6 +29,7 @@ import {
   COACH_NOTE_CONTENT_MAX,
   COACH_NOTE_TITLE_MAX,
   type CoachNote,
+  STORED_FILE_PURPOSE,
 } from '@openathlete/shared';
 
 const GENERAL = 'general';
@@ -109,12 +111,23 @@ export function CoachNoteDialog({ open, onClose, note, athleteId }: P) {
               required
               autoFocus
             />
-            <RHFTextarea
-              name="content"
-              label={m.coach_note_content()}
-              placeholder={m.coach_note_content_placeholder()}
-              className="min-h-[200px]"
-            />
+            <div className="grid gap-3">
+              <Label htmlFor="content">{m.coach_note_content()}</Label>
+              <Controller
+                name="content"
+                control={methods.control}
+                render={({ field }) => (
+                  <ImageTextarea
+                    id="content"
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    purpose={STORED_FILE_PURPOSE.COACH_NOTE}
+                    placeholder={m.coach_note_content_placeholder()}
+                    className="min-h-[200px]"
+                  />
+                )}
+              />
+            </div>
             <RHFSelect name="athlete" label={m.coach_note_athlete()}>
               <SelectItem value={GENERAL}>{m.coach_note_general()}</SelectItem>
               {athletes.map((athlete) => (

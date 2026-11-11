@@ -62,6 +62,7 @@ Leave a variable empty to disable the feature:
 | An email to you for each new account              | `SIGNUP_NOTIFICATION_EMAIL` (needs email)                  |
 | Device sync                                       | `STRAVA_*`, `GARMIN_*`, `POLAR_*`, `SUUNTO_*`              |
 | Single sign-on (OpenID Connect)                   | `OIDC_ISSUER`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET`, `OIDC_NAME` (see below) |
+| Images in notes and messages                      | `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_ENDPOINT` (see below) |
 | AI load estimation fallback for planned sessions  | `ENABLE_TRAINING_LOAD_ESTIMATION`                          |
 | Garmin Personal API (self-hosted personal use only) | `GARMIN_PERSONAL_API_ENABLED=true` (default: off) |
 | Billing                                           | `STRIPE_*` (not needed for self-hosting)                   |
@@ -83,6 +84,21 @@ Any SMTP server works: your mail provider's, a relay such as Postmark or Amazon 
 | `EMAIL_SIGNATURE` | Your name, to sign onboarding tips, the monthly recap and news. Setting it turns those emails on; each user can turn them off. |
 
 Brevo works too, through its API: set `BREVO_API_KEY` instead (it wins when both are set) and `EMAIL_FROM` or `BREVO_FROM_EMAIL`.
+
+#### Images
+
+Coaches can add images to their notes and to messages once the API has a bucket on Amazon S3 or any S3-compatible service: Cloudflare R2, MinIO, Scaleway, OVHcloud... Keep the bucket private: the API serves each image only to who may see it.
+
+| Variable               | Value                                                                    |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `S3_BUCKET`            | The bucket. With both keys, setting it turns images on.                  |
+| `S3_ACCESS_KEY_ID`     | Access key with read, write, list and delete rights on the bucket        |
+| `S3_SECRET_ACCESS_KEY` | Its secret                                                               |
+| `S3_ENDPOINT`          | The service's URL, e.g. `https://<account>.r2.cloudflarestorage.com`. Empty: Amazon S3 |
+| `S3_REGION`            | Default: `auto` on R2, `us-east-1` elsewhere                             |
+| `S3_FORCE_PATH_STYLE`  | `true` for MinIO and other services that need path-style URLs           |
+
+Images are resized in the browser before upload. An image that no note or message shows anymore is deleted after a day, and a user's images are deleted with their account. Back the bucket up along with the database.
 
 Without Stripe, the instance sells nothing and limits nobody: every account can coach any number of athletes. With Stripe, free accounts coach up to 5 athletes and the Supporter subscription (`STRIPE_PRICE_SUPPORTER_MONTHLY`, `STRIPE_PRICE_SUPPORTER_YEARLY`) removes the limit and includes AI on the instance keys.
 

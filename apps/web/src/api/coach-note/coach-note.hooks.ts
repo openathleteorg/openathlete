@@ -39,3 +39,19 @@ export const useDeleteCoachNoteMutation = () => {
     onSuccess: invalidate,
   });
 };
+
+export const useCoachNotebookQuery = () =>
+  useQuery({
+    queryKey: coachNoteKeys.notebook,
+    queryFn: CoachNoteAPI.getNotebook,
+  });
+
+export const useSaveCoachNotebookMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: CoachNoteAPI.saveNotebook,
+    // The saved text is the one being typed: no refetch to overwrite it
+    onSuccess: (notebook) =>
+      queryClient.setQueryData(coachNoteKeys.notebook, notebook),
+  });
+};

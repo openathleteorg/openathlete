@@ -84,6 +84,8 @@ model User {
   activityAlertSettings     CoachActivityAlertSettings[]
   activityChatNotices        ActivityChatNotice[]
   coachNotes                CoachNote[]
+  coachNotebook             CoachNotebook?
+  storedFiles               StoredFile[]
   subscription              Subscription?
   mcpGrants                 McpGrant[]
   oauthCodes                OAuthAuthorizationCode[]

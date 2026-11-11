@@ -2,9 +2,11 @@ import client, { routes } from '@/utils/axios';
 
 import {
   CoachNote,
+  CoachNotebook,
   CreateCoachNoteDto,
   UpdateCoachNoteDto,
   coachNoteSchema,
+  coachNotebookSchema,
 } from '@openathlete/shared';
 
 const parseNotes = (data: unknown) => coachNoteSchema.array().parse(data);
@@ -32,6 +34,16 @@ export class CoachNoteAPI {
   }): Promise<CoachNote> {
     const res = await client.patch(routes.coachNote.update(id), body);
     return coachNoteSchema.parse(res.data);
+  }
+
+  static async getNotebook(): Promise<CoachNotebook> {
+    const res = await client.get(routes.coachNote.notebook);
+    return coachNotebookSchema.parse(res.data);
+  }
+
+  static async saveNotebook(content: string): Promise<CoachNotebook> {
+    const res = await client.put(routes.coachNote.notebook, { content });
+    return coachNotebookSchema.parse(res.data);
   }
 
   static async delete(id: number): Promise<void> {

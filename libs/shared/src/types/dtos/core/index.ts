@@ -14,6 +14,8 @@ export * from './invite-athlete.dto';
 export * from './coach-dashboard.dto';
 export * from './equipment.dto';
 export * from './coach-note.dto';
+export * from './coach-notebook.dto';
+export * from './stored-file.dto';
 export * from './metric.dto';
 export * from './create-training-zone.dto';
 export * from './get-event-weather.response.dto';

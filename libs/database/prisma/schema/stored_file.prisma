@@ -1,0 +1,37 @@
+// ============================================================================
+// Stored files
+// ============================================================================
+// Images users add to their notes and messages. The bytes live in the S3
+// bucket of the instance (S3_*), under `key`; texts reference a file as
+// `![image](file:<storedFileId>)`.
+// ============================================================================
+
+enum StoredFilePurpose {
+  /// The uploader's private notes and notebook: only they see it
+  COACH_NOTE
+  /// A conversation: its participants see it
+  MESSAGE
+
+  @@map("stored_file_purpose")
+}
+
+model StoredFile {
+  storedFileId String            @id @default(uuid()) @map("stored_file_id") @db.Uuid
+  /// Object key in the bucket
+  key          String            @unique
+  contentType  String            @map("content_type")
+  size         Int
+  purpose      StoredFilePurpose
+
+  owner           User           @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
+  ownerUserId     Int            @map("owner_user_id")
+  /// The conversation of a MESSAGE image
+  messageThread   MessageThread? @relation(fields: [messageThreadId], references: [messageThreadId], onDelete: Cascade)
+  messageThreadId Int?           @map("message_thread_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([ownerUserId])
+  @@index([messageThreadId])
+  @@map("stored_file")
+}

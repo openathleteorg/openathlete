@@ -34,11 +34,15 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProvidersSyncModule } from './providers-sync/providers-sync.module';
 import { QueueModule } from './queue';
 import { SeoPlanModule } from './seo/seo-plan.module';
+import { FilesModule } from './stored-files/files.module';
+import { StorageModule } from './stored-files/storage.module';
 import { SubscriptionModule } from './subscription';
 
 @Module({
   imports: [
     PrismaModule,
+    StorageModule,
+    FilesModule,
     AnalyticsModule,
     ConfigModule.forRoot({
       isGlobal: true,

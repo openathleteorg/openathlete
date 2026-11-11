@@ -3,6 +3,7 @@ import {
   useEventCommentsQuery,
   useMarkEventCommentsReadMutation,
 } from '@/api/event-comments';
+import { RichText } from '@/components/images';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -81,9 +82,7 @@ export function EventComments({ eventId }: { eventId: Event['eventId'] }) {
                   minute: '2-digit',
                 })}
               </p>
-              <p className="whitespace-pre-wrap break-words">
-                {comment.content}
-              </p>
+              <RichText text={comment.content} />
             </li>
           ))}
         </ol>

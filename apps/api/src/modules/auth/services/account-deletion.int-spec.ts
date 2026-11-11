@@ -1,4 +1,5 @@
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { StorageService } from 'src/modules/stored-files/storage.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
 
 import {
@@ -144,6 +145,8 @@ describe('AccountDeletionService (PostgreSQL)', () => {
       message: 1,
       lifecycle_email: 1,
       coach_note: 1,
+      coach_notebook: 1,
+      stored_file: 1,
     });
 
     const coach = await prisma.user.findUnique({
@@ -169,6 +172,52 @@ describe('AccountDeletionService (PostgreSQL)', () => {
         count: 0,
       });
     }
+  });
+
+  it("deletes the user's images from the bucket before the rows", async () => {
+    const deleted: string[][] = [];
+    const storage = {
+      isEnabled: () => true,
+      delete: async (keys: string[]) => {
+        // The rows are still there when the objects go
+        expect(await prisma.storedFile.count()).toBe(3);
+        deleted.push(keys);
+      },
+    } as unknown as StorageService;
+    const withStorage = new AccountDeletionService(
+      prisma,
+      { cancelSubscriptionNow } as unknown as StripeService,
+      undefined,
+      undefined,
+      storage,
+    );
+
+    await withStorage.deleteAccount(DELETED_USER_ID);
+
+    expect(deleted.flat().sort()).toEqual([
+      'images/00000000-0000-4000-8000-000000000001',
+      'images/00000000-0000-4000-8000-000000000002',
+    ]);
+  });
+
+  it('keeps the account when the bucket cannot delete its images', async () => {
+    const storage = {
+      isEnabled: () => true,
+      delete: () => Promise.reject(new Error('Storage is down')),
+    } as unknown as StorageService;
+    const withStorage = new AccountDeletionService(
+      prisma,
+      { cancelSubscriptionNow } as unknown as StripeService,
+      undefined,
+      undefined,
+      storage,
+    );
+    const before = await rowCounts();
+
+    await expect(withStorage.deleteAccount(DELETED_USER_ID)).rejects.toThrow(
+      'Storage is down',
+    );
+    expect(await rowCounts()).toEqual(before);
   });
 
   it('cancels an active Stripe subscription before deleting', async () => {

@@ -9,6 +9,7 @@ import { OidcService } from '../auth/services/oidc.service';
 import { emailTransportKind } from '../notification/services/email-transport.service';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { configuredProviders } from '../providers-sync/base/provider-config';
+import { StorageService } from '../stored-files/storage.service';
 
 @ApiTags('Instance')
 @Controller('instance')
@@ -17,6 +18,7 @@ export class InstanceController {
     private readonly config: ConfigService<ApiEnvSchemaType, true>,
     private readonly prisma: PrismaService,
     private readonly oidc: OidcService,
+    private readonly storage: StorageService,
   ) {}
 
   @Get()
@@ -49,6 +51,11 @@ export class InstanceController {
           description:
             'Sign-in through an OpenID Connect provider, and its name',
         },
+        images: {
+          type: 'boolean',
+          description:
+            'Images can be added to notes and messages (S3 storage configured)',
+        },
         signup: {
           type: 'string',
           enum: ['open', 'invite', 'closed'],
@@ -73,6 +80,7 @@ export class InstanceController {
           ? 'open'
           : mode,
       oidc: this.oidc.info(),
+      images: this.storage.isEnabled(),
     };
   }
 }

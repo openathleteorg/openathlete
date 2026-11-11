@@ -23,6 +23,7 @@ import { OidcService } from '../../auth/services/oidc.service';
 import { InstanceController } from '../../instance/instance.controller';
 import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
+import { StorageService } from '../../stored-files/storage.service';
 import {
   GarminPersonalClient,
   GarminPersonalError,
@@ -166,6 +167,7 @@ describe('Garmin Personal ownership and sync (PostgreSQL + HTTP)', () => {
         { provide: ConfigService, useValue: config },
         { provide: PrismaService, useValue: prisma },
         { provide: OidcService, useValue: { info: () => null } },
+        { provide: StorageService, useValue: { isEnabled: () => false } },
       ],
     })
       .overrideGuard(AuthGuard('jwt'))

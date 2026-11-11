@@ -25,4 +25,6 @@ export interface InstanceInfoDto {
   signup: 'open' | 'invite' | 'closed';
   /** Sign-in through the instance's OpenID Connect provider, and its name */
   oidc: { name: string } | null;
+  /** Images can be added to notes and messages (S3 storage configured) */
+  images: boolean;
 }

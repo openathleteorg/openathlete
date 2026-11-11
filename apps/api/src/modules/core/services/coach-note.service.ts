@@ -7,8 +7,10 @@ import {
 import type { Prisma } from '@openathlete/database';
 import type {
   CoachNote,
+  CoachNotebook,
   CreateCoachNoteDto,
   UpdateCoachNoteDto,
+  UpdateCoachNotebookDto,
 } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -115,6 +117,27 @@ export class CoachNoteService {
   async delete(user: AuthUser, coachNoteId: number): Promise<void> {
     await this.findOwn(user, coachNoteId);
     await this.prisma.coachNote.delete({ where: { coachNoteId } });
+  }
+
+  /** The user's general notebook, empty until they first write in it */
+  async getNotebook(user: AuthUser): Promise<CoachNotebook> {
+    const notebook = await this.prisma.coachNotebook.findUnique({
+      where: { coachUserId: user.userId },
+      select: { content: true, updatedAt: true },
+    });
+    return notebook ?? { content: '', updatedAt: null };
+  }
+
+  async saveNotebook(
+    user: AuthUser,
+    dto: UpdateCoachNotebookDto,
+  ): Promise<CoachNotebook> {
+    return this.prisma.coachNotebook.upsert({
+      where: { coachUserId: user.userId },
+      create: { coachUserId: user.userId, content: dto.content },
+      update: { content: dto.content },
+      select: { content: true, updatedAt: true },
+    });
   }
 
   /** Someone else's note, or a hidden one, reads as missing */

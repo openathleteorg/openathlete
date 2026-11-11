@@ -54,6 +54,8 @@ test('hides what the instance has not set up', async ({ page, request }) => {
     providers: ['COROS'],
     signup: 'open',
     oidc: { name: 'Fake IdP' },
+    // No S3 bucket: no images in notes and messages
+    images: false,
   });
 
   await page.goto('/dashboard/settings?tab=connectors');

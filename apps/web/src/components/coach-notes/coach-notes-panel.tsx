@@ -5,6 +5,7 @@ import {
   useUpdateCoachNoteMutation,
 } from '@/api/coach-note';
 import { ConfirmAction } from '@/components/confirm-action/confirm-action';
+import { RichText } from '@/components/images';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +18,6 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { splitLinks } from '@/utils/links';
 import { getDateLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import {
@@ -36,29 +36,6 @@ import { toast } from 'sonner';
 import type { CoachNote } from '@openathlete/shared';
 
 import { CoachNoteDialog } from './coach-note-dialog';
-
-/** Plain text with its links clickable */
-function NoteContent({ content }: { content: string }) {
-  return (
-    <p className="text-sm whitespace-pre-wrap break-words text-muted-foreground">
-      {splitLinks(content).map((part, index) =>
-        part.type === 'link' ? (
-          <a
-            key={index}
-            href={part.href}
-            target="_blank"
-            rel="noreferrer noopener"
-            className="text-primary underline underline-offset-2 break-all"
-          >
-            {part.value}
-          </a>
-        ) : (
-          <span key={index}>{part.value}</span>
-        ),
-      )}
-    </p>
-  );
-}
 
 interface P {
   /** One athlete's notes; none: every note, general ones included */
@@ -233,7 +210,12 @@ export function CoachNotesPanel({ athleteId, className }: P) {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              {note.content && <NoteContent content={note.content} />}
+              {note.content && (
+                <RichText
+                  text={note.content}
+                  className="text-sm text-muted-foreground"
+                />
+              )}
             </li>
           ))}
         </ul>

@@ -106,6 +106,29 @@ export class AccountExportService {
         orderBy: { coachNoteId: 'asc' },
       }),
     );
+    write(
+      'coachNotebook',
+      await this.prisma.coachNotebook.findUnique({
+        where: { coachUserId: userId },
+        select: { content: true, updatedAt: true },
+      }),
+    );
+    // What the images in notes and messages are; their ids are those the
+    // texts reference
+    write(
+      'images',
+      await this.prisma.storedFile.findMany({
+        where: { ownerUserId: userId },
+        select: {
+          storedFileId: true,
+          contentType: true,
+          size: true,
+          purpose: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'asc' },
+      }),
+    );
     write('aiAssistant', await this.aiAssistant(userId));
     write('aiSettings', await this.aiSettings(userId));
 

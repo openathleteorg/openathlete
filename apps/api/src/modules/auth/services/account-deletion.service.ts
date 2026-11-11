@@ -6,6 +6,7 @@ import { Prisma } from '@openathlete/database';
 import { AccountDeletingEvent } from 'src/events';
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { StorageService } from 'src/modules/stored-files/storage.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
 
 type Tx = Prisma.TransactionClient;
@@ -30,6 +31,9 @@ export class AccountDeletionService {
     // Absent from the CLI, which loads no listeners
     @Optional() private readonly eventEmitter?: EventEmitter2,
     @Optional() private readonly analytics?: AnalyticsService,
+    // Absent from the CLI too: the daily cleanup then deletes the objects
+    // left without a row
+    @Optional() private readonly storage?: StorageService,
   ) {}
 
   async deleteAccount(userId: number): Promise<void> {
@@ -57,6 +61,18 @@ export class AccountDeletionService {
     }
 
     const athleteId = user.athlete?.athleteId;
+
+    // Images before the rows that reference them: if the bucket fails, the
+    // account is kept and the deletion can be retried
+    if (this.storage?.isEnabled()) {
+      const files = await this.prisma.storedFile.findMany({
+        where: { ownerUserId: userId },
+        select: { key: true },
+      });
+      if (files.length > 0) {
+        await this.storage.delete(files.map((file) => file.key));
+      }
+    }
 
     // Providers are told while the tokens still exist (Garmin requires it)
     await this.eventEmitter?.emitAsync(

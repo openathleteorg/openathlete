@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 
-import type { ApiEnvSchemaType } from '@openathlete/shared';
+import { type ApiEnvSchemaType, withImagesAsLabel } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 import { maskEmail } from 'src/common/utils/mask-email';
@@ -142,7 +142,8 @@ export class MessageNotificationScheduler {
             const senderName =
               `${senderFirstName} ${senderLastName}`.trim() || 'OpenAthlete';
 
-            const content = message.content || '';
+            // An email cannot show the images: a camera stands for each
+            const content = withImagesAsLabel(message.content || '', '📷');
             const snippet =
               content.length > 240
                 ? `${content.slice(0, 237).trimEnd()}...`

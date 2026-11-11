@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
+    "@aws-sdk/client-s3": "^3.1166.0",
     "@casl/ability": "^6.8.3",
     "@casl/prisma": "^1.6.2",
     "@garmin/fitsdk": "21.218.0",

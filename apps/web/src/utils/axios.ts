@@ -117,7 +117,12 @@ export const routes = {
     updateEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
     deleteEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
   },
+  files: {
+    uploadImage: '/files/images',
+    get: (fileId: string) => `/files/${fileId}`,
+  },
   coachNote: {
+    notebook: '/coach-notes/notebook',
     list: '/coach-notes',
     create: '/coach-notes',
     update: (coachNoteId: number) => `/coach-notes/${coachNoteId}`,

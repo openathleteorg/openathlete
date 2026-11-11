@@ -167,6 +167,7 @@ test("a coach keeps private notes on an athlete, which the athlete can't read", 
   ).toHaveAttribute('href', 'https://video.example/drills');
   // The general notes list it too, with the athlete it is about
   await page.goto('/dashboard/notes');
+  await page.getByRole('tab', { name: 'Notes' }).click();
   await expect(page.getByText('Running form')).toBeVisible();
   expect(problems).toEqual([]);
 
@@ -181,4 +182,35 @@ test("a coach keeps private notes on an athlete, which the athlete can't read", 
     { headers: apiHeaders(undefined, athlete.accessToken) },
   );
   expect(await own.json()).toEqual([]);
+});
+
+test('a coach writes in their general notebook, saved as they type', async ({
+  page,
+  request,
+}) => {
+  const { coach } = await createCoachWithAthlete(request);
+  await signInAsCoach(page, coach);
+  const problems = trackPageProblems(page);
+
+  await page.goto('/dashboard/notes');
+  await page.getByText('Your notebook is empty: start writing.').click();
+  await page
+    .getByRole('textbox', { name: 'Notebook' })
+    .fill('Warm-up for everyone: https://video.example/warmup');
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible();
+  // Without a bucket, the instance offers no images
+  await expect(page.getByRole('button', { name: 'Add an image' })).toHaveCount(
+    0,
+  );
+  await page.getByRole('button', { name: 'Done' }).click();
+  await expect(
+    page.getByRole('link', { name: 'https://video.example/warmup' }),
+  ).toBeVisible();
+
+  // Still there after a reload
+  await page.reload();
+  await expect(
+    page.getByRole('link', { name: 'https://video.example/warmup' }),
+  ).toBeVisible();
+  expect(problems).toEqual([]);
 });

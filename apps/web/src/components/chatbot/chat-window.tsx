@@ -395,6 +395,7 @@ export function ChatWindow() {
               {activeId && (
                 <ChatInput
                   threadId={activeId}
+                  allowImages
                   onSendMessage={handleSendMessage}
                   isStreaming={isStreaming}
                 />

@@ -361,6 +361,7 @@ export function MessagesPage() {
           {activeId && (
             <ChatInput
               threadId={activeId}
+              allowImages
               onSendMessage={handleSendMessage}
               isStreaming={isStreaming}
             />
@@ -504,6 +505,7 @@ export function MessagesPage() {
             <div className="flex-shrink-0 p-4 bg-background">
               <ChatInput
                 threadId={activeId}
+                allowImages
                 onSendMessage={handleSendMessage}
                 isStreaming={isStreaming}
               />

@@ -469,6 +469,45 @@ export const ApiEnvSchema = z
         'Apple ID of the iOS app (App Store Connect > App Information); enables Supporter subscriptions bought in the iOS app (optional)',
       ),
 
+    // Images in notes and messages, on S3-compatible storage (optional)
+    S3_BUCKET: z
+      .string()
+      .optional()
+      .describe(
+        'Bucket for the images users add to notes and messages; with the access keys, turns images on (optional)',
+      ),
+
+    S3_ACCESS_KEY_ID: z
+      .string()
+      .optional()
+      .describe('Access key ID of the storage (optional)'),
+
+    S3_SECRET_ACCESS_KEY: z
+      .string()
+      .optional()
+      .describe('Secret access key of the storage (optional)'),
+
+    S3_ENDPOINT: z
+      .string()
+      .url('S3_ENDPOINT must be a valid URL')
+      .optional()
+      .describe(
+        'Endpoint of an S3-compatible service (Cloudflare R2, MinIO, Scaleway...). Unset: Amazon S3',
+      ),
+
+    S3_REGION: z
+      .string()
+      .optional()
+      .describe(
+        'Region of the bucket. Default: auto (R2), us-east-1 elsewhere',
+      ),
+
+    S3_FORCE_PATH_STYLE: z
+      .enum(['true', 'false'])
+      .optional()
+      .transform((val) => val === 'true')
+      .describe('true for services that need path-style URLs, such as MinIO'),
+
     // Firebase
     FIREBASE_FUNCTIONS_URL: z
       .string()

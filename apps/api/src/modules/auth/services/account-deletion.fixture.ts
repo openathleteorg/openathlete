@@ -98,6 +98,13 @@ export const accountFixtureSql = [
     (9002, 'Drills', 'https://video.example/drills', 1002, NULL, ${now}),
     (9003, 'Coach', 'About my coach', 1001, 2002, ${now}),
     (9004, 'Mine', 'General', 1001, NULL, ${now})`,
+  `INSERT INTO coach_notebook (coach_user_id, content, updated_at) VALUES (1001, 'Mine', ${now}), (1002, 'Coach', ${now})`,
+  // Images: the athlete's in a note and in the conversation, the coach's in
+  // the conversation
+  `INSERT INTO stored_file (stored_file_id, key, content_type, size, purpose, owner_user_id, message_thread_id) VALUES
+    ('00000000-0000-4000-8000-000000000001', 'images/00000000-0000-4000-8000-000000000001', 'image/jpeg', 100, 'COACH_NOTE', 1001, NULL),
+    ('00000000-0000-4000-8000-000000000002', 'images/00000000-0000-4000-8000-000000000002', 'image/jpeg', 100, 'MESSAGE', 1001, 3802),
+    ('00000000-0000-4000-8000-000000000003', 'images/00000000-0000-4000-8000-000000000003', 'image/jpeg', 100, 'MESSAGE', 1002, 3802)`,
 
   // AI provider keys and model choices (the coach keeps theirs)
   `INSERT INTO ai_credential (ai_credential_id, provider, label, encrypted_api_key, api_key_hint, user_id, updated_at) VALUES (7001, 'openai', 'OpenAI', 'v1:a:b:c', '••••1234', 1001, ${now}), (7002, 'anthropic', 'Anthropic', 'v1:a:b:c', '••••5678', 1002, ${now})`,

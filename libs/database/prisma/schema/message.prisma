@@ -29,6 +29,7 @@ model MessageThread {
   // For athlete-coach threads: one athlete + one or more coaches
   participants MessageThreadParticipant[]
   messages     Message[]
+  files        StoredFile[]
 
   // Link to activity if this is a comment thread
   eventActivity EventActivity? @relation("ActivityCommentThread", fields: [eventActivityId], references: [eventActivityId], onDelete: Cascade)

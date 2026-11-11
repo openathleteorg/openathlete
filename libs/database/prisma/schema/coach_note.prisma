@@ -33,3 +33,17 @@ model CoachNote {
   @@index([athleteId])
   @@map("coach_note")
 }
+
+/// A coach's general notebook: one free text, for every athlete, that
+/// replaces the text file kept beside the app.
+model CoachNotebook {
+  coachUserId Int    @id @map("coach_user_id")
+  content     String @default("")
+
+  coach User @relation(fields: [coachUserId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("coach_notebook")
+}

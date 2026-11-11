@@ -6,9 +6,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { m } from '@/paraglide/messages';
 import { NotebookPen } from 'lucide-react';
 
+import { CoachNotebookPanel } from './coach-notebook-panel';
 import { CoachNotesPanel } from './coach-notes-panel';
 
 /** A coach's notes on an athlete, beside the calendar they plan in */
@@ -30,7 +32,20 @@ export function CoachNotesSheet({ athleteId }: { athleteId: number }) {
         <SheetHeader>
           <SheetTitle>{m.coach_notes()}</SheetTitle>
         </SheetHeader>
-        <CoachNotesPanel athleteId={athleteId} className="px-4 pb-4" />
+        <Tabs defaultValue="athlete" className="gap-4 px-4 pb-4">
+          <TabsList>
+            <TabsTrigger value="athlete">
+              {m.coach_notes_athlete_tab()}
+            </TabsTrigger>
+            <TabsTrigger value="notebook">{m.coach_notebook()}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="athlete">
+            <CoachNotesPanel athleteId={athleteId} />
+          </TabsContent>
+          <TabsContent value="notebook">
+            <CoachNotebookPanel />
+          </TabsContent>
+        </Tabs>
       </SheetContent>
     </Sheet>
   );

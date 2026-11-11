@@ -36,6 +36,8 @@ const EXPORTED_TABLES = [
   'coach_athlete',
   'coach_activity_alert_settings',
   'coach_note',
+  'coach_notebook',
+  'stored_file',
   'cycle',
   'equipment',
   'event',
