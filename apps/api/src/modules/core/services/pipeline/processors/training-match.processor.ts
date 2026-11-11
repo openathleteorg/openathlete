@@ -1,9 +1,30 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import { Prisma } from '@openathlete/database';
+
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { TRAINING_MATCH_THRESHOLD } from '../constants';
 import { ActivityPipelineContext, ActivityProcessor } from '../types';
+import { MatchMetrics, calculateMatchScore } from './training-match.score';
+
+/** A workout's steps, with their repeat blocks' children */
+const WORKOUT_STEPS_INCLUDE = {
+  steps: {
+    include: {
+      targets: true,
+      repeatBlock: {
+        include: {
+          childSteps: {
+            include: { targets: true },
+            orderBy: { orderIndex: 'asc' as const },
+          },
+        },
+      },
+    },
+    orderBy: { orderIndex: 'asc' as const },
+  },
+} satisfies Prisma.WorkoutInclude;
 
 @Injectable()
 export class TrainingMatchProcessor implements ActivityProcessor {
@@ -78,6 +99,8 @@ export class TrainingMatchProcessor implements ActivityProcessor {
             name: true,
           },
         },
+        // Lap-button and other open-ended steps make the planned totals minimums
+        workout: { include: WORKOUT_STEPS_INCLUDE },
       },
     });
 
@@ -88,6 +111,14 @@ export class TrainingMatchProcessor implements ActivityProcessor {
       return;
     }
 
+    // The athlete's paces estimate the workouts' totals, as in the app
+    const { athleteId } = activity.event;
+    const metrics =
+      athleteId !== null &&
+      trainingSessions.some((training) => training.workout)
+        ? await this.latestMetrics(athleteId)
+        : {};
+
     // Calculate match score for each training session
     let bestMatch: {
       training: (typeof trainingSessions)[0];
@@ -95,7 +126,7 @@ export class TrainingMatchProcessor implements ActivityProcessor {
     } | null = null;
 
     for (const training of trainingSessions) {
-      const score = this.calculateMatchScore(activity, training);
+      const score = calculateMatchScore(activity, training, metrics);
 
       this.logger.debug(
         `Training ${training.eventTrainingId} (${training.event.name}) match score: ${score}%`,
@@ -120,7 +151,7 @@ export class TrainingMatchProcessor implements ActivityProcessor {
       });
 
       this.logger.log(
-        `✓ Activity ${ctx.eventActivityId} automatically linked to training "${bestMatch.training.event.name}" (score: ${bestMatch.score}%)`,
+        `Ã¢Å“â€œ Activity ${ctx.eventActivityId} automatically linked to training "${bestMatch.training.event.name}" (score: ${bestMatch.score}%)`,
       );
     } else {
       this.logger.debug(
@@ -129,68 +160,17 @@ export class TrainingMatchProcessor implements ActivityProcessor {
     }
   }
 
-  /**
-   * Calculate match score between an activity and a training session
-   * Returns a percentage (0-100)
-   *
-   * Criteria:
-   * - Sport match: 40% weight
-   * - Duration match: 30% weight (if goal_duration specified)
-   * - Distance match: 30% weight (if goal_distance specified)
-   *
-   * If duration or distance are not specified in training, those points are redistributed
-   */
-  private calculateMatchScore(
-    activity: {
-      sport: string;
-      distance: number;
-      movingTime: number;
-    },
-    training: {
-      sport: string;
-      goalDistance: number | null;
-      goalDuration: number | null;
-    },
-  ): number {
-    let totalWeight = 0;
-    let achievedScore = 0;
-
-    // Sport matching (40% weight)
-    const sportWeight = 40;
-    totalWeight += sportWeight;
-    if (activity.sport === training.sport) {
-      achievedScore += sportWeight;
+  /** The athlete's latest value of each metric, as the app reads them */
+  private async latestMetrics(athleteId: number): Promise<MatchMetrics> {
+    const metrics = await this.prisma.athleteMetric.findMany({
+      where: { athleteId },
+      orderBy: { date: 'desc' },
+      select: { type: true, value: true },
+    });
+    const latest: MatchMetrics = {};
+    for (const { type, value } of metrics) {
+      latest[type] ??= { value };
     }
-
-    // Duration matching (30% weight if specified)
-    const durationWeight = 30;
-    if (training.goalDuration !== null && training.goalDuration > 0) {
-      totalWeight += durationWeight;
-      const durationRatio = Math.min(
-        activity.movingTime / training.goalDuration,
-        training.goalDuration / activity.movingTime,
-      );
-      achievedScore += durationRatio * durationWeight;
-    }
-
-    // Distance matching (30% weight if specified)
-    const distanceWeight = 30;
-    if (training.goalDistance !== null && training.goalDistance > 0) {
-      totalWeight += distanceWeight;
-      const distanceRatio = Math.min(
-        activity.distance / training.goalDistance,
-        training.goalDistance / activity.distance,
-      );
-      achievedScore += distanceRatio * distanceWeight;
-    }
-
-    // If neither duration nor distance is specified, redistribute to sport
-    if (totalWeight === sportWeight) {
-      // Only sport was weighted, make it 100%
-      return activity.sport === training.sport ? 100 : 0;
-    }
-
-    // Calculate percentage
-    return Math.round((achievedScore / totalWeight) * 100);
+    return latest;
   }
 }
