@@ -48,6 +48,13 @@ describe('image references', () => {
     ).toEqual([]);
   });
 
+  test('scans a text full of unclosed images in linear time', () => {
+    const text = '!['.repeat(50_000);
+    const start = Date.now();
+    expect(imageIdsIn(text)).toEqual([]);
+    expect(Date.now() - start).toBeLessThan(1000);
+  });
+
   test('shows images as a label where only text fits', () => {
     expect(withImagesAsLabel(`Look ${imageRef(id)}`, '📷')).toBe('Look 📷');
   });

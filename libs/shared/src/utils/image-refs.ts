@@ -2,8 +2,11 @@
  * Images in notes and messages are stored files, referenced in the text as
  * `![image](file:<id>)`: plain text that reads as Markdown in an export,
  * and that every client renders as the image.
+ *
+ * The alt text is bounded: unbounded, a text full of `![` makes the scan
+ * quadratic, and the API runs it on every note and message it saves.
  */
-const IMAGE_REF = /!\[[^\]\n]*\]\(file:([0-9a-f-]{36})\)/gi;
+const IMAGE_REF = /!\[[^\]\n]{0,200}\]\(file:([0-9a-f-]{36})\)/gi;
 
 /** The text of an image, to insert where the cursor is */
 export function imageRef(fileId: string): string {
