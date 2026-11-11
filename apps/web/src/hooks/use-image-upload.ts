@@ -1,5 +1,5 @@
-import { FilesAPI } from '@/api/stored-files';
 import { useInstanceInfoQuery } from '@/api/instance/instance.hooks';
+import { FilesAPI } from '@/api/stored-files';
 import { m } from '@/paraglide/messages';
 import { prepareImage } from '@/utils/image-resize';
 import { isAxiosError } from 'axios';
