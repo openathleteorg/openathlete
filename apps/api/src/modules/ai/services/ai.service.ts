@@ -137,14 +137,10 @@ export class AiService {
     agent: AgentSpec,
     model: ResolvedAiModel,
   ): Promise<AgentSpec> {
-    if (model.source !== 'own_key') return agent;
+    const task = instructionTaskFor(model.task);
+    if (model.source !== 'own_key' || !task) return agent;
     const custom = await this.prisma.aiCustomInstruction.findUnique({
-      where: {
-        userId_task: {
-          userId: model.userId,
-          task: instructionTaskFor(model.task),
-        },
-      },
+      where: { userId_task: { userId: model.userId, task } },
       select: { instructions: true },
     });
     if (!custom) return agent;

@@ -1,10 +1,10 @@
 /**
  * Adds the user's own instructions for a feature to its agent's.
  *
- * Providers cache prompts by prefix (OpenAI and Gemini implicitly, Claude at
- * its cache breakpoints). The generic instructions, identical for every call
- * of the feature, come first; the user's, which only change when they edit
- * them, come next. The call's data (the request, the activity...) is in the
+ * OpenAI and Gemini cache prompts by prefix (Claude would need explicit
+ * cache breakpoints, which we don't set yet). The generic instructions,
+ * identical for every call of the feature, come first; the user's, which
+ * only change when they edit them, come next. The call's data (the request, the activity...) is in the
  * user message after both, so neither part is re-read when only the data
  * changes, and editing the instructions keeps the generic part cached.
  */
