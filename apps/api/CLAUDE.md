@@ -64,6 +64,7 @@ Every model call goes through `modules/ai`. No agent runs on a hardcoded model o
   - the key's health (`lastError`, `lastUsedAt`).
 
   The provider SDK already retries transient errors. Callers retry only invalid answers (`isRetryableAiError`).
+- **Prompts and caching**: on the user's own key, `AiService` appends their custom instructions for the task (Settings > AI, `ai_custom_instruction`) to the agent's. Providers cache prompts by prefix, so keep agent instructions static and put the call's data in the prompt: the order is generic instructions, custom instructions, then data.
 - **A new AI feature** needs:
   - a value in the `AiTask` enum (Prisma migration, plus the shared enum);
   - a hosted default in `common/constants/ai-models.constant.ts`;

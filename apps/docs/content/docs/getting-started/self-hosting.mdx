@@ -136,6 +136,7 @@ Activities from connected devices, including historical imports, are fetched by 
 AI features (workout generation and editing, post-activity questions, feedback analysis, load estimation) run on any of 200+ providers: OpenAI, Anthropic, Google, Mistral, OpenRouter, Groq, DeepSeek, OVHcloud, Scaleway and more.
 
 - **Each user can bring their own key**: in **Settings > AI**, they add an API key and pick the model of each feature. Keys are encrypted with a key derived from `HASH_PEPPER` and never sent back to the browser.
+- **Custom instructions**: users with a key of their own can also tell each feature how to work for them, such as how to set warm-up and cool-down targets, what to ask after a session or what to analyse. The instructions follow the feature's generic prompt and come before the session's data, so the providers' prompt cache still covers both. They only apply to calls on the user's own key, never on the instance keys.
 - **Nothing runs without the user's permission**: before the first AI feature, the app shows what it sends and to which provider, and asks the user to allow it. Until they do, no AI runs on their data, including the automatic questions after an activity. They can withdraw it in **Settings > AI**.
 - **Instance keys** (optional) are used by users without a key of their own. Set the provider's usual variable (`OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, `MISTRAL_API_KEY`, `OPENROUTER_API_KEY`...) and the model:
 

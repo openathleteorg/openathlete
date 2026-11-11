@@ -4,7 +4,7 @@ import type { z } from 'zod';
 
 import { Injectable, Logger } from '@nestjs/common';
 
-import { AiErrorCode } from '@openathlete/shared';
+import { AiErrorCode, instructionTaskFor } from '@openathlete/shared';
 
 import {
   ClaudeEffort,
@@ -13,6 +13,7 @@ import {
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { AiProviderException, toAiProviderException } from '../ai.errors';
+import { withCustomInstructions } from '../custom-instructions';
 import { AiModelConfig, ResolvedAiModel } from './ai-model-resolver.service';
 import { AiUsageService, TokenUsage } from './ai-usage.service';
 
@@ -62,8 +63,9 @@ export class AiService {
     model: ResolvedAiModel,
     prompt: string,
   ): Promise<string> {
+    const spec = await this.withUserInstructions(agent, model);
     const result = await this.run(model, () =>
-      this.createAgent(agent, model.config).generate(prompt, {
+      this.createAgent(spec, model.config).generate(prompt, {
         ...callSettings(),
         providerOptions: anthropicOptions(model),
       }),
@@ -88,8 +90,9 @@ export class AiService {
     prompt: string,
     schema: S,
   ): Promise<z.output<S>> {
+    const spec = await this.withUserInstructions(agent, model);
     const result = await this.run(model, () =>
-      this.createAgent(agent, model.config).generate(prompt, {
+      this.createAgent(spec, model.config).generate(prompt, {
         ...callSettings(),
         structuredOutput: {
           schema,
@@ -123,6 +126,35 @@ export class AiService {
       },
       config,
     ).generate('Say OK.', { abortSignal: AbortSignal.timeout(30_000) });
+  }
+
+  /**
+   * The key's owner can tell a feature how to work for them (Settings > AI).
+   * Their instructions never reach the instance keys: those run the generic
+   * prompts only, and stay within the cost the allowance was sized for.
+   */
+  private async withUserInstructions(
+    agent: AgentSpec,
+    model: ResolvedAiModel,
+  ): Promise<AgentSpec> {
+    if (model.source !== 'own_key') return agent;
+    const custom = await this.prisma.aiCustomInstruction.findUnique({
+      where: {
+        userId_task: {
+          userId: model.userId,
+          task: instructionTaskFor(model.task),
+        },
+      },
+      select: { instructions: true },
+    });
+    if (!custom) return agent;
+    return {
+      ...agent,
+      instructions: withCustomInstructions(
+        agent.instructions,
+        custom.instructions,
+      ),
+    };
   }
 
   private createAgent(spec: AgentSpec, config: AiModelConfig) {

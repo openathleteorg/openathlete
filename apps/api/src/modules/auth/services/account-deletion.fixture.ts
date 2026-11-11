@@ -109,6 +109,7 @@ export const accountFixtureSql = [
   // AI provider keys and model choices (the coach keeps theirs)
   `INSERT INTO ai_credential (ai_credential_id, provider, label, encrypted_api_key, api_key_hint, user_id, updated_at) VALUES (7001, 'openai', 'OpenAI', 'v1:a:b:c', '••••1234', 1001, ${now}), (7002, 'anthropic', 'Anthropic', 'v1:a:b:c', '••••5678', 1002, ${now})`,
   `INSERT INTO ai_model_preference (task, model_id, user_id, ai_credential_id, updated_at) VALUES ('DEFAULT', 'gpt-5.1', 1001, 7001, ${now}), ('DEFAULT', 'claude-sonnet-4-5', 1002, 7002, ${now})`,
+  `INSERT INTO ai_custom_instruction (task, instructions, user_id, updated_at) VALUES ('EVENT_GENERATION', 'Warm up in zone 1', 1001, ${now}), ('ACTIVITY_SUMMARY', 'Comment on the cadence', 1002, ${now})`,
 
   // AI agents connected through MCP: an OAuth client both users approved,
   // and a personal token. The client and the coach's access must survive.
