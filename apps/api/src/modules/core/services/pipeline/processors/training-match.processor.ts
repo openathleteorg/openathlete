@@ -1,5 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 
+import {
+  addDaysToDateKey,
+  startOfZonedDay,
+  validTimeZone,
+  zonedClock,
+} from 'src/common/utils/time-zone';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { TRAINING_MATCH_THRESHOLD } from '../constants';
@@ -27,6 +33,7 @@ export class TrainingMatchProcessor implements ActivityProcessor {
             startDate: true,
             endDate: true,
             athleteId: true,
+            athlete: { select: { user: { select: { timeZone: true } } } },
           },
         },
         relatedTraining: {
@@ -52,11 +59,13 @@ export class TrainingMatchProcessor implements ActivityProcessor {
       return;
     }
 
+    // The calendar day is the athlete's, not the server's: an evening
+    // activity must not be matched against the next day's sessions
     const activityDate = new Date(activity.event.startDate);
-    const dayStart = new Date(activityDate);
-    dayStart.setHours(0, 0, 0, 0);
-    const dayEnd = new Date(activityDate);
-    dayEnd.setHours(23, 59, 59, 999);
+    const timeZone = validTimeZone(activity.event.athlete?.user.timeZone);
+    const { date } = zonedClock(activityDate, timeZone);
+    const dayStart = startOfZonedDay(date, timeZone);
+    const dayEnd = startOfZonedDay(addDaysToDateKey(date, 1), timeZone);
 
     // Find all training sessions scheduled for the same day
     const trainingSessions = await this.prisma.eventTraining.findMany({
@@ -65,7 +74,7 @@ export class TrainingMatchProcessor implements ActivityProcessor {
           athleteId: activity.event.athleteId,
           startDate: {
             gte: dayStart,
-            lte: dayEnd,
+            lt: dayEnd,
           },
         },
         relatedActivityId: null, // Not already linked to an activity
