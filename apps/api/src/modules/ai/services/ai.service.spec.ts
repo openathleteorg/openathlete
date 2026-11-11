@@ -29,8 +29,19 @@ const ownKeyModel: ResolvedAiModel = {
   config: { id: 'anthropic/claude-sonnet-4-5', apiKey: 'sk-ant-user' },
 };
 
-function setup() {
-  const prisma = { aiCredential: { update: jest.fn().mockResolvedValue({}) } };
+function setup(customInstructions: string | null = null) {
+  const prisma = {
+    aiCredential: { update: jest.fn().mockResolvedValue({}) },
+    aiCustomInstruction: {
+      findUnique: jest
+        .fn()
+        .mockResolvedValue(
+          customInstructions === null
+            ? null
+            : { instructions: customInstructions },
+        ),
+    },
+  };
   const usage = { record: jest.fn().mockResolvedValue(undefined) };
   return {
     prisma,
@@ -186,5 +197,69 @@ describe('AiService', () => {
     );
 
     expect(prisma.aiCredential.update).not.toHaveBeenCalled();
+  });
+
+  it("adds the key owner's instructions for the task after the agent's", async () => {
+    const { service, prisma } = setup('Warm up in zone 1');
+    generate.mockResolvedValue({ object: { value: 3 } });
+
+    await service.generateObject(
+      agent,
+      ownKeyModel,
+      'Count',
+      z.object({ value: z.number() }),
+    );
+
+    expect(prisma.aiCustomInstruction.findUnique).toHaveBeenCalledWith({
+      where: { userId_task: { userId: 1, task: AiTask.EVENT_GENERATION } },
+      select: { instructions: true },
+    });
+    const { instructions } = agentConfigs[0] as { instructions: string };
+    expect(instructions.startsWith('Be helpful\n')).toBe(true);
+    expect(instructions).toContain('Warm up in zone 1');
+    // The call's data stays in the prompt, after both
+    expect(generate).toHaveBeenCalledWith('Count', expect.anything());
+  });
+
+  it('edits workouts with the instructions written for generating them', async () => {
+    const { service, prisma } = setup('Warm up in zone 1');
+    generate.mockResolvedValue({ text: 'ok' });
+
+    await service.generateText(
+      agent,
+      { ...ownKeyModel, task: AiTask.EVENT_MODIFICATION },
+      'Hi',
+    );
+
+    expect(prisma.aiCustomInstruction.findUnique).toHaveBeenCalledWith({
+      where: { userId_task: { userId: 1, task: AiTask.EVENT_GENERATION } },
+      select: { instructions: true },
+    });
+    expect(
+      (agentConfigs[0] as { instructions: string }).instructions,
+    ).toContain('Warm up in zone 1');
+  });
+
+  it('keeps the generic prompt on the instance keys', async () => {
+    const { service, prisma } = setup('Warm up in zone 1');
+    generate.mockResolvedValue({ text: 'ok' });
+
+    await service.generateText(
+      agent,
+      { ...ownKeyModel, source: 'hosted', credentialId: null },
+      'Hi',
+    );
+
+    expect(prisma.aiCustomInstruction.findUnique).not.toHaveBeenCalled();
+    expect(agentConfigs[0]).toMatchObject({ instructions: 'Be helpful' });
+  });
+
+  it('keeps the generic prompt when the user wrote no instructions', async () => {
+    const { service } = setup();
+    generate.mockResolvedValue({ text: 'ok' });
+
+    await service.generateText(agent, ownKeyModel, 'Hi');
+
+    expect(agentConfigs[0]).toMatchObject({ instructions: 'Be helpful' });
   });
 });

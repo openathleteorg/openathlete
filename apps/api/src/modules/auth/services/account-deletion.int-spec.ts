@@ -127,8 +127,9 @@ describe('AccountDeletionService (PostgreSQL)', () => {
     await service.deleteAccount(DELETED_USER_ID);
 
     // Only the coach's own data is left: their user and athlete profile,
-    // their AI key and model choice, their agent's access, and the direct
-    // conversation with the message they wrote, and the email they were sent
+    // their AI key, model choice and instructions, their agent's access, the
+    // direct conversation with the message they wrote, and the email they
+    // were sent
     expect(await rowCounts()).toEqual({
       user: 1,
       garmin_personal_connection: 1,
@@ -136,6 +137,7 @@ describe('AccountDeletionService (PostgreSQL)', () => {
       athlete: 1,
       ai_credential: 1,
       ai_model_preference: 1,
+      ai_custom_instruction: 1,
       oauth_client: 1,
       mcp_grant: 1,
       mcp_token: 1,

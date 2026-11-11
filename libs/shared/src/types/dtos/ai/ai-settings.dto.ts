@@ -204,6 +204,59 @@ export type UpdateAiModelPreferencesDto = z.infer<
   typeof updateAiModelPreferencesDtoSchema
 >;
 
+/** Room for a few paragraphs; the user's own key pays for every token. */
+export const AI_CUSTOM_INSTRUCTIONS_MAX_LENGTH = 4000;
+
+/**
+ * Features the user can write instructions for. Workout editing has none of
+ * its own: it follows workout generation's, so a workout is built the same
+ * way whether it is created or changed.
+ */
+export const AI_INSTRUCTION_TASKS = [
+  AiTask.EVENT_GENERATION,
+  AiTask.POST_ACTIVITY_QUESTIONS,
+  AiTask.FEEDBACK_EXTRACTION,
+  AiTask.TRAINING_LOAD_ESTIMATION,
+  AiTask.ACTIVITY_SUMMARY,
+] as const;
+export type AiInstructionTask = (typeof AI_INSTRUCTION_TASKS)[number];
+
+/** Whose instructions a feature follows. */
+export function instructionTaskFor(task: AiFeatureTask): AiInstructionTask {
+  return task === AiTask.EVENT_MODIFICATION ? AiTask.EVENT_GENERATION : task;
+}
+
+/** The features following the instructions of an instruction task. */
+export function tasksFollowingInstructions(
+  task: AiInstructionTask,
+): AiFeatureTask[] {
+  return AI_FEATURE_TASKS.filter((item) => instructionTaskFor(item) === task);
+}
+
+/**
+ * What the user wants a feature to do their way. Only applies when the
+ * feature runs on one of their own keys.
+ */
+export const aiCustomInstructionSchema = z.object({
+  task: z.enum(AI_INSTRUCTION_TASKS),
+  instructions: z.string().trim().max(AI_CUSTOM_INSTRUCTIONS_MAX_LENGTH),
+});
+export type AiCustomInstructionDto = z.infer<typeof aiCustomInstructionSchema>;
+
+/** Replaces all of the user's instructions; blank ones are removed. */
+export const updateAiCustomInstructionsDtoSchema = z.object({
+  instructions: z
+    .array(aiCustomInstructionSchema)
+    .max(AI_INSTRUCTION_TASKS.length)
+    .refine(
+      (list) => new Set(list.map((item) => item.task)).size === list.length,
+      'Each task can only be set once',
+    ),
+});
+export type UpdateAiCustomInstructionsDto = z.infer<
+  typeof updateAiCustomInstructionsDtoSchema
+>;
+
 export type AiAccessSource = 'own_key' | 'hosted';
 
 export interface AiTaskAccessDto {

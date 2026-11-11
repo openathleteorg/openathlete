@@ -37,6 +37,8 @@ const { trainingEventSchema } = require(
 const originalFetch = globalThis.fetch;
 let requests = [];
 let usageRecords = [];
+/** What the user wrote in Settings > AI, per task */
+let customInstructions = {};
 
 const generatedEvent = {
   type: 'TRAINING',
@@ -136,7 +138,15 @@ function model(config, source = 'own_key') {
 }
 
 const ai = new AiService(
-  { aiCredential: { update: async () => undefined } },
+  {
+    aiCredential: { update: async () => undefined },
+    aiCustomInstruction: {
+      findUnique: async ({ where }) =>
+        customInstructions[where.userId_task.task]
+          ? { instructions: customInstructions[where.userId_task.task] }
+          : null,
+    },
+  },
   { record: async (owner, usage) => usageRecords.push({ owner, usage }) },
 );
 
@@ -150,6 +160,7 @@ afterEach(() => {
   globalThis.fetch = originalFetch;
   requests = [];
   usageRecords = [];
+  customInstructions = {};
 });
 
 test("OpenAI runs on the user's key, without strict mode", async () => {
@@ -364,6 +375,49 @@ test('OpenAI-compatible endpoints send the credential custom headers', async () 
   const [request] = requests;
   assert.equal(request.headers.get('x-opencode-session'), 'session-1');
   assert.equal(request.headers.get('x-custom-header'), 'value');
+});
+
+for (const config of [
+  { id: 'openai/gpt-5.1', apiKey: 'sk-user-openai' },
+  { id: 'anthropic/claude-sonnet-4-5', apiKey: 'sk-ant-user' },
+]) {
+  test(`${config.id} reads the user's instructions between the generic prompt and the request`, async () => {
+    customInstructions = { EVENT_GENERATION: 'Warm-up of exactly 17 minutes' };
+    providersAnswer(JSON.stringify(generatedEvent));
+    const [provider, modelId] = config.id.split('/');
+
+    await ai.generateObject(
+      eventGenerationAgent,
+      { ...model(config), provider, modelId },
+      'REQUEST: 1h easy run',
+      trainingEventSchema,
+    );
+
+    // Providers cache prompts by prefix: what never changes comes first
+    const sent = JSON.stringify(requests[0].body);
+    const generic = sent.indexOf('You are an expert training coach');
+    const custom = sent.indexOf('Warm-up of exactly 17 minutes');
+    const request = sent.indexOf('REQUEST: 1h easy run');
+    assert.ok(generic >= 0 && custom > generic && request > custom);
+  });
+}
+
+test("the user's instructions never run on the instance keys", async () => {
+  customInstructions = { EVENT_GENERATION: 'Warm-up of exactly 17 minutes' };
+  providersAnswer(JSON.stringify(generatedEvent));
+
+  await ai.generateObject(
+    eventGenerationAgent,
+    model({ id: 'openai/gpt-5.1' }, 'hosted'),
+    '1h easy run',
+    trainingEventSchema,
+  );
+
+  assert.equal(
+    requests[0].headers.get('authorization'),
+    'Bearer sk-instance-openai',
+  );
+  assert.doesNotMatch(JSON.stringify(requests[0].body), /17 minutes/);
 });
 
 test('plain text generation returns the answer', async () => {

@@ -27,9 +27,11 @@ import { Throttle } from '@nestjs/throttler';
 import {
   CreateAiCredentialDto,
   TestAiCredentialDto,
+  UpdateAiCustomInstructionsDto,
   UpdateAiModelPreferencesDto,
   createAiCredentialDtoSchema,
   testAiCredentialDtoSchema,
+  updateAiCustomInstructionsDtoSchema,
   updateAiModelPreferencesDtoSchema,
 } from '@openathlete/shared';
 
@@ -140,6 +142,35 @@ export class AiSettingsController {
     body: UpdateAiModelPreferencesDto,
   ) {
     return this.settings.updateModelPreferences(user.userId, body);
+  }
+
+  @Get('instructions')
+  @ApiOperation({
+    summary: "Get the user's custom instructions",
+    description:
+      "One entry per AI feature the user wrote instructions for. They are added to the feature's prompt when it runs on one of the user's own keys.",
+  })
+  getCustomInstructions(@JwtUser() user: AuthUser) {
+    return this.settings.getCustomInstructions(user.userId);
+  }
+
+  @Put('instructions')
+  @ApiOperation({
+    summary: "Replace the user's custom instructions",
+    description:
+      "Sets what each AI feature should do the user's way (how to set warm-up targets, what to ask after a session...). Features left out, or with blank instructions, use the generic prompt only. The instructions apply only to calls on the user's own keys, never on the instance keys.",
+  })
+  @ApiResponse({ status: 200, description: 'The saved instructions' })
+  @ApiResponse({
+    status: 403,
+    description: 'The user has no AI key of their own',
+  })
+  updateCustomInstructions(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(updateAiCustomInstructionsDtoSchema))
+    body: UpdateAiCustomInstructionsDto,
+  ) {
+    return this.settings.updateCustomInstructions(user.userId, body);
   }
 
   @Get('access')

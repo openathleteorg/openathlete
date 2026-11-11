@@ -83,6 +83,32 @@ model AiModelPreference {
   @@map("ai_model_preference")
 }
 
+/// What a user wants an AI feature to do their way (how to set warm-up
+/// targets, what to ask after a session...). Only applies when the feature
+/// runs on the user's own key: the instance keys keep the generic prompts.
+model AiCustomInstruction {
+  // primary key
+  aiCustomInstructionId Int @id @default(autoincrement()) @map("ai_custom_instruction_id")
+
+  // fields
+  /// Feature the instructions apply to, never DEFAULT nor EVENT_MODIFICATION
+  /// (workout editing follows EVENT_GENERATION's instructions)
+  task         AiTask
+  /// Added to the feature's prompt, after its generic instructions
+  instructions String
+
+  // relationships
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId Int  @map("user_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, task])
+  @@map("ai_custom_instruction")
+}
+
 /// Whose key paid for an AI call.
 enum AiKeySource {
   /// The user's own key: billed to them, only counted for their information

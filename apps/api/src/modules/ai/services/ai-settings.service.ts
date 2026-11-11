@@ -10,11 +10,13 @@ import { AiCredential } from '@openathlete/database';
 import {
   AiAccessDto,
   AiCredentialDto,
+  AiCustomInstructionDto,
   AiModelPreferenceDto,
   AiProvider,
   CUSTOM_AI_PROVIDER,
   CreateAiCredentialDto,
   TestAiCredentialResponseDto,
+  UpdateAiCustomInstructionsDto,
   UpdateAiModelPreferencesDto,
 } from '@openathlete/shared';
 
@@ -200,6 +202,46 @@ export class AiSettingsService {
       }),
     ]);
     return this.getModelPreferences(userId);
+  }
+
+  async getCustomInstructions(
+    userId: number,
+  ): Promise<AiCustomInstructionDto[]> {
+    const instructions = await this.prisma.aiCustomInstruction.findMany({
+      where: { userId },
+      orderBy: { task: 'asc' },
+    });
+    return instructions.map(({ task, instructions }) => ({
+      task,
+      instructions,
+    })) as AiCustomInstructionDto[];
+  }
+
+  /**
+   * Only the owner of an AI key can set instructions: they only ever run
+   * on the user's own keys, never on the instance's.
+   */
+  async updateCustomInstructions(
+    userId: number,
+    dto: UpdateAiCustomInstructionsDto,
+  ): Promise<AiCustomInstructionDto[]> {
+    const kept = dto.instructions.filter((item) => item.instructions);
+    if (
+      kept.length > 0 &&
+      (await this.prisma.aiCredential.count({ where: { userId } })) === 0
+    ) {
+      throw new ForbiddenException(
+        'Custom instructions need an AI key of your own',
+      );
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.aiCustomInstruction.deleteMany({ where: { userId } }),
+      this.prisma.aiCustomInstruction.createMany({
+        data: kept.map((item) => ({ ...item, userId })),
+      }),
+    ]);
+    return this.getCustomInstructions(userId);
   }
 
   /** The user allows their data to be sent to AI providers, or withdraws it */

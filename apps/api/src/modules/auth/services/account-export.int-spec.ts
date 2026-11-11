@@ -26,6 +26,7 @@ if (!databaseUrl) {
 const EXPORTED_TABLES = [
   'agent_thread',
   'ai_credential',
+  'ai_custom_instruction',
   'ai_model_preference',
   'ai_usage',
   'athlete',
@@ -82,7 +83,7 @@ interface ExportDocument {
   templates: { event: { name: string } }[];
   aiAssistant: { messages: { blocks: { content: string }[] }[] }[];
   coachNotes: { title: string }[];
-  aiSettings: { keys: unknown[] };
+  aiSettings: { keys: unknown[]; instructions: unknown[] };
   messages: unknown[];
   events: {
     eventId: number;
@@ -164,6 +165,12 @@ describe('AccountExportService (PostgreSQL)', () => {
     ]);
     expect(data.aiSettings.keys).toEqual([
       expect.objectContaining({ provider: 'openai', apiKeyHint: '••••1234' }),
+    ]);
+    expect(data.aiSettings.instructions).toEqual([
+      expect.objectContaining({
+        task: 'EVENT_GENERATION',
+        instructions: 'Warm up in zone 1',
+      }),
     ]);
   });
 

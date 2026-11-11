@@ -220,9 +220,9 @@ export class AccountExportService {
     });
   }
 
-  /** Which providers and models are configured, never the keys. */
+  /** Providers, models and instructions the user set up, never the keys. */
   private async aiSettings(userId: number) {
-    const [credentials, models, usage] = await Promise.all([
+    const [credentials, models, instructions, usage] = await Promise.all([
       this.prisma.aiCredential.findMany({
         where: { userId },
         select: {
@@ -241,6 +241,11 @@ export class AccountExportService {
           credential: { select: { label: true } },
         },
       }),
+      this.prisma.aiCustomInstruction.findMany({
+        where: { userId },
+        select: { task: true, instructions: true, updatedAt: true },
+        orderBy: { task: 'asc' },
+      }),
       this.prisma.aiUsage.findMany({
         where: { userId },
         select: {
@@ -254,7 +259,7 @@ export class AccountExportService {
         orderBy: [{ month: 'asc' }, { task: 'asc' }],
       }),
     ]);
-    return { keys: credentials, models, usage };
+    return { keys: credentials, models, instructions, usage };
   }
 
   private async writeEvents(

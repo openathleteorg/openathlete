@@ -91,7 +91,7 @@ describe('AiSettingsService (PostgreSQL)', () => {
 
   beforeEach(async () => {
     await prisma.$executeRawUnsafe(
-      'TRUNCATE "user", athlete, coach_athlete, ai_credential, ai_model_preference RESTART IDENTITY CASCADE',
+      'TRUNCATE "user", athlete, coach_athlete, ai_credential, ai_model_preference, ai_custom_instruction RESTART IDENTITY CASCADE',
     );
     policy.customEndpointsAllowed = false;
     ping.mockReset().mockResolvedValue(undefined);
@@ -432,5 +432,64 @@ describe('AiSettingsService (PostgreSQL)', () => {
       (await service.getAccess(coachUserId, athleteId))
         .athleteDataSharingConsent,
     ).toBe(false);
+  });
+
+  it('only lets the owner of an AI key write custom instructions', async () => {
+    const write = () =>
+      service.updateCustomInstructions(athleteUserId, {
+        instructions: [
+          {
+            task: AiTask.EVENT_GENERATION,
+            instructions: 'Warm up in zone 1',
+          },
+        ],
+      });
+
+    await expect(write()).rejects.toThrow('AI key of your own');
+    // Clearing them needs no key, e.g. after deleting it
+    await expect(
+      service.updateCustomInstructions(athleteUserId, { instructions: [] }),
+    ).resolves.toEqual([]);
+
+    await service.createCredential(athleteUserId, {
+      provider: 'openai',
+      apiKey: 'sk-instructions-0001',
+    });
+    await expect(write()).resolves.toEqual([
+      { task: AiTask.EVENT_GENERATION, instructions: 'Warm up in zone 1' },
+    ]);
+  });
+
+  it('replaces custom instructions and drops blank ones', async () => {
+    await service.createCredential(athleteUserId, {
+      provider: 'openai',
+      apiKey: 'sk-instructions-0002',
+    });
+    await service.updateCustomInstructions(athleteUserId, {
+      instructions: [
+        { task: AiTask.EVENT_GENERATION, instructions: 'Warm up in zone 1' },
+        { task: AiTask.ACTIVITY_SUMMARY, instructions: 'Comment on cadence' },
+      ],
+    });
+
+    const replaced = await service.updateCustomInstructions(athleteUserId, {
+      instructions: [
+        { task: AiTask.EVENT_GENERATION, instructions: '' },
+        {
+          task: AiTask.POST_ACTIVITY_QUESTIONS,
+          instructions: 'Ask how I slept',
+        },
+      ],
+    });
+
+    expect(replaced).toEqual([
+      {
+        task: AiTask.POST_ACTIVITY_QUESTIONS,
+        instructions: 'Ask how I slept',
+      },
+    ]);
+    await expect(service.getCustomInstructions(coachUserId)).resolves.toEqual(
+      [],
+    );
   });
 });

@@ -73,6 +73,7 @@ model User {
   agentThreads              AgentThread[]
   aiCredentials             AiCredential[]
   aiModelPreferences        AiModelPreference[]
+  aiCustomInstructions      AiCustomInstruction[]
   aiUsage                   AiUsage[]
   eventTemplateFolder       EventTemplateFolder[]
   athleteInvitations        AthleteInvitation[]
