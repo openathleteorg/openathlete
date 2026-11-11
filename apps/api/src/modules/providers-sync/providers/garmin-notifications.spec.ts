@@ -91,10 +91,7 @@ describe('GarminProviderService.processNotification', () => {
       $transaction: jest.fn(),
     };
     const config = { get: jest.fn() };
-    const queue = {
-      addActivityImportJobs: jest.fn(),
-      addGarminHistoryBackfillJob: jest.fn(),
-    };
+    const queue = { addActivityImportJobs: jest.fn() };
     const service = new GarminProviderService(
       prisma as never,
       config as never,
@@ -324,44 +321,21 @@ describe('GarminProviderService.processNotification', () => {
     );
   });
 
-  const sharingAccount = {
-    ...account,
-    scopes: 'permissions:ACTIVITY_EXPORT',
-  } as unknown as ProviderAccount;
-
-  it('starts the history backfill behind the last 30 days', async () => {
-    const { service, queue } = setup([sharingAccount]);
+  it('asks for as much history as Garmin serves, just under 31 days', async () => {
+    const sharingAccount = {
+      ...account,
+      scopes: 'permissions:ACTIVITY_EXPORT',
+    } as unknown as ProviderAccount;
+    const { service } = setup([sharingAccount]);
     mockedGet.mockResolvedValue({ status: 202, data: '' });
 
     await service.queueFullImport(sharingAccount);
 
-    const { summaryStartTimeInSeconds } = mockedGet.mock.calls[0][1].params;
-    expect(queue.addGarminHistoryBackfillJob).toHaveBeenCalledWith(
-      1,
-      summaryStartTimeInSeconds,
-    );
-  });
-
-  it('completes the import even when the history backfill cannot start', async () => {
-    const { service, queue } = setup([sharingAccount]);
-    mockedGet.mockResolvedValue({ status: 202, data: '' });
-    queue.addGarminHistoryBackfillJob.mockRejectedValue(
-      new Error('Redis down'),
-    );
-
-    await expect(service.queueFullImport(sharingAccount)).resolves.toEqual({
-      queuedActivities: 0,
-      backfillRequested: true,
-    });
-  });
-
-  it('only recovers the last 30 days when asked to', async () => {
-    const { service, queue } = setup([sharingAccount]);
-    mockedGet.mockResolvedValue({ status: 202, data: '' });
-
-    await service.queueFullImport(sharingAccount, { deepHistory: false });
-
-    expect(queue.addGarminHistoryBackfillJob).not.toHaveBeenCalled();
+    const { summaryStartTimeInSeconds, summaryEndTimeInSeconds } =
+      mockedGet.mock.calls[0][1].params;
+    const days = (summaryEndTimeInSeconds - summaryStartTimeInSeconds) / 86400;
+    expect(days).toBeGreaterThan(30.9);
+    expect(days).toBeLessThan(31);
   });
 
   it('imports backfilled activities as history, recent ones as new', async () => {

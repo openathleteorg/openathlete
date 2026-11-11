@@ -89,10 +89,15 @@ import {
   mapGarminSleeps,
   mapGarminUserMetrics,
 } from '../mapping/garmin-health.mapper';
-import { GARMIN_BACKFILL_WINDOW_SECONDS } from './garmin-backfill';
 
 const GARMIN_API_HOST = 'apis.garmin.com';
 const GARMIN_USER_API = `https://${GARMIN_API_HOST}/partner-gateway/rest/user`;
+
+/**
+ * How far back a backfill may start: Garmin refuses any start before 31
+ * days ago ("before min start time"). The hour of margin covers clock skew.
+ */
+const BACKFILL_WINDOW_SECONDS = 31 * 24 * 60 * 60 - 3600;
 
 /**
  * Older activities come from a backfill: they are imported as history,
@@ -632,15 +637,11 @@ export class GarminProviderService
 
   /**
    * Garmin forbids pulling data outside of its notifications. History comes
-   * from backfill requests: Garmin then sends the past activities through
-   * the usual pings. The last 30 days are requested here; older windows
-   * follow one job at a time (garmin-history-backfill), and their failure
-   * never fails this import.
+   * from a backfill request: Garmin then sends the past activities through
+   * the usual pings. Garmin serves the last 31 days only; older activities
+   * come from the user's Garmin data export, imported as files.
    */
-  async queueFullImport(
-    account: ProviderAccount,
-    { deepHistory = true }: { deepHistory?: boolean } = {},
-  ): Promise<FullImportResult> {
+  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
     const permissions = await this.getAccountPermissions(account);
     if (permissions.length > 0 && !permissions.includes('ACTIVITY_EXPORT')) {
       throw new BadRequestException(
@@ -649,39 +650,10 @@ export class GarminProviderService
     }
 
     const end = Math.floor(Date.now() / 1000);
-    const start = end - GARMIN_BACKFILL_WINDOW_SECONDS;
+    const start = end - BACKFILL_WINDOW_SECONDS;
     const accessToken = await this.getValidAccessToken(account);
     await this.requestActivitiesBackfill(accessToken, start, end);
-
-    if (deepHistory) {
-      try {
-        await this.queueService.addGarminHistoryBackfillJob(
-          account.providerAccountId,
-          start,
-        );
-        this.logger.log(
-          `Garmin history backfill started for account ${account.providerAccountId}`,
-        );
-      } catch (error) {
-        this.logger.warn(
-          `Garmin history backfill not started for account ${account.providerAccountId}: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
-    }
     return { queuedActivities: 0, backfillRequested: true };
-  }
-
-  /**
-   * One window of the history backfill. Throws ProviderRateLimitError on
-   * 429, and a BadRequestException when Garmin refuses the window (400, 412).
-   */
-  async requestHistoryWindow(
-    account: ProviderAccount,
-    start: number,
-    end: number,
-  ): Promise<void> {
-    const accessToken = await this.getValidAccessToken(account);
-    await this.requestActivitiesBackfill(accessToken, start, end);
   }
 
   private async requestActivitiesBackfill(

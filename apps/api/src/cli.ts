@@ -88,12 +88,7 @@ async function queueFullImports(
         if (state !== 'completed' && state !== 'failed') continue;
         await existing.remove();
       }
-      // Recovers lost notifications: the older history was already requested
-      await queue.add(
-        'full-import',
-        { providerAccountId, recoverOnly: true },
-        { jobId },
-      );
+      await queue.add('full-import', { providerAccountId }, { jobId });
     }
   } finally {
     await queue.close();
