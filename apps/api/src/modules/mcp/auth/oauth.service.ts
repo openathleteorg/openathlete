@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 
@@ -11,10 +11,12 @@ import {
   OAuthScope,
 } from '@openathlete/shared';
 
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { McpUrls, mcpUrls } from '../mcp-urls';
+import { mcpClientCategory } from './client-category';
 import { OAuthClientsService } from './oauth-clients.service';
 import { AuthorizeError, OAuthError } from './oauth-error';
 import { parseScopes, scopesFor } from './scopes';
@@ -83,6 +85,7 @@ export class OAuthService {
     private readonly prisma: PrismaService,
     private readonly clients: OAuthClientsService,
     config: ConfigService<ApiEnvSchemaType, true>,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     this.urls = mcpUrls(config);
   }
@@ -319,6 +322,12 @@ export class OAuthService {
         },
       }),
     ]);
+    await this.analytics?.capture(user.userId, 'mcp_connected', {
+      kind: 'OAUTH',
+      client: mcpClientCategory(valid.client.name),
+      resource: valid.resourceKind,
+      is_new: !existing,
+    });
     return this.redirect(valid.redirectUri, { code, state: valid.state });
   }
 

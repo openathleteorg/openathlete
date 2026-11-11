@@ -1,10 +1,11 @@
 import { AxiosError } from 'axios';
 import { createHash } from 'node:crypto';
 
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 
 import type { NormalizedWorkout } from '@openathlete/shared';
 
+import { AnalyticsService } from '../analytics/analytics.service';
 import { PrismaService } from '../prisma/services/prisma.service';
 import { CorosAdapter, GarminAdapter, SuuntoAdapter } from './adapters';
 import { mapToCoros, mapToGarmin, mapToSuunto } from './mapping';
@@ -35,6 +36,7 @@ export class ProviderExportService {
     garminAdapter: GarminAdapter,
     suuntoAdapter: SuuntoAdapter,
     corosAdapter: CorosAdapter,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {
     this.adapters = {
       garmin: garminAdapter,
@@ -192,6 +194,11 @@ export class ProviderExportService {
           scheduleId: result.scheduleId ?? null,
         },
       });
+      await this.analytics?.captureForAthlete(
+        athleteId,
+        'workout_sent_to_device',
+        { provider: providerEnum, is_update: Boolean(record.externalId) },
+      );
 
       return { skipped: false, externalId: result.externalId };
     } catch (err) {

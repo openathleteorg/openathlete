@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron } from '@nestjs/schedule';
 
@@ -12,6 +12,10 @@ import { ApiEnvSchemaType, EmailLanguage } from '@openathlete/shared';
 
 import { maskEmail } from 'src/common/utils/mask-email';
 import { validTimeZone, zonedClock } from 'src/common/utils/time-zone';
+import {
+  AnalyticsService,
+  stableUuid,
+} from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { providerName } from '../emails/core/format';
@@ -29,6 +33,7 @@ import { buildPlanNudgeEmail } from '../emails/templates/lifecycle/plan-nudge.te
 import { buildSupporterAskEmail } from '../emails/templates/lifecycle/supporter-ask.template';
 import { buildSupporterCancelledEmail } from '../emails/templates/lifecycle/supporter-cancelled.template';
 import { EmailTransportService } from '../services/email-transport.service';
+import { campaignLink } from './campaign-link';
 import { LIST_OF_KIND, LIST_REASONS, WEBSITE_LOCALES } from './email-lists';
 import {
   LifecycleState,
@@ -112,6 +117,7 @@ export class LifecycleEmailScheduler {
     private readonly prisma: PrismaService,
     private readonly transport: EmailTransportService,
     private readonly config: ConfigService<ApiEnvSchemaType, true>,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   @Cron('17 * * * *')
@@ -283,6 +289,13 @@ export class LifecycleEmailScheduler {
             }
           : undefined,
       });
+      // Measures which emails bring people back, next to the app's events
+      await this.analytics?.capture(
+        user.userId,
+        'lifecycle_email_sent',
+        { kind: next.kind },
+        { uuid: stableUuid(`lifecycle_email:${claim.lifecycleEmailId}`) },
+      );
       return true;
     } catch (error) {
       await this.prisma.lifecycleEmail.delete({
@@ -319,8 +332,9 @@ export class LifecycleEmailScheduler {
       footer,
     };
     const athleteId = user.athlete.athleteId;
-    const connectionsUrl = `${appUrl}/dashboard/settings?tab=connectors`;
-    const calendarUrl = `${appUrl}/dashboard/calendar`;
+    const link = (url: string) => campaignLink(url, next.kind);
+    const connectionsUrl = link(`${appUrl}/dashboard/settings?tab=connectors`);
+    const calendarUrl = link(`${appUrl}/dashboard/calendar`);
 
     switch (next.kind) {
       case LifecycleEmailKind.CONNECT_REMINDER:
@@ -362,7 +376,9 @@ export class LifecycleEmailScheduler {
         return buildPlanNudgeEmail({
           ...base,
           calendarUrl,
-          plansUrl: `https://openathlete.org/${WEBSITE_LOCALES[language]}/training-plans`,
+          plansUrl: link(
+            `https://openathlete.org/${WEBSITE_LOCALES[language]}/training-plans`,
+          ),
         });
 
       case LifecycleEmailKind.CONNECTION_LOST: {
@@ -401,7 +417,7 @@ export class LifecycleEmailScheduler {
             ? { name: longest.event.name, distance: longest.distance }
             : null,
           nextRace,
-          statisticsUrl: `${appUrl}/dashboard/statistics`,
+          statisticsUrl: link(`${appUrl}/dashboard/statistics`),
         });
       }
 
@@ -430,7 +446,9 @@ export class LifecycleEmailScheduler {
           ),
           activityCount,
           supporters,
-          subscriptionUrl: `${appUrl}/dashboard/settings?tab=subscription`,
+          subscriptionUrl: link(
+            `${appUrl}/dashboard/settings?tab=subscription`,
+          ),
         });
       }
 

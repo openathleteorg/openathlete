@@ -4,6 +4,7 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 
 import { AiCredential } from '@openathlete/database';
@@ -20,6 +21,7 @@ import {
   UpdateAiModelPreferencesDto,
 } from '@openathlete/shared';
 
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { AiProviderException, toAiProviderException } from '../ai.errors';
@@ -49,6 +51,7 @@ export class AiSettingsService {
     private readonly resolver: AiModelResolverService,
     private readonly aiService: AiService,
     @Inject(AI_CREDENTIAL_CIPHER) private readonly cipher: AiCredentialCipher,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
   listProviders(): AiProvider[] {
@@ -113,6 +116,12 @@ export class AiSettingsService {
         baseUrl: dto.baseUrl ?? null,
       },
     });
+    await this.analytics?.capture(
+      userId,
+      'ai_key_added',
+      { provider: dto.provider, key_count: count + 1 },
+      { set: { has_own_ai_key: true } },
+    );
     return toCredentialDto(credential, Object.keys(headers));
   }
 
@@ -133,6 +142,16 @@ export class AiSettingsService {
       where: { userId, aiCredentialId },
     });
     if (count === 0) throw new NotFoundException('AI key not found');
+    if (!this.analytics?.enabled) return;
+    const remaining = await this.prisma.aiCredential.count({
+      where: { userId },
+    });
+    await this.analytics.capture(
+      userId,
+      'ai_key_removed',
+      { key_count: remaining },
+      { set: { has_own_ai_key: remaining > 0 } },
+    );
   }
 
   /** Calls the model once with the key, and records the outcome. */

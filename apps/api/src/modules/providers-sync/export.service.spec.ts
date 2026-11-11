@@ -35,13 +35,15 @@ function setup(existing: Record<string, unknown> | null) {
       .mockResolvedValue({ externalId: '55', scheduleId: '77' }),
     deletePlannedWorkout: jest.fn(),
   };
+  const analytics = { captureForAthlete: jest.fn() };
   const service = new ProviderExportService(
     prisma as never,
     garmin as never,
     {} as never,
     {} as never,
+    analytics as never,
   );
-  return { service, prisma, garmin };
+  return { service, prisma, garmin, analytics };
 }
 
 const params = {
@@ -53,6 +55,25 @@ const params = {
 };
 
 describe('ProviderExportService.upsertPlannedExport', () => {
+  it('reports a workout that reached the device', async () => {
+    const { service, analytics } = setup(null);
+    await service.upsertPlannedExport(params);
+
+    expect(analytics.captureForAthlete).toHaveBeenCalledWith(
+      1,
+      'workout_sent_to_device',
+      { provider: 'GARMIN', is_update: true },
+    );
+  });
+
+  it('reports nothing when the device refuses the workout', async () => {
+    const { service, garmin, analytics } = setup(null);
+    garmin.upsertPlannedWorkout.mockRejectedValue(new Error('refused'));
+
+    await expect(service.upsertPlannedExport(params)).rejects.toThrow();
+    expect(analytics.captureForAthlete).not.toHaveBeenCalled();
+  });
+
   it('sends nothing for a workout exported unchanged', async () => {
     const { service, prisma, garmin } = setup(null);
     await service.upsertPlannedExport(params);

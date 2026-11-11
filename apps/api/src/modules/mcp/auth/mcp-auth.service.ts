@@ -3,6 +3,7 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
 
 import { McpGrant, OAuthClient, OAuthResource } from '@openathlete/database';
@@ -13,6 +14,7 @@ import {
   OAuthScope,
 } from '@openathlete/shared';
 
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -62,7 +64,10 @@ function toConnection(
 export class McpAuthService {
   private readonly logger = new Logger(McpAuthService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Optional() private readonly analytics?: AnalyticsService,
+  ) {}
 
   /**
    * The user a token acts for on a resource. An OAuth access token works
@@ -153,6 +158,12 @@ export class McpAuthService {
         userId: user.userId,
       },
       include: { client: { select: { clientUri: true } } },
+    });
+    await this.analytics?.capture(user.userId, 'mcp_connected', {
+      kind: 'PERSONAL_TOKEN',
+      client: 'other',
+      resource: 'MCP',
+      is_new: true,
     });
     return { connection: toConnection(grant), token };
   }
