@@ -31,23 +31,21 @@ export class AthleteSettingsService {
       throw new ForbiddenException('Not allowed to access this athlete');
     }
 
-    // Get or create settings
-    let settings = await this.prisma.athleteSettings.findUnique({
+    const settings = await this.prisma.athleteSettings.findUnique({
       where: { athleteId: athleteId },
     });
+    if (settings) return settings;
 
-    if (!settings) {
-      settings = await this.prisma.athleteSettings.create({
-        data: {
-          athleteId: athleteId,
-          requireRpe: false,
-          requireComment: false,
-          requireFeedbackQuestions: true, // Default to true
-        },
-      });
-    }
-
-    return settings;
+    // The first pages of a new account ask for the settings at the same
+    // time: ON CONFLICT DO NOTHING lets every request create them, and
+    // read back the same row, instead of failing on the unique key
+    await this.prisma.athleteSettings.createMany({
+      data: [{ athleteId }],
+      skipDuplicates: true,
+    });
+    return this.prisma.athleteSettings.findUniqueOrThrow({
+      where: { athleteId: athleteId },
+    });
   }
 
   async updateSettings(
