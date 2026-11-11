@@ -13,10 +13,17 @@ describe('exceedsArrayLimit', () => {
     );
   });
 
+  it('counts the items of every array together', () => {
+    // Split into small arrays, the same values cost Zod as much to reject
+    const sessions = [{ steps: [1, 2] }, { steps: [3] }];
+    expect(exceedsArrayLimit({ sessions }, 5)).toBe(false);
+    expect(exceedsArrayLimit({ sessions, more: [4, 5] }, 5)).toBe(true);
+  });
+
   it('walks a deeply nested body without overflowing the stack', () => {
     let body: unknown = [];
     for (let i = 0; i < 200_000; i++) body = [body];
-    expect(exceedsArrayLimit(body)).toBe(false);
+    expect(exceedsArrayLimit(body, 200_000)).toBe(false);
   });
 
   it('ignores bodies that are not objects', () => {

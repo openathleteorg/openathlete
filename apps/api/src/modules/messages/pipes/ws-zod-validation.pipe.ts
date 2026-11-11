@@ -4,7 +4,7 @@ import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { WsException } from '@nestjs/websockets';
 
 import {
-  MAX_ARRAY_LENGTH,
+  MAX_ARRAY_ITEMS,
   exceedsArrayLimit,
 } from 'src/common/security/payload-limits';
 
@@ -13,10 +13,10 @@ export class WsZodValidationPipe implements PipeTransform {
   constructor(private schema: ZodSchema) {}
 
   transform(value: unknown, _: ArgumentMetadata) {
-    // Before Zod, as for HTTP bodies: see MAX_ARRAY_LENGTH
+    // Before Zod, as for HTTP bodies: see MAX_ARRAY_ITEMS
     if (exceedsArrayLimit(value)) {
       throw new WsException({
-        error: `Arrays are limited to ${MAX_ARRAY_LENGTH} items`,
+        error: `Requests are limited to ${MAX_ARRAY_ITEMS} array items`,
       });
     }
     try {
