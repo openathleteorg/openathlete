@@ -1,5 +1,7 @@
+import { useCurrentSubscription } from '@/api/subscription/subscription.hooks';
 import { UserAPI } from '@/api/user/user.api';
 import { useAuthContext } from '@/contexts/auth';
+import { analyticsPersonProperties } from '@/utils/analytics';
 import { isConsentRequired, useTrackingConsent } from '@/utils/consent';
 import posthog from 'posthog-js';
 import { useEffect } from 'react';
@@ -13,14 +15,23 @@ export function ConsentSync() {
   const { user } = useAuthContext();
   const consent = useTrackingConsent();
   const userId = user?.userId;
-  const roles = user?.roles;
+  const granted = consent === 'granted';
 
   useEffect(() => {
     if (!userId || !isConsentRequired()) return;
-    const granted = consent === 'granted';
     void UserAPI.setAnalyticsConsent(granted).catch(() => undefined);
-    if (granted) posthog.identify(userId.toString(), { roles });
-  }, [userId, consent]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId, granted]);
+
+  // The plan only refines the person: identify without it rather than wait
+  const tracked = Boolean(user) && granted && isConsentRequired();
+  const { data: subscription } = useCurrentSubscription({ enabled: tracked });
+  const plan = subscription?.plan;
+
+  useEffect(() => {
+    if (!user || !tracked) return;
+    const { set, setOnce } = analyticsPersonProperties(user, plan);
+    posthog.identify(user.userId.toString(), set, setOnce);
+  }, [user, tracked, plan]);
 
   return null;
 }

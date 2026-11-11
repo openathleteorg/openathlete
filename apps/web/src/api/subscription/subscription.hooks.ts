@@ -6,10 +6,11 @@ import { BillingInterval, CreateCheckoutSessionDto } from '@openathlete/shared';
 import { SubscriptionAPI } from './subscription.api';
 import { subscriptionKeys } from './subscription.keys';
 
-export function useCurrentSubscription() {
+export function useCurrentSubscription({ enabled = true } = {}) {
   return useQuery({
     queryKey: subscriptionKeys.current(),
     queryFn: () => SubscriptionAPI.getCurrentSubscription(),
+    enabled,
   });
 }
 

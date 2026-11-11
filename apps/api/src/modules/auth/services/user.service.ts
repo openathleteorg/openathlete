@@ -160,6 +160,7 @@ export class UserService {
         emailTips: true,
         emailRecap: true,
         emailNewsConsentAt: true,
+        acquisitionSource: true,
         createdAt: true,
       },
     });
