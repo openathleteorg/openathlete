@@ -5,6 +5,7 @@ import {
   AiFeatureTask,
   AiTask,
   CreateAiCredentialDto,
+  UpdateAiCustomInstructionsDto,
   UpdateAiModelPreferencesDto,
 } from '@openathlete/shared';
 
@@ -31,6 +32,24 @@ export function useAiModelPreferencesQuery() {
   return useQuery({
     queryKey: aiSettingsKeys.models(),
     queryFn: AiSettingsAPI.getModelPreferences,
+  });
+}
+
+export function useAiCustomInstructionsQuery() {
+  return useQuery({
+    queryKey: aiSettingsKeys.instructions(),
+    queryFn: AiSettingsAPI.getCustomInstructions,
+  });
+}
+
+/** Instructions change nothing else: no need to refetch access or models */
+export function useUpdateAiCustomInstructionsMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateAiCustomInstructionsDto) =>
+      AiSettingsAPI.updateCustomInstructions(body),
+    onSuccess: (instructions) =>
+      queryClient.setQueryData(aiSettingsKeys.instructions(), instructions),
   });
 }
 
