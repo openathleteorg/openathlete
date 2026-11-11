@@ -7,6 +7,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Patch,
   Post,
   Put,
@@ -32,11 +33,13 @@ import {
   CreateAccountDto,
   PasswordResetDto,
   PasswordResetRequestDto,
+  SignupAttribution,
   UpdateAccountDto,
   completeOnboardingDtoSchema,
   createAccountDtoSchema,
   passwordResetRequestSchema,
   passwordResetSchema,
+  signupAttributionSchema,
   updateAccountDtoSchema,
 } from '@openathlete/shared';
 import {
@@ -72,6 +75,24 @@ export class UserController {
     { granted }: AnalyticsConsentDto,
   ): Promise<void> {
     await this.userService.setAnalyticsConsent(user.userId, granted);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Put('me/signup-attribution')
+  @HttpCode(204)
+  @ApiOperation({
+    summary: 'Record where a new user came from',
+    description:
+      'UTM parameters, referring site and website pages that led to the signup, carried by the links of the website. Recorded once, while the onboarding is not completed; later calls are ignored.',
+  })
+  @ApiResponse({ status: 204, description: 'Recorded, or already known' })
+  async recordSignupAttribution(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(signupAttributionSchema))
+    attribution: SignupAttribution,
+  ): Promise<void> {
+    await this.userService.recordSignupAttribution(user.userId, attribution);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

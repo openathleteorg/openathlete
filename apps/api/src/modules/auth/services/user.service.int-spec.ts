@@ -1,5 +1,7 @@
 import { ConflictException } from '@nestjs/common';
 
+import { Prisma } from '@openathlete/database';
+
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { UserService } from './user.service';
@@ -128,5 +130,38 @@ describe('UserService.completeOnboarding (PostgreSQL)', () => {
       acquisitionSource: 'AI_ASSISTANT',
       onboardingCompleted: true,
     });
+  });
+
+  it('records the signup attribution once, and not after the onboarding', async () => {
+    const { userId } = await service.createAccount({
+      email: 'visitor@example.com',
+      password: 'Visitor-Passw0rd',
+      firstName: 'Vis',
+      lastName: 'Itor',
+    });
+    const attribution = () =>
+      prisma.user
+        .findUniqueOrThrow({
+          where: { userId },
+          select: { signupAttribution: true },
+        })
+        .then((user) => user.signupAttribution);
+
+    await service.recordSignupAttribution(userId, {
+      utmSource: 'reddit',
+      landingPage: '/fr/coaches',
+    });
+    await service.recordSignupAttribution(userId, { utmSource: 'youtube' });
+    await expect(attribution()).resolves.toEqual({
+      utmSource: 'reddit',
+      landingPage: '/fr/coaches',
+    });
+
+    await prisma.user.update({
+      where: { userId },
+      data: { signupAttribution: Prisma.DbNull, onboardingCompleted: true },
+    });
+    await service.recordSignupAttribution(userId, { utmSource: 'youtube' });
+    await expect(attribution()).resolves.toBeNull();
   });
 });

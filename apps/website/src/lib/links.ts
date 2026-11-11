@@ -3,7 +3,8 @@ import { APP_URL } from '@/config';
 /**
  * Links into the app carry UTM parameters: PostHog records them on the
  * app's first pageview, which ties a signup to the page and the button
- * that brought it.
+ * that brought it. When clicked, AppLinkAttribution adds where the visit
+ * started, and the campaign of the landing page replaces these.
  */
 function withUtm(url: string, placement: string): string {
   const target = new URL(url);

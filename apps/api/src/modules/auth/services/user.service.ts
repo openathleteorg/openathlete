@@ -27,6 +27,7 @@ import {
   CreateAccountDto,
   PasswordResetDto,
   PasswordResetRequestDto,
+  SignupAttribution,
   UpdateAccountDto,
 } from '@openathlete/shared';
 
@@ -99,6 +100,25 @@ export class UserService {
         },
       );
     }
+  }
+
+  /**
+   * Records where a new user came from. Only once, before the onboarding is
+   * done: a later visit with other campaign parameters keeps the first one.
+   */
+  async recordSignupAttribution(
+    userId: number,
+    attribution: SignupAttribution,
+  ): Promise<void> {
+    if (Object.keys(attribution).length === 0) return;
+    await this.prisma.user.updateMany({
+      where: {
+        userId,
+        onboardingCompleted: false,
+        signupAttribution: { equals: Prisma.DbNull },
+      },
+      data: { signupAttribution: attribution },
+    });
   }
 
   async findOneOrFail(where: Prisma.UserWhereInput): Promise<UserRow> {

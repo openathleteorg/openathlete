@@ -6,6 +6,7 @@ import {
   EmailLanguage,
   PasswordResetDto,
   PasswordResetRequestDto,
+  SignupAttribution,
   UpdateAccountDto,
   User,
 } from '@openathlete/shared';
@@ -65,6 +66,12 @@ export class UserAPI {
 
   static async setAnalyticsConsent(granted: boolean): Promise<void> {
     await client.put(routes.user.analyticsConsent, { granted });
+  }
+
+  static async recordSignupAttribution(
+    attribution: SignupAttribution,
+  ): Promise<void> {
+    await client.put(routes.user.signupAttribution, attribution);
   }
 
   static async deleteAccount(): Promise<{ success: boolean }> {

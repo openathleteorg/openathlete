@@ -3,6 +3,7 @@ import {
   OrganizationStructuredData,
   WebSiteStructuredData,
 } from '@/components/seo/structured-data';
+import { AppLinkAttribution } from '@/components/site/app-link-attribution';
 import { Footer } from '@/components/site/footer';
 import { Header } from '@/components/site/header';
 import { LocaleSuggestion } from '@/components/site/locale-suggestion';
@@ -90,6 +91,7 @@ export default async function LocaleLayout({
           <ConsentBanner
             privacyPolicyHref={localePath(locale, '/privacy-policy')}
           />
+          <AppLinkAttribution />
         </LocaleProvider>
       </body>
     </html>

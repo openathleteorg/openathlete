@@ -49,3 +49,4 @@ export * from './activity-decoupling';
 export * from './activity-detection';
 export * from './activity-corrections';
 export * from './image-refs';
+export * from './signup-attribution';

@@ -31,6 +31,9 @@ model User {
   onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
   /// How the user heard of OpenAthlete, asked during onboarding (optional)
   acquisitionSource   AcquisitionSource? @map("acquisition_source")
+  /// Campaign, referring site and website pages that led to the signup,
+  /// recorded once (see signupAttributionSchema)
+  signupAttribution   Json?        @map("signup_attribution")
   /// User's preferred language (FR, EN, IT or ES)
   language            UserLanguage @default(FR)
   /// Push notification token for mobile devices

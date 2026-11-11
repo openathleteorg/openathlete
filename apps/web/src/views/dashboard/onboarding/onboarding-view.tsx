@@ -1,5 +1,9 @@
 import { useGetMyCoachesQuery } from '@/api/athlete';
-import { useCompleteOnboardingMutation, useGetMeQuery } from '@/api/user';
+import {
+  useCompleteOnboardingMutation,
+  useGetMeQuery,
+  useRecordSignupAttributionMutation,
+} from '@/api/user';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
 import { ConnectorsList } from '@/components/connectors';
@@ -21,6 +25,10 @@ import { getPath } from '@/routes/paths';
 import { AnalyticsEvent } from '@/utils/analytics-events';
 import { takeReturnTo } from '@/utils/return-to';
 import { cn } from '@/utils/shadcn';
+import {
+  forgetSignupAttribution,
+  readSignupAttribution,
+} from '@/utils/signup-attribution';
 import { AnimatePresence, motion } from 'framer-motion';
 import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
@@ -226,6 +234,17 @@ export function OnboardingView() {
       navigate(takeReturnTo(getPath(['dashboard'])));
     }
   }, [authenticated, user, isLoadingUser, navigate]);
+
+  // Sent when the onboarding opens, not when it ends: the source of the
+  // users who give up along the way counts too
+  const { mutate: recordSignupAttribution } =
+    useRecordSignupAttributionMutation({ onSuccess: forgetSignupAttribution });
+  const userId = user && !user.onboardingCompleted ? user.userId : undefined;
+  useEffect(() => {
+    if (userId === undefined) return;
+    const attribution = readSignupAttribution();
+    if (attribution) recordSignupAttribution(attribution);
+  }, [userId, recordSignupAttribution]);
 
   const completeOnboardingMutation = useCompleteOnboardingMutation({
     onSuccess: async (_, variables) => {

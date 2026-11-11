@@ -1,7 +1,9 @@
 import { expect, test } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 
-import { createAthlete } from '../../support/api';
+import { apiHeaders, createAthlete, login } from '../../support/api';
 import { signIn } from '../../support/browser';
+import { API_URL } from '../../support/env';
 
 // These tests start logged out
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -101,6 +103,51 @@ test('takes a new account to the onboarding after another one logged out', async
   await page.getByRole('button', { name: 'Get Started' }).click();
   await expect(page.getByText('What describes you best?')).toBeVisible();
   await expect(page).toHaveURL(/\/dashboard\/onboarding/);
+});
+
+test('records where a new account came from, as the website link says', async ({
+  page,
+  request,
+}) => {
+  const email = `e2e-${randomUUID()}@example.com`;
+  const password = 'E2e-Test-Passw0rd!';
+  // A website link after a visit that started on a Reddit campaign
+  await page.goto(
+    '/auth/create-account?utm_source=reddit&utm_medium=cta&utm_campaign=launch' +
+      '&oa_ref=www.reddit.com&oa_landing=%2Ffr%2Fcoaches&oa_page=%2Ffr%2Fpricing&oa_cta=home_hero',
+  );
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="firstName"]', 'From');
+  await page.fill('input[name="lastName"]', 'Reddit');
+  await page.fill('input[name="password"]', password);
+
+  const recorded = page.waitForResponse(
+    (response) =>
+      response.url().endsWith('/user/me/signup-attribution') &&
+      response.request().method() === 'PUT',
+  );
+  await page.click('button[type="submit"]');
+  await expect(
+    page.getByRole('heading', { name: 'Welcome to OpenAthlete!' }),
+  ).toBeVisible();
+  expect((await recorded).status()).toBe(204);
+
+  const { accessToken } = await login(request, email, password);
+  const exported = await request.get(`${API_URL}/user/me/export`, {
+    headers: apiHeaders(undefined, accessToken),
+  });
+  const { user } = (await exported.json()) as {
+    user: { signupAttribution: unknown };
+  };
+  expect(user.signupAttribution).toEqual({
+    utmSource: 'reddit',
+    utmMedium: 'cta',
+    utmCampaign: 'launch',
+    referrer: 'www.reddit.com',
+    landingPage: '/fr/coaches',
+    sitePage: '/fr/pricing',
+    cta: 'home_hero',
+  });
 });
 
 test('logs in and lands on the dashboard', async ({ page, request }) => {

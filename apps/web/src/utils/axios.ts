@@ -22,6 +22,7 @@ export const routes = {
     updateAccount: '/user',
     deleteAccount: '/user',
     analyticsConsent: '/user/me/analytics-consent',
+    signupAttribution: '/user/me/signup-attribution',
     exportData: '/user/me/export',
     updateLanguage: '/user/language',
     passwordReset: '/user/password-reset',

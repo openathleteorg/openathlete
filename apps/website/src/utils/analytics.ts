@@ -26,7 +26,7 @@ export function isConsentRequired(): boolean {
   return Boolean(posthogToken);
 }
 
-function getConsent(): TrackingConsent | null {
+export function getConsent(): TrackingConsent | null {
   try {
     const value = localStorage.getItem(STORAGE_KEY);
     return value === 'granted' || value === 'denied' ? value : null;

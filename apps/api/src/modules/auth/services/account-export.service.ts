@@ -50,6 +50,7 @@ export class AccountExportService {
         roles: true,
         onboardingCompleted: true,
         acquisitionSource: true,
+        signupAttribution: true,
         createdAt: true,
         subscription: {
           select: {

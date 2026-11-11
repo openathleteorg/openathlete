@@ -97,3 +97,16 @@ export const useDeleteAccountMutation = (
     mutationFn: UserAPI.deleteAccount,
   });
 };
+
+export const useRecordSignupAttributionMutation = (
+  opt?: MutationOptions<
+    void,
+    Error,
+    Parameters<typeof UserAPI.recordSignupAttribution>[0]
+  >,
+) => {
+  return useMutation({
+    ...opt,
+    mutationFn: UserAPI.recordSignupAttribution,
+  });
+};
