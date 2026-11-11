@@ -1,4 +1,6 @@
+import { AnalyticsEvent } from '@/utils/analytics-events';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import posthog from 'posthog-js';
 
 import {
   AiAccessDto,
@@ -48,8 +50,15 @@ export function useUpdateAiCustomInstructionsMutation() {
   return useMutation({
     mutationFn: (body: UpdateAiCustomInstructionsDto) =>
       AiSettingsAPI.updateCustomInstructions(body),
-    onSuccess: (instructions) =>
-      queryClient.setQueryData(aiSettingsKeys.instructions(), instructions),
+    onSuccess: (instructions, body) => {
+      // Which features people tune, never what they write
+      posthog.capture(AnalyticsEvent.ai_custom_instructions_saved, {
+        tasks: body.instructions
+          .filter((item) => item.instructions.trim())
+          .map((item) => item.task),
+      });
+      queryClient.setQueryData(aiSettingsKeys.instructions(), instructions);
+    },
   });
 }
 

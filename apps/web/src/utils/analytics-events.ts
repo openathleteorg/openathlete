@@ -10,7 +10,14 @@
  * athlete_invited, coach_invited, athlete_linked, coach_linked, checkout_started,
  * subscription_started, subscription_renewed, subscription_payment_failed,
  * subscription_cancel_scheduled, subscription_ended, subscription_refunded,
- * account_deleted. The funnels are in PostHog ("Churn funnels" dashboard).
+ * account_deleted, workout_sent_to_device, mcp_connected, ai_key_added,
+ * ai_key_removed, lifecycle_email_sent. The funnels are in PostHog ("Churn
+ * funnels" dashboard).
+ *
+ * Every event carries `platform` (web, ios, android), and `app_version` in the
+ * native apps. Identified people carry roles, is_coach, plan, language,
+ * onboarding_completed, acquisition_source and signed_up_at
+ * (`analyticsPersonProperties`).
  */
 
 export const AnalyticsEvent = {
@@ -36,6 +43,10 @@ export const AnalyticsEvent = {
   messages_thread_created: 'messages_thread_created',
   messages_thread_deleted: 'messages_thread_deleted',
   messages_message_sent: 'messages_message_sent',
+  activity_feedback_answered: 'activity_feedback_answered',
+  activity_feedback_skipped: 'activity_feedback_skipped',
+  ai_custom_instructions_saved: 'ai_custom_instructions_saved',
+  calendar_feed_copied: 'calendar_feed_copied',
 } as const;
 
 export type AnalyticsEventName =

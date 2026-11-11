@@ -6,8 +6,10 @@ import { ConfirmAction } from '@/components/confirm-action';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
+import { AnalyticsEvent } from '@/utils/analytics-events';
 import { getApiBaseUrl } from '@/utils/capacitor';
 import { RefreshCw } from 'lucide-react';
+import posthog from 'posthog-js';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -40,6 +42,7 @@ export function CalendarFeedSection() {
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(url);
+      posthog.capture(AnalyticsEvent.calendar_feed_copied);
       toast.success(m.calendar_feed_copied());
     } catch {
       // Clipboard denied (insecure context, permissions): the URL stays

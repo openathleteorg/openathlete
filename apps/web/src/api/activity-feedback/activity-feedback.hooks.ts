@@ -1,4 +1,6 @@
+import { AnalyticsEvent } from '@/utils/analytics-events';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import posthog from 'posthog-js';
 
 import { Event } from '@openathlete/shared';
 
@@ -29,6 +31,7 @@ export function useSubmitQuestionAnswerMutation(eventId: Event['eventId']) {
       answerText: string;
     }) => ActivityFeedbackAPI.submitAnswer(eventId, questionId, answerText),
     onSuccess: () => {
+      posthog.capture(AnalyticsEvent.activity_feedback_answered);
       // Invalidate questions query to refresh answers
       queryClient.invalidateQueries({
         queryKey: activityFeedbackKeys.getFeedbackQuestions(eventId),
@@ -49,6 +52,7 @@ export function useSkipFeedbackMutation(eventId: Event['eventId']) {
   return useMutation({
     mutationFn: () => ActivityFeedbackAPI.skipFeedback(eventId),
     onSuccess: () => {
+      posthog.capture(AnalyticsEvent.activity_feedback_skipped);
       queryClient.invalidateQueries({
         queryKey: activityFeedbackKeys.getFeedbackQuestions(eventId),
       });
