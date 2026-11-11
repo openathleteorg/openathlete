@@ -3,10 +3,12 @@ import client, { routes } from '@/utils/axios';
 import {
   AiAccessDto,
   AiCredentialDto,
+  AiCustomInstructionDto,
   AiModelPreferenceDto,
   AiProvider,
   CreateAiCredentialDto,
   TestAiCredentialResponseDto,
+  UpdateAiCustomInstructionsDto,
   UpdateAiModelPreferencesDto,
 } from '@openathlete/shared';
 
@@ -52,6 +54,18 @@ export class AiSettingsAPI {
     body: UpdateAiModelPreferencesDto,
   ): Promise<AiModelPreferenceDto[]> {
     const res = await client.put(routes.aiSettings.models, body);
+    return res.data;
+  }
+
+  static async getCustomInstructions(): Promise<AiCustomInstructionDto[]> {
+    const res = await client.get(routes.aiSettings.instructions);
+    return res.data;
+  }
+
+  static async updateCustomInstructions(
+    body: UpdateAiCustomInstructionsDto,
+  ): Promise<AiCustomInstructionDto[]> {
+    const res = await client.put(routes.aiSettings.instructions, body);
     return res.data;
   }
 

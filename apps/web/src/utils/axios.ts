@@ -221,6 +221,7 @@ export const routes = {
     testCredential: (aiCredentialId: number) =>
       `/ai/credentials/${aiCredentialId}/test`,
     models: '/ai/models',
+    instructions: '/ai/instructions',
     access: '/ai/access',
     consent: '/ai/consent',
   },

@@ -7,6 +7,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { SettingsPanel, SettingsRow } from '../settings-section';
 import { AiDataSharingSection } from './ai-data-sharing-section';
+import { AiInstructionsSection } from './ai-instructions-section';
 import { AiKeysSection } from './ai-keys-section';
 import { AiModelsSection } from './ai-models-section';
 import { AiUsageSection } from './ai-usage-section';
@@ -52,6 +53,7 @@ export function AiTab() {
 
       <AiKeysSection />
       <AiModelsSection />
+      <AiInstructionsSection />
     </div>
   );
 }
