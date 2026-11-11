@@ -59,6 +59,7 @@ insert into posthog_hidden values
   ('user', 'push_token'),
   ('athlete', 'calendar_feed_token'),
   ('ai_credential', 'encrypted_api_key'),
+  ('ai_credential', 'encrypted_headers'),
   ('provider_account', 'access_token'),
   ('provider_account', 'refresh_token'),
   ('mcp_grant', 'token_hash'),
