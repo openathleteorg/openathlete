@@ -1,6 +1,10 @@
 import { socketUrl } from '@/config';
-import { getAccessToken, isTokenExpiringSoon } from '@/utils/auth';
-import { ACCESS_TOKEN, getItem, setItem } from '@/utils/local-storage';
+import { getAccessToken } from '@/utils/auth';
+import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
+import {
+  type SocketAuthentication,
+  keepSocketAuthenticated,
+} from '@/utils/socket-auth';
 import { Socket, io } from 'socket.io-client';
 
 export interface TrainingLoadEstimationStartedPayload {
@@ -49,14 +53,11 @@ export type CalendarWebSocketEvent =
 
 export class CalendarAPI {
   private static socket: Socket | null = null;
-  private static tokenRefreshInterval: NodeJS.Timeout | null = null;
+  private static socketAuth: SocketAuthentication | null = null;
   private static connectingPromise: Promise<void> | null = null;
-  private static readonly TOKEN_REFRESH_CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
 
   static getSocket(): Socket {
     if (!this.socket) {
-      const token = getItem(ACCESS_TOKEN);
-
       this.socket = io(socketUrl('calendar'), {
         transports: ['polling', 'websocket'],
         withCredentials: true,
@@ -70,15 +71,8 @@ export class CalendarAPI {
         // Improved connection stability settings
         timeout: 45000, // Connection timeout (matches server)
         // Socket.IO will handle ping/pong automatically
-        auth: {
-          token: token || '',
-        },
-        extraHeaders: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {},
       });
+      this.socketAuth = keepSocketAuthenticated(this.socket);
 
       // Handle session errors by forcing a fresh connection
       this.socket.io.on('error', (error: unknown) => {
@@ -102,6 +96,8 @@ export class CalendarAPI {
           // Disconnect and clear socket to force a fresh connection
           const oldSocket = this.socket;
           this.socket = null;
+          this.socketAuth?.stop();
+          this.socketAuth = null;
           if (oldSocket) {
             oldSocket.disconnect();
             oldSocket.removeAllListeners();
@@ -110,95 +106,11 @@ export class CalendarAPI {
         }
       });
 
-      // Handle connection errors (e.g., authentication failures)
-      this.socket.on('connect_error', async (error: Error) => {
+      this.socket.on('connect_error', (error: Error) => {
         console.error('[CalendarAPI] Connection error:', error.message);
-
-        // If authentication failed, try to refresh token
-        if (
-          error?.message?.includes('Unauthorized') ||
-          error?.message?.includes('jwt expired') ||
-          error?.message?.includes('Invalid token')
-        ) {
-          try {
-            const refreshed = await this.refreshSocketToken();
-            if (refreshed) {
-              // Update auth for the current socket instance
-              if (this.socket) {
-                this.socket.auth = {
-                  token: getItem(ACCESS_TOKEN) || '',
-                };
-                this.socket.io.opts.extraHeaders = {
-                  Authorization: `Bearer ${getItem(ACCESS_TOKEN) || ''}`,
-                };
-              }
-            }
-          } catch (refreshError) {
-            console.error(
-              '[CalendarAPI] Failed to refresh token on connection error:',
-              refreshError,
-            );
-          }
-        }
-        // Let Socket.IO's built-in reconnection handle retries
       });
-
-      // Set up token refresh mechanism
-      this.setupTokenRefresh();
     }
     return this.socket;
-  }
-
-  private static async refreshSocketToken(): Promise<boolean> {
-    try {
-      const tokenInfo = await getAccessToken();
-      if (!tokenInfo) {
-        return false;
-      }
-
-      // Update stored tokens
-      if (tokenInfo.refreshToken) {
-        setItem(ACCESS_TOKEN, tokenInfo.accessToken);
-      }
-
-      const socket = this.socket;
-      if (!socket) {
-        return false;
-      }
-
-      // Update socket auth and headers for future connections
-      socket.auth = {
-        token: tokenInfo.accessToken,
-      };
-      socket.io.opts.extraHeaders = {
-        Authorization: `Bearer ${tokenInfo.accessToken}`,
-      };
-
-      return true;
-    } catch (error) {
-      console.error('[CalendarAPI] Failed to refresh token:', error);
-      return false;
-    }
-  }
-
-  private static setupTokenRefresh(): void {
-    // Clear existing interval if any
-    if (this.tokenRefreshInterval) {
-      clearInterval(this.tokenRefreshInterval);
-    }
-
-    // Check token expiration periodically
-    this.tokenRefreshInterval = setInterval(async () => {
-      const token = getItem(ACCESS_TOKEN);
-      if (!token) {
-        return;
-      }
-
-      // If token is expiring soon (within 5 minutes), refresh it
-      if (isTokenExpiringSoon(token, 5)) {
-        await this.refreshSocketToken();
-      }
-    }, this.TOKEN_REFRESH_CHECK_INTERVAL);
   }
 
   static async connectSocket(): Promise<void> {
@@ -228,14 +140,6 @@ export class CalendarAPI {
           setItem(ACCESS_TOKEN, tokenInfo.accessToken);
         }
 
-        // Update socket auth and headers
-        socket.auth = {
-          token: tokenInfo.accessToken,
-        };
-        socket.io.opts.extraHeaders = {
-          Authorization: `Bearer ${tokenInfo.accessToken}`,
-        };
-
         // Connect the socket
         socket.connect();
       } catch (error) {
@@ -254,10 +158,8 @@ export class CalendarAPI {
   }
 
   static disconnectSocket(): void {
-    if (this.tokenRefreshInterval) {
-      clearInterval(this.tokenRefreshInterval);
-      this.tokenRefreshInterval = null;
-    }
+    this.socketAuth?.stop();
+    this.socketAuth = null;
     this.connectingPromise = null;
     if (this.socket) {
       this.socket.disconnect();
@@ -265,13 +167,17 @@ export class CalendarAPI {
     }
   }
 
+  // Reconnects first when the token expired: the server would refuse the
+  // event, and Socket.IO sends it once connected again
   static subscribe(athleteId?: number): void {
     const socket = this.getSocket();
+    this.socketAuth?.reconnectIfExpired();
     socket.emit('subscribe', { athleteId });
   }
 
   static unsubscribe(athleteId?: number): void {
     const socket = this.getSocket();
+    this.socketAuth?.reconnectIfExpired();
     socket.emit('unsubscribe', { athleteId });
   }
 

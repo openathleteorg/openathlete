@@ -1,6 +1,5 @@
 import { m } from '@/paraglide/messages';
-import { getAccessToken } from '@/utils/auth';
-import { ACCESS_TOKEN, getItem, setItem } from '@/utils/local-storage';
+import { ACCESS_TOKEN, getItem } from '@/utils/local-storage';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Socket } from 'socket.io-client';
@@ -49,44 +48,13 @@ export function useMessagesWebSocket({
     };
     socket.on('connect', onConnect);
 
-    socket.on('disconnect', () => {
+    // Socket.IO retries by itself, with a fresh token (see MessagesAPI)
+    const onDisconnect = () => {
       setIsConnected(false);
       connectingRef.current = false;
-    });
-
-    socket.on('connect_error', async (error: Error) => {
-      setIsConnected(false);
-      connectingRef.current = false;
-
-      if (
-        error?.message?.includes('Unauthorized') ||
-        error?.message?.includes('jwt expired') ||
-        error?.message?.includes('Invalid token')
-      ) {
-        try {
-          const tokenInfo = await getAccessToken();
-          if (tokenInfo) {
-            if (tokenInfo.refreshToken) {
-              setItem(ACCESS_TOKEN, tokenInfo.accessToken);
-            }
-            const socket = MessagesAPI.getSocket();
-            socket.auth = {
-              token: tokenInfo.accessToken,
-            };
-            socket.io.opts.extraHeaders = {
-              Authorization: `Bearer ${tokenInfo.accessToken}`,
-            };
-          }
-        } catch (refreshError) {
-          console.error(
-            '[Messages WebSocket] Failed to refresh token:',
-            refreshError,
-          );
-        }
-      }
-      // Let Socket.IO's built-in reconnection handle retries
-      // Don't manually reconnect to avoid loops
-    });
+    };
+    socket.on('disconnect', onDisconnect);
+    socket.on('connect_error', onDisconnect);
 
     const onActivityNotice = (data: { message: Message }) => {
       void queryClient.invalidateQueries({
@@ -340,8 +308,8 @@ export function useMessagesWebSocket({
 
     return () => {
       socket.off('connect', onConnect);
-      socket.off('disconnect');
-      socket.off('connect_error');
+      socket.off('disconnect', onDisconnect);
+      socket.off('connect_error', onDisconnect);
       socket.off('activity_notice', onActivityNotice);
       socket.off('new_message');
       socket.off('message_updated');

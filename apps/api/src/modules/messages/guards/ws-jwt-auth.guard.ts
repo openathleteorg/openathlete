@@ -38,7 +38,8 @@ export class WsJwtAuthGuard implements CanActivate {
         }>(token);
       } catch (jwtError: unknown) {
         if (jwtError instanceof TokenExpiredError) {
-          this.logger.error(
+          // Routine: the client refreshes its token and reconnects when told
+          this.logger.debug(
             'WebSocket authentication failed: JWT token expired',
           );
           throw new WsException('Unauthorized: jwt expired');

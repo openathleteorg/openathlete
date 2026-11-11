@@ -1,7 +1,11 @@
 import { socketUrl } from '@/config';
-import { getAccessToken, isTokenExpiringSoon } from '@/utils/auth';
+import { getAccessToken } from '@/utils/auth';
 import client, { routes } from '@/utils/axios';
-import { ACCESS_TOKEN, getItem, setItem } from '@/utils/local-storage';
+import { ACCESS_TOKEN, setItem } from '@/utils/local-storage';
+import {
+  type SocketAuthentication,
+  keepSocketAuthenticated,
+} from '@/utils/socket-auth';
 import { Socket, io } from 'socket.io-client';
 
 import {
@@ -16,9 +20,8 @@ import {
 
 export class MessagesAPI {
   private static socket: Socket | null = null;
-  private static tokenRefreshInterval: NodeJS.Timeout | null = null;
+  private static socketAuth: SocketAuthentication | null = null;
   private static connectingPromise: Promise<void> | null = null;
-  private static readonly TOKEN_REFRESH_CHECK_INTERVAL = 5 * 60 * 1000; // Check every 5 minutes
 
   // ==================== REST API Methods ====================
 
@@ -103,9 +106,6 @@ export class MessagesAPI {
 
   static getSocket(): Socket {
     if (!this.socket) {
-      // Get JWT token from localStorage using project's auth utils
-      const token = getItem(ACCESS_TOKEN);
-
       this.socket = io(socketUrl('messages'), {
         transports: ['polling', 'websocket'], // Allow polling first, then upgrade to websocket
         withCredentials: true,
@@ -116,16 +116,8 @@ export class MessagesAPI {
         reconnectionAttempts: Infinity, // Retry indefinitely in production
         upgrade: true, // Allow upgrade from polling to websocket
         rememberUpgrade: true, // Remember transport preference
-        auth: {
-          token: token || '',
-        },
-        // Also send token in headers as fallback
-        extraHeaders: token
-          ? {
-              Authorization: `Bearer ${token}`,
-            }
-          : {},
       });
+      this.socketAuth = keepSocketAuthenticated(this.socket);
 
       this.socket.io.on(
         'error',
@@ -138,6 +130,8 @@ export class MessagesAPI {
           ) {
             const oldSocket = this.socket;
             this.socket = null;
+            this.socketAuth?.stop();
+            this.socketAuth = null;
             if (oldSocket) {
               oldSocket.disconnect();
               oldSocket.removeAllListeners();
@@ -145,66 +139,8 @@ export class MessagesAPI {
           }
         },
       );
-
-      this.setupTokenRefresh();
     }
     return this.socket;
-  }
-
-  private static async refreshSocketToken(): Promise<boolean> {
-    try {
-      const tokenInfo = await getAccessToken();
-      if (!tokenInfo) {
-        return false;
-      }
-
-      // Update stored tokens
-      if (tokenInfo.refreshToken) {
-        setItem(ACCESS_TOKEN, tokenInfo.accessToken);
-      }
-
-      const socket = this.socket;
-      if (!socket) {
-        return false;
-      }
-
-      // Update socket auth and headers for future connections
-      socket.auth = {
-        token: tokenInfo.accessToken,
-      };
-      socket.io.opts.extraHeaders = {
-        Authorization: `Bearer ${tokenInfo.accessToken}`,
-      };
-
-      // Don't disconnect/reconnect - let Socket.IO handle reconnection naturally
-      // If the connection fails due to expired token, Socket.IO will reconnect
-      // with the new token automatically
-
-      return true;
-    } catch (error) {
-      console.error('[MessagesAPI] Failed to refresh token:', error);
-      return false;
-    }
-  }
-
-  private static setupTokenRefresh(): void {
-    // Clear existing interval if any
-    if (this.tokenRefreshInterval) {
-      clearInterval(this.tokenRefreshInterval);
-    }
-
-    // Check token expiration periodically
-    this.tokenRefreshInterval = setInterval(async () => {
-      const token = getItem(ACCESS_TOKEN);
-      if (!token) {
-        return;
-      }
-
-      // If token is expiring soon (within 5 minutes), refresh it
-      if (isTokenExpiringSoon(token, 5)) {
-        await this.refreshSocketToken();
-      }
-    }, this.TOKEN_REFRESH_CHECK_INTERVAL);
   }
 
   static async connectSocket(): Promise<void> {
@@ -233,12 +169,6 @@ export class MessagesAPI {
           setItem(ACCESS_TOKEN, tokenInfo.accessToken);
         }
 
-        socket.auth = {
-          token: tokenInfo.accessToken,
-        };
-        socket.io.opts.extraHeaders = {
-          Authorization: `Bearer ${tokenInfo.accessToken}`,
-        };
         socket.connect();
       } finally {
         // Clear the promise after a short delay to allow connection to establish
@@ -252,10 +182,8 @@ export class MessagesAPI {
   }
 
   static disconnectSocket(): void {
-    if (this.tokenRefreshInterval) {
-      clearInterval(this.tokenRefreshInterval);
-      this.tokenRefreshInterval = null;
-    }
+    this.socketAuth?.stop();
+    this.socketAuth = null;
     this.connectingPromise = null;
     if (this.socket) {
       this.socket.disconnect();
@@ -263,19 +191,25 @@ export class MessagesAPI {
     }
   }
 
-  static joinThread(messageThreadId: number): void {
+  // Reconnects first when the token expired: the server would refuse the
+  // event, and Socket.IO sends it once connected again
+  private static emit(event: string, data: unknown): Socket {
     const socket = this.getSocket();
-    socket.emit('join_thread', { messageThreadId });
+    this.socketAuth?.reconnectIfExpired();
+    socket.emit(event, data);
+    return socket;
+  }
+
+  static joinThread(messageThreadId: number): void {
+    this.emit('join_thread', { messageThreadId });
   }
 
   static leaveThread(messageThreadId: number): void {
-    const socket = this.getSocket();
-    socket.emit('leave_thread', { messageThreadId });
+    this.emit('leave_thread', { messageThreadId });
   }
 
   static sendMessage(messageThreadId: number, content: string): void {
-    const socket = this.getSocket();
-    socket.emit('send_message', { messageThreadId, content });
+    const socket = this.emit('send_message', { messageThreadId, content });
 
     if (!socket.connected) {
       this.connectSocket();
@@ -283,12 +217,10 @@ export class MessagesAPI {
   }
 
   static updateMessageViaSocket(messageId: number, content: string): void {
-    const socket = this.getSocket();
-    socket.emit('update_message', { messageId, content });
+    this.emit('update_message', { messageId, content });
   }
 
   static markAsRead(messageThreadId: number, messageIds?: number[]): void {
-    const socket = this.getSocket();
-    socket.emit('mark_as_read', { messageThreadId, messageIds });
+    this.emit('mark_as_read', { messageThreadId, messageIds });
   }
 }
