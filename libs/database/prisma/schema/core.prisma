@@ -29,6 +29,8 @@ model User {
   gender              Gender?
   /// Whether the user has completed the onboarding flow
   onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
+  /// How the user heard of OpenAthlete, asked during onboarding (optional)
+  acquisitionSource   AcquisitionSource? @map("acquisition_source")
   /// User's preferred language (FR, EN, IT or ES)
   language            UserLanguage @default(FR)
   /// Push notification token for mobile devices

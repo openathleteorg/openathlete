@@ -49,6 +49,7 @@ export class AccountExportService {
         emailNewsConsentAt: true,
         roles: true,
         onboardingCompleted: true,
+        acquisitionSource: true,
         createdAt: true,
         subscription: {
           select: {

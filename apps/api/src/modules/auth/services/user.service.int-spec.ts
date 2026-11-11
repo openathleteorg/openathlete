@@ -70,3 +70,63 @@ describe('UserService.createAccount (PostgreSQL)', () => {
     ).resolves.toBe(1);
   });
 });
+
+describe('UserService.completeOnboarding (PostgreSQL)', () => {
+  let prisma: PrismaService;
+  let service: UserService;
+
+  beforeAll(async () => {
+    prisma = new PrismaService({ datasourceUrl: databaseUrl });
+    await prisma.$connect();
+    const config = {
+      get: (key: string) =>
+        ({
+          HASH_PEPPER: 'test-pepper-at-least-32-characters-long',
+          APP_URL: 'http://localhost',
+        })[key],
+    };
+    service = new UserService(
+      prisma,
+      config as never,
+      { emit: jest.fn() } as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    );
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  beforeEach(async () => {
+    await prisma.$executeRawUnsafe(
+      'TRUNCATE "user", athlete RESTART IDENTITY CASCADE',
+    );
+  });
+
+  it('stores how the user heard of OpenAthlete', async () => {
+    const { userId } = await service.createAccount({
+      email: 'newcomer@example.com',
+      password: 'Newcomer-Passw0rd',
+      firstName: 'New',
+      lastName: 'Comer',
+    });
+
+    await service.completeOnboarding({ userId } as never, {
+      roles: ['ATHLETE'],
+      acquisitionSource: 'AI_ASSISTANT',
+    });
+
+    await expect(
+      prisma.user.findUniqueOrThrow({
+        where: { userId },
+        select: { acquisitionSource: true, onboardingCompleted: true },
+      }),
+    ).resolves.toEqual({
+      acquisitionSource: 'AI_ASSISTANT',
+      onboardingCompleted: true,
+    });
+  });
+});

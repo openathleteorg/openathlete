@@ -29,7 +29,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-import { CompleteOnboardingDto } from '@openathlete/shared';
+import {
+  ACQUISITION_SOURCES,
+  AcquisitionSource,
+  CompleteOnboardingDto,
+} from '@openathlete/shared';
 
 type OnboardingStep =
   | 'welcome'
@@ -38,6 +42,7 @@ type OnboardingStep =
   | 'athlete-info'
   | 'connectors'
   | 'athlete-invitations'
+  | 'acquisition-source'
   | 'complete';
 
 interface OnboardingData {
@@ -49,7 +54,18 @@ interface OnboardingData {
   hrRest?: number;
   coachEmail?: string;
   athleteEmails: string[];
+  acquisitionSource?: AcquisitionSource;
 }
+
+const ACQUISITION_SOURCE_LABELS: Record<AcquisitionSource, () => string> = {
+  REDDIT: m.onboarding_acquisition_reddit,
+  GOOGLE: m.onboarding_acquisition_google,
+  AI_ASSISTANT: m.onboarding_acquisition_ai_assistant,
+  COACH_OR_FRIEND: m.onboarding_acquisition_coach_or_friend,
+  DISCORD: m.onboarding_acquisition_discord,
+  YOUTUBE: m.onboarding_acquisition_youtube,
+  OTHER: m.onboarding_acquisition_other,
+};
 
 const ONBOARDING_STORAGE_KEY = 'openathlete_onboarding_data';
 const ONBOARDING_STEP_KEY = 'openathlete_onboarding_step';
@@ -170,8 +186,8 @@ export function OnboardingView() {
       roleBasedSteps.push('athlete-invitations');
     }
 
-    // Always end with complete
-    return [...baseSteps, ...roleBasedSteps, 'complete'];
+    // Always end with the acquisition question, then complete
+    return [...baseSteps, ...roleBasedSteps, 'acquisition-source', 'complete'];
   }, [data.roles, hasCoach]);
 
   const currentStep = steps[currentStepIndex];
@@ -214,7 +230,10 @@ export function OnboardingView() {
   const completeOnboardingMutation = useCompleteOnboardingMutation({
     onSuccess: async (_, variables) => {
       onboardingFinishedRef.current = true;
-      posthog?.capture('onboarding_completed', { roles: variables.roles });
+      posthog?.capture('onboarding_completed', {
+        roles: variables.roles,
+        acquisition_source: variables.acquisitionSource,
+      });
       await initialize();
       navigate(takeReturnTo(getPath(['dashboard'])));
     },
@@ -303,6 +322,7 @@ export function OnboardingView() {
       coachEmail: data.coachEmail || undefined,
       athleteEmails:
         validAthleteEmails.length > 0 ? validAthleteEmails : undefined,
+      acquisitionSource: data.acquisitionSource,
     };
 
     completeOnboardingMutation.mutate(payload);
@@ -625,6 +645,55 @@ export function OnboardingView() {
               <Button variant="ghost" onClick={handleSkip} className="w-full">
                 {m.onboarding_athlete_invitations_skip()}
               </Button>
+            </div>
+          </div>
+        );
+
+      case 'acquisition-source':
+        return (
+          <div className="flex flex-col gap-4 sm:gap-6">
+            <div className="text-center">
+              <h2 className="text-xl sm:text-2xl font-bold">
+                {m.onboarding_acquisition_title()}
+              </h2>
+              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+                {m.onboarding_acquisition_subtitle()}
+              </p>
+            </div>
+            <div className="grid gap-2 sm:gap-3" role="radiogroup">
+              {ACQUISITION_SOURCES.map((source) => {
+                const selected = data.acquisitionSource === source;
+                return (
+                  <button
+                    key={source}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() =>
+                      setData((d) => ({
+                        ...d,
+                        acquisitionSource: selected ? undefined : source,
+                      }))
+                    }
+                    className={cn(
+                      'flex min-h-11 items-center gap-2 sm:gap-3 rounded-lg border-2 px-3 py-2 sm:px-4 text-left transition-colors',
+                      selected
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50',
+                    )}
+                  >
+                    <CheckCircle2
+                      className={cn(
+                        'h-5 w-5 shrink-0',
+                        selected ? 'text-primary' : 'text-muted-foreground',
+                      )}
+                    />
+                    <span className="font-medium">
+                      {ACQUISITION_SOURCE_LABELS[source]()}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         );

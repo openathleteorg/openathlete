@@ -13,6 +13,19 @@ enum Gender {
   @@map("gender")
 }
 
+/// How a user heard of OpenAthlete, asked during onboarding
+enum AcquisitionSource {
+  REDDIT
+  GOOGLE
+  AI_ASSISTANT
+  COACH_OR_FRIEND
+  DISCORD
+  YOUTUBE
+  OTHER
+
+  @@map("acquisition_source")
+}
+
 enum EventType {
   TRAINING
   COMPETITION

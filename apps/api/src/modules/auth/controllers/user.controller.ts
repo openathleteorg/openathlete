@@ -27,6 +27,7 @@ import { Throttle } from '@nestjs/throttler';
 
 import { Gender, UserLanguage, UserRole } from '@openathlete/database';
 import {
+  ACQUISITION_SOURCES,
   CompleteOnboardingDto,
   CreateAccountDto,
   PasswordResetDto,
@@ -544,6 +545,12 @@ export class UserController {
           description:
             'Athlete emails to invite (only used if roles includes COACH)',
           example: ['athlete1@example.com', 'athlete2@example.com'],
+        },
+        acquisitionSource: {
+          type: 'string',
+          enum: [...ACQUISITION_SOURCES],
+          description: 'How the user heard of OpenAthlete',
+          example: 'REDDIT',
         },
       },
       required: ['roles'],

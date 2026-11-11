@@ -546,6 +546,7 @@ export class UserService {
       where: { userId: user.userId },
       data: {
         gender: data.gender as Gender | undefined,
+        acquisitionSource: data.acquisitionSource,
         onboardingCompleted: true,
       },
     });
