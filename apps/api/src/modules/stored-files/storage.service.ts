@@ -55,9 +55,7 @@ export class StorageService {
         endpoint,
         region:
           this.config.get('S3_REGION') ||
-          (endpoint?.includes('r2.cloudflarestorage.com')
-            ? 'auto'
-            : 'us-east-1'),
+          (isCloudflareR2(endpoint) ? 'auto' : 'us-east-1'),
         forcePathStyle: this.config.get('S3_FORCE_PATH_STYLE') === true,
         credentials: {
           accessKeyId: this.config.get('S3_ACCESS_KEY_ID'),
@@ -123,5 +121,15 @@ export class StorageService {
       }
       token = page.IsTruncated ? page.NextContinuationToken : undefined;
     } while (token);
+  }
+}
+
+/** R2 takes the region `auto`; other S3 services default to us-east-1 */
+function isCloudflareR2(endpoint: string | undefined): boolean {
+  if (!endpoint) return false;
+  try {
+    return new URL(endpoint).hostname.endsWith('.r2.cloudflarestorage.com');
+  } catch {
+    return false;
   }
 }
