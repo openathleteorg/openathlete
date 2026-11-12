@@ -146,6 +146,7 @@ describe('AccountDeletionService (PostgreSQL)', () => {
       message_thread_participant: 1,
       message: 1,
       lifecycle_email: 1,
+      custom_exercise: 1,
       coach_note: 1,
       coach_notebook: 1,
       stored_file: 1,

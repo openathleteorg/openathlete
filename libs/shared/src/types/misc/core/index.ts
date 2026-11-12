@@ -17,3 +17,5 @@ export * from './workout-duration-type.enum';
 export * from './workout-step-type.enum';
 export * from './normalization-factor.enum';
 export * from './injury-status.enum';
+export * from './exercise-side.enum';
+export * from './workout-repeat-kind.enum';

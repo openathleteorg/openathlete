@@ -38,6 +38,7 @@ const EXPORTED_TABLES = [
   'coach_activity_alert_settings',
   'coach_note',
   'coach_notebook',
+  'custom_exercise',
   'stored_file',
   'cycle',
   'equipment',
@@ -85,6 +86,7 @@ interface ExportDocument {
   templates: { event: { name: string } }[];
   aiAssistant: { messages: { blocks: { content: string }[] }[] }[];
   coachNotes: { title: string }[];
+  customExercises: { name: string }[];
   aiSettings: { keys: unknown[]; instructions: unknown[] };
   messages: unknown[];
   events: {
@@ -159,6 +161,9 @@ describe('AccountExportService (PostgreSQL)', () => {
       expect.objectContaining({ firstName: 'Co', lastName: 'Ach' }),
     ]);
     expect(data.templates[0].event.name).toBe('Template');
+    expect(data.customExercises).toEqual([
+      expect.objectContaining({ name: 'Pistol squat' }),
+    ]);
     expect(data.aiAssistant[0].messages[0].blocks[0].content).toBe('hi');
     // The notes the user wrote, never those their coach wrote about them
     expect(data.coachNotes.map((note) => note.title)).toEqual([

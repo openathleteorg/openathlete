@@ -96,6 +96,7 @@ model User {
   mcpGrants                 McpGrant[]
   oauthCodes                OAuthAuthorizationCode[]
   lifecycleEmails           LifecycleEmail[]
+  customExercises           CustomExercise[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

@@ -86,9 +86,15 @@ export type DurationStep = {
   targets?: readonly DurationTarget[] | null;
   repeatBlock?: {
     repetitions: number;
+    kind?: string | null;
+    intervalSeconds?: number | null;
+    timeCapSeconds?: number | null;
     childSteps?: readonly DurationStep[] | null;
   } | null;
 };
+
+/** A strength rep, for the length of a set: 3 s, lowering and lifting */
+export const SECONDS_PER_REP = 3;
 
 /**
  * Default physiological metrics and intensity clamps used when estimating
@@ -612,6 +618,14 @@ export function calculateWorkoutDuration(
       return step.durationValue;
     }
 
+    if (
+      step.durationType === WORKOUT_DURATION_TYPE.REPS &&
+      step.durationValue
+    ) {
+      hasCalculableDuration = true;
+      return step.durationValue * SECONDS_PER_REP;
+    }
+
     // DISTANCE-based steps: estimate using pace targets
     if (step.durationType === WORKOUT_DURATION_TYPE.DISTANCE) {
       const estimatedDuration = estimateStepDurationFromDistance(
@@ -629,6 +643,18 @@ export function calculateWorkoutDuration(
   };
 
   for (const step of workout.steps) {
+    // An EMOM lasts its minutes, an AMRAP its time cap, whatever is done in them
+    const timing = step.repeatBlock;
+    if (timing?.kind === 'EMOM' && timing.intervalSeconds) {
+      totalSeconds += timing.intervalSeconds * timing.repetitions;
+      hasCalculableDuration = true;
+      continue;
+    }
+    if (timing?.kind === 'AMRAP' && timing.timeCapSeconds) {
+      totalSeconds += timing.timeCapSeconds;
+      hasCalculableDuration = true;
+      continue;
+    }
     if (step.stepType === WORKOUT_STEP_TYPE.REPEAT && step.repeatBlock) {
       // Calculate duration of child steps and multiply by repetitions
       let repeatDuration = 0;

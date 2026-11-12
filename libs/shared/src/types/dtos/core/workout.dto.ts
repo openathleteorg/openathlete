@@ -1,10 +1,35 @@
 import { z } from 'zod';
 
 import {
+  EXERCISE_SIDE,
   WORKOUT_DURATION_TYPE,
+  WORKOUT_REPEAT_KIND,
   WORKOUT_STEP_TYPE,
   WORKOUT_TARGET_TYPE,
 } from '../../misc';
+
+/** "c:<slug>" for the bundled catalog, "u:<id>" for a custom exercise */
+export const exerciseRefSchema = z
+  .string()
+  .regex(/^(c:[a-z0-9-]{1,80}|u:\d{1,10})$/);
+
+/** Eccentric-pause-concentric-pause seconds, X for explosive: "3-1-X-0" */
+export const tempoSchema = z.string().regex(/^[0-9xX]{1,2}(-[0-9xX]{1,2}){3}$/);
+
+/** Strength fields of a step, and the way a repeat block runs */
+const strengthStepFields = {
+  exerciseRef: exerciseRefSchema
+    .nullable()
+    .optional()
+    .describe('Strength exercise: "c:<slug>" from the catalog'),
+  tempo: tempoSchema.nullable().optional(),
+  side: z.nativeEnum(EXERCISE_SIDE).nullable().optional(),
+};
+const repeatModeFields = {
+  kind: z.nativeEnum(WORKOUT_REPEAT_KIND).optional(),
+  intervalSeconds: z.number().int().min(10).max(3600).nullable().optional(),
+  timeCapSeconds: z.number().int().min(30).max(14400).nullable().optional(),
+};
 
 export const workoutStepTargetSchema = z.object({
   workoutStepTargetId: z.number().optional(),
@@ -30,6 +55,7 @@ export const workoutStepSchema: z.ZodSchema = z.lazy(() =>
     durationType: z.nativeEnum(WORKOUT_DURATION_TYPE),
     durationValue: z.number().nullable().optional(),
     durationTarget: z.number().nullable().optional(),
+    ...strengthStepFields,
     workoutId: z.number().optional(),
     repeatParentId: z.number().nullable().optional(),
     targets: z.array(workoutStepTargetSchema).default([]),
@@ -37,6 +63,7 @@ export const workoutStepSchema: z.ZodSchema = z.lazy(() =>
       .object({
         workoutRepeatId: z.number().optional(),
         repetitions: z.number().min(1).max(99),
+        ...repeatModeFields,
         stepId: z.number().optional(),
         childSteps: z.array(workoutStepSchema).default([]),
         createdAt: z.coerce.date().optional(),
@@ -54,6 +81,7 @@ export type WorkoutStepDto = z.infer<typeof workoutStepSchema>;
 export const workoutRepeatSchema = z.object({
   workoutRepeatId: z.number().optional(),
   repetitions: z.number().min(1).max(99),
+  ...repeatModeFields,
   stepId: z.number().optional(),
   childSteps: z.array(workoutStepSchema).default([]),
   createdAt: z.coerce.date().optional(),
@@ -109,6 +137,7 @@ export const createWorkoutStepDtoSchema = z
       repeatTimes: z.number().nullable().optional(),
       restTime: z.number().nullable().optional(),
       notes: z.string().nullable().optional(),
+      ...strengthStepFields,
       targets: z.array(createWorkoutStepTargetSchema).default([]),
       // Recursive type for REPEAT steps that contain child steps
       childSteps: z
@@ -121,6 +150,7 @@ export const createWorkoutStepDtoSchema = z
       repeatBlock: z
         .object({
           repetitions: z.number().min(1).max(99),
+          ...repeatModeFields,
           childSteps: z
             .lazy(() => z.array(createWorkoutStepDtoSchema))
             .default([]),
@@ -156,10 +186,16 @@ export type CreateWorkoutStepDto = {
   repeatTimes?: number | null;
   restTime?: number | null;
   notes?: string | null;
+  exerciseRef?: string | null;
+  tempo?: string | null;
+  side?: EXERCISE_SIDE | null;
   targets?: CreateWorkoutStepTarget[];
   childSteps?: CreateWorkoutStepDto[];
   repeatBlock?: {
     repetitions: number;
+    kind?: WORKOUT_REPEAT_KIND;
+    intervalSeconds?: number | null;
+    timeCapSeconds?: number | null;
     childSteps: CreateWorkoutStepDto[];
   } | null;
 };

@@ -17,6 +17,7 @@ import {
 import {
   SPORT_TYPE,
   WORKOUT_DURATION_TYPE,
+  WORKOUT_REPEAT_KIND,
   WORKOUT_STEP_TYPE,
 } from '../types/misc';
 import type {
@@ -56,6 +57,9 @@ function normalizeStepForCreate(
     repeatTimes: null,
     restTime: null,
     notes: step.notes ?? null,
+    exerciseRef: step.exerciseRef ?? null,
+    tempo: step.tempo ?? null,
+    side: step.side ?? null,
     targets: (step.targets || []).map((t: Partial<WorkoutStepTargetDto>) =>
       normalizeTarget(t),
     ),
@@ -67,6 +71,9 @@ function normalizeStepForCreate(
   if (step.repeatBlock) {
     base.repeatBlock = {
       repetitions: step.repeatBlock.repetitions,
+      kind: step.repeatBlock.kind ?? WORKOUT_REPEAT_KIND.REPEAT,
+      intervalSeconds: step.repeatBlock.intervalSeconds ?? null,
+      timeCapSeconds: step.repeatBlock.timeCapSeconds ?? null,
       childSteps: (step.repeatBlock.childSteps || []).map(
         (c: Partial<WorkoutStepDto>) => normalizeStepForCreate(c),
       ),
@@ -137,6 +144,9 @@ function mapStepToPrismaCreate(step: CreateWorkoutStepDto, index?: number) {
     durationType: step.durationType ?? WORKOUT_DURATION_TYPE.OPEN,
     durationValue: step.durationValue ?? null,
     notes: step.notes ?? null,
+    exerciseRef: step.exerciseRef ?? null,
+    tempo: step.tempo ?? null,
+    side: step.side ?? null,
     targets: {
       create: (step.targets || [])
         .map(mapTargetToPrismaCreate)
@@ -148,6 +158,9 @@ function mapStepToPrismaCreate(step: CreateWorkoutStepDto, index?: number) {
     base.repeatBlock = {
       create: {
         repetitions: step.repeatBlock.repetitions,
+        kind: step.repeatBlock.kind ?? WORKOUT_REPEAT_KIND.REPEAT,
+        intervalSeconds: step.repeatBlock.intervalSeconds ?? null,
+        timeCapSeconds: step.repeatBlock.timeCapSeconds ?? null,
         childSteps: {
           create: step.repeatBlock.childSteps.map((child, childIdx) => ({
             ...mapStepToPrismaCreate(child, childIdx),
@@ -204,6 +217,9 @@ function mapPrismaStepToDto(
     durationType: step.durationType,
     durationValue: step.durationValue ?? null,
     durationTarget: step.durationTarget ?? null,
+    exerciseRef: step.exerciseRef ?? null,
+    tempo: step.tempo ?? null,
+    side: step.side ?? null,
     workoutId: step.workoutId ?? undefined,
     repeatParentId: step.repeatParentId ?? undefined,
     targets: (step.targets || []).map(mapPrismaTargetToDto),
@@ -211,6 +227,9 @@ function mapPrismaStepToDto(
       ? {
           workoutRepeatId: step.repeatBlock.workoutRepeatId,
           repetitions: step.repeatBlock.repetitions,
+          kind: step.repeatBlock.kind,
+          intervalSeconds: step.repeatBlock.intervalSeconds ?? null,
+          timeCapSeconds: step.repeatBlock.timeCapSeconds ?? null,
           stepId: step.repeatBlock.stepId,
           childSteps: (step.repeatBlock.childSteps || []).map(
             mapPrismaStepToDto,

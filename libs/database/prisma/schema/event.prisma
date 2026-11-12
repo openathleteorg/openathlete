@@ -224,6 +224,9 @@ model EventActivity {
   /// Corrections applied over originalStream, in order (shape in
   /// libs/shared StoredActivityCorrection); null for none
   corrections            Json?
+  /// Sets done in the strength session player (shape in libs/shared
+  /// strengthLogSchema); null for activities not recorded there
+  strengthLog            Json?              @map("strength_log")
 
   // relationships
   event               Event                       @relation(fields: [eventId], references: [eventId])

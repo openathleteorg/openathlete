@@ -80,6 +80,7 @@ export const EVENT_INCLUDES = {
       aiSummary: true,
       aiSummaryAt: true,
       corrections: true,
+      strengthLog: true,
       equipment: {
         select: {
           equipmentId: true,

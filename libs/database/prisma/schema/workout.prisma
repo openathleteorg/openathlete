@@ -49,6 +49,14 @@ model WorkoutStep {
   durationValue  Float?              @map("duration_value")
   /// Optional target for LAP_BUTTON type
   durationTarget Float?              @map("duration_target")
+  /// Strength exercise the step performs: "c:<slug>" from the bundled
+  /// catalog, "u:<id>" a custom exercise. `name` keeps its name for readers
+  /// that do not resolve it (device exports, AI, older apps)
+  exerciseRef    String?             @map("exercise_ref")
+  /// Lifting tempo, eccentric-pause-concentric-pause in seconds ("3-1-1-0")
+  tempo          String?
+  /// Which side works: each side in turn, one side or alternating
+  side           ExerciseSide?
 
   // relationships
   workout          Workout?            @relation(fields: [workoutId], references: [workoutId], onDelete: Cascade)
@@ -77,7 +85,15 @@ model WorkoutRepeat {
 
   // fields
   /// Number of times to repeat the child steps
-  repetitions Int
+  repetitions     Int
+  /// How the athlete runs the block: plain sets, a superset or circuit
+  /// (exercises in a row, then rest), every minute on the minute, as many
+  /// rounds as possible, or Tabata
+  kind            WorkoutRepeatKind @default(REPEAT)
+  /// EMOM: a round starts every this many seconds
+  intervalSeconds Int?              @map("interval_seconds")
+  /// AMRAP: the time the rounds fit in
+  timeCapSeconds  Int?              @map("time_cap_seconds")
 
   // relationships
   step       WorkoutStep   @relation("RepeatBlock", fields: [stepId], references: [workoutStepId], onDelete: Cascade)
@@ -120,4 +136,36 @@ model WorkoutStepTarget {
 
   @@index([stepId])
   @@map("workout_step_target")
+}
+
+/// Strength exercise a coach or athlete created, beside the bundled catalog.
+/// Workout steps point to it as "u:<customExerciseId>".
+model CustomExercise {
+  // primary key
+  customExerciseId Int @id @default(autoincrement()) @map("custom_exercise_id")
+
+  // fields
+  name                 String
+  /// How to perform it, shown to the athlete
+  instructions         String              @default("")
+  /// A video or image link the athlete can open
+  mediaUrl             String?             @map("media_url")
+  /// Catalog vocabulary: "chest", "upper legs"...
+  bodyPart             String?             @map("body_part")
+  /// Catalog vocabulary: "dumbbell", "body weight"...
+  equipment            String?
+  /// Reps or a hold, and the defaults a new set starts from
+  defaultDurationType  WorkoutDurationType @default(REPS) @map("default_duration_type")
+  defaultDurationValue Float?              @map("default_duration_value")
+
+  // relationships
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId Int  @map("user_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@map("custom_exercise")
 }

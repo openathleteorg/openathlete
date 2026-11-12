@@ -115,6 +115,26 @@ export class AccountExportService {
         select: { content: true, updatedAt: true },
       }),
     );
+    // The strength exercises the user added to the library
+    write(
+      'customExercises',
+      await this.prisma.customExercise.findMany({
+        where: { userId },
+        select: {
+          customExerciseId: true,
+          name: true,
+          instructions: true,
+          mediaUrl: true,
+          bodyPart: true,
+          equipment: true,
+          defaultDurationType: true,
+          defaultDurationValue: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { customExerciseId: 'asc' },
+      }),
+    );
     // What the images in notes and messages are; their ids are those the
     // texts reference
     write(

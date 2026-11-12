@@ -16,6 +16,7 @@ import { CycleController } from './controllers/cycle.controller';
 import { EquipmentController } from './controllers/equipment.controller';
 import { EventTemplateFolderController } from './controllers/event-template-folder.controller';
 import { EventTemplateController } from './controllers/event-template.controller';
+import { ExerciseController } from './controllers/exercise.controller';
 import { InjuryController } from './controllers/injury.controller';
 import { ManualFitImportController } from './controllers/manual-fit-import.controller';
 import { MetricController } from './controllers/metric.controller';
@@ -40,6 +41,7 @@ import { AthleteService } from './services/athlete.service';
 import { CalendarFeedService } from './services/calendar-feed.service';
 import { CoachNoteService } from './services/coach-note.service';
 import { CoachService } from './services/coach.service';
+import { CustomExerciseService } from './services/custom-exercise.service';
 import { EquipmentService } from './services/equipment.service';
 import { EventBulkService } from './services/event-bulk.service';
 import { EventSeriesService } from './services/event-series.service';
@@ -61,6 +63,7 @@ import {
 } from './services/pipeline/processors';
 import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
+import { StrengthSessionService } from './services/strength-session.service';
 import { TrainingLoadService } from './services/training-load.service';
 import { TrainingZoneService } from './services/training-zone.service';
 import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
@@ -76,6 +79,7 @@ import { WeatherService } from './services/weather/weather.service';
     forwardRef(() => ProvidersSyncModule),
   ],
   controllers: [
+    ExerciseController,
     ActivityDuplicatesController,
     ActivityFeedbackController,
     EventController,
@@ -95,6 +99,8 @@ import { WeatherService } from './services/weather/weather.service';
     ManualFitImportController,
   ],
   providers: [
+    CustomExerciseService,
+    StrengthSessionService,
     EventService,
     ActivityDuplicateService,
     ManualFitImportService,

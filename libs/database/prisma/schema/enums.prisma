@@ -497,3 +497,23 @@ enum LifecycleEmailKind {
 
   @@map("lifecycle_email_kind")
 }
+
+enum ExerciseSide {
+  EACH // both sides, one after the other
+  LEFT
+  RIGHT
+  ALTERNATE
+
+  @@map("exercise_side")
+}
+
+enum WorkoutRepeatKind {
+  REPEAT // plain repetitions, or the sets of one exercise
+  SUPERSET
+  CIRCUIT
+  EMOM
+  AMRAP
+  TABATA
+
+  @@map("workout_repeat_kind")
+}

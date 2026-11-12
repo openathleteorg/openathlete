@@ -202,5 +202,7 @@ export class AccountDeletionService {
     await tx.coachAthlete.deleteMany({ where: { userId } });
     // Cascades too; said here so the list of what goes stays complete
     await tx.lifecycleEmail.deleteMany({ where: { userId } });
+    // Cascades too; the exercises a coach created go with their account
+    await tx.customExercise.deleteMany({ where: { userId } });
   }
 }
