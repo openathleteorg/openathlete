@@ -20,7 +20,8 @@ const options = {
     },
   ],
   treeshake: 'smallest',
-  plugins: [typescript()],
+  // Tests stay out of the published build
+  plugins: [typescript({ exclude: ['**/*.spec.ts'] })],
   external: [
     'zod',
     'libphonenumber-js',

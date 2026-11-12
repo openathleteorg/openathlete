@@ -50,3 +50,4 @@ export * from './activity-detection';
 export * from './activity-corrections';
 export * from './image-refs';
 export * from './signup-attribution';
+export * from './workout-text';

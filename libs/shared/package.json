@@ -16,7 +16,8 @@
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --check \"src/**/*.ts\"",
     "lint": "eslint \"src/**/*.ts\" --max-warnings 0",
-    "tsc:check": "tsc --noEmit"
+    "tsc:check": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@openathlete/database": "workspace:*",
@@ -24,7 +25,8 @@
     "@openathlete/prettier-config": "workspace:*",
     "@rollup/plugin-typescript": "^11.1.6",
     "rollup": "~3.30.0",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.12"
   },
   "dependencies": {
     "libphonenumber-js": "^1.13.15",
