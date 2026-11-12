@@ -25,8 +25,14 @@ test('an athlete without wellness data costs no wellness query', async ({
   page.on('request', (req) => {
     if (req.url().includes('/training-load/days')) asked.push(req.url());
   });
+  // The days are asked once the athlete is known, which can come after the
+  // page first goes quiet: wait for that request, then for any other
+  const days = page.waitForRequest((req) =>
+    req.url().includes('/training-load/days'),
+  );
   await page.goto('/dashboard/calendar');
   await expect(page.locator('[data-calendar-day]').first()).toBeVisible();
+  await days;
   await page.waitForLoadState('networkidle');
   // One request, without wellness
   expect(asked).toHaveLength(1);

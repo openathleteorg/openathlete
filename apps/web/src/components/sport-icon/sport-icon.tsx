@@ -36,9 +36,11 @@ import { SPORT_TYPE } from '@openathlete/shared';
 interface P {
   sport: SPORT_TYPE;
   className?: string;
+  /** Next to the sport's name: hidden from screen readers, which read it */
+  decorative?: boolean;
 }
 
-export function SportIcon({ sport, className }: P) {
+export function SportIcon({ sport, className, decorative }: P) {
   const icon = useMemo(() => {
     switch (sport) {
       case SPORT_TYPE.RUNNING:
@@ -167,7 +169,8 @@ export function SportIcon({ sport, className }: P) {
   return (
     <img
       src={icon}
-      alt={sport}
+      alt={decorative ? '' : sport}
+      aria-hidden={decorative || undefined}
       className={cn('w-4 h-4 dark:invert dark:brightness-90', className)}
     />
   );

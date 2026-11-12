@@ -92,6 +92,7 @@ export function SportChips() {
               >
                 <SportIcon
                   sport={sport}
+                  decorative
                   className={cn(
                     'size-4',
                     field.value === sport && 'invert dark:invert-0',
