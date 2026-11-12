@@ -40,6 +40,8 @@ interface Shot {
   /** Clicks and waits after the page loaded */
   prepare?: (page: Page, ids: Ids) => Promise<void>;
   fullPage?: boolean;
+  /** Still drawings: the player's moving ones are caught between two frames */
+  reducedMotion?: boolean;
 }
 
 interface Ids {
@@ -83,16 +85,20 @@ async function findIds(athlete: Tokens): Promise<Ids> {
     const training = past.filter((e) => e.type === 'TRAINING' && e.name.startsWith(name)).at(-1);
     return past.find((e) => e.type === 'ACTIVITY' && e.startDate === training?.startDate)?.eventId ?? 0;
   };
+  const nextStrength = events.find(
+    (e) => e.type === 'TRAINING' && e.name.startsWith('Strength') && new Date(e.startDate).getTime() > now,
+  );
   return {
     camilleAthleteId: me.athleteId,
     activity: {
+      strength: latest((e) => e.type === 'ACTIVITY' && e.name === 'Strength'),
       longTrail: latest((e) => e.type === 'ACTIVITY' && e.name === 'Quintal Trail Running'),
       race: latest((e) => e.type === 'ACTIVITY' && e.name.startsWith('Ultra-Trail')),
       tenK: latest((e) => e.type === 'ACTIVITY' && e.name.includes('10 km')),
       intervals: doneAs('6 × 1000'),
       longRun: doneAs('Long run'),
     },
-    training: {},
+    training: { nextStrength: nextStrength?.eventId ?? 0 },
   };
 }
 
@@ -129,6 +135,7 @@ async function newContext(browser: Browser, tokens: Tokens, shot: Shot): Promise
     locale: 'en-GB',
     timezoneId: 'Europe/Paris',
     colorScheme: shot.theme ?? 'light',
+    reducedMotion: shot.reducedMotion ? 'reduce' : 'no-preference',
   });
   await context.addCookies([{ name: 'OA_LOCALE', value: 'en', url: WEB }]);
   await context.addInitScript(
@@ -233,6 +240,46 @@ const openSession = (name: string) => async (page: Page) => {
   await page.waitForTimeout(1500);
 };
 
+/** Opens a session of the coming weeks from the calendar week, moving forward until it shows. */
+const openUpcoming = (name: string) => async (page: Page) => {
+  await calendarView('Week')(page);
+  await page.waitForTimeout(1200);
+  // From next week: this week's session may already be done. The phone
+  // agenda has no week buttons: it lists the coming days, upcoming last
+  const next = page.getByRole('button', { name: 'Next week' });
+  if (!(await next.isVisible())) {
+    await page.locator('.calendar-event', { hasText: name }).last().click();
+    await page.waitForTimeout(1500);
+    return;
+  }
+  await next.click();
+  await page.waitForTimeout(1200);
+  for (let week = 0; week < 4; week++) {
+    const card = page.locator('.calendar-event', { hasText: name });
+    if (await card.count()) {
+      await card.first().click();
+      await page.waitForTimeout(1500);
+      return;
+    }
+    await page.getByRole('button', { name: 'Next week' }).click();
+    await page.waitForTimeout(1200);
+  }
+  throw new Error(`${name} not found in the coming weeks`);
+};
+
+const editOpenSession = async (page: Page) => {
+  await page.getByRole('dialog').getByRole('button', { name: 'Edit' }).click();
+  await page.waitForTimeout(1200);
+};
+
+/** The player, started and taken to the squats past the warm-up */
+const playToSquats = async (page: Page) => {
+  await page.locator('[data-player-start]').click();
+  await page.waitForTimeout(600);
+  await page.locator('[data-player-skip]').click();
+  await page.waitForTimeout(800);
+};
+
 const steps =
   (...fns: ((page: Page, ids: Ids) => Promise<void>)[]) =>
   async (page: Page, ids: Ids) => {
@@ -267,12 +314,61 @@ export const SHOTS: Shot[] = [
     name: 'desktop-workout-editor',
     who: 'athlete',
     path: '/dashboard/calendar',
-    prepare: steps(
-      openSession('6 × 1000 m'),
-      async (p) => p.getByRole('dialog').getByRole('button', { name: 'Edit' }).click(),
-      scrollTo(/Goal Elevation Gain/),
+    prepare: steps(openSession('6 × 1000 m'), editOpenSession),
+  },
+  {
+    name: 'desktop-workout-editor-text',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    prepare: steps(openSession('6 × 1000 m'), editOpenSession, async (p) =>
+      p.locator('[data-builder-mode="text"]').click(),
     ),
   },
+  {
+    name: 'desktop-strength-editor',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    prepare: steps(openUpcoming('Strength: legs & core'), editOpenSession),
+  },
+  {
+    name: 'desktop-exercise-library',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    prepare: steps(openUpcoming('Strength: legs & core'), editOpenSession, async (p) => {
+      await p.locator('[data-add-exercise]').click();
+      await p.locator('[data-exercise-search]').fill('squat');
+      await p.waitForTimeout(600);
+    }),
+    // Drawings caught mid-crossfade look blurred: show them still
+    reducedMotion: true,
+  },
+  {
+    name: 'desktop-strength-session-detail',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    prepare: openUpcoming('Strength: legs & core'),
+  },
+  {
+    name: 'desktop-player-ready',
+    who: 'athlete',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+  },
+  {
+    name: 'desktop-player-exercise',
+    who: 'athlete',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+    prepare: playToSquats,
+  },
+  {
+    name: 'desktop-player-rest',
+    who: 'athlete',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+    prepare: steps(playToSquats, async (p) => p.locator('[data-player-primary]').click()),
+  },
+  { name: 'desktop-activity-strength', who: 'athlete', path: (ids) => `/dashboard/activity/${ids.activity.strength}` },
   {
     name: 'desktop-template-library',
     who: 'athlete',
@@ -406,6 +502,45 @@ export const SHOTS: Shot[] = [
   { name: 'mobile-records', who: 'athlete', device: 'mobile', path: '/dashboard/records' },
   { name: 'mobile-metrics', who: 'athlete', device: 'mobile', path: '/dashboard/metrics' },
   { name: 'mobile-coach-dashboard', who: 'coach', device: 'mobile', path: '/dashboard/coach' },
+  {
+    name: 'mobile-player-ready',
+    who: 'athlete',
+    device: 'mobile',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+  },
+  {
+    name: 'mobile-player-exercise',
+    who: 'athlete',
+    device: 'mobile',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+    prepare: playToSquats,
+  },
+  {
+    name: 'mobile-player-rest',
+    who: 'athlete',
+    device: 'mobile',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+    prepare: steps(playToSquats, async (p) => p.locator('[data-player-primary]').click()),
+  },
+  {
+    name: 'mobile-dark-player-exercise',
+    who: 'athlete',
+    device: 'mobile',
+    theme: 'dark',
+    path: (ids) => `/play/${ids.training.nextStrength}`,
+    reducedMotion: true,
+    prepare: playToSquats,
+  },
+  {
+    name: 'mobile-strength-editor',
+    who: 'athlete',
+    device: 'mobile',
+    path: '/dashboard/calendar',
+    prepare: steps(openUpcoming('Strength: legs & core'), editOpenSession, scrollTo(/^Barbell full squat$/, 120)),
+  },
 ];
 
 async function main() {

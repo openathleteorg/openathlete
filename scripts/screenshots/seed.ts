@@ -180,7 +180,7 @@ interface ActivityInput {
   name: string;
   sport: SportType;
   start: Date;
-  provider: ConnectorProvider;
+  provider: ConnectorProvider | null;
   externalId: string;
   rpe: number | null;
   description?: string;
@@ -190,6 +190,8 @@ interface ActivityInput {
   /** Activities without a recording (strength, the roster) */
   manual?: { distance: number; movingTime: number; averageHeartrate: number; maxHeartrate: number; elevationGain?: number };
   aiSummary?: { headline: string; points: string[]; suggestion: string | null };
+  /** Sets done in the session player (strength) */
+  strengthLog?: unknown;
 }
 
 async function createActivity(db: Db, input: ActivityInput) {
@@ -227,6 +229,7 @@ async function createActivity(db: Db, input: ActivityInput) {
           equipmentId: input.equipmentId ?? null,
           stream: input.recording ? json(input.recording.stream) : undefined,
           aiSummary: input.aiSummary ? json(input.aiSummary) : undefined,
+          strengthLog: input.strengthLog ? json(input.strengthLog) : undefined,
           aiSummaryAt: input.aiSummary ? new Date(input.start.getTime() + movingTime * 1000 + 900_000) : undefined,
           // Recent activities answered the post-activity questions already
           feedbackSkipped: true,
@@ -256,13 +259,14 @@ async function createPlannedSession(
       type: 'TRAINING',
       name: overrides.name ?? session.name,
       startDate: start,
-      endDate: new Date(start.getTime() + (goals.duration || 2700) * 1000),
+      endDate: new Date(start.getTime() + (session.sport === 'STRENGTH' ? 2700 : goals.duration || 2700) * 1000),
       training: {
         create: {
           sport: session.sport,
           description: overrides.description ?? session.description,
           goalDistance: goals.distance,
-          goalDuration: goals.duration || (session.sport === 'STRENGTH' ? 2700 : null),
+          // Sets are not timed in the steps: a strength session plans its hour
+          goalDuration: session.sport === 'STRENGTH' ? 2700 : goals.duration || null,
           goalElevationGain: session.goalElevationGain ?? null,
           goalRpe: session.goalRpe,
           relatedActivityId,
@@ -272,6 +276,32 @@ async function createPlannedSession(
     },
   });
   return event.eventId;
+}
+
+/** The sets of a strength session as the player records them, one or two reps short now and then */
+function strengthLog(session: Session, rng: Random) {
+  const sets: unknown[] = [];
+  session.items.forEach((item, block) => {
+    const steps = 'repeat' in item ? item.steps : [item];
+    const rounds = 'repeat' in item ? item.repeat : 1;
+    for (let round = 0; round < rounds; round++) {
+      steps.forEach((step, index) => {
+        const exercise = step.exercise;
+        if (!exercise) return;
+        const tired = round === rounds - 1 && rng.int(0, 3) === 0;
+        sets.push({
+          key: `b${block}.r${round}.e${index}`,
+          exerciseRef: `c:${exercise.id}`,
+          name: step.name ?? exercise.id,
+          reps: exercise.reps ? exercise.reps - (tired ? 1 : 0) : null,
+          seconds: exercise.reps ? null : (step.duration ?? null),
+          load: exercise.load ?? null,
+          skipped: false,
+        });
+      });
+    }
+  });
+  return { version: 1, sets, amrapRounds: {} };
 }
 
 // ---------------------------------------------------------------------------
@@ -458,13 +488,16 @@ async function seedCamille(db: Db, today: Date, coachUserId: number, passwordHas
         name: activityName(d.session, d.hour),
         sport: d.session.sport,
         start,
-        provider: ride ? 'STRAVA' : 'GARMIN',
-        externalId: String(externalSeq++),
+        // A strength session is recorded by the player, not imported
+        provider: strength ? null : ride ? 'STRAVA' : 'GARMIN',
+        externalId: strength ? `player-${externalSeq++}` : String(externalSeq++),
         rpe: Math.round(d.rpe * 10) / 10,
         equipmentId: equipment?.equipmentId ?? null,
         recording,
         manual: strength ? { distance: 0, movingTime: 2700 + rng.int(-300, 300), averageHeartrate: 112, maxHeartrate: 148 } : undefined,
         aiSummary: showcase && isIntervals ? SUMMARIES.intervals : showcase && isLong ? longSummary : undefined,
+        // Its own randomness: the rest of the seed draws the same numbers as before
+        strengthLog: strength ? strengthLog(d.session, new Random(hashSeed(`log-${d.day.toISOString()}`))) : undefined,
       });
       if (equipment && recording) addDistance(equipment.equipmentId, recording.summary.distance);
       activities.push({ ...activity, showcase });

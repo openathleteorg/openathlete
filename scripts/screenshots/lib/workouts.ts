@@ -24,10 +24,22 @@ export type Target =
   | { type: 'HEARTRATE'; min: number; max: number }
   | { type: 'RPE'; value: number };
 
+/** A strength exercise of the bundled catalog, done for reps or for time */
+export interface Exercise {
+  /** Catalog id, stored as "c:<id>" */
+  id: string;
+  reps?: number;
+  /** kg */
+  load?: number;
+  tempo?: string;
+  side?: 'EACH' | 'LEFT' | 'RIGHT' | 'ALTERNATE';
+}
+
 export interface Step {
   type: Exclude<WorkoutStepType, 'REPEAT'>;
   name?: string;
   notes?: string;
+  exercise?: Exercise;
   /** Seconds */
   duration?: number;
   /** Metres */
@@ -38,6 +50,7 @@ export interface Step {
 export interface Repeat {
   repeat: number;
   name?: string;
+  kind?: 'REPEAT' | 'SUPERSET' | 'CIRCUIT' | 'EMOM' | 'AMRAP' | 'TABATA';
   steps: Step[];
 }
 
@@ -132,6 +145,8 @@ export function sessionGoals(session: Session): { duration: number; distance: nu
   }
   // Climbing costs about 1.8 s per metre on foot, 1 s on a bike
   duration += (session.goalElevationGain ?? 0) * (ride ? 1 : 1.8);
+  // Sets cover no ground
+  if (session.sport === 'STRENGTH') return { duration: Math.round(duration / 60) * 60, distance: null };
   return {
     duration: Math.round(duration / 60) * 60,
     distance: session.goalDistance ?? (distance ? Math.round(distance / 100) * 100 : null),
@@ -157,6 +172,23 @@ function targetCreate(
 }
 
 function stepCreate(step: Step, orderIndex: number, zoneIds: number[]) {
+  const exercise = step.exercise;
+  if (exercise) {
+    return {
+      orderIndex,
+      stepType: step.type,
+      name: step.name ?? null,
+      notes: step.notes ?? '',
+      exerciseRef: `c:${exercise.id}`,
+      tempo: exercise.tempo ?? null,
+      side: exercise.side ?? null,
+      durationType: exercise.reps ? 'REPS' : 'TIME',
+      durationValue: exercise.reps ?? step.duration ?? null,
+      targets: exercise.load
+        ? { create: [{ targetType: 'WEIGHT', targetValue: exercise.load }] }
+        : undefined,
+    } satisfies Prisma.WorkoutStepCreateWithoutWorkoutInput;
+  }
   return {
     orderIndex,
     stepType: step.type,
@@ -189,6 +221,7 @@ export function workoutCreate(
               repeatBlock: {
                 create: {
                   repetitions: item.repeat,
+                  kind: item.kind ?? 'REPEAT',
                   childSteps: {
                     create: item.steps.map((s, i) => stepCreate(s, i, zoneIds)),
                   },
@@ -412,12 +445,66 @@ export const sessions = {
   }),
 
   strength: (): Session => ({
-    name: 'Strength & conditioning',
+    name: 'Strength: legs & core',
     sport: 'STRENGTH',
-    description:
-      'Runner circuit, 3 rounds: 10 Bulgarian split squats, 12 single-leg calf raises (slow eccentric), 8 single-leg deadlifts, 45 s side plank, 10 box jumps.',
-    items: [],
+    description: 'Strength for the hills: heavy and slow, then single-leg work and core. Keep 2 reps in reserve on the squats.',
+    items: [
+      { type: 'WARMUP', name: 'Mobility & activation', duration: 480 },
+      {
+        repeat: 4,
+        steps: [
+          {
+            type: 'INTERVAL_ACTIVE',
+            name: 'Barbell full squat',
+            notes: 'Knees over the toes, chest up',
+            exercise: { id: 'barbell-full-squat', reps: 6, load: 50, tempo: '3-1-1-0' },
+          },
+          { type: 'INTERVAL_REST', duration: 120 },
+        ],
+      },
+      {
+        repeat: 3,
+        kind: 'SUPERSET',
+        steps: [
+          {
+            type: 'INTERVAL_ACTIVE',
+            name: 'Dumbbell step-up',
+            exercise: { id: 'dumbbell-step-up', reps: 8, load: 12, side: 'EACH' },
+          },
+          {
+            type: 'INTERVAL_ACTIVE',
+            name: 'Barbell Romanian deadlift',
+            exercise: { id: 'barbell-romanian-deadlift', reps: 8, load: 40 },
+          },
+          { type: 'INTERVAL_REST', duration: 90 },
+        ],
+      },
+      {
+        repeat: 3,
+        steps: [
+          {
+            type: 'INTERVAL_ACTIVE',
+            name: 'Barbell standing calf raise',
+            notes: 'Three seconds down',
+            exercise: { id: 'barbell-standing-calf-raise', reps: 12, load: 40, tempo: '3-0-1-1' },
+          },
+          { type: 'INTERVAL_REST', duration: 60 },
+        ],
+      },
+      {
+        repeat: 2,
+        kind: 'CIRCUIT',
+        steps: [
+          { type: 'INTERVAL_ACTIVE', name: 'Side bridge', duration: 40, exercise: { id: 'side-bridge-v2', side: 'EACH' } },
+          { type: 'INTERVAL_REST', duration: 15 },
+          { type: 'INTERVAL_ACTIVE', name: 'Low glute bridge on floor', exercise: { id: 'low-glute-bridge-on-floor', reps: 15 } },
+          { type: 'INTERVAL_REST', duration: 15 },
+          { type: 'INTERVAL_ACTIVE', name: 'Push-up', exercise: { id: 'push-up', reps: 12 } },
+          { type: 'INTERVAL_REST', duration: 60 },
+        ],
+      },
+    ],
     routes: [],
-    goalRpe: 0.5,
+    goalRpe: 0.6,
   }),
 } as const;
