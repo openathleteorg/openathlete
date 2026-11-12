@@ -14,6 +14,7 @@ import coachRoster from './screenshots/desktop-coach-athletes.webp';
 import coachDashboard from './screenshots/desktop-coach-dashboard.webp';
 import chat from './screenshots/desktop-messages.webp';
 import metrics from './screenshots/desktop-metrics.webp';
+import player from './screenshots/desktop-player-exercise.webp';
 import records from './screenshots/desktop-records.webp';
 import sessionDetail from './screenshots/desktop-session-detail.webp';
 import aiSettings from './screenshots/desktop-settings-ai-keys.webp';
@@ -22,11 +23,15 @@ import subscription from './screenshots/desktop-settings-subscription.webp';
 import zones from './screenshots/desktop-settings-zones.webp';
 import capacities from './screenshots/desktop-statistics-capacities-trail.webp';
 import trainingLoad from './screenshots/desktop-statistics-load.webp';
+import strengthEditor from './screenshots/desktop-strength-editor.webp';
 import workoutLibrary from './screenshots/desktop-template-library.webp';
 import workoutEditor from './screenshots/desktop-workout-editor.webp';
 import mobileActivity from './screenshots/mobile-activity.webp';
 import mobileCalendar from './screenshots/mobile-calendar.webp';
 import mobileChat from './screenshots/mobile-messages.webp';
+import mobilePlayer from './screenshots/mobile-player-exercise.webp';
+import mobilePlayerRest from './screenshots/mobile-player-rest.webp';
+import mobileStrength from './screenshots/mobile-strength-editor.webp';
 import mobileHome from './screenshots/mobile-today.webp';
 import mobileWorkout from './screenshots/mobile-workout-detail.webp';
 
@@ -37,6 +42,8 @@ export const shots = {
   workoutEditor,
   workoutLibrary,
   sessionDetail,
+  strengthEditor,
+  player,
   activity,
   activityMap,
   records,
@@ -57,6 +64,9 @@ export const shots = {
   mobileActivity,
   mobileWorkout,
   mobileChat,
+  mobilePlayer,
+  mobilePlayerRest,
+  mobileStrength,
 };
 
 export type ShotKey = keyof typeof shots;

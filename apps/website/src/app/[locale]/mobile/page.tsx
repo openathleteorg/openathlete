@@ -138,6 +138,8 @@ export default async function MobilePage({ params }: Props) {
     { shot: shots.mobileCalendar, alt: m.mobile_shot_alt_calendar(), n: 2 },
     { shot: shots.mobileActivity, alt: m.mobile_shot_alt_activity(), n: 3 },
     { shot: shots.mobileChat, alt: m.mobile_shot_alt_chat(), n: 4 },
+    { shot: shots.mobilePlayer, alt: m.mobile_shot_alt_player(), n: 5 },
+    { shot: shots.mobileStrength, alt: m.mobile_shot_alt_strength(), n: 6 },
   ];
 
   return (
@@ -308,7 +310,7 @@ export default async function MobilePage({ params }: Props) {
             title={m.mobile_today_title()}
             lead={m.mobile_today_lead()}
           />
-          <RevealGroup className="mt-14 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-4">
+          <RevealGroup className="mt-14 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3">
             {features.map(({ shot, alt, n }) => (
               <RevealItem key={n}>
                 <div className="h-56 overflow-hidden rounded-[1.5rem] bg-paper px-4 pt-4 sm:h-80 sm:rounded-[2rem] sm:px-8 sm:pt-8">

@@ -17,13 +17,14 @@ import {
 } from '@/components/site/layout-primitives';
 import { PROVIDERS } from '@/components/site/providers';
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
-import { Screenshot } from '@/components/site/visuals/screenshot';
+import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
 import { WorkoutBlocks } from '@/components/site/visuals/workout-blocks';
 import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
 import { localePath } from '@/utils/locales';
 import {
   Bike,
+  CornerDownLeft,
   Dumbbell,
   FileText,
   Folder,
@@ -56,7 +57,7 @@ function provider(slug: string) {
 
 export default async function WorkoutBuilderPage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('features_wb_faq', 5);
+  const faqs = faqEntries('features_wb_faq', 6);
 
   const deviceRows = (
     ['garmin', 'suunto', 'coros', 'polar', 'strava'] as const
@@ -88,6 +89,15 @@ export default async function WorkoutBuilderPage({ params }: Props) {
       color: 'var(--mint)',
       items: [m.features_wb_lib_item_6()],
     },
+  ];
+
+  // As typed in the quick-add field, one line per step
+  const typed = ["15' Z2", "6x(1km Z4 / 2' Z1)", "10' Z1"];
+  const number = new Intl.NumberFormat(locale);
+  const catalog = [
+    { value: number.format(1305), label: m.features_wb_strength_count() },
+    { value: number.format(262), label: m.features_wb_strength_drawn() },
+    { value: '5', label: m.features_wb_strength_languages() },
   ];
 
   const sports = [
@@ -192,7 +202,113 @@ export default async function WorkoutBuilderPage({ params }: Props) {
         }
       />
 
+      <Section>
+        <Container>
+          <SplitRow
+            kicker={m.features_wb_type_kicker()}
+            title={m.features_wb_type_title()}
+            body={m.features_wb_type_body()}
+            points={[
+              m.features_wb_type_point_1(),
+              m.features_wb_type_point_2(),
+              m.features_wb_type_point_3(),
+            ]}
+            visual={
+              <div className="relative pb-16 sm:pb-10">
+                <Screenshot
+                  src={shots.workoutEditor}
+                  alt={m.features_wb_type_shot()}
+                  chrome={false}
+                  sizes="(min-width: 1024px) 680px, 100vw"
+                />
+                <div className="absolute right-3 -bottom-2 w-[min(88%,18rem)] rounded-2xl border border-border bg-white p-3 shadow-[0_24px_48px_-24px_rgb(5_12_52/0.4)] sm:-right-6 sm:-bottom-6">
+                  {typed.map((line) => (
+                    <p
+                      key={line}
+                      className="flex items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 font-mono text-[0.82rem] text-ink odd:bg-paper"
+                    >
+                      {line}
+                      <CornerDownLeft className="size-3.5 shrink-0 text-muted-foreground" />
+                    </p>
+                  ))}
+                </div>
+              </div>
+            }
+          />
+        </Container>
+      </Section>
+
       <Section tone="paper">
+        <Container>
+          <SplitRow
+            flip
+            kicker={m.features_wb_strength_kicker()}
+            title={m.features_wb_strength_title()}
+            body={m.features_wb_strength_body()}
+            points={[
+              m.features_wb_strength_point_1(),
+              m.features_wb_strength_point_2(),
+              m.features_wb_strength_point_3(),
+            ]}
+            visual={
+              <div className="relative pb-16 sm:pb-10">
+                <Screenshot
+                  src={shots.strengthEditor}
+                  alt={m.features_wb_strength_shot()}
+                  chrome={false}
+                  sizes="(min-width: 1024px) 680px, 100vw"
+                />
+                <dl className="absolute -bottom-2 left-3 grid grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-white py-3 shadow-[0_24px_48px_-24px_rgb(5_12_52/0.4)] sm:-bottom-6 sm:-left-6">
+                  {catalog.map(({ value, label }) => (
+                    <div key={label} className="px-4 sm:px-5">
+                      <dt className="sr-only">{label}</dt>
+                      <dd className="text-xl font-semibold tabular-nums text-ink sm:text-2xl">
+                        {value}
+                      </dd>
+                      <dd className="text-[0.75rem] text-muted-foreground">
+                        {label}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            }
+          />
+        </Container>
+      </Section>
+
+      <Section tone="ink">
+        <Container>
+          <SplitRow
+            tone="light"
+            kicker={m.features_wb_player_kicker()}
+            title={m.features_wb_player_title()}
+            body={m.features_wb_player_body()}
+            points={[
+              m.features_wb_player_point_1(),
+              m.features_wb_player_point_2(),
+              m.features_wb_player_point_3(),
+            ]}
+            visual={
+              <div className="relative pr-[18%] pb-10 sm:pr-[14%]">
+                <Screenshot
+                  src={shots.player}
+                  alt={m.features_wb_player_shot()}
+                  sizes="(min-width: 1024px) 600px, 85vw"
+                />
+                <PhoneShot
+                  src={shots.mobilePlayerRest}
+                  alt={m.features_wb_player_phone_shot()}
+                  sizes="(min-width: 1024px) 200px, 30vw"
+                  className="absolute right-0 bottom-0 w-[30%] max-w-[12rem]"
+                />
+              </div>
+            }
+          />
+        </Container>
+      </Section>
+
+      <Section>
         <Container>
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
             <Reveal className="lg:col-span-5">
@@ -257,7 +373,7 @@ export default async function WorkoutBuilderPage({ params }: Props) {
         </Container>
       </Section>
 
-      <Section>
+      <Section tone="paper">
         <Container>
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
             <div className="lg:col-span-5">
@@ -285,7 +401,7 @@ export default async function WorkoutBuilderPage({ params }: Props) {
         </Container>
       </Section>
 
-      <Section tone="paper">
+      <Section>
         <Container>
           <SplitRow
             flip
