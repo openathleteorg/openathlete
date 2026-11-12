@@ -118,6 +118,12 @@ export const routes = {
     updateEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
     deleteEquipment: (equipmentId: number) => `/equipment/${equipmentId}`,
   },
+  exercise: {
+    custom: '/exercise/custom',
+    customOne: (id: number) => `/exercise/custom/${id}`,
+    completeStrengthSession: (eventId: number) =>
+      `/event/${eventId}/strength-session`,
+  },
   files: {
     uploadImage: '/files/images',
     get: (fileId: string) => `/files/${fileId}`,

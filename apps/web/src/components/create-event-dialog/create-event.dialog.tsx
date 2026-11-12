@@ -6,10 +6,12 @@ import {
 } from '@/api/event';
 import { SparklesIcon } from '@/components/ui/sparkles-icon';
 import { m } from '@/paraglide/messages';
+import { sportTypeLabelMap } from '@/utils/label-map/core/sport-type.label-map';
+import { cn } from '@/utils/shadcn';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQueryClient } from '@tanstack/react-query';
 import { Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -35,11 +37,17 @@ import { undoable } from '../calendar/utils/undo';
 import { ConfirmAction } from '../confirm-action/confirm-action';
 import { FormProvider } from '../hook-form';
 import { RHFCheckbox } from '../hook-form/rhf-checkbox';
+import { suggestSessionName } from '../session-builder/session-name';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { AIModifyEventDialog } from './components/ai-modify-event-dialog';
 import { EventFormFields } from './components/event-form-fields';
 import { RepeatFields } from './components/repeat-fields';
+import {
+  SessionTitleField,
+  SportChips,
+  TrainingDetails,
+} from './components/training-fields';
 import { WorkoutSection } from './components/workout-section';
 import { useCurrentEventData } from './hooks/use-current-event-data';
 import { useEventFormSubmission } from './hooks/use-event-form-submission';
@@ -262,9 +270,13 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
   const [aiDialogOpen, setAiDialogOpen] = useState(false);
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
 
-  // Determine if we're in create mode (empty form)
+  // The AI creates an empty session and modifies a written one; a name
+  // the builder suggested does not make it written
   const formName = watch('name');
-  const isCreateMode = !formName || formName.trim() === '';
+  const isCreateMode =
+    !formName ||
+    formName.trim() === '' ||
+    (create && workoutSteps.length === 0);
 
   // AI generates an empty event, or modifies a filled one, once the user
   // allowed their data to be sent to it
@@ -392,6 +404,34 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     }
   };
 
+  // Until the coach names it, the session takes the name of its content
+  const nameSuggestion = useMemo(
+    () =>
+      sportValue
+        ? suggestSessionName(
+            workoutSteps,
+            sportTypeLabelMap[sportValue],
+            calculatedDuration,
+          )
+        : '',
+    [workoutSteps, sportValue, calculatedDuration],
+  );
+  const lastSuggestion = useRef('');
+  useEffect(() => {
+    if (type !== EVENT_TYPE.TRAINING) return;
+    const current = getValues('name') ?? '';
+    if (current === '' || current === lastSuggestion.current) {
+      setValue('name', nameSuggestion, { shouldValidate: false });
+    }
+    lastSuggestion.current = nameSuggestion;
+  }, [nameSuggestion, type, getValues, setValue]);
+  const hasGoals = Boolean(
+    goalDistanceValue ||
+    watch('goalElevationGain') ||
+    watch('goalRpe') ||
+    durationSetByHand,
+  );
+
   if (
     (create &&
       (!('date' in rest) || !rest.date || !('type' in rest) || !rest.type)) ||
@@ -400,116 +440,161 @@ export function CreateEventDialog({ open, onClose, ...rest }: P) {
     return null;
   }
 
+  const aiButton = type === EVENT_TYPE.TRAINING && (
+    <Button
+      type="button"
+      onClick={() => {
+        if (hasAIAccess) {
+          setAiDialogOpen(true);
+        } else {
+          setAiSetupOpen(true);
+        }
+      }}
+      variant="outline"
+      size="sm"
+      className="text-xs md:text-sm"
+    >
+      <SparklesIcon className="w-3 h-3 md:w-4 md:h-4" />
+      <span className="hidden sm:inline">
+        {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
+      </span>
+      <span className="sm:hidden">{m.ui_ai()} </span>
+    </Button>
+  );
+
+  const actions = (
+    <div className="flex flex-col items-stretch gap-3 max-md:sticky max-md:-bottom-4 max-md:z-10 max-md:-mx-4 max-md:border-t max-md:bg-background max-md:px-4 max-md:pt-3 max-md:pb-[calc(0.75rem+var(--safe-bottom))]">
+      <div className="flex items-center gap-2">
+        <Button
+          type="submit"
+          className="flex-1 max-md:min-h-12 max-md:text-base"
+          isLoading={isSubmitting}
+          data-event-submit
+        >
+          {edit ? m.save() : m.create()}
+        </Button>
+        {edit && !isTemplate && 'event' in rest && rest.event && (
+          <Button
+            type="button"
+            variant="outline"
+            className="text-destructive max-md:min-h-12"
+            // A repeated session asks its scope instead of a confirmation
+            onClick={() =>
+              isSeriesEvent ? void deleteEvent() : setConfirmDelete(true)
+            }
+            data-event-delete
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className={cn(type === EVENT_TYPE.TRAINING && 'sr-only')}>
+              {m.delete_()}
+            </span>
+          </Button>
+        )}
+      </div>
+      {create && type !== EVENT_TYPE.ACTIVITY && (
+        <RHFCheckbox name="saveAsTemplate" label={m.save_event_as_template()} />
+      )}
+    </div>
+  );
+
+  const title = isTemplate
+    ? m.edit_template()
+    : edit
+      ? EDIT_TITLES[type]()
+      : PLAN_TITLES[type]();
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent
-        mobileFullscreen
-        className="sm:max-w-4xl sm:max-h-[90vh] max-h-[100vh] overflow-y-auto"
-      >
-        <DialogHeader>
-          <DialogTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-2">
-            <div className="flex items-center gap-2 grow text-sm md:text-base">
-              {isTemplate
-                ? m.edit_template()
-                : edit
-                  ? EDIT_TITLES[type]()
-                  : PLAN_TITLES[type]()}
-            </div>
-            {type === EVENT_TYPE.TRAINING && (
-              <div className="flex items-center gap-2 md:pr-4 md:-translate-y-4 w-full md:w-auto">
-                <Button
-                  onClick={() => {
-                    if (hasAIAccess) {
-                      setAiDialogOpen(true);
-                    } else {
-                      setAiSetupOpen(true);
-                    }
-                  }}
-                  variant="outline"
-                  size="sm"
-                  className="flex-1 md:flex-none text-xs md:text-sm"
-                >
-                  <SparklesIcon className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
-                  <span className="hidden sm:inline">
-                    {isCreateMode ? m.create_with_ai() : m.modify_with_ai()}
-                  </span>
-                  <span className="sm:hidden">{m.ui_ai()} </span>
-                </Button>
-              </div>
-            )}
-          </DialogTitle>
-        </DialogHeader>
-        <FormProvider
-          methods={methods}
-          onSubmit={onSubmit(handleSubmit)}
-          className="space-y-4 md:space-y-6 pt-3"
+      {type === EVENT_TYPE.TRAINING ? (
+        // A session is its workout: the builder takes the room, the rest
+        // goes to the side
+        <DialogContent
+          mobileFullscreen
+          className="grid-cols-[minmax(0,1fr)] md:grid-rows-[auto_minmax(0,1fr)] md:h-[min(94vh,1040px)] md:gap-0 md:overflow-hidden md:p-0 sm:max-w-6xl"
+          data-session-composer
         >
-          <EventFormFields
-            type={type}
-            logging={create && type === EVENT_TYPE.ACTIVITY}
-            workoutDuration={calculatedDuration}
-            durationSetByHand={durationSetByHand}
-            onDurationEdited={setDurationByHand}
-            onFollowWorkout={followWorkout}
-            startDateValue={startDateValue}
-            endDateValue={watch('endDate')}
-            canChooseEquipment={
-              edit &&
-              'event' in rest &&
-              !!myAthlete &&
-              rest.event?.athleteId === myAthlete.athleteId
-            }
-            goalDistanceValue={goalDistanceValue}
-            goalDurationValue={goalDurationValue}
-            setValue={setValue}
-            isTemplate={isTemplate}
-          />
-
-          {create && !isTemplate && type !== EVENT_TYPE.ACTIVITY && (
-            <RepeatFields startDate={startDateValue} />
-          )}
-
-          <WorkoutSection
-            props={rest}
-            type={type}
-            workoutSteps={workoutSteps}
-            setWorkoutSteps={setWorkoutSteps}
-            sportValue={sportValue}
-            athleteId={workoutAthleteId}
-          />
-
-          <div className="flex flex-col items-stretch gap-3 max-md:sticky max-md:-bottom-4 max-md:z-10 max-md:-mx-4 max-md:border-t max-md:bg-background max-md:px-4 max-md:pt-3 max-md:pb-[calc(0.75rem+var(--safe-bottom))] md:flex-row md:items-center md:gap-4">
-            <Button
-              type="submit"
-              className="flex-1 max-md:min-h-12 max-md:text-base"
-              isLoading={isSubmitting}
-            >
-              {edit ? m.save() : m.create()}
-            </Button>
-            {edit && !isTemplate && 'event' in rest && rest.event && (
-              <Button
-                type="button"
-                variant="outline"
-                className="text-destructive"
-                // A repeated session asks its scope instead of a confirmation
-                onClick={() =>
-                  isSeriesEvent ? void deleteEvent() : setConfirmDelete(true)
-                }
-                data-event-delete
-              >
-                <Trash2 className="h-4 w-4" />
-                {m.delete_()}
-              </Button>
-            )}
-            {create && type !== EVENT_TYPE.ACTIVITY && (
-              <RHFCheckbox
-                name="saveAsTemplate"
-                label={m.save_event_as_template()}
+          <DialogHeader className="md:border-b md:px-6 md:py-3">
+            <DialogTitle className="flex items-center gap-3 pr-8 text-sm font-medium text-muted-foreground md:pr-10">
+              <span className="grow">{title}</span>
+              {aiButton}
+            </DialogTitle>
+          </DialogHeader>
+          <FormProvider
+            methods={methods}
+            onSubmit={onSubmit(handleSubmit)}
+            className="min-w-0 md:grid md:min-h-0 md:grid-cols-[minmax(0,1fr)_340px]"
+          >
+            <div className="min-w-0 space-y-4 md:overflow-y-auto md:px-6 md:py-5">
+              <SessionTitleField suggestion={nameSuggestion} />
+              <SportChips />
+              <WorkoutSection
+                type={type}
+                workoutSteps={workoutSteps}
+                setWorkoutSteps={setWorkoutSteps}
+                sportValue={sportValue}
+                athleteId={workoutAthleteId}
               />
+            </div>
+            <aside className="mt-6 space-y-5 md:mt-0 md:flex md:flex-col md:overflow-y-auto md:border-l md:bg-muted/30 md:p-5">
+              <TrainingDetails
+                isTemplate={isTemplate}
+                workoutDuration={calculatedDuration}
+                durationSetByHand={durationSetByHand}
+                onDurationEdited={setDurationByHand}
+                onFollowWorkout={followWorkout}
+                hasGoals={hasGoals}
+              />
+              {create && !isTemplate && (
+                <RepeatFields startDate={startDateValue} />
+              )}
+              <div className="md:mt-auto">{actions}</div>
+            </aside>
+          </FormProvider>
+        </DialogContent>
+      ) : (
+        <DialogContent
+          mobileFullscreen
+          className="sm:max-w-4xl sm:max-h-[90vh] max-h-[100vh] overflow-y-auto"
+        >
+          <DialogHeader>
+            <DialogTitle className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-2">
+              <div className="flex items-center gap-2 grow text-sm md:text-base">
+                {title}
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+          <FormProvider
+            methods={methods}
+            onSubmit={onSubmit(handleSubmit)}
+            className="space-y-4 md:space-y-6 pt-3"
+          >
+            <EventFormFields
+              type={type}
+              logging={create && type === EVENT_TYPE.ACTIVITY}
+              workoutDuration={calculatedDuration}
+              durationSetByHand={durationSetByHand}
+              onDurationEdited={setDurationByHand}
+              onFollowWorkout={followWorkout}
+              startDateValue={startDateValue}
+              endDateValue={watch('endDate')}
+              canChooseEquipment={
+                edit &&
+                'event' in rest &&
+                !!myAthlete &&
+                rest.event?.athleteId === myAthlete.athleteId
+              }
+              goalDistanceValue={goalDistanceValue}
+              goalDurationValue={goalDurationValue}
+              setValue={setValue}
+              isTemplate={isTemplate}
+            />
+            {create && !isTemplate && type !== EVENT_TYPE.ACTIVITY && (
+              <RepeatFields startDate={startDateValue} />
             )}
-          </div>
-        </FormProvider>
-      </DialogContent>
+            {actions}
+          </FormProvider>
+        </DialogContent>
+      )}
       {currentEventData && (
         <AIModifyEventDialog
           open={aiDialogOpen}

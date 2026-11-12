@@ -10,9 +10,11 @@ type Props = ComponentProps<'input'> & {
   name: string;
   label?: string;
   value?: number;
+  /** Two rows of five, for a narrow column */
+  compact?: boolean;
 };
 
-export const RHFRpe = ({ name, label, ...other }: Props) => {
+export const RHFRpe = ({ name, label, compact = false, ...other }: Props) => {
   const { control } = useFormContext();
 
   // Convert display RPE (1-10) to stored value (0-1)
@@ -36,7 +38,7 @@ export const RHFRpe = ({ name, label, ...other }: Props) => {
           const selectedRpe = storedValueToRpe(field.value);
 
           return (
-            <div className="flex">
+            <div className={cn(compact ? 'grid grid-cols-5 gap-1' : 'flex')}>
               {[...Array(10)].map((_, index) => {
                 const rpeValue = index + 1;
                 const isSelected = selectedRpe === rpeValue;
@@ -53,10 +55,15 @@ export const RHFRpe = ({ name, label, ...other }: Props) => {
                       }
                     }}
                     className={cn(
-                      'flex-1 rounded-none border border-gray-200 text-white dark:border-gray-700 sm:px-3 px-2',
-                      index === 0 ? 'rounded-l-md' : '',
-                      index === 9 ? 'rounded-r-md' : '',
-                      index !== 0 ? 'border-l-0' : '',
+                      'flex-1 border border-gray-200 text-white dark:border-gray-700',
+                      compact
+                        ? 'min-w-0 rounded-md px-0'
+                        : cn(
+                            'rounded-none sm:px-3 px-2',
+                            index === 0 ? 'rounded-l-md' : '',
+                            index === 9 ? 'rounded-r-md' : '',
+                            index !== 0 ? 'border-l-0' : '',
+                          ),
                       isSelected
                         ? getHighSaturatedRpeColor(rpeValue / 10, false)
                         : 'bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200',

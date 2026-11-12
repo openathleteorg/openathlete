@@ -4,6 +4,7 @@ import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { authRoutes } from './auth.routes';
 import { dashboardRoutes } from './dashboard.routes';
 import { mainRoutes } from './main.routes';
+import { playerRoutes } from './player.routes';
 
 /**
  * Root component that shows landing page on web, or redirects on Capacitor
@@ -20,6 +21,7 @@ const router = createBrowserRouter([
 
   ...authRoutes,
   ...dashboardRoutes,
+  ...playerRoutes,
   ...mainRoutes,
 
   // No match 404

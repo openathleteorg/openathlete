@@ -42,6 +42,7 @@ import {
 
 import { ConfirmAction } from '../confirm-action';
 import { SportIcon } from '../sport-icon/sport-icon';
+import { isStrengthSport } from '../strength/strength-sports';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -56,6 +57,7 @@ import { useEventClipboard } from './contexts/event-clipboard-context';
 import { useEventContextMenu } from './contexts/event-context-menu-context';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { SeriesScopeDialog } from './series-scope-dialog';
+import { StrengthCardSummary } from './strength-card-summary';
 import { COLORED_BY } from './types/filter';
 import {
   PlannedEvent,
@@ -478,7 +480,14 @@ export function CalendarEvent({ event, wrapped, detailed = false }: P) {
               </div>
               {display.card.profile &&
                 event.type === EVENT_TYPE.TRAINING &&
-                !!event.workout?.steps.length && (
+                !!event.workout?.steps.length &&
+                isStrengthSport(event.sport) && (
+                  <StrengthCardSummary steps={event.workout.steps} />
+                )}
+              {display.card.profile &&
+                event.type === EVENT_TYPE.TRAINING &&
+                !!event.workout?.steps.length &&
+                !isStrengthSport(event.sport) && (
                   <div
                     className={cn('w-full px-1', compact ? 'py-0' : 'py-0.5')}
                   >

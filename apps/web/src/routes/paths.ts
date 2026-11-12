@@ -98,6 +98,10 @@ export const getPath = (parts: string[]): string => {
   return typeof path === 'string' ? path : path.root;
 };
 
+/** The full-screen player of a planned session */
+export const PLAYER_PATH = '/play/:eventId';
+export const playerPath = (eventId: number): string => `/play/${eventId}`;
+
 export const activityPath = (eventId: number): string =>
   `${getPath(['dashboard', 'activity'])}/${eventId}`;
 

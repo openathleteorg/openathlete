@@ -41,11 +41,7 @@ test('a repeated session is created, then edited and deleted from an occurrence 
 
   const form = page.getByRole('dialog');
   await form.getByLabel('Event Name').fill('Weekly tempo');
-  await form.getByRole('combobox', { name: 'Sport' }).click();
-  await page
-    .getByRole('option', { name: /Running/ })
-    .first()
-    .click();
+  await form.getByRole('radio', { name: /Running/ }).click();
   await form.getByRole('combobox', { name: 'Repeat' }).click();
   await page.getByRole('option', { name: 'Every week' }).click();
   // Eight weeks by default: 8 more occurrences

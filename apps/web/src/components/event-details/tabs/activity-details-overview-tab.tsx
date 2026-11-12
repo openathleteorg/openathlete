@@ -25,6 +25,7 @@ import {
 import { ZonesCard } from '../../activity-analysis/zones-card';
 import { ActivityRecordsCharts } from '../../records/activity-records-charts';
 import { ChartRecord } from '../../records/record-metrics';
+import { StrengthLogCard } from '../../strength/strength-log-card';
 import { ActivitySupporterNudge } from '../../supporter/activity-supporter-nudge';
 import { Card, CardContent, CardHeader, CardTitle } from '../../ui/card';
 import { ActivityDetailsMap } from '../activity-details-map';
@@ -115,6 +116,9 @@ export function ActivityDetailsOverviewTab({
           </div>
         </CardContent>
       </Card>
+      {event.strengthLog ? (
+        <StrengthLogCard log={event.strengthLog} className="col-span-2" />
+      ) : null}
       {hasMap && (
         <ActivityDetailsMap
           className="col-span-2 sm:col-span-1 rounded-xl shadow-sm border w-full min-h-[300px]"

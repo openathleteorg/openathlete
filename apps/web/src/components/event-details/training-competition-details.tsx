@@ -4,15 +4,20 @@ import {
 } from '@/api/event';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
+import { playerPath } from '@/routes/paths';
 import { getDateLocale } from '@/utils/locales';
+import { Play } from 'lucide-react';
 import { useMemo } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   CompetitionEvent,
   EVENT_TYPE,
   type Event,
   TrainingEvent,
+  type WorkoutStepDto,
   formatDistance,
+  normalizeWorkoutForCreate,
 } from '@openathlete/shared';
 
 import { useCalendarContext } from '../calendar/hooks/use-calendar-context';
@@ -22,7 +27,10 @@ import {
   ElevationStat,
   EstimatedLoadStat,
 } from '../numeric-stats';
+import { canPlay } from '../player/can-play';
 import { SelectEvent } from '../select-event';
+import { StrengthSessionView } from '../strength/strength-session-view';
+import { isStrengthSport } from '../strength/strength-sports';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { WorkoutGraph, WorkoutSummary } from '../workout';
@@ -69,9 +77,33 @@ export function TrainingCompetitionDetails({ event }: P) {
   };
 
   const isTraining = event.type === EVENT_TYPE.TRAINING;
+  const steps = useMemo(
+    () =>
+      isTraining && event.workout
+        ? normalizeWorkoutForCreate({
+            steps: event.workout.steps as unknown as Partial<WorkoutStepDto>[],
+          }).steps
+        : [],
+    [isTraining, event],
+  );
+  const strength =
+    isTraining && isStrengthSport((event as TrainingEvent).sport);
   return (
     <>
       <div className="space-y-4">
+        {canPlay(steps) && (
+          <Button
+            asChild
+            size="lg"
+            className="h-14 w-full text-base"
+            data-play-session
+          >
+            <Link to={playerPath(event.eventId)}>
+              <Play />
+              {m.player_launch()}
+            </Link>
+          </Button>
+        )}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Card>
             <CardHeader>
@@ -218,17 +250,23 @@ export function TrainingCompetitionDetails({ event }: P) {
               <CardTitle>{m.workout()}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <WorkoutGraph
-                workout={event.workout}
-                sport={(event as TrainingEvent).sport}
-                maxHeight={80}
-                athleteId={event.athleteId ?? undefined}
-              />
-              <WorkoutSummary
-                workout={event.workout}
-                sport={(event as TrainingEvent).sport}
-                athleteId={event.athleteId}
-              />
+              {strength ? (
+                <StrengthSessionView steps={steps} />
+              ) : (
+                <>
+                  <WorkoutGraph
+                    workout={event.workout}
+                    sport={(event as TrainingEvent).sport}
+                    maxHeight={80}
+                    athleteId={event.athleteId ?? undefined}
+                  />
+                  <WorkoutSummary
+                    workout={event.workout}
+                    sport={(event as TrainingEvent).sport}
+                    athleteId={event.athleteId}
+                  />
+                </>
+              )}
             </CardContent>
           </Card>
         )}

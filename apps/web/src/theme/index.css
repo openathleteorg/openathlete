@@ -610,3 +610,25 @@
     animation-duration: 0.01ms !important;
   }
 }
+
+/* An exercise drawn in two positions, shown in turn as its movement */
+@keyframes exercise-in {
+  0%,
+  42% {
+    opacity: 0;
+  }
+  58%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes exercise-out {
+  0%,
+  42% {
+    opacity: 1;
+  }
+  58%,
+  100% {
+    opacity: 0;
+  }
+}
