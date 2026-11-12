@@ -2,11 +2,11 @@ import { m } from '@/paraglide/messages';
 import { cn } from '@/utils/shadcn';
 import { useMemo, useState } from 'react';
 
-import type { WorkoutStepDto } from '@openathlete/shared';
+import type { WORKOUT_STEP_TYPE, WorkoutStepDto } from '@openathlete/shared';
 
 import { flattenSteps } from '../workout/workout-profile';
 import type { BuilderStep } from './builder-state';
-import { formatClock } from './step-summary';
+import { STEP_TONE, formatClock } from './step-summary';
 import type { BuilderEnv } from './use-builder-env';
 
 interface ProfileChartProps {
@@ -108,6 +108,11 @@ export function ProfileChart({
             ? `${x},${HEIGHT} ${x},${HEIGHT - height * 0.45} ${x + width},${y} ${x + width},${HEIGHT}`
             : `${x},${HEIGHT} ${x},${y} ${x + width},${HEIGHT - height * 0.45} ${x + width},${HEIGHT}`;
           const dim = anySelected && !isSelected(index);
+          // Without a target, the step's own tone, as on its row below
+          const fill =
+            segment.intensity === 0
+              ? STEP_TONE[segment.step.stepType as WORKOUT_STEP_TYPE]
+              : segment.color;
           return (
             <g
               key={index}
@@ -118,7 +123,7 @@ export function ProfileChart({
               {ramp ? (
                 <polygon
                   points={points}
-                  fill={segment.color}
+                  fill={fill}
                   opacity={dim ? 0.5 : 0.95}
                 />
               ) : (
@@ -128,7 +133,7 @@ export function ProfileChart({
                   width={width}
                   height={height}
                   rx={2}
-                  fill={segment.color}
+                  fill={fill}
                   opacity={dim ? 0.5 : 0.95}
                 />
               )}

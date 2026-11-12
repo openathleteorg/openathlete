@@ -183,16 +183,23 @@ function ExerciseOptions({
   onChange: (exercise: StrengthExercise) => void;
 }) {
   return (
-    <div className="grid gap-2 rounded-lg bg-muted/40 p-2 sm:grid-cols-[8rem_1fr]">
-      <CellInput
-        value={exercise.tempo ?? ''}
-        parse={(text) => tempoSchema.safeParse(text.trim()).success}
-        onCommit={(text) =>
-          onChange({ ...exercise, tempo: text.trim() || null })
-        }
-        placeholder={m.strength_tempo_placeholder()}
-        label={m.strength_tempo()}
-      />
+    <div className="grid gap-2 rounded-lg bg-muted/40 p-2 sm:grid-cols-[11rem_1fr]">
+      {/* The label stays once a tempo is typed: 3-1-1-0 alone reads as nothing */}
+      <div className="flex items-center gap-2">
+        <span className="shrink-0 text-xs font-medium text-muted-foreground">
+          {m.strength_tempo()}
+        </span>
+        <CellInput
+          value={exercise.tempo ?? ''}
+          parse={(text) => tempoSchema.safeParse(text.trim()).success}
+          onCommit={(text) =>
+            onChange({ ...exercise, tempo: text.trim() || null })
+          }
+          placeholder={m.strength_tempo_placeholder()}
+          label={m.strength_tempo()}
+          className="bg-background"
+        />
+      </div>
       <Input
         value={exercise.notes ?? ''}
         onChange={(event) =>
@@ -837,16 +844,19 @@ export function StrengthBuilder({
 
   return (
     <div className={cn('min-w-0 space-y-3', className)} data-strength-builder>
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border bg-card p-3">
-        <span className="text-2xl font-bold tabular-nums" data-builder-total>
+      <div className="flex items-center gap-x-4 rounded-xl border bg-card p-3">
+        <span
+          className="shrink-0 text-2xl font-bold tabular-nums"
+          data-builder-total
+        >
           {seconds ? formatTotal(seconds) : '—'}
         </span>
-        <span className="text-sm text-muted-foreground">
+        <span className="shrink-0 whitespace-nowrap text-sm text-muted-foreground">
           {m.strength_summary({ sets })}
         </span>
         {equipment.length > 0 && (
           <span
-            className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground"
+            className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-muted-foreground"
             data-equipment-list
           >
             <Dumbbell className="size-4 shrink-0" />
@@ -855,7 +865,7 @@ export function StrengthBuilder({
             </span>
           </span>
         )}
-        <div className="ml-auto flex items-center gap-1">
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           <Button
             type="button"
             variant="ghost"
