@@ -193,11 +193,26 @@ const attribution = {
   data: 'Exercise data: hasaneyldrm/exercises-dataset (MIT), translations by OpenAthlete',
   media: 'Drawings: Everkinetic, Greg Priday (CC BY-SA 4.0), recoloured by OpenAthlete',
 };
+// The source numbers variants of a movement ("Side bridge v2"). The number
+// means nothing to a coach: drop it unless another exercise has that name.
+const VARIANT = /\s+v\d+$/i;
+function displayNames(locale) {
+  const count = new Map();
+  for (const record of records) {
+    const base = record.name[locale].replace(VARIANT, '');
+    count.set(base, (count.get(base) ?? 0) + 1);
+  }
+  return (record) => {
+    const base = record.name[locale].replace(VARIANT, '');
+    return count.get(base) === 1 ? base : record.name[locale];
+  };
+}
 for (const locale of LOCALES) {
+  const nameOf = displayNames(locale);
   const exercises = records
     .map((record) => ({
       id: record.id,
-      name: record.name[locale],
+      name: nameOf(record),
       bodyPart: record.bodyPart,
       equipment: record.equipment,
       target: record.target,
