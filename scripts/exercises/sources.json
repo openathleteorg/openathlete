@@ -1,0 +1,13 @@
+{
+  "exercises-dataset": {
+    "repository": "https://github.com/hasaneyldrm/exercises-dataset",
+    "commit": "7455efae41b330c265e7cd4b78dfa848e7ce5ebd",
+    "license": "MIT (data and instructions only; its media are © Gym visual and not used)"
+  },
+  "everkinetic": {
+    "repository": "https://github.com/everkinetic/data",
+    "commit": "446bb9a3d0c3beb6b84f7c9d77dfc8af707a2ab6",
+    "license": "CC BY-SA 4.0",
+    "author": "Everkinetic, Greg Priday"
+  }
+}

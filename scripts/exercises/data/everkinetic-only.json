@@ -1,0 +1,1833 @@
+{
+ "0001": {
+  "name": {
+   "en": "Static neck flexion and extension",
+   "fr": "Flexion et extension isométriques du cou",
+   "es": "Flexión y extensión isométrica del cuello",
+   "it": "Flessione ed estensione isometrica del collo",
+   "pt-BR": "Flexão e extensão isométrica do pescoço"
+  },
+  "steps": {
+   "en": [
+    "Stand or sit with your head in a neutral position.",
+    "Place both hands on your forehead.",
+    "Press your head into your hands and contract your neck muscles.",
+    "Don't let your head move forward. Hold for at least 30 seconds.",
+    "Repeat with your hands on the back of your head, pressing against them."
+   ],
+   "fr": [
+    "Tenez-vous debout ou assis, la tête en position neutre.",
+    "Placez les deux mains sur le front.",
+    "Poussez la tête contre les mains en contractant les muscles du cou.",
+    "Ne laissez pas la tête avancer. Tenez au moins 30 secondes.",
+    "Recommencez avec les mains derrière la tête, en poussant contre elles."
+   ],
+   "es": [
+    "Ponte de pie o siéntate con la cabeza en posición neutra.",
+    "Coloca ambas manos sobre la frente.",
+    "Empuja la cabeza contra las manos y contrae los músculos del cuello.",
+    "No dejes que la cabeza se mueva hacia delante. Mantén al menos 30 segundos.",
+    "Repite con las manos en la nuca, empujando contra ellas."
+   ],
+   "it": [
+    "In piedi o seduto, tieni la testa in posizione neutra.",
+    "Appoggia entrambe le mani sulla fronte.",
+    "Spingi la testa contro le mani e contrai i muscoli del collo.",
+    "Non lasciare che la testa si sposti in avanti. Mantieni almeno 30 secondi.",
+    "Ripeti con le mani dietro la testa, spingendo contro di esse."
+   ],
+   "pt-BR": [
+    "Fique em pé ou sentado com a cabeça em posição neutra.",
+    "Coloque as duas mãos na testa.",
+    "Empurre a cabeça contra as mãos e contraia os músculos do pescoço.",
+    "Não deixe a cabeça ir para a frente. Segure por pelo menos 30 segundos.",
+    "Repita com as mãos atrás da cabeça, empurrando contra elas."
+   ]
+  }
+ },
+ "0002": {
+  "name": {
+   "en": "Static neck side flexion",
+   "fr": "Flexion latérale isométrique du cou",
+   "es": "Flexión lateral isométrica del cuello",
+   "it": "Flessione laterale isometrica del collo",
+   "pt-BR": "Flexão lateral isométrica do pescoço"
+  },
+  "steps": {
+   "en": [
+    "Stand or sit with your head in a neutral position.",
+    "Place your left hand on the left side of your head, above your ear.",
+    "Push your head into your hand without letting it move.",
+    "Repeat with your right hand on the right side."
+   ],
+   "fr": [
+    "Tenez-vous debout ou assis, la tête en position neutre.",
+    "Placez la main gauche sur le côté gauche de la tête, au-dessus de l'oreille.",
+    "Poussez la tête contre la main sans la bouger.",
+    "Recommencez avec la main droite, côté droit."
+   ],
+   "es": [
+    "Ponte de pie o siéntate con la cabeza en posición neutra.",
+    "Coloca la mano izquierda en el lado izquierdo de la cabeza, por encima de la oreja.",
+    "Empuja la cabeza contra la mano sin moverla.",
+    "Repite con la mano derecha en el lado derecho."
+   ],
+   "it": [
+    "In piedi o seduto, tieni la testa in posizione neutra.",
+    "Appoggia la mano sinistra sul lato sinistro della testa, sopra l'orecchio.",
+    "Spingi la testa contro la mano senza muoverla.",
+    "Ripeti con la mano destra sul lato destro."
+   ],
+   "pt-BR": [
+    "Fique em pé ou sentado com a cabeça em posição neutra.",
+    "Coloque a mão esquerda no lado esquerdo da cabeça, acima da orelha.",
+    "Empurre a cabeça contra a mão sem movê-la.",
+    "Repita com a mão direita no lado direito."
+   ]
+  }
+ },
+ "0017": {
+  "name": {
+   "en": "One-arm bent-over cable rear delt raise",
+   "fr": "Oiseau à un bras à la poulie",
+   "es": "Elevación posterior a un brazo en polea",
+   "it": "Alzata posteriore a un braccio ai cavi",
+   "pt-BR": "Elevação posterior unilateral no cabo"
+  },
+  "steps": {
+   "en": [
+    "Grab the low pulley handle with your right hand.",
+    "Hinge forward until your torso is nearly parallel to the floor, knees slightly bent, left hand on your left thigh. Let your right arm hang with the elbow slightly bent.",
+    "Raise your right arm out to the side, elbow slightly bent, until it is parallel to the floor.",
+    "Slowly lower to the start.",
+    "Finish the set, then switch arms."
+   ],
+   "fr": [
+    "Saisissez la poignée de la poulie basse de la main droite.",
+    "Penchez le buste jusqu'à ce qu'il soit presque parallèle au sol, genoux légèrement fléchis, main gauche sur la cuisse gauche. Laissez pendre le bras droit, coude légèrement fléchi.",
+    "Montez le bras droit sur le côté, coude légèrement fléchi, jusqu'à ce qu'il soit parallèle au sol.",
+    "Redescendez lentement à la position de départ.",
+    "Terminez la série, puis changez de bras."
+   ],
+   "es": [
+    "Agarra el maneral de la polea baja con la mano derecha.",
+    "Inclina el torso hasta que quede casi paralelo al suelo, con las rodillas algo flexionadas y la mano izquierda en el muslo izquierdo. Deja colgar el brazo derecho con el codo ligeramente flexionado.",
+    "Eleva el brazo derecho hacia el lado, con el codo algo flexionado, hasta que quede paralelo al suelo.",
+    "Baja lentamente a la posición inicial.",
+    "Termina la serie y cambia de brazo."
+   ],
+   "it": [
+    "Afferra la maniglia del cavo basso con la mano destra.",
+    "Fletti il busto in avanti fino a portarlo quasi parallelo al pavimento, ginocchia leggermente piegate e mano sinistra sulla coscia sinistra. Lascia pendere il braccio destro con il gomito leggermente piegato.",
+    "Solleva il braccio destro lateralmente, con il gomito leggermente piegato, fino a portarlo parallelo al pavimento.",
+    "Riabbassa lentamente fino alla posizione di partenza.",
+    "Completa la serie, poi cambia braccio."
+   ],
+   "pt-BR": [
+    "Segure a pegada do cabo baixo com a mão direita.",
+    "Incline o tronco até ficar quase paralelo ao chão, joelhos levemente flexionados e mão esquerda na coxa esquerda. Deixe o braço direito pendurado com o cotovelo levemente flexionado.",
+    "Eleve o braço direito para o lado, com o cotovelo levemente flexionado, até ficar paralelo ao chão.",
+    "Desça lentamente até a posição inicial.",
+    "Termine a série e troque de braço."
+   ]
+  }
+ },
+ "0019": {
+  "name": {
+   "en": "Swiss ball wall circles",
+   "fr": "Cercles au mur avec swiss ball",
+   "es": "Círculos en la pared con fitball",
+   "it": "Cerchi al muro con fitball",
+   "pt-BR": "Círculos na parede com bola suíça"
+  },
+  "steps": {
+   "en": [
+    "Stand tall, feet shoulder-width apart.",
+    "Hold a Swiss ball against the wall at chest height with your left hand and roll it in small circles.",
+    "Keep your arm extended with a slight bend in the elbow.",
+    "Reverse the direction of the circles.",
+    "Switch arms."
+   ],
+   "fr": [
+    "Tenez-vous droit, pieds écartés à la largeur des épaules.",
+    "Plaquez un swiss ball contre le mur à hauteur de poitrine avec la main gauche et faites-le rouler en petits cercles.",
+    "Gardez le bras tendu, coude légèrement fléchi.",
+    "Inversez le sens des cercles.",
+    "Changez de bras."
+   ],
+   "es": [
+    "Ponte de pie, erguido, con los pies a la anchura de los hombros.",
+    "Apoya un fitball contra la pared a la altura del pecho con la mano izquierda y hazlo rodar en pequeños círculos.",
+    "Mantén el brazo extendido con el codo ligeramente flexionado.",
+    "Invierte el sentido de los círculos.",
+    "Cambia de brazo."
+   ],
+   "it": [
+    "Stai in piedi dritto, piedi alla larghezza delle spalle.",
+    "Premi una fitball contro il muro all'altezza del petto con la mano sinistra e falla rotolare in piccoli cerchi.",
+    "Tieni il braccio disteso con il gomito leggermente piegato.",
+    "Inverti il senso dei cerchi.",
+    "Cambia braccio."
+   ],
+   "pt-BR": [
+    "Fique em pé, ereto, com os pés na largura dos ombros.",
+    "Apoie uma bola suíça na parede na altura do peito com a mão esquerda e role-a em pequenos círculos.",
+    "Mantenha o braço estendido com o cotovelo levemente flexionado.",
+    "Inverta o sentido dos círculos.",
+    "Troque de braço."
+   ]
+  }
+ },
+ "0027": {
+  "name": {
+   "en": "Abdominal draw-in on all fours",
+   "fr": "Rentrée du nombril à quatre pattes",
+   "es": "Contracción abdominal en cuadrupedia",
+   "it": "Contrazione addominale in quadrupedia",
+   "pt-BR": "Contração abdominal em quatro apoios"
+  },
+  "steps": {
+   "en": [
+    "Get on your hands and knees on a mat.",
+    "Keep your back flat and your hips and pelvis neutral.",
+    "Draw your belly button in and tighten your abs without moving your back.",
+    "Hold briefly, then release."
+   ],
+   "fr": [
+    "Placez-vous à quatre pattes sur un tapis.",
+    "Gardez le dos plat, les hanches et le bassin en position neutre.",
+    "Rentrez le nombril et contractez les abdos sans bouger le dos.",
+    "Tenez un instant, puis relâchez."
+   ],
+   "es": [
+    "Colócate a cuatro patas sobre una esterilla.",
+    "Mantén la espalda recta y la cadera y la pelvis en posición neutra.",
+    "Mete el ombligo hacia dentro y contrae el abdomen sin mover la espalda.",
+    "Mantén un momento y luego relaja."
+   ],
+   "it": [
+    "Mettiti in quadrupedia su un tappetino.",
+    "Tieni la schiena piatta, anche e bacino in posizione neutra.",
+    "Porta l'ombelico verso l'interno e contrai gli addominali senza muovere la schiena.",
+    "Mantieni un istante, poi rilascia."
+   ],
+   "pt-BR": [
+    "Fique em quatro apoios sobre um colchonete.",
+    "Mantenha as costas retas e o quadril e a pelve em posição neutra.",
+    "Puxe o umbigo para dentro e contraia o abdômen sem mexer as costas.",
+    "Segure por um instante e solte."
+   ]
+  }
+ },
+ "0031": {
+  "name": {
+   "en": "Incline dumbbell shoulder press",
+   "fr": "Développé épaules incliné aux haltères",
+   "es": "Press de hombros inclinado con mancuernas",
+   "it": "Shoulder press su panca inclinata con manubri",
+   "pt-BR": "Desenvolvimento inclinado com halteres"
+  },
+  "steps": {
+   "en": [
+    "Lie on an incline bench, feet flat on the floor, a dumbbell in each hand.",
+    "Bend your elbows and bring the dumbbells to shoulder level: this is the start position.",
+    "Brace your abs and press the dumbbells up above your shoulders.",
+    "Slowly lower to the start."
+   ],
+   "fr": [
+    "Allongez-vous sur un banc incliné, pieds à plat au sol, un haltère dans chaque main.",
+    "Fléchissez les coudes et amenez les haltères à hauteur d'épaules : c'est la position de départ.",
+    "Gainez les abdos et poussez les haltères au-dessus des épaules.",
+    "Redescendez lentement à la position de départ."
+   ],
+   "es": [
+    "Túmbate en un banco inclinado con los pies apoyados en el suelo y una mancuerna en cada mano.",
+    "Flexiona los codos y lleva las mancuernas a la altura de los hombros: es la posición inicial.",
+    "Contrae el abdomen y empuja las mancuernas por encima de los hombros.",
+    "Baja lentamente a la posición inicial."
+   ],
+   "it": [
+    "Sdraiati su una panca inclinata, piedi a terra, un manubrio per mano.",
+    "Piega i gomiti e porta i manubri all'altezza delle spalle: è la posizione di partenza.",
+    "Contrai gli addominali e spingi i manubri sopra le spalle.",
+    "Riabbassa lentamente fino alla posizione di partenza."
+   ],
+   "pt-BR": [
+    "Deite-se em um banco inclinado, pés apoiados no chão, um halter em cada mão.",
+    "Flexione os cotovelos e leve os halteres à altura dos ombros: esta é a posição inicial.",
+    "Contraia o abdômen e empurre os halteres acima dos ombros.",
+    "Desça lentamente até a posição inicial."
+   ]
+  }
+ },
+ "0034": {
+  "name": {
+   "en": "Cable internal shoulder rotation",
+   "fr": "Rotation interne de l'épaule à la poulie",
+   "es": "Rotación interna de hombro en polea",
+   "it": "Rotazione interna della spalla ai cavi",
+   "pt-BR": "Rotação interna de ombro no cabo"
+  },
+  "steps": {
+   "en": [
+    "Sit on the floor next to a low pulley.",
+    "Grab the handle with your left hand, elbow bent at 90°.",
+    "Rotate your shoulder inward, pulling the cable until your forearm is across your abs.",
+    "Return to the start.",
+    "Repeat with your right arm."
+   ],
+   "fr": [
+    "Asseyez-vous au sol près d'une poulie basse.",
+    "Saisissez la poignée de la main gauche, coude fléchi à 90°.",
+    "Effectuez une rotation interne de l'épaule en tirant le câble jusqu'à ce que l'avant-bras passe devant les abdos.",
+    "Revenez à la position de départ.",
+    "Recommencez avec le bras droit."
+   ],
+   "es": [
+    "Siéntate en el suelo junto a una polea baja.",
+    "Agarra el maneral con la mano izquierda, con el codo flexionado a 90°.",
+    "Rota el hombro hacia dentro tirando del cable hasta que el antebrazo quede delante del abdomen.",
+    "Vuelve a la posición inicial.",
+    "Repite con el brazo derecho."
+   ],
+   "it": [
+    "Siediti a terra accanto a un cavo basso.",
+    "Afferra la maniglia con la mano sinistra, gomito piegato a 90°.",
+    "Ruota la spalla verso l'interno tirando il cavo finché l'avambraccio non è davanti all'addome.",
+    "Torna alla posizione di partenza.",
+    "Ripeti con il braccio destro."
+   ],
+   "pt-BR": [
+    "Sente-se no chão ao lado de um cabo baixo.",
+    "Segure a pegada com a mão esquerda, cotovelo flexionado a 90°.",
+    "Gire o ombro para dentro puxando o cabo até o antebraço ficar à frente do abdômen.",
+    "Volte à posição inicial.",
+    "Repita com o braço direito."
+   ]
+  }
+ },
+ "0044": {
+  "name": {
+   "en": "Incline band bench press",
+   "fr": "Développé incliné avec élastique",
+   "es": "Press inclinado con banda elástica",
+   "it": "Distensioni su panca inclinata con elastico",
+   "pt-BR": "Supino inclinado com elástico"
+  },
+  "steps": {
+   "en": [
+    "Anchor the band securely under the bench, near your head.",
+    "Lie on the bench with your feet flat on the floor for stability.",
+    "Hold one end of the band in each hand, hands at chest level.",
+    "Press up until your arms are fully extended.",
+    "Return slowly to the start."
+   ],
+   "fr": [
+    "Fixez solidement l'élastique sous le banc, côté tête.",
+    "Allongez-vous sur le banc, pieds à plat au sol pour rester stable.",
+    "Tenez une extrémité de l'élastique dans chaque main, mains à hauteur de poitrine.",
+    "Poussez jusqu'à tendre complètement les bras.",
+    "Revenez lentement à la position de départ."
+   ],
+   "es": [
+    "Sujeta bien la banda bajo el banco, cerca de la cabeza.",
+    "Túmbate en el banco con los pies apoyados en el suelo para estabilizarte.",
+    "Sujeta un extremo de la banda en cada mano, a la altura del pecho.",
+    "Empuja hacia arriba hasta extender del todo los brazos.",
+    "Vuelve lentamente a la posición inicial."
+   ],
+   "it": [
+    "Fissa bene l'elastico sotto la panca, vicino alla testa.",
+    "Sdraiati sulla panca con i piedi a terra per stabilizzarti.",
+    "Tieni un'estremità dell'elastico in ogni mano, all'altezza del petto.",
+    "Spingi verso l'alto fino a distendere completamente le braccia.",
+    "Torna lentamente alla posizione di partenza."
+   ],
+   "pt-BR": [
+    "Prenda bem o elástico embaixo do banco, perto da cabeça.",
+    "Deite-se no banco com os pés apoiados no chão para ter estabilidade.",
+    "Segure uma ponta do elástico em cada mão, na altura do peito.",
+    "Empurre para cima até estender totalmente os braços.",
+    "Volte lentamente à posição inicial."
+   ]
+  }
+ },
+ "0050": {
+  "name": {
+   "en": "Band crossover",
+   "fr": "Crossover avec élastique",
+   "es": "Cruce con banda elástica",
+   "it": "Croci con elastico",
+   "pt-BR": "Crossover com elástico"
+  },
+  "steps": {
+   "en": [
+    "Anchor a band to a post and hold one end in each hand.",
+    "Face away from the post and step forward until the band is under tension.",
+    "Open your arms out to the sides at mid-chest height, palms forward.",
+    "Bring your hands together in front of you.",
+    "Hold briefly, then return to the start under control."
+   ],
+   "fr": [
+    "Fixez un élastique à un poteau et tenez une extrémité dans chaque main.",
+    "Dos au poteau, avancez jusqu'à mettre l'élastique en tension.",
+    "Écartez les bras sur les côtés à mi-hauteur de poitrine, paumes vers l'avant.",
+    "Rapprochez les mains devant vous.",
+    "Tenez un instant, puis revenez en contrôlant."
+   ],
+   "es": [
+    "Ancla una banda a un poste y sujeta un extremo en cada mano.",
+    "De espaldas al poste, da un paso adelante hasta tensar la banda.",
+    "Abre los brazos a los lados a la altura del pecho, con las palmas hacia delante.",
+    "Junta las manos delante de ti.",
+    "Mantén un momento y vuelve de forma controlada."
+   ],
+   "it": [
+    "Fissa un elastico a un palo e tieni un'estremità in ogni mano.",
+    "Di spalle al palo, fai un passo avanti fino a mettere in tensione l'elastico.",
+    "Apri le braccia lateralmente all'altezza del petto, palmi in avanti.",
+    "Porta le mani a unirsi davanti a te.",
+    "Mantieni un istante, poi torna indietro con controllo."
+   ],
+   "pt-BR": [
+    "Prenda um elástico em um poste e segure uma ponta em cada mão.",
+    "De costas para o poste, dê um passo à frente até tensionar o elástico.",
+    "Abra os braços para os lados na altura do peito, palmas para a frente.",
+    "Junte as mãos à sua frente.",
+    "Segure por um instante e volte de forma controlada."
+   ]
+  }
+ },
+ "0066": {
+  "name": {
+   "en": "Machine chest press",
+   "fr": "Chest press à la machine",
+   "es": "Press de pecho en máquina",
+   "it": "Chest press alla macchina",
+   "pt-BR": "Supino máquina"
+  },
+  "steps": {
+   "en": [
+    "Adjust the seat so the handles are at chest height.",
+    "Grip the handles and place your feet on the footrest.",
+    "Press out steadily until your arms are fully extended.",
+    "Pause, then return slowly."
+   ],
+   "fr": [
+    "Réglez le siège pour que les poignées soient à hauteur de poitrine.",
+    "Saisissez les poignées et posez les pieds sur le repose-pieds.",
+    "Poussez de façon régulière jusqu'à tendre complètement les bras.",
+    "Marquez une pause, puis revenez lentement."
+   ],
+   "es": [
+    "Ajusta el asiento para que los agarres queden a la altura del pecho.",
+    "Agarra los manerales y apoya los pies en el reposapiés.",
+    "Empuja de forma continua hasta extender por completo los brazos.",
+    "Haz una pausa y vuelve lentamente."
+   ],
+   "it": [
+    "Regola il sedile in modo che le maniglie siano all'altezza del petto.",
+    "Afferra le maniglie e appoggia i piedi sul poggiapiedi.",
+    "Spingi in modo costante fino a distendere completamente le braccia.",
+    "Fai una pausa, poi torna lentamente."
+   ],
+   "pt-BR": [
+    "Ajuste o banco para que as pegadas fiquem na altura do peito.",
+    "Segure as pegadas e apoie os pés no apoio.",
+    "Empurre de forma contínua até estender totalmente os braços.",
+    "Pause e volte lentamente."
+   ]
+  }
+ },
+ "0072": {
+  "name": {
+   "en": "Offset push-up on Bosu",
+   "fr": "Pompes décalées sur Bosu",
+   "es": "Flexiones asimétricas en Bosu",
+   "it": "Piegamenti asimmetrici su Bosu",
+   "pt-BR": "Flexão assimétrica no Bosu"
+  },
+  "steps": {
+   "en": [
+    "Place the Bosu dome side up on the floor.",
+    "Get into a push-up position with one hand on the dome and the other on the floor, body straight.",
+    "Brace your abs and lower your chest toward the ball.",
+    "Pause, then push back up.",
+    "Switch sides."
+   ],
+   "fr": [
+    "Posez le Bosu au sol, côté dôme vers le haut.",
+    "Placez-vous en position de pompe, une main sur le dôme et l'autre au sol, corps aligné.",
+    "Gainez les abdos et descendez la poitrine vers le Bosu.",
+    "Marquez une pause, puis remontez.",
+    "Changez de côté."
+   ],
+   "es": [
+    "Coloca el Bosu en el suelo con la cúpula hacia arriba.",
+    "Colócate en posición de flexión con una mano en la cúpula y la otra en el suelo, con el cuerpo recto.",
+    "Contrae el abdomen y baja el pecho hacia el Bosu.",
+    "Haz una pausa y vuelve a subir.",
+    "Cambia de lado."
+   ],
+   "it": [
+    "Appoggia il Bosu a terra con la cupola verso l'alto.",
+    "Mettiti in posizione di piegamento con una mano sulla cupola e l'altra a terra, corpo dritto.",
+    "Contrai gli addominali e abbassa il petto verso il Bosu.",
+    "Fai una pausa, poi risali.",
+    "Cambia lato."
+   ],
+   "pt-BR": [
+    "Coloque o Bosu no chão com a cúpula para cima.",
+    "Fique em posição de flexão com uma mão na cúpula e a outra no chão, corpo reto.",
+    "Contraia o abdômen e desça o peito em direção ao Bosu.",
+    "Pause e suba de volta.",
+    "Troque de lado."
+   ]
+  }
+ },
+ "0073": {
+  "name": {
+   "en": "Close-grip and wide-grip push-up",
+   "fr": "Pompes prise serrée et prise large",
+   "es": "Flexiones con agarre cerrado y abierto",
+   "it": "Piegamenti a presa stretta e larga",
+   "pt-BR": "Flexão com pegada fechada e aberta"
+  },
+  "steps": {
+   "en": [
+    "Close grip: lie face down, feet together, toes tucked under.",
+    "Place your hands close together so your thumbs and index fingers form a triangle.",
+    "Brace your abs and push up until your arms are straight.",
+    "Keep your head in line with your body and don't let your back sag or rise.",
+    "Lower yourself back down under control.",
+    "Wide grip: place your hands slightly wider than your shoulders and repeat."
+   ],
+   "fr": [
+    "Prise serrée : allongez-vous sur le ventre, pieds joints, orteils repliés.",
+    "Rapprochez les mains pour que pouces et index forment un triangle.",
+    "Gainez les abdos et poussez jusqu'à tendre les bras.",
+    "Gardez la tête dans l'alignement du corps, sans creuser ni arrondir le dos.",
+    "Redescendez en contrôlant.",
+    "Prise large : placez les mains un peu plus écartées que les épaules et recommencez."
+   ],
+   "es": [
+    "Agarre cerrado: túmbate boca abajo con los pies juntos y apoyados en las puntas.",
+    "Junta las manos de modo que los pulgares y los índices formen un triángulo.",
+    "Contrae el abdomen y empuja hasta estirar los brazos.",
+    "Mantén la cabeza alineada con el cuerpo y no dejes que la espalda se hunda ni se eleve.",
+    "Baja de nuevo de forma controlada.",
+    "Agarre abierto: coloca las manos algo más abiertas que los hombros y repite."
+   ],
+   "it": [
+    "Presa stretta: sdraiati prono, piedi uniti, punte dei piedi a terra.",
+    "Avvicina le mani in modo che pollici e indici formino un triangolo.",
+    "Contrai gli addominali e spingi fino a distendere le braccia.",
+    "Tieni la testa in linea con il corpo, senza inarcare né sollevare la schiena.",
+    "Riscendi con controllo.",
+    "Presa larga: posiziona le mani poco più larghe delle spalle e ripeti."
+   ],
+   "pt-BR": [
+    "Pegada fechada: deite-se de bruços, pés juntos, apoiados nas pontas.",
+    "Junte as mãos de modo que polegares e indicadores formem um triângulo.",
+    "Contraia o abdômen e empurre até estender os braços.",
+    "Mantenha a cabeça alinhada com o corpo, sem deixar as costas afundarem ou subirem.",
+    "Desça de volta de forma controlada.",
+    "Pegada aberta: posicione as mãos um pouco além da largura dos ombros e repita."
+   ]
+  }
+ },
+ "0076": {
+  "name": {
+   "en": "Push-up with feet on Swiss ball",
+   "fr": "Pompes pieds sur swiss ball",
+   "es": "Flexiones con pies en fitball",
+   "it": "Piegamenti con piedi su fitball",
+   "pt-BR": "Flexão com pés na bola suíça"
+  },
+  "steps": {
+   "en": [
+    "Rest your shins and feet on a Swiss ball.",
+    "Place your hands on the floor under your shoulders and push up until your arms are straight.",
+    "Pause at the top and steady your balance.",
+    "Slowly lower your chest toward the floor."
+   ],
+   "fr": [
+    "Posez les tibias et les pieds sur un swiss ball.",
+    "Placez les mains au sol sous les épaules et poussez jusqu'à tendre les bras.",
+    "Marquez une pause en haut et stabilisez-vous.",
+    "Descendez lentement la poitrine vers le sol."
+   ],
+   "es": [
+    "Apoya las espinillas y los pies en un fitball.",
+    "Coloca las manos en el suelo bajo los hombros y empuja hasta estirar los brazos.",
+    "Haz una pausa arriba y estabilízate.",
+    "Baja lentamente el pecho hacia el suelo."
+   ],
+   "it": [
+    "Appoggia stinchi e piedi su una fitball.",
+    "Appoggia le mani a terra sotto le spalle e spingi fino a distendere le braccia.",
+    "Fai una pausa in alto e ritrova l'equilibrio.",
+    "Abbassa lentamente il petto verso il pavimento."
+   ],
+   "pt-BR": [
+    "Apoie as canelas e os pés em uma bola suíça.",
+    "Apoie as mãos no chão abaixo dos ombros e empurre até estender os braços.",
+    "Pause em cima e estabilize o equilíbrio.",
+    "Desça lentamente o peito em direção ao chão."
+   ]
+  }
+ },
+ "0094": {
+  "name": {
+   "en": "Band upright row",
+   "fr": "Tirage menton avec élastique",
+   "es": "Remo al mentón con banda elástica",
+   "it": "Tirata al mento con elastico",
+   "pt-BR": "Remada alta com elástico"
+  },
+  "steps": {
+   "en": [
+    "Stand on the band, handles at upper-thigh level.",
+    "Back straight, abs braced, pull your hands up to your collarbones.",
+    "At the top, your upper arms should be parallel to the floor.",
+    "Lower your arms slowly."
+   ],
+   "fr": [
+    "Placez-vous debout sur l'élastique, poignées à hauteur du haut des cuisses.",
+    "Dos droit, abdos gainés, tirez les mains jusqu'aux clavicules.",
+    "En haut, les bras doivent être parallèles au sol.",
+    "Redescendez lentement les bras."
+   ],
+   "es": [
+    "Pisa la banda con los agarres a la altura de la parte alta de los muslos.",
+    "Con la espalda recta y el abdomen contraído, sube las manos hasta las clavículas.",
+    "Arriba, los brazos deben quedar paralelos al suelo.",
+    "Baja los brazos lentamente."
+   ],
+   "it": [
+    "Metti i piedi sull'elastico, con le maniglie all'altezza della parte alta delle cosce.",
+    "Schiena dritta e addominali contratti, tira le mani fino alle clavicole.",
+    "In alto, le braccia devono essere parallele al pavimento.",
+    "Abbassa lentamente le braccia."
+   ],
+   "pt-BR": [
+    "Pise no elástico com as pegadas na altura da parte de cima das coxas.",
+    "Com as costas retas e o abdômen contraído, puxe as mãos até as clavículas.",
+    "No alto, os braços devem ficar paralelos ao chão.",
+    "Desça os braços lentamente."
+   ]
+  }
+ },
+ "0105": {
+  "name": {
+   "en": "Superman",
+   "fr": "Superman",
+   "es": "Superman",
+   "it": "Superman",
+   "pt-BR": "Superman"
+  },
+  "steps": {
+   "en": [
+    "Lie face down with your arms stretched out in front of you.",
+    "Lift your arms and legs off the floor and hold for 2 seconds.",
+    "Lower back to the floor."
+   ],
+   "fr": [
+    "Allongez-vous sur le ventre, bras tendus devant vous.",
+    "Décollez bras et jambes du sol et tenez 2 secondes.",
+    "Reposez-les au sol."
+   ],
+   "es": [
+    "Túmbate boca abajo con los brazos estirados al frente.",
+    "Levanta brazos y piernas del suelo y mantén 2 segundos.",
+    "Vuelve a bajarlos al suelo."
+   ],
+   "it": [
+    "Sdraiati prono con le braccia distese in avanti.",
+    "Solleva braccia e gambe da terra e mantieni per 2 secondi.",
+    "Riportali a terra."
+   ],
+   "pt-BR": [
+    "Deite-se de bruços com os braços estendidos à frente.",
+    "Tire braços e pernas do chão e segure por 2 segundos.",
+    "Volte a apoiá-los no chão."
+   ]
+  }
+ },
+ "0111": {
+  "name": {
+   "en": "Standing glute kickback",
+   "fr": "Kickback fessiers debout",
+   "es": "Patada de glúteo de pie",
+   "it": "Kickback glutei in piedi",
+   "pt-BR": "Glúteo coice em pé"
+  },
+  "steps": {
+   "en": [
+    "Stand tall holding a post or bench for balance, abs braced.",
+    "Standing on one leg, lift the other leg back off the floor.",
+    "Lower it slowly and lift again, squeezing your glutes.",
+    "Switch legs."
+   ],
+   "fr": [
+    "Tenez-vous droit en vous tenant à un poteau ou un banc pour l'équilibre, abdos gainés.",
+    "En appui sur une jambe, montez l'autre jambe vers l'arrière.",
+    "Redescendez-la lentement et remontez en serrant les fessiers.",
+    "Changez de jambe."
+   ],
+   "es": [
+    "Ponte erguido sujetándote a un poste o banco para mantener el equilibrio, con el abdomen contraído.",
+    "Apoyado en una pierna, eleva la otra hacia atrás.",
+    "Bájala despacio y vuelve a subirla apretando los glúteos.",
+    "Cambia de pierna."
+   ],
+   "it": [
+    "Stai dritto tenendoti a un palo o a una panca per l'equilibrio, addominali contratti.",
+    "In appoggio su una gamba, solleva l'altra all'indietro.",
+    "Abbassala lentamente e sollevala di nuovo contraendo i glutei.",
+    "Cambia gamba."
+   ],
+   "pt-BR": [
+    "Fique ereto segurando em um poste ou banco para se equilibrar, abdômen contraído.",
+    "Apoiado em uma perna, eleve a outra para trás.",
+    "Desça devagar e eleve de novo contraindo os glúteos.",
+    "Troque de perna."
+   ]
+  }
+ },
+ "0112": {
+  "name": {
+   "en": "Cable glute kickback",
+   "fr": "Kickback fessiers à la poulie",
+   "es": "Patada de glúteo en polea",
+   "it": "Kickback glutei ai cavi",
+   "pt-BR": "Glúteo coice no cabo"
+  },
+  "steps": {
+   "en": [
+    "Attach an ankle strap to a low pulley.",
+    "Face the weight stack, knees slightly bent, abs braced.",
+    "Slowly kick your leg back in an arc as high as you can.",
+    "Return to the start, then switch legs."
+   ],
+   "fr": [
+    "Fixez une sangle de cheville à la poulie basse.",
+    "Face à la machine, genoux légèrement fléchis, abdos gainés.",
+    "Envoyez lentement la jambe vers l'arrière en arc, aussi haut que possible.",
+    "Revenez à la position de départ, puis changez de jambe."
+   ],
+   "es": [
+    "Engancha una tobillera a la polea baja.",
+    "De cara a la máquina, con las rodillas algo flexionadas y el abdomen contraído.",
+    "Lleva lentamente la pierna hacia atrás en arco, tan alto como puedas.",
+    "Vuelve a la posición inicial y cambia de pierna."
+   ],
+   "it": [
+    "Aggancia una cavigliera al cavo basso.",
+    "Di fronte al pacco pesi, ginocchia leggermente piegate, addominali contratti.",
+    "Porta lentamente la gamba indietro ad arco, più in alto che puoi.",
+    "Torna alla posizione di partenza, poi cambia gamba."
+   ],
+   "pt-BR": [
+    "Prenda uma tornozeleira no cabo baixo.",
+    "De frente para a máquina, joelhos levemente flexionados e abdômen contraído.",
+    "Leve lentamente a perna para trás em arco, o mais alto que conseguir.",
+    "Volte à posição inicial e troque de perna."
+   ]
+  }
+ },
+ "0120": {
+  "name": {
+   "en": "Standing leg curl",
+   "fr": "Leg curl debout",
+   "es": "Curl femoral de pie",
+   "it": "Leg curl in piedi",
+   "pt-BR": "Flexora em pé"
+  },
+  "steps": {
+   "en": [
+    "Adjust the rear pad so it sits just above your ankle.",
+    "Hold the handles for support and brace your abs.",
+    "Slowly curl your heel up toward your glutes.",
+    "Return to the start, then switch legs."
+   ],
+   "fr": [
+    "Réglez le boudin arrière juste au-dessus de la cheville.",
+    "Tenez les poignées pour vous stabiliser et gainez les abdos.",
+    "Montez lentement le talon vers les fessiers.",
+    "Revenez à la position de départ, puis changez de jambe."
+   ],
+   "es": [
+    "Ajusta el rodillo trasero justo por encima del tobillo.",
+    "Agárrate a los manerales y contrae el abdomen.",
+    "Lleva lentamente el talón hacia los glúteos.",
+    "Vuelve a la posición inicial y cambia de pierna."
+   ],
+   "it": [
+    "Regola il rullo posteriore appena sopra la caviglia.",
+    "Tieniti alle maniglie e contrai gli addominali.",
+    "Porta lentamente il tallone verso i glutei.",
+    "Torna alla posizione di partenza, poi cambia gamba."
+   ],
+   "pt-BR": [
+    "Ajuste o rolo de trás logo acima do tornozelo.",
+    "Segure nas pegadas e contraia o abdômen.",
+    "Leve lentamente o calcanhar em direção aos glúteos.",
+    "Volte à posição inicial e troque de perna."
+   ]
+  }
+ },
+ "0121": {
+  "name": {
+   "en": "Dumbbell walking lunge",
+   "fr": "Fentes marchées aux haltères",
+   "es": "Zancadas caminando con mancuernas",
+   "it": "Affondi camminati con manubri",
+   "pt-BR": "Avanço caminhando com halteres"
+  },
+  "steps": {
+   "en": [
+    "Hold a dumbbell in each hand, feet about 20 cm apart, toes forward.",
+    "Step forward into a lunge, abs braced and torso upright.",
+    "Lower your back knee toward the floor, front knee at 90°, without touching down.",
+    "Pause, then push off your back foot.",
+    "Step through and lunge with the other leg."
+   ],
+   "fr": [
+    "Tenez un haltère dans chaque main, pieds écartés d'environ 20 cm, pointes vers l'avant.",
+    "Faites un grand pas en avant, abdos gainés et buste droit.",
+    "Descendez le genou arrière vers le sol, genou avant à 90°, sans toucher le sol.",
+    "Marquez une pause, puis poussez sur le pied arrière.",
+    "Ramenez-le vers l'avant et enchaînez avec l'autre jambe."
+   ],
+   "es": [
+    "Sujeta una mancuerna en cada mano, con los pies separados unos 20 cm y las puntas hacia delante.",
+    "Da un paso largo al frente, con el abdomen contraído y el torso erguido.",
+    "Baja la rodilla trasera hacia el suelo, con la delantera a 90°, sin tocar el suelo.",
+    "Haz una pausa y empuja con el pie trasero.",
+    "Pasa la pierna al frente y repite con la otra."
+   ],
+   "it": [
+    "Tieni un manubrio per mano, piedi distanti circa 20 cm, punte in avanti.",
+    "Fai un passo lungo in avanti, addominali contratti e busto eretto.",
+    "Abbassa il ginocchio posteriore verso terra, quello anteriore a 90°, senza toccare il pavimento.",
+    "Fai una pausa, poi spingi con il piede posteriore.",
+    "Porta la gamba avanti e continua con l'altra."
+   ],
+   "pt-BR": [
+    "Segure um halter em cada mão, pés afastados cerca de 20 cm, pontas para a frente.",
+    "Dê um passo à frente, com o abdômen contraído e o tronco ereto.",
+    "Desça o joelho de trás em direção ao chão, com o da frente a 90°, sem encostar.",
+    "Pause e empurre com o pé de trás.",
+    "Traga a perna à frente e repita com a outra."
+   ]
+  }
+ },
+ "0131": {
+  "name": {
+   "en": "Barbell side squat",
+   "fr": "Squat latéral à la barre",
+   "es": "Sentadilla lateral con barra",
+   "it": "Squat laterale con bilanciere",
+   "pt-BR": "Agachamento lateral com barra"
+  },
+  "steps": {
+   "en": [
+    "Rest a barbell on your shoulders with a wide grip.",
+    "Take a wide stance, with the foot on your working side turned out.",
+    "Bend the hip and knee of that leg to shift down toward it, keeping the other leg fairly straight.",
+    "Return to the start, then switch sides."
+   ],
+   "fr": [
+    "Placez une barre sur les épaules, prise large.",
+    "Écartez largement les pieds, le pied du côté travaillé tourné vers l'extérieur.",
+    "Fléchissez la hanche et le genou de cette jambe pour descendre vers elle, l'autre jambe presque tendue.",
+    "Revenez à la position de départ, puis changez de côté."
+   ],
+   "es": [
+    "Coloca una barra sobre los hombros con agarre abierto.",
+    "Separa mucho los pies, con el del lado que trabaja girado hacia fuera.",
+    "Flexiona la cadera y la rodilla de esa pierna para bajar hacia ella, con la otra casi estirada.",
+    "Vuelve a la posición inicial y cambia de lado."
+   ],
+   "it": [
+    "Appoggia un bilanciere sulle spalle con presa larga.",
+    "Allarga bene i piedi, con quello del lato che lavora ruotato verso l'esterno.",
+    "Piega anca e ginocchio di quella gamba per scendere verso di essa, tenendo l'altra quasi tesa.",
+    "Torna alla posizione di partenza, poi cambia lato."
+   ],
+   "pt-BR": [
+    "Apoie uma barra nos ombros com pegada aberta.",
+    "Afaste bem os pés, com o pé do lado que trabalha virado para fora.",
+    "Flexione o quadril e o joelho dessa perna para descer em direção a ela, mantendo a outra quase estendida.",
+    "Volte à posição inicial e troque de lado."
+   ]
+  }
+ },
+ "0143": {
+  "name": {
+   "en": "Narrow-stance leg press",
+   "fr": "Presse à cuisses pieds serrés",
+   "es": "Prensa de piernas con pies juntos",
+   "it": "Leg press a piedi stretti",
+   "pt-BR": "Leg press com pés fechados"
+  },
+  "steps": {
+   "en": [
+    "Sit in the leg press with your feet about 15 cm apart on the platform, toes turned slightly out.",
+    "Hold the side handles and release the safety locks.",
+    "Brace your abs and bend your knees to bring the weight as close to your chest as you can.",
+    "Hold briefly, then slowly push back to the start.",
+    "Don't lock your knees at the top."
+   ],
+   "fr": [
+    "Installez-vous sur la presse, pieds écartés d'environ 15 cm sur la plateforme, pointes légèrement vers l'extérieur.",
+    "Tenez les poignées latérales et débloquez les sécurités.",
+    "Gainez les abdos et fléchissez les genoux pour amener la charge le plus près possible de la poitrine.",
+    "Tenez un instant, puis repoussez lentement jusqu'à la position de départ.",
+    "Ne verrouillez pas les genoux en haut."
+   ],
+   "es": [
+    "Siéntate en la prensa con los pies separados unos 15 cm en la plataforma y las puntas algo hacia fuera.",
+    "Agarra los manerales laterales y suelta los seguros.",
+    "Contrae el abdomen y flexiona las rodillas para acercar el peso al pecho todo lo que puedas.",
+    "Mantén un momento y empuja despacio hasta la posición inicial.",
+    "No bloquees las rodillas arriba."
+   ],
+   "it": [
+    "Siediti alla leg press con i piedi a circa 15 cm di distanza sulla pedana, punte leggermente in fuori.",
+    "Afferra le maniglie laterali e sblocca le sicure.",
+    "Contrai gli addominali e piega le ginocchia per portare il peso il più vicino possibile al petto.",
+    "Mantieni un istante, poi spingi lentamente fino alla posizione di partenza.",
+    "Non bloccare le ginocchia in alto."
+   ],
+   "pt-BR": [
+    "Sente-se no leg press com os pés afastados cerca de 15 cm na plataforma, pontas levemente para fora.",
+    "Segure as pegadas laterais e solte as travas.",
+    "Contraia o abdômen e flexione os joelhos para trazer o peso o mais perto possível do peito.",
+    "Segure por um instante e empurre devagar de volta à posição inicial.",
+    "Não trave os joelhos em cima."
+   ]
+  }
+ },
+ "0152": {
+  "name": {
+   "en": "Dumbbell sumo squat",
+   "fr": "Squat sumo à l'haltère",
+   "es": "Sentadilla sumo con mancuerna",
+   "it": "Squat sumo con manubrio",
+   "pt-BR": "Agachamento sumô com halter"
+  },
+  "steps": {
+   "en": [
+    "Stand with your feet a little wider than your shoulders, toes turned out at 45°.",
+    "Hold one dumbbell with both hands in front of you.",
+    "Keep your knees soft and your back straight.",
+    "Squat down as if sitting on a chair until your thighs are parallel to the floor.",
+    "Rise back up under control, feet flat on the floor."
+   ],
+   "fr": [
+    "Pieds un peu plus écartés que les épaules, pointes tournées vers l'extérieur à 45°.",
+    "Tenez un haltère à deux mains devant vous.",
+    "Gardez les genoux légèrement fléchis et le dos droit.",
+    "Descendez comme pour vous asseoir jusqu'à avoir les cuisses parallèles au sol.",
+    "Remontez en contrôlant, pieds bien à plat au sol."
+   ],
+   "es": [
+    "Separa los pies algo más que la anchura de los hombros, con las puntas hacia fuera a 45°.",
+    "Sujeta una mancuerna con ambas manos delante del cuerpo.",
+    "Mantén las rodillas ligeramente flexionadas y la espalda recta.",
+    "Baja como si fueras a sentarte hasta que los muslos queden paralelos al suelo.",
+    "Sube de forma controlada, con los pies bien apoyados."
+   ],
+   "it": [
+    "Piedi poco più larghi delle spalle, punte ruotate in fuori a 45°.",
+    "Tieni un manubrio con entrambe le mani davanti a te.",
+    "Tieni le ginocchia leggermente piegate e la schiena dritta.",
+    "Scendi come per sederti finché le cosce non sono parallele al pavimento.",
+    "Risali con controllo, piedi ben piantati a terra."
+   ],
+   "pt-BR": [
+    "Afaste os pés um pouco além da largura dos ombros, pontas viradas para fora a 45°.",
+    "Segure um halter com as duas mãos à sua frente.",
+    "Mantenha os joelhos levemente flexionados e as costas retas.",
+    "Agache como se fosse sentar até as coxas ficarem paralelas ao chão.",
+    "Suba de forma controlada, com os pés bem apoiados no chão."
+   ]
+  }
+ },
+ "0162": {
+  "name": {
+   "en": "Bench dip",
+   "fr": "Dips sur banc",
+   "es": "Fondos en banco",
+   "it": "Dip su panca",
+   "pt-BR": "Mergulho no banco"
+  },
+  "steps": {
+   "en": [
+    "Place two benches parallel, about 1 m apart.",
+    "Sit on one bench and rest your heels on the other, legs suspended between them.",
+    "Cross your feet for support.",
+    "Grip the bench edge and slowly lower your body by bending your elbows.",
+    "Pause, then push back up.",
+    "Don't bend your elbows past 90°: it strains the shoulders."
+   ],
+   "fr": [
+    "Placez deux bancs parallèles à environ 1 m l'un de l'autre.",
+    "Asseyez-vous sur un banc et posez les talons sur l'autre, jambes suspendues entre les deux.",
+    "Croisez les pieds pour plus de stabilité.",
+    "Agrippez le bord du banc et descendez lentement en fléchissant les coudes.",
+    "Marquez une pause, puis remontez.",
+    "Ne descendez pas sous 90° aux coudes : cela sollicite trop les épaules."
+   ],
+   "es": [
+    "Coloca dos bancos paralelos a 1 m aproximadamente.",
+    "Siéntate en un banco y apoya los talones en el otro, con las piernas suspendidas entre ambos.",
+    "Cruza los pies para estabilizarte.",
+    "Agárrate al borde del banco y baja lentamente flexionando los codos.",
+    "Haz una pausa y vuelve a subir.",
+    "No bajes de 90° en los codos: sobrecarga los hombros."
+   ],
+   "it": [
+    "Disponi due panche parallele a circa 1 m di distanza.",
+    "Siediti su una panca e appoggia i talloni sull'altra, con le gambe sospese tra le due.",
+    "Incrocia i piedi per stabilità.",
+    "Afferra il bordo della panca e scendi lentamente piegando i gomiti.",
+    "Fai una pausa, poi risali.",
+    "Non scendere oltre i 90° ai gomiti: sovraccarica le spalle."
+   ],
+   "pt-BR": [
+    "Posicione dois bancos paralelos a cerca de 1 m de distância.",
+    "Sente-se em um banco e apoie os calcanhares no outro, pernas suspensas entre os dois.",
+    "Cruze os pés para dar apoio.",
+    "Segure a borda do banco e desça lentamente flexionando os cotovelos.",
+    "Pause e suba de volta.",
+    "Não desça além de 90° nos cotovelos: isso sobrecarrega os ombros."
+   ]
+  }
+ },
+ "0173": {
+  "name": {
+   "en": "One-arm dumbbell overhead triceps extension",
+   "fr": "Extension triceps à un bras à l'haltère au-dessus de la tête",
+   "es": "Extensión de tríceps sobre la cabeza a un brazo con mancuerna",
+   "it": "Estensioni tricipiti sopra la testa a un braccio con manubrio",
+   "pt-BR": "Tríceps francês unilateral com halter"
+  },
+  "steps": {
+   "en": [
+    "Sit on a bench, back straight, abs braced.",
+    "Hold a dumbbell behind your neck, elbow bent.",
+    "Slowly extend your arm straight overhead, then lower back down.",
+    "Place your free hand across your chest for stability."
+   ],
+   "fr": [
+    "Asseyez-vous sur un banc, dos droit, abdos gainés.",
+    "Tenez un haltère derrière la nuque, coude fléchi.",
+    "Tendez lentement le bras au-dessus de la tête, puis redescendez.",
+    "Placez la main libre sur la poitrine pour vous stabiliser."
+   ],
+   "es": [
+    "Siéntate en un banco con la espalda recta y el abdomen contraído.",
+    "Sujeta una mancuerna detrás de la nuca, con el codo flexionado.",
+    "Extiende lentamente el brazo por encima de la cabeza y vuelve a bajar.",
+    "Coloca la mano libre sobre el pecho para estabilizarte."
+   ],
+   "it": [
+    "Siediti su una panca, schiena dritta, addominali contratti.",
+    "Tieni un manubrio dietro la nuca, gomito piegato.",
+    "Distendi lentamente il braccio sopra la testa, poi riabbassalo.",
+    "Appoggia la mano libera sul petto per stabilizzarti."
+   ],
+   "pt-BR": [
+    "Sente-se em um banco, costas retas, abdômen contraído.",
+    "Segure um halter atrás da nuca, cotovelo flexionado.",
+    "Estenda lentamente o braço acima da cabeça e desça de volta.",
+    "Apoie a mão livre no peito para se estabilizar."
+   ]
+  }
+ },
+ "0176": {
+  "name": {
+   "en": "Kneeling one-arm cable triceps extension",
+   "fr": "Extension triceps à un bras à genou, à la poulie",
+   "es": "Extensión de tríceps a un brazo de rodillas en polea",
+   "it": "Estensione tricipite a un braccio in ginocchio ai cavi",
+   "pt-BR": "Tríceps unilateral ajoelhado no cabo"
+  },
+  "steps": {
+   "en": [
+    "Attach a single handle to a high pulley.",
+    "Kneel on your left knee, left side toward the machine, right knee bent with the thigh parallel to the floor.",
+    "Rest your right upper arm against your inner thigh, just above the knee, and pull the cable down toward the floor in a slight arc.",
+    "Return slowly to the start.",
+    "Finish the set, then switch arms.",
+    "Keep everything still except the working arm."
+   ],
+   "fr": [
+    "Fixez une poignée simple à la poulie haute.",
+    "Mettez-vous sur le genou gauche, côté gauche vers la machine, genou droit fléchi, cuisse parallèle au sol.",
+    "Appuyez le bras droit contre l'intérieur de la cuisse, juste au-dessus du genou, et tirez le câble vers le sol en léger arc de cercle.",
+    "Revenez lentement à la position de départ.",
+    "Terminez la série, puis changez de bras.",
+    "Gardez tout le corps immobile, sauf le bras qui travaille."
+   ],
+   "es": [
+    "Engancha un maneral simple a la polea alta.",
+    "Arrodíllate sobre la rodilla izquierda, con el costado izquierdo hacia la máquina y la rodilla derecha flexionada, con el muslo paralelo al suelo.",
+    "Apoya el brazo derecho contra la cara interna del muslo, justo encima de la rodilla, y tira del cable hacia el suelo describiendo un ligero arco.",
+    "Vuelve lentamente a la posición inicial.",
+    "Termina la serie y cambia de brazo.",
+    "Mantén inmóvil todo el cuerpo salvo el brazo que trabaja."
+   ],
+   "it": [
+    "Aggancia una maniglia singola al cavo alto.",
+    "Inginocchiati sul ginocchio sinistro, fianco sinistro verso la macchina, ginocchio destro piegato con la coscia parallela al pavimento.",
+    "Appoggia il braccio destro contro l'interno coscia, appena sopra il ginocchio, e tira il cavo verso il pavimento con un leggero arco.",
+    "Torna lentamente alla posizione di partenza.",
+    "Completa la serie, poi cambia braccio.",
+    "Tieni fermo tutto il corpo tranne il braccio che lavora."
+   ],
+   "pt-BR": [
+    "Prenda uma pegada simples no cabo alto.",
+    "Ajoelhe-se sobre o joelho esquerdo, com o lado esquerdo voltado para a máquina e o joelho direito flexionado, coxa paralela ao chão.",
+    "Apoie o braço direito na parte interna da coxa, logo acima do joelho, e puxe o cabo em direção ao chão em um leve arco.",
+    "Volte lentamente à posição inicial.",
+    "Termine a série e troque de braço.",
+    "Mantenha todo o corpo imóvel, exceto o braço que trabalha."
+   ]
+  }
+ },
+ "0178": {
+  "name": {
+   "en": "Lying cable triceps extension",
+   "fr": "Extension triceps allongé à la poulie",
+   "es": "Extensión de tríceps acostado en polea",
+   "it": "Estensioni tricipiti sdraiato ai cavi",
+   "pt-BR": "Tríceps testa no cabo"
+  },
+  "steps": {
+   "en": [
+    "Attach a rope to the low pulley of a seated row station.",
+    "Lie on your back on the bench, head toward the weight stack.",
+    "Grip the rope with palms facing each other, upper arms vertical and forearms parallel to the floor.",
+    "Slowly extend your arms upward, squeezing your triceps.",
+    "Return to the start."
+   ],
+   "fr": [
+    "Fixez une corde à la poulie basse d'un poste de rowing assis.",
+    "Allongez-vous sur le dos sur le banc, tête côté machine.",
+    "Saisissez la corde paumes face à face, bras à la verticale et avant-bras parallèles au sol.",
+    "Tendez lentement les bras vers le haut en contractant les triceps.",
+    "Revenez à la position de départ."
+   ],
+   "es": [
+    "Engancha una cuerda a la polea baja de una estación de remo sentado.",
+    "Túmbate boca arriba en el banco con la cabeza hacia la máquina.",
+    "Agarra la cuerda con las palmas enfrentadas, los brazos verticales y los antebrazos paralelos al suelo.",
+    "Extiende lentamente los brazos hacia arriba contrayendo los tríceps.",
+    "Vuelve a la posición inicial."
+   ],
+   "it": [
+    "Aggancia una corda al cavo basso della postazione per rematore seduto.",
+    "Sdraiati supino sulla panca, con la testa verso il pacco pesi.",
+    "Afferra la corda con i palmi rivolti l'uno verso l'altro, braccia verticali e avambracci paralleli al pavimento.",
+    "Distendi lentamente le braccia verso l'alto contraendo i tricipiti.",
+    "Torna alla posizione di partenza."
+   ],
+   "pt-BR": [
+    "Prenda uma corda no cabo baixo da estação de remada sentada.",
+    "Deite-se de costas no banco, com a cabeça voltada para a máquina.",
+    "Segure a corda com as palmas voltadas uma para a outra, braços na vertical e antebraços paralelos ao chão.",
+    "Estenda lentamente os braços para cima contraindo os tríceps.",
+    "Volte à posição inicial."
+   ]
+  }
+ },
+ "0185": {
+  "name": {
+   "en": "Reverse-grip barbell skull crusher",
+   "fr": "Barre au front prise inversée",
+   "es": "Press francés con agarre invertido",
+   "it": "French press presa inversa",
+   "pt-BR": "Tríceps testa com pegada invertida"
+  },
+  "steps": {
+   "en": [
+    "Lie on your back on a bench, head at one end.",
+    "Hold a barbell with an underhand grip.",
+    "Bring your arms back past your head, keeping them in a straight line.",
+    "Bending only at the elbows, slowly lower and raise the bar."
+   ],
+   "fr": [
+    "Allongez-vous sur le dos sur un banc, tête au bout du banc.",
+    "Saisissez une barre en prise inversée (supination).",
+    "Amenez les bras derrière la tête, bien alignés.",
+    "En ne fléchissant que les coudes, descendez puis remontez lentement la barre."
+   ],
+   "es": [
+    "Túmbate boca arriba en un banco con la cabeza en un extremo.",
+    "Agarra una barra con agarre supino.",
+    "Lleva los brazos por detrás de la cabeza, en línea recta.",
+    "Flexionando solo los codos, baja y sube la barra lentamente."
+   ],
+   "it": [
+    "Sdraiati supino su una panca, con la testa a un'estremità.",
+    "Afferra un bilanciere con presa supina.",
+    "Porta le braccia oltre la testa, in linea retta.",
+    "Piegando solo i gomiti, abbassa e solleva lentamente il bilanciere."
+   ],
+   "pt-BR": [
+    "Deite-se de costas em um banco, com a cabeça na ponta.",
+    "Segure uma barra com pegada supinada.",
+    "Leve os braços para trás da cabeça, em linha reta.",
+    "Flexionando apenas os cotovelos, desça e suba a barra lentamente."
+   ]
+  }
+ },
+ "0213": {
+  "name": {
+   "en": "Alternating dumbbell hammer curl",
+   "fr": "Curl marteau alterné aux haltères",
+   "es": "Curl martillo alterno con mancuernas",
+   "it": "Curl a martello alternato con manubri",
+   "pt-BR": "Rosca martelo alternada com halteres"
+  },
+  "steps": {
+   "en": [
+    "Stand with your feet shoulder-width apart, knees soft, abs braced.",
+    "Hold a dumbbell in each hand, palms facing each other, arms at your sides.",
+    "Keeping your elbow pinned to your side, curl the left dumbbell up toward your shoulder.",
+    "Lower it and repeat with the right arm.",
+    "Don't rotate your wrists."
+   ],
+   "fr": [
+    "Debout, pieds écartés à la largeur des épaules, genoux légèrement fléchis, abdos gainés.",
+    "Tenez un haltère dans chaque main, paumes face à face, bras le long du corps.",
+    "Coude collé au corps, montez l'haltère gauche vers l'épaule.",
+    "Redescendez-le et recommencez avec le bras droit.",
+    "Ne tournez pas les poignets."
+   ],
+   "es": [
+    "De pie, con los pies a la anchura de los hombros, las rodillas algo flexionadas y el abdomen contraído.",
+    "Sujeta una mancuerna en cada mano, con las palmas enfrentadas y los brazos a los lados.",
+    "Con el codo pegado al cuerpo, sube la mancuerna izquierda hacia el hombro.",
+    "Bájala y repite con el brazo derecho.",
+    "No gires las muñecas."
+   ],
+   "it": [
+    "In piedi, piedi alla larghezza delle spalle, ginocchia leggermente piegate, addominali contratti.",
+    "Tieni un manubrio per mano, palmi rivolti l'uno verso l'altro, braccia lungo i fianchi.",
+    "Con il gomito fermo al fianco, porta il manubrio sinistro verso la spalla.",
+    "Abbassalo e ripeti con il braccio destro.",
+    "Non ruotare i polsi."
+   ],
+   "pt-BR": [
+    "Em pé, pés na largura dos ombros, joelhos levemente flexionados e abdômen contraído.",
+    "Segure um halter em cada mão, palmas voltadas uma para a outra, braços ao lado do corpo.",
+    "Com o cotovelo junto ao corpo, suba o halter esquerdo em direção ao ombro.",
+    "Desça-o e repita com o braço direito.",
+    "Não gire os punhos."
+   ]
+  }
+ },
+ "0228": {
+  "name": {
+   "en": "Incline dumbbell curl",
+   "fr": "Curl incliné aux haltères",
+   "es": "Curl inclinado con mancuernas",
+   "it": "Curl su panca inclinata con manubri",
+   "pt-BR": "Rosca inclinada com halteres"
+  },
+  "steps": {
+   "en": [
+    "Sit on an incline bench, feet flat on the floor.",
+    "Hold a dumbbell in each hand, palms up, arms hanging at your sides.",
+    "Keeping your wrists straight, curl the dumbbells up to your shoulders.",
+    "Squeeze your biceps as you lift."
+   ],
+   "fr": [
+    "Asseyez-vous sur un banc incliné, pieds à plat au sol.",
+    "Tenez un haltère dans chaque main, paumes vers le haut, bras pendants le long du corps.",
+    "Poignets droits, montez les haltères jusqu'aux épaules.",
+    "Contractez les biceps pendant la montée."
+   ],
+   "es": [
+    "Siéntate en un banco inclinado con los pies apoyados en el suelo.",
+    "Sujeta una mancuerna en cada mano, palmas hacia arriba, con los brazos colgando a los lados.",
+    "Con las muñecas rectas, sube las mancuernas hasta los hombros.",
+    "Aprieta los bíceps al subir."
+   ],
+   "it": [
+    "Siediti su una panca inclinata, piedi a terra.",
+    "Tieni un manubrio per mano, palmi in su, braccia distese lungo i fianchi.",
+    "Con i polsi dritti, porta i manubri alle spalle.",
+    "Contrai i bicipiti durante la salita."
+   ],
+   "pt-BR": [
+    "Sente-se em um banco inclinado, pés apoiados no chão.",
+    "Segure um halter em cada mão, palmas para cima, braços estendidos ao lado do corpo.",
+    "Com os punhos retos, suba os halteres até os ombros.",
+    "Contraia os bíceps durante a subida."
+   ]
+  }
+ },
+ "0229": {
+  "name": {
+   "en": "Lying high cable curl",
+   "fr": "Curl allongé à la poulie haute",
+   "es": "Curl acostado en polea alta",
+   "it": "Curl sdraiato al cavo alto",
+   "pt-BR": "Rosca deitado no cabo alto"
+  },
+  "steps": {
+   "en": [
+    "Place a flat bench next to a cable station and attach a short bar to the high pulley.",
+    "Lie on your back, head toward the weight stack.",
+    "Grip the bar palms up and extend your arms fully at a slight angle overhead.",
+    "Curl the bar down toward you as far as you can.",
+    "Return slowly to the start."
+   ],
+   "fr": [
+    "Placez un banc plat près d'un poste à poulie et fixez une barre courte à la poulie haute.",
+    "Allongez-vous sur le dos, tête côté machine.",
+    "Saisissez la barre en supination et tendez complètement les bras, légèrement inclinés au-dessus de la tête.",
+    "Fléchissez les bras pour amener la barre vers vous au maximum.",
+    "Revenez lentement à la position de départ."
+   ],
+   "es": [
+    "Coloca un banco plano junto a una polea y engancha una barra corta a la polea alta.",
+    "Túmbate boca arriba con la cabeza hacia la máquina.",
+    "Agarra la barra con agarre supino y extiende los brazos por completo, ligeramente inclinados sobre la cabeza.",
+    "Flexiona los brazos para llevar la barra hacia ti al máximo.",
+    "Vuelve lentamente a la posición inicial."
+   ],
+   "it": [
+    "Posiziona una panca piana vicino a una stazione cavi e aggancia una barra corta al cavo alto.",
+    "Sdraiati supino, con la testa verso il pacco pesi.",
+    "Afferra la barra con presa supina e distendi completamente le braccia, leggermente inclinate sopra la testa.",
+    "Fletti le braccia per portare la barra verso di te il più possibile.",
+    "Torna lentamente alla posizione di partenza."
+   ],
+   "pt-BR": [
+    "Posicione um banco reto ao lado de uma estação de cabo e prenda uma barra curta no cabo alto.",
+    "Deite-se de costas, com a cabeça voltada para a máquina.",
+    "Segure a barra com pegada supinada e estenda totalmente os braços, levemente inclinados acima da cabeça.",
+    "Flexione os braços para trazer a barra até você o máximo possível.",
+    "Volte lentamente à posição inicial."
+   ]
+  }
+ },
+ "0234": {
+  "name": {
+   "en": "Prone high-bench barbell curl",
+   "fr": "Curl à la barre allongé sur banc haut",
+   "es": "Curl con barra boca abajo en banco alto",
+   "it": "Curl con bilanciere prono su panca alta",
+   "pt-BR": "Rosca com barra de bruços em banco alto"
+  },
+  "steps": {
+   "en": [
+    "Lie face down on a high bench, head at one end, toes on the floor for support.",
+    "Hold a barbell palms up, hands about 30 cm apart.",
+    "From arms extended toward the floor, curl the bar up toward your head in a slight arc.",
+    "Slowly lower to the start."
+   ],
+   "fr": [
+    "Allongez-vous sur le ventre sur un banc haut, tête au bout, pointes de pieds au sol pour vous stabiliser.",
+    "Saisissez la barre en supination, mains écartées d'environ 30 cm.",
+    "Bras tendus vers le sol, fléchissez pour monter la barre vers la tête en léger arc.",
+    "Redescendez lentement à la position de départ."
+   ],
+   "es": [
+    "Túmbate boca abajo en un banco alto, con la cabeza en un extremo y las puntas de los pies en el suelo.",
+    "Agarra una barra con las palmas hacia arriba y las manos separadas unos 30 cm.",
+    "Desde los brazos extendidos hacia el suelo, sube la barra hacia la cabeza describiendo un ligero arco.",
+    "Baja lentamente a la posición inicial."
+   ],
+   "it": [
+    "Sdraiati prono su una panca alta, testa a un'estremità e punte dei piedi a terra come appoggio.",
+    "Afferra un bilanciere con presa supina, mani distanti circa 30 cm.",
+    "Partendo con le braccia distese verso il pavimento, porta il bilanciere verso la testa con un leggero arco.",
+    "Riabbassa lentamente fino alla posizione di partenza."
+   ],
+   "pt-BR": [
+    "Deite-se de bruços em um banco alto, cabeça na ponta e pontas dos pés no chão para apoio.",
+    "Segure uma barra com pegada supinada, mãos afastadas cerca de 30 cm.",
+    "Partindo com os braços estendidos para o chão, suba a barra em direção à cabeça em um leve arco.",
+    "Desça lentamente até a posição inicial."
+   ]
+  }
+ },
+ "0237": {
+  "name": {
+   "en": "One-arm dumbbell preacher curl",
+   "fr": "Curl au pupitre à un bras à l'haltère",
+   "es": "Curl en banco Scott a un brazo con mancuerna",
+   "it": "Curl alla panca Scott a un braccio con manubrio",
+   "pt-BR": "Rosca Scott unilateral com halter"
+  },
+  "steps": {
+   "en": [
+    "Adjust the seat so your upper arm lies flat on the pad.",
+    "Hold a dumbbell palm up, arm fully extended on the pad.",
+    "Keeping your arm on the pad, curl the dumbbell up toward your head.",
+    "Pause, then lower back down.",
+    "Finish the set, then switch arms.",
+    "Move slowly and with control."
+   ],
+   "fr": [
+    "Réglez le siège pour que le bras repose à plat sur le pupitre.",
+    "Tenez un haltère paume vers le haut, bras tendu sur le pupitre.",
+    "Bras toujours sur le pupitre, montez l'haltère vers la tête.",
+    "Marquez une pause, puis redescendez.",
+    "Terminez la série, puis changez de bras.",
+    "Exécutez le mouvement lentement et en contrôle."
+   ],
+   "es": [
+    "Ajusta el asiento para que el brazo quede bien apoyado en el banco.",
+    "Sujeta una mancuerna con la palma hacia arriba y el brazo extendido sobre el banco.",
+    "Sin separar el brazo del banco, sube la mancuerna hacia la cabeza.",
+    "Haz una pausa y vuelve a bajar.",
+    "Termina la serie y cambia de brazo.",
+    "Realiza el movimiento lento y controlado."
+   ],
+   "it": [
+    "Regola il sedile in modo che il braccio poggi bene sul cuscino.",
+    "Tieni un manubrio con il palmo in su, braccio disteso sul cuscino.",
+    "Senza staccare il braccio dal cuscino, porta il manubrio verso la testa.",
+    "Fai una pausa, poi riscendi.",
+    "Completa la serie, poi cambia braccio.",
+    "Esegui il movimento lentamente e con controllo."
+   ],
+   "pt-BR": [
+    "Ajuste o assento para que o braço fique bem apoiado no banco.",
+    "Segure um halter com a palma para cima, braço estendido sobre o banco.",
+    "Sem tirar o braço do banco, suba o halter em direção à cabeça.",
+    "Pause e desça de volta.",
+    "Termine a série e troque de braço.",
+    "Faça o movimento devagar e com controle."
+   ]
+  }
+ },
+ "0241": {
+  "name": {
+   "en": "Reverse-grip plate curl",
+   "fr": "Curl prise inversée au disque",
+   "es": "Curl invertido con disco",
+   "it": "Curl presa inversa con disco",
+   "pt-BR": "Rosca inversa com anilha"
+  },
+  "steps": {
+   "en": [
+    "Stand with your feet shoulder-width apart, knees soft, abs braced.",
+    "Hold a plate palms down, hands at 11 and 1 o'clock.",
+    "Keeping your elbows at your sides, slowly curl the plate up toward your head.",
+    "Slowly lower to the start."
+   ],
+   "fr": [
+    "Debout, pieds écartés à la largeur des épaules, genoux légèrement fléchis, abdos gainés.",
+    "Tenez un disque paumes vers le bas, mains placées à 11 h et 1 h.",
+    "Coudes le long du corps, montez lentement le disque vers la tête.",
+    "Redescendez lentement à la position de départ."
+   ],
+   "es": [
+    "De pie, con los pies a la anchura de los hombros, las rodillas algo flexionadas y el abdomen contraído.",
+    "Sujeta un disco con las palmas hacia abajo y las manos en las 11 y la 1.",
+    "Con los codos pegados al cuerpo, sube lentamente el disco hacia la cabeza.",
+    "Baja lentamente a la posición inicial."
+   ],
+   "it": [
+    "In piedi, piedi alla larghezza delle spalle, ginocchia leggermente piegate, addominali contratti.",
+    "Tieni un disco con i palmi in giù, mani a ore 11 e ore 1.",
+    "Con i gomiti lungo i fianchi, porta lentamente il disco verso la testa.",
+    "Riabbassa lentamente fino alla posizione di partenza."
+   ],
+   "pt-BR": [
+    "Em pé, pés na largura dos ombros, joelhos levemente flexionados e abdômen contraído.",
+    "Segure uma anilha com as palmas para baixo, mãos na posição de 11 e 1 hora.",
+    "Com os cotovelos junto ao corpo, suba lentamente a anilha em direção à cabeça.",
+    "Desça lentamente até a posição inicial."
+   ]
+  }
+ },
+ "0254": {
+  "name": {
+   "en": "One-arm barbell curl",
+   "fr": "Curl à la barre à un bras",
+   "es": "Curl con barra a un brazo",
+   "it": "Curl con bilanciere a un braccio",
+   "pt-BR": "Rosca unilateral com barra"
+  },
+  "steps": {
+   "en": [
+    "Stand with your feet shoulder-width apart, knees soft.",
+    "Grip an empty Olympic bar in the middle with one hand so it stays balanced.",
+    "Keep your free hand at your side.",
+    "Curl the bar up until your forearm meets your biceps.",
+    "Lower slowly, then switch arms.",
+    "If the Olympic bar is too heavy, use a lighter barbell."
+   ],
+   "fr": [
+    "Debout, pieds écartés à la largeur des épaules, genoux légèrement fléchis.",
+    "Saisissez une barre olympique à vide en son milieu, d'une main, pour qu'elle reste équilibrée.",
+    "Gardez la main libre le long du corps.",
+    "Montez la barre jusqu'à ce que l'avant-bras touche le biceps.",
+    "Redescendez lentement, puis changez de bras.",
+    "Si la barre olympique est trop lourde, prenez une barre plus légère."
+   ],
+   "es": [
+    "De pie, con los pies a la anchura de los hombros y las rodillas algo flexionadas.",
+    "Agarra una barra olímpica sin discos por el centro con una mano para que quede equilibrada.",
+    "Mantén la mano libre junto al cuerpo.",
+    "Sube la barra hasta que el antebrazo toque el bíceps.",
+    "Baja lentamente y cambia de brazo.",
+    "Si la barra olímpica pesa demasiado, usa una barra más ligera."
+   ],
+   "it": [
+    "In piedi, piedi alla larghezza delle spalle, ginocchia leggermente piegate.",
+    "Afferra un bilanciere olimpico scarico al centro con una mano, in modo che resti in equilibrio.",
+    "Tieni la mano libera lungo il fianco.",
+    "Porta su il bilanciere finché l'avambraccio non tocca il bicipite.",
+    "Abbassa lentamente, poi cambia braccio.",
+    "Se il bilanciere olimpico è troppo pesante, usane uno più leggero."
+   ],
+   "pt-BR": [
+    "Em pé, pés na largura dos ombros, joelhos levemente flexionados.",
+    "Segure uma barra olímpica sem anilhas pelo meio com uma mão, para que fique equilibrada.",
+    "Mantenha a mão livre ao lado do corpo.",
+    "Suba a barra até o antebraço encostar no bíceps.",
+    "Desça lentamente e troque de braço.",
+    "Se a barra olímpica for pesada demais, use uma barra mais leve."
+   ]
+  }
+ },
+ "0259": {
+  "name": {
+   "en": "Barbell deadlift to curl",
+   "fr": "Soulevé de terre et curl à la barre",
+   "es": "Peso muerto con curl con barra",
+   "it": "Stacco con curl con bilanciere",
+   "pt-BR": "Levantamento terra com rosca com barra"
+  },
+  "steps": {
+   "en": [
+    "Hold an EZ bar or barbell with an underhand grip.",
+    "Stand with your feet shoulder-width apart, knees soft, abs braced.",
+    "Let the bar hang in front of your thighs, arms extended.",
+    "Hinge at the hips and lower the bar to just above the floor.",
+    "As you stand back up, curl the bar to your shoulders.",
+    "Lower the bar back to your thighs.",
+    "A mirror helps you check your form."
+   ],
+   "fr": [
+    "Saisissez une barre EZ ou une barre droite en supination.",
+    "Debout, pieds écartés à la largeur des épaules, genoux légèrement fléchis, abdos gainés.",
+    "Laissez la barre devant les cuisses, bras tendus.",
+    "Penchez-vous en pliant les hanches et descendez la barre juste au-dessus du sol.",
+    "En vous redressant, montez la barre aux épaules en fléchissant les bras.",
+    "Ramenez la barre devant les cuisses.",
+    "Un miroir vous aide à contrôler votre technique."
+   ],
+   "es": [
+    "Agarra una barra EZ o una barra recta con agarre supino.",
+    "De pie, con los pies a la anchura de los hombros, las rodillas algo flexionadas y el abdomen contraído.",
+    "Deja la barra delante de los muslos con los brazos extendidos.",
+    "Flexiona la cadera y baja la barra hasta justo por encima del suelo.",
+    "Al incorporarte, sube la barra hacia los hombros flexionando los brazos.",
+    "Vuelve a bajar la barra a los muslos.",
+    "Un espejo te ayuda a revisar la técnica."
+   ],
+   "it": [
+    "Afferra un bilanciere EZ o dritto con presa supina.",
+    "In piedi, piedi alla larghezza delle spalle, ginocchia leggermente piegate, addominali contratti.",
+    "Lascia il bilanciere davanti alle cosce, braccia distese.",
+    "Fletti le anche e abbassa il bilanciere fin quasi a terra.",
+    "Mentre ti rialzi, porta il bilanciere alle spalle con un curl.",
+    "Riporta il bilanciere davanti alle cosce.",
+    "Uno specchio ti aiuta a controllare la tecnica."
+   ],
+   "pt-BR": [
+    "Segure uma barra W ou reta com pegada supinada.",
+    "Em pé, pés na largura dos ombros, joelhos levemente flexionados e abdômen contraído.",
+    "Deixe a barra à frente das coxas, braços estendidos.",
+    "Flexione o quadril e desça a barra até logo acima do chão.",
+    "Ao subir, faça a rosca levando a barra até os ombros.",
+    "Volte a barra à frente das coxas.",
+    "Um espelho ajuda a conferir a técnica."
+   ]
+  }
+ },
+ "0260": {
+  "name": {
+   "en": "Kneeling Swiss ball curl and overhead extension",
+   "fr": "Curl et extension triceps à genoux sur swiss ball",
+   "es": "Curl y extensión de tríceps de rodillas en fitball",
+   "it": "Curl ed estensione tricipiti in ginocchio su fitball",
+   "pt-BR": "Rosca e tríceps francês ajoelhado na bola suíça"
+  },
+  "steps": {
+   "en": [
+    "Hold a dumbbell in each hand, palms up.",
+    "Kneel on the Swiss ball, abs braced and back straight.",
+    "Raise one arm overhead and keep the other curled.",
+    "Lower the raised dumbbell behind your head, as in a triceps extension, while you lower and curl the other arm.",
+    "Return to the start, then switch arms.",
+    "Only attempt this if you can balance kneeling on the ball."
+   ],
+   "fr": [
+    "Tenez un haltère dans chaque main, paumes vers le haut.",
+    "Mettez-vous à genoux sur le swiss ball, abdos gainés et dos droit.",
+    "Levez un bras au-dessus de la tête et gardez l'autre fléchi.",
+    "Descendez l'haltère levé derrière la tête, comme pour une extension triceps, tout en descendant puis refléchissant l'autre bras.",
+    "Revenez à la position de départ, puis changez de bras.",
+    "Ne le faites que si vous tenez en équilibre à genoux sur le ballon."
+   ],
+   "es": [
+    "Sujeta una mancuerna en cada mano con las palmas hacia arriba.",
+    "Arrodíllate sobre el fitball con el abdomen contraído y la espalda recta.",
+    "Eleva un brazo sobre la cabeza y mantén el otro flexionado.",
+    "Baja la mancuerna elevada por detrás de la cabeza, como en una extensión de tríceps, mientras bajas y vuelves a flexionar el otro brazo.",
+    "Vuelve a la posición inicial y cambia de brazo.",
+    "Hazlo solo si mantienes el equilibrio de rodillas sobre el balón."
+   ],
+   "it": [
+    "Tieni un manubrio per mano, palmi in su.",
+    "Inginocchiati sulla fitball, addominali contratti e schiena dritta.",
+    "Solleva un braccio sopra la testa e tieni l'altro piegato.",
+    "Abbassa il manubrio sollevato dietro la testa, come in un'estensione per i tricipiti, mentre abbassi e ripieghi l'altro braccio.",
+    "Torna alla posizione di partenza, poi cambia braccio.",
+    "Eseguilo solo se riesci a stare in equilibrio in ginocchio sulla palla."
+   ],
+   "pt-BR": [
+    "Segure um halter em cada mão, palmas para cima.",
+    "Ajoelhe-se na bola suíça, com o abdômen contraído e as costas retas.",
+    "Eleve um braço acima da cabeça e mantenha o outro flexionado.",
+    "Desça o halter elevado atrás da cabeça, como em um tríceps francês, enquanto desce e volta a flexionar o outro braço.",
+    "Volte à posição inicial e troque de braço.",
+    "Faça apenas se conseguir se equilibrar ajoelhado na bola."
+   ]
+  }
+ },
+ "0262": {
+  "name": {
+   "en": "Medicine ball reverse lunge with bowling motion",
+   "fr": "Fente arrière au médecine-ball, geste de bowling",
+   "es": "Zancada atrás con balón medicinal y movimiento de bolos",
+   "it": "Affondo indietro con palla medica e movimento da bowling",
+   "pt-BR": "Avanço para trás com bola medicinal e movimento de boliche"
+  },
+  "steps": {
+   "en": [
+    "Hold a medicine ball in one hand at shoulder height, palm up.",
+    "Step one foot back into a lunge, front foot planted, back knee off the floor.",
+    "As you lunge, swing the ball down and back as if bowling.",
+    "Bring your arm back up to the start, then switch legs.",
+    "Move slowly and steadily."
+   ],
+   "fr": [
+    "Tenez un médecine-ball d'une main à hauteur d'épaule, paume vers le haut.",
+    "Reculez un pied en fente, pied avant fixe, sans poser le genou arrière.",
+    "Pendant la fente, descendez le ballon vers l'arrière comme au bowling.",
+    "Remontez le bras à la position de départ, puis changez de jambe.",
+    "Bougez lentement et de façon régulière."
+   ],
+   "es": [
+    "Sujeta un balón medicinal con una mano a la altura del hombro, con la palma hacia arriba.",
+    "Lleva un pie atrás en zancada, con el pie delantero fijo y sin apoyar la rodilla trasera.",
+    "Mientras bajas, lleva el balón abajo y atrás como si lanzaras una bola de bolos.",
+    "Vuelve a subir el brazo a la posición inicial y cambia de pierna.",
+    "Muévete de forma lenta y constante."
+   ],
+   "it": [
+    "Tieni una palla medica con una mano all'altezza della spalla, palmo in su.",
+    "Porta un piede indietro in affondo, piede anteriore fermo, senza appoggiare il ginocchio posteriore.",
+    "Mentre scendi, porta la palla in basso e indietro come nel bowling.",
+    "Riporta il braccio alla posizione di partenza, poi cambia gamba.",
+    "Muoviti in modo lento e costante."
+   ],
+   "pt-BR": [
+    "Segure uma bola medicinal com uma mão na altura do ombro, palma para cima.",
+    "Leve um pé para trás em avanço, com o pé da frente fixo e sem encostar o joelho de trás.",
+    "Durante o avanço, leve a bola para baixo e para trás como no boliche.",
+    "Volte o braço à posição inicial e troque de perna.",
+    "Movimente-se de forma lenta e constante."
+   ]
+  }
+ },
+ "0264": {
+  "name": {
+   "en": "Dumbbell lateral lunge to curl",
+   "fr": "Fente latérale avec curl aux haltères",
+   "es": "Zancada lateral con curl con mancuernas",
+   "it": "Affondo laterale con curl con manubri",
+   "pt-BR": "Avanço lateral com rosca com halteres"
+  },
+  "steps": {
+   "en": [
+    "Hold a dumbbell in each hand, palms facing forward.",
+    "Stand with your feet together, back straight, abs braced, arms hanging in front of your thighs.",
+    "Step out to the side and sink into a lunge, bending your hip and knee.",
+    "As you lunge, curl the dumbbells to your shoulders.",
+    "Return to the start, then switch legs."
+   ],
+   "fr": [
+    "Tenez un haltère dans chaque main, paumes vers l'avant.",
+    "Debout pieds joints, dos droit, abdos gainés, bras tendus devant les cuisses.",
+    "Faites un pas sur le côté et descendez en fente en fléchissant hanche et genou.",
+    "Pendant la fente, montez les haltères aux épaules.",
+    "Revenez à la position de départ, puis changez de jambe."
+   ],
+   "es": [
+    "Sujeta una mancuerna en cada mano con las palmas hacia delante.",
+    "De pie con los pies juntos, la espalda recta, el abdomen contraído y los brazos delante de los muslos.",
+    "Da un paso lateral y baja en zancada flexionando la cadera y la rodilla.",
+    "Mientras bajas, sube las mancuernas hacia los hombros.",
+    "Vuelve a la posición inicial y cambia de pierna."
+   ],
+   "it": [
+    "Tieni un manubrio per mano, palmi in avanti.",
+    "In piedi a piedi uniti, schiena dritta, addominali contratti, braccia distese davanti alle cosce.",
+    "Fai un passo laterale e scendi in affondo piegando anca e ginocchio.",
+    "Mentre scendi, porta i manubri alle spalle con un curl.",
+    "Torna alla posizione di partenza, poi cambia gamba."
+   ],
+   "pt-BR": [
+    "Segure um halter em cada mão, palmas para a frente.",
+    "Em pé com os pés juntos, costas retas, abdômen contraído e braços estendidos à frente das coxas.",
+    "Dê um passo para o lado e desça em avanço flexionando o quadril e o joelho.",
+    "Durante o avanço, faça a rosca levando os halteres aos ombros.",
+    "Volte à posição inicial e troque de perna."
+   ]
+  }
+ },
+ "0274": {
+  "name": {
+   "en": "Band calf raise",
+   "fr": "Extension des mollets avec élastique",
+   "es": "Elevación de talones con banda elástica",
+   "it": "Calf raise con elastico",
+   "pt-BR": "Elevação de panturrilha com elástico"
+  },
+  "steps": {
+   "en": [
+    "Stand on the band with the balls of your feet and bring the handles up to your shoulders.",
+    "Rise onto your toes, hands staying at your shoulders.",
+    "Pause, then lower your heels to the floor."
+   ],
+   "fr": [
+    "Placez l'avant des pieds sur l'élastique et montez les poignées aux épaules.",
+    "Montez sur la pointe des pieds, mains toujours aux épaules.",
+    "Marquez une pause, puis reposez les talons au sol."
+   ],
+   "es": [
+    "Pisa la banda con la parte delantera de los pies y sube los agarres a los hombros.",
+    "Ponte de puntillas, manteniendo las manos en los hombros.",
+    "Haz una pausa y baja los talones al suelo."
+   ],
+   "it": [
+    "Metti l'avampiede sull'elastico e porta le maniglie alle spalle.",
+    "Sali sulle punte, tenendo le mani alle spalle.",
+    "Fai una pausa, poi riporta i talloni a terra."
+   ],
+   "pt-BR": [
+    "Pise no elástico com a parte da frente dos pés e leve as pegadas aos ombros.",
+    "Suba na ponta dos pés, mantendo as mãos nos ombros.",
+    "Pause e desça os calcanhares até o chão."
+   ]
+  }
+ },
+ "0290": {
+  "name": {
+   "en": "Crunch with feet on Swiss ball",
+   "fr": "Crunch pieds sur swiss ball",
+   "es": "Crunch con pies en fitball",
+   "it": "Crunch con piedi su fitball",
+   "pt-BR": "Crunch com pés na bola suíça"
+  },
+  "steps": {
+   "en": [
+    "Lie on your back with your feet up on a Swiss ball.",
+    "Cross your hands over your chest or place them beside your head.",
+    "Keeping your lower back on the floor, lift your head, shoulders and chest.",
+    "Pause and squeeze your abs, then lower back down.",
+    "Move slowly and with control."
+   ],
+   "fr": [
+    "Allongez-vous sur le dos, pieds posés sur un swiss ball.",
+    "Croisez les mains sur la poitrine ou placez-les de chaque côté de la tête.",
+    "Bas du dos plaqué au sol, décollez la tête, les épaules et la poitrine.",
+    "Marquez une pause en contractant les abdos, puis redescendez.",
+    "Exécutez le mouvement lentement et en contrôle."
+   ],
+   "es": [
+    "Túmbate boca arriba con los pies sobre un fitball.",
+    "Cruza las manos sobre el pecho o colócalas a los lados de la cabeza.",
+    "Con la zona lumbar pegada al suelo, eleva la cabeza, los hombros y el pecho.",
+    "Haz una pausa contrayendo el abdomen y vuelve a bajar.",
+    "Realiza el movimiento lento y controlado."
+   ],
+   "it": [
+    "Sdraiati supino con i piedi su una fitball.",
+    "Incrocia le mani sul petto o mettile ai lati della testa.",
+    "Con la zona lombare a terra, solleva testa, spalle e petto.",
+    "Fai una pausa contraendo gli addominali, poi riscendi.",
+    "Esegui il movimento lentamente e con controllo."
+   ],
+   "pt-BR": [
+    "Deite-se de costas com os pés sobre uma bola suíça.",
+    "Cruze as mãos sobre o peito ou coloque-as ao lado da cabeça.",
+    "Com a lombar no chão, eleve a cabeça, os ombros e o peito.",
+    "Pause contraindo o abdômen e desça de volta.",
+    "Faça o movimento devagar e com controle."
+   ]
+  }
+ },
+ "0293": {
+  "name": {
+   "en": "Decline oblique crunch",
+   "fr": "Crunch oblique décliné",
+   "es": "Crunch oblicuo declinado",
+   "it": "Crunch obliquo su panca declinata",
+   "pt-BR": "Abdominal oblíquo declinado"
+  },
+  "steps": {
+   "en": [
+    "Lie face up on a decline bench, feet secured under the pads.",
+    "Cross your hands over your chest or place them beside your head.",
+    "Curl your shoulders and chest up, bringing your left elbow toward your right knee.",
+    "Pause, then lower back down.",
+    "Lie fully back, then bring your right elbow toward your left knee."
+   ],
+   "fr": [
+    "Allongez-vous sur le dos sur un banc décliné, pieds calés sous les boudins.",
+    "Croisez les mains sur la poitrine ou placez-les de chaque côté de la tête.",
+    "Enroulez le buste et amenez le coude gauche vers le genou droit.",
+    "Marquez une pause, puis redescendez.",
+    "Allongez-vous complètement, puis amenez le coude droit vers le genou gauche."
+   ],
+   "es": [
+    "Túmbate boca arriba en un banco declinado con los pies sujetos bajo los rodillos.",
+    "Cruza las manos sobre el pecho o colócalas a los lados de la cabeza.",
+    "Eleva los hombros y el pecho llevando el codo izquierdo hacia la rodilla derecha.",
+    "Haz una pausa y vuelve a bajar.",
+    "Túmbate por completo y lleva el codo derecho hacia la rodilla izquierda."
+   ],
+   "it": [
+    "Sdraiati supino su una panca declinata, piedi bloccati sotto i rulli.",
+    "Incrocia le mani sul petto o mettile ai lati della testa.",
+    "Solleva spalle e petto portando il gomito sinistro verso il ginocchio destro.",
+    "Fai una pausa, poi riscendi.",
+    "Torna completamente giù, poi porta il gomito destro verso il ginocchio sinistro."
+   ],
+   "pt-BR": [
+    "Deite-se de costas em um banco declinado, pés presos sob os rolos.",
+    "Cruze as mãos sobre o peito ou coloque-as ao lado da cabeça.",
+    "Eleve os ombros e o peito levando o cotovelo esquerdo em direção ao joelho direito.",
+    "Pause e desça de volta.",
+    "Deite-se totalmente e leve o cotovelo direito em direção ao joelho esquerdo."
+   ]
+  }
+ }
+}

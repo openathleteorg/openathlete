@@ -1,0 +1,5219 @@
+{
+  "3-4-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "45-side-bend": [
+    "CORE",
+    "SIDE_BEND"
+  ],
+  "abdominal-draw-in-on-all-fours": [
+    "CORE",
+    null
+  ],
+  "air-bike": [
+    "CRUNCH",
+    "BICYCLE_CRUNCH"
+  ],
+  "all-fours-quad-stretch": [
+    "WARM_UP",
+    "STRETCH_QUAD"
+  ],
+  "alternate-heel-touchers": [
+    "CRUNCH",
+    null
+  ],
+  "alternate-lat-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "alternating-dumbbell-hammer-curl": [
+    "CURL",
+    "DUMBBELL_HAMMER_CURL"
+  ],
+  "ankle-circles": [
+    "WARM_UP",
+    null
+  ],
+  "archer-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "archer-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "arm-slingers-hanging-bent-knee-legs": [
+    "LEG_RAISE",
+    "HANGING_KNEE_RAISE"
+  ],
+  "arm-slingers-hanging-straight-legs": [
+    "LEG_RAISE",
+    "HANGING_LEG_RAISE"
+  ],
+  "arms-apart-circular-toe-touch": [
+    "WARM_UP",
+    null
+  ],
+  "arms-overhead-full-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "assisted-chest-dip-kneeling": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "assisted-close-neutral-grip-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "assisted-hanging-knee-raise": [
+    "LEG_RAISE",
+    "HANGING_KNEE_RAISE"
+  ],
+  "assisted-hanging-knee-raise-with-throw-down": [
+    "LEG_RAISE",
+    null
+  ],
+  "assisted-lying-calf-stretch": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "assisted-lying-glute-and-piriformis-stretch": [
+    "WARM_UP",
+    "STRETCH_LYING_PIRIFORMIS"
+  ],
+  "assisted-lying-glute-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "assisted-lying-leg-raise-with-lateral-throw-down": [
+    "LEG_RAISE",
+    null
+  ],
+  "assisted-prone-hamstring-stretch": [
+    "WARM_UP",
+    "STRETCH_HAMSTRING"
+  ],
+  "assisted-prone-quad-stretch": [
+    "WARM_UP",
+    "STRETCH_QUAD"
+  ],
+  "assisted-prone-rectus-femoris-stretch": [
+    "WARM_UP",
+    "STRETCH_HIP_FLEXOR_AND_QUAD"
+  ],
+  "assisted-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "assisted-russian-twist": [
+    "CORE",
+    "RUSSIAN_TWIST"
+  ],
+  "assisted-seated-pec-stretch-with-stability-ball": [
+    "WARM_UP",
+    "STRETCH_PECTORAL"
+  ],
+  "assisted-side-lying-adductor-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "assisted-sit-up": [
+    "SIT_UP",
+    "SIT_UP"
+  ],
+  "assisted-standing-chin-up": [
+    "PULL_UP",
+    null
+  ],
+  "assisted-standing-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "assisted-standing-triceps-extension-with-towel": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "assisted-triceps-dip-kneeling": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "assisted-wide-grip-chest-dip-kneeling": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "astride-jumps": [
+    "CARDIO",
+    null
+  ],
+  "back-and-forth-step": [
+    "CARDIO",
+    null
+  ],
+  "back-extension-on-stability-ball": [
+    "HYPEREXTENSION",
+    "SWISS_BALL_BACK_EXTENSION"
+  ],
+  "back-pec-stretch": [
+    "WARM_UP",
+    "STRETCH_PECTORAL"
+  ],
+  "backward-jump": [
+    "PLYO",
+    null
+  ],
+  "balance-board": [
+    "HIP_STABILITY",
+    null
+  ],
+  "band-alternating-biceps-curl": [
+    "BANDED_EXERCISES",
+    "CURL"
+  ],
+  "band-alternating-v-up": [
+    "SIT_UP",
+    null
+  ],
+  "band-assisted-pull-up": [
+    "PULL_UP",
+    "BAND_ASSISTED_PULL_UP"
+  ],
+  "band-assisted-wheel-rollout": [
+    "CORE",
+    null
+  ],
+  "band-bench-press": [
+    "PUSH_UP",
+    "CHEST_PRESS_WITH_BAND"
+  ],
+  "band-bent-over-hip-extension": [
+    "BANDED_EXERCISES",
+    "HIP_EXTENSION"
+  ],
+  "band-bicycle-crunch": [
+    "BANDED_EXERCISES",
+    "BICYCLE_CRUNCH"
+  ],
+  "band-calf-raise": [
+    "BANDED_EXERCISES",
+    "CALF_RAISES"
+  ],
+  "band-close-grip-pulldown": [
+    "BANDED_EXERCISES",
+    "LATPULL"
+  ],
+  "band-close-grip-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "band-concentration-curl": [
+    "BANDED_EXERCISES",
+    "CURL"
+  ],
+  "band-crossover": [
+    "BANDED_EXERCISES",
+    "FLY"
+  ],
+  "band-fixed-back-close-grip-pulldown": [
+    "BANDED_EXERCISES",
+    "LATPULL"
+  ],
+  "band-fixed-back-underhand-pulldown": [
+    "BANDED_EXERCISES",
+    "LATPULL"
+  ],
+  "band-front-lateral-raise": [
+    "BANDED_EXERCISES",
+    "LATERAL_RAISE"
+  ],
+  "band-front-raise": [
+    "BANDED_EXERCISES",
+    "FRONT_RAISE"
+  ],
+  "band-hip-lift": [
+    "BANDED_EXERCISES",
+    "GLUTE_BRIDGE"
+  ],
+  "band-horizontal-pallof-press": [
+    "CORE",
+    null
+  ],
+  "band-jackknife-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "band-kneeling-hip-thrust": [
+    "HIP_RAISE",
+    null
+  ],
+  "band-kneeling-one-arm-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "band-kneeling-twisting-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "band-leg-extension": [
+    "BANDED_EXERCISES",
+    "LEG_EXTENSION"
+  ],
+  "band-lying-straight-leg-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "band-one-arm-overhead-biceps-curl": [
+    "BANDED_EXERCISES",
+    "CURL"
+  ],
+  "band-one-arm-single-leg-split-squat": [
+    "LUNGE",
+    null
+  ],
+  "band-one-arm-standing-low-row": [
+    "BANDED_EXERCISES",
+    "ROW"
+  ],
+  "band-one-arm-twisting-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "band-one-arm-twisting-seated-row": [
+    "ROW",
+    null
+  ],
+  "band-pull-through": [
+    "DEADLIFT",
+    null
+  ],
+  "band-push-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "band-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "band-reverse-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "band-seated-biceps-curl": [
+    "BANDED_EXERCISES",
+    "CURL"
+  ],
+  "band-seated-chest-press": [
+    "PUSH_UP",
+    "CHEST_PRESS_WITH_BAND"
+  ],
+  "band-seated-hip-abduction": [
+    "BANDED_EXERCISES",
+    "LEG_ABDUCTION"
+  ],
+  "band-seated-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "band-seated-straight-back-row": [
+    "BANDED_EXERCISES",
+    "ROW"
+  ],
+  "band-seated-twist": [
+    "BANDED_EXERCISES",
+    "AB_TWIST"
+  ],
+  "band-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "band-shrug": [
+    "SHRUG",
+    null
+  ],
+  "band-side-triceps-extension": [
+    "BANDED_EXERCISES",
+    "TRICEP_EXTENSION"
+  ],
+  "band-single-leg-calf-raise": [
+    "BANDED_EXERCISES",
+    "CALF_RAISES"
+  ],
+  "band-single-leg-split-squat": [
+    "LUNGE",
+    null
+  ],
+  "band-squat": [
+    "BANDED_EXERCISES",
+    "SQUAT"
+  ],
+  "band-squat-row": [
+    "SQUAT",
+    null
+  ],
+  "band-standing-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "band-standing-rear-delt-row": [
+    "ROW",
+    null
+  ],
+  "band-standing-twisting-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "band-step-up": [
+    "SQUAT",
+    null
+  ],
+  "band-stiff-leg-deadlift": [
+    "BANDED_EXERCISES",
+    "DEADLIFT"
+  ],
+  "band-straight-back-stiff-leg-deadlift": [
+    "BANDED_EXERCISES",
+    "DEADLIFT"
+  ],
+  "band-straight-leg-deadlift": [
+    "BANDED_EXERCISES",
+    "DEADLIFT"
+  ],
+  "band-twisting-overhead-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "band-two-leg-calf-raise-band-under-both-feet-v2": [
+    "BANDED_EXERCISES",
+    "CALF_RAISES"
+  ],
+  "band-underhand-pulldown": [
+    "BANDED_EXERCISES",
+    "LATPULL"
+  ],
+  "band-upright-row": [
+    "BANDED_EXERCISES",
+    "UPRIGHT_ROW"
+  ],
+  "band-v-up": [
+    "SIT_UP",
+    null
+  ],
+  "band-vertical-pallof-press": [
+    "CORE",
+    null
+  ],
+  "band-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "band-y-raise": [
+    "SHOULDER_STABILITY",
+    null
+  ],
+  "barbell-bench-front-squat": [
+    "SQUAT",
+    "BARBELL_FRONT_SQUAT"
+  ],
+  "barbell-bench-press": [
+    "BENCH_PRESS",
+    "BARBELL_BENCH_PRESS"
+  ],
+  "barbell-bent-arm-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "barbell-bent-over-row": [
+    "ROW",
+    "BENT_OVER_ROW_WITH_BARBELL"
+  ],
+  "barbell-biceps-curl-with-arm-blaster": [
+    "CURL",
+    "BARBELL_BICEPS_CURL"
+  ],
+  "barbell-clean-and-press": [
+    "OLYMPIC_LIFT",
+    "CLEAN_AND_PRESS"
+  ],
+  "barbell-clean-grip-front-squat": [
+    "SQUAT",
+    "BARBELL_FRONT_SQUAT"
+  ],
+  "barbell-close-grip-bench-press": [
+    "BENCH_PRESS",
+    "CLOSE_GRIP_BARBELL_BENCH_PRESS"
+  ],
+  "barbell-curl": [
+    "CURL",
+    "BARBELL_BICEPS_CURL"
+  ],
+  "barbell-deadlift": [
+    "DEADLIFT",
+    "BARBELL_DEADLIFT"
+  ],
+  "barbell-deadlift-to-curl": [
+    "DEADLIFT",
+    null
+  ],
+  "barbell-decline-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-decline-bent-arm-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "barbell-decline-close-grip-skull-press": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-decline-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "barbell-decline-wide-grip-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-decline-wide-grip-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "barbell-drag-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-floor-calf-raise": [
+    "CALF_RAISE",
+    "STANDING_BARBELL_CALF_RAISE"
+  ],
+  "barbell-floor-fly": [
+    "FLYE",
+    null
+  ],
+  "barbell-front-chest-squat": [
+    "SQUAT",
+    "BARBELL_FRONT_SQUAT"
+  ],
+  "barbell-front-raise": [
+    "LATERAL_RAISE",
+    "FRONT_RAISE"
+  ],
+  "barbell-front-raise-and-pullover": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "barbell-front-squat": [
+    "SQUAT",
+    "BARBELL_FRONT_SQUAT"
+  ],
+  "barbell-full-squat": [
+    "SQUAT",
+    "BARBELL_BACK_SQUAT"
+  ],
+  "barbell-full-squat-back-view": [
+    "SQUAT",
+    "BARBELL_BACK_SQUAT"
+  ],
+  "barbell-full-squat-side-view": [
+    "SQUAT",
+    "BARBELL_BACK_SQUAT"
+  ],
+  "barbell-full-zercher-squat": [
+    "SQUAT",
+    "ZERCHER_SQUAT"
+  ],
+  "barbell-glute-bridge": [
+    "HIP_RAISE",
+    "BARBELL_HIP_THRUST_ON_FLOOR"
+  ],
+  "barbell-glute-bridge-feet-on-bench": [
+    "HIP_RAISE",
+    null
+  ],
+  "barbell-good-morning": [
+    "LEG_CURL",
+    "GOOD_MORNING"
+  ],
+  "barbell-guillotine-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-hack-squat": [
+    "SQUAT",
+    "BARBELL_HACK_SQUAT"
+  ],
+  "barbell-high-bar-squat": [
+    "SQUAT",
+    "BARBELL_BACK_SQUAT"
+  ],
+  "barbell-incline-bench-press": [
+    "BENCH_PRESS",
+    "INCLINE_BARBELL_BENCH_PRESS"
+  ],
+  "barbell-incline-close-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-incline-reverse-grip-press": [
+    "BENCH_PRESS",
+    "REVERSE_GRIP_INCLINE_BENCH_PRESS"
+  ],
+  "barbell-incline-row": [
+    "ROW",
+    null
+  ],
+  "barbell-incline-shoulder-raise": [
+    "SHRUG",
+    null
+  ],
+  "barbell-jefferson-squat": [
+    "SQUAT",
+    null
+  ],
+  "barbell-jm-press": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-jump-squat": [
+    "PLYO",
+    "BARBELL_JUMP_SQUAT"
+  ],
+  "barbell-jump-squat-to-reverse-lunge": [
+    "PLYO",
+    null
+  ],
+  "barbell-lateral-lunge": [
+    "LUNGE",
+    "BARBELL_SIDE_LUNGE"
+  ],
+  "barbell-low-bar-squat": [
+    "SQUAT",
+    "BARBELL_BACK_SQUAT"
+  ],
+  "barbell-lunge": [
+    "LUNGE",
+    "BARBELL_LUNGE"
+  ],
+  "barbell-lying-behind-head-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-lying-close-grip-press": [
+    "BENCH_PRESS",
+    "CLOSE_GRIP_BARBELL_BENCH_PRESS"
+  ],
+  "barbell-lying-close-grip-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-lying-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-lying-hip-lift": [
+    "HIP_RAISE",
+    "BARBELL_HIP_THRUST_ON_FLOOR"
+  ],
+  "barbell-lying-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-lying-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-narrow-stance-squat": [
+    "SQUAT",
+    null
+  ],
+  "barbell-one-arm-bent-over-row": [
+    "ROW",
+    null
+  ],
+  "barbell-one-arm-floor-press": [
+    "BENCH_PRESS",
+    "ONE_ARM_FLOOR_PRESS"
+  ],
+  "barbell-one-arm-side-deadlift": [
+    "DEADLIFT",
+    "SINGLE_ARM_DEADLIFT"
+  ],
+  "barbell-one-arm-snatch": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "barbell-one-leg-squat": [
+    "SQUAT",
+    null
+  ],
+  "barbell-overhead-squat": [
+    "SQUAT",
+    "OVERHEAD_BARBELL_SQUAT"
+  ],
+  "barbell-palms-down-wrist-curl-over-bench": [
+    "CURL",
+    "BARBELL_REVERSE_WRIST_CURL"
+  ],
+  "barbell-palms-up-wrist-curl-over-bench": [
+    "CURL",
+    "BARBELL_WRIST_CURL"
+  ],
+  "barbell-pendlay-row": [
+    "ROW",
+    "BARBELL_ROW"
+  ],
+  "barbell-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-press-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "barbell-prone-incline-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "barbell-pullover-to-press": [
+    "PULL_UP",
+    null
+  ],
+  "barbell-rack-pull": [
+    "DEADLIFT",
+    "RACK_PULL"
+  ],
+  "barbell-rear-delt-row": [
+    "ROW",
+    null
+  ],
+  "barbell-reverse-curl": [
+    "CURL",
+    "REVERSE_GRIP_BARBELL_BICEPS_CURL"
+  ],
+  "barbell-reverse-lunge": [
+    "LUNGE",
+    "BARBELL_REVERSE_LUNGE"
+  ],
+  "barbell-reverse-lunge-v2": [
+    "LUNGE",
+    "BARBELL_REVERSE_LUNGE"
+  ],
+  "barbell-reverse-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-reverse-wrist-curl": [
+    "CURL",
+    "BARBELL_REVERSE_WRIST_CURL"
+  ],
+  "barbell-reverse-wrist-curl-v2": [
+    "CURL",
+    "BARBELL_REVERSE_WRIST_CURL"
+  ],
+  "barbell-reverse-grip-bent-over-row": [
+    "ROW",
+    "REVERSE_GRIP_BARBELL_ROW"
+  ],
+  "barbell-reverse-grip-close-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-reverse-grip-decline-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-reverse-grip-incline-bench-press": [
+    "BENCH_PRESS",
+    "REVERSE_GRIP_INCLINE_BENCH_PRESS"
+  ],
+  "barbell-reverse-grip-incline-bench-row": [
+    "ROW",
+    null
+  ],
+  "barbell-reverse-grip-skull-crusher": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-rollout": [
+    "CORE",
+    "BARBELL_ROLLOUT"
+  ],
+  "barbell-rollout-from-bench": [
+    "CORE",
+    null
+  ],
+  "barbell-romanian-deadlift": [
+    "DEADLIFT",
+    "ROMANIAN_DEADLIFT"
+  ],
+  "barbell-seated-alternate-leg-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "barbell-seated-alternate-leg-raise-2": [
+    "LEG_RAISE",
+    null
+  ],
+  "barbell-seated-behind-the-neck-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "barbell-seated-bradford-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "barbell-seated-calf-raise": [
+    "CALF_RAISE",
+    "WEIGHTED_SEATED_CALF_RAISE"
+  ],
+  "barbell-seated-calf-raise-2": [
+    "CALF_RAISE",
+    "WEIGHTED_SEATED_CALF_RAISE"
+  ],
+  "barbell-seated-close-grip-behind-the-neck-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SEATED_BARBELL_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "barbell-seated-close-grip-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-seated-good-morning": [
+    "LEG_CURL",
+    "SEATED_BARBELL_GOOD_MORNING"
+  ],
+  "barbell-seated-overhead-press": [
+    "SHOULDER_PRESS",
+    "SEATED_BARBELL_SHOULDER_PRESS"
+  ],
+  "barbell-seated-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SEATED_BARBELL_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "barbell-seated-twist": [
+    "CORE",
+    null
+  ],
+  "barbell-shrug": [
+    "SHRUG",
+    "BARBELL_SHRUG"
+  ],
+  "barbell-side-bend-v2": [
+    "CORE",
+    "WEIGHTED_SIDE_BEND"
+  ],
+  "barbell-side-split-squat": [
+    "LUNGE",
+    "BARBELL_SIDE_LUNGE"
+  ],
+  "barbell-side-split-squat-v2": [
+    "LUNGE",
+    "BARBELL_SIDE_LUNGE"
+  ],
+  "barbell-side-squat": [
+    "SQUAT",
+    null
+  ],
+  "barbell-single-leg-deadlift": [
+    "DEADLIFT",
+    "SINGLE_LEG_BARBELL_DEADLIFT"
+  ],
+  "barbell-single-leg-split-squat": [
+    "LUNGE",
+    null
+  ],
+  "barbell-skier": [
+    "TOTAL_BODY",
+    null
+  ],
+  "barbell-skull-crusher": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-speed-squat": [
+    "SQUAT",
+    "BARBELL_BACK_SQUAT"
+  ],
+  "barbell-split-squat-v2": [
+    "LUNGE",
+    "BARBELL_SPLIT_SQUAT"
+  ],
+  "barbell-squat-on-knees": [
+    "SQUAT",
+    null
+  ],
+  "barbell-standing-ab-rollout": [
+    "CORE",
+    null
+  ],
+  "barbell-standing-behind-the-back-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-standing-bradford-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "barbell-standing-calf-raise": [
+    "CALF_RAISE",
+    "STANDING_BARBELL_CALF_RAISE"
+  ],
+  "barbell-standing-calf-raise-v2": [
+    "CALF_RAISE",
+    "STANDING_BARBELL_CALF_RAISE"
+  ],
+  "barbell-standing-close-grip-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-standing-close-grip-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "barbell-standing-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-standing-front-raise-overhead": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "barbell-standing-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "barbell-standing-reverse-grip-curl": [
+    "CURL",
+    "REVERSE_GRIP_BARBELL_BICEPS_CURL"
+  ],
+  "barbell-standing-rocking-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "barbell-standing-twist": [
+    "CORE",
+    null
+  ],
+  "barbell-standing-wide-grip-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-standing-wide-grip-curl": [
+    "CURL",
+    null
+  ],
+  "barbell-standing-wide-grip-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "barbell-step-up": [
+    "SQUAT",
+    "BARBELL_STEP_UP"
+  ],
+  "barbell-stiff-leg-good-morning": [
+    "LEG_CURL",
+    null
+  ],
+  "barbell-straight-leg-deadlift": [
+    "DEADLIFT",
+    "BARBELL_STRAIGHT_LEG_DEADLIFT"
+  ],
+  "barbell-sumo-deadlift": [
+    "DEADLIFT",
+    "SUMO_DEADLIFT"
+  ],
+  "barbell-thruster": [
+    "SQUAT",
+    "THRUSTERS"
+  ],
+  "barbell-upright-row": [
+    "SHRUG",
+    "BARBELL_UPRIGHT_ROW"
+  ],
+  "barbell-upright-row-v2": [
+    "SHRUG",
+    "BARBELL_UPRIGHT_ROW"
+  ],
+  "barbell-upright-row-v3": [
+    "SHRUG",
+    "BARBELL_UPRIGHT_ROW"
+  ],
+  "barbell-wide-reverse-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "barbell-wide-stance-squat": [
+    "SQUAT",
+    "WIDE_STANCE_BARBELL_SQUAT"
+  ],
+  "barbell-wide-grip-bench-press": [
+    "BENCH_PRESS",
+    "WIDE_GRIP_BARBELL_BENCH_PRESS"
+  ],
+  "barbell-wide-grip-upright-row": [
+    "SHRUG",
+    null
+  ],
+  "barbell-wrist-curl": [
+    "CURL",
+    "BARBELL_WRIST_CURL"
+  ],
+  "barbell-wrist-curl-v2": [
+    "CURL",
+    "BARBELL_WRIST_CURL"
+  ],
+  "barbell-zercher-squat": [
+    "SQUAT",
+    "ZERCHER_SQUAT"
+  ],
+  "basic-toe-touch": [
+    "WARM_UP",
+    null
+  ],
+  "battle-ropes": [
+    "BATTLE_ROPE",
+    null
+  ],
+  "bear-crawl": [
+    "PLANK",
+    "BEAR_CRAWL"
+  ],
+  "behind-the-head-chest-stretch": [
+    "WARM_UP",
+    "STRETCH_PECTORAL"
+  ],
+  "behind-the-neck-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "bench-dip": [
+    "TRICEPS_EXTENSION",
+    "BENCH_DIP"
+  ],
+  "bench-hip-extension": [
+    "HIP_RAISE",
+    null
+  ],
+  "bench-pull-up": [
+    "ROW",
+    null
+  ],
+  "bent-knee-lying-twist": [
+    "CORE",
+    null
+  ],
+  "bent-knee-sit-up": [
+    "SIT_UP",
+    "SIT_UP"
+  ],
+  "biceps-leg-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "biceps-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "body-up": [
+    "PLANK",
+    null
+  ],
+  "bodyweight-drop-jump-squat": [
+    "PLYO",
+    null
+  ],
+  "bodyweight-incline-side-plank": [
+    "PLANK",
+    null
+  ],
+  "bodyweight-push-and-pull": [
+    "TOTAL_BODY",
+    null
+  ],
+  "bodyweight-side-lying-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "bodyweight-squatting-row": [
+    "ROW",
+    null
+  ],
+  "bodyweight-squatting-row-with-towel": [
+    "ROW",
+    null
+  ],
+  "bodyweight-standing-calf-raise": [
+    "CALF_RAISE",
+    "STANDING_CALF_RAISE"
+  ],
+  "bodyweight-standing-row-with-towel": [
+    "ROW",
+    null
+  ],
+  "bottoms-up": [
+    "CRUNCH",
+    null
+  ],
+  "bridge-mountain-climber-cross-body": [
+    "PLANK",
+    "CROSS_BODY_MOUNTAIN_CLIMBER"
+  ],
+  "burpee": [
+    "TOTAL_BODY",
+    "BURPEE"
+  ],
+  "butt-ups": [
+    "PLANK",
+    "PLANK_PIKES"
+  ],
+  "butterfly-yoga-pose": [
+    "WARM_UP",
+    "STRETCH_BUTTERFLY"
+  ],
+  "cable-alternate-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "cable-alternate-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-assisted-inverse-leg-curl": [
+    "LEG_CURL",
+    null
+  ],
+  "cable-bar-lat-pulldown": [
+    "PULL_UP",
+    "LAT_PULLDOWN"
+  ],
+  "cable-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-close-grip-curl": [
+    "CURL",
+    null
+  ],
+  "cable-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "cable-concentration-extension-on-knee": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-crossover-lat-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "cable-crossover-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-crossover-variation": [
+    "FLYE",
+    "CABLE_CROSSOVER"
+  ],
+  "cable-curl": [
+    "CURL",
+    "CABLE_BICEPS_CURL"
+  ],
+  "cable-deadlift": [
+    "DEADLIFT",
+    null
+  ],
+  "cable-decline-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-decline-one-arm-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-decline-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-decline-seated-wide-grip-row": [
+    "ROW",
+    null
+  ],
+  "cable-drag-curl": [
+    "CURL",
+    null
+  ],
+  "cable-floor-seated-wide-grip-row": [
+    "ROW",
+    "WIDE_GRIP_SEATED_CABLE_ROW"
+  ],
+  "cable-forward-raise": [
+    "LATERAL_RAISE",
+    "CABLE_FRONT_RAISE"
+  ],
+  "cable-front-raise": [
+    "LATERAL_RAISE",
+    "CABLE_FRONT_RAISE"
+  ],
+  "cable-front-shoulder-raise": [
+    "LATERAL_RAISE",
+    "CABLE_FRONT_RAISE"
+  ],
+  "cable-glute-kickback": [
+    "HIP_STABILITY",
+    null
+  ],
+  "cable-hammer-curl-with-rope": [
+    "CURL",
+    "CABLE_HAMMER_CURL"
+  ],
+  "cable-high-pulley-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "CABLE_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "cable-high-row-kneeling": [
+    "ROW",
+    null
+  ],
+  "cable-hip-adduction": [
+    "HIP_STABILITY",
+    null
+  ],
+  "cable-incline-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-incline-bench-row": [
+    "ROW",
+    null
+  ],
+  "cable-incline-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-incline-pushdown": [
+    "PULL_UP",
+    null
+  ],
+  "cable-incline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-internal-shoulder-rotation": [
+    "SHOULDER_STABILITY",
+    "CABLE_INTERNAL_ROTATION"
+  ],
+  "cable-judo-flip": [
+    "CORE",
+    null
+  ],
+  "cable-kickback": [
+    "TRICEPS_EXTENSION",
+    "CABLE_KICKBACK"
+  ],
+  "cable-kneeling-crunch": [
+    "CRUNCH",
+    "KNEELING_CABLE_CRUNCH"
+  ],
+  "cable-kneeling-rear-delt-row-with-rope": [
+    "ROW",
+    null
+  ],
+  "cable-kneeling-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-lat-pulldown-with-rope": [
+    "PULL_UP",
+    "LAT_PULLDOWN"
+  ],
+  "cable-lat-pulldown-full-range-of-motion": [
+    "PULL_UP",
+    "LAT_PULLDOWN"
+  ],
+  "cable-lat-pulldown-with-v-bar": [
+    "PULL_UP",
+    "CLOSE_GRIP_LAT_PULLDOWN"
+  ],
+  "cable-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "cable-low-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-low-seated-row": [
+    "ROW",
+    "SEATED_CABLE_ROW"
+  ],
+  "cable-lying-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "cable-lying-close-grip-curl": [
+    "CURL",
+    null
+  ],
+  "cable-lying-extension-pullover-with-rope": [
+    "PULL_UP",
+    null
+  ],
+  "cable-lying-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-lying-triceps-extension-v2": [
+    "TRICEPS_EXTENSION",
+    "CABLE_LYING_TRICEPS_EXTENSION"
+  ],
+  "cable-middle-fly": [
+    "FLYE",
+    "CABLE_CROSSOVER"
+  ],
+  "cable-one-arm-bent-over-row": [
+    "ROW",
+    "SINGLE_ARM_CABLE_ROW"
+  ],
+  "cable-one-arm-bent-over-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "cable-one-arm-curl": [
+    "CURL",
+    null
+  ],
+  "cable-one-arm-decline-chest-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-one-arm-fly-on-stability-ball": [
+    "FLYE",
+    null
+  ],
+  "cable-one-arm-incline-fly-on-stability-ball": [
+    "FLYE",
+    null
+  ],
+  "cable-one-arm-incline-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-one-arm-incline-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-one-arm-lateral-raise": [
+    "LATERAL_RAISE",
+    "ONE_ARM_CABLE_LATERAL_RAISE"
+  ],
+  "cable-one-arm-preacher-curl": [
+    "CURL",
+    "PREACHER_CURL_WITH_CABLE"
+  ],
+  "cable-one-arm-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-one-arm-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "cable-one-arm-reverse-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "cable-one-arm-straight-back-high-row-kneeling": [
+    "ROW",
+    null
+  ],
+  "cable-overhead-curl": [
+    "CURL",
+    null
+  ],
+  "cable-overhead-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "cable-overhead-triceps-extension-with-rope": [
+    "TRICEPS_EXTENSION",
+    "CABLE_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "cable-preacher-curl": [
+    "CURL",
+    "PREACHER_CURL_WITH_CABLE"
+  ],
+  "cable-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-pull-through-with-rope": [
+    "CHOP",
+    "CABLE_PULL_THROUGH"
+  ],
+  "cable-pulldown": [
+    "PULL_UP",
+    "LAT_PULLDOWN"
+  ],
+  "cable-pulldown-pro-lat-bar": [
+    "PULL_UP",
+    "LAT_PULLDOWN"
+  ],
+  "cable-pulldown-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "cable-pushdown": [
+    "TRICEPS_EXTENSION",
+    "TRICEPS_PRESSDOWN"
+  ],
+  "cable-pushdown-with-rope": [
+    "TRICEPS_EXTENSION",
+    "ROPE_PRESSDOWN"
+  ],
+  "cable-rear-delt-row-stirrups": [
+    "ROW",
+    null
+  ],
+  "cable-rear-delt-row-with-rope": [
+    "ROW",
+    null
+  ],
+  "cable-rear-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "cable-reverse-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "cable-reverse-curl": [
+    "CURL",
+    null
+  ],
+  "cable-reverse-one-arm-curl": [
+    "CURL",
+    null
+  ],
+  "cable-reverse-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "cable-reverse-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "cable-reverse-grip-pushdown": [
+    "TRICEPS_EXTENSION",
+    "REVERSE_GRIP_TRICEPS_PRESSDOWN"
+  ],
+  "cable-reverse-grip-straight-back-seated-high-row": [
+    "ROW",
+    null
+  ],
+  "cable-reverse-grip-triceps-pushdown-ez-bar-with-arm-blaster": [
+    "TRICEPS_EXTENSION",
+    "REVERSE_GRIP_TRICEPS_PRESSDOWN"
+  ],
+  "cable-rope-crossover-seated-row": [
+    "ROW",
+    null
+  ],
+  "cable-rope-elevated-seated-row": [
+    "ROW",
+    null
+  ],
+  "cable-rope-hammer-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "cable-rope-high-pulley-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "CABLE_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "cable-rope-incline-bench-row": [
+    "ROW",
+    null
+  ],
+  "cable-rope-incline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-rope-lying-floor-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "CABLE_LYING_TRICEPS_EXTENSION"
+  ],
+  "cable-rope-one-arm-hammer-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "cable-rope-seated-row": [
+    "ROW",
+    "ROPE_HANDLE_CABLE_ROW"
+  ],
+  "cable-rotating-grip-row": [
+    "ROW",
+    null
+  ],
+  "cable-russian-twist-on-stability-ball": [
+    "CORE",
+    null
+  ],
+  "cable-seated-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "cable-seated-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "cable-seated-curl": [
+    "CURL",
+    null
+  ],
+  "cable-seated-high-row-v-bar": [
+    "ROW",
+    null
+  ],
+  "cable-seated-one-arm-alternate-row": [
+    "ROW",
+    "SINGLE_ARM_CABLE_ROW"
+  ],
+  "cable-seated-one-arm-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "cable-seated-overhead-curl": [
+    "CURL",
+    null
+  ],
+  "cable-seated-rear-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "cable-seated-row": [
+    "ROW",
+    "SEATED_CABLE_ROW"
+  ],
+  "cable-seated-shoulder-internal-rotation": [
+    "SHOULDER_STABILITY",
+    "CABLE_INTERNAL_ROTATION"
+  ],
+  "cable-seated-twist": [
+    "CORE",
+    null
+  ],
+  "cable-seated-wide-grip-row": [
+    "ROW",
+    "WIDE_GRIP_SEATED_CABLE_ROW"
+  ],
+  "cable-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "cable-shrug": [
+    "SHRUG",
+    null
+  ],
+  "cable-side-bend": [
+    "CORE",
+    "CABLE_SIDE_BEND"
+  ],
+  "cable-side-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "cable-squat-row-with-rope": [
+    "ROW",
+    null
+  ],
+  "cable-squatting-curl": [
+    "CURL",
+    null
+  ],
+  "cable-standing-behind-the-back-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "cable-standing-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "cable-standing-crossover-high-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-standing-crunch": [
+    "CRUNCH",
+    "STANDING_CABLE_CRUNCH"
+  ],
+  "cable-standing-crunch-with-rope": [
+    "CRUNCH",
+    "STANDING_CABLE_CRUNCH"
+  ],
+  "cable-standing-fly": [
+    "FLYE",
+    "CABLE_CROSSOVER"
+  ],
+  "cable-standing-hip-extension": [
+    "HIP_STABILITY",
+    null
+  ],
+  "cable-standing-inner-curl": [
+    "CURL",
+    null
+  ],
+  "cable-standing-lift": [
+    "CHOP",
+    "CABLE_ROTATIONAL_LIFT"
+  ],
+  "cable-standing-one-arm-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-standing-one-leg-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "cable-standing-pulldown-with-rope": [
+    "PULL_UP",
+    null
+  ],
+  "cable-standing-rear-delt-row-with-rope": [
+    "ROW",
+    null
+  ],
+  "cable-standing-reverse-grip-one-arm-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "cable-standing-row-v-bar": [
+    "ROW",
+    "CABLE_ROW_STANDING"
+  ],
+  "cable-standing-shoulder-external-rotation": [
+    "SHOULDER_STABILITY",
+    "CABLE_EXTERNAL_ROTATION"
+  ],
+  "cable-standing-twist-row-v-bar": [
+    "ROW",
+    null
+  ],
+  "cable-standing-upright-crossover": [
+    "FLYE",
+    "CABLE_CROSSOVER"
+  ],
+  "cable-straight-arm-pulldown": [
+    "PULL_UP",
+    "STRAIGHT_ARM_PULLDOWN"
+  ],
+  "cable-straight-arm-pulldown-with-rope": [
+    "PULL_UP",
+    "STRAIGHT_ARM_PULLDOWN"
+  ],
+  "cable-straight-arm-pushdown-v2": [
+    "PULL_UP",
+    "STRAIGHT_ARM_PULLDOWN"
+  ],
+  "cable-straight-back-seated-row": [
+    "ROW",
+    "SEATED_CABLE_ROW"
+  ],
+  "cable-supine-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "cable-thibaudeau-kayak-row": [
+    "ROW",
+    null
+  ],
+  "cable-triceps-pushdown-v-bar": [
+    "TRICEPS_EXTENSION",
+    "TRICEPS_PRESSDOWN"
+  ],
+  "cable-triceps-pushdown-v-bar-with-arm-blaster": [
+    "TRICEPS_EXTENSION",
+    "TRICEPS_PRESSDOWN"
+  ],
+  "cable-tuck-reverse-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "cable-twist": [
+    "CHOP",
+    null
+  ],
+  "cable-twist-up-down": [
+    "CHOP",
+    "CABLE_WOODCHOP"
+  ],
+  "cable-twisting-pull": [
+    "ROW",
+    null
+  ],
+  "cable-two-arm-curl-on-incline-bench": [
+    "CURL",
+    null
+  ],
+  "cable-two-arm-triceps-kickback": [
+    "TRICEPS_EXTENSION",
+    "CABLE_KICKBACK"
+  ],
+  "cable-underhand-pulldown": [
+    "PULL_UP",
+    "REVERSE_GRIP_PULLDOWN"
+  ],
+  "cable-upper-chest-crossover": [
+    "FLYE",
+    null
+  ],
+  "cable-upper-row": [
+    "ROW",
+    null
+  ],
+  "cable-upright-row": [
+    "SHRUG",
+    null
+  ],
+  "cable-wide-grip-behind-the-neck-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "cable-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "calf-push-stretch-hands-on-wall": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "calf-stretch-with-rope": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "calf-stretch-hands-on-wall": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "cambered-bar-lying-row": [
+    "ROW",
+    null
+  ],
+  "captain-s-chair-straight-leg-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "chair-extended-leg-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "chest-and-front-shoulder-stretch": [
+    "WARM_UP",
+    "STRETCH_PECTORAL"
+  ],
+  "chest-dip": [
+    "TRICEPS_EXTENSION",
+    "BODY_WEIGHT_DIP"
+  ],
+  "chest-dip-on-dip-pull-up-station": [
+    "TRICEPS_EXTENSION",
+    "BODY_WEIGHT_DIP"
+  ],
+  "chest-stretch-with-stability-ball": [
+    "WARM_UP",
+    "STRETCH_PECTORAL"
+  ],
+  "chest-tap-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "chin-up": [
+    "PULL_UP",
+    "CHIN_UP"
+  ],
+  "chin-up-narrow-parallel-grip": [
+    "PULL_UP",
+    "NEUTRAL_GRIP_CHIN_UP"
+  ],
+  "clap-push-up": [
+    "PUSH_UP",
+    "CLAPPING_PUSH_UP"
+  ],
+  "close-grip-and-wide-grip-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "close-grip-chin-up": [
+    "PULL_UP",
+    "CLOSE_GRIP_CHIN_UP"
+  ],
+  "close-grip-push-up": [
+    "PUSH_UP",
+    "CLOSE_HANDS_PUSH_UP"
+  ],
+  "close-grip-push-up-on-knees": [
+    "PUSH_UP",
+    null
+  ],
+  "close-grip-push-up-on-dumbbells": [
+    "PUSH_UP",
+    null
+  ],
+  "cocoons": [
+    "CRUNCH",
+    null
+  ],
+  "crab-twist-toe-touch": [
+    "CORE",
+    null
+  ],
+  "cross-body-crunch": [
+    "CRUNCH",
+    "ELBOW_TO_KNEE_CRUNCH"
+  ],
+  "cross-trainer": [
+    "ELLIPTICAL",
+    "ELLIPTICAL"
+  ],
+  "crunch-hands-overhead": [
+    "CRUNCH",
+    null
+  ],
+  "crunch-on-stability-ball-arms-straight": [
+    "CRUNCH",
+    "SWISS_BALL_CRUNCH"
+  ],
+  "crunch-on-stability-ball": [
+    "CRUNCH",
+    "SWISS_BALL_CRUNCH"
+  ],
+  "crunch-with-feet-on-swiss-ball": [
+    "CRUNCH",
+    null
+  ],
+  "curl-up": [
+    "CRUNCH",
+    "MCGILL_CURL_UP"
+  ],
+  "curtsy-squat": [
+    "LUNGE",
+    "CURTSY_LUNGE"
+  ],
+  "dead-bug": [
+    "HIP_STABILITY",
+    "DEAD_BUG"
+  ],
+  "decline-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "decline-oblique-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "decline-push-up": [
+    "PUSH_UP",
+    "DECLINE_PUSH_UP"
+  ],
+  "decline-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "deep-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "diamond-push-up": [
+    "PUSH_UP",
+    "DIAMOND_PUSH_UP"
+  ],
+  "donkey-calf-raise": [
+    "CALF_RAISE",
+    "DONKEY_CALF_RAISE"
+  ],
+  "drop-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "dumbbell-alternate-biceps-curl": [
+    "CURL",
+    "ALTERNATING_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-alternate-biceps-curl-with-arm-blaster": [
+    "CURL",
+    "ALTERNATING_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-alternate-hammer-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-alternate-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-alternate-seated-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-alternate-side-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-alternating-biceps-curl-with-leg-raised-on-stability-ball": [
+    "CURL",
+    "ALTERNATING_DUMBBELL_BICEPS_CURL_ON_SWISS_BALL"
+  ],
+  "dumbbell-alternating-seated-biceps-curl-on-stability-ball": [
+    "CURL",
+    "ALTERNATING_DUMBBELL_BICEPS_CURL_ON_SWISS_BALL"
+  ],
+  "dumbbell-arnold-press": [
+    "SHOULDER_PRESS",
+    "ARNOLD_PRESS"
+  ],
+  "dumbbell-arnold-press-v2": [
+    "SHOULDER_PRESS",
+    "ARNOLD_PRESS"
+  ],
+  "dumbbell-around-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-bench-press": [
+    "BENCH_PRESS",
+    "DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-bench-squat": [
+    "SQUAT",
+    null
+  ],
+  "dumbbell-bent-over-row": [
+    "ROW",
+    "BENT_OVER_ROW_WITH_DUMBELL"
+  ],
+  "dumbbell-biceps-curl": [
+    "CURL",
+    "DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-biceps-curl-with-arm-blaster": [
+    "CURL",
+    "DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-biceps-curl-in-v-sit-on-bosu": [
+    "CURL",
+    null
+  ],
+  "dumbbell-biceps-curl-lunge-with-bowling-motion": [
+    "CURL",
+    null
+  ],
+  "dumbbell-biceps-curl-on-stability-ball-with-leg-raised": [
+    "CURL",
+    null
+  ],
+  "dumbbell-biceps-curl-squat": [
+    "CURL",
+    null
+  ],
+  "dumbbell-biceps-curl-with-stork-stance": [
+    "CURL",
+    null
+  ],
+  "dumbbell-burpee": [
+    "TOTAL_BODY",
+    "WEIGHTED_BURPEE"
+  ],
+  "dumbbell-clean": [
+    "OLYMPIC_LIFT",
+    "DUMBBELL_CLEAN"
+  ],
+  "dumbbell-close-grip-press": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-close-grip-press-v2": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-concentration-curl": [
+    "CURL",
+    "ONE_ARM_CONCENTRATION_CURL"
+  ],
+  "dumbbell-contralateral-forward-lunge": [
+    "LUNGE",
+    "OFFSET_DUMBBELL_LUNGE"
+  ],
+  "dumbbell-cross-body-hammer-curl": [
+    "CURL",
+    "CROSS_BODY_DUMBBELL_HAMMER_CURL"
+  ],
+  "dumbbell-cross-body-hammer-curl-v2": [
+    "CURL",
+    "CROSS_BODY_DUMBBELL_HAMMER_CURL"
+  ],
+  "dumbbell-cuban-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-cuban-press-v2": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-deadlift": [
+    "DEADLIFT",
+    "DUMBBELL_DEADLIFT"
+  ],
+  "dumbbell-decline-bench-press": [
+    "BENCH_PRESS",
+    "DECLINE_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-decline-fly": [
+    "FLYE",
+    "DECLINE_DUMBBELL_FLYE"
+  ],
+  "dumbbell-decline-hammer-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-decline-one-arm-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-decline-one-arm-hammer-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-decline-shrug": [
+    "SHRUG",
+    null
+  ],
+  "dumbbell-decline-shrug-v2": [
+    "SHRUG",
+    null
+  ],
+  "dumbbell-decline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-decline-twist-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-finger-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-fly": [
+    "FLYE",
+    "DUMBBELL_FLYE"
+  ],
+  "dumbbell-fly-on-stability-ball": [
+    "FLYE",
+    "SWISS_BALL_DUMBBELL_FLYE"
+  ],
+  "dumbbell-forward-lunge-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-front-raise": [
+    "SHOULDER_PRESS",
+    "DUMBBELL_FRONT_RAISE"
+  ],
+  "dumbbell-front-raise-v2": [
+    "SHOULDER_PRESS",
+    "DUMBBELL_FRONT_RAISE"
+  ],
+  "dumbbell-full-can-lateral-raise": [
+    "LATERAL_RAISE",
+    "SCAPTION"
+  ],
+  "dumbbell-goblet-squat": [
+    "SQUAT",
+    "GOBLET_SQUAT"
+  ],
+  "dumbbell-hammer-curl": [
+    "CURL",
+    "DUMBBELL_HAMMER_CURL"
+  ],
+  "dumbbell-hammer-curl-with-arm-blaster": [
+    "CURL",
+    "DUMBBELL_HAMMER_CURL"
+  ],
+  "dumbbell-hammer-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-hammer-curl-v2": [
+    "CURL",
+    "DUMBBELL_HAMMER_CURL"
+  ],
+  "dumbbell-high-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-incline-alternate-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-bench-press": [
+    "BENCH_PRESS",
+    "INCLINE_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-incline-biceps-curl": [
+    "CURL",
+    "INCLINE_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-incline-breeding": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-incline-curl": [
+    "CURL",
+    "INCLINE_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-incline-curl-v2": [
+    "CURL",
+    "INCLINE_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-incline-fly": [
+    "FLYE",
+    "INCLINE_DUMBBELL_FLYE"
+  ],
+  "dumbbell-incline-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-incline-hammer-press": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_INCLINE_BENCH_PRESS"
+  ],
+  "dumbbell-incline-hammer-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-inner-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-incline-one-arm-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-incline-one-arm-fly-on-stability-ball": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-incline-one-arm-hammer-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-one-arm-hammer-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-one-arm-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-incline-one-arm-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-one-arm-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-palms-in-press": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_INCLINE_BENCH_PRESS"
+  ],
+  "dumbbell-incline-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-incline-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-incline-rear-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-incline-row": [
+    "ROW",
+    "CHEST_SUPPORTED_DUMBBELL_ROW"
+  ],
+  "dumbbell-incline-shoulder-raise": [
+    "SHRUG",
+    null
+  ],
+  "dumbbell-incline-shrug": [
+    "SHRUG",
+    "INCLINE_DUMBBELL_SHRUG"
+  ],
+  "dumbbell-incline-t-raise": [
+    "SHOULDER_STABILITY",
+    "WEIGHTED_INCLINE_T_RAISE"
+  ],
+  "dumbbell-incline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-incline-twisted-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-incline-two-arm-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-incline-y-raise": [
+    "SHOULDER_STABILITY",
+    "WEIGHTED_INCLINE_Y_RAISE"
+  ],
+  "dumbbell-iron-cross": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-kickback": [
+    "TRICEPS_EXTENSION",
+    "DUMBBELL_KICKBACK"
+  ],
+  "dumbbell-kickback-on-stability-ball": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-kneeling-biceps-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-lateral-lunge-to-curl": [
+    "LUNGE",
+    null
+  ],
+  "dumbbell-lateral-raise": [
+    "LATERAL_RAISE",
+    "DUMBBELL_LATERAL_RAISE"
+  ],
+  "dumbbell-lateral-to-front-raise": [
+    "LATERAL_RAISE",
+    "COMBO_SHOULDER_RAISE"
+  ],
+  "dumbbell-lunge": [
+    "LUNGE",
+    "DUMBBELL_LUNGE"
+  ],
+  "dumbbell-lunge-with-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-lying-alternate-extension": [
+    "TRICEPS_EXTENSION",
+    "ALTERNATING_DUMBBELL_LYING_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-lying-elbow-press": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-lying-extension-across-face": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-lying-external-shoulder-rotation": [
+    "SHOULDER_STABILITY",
+    "LYING_EXTERNAL_ROTATION"
+  ],
+  "dumbbell-lying-floor-rear-delt-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-lying-hammer-press": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-lying-leg-curl": [
+    "LEG_CURL",
+    "WEIGHTED_LEG_CURL"
+  ],
+  "dumbbell-lying-one-arm-press": [
+    "BENCH_PRESS",
+    "SINGLE_ARM_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-lying-one-arm-press-v2": [
+    "BENCH_PRESS",
+    "SINGLE_ARM_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-lying-one-arm-pronated-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-lying-one-arm-rear-delt-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-lying-one-arm-rear-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-lying-one-arm-supinated-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-lying-pullover-on-stability-ball": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-lying-rear-delt-row": [
+    "ROW",
+    null
+  ],
+  "dumbbell-lying-rear-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-lying-single-arm-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-lying-supine-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-lying-supine-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-lying-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "DUMBBELL_LYING_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-lying-wide-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-neutral-grip-bench-press": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_BENCH_PRESS"
+  ],
+  "dumbbell-one-arm-bench-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-one-arm-bent-over-row": [
+    "ROW",
+    "ONE_ARM_BENT_OVER_ROW"
+  ],
+  "dumbbell-one-arm-chest-fly-on-stability-ball": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-one-arm-concentration-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-decline-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-one-arm-fly-on-stability-ball": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-one-arm-french-press-on-stability-ball": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-one-arm-hammer-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-hammer-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-one-arm-incline-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-one-arm-kickback": [
+    "TRICEPS_EXTENSION",
+    "DUMBBELL_KICKBACK"
+  ],
+  "dumbbell-one-arm-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-one-arm-lateral-raise-with-support": [
+    "LATERAL_RAISE",
+    "LEANING_DUMBBELL_LATERAL_RAISE"
+  ],
+  "dumbbell-one-arm-press-on-stability-ball": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-one-arm-prone-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-prone-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-pullover-on-stability-ball": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-one-arm-reverse-fly-with-support": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-one-arm-reverse-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-reverse-spider-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-reverse-grip-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-one-arm-seated-biceps-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-seated-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-seated-neutral-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-arm-shoulder-press": [
+    "SHOULDER_PRESS",
+    "SINGLE_ARM_DUMBBELL_SHOULDER_PRESS"
+  ],
+  "dumbbell-one-arm-shoulder-press-v2": [
+    "SHOULDER_PRESS",
+    "SINGLE_ARM_DUMBBELL_SHOULDER_PRESS"
+  ],
+  "dumbbell-one-arm-snatch": [
+    "OLYMPIC_LIFT",
+    "SINGLE_ARM_DUMBBELL_SNATCH"
+  ],
+  "dumbbell-one-arm-standing-curl": [
+    "CURL",
+    "STANDING_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-one-arm-standing-hammer-curl": [
+    "CURL",
+    "DUMBBELL_HAMMER_CURL"
+  ],
+  "dumbbell-one-arm-triceps-extension-on-bench": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-one-arm-upright-row": [
+    "SHRUG",
+    null
+  ],
+  "dumbbell-one-arm-wrist-curl": [
+    "CURL",
+    "DUMBBELL_WRIST_CURL"
+  ],
+  "dumbbell-one-arm-zottman-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-one-leg-fly-on-stability-ball": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-over-bench-one-arm-wrist-curl": [
+    "CURL",
+    "DUMBBELL_WRIST_CURL"
+  ],
+  "dumbbell-over-bench-reverse-wrist-curl": [
+    "CURL",
+    "DUMBBELL_REVERSE_WRIST_CURL"
+  ],
+  "dumbbell-over-bench-wrist-curl": [
+    "CURL",
+    "DUMBBELL_WRIST_CURL"
+  ],
+  "dumbbell-palms-in-incline-bench-press": [
+    "BENCH_PRESS",
+    "NEUTRAL_GRIP_DUMBBELL_INCLINE_BENCH_PRESS"
+  ],
+  "dumbbell-plyo-squat": [
+    "PLYO",
+    "DUMBBELL_JUMP_SQUAT"
+  ],
+  "dumbbell-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-preacher-curl-over-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-preacher-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-press-on-stability-ball": [
+    "BENCH_PRESS",
+    "SWISS_BALL_DUMBBELL_CHEST_PRESS"
+  ],
+  "dumbbell-pronated-grip-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-prone-incline-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-prone-incline-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-pullover-hip-extension-on-stability-ball": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-pullover-on-stability-ball": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-push-press": [
+    "SHOULDER_PRESS",
+    "DUMBBELL_PUSH_PRESS"
+  ],
+  "dumbbell-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-rear-delt-raise": [
+    "LATERAL_RAISE",
+    "BENT_OVER_LATERAL_RAISE"
+  ],
+  "dumbbell-rear-delt-row": [
+    "ROW",
+    null
+  ],
+  "dumbbell-rear-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-rear-lateral-raise": [
+    "LATERAL_RAISE",
+    "BENT_OVER_LATERAL_RAISE"
+  ],
+  "dumbbell-rear-lateral-raise-head-supported": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-reverse-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-reverse-lunge": [
+    "LUNGE",
+    "DUMBBELL_REVERSE_LUNGE"
+  ],
+  "dumbbell-reverse-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-reverse-spider-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-reverse-wrist-curl": [
+    "CURL",
+    "DUMBBELL_REVERSE_WRIST_CURL"
+  ],
+  "dumbbell-reverse-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-reverse-grip-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-reverse-grip-incline-bench-one-arm-row": [
+    "ROW",
+    null
+  ],
+  "dumbbell-reverse-grip-incline-bench-two-arm-row": [
+    "ROW",
+    null
+  ],
+  "dumbbell-reverse-grip-row": [
+    "ROW",
+    null
+  ],
+  "dumbbell-romanian-deadlift": [
+    "DEADLIFT",
+    "ROMANIAN_DEADLIFT"
+  ],
+  "dumbbell-rotating-grip-bent-over-row": [
+    "ROW",
+    null
+  ],
+  "dumbbell-rotation-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "dumbbell-scott-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-seated-alternate-front-raise": [
+    "SHOULDER_PRESS",
+    "DUMBBELL_FRONT_RAISE"
+  ],
+  "dumbbell-seated-alternate-hammer-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-alternate-press": [
+    "SHOULDER_PRESS",
+    "ALTERNATING_DUMBBELL_SHOULDER_PRESS"
+  ],
+  "dumbbell-seated-alternate-shoulder-press": [
+    "SHOULDER_PRESS",
+    "ALTERNATING_DUMBBELL_SHOULDER_PRESS"
+  ],
+  "dumbbell-seated-bench-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-seated-bench-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SEATED_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-seated-bent-arm-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-seated-bent-over-alternate-kickback": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-seated-bent-over-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-seated-biceps-curl": [
+    "CURL",
+    "SEATED_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-seated-biceps-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-biceps-curl-to-shoulder-press": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-calf-raise": [
+    "CALF_RAISE",
+    "WEIGHTED_SEATED_CALF_RAISE"
+  ],
+  "dumbbell-seated-curl": [
+    "CURL",
+    "SEATED_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-seated-front-raise": [
+    "SHOULDER_PRESS",
+    "DUMBBELL_FRONT_RAISE"
+  ],
+  "dumbbell-seated-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-inner-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-kickback": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-seated-lateral-raise": [
+    "LATERAL_RAISE",
+    "SEATED_LATERAL_RAISE"
+  ],
+  "dumbbell-seated-lateral-raise-v2": [
+    "LATERAL_RAISE",
+    "SEATED_LATERAL_RAISE"
+  ],
+  "dumbbell-seated-one-arm-biceps-curl-on-stability-ball-with-leg-raised": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-one-arm-kickback": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-seated-one-arm-rotation": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-one-leg-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "dumbbell-seated-one-leg-calf-raise-hammer-grip": [
+    "CALF_RAISE",
+    null
+  ],
+  "dumbbell-seated-one-leg-calf-raise-palm-up": [
+    "CALF_RAISE",
+    null
+  ],
+  "dumbbell-seated-palms-up-wrist-curl": [
+    "CURL",
+    "DUMBBELL_WRIST_CURL"
+  ],
+  "dumbbell-seated-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-reverse-grip-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-seated-reverse-grip-one-arm-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-seated-shoulder-press": [
+    "SHOULDER_PRESS",
+    "SEATED_DUMBBELL_SHOULDER_PRESS"
+  ],
+  "dumbbell-seated-shoulder-press-neutral-grip": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-seated-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SEATED_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-seated-triceps-extension-two-hands": [
+    "TRICEPS_EXTENSION",
+    "SINGLE_DUMBBELL_SEATED_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-shrug": [
+    "SHRUG",
+    "DUMBBELL_SHRUG"
+  ],
+  "dumbbell-side-bend": [
+    "CORE",
+    "WEIGHTED_SIDE_BEND"
+  ],
+  "dumbbell-side-lying-one-arm-raise": [
+    "LATERAL_RAISE",
+    "SIDE_LYING_LATERAL_RAISE"
+  ],
+  "dumbbell-side-plank-with-rear-fly": [
+    "PLANK",
+    null
+  ],
+  "dumbbell-single-arm-overhead-carry": [
+    "CARRY",
+    "OVERHEAD_CARRY"
+  ],
+  "dumbbell-single-leg-calf-raise": [
+    "CALF_RAISE",
+    "SINGLE_LEG_STANDING_DUMBBELL_CALF_RAISE"
+  ],
+  "dumbbell-single-leg-deadlift": [
+    "DEADLIFT",
+    "SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL"
+  ],
+  "dumbbell-single-leg-deadlift-with-step-box-support": [
+    "DEADLIFT",
+    null
+  ],
+  "dumbbell-single-leg-split-squat": [
+    "LUNGE",
+    null
+  ],
+  "dumbbell-single-leg-squat": [
+    "SQUAT",
+    null
+  ],
+  "dumbbell-squat": [
+    "SQUAT",
+    "DUMBBELL_SQUAT"
+  ],
+  "dumbbell-standing-alternate-hammer-curl-and-press": [
+    "CURL",
+    "HAMMER_CURL_TO_PRESS"
+  ],
+  "dumbbell-standing-alternate-overhead-press": [
+    "SHOULDER_PRESS",
+    "ALTERNATING_DUMBBELL_SHOULDER_PRESS"
+  ],
+  "dumbbell-standing-alternate-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-standing-alternating-triceps-kickback": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-standing-around-the-world": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-standing-bent-over-one-arm-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "DUMBBELL_KICKBACK"
+  ],
+  "dumbbell-standing-bent-over-two-arm-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "DUMBBELL_KICKBACK"
+  ],
+  "dumbbell-standing-biceps-curl": [
+    "CURL",
+    "STANDING_DUMBBELL_BICEPS_CURL"
+  ],
+  "dumbbell-standing-calf-raise": [
+    "CALF_RAISE",
+    "STANDING_DUMBBELL_CALF_RAISE"
+  ],
+  "dumbbell-standing-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-front-raise-overhead": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "dumbbell-standing-inner-biceps-curl-v2": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-kickback": [
+    "TRICEPS_EXTENSION",
+    "DUMBBELL_KICKBACK"
+  ],
+  "dumbbell-standing-one-arm-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-one-arm-curl-over-incline-bench": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-one-arm-curl-over-incline-bench-2": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-one-arm-palms-in-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-standing-one-arm-reverse-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-one-arm-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SINGLE_ARM_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-standing-overhead-press": [
+    "SHOULDER_PRESS",
+    "OVERHEAD_DUMBBELL_PRESS"
+  ],
+  "dumbbell-standing-palms-in-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-standing-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-reverse-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-standing-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "OVERHEAD_DUMBBELL_TRICEPS_EXTENSION"
+  ],
+  "dumbbell-standing-zottman-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-step-up": [
+    "SQUAT",
+    "DUMBBELL_STEP_UP"
+  ],
+  "dumbbell-step-up-lunge": [
+    "SQUAT",
+    null
+  ],
+  "dumbbell-step-up-single-leg-balance-with-biceps-curl": [
+    "SQUAT",
+    null
+  ],
+  "dumbbell-step-up-split-squat": [
+    "SQUAT",
+    null
+  ],
+  "dumbbell-stiff-leg-deadlift": [
+    "DEADLIFT",
+    "DUMBBELL_STRAIGHT_LEG_DEADLIFT"
+  ],
+  "dumbbell-straight-arm-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "dumbbell-straight-leg-deadlift": [
+    "DEADLIFT",
+    "DUMBBELL_STRAIGHT_LEG_DEADLIFT"
+  ],
+  "dumbbell-sumo-pull-through": [
+    "DEADLIFT",
+    null
+  ],
+  "dumbbell-sumo-squat": [
+    "SQUAT",
+    "SUMO_SQUAT"
+  ],
+  "dumbbell-supported-squat": [
+    "SQUAT",
+    null
+  ],
+  "dumbbell-tate-press": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-triceps-kickback-with-stork-stance": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "dumbbell-twisting-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "dumbbell-upright-row": [
+    "SHRUG",
+    "DUMBBELL_UPRIGHT_ROW"
+  ],
+  "dumbbell-upright-row-back-view": [
+    "SHRUG",
+    "DUMBBELL_UPRIGHT_ROW"
+  ],
+  "dumbbell-upright-shoulder-external-rotation": [
+    "SHOULDER_STABILITY",
+    null
+  ],
+  "dumbbell-w-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "dumbbell-waiter-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "dumbbell-walking-lunge": [
+    "LUNGE",
+    "WALKING_DUMBBELL_LUNGE"
+  ],
+  "dumbbell-zottman-curl": [
+    "CURL",
+    "STANDING_ZOTTMAN_BICEPS_CURL"
+  ],
+  "dumbbell-zottman-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "dynamic-chest-stretch": [
+    "WARM_UP",
+    "STRETCH_PECTORAL"
+  ],
+  "elbow-dips": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "elbow-lift-reverse-push-up": [
+    "ROW",
+    null
+  ],
+  "elbow-to-knee": [
+    "CRUNCH",
+    "ELBOW_TO_KNEE_CRUNCH"
+  ],
+  "elevator": [
+    "PULL_UP",
+    null
+  ],
+  "elliptical-cross-trainer-walk": [
+    "ELLIPTICAL",
+    "ELLIPTICAL"
+  ],
+  "ez-bar-anti-gravity-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "ez-bar-biceps-curl-with-arm-blaster": [
+    "CURL",
+    "STANDING_EZ_BAR_BICEPS_CURL"
+  ],
+  "ez-bar-close-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "ez-bar-close-grip-curl": [
+    "CURL",
+    "CLOSE_GRIP_EZ_BAR_BICEPS_CURL"
+  ],
+  "ez-bar-close-grip-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "ez-bar-curl": [
+    "CURL",
+    "STANDING_EZ_BAR_BICEPS_CURL"
+  ],
+  "ez-bar-decline-close-grip-face-press": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "ez-bar-decline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "ez-bar-french-press-on-stability-ball": [
+    "TRICEPS_EXTENSION",
+    "SWISS_BALL_EZ_BAR_LYING_TRICEPS_EXTENSION"
+  ],
+  "ez-bar-incline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "INCLINE_EZ_BAR_LYING_TRICEPS_EXTENSION"
+  ],
+  "ez-bar-jm-press": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "ez-bar-lying-bent-arm-pullover": [
+    "PULL_UP",
+    "EZ_BAR_PULLOVER"
+  ],
+  "ez-bar-lying-close-grip-triceps-extension-behind-head": [
+    "TRICEPS_EXTENSION",
+    "LYING_EZ_BAR_TRICEPS_EXTENSION"
+  ],
+  "ez-bar-reverse-grip-bent-over-row": [
+    "ROW",
+    null
+  ],
+  "ez-bar-reverse-grip-curl": [
+    "CURL",
+    "REVERSE_EZ_BAR_CURL"
+  ],
+  "ez-bar-reverse-grip-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "ez-bar-seated-close-grip-concentration-curl": [
+    "CURL",
+    null
+  ],
+  "ez-bar-seated-curl": [
+    "CURL",
+    null
+  ],
+  "ez-bar-seated-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SEATED_EZ_BAR_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "ez-bar-spider-curl": [
+    "CURL",
+    null
+  ],
+  "ez-bar-spider-curl-2": [
+    "CURL",
+    null
+  ],
+  "ez-bar-standing-french-press": [
+    "TRICEPS_EXTENSION",
+    "EZ_BAR_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "ez-bar-standing-wide-grip-biceps-curl": [
+    "CURL",
+    "WIDE_GRIP_EZ_BAR_BICEPS_CURL"
+  ],
+  "farmer-s-walk": [
+    "CARRY",
+    "FARMERS_WALK"
+  ],
+  "finger-curl": [
+    "CURL",
+    null
+  ],
+  "flat-bench-leg-pull-in": [
+    "CRUNCH",
+    null
+  ],
+  "flat-bench-lying-leg-raise": [
+    "LEG_RAISE",
+    "LYING_STRAIGHT_LEG_RAISE"
+  ],
+  "floor-bench-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "floor-crunch": [
+    "CRUNCH",
+    "CRUNCH"
+  ],
+  "floor-oblique-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "floor-triceps-dip": [
+    "TRICEPS_EXTENSION",
+    "TABLETOP_DIP"
+  ],
+  "flutter-kicks": [
+    "CRUNCH",
+    "FLUTTER_KICKS"
+  ],
+  "foam-roller-back-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "foam-roller-hip-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "foam-roller-seated-shoulder-flexor-depressor-and-retractor": [
+    "WARM_UP",
+    null
+  ],
+  "foam-roller-seated-single-leg-shoulder-flexor-depressor-and-retractor": [
+    "WARM_UP",
+    null
+  ],
+  "foam-roller-side-lat-stretch": [
+    "WARM_UP",
+    "STRETCH_LAT"
+  ],
+  "forearm-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "forward-jump": [
+    "PLYO",
+    null
+  ],
+  "forward-lunge": [
+    "LUNGE",
+    "LUNGE"
+  ],
+  "frankenstein-squat": [
+    "SQUAT",
+    null
+  ],
+  "frog-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "frog-planche": [
+    "PLANK",
+    null
+  ],
+  "front-lever": [
+    "CORE",
+    null
+  ],
+  "front-lever-reps": [
+    "CORE",
+    null
+  ],
+  "front-plank-with-twist": [
+    "PLANK",
+    null
+  ],
+  "full-planche": [
+    "PLANK",
+    null
+  ],
+  "full-planche-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "gironda-sternum-chin-up": [
+    "PULL_UP",
+    null
+  ],
+  "glute-bridge-march": [
+    "HIP_RAISE",
+    "MARCHING_HIP_RAISE"
+  ],
+  "glute-bridge-feet-on-bench": [
+    "HIP_RAISE",
+    null
+  ],
+  "glute-ham-raise": [
+    "LEG_CURL",
+    null
+  ],
+  "gorilla-chin-up": [
+    "PULL_UP",
+    null
+  ],
+  "groin-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "hack-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "hack-one-leg-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "half-knee-bends": [
+    "WARM_UP",
+    null
+  ],
+  "half-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "hamstring-stretch": [
+    "WARM_UP",
+    "STRETCH_HAMSTRING"
+  ],
+  "hands-clasped-circular-toe-touch": [
+    "WARM_UP",
+    null
+  ],
+  "handstand": [
+    "PUSH_UP",
+    null
+  ],
+  "handstand-push-up": [
+    "PUSH_UP",
+    "HANDSTAND_PUSH_UP"
+  ],
+  "hanging-leg-hip-raise": [
+    "LEG_RAISE",
+    "HANGING_LEG_RAISE"
+  ],
+  "hanging-leg-raise": [
+    "LEG_RAISE",
+    "HANGING_LEG_RAISE"
+  ],
+  "hanging-oblique-knee-raise": [
+    "CRUNCH",
+    "HANGING_KNEE_RAISE_OBLIQUE_CRUNCH"
+  ],
+  "hanging-pike": [
+    "CRUNCH",
+    "TOES_TO_BAR"
+  ],
+  "hanging-straight-leg-hip-raise": [
+    "LEG_RAISE",
+    "HANGING_LEG_RAISE"
+  ],
+  "hanging-straight-leg-raise": [
+    "LEG_RAISE",
+    "HANGING_LEG_RAISE"
+  ],
+  "hanging-straight-leg-twisting-hip-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "high-dumbbell-fly": [
+    "FLYE",
+    null
+  ],
+  "high-knees-against-wall": [
+    "CARDIO",
+    null
+  ],
+  "hip-lift-with-twist": [
+    "HIP_RAISE",
+    null
+  ],
+  "hip-raise-bent-knee": [
+    "CRUNCH",
+    null
+  ],
+  "human-flag": [
+    "CORE",
+    null
+  ],
+  "hyperextension": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "hyperextension-on-bench": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "impossible-dips": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "inchworm": [
+    "CORE",
+    "INCHWORM"
+  ],
+  "inchworm-v2": [
+    "CORE",
+    "INCHWORM"
+  ],
+  "incline-band-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "incline-close-grip-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "incline-dumbbell-curl": [
+    "CURL",
+    "INCLINE_DUMBBELL_BICEPS_CURL"
+  ],
+  "incline-dumbbell-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "incline-leg-hip-raise-straight-legs": [
+    "LEG_RAISE",
+    null
+  ],
+  "incline-push-up": [
+    "PUSH_UP",
+    "INCLINE_PUSH_UP"
+  ],
+  "incline-push-up-on-box": [
+    "PUSH_UP",
+    "INCLINE_PUSH_UP"
+  ],
+  "incline-reverse-grip-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "incline-scapula-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "incline-treadmill-walk": [
+    "RUN_INDOOR",
+    "TREADMILL"
+  ],
+  "incline-twisting-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "intermediate-hip-flexor-and-quad-stretch": [
+    "WARM_UP",
+    "STRETCH_HIP_FLEXOR_AND_QUAD"
+  ],
+  "inverse-leg-curl-bench-support": [
+    "LEG_CURL",
+    null
+  ],
+  "inverse-leg-curl-on-pull-up-cable-machine": [
+    "LEG_CURL",
+    null
+  ],
+  "inverted-row": [
+    "ROW",
+    "INVERTED_ROW"
+  ],
+  "inverted-row-on-bench": [
+    "ROW",
+    "INVERTED_ROW"
+  ],
+  "inverted-row-v2": [
+    "ROW",
+    "INVERTED_ROW"
+  ],
+  "inverted-row-with-straps": [
+    "ROW",
+    "SUSPENDED_INVERTED_ROW"
+  ],
+  "inverted-row-bent-knees": [
+    "ROW",
+    "MODIFIED_INVERTED_ROW"
+  ],
+  "iron-cross-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "isometric-chest-squeeze": null,
+  "isometric-wipers": [
+    "PUSH_UP",
+    null
+  ],
+  "jack-burpee": [
+    "TOTAL_BODY",
+    null
+  ],
+  "jackknife-sit-up": [
+    "SIT_UP",
+    "V_UP"
+  ],
+  "janda-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "jump-rope": [
+    "CARDIO",
+    "JUMP_ROPE"
+  ],
+  "jump-squat": [
+    "PLYO",
+    "JUMP_SQUAT"
+  ],
+  "jump-squat-v2": [
+    "PLYO",
+    "JUMP_SQUAT"
+  ],
+  "jumping-jack": [
+    "CARDIO",
+    "JUMPING_JACKS"
+  ],
+  "jumping-lunge": [
+    "PLYO",
+    "ALTERNATING_JUMP_LUNGE"
+  ],
+  "kettlebell-advanced-windmill": [
+    "CORE",
+    null
+  ],
+  "kettlebell-alternating-floor-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "kettlebell-alternating-hang-clean": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-alternating-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-alternating-renegade-row": [
+    "ROW",
+    "RENEGADE_ROW"
+  ],
+  "kettlebell-alternating-row": [
+    "ROW",
+    "KETTLEBELL_ROW"
+  ],
+  "kettlebell-arnold-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-bent-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-bottoms-up-hang-clean": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-double-alternating-hang-clean": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-double-jerk": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-double-push-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-double-snatch": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-double-windmill": [
+    "CORE",
+    null
+  ],
+  "kettlebell-extended-range-one-arm-floor-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "kettlebell-figure-8": [
+    "CORE",
+    null
+  ],
+  "kettlebell-front-squat": [
+    "SQUAT",
+    "KETTLEBELL_SQUAT"
+  ],
+  "kettlebell-goblet-squat": [
+    "SQUAT",
+    "GOBLET_SQUAT"
+  ],
+  "kettlebell-hang-clean": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-lunge-pass-through": [
+    "LUNGE",
+    null
+  ],
+  "kettlebell-one-arm-clean-and-jerk": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-one-arm-floor-press": [
+    "BENCH_PRESS",
+    "ONE_ARM_FLOOR_PRESS"
+  ],
+  "kettlebell-one-arm-jerk": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-one-arm-push-press": [
+    "SHOULDER_PRESS",
+    "ONE_ARM_PUSH_PRESS"
+  ],
+  "kettlebell-one-arm-row": [
+    "ROW",
+    "KETTLEBELL_ROW"
+  ],
+  "kettlebell-one-arm-side-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-one-arm-snatch": [
+    "OLYMPIC_LIFT",
+    "SINGLE_ARM_KETTLEBELL_SNATCH"
+  ],
+  "kettlebell-pirate-ship": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "kettlebell-pistol-squat": [
+    "SQUAT",
+    "WEIGHTED_PISTOL_SQUAT"
+  ],
+  "kettlebell-plyo-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "kettlebell-seated-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-seated-two-arm-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-seesaw-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-sumo-high-pull": [
+    "DEADLIFT",
+    "SUMO_DEADLIFT_HIGH_PULL"
+  ],
+  "kettlebell-swing": [
+    "HIP_RAISE",
+    "KETTLEBELL_SWING"
+  ],
+  "kettlebell-thruster": [
+    "SQUAT",
+    "THRUSTERS"
+  ],
+  "kettlebell-turkish-get-up-squat-style": [
+    "CORE",
+    "TURKISH_GET_UP"
+  ],
+  "kettlebell-two-arm-clean": [
+    "OLYMPIC_LIFT",
+    null
+  ],
+  "kettlebell-two-arm-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "kettlebell-two-arm-row": [
+    "ROW",
+    "KETTLEBELL_ROW"
+  ],
+  "kettlebell-windmill": [
+    "CORE",
+    "KETTLEBELL_WINDMILL"
+  ],
+  "kick-out-sit": [
+    "CORE",
+    null
+  ],
+  "kipping-muscle-up": [
+    "LATERAL_RAISE",
+    "MUSCLE_UP"
+  ],
+  "knee-circles-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "knee-touch-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "kneeling-jump-squat": [
+    "PLYO",
+    null
+  ],
+  "kneeling-lat-stretch": [
+    "WARM_UP",
+    "STRETCH_LAT"
+  ],
+  "kneeling-one-arm-cable-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "kneeling-plank-shoulder-tap": [
+    "PLANK",
+    null
+  ],
+  "kneeling-push-up": [
+    "PUSH_UP",
+    "KNEELING_PUSH_UP"
+  ],
+  "kneeling-swiss-ball-curl-and-overhead-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "knees-to-chest-hug": [
+    "WARM_UP",
+    "STRETCH_LYING_KNEE_TO_CHEST"
+  ],
+  "korean-dips": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "l-pull-up": [
+    "PULL_UP",
+    "L_PULL_UP"
+  ],
+  "l-sit-on-floor": [
+    "CORE",
+    "L_SIT"
+  ],
+  "landmine-180": [
+    "CORE",
+    null
+  ],
+  "landmine-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "lean-planche": [
+    "PLANK",
+    null
+  ],
+  "left-hook-boxing": [
+    "CARDIO",
+    null
+  ],
+  "leg-up-hamstring-stretch": [
+    "WARM_UP",
+    "STRETCH_HAMSTRING"
+  ],
+  "lever-alternate-leg-press": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "lever-alternating-narrow-grip-seated-row": [
+    "ROW",
+    null
+  ],
+  "lever-assisted-chin-up": [
+    "PULL_UP",
+    null
+  ],
+  "lever-back-extension": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "lever-bent-over-row": [
+    "ROW",
+    null
+  ],
+  "lever-bent-over-row-with-v-bar": [
+    "ROW",
+    "T_BAR_ROW"
+  ],
+  "lever-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "lever-calf-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "lever-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "lever-chest-press-2": [
+    "BENCH_PRESS",
+    null
+  ],
+  "lever-deadlift": [
+    "DEADLIFT",
+    null
+  ],
+  "lever-decline-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "lever-donkey-calf-raise": [
+    "CALF_RAISE",
+    "WEIGHTED_DONKEY_CALF_RAISE"
+  ],
+  "lever-front-pulldown": [
+    "PULL_UP",
+    "LAT_PULLDOWN"
+  ],
+  "lever-hammer-grip-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "lever-hand-gripper": [
+    "CURL",
+    null
+  ],
+  "lever-high-row": [
+    "ROW",
+    null
+  ],
+  "lever-hip-extension-v2": [
+    "HIP_STABILITY",
+    null
+  ],
+  "lever-horizontal-one-leg-press": [
+    "SQUAT",
+    null
+  ],
+  "lever-incline-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "lever-incline-chest-press-v2": [
+    "BENCH_PRESS",
+    null
+  ],
+  "lever-kneeling-leg-curl": [
+    "LEG_CURL",
+    "LEG_CURL"
+  ],
+  "lever-kneeling-twist": [
+    "CORE",
+    null
+  ],
+  "lever-lateral-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "lever-leg-extension": [
+    "SQUAT",
+    null
+  ],
+  "lever-lying-leg-curl": [
+    "LEG_CURL",
+    "LEG_CURL"
+  ],
+  "lever-lying-two-one-leg-curl": [
+    "LEG_CURL",
+    "LEG_CURL"
+  ],
+  "lever-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "lever-narrow-grip-seated-row": [
+    "ROW",
+    null
+  ],
+  "lever-one-arm-lateral-high-row": [
+    "ROW",
+    null
+  ],
+  "lever-one-arm-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "lever-one-arm-wide-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "lever-overhand-triceps-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "lever-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "lever-preacher-curl-v2": [
+    "CURL",
+    null
+  ],
+  "lever-pullover": [
+    "PULL_UP",
+    null
+  ],
+  "lever-reverse-hyperextension": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "lever-reverse-t-bar-row": [
+    "ROW",
+    null
+  ],
+  "lever-reverse-grip-lat-pulldown": [
+    "PULL_UP",
+    "REVERSE_GRIP_PULLDOWN"
+  ],
+  "lever-reverse-grip-preacher-curl": [
+    "CURL",
+    null
+  ],
+  "lever-reverse-grip-vertical-row": [
+    "ROW",
+    null
+  ],
+  "lever-rotary-calf": [
+    "CALF_RAISE",
+    null
+  ],
+  "lever-seated-calf-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "lever-seated-calf-raise": [
+    "CALF_RAISE",
+    "SEATED_CALF_RAISE"
+  ],
+  "lever-seated-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "lever-seated-crunch-chest-pad": [
+    "CRUNCH",
+    null
+  ],
+  "lever-seated-crunch-v2": [
+    "CRUNCH",
+    null
+  ],
+  "lever-seated-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "lever-seated-fly": [
+    "FLYE",
+    null
+  ],
+  "lever-seated-good-morning": [
+    "LEG_CURL",
+    null
+  ],
+  "lever-seated-hip-abduction": [
+    "HIP_STABILITY",
+    null
+  ],
+  "lever-seated-hip-adduction": [
+    "HIP_STABILITY",
+    null
+  ],
+  "lever-seated-leg-curl": [
+    "LEG_CURL",
+    "LEG_CURL"
+  ],
+  "lever-seated-leg-raise-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "lever-seated-reverse-fly": [
+    "FLYE",
+    null
+  ],
+  "lever-seated-reverse-fly-neutral-grip": [
+    "FLYE",
+    null
+  ],
+  "lever-seated-row": [
+    "ROW",
+    null
+  ],
+  "lever-seated-squat-calf-raise-on-leg-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "lever-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "lever-shoulder-press-v2": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "lever-shoulder-press-v3": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "lever-shrug": [
+    "SHRUG",
+    null
+  ],
+  "lever-standing-calf-raise": [
+    "CALF_RAISE",
+    "WEIGHTED_STANDING_CALF_RAISE"
+  ],
+  "lever-standing-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "lever-t-bar-reverse-grip-row": [
+    "ROW",
+    null
+  ],
+  "lever-t-bar-row": [
+    "ROW",
+    "T_BAR_ROW"
+  ],
+  "lever-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "lever-unilateral-row": [
+    "ROW",
+    null
+  ],
+  "low-glute-bridge-on-floor": [
+    "HIP_RAISE",
+    "HIP_RAISE"
+  ],
+  "lower-back-curl": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "lunge-with-twist": [
+    "LUNGE",
+    null
+  ],
+  "lying-cable-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "CABLE_LYING_TRICEPS_EXTENSION"
+  ],
+  "lying-elbow-to-knee": [
+    "CRUNCH",
+    "ELBOW_TO_KNEE_CRUNCH"
+  ],
+  "lying-high-cable-curl": [
+    "CURL",
+    null
+  ],
+  "lying-leg-hip-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "lying-side-quad-stretch": [
+    "WARM_UP",
+    "STRETCH_QUAD"
+  ],
+  "machine-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "machine-inner-chest-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "machine-reverse-grip-lat-pulldown": [
+    "PULL_UP",
+    "REVERSE_GRIP_PULLDOWN"
+  ],
+  "medicine-ball-catch-and-overhead-throw": [
+    "PLYO",
+    "MEDICINE_BALL_OVERHEAD_THROWS"
+  ],
+  "medicine-ball-chest-pass": [
+    "PUSH_UP",
+    "MEDICINE_BALL_CHEST_PASS"
+  ],
+  "medicine-ball-chest-push-from-3-point-stance": [
+    "PUSH_UP",
+    null
+  ],
+  "medicine-ball-chest-push-with-run-release": [
+    "PUSH_UP",
+    null
+  ],
+  "medicine-ball-chest-push-multiple-response": [
+    "PUSH_UP",
+    null
+  ],
+  "medicine-ball-chest-push-single-response": [
+    "PUSH_UP",
+    null
+  ],
+  "medicine-ball-close-grip-push-up": [
+    "PUSH_UP",
+    "CLOSE_GRIP_MEDICINE_BALL_PUSH_UP"
+  ],
+  "medicine-ball-overhead-slam": [
+    "PLYO",
+    "MEDICINE_BALL_SLAM"
+  ],
+  "medicine-ball-push-up": [
+    "PUSH_UP",
+    "MEDICINE_BALL_PUSH_UP"
+  ],
+  "medicine-ball-reverse-lunge-with-bowling-motion": [
+    "LUNGE",
+    null
+  ],
+  "medicine-ball-supine-chest-throw": [
+    "PUSH_UP",
+    null
+  ],
+  "modified-hindu-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "modified-push-up-to-forearms": [
+    "PLANK",
+    null
+  ],
+  "monster-walk": [
+    "HIP_STABILITY",
+    null
+  ],
+  "mountain-climber": [
+    "PLANK",
+    "MOUNTAIN_CLIMBER"
+  ],
+  "muscle-up": [
+    "LATERAL_RAISE",
+    "MUSCLE_UP"
+  ],
+  "muscle-up-on-vertical-bar": [
+    "LATERAL_RAISE",
+    "BAR_MUSCLE_UP"
+  ],
+  "narrow-biceps-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "narrow-push-up-on-stability-ball": [
+    "PUSH_UP",
+    null
+  ],
+  "narrow-stance-leg-press": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "neck-side-stretch": [
+    "WARM_UP",
+    "STRETCH_NECK"
+  ],
+  "negative-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "oblique-crunch-v2": [
+    "CRUNCH",
+    null
+  ],
+  "offset-push-up-on-bosu": [
+    "PUSH_UP",
+    null
+  ],
+  "olympic-barbell-hammer-curl": [
+    "CURL",
+    null
+  ],
+  "olympic-barbell-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "one-arm-chin-up": [
+    "PULL_UP",
+    null
+  ],
+  "one-arm-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "one-arm-medicine-ball-slam": [
+    "PLYO",
+    null
+  ],
+  "one-arm-towel-row": [
+    "ROW",
+    null
+  ],
+  "one-arm-wall-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "one-leg-donkey-calf-raise": [
+    "CALF_RAISE",
+    "SINGLE_LEG_DONKEY_CALF_RAISE"
+  ],
+  "one-leg-floor-calf-raise": [
+    "CALF_RAISE",
+    "SINGLE_LEG_STANDING_CALF_RAISE"
+  ],
+  "one-leg-squat": [
+    "SQUAT",
+    "ONE_LEGGED_SQUAT"
+  ],
+  "one-arm-barbell-curl": [
+    "CURL",
+    null
+  ],
+  "one-arm-bent-over-cable-rear-delt-raise": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "one-arm-dumbbell-overhead-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SINGLE_ARM_DUMBBELL_OVERHEAD_TRICEPS_EXTENSION"
+  ],
+  "one-arm-dumbbell-preacher-curl": [
+    "CURL",
+    "ONE_ARM_PREACHER_CURL"
+  ],
+  "otis-up": [
+    "SIT_UP",
+    null
+  ],
+  "outside-leg-kick-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "overhead-triceps-stretch": [
+    "WARM_UP",
+    "STRETCH_TRICEPS"
+  ],
+  "pelvic-tilt": [
+    "CORE",
+    null
+  ],
+  "pelvic-tilt-into-bridge": [
+    "HIP_RAISE",
+    null
+  ],
+  "pike-to-cobra-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "plyo-push-up": [
+    "PUSH_UP",
+    "EXPLOSIVE_PUSH_UP"
+  ],
+  "posterior-step-to-overhead-reach": [
+    "LUNGE",
+    null
+  ],
+  "potty-squat": [
+    "SQUAT",
+    null
+  ],
+  "potty-squat-with-support": [
+    "SQUAT",
+    null
+  ],
+  "power-clean": [
+    "OLYMPIC_LIFT",
+    "BARBELL_POWER_CLEAN"
+  ],
+  "power-point-plank": [
+    "PLANK",
+    null
+  ],
+  "prisoner-half-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "prone-high-bench-barbell-curl": [
+    "CURL",
+    null
+  ],
+  "prone-twist-on-stability-ball": [
+    "CORE",
+    null
+  ],
+  "pull-in-on-stability-ball": [
+    "PLANK",
+    "SWISS_BALL_PRONE_JACKKNIFE"
+  ],
+  "pull-up": [
+    "PULL_UP",
+    "PULL_UP"
+  ],
+  "pull-up-neutral-grip": [
+    "PULL_UP",
+    "NEUTRAL_GRIP_PULL_UP"
+  ],
+  "push-to-run": [
+    "CARDIO",
+    null
+  ],
+  "push-up": [
+    "PUSH_UP",
+    "PUSH_UP"
+  ],
+  "push-up-bosu": [
+    "PUSH_UP",
+    "BOSU_BALL_PUSH_UP"
+  ],
+  "push-up-on-stability-ball": [
+    "PUSH_UP",
+    "SWISS_BALL_PUSH_UP"
+  ],
+  "push-up-on-stability-ball-v2": [
+    "PUSH_UP",
+    "SWISS_BALL_PUSH_UP"
+  ],
+  "push-up-on-bosu": [
+    "PUSH_UP",
+    "BOSU_BALL_PUSH_UP"
+  ],
+  "push-up-plus": [
+    "PUSH_UP",
+    "PUSH_UP_PLUS"
+  ],
+  "push-up-to-side-plank": [
+    "PUSH_UP",
+    null
+  ],
+  "push-up-with-feet-on-swiss-ball": [
+    "PUSH_UP",
+    "PUSH_UP_WITH_FEET_ON_SWISS_BALL"
+  ],
+  "push-up-with-inside-leg-kick": [
+    "PUSH_UP",
+    null
+  ],
+  "quad-stretch": [
+    "WARM_UP",
+    "STRETCH_QUAD"
+  ],
+  "quarter-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "quick-feet-v2": [
+    "CARDIO",
+    null
+  ],
+  "rear-decline-bridge": [
+    "HIP_RAISE",
+    null
+  ],
+  "rear-deltoid-stretch": [
+    "WARM_UP",
+    "STRETCH_SHOULDER"
+  ],
+  "reclining-big-toe-pose-with-strap": [
+    "WARM_UP",
+    "STRETCH_HAMSTRING"
+  ],
+  "reverse-crunch": [
+    "CRUNCH",
+    "REVERSE_CRUNCH"
+  ],
+  "reverse-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "reverse-hyper-on-flat-bench": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "reverse-hyperextension-on-stability-ball": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "reverse-plank-with-leg-lift": [
+    "PLANK",
+    null
+  ],
+  "reverse-grip-barbell-skull-crusher": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "reverse-grip-plate-curl": [
+    "CURL",
+    null
+  ],
+  "reverse-grip-pull-up": [
+    "PULL_UP",
+    "CHIN_UP"
+  ],
+  "ring-dips": [
+    "LATERAL_RAISE",
+    "RING_DIP"
+  ],
+  "rocking-frog-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "rocky-pull-up-pulldown": [
+    "PULL_UP",
+    null
+  ],
+  "roller-body-saw": [
+    "CORE",
+    null
+  ],
+  "roller-reverse-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "rope-climb": [
+    "LATERAL_RAISE",
+    "ROPE_CLIMB"
+  ],
+  "run": [
+    "RUN",
+    "RUN"
+  ],
+  "run-treadmill": [
+    "RUN_INDOOR",
+    "TREADMILL"
+  ],
+  "runner-s-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "russian-twist": [
+    "CORE",
+    "RUSSIAN_TWIST"
+  ],
+  "scapula-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "scapular-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "scissor-jumps": [
+    "CARDIO",
+    null
+  ],
+  "seated-calf-stretch": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "seated-glute-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "seated-leg-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "seated-lower-back-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "seated-piriformis-stretch": [
+    "WARM_UP",
+    "STRETCH_PIRIFORMIS"
+  ],
+  "seated-wide-angle-pose-sequence": [
+    "WARM_UP",
+    "STRETCH_STRADDLE"
+  ],
+  "self-assisted-inverse-leg-curl": [
+    "LEG_CURL",
+    null
+  ],
+  "self-assisted-inverse-leg-curl-on-floor": [
+    "LEG_CURL",
+    null
+  ],
+  "semi-squat-jump": [
+    "PLYO",
+    null
+  ],
+  "short-stride-run": [
+    "RUN",
+    "RUN"
+  ],
+  "shoulder-tap": [
+    "PLANK",
+    "STRAIGHT_ARM_PLANK_WITH_SHOULDER_TOUCH"
+  ],
+  "shoulder-tap-push-up": [
+    "PUSH_UP",
+    "SHOULDER_TAPPING_PUSH_UP"
+  ],
+  "shoulder-width-grip-pull-up": [
+    "PULL_UP",
+    "PULL_UP"
+  ],
+  "side-bridge-hip-abduction": [
+    "PLANK",
+    "SIDE_PLANK_WITH_LEG_LIFT"
+  ],
+  "side-bridge-v2": [
+    "PLANK",
+    "SIDE_PLANK"
+  ],
+  "side-hip-abduction": [
+    "HIP_STABILITY",
+    "SIDE_LYING_LEG_RAISE"
+  ],
+  "side-hip-raise-on-parallel-bars": [
+    "LEG_RAISE",
+    null
+  ],
+  "side-lying-floor-stretch": [
+    "WARM_UP",
+    "STRETCH_SIDE"
+  ],
+  "side-push-neck-stretch": [
+    "WARM_UP",
+    "STRETCH_NECK"
+  ],
+  "side-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "side-wrist-pull-stretch": [
+    "WARM_UP",
+    "STRETCH_FOREARMS"
+  ],
+  "side-to-side-chin-up": [
+    "PULL_UP",
+    null
+  ],
+  "side-to-side-toe-touch": [
+    "WARM_UP",
+    null
+  ],
+  "single-arm-raised-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "single-leg-bridge-with-outstretched-leg": [
+    "HIP_RAISE",
+    "SINGLE_LEG_HIP_RAISE"
+  ],
+  "single-leg-calf-raise-on-a-dumbbell": [
+    "CALF_RAISE",
+    "SINGLE_LEG_STANDING_CALF_RAISE"
+  ],
+  "single-leg-platform-slide": [
+    "LEG_CURL",
+    "SINGLE_LEG_SLIDING_LEG_CURL"
+  ],
+  "single-leg-squat-pistol": [
+    "SQUAT",
+    "PISTOL_SQUAT"
+  ],
+  "sissy-squat": [
+    "SQUAT",
+    null
+  ],
+  "sit-up-v2": [
+    "SIT_UP",
+    "SIT_UP"
+  ],
+  "sit-up-with-arms-on-chest": [
+    "SIT_UP",
+    "CROSSED_ARMS_SIT_UP"
+  ],
+  "skater-hops": [
+    "PLYO",
+    "LATERAL_LEAP_AND_HOP"
+  ],
+  "ski-step": [
+    "CARDIO",
+    null
+  ],
+  "skin-the-cat": [
+    "CORE",
+    null
+  ],
+  "sled-45-calf-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "sled-45-leg-press": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "sled-45-leg-press-back-view": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "sled-45-leg-press-side-view": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "sled-45-one-leg-press": [
+    "SQUAT",
+    null
+  ],
+  "sled-45-wide-leg-press": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "sled-calf-press-on-leg-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "sled-close-stance-hack-squat": [
+    "SQUAT",
+    null
+  ],
+  "sled-forward-angled-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "sled-hack-squat": [
+    "SQUAT",
+    null
+  ],
+  "sled-lying-calf-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "sled-lying-squat": [
+    "SQUAT",
+    null
+  ],
+  "sled-one-leg-calf-press-on-leg-press": [
+    "CALF_RAISE",
+    null
+  ],
+  "sledgehammer": [
+    "SLEDGE_HAMMER",
+    "HAMMER_SLAM"
+  ],
+  "smith-behind-the-back-shrug": [
+    "SHRUG",
+    "BEHIND_THE_BACK_SMITH_MACHINE_SHRUG"
+  ],
+  "smith-behind-the-neck-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "smith-bench-press": [
+    "BENCH_PRESS",
+    "SMITH_MACHINE_BENCH_PRESS"
+  ],
+  "smith-bent-knee-good-morning": [
+    "LEG_CURL",
+    null
+  ],
+  "smith-bent-over-row": [
+    "ROW",
+    null
+  ],
+  "smith-chair-squat": [
+    "SQUAT",
+    null
+  ],
+  "smith-close-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-deadlift": [
+    "DEADLIFT",
+    null
+  ],
+  "smith-decline-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-decline-reverse-grip-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-front-squat-clean-grip": [
+    "SQUAT",
+    null
+  ],
+  "smith-full-squat": [
+    "SQUAT",
+    null
+  ],
+  "smith-hack-squat": [
+    "SQUAT",
+    null
+  ],
+  "smith-hip-raise": [
+    "HIP_RAISE",
+    null
+  ],
+  "smith-incline-bench-press": [
+    "BENCH_PRESS",
+    "INCLINE_SMITH_MACHINE_BENCH_PRESS"
+  ],
+  "smith-incline-reverse-grip-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-incline-shoulder-raise": [
+    "SHRUG",
+    null
+  ],
+  "smith-leg-press": [
+    "SQUAT",
+    "LEG_PRESS"
+  ],
+  "smith-low-bar-squat": [
+    "SQUAT",
+    null
+  ],
+  "smith-machine-biceps-curl": [
+    "CURL",
+    null
+  ],
+  "smith-machine-decline-close-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-machine-decline-reverse-close-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-machine-incline-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "smith-narrow-row": [
+    "ROW",
+    null
+  ],
+  "smith-one-arm-row": [
+    "ROW",
+    null
+  ],
+  "smith-rear-delt-row": [
+    "ROW",
+    null
+  ],
+  "smith-reverse-grip-bent-over-row": [
+    "ROW",
+    null
+  ],
+  "smith-reverse-grip-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-seated-one-leg-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "smith-seated-shoulder-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "smith-seated-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "smith-shoulder-press": [
+    "SHOULDER_PRESS",
+    "SMITH_MACHINE_OVERHEAD_PRESS"
+  ],
+  "smith-shrug": [
+    "SHRUG",
+    null
+  ],
+  "smith-single-leg-split-squat": [
+    "LUNGE",
+    null
+  ],
+  "smith-sprint-lunge": [
+    "LUNGE",
+    null
+  ],
+  "smith-squat": [
+    "SQUAT",
+    null
+  ],
+  "smith-standing-behind-the-back-wrist-curl": [
+    "CURL",
+    null
+  ],
+  "smith-standing-behind-the-neck-military-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "smith-standing-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "smith-standing-military-press": [
+    "SHOULDER_PRESS",
+    "SMITH_MACHINE_OVERHEAD_PRESS"
+  ],
+  "smith-sumo-squat": [
+    "SQUAT",
+    null
+  ],
+  "smith-toe-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "smith-upright-row": [
+    "SHRUG",
+    null
+  ],
+  "smith-wide-grip-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "smith-wide-grip-decline-bench-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "spell-caster": [
+    "CORE",
+    null
+  ],
+  "sphinx": [
+    "WARM_UP",
+    null
+  ],
+  "spider-crawl-push-up": [
+    "PUSH_UP",
+    "SPIDERMAN_PUSH_UP"
+  ],
+  "spine-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "spine-twist": [
+    "CORE",
+    null
+  ],
+  "split-squat": [
+    "LUNGE",
+    null
+  ],
+  "squat-on-bosu": [
+    "SQUAT",
+    null
+  ],
+  "squat-to-overhead-reach": [
+    "SQUAT",
+    null
+  ],
+  "squat-to-overhead-reach-with-twist": [
+    "SQUAT",
+    null
+  ],
+  "stability-ball-alternating-arm-raise": [
+    "SHOULDER_STABILITY",
+    null
+  ],
+  "stability-ball-back-extension-with-rotation": [
+    "HYPEREXTENSION",
+    null
+  ],
+  "stability-ball-back-extension-arms-extended": [
+    "HYPEREXTENSION",
+    "SWISS_BALL_BACK_EXTENSION"
+  ],
+  "stability-ball-back-extension-hands-behind-head": [
+    "HYPEREXTENSION",
+    "SWISS_BALL_BACK_EXTENSION"
+  ],
+  "stability-ball-back-extension-knees-off-ground": [
+    "HYPEREXTENSION",
+    "SWISS_BALL_BACK_EXTENSION"
+  ],
+  "stability-ball-crunch-full-range-hands-behind-head": [
+    "CRUNCH",
+    "SWISS_BALL_CRUNCH"
+  ],
+  "stability-ball-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "stability-ball-hip-flexor-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "stability-ball-hug": [
+    "WARM_UP",
+    null
+  ],
+  "stability-ball-lat-stretch": [
+    "WARM_UP",
+    "STRETCH_LAT"
+  ],
+  "stability-ball-lower-back-stretch-pyramid": [
+    "WARM_UP",
+    null
+  ],
+  "stability-ball-lying-side-lat-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "stability-ball-one-leg-diagonal-kick-hamstring-curl": [
+    "LEG_CURL",
+    null
+  ],
+  "stability-ball-one-leg-prone-lower-body-rotation": [
+    "CORE",
+    null
+  ],
+  "stability-ball-pike-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "stability-ball-prone-leg-raise": [
+    "LEG_RAISE",
+    "REVERSE_LEG_RAISE_ON_SWISS_BALL"
+  ],
+  "stability-ball-seated-hamstring-stretch": [
+    "WARM_UP",
+    "STRETCH_HAMSTRING"
+  ],
+  "stability-ball-seated-triceps-stretch": [
+    "WARM_UP",
+    "STRETCH_TRICEPS"
+  ],
+  "stability-ball-supine-triceps-extension": [
+    "TRICEPS_EXTENSION",
+    "SWISS_BALL_DUMBBELL_LYING_TRICEPS_EXTENSION"
+  ],
+  "stability-ball-wall-calf-raise": [
+    "CALF_RAISE",
+    null
+  ],
+  "stability-ball-wall-calf-raise-tennis-ball-between-ankles": [
+    "CALF_RAISE",
+    null
+  ],
+  "stability-ball-wall-calf-raise-tennis-ball-between-knees": [
+    "CALF_RAISE",
+    null
+  ],
+  "stair-climber-walk": [
+    "STAIR_STEPPER",
+    "STAIR_STEPPER"
+  ],
+  "standing-archer": [
+    "WARM_UP",
+    null
+  ],
+  "standing-behind-the-neck-press": [
+    "SHOULDER_PRESS",
+    null
+  ],
+  "standing-calf-raise-on-a-step": [
+    "CALF_RAISE",
+    "STANDING_CALF_RAISE"
+  ],
+  "standing-calf-stretch": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "standing-calf-stretch-v2": [
+    "WARM_UP",
+    "STRETCH_CALF"
+  ],
+  "standing-glute-kickback": [
+    "HIP_STABILITY",
+    "STANDING_REAR_LEG_RAISE"
+  ],
+  "standing-hamstring-and-calf-stretch-with-strap": [
+    "WARM_UP",
+    "STANDING_HAMSTRING_STRETCH"
+  ],
+  "standing-lateral-stretch": [
+    "WARM_UP",
+    "STRETCH_SIDE"
+  ],
+  "standing-leg-curl": [
+    "LEG_CURL",
+    "LEG_CURL"
+  ],
+  "standing-single-leg-curl": [
+    "LEG_CURL",
+    null
+  ],
+  "standing-wheel-rollout": [
+    "CORE",
+    null
+  ],
+  "star-jump": [
+    "PLYO",
+    null
+  ],
+  "static-neck-flexion-and-extension": [
+    "WARM_UP",
+    "STRETCH_NECK"
+  ],
+  "static-neck-side-flexion": [
+    "WARM_UP",
+    "STRETCH_NECK"
+  ],
+  "stationary-bike-run-v3": [
+    "INDOOR_BIKE",
+    "STATIONARY_BIKE"
+  ],
+  "stationary-bike-walk": [
+    "INDOOR_BIKE",
+    "STATIONARY_BIKE"
+  ],
+  "straight-arm-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "straight-bar-chest-dip": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "straight-leg-outer-hip-abduction": [
+    "HIP_STABILITY",
+    null
+  ],
+  "superman": [
+    "HYPEREXTENSION",
+    "SUPERMAN_FROM_FLOOR"
+  ],
+  "superman-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "suspended-ab-fallout": [
+    "SUSPENSION",
+    "ROLLOUT"
+  ],
+  "suspended-push-up": [
+    "PUSH_UP",
+    "SUSPENDED_PUSH_UP"
+  ],
+  "suspended-reverse-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "suspended-row": [
+    "ROW",
+    "SUSPENDED_INVERTED_ROW"
+  ],
+  "suspended-split-squat": [
+    "SUSPENSION",
+    "LUNGE"
+  ],
+  "swimmer-kicks-v2": [
+    "HYPEREXTENSION",
+    "KICKS"
+  ],
+  "swing-360": [
+    "CARDIO",
+    null
+  ],
+  "swiss-ball-wall-circles": [
+    "SHOULDER_STABILITY",
+    null
+  ],
+  "three-bench-dip": [
+    "TRICEPS_EXTENSION",
+    "BENCH_DIP"
+  ],
+  "tibialis-posterior-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "tire-flip": [
+    "TIRE",
+    "FLIP"
+  ],
+  "trap-bar-deadlift": [
+    "DEADLIFT",
+    "TRAP_BAR_DEADLIFT"
+  ],
+  "triceps-dip": [
+    "TRICEPS_EXTENSION",
+    "BODY_WEIGHT_DIP"
+  ],
+  "triceps-dip-between-benches": [
+    "TRICEPS_EXTENSION",
+    "BENCH_DIP"
+  ],
+  "triceps-dip-feet-on-bench": [
+    "TRICEPS_EXTENSION",
+    "BENCH_DIP"
+  ],
+  "triceps-press": [
+    "TRICEPS_EXTENSION",
+    "TRICEPS_PRESS"
+  ],
+  "triceps-stretch": [
+    "WARM_UP",
+    "STRETCH_TRICEPS"
+  ],
+  "tuck-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "twin-handle-neutral-grip-lat-pulldown": [
+    "PULL_UP",
+    "CLOSE_GRIP_LAT_PULLDOWN"
+  ],
+  "twisting-leg-raise": [
+    "LEG_RAISE",
+    null
+  ],
+  "twisting-leg-raise-v2": [
+    "LEG_RAISE",
+    null
+  ],
+  "two-toe-touch": [
+    "WARM_UP",
+    null
+  ],
+  "upper-back-stretch": [
+    "WARM_UP",
+    null
+  ],
+  "upward-facing-dog": [
+    "WARM_UP",
+    "STRETCH_COBRA"
+  ],
+  "v-sit-on-floor": [
+    "CORE",
+    null
+  ],
+  "vertical-leg-raise-on-parallel-bars": [
+    "LEG_RAISE",
+    null
+  ],
+  "walking-high-knee-lunge": [
+    "LUNGE",
+    null
+  ],
+  "walking-lunge": [
+    "LUNGE",
+    "WALKING_LUNGE"
+  ],
+  "wall-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "wall-push-up-v2": [
+    "PUSH_UP",
+    null
+  ],
+  "wall-seated-side-crunch": [
+    "CRUNCH",
+    null
+  ],
+  "wall-sit-march": [
+    "SQUAT",
+    null
+  ],
+  "weighted-bench-dip": [
+    "TRICEPS_EXTENSION",
+    "WEIGHTED_BENCH_DIP"
+  ],
+  "weighted-close-grip-chin-up-on-dip-station": [
+    "PULL_UP",
+    "WEIGHTED_CLOSE_GRIP_CHIN_UP"
+  ],
+  "weighted-cossack-squat": [
+    "LUNGE",
+    null
+  ],
+  "weighted-crunch": [
+    "CRUNCH",
+    "WEIGHTED_CRUNCH"
+  ],
+  "weighted-decline-sit-up": [
+    "SIT_UP",
+    null
+  ],
+  "weighted-donkey-calf-raise": [
+    "CALF_RAISE",
+    "WEIGHTED_DONKEY_CALF_RAISE"
+  ],
+  "weighted-drop-push-up": [
+    "PUSH_UP",
+    null
+  ],
+  "weighted-front-plank": [
+    "PLANK",
+    "WEIGHTED_PLANK"
+  ],
+  "weighted-front-raise": [
+    "SHOULDER_PRESS",
+    "WEIGHT_PLATE_FRONT_RAISE"
+  ],
+  "weighted-hanging-leg-hip-raise": [
+    "LEG_RAISE",
+    "WEIGHTED_HANGING_LEG_RAISE"
+  ],
+  "weighted-hyperextension-on-stability-ball": [
+    "HYPEREXTENSION",
+    "WEIGHTED_SWISS_BALL_HYPEREXTENSION"
+  ],
+  "weighted-kneeling-step-with-swing": [
+    "TOTAL_BODY",
+    null
+  ],
+  "weighted-lunge-with-swing": [
+    "LUNGE",
+    null
+  ],
+  "weighted-one-arm-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "weighted-overhead-crunch-on-stability-ball": [
+    "CRUNCH",
+    null
+  ],
+  "weighted-pull-up": [
+    "PULL_UP",
+    "WEIGHTED_PULL_UP"
+  ],
+  "weighted-round-arm": [
+    "LATERAL_RAISE",
+    null
+  ],
+  "weighted-russian-twist": [
+    "CORE",
+    "RUSSIAN_TWIST"
+  ],
+  "weighted-russian-twist-legs-up": [
+    "CORE",
+    "WEIGHTED_ELEVATED_FEET_RUSSIAN_TWIST"
+  ],
+  "weighted-russian-twist-v2": [
+    "CORE",
+    "RUSSIAN_TWIST"
+  ],
+  "weighted-seated-biceps-curl-on-stability-ball": [
+    "CURL",
+    null
+  ],
+  "weighted-seated-twist-on-stability-ball": [
+    "CORE",
+    null
+  ],
+  "weighted-side-bend-on-stability-ball": [
+    "CORE",
+    null
+  ],
+  "weighted-sissy-squat": [
+    "SQUAT",
+    null
+  ],
+  "weighted-squat": [
+    "SQUAT",
+    "WEIGHTED_SQUAT"
+  ],
+  "weighted-standing-curl": [
+    "CURL",
+    null
+  ],
+  "weighted-standing-hand-squeeze": [
+    "CURL",
+    null
+  ],
+  "weighted-straight-bar-dip": [
+    "TRICEPS_EXTENSION",
+    "WEIGHTED_DIP"
+  ],
+  "weighted-stretch-lunge": [
+    "LUNGE",
+    null
+  ],
+  "weighted-svend-press": [
+    "BENCH_PRESS",
+    null
+  ],
+  "weighted-three-bench-dips": [
+    "TRICEPS_EXTENSION",
+    "WEIGHTED_BENCH_DIP"
+  ],
+  "weighted-triceps-dip-on-high-parallel-bars": [
+    "TRICEPS_EXTENSION",
+    "WEIGHTED_DIP"
+  ],
+  "weighted-triceps-dips": [
+    "TRICEPS_EXTENSION",
+    "WEIGHTED_DIP"
+  ],
+  "wheel-rollout": [
+    "CORE",
+    "KNEELING_AB_WHEEL"
+  ],
+  "wheel-run": [
+    "CORE",
+    null
+  ],
+  "wide-hand-push-up": [
+    "PUSH_UP",
+    "WIDE_HANDS_PUSH_UP"
+  ],
+  "wide-grip-behind-the-neck-pull-up": [
+    "PULL_UP",
+    null
+  ],
+  "wide-grip-chest-dip-on-high-parallel-bars": [
+    "TRICEPS_EXTENSION",
+    null
+  ],
+  "wide-grip-pull-up": [
+    "PULL_UP",
+    "WIDE_GRIP_PULL_UP"
+  ],
+  "wind-sprints": [
+    "RUN",
+    "SPRINT"
+  ],
+  "world-s-greatest-stretch": [
+    "WARM_UP",
+    "STRETCH_LUNGE_WITH_SPINAL_TWIST"
+  ],
+  "wrist-circles": [
+    "WARM_UP",
+    null
+  ],
+  "wrist-roller": [
+    "CURL",
+    null
+  ]
+}

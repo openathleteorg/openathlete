@@ -7,6 +7,7 @@ import type {
 } from '@openathlete/shared';
 import { WORKOUT_STEP_TYPE } from '@openathlete/shared';
 
+import { GARMIN_EXERCISES } from './garmin-exercises';
 import {
   GarminMetrics,
   GarminZone,
@@ -23,9 +24,32 @@ import type {
 } from './garmin.types';
 import type { ProviderPlannedWorkoutPayload } from './index';
 
+/** Garmin's exercise for a catalog exercise; custom ones go without */
+export function garminExercise(exerciseRef: string | null | undefined): {
+  exerciseCategory: string | null;
+  exerciseName: string | null;
+} {
+  const found = exerciseRef?.startsWith('c:')
+    ? GARMIN_EXERCISES[exerciseRef.slice(2)]
+    : undefined;
+  return {
+    exerciseCategory: found?.[0] ?? null,
+    exerciseName: found?.[1] ?? null,
+  };
+}
+
 // Shown to the user in Garmin Connect; 20 characters at most
 const WORKOUT_PROVIDER = 'OpenAthlete';
 const WORKOUT_SOURCE_ID = 'OpenAthlete';
+
+/** Garmin sports whose steps take an exercise */
+const EXERCISE_SPORTS = new Set([
+  'STRENGTH_TRAINING',
+  'CARDIO_TRAINING',
+  'HIIT',
+  'PILATES',
+  'YOGA',
+]);
 
 /** Garmin limits: 100 steps per sport, repeats counted */
 export const GARMIN_MAX_STEPS = 100;
@@ -93,8 +117,10 @@ function mapStep(
     strokeType: null,
     drillType: null,
     equipmentType: null,
-    exerciseCategory: null,
-    exerciseName: null,
+    // Exercises only exist in workouts of the sports that have them
+    ...(EXERCISE_SPORTS.has(mapSportToGarmin(sport))
+      ? garminExercise(step.exerciseRef)
+      : { exerciseCategory: null, exerciseName: null }),
     weightValue,
     weightDisplayUnit: weightValue !== null ? 'KILOGRAM' : null,
   };

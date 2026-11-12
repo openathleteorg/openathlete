@@ -21,7 +21,11 @@ const step = (fields: Step): Step => ({
   ...fields,
 });
 
-const firstStep = (steps: Step[], sport = SportType.RUNNING, context = {}) =>
+const firstStep = (
+  steps: Step[],
+  sport: SportType = SportType.RUNNING,
+  context = {},
+) =>
   mapWorkoutDtoToGarmin(workout(steps), sport, 'Session', null, context)
     .segments[0].steps[0] as GarminWorkoutStep;
 
@@ -164,5 +168,84 @@ describe('mapWorkoutDtoToGarmin', () => {
 
     expect(garmin.durationType).toBe('OPEN');
     expect(garmin.description).toBe('Tempo · 10 reps · RPE 6-7');
+  });
+
+  it('sends a strength exercise as Garmin knows it, with its reps and load', () => {
+    const [repeat] = mapWorkoutDtoToGarmin(
+      workout([
+        step({
+          stepType: 'REPEAT',
+          durationType: 'OPEN',
+          repeatBlock: {
+            repetitions: 4,
+            childSteps: [
+              step({
+                stepType: 'INTERVAL_ACTIVE',
+                name: 'Squat',
+                exerciseRef: 'c:barbell-full-squat',
+                durationType: 'REPS',
+                durationValue: 8,
+                targets: [{ targetType: 'WEIGHT', targetValue: 60 }],
+              }),
+              step({ stepType: 'INTERVAL_REST', durationValue: 90 }),
+            ],
+          },
+        }),
+        step({
+          stepType: 'INTERVAL_ACTIVE',
+          name: 'Archer push-up',
+          exerciseRef: 'c:archer-push-up',
+          durationType: 'REPS',
+          durationValue: 10,
+        }),
+        step({
+          stepType: 'INTERVAL_ACTIVE',
+          name: 'My own',
+          exerciseRef: 'u:12',
+          durationType: 'REPS',
+          durationValue: 10,
+        }),
+      ]),
+      SportType.STRENGTH,
+      'Legs',
+    ).segments[0].steps as [
+      GarminWorkoutRepeatStep,
+      GarminWorkoutStep,
+      GarminWorkoutStep,
+    ];
+
+    expect(repeat.repeatValue).toBe(4);
+    expect(repeat.steps[0]).toMatchObject({
+      durationType: 'REPS',
+      durationValue: 8,
+      exerciseCategory: 'SQUAT',
+      exerciseName: 'BARBELL_BACK_SQUAT',
+      weightValue: 60,
+      weightDisplayUnit: 'KILOGRAM',
+    });
+  });
+
+  it('falls back on the movement, or on nothing for a custom exercise', () => {
+    const map = (exerciseRef: string) =>
+      firstStep(
+        [step({ exerciseRef, durationType: 'REPS', durationValue: 10 })],
+        SportType.STRENGTH,
+      );
+    expect(map('c:archer-push-up')).toMatchObject({
+      exerciseCategory: 'PUSH_UP',
+      exerciseName: null,
+    });
+    expect(map('u:12')).toMatchObject({
+      exerciseCategory: null,
+      exerciseName: null,
+    });
+  });
+
+  it('keeps exercises out of the steps of other sports', () => {
+    const garmin = firstStep(
+      [step({ exerciseRef: 'c:barbell-full-squat', durationType: 'TIME' })],
+      SportType.RUNNING,
+    );
+    expect(garmin.exerciseCategory).toBeNull();
   });
 });
