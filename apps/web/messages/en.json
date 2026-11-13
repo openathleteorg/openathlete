@@ -2577,5 +2577,9 @@
   "scheduled_messages_description": "They go out at their time, to the athletes you still coach by then.",
   "scheduled_messages_empty": "No message waiting.",
   "scheduled_messages_cancel": "Cancel it",
-  "scheduled_messages_canceled": "Message canceled"
+  "scheduled_messages_canceled": "Message canceled",
+  "coach_group_average_form": "Average form",
+  "coach_group_to_watch": "To watch",
+  "coach_groups_overview": "Groups",
+  "coach_group_athletes": "Athletes: {count}"
 }

@@ -2577,5 +2577,9 @@
   "scheduled_messages_description": "Se envían a su hora, a los atletas que todavía entrenes entonces.",
   "scheduled_messages_empty": "Ningún mensaje en espera.",
   "scheduled_messages_cancel": "Cancelarlo",
-  "scheduled_messages_canceled": "Mensaje cancelado"
+  "scheduled_messages_canceled": "Mensaje cancelado",
+  "coach_group_average_form": "Forma media",
+  "coach_group_to_watch": "A vigilar",
+  "coach_groups_overview": "Grupos",
+  "coach_group_athletes": "Atletas: {count}"
 }

@@ -1,12 +1,17 @@
 import { useCoachDashboardQuery } from '@/api/coach';
-import { useGroupFilterOptions } from '@/components/clubs/use-group-filter';
+import {
+  GroupFilterOption,
+  useGroupFilterOptions,
+} from '@/components/clubs/use-group-filter';
 import {
   alertText,
   formTone,
 } from '@/components/coach-dashboard/coach-dashboard-format';
+import { summarizeGroup } from '@/components/coach-dashboard/group-summary';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MetricTile } from '@/components/ui/metric-tile';
 import { PageTitle } from '@/components/ui/page-title';
 import {
   Select,
@@ -178,6 +183,111 @@ function Actions({ row }: { row: Row }) {
 }
 
 /** The athletes to look at first, each alert in one line. */
+/** How the athletes shown did over the period, all together */
+function GroupTiles({ rows, label }: { rows: Row[]; label: string }) {
+  const summary = summarizeGroup(rows);
+  const tone =
+    summary.averageTsb === null ? null : formTone(summary.averageTsb);
+  return (
+    <section aria-label={label} className="space-y-2" data-group-summary>
+      <h2 className="text-sm font-medium text-muted-foreground">{label}</h2>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        <MetricTile label={m.athletes()} value={summary.athletes} />
+        <MetricTile
+          label={m.coach_column_sessions()}
+          value={`${summary.completedSessions}/${summary.plannedSessions}`}
+          caption={
+            summary.compliancePercent === null
+              ? undefined
+              : `${summary.compliancePercent}${m.percent_symbol()}`
+          }
+        />
+        <MetricTile
+          label={m.coach_column_volume()}
+          value={formatSeconds(summary.completedTime)}
+        />
+        <MetricTile
+          label={m.coach_group_average_form()}
+          value={
+            summary.averageTsb === null
+              ? '–'
+              : `${summary.averageTsb > 0 ? '+' : ''}${summary.averageTsb.toFixed(0)}`
+          }
+          valueClassName={cn(
+            tone === 'tired' && 'text-red-600 dark:text-red-400',
+            tone === 'ready' && 'text-green-600 dark:text-green-400',
+            tone === 'detraining' && 'text-blue-600 dark:text-blue-400',
+          )}
+        />
+        <MetricTile
+          label={m.coach_group_to_watch()}
+          value={summary.toWatch}
+          className="col-span-2 sm:col-span-1"
+        />
+      </div>
+    </section>
+  );
+}
+
+/** Each group side by side, to pick the one that needs a look */
+function GroupsOverview({
+  rows,
+  groups,
+  onSelect,
+}: {
+  rows: Row[];
+  groups: GroupFilterOption[];
+  onSelect: (value: string) => void;
+}) {
+  return (
+    <Card data-groups-overview>
+      <CardHeader>
+        <CardTitle className="text-base">{m.coach_groups_overview()}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ul className="divide-y">
+          {groups.map((group) => {
+            const summary = summarizeGroup(
+              rows.filter((row) => group.athleteIds.has(row.athleteId)),
+            );
+            return (
+              <li key={group.value}>
+                <button
+                  type="button"
+                  className="flex min-h-11 w-full flex-wrap items-center gap-x-4 gap-y-1 py-2 text-left text-sm hover:bg-muted/40"
+                  onClick={() => onSelect(group.value)}
+                  data-groups-overview-row={group.label}
+                >
+                  <span className="min-w-0 flex-1 truncate font-medium">
+                    {group.label}
+                  </span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {m.coach_group_athletes({ count: summary.athletes })}
+                  </span>
+                  <span className="tabular-nums">
+                    {summary.compliancePercent === null
+                      ? '–'
+                      : `${summary.compliancePercent}${m.percent_symbol()}`}
+                  </span>
+                  <span className="tabular-nums text-muted-foreground">
+                    {formatSeconds(summary.completedTime)}
+                  </span>
+                  {summary.toWatch > 0 && (
+                    <Badge variant="outline">
+                      <AlertTriangle className="size-3" />
+                      {summary.toWatch}
+                    </Badge>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </CardContent>
+    </Card>
+  );
+}
+
 function Watchlist({ rows }: { rows: Row[] }) {
   const flagged = rows.filter(
     (row) => row.alerts.length > 0 || row.unreadMessages > 0,
@@ -307,6 +417,19 @@ export function CoachDashboardView() {
         </div>
       ) : (
         <>
+          {groupOptions.length > 0 && (
+            <GroupTiles
+              rows={rows}
+              label={selectedGroup?.label ?? m.groups_filter_all()}
+            />
+          )}
+          {!selectedGroup && groupOptions.length > 0 && (
+            <GroupsOverview
+              rows={allRows}
+              groups={groupOptions}
+              onSelect={setGroupFilter}
+            />
+          )}
           <Watchlist rows={rows} />
 
           {/* Wide screens: one row per athlete, no horizontal scroll */}
