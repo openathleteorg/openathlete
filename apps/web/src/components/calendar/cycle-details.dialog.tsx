@@ -1,5 +1,7 @@
 import { useDeleteCycleMutation } from '@/api/cycle';
 import { m } from '@/paraglide/messages';
+import { getLocale } from '@/paraglide/runtime';
+import { getDateFnsLocale } from '@/utils/locales';
 import { differenceInCalendarDays, format } from 'date-fns';
 import { Calendar, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -40,6 +42,7 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
 
   if (!cycle) return null;
 
+  const locale = getDateFnsLocale(getLocale());
   const startDate = new Date(cycle.startDate);
   const endDate = new Date(cycle.endDate);
   // Calendar days, both ends included: a cycle ends at 23:59 on its last day
@@ -94,8 +97,8 @@ export function CycleDetailsDialog({ open, onClose, cycle, onEditCycle }: P) {
             <Calendar className="w-5 h-5 text-muted-foreground" />
             <div className="flex flex-col">
               <span className="text-sm font-medium">
-                {format(startDate, 'MMM d, yyyy')} -{' '}
-                {format(endDate, 'MMM d, yyyy')}
+                {format(startDate, 'PP', { locale })} –{' '}
+                {format(endDate, 'PP', { locale })}
               </span>
               <span className="text-xs text-muted-foreground">
                 {duration} {duration === 1 ? m.day() : m.days()} • {weeks}{' '}

@@ -42,6 +42,11 @@ describe('saveLanguageChoice', () => {
     expect(api.updateLanguage).toHaveBeenCalledWith('PT_BR');
   });
 
+  it('maps German to the API code', async () => {
+    await saveLanguageChoice('EN', '?lang=de');
+    expect(api.updateLanguage).toHaveBeenCalledWith('DE');
+  });
+
   it('does nothing when the choice is already saved', async () => {
     rememberLanguageChoice('es');
     await saveLanguageChoice('ES', '');
@@ -54,7 +59,7 @@ describe('saveLanguageChoice', () => {
     expect(api.updateLanguage).toHaveBeenCalledWith('EN');
 
     api.updateLanguage.mockClear();
-    await saveLanguageChoice('FR', '?lang=de');
+    await saveLanguageChoice('FR', '?lang=nl');
     expect(api.updateLanguage).not.toHaveBeenCalled();
   });
 });

@@ -54,6 +54,7 @@ const VOICE_LANG: Record<string, string> = {
   es: 'es-ES',
   it: 'it-IT',
   'pt-BR': 'pt-BR',
+  de: 'de-DE',
 };
 
 export function speak(text: string) {

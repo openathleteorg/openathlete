@@ -1863,7 +1863,7 @@
   "activity_climb_hc": "HC",
   "activity_climb_label": "Climb {n} · {distance} at {grade}",
   "activity_ai_summary_title": "Read of the session",
-  "activity_ai_summary_next": "Next",
+  "activity_ai_summary_next": "Next:",
   "activity_corrections_title": "Correct the recording",
   "activity_corrections_hint": "Corrections apply over the recording as it came, which you can get back at any time.",
   "activity_corrections_despike_heartrate": "Remove {count} heart rate spikes",

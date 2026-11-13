@@ -12,7 +12,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { isCapacitor } from '@/utils/capacitor';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateLocale } from '@/utils/locales';
 import { getMetricUnit } from '@/utils/metric-unit';
 import {
   FormStatus,
@@ -21,7 +21,6 @@ import {
   formatForm,
   getFormStatus,
 } from '@/utils/training-form';
-import { format } from 'date-fns';
 import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
 
@@ -157,9 +156,10 @@ export function AthleteDashboardHeader({
                         </p>
                         <p className="text-[10px] text-blue-700 dark:text-blue-300">
                           {getDaysUntil(competition.startDate)} •{' '}
-                          {format(competition.startDate, 'MMM d', {
-                            locale: getDateFnsLocale(getLocale()),
-                          })}
+                          {new Date(competition.startDate).toLocaleDateString(
+                            getDateLocale(getLocale()),
+                            { day: 'numeric', month: 'short' },
+                          )}
                         </p>
                       </div>
                     </div>

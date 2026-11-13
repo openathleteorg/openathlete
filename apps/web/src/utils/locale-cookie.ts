@@ -2,7 +2,7 @@
 export const APP_LOCALE_COOKIE = 'OA_LOCALE';
 
 const LEGACY_COOKIE = 'PARAGLIDE_LOCALE';
-const LOCALES = ['en', 'fr', 'it', 'es', 'pt-BR'];
+const LOCALES = ['en', 'fr', 'it', 'es', 'pt-BR', 'de'];
 const MAX_AGE = 34560000; // 400 days, as Paraglide sets it
 
 /**

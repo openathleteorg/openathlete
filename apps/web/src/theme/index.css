@@ -231,6 +231,11 @@
     @apply bg-background text-foreground;
     font-variant-numeric: tabular-nums;
   }
+  /* German compounds ("Entlastungswoche") cannot wrap at a space: let
+     narrow cells break them at syllables instead of widening the table */
+  :lang(de) :is(td, th) {
+    hyphens: auto;
+  }
   /* Native controls (dropdown lists, date pickers, scrollbars) follow the
      theme. next-themes also sets it, but only once its script has run. */
   :root {

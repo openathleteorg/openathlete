@@ -1,6 +1,6 @@
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { format } from 'date-fns';
 import { useCallback } from 'react';
 
@@ -20,9 +20,13 @@ export function useMetricDateLabel() {
   return useCallback((day: string) => {
     const date = metricDayToDate(day);
     const sameYear = date.getFullYear() === new Date().getFullYear();
-    return format(date, sameYear ? 'd MMM' : 'd MMM yyyy', {
-      locale: getDateFnsLocale(getLocale()),
-    });
+    return format(
+      date,
+      localizeDatePattern(sameYear ? 'd MMM' : 'd MMM yyyy', getLocale()),
+      {
+        locale: getDateFnsLocale(getLocale()),
+      },
+    );
   }, []);
 }
 

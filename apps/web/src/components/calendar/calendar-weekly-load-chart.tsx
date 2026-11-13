@@ -9,7 +9,7 @@ import { ChartContainer, ChartTooltip } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import {
   TSB_DETRAINING,
   TSB_OVERREACHING,
@@ -198,7 +198,9 @@ export function CalendarWeeklyLoadChart({
           summary?.recommendedMax ?? recommendedMin,
         );
         const dayLabel = (day: Date) =>
-          format(day, 'd MMM', { locale: dateFnsLocale });
+          format(day, localizeDatePattern('d MMM', getLocale()), {
+            locale: dateFnsLocale,
+          });
 
         return [
           {

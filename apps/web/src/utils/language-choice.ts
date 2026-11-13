@@ -17,6 +17,7 @@ const EMAIL_LANGUAGE_BY_LOCALE: Record<SupportedLocale, EmailLanguage> = {
   it: 'IT',
   es: 'ES',
   'pt-BR': 'PT_BR',
+  de: 'DE',
 };
 
 /** Converts a Paraglide locale to the code stored by the API. */

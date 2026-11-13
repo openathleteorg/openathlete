@@ -101,7 +101,7 @@ export function SportDistributionChart({
         {chartData.map((slice) => (
           <li
             key={slice.sport}
-            className="flex items-center gap-2"
+            className="flex flex-wrap items-center gap-x-2 gap-y-0.5"
             data-sport-legend={slice.sport}
           >
             <span
@@ -109,13 +109,17 @@ export function SportDistributionChart({
               style={{ backgroundColor: slice.fill }}
             />
             <SportIcon sport={slice.sport} />
-            <span className="min-w-0 truncate">{slice.name}</span>
-            <span className="ml-auto whitespace-nowrap tabular-nums">
-              {formatter ? formatter(slice.value) : slice.value}
-            </span>
-            <span className="w-10 text-right text-muted-foreground tabular-nums">
-              {Math.round((slice.value / total) * 100)}
-              {m.percent_symbol()}
+            {/* In a narrow card the figures go under the name rather than
+                cutting it: "Krafttraining" must stay readable */}
+            <span className="min-w-[5.5rem] flex-1 truncate">{slice.name}</span>
+            <span className="ml-auto flex items-center gap-2">
+              <span className="whitespace-nowrap tabular-nums">
+                {formatter ? formatter(slice.value) : slice.value}
+              </span>
+              <span className="w-10 text-right text-muted-foreground tabular-nums">
+                {Math.round((slice.value / total) * 100)}
+                {m.percent_symbol()}
+              </span>
             </span>
           </li>
         ))}

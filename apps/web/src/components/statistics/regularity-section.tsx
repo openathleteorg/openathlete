@@ -1,7 +1,7 @@
 import { useStatisticsDaysQuery } from '@/api/statistics';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { addDays, format, parseISO } from 'date-fns';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 
@@ -101,7 +101,11 @@ function Regularity({
     projection: 'var(--chart-1)',
   };
   const dayLabel = (day: number) =>
-    format(addDays(new Date(year, 0, 1), day), 'd MMM', { locale });
+    format(
+      addDays(new Date(year, 0, 1), day),
+      localizeDatePattern('d MMM', getLocale()),
+      { locale },
+    );
 
   return (
     <div className="grid grid-cols-1 gap-4">

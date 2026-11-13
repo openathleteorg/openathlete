@@ -11,11 +11,11 @@ The same build ships to Vercel (hosted), to the Docker image (self-hosted) and t
 - `src/pages/`: route entry points. `src/views/`: page bodies. `src/components/`: reusable pieces, with shadcn/ui primitives in `components/ui/`.
 - `src/routes/`: route tree (`sections/*.routes.tsx`). Build URLs with `getPath([...])` from `routes/paths.ts`.
 - `src/contexts/`: auth (tokens in `localStorage`), current space (athlete or coach), chatbot.
-- `messages/{en,fr,it,es,pt-BR}.json`: Paraglide catalogs. `src/paraglide/` is generated.
+- `messages/{en,fr,it,es,pt-BR,de}.json`: Paraglide catalogs. `src/paraglide/` is generated.
 
 ## Rules
 
-- **Text**: every user-visible string is `m.some_key()` from `@/paraglide/messages`. Add the key to all five catalogs, then run `pnpm check:locale-parity` at the root (see the `i18n` skill).
+- **Text**: every user-visible string is `m.some_key()` from `@/paraglide/messages`. Add the key to all six catalogs, then run `pnpm check:locale-parity` at the root (see the `i18n` skill).
 - **Design**: colours, fonts and radii are variables in `src/theme/index.css`; never hardcode a hex or a gray utility. Use `PageTitle`, `SectionLabel`, `MetricTile` and `InsightBanner` from `components/ui` rather than restyling them in a view.
 - **Server state**: React Query hooks only. Don't copy query data into local state.
 - **Forms**: React Hook Form with a Zod schema, built from `libs/shared` when the API validates the same data, and the `RHF*` fields in `components/hook-form` (they show validation messages). Show API errors with `toast.error`.

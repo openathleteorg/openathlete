@@ -27,7 +27,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { activityPath, getPath } from '@/routes/paths';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import {
   formStatusDotClass,
@@ -73,7 +73,7 @@ function EventRow({ event, showDay }: { event: Event; showDay?: boolean }) {
   const compliance = isPlannedEvent(event) ? getCompliance(event) : undefined;
   const facts = [
     showDay &&
-      format(event.startDate, 'EEE d MMM', {
+      format(event.startDate, localizeDatePattern('EEE d MMM', getLocale()), {
         locale: getDateFnsLocale(getLocale()),
       }),
     !!duration && formatCompactDuration(duration),
@@ -209,9 +209,13 @@ function TodayScreen() {
       ),
     [sorted, monday],
   );
-  const dateLabel = format(now, 'EEEE d MMMM', {
-    locale: getDateFnsLocale(getLocale()),
-  });
+  const dateLabel = format(
+    now,
+    localizeDatePattern('EEEE d MMMM', getLocale()),
+    {
+      locale: getDateFnsLocale(getLocale()),
+    },
+  );
   const appBar = useMemo(
     () => ({
       titleContent: (
@@ -326,9 +330,13 @@ function TodayScreen() {
           <span className="min-w-0 flex-1">
             <span className="block truncate font-medium">{race.name}</span>
             <span className="block text-sm opacity-75">
-              {format(race.startDate, 'd MMMM yyyy', {
-                locale: getDateFnsLocale(getLocale()),
-              })}
+              {format(
+                race.startDate,
+                localizeDatePattern('d MMMM yyyy', getLocale()),
+                {
+                  locale: getDateFnsLocale(getLocale()),
+                },
+              )}
             </span>
           </span>
           <span className="shrink-0 text-right">

@@ -1,6 +1,6 @@
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { endOfDay, format, getISOWeek, startOfDay } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
@@ -55,8 +55,13 @@ export function CalendarMobileWeekHeader({ week, events }: P) {
             {m.calendar_week_title({ week: getISOWeek(weekStart) })}
           </span>
           <span className="truncate text-xs text-muted-foreground">
-            {format(weekStart, 'd MMM', { locale: dateFnsLocale })} –{' '}
-            {format(weekEnd, 'd MMM', { locale: dateFnsLocale })}
+            {format(weekStart, localizeDatePattern('d MMM', getLocale()), {
+              locale: dateFnsLocale,
+            })}{' '}
+            –{' '}
+            {format(weekEnd, localizeDatePattern('d MMM', getLocale()), {
+              locale: dateFnsLocale,
+            })}
           </span>
           <span className="ml-auto shrink-0 text-xs font-medium text-muted-foreground">
             {totals.join(' · ')}

@@ -9,7 +9,7 @@ import { useAppBar } from '@/hooks/use-app-bar';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { hapticTap } from '@/utils/haptics';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import { addDays, format, isSameDay, isToday, startOfWeek } from 'date-fns';
 import { BookOpen, SlidersHorizontal } from 'lucide-react';
@@ -79,7 +79,11 @@ function WeekStrip({
             key={day.toISOString()}
             type="button"
             aria-pressed={selected}
-            aria-label={format(day, 'EEEE d MMMM', { locale })}
+            aria-label={format(
+              day,
+              localizeDatePattern('EEEE d MMMM', getLocale()),
+              { locale },
+            )}
             className="flex min-h-14 flex-col items-center gap-0.5"
             onClick={() => {
               hapticTap();

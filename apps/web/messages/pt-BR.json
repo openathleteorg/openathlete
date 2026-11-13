@@ -1863,7 +1863,7 @@
   "activity_climb_hc": "HC",
   "activity_climb_label": "Subida {n} · {distance} a {grade}",
   "activity_ai_summary_title": "Leitura do treino",
-  "activity_ai_summary_next": "Para a próxima",
+  "activity_ai_summary_next": "Para a próxima:",
   "activity_corrections_title": "Corrigir o registro",
   "activity_corrections_hint": "As correções se aplicam sobre o registro original, que você pode recuperar a qualquer momento.",
   "activity_corrections_despike_heartrate": "Remover {count} picos de FC",

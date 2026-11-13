@@ -1863,7 +1863,7 @@
   "activity_climb_hc": "HC",
   "activity_climb_label": "Montée {n} · {distance} à {grade}",
   "activity_ai_summary_title": "Lecture de la séance",
-  "activity_ai_summary_next": "Pour la suite",
+  "activity_ai_summary_next": "Pour la suite :",
   "activity_corrections_title": "Corriger l'enregistrement",
   "activity_corrections_hint": "Les corrections s'appliquent sur l'enregistrement d'origine, que vous pouvez retrouver à tout moment.",
   "activity_corrections_despike_heartrate": "Supprimer {count} pics de FC",

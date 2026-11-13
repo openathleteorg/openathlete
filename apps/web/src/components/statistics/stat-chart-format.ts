@@ -1,3 +1,4 @@
+import { localizeDatePattern } from '@/utils/locales';
 import { format, parseISO } from 'date-fns';
 import type { Locale } from 'date-fns';
 
@@ -12,7 +13,10 @@ export function bucketTick(
   // A local date: parseISO reads it at local midnight
   return format(
     parseISO(period),
-    granularity === 'month' ? 'MMM yy' : 'd MMM',
+    localizeDatePattern(
+      granularity === 'month' ? 'MMM yy' : 'd MMM',
+      locale.code ?? '',
+    ),
     {
       locale,
     },
@@ -27,7 +31,10 @@ export function bucketLabel(
 ): string {
   return format(
     parseISO(period),
-    granularity === 'month' ? 'MMMM yyyy' : 'd MMMM yyyy',
+    localizeDatePattern(
+      granularity === 'month' ? 'MMMM yyyy' : 'd MMMM yyyy',
+      locale.code ?? '',
+    ),
     { locale },
   );
 }

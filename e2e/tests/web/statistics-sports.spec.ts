@@ -408,6 +408,7 @@ for (const [locale, section] of [
   ['it', 'Regolarità'],
   ['es', 'Regularidad'],
   ['pt-BR', 'Regularidade'],
+  ['de', 'Regelmäßigkeit'],
 ]) {
   test(`every statistics text exists in ${locale}`, async ({
     page,

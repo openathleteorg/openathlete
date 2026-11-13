@@ -2,7 +2,7 @@ import { useSeasonEventsQuery } from '@/api/event';
 import { useWeeklyLoadSummaryQuery } from '@/api/training-load';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
-import { getDateFnsLocale } from '@/utils/locales';
+import { getDateFnsLocale, localizeDatePattern } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import {
   formStatusTextClass,
@@ -317,7 +317,11 @@ export function CalendarSeasonView() {
                   <span className="text-muted-foreground">
                     W{getISOWeek(week.start)}
                   </span>{' '}
-                  {format(week.start, 'd MMM', { locale })}
+                  {format(
+                    week.start,
+                    localizeDatePattern('d MMM', getLocale()),
+                    { locale },
+                  )}
                 </button>
               </span>
 
@@ -408,7 +412,7 @@ export function CalendarSeasonView() {
                   <span
                     key={race.eventId}
                     className="flex min-w-0 items-center gap-1 rounded-sm bg-red-50 px-1.5 py-0.5 text-xs text-red-900 dark:bg-red-950/40 dark:text-red-100"
-                    title={`${race.name} · ${format(new Date(race.startDate), 'EEEE d MMM', { locale })}`}
+                    title={`${race.name} · ${format(new Date(race.startDate), localizeDatePattern('EEEE d MMM', getLocale()), { locale })}`}
                   >
                     <CompetitionPriorityBadge priority={race.priority} />
                     <span className="truncate">{race.name}</span>

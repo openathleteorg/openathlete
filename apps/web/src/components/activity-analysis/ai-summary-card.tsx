@@ -38,7 +38,7 @@ export function AiSummaryCard({ event }: { event: ActivityEvent }) {
             <ArrowRight className="mt-0.5 size-4 shrink-0" />
             <span>
               <span className="font-medium">
-                {m.activity_ai_summary_next()} :{' '}
+                {m.activity_ai_summary_next()}{' '}
               </span>
               {suggestion}
             </span>
