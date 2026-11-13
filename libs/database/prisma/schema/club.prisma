@@ -35,12 +35,23 @@ model Club {
   athleteJoinToken String? @unique @map("athlete_join_token")
   /// Token of the link coaches join through, as COACH. Rotated to revoke it.
   staffJoinToken   String? @unique @map("staff_join_token")
+  /// Short code athletes type to join (the athlete link, by hand). Rotated
+  /// with the athlete link.
+  athleteJoinCode      String?   @unique @map("athlete_join_code")
+  /// After this, the athlete link and code stop working
+  athleteJoinExpiresAt DateTime? @map("athlete_join_expires_at")
+  /// After this, the coaches' link stops working
+  staffJoinExpiresAt   DateTime? @map("staff_join_expires_at")
+  /// The group athletes joining through the link land in
+  athleteJoinGroup     AthleteGroup? @relation("ClubArrivalGroup", fields: [athleteJoinGroupId], references: [athleteGroupId], onDelete: SetNull)
+  athleteJoinGroupId   Int?      @map("athlete_join_group_id")
 
   // relationships
   members       ClubMember[]
   groups        AthleteGroup[]
   coachAthletes CoachAthlete[]
   templates     EventTemplate[]
+  invitations   ClubInvitation[]
   folders       EventTemplateFolder[]
 
   // timestamps
@@ -92,6 +103,8 @@ model AthleteGroup {
   ownerUserId Int?           @map("owner_user_id")
   members     AthleteGroupMember[]
   staff       AthleteGroupStaff[]
+  arrivalOf   Club[]              @relation("ClubArrivalGroup")
+  invitations ClubInvitation[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -132,4 +145,39 @@ model AthleteGroupStaff {
   @@id([athleteGroupId, userId])
   @@index([userId])
   @@map("athlete_group_staff")
+}
+
+/// A personal invitation to a club, sent by email (one per person of an
+/// imported list). Its token opens the same join page as the club's links,
+/// once.
+model ClubInvitation {
+  // primary key
+  clubInvitationId Int @id @default(autoincrement()) @map("club_invitation_id")
+
+  // fields
+  email      String
+  firstName  String?   @map("first_name")
+  lastName   String?   @map("last_name")
+  /// ATHLETE or COACH
+  role       ClubRole
+  token      String    @unique
+  sentAt     DateTime  @default(now()) @map("sent_at")
+  acceptedAt DateTime? @map("accepted_at")
+
+  // relationships
+  club        Club          @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId      Int           @map("club_id")
+  /// The group the person lands in
+  group       AthleteGroup? @relation(fields: [groupId], references: [athleteGroupId], onDelete: SetNull)
+  groupId     Int?          @map("group_id")
+  invitedBy   User?         @relation(fields: [invitedById], references: [userId], onDelete: SetNull)
+  invitedById Int?          @map("invited_by_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([clubId])
+  @@index([invitedById])
+  @@map("club_invitation")
 }

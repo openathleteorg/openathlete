@@ -127,8 +127,16 @@ export const clubJoinLinkSchema = z.object({
   url: z.string(),
 });
 export const clubJoinLinksSchema = z.object({
-  athlete: clubJoinLinkSchema,
-  staff: clubJoinLinkSchema,
+  athlete: clubJoinLinkSchema.extend({
+    /** The same link as a short code, to type in the app */
+    code: z.string(),
+    expiresAt: z.coerce.date().nullable(),
+    /** The group athletes joining through it land in */
+    groupId: z.number().nullable(),
+  }),
+  staff: clubJoinLinkSchema.extend({
+    expiresAt: z.coerce.date().nullable(),
+  }),
 });
 export type ClubJoinLinksDto = z.infer<typeof clubJoinLinksSchema>;
 
@@ -136,6 +144,27 @@ export const rotateClubJoinLinkDtoSchema = z.object({
   kind: clubJoinLinkKindSchema,
 });
 export type RotateClubJoinLinkDto = z.infer<typeof rotateClubJoinLinkDtoSchema>;
+
+export const updateClubJoinLinksDtoSchema = z.object({
+  /** null: the link never expires */
+  athleteExpiresAt: z.coerce.date().nullable().optional(),
+  staffExpiresAt: z.coerce.date().nullable().optional(),
+  /** null: athletes land in no group */
+  athleteGroupId: z.number().int().positive().nullable().optional(),
+});
+export type UpdateClubJoinLinksDto = z.infer<
+  typeof updateClubJoinLinksDtoSchema
+>;
+
+/** 8 letters and digits, without those read alike (0/O, 1/I/L) */
+export const CLUB_JOIN_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+export const clubJoinCodeSchema = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^[A-Z0-9]{8}$/);
+export const clubJoinCodeParamsSchema = z.object({ code: clubJoinCodeSchema });
+export type ClubJoinCodeParamsDto = z.infer<typeof clubJoinCodeParamsSchema>;
 
 export const clubJoinTokenParamsSchema = z.object({
   token: coachJoinTokenSchema,
@@ -222,3 +251,57 @@ export const athleteGroupStaffDtoSchema = z.object({
   userIds: z.array(z.number().int().positive()).max(ATHLETE_GROUP_BATCH_MAX),
 });
 export type AthleteGroupStaffDto = z.infer<typeof athleteGroupStaffDtoSchema>;
+
+// ---------------------------------------------------------------------------
+// Personal invitations
+// ---------------------------------------------------------------------------
+
+/** A club's whole membership list, at most, in one import */
+export const CLUB_INVITATIONS_MAX = 500;
+
+export const clubInvitationPersonSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(254),
+  firstName: z.string().trim().max(50).optional(),
+  lastName: z.string().trim().max(50).optional(),
+  /** Group to land in, by name; created when the club has none by it */
+  group: z.string().trim().max(ATHLETE_GROUP_NAME_MAX).optional(),
+});
+export type ClubInvitationPerson = z.infer<typeof clubInvitationPersonSchema>;
+
+export const inviteToClubDtoSchema = z.object({
+  people: z.array(clubInvitationPersonSchema).min(1).max(CLUB_INVITATIONS_MAX),
+  role: z.enum(['ATHLETE', 'COACH']).default('ATHLETE'),
+});
+export type InviteToClubDto = z.infer<typeof inviteToClubDtoSchema>;
+
+export const inviteToClubResultSchema = z.object({
+  invited: z.number(),
+  /** Left out: already members, already invited, or twice in the list */
+  skipped: z.array(
+    z.object({
+      email: z.string(),
+      reason: z.enum(['MEMBER', 'INVITED', 'DUPLICATE']),
+    }),
+  ),
+  /** Groups the list named that did not exist */
+  groupsCreated: z.array(z.string()),
+});
+export type InviteToClubResultDto = z.infer<typeof inviteToClubResultSchema>;
+
+export const clubInvitationSchema = z.object({
+  clubInvitationId: z.number(),
+  email: z.string(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
+  role: clubRoleSchema,
+  groupName: z.string().nullable(),
+  sentAt: z.coerce.date(),
+});
+export type ClubInvitationDto = z.infer<typeof clubInvitationSchema>;
+
+export const clubInvitationParamsSchema = clubIdParamsSchema.extend({
+  clubInvitationId: z.coerce.number().int().positive(),
+});
+export type ClubInvitationParamsDto = z.infer<
+  typeof clubInvitationParamsSchema
+>;

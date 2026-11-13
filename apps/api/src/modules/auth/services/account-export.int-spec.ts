@@ -66,6 +66,7 @@ const NOT_EXPORTED_TABLES = {
   activity_chat_notice:
     'automatic delivery/suppression receipts, not human-authored content',
   athlete_invitation: 'pending invitations sent to other people',
+  club_invitation: 'invitations to a club, sent to other people',
   coach_invitation: 'pending invitations, also other people’s data',
   event_template_folder: 'exported with each template, by name',
   mcp_grant:

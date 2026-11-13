@@ -24,23 +24,33 @@ import {
   AcceptClubJoinLinkResponseDto,
   ClubDetailDto,
   ClubIdParamsDto,
+  ClubInvitationDto,
+  ClubInvitationParamsDto,
+  ClubJoinCodeParamsDto,
   ClubJoinLinkInfoDto,
   ClubJoinLinksDto,
   ClubJoinTokenParamsDto,
   ClubMemberParamsDto,
   ClubSummaryDto,
   CreateClubDto,
+  InviteToClubDto,
+  InviteToClubResultDto,
   RotateClubJoinLinkDto,
   TransferClubDto,
   UpdateClubDto,
+  UpdateClubJoinLinksDto,
   UpdateClubMemberDto,
   clubIdParamsSchema,
+  clubInvitationParamsSchema,
+  clubJoinCodeParamsSchema,
   clubJoinTokenParamsSchema,
   clubMemberParamsSchema,
   createClubDtoSchema,
+  inviteToClubDtoSchema,
   rotateClubJoinLinkDtoSchema,
   transferClubDtoSchema,
   updateClubDtoSchema,
+  updateClubJoinLinksDtoSchema,
   updateClubMemberDtoSchema,
 } from '@openathlete/shared';
 
@@ -49,6 +59,7 @@ import { JwtUser } from 'src/modules/auth/decorators';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { UserTypeGuard } from 'src/modules/auth/guards';
 
+import { ClubInvitationService } from './club-invitation.service';
 import { ClubJoinLinkService } from './club-join-link.service';
 import { ClubService } from './club.service';
 
@@ -65,6 +76,7 @@ export class ClubController {
   constructor(
     private readonly clubs: ClubService,
     private readonly joinLinks: ClubJoinLinkService,
+    private readonly invitations: ClubInvitationService,
   ) {}
 
   @Get()
@@ -211,6 +223,90 @@ export class ClubController {
     return this.joinLinks.getLinks(user.userId, params.clubId);
   }
 
+  @Patch(':clubId/join-links')
+  @ApiOperation({
+    summary: "Set when the club's links expire, and where athletes land",
+    description:
+      'An expiry date per link (null: never), and the group athletes joining through the link land in (null: none). Admins only.',
+  })
+  @ApiResponse({ status: 200, description: 'The links' })
+  @ApiResponse(NOT_A_MEMBER)
+  updateJoinLinks(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
+    @Body(new ZodValidationPipe(updateClubJoinLinksDtoSchema))
+    body: UpdateClubJoinLinksDto,
+  ): Promise<ClubJoinLinksDto> {
+    return this.joinLinks.updateLinks(user.userId, params.clubId, body);
+  }
+
+  @Post(':clubId/invitations')
+  @ApiOperation({
+    summary: 'Invite a list of people by email (admins)',
+    description:
+      'Each person gets an email with their own link, used once. Athletes land in the group named for them, created if the club has none by that name. Members, people already invited and repeated emails are skipped.',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'How many were invited, and who was skipped',
+  })
+  @ApiResponse(NOT_A_MEMBER)
+  invite(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
+    @Body(new ZodValidationPipe(inviteToClubDtoSchema)) body: InviteToClubDto,
+  ): Promise<InviteToClubResultDto> {
+    return this.invitations.invite(user.userId, params.clubId, body);
+  }
+
+  @Get(':clubId/invitations')
+  @ApiOperation({ summary: 'List the invitations not yet used (admins)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pending invitations, newest first',
+  })
+  @ApiResponse(NOT_A_MEMBER)
+  listInvitations(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
+  ): Promise<ClubInvitationDto[]> {
+    return this.invitations.listPending(user.userId, params.clubId);
+  }
+
+  @Post(':clubId/invitations/:clubInvitationId/resend')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Send an invitation email again (admins)' })
+  @ApiResponse({ status: 204, description: 'Sent' })
+  @ApiResponse({ status: 404, description: 'No such pending invitation' })
+  async resendInvitation(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(clubInvitationParamsSchema))
+    params: ClubInvitationParamsDto,
+  ): Promise<void> {
+    await this.invitations.resend(
+      user.userId,
+      params.clubId,
+      params.clubInvitationId,
+    );
+  }
+
+  @Delete(':clubId/invitations/:clubInvitationId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Cancel an invitation: its link stops working' })
+  @ApiResponse({ status: 204, description: 'Canceled' })
+  @ApiResponse({ status: 404, description: 'No such pending invitation' })
+  async revokeInvitation(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(clubInvitationParamsSchema))
+    params: ClubInvitationParamsDto,
+  ): Promise<void> {
+    await this.invitations.revoke(
+      user.userId,
+      params.clubId,
+      params.clubInvitationId,
+    );
+  }
+
   @Post(':clubId/join-links/rotate')
   @HttpCode(200)
   @ApiOperation({
@@ -233,6 +329,22 @@ export class ClubController {
 @Controller('club-join')
 export class ClubJoinController {
   constructor(private readonly joinLinks: ClubJoinLinkService) {}
+
+  // Public, and reveals whether a code exists: limited like account lookups
+  @Throttle(RATE_LIMITS.accountLookup)
+  @Get('code/:code')
+  @ApiOperation({
+    summary: 'Find the club link a short code stands for',
+    description: 'Public. Returns the athlete link token, to open its page.',
+  })
+  @ApiResponse({ status: 200, description: 'The token' })
+  @ApiResponse({ status: 404, description: 'Unknown or expired code' })
+  resolveCode(
+    @Param(new ZodValidationPipe(clubJoinCodeParamsSchema))
+    params: ClubJoinCodeParamsDto,
+  ): Promise<{ token: string }> {
+    return this.joinLinks.resolveCode(params.code);
+  }
 
   // Public, and reveals whether a link exists: limited like account lookups
   @Throttle(RATE_LIMITS.accountLookup)

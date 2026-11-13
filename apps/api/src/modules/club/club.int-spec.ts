@@ -12,6 +12,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
 
 import { AthleteGroupService } from './athlete-group.service';
+import { ClubInvitationService } from './club-invitation.service';
 import { ClubJoinLinkService } from './club-join-link.service';
 import { ClubService } from './club.service';
 
@@ -27,6 +28,8 @@ describe('clubs (PostgreSQL)', () => {
   let clubs: ClubService;
   let joinLinks: ClubJoinLinkService;
   let groups: AthleteGroupService;
+  let invitations: ClubInvitationService;
+  const emit = jest.fn();
 
   beforeAll(async () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
@@ -36,6 +39,14 @@ describe('clubs (PostgreSQL)', () => {
       get: () => 'http://localhost',
     } as unknown as ConfigService<ApiEnvSchemaType, true>);
     groups = new AthleteGroupService(prisma);
+    invitations = new ClubInvitationService(
+      prisma,
+      { get: () => 'http://localhost' } as unknown as ConfigService<
+        ApiEnvSchemaType,
+        true
+      >,
+      { emit } as never,
+    );
   });
 
   afterAll(async () => {
@@ -300,6 +311,103 @@ describe('clubs (PostgreSQL)', () => {
     expect(
       await prisma.coachAthlete.count({ where: { athleteId: ana.athleteId } }),
     ).toBe(0);
+  });
+
+  describe('arriving in a club', () => {
+    it('invites a list once each, into its groups, and the invitation joins once', async () => {
+      const { clubId, owner, ana } = await setUpClub();
+      emit.mockClear();
+      const result = await invitations.invite(owner.userId, clubId, {
+        role: 'ATHLETE',
+        people: [
+          { email: 'zoe@example.com', firstName: 'Zoe', group: 'Juniors' },
+          { email: 'zoe@example.com', firstName: 'Zoe' },
+          { email: 'ana@example.com' },
+          { email: 'max@example.com', group: 'juniors' },
+        ],
+      });
+      expect(result).toEqual({
+        invited: 2,
+        skipped: [
+          { email: 'zoe@example.com', reason: 'DUPLICATE' },
+          { email: 'ana@example.com', reason: 'MEMBER' },
+        ],
+        groupsCreated: ['Juniors'],
+      });
+      expect(emit).toHaveBeenCalledTimes(2);
+      // Invited again: skipped
+      const again = await invitations.invite(owner.userId, clubId, {
+        role: 'ATHLETE',
+        people: [{ email: 'max@example.com' }],
+      });
+      expect(again.skipped).toEqual([
+        { email: 'max@example.com', reason: 'INVITED' },
+      ]);
+
+      // Zoe signs up and opens her link
+      const zoe = await signUp('zoe', ['ATHLETE']);
+      const { token } = await prisma.clubInvitation.findFirstOrThrow({
+        where: { email: 'zoe@example.com' },
+      });
+      expect((await joinLinks.getPublicInfo(token)).role).toBe('ATHLETE');
+      await joinLinks.accept(zoe.userId, token);
+      const [juniors] = await groups.list(owner.userId, clubId);
+      expect(juniors.athleteIds).toEqual([zoe.athleteId]);
+      // Used once
+      const other = await signUp('other', ['ATHLETE']);
+      await expect(
+        joinLinks.accept(other.userId, token),
+      ).rejects.toBeInstanceOf(NotFoundException);
+      expect(
+        (await invitations.listPending(owner.userId, clubId)).map(
+          (invitation) => invitation.email,
+        ),
+      ).toEqual(['max@example.com']);
+      // Only admins invite
+      await expect(
+        invitations.listPending(ana.userId, clubId),
+      ).rejects.toBeInstanceOf(ForbiddenException);
+    });
+
+    it('lands athletes of the link in its group, and stops it once expired', async () => {
+      const { clubId, owner } = await setUpClub();
+      const track = await groups.create(owner.userId, {
+        name: 'Track',
+        clubId,
+      });
+      const links = await joinLinks.updateLinks(owner.userId, clubId, {
+        athleteGroupId: track.athleteGroupId,
+      });
+      expect(links.athlete.code).toMatch(/^[A-Z0-9]{8}$/);
+
+      // The code opens the same link
+      const zoe = await signUp('zoe', ['ATHLETE']);
+      const { token } = await joinLinks.resolveCode(links.athlete.code);
+      expect(token).toBe(links.athlete.token);
+      await joinLinks.accept(zoe.userId, token);
+      const [group] = await groups.list(owner.userId, clubId);
+      expect(group.athleteIds).toContain(zoe.athleteId);
+
+      await joinLinks.updateLinks(owner.userId, clubId, {
+        athleteExpiresAt: new Date(Date.now() - 1000),
+      });
+      await expect(joinLinks.getPublicInfo(token)).rejects.toBeInstanceOf(
+        NotFoundException,
+      );
+      await expect(
+        joinLinks.resolveCode(links.athlete.code),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('rotates the code with the athlete link', async () => {
+      const { clubId, owner } = await setUpClub();
+      const before = await joinLinks.getLinks(owner.userId, clubId);
+      const after = await joinLinks.rotate(owner.userId, clubId, 'athlete');
+      expect(after.athlete.code).not.toBe(before.athlete.code);
+      await expect(
+        joinLinks.resolveCode(before.athlete.code),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
   });
 
   describe('when the owner deletes their account', () => {
