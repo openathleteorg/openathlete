@@ -45,6 +45,22 @@ export async function login(
   };
 }
 
+/** Signs up a new user who has not been through the onboarding yet. */
+export async function createNewUser(
+  request: APIRequestContext,
+): Promise<TestUser> {
+  const ip = randomClientIp();
+  const email = `e2e-${randomUUID()}@example.com`;
+  const password = 'E2e-Test-Passw0rd!';
+  const signup = await request.post(`${API_URL}/user`, {
+    headers: apiHeaders(ip),
+    data: { email, password, firstName: 'New', lastName: 'Comer' },
+  });
+  expect(signup.status(), await signup.text()).toBe(201);
+  const tokens = await login(request, email, password, ip);
+  return { email, password, ...tokens };
+}
+
 /** Signs up a new user and completes the onboarding with the given roles. */
 async function createUser(
   request: APIRequestContext,

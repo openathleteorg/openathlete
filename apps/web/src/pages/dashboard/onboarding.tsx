@@ -4,7 +4,7 @@ import { OnboardingView } from '@/views/dashboard/onboarding/onboarding-view';
 export function OnboardingPage() {
   return (
     <>
-      <title>{m.onboarding_welcome_title()}</title>
+      <title>{m.onboarding_page_title()}</title>
       <OnboardingView />
     </>
   );

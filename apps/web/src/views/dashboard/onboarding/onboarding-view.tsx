@@ -1,4 +1,6 @@
-import { useGetMyCoachesQuery } from '@/api/athlete';
+import { useGetMyAthleteQuery, useGetMyCoachesQuery } from '@/api/athlete';
+import { ProviderAPI, useGetConnectedProvidersQuery } from '@/api/provider';
+import { useStatisticsOverviewQuery } from '@/api/statistics';
 import {
   useCompleteOnboardingMutation,
   useGetMeQuery,
@@ -6,31 +8,23 @@ import {
 } from '@/api/user';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
-import { ConnectorsList } from '@/components/connectors';
+import { CoachJoinLinkCard } from '@/components/coach-join-link';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
-import { AnalyticsEvent } from '@/utils/analytics-events';
+import { AnalyticsEvent, isLeavingForOauth } from '@/utils/analytics-events';
+import { readPendingCoachJoinToken } from '@/utils/coach-join';
+import { connectorProviderLabelMap } from '@/utils/label-map/core/connector-provider.label-map';
 import { takeReturnTo } from '@/utils/return-to';
 import { cn } from '@/utils/shadcn';
 import {
   forgetSignupAttribution,
   readSignupAttribution,
 } from '@/utils/signup-attribution';
-import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { ChevronLeft } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { usePostHog } from 'posthog-js/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -38,200 +32,125 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import {
-  ACQUISITION_SOURCES,
-  AcquisitionSource,
-  CompleteOnboardingDto,
+  getProviderSyncCapabilities,
+  isFullImportInProgress,
 } from '@openathlete/shared';
 
-type OnboardingStep =
-  | 'welcome'
-  | 'role-selection'
-  | 'coach-invitation'
-  | 'athlete-info'
-  | 'connectors'
-  | 'athlete-invitations'
-  | 'acquisition-source'
-  | 'complete';
+import { ConnectStep } from './onboarding-connect-step';
+import { DoneStep } from './onboarding-done-step';
+import {
+  type OnboardingAnswers,
+  type OnboardingProgress,
+  type OnboardingStep,
+  isEmail,
+  lastWeeksRange,
+  nextStep,
+  onboardingPath,
+  parseProgress,
+  toCompleteOnboardingDto,
+} from './onboarding-flow';
+import { RACE_DISTANCE_LABELS } from './onboarding-labels';
+import {
+  EmailListInput,
+  GoalStep,
+  HoursStep,
+  InviteCoachStep,
+  RoleStep,
+  SourceStep,
+  SportsStep,
+  StepHeader,
+  TeamStep,
+} from './onboarding-steps';
 
-interface OnboardingData {
-  roles: ('ATHLETE' | 'COACH')[];
-  gender?: 'MALE' | 'FEMALE' | 'OTHER';
-  weight?: number;
-  height?: number;
-  hrMax?: number;
-  hrRest?: number;
-  coachEmail?: string;
-  athleteEmails: string[];
-  acquisitionSource?: AcquisitionSource;
+const STORAGE_KEY = 'openathlete_onboarding_v2';
+// Saves of the first onboarding, which this one replaces
+const LEGACY_STORAGE_KEYS = [
+  'openathlete_onboarding_data',
+  'openathlete_onboarding_step',
+];
+const VARIANT = 'v2';
+
+function loadProgress(): OnboardingProgress {
+  try {
+    return parseProgress(localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return parseProgress(null);
+  }
 }
 
-const ACQUISITION_SOURCE_LABELS: Record<AcquisitionSource, () => string> = {
-  REDDIT: m.onboarding_acquisition_reddit,
-  GOOGLE: m.onboarding_acquisition_google,
-  AI_ASSISTANT: m.onboarding_acquisition_ai_assistant,
-  COACH_OR_FRIEND: m.onboarding_acquisition_coach_or_friend,
-  DISCORD: m.onboarding_acquisition_discord,
-  YOUTUBE: m.onboarding_acquisition_youtube,
-  OTHER: m.onboarding_acquisition_other,
-};
-
-const ONBOARDING_STORAGE_KEY = 'openathlete_onboarding_data';
-const ONBOARDING_STEP_KEY = 'openathlete_onboarding_step';
-
-// Load onboarding data from localStorage
-const loadOnboardingData = (): OnboardingData | null => {
+function saveProgress(progress: OnboardingProgress) {
   try {
-    const stored = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (stored) {
-      return JSON.parse(stored);
-    }
-  } catch (error) {
-    console.error('Failed to load onboarding data from localStorage:', error);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+  } catch {
+    // Private mode: the onboarding still works, it restarts on reload
   }
-  return null;
-};
+}
 
-// Save onboarding data to localStorage
-const saveOnboardingData = (data: OnboardingData) => {
+function clearProgress() {
   try {
-    localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(data));
-  } catch (error) {
-    console.error('Failed to save onboarding data to localStorage:', error);
+    localStorage.removeItem(STORAGE_KEY);
+    LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+  } catch {
+    // ignore
   }
-};
+}
 
-// Load current step index from localStorage
-const loadOnboardingStep = (): number => {
-  try {
-    const stored = localStorage.getItem(ONBOARDING_STEP_KEY);
-    if (stored) {
-      const step = Number.parseInt(stored, 10);
-      if (!Number.isNaN(step) && step >= 0) {
-        return step;
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load onboarding step from localStorage:', error);
-  }
-  return 0;
-};
-
-// Save current step index to localStorage
-const saveOnboardingStep = (stepIndex: number) => {
-  try {
-    localStorage.setItem(ONBOARDING_STEP_KEY, stepIndex.toString());
-  } catch (error) {
-    console.error('Failed to save onboarding step to localStorage:', error);
-  }
-};
-
-// Clear onboarding data from localStorage
-const clearOnboardingStorage = () => {
-  try {
-    localStorage.removeItem(ONBOARDING_STORAGE_KEY);
-    localStorage.removeItem(ONBOARDING_STEP_KEY);
-  } catch (error) {
-    console.error('Failed to clear onboarding data from localStorage:', error);
-  }
-};
+/** Today on the device's calendar, as YYYY-MM-DD */
+function localToday() {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 10);
+}
 
 export function OnboardingView() {
   const navigate = useNavigate();
+  const posthog = usePostHog();
+  const reduceMotion = useReducedMotion();
   const { resolvedTheme } = useTheme();
   const { initialize, authenticated } = useAuthContext();
-  const posthog = usePostHog();
   const { data: user, isLoading: isLoadingUser } = useGetMeQuery({
-    enabled: authenticated, // Only fetch if authenticated
-  });
-
-  // Load initial data from localStorage or use defaults
-  const [currentStepIndex, setCurrentStepIndex] = useState(() =>
-    loadOnboardingStep(),
-  );
-  const [data, setData] = useState<OnboardingData>(() => {
-    const stored = loadOnboardingData();
-    return (
-      stored || {
-        roles: [],
-        athleteEmails: [],
-      }
-    );
+    enabled: authenticated,
   });
   const { data: coaches } = useGetMyCoachesQuery();
-  const hasCoach = (coaches?.length ?? 0) > 0;
+  const [progress, setProgress] = useState(loadProgress);
+  const { answers, step, history } = progress;
 
-  const onboardingFinishedRef = useRef(false);
-  const onboardingSnapshotRef = useRef<{
-    step: OnboardingStep;
-    roles: OnboardingData['roles'];
-  }>({ step: 'welcome', roles: [] });
+  const isAthlete = answers.role === 'ATHLETE' || answers.role === 'BOTH';
+  const isCoach = answers.role === 'COACH' || answers.role === 'BOTH';
+  const { data: athlete } = useGetMyAthleteQuery();
+  const { data: connected = [], isLoading: isLoadingConnected } =
+    useGetConnectedProvidersQuery();
 
-  // Generate steps based on selected roles
-  const steps = useMemo<OnboardingStep[]>(() => {
-    const baseSteps: OnboardingStep[] = ['welcome', 'role-selection'];
-    const isAthlete = data.roles.includes('ATHLETE');
-    const isCoach = data.roles.includes('COACH');
-    const isAthleteOnly = isAthlete && !isCoach;
+  const context = useMemo(
+    () => ({
+      hasCoach: (coaches?.length ?? 0) > 0 || !!readPendingCoachJoinToken(),
+    }),
+    [coaches],
+  );
+  const path = onboardingPath(answers, context);
+  // A save from another path (role changed in another tab) restarts cleanly
+  const current: OnboardingStep = path.includes(step) ? step : 'role';
+  const stepIndex = path.indexOf(current);
 
-    if (data.roles.length === 0) {
-      return baseSteps;
-    }
+  // Set once the API saved the onboarding: the done screen stays on
+  const finishedRef = useRef(false);
+  const snapshotRef = useRef({ step: current, answers });
+  snapshotRef.current = { step: current, answers };
 
-    const roleBasedSteps: OnboardingStep[] = [];
-
-    // If athlete only, add coach invitation step
-    if (isAthleteOnly && !hasCoach) {
-      roleBasedSteps.push('coach-invitation');
-    }
-
-    // If athlete (alone or with coach), add athlete info and connectors
-    if (isAthlete) {
-      roleBasedSteps.push('athlete-info', 'connectors');
-    }
-
-    // If coach (alone or with athlete), add athlete invitations
-    if (isCoach) {
-      roleBasedSteps.push('athlete-invitations');
-    }
-
-    // Always end with the acquisition question, then complete
-    return [...baseSteps, ...roleBasedSteps, 'acquisition-source', 'complete'];
-  }, [data.roles, hasCoach]);
-
-  const currentStep = steps[currentStepIndex];
-
-  onboardingSnapshotRef.current = {
-    step: currentStep ?? 'welcome',
-    roles: data.roles,
-  };
-
-  // Adjust step index when steps array changes (e.g., when roles change)
-  // Only adjust if we're not on role-selection step (to allow going back)
   useEffect(() => {
-    // If we're on role-selection, don't adjust - user can change roles freely
-    if (currentStep === 'role-selection') {
-      return;
-    }
+    saveProgress(progress);
+  }, [progress]);
 
-    // If current step index is out of bounds, adjust it
-    if (currentStepIndex >= steps.length) {
-      setCurrentStepIndex(Math.max(0, steps.length - 1));
-      return;
-    }
-    // If current step doesn't exist in new steps array, find closest match
-    const stepAtCurrentIndex = steps[currentStepIndex];
-    if (!stepAtCurrentIndex) {
-      // Find the closest valid step
-      const validIndex = Math.min(currentStepIndex, steps.length - 1);
-      setCurrentStepIndex(Math.max(0, validIndex));
-    }
-  }, [steps, currentStepIndex, currentStep]);
-
-  // Redirect if onboarding already completed (only if user data is loaded and authenticated)
+  // Somebody who finished it elsewhere has nothing to do here
   useEffect(() => {
-    if (authenticated && !isLoadingUser && user && user.onboardingCompleted) {
-      onboardingFinishedRef.current = true;
-      navigate(takeReturnTo(getPath(['dashboard'])));
+    if (
+      authenticated &&
+      !isLoadingUser &&
+      user?.onboardingCompleted &&
+      !finishedRef.current
+    ) {
+      clearProgress();
+      navigate(takeReturnTo(getPath(['dashboard'])), { replace: true });
     }
   }, [authenticated, user, isLoadingUser, navigate]);
 
@@ -239,564 +158,532 @@ export function OnboardingView() {
   // users who give up along the way counts too
   const { mutate: recordSignupAttribution } =
     useRecordSignupAttributionMutation({ onSuccess: forgetSignupAttribution });
-  const userId = user && !user.onboardingCompleted ? user.userId : undefined;
+  const pendingUserId =
+    user && !user.onboardingCompleted ? user.userId : undefined;
   useEffect(() => {
-    if (userId === undefined) return;
+    if (pendingUserId === undefined) return;
     const attribution = readSignupAttribution();
     if (attribution) recordSignupAttribution(attribution);
-  }, [userId, recordSignupAttribution]);
+  }, [pendingUserId, recordSignupAttribution]);
 
-  const completeOnboardingMutation = useCompleteOnboardingMutation({
-    onSuccess: async (_, variables) => {
-      onboardingFinishedRef.current = true;
-      posthog?.capture('onboarding_completed', {
-        roles: variables.roles,
-        acquisition_source: variables.acquisitionSource,
+  useEffect(() => {
+    if (pendingUserId === undefined || progress.startedAt !== null) return;
+    posthog?.capture(AnalyticsEvent.onboarding_started, { variant: VARIANT });
+    setProgress((p) => ({ ...p, startedAt: Date.now() }));
+  }, [pendingUserId, progress.startedAt, posthog]);
+
+  useEffect(() => {
+    posthog?.capture(AnalyticsEvent.onboarding_step_viewed, {
+      step: current,
+      step_index: stepIndex,
+      total_steps: path.length,
+      variant: VARIANT,
+    });
+    // One event per screen shown, not per answer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current]);
+
+  // Leaving for a provider's consent page is not giving up: it comes back
+  useEffect(() => {
+    const emitAbandoned = () => {
+      if (finishedRef.current || !authenticated || isLeavingForOauth()) return;
+      posthog?.capture(AnalyticsEvent.onboarding_abandoned, {
+        last_step: snapshotRef.current.step,
+        role: snapshotRef.current.answers.role,
+        variant: VARIANT,
       });
+    };
+    window.addEventListener('pagehide', emitAbandoned);
+    return () => window.removeEventListener('pagehide', emitAbandoned);
+  }, [authenticated, posthog]);
+
+  // Connecting a device brings its history along, as the screen promises
+  const requestedImports = useRef(new Set<string>());
+  useEffect(() => {
+    if (finishedRef.current) return;
+    for (const account of connected) {
+      const eligible =
+        getProviderSyncCapabilities(account.provider).supportsFullImport &&
+        account.importActivitiesEnabled &&
+        !account.fullImportRequestedAt &&
+        !account.fullImportCompletedAt;
+      if (!eligible || requestedImports.current.has(account.provider)) continue;
+      requestedImports.current.add(account.provider);
+      ProviderAPI.importAllActivities(account.provider).catch(() => {
+        // The settings offer it again; nothing to tell here
+      });
+    }
+  }, [connected]);
+
+  const importing = connected.find((account) =>
+    isFullImportInProgress(account),
+  );
+  const range = useMemo(() => lastWeeksRange(), []);
+  const showImport =
+    !!importing &&
+    !!athlete &&
+    stepIndex > path.indexOf('connect') &&
+    current !== 'done';
+  const { data: imported } = useStatisticsOverviewQuery(
+    { athleteId: athlete?.athleteId ?? 0, from: range.from, to: range.to },
+    showImport,
+    showImport ? 5000 : false,
+  );
+
+  const update = (patch: Partial<OnboardingAnswers>) =>
+    setProgress((p) => ({ ...p, answers: { ...p.answers, ...patch } }));
+
+  const advance = (
+    patch: Partial<OnboardingAnswers> = {},
+    { skipped = false }: { skipped?: boolean } = {},
+  ) => {
+    const merged = { ...answers, ...patch };
+    posthog?.capture(
+      skipped
+        ? AnalyticsEvent.onboarding_step_skipped
+        : AnalyticsEvent.onboarding_step_completed,
+      {
+        step: current,
+        step_index: stepIndex,
+        total_steps: onboardingPath(merged, context).length,
+        role: merged.role,
+        variant: VARIANT,
+      },
+    );
+    const target = nextStep(current, merged, context);
+    setProgress((p) => ({
+      ...p,
+      answers: merged,
+      step: target,
+      history: [...p.history, current],
+    }));
+  };
+
+  const goBack = () =>
+    setProgress((p) => {
+      const history = [...p.history];
+      let previous = history.pop();
+      // Skip screens the answers made irrelevant
+      while (previous && !path.includes(previous)) previous = history.pop();
+      return previous ? { ...p, step: previous, history } : p;
+    });
+
+  const complete = useCompleteOnboardingMutation({
+    onSuccess: async (_, dto) => {
+      finishedRef.current = true;
+      posthog?.capture(AnalyticsEvent.onboarding_completed, {
+        roles: dto.roles,
+        acquisition_source: dto.acquisitionSource,
+        training_goal: dto.trainingGoal,
+        weekly_training_hours: dto.weeklyTrainingHours,
+        coach_team_size: dto.coachTeamSize,
+        sports_count: dto.practicedSports?.length ?? 0,
+        target_race: !!dto.targetRace,
+        device_connected: connected.length > 0,
+        variant: VARIANT,
+      });
+      setProgress((p) => ({
+        ...p,
+        step: 'done',
+        history: [],
+      }));
       await initialize();
-      navigate(takeReturnTo(getPath(['dashboard'])));
     },
     onError: (error) => {
       toast.error(error.message || m.onboarding_error());
     },
   });
 
-  const handleNext = () => {
-    const captureStepCompleted = (step: OnboardingStep, stepIndex: number) => {
-      posthog?.capture(AnalyticsEvent.onboarding_step_completed, {
-        step,
-        step_index: stepIndex,
-        total_steps: steps.length,
-        roles_selected: [...data.roles],
-      });
-    };
-
-    // If on role-selection, regenerate steps and move to next
-    if (currentStep === 'role-selection') {
-      if (data.roles.length === 0) {
-        toast.error(m.onboarding_role_selection_subtitle());
-        return;
-      }
-      // Steps will be regenerated, find the next step after role-selection
-      const roleSelectionIndex = steps.indexOf('role-selection');
-      const nextIndex = roleSelectionIndex + 1;
-      if (nextIndex < steps.length) {
-        captureStepCompleted('role-selection', roleSelectionIndex);
-        setCurrentStepIndex(nextIndex);
-        saveOnboardingStep(nextIndex);
-      }
-      return;
-    }
-
-    if (currentStepIndex < steps.length - 1) {
-      const nextIndex = currentStepIndex + 1;
-      if (currentStep) {
-        captureStepCompleted(currentStep, currentStepIndex);
-      }
-      setCurrentStepIndex(nextIndex);
-      saveOnboardingStep(nextIndex);
-    } else if (currentStep === 'complete') {
-      captureStepCompleted('complete', currentStepIndex);
-      handleComplete();
-    }
-  };
-
-  const handlePrevious = () => {
-    if (currentStepIndex > 0) {
-      // When going back to role-selection, we need to ensure we stay on that step
-      // even if steps array changes
-      const previousIndex = currentStepIndex - 1;
-      const previousStep = steps[previousIndex];
-
-      let newIndex: number;
-      if (previousStep === 'role-selection') {
-        // Find role-selection in the current steps array (it should always be at index 1)
-        const roleSelectionIndex = steps.indexOf('role-selection');
-        newIndex = roleSelectionIndex >= 0 ? roleSelectionIndex : previousIndex;
-      } else {
-        newIndex = previousIndex;
-      }
-      setCurrentStepIndex(newIndex);
-      saveOnboardingStep(newIndex);
-    }
-  };
-
-  const handleSkip = () => {
-    handleNext();
-  };
-
-  const handleComplete = () => {
-    // Filter out empty emails before submitting
-    const validAthleteEmails = data.athleteEmails.filter(
-      (email) => email.length > 0,
+  const finish = (patch: Partial<OnboardingAnswers>, skipped: boolean) => {
+    const merged = { ...answers, ...patch };
+    posthog?.capture(
+      skipped
+        ? AnalyticsEvent.onboarding_step_skipped
+        : AnalyticsEvent.onboarding_step_completed,
+      { step: current, role: merged.role, variant: VARIANT },
     );
-
-    const payload: CompleteOnboardingDto = {
-      roles: data.roles,
-      gender: data.gender,
-      weight: data.weight,
-      height: data.height,
-      hrMax: data.hrMax,
-      hrRest: data.hrRest,
-      coachEmail: data.coachEmail || undefined,
-      athleteEmails:
-        validAthleteEmails.length > 0 ? validAthleteEmails : undefined,
-      acquisitionSource: data.acquisitionSource,
-    };
-
-    completeOnboardingMutation.mutate(payload);
+    setProgress((p) => ({ ...p, answers: merged }));
+    complete.mutate(
+      toCompleteOnboardingDto(merged, {
+        raceName: merged.raceDistance
+          ? RACE_DISTANCE_LABELS[merged.raceDistance]()
+          : undefined,
+      }),
+    );
   };
 
-  // Save data to localStorage whenever it changes
-  useEffect(() => {
-    saveOnboardingData(data);
-  }, [data]);
+  const leave = () => {
+    clearProgress();
+    navigate(
+      takeReturnTo(
+        isAthlete
+          ? getPath(['dashboard', 'calendar', 'root'])
+          : getPath(['dashboard', 'coach']),
+      ),
+    );
+  };
 
-  // Clear localStorage when onboarding is completed successfully
-  useEffect(() => {
-    if (completeOnboardingMutation.isSuccess) {
-      clearOnboardingStorage();
-    }
-  }, [completeOnboardingMutation.isSuccess]);
+  const today = localToday();
+  const race =
+    answers.goal === 'RACE' &&
+    answers.raceDistance &&
+    answers.raceDate &&
+    isAthlete
+      ? {
+          name: RACE_DISTANCE_LABELS[answers.raceDistance](),
+          date: answers.raceDate,
+        }
+      : null;
 
-  useEffect(() => {
-    const emitAbandoned = () => {
-      if (onboardingFinishedRef.current) return;
-      if (!authenticated) return;
-      const snap = onboardingSnapshotRef.current;
-      posthog?.capture(AnalyticsEvent.onboarding_abandoned, {
-        last_step: snap.step,
-        roles_selected: [...snap.roles],
-      });
-    };
-    window.addEventListener('pagehide', emitAbandoned);
-    window.addEventListener('beforeunload', emitAbandoned);
-    return () => {
-      window.removeEventListener('pagehide', emitAbandoned);
-      window.removeEventListener('beforeunload', emitAbandoned);
-    };
-  }, [authenticated, posthog]);
-
-  // Don't auto-advance when roles are selected - let user click "Next" button
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 'welcome':
-        return (
-          <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              {m.onboarding_welcome_title()}
-            </h1>
-            <p className="text-muted-foreground text-sm sm:text-md">
-              {m.onboarding_welcome_subtitle()}
-            </p>
-          </div>
-        );
-
-      case 'role-selection':
-        return (
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {m.onboarding_role_selection_title()}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                {m.onboarding_role_selection_subtitle()}
-              </p>
-            </div>
-            <div className="grid gap-3 sm:gap-4">
-              <button
-                onClick={() =>
-                  setData((d) => ({
-                    ...d,
-                    roles: d.roles.includes('ATHLETE')
-                      ? d.roles.filter((r) => r !== 'ATHLETE')
-                      : [...d.roles, 'ATHLETE'],
-                  }))
-                }
-                className={cn(
-                  'flex items-center gap-2 sm:gap-3 rounded-lg border-2 p-3 sm:p-4 text-left transition-colors',
-                  data.roles.includes('ATHLETE')
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50',
-                )}
-              >
-                <CheckCircle2
-                  className={cn(
-                    'h-5 w-5',
-                    data.roles.includes('ATHLETE')
-                      ? 'text-primary'
-                      : 'text-muted-foreground',
-                  )}
-                />
-                <span className="font-medium">
-                  {m.onboarding_role_athlete()}
-                </span>
-              </button>
-              <button
-                onClick={() =>
-                  setData((d) => ({
-                    ...d,
-                    roles: d.roles.includes('COACH')
-                      ? d.roles.filter((r) => r !== 'COACH')
-                      : [...d.roles, 'COACH'],
-                  }))
-                }
-                className={cn(
-                  'flex items-center gap-2 sm:gap-3 rounded-lg border-2 p-3 sm:p-4 text-left transition-colors',
-                  data.roles.includes('COACH')
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:border-primary/50',
-                )}
-              >
-                <CheckCircle2
-                  className={cn(
-                    'h-5 w-5',
-                    data.roles.includes('COACH')
-                      ? 'text-primary'
-                      : 'text-muted-foreground',
-                  )}
-                />
-                <span className="font-medium">{m.onboarding_role_coach()}</span>
-              </button>
-            </div>
-          </div>
-        );
-
-      case 'coach-invitation':
-        return (
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {m.onboarding_coach_invitation_title()}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                {m.onboarding_coach_invitation_subtitle()}
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="coach-email">
-                  {m.onboarding_coach_invitation_email()}
-                </Label>
-                <Input
-                  id="coach-email"
-                  type="email"
-                  placeholder={m.email_placeholder()}
-                  value={data.coachEmail || ''}
-                  onChange={(e) =>
-                    setData((d) => ({ ...d, coachEmail: e.target.value }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-              <Button variant="ghost" onClick={handleSkip} className="w-full">
-                {m.onboarding_coach_invitation_skip()}
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'athlete-info':
-        return (
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {m.onboarding_athlete_info_title()}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                {m.onboarding_athlete_info_subtitle()}
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="gender">{m.gender()}</Label>
-                <Select
-                  value={data.gender}
-                  onValueChange={(value: 'MALE' | 'FEMALE' | 'OTHER') =>
-                    setData((d) => ({ ...d, gender: value }))
-                  }
-                >
-                  <SelectTrigger id="gender" className="mt-2">
-                    <SelectValue placeholder={m.gender_placeholder()} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="MALE">{m.gender_male()}</SelectItem>
-                    <SelectItem value="FEMALE">{m.gender_female()}</SelectItem>
-                    <SelectItem value="OTHER">{m.gender_other()}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="weight">
-                  {m.onboarding_athlete_info_weight()}
-                </Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  placeholder="70"
-                  value={data.weight || ''}
-                  onChange={(e) =>
-                    setData((d) => ({
-                      ...d,
-                      weight: e.target.value
-                        ? parseFloat(e.target.value)
-                        : undefined,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="height">
-                  {m.onboarding_athlete_info_height()}
-                </Label>
-                <Input
-                  id="height"
-                  type="number"
-                  placeholder="175"
-                  value={data.height || ''}
-                  onChange={(e) =>
-                    setData((d) => ({
-                      ...d,
-                      height: e.target.value
-                        ? parseFloat(e.target.value)
-                        : undefined,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="hr-max">
-                  {m.onboarding_athlete_info_hr_max()}
-                </Label>
-                <Input
-                  id="hr-max"
-                  type="number"
-                  placeholder="190"
-                  value={data.hrMax || ''}
-                  onChange={(e) =>
-                    setData((d) => ({
-                      ...d,
-                      hrMax: e.target.value
-                        ? Number.parseInt(e.target.value)
-                        : undefined,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-              <div>
-                <Label htmlFor="hr-rest">
-                  {m.onboarding_athlete_info_hr_rest()}
-                </Label>
-                <Input
-                  id="hr-rest"
-                  type="number"
-                  placeholder="50"
-                  value={data.hrRest || ''}
-                  onChange={(e) =>
-                    setData((d) => ({
-                      ...d,
-                      hrRest: e.target.value
-                        ? Number.parseInt(e.target.value)
-                        : undefined,
-                    }))
-                  }
-                  className="mt-2"
-                />
-              </div>
-            </div>
-          </div>
-        );
-
-      case 'connectors':
-        return (
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {m.onboarding_connectors_title()}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                {m.onboarding_connectors_subtitle()}
-              </p>
-            </div>
-            <ConnectorsList
-              showSkip
-              onSkip={handleSkip}
-              oauthConnectSource="onboarding"
+  const screen = (() => {
+    switch (current) {
+      case 'role':
+        return {
+          body: (
+            <RoleStep
+              role={answers.role}
+              onSelect={(role) => advance({ role })}
             />
-          </div>
-        );
-
-      case 'athlete-invitations':
-        return (
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {m.onboarding_athlete_invitations_title()}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                {m.onboarding_athlete_invitations_subtitle()}
-              </p>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="athlete-emails">
-                  {m.onboarding_athlete_invitations_title()}
-                </Label>
-                <Textarea
-                  id="athlete-emails"
-                  placeholder={m.onboarding_athlete_invitations_placeholder()}
-                  value={data.athleteEmails.join('\n')}
-                  onChange={(e) =>
-                    setData((d) => ({
-                      ...d,
-                      athleteEmails: e.target.value
-                        .split('\n')
-                        .map((email) => email.trim()),
-                    }))
-                  }
-                  className="mt-2 min-h-[120px]"
-                />
-              </div>
-              <Button variant="ghost" onClick={handleSkip} className="w-full">
-                {m.onboarding_athlete_invitations_skip()}
+          ),
+          footer: null,
+        };
+      case 'team':
+        return {
+          body: (
+            <TeamStep
+              teamSize={answers.teamSize}
+              onSelect={(teamSize) => advance({ teamSize })}
+            />
+          ),
+          footer: (
+            <Button
+              variant="ghost"
+              className="h-11 w-full"
+              onClick={() => advance({}, { skipped: true })}
+            >
+              {m.onboarding_skip()}
+            </Button>
+          ),
+        };
+      case 'invite-athletes':
+        return {
+          body: (
+            <>
+              <StepHeader
+                title={m.onboarding_invite_athletes_title()}
+                subtitle={m.onboarding_invite_athletes_subtitle()}
+              />
+              <CoachJoinLinkCard />
+              <EmailListInput
+                id="onboarding-athlete-emails"
+                label={m.onboarding_invite_athletes_emails()}
+                emails={answers.athleteEmails}
+                onChange={(athleteEmails) => update({ athleteEmails })}
+              />
+            </>
+          ),
+          footer: (
+            <>
+              <Button className="h-12 w-full" onClick={() => advance()}>
+                {m.onboarding_continue()}
               </Button>
-            </div>
-          </div>
-        );
-
-      case 'acquisition-source':
-        return (
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div className="text-center">
-              <h2 className="text-xl sm:text-2xl font-bold">
-                {m.onboarding_acquisition_title()}
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-                {m.onboarding_acquisition_subtitle()}
-              </p>
-            </div>
-            <div className="grid gap-2 sm:gap-3" role="radiogroup">
-              {ACQUISITION_SOURCES.map((source) => {
-                const selected = data.acquisitionSource === source;
-                return (
-                  <button
-                    key={source}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() =>
-                      setData((d) => ({
-                        ...d,
-                        acquisitionSource: selected ? undefined : source,
-                      }))
-                    }
-                    className={cn(
-                      'flex min-h-11 items-center gap-2 sm:gap-3 rounded-lg border-2 px-3 py-2 sm:px-4 text-left transition-colors',
-                      selected
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50',
-                    )}
-                  >
-                    <CheckCircle2
-                      className={cn(
-                        'h-5 w-5 shrink-0',
-                        selected ? 'text-primary' : 'text-muted-foreground',
-                      )}
-                    />
-                    <span className="font-medium">
-                      {ACQUISITION_SOURCE_LABELS[source]()}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        );
-
-      case 'complete':
-        return (
-          <div className="flex flex-col items-center gap-4 sm:gap-6 text-center">
-            <CheckCircle2 className="h-12 w-12 sm:h-16 sm:w-16 text-green-600 dark:text-green-400" />
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              {m.onboarding_complete_title()}
-            </h1>
-            <p className="text-muted-foreground text-base sm:text-lg">
-              {m.onboarding_complete_subtitle()}
-            </p>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const canProceed = () => {
-    if (currentStep === 'role-selection') {
-      return data.roles.length > 0;
-    }
-    return true;
-  };
-
-  if (!currentStep) {
-    return null;
-  }
-
-  return (
-    <div className="fixed top-0 left-0 z-50 flex h-full min-h-dvh w-full flex-col items-center justify-center overflow-y-auto bg-background p-4 pt-[calc(1rem+var(--safe-top))] pb-[calc(1rem+var(--safe-bottom))] sm:p-6">
-      <div className="mb-4 sm:mb-8">
-        <img
-          src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}
-          alt="OpenAthlete"
-          className="h-6 sm:h-8"
-        />
-      </div>
-      <div className="w-full max-w-lg">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="rounded-lg border bg-card p-4 sm:p-8 shadow-sm overflow-y-auto max-h-[calc(100vh-80px)] sm:max-h-[calc(100vh-100px)]"
-          >
-            {renderStep()}
-            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
               <Button
                 variant="ghost"
-                onClick={handlePrevious}
-                disabled={currentStepIndex === 0}
-                className="w-full sm:w-auto order-2 sm:order-1"
+                className="h-11 w-full"
+                onClick={() =>
+                  advance({ athleteEmails: [] }, { skipped: true })
+                }
               >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                {m.onboarding_previous()}
+                {m.onboarding_later()}
+              </Button>
+            </>
+          ),
+        };
+      case 'sports':
+        return {
+          body: (
+            <SportsStep
+              sports={answers.sports}
+              onChange={(sports) => update({ sports })}
+            />
+          ),
+          footer: (
+            <>
+              <Button
+                className="h-12 w-full"
+                disabled={answers.sports.length === 0}
+                onClick={() => advance()}
+              >
+                {m.onboarding_continue()}
               </Button>
               <Button
-                onClick={handleNext}
-                disabled={!canProceed() || completeOnboardingMutation.isPending}
-                isLoading={completeOnboardingMutation.isPending}
-                className="w-full sm:w-auto order-1 sm:order-2"
+                variant="ghost"
+                className="h-11 w-full"
+                onClick={() => advance({}, { skipped: true })}
               >
-                {currentStep === 'complete'
-                  ? m.onboarding_complete_continue()
-                  : currentStep === 'welcome'
-                    ? m.onboarding_welcome_next()
-                    : m.onboarding_next()}
-                {currentStep !== 'complete' && currentStep !== 'welcome' && (
-                  <ChevronRight className="h-4 w-4 ml-2" />
-                )}
+                {m.onboarding_skip()}
               </Button>
+            </>
+          ),
+        };
+      case 'goal':
+        return {
+          body: (
+            <GoalStep
+              goal={answers.goal}
+              raceDistance={answers.raceDistance}
+              raceDate={answers.raceDate}
+              today={today}
+              onGoal={(goal) =>
+                goal === 'RACE' ? update({ goal }) : advance({ goal })
+              }
+              onRace={({ distance, date }) =>
+                update({
+                  ...(distance !== undefined && { raceDistance: distance }),
+                  ...(date !== undefined && { raceDate: date }),
+                })
+              }
+            />
+          ),
+          footer:
+            answers.goal === 'RACE' ? (
+              <>
+                <Button
+                  className="h-12 w-full"
+                  disabled={!answers.raceDistance || !answers.raceDate}
+                  onClick={() => advance()}
+                >
+                  {m.onboarding_continue()}
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="h-11 w-full"
+                  onClick={() => advance({ raceDate: '' })}
+                >
+                  {m.onboarding_race_no_date()}
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="ghost"
+                className="h-11 w-full"
+                onClick={() => advance({}, { skipped: true })}
+              >
+                {m.onboarding_skip()}
+              </Button>
+            ),
+        };
+      case 'connect':
+        return {
+          body: (
+            <ConnectStep
+              connected={connected}
+              isLoadingConnected={isLoadingConnected}
+            />
+          ),
+          footer:
+            connected.length > 0 ? (
+              <Button className="h-12 w-full" onClick={() => advance()}>
+                {m.onboarding_continue()}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                className="h-11 w-full"
+                onClick={() => advance({}, { skipped: true })}
+              >
+                {m.onboarding_connect_none()}
+              </Button>
+            ),
+        };
+      case 'hours':
+        return {
+          body: (
+            <HoursStep
+              hours={answers.hours}
+              onSelect={(hours) => advance({ hours })}
+            />
+          ),
+          footer: (
+            <Button
+              variant="ghost"
+              className="h-11 w-full"
+              onClick={() => advance({}, { skipped: true })}
+            >
+              {m.onboarding_skip()}
+            </Button>
+          ),
+        };
+      case 'invite-coach':
+        return {
+          body: (
+            <InviteCoachStep
+              email={answers.coachEmail}
+              onChange={(coachEmail) => update({ coachEmail })}
+            />
+          ),
+          footer: (
+            <>
+              <Button
+                className="h-12 w-full"
+                disabled={!isEmail(answers.coachEmail.trim())}
+                onClick={() => advance()}
+              >
+                {m.onboarding_invite_coach_send()}
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-11 w-full"
+                onClick={() => advance({ coachEmail: '' }, { skipped: true })}
+              >
+                {m.onboarding_later()}
+              </Button>
+            </>
+          ),
+        };
+      case 'source':
+        return {
+          body: (
+            <SourceStep
+              source={answers.source}
+              onSelect={(source) => finish({ source }, false)}
+            />
+          ),
+          footer: (
+            <Button
+              variant="ghost"
+              className="h-11 w-full"
+              disabled={complete.isPending}
+              isLoading={complete.isPending}
+              onClick={() => finish({ source: null }, true)}
+            >
+              {m.onboarding_skip()}
+            </Button>
+          ),
+        };
+      case 'done':
+        return {
+          body: (
+            <DoneStep
+              athlete={isAthlete}
+              coach={isCoach}
+              athleteId={athlete?.athleteId}
+              hasDevice={connected.length > 0}
+              importing={!!importing}
+              race={race}
+              onConnect={() => {
+                clearProgress();
+                navigate(
+                  `${getPath(['dashboard', 'settings', 'root'])}?tab=connectors`,
+                );
+              }}
+            />
+          ),
+          footer: (
+            <Button className="h-12 w-full" onClick={leave}>
+              {isAthlete
+                ? m.onboarding_done_open_calendar()
+                : m.onboarding_done_open_coach()}
+            </Button>
+          ),
+        };
+    }
+  })();
+
+  // The last screen is not a question: the bar counts the others
+  const questions = path.length - 1;
+  const canGoBack =
+    current !== 'done' && current !== 'role' && history.length > 0;
+
+  return (
+    <div className="bg-background fixed inset-0 z-50 flex flex-col overflow-y-auto pt-[var(--safe-top)] pb-[var(--safe-bottom)]">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 sm:px-6 sm:py-8">
+        <header className="flex min-h-14 items-center gap-3 py-2">
+          {current === 'role' ? (
+            <img
+              src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}
+              alt="OpenAthlete"
+              className="h-6"
+            />
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-11 shrink-0"
+              onClick={goBack}
+              disabled={!canGoBack}
+              aria-label={m.onboarding_back()}
+            >
+              <ChevronLeft className="size-5" />
+            </Button>
+          )}
+          {current !== 'done' && current !== 'role' && (
+            <div
+              className="flex flex-1 gap-1"
+              role="progressbar"
+              aria-valuemin={1}
+              aria-valuemax={questions}
+              aria-valuenow={stepIndex + 1}
+              aria-label={m.onboarding_progress({
+                current: stepIndex + 1,
+                total: questions,
+              })}
+            >
+              {Array.from({ length: questions }).map((_, index) => (
+                <span
+                  key={index}
+                  className={cn(
+                    'h-1 flex-1 rounded-full transition-colors duration-300',
+                    index <= stepIndex ? 'bg-primary' : 'bg-border',
+                  )}
+                />
+              ))}
             </div>
-          </motion.div>
+          )}
+        </header>
+
+        {showImport && importing && (
+          <div className="bg-secondary text-muted-foreground mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-xs">
+            <span className="bg-chart-5 size-2 shrink-0 animate-pulse rounded-full" />
+            <span className="truncate">
+              {m.onboarding_import_running({
+                provider: connectorProviderLabelMap[importing.provider],
+              })}
+              {imported && imported.totals.count > 0 && (
+                <>
+                  {' · '}
+                  {m.onboarding_import_activities({
+                    count: imported.totals.count,
+                  })}
+                </>
+              )}
+            </span>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.main
+            key={current}
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
+            transition={{ duration: 0.22 }}
+            className="flex flex-1 flex-col gap-5 pt-2 pb-4"
+          >
+            {screen.body}
+            {current === 'role' && (
+              <div className="mt-auto flex justify-center pt-4">
+                <LanguageSwitcher buttonVariant="secondary" showLabelOnMobile />
+              </div>
+            )}
+          </motion.main>
         </AnimatePresence>
-        <div className="mt-4 flex justify-center">
-          <LanguageSwitcher buttonVariant="secondary" showLabelOnMobile />
-        </div>
+
+        {screen.footer && (
+          <footer className="bg-background sticky bottom-0 flex flex-col gap-1 pt-2 pb-4">
+            {screen.footer}
+          </footer>
+        )}
       </div>
     </div>
   );

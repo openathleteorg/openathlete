@@ -38,6 +38,18 @@ const contextOutput = z.object({
     today: z.string().describe("Today's date in the athlete's time zone"),
     weekday: z.string(),
     isYou: z.boolean(),
+    practicedSports: z
+      .array(z.string())
+      .optional()
+      .describe('Sports the athlete said they practise'),
+    trainingGoal: z
+      .enum(['RACE', 'PROGRESS', 'RESTART', 'FOLLOW_COACH'])
+      .optional()
+      .describe('What the athlete came for, as they said at sign-up'),
+    weeklyTrainingHours: z
+      .enum(['UNDER_3', 'FROM_3_TO_6', 'FROM_6_TO_10', 'OVER_10'])
+      .optional()
+      .describe('Time the athlete said they can train each week'),
   }),
   access: z.object({
     scopes: z.array(z.string()),
@@ -191,7 +203,16 @@ export const registerAthleteTools: ToolRegistrar = (server, ctx, deps) => {
         ] = await Promise.all([
           deps.prisma.athlete.findUniqueOrThrow({
             where: { athleteId: id },
-            select: { user: { select: { gender: true } } },
+            select: {
+              user: {
+                select: {
+                  gender: true,
+                  practicedSports: true,
+                  trainingGoal: true,
+                  weeklyTrainingHours: true,
+                },
+              },
+            },
           }),
           deps.prisma.trainingZone.findMany({
             where: { athleteId: id },
@@ -264,6 +285,15 @@ export const registerAthleteTools: ToolRegistrar = (server, ctx, deps) => {
             today: scope.today,
             weekday: WEEKDAYS[new Date(`${scope.today}T12:00:00Z`).getUTCDay()],
             isYou: scope.isSelf,
+            ...(profile.user.practicedSports.length > 0 && {
+              practicedSports: profile.user.practicedSports,
+            }),
+            ...(profile.user.trainingGoal && {
+              trainingGoal: profile.user.trainingGoal,
+            }),
+            ...(profile.user.weeklyTrainingHours && {
+              weeklyTrainingHours: profile.user.weeklyTrainingHours,
+            }),
           },
           access: { scopes: ctx.principal.scopes, canWrite: ctx.can('write') },
           metrics: Object.values(latest)

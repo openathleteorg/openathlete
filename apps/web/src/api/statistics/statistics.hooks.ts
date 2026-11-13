@@ -42,9 +42,12 @@ export const useStatisticsFiltersQuery = (athleteId: number) =>
 export const useStatisticsOverviewQuery = (
   params: StatisticsSectionParams & { compareFrom?: Date; compareTo?: Date },
   enabled: boolean,
+  /** Follows an import that brings activities in, false otherwise */
+  refetchInterval: number | false = false,
 ) =>
   useQuery({
     ...sectionOptions(enabled),
+    refetchInterval,
     queryFn: () => StatisticsAPI.getOverview(params),
     queryKey: [
       statisticsKeys.overview,

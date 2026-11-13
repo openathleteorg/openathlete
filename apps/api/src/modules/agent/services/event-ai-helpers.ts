@@ -303,6 +303,40 @@ ${zoneList
     .join('\n');
 }
 
+const WEEKLY_HOURS_TEXT: Record<string, string> = {
+  UNDER_3: 'under 3 hours',
+  FROM_3_TO_6: '3 to 6 hours',
+  FROM_6_TO_10: '6 to 10 hours',
+  OVER_10: 'over 10 hours',
+};
+
+const GOAL_TEXT: Record<string, string> = {
+  RACE: 'preparing a race',
+  PROGRESS: 'improving their fitness',
+  RESTART: 'getting back to training after a break or an injury',
+  FOLLOW_COACH: "following their coach's plan",
+};
+
+/**
+ * What the athlete said about their training at sign-up, for the prompt.
+ * Empty when they skipped every question.
+ */
+export function buildTrainingProfileContext(profile: {
+  practicedSports: string[];
+  trainingGoal: string | null;
+  weeklyTrainingHours: string | null;
+}): string {
+  const lines = [
+    profile.practicedSports.length > 0 &&
+      `  Sports practised: ${profile.practicedSports.join(', ')}`,
+    profile.trainingGoal &&
+      `  Goal: ${GOAL_TEXT[profile.trainingGoal] ?? profile.trainingGoal}`,
+    profile.weeklyTrainingHours &&
+      `  Time available per week: ${WEEKLY_HOURS_TEXT[profile.weeklyTrainingHours] ?? profile.weeklyTrainingHours}`,
+  ].filter((line): line is string => typeof line === 'string');
+  return lines.join('\n');
+}
+
 /**
  * Build metrics context string for prompt
  */

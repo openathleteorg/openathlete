@@ -11,6 +11,7 @@ import type { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import type { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import {
+  buildTrainingProfileContext,
   buildZonesContext,
   normalizeGoalDuration,
   repsAsPoolLengths,
@@ -60,6 +61,34 @@ describe('buildZonesContext', () => {
     expect(context).toContain(
       'Values: 132-142 (sports: RUNNING, TRAIL_RUNNING), 120-135\n',
     );
+  });
+});
+
+describe('buildTrainingProfileContext', () => {
+  it('describes what the athlete told at sign-up', () => {
+    expect(
+      buildTrainingProfileContext({
+        practicedSports: ['RUNNING', 'CYCLING'],
+        trainingGoal: 'RACE',
+        weeklyTrainingHours: 'FROM_3_TO_6',
+      }),
+    ).toBe(
+      [
+        '  Sports practised: RUNNING, CYCLING',
+        '  Goal: preparing a race',
+        '  Time available per week: 3 to 6 hours',
+      ].join('\n'),
+    );
+  });
+
+  it('is empty when every question was skipped', () => {
+    expect(
+      buildTrainingProfileContext({
+        practicedSports: [],
+        trainingGoal: null,
+        weeklyTrainingHours: null,
+      }),
+    ).toBe('');
   });
 });
 

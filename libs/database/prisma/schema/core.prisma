@@ -31,6 +31,14 @@ model User {
   onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
   /// How the user heard of OpenAthlete, asked during onboarding (optional)
   acquisitionSource   AcquisitionSource? @map("acquisition_source")
+  /// Sports the athlete said they practise, asked during onboarding
+  practicedSports     SportType[]  @default([]) @map("practiced_sports")
+  /// What the athlete came for (optional)
+  trainingGoal        TrainingGoal? @map("training_goal")
+  /// Time the athlete can train each week (optional)
+  weeklyTrainingHours WeeklyTrainingHours? @map("weekly_training_hours")
+  /// How many athletes the coach follows (optional)
+  coachTeamSize       CoachTeamSize? @map("coach_team_size")
   /// Token of the coach's shareable join link. Created on first request,
   /// replaced to revoke the previous link.
   coachJoinToken      String?      @unique @map("coach_join_token")

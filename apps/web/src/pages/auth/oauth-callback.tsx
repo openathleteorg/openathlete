@@ -4,6 +4,7 @@ import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import {
   AnalyticsEvent,
+  type OauthConnectSource,
   analyticsErrorCodeFromUnknown,
   consumeOauthConnectSource,
 } from '@/utils/analytics-events';
@@ -43,6 +44,13 @@ async function enableActivityDescription(grantedScope: string | null) {
   }
 }
 
+/** Where the connection was started: the onboarding picks up from there */
+function pathAfterConnect(source: OauthConnectSource) {
+  return source === 'onboarding'
+    ? getPath(['dashboard', 'onboarding'])
+    : getPath(['dashboard', 'settings']);
+}
+
 export function OAuthCallbackPage() {
   const { provider } = useParams();
   const [searchParams] = useSearchParams();
@@ -62,7 +70,7 @@ export function OAuthCallbackPage() {
         await enableActivityDescription(scope ?? null);
         await queryClient.invalidateQueries();
       }
-      nav(getPath(['dashboard', 'settings']));
+      nav(pathAfterConnect(source));
     },
     onError: (error) => {
       takeDescriptionIntent();
@@ -74,7 +82,7 @@ export function OAuthCallbackPage() {
         error_code: analyticsErrorCodeFromUnknown(error),
       });
       toast.error(error.message);
-      nav(getPath(['dashboard', 'settings']));
+      nav(pathAfterConnect(source));
     },
   });
 
@@ -96,11 +104,12 @@ export function OAuthCallbackPage() {
         source,
         error_code: 'invalid_oauth_callback',
       });
+      return source;
     };
 
     if (!(code && provider && validProviders.includes(finalProvider))) {
-      failInvalid();
-      nav(getPath(['dashboard', 'settings']));
+      const source = failInvalid();
+      nav(pathAfterConnect(source));
       toast.error(m.invalid_provider());
       return;
     }
@@ -120,7 +129,7 @@ export function OAuthCallbackPage() {
         error_code: 'missing_code_verifier',
       });
       toast.error(m.oauth_garmin_code_verifier_missing());
-      nav(getPath(['dashboard', 'settings']));
+      nav(pathAfterConnect(source));
       return;
     }
 

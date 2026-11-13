@@ -2,7 +2,6 @@ import { useInstanceInfoQuery } from '@/api/instance';
 import {
   useDisconnectProviderMutation,
   useGetConnectedProvidersQuery,
-  useGetOAuthUriMutation,
 } from '@/api/provider';
 import { GarminLogo, StravaIcon } from '@/assets/icons';
 import { CorosLogo, PolarLogo, SuuntoLogo } from '@/assets/icons/providers';
@@ -16,16 +15,10 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
-import {
-  AnalyticsEvent,
-  type OauthConnectSource,
-  setOauthConnectSourceForRedirect,
-} from '@/utils/analytics-events';
+import { type OauthConnectSource } from '@/utils/analytics-events';
 import { connectorProviderLabelMap } from '@/utils/label-map/core/connector-provider.label-map';
-import { openOAuthUrl } from '@/utils/oauth';
 import { CheckCircle2, Link2, Link2Off } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
-import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { ConnectorProvider } from '@openathlete/shared';
@@ -33,6 +26,7 @@ import { ConnectorProvider } from '@openathlete/shared';
 import { ConnectorsUnavailable } from './connectors-unavailable';
 import { CorosRegionDialog } from './coros-region-dialog';
 import { offeredProviders } from './offered-providers';
+import { useProviderConnect } from './use-provider-connect';
 
 interface ConnectorsListProps {
   supportedProviders?: ConnectorProvider[];
@@ -57,7 +51,6 @@ export function ConnectorsList({
   oauthConnectSource = 'settings',
 }: ConnectorsListProps) {
   const posthog = usePostHog();
-  const [corosRegionOpen, setCorosRegionOpen] = useState(false);
   const {
     data: connectedProviders = [],
     isLoading: isLoadingConnectedAccounts,
@@ -71,27 +64,13 @@ export function ConnectorsList({
     connectedProviders.map((account) => account.provider),
   );
 
-  const getOAuthUriMutation = useGetOAuthUriMutation({
-    onSuccess: async (response, { provider }) => {
-      setOauthConnectSourceForRedirect(oauthConnectSource);
-      posthog?.capture(AnalyticsEvent.provider_connect_initiated, {
-        provider,
-        source: oauthConnectSource,
-      });
-      // For PKCE providers (like Garmin), store codeVerifier in localStorage
-      // Using localStorage instead of sessionStorage to persist across OAuth redirects
-      if (response.codeVerifier) {
-        const storageKey = `oauth_code_verifier_${provider.toUpperCase()}`;
-        localStorage.setItem(storageKey, response.codeVerifier);
-      } else if (provider.toUpperCase() === 'GARMIN') {
-        console.error('Garmin OAuth: codeVerifier not found in response');
-      }
-      await openOAuthUrl(response.uri);
-    },
-    onError: (error) => {
-      toast.error(error.message || m.failed_to_initiate_connection());
-    },
-  });
+  const {
+    connect: handleConnect,
+    connectCoros,
+    corosRegionOpen,
+    setCorosRegionOpen,
+    isPending: isStartingConnection,
+  } = useProviderConnect(oauthConnectSource);
 
   const disconnectMutation = useDisconnectProviderMutation({
     onSuccess: (_, provider) => {
@@ -112,14 +91,6 @@ export function ConnectorsList({
 
   const isConnected = (provider: ConnectorProvider) => {
     return connectedProviders.some((p) => p.provider === provider);
-  };
-
-  const handleConnect = (provider: ConnectorProvider) => {
-    if (provider === 'COROS') {
-      setCorosRegionOpen(true);
-      return;
-    }
-    getOAuthUriMutation.mutate({ provider });
   };
 
   const handleDisconnect = (provider: ConnectorProvider) => {
@@ -171,7 +142,7 @@ export function ConnectorsList({
           providers.map((provider) => {
             const connected = isConnected(provider);
             const isLoading =
-              getOAuthUriMutation.isPending ||
+              isStartingConnection ||
               disconnectMutation.isPending ||
               isLoadingConnected;
 
@@ -254,10 +225,7 @@ export function ConnectorsList({
       <CorosRegionDialog
         open={corosRegionOpen}
         onOpenChange={setCorosRegionOpen}
-        onSelect={(region) => {
-          setCorosRegionOpen(false);
-          getOAuthUriMutation.mutate({ provider: 'COROS', region });
-        }}
+        onSelect={connectCoros}
       />
       {showSkip && onSkip && (
         <Button variant="ghost" onClick={onSkip} className="w-full">

@@ -28,11 +28,14 @@ import {
   PasswordResetDto,
   PasswordResetRequestDto,
   SignupAttribution,
+  TARGET_RACE_PRESETS,
+  TargetRaceDto,
   UpdateAccountDto,
 } from '@openathlete/shared';
 
 import { Language } from 'src/common/constants/languages.constant';
 import { maskEmail } from 'src/common/utils/mask-email';
+import { zonedInstant } from 'src/common/utils/time-zone';
 import { SendEmailEvent } from 'src/events';
 import {
   AnalyticsService,
@@ -161,6 +164,10 @@ export class UserService {
         emailRecap: true,
         emailNewsConsentAt: true,
         acquisitionSource: true,
+        practicedSports: true,
+        trainingGoal: true,
+        weeklyTrainingHours: true,
+        coachTeamSize: true,
         createdAt: true,
       },
     });
@@ -447,6 +454,10 @@ export class UserService {
         supporterNudgeSeenAt: data.supporterNudgeSeen ? new Date() : undefined,
         emailTips: data.emailTips,
         emailRecap: data.emailRecap,
+        practicedSports: data.practicedSports as SportType[] | undefined,
+        trainingGoal: data.trainingGoal,
+        weeklyTrainingHours: data.weeklyTrainingHours,
+        coachTeamSize: data.coachTeamSize,
         emailNewsConsentAt:
           data.emailNews === undefined
             ? undefined
@@ -468,6 +479,10 @@ export class UserService {
         emailTips: true,
         emailRecap: true,
         emailNewsConsentAt: true,
+        practicedSports: true,
+        trainingGoal: true,
+        weeklyTrainingHours: true,
+        coachTeamSize: true,
       },
     });
   };
@@ -559,17 +574,24 @@ export class UserService {
     user: AuthUser,
     data: CompleteOnboardingDto,
   ) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Metrics are stored by day, in UTC
+    const now = new Date();
+    const today = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+    );
 
-    // Update user roles, gender, and mark onboarding as completed
-    await this.prisma.user.update({
+    const updated = await this.prisma.user.update({
       where: { userId: user.userId },
       data: {
         gender: data.gender as Gender | undefined,
         acquisitionSource: data.acquisitionSource,
+        practicedSports: data.practicedSports as SportType[] | undefined,
+        trainingGoal: data.trainingGoal,
+        weeklyTrainingHours: data.weeklyTrainingHours,
+        coachTeamSize: data.coachTeamSize,
         onboardingCompleted: true,
       },
+      select: { timeZone: true },
     });
 
     // Get athlete record
@@ -642,6 +664,14 @@ export class UserService {
       });
     }
 
+    if (data.targetRace && data.roles.includes('ATHLETE')) {
+      await this.createTargetRace(
+        athlete.athleteId,
+        data.targetRace,
+        updated.timeZone ?? 'UTC',
+      );
+    }
+
     // Invite coach if provided
     if (data.coachEmail && data.roles.includes('ATHLETE')) {
       await this.coachInvitationService.createInvitation(
@@ -670,6 +700,36 @@ export class UserService {
 
     return { success: true };
   };
+
+  /**
+   * The race the athlete prepares, told during onboarding: it starts the
+   * calendar with a goal. Races have no time, so noon keeps it on the right
+   * day whatever the time zone.
+   */
+  private async createTargetRace(
+    athleteId: number,
+    race: TargetRaceDto,
+    timeZone: string,
+  ) {
+    const preset = TARGET_RACE_PRESETS[race.distance];
+    const startDate = zonedInstant(race.date, '12:00', timeZone);
+    await this.prisma.event.create({
+      data: {
+        athleteId,
+        type: 'COMPETITION',
+        name: race.name ?? preset.name,
+        startDate,
+        endDate: new Date(startDate.getTime() + 60 * 60 * 1000),
+        competition: {
+          create: {
+            sport: preset.sport as SportType,
+            goalDistance: preset.distance,
+            priority: 'A',
+          },
+        },
+      },
+    });
+  }
 
   public deleteAccount = async (user: AuthUser) => {
     await this.accountDeletionService.deleteAccount(user.userId);

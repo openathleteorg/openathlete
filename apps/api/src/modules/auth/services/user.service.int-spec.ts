@@ -1,6 +1,7 @@
 import { ConflictException } from '@nestjs/common';
 
 import { Prisma } from '@openathlete/database';
+import { SPORT_TYPE } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -130,6 +131,81 @@ describe('UserService.completeOnboarding (PostgreSQL)', () => {
       acquisitionSource: 'AI_ASSISTANT',
       onboardingCompleted: true,
     });
+  });
+
+  it('stores the training profile and puts the target race on the calendar', async () => {
+    const { userId } = await service.createAccount({
+      email: 'racer@example.com',
+      password: 'Racer-Passw0rd',
+      firstName: 'Ra',
+      lastName: 'Cer',
+    });
+    await prisma.user.update({
+      where: { userId },
+      data: { timeZone: 'Pacific/Auckland' },
+    });
+
+    await service.completeOnboarding({ userId } as never, {
+      roles: ['ATHLETE'],
+      practicedSports: [SPORT_TYPE.RUNNING, SPORT_TYPE.TRAIL_RUNNING],
+      trainingGoal: 'RACE',
+      weeklyTrainingHours: 'FROM_6_TO_10',
+      targetRace: { distance: 'MARATHON', date: '2027-04-11', name: 'Paris' },
+    });
+
+    await expect(
+      prisma.user.findUniqueOrThrow({
+        where: { userId },
+        select: {
+          practicedSports: true,
+          trainingGoal: true,
+          weeklyTrainingHours: true,
+          coachTeamSize: true,
+        },
+      }),
+    ).resolves.toEqual({
+      practicedSports: ['RUNNING', 'TRAIL_RUNNING'],
+      trainingGoal: 'RACE',
+      weeklyTrainingHours: 'FROM_6_TO_10',
+      coachTeamSize: null,
+    });
+    const race = await prisma.event.findFirstOrThrow({
+      where: { athlete: { userId }, type: 'COMPETITION' },
+      include: { competition: true },
+    });
+    expect(race.name).toBe('Paris');
+    // Noon in Auckland on the day of the race (UTC+12 in April)
+    expect(race.startDate.toISOString()).toBe('2027-04-11T00:00:00.000Z');
+    expect(race.competition).toMatchObject({
+      sport: 'RUNNING',
+      goalDistance: 42195,
+      priority: 'A',
+    });
+  });
+
+  it('puts no race on the calendar of a coach who only coaches', async () => {
+    const { userId } = await service.createAccount({
+      email: 'coach@example.com',
+      password: 'Coach-Passw0rd',
+      firstName: 'Co',
+      lastName: 'Ach',
+    });
+
+    await service.completeOnboarding({ userId } as never, {
+      roles: ['COACH'],
+      coachTeamSize: 'FROM_6_TO_20',
+      targetRace: { distance: '10K', date: '2027-04-11' },
+    });
+
+    await expect(
+      prisma.event.count({ where: { athlete: { userId } } }),
+    ).resolves.toBe(0);
+    await expect(
+      prisma.user.findUniqueOrThrow({
+        where: { userId },
+        select: { coachTeamSize: true },
+      }),
+    ).resolves.toEqual({ coachTeamSize: 'FROM_6_TO_20' });
   });
 
   it('records the signup attribution once, and not after the onboarding', async () => {

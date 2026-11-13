@@ -13,6 +13,36 @@ enum Gender {
   @@map("gender")
 }
 
+/// What the athlete came for, asked during onboarding
+enum TrainingGoal {
+  RACE
+  PROGRESS
+  RESTART
+  FOLLOW_COACH
+
+  @@map("training_goal")
+}
+
+/// Time the athlete can train each week, asked during onboarding
+enum WeeklyTrainingHours {
+  UNDER_3
+  FROM_3_TO_6
+  FROM_6_TO_10
+  OVER_10
+
+  @@map("weekly_training_hours")
+}
+
+/// How many athletes a coach follows, asked during onboarding
+enum CoachTeamSize {
+  STARTING
+  FROM_1_TO_5
+  FROM_6_TO_20
+  OVER_20
+
+  @@map("coach_team_size")
+}
+
 /// How a user heard of OpenAthlete, asked during onboarding
 enum AcquisitionSource {
   REDDIT

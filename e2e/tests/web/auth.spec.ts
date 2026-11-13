@@ -98,10 +98,9 @@ test('takes a new account to the onboarding after another one logged out', async
   await page.click('button[type="submit"]');
 
   await expect(
-    page.getByRole('heading', { name: 'Welcome to OpenAthlete!' }),
+    page.getByRole('heading', { name: 'Welcome to OpenAthlete' }),
   ).toBeVisible();
-  await page.getByRole('button', { name: 'Get Started' }).click();
-  await expect(page.getByText('What describes you best?')).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Train/ })).toBeVisible();
   await expect(page).toHaveURL(/\/dashboard\/onboarding/);
 });
 
@@ -128,7 +127,7 @@ test('records where a new account came from, as the website link says', async ({
   );
   await page.click('button[type="submit"]');
   await expect(
-    page.getByRole('heading', { name: 'Welcome to OpenAthlete!' }),
+    page.getByRole('heading', { name: 'Welcome to OpenAthlete' }),
   ).toBeVisible();
   expect((await recorded).status()).toBe(204);
 

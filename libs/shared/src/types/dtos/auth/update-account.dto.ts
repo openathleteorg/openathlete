@@ -4,8 +4,9 @@ import { isTimeZone } from '../../../utils/date';
 import { calendarDisplaySchema } from '../core/calendar-display.dto';
 import { hiddenActivityTracksSchema } from '../core/hidden-activity-tracks.dto';
 import { personNameSchema } from './person-name';
+import { trainingProfileSchema } from './training-profile.dto';
 
-export const updateAccountDtoSchema = z.object({
+export const updateAccountDtoSchema = trainingProfileSchema.extend({
   firstName: personNameSchema.optional(),
   lastName: personNameSchema.optional(),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),

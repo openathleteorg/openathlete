@@ -32,6 +32,7 @@ import {
   SettingsRow,
   SettingsSection,
 } from './settings-section';
+import { TrainingProfileSection } from './training-profile-section';
 import { TrainingRemindersSection } from './training-reminders-section';
 
 export function ProfileTab() {
@@ -123,6 +124,7 @@ export function ProfileTab() {
       {athlete?.athleteId && (
         <SessionValidationSettingsCard athleteId={athlete.athleteId} />
       )}
+      <TrainingProfileSection />
       {athlete?.athleteId && <TrainingRemindersSection />}
       <EmailPreferencesSection />
       <PrivacySection />
