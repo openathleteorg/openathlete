@@ -222,11 +222,16 @@ export class ClubService {
     return this.get(userId, clubId);
   }
 
-  async delete(userId: number, clubId: number): Promise<void> {
+  async requireOwner(userId: number, clubId: number): Promise<void> {
     const role = await requireClubRole(this.prisma, clubId, userId);
     if (role !== ClubRole.OWNER) {
       throw new ForbiddenException('Only the owner can delete the club');
     }
+  }
+
+  /** Callers stop the club's sessions first (ClubSessionService.stopAll) */
+  async delete(userId: number, clubId: number): Promise<void> {
+    await this.requireOwner(userId, clubId);
     await this.prisma.$transaction(async (tx) => {
       await dissolveClubAccess(tx, clubId);
       await tx.club.delete({ where: { clubId } });

@@ -228,6 +228,41 @@ describe('club sessions (PostgreSQL)', () => {
     expect(await eventsOf(ana.athleteId)).toHaveLength(4);
   });
 
+  it('takes the dates to come out of the calendars when the club goes', async () => {
+    const { clubId, coach, ana, groupId } = await setUp();
+    const { clubSessionId } = await sessions.create(coach.session, clubId, {
+      title: 'Track',
+      groupId,
+      firstDate: addDaysToDateKey(today(), -14),
+      startTime: '19:00',
+      durationMinutes: 60,
+      weekly: true,
+      timeZone: TZ,
+    });
+    // A date already past stays in the history
+    const past = await prisma.event.create({
+      data: {
+        athleteId: ana.athleteId,
+        type: 'NOTE',
+        name: 'Track',
+        startDate: new Date(Date.now() - 7 * 86_400_000),
+        endDate: new Date(Date.now() - 7 * 86_400_000 + 3_600_000),
+        clubSessionId,
+        note: { create: { description: '' } },
+      },
+    });
+    expect((await eventsOf(ana.athleteId)).length).toBeGreaterThan(1);
+
+    await sessions.stopAll(clubId);
+    await clubs.delete(coach.userId, clubId);
+    expect((await eventsOf(ana.athleteId)).map((e) => e.eventId)).toEqual([
+      past.eventId,
+    ]);
+    expect(sendPushNotification).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: ana.userId }),
+    );
+  });
+
   it('counts who comes, from the answers in their calendars', async () => {
     const { clubId, coach, ana, groupId } = await setUp();
     const { clubSessionId } = await sessions.create(coach.session, clubId, {

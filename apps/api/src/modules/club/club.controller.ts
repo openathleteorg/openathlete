@@ -61,6 +61,7 @@ import { UserTypeGuard } from 'src/modules/auth/guards';
 
 import { ClubInvitationService } from './club-invitation.service';
 import { ClubJoinLinkService } from './club-join-link.service';
+import { ClubSessionService } from './club-session.service';
 import { ClubService } from './club.service';
 
 const NOT_A_MEMBER = {
@@ -77,6 +78,7 @@ export class ClubController {
     private readonly clubs: ClubService,
     private readonly joinLinks: ClubJoinLinkService,
     private readonly invitations: ClubInvitationService,
+    private readonly sessions: ClubSessionService,
   ) {}
 
   @Get()
@@ -136,7 +138,7 @@ export class ClubController {
   @ApiOperation({
     summary: 'Delete a club (owner)',
     description:
-      'Removes the club, its groups and the coaching links it created. Members keep their accounts and data, and links coaches and athletes made themselves.',
+      "Removes the club, its groups, its sessions' dates to come and the coaching links it created. Members keep their accounts and data, and links coaches and athletes made themselves.",
   })
   @ApiResponse({ status: 204, description: 'Deleted' })
   @ApiResponse({ status: 403, description: 'Not the owner' })
@@ -145,6 +147,8 @@ export class ClubController {
     @JwtUser() user: AuthUser,
     @Param(new ZodValidationPipe(clubIdParamsSchema)) params: ClubIdParamsDto,
   ): Promise<void> {
+    await this.clubs.requireOwner(user.userId, params.clubId);
+    await this.sessions.stopAll(params.clubId);
     await this.clubs.delete(user.userId, params.clubId);
   }
 

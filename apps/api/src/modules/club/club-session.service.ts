@@ -240,6 +240,26 @@ export class ClubSessionService {
     if (next) await this.notify(informed, 'canceled', session, next);
   }
 
+  /**
+   * Before the club goes: each session stops as when a coach stops it, so
+   * its dates to come leave the calendars instead of staying there without
+   * their club, and the athletes who had them are told.
+   */
+  async stopAll(clubId: number): Promise<void> {
+    const sessions = await this.prisma.clubSession.findMany({
+      where: { clubId },
+      include: { club: { select: { name: true } } },
+    });
+    for (const session of sessions) {
+      const informed = await this.removeUpcoming(session.clubSessionId);
+      await this.prisma.clubSession.delete({
+        where: { clubSessionId: session.clubSessionId },
+      });
+      const next = [...informed.values()][0]?.date;
+      if (next) await this.notify(informed, 'canceled', session, next);
+    }
+  }
+
   /** Calls one occurrence off: it leaves the athletes' calendars */
   async cancelOccurrence(
     user: AuthUser,
