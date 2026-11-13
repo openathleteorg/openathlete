@@ -1,5 +1,6 @@
 'use client';
 
+import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import {
   useCreateEventTemplateMutation,
   useGetMyEventTemplatesQuery,
@@ -19,6 +20,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
+import { addDays, format } from 'date-fns';
 import { FileText, Folder, FolderPlus, Search, X } from 'lucide-react';
 import * as React from 'react';
 import { useMemo, useState } from 'react';
@@ -42,6 +44,7 @@ import { DraggableTemplate } from '../create-event-from-template-dialog/draggabl
 import { DroppableFolder } from '../create-event-from-template-dialog/droppable-folder';
 import { FolderDialog } from '../create-event-from-template-dialog/folder-dialog';
 import { RootDropZone } from '../create-event-from-template-dialog/root-drop-zone';
+import { PlanForAthletesDialog } from '../plan-for-athletes/plan-for-athletes-dialog';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { useSharedDnd } from './contexts/shared-dnd-context';
@@ -90,6 +93,12 @@ export function TemplateLibrarySidebar() {
     if (!templates) return [];
     return templates.filter((t) => !t.folderId);
   }, [templates]);
+
+  const { data: coached } = useGetMyCoachedAthletesQuery();
+  const [planningTemplate, setPlanningTemplate] =
+    useState<EventTemplate | null>(null);
+  // Coaches plan a template for several athletes at once
+  const planForAthletes = coached?.length ? setPlanningTemplate : undefined;
 
   const handleUseTemplate = (template: EventTemplate) => {
     // In the library sidebar, clicking "use" will open the template for editing
@@ -370,6 +379,9 @@ export function TemplateLibrarySidebar() {
                         template={template}
                         onCreate={() => handleUseTemplate(template)}
                         onEdit={() => setEditingTemplate(template)}
+                        onPlanForAthletes={
+                          planForAthletes && (() => planForAthletes(template))
+                        }
                         showUseButton={false}
                       />
                     ))}
@@ -400,6 +412,7 @@ export function TemplateLibrarySidebar() {
                           childFolders={getChildFolders(folder, folders || [])}
                           onCreate={handleUseTemplate}
                           onEdit={setEditingTemplate}
+                          onPlanForAthletes={planForAthletes}
                           refetchFolders={refetchFolders}
                           activeId={activeId}
                           allFolders={folders || []}
@@ -414,6 +427,9 @@ export function TemplateLibrarySidebar() {
                           template={template}
                           onCreate={() => handleUseTemplate(template)}
                           onEdit={() => setEditingTemplate(template)}
+                          onPlanForAthletes={
+                            planForAthletes && (() => planForAthletes(template))
+                          }
                           showUseButton={false}
                         />
                       ))}
@@ -456,6 +472,23 @@ export function TemplateLibrarySidebar() {
         </div>
       </div>
 
+      {planningTemplate && (
+        <PlanForAthletesDialog
+          open
+          onClose={() => setPlanningTemplate(null)}
+          source={{
+            kind: 'template',
+            eventTemplateId: planningTemplate.eventTemplateId,
+          }}
+          label={planningTemplate.event?.name ?? ''}
+          defaultDate={format(addDays(new Date(), 1), 'yyyy-MM-dd')}
+          defaultTime={
+            planningTemplate.event
+              ? format(new Date(planningTemplate.event.startDate), 'HH:mm')
+              : undefined
+          }
+        />
+      )}
       {editingTemplate?.event && (
         <CreateEventDialog
           open={!!editingTemplate}

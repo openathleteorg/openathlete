@@ -10,10 +10,14 @@ import {
   EventNormalizationFactorDto,
   EventSearchResult,
   GetEventWeatherResponseDto,
+  PlanForAthletesDto,
+  PlanForAthletesPreviewDto,
+  PlanForAthletesResultDto,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
   SeasonEvent,
   ShiftEventsDto,
+  UndoEventBatchResultDto,
   UpdateEventDto,
 } from '@openathlete/shared';
 
@@ -246,6 +250,23 @@ export class EventAPI {
   }
 
   /** Moves planned events by whole days; returns them moved */
+  static async previewPlanForAthletes(
+    body: PlanForAthletesDto,
+  ): Promise<PlanForAthletesPreviewDto> {
+    return (await client.post(routes.event.planForAthletesPreview, body)).data;
+  }
+
+  static async planForAthletes(
+    body: PlanForAthletesDto,
+  ): Promise<PlanForAthletesResultDto> {
+    return (await client.post(routes.event.planForAthletes, body)).data;
+  }
+
+  /** Deletes the sessions of a batch that are still to do */
+  static async undoBatch(batchId: string): Promise<UndoEventBatchResultDto> {
+    return (await client.delete(routes.event.batch(batchId))).data;
+  }
+
   static async moveEvents(body: ShiftEventsDto): Promise<Event[]> {
     const res = await client.post(routes.event.moveEvents, body);
     return (res.data as Event[]).map(mapEvent);

@@ -3,7 +3,14 @@ import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Edit, FileText, GripVertical, StickyNote, Trash } from 'lucide-react';
+import {
+  Edit,
+  FileText,
+  GripVertical,
+  StickyNote,
+  Trash,
+  Users,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { EventTemplate } from '@openathlete/shared';
@@ -22,6 +29,8 @@ type Props = {
   template: EventTemplate;
   onCreate: () => void;
   onEdit: () => void;
+  /** Plans the template for several athletes; absent without athletes */
+  onPlanForAthletes?: () => void;
   depth?: number;
   showUseButton?: boolean;
 };
@@ -30,6 +39,7 @@ export function DraggableTemplate({
   template,
   onCreate,
   onEdit,
+  onPlanForAthletes,
   depth = 0,
   showUseButton = true,
 }: Props) {
@@ -142,6 +152,18 @@ export function DraggableTemplate({
 
       {isCompact ? (
         <div className="absolute inset-0 flex items-center justify-end gap-1 ml-10 pr-2 bg-gradient-to-l from-card via-card/95 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+          {onPlanForAthletes && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onPlanForAthletes}
+              aria-label={m.plan_for_athletes_template_action()}
+              title={m.plan_for_athletes_template_action()}
+              data-template-plan-for-athletes
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+          )}
           <Button variant="outline" size="icon" onClick={onEdit}>
             <Edit className="h-4 w-4" />
           </Button>
@@ -158,6 +180,18 @@ export function DraggableTemplate({
           <Button variant="outline" onClick={onCreate}>
             {m.use()}
           </Button>
+          {onPlanForAthletes && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onPlanForAthletes}
+              aria-label={m.plan_for_athletes_template_action()}
+              title={m.plan_for_athletes_template_action()}
+              data-template-plan-for-athletes
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+          )}
           <Button variant="outline" size="icon" onClick={onEdit}>
             <Edit className="h-4 w-4" />
           </Button>

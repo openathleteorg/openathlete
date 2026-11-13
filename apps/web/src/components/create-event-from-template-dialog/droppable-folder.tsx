@@ -49,6 +49,8 @@ type Props = {
   childFolders: EventTemplateFolder[];
   onCreate: (template: EventTemplate) => void;
   onEdit: (template: EventTemplate) => void;
+  /** Plans a template for several athletes; absent without athletes */
+  onPlanForAthletes?: (template: EventTemplate) => void;
   refetchFolders: () => void;
   depth?: number;
   activeId?: string | null;
@@ -62,6 +64,7 @@ export function DroppableFolder({
   childFolders,
   onCreate,
   onEdit,
+  onPlanForAthletes,
   refetchFolders,
   depth = 0,
   activeId,
@@ -263,6 +266,7 @@ export function DroppableFolder({
                 )}
                 onCreate={onCreate}
                 onEdit={onEdit}
+                onPlanForAthletes={onPlanForAthletes}
                 refetchFolders={refetchFolders}
                 depth={depth + 1}
                 activeId={activeId}
@@ -278,6 +282,9 @@ export function DroppableFolder({
                 template={template}
                 onCreate={() => onCreate(template)}
                 onEdit={() => onEdit(template)}
+                onPlanForAthletes={
+                  onPlanForAthletes && (() => onPlanForAthletes(template))
+                }
                 depth={depth + 1}
                 showUseButton={showUseButton}
               />
