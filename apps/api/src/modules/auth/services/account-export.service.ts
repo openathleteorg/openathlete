@@ -80,6 +80,7 @@ export class AccountExportService {
     write('coaching', await this.coaching(userId));
     write('clubs', await this.clubs(userId, athleteId));
     write('templates', await this.templates(userId));
+    write('trainingPlanLibrary', await this.trainingPlanLibrary(userId));
     write('messages', await this.messages(userId));
     write(
       'activityAlertSettings',
@@ -283,6 +284,25 @@ export class AccountExportService {
         folder: { select: { name: true } },
         event: { include: EVENT_INCLUDES },
       },
+    });
+  }
+
+  /** Library plans, in the format they import back from */
+  private async trainingPlanLibrary(userId: number) {
+    return this.prisma.trainingPlanTemplate.findMany({
+      where: { userId },
+      select: {
+        name: true,
+        description: true,
+        goal: true,
+        sport: true,
+        level: true,
+        weeks: true,
+        content: true,
+        createdAt: true,
+        folder: { select: { name: true } },
+      },
+      orderBy: { trainingPlanTemplateId: 'asc' },
     });
   }
 

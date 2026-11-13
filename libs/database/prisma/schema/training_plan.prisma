@@ -28,18 +28,64 @@ model TrainingPlan {
   endDate     DateTime   @map("end_date")
   /// Plan status: DRAFT, ACTIVE, COMPLETED, or ARCHIVED
   status      PlanStatus @default(DRAFT)
+  /// Applied from the library: the date the user chose fixed the start or
+  /// the end (race day). Null for plans imported before the library
+  anchor       PlanAnchor?
+  /// Day plan weeks start on (0 = Sunday … 6 = Saturday)
+  weekStartsOn Int         @default(1) @map("week_starts_on")
 
   // relationships
-  athlete   Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
-  athleteId Int     @map("athlete_id")
-  cycles    Cycle[]
+  athlete    Athlete               @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId  Int                   @map("athlete_id")
+  /// The library plan it was applied from, if it still exists
+  template   TrainingPlanTemplate? @relation(fields: [templateId], references: [trainingPlanTemplateId], onDelete: SetNull)
+  templateId Int?                  @map("template_id")
+  cycles     Cycle[]
+  sessions   Event[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([athleteId, status])
+  @@index([templateId])
   @@map("training_plan")
+}
+
+/// Training plan in a user's library.
+/// Not tied to dates: its content is laid out by week number and weekday
+/// (the format of the website plans, `seoPlanDataSchema` in libs/shared), with
+/// targets relative to zones, so it fits whoever it is applied to.
+model TrainingPlanTemplate {
+  // primary key
+  trainingPlanTemplateId Int @id @default(autoincrement()) @map("training_plan_template_id")
+
+  // fields
+  name        String
+  description String     @default("")
+  goal        String     @default("")
+  /// Main sport, for the library filters
+  sport       SportType?
+  level       PlanLevel?
+  /// Length in weeks, kept in step with the content
+  weeks       Int
+  /// Cycles → weeks → sessions, validated by `trainingPlanContentSchema`
+  content     Json
+
+  // relationships
+  user     User                 @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId   Int                  @map("user_id")
+  folder   EventTemplateFolder? @relation(fields: [folderId], references: [eventTemplateFolderId], onDelete: SetNull)
+  folderId Int?                 @map("folder_id")
+  applied  TrainingPlan[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([userId])
+  @@index([folderId])
+  @@map("training_plan_template")
 }
 
 /// Training week.

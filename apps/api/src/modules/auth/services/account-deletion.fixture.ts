@@ -33,13 +33,14 @@ export const accountFixtureSql = [
   `INSERT INTO token (token, user_id, type, updated_at) VALUES ('reset', 1001, 'PASSWORD_RESET', ${now})`,
   `INSERT INTO subscription (plan, user_id, updated_at) VALUES ('SUPPORTER', 1001, ${now})`,
 
-  // Training plan, cycle and week
-  `INSERT INTO training_plan (training_plan_id, name, goal, start_date, end_date, athlete_id, updated_at) VALUES (3901, 'Plan', 'Marathon', '2026-01-01', '2026-06-01', 2001, ${now})`,
+  // A library plan, applied to the athlete: plan, cycle and week
+  `INSERT INTO training_plan_template (training_plan_template_id, name, weeks, content, user_id, updated_at) VALUES (3900, 'Library plan', 1, '{"cycles":[]}', 1001, ${now})`,
+  `INSERT INTO training_plan (training_plan_id, name, goal, start_date, end_date, athlete_id, template_id, anchor, updated_at) VALUES (3901, 'Plan', 'Marathon', '2026-01-01', '2026-06-01', 2001, 3900, 'START', ${now})`,
   `INSERT INTO cycle (cycle_id, name, start_date, end_date, athlete_id, training_plan_id, updated_at) VALUES (3902, 'Base', '2026-01-01', '2026-02-01', 2001, 3901, ${now})`,
   `INSERT INTO training_week (training_week_id, week_number, start_date, end_date, cycle_id, updated_at) VALUES (3903, 1, '2026-01-05', '2026-01-12', 3902, ${now})`,
 
   // Planned training with a structured workout exported to a watch
-  `INSERT INTO event (event_id, start_date, end_date, name, type, athlete_id, training_week_id, updated_at) VALUES (3001, '2026-01-06', '2026-01-06', 'Intervals', 'TRAINING', 2001, 3903, ${now})`,
+  `INSERT INTO event (event_id, start_date, end_date, name, type, athlete_id, training_week_id, training_plan_id, updated_at) VALUES (3001, '2026-01-06', '2026-01-06', 'Intervals', 'TRAINING', 2001, 3903, 3901, ${now})`,
   `INSERT INTO event_training (event_training_id, event_id, sport) VALUES (3101, 3001, 'RUNNING')`,
   `INSERT INTO workout (workout_id, event_training_id, updated_at) VALUES (3201, 3101, ${now})`,
   `INSERT INTO workout_step (workout_step_id, workout_id, order_index, step_type, duration_type, updated_at) VALUES (3301, 3201, 0, 'WARMUP', 'TIME', ${now}), (3302, 3201, 1, 'REPEAT', 'OPEN', ${now})`,

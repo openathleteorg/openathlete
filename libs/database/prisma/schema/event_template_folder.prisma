@@ -27,6 +27,7 @@ model EventTemplateFolder {
   parentFolderId Int?                  @map("parent_folder_id")
   childFolders   EventTemplateFolder[] @relation("FolderHierarchy")
   eventTemplates EventTemplate[]
+  trainingPlanTemplates TrainingPlanTemplate[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

@@ -194,6 +194,9 @@ export class AccountDeletionService {
     // Clubs pass to an admin, or go; memberships, group seats and their own
     // groups cascade with the user
     await releaseOwnedClubs(tx, userId);
+    // Cascades too; before the folders it may sit in. Plans applied from
+    // them stay with their athletes
+    await tx.trainingPlanTemplate.deleteMany({ where: { userId } });
     await tx.eventTemplateFolder.deleteMany({ where: { userId } });
     await tx.token.deleteMany({ where: { userId } });
     await tx.subscription.deleteMany({ where: { userId } });

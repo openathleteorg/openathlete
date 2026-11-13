@@ -5,7 +5,16 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 
 import { ProviderAccount } from '@openathlete/database';
+import {
+  TrainingPlanApplyJobStatus,
+  TrainingPlanApplyResult,
+  TrainingPlanApplyTarget,
+} from '@openathlete/shared';
 
+import type {
+  ApplyOptions,
+  PlanToApply,
+} from '../core/services/training-plan-library.service';
 import { ImportedActivity } from '../providers-sync/base/provider-import.interface';
 
 export interface ActivityImportJobData {
@@ -71,6 +80,17 @@ export interface StravaDescriptionJobData {
   eventActivityId: number;
 }
 
+/** A library plan applied to several athletes, each in its own transaction */
+export interface TrainingPlanApplyJobData {
+  /** Who asked: only they can read the job */
+  userId: number;
+  plan: PlanToApply;
+  targets: TrainingPlanApplyTarget[];
+  options: ApplyOptions;
+  /** Filled as athletes are done, so a retry skips them */
+  results: TrainingPlanApplyResult[];
+}
+
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
@@ -100,7 +120,41 @@ export class QueueService {
     private readonly duplicateActivitiesQueue: Queue<DuplicateActivitiesJobData>,
     @InjectQueue('strava-description')
     private readonly stravaDescriptionQueue: Queue<StravaDescriptionJobData>,
+    @InjectQueue('training-plan-apply')
+    private readonly trainingPlanApplyQueue: Queue<TrainingPlanApplyJobData>,
   ) {}
+
+  async addTrainingPlanApplyJob(
+    data: Omit<TrainingPlanApplyJobData, 'results'>,
+  ): Promise<string> {
+    const job = await this.trainingPlanApplyQueue.add('apply', {
+      ...data,
+      results: [],
+    });
+    return String(job.id);
+  }
+
+  /** Null when the job is unknown, or someone else's */
+  async getTrainingPlanApplyJob(
+    jobId: string,
+    userId: number,
+  ): Promise<TrainingPlanApplyJobStatus | null> {
+    const job = await this.trainingPlanApplyQueue.getJob(jobId);
+    if (!job || job.data.userId !== userId) return null;
+    const state = await job.getState();
+    return {
+      jobId,
+      state: (['waiting', 'active', 'completed', 'failed'] as const).includes(
+        state as 'waiting',
+      )
+        ? (state as TrainingPlanApplyJobStatus['state'])
+        : state === 'delayed' || state === 'prioritized'
+          ? 'waiting'
+          : 'unknown',
+      results: job.data.results,
+      error: job.failedReason ?? null,
+    };
+  }
 
   /**
    * One job per Strava activity: the import and a duplicate skip of the same
