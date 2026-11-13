@@ -1,3 +1,5 @@
+import { shots } from '@/assets/screenshots';
+import { SplitRow } from '@/components/features/kit';
 import {
   BreadcrumbListStructuredData,
   FAQPageStructuredData,
@@ -12,6 +14,7 @@ import {
 } from '@/components/site/layout-primitives';
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
+import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
 import { SELF_HOSTING_DOCS_URL } from '@/config';
 import {
   COACH_PRICING,
@@ -31,10 +34,7 @@ import {
 import { cn } from '@/utils/shadcn';
 import {
   ArrowRight,
-  CalendarPlus,
   FolderOpen,
-  LayoutDashboard,
-  MapPin,
   MessagesSquare,
   Server,
   ShieldCheck,
@@ -165,24 +165,9 @@ export default async function ClubsPage({ params }: Props) {
       body: m.clubspage_today_4_body(),
     },
     {
-      icon: <CalendarPlus />,
-      title: m.clubspage_today_5_title(),
-      body: m.clubspage_today_5_body(),
-    },
-    {
-      icon: <MapPin />,
-      title: m.clubspage_today_6_title(),
-      body: m.clubspage_today_6_body(),
-    },
-    {
       icon: <MessagesSquare />,
       title: m.clubspage_today_7_title(),
       body: m.clubspage_today_7_body(),
-    },
-    {
-      icon: <LayoutDashboard />,
-      title: m.clubspage_today_8_title(),
-      body: m.clubspage_today_8_body(),
     },
     {
       icon: <Watch />,
@@ -259,6 +244,80 @@ export default async function ClubsPage({ params }: Props) {
           </div>
         </Container>
       </section>
+
+      {/* In the app */}
+      <Section tone="paper">
+        <Container>
+          <SectionHeading
+            kicker={m.clubspage_app_kicker()}
+            title={m.clubspage_app_title()}
+            align="center"
+          />
+          <div className="mt-16 grid gap-24">
+            <SplitRow
+              as="h3"
+              title={m.clubspage_today_6_title()}
+              body={m.clubspage_today_6_body()}
+              visual={
+                <div className="relative pr-[18%] pb-10 sm:pr-[14%]">
+                  <Screenshot
+                    src={shots.clubSessions}
+                    alt={m.clubspage_shot_sessions()}
+                    sizes="(min-width: 1024px) 600px, 85vw"
+                  />
+                  <PhoneShot
+                    src={shots.mobileClubSession}
+                    alt={m.clubspage_shot_session_phone()}
+                    sizes="(min-width: 1024px) 200px, 30vw"
+                    className="absolute right-0 bottom-0 w-[30%] max-w-[12rem]"
+                  />
+                </div>
+              }
+            />
+            <SplitRow
+              as="h3"
+              flip
+              title={m.clubspage_today_5_title()}
+              body={m.clubspage_today_5_body()}
+              visual={
+                <div className="relative pr-[18%] pb-10 sm:pr-[14%]">
+                  <Screenshot
+                    src={shots.planForGroup}
+                    alt={m.clubspage_shot_plan()}
+                    sizes="(min-width: 1024px) 600px, 85vw"
+                  />
+                  <PhoneShot
+                    src={shots.mobilePlanForGroup}
+                    alt={m.clubspage_shot_plan_phone()}
+                    sizes="(min-width: 1024px) 200px, 30vw"
+                    className="absolute right-0 bottom-0 w-[30%] max-w-[12rem]"
+                  />
+                </div>
+              }
+            />
+            <SplitRow
+              as="h3"
+              title={m.clubspage_today_8_title()}
+              body={m.clubspage_today_8_body()}
+              visual={
+                <div className="relative pr-[18%] pb-10 sm:pr-[14%]">
+                  <Screenshot
+                    src={shots.clubDashboard}
+                    alt={m.clubspage_shot_dashboard()}
+                    sizes="(min-width: 1024px) 600px, 85vw"
+                  />
+                  <PhoneShot
+                    src={shots.mobileBroadcast}
+                    alt={m.clubspage_shot_broadcast_phone()}
+                    sizes="(min-width: 1024px) 200px, 30vw"
+                    className="absolute right-0 bottom-0 w-[30%] max-w-[12rem]"
+                  />
+                </div>
+              }
+            />
+          </div>
+        </Container>
+      </Section>
 
       {/* Two ways */}
       <Section>
@@ -477,7 +536,7 @@ export default async function ClubsPage({ params }: Props) {
       </Section>
 
       {/* What exists today */}
-      <Section tone="paper">
+      <Section>
         <Container>
           <SectionHeading
             kicker={m.clubspage_today_kicker()}
