@@ -7,21 +7,34 @@ import { ImageResponse } from 'next/og';
 import { join } from 'path';
 
 /**
- * Social card of every page, 1200 × 630, rendered at build time:
- * `/og/<locale><path>`, which `generateMetadata` in app/metadata.tsx points
- * og:image and twitter:image to.
+ * Social card of every page, 1200 × 630: `/og/<locale><path>`, which
+ * `generateMetadata` in app/metadata.tsx points og:image and twitter:image
+ * to.
+ *
+ * Rendered on the first request and cached until the next deployment, not
+ * at build time: the ~1,000 cards took most of the site's build minutes on
+ * Vercel. Paths that are not a page of the site get a 404, so random URLs
+ * cannot fill the cache. The files read at runtime here and in og-titles and
+ * site-routes are traced into the function by next.config.js.
  */
 /* eslint-disable react-refresh/only-export-components -- a route handler */
 export const dynamic = 'force-static';
-export const dynamicParams = false;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
-  return siteRoutes().flatMap(({ path, locales }) =>
-    locales.map((locale) => ({
-      locale,
-      path: path.split('/').filter(Boolean),
-    })),
+  return [];
+}
+
+let cardPaths: Set<string> | undefined;
+
+/** `<locale><path>` of every page that exists, built once per instance. */
+function isCardPath(locale: string, path: string): boolean {
+  cardPaths ??= new Set(
+    siteRoutes().flatMap((route) =>
+      route.locales.map((routeLocale) => `${routeLocale}${route.path}`),
+    ),
   );
+  return cardPaths.has(`${locale}${path}`);
 }
 
 const LOGO = `data:image/svg+xml;base64,${readFileSync(
@@ -33,11 +46,11 @@ export async function GET(
   { params }: { params: Promise<{ locale: string; path?: string[] }> },
 ) {
   const { locale, path = [] } = await params;
-  if (!isSupportedLocale(locale)) return new Response(null, { status: 404 });
-  const { kicker, title } = ogContent(
-    locale,
-    path.length ? `/${path.join('/')}` : '',
-  );
+  const pagePath = path.length ? `/${path.join('/')}` : '';
+  if (!isSupportedLocale(locale) || !isCardPath(locale, pagePath)) {
+    return new Response(null, { status: 404 });
+  }
+  const { kicker, title } = ogContent(locale, pagePath);
   const size = title.length > 70 ? 54 : title.length > 42 ? 64 : 76;
 
   return new ImageResponse(
