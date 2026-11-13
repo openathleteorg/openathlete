@@ -2389,7 +2389,7 @@
   "onboarding_race_triathlon": "Triathlon",
   "onboarding_race_other": "Anderer Wettkampf",
   "onboarding_connect_title": "Verbinde deine Uhr",
-  "onboarding_connect_subtitle": "Wir holen deine bisherigen Aktivitäten. Misst deine Uhr maximale Herzfrequenz und Ruhepuls, kommen sie mit: nichts einzutippen.",
+  "onboarding_connect_subtitle": "Wir holen deine letzten Aktivitäten, bis zu 3 Monate zurück. Misst deine Uhr maximale Herzfrequenz und Ruhepuls, kommen sie mit: nichts einzutippen.",
   "onboarding_connect_connected": "{provider} ist verbunden. Deine Aktivitäten kommen weiter an, während du fertig wirst.",
   "onboarding_connect_another": "Weiteres verbinden",
   "onboarding_connect_none": "Ich habe keine Uhr",

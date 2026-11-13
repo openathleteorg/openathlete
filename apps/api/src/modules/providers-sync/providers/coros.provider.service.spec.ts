@@ -277,6 +277,24 @@ describe('CorosProviderService', () => {
   });
 });
 
+describe('CorosProviderService limited import', () => {
+  it('walks back to the date it is given, not a year of empty windows', async () => {
+    const { service } = buildService();
+    const list = jest.spyOn(service, 'importActivities').mockResolvedValue([]);
+    const since = new Date(Date.now() - 90 * 24 * 3600 * 1000);
+
+    await expect(service.queueFullImport(account, { since })).resolves.toEqual({
+      queuedActivities: 0,
+      partial: true,
+    });
+
+    // Three 30-day windows cover the 90 days
+    expect(list).toHaveBeenCalledTimes(3);
+    const starts = list.mock.calls.map(([, options]) => options?.startDate);
+    expect(starts.at(-1)?.getTime()).toBe(since.getTime());
+  });
+});
+
 describe('corosIssuer', () => {
   it('maps each region to its fixed COROS host', () => {
     expect(corosIssuer('eu')).toBe('https://mcpeu.coros.com');

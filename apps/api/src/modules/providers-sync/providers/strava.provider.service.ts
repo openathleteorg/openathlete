@@ -30,6 +30,7 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
+  FullImportOptions,
   FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
@@ -370,7 +371,13 @@ export class StravaProviderService
         async (accessToken) => {
           const response = await axios.get<StravaSummaryActivity[]>(
             // 200 is the largest page Strava allows: 7x fewer rate-limited calls
-            `https://www.strava.com/api/v3/athlete/activities?page=${page}&per_page=200`,
+            // `after` lets Strava stop at the start date instead of paging
+            // through the whole history
+            `https://www.strava.com/api/v3/athlete/activities?page=${page}&per_page=200${
+              options?.startDate
+                ? `&after=${Math.floor(options.startDate.getTime() / 1000)}`
+                : ''
+            }`,
             {
               headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -561,14 +568,21 @@ export class StravaProviderService
    * Import initial activities from Strava when connecting
    * Fetches activities and adds them to the import queue
    */
-  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
+  async queueFullImport(
+    account: ProviderAccount,
+    { since }: FullImportOptions = {},
+  ): Promise<FullImportResult> {
     this.logger.log(
-      `Queueing Strava historical import for account ${account.providerAccountId}`,
+      `Queueing Strava historical import for account ${account.providerAccountId}${since ? ` since ${since.toISOString()}` : ''}`,
     );
+    // Only said when true: a whole-history result stays as it was
+    const partial = since ? { partial: true } : {};
 
     try {
-      // Fetch all activities using importActivities
-      const activities = await this.importActivities(account);
+      const activities = await this.importActivities(
+        account,
+        since ? { startDate: since } : undefined,
+      );
 
       this.logger.log(
         `Fetched ${activities.length} activities from Strava for account ${account.providerAccountId}`,
@@ -576,7 +590,7 @@ export class StravaProviderService
 
       if (activities.length === 0) {
         this.logger.log('No new activities to import');
-        return { queuedActivities: 0 };
+        return { queuedActivities: 0, ...partial };
       }
 
       const queued = await this.enqueueActivities(account, activities);
@@ -585,7 +599,7 @@ export class StravaProviderService
         `Successfully queued ${queued} activities for import (out of ${activities.length} total)`,
       );
 
-      return { queuedActivities: queued };
+      return { queuedActivities: queued, ...partial };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

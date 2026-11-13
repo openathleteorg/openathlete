@@ -14,6 +14,13 @@ import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error'
 export interface FullImportResult {
   queuedActivities: number;
   backfillRequested?: boolean;
+  /** Only the recent months were listed: the whole history is still to get */
+  partial?: boolean;
+}
+
+export interface FullImportOptions {
+  /** List only the activities since then */
+  since?: Date;
 }
 
 export interface OAuthTokenResponse {

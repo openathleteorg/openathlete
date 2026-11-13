@@ -2389,7 +2389,7 @@
   "onboarding_race_triathlon": "Triathlon",
   "onboarding_race_other": "Other race",
   "onboarding_connect_title": "Connect your watch",
-  "onboarding_connect_subtitle": "We bring in your past activities. If your watch measures your maximum and resting heart rate, they come too: nothing to type.",
+  "onboarding_connect_subtitle": "We bring in your recent activities, up to the last 3 months. If your watch measures your maximum and resting heart rate, they come too: nothing to type.",
   "onboarding_connect_connected": "{provider} is connected. Your activities keep arriving while you finish.",
   "onboarding_connect_another": "Connect another one",
   "onboarding_connect_none": "I don't have a watch",

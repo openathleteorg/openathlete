@@ -87,6 +87,28 @@ describe('ProviderFullImportProcessor', () => {
     });
   });
 
+  it('lists only the recent months when asked, and leaves the history to get', async () => {
+    const { prisma, strava, processor } = setup();
+    strava.queueFullImport.mockResolvedValue({
+      queuedActivities: 12,
+      partial: true,
+    });
+
+    await processor.process({
+      ...job(),
+      data: { providerAccountId: 7, since: '2026-08-15T00:00:00.000Z' },
+    } as unknown as Job<ProviderFullImportJobData>);
+
+    expect(strava.queueFullImport).toHaveBeenCalledWith(activeStrava, {
+      since: new Date('2026-08-15T00:00:00.000Z'),
+    });
+    // Not completed: the settings still offer the whole history
+    expect(prisma.providerAccount.update).toHaveBeenCalledWith({
+      where: { providerAccountId: 7 },
+      data: { fullImportRequestedAt: null },
+    });
+  });
+
   it('leaves a Garmin backfill open until its webhooks arrive', async () => {
     const { prisma, garmin, processor } = setup({
       ...activeStrava,

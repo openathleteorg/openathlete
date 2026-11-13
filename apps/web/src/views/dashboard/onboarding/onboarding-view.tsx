@@ -69,6 +69,31 @@ const LEGACY_STORAGE_KEYS = [
   'openathlete_onboarding_step',
 ];
 const VARIANT = 'v2';
+// The whole history costs provider quota shared by every user: the recent
+// months are enough to start, the settings offer the rest
+const ONBOARDING_IMPORT_MONTHS = 3;
+const IMPORT_REQUESTED_KEY = 'openathlete_onboarding_import_requested';
+
+/** Providers whose import the onboarding already asked for, on this device */
+function importRequested(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(IMPORT_REQUESTED_KEY) ?? '[]');
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberImportRequested(provider: string) {
+  try {
+    localStorage.setItem(
+      IMPORT_REQUESTED_KEY,
+      JSON.stringify([...new Set([...importRequested(), provider])]),
+    );
+  } catch {
+    // ignore
+  }
+}
 
 function loadProgress(): OnboardingProgress {
   try {
@@ -197,19 +222,23 @@ export function OnboardingView() {
     return () => window.removeEventListener('pagehide', emitAbandoned);
   }, [authenticated, posthog]);
 
-  // Connecting a device brings its history along, as the screen promises
-  const requestedImports = useRef(new Set<string>());
+  // Connecting a device brings its recent months along, as the screen
+  // promises. Once per provider: a limited import leaves the account ready
+  // for another, which a second visit must not spend quota on.
   useEffect(() => {
     if (finishedRef.current) return;
+    const requested = importRequested();
     for (const account of connected) {
       const eligible =
         getProviderSyncCapabilities(account.provider).supportsFullImport &&
         account.importActivitiesEnabled &&
         !account.fullImportRequestedAt &&
         !account.fullImportCompletedAt;
-      if (!eligible || requestedImports.current.has(account.provider)) continue;
-      requestedImports.current.add(account.provider);
-      ProviderAPI.importAllActivities(account.provider).catch(() => {
+      if (!eligible || requested.includes(account.provider)) continue;
+      rememberImportRequested(account.provider);
+      ProviderAPI.importAllActivities(account.provider, {
+        months: ONBOARDING_IMPORT_MONTHS,
+      }).catch(() => {
         // The settings offer it again; nothing to tell here
       });
     }

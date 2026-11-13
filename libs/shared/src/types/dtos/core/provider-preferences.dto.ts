@@ -17,3 +17,15 @@ export const providerPreferencesSchema = z
   });
 
 export type ProviderPreferencesDto = z.infer<typeof providerPreferencesSchema>;
+
+/**
+ * A historical import limited to the last months, as the onboarding asks:
+ * the whole history costs provider quota that is shared by every user.
+ * Without it, the import goes as far back as the provider allows.
+ */
+export const importAllActivitiesDtoSchema = z
+  .object({ months: z.number().int().min(1).max(24).optional() })
+  .optional();
+export type ImportAllActivitiesDto = z.infer<
+  typeof importAllActivitiesDtoSchema
+>;

@@ -2389,7 +2389,7 @@
   "onboarding_race_triathlon": "Triatlo",
   "onboarding_race_other": "Outra prova",
   "onboarding_connect_title": "Conecte seu relógio",
-  "onboarding_connect_subtitle": "Trazemos suas atividades anteriores. Se seu relógio mede a FC máxima e de repouso, elas vêm junto: nada para digitar.",
+  "onboarding_connect_subtitle": "Trazemos suas atividades recentes, até os últimos 3 meses. Se seu relógio mede a FC máxima e de repouso, elas vêm junto: nada para digitar.",
   "onboarding_connect_connected": "{provider} está conectado. Suas atividades continuam chegando enquanto você termina.",
   "onboarding_connect_another": "Conectar outro",
   "onboarding_connect_none": "Não tenho relógio",

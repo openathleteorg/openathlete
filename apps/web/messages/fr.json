@@ -2389,7 +2389,7 @@
   "onboarding_race_triathlon": "Triathlon",
   "onboarding_race_other": "Autre course",
   "onboarding_connect_title": "Connectez votre montre",
-  "onboarding_connect_subtitle": "Nous récupérons vos activités passées. Si votre montre mesure votre FC max et votre FC de repos, elles arrivent aussi : rien à saisir.",
+  "onboarding_connect_subtitle": "Nous récupérons vos activités récentes, jusqu'à 3 mois. Si votre montre mesure votre FC max et votre FC de repos, elles arrivent aussi : rien à saisir.",
   "onboarding_connect_connected": "{provider} est connecté. Vos activités continuent d'arriver pendant que vous terminez.",
   "onboarding_connect_another": "En connecter un autre",
   "onboarding_connect_none": "Je n'ai pas de montre",

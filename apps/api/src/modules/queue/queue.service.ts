@@ -16,6 +16,8 @@ export interface ActivityImportJobData {
 
 export interface ProviderFullImportJobData {
   providerAccountId: number;
+  /** ISO date: only the activities since then, not the whole history */
+  since?: string;
 }
 
 /** One entry of a Garmin ping or push notification */
@@ -270,7 +272,10 @@ export class QueueService {
    * activities takes minutes and many rate-limited provider calls, so it runs
    * in the worker rather than in the HTTP request.
    */
-  async addFullImportJob(providerAccountId: number): Promise<void> {
+  async addFullImportJob(
+    providerAccountId: number,
+    { since }: { since?: Date } = {},
+  ): Promise<void> {
     const jobId = `full-import-${providerAccountId}`;
     // A finished job keeps its id until it expires: remove it so a new
     // import can be queued (an active one is left alone)
@@ -284,7 +289,7 @@ export class QueueService {
     }
     await this.fullImportQueue.add(
       'full-import',
-      { providerAccountId },
+      { providerAccountId, ...(since && { since: since.toISOString() }) },
       { jobId },
     );
   }

@@ -41,8 +41,10 @@ import type { ApiEnvSchemaType } from '@openathlete/shared';
 import {
   COROS_REGIONS,
   CorosRegion,
+  ImportAllActivitiesDto,
   ProviderPreferencesDto,
   getProviderSyncCapabilities,
+  importAllActivitiesDtoSchema,
   isFullImportInProgress,
   providerPreferencesSchema,
 } from '@openathlete/shared';
@@ -64,6 +66,9 @@ import {
   StravaProviderService,
   hasStravaWriteScope,
 } from '../providers/strava.provider.service';
+
+// A limited import counts months as 30 days: a day either way is fine
+const MONTH_MS = 30 * 24 * 60 * 60 * 1000;
 
 function toConnectorProvider(provider: ConnectorProvider): ConnectorProvider {
   return provider as unknown as ConnectorProvider;
@@ -805,9 +810,26 @@ export class ProviderOAuthController {
     status: 404,
     description: 'Not found - provider account not found for user',
   })
+  @ApiBody({
+    required: false,
+    schema: {
+      type: 'object',
+      properties: {
+        months: {
+          type: 'integer',
+          minimum: 1,
+          maximum: 24,
+          description:
+            'Only the last months (Strava, COROS). The settings can then still ask for the whole history.',
+        },
+      },
+    },
+  })
   async importAllActivities(
     @JwtUser() user: AuthUser,
     @Param('provider') provider: string,
+    @Body(new ZodValidationPipe(importAllActivitiesDtoSchema))
+    body: ImportAllActivitiesDto,
   ) {
     const providerEnum = provider.toUpperCase() as ConnectorProvider;
     const { account } = await this.getProviderAccountForUser(
@@ -846,7 +868,11 @@ export class ProviderOAuthController {
       data: { fullImportRequestedAt: new Date(), fullImportCompletedAt: null },
     });
     try {
-      await this.queueService.addFullImportJob(account.providerAccountId);
+      await this.queueService.addFullImportJob(account.providerAccountId, {
+        since: body?.months
+          ? new Date(Date.now() - body.months * MONTH_MS)
+          : undefined,
+      });
     } catch (error) {
       await this.prisma.providerAccount.update({
         where: { providerAccountId: account.providerAccountId },

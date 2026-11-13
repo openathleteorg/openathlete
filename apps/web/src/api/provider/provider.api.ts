@@ -6,6 +6,7 @@ import {
   ConnectorProvider,
   CorosRegion,
   EmailLanguage,
+  ImportAllActivitiesDto,
   ProviderPreferencesDto,
 } from '@openathlete/shared';
 
@@ -105,9 +106,11 @@ export class ProviderAPI {
 
   static async importAllActivities(
     provider: ConnectorProvider,
+    options?: ImportAllActivitiesDto,
   ): Promise<ImportAllActivitiesResponse> {
     const res = await client.post(
       routes.provider.importAllActivities(provider),
+      options ?? {},
     );
     return res.data;
   }

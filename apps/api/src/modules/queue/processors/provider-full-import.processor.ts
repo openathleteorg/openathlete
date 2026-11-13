@@ -15,7 +15,10 @@ import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
-import { FullImportResult } from '../../providers-sync/base/base-provider.service';
+import {
+  FullImportOptions,
+  FullImportResult,
+} from '../../providers-sync/base/base-provider.service';
 import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
   CorosProviderService,
@@ -56,6 +59,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
 
   async process(job: Job<ProviderFullImportJobData>) {
     const { providerAccountId } = job.data;
+    const since = job.data.since ? new Date(job.data.since) : undefined;
     const account = await this.prisma.providerAccount.findUnique({
       where: { providerAccountId },
     });
@@ -72,7 +76,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
 
     let result: FullImportResult;
     try {
-      result = await this.runProviderImport(account);
+      result = await this.runProviderImport(account, { since });
     } catch (error) {
       // Out of quota: pause the whole queue, as the next accounts would be
       // refused too, and put the job back without spending an attempt
@@ -89,10 +93,13 @@ export class ProviderFullImportProcessor extends WorkerHost {
 
     await this.prisma.providerAccount.update({
       where: { providerAccountId },
-      data: {
-        // A Garmin backfill completes later, through webhooks
-        fullImportCompletedAt: result.backfillRequested ? null : new Date(),
-      },
+      data: result.partial
+        ? // The recent months are in: the settings still offer the rest
+          { fullImportRequestedAt: null }
+        : {
+            // A Garmin backfill completes later, through webhooks
+            fullImportCompletedAt: result.backfillRequested ? null : new Date(),
+          },
     });
 
     this.logger.log(
@@ -121,18 +128,23 @@ export class ProviderFullImportProcessor extends WorkerHost {
     }
   }
 
+  /**
+   * Garmin and Suunto serve the last month at most: the limit only matters
+   * to Strava and COROS, which go back years.
+   */
   private runProviderImport(
     account: ProviderAccount,
+    options: FullImportOptions,
   ): Promise<FullImportResult> {
     switch (account.provider) {
       case ConnectorProvider.STRAVA:
-        return this.stravaProviderService.queueFullImport(account);
+        return this.stravaProviderService.queueFullImport(account, options);
       case ConnectorProvider.GARMIN:
         return this.garminProviderService.queueFullImport(account);
       case ConnectorProvider.SUUNTO:
         return this.suuntoProviderService.queueFullImport(account);
       case ConnectorProvider.COROS:
-        return this.corosProviderService.queueFullImport(account);
+        return this.corosProviderService.queueFullImport(account, options);
       default:
         throw new Error(
           `Historical import is not available for ${account.provider}`,

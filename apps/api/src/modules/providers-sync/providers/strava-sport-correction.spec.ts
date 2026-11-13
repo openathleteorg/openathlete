@@ -76,6 +76,19 @@ describe('Strava full import', () => {
     ).toEqual(['s3']);
   });
 
+  it('lists only the activities since the date it is given', async () => {
+    const { service } = setup([]);
+    const list = jest
+      .spyOn(service, 'importActivities')
+      .mockResolvedValue([fetched('s1', SportType.RUNNING)]);
+    const since = new Date('2026-08-15T00:00:00Z');
+
+    const result = await service.queueFullImport(account, { since });
+
+    expect(list).toHaveBeenCalledWith(account, { startDate: since });
+    expect(result).toEqual({ queuedActivities: 1, partial: true });
+  });
+
   it('leaves the sport the athlete set on activities from elsewhere, and unknown sports', async () => {
     const { service, prisma } = setup([
       {

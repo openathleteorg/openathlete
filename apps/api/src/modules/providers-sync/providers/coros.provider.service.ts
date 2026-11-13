@@ -41,6 +41,7 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
+  FullImportOptions,
   FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
@@ -536,9 +537,13 @@ export class CorosProviderService
   /**
    * Queue the whole history. At 50 files a day it can't all arrive at once,
    * and an activity past the quota would be lost: it goes out in daily
-   * batches. The window walks back until a year without any activity.
+   * batches. The window walks back until a year without any activity, or
+   * until `since` when only the recent months are asked for.
    */
-  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
+  async queueFullImport(
+    account: ProviderAccount,
+    { since }: FullImportOptions = {},
+  ): Promise<FullImportResult> {
     if (account.importMetricsEnabled) {
       await this.queueService.addCorosMetricsJob(account.providerAccountId);
     }
@@ -546,9 +551,13 @@ export class CorosProviderService
     const activities: ImportedActivity[] = [];
     let endDate = new Date();
     let emptyWindows = 0;
-    while (emptyWindows < HISTORY_EMPTY_WINDOWS_LIMIT) {
+    while (
+      emptyWindows < HISTORY_EMPTY_WINDOWS_LIMIT &&
+      (!since || endDate > since)
+    ) {
+      const windowStart = endDate.getTime() - HISTORY_WINDOW_DAYS * DAY_MS;
       const startDate = new Date(
-        endDate.getTime() - HISTORY_WINDOW_DAYS * DAY_MS,
+        since ? Math.max(windowStart, since.getTime()) : windowStart,
       );
       const found = await this.importActivities(account, {
         startDate,
@@ -570,7 +579,10 @@ export class CorosProviderService
         batch * HISTORY_BATCH_DELAY_MS,
       );
     }
-    return { queuedActivities: missing.length };
+    return {
+      queuedActivities: missing.length,
+      ...(since && { partial: true }),
+    };
   }
 
   async importHistoryBatch(
