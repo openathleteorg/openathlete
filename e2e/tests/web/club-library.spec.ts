@@ -1,7 +1,7 @@
 import { type APIRequestContext, expect, test } from '@playwright/test';
 
 import { type TestUser, apiHeaders, createAthlete } from '../../support/api';
-import { signIn } from '../../support/browser';
+import { pageAs, signIn } from '../../support/browser';
 import { API_URL } from '../../support/env';
 import { trackPageProblems } from '../../support/page-health';
 
@@ -58,6 +58,7 @@ async function libraryOf(
 }
 
 test("a coach shares a template with the club, whose assistant uses it but can't change it", async ({
+  browser,
   page,
   request,
 }) => {
@@ -104,7 +105,12 @@ test("a coach shares a template with the club, whose assistant uses it but can't
 
   await page.locator('[data-library-switch]').click();
   await page.getByRole('option', { name: 'Trail Club library' }).click();
-  await expect(page.locator('[data-template="Hill sprints"]')).toBeVisible();
+  const sharedItem = page.locator('[data-template="Hill sprints"]');
+  await expect(sharedItem).toBeVisible();
+  // The owner edits it: the buttons the assistant must not have are here
+  await sharedItem.hover();
+  await expect(sharedItem.locator('[data-template-edit]')).toHaveCount(1);
+  await expect(page.locator('[data-library-new-folder]')).toHaveCount(1);
   expect(problems).toEqual([]);
 
   // Her own library still has hers; the club's has the copy
@@ -114,17 +120,24 @@ test("a coach shares a template with the club, whose assistant uses it but can't
   ]);
 
   // Ada sees it, without the buttons that would change it
-  await page.context().clearCookies();
-  await signIn(page, assistant);
-  problems = trackPageProblems(page);
-  await page.goto('/dashboard/calendar');
-  await page.getByRole('button', { name: 'Template Library' }).click();
-  await page.locator('[data-library-switch]').click();
-  await page.getByRole('option', { name: 'Trail Club library' }).click();
-  const template = page.locator('[data-template="Hill sprints"]');
+  const adaPage = await pageAs(browser, assistant);
+  problems = trackPageProblems(adaPage);
+  await adaPage.goto('/dashboard/calendar');
+  await adaPage.getByRole('button', { name: 'Template Library' }).click();
+  await adaPage.locator('[data-library-switch]').click();
+  await adaPage.getByRole('option', { name: 'Trail Club library' }).click();
+  const template = adaPage.locator('[data-template="Hill sprints"]');
   await expect(template).toBeVisible();
   await template.hover();
-  await expect(page.locator('[data-template-share-to-club]')).toHaveCount(0);
+  // Nothing that would change the club's library
+  for (const action of [
+    '[data-template-edit]',
+    '[data-template-delete]',
+    '[data-template-share-to-club]',
+  ]) {
+    await expect(template.locator(action)).toHaveCount(0);
+  }
+  await expect(adaPage.locator('[data-library-new-folder]')).toHaveCount(0);
   expect(problems).toEqual([]);
   const [shared] = (await (
     await request.get(`${API_URL}/event-template?clubId=${clubId}`, {

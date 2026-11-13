@@ -448,6 +448,7 @@ export function TemplateLibrarySidebar() {
                     size="icon"
                     onClick={() => setCreateFolderDialogOpen(true)}
                     className="flex-shrink-0"
+                    data-library-new-folder
                   >
                     <FolderPlus className="h-4 w-4" />
                   </Button>

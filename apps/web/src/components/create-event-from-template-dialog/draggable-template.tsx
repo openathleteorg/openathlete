@@ -186,13 +186,19 @@ export function DraggableTemplate({
           )}
           {!readOnly && (
             <>
-              <Button variant="outline" size="icon" onClick={onEdit}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onEdit}
+                data-template-edit
+              >
                 <Edit className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setDeleteDialogOpen(true)}
+                data-template-delete
               >
                 <Trash className="h-4 w-4" />
               </Button>
@@ -230,13 +236,19 @@ export function DraggableTemplate({
           )}
           {!readOnly && (
             <>
-              <Button variant="outline" size="icon" onClick={onEdit}>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onEdit}
+                data-template-edit
+              >
                 <Edit className="h-4 w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={() => setDeleteDialogOpen(true)}
+                data-template-delete
               >
                 <Trash className="h-4 w-4" />
               </Button>
