@@ -16,8 +16,9 @@ Sources, at the commits pinned in `sources.json`:
 
 | File | What |
 | --- | --- |
-| `names.json` | Exercise names in en, fr, es, it and pt-BR |
+| `names.json` | Exercise names in en, fr, es, it, pt-BR and de |
 | `steps-pt-BR.json` | Brazilian Portuguese instructions, which the dataset lacks |
+| `steps-de.json` | German instructions, which the dataset lacks |
 | `everkinetic-map.json` | The dataset exercise each Everkinetic drawing shows |
 | `everkinetic-only.json` | Everkinetic exercises the dataset lacks, translated |
 | `excluded.json` | Dataset exercises whose instructions are wrong, left out |

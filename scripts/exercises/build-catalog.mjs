@@ -7,7 +7,7 @@
 //   - everkinetic/data: start and end drawings (CC BY-SA 4.0), redrawn in
 //     currentColor so they follow the theme.
 //
-// The names in five languages, the matching between the two sources and the
+// The names in six languages, the matching between the two sources and the
 // translations the sources lack live in data/, written for OpenAthlete.
 //
 //   git clone https://github.com/hasaneyldrm/exercises-dataset /tmp/hy
@@ -30,7 +30,7 @@ if (!hyDir || !ekDir) {
   process.exit(1);
 }
 
-const LOCALES = ['en', 'fr', 'es', 'it', 'pt-BR'];
+const LOCALES = ['en', 'fr', 'es', 'it', 'pt-BR', 'de'];
 const read = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const hy = read(join(hyDir, 'data/exercises.json'));
 const ek = read(join(ekDir, 'dist/exercises.json'));
@@ -38,6 +38,7 @@ const names = read(join(here, 'data/names.json'));
 const ekMap = read(join(here, 'data/everkinetic-map.json'));
 const ekOnly = read(join(here, 'data/everkinetic-only.json'));
 const stepsPtBr = read(join(here, 'data/steps-pt-BR.json'));
+const stepsDe = read(join(here, 'data/steps-de.json'));
 const excluded = new Set(read(join(here, 'data/excluded.json')).ids);
 const popular = new Set(read(join(here, 'data/popular.json')).ids);
 
@@ -154,7 +155,9 @@ for (const entry of hy) {
       locale,
       locale === 'pt-BR'
         ? stepsPtBr[entry.id]
-        : (entry.instruction_steps?.[locale] ?? entry.instruction_steps?.en ?? []),
+        : locale === 'de'
+          ? stepsDe[entry.id]
+          : (entry.instruction_steps?.[locale] ?? entry.instruction_steps?.en ?? []),
     ]),
   );
   const ekId = ekByHy.get(entry.id);

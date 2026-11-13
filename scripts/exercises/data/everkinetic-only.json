@@ -5,7 +5,8 @@
    "fr": "Flexion et extension isométriques du cou",
    "es": "Flexión y extensión isométrica del cuello",
    "it": "Flessione ed estensione isometrica del collo",
-   "pt-BR": "Flexão e extensão isométrica do pescoço"
+   "pt-BR": "Flexão e extensão isométrica do pescoço",
+   "de": "Statische Nackenbeugung und -streckung"
   },
   "steps": {
    "en": [
@@ -42,6 +43,13 @@
     "Empurre a cabeça contra as mãos e contraia os músculos do pescoço.",
     "Não deixe a cabeça ir para a frente. Segure por pelo menos 30 segundos.",
     "Repita com as mãos atrás da cabeça, empurrando contra elas."
+   ],
+   "de": [
+    "Stell oder setz dich hin, den Kopf in neutraler Position.",
+    "Leg beide Hände auf die Stirn.",
+    "Drück den Kopf gegen die Hände und spann die Nackenmuskulatur an.",
+    "Lass den Kopf nicht nach vorn kippen. Halte die Spannung mindestens 30 Sekunden.",
+    "Wiederhole die Übung mit den Händen am Hinterkopf und drück dagegen."
    ]
   }
  },
@@ -51,7 +59,8 @@
    "fr": "Flexion latérale isométrique du cou",
    "es": "Flexión lateral isométrica del cuello",
    "it": "Flessione laterale isometrica del collo",
-   "pt-BR": "Flexão lateral isométrica do pescoço"
+   "pt-BR": "Flexão lateral isométrica do pescoço",
+   "de": "Statische seitliche Nackenbeugung"
   },
   "steps": {
    "en": [
@@ -83,6 +92,12 @@
     "Coloque a mão esquerda no lado esquerdo da cabeça, acima da orelha.",
     "Empurre a cabeça contra a mão sem movê-la.",
     "Repita com a mão direita no lado direito."
+   ],
+   "de": [
+    "Stell oder setz dich hin, den Kopf in neutraler Position.",
+    "Leg die linke Hand oberhalb des Ohrs an die linke Kopfseite.",
+    "Drück den Kopf gegen die Hand, ohne dass er sich bewegt.",
+    "Wiederhole die Übung mit der rechten Hand auf der rechten Seite."
    ]
   }
  },
@@ -92,7 +107,8 @@
    "fr": "Oiseau à un bras à la poulie",
    "es": "Elevación posterior a un brazo en polea",
    "it": "Alzata posteriore a un braccio ai cavi",
-   "pt-BR": "Elevação posterior unilateral no cabo"
+   "pt-BR": "Elevação posterior unilateral no cabo",
+   "de": "Einarmiges vorgebeugtes Rear-Delt-Heben am Kabelzug"
   },
   "steps": {
    "en": [
@@ -129,6 +145,13 @@
     "Eleve o braço direito para o lado, com o cotovelo levemente flexionado, até ficar paralelo ao chão.",
     "Desça lentamente até a posição inicial.",
     "Termine a série e troque de braço."
+   ],
+   "de": [
+    "Greif den Griff am unteren Kabelzug mit der rechten Hand.",
+    "Beug dich vor, bis dein Oberkörper fast parallel zum Boden ist, die Knie leicht gebeugt, die linke Hand auf dem linken Oberschenkel. Lass den rechten Arm mit leicht gebeugtem Ellbogen hängen.",
+    "Heb den rechten Arm mit leicht gebeugtem Ellbogen seitlich an, bis er parallel zum Boden ist.",
+    "Senk ihn langsam in die Ausgangsposition ab.",
+    "Beende den Satz und wechsle dann den Arm."
    ]
   }
  },
@@ -138,7 +161,8 @@
    "fr": "Cercles au mur avec swiss ball",
    "es": "Círculos en la pared con fitball",
    "it": "Cerchi al muro con fitball",
-   "pt-BR": "Círculos na parede com bola suíça"
+   "pt-BR": "Círculos na parede com bola suíça",
+   "de": "Wandkreise mit Gymnastikball"
   },
   "steps": {
    "en": [
@@ -175,6 +199,13 @@
     "Mantenha o braço estendido com o cotovelo levemente flexionado.",
     "Inverta o sentido dos círculos.",
     "Troque de braço."
+   ],
+   "de": [
+    "Stell dich aufrecht hin, die Füße schulterbreit.",
+    "Halte mit der linken Hand einen Gymnastikball auf Brusthöhe an die Wand und roll ihn in kleinen Kreisen.",
+    "Halte den Arm gestreckt, den Ellbogen leicht gebeugt.",
+    "Wechsle die Richtung der Kreise.",
+    "Wechsle den Arm."
    ]
   }
  },
@@ -184,7 +215,8 @@
    "fr": "Rentrée du nombril à quatre pattes",
    "es": "Contracción abdominal en cuadrupedia",
    "it": "Contrazione addominale in quadrupedia",
-   "pt-BR": "Contração abdominal em quatro apoios"
+   "pt-BR": "Contração abdominal em quatro apoios",
+   "de": "Bauchnabel einziehen im Vierfüßlerstand"
   },
   "steps": {
    "en": [
@@ -216,6 +248,12 @@
     "Mantenha as costas retas e o quadril e a pelve em posição neutra.",
     "Puxe o umbigo para dentro e contraia o abdômen sem mexer as costas.",
     "Segure por um instante e solte."
+   ],
+   "de": [
+    "Geh auf einer Matte in den Vierfüßlerstand.",
+    "Halte den Rücken gerade, Hüfte und Becken neutral.",
+    "Zieh den Bauchnabel ein und spann die Bauchmuskeln an, ohne den Rücken zu bewegen.",
+    "Halte die Spannung kurz und lös sie dann."
    ]
   }
  },
@@ -225,7 +263,8 @@
    "fr": "Développé épaules incliné aux haltères",
    "es": "Press de hombros inclinado con mancuernas",
    "it": "Shoulder press su panca inclinata con manubri",
-   "pt-BR": "Desenvolvimento inclinado com halteres"
+   "pt-BR": "Desenvolvimento inclinado com halteres",
+   "de": "Kurzhantel-Schulterdrücken auf der Schrägbank"
   },
   "steps": {
    "en": [
@@ -257,6 +296,12 @@
     "Flexione os cotovelos e leve os halteres à altura dos ombros: esta é a posição inicial.",
     "Contraia o abdômen e empurre os halteres acima dos ombros.",
     "Desça lentamente até a posição inicial."
+   ],
+   "de": [
+    "Leg dich auf eine Schrägbank, die Füße flach auf dem Boden, in jeder Hand eine Kurzhantel.",
+    "Beug die Ellbogen und bring die Kurzhanteln auf Schulterhöhe: Das ist die Ausgangsposition.",
+    "Spann den Bauch an und drück die Kurzhanteln über die Schultern nach oben.",
+    "Senk sie langsam in die Ausgangsposition ab."
    ]
   }
  },
@@ -266,7 +311,8 @@
    "fr": "Rotation interne de l'épaule à la poulie",
    "es": "Rotación interna de hombro en polea",
    "it": "Rotazione interna della spalla ai cavi",
-   "pt-BR": "Rotação interna de ombro no cabo"
+   "pt-BR": "Rotação interna de ombro no cabo",
+   "de": "Schulterinnenrotation am Kabelzug"
   },
   "steps": {
    "en": [
@@ -303,6 +349,13 @@
     "Gire o ombro para dentro puxando o cabo até o antebraço ficar à frente do abdômen.",
     "Volte à posição inicial.",
     "Repita com o braço direito."
+   ],
+   "de": [
+    "Setz dich neben einem unteren Kabelzug auf den Boden.",
+    "Greif den Griff mit der linken Hand, der Ellbogen ist um 90° gebeugt.",
+    "Dreh die Schulter nach innen und zieh das Kabel, bis dein Unterarm vor dem Bauch liegt.",
+    "Kehr in die Ausgangsposition zurück.",
+    "Wiederhole die Übung mit dem rechten Arm."
    ]
   }
  },
@@ -312,7 +365,8 @@
    "fr": "Développé incliné avec élastique",
    "es": "Press inclinado con banda elástica",
    "it": "Distensioni su panca inclinata con elastico",
-   "pt-BR": "Supino inclinado com elástico"
+   "pt-BR": "Supino inclinado com elástico",
+   "de": "Schrägbankdrücken mit Widerstandsband"
   },
   "steps": {
    "en": [
@@ -349,6 +403,13 @@
     "Segure uma ponta do elástico em cada mão, na altura do peito.",
     "Empurre para cima até estender totalmente os braços.",
     "Volte lentamente à posição inicial."
+   ],
+   "de": [
+    "Befestige das Band sicher unter der Bank, nahe am Kopfende.",
+    "Leg dich auf die Bank, die Füße für mehr Stabilität flach auf dem Boden.",
+    "Halte in jeder Hand ein Bandende, die Hände auf Brusthöhe.",
+    "Drück nach oben, bis die Arme ganz gestreckt sind.",
+    "Kehr langsam in die Ausgangsposition zurück."
    ]
   }
  },
@@ -358,7 +419,8 @@
    "fr": "Crossover avec élastique",
    "es": "Cruce con banda elástica",
    "it": "Croci con elastico",
-   "pt-BR": "Crossover com elástico"
+   "pt-BR": "Crossover com elástico",
+   "de": "Crossover mit Widerstandsband"
   },
   "steps": {
    "en": [
@@ -395,6 +457,13 @@
     "Abra os braços para os lados na altura do peito, palmas para a frente.",
     "Junte as mãos à sua frente.",
     "Segure por um instante e volte de forma controlada."
+   ],
+   "de": [
+    "Befestige ein Band an einem Pfosten und halte in jeder Hand ein Ende.",
+    "Dreh dem Pfosten den Rücken zu und geh nach vorn, bis das Band gespannt ist.",
+    "Öffne die Arme auf mittlerer Brusthöhe zur Seite, die Handflächen zeigen nach vorn.",
+    "Führ die Hände vor dem Körper zusammen.",
+    "Halte kurz und kehr dann kontrolliert in die Ausgangsposition zurück."
    ]
   }
  },
@@ -404,7 +473,8 @@
    "fr": "Chest press à la machine",
    "es": "Press de pecho en máquina",
    "it": "Chest press alla macchina",
-   "pt-BR": "Supino máquina"
+   "pt-BR": "Supino máquina",
+   "de": "Brustpresse an der Maschine"
   },
   "steps": {
    "en": [
@@ -436,6 +506,12 @@
     "Segure as pegadas e apoie os pés no apoio.",
     "Empurre de forma contínua até estender totalmente os braços.",
     "Pause e volte lentamente."
+   ],
+   "de": [
+    "Stell den Sitz so ein, dass die Griffe auf Brusthöhe sind.",
+    "Greif die Griffe und stell die Füße auf die Fußstütze.",
+    "Drück gleichmäßig nach vorn, bis die Arme ganz gestreckt sind.",
+    "Halte kurz inne und kehr dann langsam zurück."
    ]
   }
  },
@@ -445,7 +521,8 @@
    "fr": "Pompes décalées sur Bosu",
    "es": "Flexiones asimétricas en Bosu",
    "it": "Piegamenti asimmetrici su Bosu",
-   "pt-BR": "Flexão assimétrica no Bosu"
+   "pt-BR": "Flexão assimétrica no Bosu",
+   "de": "Versetzter Liegestütz auf dem Bosu"
   },
   "steps": {
    "en": [
@@ -482,6 +559,13 @@
     "Contraia o abdômen e desça o peito em direção ao Bosu.",
     "Pause e suba de volta.",
     "Troque de lado."
+   ],
+   "de": [
+    "Leg den Bosu mit der Kuppel nach oben auf den Boden.",
+    "Geh in die Liegestützposition, eine Hand auf der Kuppel, die andere auf dem Boden, der Körper gerade.",
+    "Spann den Bauch an und senk die Brust in Richtung Ball.",
+    "Halte kurz inne und drück dich dann wieder hoch.",
+    "Wechsle die Seite."
    ]
   }
  },
@@ -491,7 +575,8 @@
    "fr": "Pompes prise serrée et prise large",
    "es": "Flexiones con agarre cerrado y abierto",
    "it": "Piegamenti a presa stretta e larga",
-   "pt-BR": "Flexão com pegada fechada e aberta"
+   "pt-BR": "Flexão com pegada fechada e aberta",
+   "de": "Enger und breiter Liegestütz"
   },
   "steps": {
    "en": [
@@ -533,6 +618,14 @@
     "Mantenha a cabeça alinhada com o corpo, sem deixar as costas afundarem ou subirem.",
     "Desça de volta de forma controlada.",
     "Pegada aberta: posicione as mãos um pouco além da largura dos ombros e repita."
+   ],
+   "de": [
+    "Enger Griff: Leg dich auf den Bauch, die Füße zusammen, die Zehen aufgestellt.",
+    "Setz die Hände eng zusammen, sodass Daumen und Zeigefinger ein Dreieck bilden.",
+    "Spann den Bauch an und drück dich hoch, bis die Arme gestreckt sind.",
+    "Halte den Kopf in Verlängerung des Körpers und lass den Rücken weder durchhängen noch nach oben gehen.",
+    "Senk dich kontrolliert wieder ab.",
+    "Breiter Griff: Setz die Hände etwas weiter als schulterbreit auf und wiederhole die Übung."
    ]
   }
  },
@@ -542,7 +635,8 @@
    "fr": "Pompes pieds sur swiss ball",
    "es": "Flexiones con pies en fitball",
    "it": "Piegamenti con piedi su fitball",
-   "pt-BR": "Flexão com pés na bola suíça"
+   "pt-BR": "Flexão com pés na bola suíça",
+   "de": "Liegestütz mit Füßen auf dem Gymnastikball"
   },
   "steps": {
    "en": [
@@ -574,6 +668,12 @@
     "Apoie as mãos no chão abaixo dos ombros e empurre até estender os braços.",
     "Pause em cima e estabilize o equilíbrio.",
     "Desça lentamente o peito em direção ao chão."
+   ],
+   "de": [
+    "Leg Schienbeine und Füße auf einen Gymnastikball.",
+    "Setz die Hände unter den Schultern auf den Boden und drück dich hoch, bis die Arme gestreckt sind.",
+    "Halte oben kurz inne und finde dein Gleichgewicht.",
+    "Senk die Brust langsam in Richtung Boden."
    ]
   }
  },
@@ -583,7 +683,8 @@
    "fr": "Tirage menton avec élastique",
    "es": "Remo al mentón con banda elástica",
    "it": "Tirata al mento con elastico",
-   "pt-BR": "Remada alta com elástico"
+   "pt-BR": "Remada alta com elástico",
+   "de": "Aufrechtes Rudern mit Widerstandsband"
   },
   "steps": {
    "en": [
@@ -615,6 +716,12 @@
     "Com as costas retas e o abdômen contraído, puxe as mãos até as clavículas.",
     "No alto, os braços devem ficar paralelos ao chão.",
     "Desça os braços lentamente."
+   ],
+   "de": [
+    "Stell dich auf das Band, die Griffe auf Höhe der oberen Oberschenkel.",
+    "Mit geradem Rücken und angespanntem Bauch ziehst du die Hände bis zu den Schlüsselbeinen hoch.",
+    "Oben sollten deine Oberarme parallel zum Boden sein.",
+    "Senk die Arme langsam ab."
    ]
   }
  },
@@ -624,7 +731,8 @@
    "fr": "Superman",
    "es": "Superman",
    "it": "Superman",
-   "pt-BR": "Superman"
+   "pt-BR": "Superman",
+   "de": "Superman"
   },
   "steps": {
    "en": [
@@ -651,6 +759,11 @@
     "Deite-se de bruços com os braços estendidos à frente.",
     "Tire braços e pernas do chão e segure por 2 segundos.",
     "Volte a apoiá-los no chão."
+   ],
+   "de": [
+    "Leg dich auf den Bauch, die Arme nach vorn ausgestreckt.",
+    "Heb Arme und Beine vom Boden ab und halte 2 Sekunden.",
+    "Senk sie wieder auf den Boden ab."
    ]
   }
  },
@@ -660,7 +773,8 @@
    "fr": "Kickback fessiers debout",
    "es": "Patada de glúteo de pie",
    "it": "Kickback glutei in piedi",
-   "pt-BR": "Glúteo coice em pé"
+   "pt-BR": "Glúteo coice em pé",
+   "de": "Glute Kickback im Stand"
   },
   "steps": {
    "en": [
@@ -692,6 +806,12 @@
     "Apoiado em uma perna, eleve a outra para trás.",
     "Desça devagar e eleve de novo contraindo os glúteos.",
     "Troque de perna."
+   ],
+   "de": [
+    "Stell dich aufrecht hin und halte dich zum Ausbalancieren an einem Pfosten oder einer Bank fest, der Bauch ist angespannt.",
+    "Steh auf einem Bein und heb das andere Bein nach hinten vom Boden ab.",
+    "Senk es langsam ab und heb es wieder an, dabei spannst du den Po an.",
+    "Wechsle das Bein."
    ]
   }
  },
@@ -701,7 +821,8 @@
    "fr": "Kickback fessiers à la poulie",
    "es": "Patada de glúteo en polea",
    "it": "Kickback glutei ai cavi",
-   "pt-BR": "Glúteo coice no cabo"
+   "pt-BR": "Glúteo coice no cabo",
+   "de": "Glute Kickback am Kabelzug"
   },
   "steps": {
    "en": [
@@ -733,6 +854,12 @@
     "De frente para a máquina, joelhos levemente flexionados e abdômen contraído.",
     "Leve lentamente a perna para trás em arco, o mais alto que conseguir.",
     "Volte à posição inicial e troque de perna."
+   ],
+   "de": [
+    "Befestige eine Fußschlaufe am unteren Kabelzug.",
+    "Stell dich mit dem Gesicht zum Gewichtsblock, die Knie leicht gebeugt, der Bauch angespannt.",
+    "Führ das Bein langsam in einem Bogen so hoch wie möglich nach hinten.",
+    "Kehr in die Ausgangsposition zurück und wechsle dann das Bein."
    ]
   }
  },
@@ -742,7 +869,8 @@
    "fr": "Leg curl debout",
    "es": "Curl femoral de pie",
    "it": "Leg curl in piedi",
-   "pt-BR": "Flexora em pé"
+   "pt-BR": "Flexora em pé",
+   "de": "Beincurl stehend"
   },
   "steps": {
    "en": [
@@ -774,6 +902,12 @@
     "Segure nas pegadas e contraia o abdômen.",
     "Leve lentamente o calcanhar em direção aos glúteos.",
     "Volte à posição inicial e troque de perna."
+   ],
+   "de": [
+    "Stell das hintere Polster so ein, dass es knapp über dem Knöchel liegt.",
+    "Halte dich an den Griffen fest und spann den Bauch an.",
+    "Beug das Knie langsam und zieh die Ferse Richtung Po.",
+    "Kehr in die Ausgangsposition zurück und wechsle dann das Bein."
    ]
   }
  },
@@ -783,7 +917,8 @@
    "fr": "Fentes marchées aux haltères",
    "es": "Zancadas caminando con mancuernas",
    "it": "Affondi camminati con manubri",
-   "pt-BR": "Avanço caminhando com halteres"
+   "pt-BR": "Avanço caminhando com halteres",
+   "de": "Ausfallschritte gehend mit Kurzhanteln"
   },
   "steps": {
    "en": [
@@ -820,6 +955,13 @@
     "Desça o joelho de trás em direção ao chão, com o da frente a 90°, sem encostar.",
     "Pause e empurre com o pé de trás.",
     "Traga a perna à frente e repita com a outra."
+   ],
+   "de": [
+    "Halte in jeder Hand eine Kurzhantel, die Füße etwa 20 cm auseinander, die Zehen zeigen nach vorn.",
+    "Mach einen Ausfallschritt nach vorn, der Bauch ist angespannt, der Oberkörper aufrecht.",
+    "Senk das hintere Knie Richtung Boden, ohne ihn zu berühren, das vordere Knie ist um 90° gebeugt.",
+    "Halte kurz inne und drück dich dann mit dem hinteren Fuß ab.",
+    "Geh nach vorn durch und mach den Ausfallschritt mit dem anderen Bein."
    ]
   }
  },
@@ -829,7 +971,8 @@
    "fr": "Squat latéral à la barre",
    "es": "Sentadilla lateral con barra",
    "it": "Squat laterale con bilanciere",
-   "pt-BR": "Agachamento lateral com barra"
+   "pt-BR": "Agachamento lateral com barra",
+   "de": "Seitliche Langhantel-Kniebeuge"
   },
   "steps": {
    "en": [
@@ -861,6 +1004,12 @@
     "Afaste bem os pés, com o pé do lado que trabalha virado para fora.",
     "Flexione o quadril e o joelho dessa perna para descer em direção a ela, mantendo a outra quase estendida.",
     "Volte à posição inicial e troque de lado."
+   ],
+   "de": [
+    "Leg eine Langhantel mit breitem Griff auf die Schultern.",
+    "Stell dich breit hin, der Fuß der Arbeitsseite ist nach außen gedreht.",
+    "Beug Hüfte und Knie dieses Beins und verlager dein Gewicht nach unten zu dieser Seite, das andere Bein bleibt weitgehend gestreckt.",
+    "Kehr in die Ausgangsposition zurück und wechsle dann die Seite."
    ]
   }
  },
@@ -870,7 +1019,8 @@
    "fr": "Presse à cuisses pieds serrés",
    "es": "Prensa de piernas con pies juntos",
    "it": "Leg press a piedi stretti",
-   "pt-BR": "Leg press com pés fechados"
+   "pt-BR": "Leg press com pés fechados",
+   "de": "Beinpresse mit enger Fußstellung"
   },
   "steps": {
    "en": [
@@ -907,6 +1057,13 @@
     "Contraia o abdômen e flexione os joelhos para trazer o peso o mais perto possível do peito.",
     "Segure por um instante e empurre devagar de volta à posição inicial.",
     "Não trave os joelhos em cima."
+   ],
+   "de": [
+    "Setz dich in die Beinpresse, die Füße etwa 15 cm auseinander auf der Plattform, die Zehen leicht nach außen gedreht.",
+    "Halte dich an den seitlichen Griffen fest und lös die Sicherungen.",
+    "Spann den Bauch an und beug die Knie, um das Gewicht so nah wie möglich an die Brust zu bringen.",
+    "Halte kurz und drück dann langsam zurück in die Ausgangsposition.",
+    "Streck die Knie oben nicht ganz durch."
    ]
   }
  },
@@ -916,7 +1073,8 @@
    "fr": "Squat sumo à l'haltère",
    "es": "Sentadilla sumo con mancuerna",
    "it": "Squat sumo con manubrio",
-   "pt-BR": "Agachamento sumô com halter"
+   "pt-BR": "Agachamento sumô com halter",
+   "de": "Kurzhantel-Sumo-Kniebeuge"
   },
   "steps": {
    "en": [
@@ -953,6 +1111,13 @@
     "Mantenha os joelhos levemente flexionados e as costas retas.",
     "Agache como se fosse sentar até as coxas ficarem paralelas ao chão.",
     "Suba de forma controlada, com os pés bem apoiados no chão."
+   ],
+   "de": [
+    "Stell dich etwas breiter als schulterbreit hin, die Zehen um 45° nach außen gedreht.",
+    "Halte eine Kurzhantel mit beiden Händen vor dem Körper.",
+    "Halte die Knie locker und den Rücken gerade.",
+    "Geh in die Hocke, als würdest du dich auf einen Stuhl setzen, bis die Oberschenkel parallel zum Boden sind.",
+    "Komm kontrolliert wieder hoch, die Füße bleiben flach auf dem Boden."
    ]
   }
  },
@@ -962,7 +1127,8 @@
    "fr": "Dips sur banc",
    "es": "Fondos en banco",
    "it": "Dip su panca",
-   "pt-BR": "Mergulho no banco"
+   "pt-BR": "Mergulho no banco",
+   "de": "Bank-Dip"
   },
   "steps": {
    "en": [
@@ -1004,6 +1170,14 @@
     "Segure a borda do banco e desça lentamente flexionando os cotovelos.",
     "Pause e suba de volta.",
     "Não desça além de 90° nos cotovelos: isso sobrecarrega os ombros."
+   ],
+   "de": [
+    "Stell zwei Bänke parallel im Abstand von etwa 1 m auf.",
+    "Setz dich auf eine Bank und leg die Fersen auf die andere, die Beine hängen dazwischen.",
+    "Kreuz die Füße für mehr Halt.",
+    "Greif die Bankkante und senk deinen Körper langsam ab, indem du die Ellbogen beugst.",
+    "Halte kurz inne und drück dich dann wieder hoch.",
+    "Beug die Ellbogen nicht weiter als 90°: Das belastet die Schultern."
    ]
   }
  },
@@ -1013,7 +1187,8 @@
    "fr": "Extension triceps à un bras à l'haltère au-dessus de la tête",
    "es": "Extensión de tríceps sobre la cabeza a un brazo con mancuerna",
    "it": "Estensioni tricipiti sopra la testa a un braccio con manubrio",
-   "pt-BR": "Tríceps francês unilateral com halter"
+   "pt-BR": "Tríceps francês unilateral com halter",
+   "de": "Einarmiges Kurzhantel-Trizepsstrecken über Kopf"
   },
   "steps": {
    "en": [
@@ -1045,6 +1220,12 @@
     "Segure um halter atrás da nuca, cotovelo flexionado.",
     "Estenda lentamente o braço acima da cabeça e desça de volta.",
     "Apoie a mão livre no peito para se estabilizar."
+   ],
+   "de": [
+    "Setz dich auf eine Bank, der Rücken gerade, der Bauch angespannt.",
+    "Halte eine Kurzhantel mit gebeugtem Ellbogen hinter dem Nacken.",
+    "Streck den Arm langsam gerade über den Kopf und senk ihn dann wieder ab.",
+    "Leg die freie Hand zur Stabilisierung quer über die Brust."
    ]
   }
  },
@@ -1054,7 +1235,8 @@
    "fr": "Extension triceps à un bras à genou, à la poulie",
    "es": "Extensión de tríceps a un brazo de rodillas en polea",
    "it": "Estensione tricipite a un braccio in ginocchio ai cavi",
-   "pt-BR": "Tríceps unilateral ajoelhado no cabo"
+   "pt-BR": "Tríceps unilateral ajoelhado no cabo",
+   "de": "Einarmiges Trizepsstrecken kniend am Kabelzug"
   },
   "steps": {
    "en": [
@@ -1096,6 +1278,14 @@
     "Volte lentamente à posição inicial.",
     "Termine a série e troque de braço.",
     "Mantenha todo o corpo imóvel, exceto o braço que trabalha."
+   ],
+   "de": [
+    "Befestige einen Einzelgriff am oberen Kabelzug.",
+    "Knie dich auf das linke Knie, die linke Seite zur Maschine, das rechte Knie gebeugt, der Oberschenkel parallel zum Boden.",
+    "Leg den rechten Oberarm knapp über dem Knie an die Innenseite des Oberschenkels und zieh das Kabel in einem leichten Bogen Richtung Boden.",
+    "Kehr langsam in die Ausgangsposition zurück.",
+    "Beende den Satz und wechsle dann den Arm.",
+    "Halte alles außer dem Arbeitsarm ruhig."
    ]
   }
  },
@@ -1105,7 +1295,8 @@
    "fr": "Extension triceps allongé à la poulie",
    "es": "Extensión de tríceps acostado en polea",
    "it": "Estensioni tricipiti sdraiato ai cavi",
-   "pt-BR": "Tríceps testa no cabo"
+   "pt-BR": "Tríceps testa no cabo",
+   "de": "Trizepsstrecken liegend am Kabelzug"
   },
   "steps": {
    "en": [
@@ -1142,6 +1333,13 @@
     "Segure a corda com as palmas voltadas uma para a outra, braços na vertical e antebraços paralelos ao chão.",
     "Estenda lentamente os braços para cima contraindo os tríceps.",
     "Volte à posição inicial."
+   ],
+   "de": [
+    "Befestige ein Seil am unteren Kabelzug einer Ruderstation.",
+    "Leg dich rücklings auf die Bank, den Kopf zum Gewichtsblock.",
+    "Greif das Seil mit zueinander zeigenden Handflächen, die Oberarme senkrecht, die Unterarme parallel zum Boden.",
+    "Streck die Arme langsam nach oben und spann dabei den Trizeps an.",
+    "Kehr in die Ausgangsposition zurück."
    ]
   }
  },
@@ -1151,7 +1349,8 @@
    "fr": "Barre au front prise inversée",
    "es": "Press francés con agarre invertido",
    "it": "French press presa inversa",
-   "pt-BR": "Tríceps testa com pegada invertida"
+   "pt-BR": "Tríceps testa com pegada invertida",
+   "de": "Langhantel-Skull-Crusher im Untergriff"
   },
   "steps": {
    "en": [
@@ -1183,6 +1382,12 @@
     "Segure uma barra com pegada supinada.",
     "Leve os braços para trás da cabeça, em linha reta.",
     "Flexionando apenas os cotovelos, desça e suba a barra lentamente."
+   ],
+   "de": [
+    "Leg dich rücklings auf eine Bank, den Kopf am Bankende.",
+    "Halte eine Langhantel im Untergriff.",
+    "Führ die Arme hinter den Kopf zurück und halte sie dabei in einer geraden Linie.",
+    "Beug nur die Ellbogen und senk und heb die Stange langsam."
    ]
   }
  },
@@ -1192,7 +1397,8 @@
    "fr": "Curl marteau alterné aux haltères",
    "es": "Curl martillo alterno con mancuernas",
    "it": "Curl a martello alternato con manubri",
-   "pt-BR": "Rosca martelo alternada com halteres"
+   "pt-BR": "Rosca martelo alternada com halteres",
+   "de": "Kurzhantel-Hammercurl alternierend"
   },
   "steps": {
    "en": [
@@ -1229,6 +1435,13 @@
     "Com o cotovelo junto ao corpo, suba o halter esquerdo em direção ao ombro.",
     "Desça-o e repita com o braço direito.",
     "Não gire os punhos."
+   ],
+   "de": [
+    "Stell dich schulterbreit hin, die Knie locker, der Bauch angespannt.",
+    "Halte in jeder Hand eine Kurzhantel, die Handflächen zeigen zueinander, die Arme hängen seitlich.",
+    "Halte den Ellbogen fest am Körper und curl die linke Kurzhantel zur Schulter hoch.",
+    "Senk sie ab und wiederhole die Bewegung mit dem rechten Arm.",
+    "Dreh die Handgelenke nicht."
    ]
   }
  },
@@ -1238,7 +1451,8 @@
    "fr": "Curl incliné aux haltères",
    "es": "Curl inclinado con mancuernas",
    "it": "Curl su panca inclinata con manubri",
-   "pt-BR": "Rosca inclinada com halteres"
+   "pt-BR": "Rosca inclinada com halteres",
+   "de": "Kurzhantelcurl auf der Schrägbank"
   },
   "steps": {
    "en": [
@@ -1270,6 +1484,12 @@
     "Segure um halter em cada mão, palmas para cima, braços estendidos ao lado do corpo.",
     "Com os punhos retos, suba os halteres até os ombros.",
     "Contraia os bíceps durante a subida."
+   ],
+   "de": [
+    "Setz dich auf eine Schrägbank, die Füße flach auf dem Boden.",
+    "Halte in jeder Hand eine Kurzhantel, die Handflächen nach oben, die Arme hängen seitlich.",
+    "Halte die Handgelenke gerade und curl die Kurzhanteln zu den Schultern hoch.",
+    "Spann beim Heben den Bizeps an."
    ]
   }
  },
@@ -1279,7 +1499,8 @@
    "fr": "Curl allongé à la poulie haute",
    "es": "Curl acostado en polea alta",
    "it": "Curl sdraiato al cavo alto",
-   "pt-BR": "Rosca deitado no cabo alto"
+   "pt-BR": "Rosca deitado no cabo alto",
+   "de": "Hoher Curl liegend am Kabelzug"
   },
   "steps": {
    "en": [
@@ -1316,6 +1537,13 @@
     "Segure a barra com pegada supinada e estenda totalmente os braços, levemente inclinados acima da cabeça.",
     "Flexione os braços para trazer a barra até você o máximo possível.",
     "Volte lentamente à posição inicial."
+   ],
+   "de": [
+    "Stell eine Flachbank neben eine Kabelzugstation und befestige eine kurze Stange am oberen Kabelzug.",
+    "Leg dich auf den Rücken, den Kopf zum Gewichtsblock.",
+    "Greif die Stange mit den Handflächen nach oben und streck die Arme leicht schräg über dem Kopf ganz aus.",
+    "Curl die Stange so weit wie möglich zu dir heran.",
+    "Kehr langsam in die Ausgangsposition zurück."
    ]
   }
  },
@@ -1325,7 +1553,8 @@
    "fr": "Curl à la barre allongé sur banc haut",
    "es": "Curl con barra boca abajo en banco alto",
    "it": "Curl con bilanciere prono su panca alta",
-   "pt-BR": "Rosca com barra de bruços em banco alto"
+   "pt-BR": "Rosca com barra de bruços em banco alto",
+   "de": "Langhantelcurl in Bauchlage auf der hohen Bank"
   },
   "steps": {
    "en": [
@@ -1357,6 +1586,12 @@
     "Segure uma barra com pegada supinada, mãos afastadas cerca de 30 cm.",
     "Partindo com os braços estendidos para o chão, suba a barra em direção à cabeça em um leve arco.",
     "Desça lentamente até a posição inicial."
+   ],
+   "de": [
+    "Leg dich bäuchlings auf eine hohe Bank, den Kopf am Bankende, die Zehen zur Stütze auf dem Boden.",
+    "Halte eine Langhantel mit den Handflächen nach oben, die Hände etwa 30 cm auseinander.",
+    "Curl die Stange aus den Richtung Boden gestreckten Armen in einem leichten Bogen zum Kopf hoch.",
+    "Senk sie langsam in die Ausgangsposition ab."
    ]
   }
  },
@@ -1366,7 +1601,8 @@
    "fr": "Curl au pupitre à un bras à l'haltère",
    "es": "Curl en banco Scott a un brazo con mancuerna",
    "it": "Curl alla panca Scott a un braccio con manubrio",
-   "pt-BR": "Rosca Scott unilateral com halter"
+   "pt-BR": "Rosca Scott unilateral com halter",
+   "de": "Einarmiger Kurzhantel-Scottcurl"
   },
   "steps": {
    "en": [
@@ -1408,6 +1644,14 @@
     "Pause e desça de volta.",
     "Termine a série e troque de braço.",
     "Faça o movimento devagar e com controle."
+   ],
+   "de": [
+    "Stell den Sitz so ein, dass dein Oberarm flach auf dem Polster liegt.",
+    "Halte eine Kurzhantel mit der Handfläche nach oben, der Arm liegt ganz gestreckt auf dem Polster.",
+    "Lass den Arm auf dem Polster und curl die Kurzhantel zum Kopf hoch.",
+    "Halte kurz inne und senk sie dann wieder ab.",
+    "Beende den Satz und wechsle dann den Arm.",
+    "Beweg dich langsam und kontrolliert."
    ]
   }
  },
@@ -1417,7 +1661,8 @@
    "fr": "Curl prise inversée au disque",
    "es": "Curl invertido con disco",
    "it": "Curl presa inversa con disco",
-   "pt-BR": "Rosca inversa com anilha"
+   "pt-BR": "Rosca inversa com anilha",
+   "de": "Hantelscheiben-Curl im Obergriff"
   },
   "steps": {
    "en": [
@@ -1449,6 +1694,12 @@
     "Segure uma anilha com as palmas para baixo, mãos na posição de 11 e 1 hora.",
     "Com os cotovelos junto ao corpo, suba lentamente a anilha em direção à cabeça.",
     "Desça lentamente até a posição inicial."
+   ],
+   "de": [
+    "Stell dich schulterbreit hin, die Knie locker, der Bauch angespannt.",
+    "Halte eine Hantelscheibe mit den Handflächen nach unten, die Hände auf 11 und 1 Uhr.",
+    "Halte die Ellbogen am Körper und curl die Scheibe langsam zum Kopf hoch.",
+    "Senk sie langsam in die Ausgangsposition ab."
    ]
   }
  },
@@ -1458,7 +1709,8 @@
    "fr": "Curl à la barre à un bras",
    "es": "Curl con barra a un brazo",
    "it": "Curl con bilanciere a un braccio",
-   "pt-BR": "Rosca unilateral com barra"
+   "pt-BR": "Rosca unilateral com barra",
+   "de": "Einarmiger Langhantelcurl"
   },
   "steps": {
    "en": [
@@ -1500,6 +1752,14 @@
     "Suba a barra até o antebraço encostar no bíceps.",
     "Desça lentamente e troque de braço.",
     "Se a barra olímpica for pesada demais, use uma barra mais leve."
+   ],
+   "de": [
+    "Stell dich schulterbreit hin, die Knie locker.",
+    "Greif eine leere Olympiastange mit einer Hand in der Mitte, sodass sie im Gleichgewicht bleibt.",
+    "Lass die freie Hand seitlich hängen.",
+    "Curl die Stange hoch, bis der Unterarm den Bizeps berührt.",
+    "Senk sie langsam ab und wechsle dann den Arm.",
+    "Wenn die Olympiastange zu schwer ist, nimm eine leichtere Langhantel."
    ]
   }
  },
@@ -1509,7 +1769,8 @@
    "fr": "Soulevé de terre et curl à la barre",
    "es": "Peso muerto con curl con barra",
    "it": "Stacco con curl con bilanciere",
-   "pt-BR": "Levantamento terra com rosca com barra"
+   "pt-BR": "Levantamento terra com rosca com barra",
+   "de": "Langhantel-Kreuzheben mit Curl"
   },
   "steps": {
    "en": [
@@ -1556,6 +1817,15 @@
     "Ao subir, faça a rosca levando a barra até os ombros.",
     "Volte a barra à frente das coxas.",
     "Um espelho ajuda a conferir a técnica."
+   ],
+   "de": [
+    "Halte eine SZ-Stange oder Langhantel im Untergriff.",
+    "Stell dich schulterbreit hin, die Knie locker, der Bauch angespannt.",
+    "Lass die Stange mit gestreckten Armen vor den Oberschenkeln hängen.",
+    "Beug dich in der Hüfte vor und senk die Stange bis knapp über den Boden.",
+    "Curl die Stange beim Aufrichten zu den Schultern hoch.",
+    "Senk die Stange wieder zu den Oberschenkeln ab.",
+    "Ein Spiegel hilft dir, deine Technik zu kontrollieren."
    ]
   }
  },
@@ -1565,7 +1835,8 @@
    "fr": "Curl et extension triceps à genoux sur swiss ball",
    "es": "Curl y extensión de tríceps de rodillas en fitball",
    "it": "Curl ed estensione tricipiti in ginocchio su fitball",
-   "pt-BR": "Rosca e tríceps francês ajoelhado na bola suíça"
+   "pt-BR": "Rosca e tríceps francês ajoelhado na bola suíça",
+   "de": "Curl und Überkopfstrecken kniend auf dem Gymnastikball"
   },
   "steps": {
    "en": [
@@ -1607,6 +1878,14 @@
     "Desça o halter elevado atrás da cabeça, como em um tríceps francês, enquanto desce e volta a flexionar o outro braço.",
     "Volte à posição inicial e troque de braço.",
     "Faça apenas se conseguir se equilibrar ajoelhado na bola."
+   ],
+   "de": [
+    "Halte in jeder Hand eine Kurzhantel, die Handflächen nach oben.",
+    "Knie dich auf den Gymnastikball, der Bauch angespannt, der Rücken gerade.",
+    "Streck einen Arm über den Kopf und halte den anderen gebeugt.",
+    "Senk die obere Kurzhantel wie beim Trizepsstrecken hinter den Kopf, während du den anderen Arm absenkst und wieder curlst.",
+    "Kehr in die Ausgangsposition zurück und wechsle dann die Arme.",
+    "Mach diese Übung nur, wenn du kniend auf dem Ball sicher die Balance halten kannst."
    ]
   }
  },
@@ -1616,7 +1895,8 @@
    "fr": "Fente arrière au médecine-ball, geste de bowling",
    "es": "Zancada atrás con balón medicinal y movimiento de bolos",
    "it": "Affondo indietro con palla medica e movimento da bowling",
-   "pt-BR": "Avanço para trás com bola medicinal e movimento de boliche"
+   "pt-BR": "Avanço para trás com bola medicinal e movimento de boliche",
+   "de": "Medizinball-Ausfallschritt rückwärts mit Bowlingbewegung"
   },
   "steps": {
    "en": [
@@ -1653,6 +1933,13 @@
     "Durante o avanço, leve a bola para baixo e para trás como no boliche.",
     "Volte o braço à posição inicial e troque de perna.",
     "Movimente-se de forma lenta e constante."
+   ],
+   "de": [
+    "Halte einen Medizinball mit einer Hand auf Schulterhöhe, die Handfläche nach oben.",
+    "Mach mit einem Fuß einen Ausfallschritt nach hinten, der vordere Fuß bleibt fest am Boden, das hintere Knie berührt den Boden nicht.",
+    "Schwing den Ball beim Ausfallschritt nach unten und hinten, als würdest du bowlen.",
+    "Führ den Arm zurück in die Ausgangsposition und wechsle dann das Bein.",
+    "Beweg dich langsam und gleichmäßig."
    ]
   }
  },
@@ -1662,7 +1949,8 @@
    "fr": "Fente latérale avec curl aux haltères",
    "es": "Zancada lateral con curl con mancuernas",
    "it": "Affondo laterale con curl con manubri",
-   "pt-BR": "Avanço lateral com rosca com halteres"
+   "pt-BR": "Avanço lateral com rosca com halteres",
+   "de": "Seitlicher Kurzhantel-Ausfallschritt mit Curl"
   },
   "steps": {
    "en": [
@@ -1699,6 +1987,13 @@
     "Dê um passo para o lado e desça em avanço flexionando o quadril e o joelho.",
     "Durante o avanço, faça a rosca levando os halteres aos ombros.",
     "Volte à posição inicial e troque de perna."
+   ],
+   "de": [
+    "Halte in jeder Hand eine Kurzhantel, die Handflächen zeigen nach vorn.",
+    "Stell dich mit geschlossenen Füßen hin, der Rücken gerade, der Bauch angespannt, die Arme hängen vor den Oberschenkeln.",
+    "Mach einen Schritt zur Seite und geh in den Ausfallschritt, indem du Hüfte und Knie beugst.",
+    "Curl beim Ausfallschritt die Kurzhanteln zu den Schultern hoch.",
+    "Kehr in die Ausgangsposition zurück und wechsle dann das Bein."
    ]
   }
  },
@@ -1708,7 +2003,8 @@
    "fr": "Extension des mollets avec élastique",
    "es": "Elevación de talones con banda elástica",
    "it": "Calf raise con elastico",
-   "pt-BR": "Elevação de panturrilha com elástico"
+   "pt-BR": "Elevação de panturrilha com elástico",
+   "de": "Wadenheben mit Widerstandsband"
   },
   "steps": {
    "en": [
@@ -1735,6 +2031,11 @@
     "Pise no elástico com a parte da frente dos pés e leve as pegadas aos ombros.",
     "Suba na ponta dos pés, mantendo as mãos nos ombros.",
     "Pause e desça os calcanhares até o chão."
+   ],
+   "de": [
+    "Stell dich mit den Fußballen auf das Band und bring die Griffe auf Schulterhöhe.",
+    "Geh auf die Zehenspitzen, die Hände bleiben an den Schultern.",
+    "Halte kurz inne und senk die Fersen dann wieder auf den Boden."
    ]
   }
  },
@@ -1744,7 +2045,8 @@
    "fr": "Crunch pieds sur swiss ball",
    "es": "Crunch con pies en fitball",
    "it": "Crunch con piedi su fitball",
-   "pt-BR": "Crunch com pés na bola suíça"
+   "pt-BR": "Crunch com pés na bola suíça",
+   "de": "Crunch mit Füßen auf dem Gymnastikball"
   },
   "steps": {
    "en": [
@@ -1781,6 +2083,13 @@
     "Com a lombar no chão, eleve a cabeça, os ombros e o peito.",
     "Pause contraindo o abdômen e desça de volta.",
     "Faça o movimento devagar e com controle."
+   ],
+   "de": [
+    "Leg dich auf den Rücken, die Füße auf einem Gymnastikball.",
+    "Kreuz die Hände vor der Brust oder leg sie neben den Kopf.",
+    "Lass den unteren Rücken am Boden und heb Kopf, Schultern und Brust an.",
+    "Halte kurz inne, spann den Bauch an und senk dich dann wieder ab.",
+    "Beweg dich langsam und kontrolliert."
    ]
   }
  },
@@ -1790,7 +2099,8 @@
    "fr": "Crunch oblique décliné",
    "es": "Crunch oblicuo declinado",
    "it": "Crunch obliquo su panca declinata",
-   "pt-BR": "Abdominal oblíquo declinado"
+   "pt-BR": "Abdominal oblíquo declinado",
+   "de": "Schräger Crunch auf der Negativbank"
   },
   "steps": {
    "en": [
@@ -1827,6 +2137,13 @@
     "Eleve os ombros e o peito levando o cotovelo esquerdo em direção ao joelho direito.",
     "Pause e desça de volta.",
     "Deite-se totalmente e leve o cotovelo direito em direção ao joelho esquerdo."
+   ],
+   "de": [
+    "Leg dich rücklings auf eine Negativbank, die Füße unter den Polstern fixiert.",
+    "Kreuz die Hände vor der Brust oder leg sie neben den Kopf.",
+    "Roll Schultern und Brust nach oben und führ dabei den linken Ellbogen zum rechten Knie.",
+    "Halte kurz inne und senk dich dann wieder ab.",
+    "Leg dich ganz zurück und führ dann den rechten Ellbogen zum linken Knie."
    ]
   }
  }
