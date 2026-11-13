@@ -14,8 +14,12 @@ import {
   MarkMessagesAsReadDto,
   Message,
   MessageThread,
+  ScheduledMessageDto,
+  SendBroadcastDto,
+  SendBroadcastResultDto,
   UpdateMessageThreadDto,
   UpdateMessageThreadMessageDto,
+  UpdateScheduledMessageDto,
 } from '@openathlete/shared';
 
 export class MessagesAPI {
@@ -222,5 +226,33 @@ export class MessagesAPI {
 
   static markAsRead(messageThreadId: number, messageIds?: number[]): void {
     this.emit('mark_as_read', { messageThreadId, messageIds });
+  }
+
+  /** One message to several people, now or at sendAt */
+  static async sendBroadcast(
+    body: SendBroadcastDto,
+  ): Promise<SendBroadcastResultDto> {
+    return (await client.post(routes.messages.broadcast, body)).data;
+  }
+
+  static async getScheduled(): Promise<ScheduledMessageDto[]> {
+    return (await client.get(routes.messages.scheduled)).data;
+  }
+
+  static async updateScheduled({
+    scheduledMessageId,
+    body,
+  }: {
+    scheduledMessageId: number;
+    body: UpdateScheduledMessageDto;
+  }): Promise<void> {
+    await client.patch(
+      routes.messages.scheduledMessage(scheduledMessageId),
+      body,
+    );
+  }
+
+  static async cancelScheduled(scheduledMessageId: number): Promise<void> {
+    await client.delete(routes.messages.scheduledMessage(scheduledMessageId));
   }
 }

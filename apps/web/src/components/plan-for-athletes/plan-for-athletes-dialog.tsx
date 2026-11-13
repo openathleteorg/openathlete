@@ -1,14 +1,13 @@
-import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import {
   EventAPI,
   usePlanForAthletesMutation,
   usePlanForAthletesPreviewMutation,
 } from '@/api/event';
 import { undoable } from '@/components/calendar/utils/undo';
-import { useGroupFilterOptions } from '@/components/clubs/use-group-filter';
+import { AthletePicker } from '@/components/clubs/athlete-picker';
+import { useCoachedAthletes } from '@/components/clubs/use-coached-athletes';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -20,9 +19,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { m } from '@/paraglide/messages';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
-import { cn } from '@/utils/shadcn';
 import { useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -89,14 +87,11 @@ export function PlanForAthletesDialog({
   sourceAthleteId,
 }: Props) {
   const queryClient = useQueryClient();
-  const { data: coached } = useGetMyCoachedAthletesQuery();
-  const groups = useGroupFilterOptions();
   const previewMutation = usePlanForAthletesPreviewMutation();
   const planMutation = usePlanForAthletesMutation();
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [date, setDate] = useState(defaultDate);
   const [time, setTime] = useState(defaultTime ?? '');
-  const [search, setSearch] = useState('');
   const [preview, setPreview] = useState<PlanForAthletesPreviewDto | null>(
     null,
   );
@@ -106,44 +101,10 @@ export function PlanForAthletesDialog({
     setSelected(new Set());
     setDate(defaultDate);
     setTime(defaultTime ?? '');
-    setSearch('');
     setPreview(null);
   }, [open, defaultDate, defaultTime]);
 
-  const athletes = useMemo(
-    () =>
-      (coached ?? [])
-        .filter((athlete) => athlete.athleteId !== sourceAthleteId)
-        .map((athlete) => ({
-          id: athlete.athleteId,
-          name: `${athlete.user?.firstName ?? ''} ${athlete.user?.lastName ?? ''}`.trim(),
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [coached, sourceAthleteId],
-  );
-  const eligible = useMemo(
-    () => new Set(athletes.map((athlete) => athlete.id)),
-    [athletes],
-  );
-  const shown = search.trim()
-    ? athletes.filter((athlete) =>
-        athlete.name.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
-      )
-    : athletes;
-
-  const toggle = (id: number) =>
-    setSelected((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  const addGroup = (ids: Set<number>) =>
-    setSelected((current) => {
-      const next = new Set(current);
-      for (const id of ids) if (eligible.has(id)) next.add(id);
-      return next;
-    });
+  const athletes = useCoachedAthletes(sourceAthleteId);
 
   const dto = (): PlanForAthletesDto => ({
     source,
@@ -273,74 +234,11 @@ export function PlanForAthletesDialog({
                 : m.plan_for_athletes_time_hint()}
             </p>
 
-            {groups.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium">
-                  {m.plan_for_athletes_groups()}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {groups.map((group) => (
-                    <Button
-                      key={group.value}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addGroup(group.athleteIds)}
-                    >
-                      + {group.label}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="flex min-h-0 flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-medium">
-                  {m.plan_for_athletes_athletes({ count: selected.size })}
-                </p>
-                {selected.size > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelected(new Set())}
-                  >
-                    {m.plan_for_athletes_clear()}
-                  </Button>
-                )}
-              </div>
-              {athletes.length > 8 && (
-                <Input
-                  type="search"
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder={m.club_search_people()}
-                  aria-label={m.club_search_people()}
-                />
-              )}
-              {athletes.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">
-                  {m.plan_for_athletes_no_athletes()}
-                </p>
-              ) : (
-                <ul className="max-h-64 divide-y overflow-y-auto rounded-xl border">
-                  {shown.map((athlete) => (
-                    <li key={athlete.id}>
-                      <label
-                        className={cn(
-                          'flex min-h-11 cursor-pointer items-center gap-3 px-3 py-2 text-sm',
-                        )}
-                      >
-                        <Checkbox
-                          checked={selected.has(athlete.id)}
-                          onCheckedChange={() => toggle(athlete.id)}
-                        />
-                        <span className="truncate">{athlete.name}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            <AthletePicker
+              athletes={athletes}
+              selected={selected}
+              onChange={setSelected}
+            />
 
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={onClose}>

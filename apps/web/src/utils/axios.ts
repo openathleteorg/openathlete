@@ -285,6 +285,9 @@ export const routes = {
     updateMessage: (messageId: number) => `/messages/messages/${messageId}`,
     deleteMessage: (messageId: number) => `/messages/messages/${messageId}`,
     markAsRead: (threadId: number) => `/messages/threads/${threadId}/read`,
+    broadcast: '/messages/broadcast',
+    scheduled: '/messages/scheduled',
+    scheduledMessage: (id: number) => `/messages/scheduled/${id}`,
     eventCommentCounts: '/messages/events/comments',
     eventComments: (eventId: number) => `/messages/events/${eventId}/comments`,
     eventCommentsRead: (eventId: number) =>
