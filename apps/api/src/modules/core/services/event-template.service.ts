@@ -130,6 +130,7 @@ export class EventTemplateService {
                     targetMin: t.targetMin,
                     targetMax: t.targetMax,
                     targetValue: t.targetValue,
+                    metricType: t.metricType,
                   })),
                 },
                 repeatBlock: step.repeatBlock
@@ -152,6 +153,7 @@ export class EventTemplateService {
                                   targetMin: t.targetMin,
                                   targetMax: t.targetMax,
                                   targetValue: t.targetValue,
+                                  metricType: t.metricType,
                                 })),
                               },
                             }),
@@ -376,6 +378,7 @@ export class EventTemplateService {
                     targetMin: t.targetMin,
                     targetMax: t.targetMax,
                     targetValue: t.targetValue,
+                    metricType: t.metricType,
                   })),
                 },
                 repeatBlock: step.repeatBlock
@@ -398,6 +401,7 @@ export class EventTemplateService {
                                   targetMin: t.targetMin,
                                   targetMax: t.targetMax,
                                   targetValue: t.targetValue,
+                                  metricType: t.metricType,
                                 })),
                               },
                             }),
