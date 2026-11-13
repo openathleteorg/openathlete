@@ -60,6 +60,9 @@ const TP_COACH_PRICING_URL =
  * PRICES_CHECKED_ON (market study, section 2.5C).
  */
 const CLUB_ATHLETES = 50;
+
+/** Sign-up lands on the clubs settings, where the club is created */
+const CLUBS_SETTINGS = '/dashboard/settings?tab=clubs';
 // Club Starter: €29.90 for 40 athletes and 2 coaches, €0.50 per extra
 // athlete, €12 a month for the third coach
 const NOLIO_CLUB_STARTER = Math.round((29.9 + 10 * 0.5 + 12) * 12 * 100) / 100;
@@ -97,16 +100,16 @@ export default async function ClubsPage({ params }: Props) {
     ours?: boolean;
   }> = [
     {
-      name: m.clubspage_cost_oa_self(),
-      note: m.clubspage_cost_oa_self_note(),
+      name: m.clubspage_cost_oa_cloud(),
+      note: m.clubspage_cost_oa_cloud_note(),
       amount: 0,
       label: formatPrice(0, 'EUR', intl),
       currency: 'EUR',
       ours: true,
     },
     {
-      name: m.clubspage_cost_oa_cloud(),
-      note: m.clubspage_cost_oa_cloud_note(),
+      name: m.clubspage_cost_oa_self(),
+      note: m.clubspage_cost_oa_self_note(),
       amount: 0,
       label: formatPrice(0, 'EUR', intl),
       currency: 'EUR',
@@ -213,10 +216,7 @@ export default async function ClubsPage({ params }: Props) {
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <TrackedLink
-                  href={signupUrl(
-                    'clubs_hero',
-                    '/dashboard/settings?tab=clubs',
-                  )}
+                  href={signupUrl('clubs_hero', CLUBS_SETTINGS)}
                   event="cta_clicked"
                   properties={{ placement: 'clubs_hero', cta: 'signup' }}
                   className={buttonStyles({
@@ -228,18 +228,16 @@ export default async function ClubsPage({ params }: Props) {
                   {m.clubspage_hero_cta_create()}
                   <ArrowRight />
                 </TrackedLink>
+              </div>
+              <p className="mt-4 text-[0.85rem] text-white/60">
+                {m.clubspage_hero_reassure()}{' '}
                 <a
                   href="#own-server"
-                  className={buttonStyles({
-                    variant: 'outlineLight',
-                    size: 'lg',
-                    className: 'w-full sm:w-auto',
-                  })}
+                  className="underline underline-offset-2 hover:text-white"
                 >
-                  <Server />
                   {m.clubspage_hero_cta_server()}
                 </a>
-              </div>
+              </p>
             </div>
           </div>
         </Container>
@@ -316,6 +314,20 @@ export default async function ClubsPage({ params }: Props) {
               }
             />
           </div>
+          <Reveal className="mt-20 flex flex-col items-center gap-3 text-center">
+            <TrackedLink
+              href={signupUrl('clubs_app', CLUBS_SETTINGS)}
+              event="cta_clicked"
+              properties={{ placement: 'clubs_app', cta: 'signup' }}
+              className={buttonStyles({ size: 'lg' })}
+            >
+              {m.clubspage_hero_cta_create()}
+              <ArrowRight />
+            </TrackedLink>
+            <p className="text-[0.85rem] text-muted-foreground">
+              {m.clubspage_app_reassure()}
+            </p>
+          </Reveal>
         </Container>
       </Section>
 
@@ -328,32 +340,6 @@ export default async function ClubsPage({ params }: Props) {
             align="center"
           />
           <RevealGroup className="mt-14 grid items-stretch gap-5 lg:grid-cols-2">
-            <RevealItem className="flex h-full flex-col rounded-3xl border border-border bg-white p-7 sm:p-9">
-              <p className="kicker text-sky-strong">
-                {m.clubspage_way1_label()}
-              </p>
-              <h3 className="display-3 mt-4">{m.clubspage_way1_title()}</h3>
-              <p className="mt-4 leading-relaxed text-muted-foreground">
-                {m.clubspage_way1_body()}
-              </p>
-              <CheckList
-                className="mt-7"
-                items={[
-                  m.clubspage_way1_point_1(),
-                  m.clubspage_way1_point_2(),
-                  m.clubspage_way1_point_3(),
-                  m.clubspage_way1_point_4(),
-                ]}
-              />
-              <div className="flex-1" />
-              <Link
-                href={localePath(locale, '/coaches')}
-                className="mt-8 inline-flex items-center gap-1.5 font-medium hover:text-sky-strong"
-              >
-                {m.site_nav_coaches()}
-                <ArrowRight className="size-4" />
-              </Link>
-            </RevealItem>
             <RevealItem className="relative flex h-full flex-col overflow-hidden rounded-3xl bg-ink p-7 text-white shadow-[0_40px_80px_-30px_rgb(5_12_52/0.7)] sm:p-9">
               <div className="brand-gradient absolute inset-x-0 top-0 h-1" />
               <div
@@ -362,22 +348,54 @@ export default async function ClubsPage({ params }: Props) {
               />
               <div className="relative flex flex-wrap items-center justify-between gap-3">
                 <p className="kicker text-ink-soft">
-                  {m.clubspage_way2_label()}
+                  {m.clubspage_way1_label()}
                 </p>
                 <span className="flex items-center gap-1 rounded-full bg-mint/20 px-2.5 py-1 text-[0.72rem] font-medium text-mint">
                   <Star className="size-3 fill-mint" />
-                  {m.clubspage_way2_badge()}
+                  {m.clubspage_way1_badge()}
                 </span>
               </div>
               <h3 className="display-3 relative mt-4 text-white">
-                {m.clubspage_way2_title()}
+                {m.clubspage_way1_title()}
               </h3>
               <p className="relative mt-4 leading-relaxed text-white/70">
-                {m.clubspage_way2_body()}
+                {m.clubspage_way1_body()}
               </p>
               <CheckList
                 tone="light"
                 className="relative mt-7"
+                items={[
+                  m.clubspage_way1_point_1(),
+                  m.clubspage_way1_point_2(),
+                  m.clubspage_way1_point_3(),
+                  m.clubspage_way1_point_4(),
+                ]}
+              />
+              <div className="flex-1" />
+              <TrackedLink
+                href={signupUrl('clubs_way1', CLUBS_SETTINGS)}
+                event="cta_clicked"
+                properties={{ placement: 'clubs_way1', cta: 'signup' }}
+                className={buttonStyles({
+                  variant: 'light',
+                  size: 'lg',
+                  className: 'relative mt-8 w-full sm:w-auto sm:self-start',
+                })}
+              >
+                {m.clubspage_hero_cta_create()}
+                <ArrowRight />
+              </TrackedLink>
+            </RevealItem>
+            <RevealItem className="flex h-full flex-col rounded-3xl border border-border bg-white p-7 sm:p-9">
+              <p className="kicker text-sky-strong">
+                {m.clubspage_way2_label()}
+              </p>
+              <h3 className="display-3 mt-4">{m.clubspage_way2_title()}</h3>
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                {m.clubspage_way2_body()}
+              </p>
+              <CheckList
+                className="mt-7"
                 items={[
                   m.clubspage_way2_point_1(),
                   m.clubspage_way2_point_2(),
@@ -386,66 +404,24 @@ export default async function ClubsPage({ params }: Props) {
                   m.clubspage_way2_point_5(),
                 ]}
               />
-              <p className="relative mt-7 rounded-2xl bg-white/[0.06] p-4 text-[0.85rem] leading-relaxed text-white/60">
+              <p className="mt-7 rounded-2xl bg-paper p-4 text-[0.85rem] leading-relaxed text-muted-foreground">
                 {m.clubspage_way2_honest()}
               </p>
+              <div className="flex-1" />
+              <a
+                href="#own-server"
+                className="mt-8 inline-flex items-center gap-1.5 font-medium hover:text-sky-strong"
+              >
+                <Server className="size-4" />
+                {m.clubspage_hero_cta_server()}
+              </a>
             </RevealItem>
           </RevealGroup>
         </Container>
       </Section>
 
-      {/* The club's server */}
-      <Section tone="paper" id="own-server">
-        <Container>
-          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
-            <Reveal className="lg:col-span-5">
-              <SectionHeading
-                size="side"
-                kicker={m.clubspage_server_kicker()}
-                title={m.clubspage_server_title()}
-                lead={m.clubspage_server_body()}
-              />
-              <ol className="mt-8 grid gap-4">
-                {[
-                  m.clubspage_server_step_1(),
-                  m.clubspage_server_step_2(),
-                  m.clubspage_server_step_3(),
-                ].map((step, index) => (
-                  <li key={step} className="flex items-start gap-3.5">
-                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink font-mono text-[0.75rem] text-white">
-                      {index + 1}
-                    </span>
-                    <span className="pt-0.5">{step}</span>
-                  </li>
-                ))}
-              </ol>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <TrackedLink
-                  href={SELF_HOSTING_DOCS_URL}
-                  event="self_host_clicked"
-                  properties={{ placement: 'clubs_server' }}
-                  className={buttonStyles()}
-                >
-                  <Server />
-                  {m.plans_selfhost_cta()}
-                </TrackedLink>
-                <Link
-                  href={localePath(locale, '/open-source')}
-                  className={buttonStyles({ variant: 'secondary' })}
-                >
-                  {m.clubspage_server_more()}
-                </Link>
-              </div>
-            </Reveal>
-            <Reveal delay={0.1} className="lg:col-span-7">
-              <InstallTerminal domain="training.yourclub.org" />
-            </Reveal>
-          </div>
-        </Container>
-      </Section>
-
       {/* Cost of a club of 50 */}
-      <Section>
+      <Section tone="paper">
         <Container>
           <div className="grid gap-12 lg:grid-cols-12">
             <div className="lg:col-span-4">
@@ -559,8 +535,58 @@ export default async function ClubsPage({ params }: Props) {
         </Container>
       </Section>
 
+      {/* The club's server */}
+      <Section tone="paper" id="own-server">
+        <Container>
+          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-16">
+            <Reveal className="lg:col-span-5">
+              <SectionHeading
+                size="side"
+                kicker={m.clubspage_server_kicker()}
+                title={m.clubspage_server_title()}
+                lead={m.clubspage_server_body()}
+              />
+              <ol className="mt-8 grid gap-4">
+                {[
+                  m.clubspage_server_step_1(),
+                  m.clubspage_server_step_2(),
+                  m.clubspage_server_step_3(),
+                ].map((step, index) => (
+                  <li key={step} className="flex items-start gap-3.5">
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink font-mono text-[0.75rem] text-white">
+                      {index + 1}
+                    </span>
+                    <span className="pt-0.5">{step}</span>
+                  </li>
+                ))}
+              </ol>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                <TrackedLink
+                  href={SELF_HOSTING_DOCS_URL}
+                  event="self_host_clicked"
+                  properties={{ placement: 'clubs_server' }}
+                  className={buttonStyles()}
+                >
+                  <Server />
+                  {m.plans_selfhost_cta()}
+                </TrackedLink>
+                <Link
+                  href={localePath(locale, '/open-source')}
+                  className={buttonStyles({ variant: 'secondary' })}
+                >
+                  {m.clubspage_server_more()}
+                </Link>
+              </div>
+            </Reveal>
+            <Reveal delay={0.1} className="lg:col-span-7">
+              <InstallTerminal domain="training.yourclub.org" />
+            </Reveal>
+          </div>
+        </Container>
+      </Section>
+
       {/* FAQ */}
-      <Section tone="paper">
+      <Section>
         <Container size="narrow">
           <h2 className="display-2 mb-10">{m.clubspage_faq_title()}</h2>
           <Faq items={faqs} placement="clubs" />
@@ -571,6 +597,7 @@ export default async function ClubsPage({ params }: Props) {
         <CtaBand
           locale={locale}
           placement="clubs_final"
+          returnTo={CLUBS_SETTINGS}
           title={m.clubspage_final_title()}
           body={m.clubspage_final_body()}
         />

@@ -17,12 +17,15 @@ export function CtaBand({
   title,
   body,
   secondary,
+  returnTo,
 }: {
   locale: SupportedLocale;
   placement: string;
   title: ReactNode;
   body?: ReactNode;
   secondary?: { href: string; label: string };
+  /** Where the new account lands once onboarded */
+  returnTo?: string;
 }) {
   const second = secondary ?? {
     href: localePath(locale, '/pricing'),
@@ -38,7 +41,7 @@ export function CtaBand({
             {body && <p className="lead mx-auto mt-5 text-ink-soft">{body}</p>}
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
               <TrackedLink
-                href={signupUrl(placement)}
+                href={signupUrl(placement, returnTo)}
                 event="cta_clicked"
                 properties={{ placement, cta: 'signup' }}
                 className={buttonStyles({ variant: 'light', size: 'lg' })}
