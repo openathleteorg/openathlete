@@ -39,6 +39,7 @@ model Athlete {
   coachAlertSettings       CoachActivityAlertSettings[]
   injuries                 AthleteInjury[]
   coachNotes               CoachNote[]
+  groupMemberships         AthleteGroupMember[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -61,11 +62,17 @@ model CoachAthlete {
   userId    Int     @map("user_id")
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId])
   athleteId Int     @map("athlete_id")
+  /// The club that created this link for its staff; null for a link the
+  /// coach and athlete made themselves. The club removes its own links when
+  /// the athlete or the coach leaves it.
+  club      Club?   @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId    Int?    @map("club_id")
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  @@index([clubId])
   @@map("coach_athlete")
 }
 

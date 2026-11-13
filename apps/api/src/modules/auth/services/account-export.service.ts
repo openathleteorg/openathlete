@@ -78,6 +78,7 @@ export class AccountExportService {
     write('user', { ...user, athlete: undefined });
     write('athlete', athleteId ? await this.athleteData(athleteId) : null);
     write('coaching', await this.coaching(userId));
+    write('clubs', await this.clubs(userId, athleteId));
     write('templates', await this.templates(userId));
     write('messages', await this.messages(userId));
     write(
@@ -207,6 +208,42 @@ export class AccountExportService {
   }
 
   /** Who coaches the user and whom they coach, by name. */
+  /** The clubs the user belongs to, and the groups they made or are in */
+  private async clubs(userId: number, athleteId: number | undefined) {
+    const groupName = { select: { name: true } };
+    return {
+      memberships: await this.prisma.clubMember.findMany({
+        where: { userId },
+        select: {
+          role: true,
+          createdAt: true,
+          club: { select: { name: true } },
+        },
+        orderBy: { clubMemberId: 'asc' },
+      }),
+      ownGroups: await this.prisma.athleteGroup.findMany({
+        where: { ownerUserId: userId },
+        select: {
+          athleteGroupId: true,
+          name: true,
+          parentId: true,
+          members: { select: { athleteId: true } },
+        },
+        orderBy: { athleteGroupId: 'asc' },
+      }),
+      entrustedGroups: await this.prisma.athleteGroupStaff.findMany({
+        where: { userId },
+        select: { group: groupName },
+      }),
+      groupsIn: athleteId
+        ? await this.prisma.athleteGroupMember.findMany({
+            where: { athleteId },
+            select: { group: groupName },
+          })
+        : [],
+    };
+  }
+
   private async coaching(userId: number) {
     const [coaches, athletes] = await Promise.all([
       this.prisma.coachAthlete.findMany({

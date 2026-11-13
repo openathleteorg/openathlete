@@ -272,6 +272,7 @@ describe("an athlete's coaches (PostgreSQL)", () => {
       expect.objectContaining({ userId: COACH_USER_ID }),
     ]);
     expect(Object.keys(coaches[0]).sort()).toEqual([
+      'club',
       'email',
       'firstName',
       'lastName',

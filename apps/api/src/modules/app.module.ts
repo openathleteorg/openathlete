@@ -25,6 +25,7 @@ import { ExceptionReportingFilter } from './analytics/exception.filter';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth';
 import { CalendarModule } from './calendar/calendar.module';
+import { ClubModule } from './club/club.module';
 import { CoreModule } from './core';
 import { InstanceModule } from './instance/instance.module';
 import { McpModule } from './mcp/mcp.module';
@@ -61,6 +62,7 @@ import { SubscriptionModule } from './subscription';
     McpModule,
     MessagesModule,
     CalendarModule,
+    ClubModule,
     EventEmitterModule.forRoot(),
     NotificationModule,
     ProvidersSyncModule,

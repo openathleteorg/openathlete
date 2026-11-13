@@ -1,6 +1,7 @@
 import { subject } from '@casl/ability';
 
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -12,6 +13,7 @@ import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { AthleteInvitationService } from 'src/modules/auth/services/athlete-invitation.service';
 import { CoachInvitationService } from 'src/modules/auth/services/coach-invitation.service';
+import { pruneCoachGroups } from 'src/modules/club/club-access';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 const ATHLETE_INCLUDES = {
@@ -164,18 +166,42 @@ export class AthleteService {
   async getMyCoachedAthletes(userId: AuthUser['userId']) {
     const athletes = await this.prisma.athlete.findMany({
       where: { coachAthletes: { some: { userId: userId } } },
-      include: ATHLETE_INCLUDES,
+      include: {
+        ...ATHLETE_INCLUDES,
+        coachAthletes: {
+          where: { userId },
+          select: { club: { select: { clubId: true, name: true } } },
+        },
+      },
     });
 
-    return athletes;
+    // The club through which the coach coaches the athlete, if any: the
+    // club, not the coach, ends that link
+    return athletes.map(({ coachAthletes, ...athlete }) => ({
+      ...athlete,
+      club: coachAthletes[0]?.club ?? null,
+    }));
   }
 
   async getMyCoaches(userId: AuthUser['userId']) {
     // Through the athlete profile the user owns: its id is not the user's
-    return this.prisma.user.findMany({
+    const coaches = await this.prisma.user.findMany({
       where: { coachAthletes: { some: { athlete: { userId } } } },
-      select: { userId: true, firstName: true, lastName: true, email: true },
+      select: {
+        userId: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        coachAthletes: {
+          where: { athlete: { userId } },
+          select: { club: { select: { clubId: true, name: true } } },
+        },
+      },
     });
+    return coaches.map(({ coachAthletes, ...coach }) => ({
+      ...coach,
+      club: coachAthletes[0]?.club ?? null,
+    }));
   }
 
   async inviteCoach(userId: AuthUser['userId'], email: string) {
@@ -223,8 +249,28 @@ export class AthleteService {
       throw new NotFoundException('Athlete not found');
     }
 
-    await this.prisma.coachAthlete.deleteMany({
-      where: { athleteId: athleteId, userId: userId },
+    await this.unlink({ userId, athleteId });
+  }
+
+  /**
+   * Ends a link the coach and athlete made themselves. A link a club made
+   * goes when they leave the club, not from here.
+   */
+  private async unlink(pair: { userId: number; athleteId: number }) {
+    await this.prisma.$transaction(async (tx) => {
+      const { count } = await tx.coachAthlete.deleteMany({
+        where: { ...pair, clubId: null },
+      });
+      const clubLink = await tx.coachAthlete.findFirst({
+        where: pair,
+        select: { club: { select: { name: true } } },
+      });
+      if (clubLink && count === 0) {
+        throw new ConflictException(
+          `The club ${clubLink.club?.name} manages this link: leave the club, or ask its admins`,
+        );
+      }
+      await pruneCoachGroups(tx, [pair]);
     });
   }
 
@@ -245,8 +291,6 @@ export class AthleteService {
       throw new NotFoundException('Athlete not found');
     }
 
-    await this.prisma.coachAthlete.deleteMany({
-      where: { athleteId: athlete.athleteId, userId: user.userId },
-    });
+    await this.unlink({ userId: user.userId, athleteId: athlete.athleteId });
   }
 }

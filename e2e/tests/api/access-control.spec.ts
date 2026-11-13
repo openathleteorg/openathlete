@@ -69,6 +69,8 @@ test('no response carries a password hash or a push token', async ({
   const list = (await coaches.json()) as Record<string, unknown>[];
   expect(list).toHaveLength(1);
   expect(Object.keys(list[0]).sort()).toEqual([
+    // The club that made the link, null for a link of their own
+    'club',
     'email',
     'firstName',
     'lastName',

@@ -39,3 +39,4 @@ export * from './garmin-personal.dto';
 export * from './activity-correction.dto';
 export * from './strength-session.dto';
 export * from './custom-exercise.dto';
+export * from './club.dto';

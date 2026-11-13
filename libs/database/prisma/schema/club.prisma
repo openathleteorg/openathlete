@@ -1,0 +1,133 @@
+// ============================================================================
+// Clubs & Athlete Groups
+// ============================================================================
+// A club gathers coaches and athletes under roles. Its staff reaches its
+// athletes through ordinary coach_athlete links that the club creates and
+// removes (coach_athlete.club_id), so every coach feature works the same for
+// a club as for a coach on their own.
+//
+// Groups sort athletes, inside a club or in a coach's own list. Belonging to
+// a group never gives access to anything on its own.
+// ============================================================================
+
+/// Role of a member in a club.
+/// OWNER and ADMIN run the club; OWNER, ADMIN and COACH coach every athlete
+/// of the club; ASSISTANT coaches only the athletes of the groups entrusted
+/// to them; ATHLETE is coached.
+enum ClubRole {
+  OWNER
+  ADMIN
+  COACH
+  ASSISTANT
+  ATHLETE
+
+  @@map("club_role")
+}
+
+model Club {
+  // primary key
+  clubId Int @id @default(autoincrement()) @map("club_id")
+
+  // fields
+  name             String
+  description      String?
+  /// Token of the link athletes join through. Rotated to revoke the link.
+  athleteJoinToken String? @unique @map("athlete_join_token")
+  /// Token of the link coaches join through, as COACH. Rotated to revoke it.
+  staffJoinToken   String? @unique @map("staff_join_token")
+
+  // relationships
+  members       ClubMember[]
+  groups        AthleteGroup[]
+  coachAthletes CoachAthlete[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("club")
+}
+
+model ClubMember {
+  // primary key
+  clubMemberId Int @id @default(autoincrement()) @map("club_member_id")
+
+  // fields
+  role ClubRole
+
+  // relationships
+  club   Club @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId Int  @map("club_id")
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId Int  @map("user_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([clubId, userId])
+  @@index([userId])
+  @@map("club_member")
+}
+
+/// A group of athletes, with at most one level of sub-groups. It belongs
+/// either to a club (club_id) or to the coach who created it (owner_user_id),
+/// never both: a check constraint enforces it.
+model AthleteGroup {
+  // primary key
+  athleteGroupId Int @id @default(autoincrement()) @map("athlete_group_id")
+
+  // fields
+  name String
+
+  // relationships
+  parent      AthleteGroup?  @relation("AthleteGroupParent", fields: [parentId], references: [athleteGroupId], onDelete: Cascade)
+  parentId    Int?           @map("parent_id")
+  children    AthleteGroup[] @relation("AthleteGroupParent")
+  club        Club?          @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId      Int?           @map("club_id")
+  ownerUser   User?          @relation(fields: [ownerUserId], references: [userId], onDelete: Cascade)
+  ownerUserId Int?           @map("owner_user_id")
+  members     AthleteGroupMember[]
+  staff       AthleteGroupStaff[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([clubId])
+  @@index([ownerUserId])
+  @@index([parentId])
+  @@map("athlete_group")
+}
+
+model AthleteGroupMember {
+  // relationships
+  group          AthleteGroup @relation(fields: [athleteGroupId], references: [athleteGroupId], onDelete: Cascade)
+  athleteGroupId Int          @map("athlete_group_id")
+  athlete        Athlete      @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId      Int          @map("athlete_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([athleteGroupId, athleteId])
+  @@index([athleteId])
+  @@map("athlete_group_member")
+}
+
+/// An assistant entrusted with a club group, and its sub-groups.
+model AthleteGroupStaff {
+  // relationships
+  group          AthleteGroup @relation(fields: [athleteGroupId], references: [athleteGroupId], onDelete: Cascade)
+  athleteGroupId Int          @map("athlete_group_id")
+  user           User         @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId         Int          @map("user_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([athleteGroupId, userId])
+  @@index([userId])
+  @@map("athlete_group_staff")
+}

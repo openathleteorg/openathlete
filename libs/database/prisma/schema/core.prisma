@@ -108,6 +108,9 @@ model User {
   oauthCodes                OAuthAuthorizationCode[]
   lifecycleEmails           LifecycleEmail[]
   customExercises           CustomExercise[]
+  clubMemberships           ClubMember[]
+  ownedAthleteGroups        AthleteGroup[]
+  athleteGroupStaff         AthleteGroupStaff[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

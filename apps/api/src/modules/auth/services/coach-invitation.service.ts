@@ -18,6 +18,7 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { SendEmailEvent } from 'src/events';
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { linkCoachAndAthlete } from 'src/modules/club/club-access';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { FeatureAccessService } from 'src/modules/subscription';
 
@@ -294,11 +295,9 @@ export class CoachInvitationService {
       if (claimed.count !== 1) {
         throw new BadRequestException('Invalid or expired invitation token');
       }
-      await tx.coachAthlete.create({
-        data: {
-          athleteId: athlete.athleteId,
-          userId: coachUserId,
-        },
+      await linkCoachAndAthlete(tx, {
+        athleteId: athlete.athleteId,
+        userId: coachUserId,
       });
     });
     await this.reportLinked(coachUserId, athlete.athleteId);
@@ -360,11 +359,9 @@ export class CoachInvitationService {
       if (claimed.count !== 1) {
         throw new BadRequestException('This invitation is no longer pending');
       }
-      await tx.coachAthlete.create({
-        data: {
-          athleteId: athlete.athleteId,
-          userId: coachUserId,
-        },
+      await linkCoachAndAthlete(tx, {
+        athleteId: athlete.athleteId,
+        userId: coachUserId,
       });
     });
     await this.reportLinked(coachUserId, athlete.athleteId);
