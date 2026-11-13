@@ -42,7 +42,7 @@ const me: AppTab = {
   label: m.nav_tab_me,
   icon: UserRound,
   path: getPath(['dashboard', 'profile']),
-  sections: ['profile', 'settings'],
+  sections: ['profile', 'settings', 'plans'],
 };
 
 const ATHLETE_TABS: AppTab[] = [
@@ -104,8 +104,9 @@ export function isTabRoot(tabs: AppTab[], pathname: string) {
   const section = sectionOf(pathname);
   return (
     pathname.split('/').length === 3 &&
-    // Each settings page is pushed from the Me tab
+    // Each settings page, and the training plans, are pushed from the Me tab
     section !== 'settings' &&
+    section !== 'plans' &&
     tabs.some((tab) => section && tab.sections.includes(section))
   );
 }
@@ -123,6 +124,7 @@ export function screenTitle(pathname: string): string {
     coach: m.athletes,
     summary: m.dashboard,
     notes: m.coach_notes,
+    plans: m.training_plans,
   };
   return titles[sectionOf(pathname) ?? '']?.() ?? 'OpenAthlete';
 }

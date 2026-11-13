@@ -131,6 +131,21 @@ export const routes = {
     uploadImage: '/files/images',
     get: (fileId: string) => `/files/${fileId}`,
   },
+  trainingPlan: {
+    templates: '/training-plans',
+    template: (templateId: number) => `/training-plans/${templateId}`,
+    fromCalendar: '/training-plans/from-calendar',
+    import: '/training-plans/import',
+    export: (templateId: number) => `/training-plans/${templateId}/export`,
+    previewApply: (templateId: number) =>
+      `/training-plans/${templateId}/apply/preview`,
+    apply: (templateId: number) => `/training-plans/${templateId}/apply`,
+    applied: '/training-plans/applied',
+    appliedPlan: (trainingPlanId: number) =>
+      `/training-plans/applied/${trainingPlanId}`,
+    shiftApplied: (trainingPlanId: number) =>
+      `/training-plans/applied/${trainingPlanId}/shift`,
+  },
   coachNote: {
     notebook: '/coach-notes/notebook',
     list: '/coach-notes',

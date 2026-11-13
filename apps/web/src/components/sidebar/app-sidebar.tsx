@@ -23,6 +23,7 @@ import { getPath } from '@/routes/paths';
 import {
   Activity,
   Calendar,
+  ClipboardList,
   CogIcon,
   MedalIcon,
   MessageCircle,
@@ -73,6 +74,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           title: m.coach_notes(),
           url: getPath(['dashboard', 'notes']),
           icon: NotebookPen,
+          spaces: ['COACH'] as UserRole[],
+        },
+        {
+          title: m.training_plans(),
+          url: getPath(['dashboard', 'plans']),
+          icon: ClipboardList,
           spaces: ['COACH'] as UserRole[],
         },
       ];
@@ -144,6 +151,12 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         title: m.metrics(),
         url: getPath(['dashboard', 'metrics']),
         icon: Activity,
+        spaces: ['ATHLETE'] as UserRole[],
+      },
+      {
+        title: m.training_plans(),
+        url: getPath(['dashboard', 'plans']),
+        icon: ClipboardList,
         spaces: ['ATHLETE'] as UserRole[],
       },
       {
