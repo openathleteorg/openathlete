@@ -9,6 +9,10 @@ import {
   calculateWorkoutDuration,
   isDurationSetByHand,
 } from '@openathlete/shared';
+import {
+  PLAN_FOR_ATHLETES_MAX_ATHLETES,
+  PLAN_FOR_ATHLETES_MAX_EVENTS,
+} from '@openathlete/shared';
 
 import {
   addDaysToDateKey,
@@ -566,6 +570,85 @@ export const registerCalendarWriteTools: ToolRegistrar = (
           scope,
         );
       }),
+  );
+
+  registerTool(
+    server,
+    'copy_sessions_to_athletes',
+    {
+      title: 'Copy sessions to other athletes',
+      description:
+        "Copies planned sessions, races or notes of one athlete's calendar to other athletes the user coaches (list_athletes), e.g. a group: the first one lands on `date`, the others keep their days apart, at `time` or their own time, in each athlete's time zone. Each copy uses its athlete's own zones and thresholds. All or nothing. Returns, per athlete, what they lack (a threshold for percentage targets, zones) or already have those days, and a batchId the user can undo in the app.",
+      inputSchema: {
+        eventIds: z
+          .array(z.number().int())
+          .min(1)
+          .max(PLAN_FOR_ATHLETES_MAX_EVENTS)
+          .describe('Sessions of one calendar, from get_calendar'),
+        athleteIds: z
+          .array(z.number().int())
+          .min(1)
+          .max(PLAN_FOR_ATHLETES_MAX_ATHLETES)
+          .describe('Athletes to copy to'),
+        date: localDate.describe('Day the first session lands on'),
+        time: localTime
+          .optional()
+          .describe('Start time for every session; absent, each keeps its own'),
+      },
+      outputSchema: z.object({
+        batchId: z.string(),
+        created: z.number(),
+        athletes: z.array(
+          z.object({
+            athleteId: z.number(),
+            name: z.string(),
+            missingMetrics: z.array(z.string()),
+            missingZones: z.boolean(),
+            sameDayEvents: z.number(),
+            unavailable: z.array(z.string()),
+          }),
+        ),
+      }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    ({ eventIds, athleteIds, date, time }) =>
+      run(
+        z.object({
+          batchId: z.string(),
+          created: z.number(),
+          athletes: z.array(z.any()),
+        }),
+        async () => {
+          const { scope } = await editable(eventIds, 'update');
+          const dto = {
+            source: { kind: 'events' as const, eventIds },
+            athleteIds,
+            date,
+            ...(time && { time }),
+            timeZone: scope.timeZone,
+          };
+          const preview = await deps.batch.preview(ctx.user, dto);
+          const { batchId, eventIds: created } = await deps.batch.plan(
+            ctx.user,
+            dto,
+          );
+          return {
+            batchId,
+            created: created.length,
+            athletes: preview.athletes.map(
+              ({ firstName, lastName, ...row }) => ({
+                ...row,
+                name: `${firstName} ${lastName}`.trim(),
+              }),
+            ),
+          };
+        },
+      ),
   );
 
   registerTool(

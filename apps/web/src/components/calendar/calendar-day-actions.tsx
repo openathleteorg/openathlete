@@ -8,6 +8,7 @@ import {
   FileText,
   PenLine,
   StickyNote,
+  Users,
 } from 'lucide-react';
 import { ComponentProps, ComponentType } from 'react';
 import { toast } from 'sonner';
@@ -45,11 +46,14 @@ export function CalendarDayActions({
   day,
   menu,
   onAiSetupNeeded,
+  onCopyToAthletes,
 }: {
   day: Date;
   menu: keyof typeof MENUS;
   /** No AI model is available: lead to the AI settings */
   onAiSetupNeeded: () => void;
+  /** Copies the day's plan to other athletes; absent when nothing to copy */
+  onCopyToAthletes?: () => void;
 }) {
   const { Item, Separator } = MENUS[menu];
   const { createEvent, createEventFromTemplate, createEventWithAI } =
@@ -105,6 +109,12 @@ export function CalendarDayActions({
           <TooltipContent>{m.nothing_to_paste()}</TooltipContent>
         )}
       </Tooltip>
+      {onCopyToAthletes && (
+        <Item onClick={onCopyToAthletes}>
+          <Users className="mr-2 h-4 w-4" />
+          {m.plan_for_athletes_day_action()}
+        </Item>
+      )}
       <Separator />
       <Item
         onClick={() =>

@@ -190,6 +190,7 @@ import { WeatherService } from './services/weather/weather.service';
     // For the MCP server's tools
     StatisticsService,
     EventBulkService,
+    EventBatchService,
     EventSeriesService,
     MetricService,
     RecordService,

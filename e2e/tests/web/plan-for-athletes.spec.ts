@@ -124,5 +124,17 @@ test("a coach copies an athlete's week to a group, then undoes it", async ({
   await expect.poll(() => sessionsOf(request, ben)).toEqual([]);
   await expect.poll(() => sessionsOf(request, cleo)).toEqual([]);
   expect(await sessionsOf(request, ana)).toEqual(['Hill repeats']);
+
+  // The day's menu copies that day alone, here to one athlete
+  await page.getByRole('button', { name: /^Plan on Monday/ }).click();
+  await page
+    .getByRole('menuitem', { name: 'Copy the day to other athletes' })
+    .click();
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('checkbox', { name: /^Ben/ }).click();
+  await dialog.getByRole('button', { name: 'Review' }).click();
+  await dialog.getByRole('button', { name: 'Plan for 1 athlete(s)' }).click();
+  await expect.poll(() => sessionsOf(request, ben)).toEqual(['Hill repeats']);
+  expect(await sessionsOf(request, cleo)).toEqual([]);
   expect(problems).toEqual([]);
 });
