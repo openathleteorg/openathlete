@@ -81,6 +81,21 @@ const translations = {
     helpNote:
       'Tem dúvidas? Responda a este e-mail e entraremos em contato em breve.',
   },
+  DE: {
+    title: 'Danke, dass du OpenAthlete unterstützt',
+    preview: 'Du bist jetzt Supporter',
+    greeting: (name?: string) =>
+      name
+        ? `Hallo ${name}, danke, dass du OpenAthlete unterstützt.`
+        : 'Danke, dass du OpenAthlete unterstützt.',
+    perks:
+      'Als Supporter kannst du so viele Athleten coachen, wie du möchtest, und KI ist jeden Monat inklusive, ganz ohne eigenen Schlüssel.',
+    description:
+      'Deine Unterstützung finanziert ein offenes und unabhängiges Projekt. Du kannst die Abrechnung jederzeit verwalten oder kündigen.',
+    buttonLabel: 'Abo verwalten',
+    helpNote:
+      'Fragen? Antworte auf diese E-Mail, wir melden uns schnell bei dir.',
+  },
 } as const;
 
 export function buildSubscriptionConfirmationEmail({

@@ -65,6 +65,18 @@ const translations = {
       ', dos 5 km à maratona e ao trail, entram no seu calendário com um clique, nos seus ritmos.',
     ],
   },
+  DE: {
+    subject: 'Trag deinen nächsten Wettkampf ein',
+    preview: 'Oder starte mit einem kostenlosen Plan, in deinem Tempo.',
+    body: 'Deine Aktivitäten kommen seit einer Woche an. Bisher ist in deinem Kalender aber nichts geplant.',
+    race: 'Wenn du einen Wettkampf im Blick hast, trag ihn ein: OpenAthlete zählt die verbleibenden Wochen, und du kannst deinen Plan bis zum Wettkampftag aufbauen.',
+    button: 'Wettkampf hinzufügen',
+    plans: [
+      'Noch kein Ziel? ',
+      'Unsere kostenlosen Pläne',
+      ', von 5 km bis Marathon und Trail, landen mit einem Klick in deinem Kalender, abgestimmt auf deine Paces.',
+    ],
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildPlanNudgeEmail(

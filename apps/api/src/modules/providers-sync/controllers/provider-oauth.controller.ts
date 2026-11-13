@@ -625,7 +625,7 @@ export class ProviderOAuthController {
         activityDescriptionLanguage: {
           type: 'string',
           nullable: true,
-          enum: ['FR', 'EN', 'IT', 'ES', 'PT_BR'],
+          enum: ['FR', 'EN', 'IT', 'ES', 'PT_BR', 'DE'],
           description: "Language of that analysis; null follows the user's",
           example: 'EN',
         },

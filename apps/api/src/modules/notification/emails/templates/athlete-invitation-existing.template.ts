@@ -66,6 +66,18 @@ const translations = {
     settingsNote:
       'Você pode gerenciar todos os seus convites na seção Configurações da sua conta.',
   },
+  DE: {
+    title: 'Neue Coach-Einladung',
+    preview: (coachName: string) =>
+      `${coachName} lädt dich in das Athletenteam ein`,
+    description: (coachName: string) =>
+      `${coachName} lädt dich ein, dem Athletenteam auf OpenAthlete beizutreten. Du kannst die Einladung in deinen Einstellungen annehmen oder ablehnen.`,
+    buttonLabel: 'Einladungen ansehen',
+    linkNote: (url: string) =>
+      `Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser: ${url}`,
+    settingsNote:
+      'Alle deine Einladungen verwaltest du im Bereich Einstellungen deines Kontos.',
+  },
 } as const;
 
 export function buildAthleteInvitationExistingEmail({

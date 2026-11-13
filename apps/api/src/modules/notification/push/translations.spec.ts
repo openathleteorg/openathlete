@@ -27,4 +27,28 @@ describe('push notification translations', () => {
       body: '2 sessões: Corrida, Natação',
     });
   });
+
+  it('writes activity feedback in German', () => {
+    expect(
+      getPushNotificationTranslation('activity_processed', Language.DE, {
+        hasQuestions: true,
+      }),
+    ).toEqual({
+      title: 'Aktivität verarbeitet',
+      body: 'Deine Aktivität wurde analysiert und Feedback-Fragen sind verfügbar.',
+    });
+  });
+
+  it('writes the next-day reminder in German', () => {
+    expect(trainingReminderNotification(Language.DE, ['Laufen'])).toEqual({
+      title: 'Morgen',
+      body: 'Laufen',
+    });
+    expect(
+      trainingReminderNotification(Language.DE, ['Laufen', 'Schwimmen']),
+    ).toEqual({
+      title: 'Morgen',
+      body: '2 Einheiten: Laufen, Schwimmen',
+    });
+  });
 });

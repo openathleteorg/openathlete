@@ -61,6 +61,18 @@ const translations = {
     postscript:
       'P.S.: Está se preparando para alguma prova? Responda com o nome dela, eu leio todas as respostas.',
   },
+  DE: {
+    title: 'Dein Konto ist bereit',
+    preview:
+      'Noch ein Schritt, bis deine Einheiten erscheinen: Verbinde deine Uhr.',
+    greeting: (name?: string) => (name ? `Hallo ${name},` : 'Hallo,'),
+    body: 'Als Erstes: Verbinde deine Uhr oder Strava. OpenAthlete importiert dann deinen Verlauf und berechnet deine Trainingsbelastung, ganz ohne Eintippen.',
+    button: 'Uhr verbinden',
+    providers:
+      'Garmin, Polar, Suunto, COROS und Strava werden unterstützt. Der Import dauert ein paar Minuten.',
+    postscript:
+      'P.S. Bereitest du dich gerade auf einen Wettkampf vor? Antworte mit seinem Namen, ich lese jede Antwort.',
+  },
 } as const satisfies Record<EmailLanguage, unknown>;
 
 export function buildWelcomeEmail({

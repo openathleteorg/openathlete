@@ -109,6 +109,25 @@ const translations = {
       'Próximo passo: adicione sua próxima prova ao calendário. O OpenAthlete conta as semanas que faltam e você pode montar seu plano até o dia da prova.',
     noRaceButton: 'Adicionar minha prova',
   },
+  DE: {
+    subject: (n: string, one: boolean) =>
+      one ? '1 Aktivität importiert' : `${n} Aktivitäten importiert`,
+    preview: 'Deine letzten vier Wochen in Zahlen.',
+    arrived: (provider: string, n: string, since: string) =>
+      `Dein ${provider}-Verlauf ist da: ${n} seit ${since}.`,
+    sessions: (n: string, one: boolean) =>
+      one ? '1 Aktivität' : `${n} Aktivitäten`,
+    lastWeeks: 'Deine letzten vier Wochen:',
+    labels: ['Aktivitäten', 'Distanz', 'Zeit'],
+    race: (race: string, days: number) =>
+      days === 1
+        ? `Dein nächster Wettkampf, ${race}, ist morgen. Viel Erfolg!`
+        : `Dein nächster Wettkampf, ${race}, ist in ${days} Tagen. Der Kalender zählt schon die Tage.`,
+    raceButton: 'Kalender öffnen',
+    noRace:
+      'Nächster Schritt: Trag deinen nächsten Wettkampf in den Kalender ein. OpenAthlete zählt die verbleibenden Wochen, und du kannst deinen Plan bis zum Wettkampftag aufbauen.',
+    noRaceButton: 'Wettkampf hinzufügen',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildImportDoneEmail(

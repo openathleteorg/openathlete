@@ -57,6 +57,7 @@ describe('MessageNotificationScheduler language', () => {
       participant(1, 'ana@example.com', 'ES'),
       participant(2, 'lea@example.com', 'EN'),
       participant(3, 'bia@example.com', 'PT_BR'),
+      participant(4, 'jonas@example.com', 'DE'),
     ]);
 
     await scheduler.sendBatchedMessageNotifications();
@@ -74,5 +75,10 @@ describe('MessageNotificationScheduler language', () => {
     expect(portuguese.subject).toBe(messageThreadNotificationSubject('PT_BR'));
     expect(portuguese.html).toContain('<html lang="pt-BR">');
     expect(portuguese.html).toContain('Abrir caixa de entrada');
+
+    const german = sentTo('jonas@example.com');
+    expect(german.subject).toBe(messageThreadNotificationSubject('DE'));
+    expect(german.html).toContain('<html lang="de">');
+    expect(german.html).toContain('Postfach öffnen');
   });
 });

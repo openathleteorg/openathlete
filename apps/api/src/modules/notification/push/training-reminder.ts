@@ -26,6 +26,10 @@ const translations: Record<
     title: 'Amanhã',
     many: (count, names) => `${count} sessões: ${names}`,
   },
+  [Language.DE]: {
+    title: 'Morgen',
+    many: (count, names) => `${count} Einheiten: ${names}`,
+  },
 };
 
 /** The evening reminder of the next day's planned sessions. */

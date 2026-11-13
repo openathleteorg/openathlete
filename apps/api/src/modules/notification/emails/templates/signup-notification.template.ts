@@ -71,6 +71,19 @@ const translations = {
       'Fique à vontade para entrar em contato, dar as boas-vindas e entender as necessidades dessa pessoa.',
     note: 'Este e-mail é enviado automaticamente a cada novo cadastro.',
   },
+  DE: {
+    title: 'Neue Registrierung',
+    preview: 'Gerade hat jemand ein Konto erstellt.',
+    intro: (name?: string) =>
+      name
+        ? `${name} hat sich gerade bei OpenAthlete registriert.`
+        : 'Gerade hat sich jemand bei OpenAthlete registriert.',
+    emailLabel: 'E-Mail',
+    nameLabel: 'Vollständiger Name',
+    followUp:
+      'Melde dich gern, um die Person willkommen zu heißen oder ihre Bedürfnisse zu erfahren.',
+    note: 'Diese E-Mail wird bei jeder neuen Registrierung automatisch versendet.',
+  },
 } as const;
 
 export function buildSignupNotificationEmail({

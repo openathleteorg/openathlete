@@ -86,6 +86,22 @@ const translations = {
       'Estas mensagens foram agrupadas para evitar o envio de um e-mail para cada mensagem.',
     from: (senderName: string, time: string) => `De ${senderName} — ${time}`,
   },
+  DE: {
+    subject: 'Neue Nachrichten in deinem OpenAthlete-Postfach',
+    title: 'Neue Nachrichten in deinem Postfach',
+    preview: (count: number) =>
+      count > 1
+        ? `${count} neue Nachrichten in einer Unterhaltung`
+        : 'Neue Nachricht in einer Unterhaltung',
+    intro: (threadTitle?: string | null) =>
+      threadTitle
+        ? `Du hast neue Nachrichten in der Unterhaltung „${threadTitle}“ auf OpenAthlete erhalten.`
+        : 'Du hast neue Nachrichten in einer deiner Unterhaltungen auf OpenAthlete erhalten.',
+    openInbox: 'Postfach öffnen',
+    footerNote:
+      'Diese Nachrichten wurden gebündelt, damit du nicht für jede einzelne Nachricht eine E-Mail bekommst.',
+    from: (senderName: string, time: string) => `Von ${senderName} — ${time}`,
+  },
 } as const;
 
 const dateLocales: Record<EmailLanguage, string> = {
@@ -94,6 +110,7 @@ const dateLocales: Record<EmailLanguage, string> = {
   EN: 'en-US',
   IT: 'it-IT',
   PT_BR: 'pt-BR',
+  DE: 'de-DE',
 };
 
 export function messageThreadNotificationSubject(

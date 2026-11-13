@@ -112,6 +112,27 @@ const translations = {
     noPressure:
       'Se não for o momento, sem problema: tudo continua gratuito e não vou pedir de novo.',
   },
+  DE: {
+    subject: 'eine Bitte, nur dieses eine Mal',
+    preview: 'OpenAthlete hat weder Investoren noch Werbung.',
+    since: (weeks: string, sessions: string) =>
+      `Deine Aktivitäten landen seit ${weeks} Wochen in OpenAthlete, insgesamt ${sessions}. Ich schreibe dir deswegen nur ein einziges Mal.`,
+    sessions: (n: string) => `${n} Aktivitäten`,
+    why: 'OpenAthlete hat weder Investoren noch Werbung und verkauft deine Daten nicht. Ich entwickle es allein, und die Supporter bezahlen die Server, die Synchronisierung der Uhren und die KI.',
+    count: (n: number, goal: string) =>
+      n === 0
+        ? `Das Ziel: ${goal} Supporter, genug, um alles zu decken und dem Projekt mehr Zeit zu widmen.`
+        : n === 1
+          ? `Bisher macht das eine Person. Das Ziel: ${goal}, genug, um alles zu decken und dem Projekt mehr Zeit zu widmen.`
+          : `Heute sind es ${n}. Das Ziel: ${goal}, genug, um alles zu decken und dem Projekt mehr Zeit zu widmen.`,
+    perks: [
+      'Supporter kostet ein paar Euro im Monat oder im Jahr. Dazu gehören KI ohne eigenen Schlüssel und unbegrenzt viele Athleten für Coaches. ',
+      'Alle Details findest du hier',
+      '.',
+    ],
+    noPressure:
+      'Wenn es gerade nicht passt, kein Problem: Alles bleibt kostenlos, und ich frage nicht noch einmal.',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildSupporterAskEmail(

@@ -45,6 +45,14 @@ const translations = {
     ask: 'Se tiver dois minutos: o que fez você parar? O preço, uma função que falta, outra coisa? Uma linha de resposta já basta, eu leio todas.',
     free: 'Sua conta e seus dados continuam aqui, e tudo segue funcionando de graça.',
   },
+  DE: {
+    subject: 'danke, und eine Frage',
+    preview: 'Eine Zeile als Antwort reicht völlig.',
+    thanks:
+      'Ich sehe, dass du dein Supporter-Abo beendet hast. Danke, dass du OpenAthlete die ganze Zeit unterstützt hast, das hat viel bedeutet.',
+    ask: 'Wenn du zwei Minuten hast: Was hat dich zum Aufhören bewogen? Der Preis, eine fehlende Funktion, etwas anderes? Eine Zeile als Antwort reicht völlig, ich lese jede Antwort.',
+    free: 'Dein Konto und deine Daten bleiben erhalten, und alles funktioniert weiterhin kostenlos.',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildSupporterCancelledEmail(

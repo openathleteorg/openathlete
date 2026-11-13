@@ -10,6 +10,7 @@ const htmlLanguages: Record<EmailLanguage, string> = {
   IT: 'it',
   ES: 'es',
   PT_BR: 'pt-BR',
+  DE: 'de',
 };
 
 const footers = {
@@ -40,6 +41,12 @@ const footers = {
     account: 'Você recebeu este e-mail após uma ação na sua conta OpenAthlete.',
     unsubscribe: 'Não receber mais estes e-mails',
     preferences: 'Gerenciar meus e-mails',
+  },
+  DE: {
+    account:
+      'Du erhältst diese E-Mail aufgrund einer Aktion in deinem OpenAthlete-Konto.',
+    unsubscribe: 'Diese E-Mails abbestellen',
+    preferences: 'E-Mail-Einstellungen verwalten',
   },
 } as const satisfies Record<EmailLanguage, Record<string, string>>;
 

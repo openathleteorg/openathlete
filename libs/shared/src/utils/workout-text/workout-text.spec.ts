@@ -245,6 +245,8 @@ describe('labels, types and notes', () => {
     expect(first('- Retour au calme 10m Z1').stepType).toBe(S.COOLDOWN);
     expect(first('- Riscaldamento 10m').stepType).toBe(S.WARMUP);
     expect(first('- Aquecimento 10m').stepType).toBe(S.WARMUP);
+    expect(first('- Aufwärmen 10m').stepType).toBe(S.WARMUP);
+    expect(first('- Auslaufen 10m Z1').stepType).toBe(S.COOLDOWN);
     expect(first('- 10m Z2 intensity=cooldown').stepType).toBe(S.COOLDOWN);
   });
 
@@ -416,7 +418,7 @@ describe('serialize', () => {
   const roundTrip = (
     text: string,
     context = run,
-    locale: 'en' | 'fr' = 'en',
+    locale: 'en' | 'fr' | 'de' = 'en',
   ) => {
     const steps = only(text, context);
     const written = serializeWorkoutText(steps, { ...context, locale });
@@ -441,6 +443,9 @@ describe('serialize', () => {
     expect(roundTrip('- 5x(3m Z4 / effort 2m Z1)')).toBe(
       '5x\n- 3m Z4\n- Interval 2m Z1',
     );
+    expect(
+      roundTrip('- 10m Z2\n- 20m Z3 intensity=warmup\n- 5m Z1', run, 'de'),
+    ).toBe('- 10m Z2\n- Aufwärmen 20m Z3\n- 5m Z1');
   });
 
   it('keeps names, notes and every kind of target', () => {

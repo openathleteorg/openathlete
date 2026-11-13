@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
 /** A user's saved language, which their emails are written in. */
-export const emailLanguageSchema = z.enum(['FR', 'EN', 'IT', 'ES', 'PT_BR']);
+export const emailLanguageSchema = z.enum([
+  'FR',
+  'EN',
+  'IT',
+  'ES',
+  'PT_BR',
+  'DE',
+]);
 
 export type EmailLanguage = z.infer<typeof emailLanguageSchema>;
 
@@ -21,6 +28,7 @@ const emailSubjects: {
     EN: 'Reset your password',
     IT: 'Reimposta la tua password',
     PT_BR: 'Redefina sua senha',
+    DE: 'Setze dein Passwort zurück',
   },
   welcome: {
     ES: 'Tu cuenta de OpenAthlete',
@@ -28,6 +36,7 @@ const emailSubjects: {
     EN: 'Your OpenAthlete account',
     IT: 'Il tuo account OpenAthlete',
     PT_BR: 'Sua conta OpenAthlete',
+    DE: 'Dein OpenAthlete-Konto',
   },
   'subscription-confirmation': {
     ES: 'Gracias por apoyar OpenAthlete',
@@ -35,6 +44,7 @@ const emailSubjects: {
     EN: 'Thank you for supporting OpenAthlete',
     IT: 'Grazie per sostenere OpenAthlete',
     PT_BR: 'Agradecemos por apoiar o OpenAthlete',
+    DE: 'Danke, dass du OpenAthlete unterstützt',
   },
   'athlete-invitation': {
     ES: 'Invitación para unirte a OpenAthlete',
@@ -42,6 +52,7 @@ const emailSubjects: {
     EN: 'Invitation to join OpenAthlete',
     IT: 'Invito a unirsi a OpenAthlete',
     PT_BR: 'Convite para entrar no OpenAthlete',
+    DE: 'Einladung zu OpenAthlete',
   },
   'athlete-invitation-existing': {
     ES: 'Nueva invitación de entrenador',
@@ -49,6 +60,7 @@ const emailSubjects: {
     EN: 'New coach invitation',
     IT: 'Nuovo invito da coach',
     PT_BR: 'Novo convite de treinador',
+    DE: 'Neue Einladung von einem Coach',
   },
   'coach-invitation-new': {
     ES: 'Invitación para unirte a OpenAthlete',
@@ -56,6 +68,7 @@ const emailSubjects: {
     EN: 'Invitation to join OpenAthlete',
     IT: 'Invito a unirsi a OpenAthlete',
     PT_BR: 'Convite para entrar no OpenAthlete',
+    DE: 'Einladung zu OpenAthlete',
   },
   'coach-invitation-existing': {
     ES: 'Nueva invitación de entrenador',
@@ -63,6 +76,7 @@ const emailSubjects: {
     EN: 'New coach invitation',
     IT: 'Nuovo invito da coach',
     PT_BR: 'Novo convite de treinador',
+    DE: 'Neue Einladung von einem Coach',
   },
   'signup-notification': {
     ES: 'Nuevo registro de usuario',
@@ -70,6 +84,7 @@ const emailSubjects: {
     EN: 'New user signup',
     IT: 'Nuova registrazione utente',
     PT_BR: 'Novo cadastro de usuário',
+    DE: 'Neue Registrierung',
   },
 } as const;
 

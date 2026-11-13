@@ -34,7 +34,7 @@ model User {
   /// Campaign, referring site and website pages that led to the signup,
   /// recorded once (see signupAttributionSchema)
   signupAttribution   Json?        @map("signup_attribution")
-  /// User's preferred language (FR, EN, IT or ES)
+  /// User's preferred language (FR, EN, IT, ES, PT_BR or DE)
   language            UserLanguage @default(FR)
   /// Push notification token for mobile devices
   pushToken           String?      @map("push_token")

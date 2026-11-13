@@ -98,6 +98,7 @@ const LOCALES: Record<Language, string> = {
   [Language.IT]: 'it',
   [Language.ES]: 'es',
   [Language.PT_BR]: 'pt-BR',
+  [Language.DE]: 'de',
 };
 
 interface Labels {
@@ -242,6 +243,31 @@ const LABELS: Record<Language, Labels> = {
       STEADY: 'Ritmo constante',
       REPEAT: 'Repetição',
       FREE: 'Livre',
+    },
+  },
+  [Language.DE]: {
+    session: 'Einheit',
+    race: 'Wettkampf',
+    note: 'Notiz',
+    sport: 'Sportart',
+    priority: 'Priorität',
+    duration: 'Dauer',
+    distance: 'Distanz',
+    elevationGain: 'Höhenmeter',
+    targetRpe: 'Ziel-RPE',
+    estimatedLoad: 'Geschätzte Belastung',
+    workout: 'Ablauf',
+    openInApp: 'In OpenAthlete öffnen',
+    lapButton: 'Lap-Taste',
+    reps: 'Wiederholungen',
+    steps: {
+      WARMUP: 'Aufwärmen',
+      COOLDOWN: 'Auslaufen',
+      INTERVAL_ACTIVE: 'Intervall',
+      INTERVAL_REST: 'Erholung',
+      STEADY: 'Gleichmäßig',
+      REPEAT: 'Wiederholung',
+      FREE: 'Frei',
     },
   },
 };

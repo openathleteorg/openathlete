@@ -53,6 +53,16 @@ const labels: Record<string, Record<CoachActivityNoticeKind, string>> = {
     COMMENT: 'Commento dell’attività aggiornato',
     RPE: 'RPE dell’attività aggiornato',
   },
+  PT_BR: {
+    ACTIVITY: 'Nova atividade',
+    COMMENT: 'Comentário da atividade atualizado',
+    RPE: 'RPE da atividade atualizado',
+  },
+  DE: {
+    ACTIVITY: 'Neue Aktivität',
+    COMMENT: 'Kommentar zur Aktivität aktualisiert',
+    RPE: 'RPE der Aktivität aktualisiert',
+  },
 };
 
 @Injectable()

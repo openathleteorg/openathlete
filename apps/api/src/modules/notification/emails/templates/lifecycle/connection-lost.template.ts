@@ -51,6 +51,16 @@ const translations = {
     button: (p: string) => `Reconectar ${p}`,
     ignore: 'Se você removeu de propósito, pode ignorar este e-mail.',
   },
+  DE: {
+    subject: (p: string) => `Deine ${p}-Synchronisierung wurde gestoppt`,
+    preview: 'Neue Aktivitäten kommen nicht mehr an.',
+    body: (p: string, since: string) =>
+      `Seit dem ${since} empfängt OpenAthlete deine ${p}-Aktivitäten nicht mehr: Der Zugriff wurde in deinem ${p}-Konto verweigert oder entfernt.`,
+    fix: 'Verbinde es erneut, um dort weiterzumachen, wo es aufgehört hat. Bereits importierte Aktivitäten bleiben erhalten.',
+    button: (p: string) => `${p} neu verbinden`,
+    ignore:
+      'Wenn du die Verbindung absichtlich entfernt hast, kannst du diese E-Mail ignorieren.',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 export function buildConnectionLostEmail(

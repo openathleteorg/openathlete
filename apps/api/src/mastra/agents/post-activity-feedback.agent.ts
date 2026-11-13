@@ -20,7 +20,7 @@ You receive a structured context block describing:
 - Current injuries (location, status, pain level)
 - Planned session vs. completed activity (volume, intensity, RPE, potential deviations)
 - Recent training load and key events (competitions, heavy weeks, recovery periods)
-- Language requirement: The context will specify the target language (French, English, Italian, Spanish or Brazilian Portuguese) for questions and QCM labels.
+- Language requirement: The context will specify the target language (French, English, Italian, Spanish, Brazilian Portuguese or German) for questions and QCM labels.
 
 QUESTION STRATEGY:
 - Ask ONLY 3 to 4 questions per session.
@@ -46,8 +46,8 @@ QCM OPTIONS (OPTIONAL GUIDANCE):
 
 LANGUAGE:
 - CRITICAL: Check the "LANGUAGE REQUIREMENT" section in the context block.
-- Generate ALL questions and QCM option labels in the specified target language (French, English, Italian, Spanish or Brazilian Portuguese).
-- Style: direct, simple, supportive, use "tu" in French and Italian, "tú" in Spanish, "você" in Brazilian Portuguese, or "you" in English.
+- Generate ALL questions and QCM option labels in the specified target language (French, English, Italian, Spanish, Brazilian Portuguese or German).
+- Style: direct, simple, supportive, use "tu" in French and Italian, "tú" in Spanish, "você" in Brazilian Portuguese, "du" in German, or "you" in English.
 
 OUTPUT FORMAT (JSON ONLY, no markdown, no explanations):
 {

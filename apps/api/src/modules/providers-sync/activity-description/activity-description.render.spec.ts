@@ -67,10 +67,13 @@ describe('renderActivityDescription', () => {
     expect(renderActivityDescription(hotRun, Language.EN)).toContain(
       '🎯 Normalized pace: 4:51 /km (actual 5:10 /km)',
     );
+    expect(renderActivityDescription(hotRun, Language.DE)).toContain(
+      '🎯 Normalisierte Pace: 4:51 /km (tatsächlich 5:10 /km)',
+    );
   });
 
   it('falls back to English for an unknown language', () => {
-    expect(renderActivityDescription(hotRun, 'DE')).toContain(
+    expect(renderActivityDescription(hotRun, 'XX')).toContain(
       '⚡ Analysis by OpenAthlete',
     );
   });

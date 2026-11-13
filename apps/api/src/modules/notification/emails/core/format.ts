@@ -6,6 +6,7 @@ const locales: Record<EmailLanguage, string> = {
   IT: 'it-IT',
   ES: 'es-ES',
   PT_BR: 'pt-BR',
+  DE: 'de-DE',
 };
 
 export function formatNumber(

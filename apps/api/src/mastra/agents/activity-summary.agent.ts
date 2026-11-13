@@ -29,5 +29,5 @@ OUTPUT (JSON):
 - points: one to three findings, one sentence each, each with its figures. No point that only restates a figure.
 - suggestion: one sentence on what to do next (the next session, recovery, pacing), or null when nothing calls for a change.
 
-Write in the language the context asks for, addressing the athlete informally (tu in French and Italian, tú in Spanish, você in Brazilian Portuguese).`,
+Write in the language the context asks for, addressing the athlete informally (tu in French and Italian, tú in Spanish, você in Brazilian Portuguese, du in German).`,
 };

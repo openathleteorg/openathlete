@@ -59,6 +59,17 @@ const translations = {
       `Se o botão não funcionar, copie e cole este link no seu navegador: ${url}`,
     ignoreNote: 'Se você não fez esta solicitação, pode ignorar este e-mail.',
   },
+  DE: {
+    title: 'Passwort zurücksetzen',
+    preview: 'Setze dein OpenAthlete-Passwort zurück',
+    description:
+      'Wir haben eine Anfrage zum Zurücksetzen deines Passworts erhalten. Klicke auf den Button unten, um ein neues Passwort festzulegen.',
+    buttonLabel: 'Neues Passwort wählen',
+    linkNote: (url: string) =>
+      `Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser: ${url}`,
+    ignoreNote:
+      'Falls du diese Anfrage nicht gestellt hast, kannst du diese E-Mail ignorieren.',
+  },
 } as const;
 
 export function buildPasswordResetEmail({

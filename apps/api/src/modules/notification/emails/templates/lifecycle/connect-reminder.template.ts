@@ -48,6 +48,15 @@ const translations = {
     fallback:
       'Não tem um relógio compatível? Você pode importar arquivos FIT ou GPX, ou planejar seus treinos à mão.',
   },
+  DE: {
+    subject: 'Deine Uhr ist noch nicht verbunden',
+    preview: 'Eine Minute, und deine Aktivitäten kommen von selbst.',
+    body: 'Dein Konto ist bereit, aber noch ist keine Uhr verbunden. Ohne sie bleiben dein Kalender und deine Trainingsbelastung leer.',
+    how: 'Das dauert eine Minute: Einstellungen, Verbindungen, dann deine Marke.',
+    button: 'Uhr verbinden',
+    fallback:
+      'Keine kompatible Uhr? Du kannst FIT- oder GPX-Dateien importieren oder deine Einheiten von Hand planen.',
+  },
 };
 
 export function buildConnectReminderEmail(

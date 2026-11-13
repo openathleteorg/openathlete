@@ -34,6 +34,12 @@ const translations = {
     body: 'Vejo que sua conta no OpenAthlete continua vazia e fiquei pensando no que travou. Um relógio que não suportamos, uma conexão que falhou ou só falta de tempo?',
     ask: 'Uma linha de resposta já basta. Eu leio todas, e são elas que decidem o que eu corrijo primeiro.',
   },
+  DE: {
+    subject: 'eine kurze Frage',
+    preview: 'Eine Zeile als Antwort reicht völlig.',
+    body: 'Ich sehe, dass dein OpenAthlete-Konto noch leer ist, und frage mich, woran es gehakt hat. Eine Uhr, die wir nicht unterstützen, eine Verbindung, die fehlgeschlagen ist, oder einfach keine Zeit?',
+    ask: 'Eine Zeile als Antwort reicht völlig. Ich lese jede Antwort, und sie entscheiden, was ich zuerst behebe.',
+  },
 };
 
 export function buildConnectQuestionEmail(

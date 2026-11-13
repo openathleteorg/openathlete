@@ -390,6 +390,7 @@ enum UserLanguage {
   IT
   ES
   PT_BR
+  DE
 
   @@map("user_language")
 }

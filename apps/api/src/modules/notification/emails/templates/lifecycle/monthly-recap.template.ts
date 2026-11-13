@@ -124,6 +124,29 @@ const translations = {
         : `Próxima prova: ${name}, daqui a ${days} dias.`,
     button: 'Ver minhas estatísticas',
   },
+  DE: {
+    subject: (month: string, figure: string, sessions: string) =>
+      `${month}: ${figure} in ${sessions}`,
+    subjectNoDistance: (month: string, sessions: string) =>
+      `${month}: ${sessions}`,
+    sessions: (n: string, one: boolean) =>
+      one ? '1 Einheit' : `${n} Einheiten`,
+    title: (month: string) => `Dein ${month} in Zahlen`,
+    preview: 'Dein Monat in Zahlen, und was als Nächstes kommt.',
+    labels: ['Einheiten', 'Distanz', 'Zeit', 'Höhenmeter'],
+    more: (pct: string, prev: string) =>
+      `Das sind ${pct} % mehr als im ${prev}.`,
+    less: (pct: string, prev: string) =>
+      `Das sind ${pct} % weniger als im ${prev}.`,
+    same: (prev: string) => `Ungefähr so viel wie im ${prev}.`,
+    longest: (name: string, distance: string) =>
+      `Längste Einheit: ${name}, ${distance}.`,
+    race: (name: string, days: number) =>
+      days === 1
+        ? `Nächster Wettkampf: ${name}, morgen.`
+        : `Nächster Wettkampf: ${name}, in ${days} Tagen.`,
+    button: 'Statistiken ansehen',
+  },
 } satisfies Record<EmailLanguage, unknown>;
 
 /** Below this change, the two months count as the same */
