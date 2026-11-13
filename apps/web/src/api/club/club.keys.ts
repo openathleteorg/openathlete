@@ -5,6 +5,9 @@ export const clubKeys = {
   joinLinks: (clubId: number) => ['club', 'join-links', clubId] as const,
   joinInfo: (token: string) => ['club', 'join-info', token] as const,
   invitations: (clubId: number) => ['club', 'invitations', clubId] as const,
+  sessions: (clubId: number) => ['club', 'sessions', clubId] as const,
+  sessionForEvent: (eventId: number) =>
+    ['club', 'session-for-event', eventId] as const,
 };
 
 export const athleteGroupKeys = {

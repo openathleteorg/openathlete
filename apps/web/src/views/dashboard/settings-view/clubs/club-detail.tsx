@@ -45,6 +45,7 @@ import {
 } from '../settings-section';
 import { ClubInvitationsSection } from './club-invitations-section';
 import { ClubJoinLinksSection } from './club-join-links-section';
+import { ClubSessionsSection } from './club-sessions-section';
 
 const clubsTab = `${getPath(['dashboard', 'settings'])}?tab=clubs`;
 
@@ -261,6 +262,10 @@ export function ClubDetail({ clubId }: { clubId: number }) {
             .filter((member) => member.role === 'ASSISTANT')
             .map((member) => ({ id: member.userId, name: fullName(member) }))}
         />
+      )}
+
+      {isClubStaff(role) && (
+        <ClubSessionsSection clubId={clubId} canManage={isClubCoach(role)} />
       )}
 
       {isClubAdmin(role) && <ClubJoinLinksSection clubId={clubId} />}

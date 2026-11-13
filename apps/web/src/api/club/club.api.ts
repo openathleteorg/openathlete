@@ -8,9 +8,12 @@ import {
   ClubJoinLinkInfoDto,
   ClubJoinLinkKind,
   ClubJoinLinksDto,
+  ClubSessionDto,
+  ClubSessionForEventDto,
   ClubSummaryDto,
   CreateAthleteGroupDto,
   CreateClubDto,
+  CreateClubSessionDto,
   InviteToClubDto,
   InviteToClubResultDto,
   UpdateClubDto,
@@ -98,6 +101,53 @@ export class ClubAPI {
 
   static async revokeInvitation(clubId: number, id: number): Promise<void> {
     await client.delete(routes.club.invitation(clubId, id));
+  }
+
+  static async getSessions(clubId: number): Promise<ClubSessionDto[]> {
+    return (await client.get(routes.club.sessions(clubId))).data;
+  }
+
+  static async createSession(
+    clubId: number,
+    body: CreateClubSessionDto,
+  ): Promise<ClubSessionDto> {
+    return (await client.post(routes.club.sessions(clubId), body)).data;
+  }
+
+  static async updateSession(
+    clubId: number,
+    id: number,
+    body: CreateClubSessionDto,
+  ): Promise<ClubSessionDto> {
+    return (await client.put(routes.club.session(clubId, id), body)).data;
+  }
+
+  static async deleteSession(clubId: number, id: number): Promise<void> {
+    await client.delete(routes.club.session(clubId, id));
+  }
+
+  static async cancelSessionOccurrence(
+    clubId: number,
+    id: number,
+    date: string,
+  ): Promise<ClubSessionDto> {
+    return (await client.post(routes.club.cancelSession(clubId, id), { date }))
+      .data;
+  }
+
+  static async getSessionForEvent(
+    eventId: number,
+  ): Promise<ClubSessionForEventDto> {
+    return (await client.get(routes.clubSessions.forEvent(eventId))).data;
+  }
+
+  static async answerSession(
+    eventId: number,
+    going: boolean,
+  ): Promise<ClubSessionForEventDto> {
+    return (
+      await client.put(routes.clubSessions.attendance, { eventId, going })
+    ).data;
   }
 
   /** The athlete link a short code stands for */

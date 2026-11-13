@@ -236,6 +236,14 @@ export const routes = {
       `/club/${clubId}/invitations/${id}`,
     resendInvitation: (clubId: number, id: number) =>
       `/club/${clubId}/invitations/${id}/resend`,
+    sessions: (clubId: number) => `/club/${clubId}/sessions`,
+    session: (clubId: number, id: number) => `/club/${clubId}/sessions/${id}`,
+    cancelSession: (clubId: number, id: number) =>
+      `/club/${clubId}/sessions/${id}/cancel`,
+  },
+  clubSessions: {
+    forEvent: (eventId: number) => `/club-sessions/event/${eventId}`,
+    attendance: '/club-sessions/attendance',
   },
   clubJoin: {
     code: (code: string) => `/club-join/code/${encodeURIComponent(code)}`,
