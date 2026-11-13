@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const zone2: LearnTerm = {
     es: 'Zona 2',
     it: 'Zona 2',
     'pt-br': 'Zona 2',
+    de: 'Zone 2',
   },
   title: {
     en: 'Zone 2: definition, formula, example',
@@ -21,6 +23,7 @@ export const zone2: LearnTerm = {
     es: '¿Qué es la zona 2? Definición, fórmula y ejemplo',
     it: 'Cos’è la zona 2? Definizione, formula, esempio',
     'pt-br': 'O que é a zona 2? Definição, fórmula e exemplo',
+    de: 'Was ist Zone 2? Definition, Formel und Beispiel',
   },
   description: {
     en: 'Zone 2 heart rate: the Karvonen formula (60–70% of heart rate reserve), a worked example in bpm, how to train in it and why percentage zones can mislead.',
@@ -29,6 +32,7 @@ export const zone2: LearnTerm = {
     it: 'Zona 2 cardiaca: formula di Karvonen (60–70% della riserva), un esempio in bpm, come allenarsi in zona 2 e perché le zone in percentuale ingannano.',
     'pt-br':
       'Zona 2 de frequência cardíaca: fórmula de Karvonen (60–70% da reserva), um exemplo em bpm, como treinar nela e por que as porcentagens enganam.',
+    de: 'Zone 2 der Herzfrequenz: Karvonen-Formel (60–70 % der Reserve), ein Rechenbeispiel in bpm, Training in Zone 2 und warum Prozentzonen täuschen können.',
   },
   definition: {
     en: 'Zone 2 is the easy, steady intensity at or just below the first lactate threshold, usually set at 60 to 70% of heart rate reserve, where you can talk in full sentences and keep going for hours.',
@@ -37,6 +41,7 @@ export const zone2: LearnTerm = {
     it: 'La zona 2 è l’intensità facile e costante alla prima soglia del lattato o appena sotto, di solito tra il 60 e il 70% della frequenza cardiaca di riserva, in cui riesci a parlare con frasi intere e a durare per ore.',
     'pt-br':
       'A zona 2 é a intensidade leve e constante no primeiro limiar de lactato ou logo abaixo, normalmente entre 60 e 70% da frequência cardíaca de reserva, em que você consegue falar frases completas e manter o esforço por horas.',
+    de: 'Zone 2 ist die lockere, gleichmäßige Intensität an oder knapp unter der ersten Laktatschwelle, meist bei 60 bis 70 % der Herzfrequenzreserve angesetzt. Du kannst dabei in ganzen Sätzen sprechen und stundenlang weitermachen.',
   },
   aliases: {
     en: ['Zone 2 training', 'Easy run pace', 'Aerobic base'],
@@ -44,6 +49,7 @@ export const zone2: LearnTerm = {
     es: ['Entrenamiento en zona 2', 'Rodaje suave', 'Base aeróbica'],
     it: ['Allenamento in zona 2', 'Fondo lento', 'Corsa lenta'],
     'pt-br': ['Treino na zona 2', 'Rodagem leve', 'Base aeróbica'],
+    de: ['Zone-2-Training', 'Grundlagenausdauer', 'GA1', 'Lockerer Dauerlauf'],
   },
   faq: {
     en: [
@@ -132,6 +138,23 @@ export const zone2: LearnTerm = {
           'Não exatamente. No mesmo esforço, a frequência costuma ser mais baixa na bike que na corrida, por isso muitos atletas usam zonas separadas por esporte, de preferência calculadas com uma frequência máxima vista em cada um.',
       },
     ],
+    de: [
+      {
+        question: 'In welcher Pace läuft man in Zone 2?',
+        answer:
+          'Eine universelle Pace gibt es nicht: Es ist die Pace, die deine Herzfrequenz an diesem Tag in der Zone hält. Bei den meisten Läufern ist sie deutlich langsamer als das Marathontempo und wird am Berg, bei Hitze und bei Müdigkeit langsamer.',
+      },
+      {
+        question: 'Wie viel meines Trainings sollte in Zone 2 stattfinden?',
+        answer:
+          'Studien an Ausdauer-Spitzenathleten zeigen, dass sie den Großteil ihrer Trainingszeit bei niedriger Intensität verbringen, oft etwa drei Viertel oder mehr. Für Hobbysportler ist ein guter Ansatz, den Großteil des wöchentlichen Laufumfangs locker zu halten und harte Einheiten auf ein oder zwei pro Woche zu beschränken.',
+      },
+      {
+        question: 'Ist Zone 2 auf dem Rad und beim Laufen gleich?',
+        answer:
+          'Nicht ganz. Die Herzfrequenz liegt bei gleicher Anstrengung auf dem Rad oft niedriger als beim Laufen, deshalb nutzen viele Athleten getrennte Zonen pro Sportart. Leg sie, wenn möglich, anhand einer in der jeweiligen Sportart gesehenen HFmax fest.',
+      },
+    ],
   },
   related: [
     'heart-rate-reserve',
@@ -175,5 +198,6 @@ export const zone2: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

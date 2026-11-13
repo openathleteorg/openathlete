@@ -22,7 +22,7 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/:locale(fr|es|it|pt-br)/ai/strava',
+        source: '/:locale(fr|es|it|pt-br|de)/ai/strava',
         destination: '/:locale/connect/strava',
         permanent: true,
       },

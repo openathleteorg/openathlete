@@ -1,0 +1,1961 @@
+{
+  "plan": {
+    "name": "Trail 20 km, 800 Hm: Trainingsplan für 10 Wochen",
+    "description": "Ein Trainingsplan über 10 Wochen für einen Trail über 20 km mit etwa 800 Hm, mit 3 Läufen pro Woche plus optionalem Krafttraining. Bergintervalle, Schwellenläufe bergauf, Power Hiking mit Stöcken und Bergab-Technik. Der lange Lauf wächst auf 2h und 850 Hm, mit einer Entlastungswoche alle 3–4 Wochen und 2 Wochen Tapering.",
+    "goal": "Einen Trail über 20 km mit 800 Hm finishen",
+    "sportType": "TRAIL_RUNNING",
+    "distance": 20000,
+    "duration": 10,
+    "timeTarget": null,
+    "elevationGainRange": {
+      "min": 640,
+      "max": 960
+    }
+  },
+  "cycles": [
+    {
+      "name": "Grundlage",
+      "description": "Lockerer Umfang, kurze Bergintervalle und erste Bergab-Übungen. Der lange Lauf wächst um 10 bis 15 Minuten pro Woche. Woche 4 ist leichter.",
+      "phase": "BASE",
+      "color": "#3b82f6",
+      "weeks": [
+        {
+          "weekNumber": 1,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Bergintervalle",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen bis zum Fuß eines Anstiegs mit 8–12 %, dann 6 × 1' bergauf bei 88–93 % der HFmax, zur Erholung trabend oder gehend wieder hinunter. 10 min Auslaufen. Bei kurzen Belastungen steigt die Herzfrequenz verzögert: Peil zum Ende jeder Wiederholung den oberen Bereich an und lauf die letzte so sauber wie die erste.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min, zu Hause, ohne Geräte. 3 Runden: 12 Step-ups pro Bein auf einen Stuhl oder eine stabile Stufe, 10 Split Squats pro Bein, 15 langsame Wadenheben auf einer Stufe (3 Sekunden absenken), 30 s Einbeinstand pro Bein mit geschlossenen Augen, 30 s Seitstütz pro Seite. Bergab leiden die Oberschenkel, auf unebenem Boden die Sprunggelenke: Das ist eine günstige Versicherung.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Lockerer Dauerlauf",
+              "sport": "RUNNING",
+              "description": "40 min locker auf flachem oder welligem Gelände, 62–70 % der VMA. Du solltest dich in ganzen Sätzen unterhalten können.",
+              "goalDuration": 2400,
+              "goalDistance": 6000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h05 auf Trails mit etwa 250 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.",
+              "goalDuration": 3900,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 2,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "30/30 im Flachen",
+              "sport": "RUNNING",
+              "description": "20 min Einlaufen, dann 2 × (8 × 30\" schnell / 30\" Trab), 3 min locker zwischen den Serien, 10 min Auslaufen. Schnell = 95–100 % der VMA, Trab = 60 %. Im Flachen oder auf der Bahn.",
+              "goalDuration": 2940,
+              "goalDistance": 8000,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Schnell"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Trab"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "INTERVAL_REST",
+                    "durationType": "TIME",
+                    "durationValue": 180,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.95,
+                              "targetMax": 1,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Schnell"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 30,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ],
+                          "name": "Trab"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min, zu Hause, ohne Geräte. 3 Runden: 12 Step-ups pro Bein auf einen Stuhl oder eine stabile Stufe, 10 Split Squats pro Bein, 15 langsame Wadenheben auf einer Stufe (3 Sekunden absenken), 30 s Einbeinstand pro Bein mit geschlossenen Augen, 30 s Seitstütz pro Seite. Bergab leiden die Oberschenkel, auf unebenem Boden die Sprunggelenke: Das ist eine günstige Versicherung.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Lockerer Dauerlauf",
+              "sport": "RUNNING",
+              "description": "45 min locker auf flachem oder welligem Gelände, 62–70 % der VMA. Du solltest dich in ganzen Sätzen unterhalten können. Zum Schluss 6 × 20\" Steigerungen, zurück im Gehen.",
+              "goalDuration": 3060,
+              "goalDistance": 7500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2700,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h15 auf Trails mit etwa 350 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.",
+              "goalDuration": 4500,
+              "goalDistance": 9000,
+              "goalElevationGain": 350,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 3,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Bergintervalle",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen bis zum Fuß eines Anstiegs mit 8–12 %, dann 8 × 1'30 bergauf bei 88–93 % der HFmax, zur Erholung trabend oder gehend wieder hinunter. 10 min Auslaufen. Bei kurzen Belastungen steigt die Herzfrequenz verzögert: Peil zum Ende jeder Wiederholung den oberen Bereich an und lauf die letzte so sauber wie die erste.",
+              "goalDuration": 3480,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min, zu Hause, ohne Geräte. 3 Runden: 12 Step-ups pro Bein auf einen Stuhl oder eine stabile Stufe, 10 Split Squats pro Bein, 15 langsame Wadenheben auf einer Stufe (3 Sekunden absenken), 30 s Einbeinstand pro Bein mit geschlossenen Augen, 30 s Seitstütz pro Seite. Bergab leiden die Oberschenkel, auf unebenem Boden die Sprunggelenke: Das ist eine günstige Versicherung.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Bergab-Technik",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min locker bis zu einem technischen Bergab-Stück (Wurzeln, Steine, 10–20 %). 6 × 1' bergab mit kontrollierter Anstrengung (RPE 5/10), zur Erholung gehend wieder hinauf. Kurze, schnelle Schritte, Blick 3–4 Meter voraus, Arme für die Balance weit geöffnet, Füße landen unter der Hüfte. Das Tempo kommt später: Heute geht es um Tritte, denen du vertraust. 10 min locker zum Abschluss.",
+              "goalDuration": 2880,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bergab, kurze schnelle Schritte"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Bergauf gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h25 auf Trails mit etwa 450 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen. Nimm deine Stöcke mit und setz sie an jedem langen Anstieg ein.",
+              "goalDuration": 5100,
+              "goalDistance": 9500,
+              "goalElevationGain": 450,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5100,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 4,
+          "theme": "Entlastungswoche",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Lockerer Dauerlauf",
+              "sport": "RUNNING",
+              "description": "40 min locker auf flachem oder welligem Gelände, 62–70 % der VMA. Du solltest dich in ganzen Sätzen unterhalten können. Zum Schluss 6 × 20\" Steigerungen, zurück im Gehen.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "20 min, zu Hause, ohne Geräte. 3 Runden: 12 Step-ups pro Bein auf einen Stuhl oder eine stabile Stufe, 10 Split Squats pro Bein, 15 langsame Wadenheben auf einer Stufe (3 Sekunden absenken), 30 s Einbeinstand pro Bein mit geschlossenen Augen, 30 s Seitstütz pro Seite. Bergab leiden die Oberschenkel, auf unebenem Boden die Sprunggelenke: Das ist eine günstige Versicherung.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Bergab-Technik",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min locker bis zu einem technischen Bergab-Stück (Wurzeln, Steine, 10–20 %). 5 × 1' bergab mit kontrollierter Anstrengung (RPE 5/10), zur Erholung gehend wieder hinauf. Kurze, schnelle Schritte, Blick 3–4 Meter voraus, Arme für die Balance weit geöffnet, Füße landen unter der Hüfte. Das Tempo kommt später: Heute geht es um Tritte, denen du vertraust. 10 min locker zum Abschluss.",
+              "goalDuration": 2700,
+              "goalDistance": 6500,
+              "goalElevationGain": 120,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 60,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bergab, kurze schnelle Schritte"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Bergauf gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h auf Trails mit etwa 250 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.",
+              "goalDuration": 3600,
+              "goalDistance": 7500,
+              "goalElevationGain": 250,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 3600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Aufbau",
+      "description": "Längere Bergintervalle und Schwellenläufe bergauf, Power Hiking mit Stöcken, mehr Hm im langen Lauf.",
+      "phase": "SPECIFIC",
+      "color": "#10b981",
+      "weeks": [
+        {
+          "weekNumber": 5,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Bergintervalle",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen bis zum Fuß eines Anstiegs mit 8–12 %, dann 8 × 2' bergauf bei 90–95 % der HFmax, zur Erholung trabend oder gehend wieder hinunter. 10 min Auslaufen. Bei kurzen Belastungen steigt die Herzfrequenz verzögert: Peil zum Ende jeder Wiederholung den oberen Bereich an und lauf die letzte so sauber wie die erste.",
+              "goalDuration": 3960,
+              "goalDistance": 8500,
+              "goalElevationGain": 250,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 Runden: 8 langsame einbeinige Kniebeugen von einer Stufe pro Bein (5 Sekunden absenken: genau das machen Abstiege mit deinen Oberschenkeln), 12 Step-ups mit Sprung pro Bein, 20 einbeinige Wadenheben pro Bein, 10 einbeinige Kreuzheben pro Bein, 45 s Unterarmstütz. In einer Entlastungswoche nur 2 Runden.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Tempodauerlauf im Flachen",
+              "sport": "RUNNING",
+              "description": "15 min Einlaufen, 3 × 8' bei 82–87 % der VMA (fordernd, aber kontrolliert, nur ein paar Worte am Stück) mit 2 min locker dazwischen, 10 min Auslaufen.",
+              "goalDuration": 3300,
+              "goalDistance": 9500,
+              "goalElevationGain": null,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.62,
+                              "targetMax": 0.7,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h35 auf Trails mit etwa 550 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.",
+              "goalDuration": 5700,
+              "goalDistance": 10500,
+              "goalElevationGain": 550,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 6,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Schwellenlauf bergauf",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen, dann 3 × 8' gleichmäßig bergauf bei 82–87 % der HFmax an einem langen, laufbaren Anstieg (5–10 %). Zur Erholung gehend oder trabend hinunter. 10 min Auslaufen. Wenn die Steigung dich zum Gehen zwingt, geh, aber halte die Herzfrequenz im Bereich.",
+              "goalDuration": 4140,
+              "goalDistance": 8500,
+              "goalElevationGain": 280,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 480,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 Runden: 8 langsame einbeinige Kniebeugen von einer Stufe pro Bein (5 Sekunden absenken: genau das machen Abstiege mit deinen Oberschenkeln), 12 Step-ups mit Sprung pro Bein, 20 einbeinige Wadenheben pro Bein, 10 einbeinige Kreuzheben pro Bein, 45 s Unterarmstütz. In einer Entlastungswoche nur 2 Runden.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "VMA-Intervalle",
+              "sport": "RUNNING",
+              "description": "20 min Einlaufen, 6 × 3' bei 90–95 % der VMA mit 2' Trabpause, 10 min Auslaufen. Im Flachen: Je höher deine Decke, desto leichter fühlt sich jeder Anstieg an.",
+              "goalDuration": 3600,
+              "goalDistance": 10500,
+              "goalElevationGain": null,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "PACE",
+                              "targetMin": 0.55,
+                              "targetMax": 0.65,
+                              "targetValue": null,
+                              "metricType": "VMA"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h45 auf Trails mit etwa 650 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen. Nimm deine Stöcke mit und setz sie an jedem langen Anstieg ein.",
+              "goalDuration": 6300,
+              "goalDistance": 11000,
+              "goalElevationGain": 650,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6300,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 7,
+          "theme": null,
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Bergintervalle",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen bis zum Fuß eines Anstiegs mit 8–12 %, dann 10 × 1'30 bergauf bei 88–93 % der HFmax, zur Erholung trabend oder gehend wieder hinunter. 10 min Auslaufen. Bei kurzen Belastungen steigt die Herzfrequenz verzögert: Peil zum Ende jeder Wiederholung den oberen Bereich an und lauf die letzte so sauber wie die erste.",
+              "goalDuration": 3900,
+              "goalDistance": 8500,
+              "goalElevationGain": 240,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 10,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 90,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.88,
+                              "targetMax": 0.93,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 Runden: 8 langsame einbeinige Kniebeugen von einer Stufe pro Bein (5 Sekunden absenken: genau das machen Abstiege mit deinen Oberschenkeln), 12 Step-ups mit Sprung pro Bein, 20 einbeinige Wadenheben pro Bein, 10 einbeinige Kreuzheben pro Bein, 45 s Unterarmstütz. In einer Entlastungswoche nur 2 Runden.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Bergab-Technik",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min locker bis zu einem technischen Bergab-Stück (Wurzeln, Steine, 10–20 %). 8 × 1'15 bergab mit kontrollierter Anstrengung (RPE 5/10), zur Erholung gehend wieder hinauf. Kurze, schnelle Schritte, Blick 3–4 Meter voraus, Arme für die Balance weit geöffnet, Füße landen unter der Hüfte. Das Tempo kommt später: Heute geht es um Tritte, denen du vertraust. 10 min locker zum Abschluss.",
+              "goalDuration": 3600,
+              "goalDistance": 8000,
+              "goalElevationGain": 190,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 8,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 75,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 5
+                            }
+                          ],
+                          "name": "Bergab, kurze schnelle Schritte"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 3
+                            }
+                          ],
+                          "name": "Bergauf gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h55 auf Trails mit etwa 750 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.",
+              "goalDuration": 6900,
+              "goalDistance": 11500,
+              "goalElevationGain": 750,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 6900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 8,
+          "theme": "Umfangreichste Woche",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Schwellenlauf bergauf",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen, dann 3 × 10' gleichmäßig bergauf bei 82–87 % der HFmax an einem langen, laufbaren Anstieg (5–10 %). Zur Erholung gehend oder trabend hinunter. 10 min Auslaufen. Wenn die Steigung dich zum Gehen zwingt, geh, aber halte die Herzfrequenz im Bereich.",
+              "goalDuration": 4680,
+              "goalDistance": 9500,
+              "goalElevationGain": 340,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 3,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 600,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 360,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Krafttraining für Trail (optional)",
+              "sport": "STRENGTH",
+              "description": "30 min. 3 Runden: 8 langsame einbeinige Kniebeugen von einer Stufe pro Bein (5 Sekunden absenken: genau das machen Abstiege mit deinen Oberschenkeln), 12 Step-ups mit Sprung pro Bein, 20 einbeinige Wadenheben pro Bein, 10 einbeinige Kreuzheben pro Bein, 45 s Unterarmstütz. In einer Entlastungswoche nur 2 Runden.",
+              "goalDuration": 1800,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 5,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Power Hiking mit Stöcken",
+              "sport": "TRAIL_RUNNING",
+              "description": "15 min Einlaufen, dann 5 × 5' Power Hiking am steilsten Anstieg, den du findest (15 % und mehr), mit Stöcken, bei 75–85 % der HFmax. Kurze Schritte, kräftig auf die Stöcke drücken, und die flacheren Stücke läufst du. Locker bergab zwischen den Wiederholungen. So steigen die meisten am Wettkampftag: Das lohnt sich zu üben.",
+              "goalDuration": 3900,
+              "goalDistance": 7500,
+              "goalElevationGain": 340,
+              "goalRpe": 6,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 900,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 5,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.75,
+                              "targetMax": 0.85,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Power Hiking, Stöcke"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "2h auf Trails mit etwa 850 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen. Nimm deine Stöcke mit und setz sie an jedem langen Anstieg ein. Lauf die letzten 25 min in Wettkampfintensität (75–82 % der HFmax).",
+              "goalDuration": 7200,
+              "goalDistance": 11500,
+              "goalElevationGain": 850,
+              "goalRpe": 5,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 5700,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1500,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.75,
+                        "targetMax": 0.82,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ],
+                    "name": "Wettkampfintensität"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Tapering",
+      "description": "Zwei Wochen, um frisch anzukommen: Der Umfang sinkt um etwa ein Drittel, dann um die Hälfte, während ein paar kurze Belastungen die Beine spritzig halten. Nichts Neues, viel Schlaf.",
+      "phase": "TAPER",
+      "color": "#6366f1",
+      "weeks": [
+        {
+          "weekNumber": 9,
+          "theme": "Tapering",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Bergintervalle",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen bis zum Fuß eines Anstiegs mit 8–12 %, dann 6 × 2' bergauf bei 90–95 % der HFmax, zur Erholung trabend oder gehend wieder hinunter. 10 min Auslaufen. Bei kurzen Belastungen steigt die Herzfrequenz verzögert: Peil zum Ende jeder Wiederholung den oberen Bereich an und lauf die letzte so sauber wie die erste.",
+              "goalDuration": 3420,
+              "goalDistance": 7500,
+              "goalElevationGain": 200,
+              "goalRpe": 8,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 120,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.9,
+                              "targetMax": 0.95,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 150,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 3,
+              "name": "Mobilität und Sprunggelenke (optional)",
+              "sport": "STRENGTH",
+              "description": "20 min Mobilität: Fußkreisen und Wadendehnung, Hüftöffner, 2 × 30 s Einbeinstand pro Bein. Nichts, was dir vor dem Wettkampf Muskelkater macht.",
+              "goalDuration": 1200,
+              "goalDistance": null,
+              "goalElevationGain": null,
+              "goalRpe": 2,
+              "workout": null
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Lockerer Dauerlauf",
+              "sport": "RUNNING",
+              "description": "40 min locker auf flachem oder welligem Gelände, 62–70 % der VMA. Du solltest dich in ganzen Sätzen unterhalten können. Zum Schluss 6 × 20\" Steigerungen, zurück im Gehen.",
+              "goalDuration": 2760,
+              "goalDistance": 7000,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 2400,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Langer Lauf mit Hm",
+              "sport": "TRAIL_RUNNING",
+              "description": "1h20 auf Trails mit etwa 450 Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.",
+              "goalDuration": 4800,
+              "goalDistance": 9000,
+              "goalElevationGain": 450,
+              "goalRpe": 4,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 4800,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.65,
+                        "targetMax": 0.75,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "weekNumber": 10,
+          "theme": "Wettkampfwoche",
+          "sessions": [
+            {
+              "dayOfWeek": 2,
+              "name": "Schwellenlauf bergauf",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 min Einlaufen, dann 2 × 5' gleichmäßig bergauf bei 82–87 % der HFmax an einem langen, laufbaren Anstieg (5–10 %). Zur Erholung gehend oder trabend hinunter. 10 min Auslaufen. Wenn die Steigung dich zum Gehen zwingt, geh, aber halte die Herzfrequenz im Bereich.",
+              "goalDuration": 2760,
+              "goalDistance": 6500,
+              "goalElevationGain": 140,
+              "goalRpe": 7,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "WARMUP",
+                    "durationType": "TIME",
+                    "durationValue": 1200,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 2,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 300,
+                          "targets": [
+                            {
+                              "targetType": "HEARTRATE",
+                              "targetMin": 0.82,
+                              "targetMax": 0.87,
+                              "targetValue": null,
+                              "metricType": "HR_MAX"
+                            }
+                          ],
+                          "name": "Bergauf"
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 180,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ],
+                          "name": "Bergab traben/gehen"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "stepType": "COOLDOWN",
+                    "durationType": "TIME",
+                    "durationValue": 600,
+                    "targets": [
+                      {
+                        "targetType": "HEARTRATE",
+                        "targetMin": 0.6,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "HR_MAX"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 4,
+              "name": "Lockerer Dauerlauf",
+              "sport": "RUNNING",
+              "description": "30 min locker auf flachem oder welligem Gelände, 62–70 % der VMA. Du solltest dich in ganzen Sätzen unterhalten können. Zum Schluss 6 × 20\" Steigerungen, zurück im Gehen.",
+              "goalDuration": 2160,
+              "goalDistance": 5500,
+              "goalElevationGain": null,
+              "goalRpe": 3,
+              "workout": {
+                "steps": [
+                  {
+                    "stepType": "STEADY",
+                    "durationType": "TIME",
+                    "durationValue": 1800,
+                    "targets": [
+                      {
+                        "targetType": "PACE",
+                        "targetMin": 0.62,
+                        "targetMax": 0.7,
+                        "targetValue": null,
+                        "metricType": "VMA"
+                      }
+                    ]
+                  },
+                  {
+                    "stepType": "REPEAT",
+                    "durationType": "OPEN",
+                    "repeatBlock": {
+                      "repetitions": 6,
+                      "childSteps": [
+                        {
+                          "stepType": "INTERVAL_ACTIVE",
+                          "durationType": "TIME",
+                          "durationValue": 20,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 8
+                            }
+                          ]
+                        },
+                        {
+                          "stepType": "INTERVAL_REST",
+                          "durationType": "TIME",
+                          "durationValue": 40,
+                          "targets": [
+                            {
+                              "targetType": "RPE",
+                              "targetValue": 2
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "dayOfWeek": 0,
+              "name": "Wettkampftag: Trail über 20 km",
+              "sport": "TRAIL_RUNNING",
+              "description": "20 km, etwa 800 Hm. Geh langsamer an, als es sich richtig anfühlt: Anstiege bei 75–82 % der HFmax, iss und trink ab der ersten Stunde und spar dir Kraft in den Beinen für die letzten Abstiege.",
+              "goalDuration": 10800,
+              "goalDistance": 20000,
+              "goalElevationGain": 800,
+              "goalRpe": 9,
+              "workout": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

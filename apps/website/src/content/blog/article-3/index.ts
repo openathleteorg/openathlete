@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const article3: BlogPost = {
       es: 'Lesiones al correr y carga de entrenamiento: qué dice la ciencia',
       it: 'Infortuni nella corsa e carico: cosa dicono gli studi',
       'pt-br': 'Lesões na corrida e carga de treino: o que dizem os estudos',
+      de: 'Laufverletzungen und Trainingsbelastung: Was die Studien sagen',
     },
     description: {
       en: 'What research shows about training load and running injuries, why the acute:chronic workload ratio is contested, and what is still worth tracking.',
@@ -22,6 +24,7 @@ export const article3: BlogPost = {
       it: 'Cosa dice la ricerca su carico e infortuni nella corsa, perché il rapporto acuto:cronico è contestato e cosa vale ancora la pena monitorare.',
       'pt-br':
         'O que a pesquisa mostra sobre carga e lesões na corrida, por que a relação aguda:crônica é contestada e o que ainda vale a pena acompanhar.',
+      de: 'Was die Forschung über Trainingsbelastung und Laufverletzungen zeigt, warum die Acute:Chronic Workload Ratio umstritten ist und was sich trotzdem zu beobachten lohnt.',
     },
     excerpt: {
       en: 'Sudden jumps in training probably raise injury risk, especially for beginners. Beyond that, the evidence is thinner than most training apps suggest, and the ACWR thresholds are not established.',
@@ -30,6 +33,7 @@ export const article3: BlogPost = {
       it: 'I salti improvvisi di allenamento aumentano probabilmente il rischio di infortunio, soprattutto per i principianti. Oltre a questo, le prove sono più scarse di quanto suggeriscano le app, e le soglie dell’ACWR non sono dimostrate.',
       'pt-br':
         'Saltos bruscos no treino provavelmente aumentam o risco de lesão, principalmente para iniciantes. Fora isso, as evidências são mais fracas do que os apps sugerem, e os limites do ACWR não estão comprovados.',
+      de: 'Plötzliche Sprünge im Training erhöhen wahrscheinlich das Verletzungsrisiko, vor allem bei Anfängern. Darüber hinaus ist die Studienlage dünner, als die meisten Trainings-Apps vermuten lassen, und die ACWR-Schwellenwerte sind nicht belegt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const article3: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const polarizedTraining: LearnTerm = {
     es: 'Entrenamiento polarizado',
     it: 'Allenamento polarizzato',
     'pt-br': 'Treino polarizado',
+    de: 'Polarisiertes Training',
   },
   title: {
     en: 'Polarized training: definition, formula, example',
@@ -21,6 +23,7 @@ export const polarizedTraining: LearnTerm = {
     es: '¿Qué es el entrenamiento polarizado? Definición y ejemplo',
     it: 'Cos’è l’allenamento polarizzato? Definizione, formula, esempio',
     'pt-br': 'O que é treino polarizado? Definição, fórmula e exemplo',
+    de: 'Polarisiertes Training: Definition, Formel, Beispiel',
   },
   description: {
     en: 'Polarized training: the 80/20 intensity split, the three zones behind it, the polarization index with a worked example, and what the studies show.',
@@ -29,6 +32,7 @@ export const polarizedTraining: LearnTerm = {
     it: 'L’allenamento polarizzato: la distribuzione 80/20, le tre zone, l’indice di polarizzazione con un esempio di calcolo e cosa dicono gli studi.',
     'pt-br':
       'Treino polarizado: a divisão 80/20, as três zonas, o índice de polarização com um exemplo calculado e o que os estudos mostram.',
+    de: 'Polarisiertes Training: die 80/20-Verteilung der Intensität, die drei Zonen dahinter, der Polarisationsindex mit Rechenbeispiel und was die Studien zeigen.',
   },
   definition: {
     en: 'Polarized training is a training intensity distribution in which most of the volume is done below the first threshold, a smaller share above the second threshold, and very little between the two.',
@@ -37,6 +41,7 @@ export const polarizedTraining: LearnTerm = {
     it: 'L’allenamento polarizzato è una distribuzione dell’intensità in cui gran parte del volume si svolge sotto la prima soglia, una quota minore sopra la seconda e pochissimo tra le due.',
     'pt-br':
       'Treino polarizado é uma distribuição de intensidade em que a maior parte do volume é feita abaixo do primeiro limiar, uma fatia menor acima do segundo e muito pouco entre os dois.',
+    de: 'Polarisiertes Training ist eine Verteilung der Trainingsintensität, bei der der Großteil des Umfangs unterhalb der ersten Schwelle absolviert wird, ein kleinerer Anteil oberhalb der zweiten Schwelle und sehr wenig zwischen beiden.',
   },
   aliases: {
     en: ['80/20 training', 'Polarised training', 'Polarization index'],
@@ -48,6 +53,7 @@ export const polarizedTraining: LearnTerm = {
     es: ['Entrenamiento 80/20', 'Índice de polarización'],
     it: ['Allenamento 80/20', 'Indice di polarizzazione'],
     'pt-br': ['Treino 80/20', 'Índice de polarização'],
+    de: ['80/20-Training', '80/20-Methode', 'Polarisationsindex'],
   },
   faq: {
     en: [
@@ -136,6 +142,23 @@ export const polarizedTraining: LearnTerm = {
           'Os estudos foram feitos com atletas treinados ou de elite. Para quem corre três ou quatro vezes por semana, muita rodagem leve e um treino mais forte é um bom começo; se esse treino deve ser de tiros ou de limiar ainda é discutido.',
       },
     ],
+    de: [
+      {
+        question: 'Ist polarisiertes Training dasselbe wie 80/20-Laufen?',
+        answer:
+          'Ungefähr. 80/20 ist die Verteilung der Einheiten, die Seiler bei Spitzenathleten beobachtet hat: etwa 80 % lockere und 20 % harte Einheiten. Polarisiert fügt eine Bedingung hinzu: Die harte Arbeit liegt oberhalb der zweiten Schwelle, und zwischen den beiden Schwellen wird wenig Zeit verbracht.',
+      },
+      {
+        question: 'Ist Zone-2-Training in einem polarisierten Plan erlaubt?',
+        answer:
+          'Ja, wenn du die Zone 2 eines Fünf-Zonen-Systems auf der Uhr meinst: Das ist lockere Grundlagenausdauer und gehört zu Zone 1 des Drei-Zonen-Modells. Was ein polarisierter Plan kurz hält, ist die mittlere Zone des Drei-Zonen-Modells zwischen den beiden Schwellen.',
+      },
+      {
+        question: 'Eignet sich polarisiertes Training für Einsteiger?',
+        answer:
+          'Die Studien wurden mit trainierten oder Spitzenathleten durchgeführt. Für einen Läufer mit drei oder vier Einheiten pro Woche ist überwiegend lockeres Laufen mit einer härteren Einheit ein sicherer Start; ob diese Einheit aus Intervallen oder Schwellentraining bestehen sollte, ist noch umstritten.',
+      },
+    ],
   },
   related: [
     'zone-2',
@@ -178,5 +201,6 @@ export const polarizedTraining: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

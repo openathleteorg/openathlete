@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleCognitiveLoad: BlogPost = {
       es: 'Carga cognitiva en deportes de resistencia y fatiga mental',
       it: 'Carico cognitivo negli sport di endurance e fatica mentale',
       'pt-br': 'Carga cognitiva nos esportes de endurance e fadiga mental',
+      de: 'Kognitive Belastung im Ausdauersport: Was mentale Ermüdung bewirkt',
     },
     description: {
       en: 'Mental fatigue raises perceived effort without changing heart rate. What the studies show, how strong the evidence is, and how to plan around it.',
@@ -22,6 +24,7 @@ export const articleCognitiveLoad: BlogPost = {
       it: 'La fatica mentale alza lo sforzo percepito senza cambiare il cardio. Cosa dicono gli studi, quanto sono solidi e come organizzarti.',
       'pt-br':
         'A fadiga mental aumenta a percepção de esforço sem mudar o batimento. O que os estudos mostram, quão sólida é a evidência e como planejar.',
+      de: 'Mentale Ermüdung erhöht die gefühlte Anstrengung, ohne die Herzfrequenz zu ändern. Was Studien zeigen, wie belastbar sie sind und wie du planst.',
     },
     excerpt: {
       en: 'A draining day at work can make a threshold session feel harder without touching your heart rate. The research, its limits, and what to change in your week.',
@@ -30,6 +33,7 @@ export const articleCognitiveLoad: BlogPost = {
       it: 'Una giornata pesante al lavoro può rendere più dura una sessione di soglia senza toccare il cardio. La ricerca, i suoi limiti e cosa cambiare nella tua settimana.',
       'pt-br':
         'Um dia exaustivo no trabalho pode deixar um treino de limiar mais difícil sem mexer na frequência cardíaca. A pesquisa, seus limites e o que mudar na sua semana.',
+      de: 'Ein zermürbender Arbeitstag kann eine Schwelleneinheit härter wirken lassen, ohne die Herzfrequenz zu verändern. Die Forschung, ihre Grenzen und was du an deiner Woche änderst.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleCognitiveLoad: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

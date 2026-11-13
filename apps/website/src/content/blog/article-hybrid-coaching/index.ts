@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleHybridCoaching: BlogPost = {
       es: 'Entrenamiento híbrido: llevar más atletas con ayuda de la IA',
       it: "Coaching ibrido: seguire più atleti con l'aiuto dell'IA",
       'pt-br': 'Coaching híbrido: atender mais alunos com ajuda da IA',
+      de: 'Hybrides Coaching: mit KI mehr Athleten betreuen',
     },
     description: {
       en: 'What an endurance coach can hand to software and AI, what stays human, how to price your time, and a weekly routine that holds as the roster grows.',
@@ -22,6 +24,7 @@ export const articleHybridCoaching: BlogPost = {
       it: "Cosa può delegare un allenatore di endurance al software e all'IA, cosa resta umano, come fissare i prezzi e organizzare la settimana.",
       'pt-br':
         'O que um treinador de endurance pode delegar ao software e à IA, o que continua humano, como precificar e organizar a semana.',
+      de: 'Was ein Ausdauer-Coach an Software und KI abgeben kann, was menschlich bleibt, wie du deine Zeit bepreist und eine Wochenroutine, die mit mehr Athleten mitwächst.',
     },
     excerpt: {
       en: 'Measure where your coaching hours go, hand the clerical part to software and AI drafts, and keep your time for judgment. Plus a way to price it.',
@@ -30,6 +33,7 @@ export const articleHybridCoaching: BlogPost = {
       it: "Misura dove finiscono le tue ore di coaching, lascia la parte d'ufficio al software e alle bozze dell'IA, e tieni il tuo tempo per il giudizio. E come prezzarlo.",
       'pt-br':
         'Meça para onde vão suas horas de treinador, deixe a parte burocrática com o software e os rascunhos da IA, e guarde seu tempo para o julgamento. E como precificar.',
+      de: 'Miss, wo deine Coaching-Stunden bleiben, gib die Schreibarbeit an Software und KI-Entwürfe ab und behalte deine Zeit für das Urteilsvermögen. Dazu ein Weg, das zu bepreisen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleHybridCoaching: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

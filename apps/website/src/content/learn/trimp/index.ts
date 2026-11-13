@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const trimp: LearnTerm = {
     es: 'TRIMP',
     it: 'TRIMP',
     'pt-br': 'TRIMP',
+    de: 'TRIMP',
   },
   title: {
     en: 'TRIMP: definition, formula, example',
@@ -21,6 +23,7 @@ export const trimp: LearnTerm = {
     es: '¿Qué es el TRIMP? Definición, fórmula y ejemplo',
     it: 'Cos’è il TRIMP? Definizione, formula, esempio',
     'pt-br': 'O que é TRIMP? Definição, fórmula e exemplo',
+    de: 'Was ist TRIMP? Definition, Formel, Beispiel',
   },
   description: {
     en: 'TRIMP (training impulse) puts one number on a session from duration and heart rate. Banister’s formula, the 0.64/1.92 coefficients and a worked example.',
@@ -29,6 +32,7 @@ export const trimp: LearnTerm = {
     it: 'Il TRIMP (training impulse) riassume una seduta in un numero partendo da durata e frequenza cardiaca. Formula di Banister, coefficienti ed esempio.',
     'pt-br':
       'O TRIMP (training impulse) resume uma sessão em um número a partir da duração e da frequência cardíaca. Fórmula de Banister, coeficientes e exemplo.',
+    de: 'Der TRIMP (Trainingsimpuls) fasst eine Einheit aus Dauer und Herzfrequenz in einer Zahl zusammen. Banisters Formel, Koeffizienten und ein Rechenbeispiel.',
   },
   definition: {
     en: 'TRIMP (training impulse) is a training load score that multiplies the duration of a session by its heart rate intensity, weighted exponentially so that hard minutes count more than easy ones.',
@@ -37,6 +41,7 @@ export const trimp: LearnTerm = {
     it: 'Il TRIMP (training impulse) è un punteggio di carico di allenamento che moltiplica la durata di una seduta per la sua intensità cardiaca, pesata in modo esponenziale perché i minuti duri contino più di quelli facili.',
     'pt-br':
       'O TRIMP (training impulse) é uma pontuação de carga de treino que multiplica a duração de uma sessão pela intensidade cardíaca, com peso exponencial para que os minutos fortes contem mais que os leves.',
+    de: 'Der TRIMP (training impulse, Trainingsimpuls) ist ein Wert für die Trainingsbelastung, der die Dauer einer Einheit mit ihrer Herzfrequenzintensität multipliziert, exponentiell gewichtet, sodass harte Minuten mehr zählen als lockere.',
   },
   aliases: {
     en: ['Training impulse', 'Banister TRIMP'],
@@ -44,6 +49,7 @@ export const trimp: LearnTerm = {
     es: ['Training impulse', 'Impulso de entrenamiento', 'TRIMP de Banister'],
     it: ['Training impulse', 'Impulso di allenamento', 'TRIMP di Banister'],
     'pt-br': ['Training impulse', 'Impulso de treino', 'TRIMP de Banister'],
+    de: ['Training impulse', 'Trainingsimpuls', 'Banister-TRIMP'],
   },
   faq: {
     en: [
@@ -134,6 +140,24 @@ export const trimp: LearnTerm = {
           'Não: o TRIMP precisa da frequência cardíaca, além da frequência de repouso e da máxima. Sem elas, use a PSE da sessão (esforço de 0 a 10 vezes os minutos), que mede a mesma coisa por outro ângulo.',
       },
     ],
+    de: [
+      {
+        question: 'Was ist ein guter TRIMP-Wert?',
+        answer:
+          'Für sich genommen gibt es keinen guten oder schlechten Wert. Eine lockere Stunde liegt meist zwischen 60 und 90, eine harte Intervalleinheit oder ein langer Lauf deutlich über 100. Entscheidend ist, wie sich deine Wochensumme und deine Fitness (CTL) im Vergleich zu deiner eigenen Historie entwickeln.',
+      },
+      {
+        question:
+          'Warum haben Männer und Frauen unterschiedliche TRIMP-Koeffizienten?',
+        answer:
+          'Banister passte die Gewichtung daran an, wie das Blutlaktat mit der Herzfrequenz ansteigt, und die mittlere Kurve unterschied sich zwischen den gemessenen Männern und Frauen: 0,64 und 1,92 für Männer, 0,86 und 1,67 für Frauen. Sie beschreiben Gruppenmittelwerte, nicht einen einzelnen Athleten.',
+      },
+      {
+        question: 'Lässt sich der TRIMP ohne Herzfrequenzmesser berechnen?',
+        answer:
+          'Nein: Der TRIMP braucht die Herzfrequenz sowie deinen Ruhepuls und deine HFmax. Ohne sie nutzt du die Session-RPE (Anstrengung von 0 bis 10 multipliziert mit den Minuten), die dasselbe aus einem anderen Blickwinkel misst.',
+      },
+    ],
   },
   related: ['ctl-atl-tsb', 'session-rpe', 'aerobic-decoupling', 'hrv'],
   links: [
@@ -165,5 +189,6 @@ export const trimp: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

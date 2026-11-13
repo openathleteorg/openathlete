@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleDigitalizingClubs: BlogPost = {
       es: 'Cómo organizar el entrenamiento en un club de running o triatlón',
       it: "Organizzare l'allenamento in una società di corsa o triathlon",
       'pt-br': 'Como organizar os treinos de um clube de corrida ou triatlo',
+      de: 'Das Training in einem Lauf- oder Triathlonverein organisieren',
     },
     description: {
       en: 'Groups by pace, one coach per group, sessions written once, health data handled with care, and the two ways a club can use OpenAthlete today.',
@@ -22,6 +24,7 @@ export const articleDigitalizingClubs: BlogPost = {
       it: 'Gruppi per ritmo, un allenatore per gruppo, sedute scritte una volta, dati sanitari con cura e due modi di usare OpenAthlete in società.',
       'pt-br':
         'Grupos por pace, um treinador por grupo, treinos escritos uma vez, cuidado com dados de saúde e duas formas de usar o OpenAthlete no clube.',
+      de: 'Gruppen nach Pace, ein Trainer pro Gruppe, Einheiten einmal geschrieben, Sorgfalt bei Gesundheitsdaten und zwei Wege, OpenAthlete im Verein zu nutzen.',
     },
     excerpt: {
       en: 'A practical structure for clubs with several volunteer coaches, and an honest note: OpenAthlete has no club account, but there are two ways to make it work.',
@@ -30,6 +33,7 @@ export const articleDigitalizingClubs: BlogPost = {
       it: 'Una struttura pratica per società con più allenatori volontari, e una precisazione onesta: OpenAthlete non ha un account per società, ma ci sono due modi per usarlo.',
       'pt-br':
         'Uma estrutura prática para clubes com vários treinadores, e um aviso honesto: o OpenAthlete não tem conta de clube, mas há duas formas de usá-lo.',
+      de: 'Eine praktische Struktur für Vereine mit mehreren Trainern und ein ehrlicher Hinweis: OpenAthlete hat kein Vereinskonto, aber es gibt zwei Wege, es zu nutzen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleDigitalizingClubs: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

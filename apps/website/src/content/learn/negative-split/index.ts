@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const negativeSplit: LearnTerm = {
     es: 'Split negativo',
     it: 'Negative split',
     'pt-br': 'Split negativo',
+    de: 'Negative Split',
   },
   title: {
     en: 'Negative split: definition, formula, example',
@@ -21,6 +23,7 @@ export const negativeSplit: LearnTerm = {
     es: '¿Qué es el split negativo? Definición, fórmula y ejemplo',
     it: 'Cos’è il negative split? Definizione, formula, esempio',
     'pt-br': 'O que é split negativo? Definição, fórmula e exemplo',
+    de: 'Negative Split: Definition, Formel, Beispiel',
   },
   description: {
     en: 'A negative split is a faster second half. How to measure the split in %, a 10K and marathon example, how to pace it, and what the research says.',
@@ -29,6 +32,7 @@ export const negativeSplit: LearnTerm = {
     it: 'Il negative split è una seconda metà più veloce. Come calcolarlo in %, esempi su 10 km e maratona, come gestire il passo e cosa dice la ricerca.',
     'pt-br':
       'Split negativo é uma segunda metade mais rápida. Como calcular em %, exemplos no 10 km e na maratona, como dosar o pace e o que diz a ciência.',
+    de: 'Ein Negative Split ist eine schnellere zweite Hälfte. So misst du den Split in %, mit Beispielen für 10 km und Marathon, Pacing-Tipps und Studienlage.',
   },
   definition: {
     en: 'A negative split is a race or run in which the second half is covered faster than the first.',
@@ -37,6 +41,7 @@ export const negativeSplit: LearnTerm = {
     it: 'Il negative split è una gara o un allenamento in cui la seconda metà viene corsa più veloce della prima.',
     'pt-br':
       'Split negativo é uma prova ou um treino em que a segunda metade é corrida mais rápido que a primeira.',
+    de: 'Ein Negative Split ist ein Wettkampf oder Lauf, bei dem die zweite Hälfte schneller zurückgelegt wird als die erste.',
   },
   aliases: {
     en: ['Negative splits', 'Positive split', 'Even pacing'],
@@ -44,6 +49,7 @@ export const negativeSplit: LearnTerm = {
     es: ['Negative split', 'Split positivo', 'Ritmo constante'],
     it: ['Split negativo', 'Positive split', 'Andatura regolare'],
     'pt-br': ['Negative split', 'Split positivo', 'Ritmo constante'],
+    de: ['Negative Splits', 'Positive Split', 'Gleichmäßiges Tempo'],
   },
   faq: {
     en: [
@@ -133,6 +139,24 @@ export const negativeSplit: LearnTerm = {
           'Comparar metades pelo tempo raramente faz sentido no trail, porque terreno e altimetria quase nunca estão distribuídos por igual. A ideia continua valendo: largue num esforço que você consegue manter e avalie o ritmo pela sensação e pela frequência cardíaca, não pelo relógio.',
       },
     ],
+    de: [
+      {
+        question:
+          'Ist ein Negative Split immer schneller als ein gleichmäßiges Tempo?',
+        answer:
+          'Nein. Auf langen Distanzen scheint ein gleichmäßiges Tempo mit höchstens leichter Tendenz nach negativ am besten zu funktionieren. Marathon-Weltrekorde wurden im Schnitt in der ersten Hälfte etwas schneller gelaufen, und die jüngsten waren die gleichmäßigsten. Ein großer Negative Split bedeutet oft, dass der Start zu vorsichtig war.',
+      },
+      {
+        question: 'Wie viel langsamer sollte ich einen Marathon beginnen?',
+        answer:
+          'Nur ein wenig: auf den ersten 3 bis 5 km 5 bis 10 Sekunden pro Kilometer langsamer als die Zielpace, dann auf Zielpace einpendeln. Über die gesamte erste Hälfte summiert sich das auf weniger als eine Minute.',
+      },
+      {
+        question: 'Ergibt ein Negative Split beim Trailrunning Sinn?',
+        answer:
+          'Die Hälften nach Zeit zu vergleichen, ist auf Trails selten aussagekräftig, weil Gelände und Höhenmeter kaum je gleichmäßig verteilt sind. Die Idee dahinter gilt trotzdem: Starte mit einer Anstrengung, die du halten kannst, und beurteile dein Pacing nach Gefühl und Herzfrequenz statt nach der Uhr.',
+      },
+    ],
   },
   related: [
     'grade-adjusted-pace',
@@ -166,5 +190,6 @@ export const negativeSplit: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

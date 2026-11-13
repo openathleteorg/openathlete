@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleFutureAiCoaching: BlogPost = {
       es: 'El futuro de la IA en el entrenamiento: agentes, MCP y entrenador',
       it: "Il futuro dell'IA nel coaching: agenti, MCP e allenatore",
       'pt-br': 'O futuro da IA no treinamento: agentes, MCP e o treinador',
+      de: 'Die Zukunft der KI im Coaching: Agenten, MCP und der Coach',
     },
     description: {
       en: 'AI agents can now read a calendar and plan sessions through MCP. What that changes for coaches, what it does not, and where to keep the human.',
@@ -22,6 +24,7 @@ export const articleFutureAiCoaching: BlogPost = {
       it: 'Con MCP gli agenti di IA leggono il calendario e pianificano sedute. Cosa cambia per gli allenatori, cosa no e dove tenere la persona.',
       'pt-br':
         'Com o MCP, agentes de IA já leem o calendário e planejam treinos. O que muda para os treinadores, o que não muda e onde manter a pessoa.',
+      de: 'Mit MCP lesen KI-Agenten schon Kalender und planen Einheiten. Was sich für Coaches ändert, was nicht und wo der Mensch bleiben sollte.',
     },
     excerpt: {
       en: 'Agents make the admin half of coaching much cheaper and leave the judgment half where it was. A measured look at MCP, its limits and the coach in the loop.',
@@ -30,6 +33,7 @@ export const articleFutureAiCoaching: BlogPost = {
       it: "Gli agenti rendono molto più economica la metà amministrativa del coaching e lasciano il giudizio dov'era. Uno sguardo misurato su MCP, limiti e ruolo dell'allenatore.",
       'pt-br':
         'Os agentes deixam a metade administrativa do treinamento muito mais barata e o julgamento onde estava. Um olhar ponderado sobre o MCP, seus limites e o treinador.',
+      de: 'Agenten machen die administrative Hälfte des Coachings viel günstiger und lassen das Urteilsvermögen, wo es war. Ein nüchterner Blick auf MCP, seine Grenzen und den Coach.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleFutureAiCoaching: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

@@ -1,9 +1,9 @@
 /**
- * Every sentence of the trail plans, in the five site languages. Session
+ * Every sentence of the trail plans, in the six site languages. Session
  * texts take their numbers as arguments so the same wording serves every
  * week and every plan.
  */
-export const LOCALES = ['en', 'fr', 'es', 'it', 'pt-br'] as const;
+export const LOCALES = ['en', 'fr', 'es', 'it', 'pt-br', 'de'] as const;
 export type Locale = (typeof LOCALES)[number];
 export type Text = Record<Locale, string>;
 
@@ -43,6 +43,7 @@ export const T = {
       fr: 'Footing',
       es: 'Rodaje suave',
       it: 'Corsa lenta',
+      de: 'Lockerer Dauerlauf',
       'pt-br': 'Rodagem leve',
     },
     desc: (min: number, strides: boolean): Text => {
@@ -64,6 +65,11 @@ export const T = {
         it:
           `${d} tranquilli in piano o su saliscendi, al 62–70% della VAM. Devi riuscire a parlare con frasi intere.` +
           (strides ? ' Chiudi con 6 allunghi da 20", rientro camminando.' : ''),
+        de:
+          `${d} locker auf flachem oder welligem Gelände, 62–70 % der VMA. Du solltest dich in ganzen Sätzen unterhalten können.` +
+          (strides
+            ? ' Zum Schluss 6 × 20" Steigerungen, zurück im Gehen.'
+            : ''),
         'pt-br':
           `${d} leve no plano ou em terreno ondulado, a 62–70% da VAM. Você deve conseguir falar frases inteiras.` +
           (strides
@@ -79,6 +85,7 @@ export const T = {
       fr: 'Footing nature',
       es: 'Rodaje suave por sendero',
       it: 'Corsa lenta su sentiero',
+      de: 'Lockerer Traillauf',
       'pt-br': 'Rodagem leve na trilha',
     },
     desc: (min: number, dplus: number): Text =>
@@ -90,6 +97,7 @@ export const T = {
           fr: `${d} tranquille sur sentier, environ ${dp} m D+. Cardio à 65–75 % de la FCmax ; marchez dans les passages raides sans scrupule.`,
           es: `${d} suave por sendero, unos ${dp} m D+. Pulso al 65–75 % de la FC máx.; camina en las rampas fuertes sin remordimientos.`,
           it: `${d} tranquilli su sentiero, circa ${dp} m D+. Cuore al 65–75% della FC max; nei tratti ripidi cammina senza sensi di colpa.`,
+          de: `${d} locker auf Trails mit etwa ${dp} Hm. Herzfrequenz bei 65–75 % der HFmax; steile Passagen gehst du ohne schlechtes Gewissen.`,
           'pt-br': `${d} leve em trilha, cerca de ${dp} m D+. Frequência cardíaca a 65–75% da FC máx.; caminhe nos trechos íngremes sem culpa.`,
         }[l];
       }),
@@ -101,6 +109,7 @@ export const T = {
       fr: '30/30 sur le plat',
       es: '30/30 en llano',
       it: '30/30 in piano',
+      de: '30/30 im Flachen',
       'pt-br': '30/30 no plano',
     },
     desc: (sets: number, reps: number): Text => ({
@@ -108,6 +117,7 @@ export const T = {
       fr: `20 min d'échauffement, puis ${sets} × (${reps} × 30" vite / 30" trot), 3 min de récupération entre les séries, 10 min de retour au calme. Vite = 95–100 % de VMA, trot = 60 %. Sur le plat ou sur piste.`,
       es: `20 min de calentamiento, luego ${sets} × (${reps} × 30" rápido / 30" trote), 3 min suaves entre series y 10 min de vuelta a la calma. Rápido = 95–100 % de la VAM, trote = 60 %. En llano o en pista.`,
       it: `20 min di riscaldamento, poi ${sets} × (${reps} × 30" veloce / 30" corsa lenta), 3 min tra le serie, 10 min di defaticamento. Veloce = 95–100% della VAM, lento = 60%. In piano o in pista.`,
+      de: `20 min Einlaufen, dann ${sets} × (${reps} × 30" schnell / 30" Trab), 3 min locker zwischen den Serien, 10 min Auslaufen. Schnell = 95–100 % der VMA, Trab = 60 %. Im Flachen oder auf der Bahn.`,
       'pt-br': `20 min de aquecimento, depois ${sets} × (${reps} × 30" rápido / 30" trote), 3 min leves entre as séries e 10 min de desaquecimento. Rápido = 95–100% da VAM, trote = 60%. No plano ou na pista.`,
     }),
   },
@@ -118,6 +128,7 @@ export const T = {
       fr: 'Fractionné VMA',
       es: 'Series de VAM',
       it: 'Ripetute alla VAM',
+      de: 'VMA-Intervalle',
       'pt-br': 'Tiros de VAM',
     },
     desc: (reps: number, sec: number, rec: number): Text => {
@@ -128,6 +139,7 @@ export const T = {
         fr: `20 min d'échauffement, ${reps} × ${r} à 90–95 % de VMA, récupération ${c} en trottinant, 10 min de retour au calme. Sur le plat : plus le plafond est haut, plus les montées paraissent faciles.`,
         es: `20 min de calentamiento, ${reps} × ${r} al 90–95 % de la VAM con ${c} de trote, 10 min de vuelta a la calma. En llano: cuanto más alto el techo, más fáciles las subidas.`,
         it: `20 min di riscaldamento, ${reps} × ${r} al 90–95% della VAM con recupero di ${c} di corsa lenta, 10 min di defaticamento. In piano: più alto è il tetto, più facili sembrano le salite.`,
+        de: `20 min Einlaufen, ${reps} × ${r} bei 90–95 % der VMA mit ${c} Trabpause, 10 min Auslaufen. Im Flachen: Je höher deine Decke, desto leichter fühlt sich jeder Anstieg an.`,
         'pt-br': `20 min de aquecimento, ${reps} × ${r} a 90–95% da VAM com ${c} de trote, 10 min de desaquecimento. No plano: quanto mais alto o teto, mais fáceis ficam as subidas.`,
       };
     },
@@ -139,6 +151,7 @@ export const T = {
       fr: 'Seuil sur le plat',
       es: 'Umbral en llano',
       it: 'Soglia in piano',
+      de: 'Tempodauerlauf im Flachen',
       'pt-br': 'Limiar no plano',
     },
     desc: (reps: number, min: number): Text => {
@@ -148,6 +161,7 @@ export const T = {
         fr: `15 min d'échauffement, ${reps} × ${m} à 82–87 % de VMA (soutenu mais contrôlé, quelques mots à la fois), récupération 2 min, 10 min de retour au calme.`,
         es: `15 min de calentamiento, ${reps} × ${m} al 82–87 % de la VAM (exigente pero controlado, solo frases cortas), 2 min suaves entre bloques, 10 min de vuelta a la calma.`,
         it: `15 min di riscaldamento, ${reps} × ${m} all'82–87% della VAM (impegnativo ma controllato, riesci a dire poche parole), 2 min di recupero, 10 min di defaticamento.`,
+        de: `15 min Einlaufen, ${reps} × ${m} bei 82–87 % der VMA (fordernd, aber kontrolliert, nur ein paar Worte am Stück) mit 2 min locker dazwischen, 10 min Auslaufen.`,
         'pt-br': `15 min de aquecimento, ${reps} × ${m} a 82–87% da VAM (forte mas controlado, só frases curtas), 2 min leves entre os blocos, 10 min de desaquecimento.`,
       };
     },
@@ -159,6 +173,7 @@ export const T = {
       fr: 'Séance de côtes',
       es: 'Cuestas',
       it: 'Ripetute in salita',
+      de: 'Bergintervalle',
       'pt-br': 'Treino de subidas',
     },
     desc: (reps: number, sec: number, lo: number, hi: number): Text => {
@@ -168,6 +183,7 @@ export const T = {
         fr: `20 min d'échauffement jusqu'au pied d'une côte à 8–12 %, puis ${reps} × ${r} en montée à ${lo}–${hi} % de la FCmax, récupération en redescendant au trot ou en marchant. 10 min de retour au calme. Le cardio monte avec retard sur les efforts courts : visez le haut de la plage en fin de répétition, et gardez la dernière aussi propre que la première.`,
         es: `20 min de calentamiento hasta el pie de una cuesta del 8–12 %, luego ${reps} × ${r} cuesta arriba al ${lo}–${hi} % de la FC máx., recuperando al bajar trotando o andando. 10 min de vuelta a la calma. El pulso va con retraso en los esfuerzos cortos: busca la parte alta del rango al final de cada repetición, y que la última salga tan bien como la primera.`,
         it: `20 min di riscaldamento fino ai piedi di una salita all'8–12%, poi ${reps} × ${r} in salita al ${lo}–${hi}% della FC max, recupero scendendo di corsa lenta o camminando. 10 min di defaticamento. Sugli sforzi brevi il cuore sale in ritardo: punta alla parte alta della forchetta a fine ripetuta, e tieni l'ultima pulita come la prima.`,
+        de: `20 min Einlaufen bis zum Fuß eines Anstiegs mit 8–12 %, dann ${reps} × ${r} bergauf bei ${lo}–${hi} % der HFmax, zur Erholung trabend oder gehend wieder hinunter. 10 min Auslaufen. Bei kurzen Belastungen steigt die Herzfrequenz verzögert: Peil zum Ende jeder Wiederholung den oberen Bereich an und lauf die letzte so sauber wie die erste.`,
         'pt-br': `20 min de aquecimento até o pé de uma subida de 8–12%, depois ${reps} × ${r} subindo a ${lo}–${hi}% da FC máx., recuperando na descida em trote ou caminhando. 10 min de desaquecimento. A frequência cardíaca demora a subir em esforços curtos: busque o topo da faixa no fim de cada tiro, e faça o último tão bem quanto o primeiro.`,
       };
     },
@@ -179,6 +195,7 @@ export const T = {
       fr: 'Montée au seuil',
       es: 'Subida larga a umbral',
       it: 'Salita lunga a soglia',
+      de: 'Schwellenlauf bergauf',
       'pt-br': 'Subida longa no limiar',
     },
     desc: (reps: number, min: number): Text => {
@@ -188,6 +205,7 @@ export const T = {
         fr: `20 min d'échauffement, puis ${reps} × ${m} de montée régulière à 82–87 % de la FCmax sur une longue pente courable (5–10 %). Récupération en redescendant au trot ou en marchant. 10 min de retour au calme. Si la pente vous oblige à marcher, marchez, mais gardez le cardio dans la plage.`,
         es: `20 min de calentamiento, luego ${reps} × ${m} subiendo de forma constante al 82–87 % de la FC máx. en una subida larga y corrible (5–10 %). Recupera bajando al trote o andando. 10 min de vuelta a la calma. Si la pendiente te obliga a caminar, camina, pero mantén el pulso en el rango.`,
         it: `20 min di riscaldamento, poi ${reps} × ${m} di salita regolare all'82–87% della FC max su una salita lunga e corribile (5–10%). Recupero scendendo di corsa lenta o camminando. 10 min di defaticamento. Se la pendenza ti costringe a camminare, cammina, ma tieni il cuore nella forchetta.`,
+        de: `20 min Einlaufen, dann ${reps} × ${m} gleichmäßig bergauf bei 82–87 % der HFmax an einem langen, laufbaren Anstieg (5–10 %). Zur Erholung gehend oder trabend hinunter. 10 min Auslaufen. Wenn die Steigung dich zum Gehen zwingt, geh, aber halte die Herzfrequenz im Bereich.`,
         'pt-br': `20 min de aquecimento, depois ${reps} × ${m} subindo em ritmo constante a 82–87% da FC máx. numa subida longa e corrível (5–10%). Recupere descendo em trote ou caminhando. 10 min de desaquecimento. Se a inclinação obrigar a caminhar, caminhe, mas mantenha a FC na faixa.`,
       };
     },
@@ -199,6 +217,7 @@ export const T = {
       fr: 'Rando-course avec bâtons',
       es: 'Caminar rápido con bastones',
       it: 'Camminata veloce con i bastoncini',
+      de: 'Power Hiking mit Stöcken',
       'pt-br': 'Caminhada rápida com bastões',
     },
     desc: (reps: number, min: number): Text => {
@@ -208,6 +227,7 @@ export const T = {
         fr: `15 min d'échauffement, puis ${reps} × ${m} de marche rapide dans la pente la plus raide que vous ayez (15 % et plus), avec bâtons, à 75–85 % de la FCmax. Petits pas, poussée franche sur les bâtons, et relancez en courant dès que ça s'adoucit. Descente tranquille entre les répétitions. C'est ainsi que la plupart des coureurs montent le jour J : ça se travaille.`,
         es: `15 min de calentamiento, luego ${reps} × ${m} caminando rápido por la pendiente más dura que tengas (15 % o más), con bastones, al 75–85 % de la FC máx. Pasos cortos, empuja fuerte con los bastones y corre en los tramos más suaves. Baja tranquilo entre repeticiones. Así sube la mayoría el día de la carrera: merece entrenarse.`,
         it: `15 min di riscaldamento, poi ${reps} × ${m} di camminata veloce sulla salita più ripida che hai (dal 15% in su), con i bastoncini, al 75–85% della FC max. Passi corti, spinta decisa sui bastoncini, e riprendi a correre dove spiana. Discesa tranquilla tra le ripetute. In gara la maggior parte dei trailer sale così: va allenato.`,
+        de: `15 min Einlaufen, dann ${reps} × ${m} Power Hiking am steilsten Anstieg, den du findest (15 % und mehr), mit Stöcken, bei 75–85 % der HFmax. Kurze Schritte, kräftig auf die Stöcke drücken, und die flacheren Stücke läufst du. Locker bergab zwischen den Wiederholungen. So steigen die meisten am Wettkampftag: Das lohnt sich zu üben.`,
         'pt-br': `15 min de aquecimento, depois ${reps} × ${m} de caminhada rápida na subida mais íngreme que você tiver (15% ou mais), com bastões, a 75–85% da FC máx. Passos curtos, empurre firme os bastões e volte a correr nos trechos mais suaves. Descida tranquila entre as repetições. É assim que a maioria sobe no dia da prova: vale treinar.`,
       };
     },
@@ -219,6 +239,7 @@ export const T = {
       fr: 'Descente technique',
       es: 'Técnica de bajada',
       it: 'Tecnica di discesa',
+      de: 'Bergab-Technik',
       'pt-br': 'Técnica de descida',
     },
     desc: (reps: number, sec: number): Text => {
@@ -228,6 +249,7 @@ export const T = {
         fr: `20 min de footing jusqu'à une descente technique (racines, cailloux, 10–20 %). ${reps} × ${r} de descente à effort contrôlé (RPE 5/10), remontée en marchant pour récupérer. Pas courts et rapides, regard 3–4 mètres devant, bras écartés pour l'équilibre, appuis sous le bassin. La vitesse viendra ensuite : aujourd'hui, on cherche des appuis en confiance. 10 min de footing pour finir.`,
         es: `20 min suaves hasta una bajada técnica (raíces, piedras, 10–20 %). ${reps} × ${r} cuesta abajo a esfuerzo controlado (RPE 5/10), subiendo andando para recuperar. Pasos cortos y rápidos, la vista 3–4 metros por delante, brazos abiertos para equilibrarte, apoyos bajo la cadera. La velocidad llegará después: hoy se trata de pisar con confianza. 10 min suaves para terminar.`,
         it: `20 min di corsa lenta fino a una discesa tecnica (radici, sassi, 10–20%). ${reps} × ${r} in discesa a sforzo controllato (RPE 5/10), risalendo a piedi per recuperare. Passi corti e rapidi, sguardo 3–4 metri avanti, braccia larghe per l'equilibrio, appoggi sotto il bacino. La velocità arriverà dopo: oggi cerchi appoggi di cui fidarti. 10 min di corsa lenta per chiudere.`,
+        de: `20 min locker bis zu einem technischen Bergab-Stück (Wurzeln, Steine, 10–20 %). ${reps} × ${r} bergab mit kontrollierter Anstrengung (RPE 5/10), zur Erholung gehend wieder hinauf. Kurze, schnelle Schritte, Blick 3–4 Meter voraus, Arme für die Balance weit geöffnet, Füße landen unter der Hüfte. Das Tempo kommt später: Heute geht es um Tritte, denen du vertraust. 10 min locker zum Abschluss.`,
         'pt-br': `20 min leves até uma descida técnica (raízes, pedras, 10–20%). ${reps} × ${r} descendo em esforço controlado (PSE 5/10), subindo caminhando para recuperar. Passos curtos e rápidos, olhar 3–4 metros à frente, braços abertos para o equilíbrio, pisadas embaixo do quadril. A velocidade vem depois: hoje o objetivo é confiar nas pisadas. 10 min leves para terminar.`,
       };
     },
@@ -239,6 +261,7 @@ export const T = {
       fr: 'Sortie longue en D+',
       es: 'Tirada larga con desnivel',
       it: 'Lungo con dislivello',
+      de: 'Langer Lauf mit Hm',
       'pt-br': 'Longão com altimetria',
     },
     nameB2b: {
@@ -246,6 +269,7 @@ export const T = {
       fr: 'Sortie longue enchaînée (jour 2)',
       es: 'Tirada larga encadenada (día 2)',
       it: 'Lungo in back-to-back (giorno 2)',
+      de: 'Zweiter langer Lauf (Tag 2)',
       'pt-br': 'Longão encadeado (dia 2)',
     },
     nameRehearsal: {
@@ -253,6 +277,7 @@ export const T = {
       fr: 'Répétition générale',
       es: 'Ensayo general',
       it: 'Prova generale',
+      de: 'Generalprobe',
       'pt-br': 'Ensaio geral',
     },
     desc: (
@@ -310,6 +335,17 @@ export const T = {
             opts.rehearsal &&
               'Indossa ciò che userai in gara, stesso zaino e stesso cibo: niente di nuovo il giorno della gara.',
           ],
+          de: [
+            opts.b2b &&
+              'Zweiter langer Lauf in Folge, auf müden Beinen: Genau darum geht es.',
+            `${d} auf Trails mit etwa ${dp} Hm, bei 65–75 % der HFmax. Lauf im Flachen und an sanften Anstiegen, geh alles Steilere als 15 % zügig hoch und übe, alle 30–40 Minuten zu essen.`,
+            opts.poles &&
+              'Nimm deine Stöcke mit und setz sie an jedem langen Anstieg ein.',
+            opts.block &&
+              `Lauf die letzten ${b} in Wettkampfintensität (75–82 % der HFmax).`,
+            opts.rehearsal &&
+              'Trag, was du im Wettkampf trägst, mit demselben Rucksack und derselben Verpflegung: nichts Neues am Wettkampftag.',
+          ],
           'pt-br': [
             opts.b2b &&
               'Segundo longão seguido, com as pernas cansadas: essa é a ideia.',
@@ -331,6 +367,7 @@ export const T = {
       fr: 'Déblocage',
       es: 'Rodaje de activación',
       it: 'Sgambata pre-gara',
+      de: 'Lockerungslauf',
       'pt-br': 'Trote de soltura',
     },
     desc: {
@@ -338,6 +375,7 @@ export const T = {
       fr: '20 min très facile avec 4 accélérations courtes. Vérifiez le matériel, accrochez le dossard, couchez-vous tôt.',
       es: '20 min muy suaves con 4 progresiones cortas. Revisa el material, prepara el dorsal y acuéstate pronto.',
       it: '20 min molto facili con 4 brevi allunghi. Controlla il materiale, prepara il pettorale, a letto presto.',
+      de: '20 min sehr locker mit 4 kurzen Steigerungen. Ausrüstung checken, Startnummer anstecken, früh ins Bett.',
       'pt-br':
         '20 min bem leves com 4 tiros curtos. Confira o equipamento, prenda o número de peito e durma cedo.',
     } as Text,
@@ -349,6 +387,7 @@ export const T = {
       fr: `Jour J : trail de ${km} km`,
       es: `Día de carrera: trail de ${km} km`,
       it: `Giorno di gara: trail di ${km} km`,
+      de: `Wettkampftag: Trail über ${km} km`,
       'pt-br': `Dia de prova: trail de ${km} km`,
     }),
     desc: (km: number, dplus: number): Text =>
@@ -359,6 +398,7 @@ export const T = {
           fr: `${km} km, environ ${dp} m D+. Partez plus lentement que vous n'en avez envie : montées à 75–82 % de la FCmax, mangez et buvez dès la première heure, et gardez des jambes pour les dernières descentes.`,
           es: `${km} km, unos ${dp} m D+. Sal más despacio de lo que te pide el cuerpo: subidas al 75–82 % de la FC máx., come y bebe desde la primera hora y guarda piernas para las últimas bajadas.`,
           it: `${km} km, circa ${dp} m D+. Parti più piano di quanto ti venga voglia: salite al 75–82% della FC max, mangia e bevi dalla prima ora e conserva le gambe per le ultime discese.`,
+          de: `${km} km, etwa ${dp} Hm. Geh langsamer an, als es sich richtig anfühlt: Anstiege bei 75–82 % der HFmax, iss und trink ab der ersten Stunde und spar dir Kraft in den Beinen für die letzten Abstiege.`,
           'pt-br': `${km} km, cerca de ${dp} m D+. Largue mais devagar do que dá vontade: subidas a 75–82% da FC máx., coma e beba desde a primeira hora e guarde pernas para as últimas descidas.`,
         }[l];
       }),
@@ -370,6 +410,7 @@ export const T = {
       fr: 'Renforcement trail (facultatif)',
       es: 'Fuerza para trail (opcional)',
       it: 'Forza per il trail (facoltativo)',
+      de: 'Krafttraining für Trail (optional)',
       'pt-br': 'Fortalecimento para trail (opcional)',
     },
     nameMobility: {
@@ -377,6 +418,7 @@ export const T = {
       fr: 'Mobilité et chevilles (facultatif)',
       es: 'Movilidad y tobillos (opcional)',
       it: 'Mobilità e caviglie (facoltativo)',
+      de: 'Mobilität und Sprunggelenke (optional)',
       'pt-br': 'Mobilidade e tornozelos (opcional)',
     },
     desc: (variant: 'a' | 'b' | 'mobility', min: number): Text => {
@@ -387,6 +429,7 @@ export const T = {
           fr: `${d}, à la maison, sans matériel. 3 tours de : 12 montées de marche par jambe (chaise ou marche solide), 10 fentes par jambe, 15 montées sur pointes au bord d'une marche (3 secondes pour redescendre), 30 s d'équilibre sur une jambe les yeux fermés, 30 s de gainage latéral de chaque côté. Les quadriceps encaissent les descentes et les chevilles les terrains cassants : c'est une assurance qui ne coûte pas cher.`,
           es: `${d}, en casa y sin material. 3 vueltas de: 12 subidas a un escalón o una silla por pierna, 10 zancadas por pierna, 15 elevaciones de talones lentas en un escalón (3 segundos para bajar), 30 s de equilibrio a una pierna con los ojos cerrados, 30 s de plancha lateral por lado. Los cuádriceps sufren en las bajadas y los tobillos en el terreno roto: es un seguro barato.`,
           it: `${d}, a casa, senza attrezzi. 3 giri di: 12 step-up per gamba su una sedia o un gradino, 10 affondi per gamba, 15 sollevamenti sui polpacci lenti su un gradino (3 secondi per scendere), 30 s in equilibrio su una gamba a occhi chiusi, 30 s di plank laterale per lato. I quadricipiti incassano le discese e le caviglie il terreno sconnesso: è un'assicurazione che costa poco.`,
+          de: `${d}, zu Hause, ohne Geräte. 3 Runden: 12 Step-ups pro Bein auf einen Stuhl oder eine stabile Stufe, 10 Split Squats pro Bein, 15 langsame Wadenheben auf einer Stufe (3 Sekunden absenken), 30 s Einbeinstand pro Bein mit geschlossenen Augen, 30 s Seitstütz pro Seite. Bergab leiden die Oberschenkel, auf unebenem Boden die Sprunggelenke: Das ist eine günstige Versicherung.`,
           'pt-br': `${d}, em casa, sem equipamento. 3 voltas de: 12 subidas no degrau ou numa cadeira por perna, 10 afundos por perna, 15 elevações de panturrilha lentas num degrau (3 segundos para descer), 30 s de equilíbrio numa perna de olhos fechados, 30 s de prancha lateral de cada lado. O quadríceps sofre nas descidas e os tornozelos no terreno irregular: é um seguro barato.`,
         };
       if (variant === 'b')
@@ -395,6 +438,7 @@ export const T = {
           fr: `${d}. 3 tours de : 8 squats lents sur une jambe depuis une marche, par jambe (5 secondes pour descendre : c'est exactement ce que les descentes font subir à vos quadriceps), 12 montées de marche sautées par jambe, 20 montées sur pointe d'un seul pied par jambe, 10 soulevés de terre sur une jambe par côté, 45 s de gainage. 2 tours seulement en semaine allégée.`,
           es: `${d}. 3 vueltas de: 8 sentadillas lentas a una pierna desde un escalón, por pierna (5 segundos para bajar: es lo que las bajadas hacen a tus cuádriceps), 12 subidas al escalón con salto por pierna, 20 elevaciones de talón a una pierna por lado, 10 pesos muertos a una pierna por lado, 45 s de plancha. Solo 2 vueltas en semana de descarga.`,
           it: `${d}. 3 giri di: 8 squat lenti su una gamba da un gradino, per gamba (5 secondi per scendere: è ciò che le discese fanno ai quadricipiti), 12 step-up saltati per gamba, 20 sollevamenti sul polpaccio su una gamba per lato, 10 stacchi su una gamba per lato, 45 s di plank. Solo 2 giri nella settimana di scarico.`,
+          de: `${d}. 3 Runden: 8 langsame einbeinige Kniebeugen von einer Stufe pro Bein (5 Sekunden absenken: genau das machen Abstiege mit deinen Oberschenkeln), 12 Step-ups mit Sprung pro Bein, 20 einbeinige Wadenheben pro Bein, 10 einbeinige Kreuzheben pro Bein, 45 s Unterarmstütz. In einer Entlastungswoche nur 2 Runden.`,
           'pt-br': `${d}. 3 voltas de: 8 agachamentos lentos numa perna a partir de um degrau, por perna (5 segundos para descer: é isso que as descidas fazem com o quadríceps), 12 subidas no degrau com salto por perna, 20 elevações de panturrilha numa perna de cada lado, 10 levantamentos terra unilaterais de cada lado, 45 s de prancha. Só 2 voltas na semana regenerativa.`,
         };
       return {
@@ -402,6 +446,7 @@ export const T = {
         fr: `${d} de mobilité : rotations de chevilles et étirements des mollets, ouverture de hanches, 2 × 30 s d'équilibre sur chaque jambe. Rien qui laisse des courbatures avant la course.`,
         es: `${d} de movilidad: círculos de tobillo y estiramientos de gemelos, apertura de cadera, 2 × 30 s de equilibrio por pierna. Nada que deje agujetas antes de la carrera.`,
         it: `${d} di mobilità: rotazioni delle caviglie e allungamento dei polpacci, apertura delle anche, 2 × 30 s in equilibrio per gamba. Niente che lasci indolenzimenti prima della gara.`,
+        de: `${d} Mobilität: Fußkreisen und Wadendehnung, Hüftöffner, 2 × 30 s Einbeinstand pro Bein. Nichts, was dir vor dem Wettkampf Muskelkater macht.`,
         'pt-br': `${d} de mobilidade: rotações de tornozelo e alongamento de panturrilha, abertura de quadril, 2 × 30 s de equilíbrio em cada perna. Nada que deixe dor muscular antes da prova.`,
       };
     },
@@ -415,6 +460,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Montée',
     es: 'Subida',
     it: 'Salita',
+    de: 'Bergauf',
     'pt-br': 'Subida',
   },
   down: {
@@ -422,6 +468,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Redescente au trot',
     es: 'Bajada al trote',
     it: 'Discesa di corsa lenta',
+    de: 'Bergab traben/gehen',
     'pt-br': 'Descida em trote',
   },
   hike: {
@@ -429,6 +476,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Marche rapide, bâtons',
     es: 'Caminar rápido, bastones',
     it: 'Camminata veloce, bastoncini',
+    de: 'Power Hiking, Stöcke',
     'pt-br': 'Caminhada rápida, bastões',
   },
   downhill: {
@@ -436,6 +484,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Descente, pas courts et rapides',
     es: 'Bajada, pasos cortos y rápidos',
     it: 'Discesa, passi corti e rapidi',
+    de: 'Bergab, kurze schnelle Schritte',
     'pt-br': 'Descida, passos curtos e rápidos',
   },
   hikeUp: {
@@ -443,6 +492,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Remontée en marchant',
     es: 'Subir andando',
     it: 'Risalita a piedi',
+    de: 'Bergauf gehen',
     'pt-br': 'Subir caminhando',
   },
   raceEffort: {
@@ -450,6 +500,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Effort de course',
     es: 'Ritmo de carrera',
     it: 'Ritmo gara',
+    de: 'Wettkampfintensität',
     'pt-br': 'Esforço de prova',
   },
   fast: {
@@ -457,6 +508,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Vite',
     es: 'Rápido',
     it: 'Veloce',
+    de: 'Schnell',
     'pt-br': 'Rápido',
   },
   jog: {
@@ -464,6 +516,7 @@ export const STEP: Record<string, Text> = {
     fr: 'Trot',
     es: 'Trote',
     it: 'Corsa lenta',
+    de: 'Trab',
     'pt-br': 'Trote',
   },
 };
@@ -478,6 +531,7 @@ export const THEME: Record<'light' | 'peak' | 'taper' | 'race', Text> = {
     fr: 'Semaine allégée',
     es: 'Semana de descarga',
     it: 'Settimana di scarico',
+    de: 'Entlastungswoche',
     'pt-br': 'Semana regenerativa',
   },
   peak: {
@@ -485,6 +539,7 @@ export const THEME: Record<'light' | 'peak' | 'taper' | 'race', Text> = {
     fr: 'Semaine la plus chargée',
     es: 'Semana más cargada',
     it: 'Settimana di carico massimo',
+    de: 'Umfangreichste Woche',
     'pt-br': 'Semana mais pesada',
   },
   taper: {
@@ -492,6 +547,7 @@ export const THEME: Record<'light' | 'peak' | 'taper' | 'race', Text> = {
     fr: 'Affûtage',
     es: 'Puesta a punto',
     it: 'Scarico pre-gara',
+    de: 'Tapering',
     'pt-br': 'Polimento',
   },
   race: {
@@ -499,6 +555,7 @@ export const THEME: Record<'light' | 'peak' | 'taper' | 'race', Text> = {
     fr: 'Semaine de course',
     es: 'Semana de carrera',
     it: 'Settimana di gara',
+    de: 'Wettkampfwoche',
     'pt-br': 'Semana de prova',
   },
 };
@@ -510,6 +567,7 @@ export const CYCLE = {
       fr: 'Bases',
       es: 'Base',
       it: 'Base',
+      de: 'Grundlage',
       'pt-br': 'Base',
     } as Text,
     desc: (light: number): Text => ({
@@ -517,6 +575,7 @@ export const CYCLE = {
       fr: `Du volume facile, des côtes courtes et les premiers exercices de descente. La sortie longue gagne 10 à 15 minutes par semaine. La semaine ${light} est allégée.`,
       es: `Volumen suave, cuestas cortas y los primeros ejercicios de bajada. La tirada larga crece de 10 a 15 minutos por semana. La semana ${light} es más ligera.`,
       it: `Volume facile, salite brevi e i primi esercizi di discesa. Il lungo cresce di 10–15 minuti a settimana. La settimana ${light} è di scarico.`,
+      de: `Lockerer Umfang, kurze Bergintervalle und erste Bergab-Übungen. Der lange Lauf wächst um 10 bis 15 Minuten pro Woche. Woche ${light} ist leichter.`,
       'pt-br': `Volume leve, subidas curtas e os primeiros exercícios de descida. O longão cresce de 10 a 15 minutos por semana. A semana ${light} é mais leve.`,
     }),
   },
@@ -526,6 +585,7 @@ export const CYCLE = {
       fr: 'Développement',
       es: 'Desarrollo',
       it: 'Costruzione',
+      de: 'Aufbau',
       'pt-br': 'Desenvolvimento',
     } as Text,
     desc: (light: number | null): Text => ({
@@ -541,6 +601,11 @@ export const CYCLE = {
       it:
         'Ripetute in salita più lunghe e salite a soglia, camminata veloce con i bastoncini, più dislivello nel lungo.' +
         (light ? ` La settimana ${light} è di scarico per assimilare.` : ''),
+      de:
+        'Längere Bergintervalle und Schwellenläufe bergauf, Power Hiking mit Stöcken, mehr Hm im langen Lauf.' +
+        (light
+          ? ` Woche ${light} ist leichter, damit sich das Training setzen kann.`
+          : ''),
       'pt-br':
         'Subidas mais longas e subidas no limiar, caminhada rápida com bastões e mais altimetria no longão.' +
         (light ? ` A semana ${light} é mais leve para assimilar.` : ''),
@@ -552,6 +617,7 @@ export const CYCLE = {
       fr: 'Spécifique',
       es: 'Específico',
       it: 'Specifico',
+      de: 'Wettkampfspezifisch',
       'pt-br': 'Específico',
     } as Text,
     desc: (
@@ -588,6 +654,12 @@ export const CYCLE = {
               'Sabato e domenica diventano lunghi in back-to-back, per imparare a correre con le gambe stanche.',
             light && `La settimana ${light} è di scarico.`,
           ],
+          de: [
+            `Die umfangreichsten Wochen: Der lange Lauf erreicht ${p} mit ${dp} Hm, mit Abschnitten in Wettkampfintensität.`,
+            b2b &&
+              'Samstag und Sonntag werden zu langen Läufen an zwei Tagen hintereinander, damit du lernst, auf müden Beinen zu laufen.',
+            light && `Woche ${light} ist leichter.`,
+          ],
           'pt-br': [
             `As semanas mais pesadas: o longão chega a ${p} com ${dp} m D+, com trechos no esforço de prova.`,
             b2b &&
@@ -604,6 +676,7 @@ export const CYCLE = {
       fr: 'Affûtage',
       es: 'Puesta a punto',
       it: 'Scarico pre-gara',
+      de: 'Tapering',
       'pt-br': 'Polimento',
     } as Text,
     desc: {
@@ -611,6 +684,7 @@ export const CYCLE = {
       fr: "Deux semaines pour arriver frais : le volume baisse d'environ un tiers, puis de moitié, et quelques efforts courts gardent les jambes vives. Rien de nouveau, beaucoup de sommeil.",
       es: 'Dos semanas para llegar fresco: el volumen baja cerca de un tercio y luego a la mitad, con algunos esfuerzos cortos para mantener las piernas despiertas. Nada nuevo y mucho sueño.',
       it: 'Due settimane per arrivare freschi: il volume cala di circa un terzo, poi della metà, con qualche sforzo breve per tenere le gambe reattive. Niente di nuovo, tanto sonno.',
+      de: 'Zwei Wochen, um frisch anzukommen: Der Umfang sinkt um etwa ein Drittel, dann um die Hälfte, während ein paar kurze Belastungen die Beine spritzig halten. Nichts Neues, viel Schlaf.',
       'pt-br':
         'Duas semanas para chegar descansado: o volume cai cerca de um terço, depois pela metade, com alguns esforços curtos para manter as pernas acordadas. Nada de novo e muito sono.',
     } as Text,
@@ -626,6 +700,7 @@ export const PLAN = {
         fr: `Trail ${km} km ${dp} D+ : plan de ${weeks} semaines`,
         es: `Trail ${km} km y ${dp} m D+: plan de ${weeks} semanas`,
         it: `Trail ${km} km, ${dp} m D+: tabella di ${weeks} settimane`,
+        de: `Trail ${km} km, ${dp} Hm: Trainingsplan für ${weeks} Wochen`,
         'pt-br': `Trail ${km} km, ${dp} m D+: planilha de ${weeks} semanas`,
       }[l];
     }),
@@ -637,6 +712,7 @@ export const PLAN = {
         fr: `Finir un trail de ${km} km et ${dp} m D+`,
         es: `Terminar un trail de ${km} km y ${dp} m D+`,
         it: `Finire un trail di ${km} km e ${dp} m D+`,
+        de: `Einen Trail über ${km} km mit ${dp} Hm finishen`,
         'pt-br': `Completar um trail de ${km} km e ${dp} m D+`,
       }[l];
     }),
@@ -670,6 +746,11 @@ export const PLAN = {
         it:
           `Una tabella di ${p.weeks} settimane per un trail di ${p.km} km con circa ${dp} m D+, con ${p.runs} uscite a settimana più forza facoltativa. Ripetute in salita, salite a soglia, camminata veloce con i bastoncini e tecnica di discesa. Il lungo con dislivello arriva a ${peak} e ${pdp} m D+, con una settimana di scarico ogni 3–4 settimane e 2 settimane di scarico pre-gara.` +
           (p.b2b ? ' I fine settimana diventano lunghi in back-to-back.' : ''),
+        de:
+          `Ein Trainingsplan über ${p.weeks} Wochen für einen Trail über ${p.km} km mit etwa ${dp} Hm, mit ${p.runs} Läufen pro Woche plus optionalem Krafttraining. Bergintervalle, Schwellenläufe bergauf, Power Hiking mit Stöcken und Bergab-Technik. Der lange Lauf wächst auf ${peak} und ${pdp} Hm, mit einer Entlastungswoche alle 3–4 Wochen und 2 Wochen Tapering.` +
+          (p.b2b
+            ? ' Am Wochenende werden daraus lange Läufe an zwei Tagen hintereinander.'
+            : ''),
         'pt-br':
           `Uma planilha de ${p.weeks} semanas para um trail de ${p.km} km com cerca de ${dp} m D+, com ${p.runs} corridas por semana e fortalecimento opcional. Subidas, subidas no limiar, caminhada rápida com bastões e técnica de descida. O longão com altimetria chega a ${peak} e ${pdp} m D+, com uma semana mais leve a cada 3–4 semanas e 2 semanas de polimento.` +
           (p.b2b ? ' Os fins de semana viram longões encadeados.' : ''),
@@ -680,6 +761,8 @@ export const PLAN = {
 /** "4", "4 to 5" in words for the plan description. */
 export function runsLabel(locale: Locale, min: number, max: number): string {
   if (min === max) return String(min);
-  const to = { en: 'to', fr: 'à', es: 'a', it: 'o', 'pt-br': 'a' }[locale];
+  const to = { en: 'to', fr: 'à', es: 'a', it: 'o', 'pt-br': 'a', de: 'bis' }[
+    locale
+  ];
   return `${min} ${to} ${max}`;
 }

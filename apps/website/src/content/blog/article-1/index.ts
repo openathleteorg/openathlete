@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const article1: BlogPost = {
       es: 'Qué es OpenAthlete y por qué existe',
       it: "Cos'è OpenAthlete e perché esiste",
       'pt-br': 'O que é o OpenAthlete e por que ele existe',
+      de: 'Was OpenAthlete ist und warum es das Projekt gibt',
     },
     description: {
       en: 'An open-source training platform for endurance athletes and coaches: what it does today, what it does not do, and how it is paid for.',
@@ -22,6 +24,7 @@ export const article1: BlogPost = {
       it: 'Una piattaforma di allenamento open source per atleti di endurance e allenatori: cosa fa oggi, cosa non fa e come si finanzia.',
       'pt-br':
         'Uma plataforma de treino de código aberto para atletas de endurance e treinadores: o que ela faz, o que não faz e como se paga.',
+      de: 'Eine Open-Source-Trainingsplattform für Ausdauersportler und Coaches: was sie heute kann, was sie nicht kann und wie sie finanziert wird.',
     },
     excerpt: {
       en: 'OpenAthlete plans your training, talks to your watch and tracks load, for athletes and coaches. Here is why it was built and where its limits are.',
@@ -30,6 +33,7 @@ export const article1: BlogPost = {
       it: "OpenAthlete pianifica l'allenamento, parla con il tuo orologio e segue il carico, per atleti e allenatori. Ecco perché è nato e dove sono i suoi limiti.",
       'pt-br':
         'O OpenAthlete planeja o seu treino, conversa com o seu relógio e acompanha a carga, para atletas e treinadores. Veja por que ele foi criado e onde estão os limites.',
+      de: 'OpenAthlete plant dein Training, spricht mit deiner Uhr und verfolgt die Belastung, für Athleten und Coaches. Hier erfährst du, warum es entstanden ist und wo seine Grenzen liegen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const article1: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

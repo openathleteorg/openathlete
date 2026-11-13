@@ -12,13 +12,14 @@ src/content/learn/<slug>/
   es.tsx      export function ContentEs() { … }
   it.tsx      export function ContentIt() { … }
   pt-br.tsx   export function ContentPtBr() { … }
+  de.tsx      export function ContentDe() { … }
 ```
 
 Copy `trimp/` as the model. `index.ts` exports one const named after the slug in camelCase (`zone-2` → `zone2`, `km-effort` → `kmEffort`).
 
 ### Metadata (`index.ts`)
 
-All `Localized` fields need the five locales (`en`, `fr`, `es`, `it`, `'pt-br'`): there is no English fallback on glossary pages.
+All `Localized` fields need the six locales (`en`, `fr`, `es`, `it`, `'pt-br'`, `de`): there is no English fallback on glossary pages.
 
 | Field | Rules |
 | --- | --- |
@@ -31,10 +32,10 @@ All `Localized` fields need the five locales (`en`, `fr`, `es`, `it`, `'pt-br'`)
 | `aliases` | Optional, other names people search (`'Training impulse'`, `'Endurance fondamentale'`). |
 | `faq` | 2–3 questions per locale, plain-text answers (they go into FAQPage JSON-LD). Don’t repeat the definition. |
 | `related` | Slugs of other terms. A slug that doesn’t exist (yet) is skipped, so you may point to a term that is being written. |
-| `links` | Site paths without locale: `'/tools/vma'`, `'/pace-charts'`, `'/features/training-load'`, `'/blog/<slug>'`. The label is the page’s own title (the one on its social card). Use `{ href, label: { en, fr, es, it, 'pt-br' } }` only when that title reads badly as a link. Only link pages that exist (`ls src/app/[locale]`, `src/content/blog/*/index.ts` for slugs). |
+| `links` | Site paths without locale: `'/tools/vma'`, `'/pace-charts'`, `'/features/training-load'`, `'/blog/<slug>'`. The label is the page’s own title (the one on its social card). Use `{ href, label: { en, fr, es, it, 'pt-br', de } }` only when that title reads badly as a link. Only link pages that exist (`ls src/app/[locale]`, `src/content/blog/*/index.ts` for slugs). |
 | `sources` | `{ citation, url? }`. Citation: `Authors (year). Title. Journal volume(issue): pages.` Only real sources; `url` only for a DOI/PubMed link you have checked resolves (`curl -sI https://doi.org/<doi>` → 302; `https://api.crossref.org/works/<doi>` gives the exact title and authors). Books have no url. |
 | `updatedAt` | ISO date of the last real change to the text. |
-| `content` | `{ en: ContentEn, fr: ContentFr, es: ContentEs, it: ContentIt, 'pt-br': ContentPtBr }`. |
+| `content` | `{ en: ContentEn, fr: ContentFr, es: ContentEs, it: ContentIt, 'pt-br': ContentPtBr, de: ContentDe }`. |
 
 French strings in `index.ts` need a non-breaking space before `: ; ? !` and inside `« »`: `\u00a0` (or the literal character) in JS strings, `&nbsp;` in JSX text (see below).
 
@@ -56,11 +57,11 @@ Structure (H2s, adapted to the term):
 4. How to use it in training (concrete sessions: “5 × 4' at threshold”, paces, durations).
 5. Limits: what it misses, when it misleads.
 
-500–900 words of substance in English; the other locales are written natively, not translated word for word (FR “vous”, ES “tú”, IT “tu”, PT-BR “você”; km and metric units; local running vocabulary: VMA, fractionné, sortie longue, D+; series, rodaje, tirada larga; ripetute, lungo, medio; tiros, longão, rodagem, planilha).
+500–900 words of substance in English; the other locales are written natively, not translated word for word (FR “vous”, ES “tú”, IT “tu”, PT-BR “você”, DE “du”; km and metric units; local running vocabulary: VMA, fractionné, sortie longue, D+; series, rodaje, tirada larga; ripetute, lungo, medio; tiros, longão, rodagem, planilha; lockerer Dauerlauf, langer Lauf, Intervalle, Hm).
 
 **French typography in JSX text**: write `&nbsp;` before `: ; ? !` and `%`, and inside `« »` (`déjà&nbsp;:`, `12&nbsp;%`), as the blog's French files do. Not the raw U+00A0 character (eslint `no-irregular-whitespace` rejects it), and not `\u00a0`, which is not an escape inside JSX text and would print literally. In JS strings (`index.ts`, `Formula` `where` arrays) use `\u00a0` or the literal U+00A0 character: both pass eslint inside strings.
 
-Internal links: `<Link href="/learn/zone-2">` in `en.tsx`, `<Link href="/fr/learn/zone-2">` in `fr.tsx`, `/es/…`, `/it/…`, `/pt-br/…` for the others. Link related glossary terms where they come up naturally, and the matching tool or feature.
+Internal links: `<Link href="/learn/zone-2">` in `en.tsx`, `<Link href="/fr/learn/zone-2">` in `fr.tsx`, `/es/…`, `/it/…`, `/pt-br/…`, `/de/…` for the others. Link related glossary terms where they come up naturally, and the matching tool or feature.
 
 ### Copy rules (short version of the site brief)
 

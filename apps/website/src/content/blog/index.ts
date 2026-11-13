@@ -88,6 +88,7 @@ const CONTENT_BY_LOCALE = {
   es: 'ContentEs',
   it: 'ContentIt',
   'pt-br': 'ContentPtBr',
+  de: 'ContentDe',
 } as const satisfies Record<SupportedLocale, keyof BlogPost>;
 
 /** The post body in `locale`, or undefined when it is not translated. */

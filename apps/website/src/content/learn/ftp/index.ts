@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const ftp: LearnTerm = {
     es: 'FTP (umbral de potencia funcional)',
     it: 'FTP (potenza di soglia funzionale)',
     'pt-br': 'FTP (potência de limiar funcional)',
+    de: 'FTP (funktionelle Schwellenleistung)',
   },
   title: {
     en: 'FTP (functional threshold power): definition, formula, example',
@@ -21,6 +23,7 @@ export const ftp: LearnTerm = {
     es: '¿Qué es el FTP? Definición, fórmula y ejemplo',
     it: 'Cos’è l’FTP? Definizione, formula, esempio',
     'pt-br': 'O que é FTP? Definição, fórmula e exemplo',
+    de: 'FTP (funktionelle Schwellenleistung): Definition, Formel',
   },
   description: {
     en: 'FTP is the power you can hold for about an hour. The 20-minute test, critical power and W′, power zones in watts, a worked example and the limits.',
@@ -29,6 +32,7 @@ export const ftp: LearnTerm = {
     it: 'L’FTP è la potenza che tieni per circa un’ora. Test di 20 minuti, potenza critica e W′, zone in watt, un esempio di calcolo e i limiti.',
     'pt-br':
       'O FTP é a potência que você sustenta por cerca de uma hora. Teste de 20 minutos, potência crítica e W′, zonas em watts, exemplo e limites.',
+    de: 'Die FTP ist die Leistung, die du etwa eine Stunde hältst: 20-Minuten-Test, kritische Leistung und W′, Leistungszonen in Watt, Beispiel und Grenzen.',
   },
   definition: {
     en: 'FTP (functional threshold power) is the highest power, in watts, that you can hold in a roughly steady state for about an hour, usually estimated as 95% of a 20-minute all-out effort.',
@@ -37,6 +41,7 @@ export const ftp: LearnTerm = {
     it: 'L’FTP (functional threshold power) è la potenza più alta, in watt, che riesci a tenere in modo più o meno stabile per circa un’ora, di solito stimata come il 95% di uno sforzo di 20 minuti a tutta.',
     'pt-br':
       'O FTP (functional threshold power) é a maior potência, em watts, que você consegue sustentar de forma mais ou menos estável por cerca de uma hora, normalmente estimada como 95% de um esforço máximo de 20 minutos.',
+    de: 'Die FTP (functional threshold power, funktionelle Schwellenleistung) ist die höchste Leistung in Watt, die du etwa eine Stunde lang annähernd konstant halten kannst, meist geschätzt als 95 % eines 20-minütigen Maximaltests.',
   },
   aliases: {
     en: ['Functional threshold power', 'Critical power', 'CP', 'W′'],
@@ -44,6 +49,7 @@ export const ftp: LearnTerm = {
     es: ['Functional threshold power', 'Potencia crítica', 'CP', 'W′'],
     it: ['Functional threshold power', 'Potenza critica', 'CP', 'W′'],
     'pt-br': ['Functional threshold power', 'Potência crítica', 'CP', 'W′'],
+    de: ['Funktionelle Schwellenleistung', 'Kritische Leistung', 'CP', 'W′'],
   },
   faq: {
     en: [
@@ -131,6 +137,23 @@ export const ftp: LearnTerm = {
           'A cada seis a oito semanas durante um bloco de treino basta para a maioria, ou antes se os treinos de limiar ficarem claramente fáceis demais ou impossíveis de terminar.',
       },
     ],
+    de: [
+      {
+        question: 'Was ist eine gute FTP?',
+        answer:
+          'Watt allein sagen wenig, denn ein schwererer Fahrer leistet mehr. Vergleiche Watt pro Kilogramm und vor allem dich mit dir selbst: Deine FTP aus der letzten Saison oder von vor sechs Wochen sagt dir mehr als jede Tabelle.',
+      },
+      {
+        question: 'Ist die FTP dasselbe wie die kritische Leistung?',
+        answer:
+          'Nein. Die FTP ist eine Feldschätzung der Leistung, die du etwa eine Stunde halten kannst; die kritische Leistung ist die Steigung der Arbeit-Zeit-Geraden aus mehreren Maximalbelastungen. Im Mittel liegen sie oft nur wenige Watt auseinander, beim einzelnen Fahrer kann die Differenz aber 20 bis 30 W erreichen.',
+      },
+      {
+        question: 'Wie oft sollte ich meine FTP testen?',
+        answer:
+          'Für die meisten reicht es, während eines Trainingsblocks alle sechs bis acht Wochen zu testen, oder früher, wenn sich Schwelleneinheiten deutlich zu leicht anfühlen oder kaum noch zu schaffen sind.',
+      },
+    ],
   },
   related: [
     'critical-speed',
@@ -174,5 +197,6 @@ export const ftp: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

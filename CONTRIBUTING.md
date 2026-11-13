@@ -536,7 +536,7 @@ model Workout {
 - Import messages: `import { m } from '@/paraglide/messages'`
 - Use message keys: `{m.my_message()}`
 - Message keys use `snake_case`
-- Add translations to every catalog in `apps/web/messages/` (`en`, `fr`, `it`, `es`, `pt-BR`)
+- Add translations to every catalog in `apps/web/messages/` (`en`, `fr`, `it`, `es`, `pt-BR`, `de`)
 
 **Adding new translations:**
 1. Add the message key to `apps/web/messages/en.json`:

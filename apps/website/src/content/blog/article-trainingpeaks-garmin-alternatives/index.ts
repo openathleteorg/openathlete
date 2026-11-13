@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleTrainingpeaksGarminAlternatives: BlogPost = {
       es: 'Alternativas a TrainingPeaks tras la compra de Garmin (2026)',
       it: "Alternative a TrainingPeaks dopo l'acquisizione di Garmin",
       'pt-br': 'Alternativas ao TrainingPeaks após a compra pela Garmin',
+      de: 'TrainingPeaks-Alternativen nach der Übernahme durch Garmin (2026)',
     },
     description: {
       en: 'Garmin now owns TrainingPeaks. What changed, who should switch, and an honest look at intervals.icu, Nolio, Final Surge, Tredict and Runalyze.',
@@ -22,6 +24,7 @@ export const articleTrainingpeaksGarminAlternatives: BlogPost = {
       it: 'Garmin ora possiede TrainingPeaks. Cosa cambia, a chi conviene cambiare e uno sguardo onesto a intervals.icu, Nolio, Final Surge, Tredict e Runalyze.',
       'pt-br':
         'A Garmin agora é dona do TrainingPeaks. O que muda, quem deve trocar e uma análise honesta de intervals.icu, Nolio, Final Surge, Tredict e Runalyze.',
+      de: 'TrainingPeaks gehört jetzt Garmin. Was sich ändert, wer wechseln sollte und ein ehrlicher Blick auf intervals.icu, Nolio, Final Surge, Tredict und Runalyze.',
     },
     excerpt: {
       en: 'Garmin bought TrainingPeaks in July 2026 and nothing has changed for accounts yet. Here is how to decide whether to move, the independent platforms worth a look, and how to take your history with you.',
@@ -30,6 +33,7 @@ export const articleTrainingpeaksGarminAlternatives: BlogPost = {
       it: 'Garmin ha comprato TrainingPeaks a luglio 2026 e per ora per gli account non è cambiato nulla. Come decidere se cambiare, quali piattaforme indipendenti guardare e come portarti dietro lo storico.',
       'pt-br':
         'A Garmin comprou o TrainingPeaks em julho de 2026 e, por enquanto, nada mudou para as contas. Como decidir se vale trocar, quais plataformas independentes olhar e como levar o seu histórico.',
+      de: 'Garmin hat TrainingPeaks im Juli 2026 gekauft, und für die Konten hat sich bisher nichts geändert. So entscheidest du, ob du wechselst, welche unabhängigen Plattformen einen Blick wert sind und wie du deine Historie mitnimmst.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -45,4 +49,5 @@ export const articleTrainingpeaksGarminAlternatives: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleSubjectiveScientific: BlogPost = {
       es: 'Subjetivo pero científico: cómo el RPE mide la fatiga',
       it: "Soggettivo ma scientifico: come l'RPE misura la fatica",
       'pt-br': 'Subjetivo, mas científico: como a RPE mede a fadiga',
+      de: 'Subjektiv, aber wissenschaftlich: Wie das RPE Ermüdung misst',
     },
     description: {
       en: "Borg's scales, Foster's session RPE and the evidence that self-reports track training load better than many lab markers. How to rate reliably.",
@@ -22,6 +24,7 @@ export const articleSubjectiveScientific: BlogPost = {
       it: "Scale di Borg, session-RPE di Foster e perché l'autovalutazione segue il carico meglio di molti marcatori. Come valutare bene.",
       'pt-br':
         'Escalas de Borg, RPE da sessão de Foster e por que a autoavaliação acompanha a carga melhor que muitos marcadores. Como dar a nota.',
+      de: 'Borg-Skalen, Fosters Session-RPE und warum die Selbsteinschätzung die Belastung besser abbildet als viele Marker. So bewertest du richtig.',
     },
     excerpt: {
       en: 'A number you make up yourself turns out to be one of the most sensitive fatigue measures there is, provided you rate it the same way every time.',
@@ -30,6 +33,7 @@ export const articleSubjectiveScientific: BlogPost = {
       it: 'Un numero che ti inventi da solo si rivela una delle misure di fatica più sensibili, a patto di valutare sempre allo stesso modo.',
       'pt-br':
         'Um número que você mesmo inventa acaba sendo uma das medidas de fadiga mais sensíveis, desde que você dê a nota sempre do mesmo jeito.',
+      de: 'Eine Zahl, die du dir selbst ausdenkst, ist eines der empfindlichsten Maße für Ermüdung, solange du immer auf dieselbe Weise bewertest.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleSubjectiveScientific: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

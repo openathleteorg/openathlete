@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleClientRetention: BlogPost = {
       es: 'Por qué los atletas dejan a su entrenador y cómo retenerlos',
       it: "Perché gli atleti lasciano l'allenatore, e come trattenerli",
       'pt-br': 'Por que os alunos deixam a assessoria, e como mantê-los',
+      de: 'Warum betreute Athleten aufhören und wie du sie hältst',
     },
     description: {
       en: 'Athletes rarely quit after one bad week; they drift. Onboarding, visible progress, a routine for athletes who go quiet, and a pause option.',
@@ -22,6 +24,7 @@ export const articleClientRetention: BlogPost = {
       it: 'Un atleta raramente se ne va dopo una settimana storta: si allontana. Prime settimane, progressi visibili e cosa fare quando sparisce.',
       'pt-br':
         'O aluno raramente sai depois de uma semana ruim: ele vai se desligando. Primeiras semanas, evolução visível e o que fazer quando ele some.',
+      de: 'Athleten hören selten nach einer schlechten Woche auf, sie driften weg. Einstieg, sichtbarer Fortschritt, eine Routine für stille Athleten und eine Pause.',
     },
     excerpt: {
       en: 'What motivation research says about keeping athletes, and a practical routine for the first six weeks and for the athlete who stops replying.',
@@ -30,6 +33,7 @@ export const articleClientRetention: BlogPost = {
       it: "Cosa dice la ricerca sulla motivazione, e una routine pratica per le prime sei settimane e per l'atleta che smette di rispondere.",
       'pt-br':
         'O que a pesquisa sobre motivação diz, e uma rotina prática para as primeiras seis semanas e para o aluno que para de responder.',
+      de: 'Was die Motivationsforschung über Kundenbindung sagt, und eine praktische Routine für die ersten sechs Wochen und für Athleten, die nicht mehr antworten.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleClientRetention: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

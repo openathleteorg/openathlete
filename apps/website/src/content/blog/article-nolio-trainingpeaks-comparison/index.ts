@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -15,6 +16,7 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       es: 'Nolio vs TrainingPeaks vs OpenAthlete para entrenadores (2026)',
       it: 'Nolio, TrainingPeaks o OpenAthlete per allenatori (2026)',
       'pt-br': 'Nolio, TrainingPeaks ou OpenAthlete para treinadores (2026)',
+      de: 'Nolio vs. TrainingPeaks vs. OpenAthlete für Coaches (2026)',
     },
     description: {
       en: 'What a coach pays on Nolio, TrainingPeaks and OpenAthlete at 3, 10, 25 and 30 athletes, what each does best and what each lacks.',
@@ -23,6 +25,7 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       it: 'Quanto paga un allenatore su Nolio, TrainingPeaks e OpenAthlete da 3 a 30 atleti, cosa fa meglio ciascuno e cosa gli manca.',
       'pt-br':
         'Quanto um treinador paga no Nolio, TrainingPeaks e OpenAthlete de 3 a 30 atletas, o que cada um faz melhor e o que falta.',
+      de: 'Was ein Coach bei Nolio, TrainingPeaks und OpenAthlete für 3, 10, 25 und 30 Athleten zahlt, was jedes Tool am besten kann und was ihm fehlt.',
     },
     excerpt: {
       en: 'Three pricing logics for coaches: per athlete, by tier, or flat. Dated list prices, strengths, gaps, and which one fits which coach.',
@@ -31,6 +34,7 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       it: 'Tre logiche di prezzo per gli allenatori: per atleta, a fasce o fisso. Prezzi datati, punti forti, lacune e a chi si adatta ciascuno.',
       'pt-br':
         'Três lógicas de preço para treinadores: por atleta, por faixa ou fixo. Preços com data, pontos fortes, lacunas e para quem cada um serve.',
+      de: 'Drei Preislogiken für Coaches: pro Athlet, nach Stufen oder pauschal. Listenpreise mit Datum, Stärken, Lücken und welches Tool zu welchem Coach passt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -48,4 +52,5 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

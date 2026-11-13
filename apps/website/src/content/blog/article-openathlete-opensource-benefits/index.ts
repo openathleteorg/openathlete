@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       es: 'Software de entrenamiento libre: ¿de quién son tus datos?',
       it: 'Software di allenamento open source: di chi sono i tuoi dati?',
       'pt-br': 'Software de treino de código aberto: de quem são seus dados?',
+      de: 'Open-Source-Trainingssoftware: Wem gehören deine Trainingsdaten?',
     },
     description: {
       en: "Today's Plan closed, Garmin bought TrainingPeaks. What data export really gives you, why OpenAthlete uses the AGPL, and what self-hosting costs.",
@@ -22,6 +24,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       it: "Today's Plan ha chiuso, Garmin ha comprato TrainingPeaks. Cosa vale un export dei dati, perché l'AGPL e quanto costa il self-hosting.",
       'pt-br':
         "O Today's Plan fechou e a Garmin comprou o TrainingPeaks. O que uma exportação entrega, por que a AGPL e quanto custa a auto-hospedagem.",
+      de: 'Today’s Plan ist eingestellt, Garmin hat TrainingPeaks gekauft. Was ein Datenexport wirklich bringt, warum OpenAthlete die AGPL nutzt und was Selbst-Hosting kostet.',
     },
     excerpt: {
       en: 'Your training history is only as durable as the platform holding it. What open source, the AGPL and self-hosting change, and what they do not.',
@@ -30,6 +33,7 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
       it: 'Il tuo storico di allenamento dura quanto la piattaforma che lo custodisce. Cosa cambiano open source, AGPL e self-hosting, e cosa no.',
       'pt-br':
         'O seu histórico de treino dura o mesmo que a plataforma que o guarda. O que o código aberto, a AGPL e a auto-hospedagem mudam, e o que não mudam.',
+      de: 'Deine Trainingshistorie ist nur so beständig wie die Plattform, auf der sie liegt. Was Open Source, die AGPL und Selbst-Hosting ändern und was nicht.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleOpenathleteOpensourceBenefits: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

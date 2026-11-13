@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       es: 'Por qué tu reloj deportivo no basta para guiar tu entrenamiento',
       it: "Perché l'orologio non basta per guidare il tuo allenamento",
       'pt-br': 'Por que o seu relógio não basta para guiar o seu treino',
+      de: 'Warum deine Sportuhr nicht reicht, um dein Training zu steuern',
     },
     description: {
       en: "What a running watch measures well, what it only estimates, and the context it can't see: the plan, how a session felt, and your life.",
@@ -22,6 +24,7 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       it: "Cosa misura bene l'orologio, cosa si limita a stimare e il contesto che non vede: il programma, le sensazioni e la tua vita.",
       'pt-br':
         'O que o relógio mede bem, o que ele só estima e o contexto que ele não vê: a planilha, como você se sentiu e a sua vida.',
+      de: 'Was eine Laufuhr gut misst, was sie nur schätzt und welchen Kontext sie nicht sieht: den Plan, wie sich eine Einheit angefühlt hat, und dein Leben.',
     },
     excerpt: {
       en: 'Heart rate and GPS are measurements; recovery time and readiness scores are estimates. Use your watch for what it does well and add the context it lacks.',
@@ -30,6 +33,7 @@ export const articleSmartwatchIsntEnough: BlogPost = {
       it: "Frequenza cardiaca e GPS sono misure; tempo di recupero e prontezza sono stime. Usa l'orologio per ciò che fa bene e aggiungi il contesto che gli manca.",
       'pt-br':
         'Frequência cardíaca e GPS são medições; tempo de recuperação e prontidão são estimativas. Use o relógio para o que ele faz bem e acrescente o contexto que falta.',
+      de: 'Herzfrequenz und GPS sind Messwerte, Erholungszeit und Bereitschaftswerte sind Schätzungen. Nutze deine Uhr für das, was sie gut kann, und ergänze den Kontext, der ihr fehlt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleSmartwatchIsntEnough: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

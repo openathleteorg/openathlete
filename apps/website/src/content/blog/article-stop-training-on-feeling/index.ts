@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       es: 'Entrenar por sensaciones: cuándo ayuda y cuándo te frena',
       it: 'Allenarsi a sensazione: quando aiuta e quando ti frena',
       'pt-br': 'Treinar pela sensação: quando ajuda e quando atrapalha',
+      de: 'Training nach Gefühl: wann es hilft und wann es dich bremst',
     },
     description: {
       en: 'Listening to your body is not the same as training on mood. How to tell signals from preferences, and simple rules for adjusting a plan.',
@@ -22,6 +24,7 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       it: 'Ascoltare il corpo non è allenarsi a umore. Come distinguere segnali e preferenze, e regole semplici per adattare un programma.',
       'pt-br':
         'Escutar o corpo não é treinar conforme o humor. Como separar sinais de preferências e regras simples para ajustar a planilha.',
+      de: 'Auf den Körper hören ist nicht dasselbe wie Training nach Laune. Wie du Signale von Vorlieben trennst, und einfache Regeln, um einen Plan anzupassen.',
     },
     excerpt: {
       en: 'Speeding up on good days and skipping on flat ones turns every week into medium days. Decide your adjustment rules before the session, not during it.',
@@ -30,6 +33,7 @@ export const articleStopTrainingOnFeeling: BlogPost = {
       it: 'Accelerare nei giorni buoni e saltare in quelli fiacchi trasforma ogni settimana in giorni medi. Decidi le regole di adattamento prima della sessione, non durante.',
       'pt-br':
         'Acelerar nos dias bons e pular treino nos dias ruins transforma toda semana em dias médios. Defina suas regras de ajuste antes do treino, não durante.',
+      de: 'Wer an guten Tagen schneller läuft und an schlappen Tagen ausfallen lässt, macht aus jeder Woche mittlere Tage. Leg deine Anpassungsregeln vor der Einheit fest, nicht währenddessen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -52,4 +56,5 @@ export const articleStopTrainingOnFeeling: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

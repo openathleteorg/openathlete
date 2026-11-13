@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleRpeVsHr: BlogPost = {
       es: 'RPE o frecuencia cardíaca: qué te dice cada uno de tu sesión',
       it: 'RPE o frequenza cardiaca: cosa ti dice ciascuno della sessione',
       'pt-br': 'RPE ou frequência cardíaca: o que cada um diz do seu treino',
+      de: 'RPE oder Herzfrequenz: Was beide über deinen Lauf verraten',
     },
     description: {
       en: 'Heart rate and RPE both measure internal load, and they often disagree. What skews each one, and how to read the gap between them.',
@@ -22,6 +24,7 @@ export const articleRpeVsHr: BlogPost = {
       it: 'Frequenza cardiaca e RPE misurano il carico interno e spesso non concordano. Cosa falsa ciascuno e come leggere la differenza.',
       'pt-br':
         'Frequência cardíaca e RPE medem a carga interna e muitas vezes discordam. O que distorce cada um e como ler a diferença.',
+      de: 'Herzfrequenz und RPE messen beide die innere Belastung und widersprechen sich oft. Was jeden Wert verfälscht und wie du die Differenz liest.',
     },
     excerpt: {
       en: 'Same pace, same heart rate, a very different effort. Why heart rate and perceived exertion part ways, and which to trust for each kind of session.',
@@ -30,6 +33,7 @@ export const articleRpeVsHr: BlogPost = {
       it: 'Stesso passo, stesso cardio, uno sforzo molto diverso. Perché frequenza cardiaca e sforzo percepito si separano, e di quale fidarsi in ogni sessione.',
       'pt-br':
         'Mesmo pace, mesma frequência cardíaca, um esforço bem diferente. Por que frequência cardíaca e percepção de esforço se separam, e em qual confiar em cada treino.',
+      de: 'Gleiche Pace, gleiche Herzfrequenz, eine ganz andere Anstrengung. Warum Herzfrequenz und Belastungsempfinden auseinanderlaufen und welchem Wert du bei welcher Einheit trauen kannst.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleRpeVsHr: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

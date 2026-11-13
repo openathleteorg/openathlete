@@ -81,7 +81,7 @@ Prices from each vendor's pricing page, checked on 3 November 2026 (USD before t
 
 ## Built with
 
-React 19 and Vite (web, with Capacitor for iOS and Android), NestJS 11 with BullMQ jobs and Mastra agents (API), Prisma and PostgreSQL with pgvector, Redis, Next.js (website), Paraglide (5 languages), Tailwind CSS.
+React 19 and Vite (web, with Capacitor for iOS and Android), NestJS 11 with BullMQ jobs and Mastra agents (API), Prisma and PostgreSQL with pgvector, Redis, Next.js (website), Paraglide (6 languages), Tailwind CSS.
 
 <!-- GETTING STARTED -->
 

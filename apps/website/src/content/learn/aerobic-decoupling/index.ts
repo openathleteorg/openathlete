@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const aerobicDecoupling: LearnTerm = {
     es: 'Desacoplamiento aeróbico',
     it: 'Disaccoppiamento aerobico',
     'pt-br': 'Desacoplamento aeróbico',
+    de: 'Aerobe Entkopplung',
   },
   title: {
     en: 'Aerobic decoupling: definition, formula, example',
@@ -21,6 +23,7 @@ export const aerobicDecoupling: LearnTerm = {
     es: '¿Qué es el desacoplamiento aeróbico? Definición y fórmula',
     it: 'Cos’è il disaccoppiamento aerobico? Definizione e formula',
     'pt-br': 'O que é desacoplamento aeróbico? Definição, fórmula e exemplo',
+    de: 'Aerobe Entkopplung: Definition, Formel und Beispiel',
   },
   description: {
     en: 'Aerobic decoupling (Pa:HR, Pw:HR) measures how heart rate drifts against pace or power over a steady effort. Formula, the 5% rule and a worked example.',
@@ -29,6 +32,7 @@ export const aerobicDecoupling: LearnTerm = {
     it: 'Il disaccoppiamento aerobico (Pa:HR, Pw:HR) misura la deriva del cuore rispetto a passo o potenza in uno sforzo costante. Formula, soglia del 5%, esempio.',
     'pt-br':
       'O desacoplamento aeróbico (Pa:HR, Pw:HR) mede quanto a frequência cardíaca deriva em relação ao pace ou à potência num esforço contínuo. Fórmula e exemplo.',
+    de: 'Die aerobe Entkopplung (Pa:HR, Pw:HR) misst die Herzfrequenzdrift gegenüber Pace oder Leistung bei gleichmäßiger Belastung. Formel, 5-%-Regel, Beispiel.',
   },
   definition: {
     en: 'Aerobic decoupling is the percentage by which your output per heartbeat (pace or power divided by heart rate) falls from the first half to the second half of a steady effort, used as a marker of aerobic endurance.',
@@ -37,6 +41,7 @@ export const aerobicDecoupling: LearnTerm = {
     it: 'Il disaccoppiamento aerobico è la percentuale di cui cala il tuo rendimento per battito (passo o potenza divisi per la frequenza cardiaca) tra la prima e la seconda metà di uno sforzo costante, usata come indicatore di resistenza aerobica.',
     'pt-br':
       'O desacoplamento aeróbico é a porcentagem em que o seu rendimento por batimento (pace ou potência dividido pela frequência cardíaca) cai da primeira para a segunda metade de um esforço contínuo, usada como indicador de resistência aeróbica.',
+    de: 'Die aerobe Entkopplung ist der prozentuale Rückgang deines Outputs pro Herzschlag (Pace oder Leistung geteilt durch Herzfrequenz) von der ersten zur zweiten Hälfte einer gleichmäßigen Belastung. Sie dient als Marker für die aerobe Ausdauer.',
   },
   aliases: {
     en: ['Pa:HR', 'Pw:HR', 'Cardiac drift', 'Heart rate drift'],
@@ -44,6 +49,7 @@ export const aerobicDecoupling: LearnTerm = {
     es: ['Pa:HR', 'Pw:HR', 'Deriva cardíaca'],
     it: ['Pa:HR', 'Pw:HR', 'Deriva cardiaca'],
     'pt-br': ['Pa:HR', 'Pw:HR', 'Deriva cardíaca'],
+    de: ['Pa:HR', 'Pw:HR', 'Kardiale Drift', 'Herzfrequenzdrift'],
   },
   faq: {
     en: [
@@ -134,6 +140,23 @@ export const aerobicDecoupling: LearnTerm = {
           'Em esforços longos, o aumento da temperatura do corpo faz a frequência cardíaca subir enquanto o volume de sangue bombeado a cada batimento cai, e a perda de líquidos se soma a isso. Calor, desidratação e pouca base aeróbica aumentam a deriva.',
       },
     ],
+    de: [
+      {
+        question: 'Welcher Wert für die aerobe Entkopplung ist gut?',
+        answer:
+          'Unter 5 % bei einem langen, gleichmäßigen Lauf oder einer langen Ausfahrt ist das übliche Zeichen dafür, dass deine aerobe Ausdauer diese Dauer bei dieser Intensität abdeckt. Zwischen 5 und 10 % zeigt sich eine gewisse Drift, über 10 % war die Belastung für deine aktuelle Form zu lang, zu hart oder zu heiß.',
+      },
+      {
+        question: 'Kann ich die Entkopplung bei einer Intervalleinheit messen?',
+        answer:
+          'Nein. Die Entkopplung vergleicht zwei Hälften derselben gleichmäßigen Belastung. Intervalle, hügelige Läufe mit Stopps oder ein Fahrtspiel mischen Intensitäten, und das Ergebnis sagt mehr über den Aufbau der Einheit als über deine Ausdauer. Nimm einen gleichmäßigen Lauf oder eine Ausfahrt von mindestens 20 Minuten, idealerweise eine Stunde oder länger.',
+      },
+      {
+        question: 'Warum steigt meine Herzfrequenz auch bei lockerem Tempo?',
+        answer:
+          'Bei langen Belastungen treibt die steigende Körpertemperatur die Herzfrequenz nach oben, während das pro Schlag gepumpte Blutvolumen sinkt, und der Flüssigkeitsverlust kommt hinzu. Hitze, Dehydrierung und fehlende Grundlagenausdauer verstärken die Drift.',
+      },
+    ],
   },
   related: ['trimp', 'hrv', 'vo2max', 'ctl-atl-tsb'],
   links: [
@@ -164,5 +187,6 @@ export const aerobicDecoupling: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

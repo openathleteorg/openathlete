@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const heartRateReserve: LearnTerm = {
     es: 'Frecuencia cardíaca de reserva',
     it: 'Frequenza cardiaca di riserva',
     'pt-br': 'Frequência cardíaca de reserva',
+    de: 'Herzfrequenzreserve',
   },
   title: {
     en: 'Heart rate reserve: definition, formula, example',
@@ -21,6 +23,7 @@ export const heartRateReserve: LearnTerm = {
     es: 'Frecuencia cardíaca de reserva: definición, fórmula y ejemplo',
     it: 'Frequenza cardiaca di riserva: definizione, formula, esempio',
     'pt-br': 'Frequência cardíaca de reserva: definição, fórmula e exemplo',
+    de: 'Herzfrequenzreserve: Definition, Formel und Beispiel',
   },
   description: {
     en: 'Heart rate reserve is max minus resting heart rate. The Karvonen formula, the five zones in bpm and a worked example, with what the method misses.',
@@ -29,6 +32,7 @@ export const heartRateReserve: LearnTerm = {
     it: 'La frequenza cardiaca di riserva è la massima meno quella a riposo. Formula di Karvonen, le cinque zone in bpm e un esempio di calcolo.',
     'pt-br':
       'A frequência cardíaca de reserva é a máxima menos a de repouso. Fórmula de Karvonen, as cinco zonas em bpm e um exemplo de cálculo.',
+    de: 'Die Herzfrequenzreserve ist HFmax minus Ruhepuls. Die Karvonen-Formel, die fünf Zonen in bpm und ein Rechenbeispiel, plus das, was die Methode übersieht.',
   },
   definition: {
     en: 'Heart rate reserve is the difference between your maximum and resting heart rate, used by the Karvonen method to set training intensities as a share of that range rather than of maximum heart rate alone.',
@@ -37,6 +41,7 @@ export const heartRateReserve: LearnTerm = {
     it: 'La frequenza cardiaca di riserva è la differenza tra la tua frequenza cardiaca massima e quella a riposo, che il metodo di Karvonen usa per fissare le intensità di allenamento come quota di questo margine invece che della sola massima.',
     'pt-br':
       'A frequência cardíaca de reserva é a diferença entre a sua frequência cardíaca máxima e a de repouso, usada pelo método de Karvonen para definir as intensidades de treino como fração dessa faixa, e não só da máxima.',
+    de: 'Die Herzfrequenzreserve ist die Differenz zwischen deiner maximalen Herzfrequenz und deinem Ruhepuls. Die Karvonen-Methode nutzt sie, um Trainingsintensitäten als Anteil dieses Bereichs statt nur als Anteil der HFmax festzulegen.',
   },
   aliases: {
     en: ['HRR', 'Karvonen formula', 'Karvonen method'],
@@ -44,6 +49,7 @@ export const heartRateReserve: LearnTerm = {
     es: ['FCR', 'Fórmula de Karvonen', 'Método de Karvonen'],
     it: ['FCR', 'Formula di Karvonen', 'Metodo di Karvonen'],
     'pt-br': ['FCR', 'Fórmula de Karvonen', 'Método de Karvonen'],
+    de: ['HFR', 'Karvonen-Formel', 'Karvonen-Methode', 'HRR'],
   },
   faq: {
     en: [
@@ -132,6 +138,23 @@ export const heartRateReserve: LearnTerm = {
           'Pode, desde que use sempre a mesma referência. Os relógios costumam mostrar o mínimo durante o sono, alguns batimentos abaixo de uma medida feita deitado ao acordar, o que aumenta um pouco a reserva e sobe levemente as zonas.',
       },
     ],
+    de: [
+      {
+        question: 'Was ist eine normale Herzfrequenzreserve?',
+        answer:
+          'Das hängt von Alter und Trainingszustand ab. Ein 30-Jähriger mit einem Ruhepuls von 60 und einer HFmax von 190 hat eine Reserve von 130 Schlägen. Ausdauertraining senkt den Ruhepuls, die Reserve wächst also tendenziell mit der Fitness, während die HFmax mit dem Alter langsam sinkt.',
+      },
+      {
+        question: 'Ist Karvonen besser als ein Prozentsatz der HFmax?',
+        answer:
+          'Meist ist die Methode individueller, weil sie den Ruhepuls berücksichtigt, und ein Prozentsatz der Reserve entspricht einem Prozentsatz der Sauerstoffaufnahmereserve genauer. Beide arbeiten aber mit festen Prozentwerten. Wenn du deine Schwellenherzfrequenz kennst, sind Zonen, die darauf beruhen, genauer als beide.',
+      },
+      {
+        question: 'Soll ich den Ruhepuls verwenden, den meine Uhr anzeigt?',
+        answer:
+          'Ja, solange du ihn konsequent verwendest. Uhren melden oft den niedrigsten Wert im Schlaf, ein paar Schläge unter einer Messung morgens im Bett. Dadurch wird die Reserve etwas größer und die Zonen liegen etwas höher.',
+      },
+    ],
   },
   related: [
     'zone-2',
@@ -169,5 +192,6 @@ export const heartRateReserve: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

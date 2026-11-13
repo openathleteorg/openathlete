@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articlePreppingForGoal: BlogPost = {
       es: 'Adaptar tu plan a enfermedades, viajes y semanas perdidas',
       it: 'Adattare il piano a malattie, viaggi e settimane perse',
       'pt-br': 'Como adaptar a planilha a doença, viagem e semanas perdidas',
+      de: 'Trainingsplan anpassen bei Krankheit, Reisen und verpassten Wochen',
     },
     description: {
       en: 'What to protect when a marathon plan goes wrong: missed sessions, illness, travel, lost weeks, the taper, and a worked example of flu in week 9.',
@@ -22,6 +24,7 @@ export const articlePreppingForGoal: BlogPost = {
       it: 'Cosa proteggere quando un piano maratona salta: sedute perse, malattia, viaggi, settimane perse, tapering e un esempio di influenza in settimana 9.',
       'pt-br':
         'O que proteger quando a planilha de maratona desanda: treinos perdidos, doença, viagem, semanas perdidas, o polimento e um exemplo com gripe.',
+      de: 'Was du schützen solltest, wenn dein Marathonplan aus dem Ruder läuft: verpasste Einheiten, Krankheit, Reisen, verlorene Wochen, Tapering und ein Beispiel mit Grippe in Woche 9.',
     },
     excerpt: {
       en: 'No 16-week plan survives 16 weeks untouched. Protect the key sessions, never stack missed ones, rejoin the plan where it is now, and leave the taper alone.',
@@ -30,6 +33,7 @@ export const articlePreppingForGoal: BlogPost = {
       it: 'Nessun piano di 16 settimane arriva intatto alla fine. Proteggi le sedute chiave, non accumulare quelle perse, rientra nel piano dove si trova ora e lascia stare il tapering.',
       'pt-br':
         'Nenhuma planilha de 16 semanas chega intacta ao fim. Proteja os treinos-chave, não acumule os perdidos, volte à planilha onde ela está agora e não mexa no polimento.',
+      de: 'Kein 16-Wochen-Plan übersteht 16 Wochen unverändert. Schütze die Schlüsseleinheiten, stapel nie verpasste Einheiten, steig dort wieder ein, wo der Plan jetzt steht, und lass das Tapering in Ruhe.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articlePreppingForGoal: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

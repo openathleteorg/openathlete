@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const criticalSpeed: LearnTerm = {
     es: 'Velocidad crítica',
     it: 'Velocità critica',
     'pt-br': 'Velocidade crítica',
+    de: 'Kritische Geschwindigkeit',
   },
   title: {
     en: 'Critical speed: definition, formula, example',
@@ -21,6 +23,7 @@ export const criticalSpeed: LearnTerm = {
     es: '¿Qué es la velocidad crítica? Definición, fórmula y ejemplo',
     it: 'Cos’è la velocità critica? Definizione, formula, esempio',
     'pt-br': 'O que é velocidade crítica? Definição, fórmula e exemplo',
+    de: 'Kritische Geschwindigkeit: Definition, Formel, Beispiel',
   },
   description: {
     en: 'Critical speed and D′ from your best efforts: the distance-time model, a worked example from four race times, how to use it for intervals, and its limits.',
@@ -29,6 +32,7 @@ export const criticalSpeed: LearnTerm = {
     it: 'Velocità critica e D′ dai tuoi migliori sforzi: il modello distanza-tempo, un esempio su quattro tempi, l’uso nelle ripetute e i limiti.',
     'pt-br':
       'Velocidade crítica e D′ a partir dos seus melhores esforços: o modelo distância-tempo, um exemplo com quatro tempos, como usar nos tiros e seus limites.',
+    de: 'Kritische Geschwindigkeit und D′ aus deinen Bestleistungen: Distanz-Zeit-Modell, Beispiel mit vier Zeiten, Einsatz im Intervalltraining, Grenzen.',
   },
   definition: {
     en: 'Critical speed is the slope of the line linking distance and time across your best efforts of about 2 to 20 minutes, the highest speed at which your body can still reach a steady state.',
@@ -37,6 +41,7 @@ export const criticalSpeed: LearnTerm = {
     it: 'La velocità critica è la pendenza della retta che lega distanza e tempo nei tuoi migliori sforzi da circa 2 a 20 minuti, la velocità più alta alla quale l’organismo riesce ancora a raggiungere uno stato stazionario.',
     'pt-br':
       'A velocidade crítica é a inclinação da reta que liga distância e tempo nos seus melhores esforços de cerca de 2 a 20 minutos, a maior velocidade em que o organismo ainda atinge um estado estável.',
+    de: 'Die kritische Geschwindigkeit ist die Steigung der Geraden, die Distanz und Zeit über deine Bestleistungen von etwa 2 bis 20 Minuten verbindet – die höchste Geschwindigkeit, bei der dein Körper noch einen stabilen Zustand erreichen kann.',
   },
   aliases: {
     en: ['CS', 'D prime', 'Critical velocity'],
@@ -44,6 +49,7 @@ export const criticalSpeed: LearnTerm = {
     es: ['VC', 'D prima', 'Critical speed'],
     it: ['VC', 'D primo', 'Critical speed'],
     'pt-br': ['VC', 'D linha', 'Critical speed'],
+    de: ['CS', 'D-Strich', 'Critical Speed'],
   },
   faq: {
     en: [
@@ -131,6 +137,24 @@ export const criticalSpeed: LearnTerm = {
           'Pelo menos três esforços máximos de cerca de 2 a 20 minutos, espalhados nessa faixa, por exemplo 1.000 m, 3.000 m e 5.000 m. Em terreno plano, sem vento forte e recentes o bastante para refletir seu condicionamento atual.',
       },
     ],
+    de: [
+      {
+        question: 'Wie lange kann man mit kritischer Geschwindigkeit laufen?',
+        answer:
+          'Nicht unbegrenzt. Die kritische Geschwindigkeit ist eine Grenze, kein Reisetempo: Genau auf diesem Niveau baut sich trotzdem Ermüdung auf, und wie lange man durchhält, ist von Läufer zu Läufer sehr unterschiedlich. Die meisten Wettkämpfe ab einer Stunde werden darunter gelaufen.',
+      },
+      {
+        question:
+          'Ist die kritische Geschwindigkeit dasselbe wie das Schwellentempo?',
+        answer:
+          'Sie liegen nah beieinander, sind aber nicht identisch. Die kritische Geschwindigkeit liegt etwas über dem maximalen Laktat-Steady-State, der strengen Variante der Laktatschwelle. In einem Trainingsplan ist Schwellentraining meist etwas langsamer als die kritische Geschwindigkeit.',
+      },
+      {
+        question: 'Welche Belastungen sollte ich für die Berechnung nehmen?',
+        answer:
+          'Mindestens drei maximale Belastungen zwischen etwa 2 und 20 Minuten, über diesen Bereich verteilt, zum Beispiel 1.000 m, 3.000 m und 5.000 m. Auf flachem Terrain, ohne starken Wind und aktuell genug, um deine derzeitige Form abzubilden.',
+      },
+    ],
   },
   related: [
     'lactate-threshold',
@@ -175,5 +199,6 @@ export const criticalSpeed: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

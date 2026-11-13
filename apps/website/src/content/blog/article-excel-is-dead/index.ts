@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -15,6 +16,7 @@ export const articleExcelIsDead: BlogPost = {
       es: 'Entrenar con una hoja de Excel: lo que cuesta y cuándo cambiar',
       it: 'Allenare con un foglio Excel: quanto costa e quando cambiare',
       'pt-br': 'Assessoria na planilha de Excel: quanto custa e quando mudar',
+      de: 'Coaching mit Excel: was es kostet und wann du wechseln solltest',
     },
     description: {
       en: 'Where a coaching spreadsheet works, where it starts to cost, how to track load in one with session RPE, and when software is worth it.',
@@ -23,6 +25,7 @@ export const articleExcelIsDead: BlogPost = {
       it: 'Dove funziona un foglio di calcolo per allenare, dove comincia a costare, come misurare il carico con l’RPE di seduta e quando cambiare.',
       'pt-br':
         'Onde a planilha de treino funciona, onde começa a custar, como medir a carga com o RPE da sessão e quando vale trocar por um software.',
+      de: 'Wo eine Trainingstabelle funktioniert, wo sie Aufwand kostet, wie du darin die Belastung mit Session-RPE erfasst und wann sich Software lohnt.',
     },
     excerpt: {
       en: 'Spreadsheets are fine for a few athletes. The costs show up in retyped workouts, copied results and plans that change. How to do it well, and when to stop.',
@@ -31,6 +34,7 @@ export const articleExcelIsDead: BlogPost = {
       it: 'Un foglio di calcolo basta per pochi atleti. I costi arrivano con sedute ricopiate, risultati trascritti e piani che cambiano. Come farlo bene e quando smettere.',
       'pt-br':
         'A planilha resolve para poucos atletas. Os custos aparecem com treinos redigitados, resultados copiados e planos que mudam. Como fazer direito e quando parar.',
+      de: 'Für ein paar Athleten reicht eine Tabelle. Die Kosten zeigen sich bei abgetippten Workouts, kopierten Ergebnissen und Plänen, die sich ändern. Wie es gut geht und wann Schluss ist.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -48,4 +52,5 @@ export const articleExcelIsDead: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

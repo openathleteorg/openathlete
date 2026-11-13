@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleOvertrainingSigns: BlogPost = {
       es: '5 señales de sobreentrenamiento y cuándo es solo sobrecarga',
       it: '5 segnali di sovrallenamento, e quando è solo overreaching',
       'pt-br': '5 sinais de overtraining, e quando é só overreaching',
+      de: '5 Anzeichen für Übertraining und wann es nur Overreaching ist',
     },
     description: {
       en: 'Functional overreaching, non-functional overreaching or overtraining syndrome: the five signs to watch, what else causes them, and what to do.',
@@ -22,6 +24,7 @@ export const articleOvertrainingSigns: BlogPost = {
       it: 'Overreaching funzionale, non funzionale o sindrome da sovrallenamento: i cinque segnali da osservare, le altre cause possibili e cosa fare.',
       'pt-br':
         'Overreaching funcional, não funcional ou síndrome de overtraining: os cinco sinais a observar, o que mais pode causá-los e o que fazer.',
+      de: 'Funktionelles oder nicht funktionelles Overreaching oder Übertrainingssyndrom: die fünf Anzeichen, andere mögliche Ursachen und was du tun kannst.',
     },
     excerpt: {
       en: 'Real overtraining syndrome is rare. Most tired runners are overreached, ill or under-fuelled. Here is how to tell the states apart and what each one calls for.',
@@ -30,6 +33,7 @@ export const articleOvertrainingSigns: BlogPost = {
       it: 'La vera sindrome da sovrallenamento è rara. La maggior parte dei runner stanchi è in overreaching, malata o mangia troppo poco. Ecco come distinguere questi stati e cosa richiede ciascuno.',
       'pt-br':
         'A síndrome de overtraining de verdade é rara. A maioria dos corredores cansados está em overreaching, doente ou comendo pouco. Veja como separar esses estados e o que cada um pede.',
+      de: 'Ein echtes Übertrainingssyndrom ist selten. Die meisten müden Läufer sind im Overreaching, krank oder essen zu wenig. So unterscheidest du diese Zustände und erfährst, was jeder davon verlangt.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleOvertrainingSigns: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

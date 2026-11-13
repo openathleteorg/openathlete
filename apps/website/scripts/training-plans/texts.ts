@@ -4,7 +4,7 @@
  */
 import type { RunningDistance } from '../../src/lib/training-plans/specs';
 
-export const PLAN_LOCALES = ['en', 'fr', 'es', 'it', 'pt-br'] as const;
+export const PLAN_LOCALES = ['en', 'fr', 'es', 'it', 'pt-br', 'de'] as const;
 export type PlanLocale = (typeof PLAN_LOCALES)[number];
 
 export type PhaseKey = 'base' | 'build' | 'specific' | 'taper';
@@ -766,12 +766,145 @@ const pt: PlanTexts = {
     `${v.weeks} semanas, ${v.runs} treinos por semana, para correr ${pt.distance[v.d].article} em ${v.time} (${v.pace}/km). Pensada para uma VAM em torno de ${v.vma} km/h. A primeira semana tem cerca de ${v.firstKm} km; a mais pesada chega a ${v.peakKm} km e o maior longão dura ${v.longest}. Cada treino traz seus alvos: uma porcentagem da VAM para rodagens e tiros, o seu ritmo de prova para o trabalho específico.`,
 };
 
+// German: decimal comma, a space before % (DIN 5008), du-form
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+const de: PlanTexts = {
+  vma: 'VMA',
+  decimal: ',',
+  pct: (lo, hi) => `${lo}–${hi} % VMA`,
+  atPct: (lo, hi) => `bei ${lo}–${hi} % VMA`,
+  atGoal: (d, pace) => `im ${de.goalPaceName[d]} (${pace})`,
+  hm: hmFormat,
+  sec: (s) => secFormat(s, ' ', ' s'),
+  distance: {
+    '10k': { title: '10 km', lower: '10 km', article: '10 km' },
+    'half-marathon': {
+      title: 'Halbmarathon',
+      lower: 'Halbmarathon',
+      article: 'einen Halbmarathon',
+    },
+    marathon: {
+      title: 'Marathon',
+      lower: 'Marathon',
+      article: 'einen Marathon',
+    },
+  },
+  goalPaceName: {
+    '10k': '10-km-Renntempo',
+    'half-marathon': 'Halbmarathon-Renntempo',
+    marathon: 'Marathon-Renntempo',
+  },
+  steps: {
+    warmup: 'Einlaufen',
+    cooldown: 'Auslaufen',
+    easy: 'Locker',
+    jog: 'Trabpause',
+    stride: 'Steigerung',
+    fast: 'Schnell',
+    threshold: 'Schwelle',
+    tempo: 'Tempo',
+    goal: 'Renntempo',
+  },
+  names: {
+    easy: 'Lockerer Dauerlauf',
+    easyStrides: 'Lockerer Lauf + Steigerungen',
+    recovery: 'Regenerationslauf',
+    long: 'Langer Lauf',
+    longFinish: 'Langer Lauf mit schnellem Finish',
+    longGoal: 'Langer Lauf mit Marathontempo',
+    fartlek: 'Fahrtspiel',
+    vmaShort: '30/30-Intervalle',
+    vma: 'VMA-Intervalle',
+    vmaLong: 'Lange Intervalle',
+    threshold: 'Schwellenlauf',
+    tempo: 'Tempodauerlauf',
+    sharpen: 'Lockerer Lauf mit Renntempo',
+  },
+  raceName: (d) => `Wettkampftag: ${de.distance[d].lower}`,
+  desc: {
+    easy: (p) => `${p.dur} locker (${p.pct}).`,
+    easyStrides: (p) =>
+      `${p.dur} locker (${p.pct}), danach ${p.reps} Steigerungen über 20 s: schnell, aber entspannt, zurück im Gehen.`,
+    recovery: (p) =>
+      `${p.dur} sehr locker (${p.pct}). Langsamer ist auch in Ordnung.`,
+    long: (p) => `${p.dur} in lockerem, gleichmäßigem Tempo (${p.pct}).`,
+    longFinish: (p) =>
+      `${p.dur} insgesamt: locker (${p.pct}), dann die letzten ${p.rep} ${p.at}.`,
+    longGoal: (p) =>
+      `${p.dur} insgesamt, davon ${p.reps} × ${p.rep} ${p.at} mit ${p.between} locker dazwischen. Der Rest locker (${p.pct}).`,
+    fartlek: (p) =>
+      `${p.wu} Einlaufen, ${p.reps} × (${p.rep} schnell ${p.at} / ${p.rec} locker), ${p.cd} Auslaufen.`,
+    vmaShort: (p) =>
+      `${p.wu} Einlaufen, ${p.reps} × (30 s ${p.at} / 30 s Trab), ${p.cd} Auslaufen.`,
+    vma: (p) =>
+      `${p.wu} Einlaufen, ${p.reps} × ${p.rep} ${p.at} mit ${p.rec} Trabpause, ${p.cd} Auslaufen.`,
+    vmaLong: (p) =>
+      `${p.wu} Einlaufen, ${p.reps} × ${p.rep} ${p.at} mit ${p.rec} Trabpause, ${p.cd} Auslaufen.`,
+    threshold: (p) =>
+      p.reps > 1
+        ? `${p.wu} Einlaufen, ${p.reps} × ${p.rep} an der Schwelle (${p.pct}) mit ${p.rec} Trabpause, ${p.cd} Auslaufen.`
+        : `${p.wu} Einlaufen, ${p.rep} an der Schwelle (${p.pct}), ${p.cd} Auslaufen.`,
+    tempo: (p) =>
+      `${p.wu} Einlaufen, ${p.dur} zügig (${p.pct}), ${p.cd} Auslaufen.`,
+    goalPace: (p) =>
+      `${p.wu} Einlaufen, ${p.reps} × ${p.rep} ${p.at} mit ${p.rec} Trabpause, ${p.cd} Auslaufen.`,
+    sharpen: (p) =>
+      `${p.dur} locker, mit ${p.reps} × ${p.rep} ${p.at} in der zweiten Hälfte.`,
+    race: (p) =>
+      `Wettkampftag. Lauf vom Start weg ${p.at} und halte es; leg erst auf den letzten Kilometern zu, wenn die Beine mitspielen.`,
+  },
+  fuelTip:
+    'Trink unterwegs und nimm deine Gels für den Wettkampftag, um sie zu testen.',
+  weekTheme: {
+    base: 'Grundlage',
+    build: 'Aufbau',
+    light: 'Entlastungswoche',
+    peak: 'Umfangreichste Woche',
+    specific: 'Renntempo',
+    taper: 'Tapering',
+    race: 'Wettkampfwoche',
+  },
+  cycleName: (phase, d) =>
+    ({
+      base: 'Grundlage',
+      build: 'Aufbau',
+      specific: d === '10k' ? 'VMA und 10-km-Renntempo' : de.goalPaceName[d],
+      taper: 'Tapering',
+    })[phase],
+  cycleDesc: (phase, d, light) => {
+    const lighter = light.length
+      ? ` ${light.length > 1 ? 'Die Wochen' : 'Woche'} ${list(light, 'und')} ${light.length > 1 ? 'sind' : 'ist'} leichter, damit du das Training verarbeitest.`
+      : '';
+    switch (phase) {
+      case 'base':
+        return `Lockerer Umfang, kurze schnelle Wiederholungen und Steigerungen. Der lange Lauf wird jede Woche etwas länger.${lighter}`;
+      case 'build':
+        return `VMA-Intervalle und Schwellentraining, längere lange Läufe.${lighter}`;
+      case 'specific':
+        if (d === '10k')
+          return `VMA-Intervalle und Wiederholungen im 10-km-Renntempo: der härteste Block des Plans.${lighter}`;
+        if (d === 'half-marathon')
+          return `Halbmarathon-Renntempo in der Einheit unter der Woche und am Ende der langen Läufe.${lighter}`;
+        return `Marathon-Renntempo in den langen Läufen und in Blöcken unter der Woche: die umfangreichsten Wochen des Plans.${lighter}`;
+      case 'taper':
+        return 'Weniger Umfang, etwas Intensität, um spritzig zu bleiben: So gehst du frisch an den Start.';
+    }
+  },
+  planName: (d, time, weeks) =>
+    `${de.distance[d].title} in ${time}: Trainingsplan für ${weeks} Wochen`,
+  planGoal: (d, time) => `${cap(de.distance[d].article)} in ${time} laufen`,
+  planDesc: (v) =>
+    `${v.weeks} Wochen, ${v.runs} Läufe pro Woche, um ${de.distance[v.d].article} in ${v.time} zu laufen (${v.pace}/km). Ausgelegt für eine VMA (maximale aerobe Geschwindigkeit) von etwa ${v.vma} km/h. Die erste Woche umfasst rund ${v.firstKm} km, die umfangreichste ${v.peakKm} km, und der längste Lauf dauert ${v.longest}. Jede Einheit hat ihre Zielvorgaben: ein Anteil der VMA für lockere Läufe und Intervalle, dein Zieltempo für die Einheiten im Renntempo.`,
+};
+
 export const TEXTS: Record<PlanLocale, PlanTexts> = {
   en,
   fr,
   es,
   it,
   'pt-br': pt,
+  de,
 };
 
 /** Name of a goal-pace session: "Marathon pace", "Allure spécifique semi". */

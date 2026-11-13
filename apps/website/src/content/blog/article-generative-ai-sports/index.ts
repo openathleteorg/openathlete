@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleGenerativeAiSports: BlogPost = {
       es: 'IA generativa para corredores: para qué sirve y para qué no',
       it: 'IA generativa per runner: a cosa serve e a cosa no',
       'pt-br': 'IA generativa para corredores: para que serve e para que não',
+      de: 'Generative KI für Läufer: wofür sie taugt und wofür nicht',
     },
     description: {
       en: 'ChatGPT and co. write sessions, summarise notes and log how a run felt. They are poor at diagnosing pain or building a plan from nothing.',
@@ -22,6 +24,7 @@ export const articleGenerativeAiSports: BlogPost = {
       it: 'ChatGPT e simili scrivono sedute, riassumono note e registrano le sensazioni. Sbagliano nel diagnosticare dolori o creare un piano da zero.',
       'pt-br':
         'ChatGPT e afins escrevem treinos, resumem anotações e registram a percepção. Erram ao diagnosticar dores ou montar uma planilha do zero.',
+      de: 'ChatGPT & Co. schreiben Einheiten, fassen Notizen zusammen und erfassen dein Gefühl. Schmerzen diagnostizieren oder Pläne erstellen können sie schlecht.',
     },
     excerpt: {
       en: 'Generative AI is a text tool: good at turning a sentence into a structured session, bad at being right about your body. A practical, sceptical guide.',
@@ -30,6 +33,7 @@ export const articleGenerativeAiSports: BlogPost = {
       it: "L'IA generativa è uno strumento per il testo: brava a trasformare una frase in una seduta strutturata, inaffidabile sul tuo corpo. Una guida pratica e scettica.",
       'pt-br':
         'A IA generativa é uma ferramenta de texto: boa para transformar uma frase num treino estruturado, ruim para acertar sobre o seu corpo. Um guia prático e cético.',
+      de: 'Generative KI ist ein Textwerkzeug: gut darin, aus einem Satz eine strukturierte Einheit zu machen, schlecht darin, über deinen Körper recht zu haben. Ein praktischer, skeptischer Leitfaden.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleGenerativeAiSports: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

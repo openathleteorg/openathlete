@@ -5,11 +5,11 @@ description: Add or change user-facing text in OpenAthlete (web app Paraglide ca
 
 # User-facing text
 
-Web app supported languages: English (`en`), French (`fr`), Italian (`it`), Spanish (`es`), and Brazilian Portuguese (`pt-BR`). The marketing website (`apps/website`) supports the same five languages (`pt-br` in its URLs). French users use the informal "tu" in AI-generated text and the formal "vous" in the UI, as the existing catalogs do. Brazilian Portuguese uses "você" and natural imperative forms.
+Web app supported languages: English (`en`), French (`fr`), Italian (`it`), Spanish (`es`), Brazilian Portuguese (`pt-BR`) and German (`de`). The marketing website (`apps/website`) supports the same six languages (`pt-br` in its URLs). French users use the informal "tu" in AI-generated text and the formal "vous" in the UI, as the existing catalogs do. Brazilian Portuguese uses "você" and natural imperative forms. German uses the informal "du" everywhere, as German sports apps do; keep short labels short (German runs about 30% longer than English and must not break buttons, tabs or table headers).
 
 ## Web app
 
-1. Add the key to all five catalogs in `apps/web/messages/{en,fr,it,es,pt-BR}.json`:
+1. Add the key to all six catalogs in `apps/web/messages/{en,fr,it,es,pt-BR,de}.json`:
    - use snake_case, prefixed by the feature (`full_import_started`, `calendar_day_events_label`);
    - write parameters as `{name}`;
    - add it next to related keys, not only at the end, to limit merge conflicts.
@@ -24,17 +24,17 @@ Web app supported languages: English (`en`), French (`fr`), Italian (`it`), Span
 
 ## API emails and push notifications
 
-- Email templates in `apps/api/src/modules/notification/emails/templates/` have a `translations` object with `FR`, `EN`, `IT` and `ES`. Subjects are in `libs/shared/src/email/email.ts`.
+- Email templates in `apps/api/src/modules/notification/emails/templates/` have a `translations` object with `FR`, `EN`, `IT`, `ES`, `PT_BR` and `DE`. Subjects are in `libs/shared/src/email/email.ts`.
 - Push texts: `apps/api/src/modules/notification/push/translations.ts`.
 - The user's language is `user.language` (`UserLanguage` enum). Adding a language means a Prisma enum migration (`prisma-migration` skill).
 
 ## Website
 
-`apps/website/messages/{en,fr,es,it,pt-BR}.json`, compiled by `pnpm website translate`. `pnpm check:locale-parity` covers these catalogs too.
+`apps/website/messages/{en,fr,es,it,pt-BR,de}.json`, compiled by `pnpm website translate`. `pnpm check:locale-parity` covers these catalogs too.
 
 - Server components (pages, layouts, `generateMetadata`) start with `const locale = initLocale((await params).locale)` from `@/i18n/server`, then call `m.key()`: the locale is held per request, never globally.
 - Client components take the locale from context and pass it to each message: `const ml = useMessageLocale(); m.key({}, { locale: ml })` (`@/i18n/client`). Don't wrap the catalog in a proxy: it defeats tree-shaking and ships every message to the browser.
-- Blog posts live in `apps/website/src/content/blog/`: English and French are required; Spanish, Italian and Portuguese (`ContentEs`, `ContentIt`, `ContentPtBr`) are optional. A missing translation shows the English body, marked `noindex`, and hreflang lists only the real translations.
+- Blog posts live in `apps/website/src/content/blog/`: English and French are required; Spanish, Italian, Portuguese and German (`ContentEs`, `ContentIt`, `ContentPtBr`, `ContentDe`) are optional, though every post has them today. A missing translation shows the English body, marked `noindex`, and hreflang lists only the real translations.
 - Competitor facts and prices are dated (`src/content/pricing.ts`, `src/content/competitors.ts`): update the date with the figures.
 
 ## Verify

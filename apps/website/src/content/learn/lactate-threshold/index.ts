@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const lactateThreshold: LearnTerm = {
     es: 'Umbral de lactato',
     it: 'Soglia del lattato',
     'pt-br': 'Limiar de lactato',
+    de: 'Laktatschwelle',
   },
   title: {
     en: 'Lactate threshold: definition, formula, example',
@@ -21,6 +23,7 @@ export const lactateThreshold: LearnTerm = {
     es: '¿Qué es el umbral de lactato? Definición, fórmula y ejemplo',
     it: 'Cos’è la soglia del lattato? Definizione, formula, esempio',
     'pt-br': 'O que é limiar de lactato? Definição, fórmula e exemplo',
+    de: 'Laktatschwelle: Definition, Formel, Beispiel',
   },
   description: {
     en: 'Lactate threshold explained: LT1 and LT2, the 4 mmol/L rule, a step test worked through with real numbers, threshold sessions and the limits of the test.',
@@ -29,6 +32,7 @@ export const lactateThreshold: LearnTerm = {
     it: 'La soglia del lattato spiegata: LT1 e LT2, la regola dei 4 mmol/L, un test incrementale calcolato passo per passo, sedute a soglia e limiti del test.',
     'pt-br':
       'O limiar de lactato explicado: LT1 e LT2, a regra dos 4 mmol/L, um teste progressivo calculado passo a passo, treinos de limiar e os limites do teste.',
+    de: 'Laktatschwelle erklärt: LT1 und LT2, die 4-mmol-Regel, ein Stufentest mit echten Zahlen, Schwellentraining und die Grenzen des Tests.',
   },
   definition: {
     en: 'The lactate threshold is the exercise intensity at which blood lactate stops staying stable and starts to accumulate, used to separate easy, sustainable running from efforts you can only hold for a limited time.',
@@ -37,6 +41,7 @@ export const lactateThreshold: LearnTerm = {
     it: 'La soglia del lattato è l’intensità di sforzo oltre la quale il lattato nel sangue smette di restare stabile e comincia ad accumularsi, e serve a separare lo sforzo facile e sostenibile da quello che regge solo per un tempo limitato.',
     'pt-br':
       'O limiar de lactato é a intensidade de esforço a partir da qual o lactato no sangue deixa de ficar estável e começa a se acumular, usada para separar o esforço leve e sustentável daquele que só se aguenta por tempo limitado.',
+    de: 'Die Laktatschwelle ist die Belastungsintensität, ab der das Blutlaktat nicht mehr stabil bleibt, sondern sich anhäuft. Sie trennt lockeres, dauerhaft haltbares Laufen von Belastungen, die du nur begrenzt halten kannst.',
   },
   aliases: {
     en: [
@@ -68,6 +73,12 @@ export const lactateThreshold: LearnTerm = {
       'Limiar aeróbio',
       'LT1 e LT2',
       'Máximo estado estável de lactato',
+    ],
+    de: [
+      'LT1 und LT2',
+      'Anaerobe Schwelle',
+      'Aerobe Schwelle',
+      'Maximaler Laktat-Steady-State',
     ],
   },
   faq: {
@@ -157,6 +168,23 @@ export const lactateThreshold: LearnTerm = {
           'A cada 6 a 10 semanas durante um bloco de treino, ou quando uma prova mostrar que seu condicionamento mudou. Zonas baseadas no limiar da temporada passada costumam estar vários segundos por quilômetro fora.',
       },
     ],
+    de: [
+      {
+        question: 'Wie finde ich meine Laktatschwelle ohne Labor?',
+        answer:
+          'Nutze einen Wettkampf oder einen Zeitlauf. Das Tempo, das du etwa eine Stunde halten kannst, bei trainierten Läufern meist zwischen 10-km- und Halbmarathontempo, ist eine gute Schätzung der zweiten Schwelle. Ein 30-minütiger Zeitlauf allein ergibt einen etwas schnelleren Wert, nah genug, um Schwelleneinheiten festzulegen.',
+      },
+      {
+        question: 'Ist die Laktatschwelle dasselbe wie die anaerobe Schwelle?',
+        answer:
+          'Im Alltag ja: Beide meinen meist die zweite Schwelle (LT2), die höchste Intensität, bei der sich das Laktat noch stabilisiert. Die erste Schwelle (LT1 oder aerobe Schwelle) liegt bei niedrigerer Intensität, wo das Laktat erstmals über den Ruhewert steigt, und markiert die Obergrenze für lockeres Laufen.',
+      },
+      {
+        question: 'Wie oft sollte ich meine Schwelle neu testen?',
+        answer:
+          'Alle 6 bis 10 Wochen während eines Trainingsblocks oder immer dann, wenn ein Wettkampf zeigt, dass sich deine Form verändert hat. Zonen, die auf einer Schwelle aus der letzten Saison beruhen, liegen oft mehrere Sekunden pro Kilometer daneben.',
+      },
+    ],
   },
   related: [
     'critical-speed',
@@ -191,5 +219,6 @@ export const lactateThreshold: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

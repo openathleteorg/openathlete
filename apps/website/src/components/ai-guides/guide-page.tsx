@@ -146,6 +146,7 @@ const LIBRARY = [
 function quote(locale: SupportedLocale, text: string): string {
   if (locale === 'fr') return `«\u00a0${text}\u00a0»`;
   if (locale === 'es' || locale === 'it') return `«${text}»`;
+  if (locale === 'de') return `„${text}“`;
   return `“${text}”`;
 }
 

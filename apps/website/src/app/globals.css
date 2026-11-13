@@ -117,6 +117,11 @@
       'cv11' on;
     text-rendering: optimizeLegibility;
   }
+  /* German compounds ("Entlastungswoche") cannot wrap at a space: let
+     narrow cells break them at syllables instead of widening the table */
+  :lang(de) :is(td, th) {
+    hyphens: auto;
+  }
   ::selection {
     background: color-mix(in oklab, var(--sky) 35%, transparent);
   }

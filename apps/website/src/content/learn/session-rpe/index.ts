@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const sessionRpe: LearnTerm = {
     es: 'RPE de sesión',
     it: 'RPE di seduta',
     'pt-br': 'PSE da sessão',
+    de: 'Session-RPE',
   },
   title: {
     en: 'Session RPE: definition, formula, example',
@@ -21,6 +23,7 @@ export const sessionRpe: LearnTerm = {
     es: '¿Qué es el RPE de sesión? Definición, fórmula y ejemplo',
     it: 'Cos’è l’RPE di seduta? Definizione, formula, esempio',
     'pt-br': 'O que é a PSE da sessão? Definição, fórmula e exemplo',
+    de: 'Was ist die Session-RPE? Definition, Formel, Beispiel',
   },
   description: {
     en: 'Session RPE (Foster’s sRPE) measures training load as effort from 0 to 10 times minutes. The formula, a worked week, monotony and strain, and its limits.',
@@ -29,6 +32,7 @@ export const sessionRpe: LearnTerm = {
     it: 'L’RPE di seduta (sRPE di Foster) misura il carico come sforzo da 0 a 10 per i minuti. La formula, una settimana d’esempio, la monotonia e i limiti.',
     'pt-br':
       'A PSE da sessão (sRPE de Foster) mede a carga como esforço de 0 a 10 vezes os minutos. A fórmula, uma semana de exemplo, a monotonia e os limites.',
+    de: 'Die Session-RPE (sRPE nach Foster) misst die Belastung als Anstrengung von 0 bis 10 mal Minuten. Formel, Beispielwoche, Monotonie, Strain und Grenzen.',
   },
   definition: {
     en: 'Session RPE is a training load measure that multiplies how hard the whole session felt, rated from 0 to 10, by its duration in minutes.',
@@ -37,6 +41,7 @@ export const sessionRpe: LearnTerm = {
     it: 'L’RPE di seduta è una misura del carico di allenamento che moltiplica quanto è stata percepita dura l’intera seduta, con un voto da 0 a 10, per la sua durata in minuti.',
     'pt-br':
       'A PSE da sessão é uma medida de carga de treino que multiplica o quanto a sessão inteira pareceu dura, numa nota de 0 a 10, pela duração em minutos.',
+    de: 'Die Session-RPE ist eine Messgröße für Trainingsbelastung, die multipliziert, wie hart sich die gesamte Einheit angefühlt hat (bewertet von 0 bis 10), mit ihrer Dauer in Minuten.',
   },
   aliases: {
     en: ['sRPE', 'Foster method', 'Session rating of perceived exertion'],
@@ -44,6 +49,7 @@ export const sessionRpe: LearnTerm = {
     es: ['sRPE', 'Método de Foster', 'Esfuerzo percibido de la sesión'],
     it: ['sRPE', 'Metodo di Foster', 'Sforzo percepito di seduta'],
     'pt-br': ['sRPE', 'RPE da sessão', 'Método de Foster'],
+    de: ['sRPE', 'Foster-Methode', 'Empfundene Anstrengung der Einheit'],
   },
   faq: {
     en: [
@@ -131,6 +137,23 @@ export const sessionRpe: LearnTerm = {
           'Não existe limite absoluto: as unidades são arbitrárias e dependem de como você dá as notas. Compare cada semana com as suas semanas recentes; uma alta repentina de 30% ou mais merece atenção.',
       },
     ],
+    de: [
+      {
+        question: 'Wann sollte ich die Session-RPE bewerten?',
+        answer:
+          'Fosters Protokoll verlangt die Bewertung etwa 30 Minuten nach der Einheit, damit die letzte Belastung nicht dominiert. Eine spätere Bewertung am selben Tag funktioniert ebenfalls, solange du immer die gesamte Einheit bewertest und es immer gleich machst.',
+      },
+      {
+        question: 'Ist die Session-RPE so gut wie die Herzfrequenz?',
+        answer:
+          'Für die Gesamtbelastung stimmt sie laut Studien meist gut mit herzfrequenzbasierten Methoden überein, und sie erfasst auch Krafttraining, Sprints und Bergablaufen, die die Herzfrequenz übersieht. Sie ist subjektiv, am besten nutzt du sie daher neben einer objektiven Messgröße wie dem TRIMP.',
+      },
+      {
+        question: 'Was ist eine hohe Session-RPE-Belastung?',
+        answer:
+          'Es gibt keine absolute Schwelle: Die Einheiten sind willkürlich und hängen davon ab, wie du bewertest. Vergleiche jede Woche mit deinen eigenen letzten Wochen; ein plötzlicher Anstieg um 30 % oder mehr verdient Aufmerksamkeit.',
+      },
+    ],
   },
   related: ['trimp', 'ctl-atl-tsb', 'hrv'],
   links: [
@@ -168,5 +191,6 @@ export const sessionRpe: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

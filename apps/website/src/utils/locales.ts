@@ -5,12 +5,19 @@ import { SITE_URL } from '@/config';
  * Brazilian Portuguese is `pt-br` in URLs (lowercase, like the rest of the
  * path) and `pt-BR` for Paraglide, hreflang and `<html lang>`.
  */
-export const SUPPORTED_LOCALES = ['en', 'fr', 'es', 'it', 'pt-br'] as const;
+export const SUPPORTED_LOCALES = [
+  'en',
+  'fr',
+  'es',
+  'it',
+  'pt-br',
+  'de',
+] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 export const DEFAULT_LOCALE: SupportedLocale = 'en';
 
 /** Paraglide locale tags, as in project.inlang/settings.json. */
-export type ParaglideLocale = 'en' | 'fr' | 'es' | 'it' | 'pt-BR';
+export type ParaglideLocale = 'en' | 'fr' | 'es' | 'it' | 'pt-BR' | 'de';
 
 export function isSupportedLocale(value: unknown): value is SupportedLocale {
   return SUPPORTED_LOCALES.includes(value as SupportedLocale);
@@ -92,6 +99,7 @@ export const OG_LOCALES: Record<SupportedLocale, string> = {
   es: 'es_ES',
   it: 'it_IT',
   'pt-br': 'pt_BR',
+  de: 'de_DE',
 };
 
 /** BCP 47 tags for `Intl` formatting. */
@@ -101,6 +109,7 @@ export const DATE_LOCALES: Record<SupportedLocale, string> = {
   es: 'es-ES',
   it: 'it-IT',
   'pt-br': 'pt-BR',
+  de: 'de-DE',
 };
 
 export function formatLongDate(date: string, locale: SupportedLocale): string {
@@ -117,6 +126,7 @@ export const LOCALE_NAMES: Record<SupportedLocale, string> = {
   es: 'Español',
   it: 'Italiano',
   'pt-br': 'Português (Brasil)',
+  de: 'Deutsch',
 };
 
 export const getLocaleName = (locale: string) =>

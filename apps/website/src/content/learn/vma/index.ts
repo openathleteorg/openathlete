@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const vma: LearnTerm = {
     es: 'VAM (velocidad aeróbica máxima)',
     it: 'VAM (velocità aerobica massima)',
     'pt-br': 'VAM (velocidade aeróbia máxima)',
+    de: 'VMA (maximale aerobe Geschwindigkeit)',
   },
   title: {
     en: 'VMA (maximal aerobic speed): definition, formula, example',
@@ -21,6 +23,7 @@ export const vma: LearnTerm = {
     es: '¿Qué es la VAM? Definición, cálculo y ejemplo',
     it: 'Cos’è la VAM? Definizione, calcolo, esempio',
     'pt-br': 'O que é VAM? Definição, cálculo e exemplo',
+    de: 'VMA (max. aerobe Geschwindigkeit): Definition, Formel, Beispiel',
   },
   description: {
     en: 'VMA, maximal aerobic speed, is the slowest pace that reaches your VO2max. How to calculate it with a 6-minute test or a race, and train at % of VMA.',
@@ -29,6 +32,7 @@ export const vma: LearnTerm = {
     it: 'La VAM è la velocità a cui raggiungi il tuo VO2max. Come calcolarla con un test di 6 minuti o una gara, e come allenarti in % di VAM.',
     'pt-br':
       'A VAM é a velocidade em que você atinge o seu VO2máx. Como calcular com um teste de 6 minutos ou uma prova, e como treinar em % da VAM.',
+    de: 'VMA, die maximale aerobe Geschwindigkeit, ist das langsamste Tempo, das deine VO2max erreicht. Berechnung per 6-Minuten-Test oder Wettkampf, Training in %.',
   },
   definition: {
     en: 'VMA (vitesse maximale aérobie, maximal aerobic speed) is the lowest running speed at which you reach your VO2max, usually held for 4 to 8 minutes, and the reference used to set interval paces as a percentage.',
@@ -37,6 +41,7 @@ export const vma: LearnTerm = {
     it: 'La VAM (velocità aerobica massima) è la velocità di corsa più bassa alla quale raggiungi il tuo VO2max, sostenibile di solito tra 4 e 8 minuti, e il riferimento per fissare i ritmi delle ripetute in percentuale.',
     'pt-br':
       'A VAM (velocidade aeróbia máxima) é a menor velocidade de corrida em que você atinge o seu VO2máx, sustentável em geral por 4 a 8 minutos, e a referência para definir o ritmo dos tiros em porcentagem.',
+    de: 'Die VMA (vitesse maximale aérobie, maximale aerobe Geschwindigkeit) ist die niedrigste Laufgeschwindigkeit, bei der du deine VO2max erreichst. Sie lässt sich meist 4 bis 8 Minuten halten und dient als Referenz, um Intervall-Paces in Prozent festzulegen.',
   },
   aliases: {
     en: ['Maximal aerobic speed', 'MAS', 'vVO2max', 'VMA'],
@@ -44,6 +49,7 @@ export const vma: LearnTerm = {
     es: ['Velocidad aeróbica máxima', 'vVO2max', 'VMA'],
     it: ['Velocità aerobica massima', 'vVO2max', 'VMA'],
     'pt-br': ['Velocidade aeróbia máxima', 'vVO2máx', 'VMA'],
+    de: ['Maximale aerobe Geschwindigkeit', 'MAS', 'vVO2max', 'VMA berechnen'],
   },
   faq: {
     en: [
@@ -131,6 +137,23 @@ export const vma: LearnTerm = {
           'A cada dois ou três meses basta para a maioria, ou no início de cada bloco. Entre um teste e outro, uma prova ou um treino de tiros bem executado mostra se as porcentagens continuam certas.',
       },
     ],
+    de: [
+      {
+        question: 'Wie berechne ich meine VMA?',
+        answer:
+          'Lauf nach gutem Aufwärmen auf der Bahn 6 Minuten lang so weit wie möglich und teile die Distanz durch die Zeit: 1.500 m in 6 Minuten ergeben 15 km/h. Ein aktueller, flacher 5- oder 10-km-Lauf geht auch: Teile deine Durchschnittsgeschwindigkeit durch etwa 0,95 (5 km) oder 0,90 (10 km).',
+      },
+      {
+        question: 'Was ist eine gute VMA?',
+        answer:
+          'Viele Hobbyläufer liegen zwischen 12 und 16 km/h, trainierte Vereinsläufer zwischen 16 und 19 und Elite-Langstreckenläufer über 21. Entscheidend ist sie nur im Verhältnis zu deinen eigenen Zielen: Die VMA legt deine Trainingspaces fest, über deinen Marathon entscheidet sie nicht allein.',
+      },
+      {
+        question: 'Wie oft sollte ich die VMA neu testen?',
+        answer:
+          'Alle zwei bis drei Monate reicht für die meisten Läufer, oder zu Beginn jedes Trainingsblocks. Zwischen den Tests zeigt dir ein Wettkampfergebnis oder eine gut eingeteilte Intervalleinheit, ob sich deine Prozentwerte noch richtig anfühlen.',
+      },
+    ],
   },
   related: ['vo2max', 'vdot', 'trimp', 'hrv'],
   links: ['/tools/vma', '/tools/heart-rate-zones', '/pace-charts'],
@@ -163,5 +186,6 @@ export const vma: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

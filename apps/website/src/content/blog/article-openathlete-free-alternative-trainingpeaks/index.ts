@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -15,6 +16,7 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       es: 'Alternativas gratis a TrainingPeaks en 2026: comparativa',
       it: 'Alternative gratuite a TrainingPeaks nel 2026: il confronto',
       'pt-br': 'Alternativas grátis ao TrainingPeaks em 2026: comparativo',
+      de: 'Kostenlose TrainingPeaks-Alternativen 2026: ehrlicher Vergleich',
     },
     description: {
       en: 'intervals.icu, Nolio, Final Surge and OpenAthlete against TrainingPeaks: watch sync, training load, coach pricing and limits, with dated prices.',
@@ -23,6 +25,7 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       it: 'intervals.icu, Nolio, Final Surge e OpenAthlete contro TrainingPeaks: orologi, carico, prezzi per allenatori e limiti, con data.',
       'pt-br':
         'intervals.icu, Nolio, Final Surge e OpenAthlete contra o TrainingPeaks: relógios, carga, preço para treinadores e limites, com data.',
+      de: 'intervals.icu, Nolio, Final Surge und OpenAthlete gegen TrainingPeaks: Uhren-Sync, Belastung, Coach-Preise und Grenzen, mit datierten Preisen.',
     },
     excerpt: {
       en: 'What TrainingPeaks costs athletes and coaches, and what four alternatives offer instead, including where each one falls short.',
@@ -31,6 +34,7 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       it: 'Quanto costa TrainingPeaks ad atleti e allenatori, e cosa offrono quattro alternative, compresi i loro punti deboli.',
       'pt-br':
         'Quanto o TrainingPeaks custa para atletas e treinadores, e o que quatro alternativas oferecem, incluindo os pontos fracos de cada uma.',
+      de: 'Was TrainingPeaks Athleten und Coaches kostet und was vier Alternativen stattdessen bieten, inklusive ihrer Schwächen.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -48,4 +52,5 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

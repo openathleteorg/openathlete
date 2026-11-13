@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const ctlAtlTsb: LearnTerm = {
     es: 'CTL, ATL y TSB',
     it: 'CTL, ATL e TSB',
     'pt-br': 'CTL, ATL e TSB',
+    de: 'CTL, ATL und TSB',
   },
   title: {
     en: 'CTL, ATL and TSB: definition, formula, example',
@@ -21,6 +23,7 @@ export const ctlAtlTsb: LearnTerm = {
     es: '¿Qué son CTL, ATL y TSB? Definición, fórmula y ejemplo',
     it: 'Cosa sono CTL, ATL e TSB? Definizione, formula, esempio',
     'pt-br': 'O que são CTL, ATL e TSB? Definição, fórmula e exemplo',
+    de: 'Was sind CTL, ATL und TSB? Definition, Formel, Beispiel',
   },
   description: {
     en: 'Fitness (CTL), fatigue (ATL) and form (TSB) explained: Banister’s model, the 42- and 7-day time constants, a worked example and how to read the curves.',
@@ -29,6 +32,7 @@ export const ctlAtlTsb: LearnTerm = {
     it: 'Forma (CTL), fatica (ATL) e freschezza (TSB): il modello di Banister, le costanti di 42 e 7 giorni, un esempio con i numeri e come leggere le curve.',
     'pt-br':
       'Condicionamento (CTL), fadiga (ATL) e forma (TSB): o modelo de Banister, as constantes de 42 e 7 dias, um exemplo com contas e como ler as curvas.',
+    de: 'Fitness (CTL), Ermüdung (ATL) und Form (TSB) erklärt: Banisters Modell, die Zeitkonstanten 42 und 7 Tage, ein Rechenbeispiel und das Lesen der Kurven.',
   },
   definition: {
     en: 'CTL (fitness) and ATL (fatigue) are exponentially weighted averages of daily training load over about 42 and 7 days, and TSB (form) is the difference between them, CTL minus ATL.',
@@ -37,6 +41,7 @@ export const ctlAtlTsb: LearnTerm = {
     it: 'La CTL (forma) e l’ATL (fatica) sono medie pesate esponenzialmente del carico di allenamento giornaliero su circa 42 e 7 giorni, e la TSB (freschezza) è la loro differenza, CTL meno ATL.',
     'pt-br':
       'A CTL (condicionamento) e a ATL (fadiga) são médias com peso exponencial da carga de treino diária ao longo de cerca de 42 e 7 dias, e a TSB (forma) é a diferença entre elas, CTL menos ATL.',
+    de: 'CTL (Fitness) und ATL (Ermüdung) sind exponentiell gewichtete Mittelwerte der täglichen Trainingsbelastung über etwa 42 bzw. 7 Tage, und die TSB (Form) ist ihre Differenz, CTL minus ATL.',
   },
   aliases: {
     en: [
@@ -69,6 +74,13 @@ export const ctlAtlTsb: LearnTerm = {
       'Carga crônica',
       'Carga aguda',
       'Modelo condicionamento-fadiga',
+    ],
+    de: [
+      'Fitness, Ermüdung und Form',
+      'Chronische Trainingsbelastung',
+      'Akute Trainingsbelastung',
+      'Training Stress Balance',
+      'Fitness-Ermüdungs-Modell',
     ],
   },
   faq: {
@@ -158,6 +170,23 @@ export const ctlAtlTsb: LearnTerm = {
           'Cada aplicativo usa a sua pontuação de carga (TRIMP, TSS por potência, pontuações por pace), um peso diário diferente (1 − e^(−1/τ) ou o atalho 2 / (N + 1)) e calcula a TSB no mesmo dia ou no dia anterior. A tendência é comparável; os números absolutos, não.',
       },
     ],
+    de: [
+      {
+        question: 'Welche TSB ist vor einem Wettkampf gut?',
+        answer:
+          'Es gibt keinen allgemeingültigen Wert. Viele Athleten laufen gute Wettkämpfe mit einer TSB zwischen leicht negativ und deutlich positiv, aber der richtige Wert ist individuell. Notiere deine TSB vor jedem Wettkampf und vergleiche sie mit dem Ergebnis.',
+      },
+      {
+        question: 'Wie schnell sollte die CTL steigen?',
+        answer:
+          'Allmählich. Ein Anstieg um ein paar Punkte pro Woche in einer Aufbauphase ist üblich; deutlich schneller bedeutet meist einen Sprung bei Umfang oder Intensität, den du genauer anschauen solltest. Das Modell nennt keine sichere Grenze: Wie du reagierst, dein Schlaf und kleine Wehwehchen zählen mehr.',
+      },
+      {
+        question: 'Warum ist meine CTL in einer anderen App anders?',
+        answer:
+          'Apps verwenden unterschiedliche Belastungswerte (TRIMP, leistungsbasierter TSS, pacebasierte Werte), unterschiedliche Tagesgewichte (1 − e^(−1/τ) oder die Abkürzung 2 / (N + 1)) und berechnen die TSB am selben Tag oder am Vortag. Der Trend ist vergleichbar, die absoluten Zahlen sind es nicht.',
+      },
+    ],
   },
   related: ['trimp', 'session-rpe', 'taper', 'hrv'],
   links: [
@@ -194,5 +223,6 @@ export const ctlAtlTsb: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

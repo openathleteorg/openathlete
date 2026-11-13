@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
       es: 'Comunicación entrenador-atleta: un balance semanal que funciona',
       it: 'Comunicazione allenatore-atleta: un check-in settimanale efficace',
       'pt-br': 'Comunicação treinador-aluno: um check-in semanal que funciona',
+      de: 'Kommunikation zwischen Coach und Athlet: der Wochen-Check-in',
     },
     description: {
       en: 'Where each kind of message belongs, a four-line weekly check-in, using session RPE as a conversation, and how to handle a bad race remotely.',
@@ -22,6 +24,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
       it: "Dove va ogni tipo di messaggio, un check-in settimanale in quattro righe, l'RPE come conversazione e come gestire una gara andata male.",
       'pt-br':
         'Onde fica cada tipo de mensagem, um check-in semanal em quatro linhas, o RPE como conversa e como lidar com uma prova ruim a distância.',
+      de: 'Wohin welche Nachricht gehört, ein Wochen-Check-in in vier Zeilen, RPE als Gesprächsanlass und wie du aus der Ferne mit einem verpatzten Wettkampf umgehst.',
     },
     excerpt: {
       en: 'Coaches and athletes often disagree on how hard a session was. A simple structure for messages, check-ins and feedback closes the gap.',
@@ -30,6 +33,7 @@ export const articleCoachAthleteCommunication: BlogPost = {
       it: 'Allenatori e atleti spesso non concordano su quanto sia stata dura una seduta. Una struttura semplice per messaggi, check-in e feedback riduce il divario.',
       'pt-br':
         'Treinadores e alunos muitas vezes discordam sobre o quanto um treino foi duro. Uma estrutura simples de mensagens, check-ins e feedback reduz essa diferença.',
+      de: 'Coaches und Athleten sind sich oft uneinig, wie hart eine Einheit war. Eine einfache Struktur für Nachrichten, Check-ins und Feedback schließt diese Lücke.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleCoachAthleteCommunication: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

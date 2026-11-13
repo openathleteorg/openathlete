@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const taper: LearnTerm = {
     es: 'Tapering (puesta a punto)',
     it: 'Tapering (scarico pre-gara)',
     'pt-br': 'Polimento',
+    de: 'Tapering',
   },
   title: {
     en: 'Taper: definition, how long, worked example',
@@ -21,6 +23,7 @@ export const taper: LearnTerm = {
     es: '¿Qué es el tapering? Definición, duración y ejemplo',
     it: 'Cos’è il tapering? Definizione, durata, esempio',
     'pt-br': 'O que é polimento? Definição, duração e exemplo',
+    de: 'Was ist Tapering? Definition, Dauer, Rechenbeispiel',
   },
   description: {
     en: 'A taper cuts training volume before a race so fatigue drops faster than fitness. How long, how much to cut, and a worked example with CTL, ATL and TSB.',
@@ -29,6 +32,7 @@ export const taper: LearnTerm = {
     it: 'Il tapering riduce il volume prima di una gara perché la fatica scenda più in fretta della forma. Durata, quanto tagliare e un esempio con CTL e TSB.',
     'pt-br':
       'O polimento reduz o volume antes da prova para a fadiga cair mais rápido que o condicionamento. Duração, quanto cortar e um exemplo com CTL e TSB.',
+    de: 'Tapering senkt vor dem Wettkampf den Umfang, damit die Ermüdung schneller fällt als die Fitness. Dauer, wie stark reduzieren, Beispiel mit CTL und TSB.',
   },
   definition: {
     en: 'A taper is the period of reduced training before a goal race, usually one to three weeks, in which volume drops while intensity is kept, so that accumulated fatigue clears faster than fitness is lost.',
@@ -37,6 +41,7 @@ export const taper: LearnTerm = {
     it: 'Il tapering è il periodo di allenamento ridotto prima di una gara obiettivo, di solito da una a tre settimane, in cui si taglia il volume mantenendo l’intensità, così che la fatica accumulata sparisca più in fretta di quanto si perda la forma.',
     'pt-br':
       'O polimento é o período de treino reduzido antes da prova-alvo, em geral de uma a três semanas, em que o volume cai e a intensidade se mantém, para que a fadiga acumulada desapareça mais rápido do que o condicionamento se perde.',
+    de: 'Das Tapering ist die Phase mit reduziertem Training vor einem Zielwettkampf, meist ein bis drei Wochen, in der der Umfang sinkt und die Intensität erhalten bleibt, damit die angesammelte Ermüdung schneller abklingt, als Fitness verloren geht.',
   },
   aliases: {
     en: ['Tapering', 'Pre-race taper'],
@@ -44,6 +49,7 @@ export const taper: LearnTerm = {
     es: ['Taper', 'Puesta a punto', 'Afinamiento'],
     it: ['Taper', 'Scarico pre-gara', 'Rifinitura'],
     'pt-br': ['Taper', 'Tapering', 'Polimento pré-prova'],
+    de: ['Taper', 'Formzuspitzung', 'Tapering vor dem Wettkampf'],
   },
   faq: {
     en: [
@@ -131,6 +137,23 @@ export const taper: LearnTerm = {
           'É comum. Com menos quilômetros, as pernas podem parecer pesadas, o humor fica apático ou ansioso, e pequenas dores parecem maiores. Costuma passar até o dia da prova. Não tente se testar com um treino forte na última semana: o condicionamento já está lá.',
       },
     ],
+    de: [
+      {
+        question: 'Wie lange sollte das Tapering vor einem Marathon dauern?',
+        answer:
+          'Für die meisten Läufer zwei bis drei Wochen. Eine Metaanalyse von 27 Studien fand über alle Sportarten hinweg zwei Wochen am wirksamsten, und eine Auswertung von mehr als 158.000 Freizeit-Marathonläufern verband ein striktes Tapering von bis zu drei Wochen mit schnelleren Zielzeiten als kürzere oder lockerere Varianten.',
+      },
+      {
+        question: 'Sollte ich während des Taperings weiter Intervalle laufen?',
+        answer:
+          'Ja, kürzere. Die Forschung zeigt übereinstimmend, dass beibehaltene Intensität die Fitness schützt, während der Umfang sinkt: ein paar Minuten im Wettkampftempo oder etwas schneller, zwei- oder dreimal pro Woche, reichen. Reduziere die Zahl der Wiederholungen, nicht ihr Tempo.',
+      },
+      {
+        question: 'Warum fühle ich mich während des Taperings träge?',
+        answer:
+          'Das ist häufig. Weniger Kilometer können dich schlapp, schwer oder unruhig fühlen lassen, und kleine Wehwehchen wirken lauter. Bis zum Wettkampftag geht das meist vorbei. Widerstehe dem Drang, dich in der letzten Woche mit einer harten Einheit zu testen: Die Fitness ist schon da.',
+      },
+    ],
   },
   related: ['ctl-atl-tsb', 'trimp', 'session-rpe', 'hrv'],
   links: [
@@ -163,5 +186,6 @@ export const taper: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

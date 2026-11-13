@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const kmEffort: LearnTerm = {
     es: 'Kilómetro-esfuerzo',
     it: 'Km-sforzo',
     'pt-br': 'Km-esforço',
+    de: 'Km-Effort',
   },
   title: {
     en: 'Km-effort: definition, formula, example',
@@ -21,6 +23,7 @@ export const kmEffort: LearnTerm = {
     es: '¿Qué es el km-esfuerzo? Definición, fórmula y ejemplo',
     it: 'Cos’è il km-sforzo? Definizione, formula, esempio',
     'pt-br': 'O que é km-esforço? Definição, fórmula e exemplo',
+    de: 'Km-Effort (Leistungskilometer): Definition, Formel, Beispiel',
   },
   description: {
     en: 'Km-effort adds climbing to distance: km + D+/100. How to calculate it, a trail race time prediction with Riegel’s formula, and where it misleads.',
@@ -29,6 +32,7 @@ export const kmEffort: LearnTerm = {
     it: 'Il km-sforzo somma il dislivello alla distanza: km + D+/100. Come calcolarlo, una previsione del tempo nel trail con Riegel e i suoi limiti.',
     'pt-br':
       'O km-esforço soma a subida à distância: km + D+/100. Como calcular, uma previsão de tempo de trail com a fórmula de Riegel e os limites.',
+    de: 'Km-Effort rechnet Höhenmeter in die Distanz ein: km + Hm/100. So berechnest du ihn, Trail-Zielzeit mit der Riegel-Formel und wo er täuscht.',
   },
   definition: {
     en: 'Km-effort is a trail running measure of course difficulty that adds one kilometre for every 100 metres of ascent: km-effort = distance in km + D+ in metres / 100.',
@@ -37,6 +41,7 @@ export const kmEffort: LearnTerm = {
     it: 'Il km-sforzo è una misura della difficoltà di un percorso trail che aggiunge un chilometro ogni 100 metri di dislivello positivo: km-sforzo = distanza in km + D+ in metri / 100.',
     'pt-br':
       'O km-esforço é uma medida da dificuldade de um percurso de trail que soma um quilômetro a cada 100 metros de ganho de elevação: km-esforço = distância em km + D+ em metros / 100.',
+    de: 'Km-Effort ist im Trailrunning ein Maß für die Schwierigkeit einer Strecke, das für je 100 Höhenmeter im Anstieg einen Kilometer addiert: km-Effort = Distanz in km + Höhenmeter in m / 100.',
   },
   aliases: {
     en: ['Kilometre-effort', 'Effort kilometres', 'km-e'],
@@ -44,6 +49,7 @@ export const kmEffort: LearnTerm = {
     es: ['Km-esfuerzo', 'Kilómetros-esfuerzo', 'km-e'],
     it: ['Chilometro-sforzo', 'Km-effort'],
     'pt-br': ['Quilômetro-esforço', 'Km-effort'],
+    de: ['Leistungskilometer', 'Kilometer-Effort', 'km-e'],
   },
   faq: {
     en: [
@@ -132,6 +138,23 @@ export const kmEffort: LearnTerm = {
           'Depende do terreno e da duração da prova. Use-o para se comparar com você mesmo em percursos parecidos: se o seu pace por km-esforço cai ao longo de um bloco em terrenos semelhantes, o seu condicionamento no trail está melhorando.',
       },
     ],
+    de: [
+      {
+        question: 'Berücksichtigt der Km-Effort den Abstieg?',
+        answer:
+          'Nein. Die gängige Formel rechnet nur den Anstieg dazu: km + D+ / 100. Abstiege bringen weder Bonus noch Abzug, und das ist ihre größte Schwäche auf Strecken mit langen, steilen Abstiegen.',
+      },
+      {
+        question: 'Ist der Km-Effort dasselbe wie der ITRA- oder UTMB-Index?',
+        answer:
+          'Nein. Die ITRA verwendet dieselbe Summe, Distanz plus D+ / 100, um Rennen einzustufen, aber der ITRA-Leistungsindex und der UTMB Index bewerten Läufer, mit eigenen Modellen. Der Km-Effort beschreibt nur eine Strecke.',
+      },
+      {
+        question: 'Was ist eine gute Pace pro km-Effort?',
+        answer:
+          'Das hängt vom Gelände und von der Länge des Rennens ab. Nutze sie, um dich auf ähnlichen Strecken mit dir selbst zu vergleichen: Sinkt deine Pace pro km-Effort im Lauf eines Trainingsblocks auf vergleichbarem Terrain, wird deine Trailform besser.',
+      },
+    ],
   },
   related: ['grade-adjusted-pace', 'negative-split', 'critical-speed', 'vma'],
   links: [
@@ -152,5 +175,6 @@ export const kmEffort: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

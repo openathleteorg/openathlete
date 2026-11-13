@@ -143,8 +143,12 @@ export function raceLabel(race: RaceId, locale: ParaglideLocale): string {
   }
 }
 
-/** "Half marathon" → "half marathon" inside a sentence; "10K" stays. */
+/**
+ * "Half marathon" → "half marathon" inside a sentence; "10K" stays. German
+ * nouns keep their capital: "Halbmarathon".
+ */
 export function inSentence(label: string, locale: ParaglideLocale): string {
+  if (locale === 'de') return label;
   const [first, second] = label;
   return second && second === second.toLocaleLowerCase(locale)
     ? first.toLocaleLowerCase(locale) + label.slice(1)

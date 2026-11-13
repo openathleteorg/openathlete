@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const vo2max: LearnTerm = {
     es: 'VO2max',
     it: 'VO2max',
     'pt-br': 'VO2máx',
+    de: 'VO2max',
   },
   title: {
     en: 'VO2max: definition, formula, example',
@@ -21,6 +23,7 @@ export const vo2max: LearnTerm = {
     es: '¿Qué es el VO2max? Definición, fórmula y ejemplo',
     it: 'Cos’è il VO2max? Definizione, formula, esempio',
     'pt-br': 'O que é VO2máx? Definição, fórmula e exemplo',
+    de: 'VO2max: Definition, Formel, Beispiel',
   },
   description: {
     en: 'VO2max is the most oxygen your body can use per minute. How it is measured in a lab, estimated with the Cooper test or a watch, and how it relates to VMA.',
@@ -29,6 +32,7 @@ export const vo2max: LearnTerm = {
     it: 'Il VO2max è il massimo ossigeno che il corpo usa al minuto: misura in laboratorio, stima con il test di Cooper o l’orologio, e legame con la VAM.',
     'pt-br':
       'O VO2máx é o máximo de oxigênio que o corpo usa por minuto. Como medir em laboratório, estimar com o teste de Cooper ou o relógio, e a relação com a VAM.',
+    de: 'VO2max ist die maximale Sauerstoffmenge, die dein Körper pro Minute nutzen kann. Messung im Labor, Schätzung per Cooper-Test oder Uhr und Bezug zur VMA.',
   },
   definition: {
     en: 'VO2max is the maximum rate at which your body can take up and use oxygen during exercise, usually expressed in millilitres per kilogram of body weight per minute (ml/kg/min).',
@@ -37,6 +41,7 @@ export const vo2max: LearnTerm = {
     it: 'Il VO2max è la quantità massima di ossigeno che il corpo riesce a prelevare e utilizzare al minuto durante l’esercizio, espressa di solito in millilitri per chilo di peso corporeo al minuto (ml/kg/min).',
     'pt-br':
       'O VO2máx é a quantidade máxima de oxigênio que o corpo consegue captar e usar por minuto durante o exercício, geralmente expressa em mililitros por quilo de peso corporal por minuto (ml/kg/min).',
+    de: 'Die VO2max (maximale Sauerstoffaufnahme) ist die höchste Rate, mit der dein Körper bei Belastung Sauerstoff aufnehmen und verwerten kann, meist angegeben in Millilitern pro Kilogramm Körpergewicht und Minute (ml/kg/min).',
   },
   aliases: {
     en: ['Maximal oxygen uptake', 'VO2 max', 'Aerobic capacity'],
@@ -48,6 +53,7 @@ export const vo2max: LearnTerm = {
     es: ['Consumo máximo de oxígeno', 'VO2 máx'],
     it: ['Massimo consumo di ossigeno', 'VO2 max'],
     'pt-br': ['Consumo máximo de oxigênio', 'VO2max', 'VO2 máx'],
+    de: ['Maximale Sauerstoffaufnahme', 'VO2 max', 'Aerobe Kapazität'],
   },
   faq: {
     en: [
@@ -135,6 +141,23 @@ export const vo2max: LearnTerm = {
           'Sim, sobretudo nos primeiros anos de treino. Tiros de 3 a 5 minutos perto da VAM e muito volume de rodagem leve fazem ele subir. Os ganhos diminuem com o nível, e a genética define boa parte do teto.',
       },
     ],
+    de: [
+      {
+        question: 'Was ist eine gute VO2max für Läufer?',
+        answer:
+          'Untrainierte Erwachsene liegen oft bei 30 bis 45 ml/kg/min, trainierte Hobbyläufer bei 50 bis 60 und männliche Elite-Langstreckenläufer bei 70 bis 85, Elite-Läuferinnen etwas darunter. Ab einem gewissen Niveau unterscheiden Laufökonomie und der haltbare Anteil der VO2max Läufer stärker als die VO2max selbst.',
+      },
+      {
+        question: 'Wie genau ist die VO2max meiner Uhr?',
+        answer:
+          'Sportuhren schätzen die VO2max aus dem Verhältnis zwischen deiner Herzfrequenz und deiner Geschwindigkeit oder Leistung, mit Modellen, die die Hersteller nicht vollständig veröffentlichen. Sie sind nützlich, um einen Trend über Wochen zu erkennen, weniger für einen absoluten Wert: Hitze, Hügel und eine falsche HFmax verschieben die Schätzung.',
+      },
+      {
+        question: 'Kann man die VO2max steigern?',
+        answer:
+          'Ja, besonders in den ersten Trainingsjahren. Intervalle von 3 bis 5 Minuten nahe der VMA und viel lockerer Umfang erhöhen sie beide. Mit wachsender Fitness werden die Zuwächse kleiner, und die Genetik bestimmt einen großen Teil der Obergrenze.',
+      },
+    ],
   },
   related: ['vma', 'vdot', 'hrv', 'aerobic-decoupling'],
   links: ['/tools/vma', '/tools/race-predictor', '/tools/heart-rate-zones'],
@@ -172,5 +195,6 @@ export const vo2max: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleInjuryPrevention2: BlogPost = {
       es: 'Cuánto aumentar tu kilometraje semana a semana',
       it: 'Quanto aumentare il chilometraggio settimana dopo settimana',
       'pt-br': 'Quanto aumentar a quilometragem semana a semana',
+      de: 'Laufumfang steigern: wie schnell, Woche für Woche',
     },
     description: {
       en: 'Why the 10% rule fails, how to build running volume in steps with lighter weeks, and a 16-week example from 40 to 70 km per week.',
@@ -22,6 +24,7 @@ export const articleInjuryPrevention2: BlogPost = {
       it: 'Perché la regola del 10% non funziona, come aumentare il volume a gradini con settimane di scarico e un esempio da 40 a 70 km in 16 settimane.',
       'pt-br':
         'Por que a regra dos 10% falha, como subir o volume em degraus com semanas regenerativas e um exemplo de 16 semanas, de 40 a 70 km.',
+      de: 'Warum die 10-Prozent-Regel versagt, wie du den Laufumfang in Stufen mit Entlastungswochen aufbaust, und ein 16-Wochen-Beispiel von 40 auf 70 km.',
     },
     excerpt: {
       en: 'The 10% rule did not reduce injuries when it was tested, and it compounds into nonsense. Steps, plateaus and planned lighter weeks work better, with one change at a time.',
@@ -30,6 +33,7 @@ export const articleInjuryPrevention2: BlogPost = {
       it: 'Messa alla prova, la regola del 10% non ha ridotto gli infortuni, e applicata senza pause esplode. Funzionano meglio gradini, pianerottoli e settimane di scarico pianificate, con una novità alla volta.',
       'pt-br':
         'Quando foi testada, a regra dos 10% não reduziu lesões, e aplicada sem pausa ela dispara. Degraus, patamares e semanas regenerativas planejadas funcionam melhor, com uma novidade de cada vez.',
+      de: 'Im Test hat die 10-Prozent-Regel Verletzungen nicht reduziert, und ohne Pause angewendet schaukelt sie sich auf. Besser funktionieren Stufen, Plateaus und geplante Entlastungswochen, mit immer nur einer Neuerung.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleInjuryPrevention2: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

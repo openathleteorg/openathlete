@@ -1,7 +1,7 @@
 import { QUOTED_PRICES } from '@/content/competitors';
 import { COACH_PRICING, formatPrice } from '@/content/pricing';
 
-type Locale = 'en' | 'fr' | 'es' | 'it' | 'pt-br';
+type Locale = 'en' | 'fr' | 'es' | 'it' | 'pt-br' | 'de';
 
 /** Prices quoted in the post, read from the /compare figures. */
 export function pricesFor(locale: Locale) {

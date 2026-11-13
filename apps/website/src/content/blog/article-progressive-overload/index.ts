@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleProgressiveOverload: BlogPost = {
       es: 'Sobrecarga progresiva en carrera: progresar sin romperte',
       it: 'Sovraccarico progressivo nella corsa: progredire senza rompersi',
       'pt-br': 'Sobrecarga progressiva na corrida: evoluir sem se quebrar',
+      de: 'Progressive Überlastung beim Laufen: steigern, ohne kaputtzugehen',
     },
     description: {
       en: 'How to progress running sessions one lever at a time: a six-week threshold example, long run steps, easy days, lighter weeks and when to stop.',
@@ -22,6 +24,7 @@ export const articleProgressiveOverload: BlogPost = {
       it: 'Come far progredire le sedute una leva alla volta: un esempio a soglia in sei settimane, il lungo, i giorni facili e le settimane di scarico.',
       'pt-br':
         'Como fazer seus treinos progredirem uma alavanca por vez: um exemplo de limiar em seis semanas, o longão, os dias leves e as regenerativas.',
+      de: 'Laufeinheiten Hebel für Hebel steigern: ein Schwellenbeispiel über sechs Wochen, der lange Lauf, lockere Tage, Entlastungswochen und wann du aufhörst.',
     },
     excerpt: {
       en: 'Adding kilometres is only one way to overload. Progress the sessions themselves, one lever at a time, keep the easy days easy, and know when holding a level is enough.',
@@ -30,6 +33,7 @@ export const articleProgressiveOverload: BlogPost = {
       it: 'Aggiungere chilometri è solo un modo di sovraccaricare. Fai progredire le sedute stesse, una leva alla volta, tieni facili i giorni facili e sappi quando basta mantenere un livello.',
       'pt-br':
         'Somar quilômetros é só um jeito de sobrecarregar. Faça os próprios treinos progredirem, uma alavanca por vez, mantenha leves os dias leves e saiba quando basta segurar um nível.',
+      de: 'Mehr Kilometer sind nur eine Form der Überlastung. Steigere die Einheiten selbst, einen Hebel nach dem anderen, halte lockere Tage locker und erkenne, wann es reicht, ein Niveau zu halten.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleProgressiveOverload: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };

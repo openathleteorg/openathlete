@@ -1,4 +1,5 @@
 import type { LearnTerm } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const vdot: LearnTerm = {
     es: 'VDOT',
     it: 'VDOT',
     'pt-br': 'VDOT',
+    de: 'VDOT',
   },
   title: {
     en: 'VDOT: definition, formula, example',
@@ -21,6 +23,7 @@ export const vdot: LearnTerm = {
     es: '¿Qué es el VDOT? Definición, fórmula y ejemplo',
     it: 'Cos’è il VDOT? Definizione, formula, esempio',
     'pt-br': 'O que é VDOT? Definição, fórmula e exemplo',
+    de: 'VDOT: Definition, Formel, Beispiel',
   },
   description: {
     en: 'VDOT is Jack Daniels’ running fitness score from a race result. The Daniels-Gilbert formula, a 10K worked example and the training paces it gives.',
@@ -29,6 +32,7 @@ export const vdot: LearnTerm = {
     it: 'Il VDOT è l’indice di Jack Daniels ricavato da un tempo di gara. Formula di Daniels e Gilbert, esempio su 10 km e ritmi di allenamento.',
     'pt-br':
       'O VDOT é o índice de Jack Daniels calculado a partir de um tempo de prova. Fórmula de Daniels e Gilbert, exemplo com 10 km e paces de treino.',
+    de: 'VDOT ist der Leistungswert von Jack Daniels aus einer Wettkampfzeit. Die Formel von Daniels und Gilbert, ein 10-km-Beispiel und die Trainingspaces.',
   },
   definition: {
     en: 'VDOT is a running fitness score devised by Jack Daniels and Jimmy Gilbert: the VO2max that would explain a race result if your running economy were average, used to predict times at other distances and to set training paces.',
@@ -37,6 +41,7 @@ export const vdot: LearnTerm = {
     it: 'Il VDOT è un indice di livello nella corsa ideato da Jack Daniels e Jimmy Gilbert: il VO2max che spiegherebbe un tempo di gara se la tua economia di corsa fosse nella media, usato per prevedere i tempi su altre distanze e fissare i ritmi di allenamento.',
     'pt-br':
       'O VDOT é um índice de nível na corrida criado por Jack Daniels e Jimmy Gilbert: o VO2máx que explicaria um tempo de prova se a sua economia de corrida fosse média, usado para prever tempos em outras distâncias e definir paces de treino.',
+    de: 'VDOT ist ein Leistungswert für Läufer, entwickelt von Jack Daniels und Jimmy Gilbert: die VO2max, die ein Wettkampfergebnis bei durchschnittlicher Laufökonomie erklären würde. Er dient dazu, Zeiten auf anderen Distanzen vorherzusagen und Trainingspaces festzulegen.',
   },
   aliases: {
     en: ['Daniels VDOT', 'V-dot-O2max', 'Pseudo VO2max'],
@@ -44,6 +49,7 @@ export const vdot: LearnTerm = {
     es: ['VDOT de Daniels', 'Pseudo VO2max'],
     it: ['VDOT di Daniels', 'Pseudo VO2max'],
     'pt-br': ['VDOT de Daniels', 'Pseudo VO2máx'],
+    de: ['VDOT nach Daniels', 'V-dot-O2max', 'Pseudo-VO2max'],
   },
   faq: {
     en: [
@@ -131,6 +137,24 @@ export const vdot: LearnTerm = {
           'Uma prova recente, plana e corrida no máximo, entre 5 km e meia maratona. Esforços mais curtos dependem da capacidade anaeróbia, e a maratona da hidratação, da alimentação e do calor, então os dois distorcem a estimativa. Atualize depois de cada boa prova ou a cada dois meses.',
       },
     ],
+    de: [
+      {
+        question: 'Ist VDOT dasselbe wie VO2max?',
+        answer:
+          'Nein. Die VO2max wird im Labor über den Sauerstoffverbrauch gemessen. Der VDOT wird aus einer Wettkampfzeit zurückgerechnet und bezieht deine Laufökonomie ein und wie gut du einen Anteil deines Maximums halten kannst. Zwei Läufer mit derselben VO2max können sehr unterschiedliche VDOT-Werte haben.',
+      },
+      {
+        question: 'Was ist ein guter VDOT?',
+        answer:
+          'Das hängt von Alter, Geschlecht und Erfahrung ab. Zur Orientierung: 10 km in 50:00 ergeben einen VDOT von etwa 40, 10 km in 45:00 etwa 45 und 10 km in 40:00 etwa 52. Langstreckenläufer der Weltklasse liegen bei über 80.',
+      },
+      {
+        question:
+          'Welchen Wettkampf sollte ich für die Berechnung meines VDOT nehmen?',
+        answer:
+          'Einen aktuellen, flachen Wettkampf zwischen 5 km und Halbmarathon, in dem du alles gegeben hast. Kürzere Belastungen hängen stark von der anaeroben Kapazität ab, und ein Marathon von Verpflegung und Hitze, beides verzerrt die Schätzung. Aktualisiere ihn nach jedem guten Wettkampf oder alle paar Monate.',
+      },
+    ],
   },
   related: ['vo2max', 'vma', 'trimp', 'taper'],
   links: ['/pace-charts', '/tools/race-predictor', '/tools/vma'],
@@ -156,5 +180,6 @@ export const vdot: LearnTerm = {
     es: ContentEs,
     it: ContentIt,
     'pt-br': ContentPtBr,
+    de: ContentDe,
   },
 };

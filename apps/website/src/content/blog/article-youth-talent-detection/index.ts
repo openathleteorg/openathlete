@@ -1,4 +1,5 @@
 import type { BlogPost } from '../types';
+import { ContentDe } from './de';
 import { ContentEn } from './en';
 import { ContentEs } from './es';
 import { ContentFr } from './fr';
@@ -14,6 +15,7 @@ export const articleYouthTalentDetection: BlogPost = {
       es: 'Jóvenes atletas de resistencia: talento, sobrecarga y abandono',
       it: 'Giovani atleti di endurance: talento, sovraccarico e abbandono',
       'pt-br': 'Jovens atletas de endurance: talento, sobrecarga e abandono',
+      de: 'Junge Ausdauersportler: Talent, Überlastung und Dropout',
     },
     description: {
       en: 'Relative age, early maturation and early specialisation: what research says about youth talent, and how club coaches can track load and avoid dropout.',
@@ -22,6 +24,7 @@ export const articleYouthTalentDetection: BlogPost = {
       it: "Età relativa, maturazione e specializzazione precoce: cosa dice la ricerca sul talento giovanile e come evitare l'abbandono in società.",
       'pt-br':
         'Idade relativa, maturação e especialização precoce: o que a pesquisa diz sobre talento jovem e como evitar o abandono no clube.',
+      de: 'Relativer Alterseffekt, frühe Reife und Spezialisierung: Was die Forschung über Nachwuchstalente sagt und wie Vereinstrainer Dropout vermeiden.',
     },
     excerpt: {
       en: 'Early results predict adult performance poorly. What the research on relative age and specialisation means for a coach working with teenagers.',
@@ -30,6 +33,7 @@ export const articleYouthTalentDetection: BlogPost = {
       it: 'I risultati precoci dicono poco sulla prestazione da adulti. Cosa significa la ricerca su età relativa e specializzazione per chi allena adolescenti.',
       'pt-br':
         'Resultados precoces dizem pouco sobre o desempenho adulto. O que a pesquisa sobre idade relativa e especialização significa para quem treina adolescentes.',
+      de: 'Frühe Ergebnisse sagen die Leistung im Erwachsenenalter schlecht voraus. Was die Forschung zum relativen Alterseffekt und zur Spezialisierung für Trainer von Jugendlichen bedeutet.',
     },
     author: {
       name: 'OpenAthlete Team',
@@ -47,4 +51,5 @@ export const articleYouthTalentDetection: BlogPost = {
   ContentEs,
   ContentIt,
   ContentPtBr,
+  ContentDe,
 };
