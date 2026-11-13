@@ -1,4 +1,5 @@
 import { useCoachDashboardQuery } from '@/api/coach';
+import { useGroupFilterOptions } from '@/components/clubs/use-group-filter';
 import {
   alertText,
   formTone,
@@ -239,7 +240,15 @@ export function CoachDashboardView() {
   const [period, setPeriod] = useState<PeriodType>('week');
   const { start, end } = getPeriodDates(period);
   const { data, isLoading } = useCoachDashboardQuery(start, end);
-  const rows = data?.athletes ?? [];
+  const groupOptions = useGroupFilterOptions();
+  const [groupFilter, setGroupFilter] = useState('all');
+  const selectedGroup = groupOptions.find(
+    (option) => option.value === groupFilter,
+  );
+  const allRows = data?.athletes ?? [];
+  const rows = selectedGroup
+    ? allRows.filter((row) => selectedGroup.athleteIds.has(row.athleteId))
+    : allRows;
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6">
@@ -248,7 +257,26 @@ export function CoachDashboardView() {
           <PageTitle>{m.coach_dashboard()}</PageTitle>
           <p className="text-muted-foreground">{m.coach_dashboard_title()}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {groupOptions.length > 0 && (
+            <Select value={groupFilter} onValueChange={setGroupFilter}>
+              <SelectTrigger
+                className="w-48 max-w-full"
+                aria-label={m.groups_filter_label()}
+                data-group-filter
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{m.groups_filter_all()}</SelectItem>
+                {groupOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Button variant="outline" asChild>
             <Link to={getPath(['dashboard', 'notes'])}>
               <NotebookPen className="h-4 w-4" />

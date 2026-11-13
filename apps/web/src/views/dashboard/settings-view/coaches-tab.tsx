@@ -8,7 +8,9 @@ import { ConfirmAction } from '@/components/confirm-action';
 import { InviteCoachDialog } from '@/components/invite-coach-dialog/invite-coach.dialog';
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
+import { clubPath } from '@/routes/paths';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 
 import { SentInvitationsSection } from './sent-invitations-section';
@@ -62,17 +64,30 @@ export function CoachesTab() {
               <SettingsRow
                 key={coach.userId}
                 title={`${coach.firstName} ${coach.lastName}`}
-                description={coach.email}
+                description={
+                  coach.club
+                    ? `${coach.email} · ${m.via_club({ club: coach.club.name })}`
+                    : coach.email
+                }
               >
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setDeleteEventDialog(coach.userId);
-                  }}
-                >
-                  {m.delete_()}
-                </Button>
+                {coach.club ? (
+                  // Leaving the club ends this link, from the club's page
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to={clubPath(coach.club.clubId)}>
+                      {m.view_club()}
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setDeleteEventDialog(coach.userId);
+                    }}
+                  >
+                    {m.delete_()}
+                  </Button>
+                )}
               </SettingsRow>
             ))}
           </SettingsPanel>

@@ -207,6 +207,31 @@ export const routes = {
     rejectInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/reject`,
   },
+  club: {
+    list: '/club',
+    create: '/club',
+    get: (clubId: number) => `/club/${clubId}`,
+    update: (clubId: number) => `/club/${clubId}`,
+    delete: (clubId: number) => `/club/${clubId}`,
+    member: (clubId: number, userId: number) =>
+      `/club/${clubId}/members/${userId}`,
+    transfer: (clubId: number) => `/club/${clubId}/transfer`,
+    joinLinks: (clubId: number) => `/club/${clubId}/join-links`,
+    rotateJoinLink: (clubId: number) => `/club/${clubId}/join-links/rotate`,
+  },
+  clubJoin: {
+    info: (token: string) => `/club-join/${encodeURIComponent(token)}`,
+    accept: (token: string) => `/club-join/${encodeURIComponent(token)}/accept`,
+  },
+  athleteGroups: {
+    list: '/athlete-groups',
+    create: '/athlete-groups',
+    group: (groupId: number) => `/athlete-groups/${groupId}`,
+    athletes: (groupId: number) => `/athlete-groups/${groupId}/athletes`,
+    athlete: (groupId: number, athleteId: number) =>
+      `/athlete-groups/${groupId}/athletes/${athleteId}`,
+    staff: (groupId: number) => `/athlete-groups/${groupId}/staff`,
+  },
   coachJoinLink: {
     get: '/coach-join-link',
     rotate: '/coach-join-link/rotate',

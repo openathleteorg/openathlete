@@ -5,6 +5,7 @@ import {
   useInviteAthleteMutation,
   useRemoveAthleteMutation,
 } from '@/api/athlete';
+import { GroupsManager } from '@/components/clubs/groups-manager';
 import { CoachJoinLinkCard } from '@/components/coach-join-link';
 import { ConfirmAction } from '@/components/confirm-action';
 import { InviteAthleteDialog } from '@/components/invite-athlete-dialog/invite-athlete.dialog';
@@ -54,7 +55,9 @@ export function AthletesTab() {
   const [paywallOpen, setPaywallOpen] = useState(false);
 
   const { maxAthletes } = useAthleteLimit();
-  const currentAthleteCount = athletes?.length || 0;
+  // Athletes coached through a club do not count towards the plan's limit
+  const currentAthleteCount =
+    athletes?.filter((athlete) => !athlete.club).length || 0;
   const canAddAthlete = useMemo(() => {
     if (maxAthletes === null) return true; // Unlimited
     return currentAthleteCount < maxAthletes;
@@ -118,7 +121,11 @@ export function AthletesTab() {
               <SettingsRow
                 key={athlete.athleteId}
                 title={`${athlete.user?.firstName} ${athlete.user?.lastName}`}
-                description={athlete.user?.email}
+                description={
+                  athlete.club
+                    ? `${athlete.user?.email} · ${m.via_club({ club: athlete.club.name })}`
+                    : athlete.user?.email
+                }
               >
                 <Button
                   variant="outline"
@@ -161,12 +168,17 @@ export function AthletesTab() {
                     >
                       {m.activity_alert_settings_title()}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => setDeleteAthleteDialog(athlete.athleteId)}
-                    >
-                      {m.delete_()}
-                    </DropdownMenuItem>
+                    {/* The club, not the coach, ends a club's link */}
+                    {!athlete.club && (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() =>
+                          setDeleteAthleteDialog(athlete.athleteId)
+                        }
+                      >
+                        {m.delete_()}
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </SettingsRow>
@@ -174,6 +186,15 @@ export function AthletesTab() {
           </SettingsPanel>
         )}
       </SettingsSection>
+      <GroupsManager
+        clubId={null}
+        canManage
+        athletes={(athletes ?? []).map((athlete) => ({
+          id: athlete.athleteId,
+          name: `${athlete.user?.firstName} ${athlete.user?.lastName}`,
+          detail: athlete.user?.email,
+        }))}
+      />
       <SettingsSection
         title={m.join_link_title()}
         description={m.join_link_description()}

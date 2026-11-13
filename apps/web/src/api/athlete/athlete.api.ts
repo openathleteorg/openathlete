@@ -10,6 +10,9 @@ import {
   User,
 } from '@openathlete/shared';
 
+/** The club that made a coach-athlete link, and ends it */
+export type LinkClub = { clubId: number; name: string };
+
 export class AthleteAPI {
   static async getMyAthlete(): Promise<
     Athlete & {
@@ -27,13 +30,15 @@ export class AthleteAPI {
       trainingZones: (TrainingZone & {
         values: TrainingZoneValue[];
       })[];
+      /** The club through which the coach coaches the athlete, if any */
+      club: LinkClub | null;
     })[]
   > {
     const res = await client.get(routes.athlete.getCoachedAthletes);
     return res.data;
   }
 
-  static async getMyCoaches(): Promise<User[]> {
+  static async getMyCoaches(): Promise<(User & { club: LinkClub | null })[]> {
     const res = await client.get(routes.athlete.getCoaches);
     return res.data;
   }
