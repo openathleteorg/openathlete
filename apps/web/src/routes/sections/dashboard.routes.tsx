@@ -2,7 +2,6 @@ import { DashboardLayout } from '@/components/layouts';
 import { LoadingScreen } from '@/components/loading-screen';
 import { AuthGuard } from '@/guards';
 import { SettingsPage } from '@/pages/dashboard/settings';
-import { SummaryPage } from '@/pages/dashboard/summary/athlete';
 import { Suspense, lazy } from 'react';
 import { Navigate, Outlet, RouteObject, useParams } from 'react-router-dom';
 
@@ -125,6 +124,16 @@ const OnboardingPage = lazy(() =>
   })),
 );
 
+function SummaryRedirect() {
+  const { athleteId } = useParams<{ athleteId: string }>();
+  return (
+    <Navigate
+      to={`${getPath(['dashboard', 'calendar'])}/${athleteId}`}
+      replace
+    />
+  );
+}
+
 export const dashboardRoutes: RouteObject[] = [
   {
     path: getPath(['dashboard']),
@@ -160,8 +169,9 @@ export const dashboardRoutes: RouteObject[] = [
         element: <AthleteCalendarPage />,
       },
       {
+        // The Summary page was never finished: its old links open the calendar
         path: getPath(['dashboard', 'summary', 'athleteId']),
-        element: <SummaryPage />,
+        element: <SummaryRedirect />,
       },
       {
         path: getPath(['dashboard', 'statistics']),
