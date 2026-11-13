@@ -60,7 +60,14 @@ test('a structured run is typed in a few seconds and saved as written', async ({
     '- 15m Z2\n\n6x\n- 1km Z4\n- 2m Z1\n\n- 10m Z1',
   );
 
+  // The calendar shows the session before the API answers: wait for the save
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname.endsWith('/event'),
+  );
   await form.getByRole('button', { name: 'Create', exact: true }).click();
+  expect((await saved).ok()).toBe(true);
   await expect(
     page.locator('.calendar-event', { hasText: '6 × 1 km' }),
   ).toBeVisible();
@@ -149,7 +156,14 @@ test('a strength session is built from the exercise library', async ({
   await expect(form.locator('[data-session-name]')).toHaveValue(
     'Barbell full squat, Pull-up, Push-up',
   );
+  // The calendar shows the session before the API answers: wait for the save
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() === 'POST' &&
+      new URL(response.url()).pathname.endsWith('/event'),
+  );
   await form.getByRole('button', { name: 'Create', exact: true }).click();
+  expect((await saved).ok()).toBe(true);
   await expect(
     page.locator('.calendar-event', { hasText: 'Barbell full squat' }),
   ).toBeVisible();
