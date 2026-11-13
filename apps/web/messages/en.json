@@ -2551,5 +2551,11 @@
   "plan_for_athletes_back": "Back",
   "plan_for_athletes_confirm": "Plan for {count} athlete(s)",
   "plan_for_athletes_done": "Planned for {count} athlete(s)",
-  "plan_for_athletes_failed": "Could not plan for these athletes. Try again."
+  "plan_for_athletes_failed": "Could not plan for these athletes. Try again.",
+  "club_library_switch": "Library",
+  "club_library_own": "My library",
+  "club_library_of": "{club} library",
+  "club_library_share": "Share with a club",
+  "club_library_share_description": "A copy goes into the club's library, where its coaches can use and edit it. Yours stays as it is.",
+  "club_library_shared": "Copied into the {club} library"
 }

@@ -51,6 +51,10 @@ type Props = {
   onEdit: (template: EventTemplate) => void;
   /** Plans a template for several athletes; absent without athletes */
   onPlanForAthletes?: (template: EventTemplate) => void;
+  /** Copies a template into a club's library; absent without one */
+  onShareToClub?: (template: EventTemplate) => void;
+  /** A club library its assistant uses but does not change */
+  readOnly?: boolean;
   refetchFolders: () => void;
   depth?: number;
   activeId?: string | null;
@@ -65,6 +69,8 @@ export function DroppableFolder({
   onCreate,
   onEdit,
   onPlanForAthletes,
+  onShareToClub,
+  readOnly = false,
   refetchFolders,
   depth = 0,
   activeId,
@@ -222,30 +228,32 @@ export function DroppableFolder({
 
         <span className="font-medium flex-1 truncate">{folder.name}</span>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 ml-auto flex-shrink-0"
-            >
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem onClick={() => setRenameFolderDialogOpen(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              {m.rename()}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => setDeleteFolderDialogOpen(true)}
-              className="text-red-600"
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              {m.delete_()}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {!readOnly && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 ml-auto flex-shrink-0"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => setRenameFolderDialogOpen(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                {m.rename()}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setDeleteFolderDialogOpen(true)}
+                className="text-red-600"
+              >
+                <Trash className="h-4 w-4 mr-2" />
+                {m.delete_()}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       {/* Folder Content */}
@@ -267,6 +275,8 @@ export function DroppableFolder({
                 onCreate={onCreate}
                 onEdit={onEdit}
                 onPlanForAthletes={onPlanForAthletes}
+                onShareToClub={onShareToClub}
+                readOnly={readOnly}
                 refetchFolders={refetchFolders}
                 depth={depth + 1}
                 activeId={activeId}
@@ -285,6 +295,8 @@ export function DroppableFolder({
                 onPlanForAthletes={
                   onPlanForAthletes && (() => onPlanForAthletes(template))
                 }
+                onShareToClub={onShareToClub && (() => onShareToClub(template))}
+                readOnly={readOnly}
                 depth={depth + 1}
                 showUseButton={showUseButton}
               />

@@ -7,6 +7,7 @@ import {
   Edit,
   FileText,
   GripVertical,
+  Share2,
   StickyNote,
   Trash,
   Users,
@@ -31,6 +32,10 @@ type Props = {
   onEdit: () => void;
   /** Plans the template for several athletes; absent without athletes */
   onPlanForAthletes?: () => void;
+  /** Copies the template into a club's library; absent without one */
+  onShareToClub?: () => void;
+  /** A club library its assistant uses but does not change */
+  readOnly?: boolean;
   depth?: number;
   showUseButton?: boolean;
 };
@@ -40,6 +45,8 @@ export function DraggableTemplate({
   onCreate,
   onEdit,
   onPlanForAthletes,
+  onShareToClub,
+  readOnly = false,
   depth = 0,
   showUseButton = true,
 }: Props) {
@@ -77,6 +84,7 @@ export function DraggableTemplate({
     <div
       ref={setNodeRef}
       style={style}
+      data-template={template.event?.name}
       className={`
         group relative flex items-center gap-2 p-2 rounded-lg border bg-card overflow-hidden
         transition-all duration-200
@@ -164,16 +172,32 @@ export function DraggableTemplate({
               <Users className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="outline" size="icon" onClick={onEdit}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
+          {onShareToClub && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onShareToClub}
+              aria-label={m.club_library_share()}
+              title={m.club_library_share()}
+              data-template-share-to-club
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
+          {!readOnly && (
+            <>
+              <Button variant="outline" size="icon" onClick={onEdit}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       ) : (
         <div className="flex gap-1 flex-shrink-0">
@@ -192,16 +216,32 @@ export function DraggableTemplate({
               <Users className="h-4 w-4" />
             </Button>
           )}
-          <Button variant="outline" size="icon" onClick={onEdit}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
+          {onShareToClub && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onShareToClub}
+              aria-label={m.club_library_share()}
+              title={m.club_library_share()}
+              data-template-share-to-club
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
+          {!readOnly && (
+            <>
+              <Button variant="outline" size="icon" onClick={onEdit}>
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       )}
 

@@ -2551,5 +2551,11 @@
   "plan_for_athletes_back": "Atrás",
   "plan_for_athletes_confirm": "Planificar para {count} atleta(s)",
   "plan_for_athletes_done": "Planificado para {count} atleta(s)",
-  "plan_for_athletes_failed": "No se pudo planificar para estos atletas. Inténtalo de nuevo."
+  "plan_for_athletes_failed": "No se pudo planificar para estos atletas. Inténtalo de nuevo.",
+  "club_library_switch": "Biblioteca",
+  "club_library_own": "Mi biblioteca",
+  "club_library_of": "Biblioteca de {club}",
+  "club_library_share": "Compartir con un club",
+  "club_library_share_description": "Una copia va a la biblioteca del club, donde sus entrenadores pueden usarla y editarla. La tuya queda igual.",
+  "club_library_shared": "Copiado en la biblioteca de {club}"
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
+import { useMyClubsQuery } from '@/api/club';
 import {
   useCreateEventTemplateMutation,
   useGetMyEventTemplatesQuery,
@@ -11,6 +12,20 @@ import {
   useGetMyFoldersQuery,
   useUpdateFolderMutation,
 } from '@/api/event-template-folder';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
@@ -26,7 +41,12 @@ import * as React from 'react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
-import { EventTemplate, EventTemplateFolder } from '@openathlete/shared';
+import {
+  EventTemplate,
+  EventTemplateFolder,
+  isClubCoach,
+  isClubStaff,
+} from '@openathlete/shared';
 
 import { CreateEventDialog } from '../create-event-dialog';
 import {
@@ -64,9 +84,24 @@ export function TemplateLibrarySidebar() {
   const [createFolderDialogOpen, setCreateFolderDialogOpen] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  // The user's own library, or one of their clubs'
+  const [libraryClubId, setLibraryClubId] = useState<number | null>(null);
+  const { data: clubs } = useMyClubsQuery();
+  const staffClubs = (clubs ?? []).filter((club) => isClubStaff(club.role));
+  const coachClubs = staffClubs.filter((club) => isClubCoach(club.role));
+  const canEdit =
+    libraryClubId === null ||
+    coachClubs.some((club) => club.clubId === libraryClubId);
+  const [sharingTemplate, setSharingTemplate] = useState<EventTemplate | null>(
+    null,
+  );
+
   const { data: templates, refetch: refetchTemplates } =
-    useGetMyEventTemplatesQuery(search);
-  const { data: folders, refetch: refetchFolders } = useGetMyFoldersQuery();
+    useGetMyEventTemplatesQuery(search, undefined, libraryClubId);
+  const { data: folders, refetch: refetchFolders } = useGetMyFoldersQuery(
+    undefined,
+    libraryClubId,
+  );
   const createFolderMutation = useCreateFolderMutation();
   const createTemplateMutation = useCreateEventTemplateMutation();
   const updateTemplateMutation = useUpdateEventTemplateMutation();
@@ -74,7 +109,7 @@ export function TemplateLibrarySidebar() {
 
   const handleCreateFolder = (name: string, color: string) => {
     createFolderMutation.mutate(
-      { name, color },
+      { name, color, clubId: libraryClubId },
       {
         onSuccess: () => {
           setCreateFolderDialogOpen(false);
@@ -99,6 +134,27 @@ export function TemplateLibrarySidebar() {
     useState<EventTemplate | null>(null);
   // Coaches plan a template for several athletes at once
   const planForAthletes = coached?.length ? setPlanningTemplate : undefined;
+  // A coach copies their own templates into the libraries they edit
+  const shareToClub =
+    libraryClubId === null && coachClubs.length
+      ? setSharingTemplate
+      : undefined;
+  const share = (template: EventTemplate, clubId: number) =>
+    createTemplateMutation.mutate(
+      { eventId: template.eventId, clubId },
+      {
+        onSuccess: () => {
+          setSharingTemplate(null);
+          toast.success(
+            m.club_library_shared({
+              club:
+                coachClubs.find((club) => club.clubId === clubId)?.name ?? '',
+            }),
+          );
+        },
+        onError: () => toast.error(m.club_save_failed()),
+      },
+    );
 
   const handleUseTemplate = (template: EventTemplate) => {
     // In the library sidebar, clicking "use" will open the template for editing
@@ -136,10 +192,13 @@ export function TemplateLibrarySidebar() {
           targetFolderId = overData.folderId;
         }
 
+        // An assistant uses a club's library without filling it
+        if (!canEdit) return;
         createTemplateMutation.mutate(
           {
             eventId: calendarEventData.event.eventId,
             folderId: targetFolderId,
+            clubId: libraryClubId,
           },
           {
             onSuccess: () => {
@@ -261,6 +320,8 @@ export function TemplateLibrarySidebar() {
       refetchTemplates,
       refetchFolders,
       folders,
+      canEdit,
+      libraryClubId,
     ],
   );
 
@@ -346,6 +407,30 @@ export function TemplateLibrarySidebar() {
           {/* Content */}
           <div className="flex-1 overflow-hidden flex flex-col">
             <div className="p-2 space-y-2 flex flex-col h-full overflow-hidden">
+              {staffClubs.length > 0 && (
+                <Select
+                  value={libraryClubId === null ? 'own' : String(libraryClubId)}
+                  onValueChange={(value) =>
+                    setLibraryClubId(value === 'own' ? null : Number(value))
+                  }
+                >
+                  <SelectTrigger
+                    className="w-full flex-shrink-0"
+                    aria-label={m.club_library_switch()}
+                    data-library-switch
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="own">{m.club_library_own()}</SelectItem>
+                    {staffClubs.map((club) => (
+                      <SelectItem key={club.clubId} value={String(club.clubId)}>
+                        {m.club_library_of({ club: club.name })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               {/* Search and Create Folder Bar */}
               <div className="flex gap-2 flex-shrink-0">
                 <div className="relative flex-1">
@@ -357,7 +442,7 @@ export function TemplateLibrarySidebar() {
                     className="pl-10"
                   />
                 </div>
-                {!search && (
+                {!search && canEdit && (
                   <Button
                     variant="outline"
                     size="icon"
@@ -382,6 +467,10 @@ export function TemplateLibrarySidebar() {
                         onPlanForAthletes={
                           planForAthletes && (() => planForAthletes(template))
                         }
+                        onShareToClub={
+                          shareToClub && (() => shareToClub(template))
+                        }
+                        readOnly={!canEdit}
                         showUseButton={false}
                       />
                     ))}
@@ -413,6 +502,8 @@ export function TemplateLibrarySidebar() {
                           onCreate={handleUseTemplate}
                           onEdit={setEditingTemplate}
                           onPlanForAthletes={planForAthletes}
+                          onShareToClub={shareToClub}
+                          readOnly={!canEdit}
                           refetchFolders={refetchFolders}
                           activeId={activeId}
                           allFolders={folders || []}
@@ -430,6 +521,10 @@ export function TemplateLibrarySidebar() {
                           onPlanForAthletes={
                             planForAthletes && (() => planForAthletes(template))
                           }
+                          onShareToClub={
+                            shareToClub && (() => shareToClub(template))
+                          }
+                          readOnly={!canEdit}
                           showUseButton={false}
                         />
                       ))}
@@ -472,6 +567,34 @@ export function TemplateLibrarySidebar() {
         </div>
       </div>
 
+      <Dialog
+        open={sharingTemplate !== null}
+        onOpenChange={(next) => !next && setSharingTemplate(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{m.club_library_share()}</DialogTitle>
+            <DialogDescription>
+              {m.club_library_share_description()}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            {coachClubs.map((club) => (
+              <Button
+                key={club.clubId}
+                variant="outline"
+                className="h-11 justify-start"
+                disabled={createTemplateMutation.isPending}
+                onClick={() =>
+                  sharingTemplate && share(sharingTemplate, club.clubId)
+                }
+              >
+                {club.name}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
       {planningTemplate && (
         <PlanForAthletesDialog
           open
