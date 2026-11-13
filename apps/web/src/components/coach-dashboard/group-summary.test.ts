@@ -23,6 +23,9 @@ const row = (
   form: null,
   alerts: [],
   unreadMessages: 0,
+  averageRpe: null,
+  metrics: {},
+  previous: null,
   ...overrides,
 });
 

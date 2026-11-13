@@ -4,15 +4,30 @@ import {
   useGroupFilterOptions,
 } from '@/components/clubs/use-group-filter';
 import {
+  ColumnCell,
+  LastActivity,
+} from '@/components/coach-dashboard/coach-dashboard-cells';
+import {
   alertText,
+  columnLabel,
   formTone,
+  formatSeconds,
 } from '@/components/coach-dashboard/coach-dashboard-format';
+import { CompareAthletesDialog } from '@/components/coach-dashboard/compare-athletes-dialog';
 import { summarizeGroup } from '@/components/coach-dashboard/group-summary';
+import { ThresholdsDialog } from '@/components/coach-dashboard/thresholds-dialog';
+import { useCoachDashboardSettings } from '@/components/coach-dashboard/use-coach-dashboard-settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { MetricTile } from '@/components/ui/metric-tile';
 import { PageTitle } from '@/components/ui/page-title';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
@@ -21,39 +36,30 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Switch } from '@/components/ui/switch';
 import { m } from '@/paraglide/messages';
-import { getLocale } from '@/paraglide/runtime';
 import { getPath } from '@/routes/paths';
-import { getDateFnsLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
-import { formatDistanceToNowStrict } from 'date-fns';
 import {
   Activity,
   AlertTriangle,
+  Bell,
   Calendar,
   CheckCircle2,
+  Columns3,
   MessageCircle,
   NotebookPen,
 } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { CoachDashboardAthleteRowDto } from '@openathlete/shared';
+import {
+  COACH_DASHBOARD_COLUMNS,
+  CoachDashboardAthleteRowDto,
+  CoachDashboardColumn,
+} from '@openathlete/shared';
 
 type Row = CoachDashboardAthleteRowDto;
-
-function formatSeconds(totalSeconds: number): string {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
-
-function formatMeters(meters: number): string {
-  if (!meters) return '0 km';
-  const km = meters / 1000;
-  return km % 1 === 0 ? `${km} km` : `${km.toFixed(1)} km`;
-}
 
 type PeriodType = 'week' | 'month' | 'year';
 
@@ -83,66 +89,6 @@ const name = (row: Row) =>
 
 const athletePath = (page: 'calendar' | 'metrics' | 'notes', row: Row) =>
   `${getPath(['dashboard', page])}/${row.athleteId}`;
-
-function ComplianceBadge({ row }: { row: Row }) {
-  // Nothing was planned: there is nothing to comply with
-  if (row.plannedSessions === 0) return null;
-  const compliance = row.compliancePercent;
-  return (
-    <Badge
-      className={cn(
-        compliance >= 80
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-          : compliance >= 50
-            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
-      )}
-    >
-      {compliance}
-      {m.percent_symbol()}
-    </Badge>
-  );
-}
-
-/** Fitness and fatigue, then form coloured by the training status zones. */
-function Form({ row }: { row: Row }) {
-  if (!row.form) return <span className="text-muted-foreground">–</span>;
-  const { ctl, atl, tsb } = row.form;
-  const tone = formTone(tsb);
-  return (
-    <div
-      className="flex flex-col text-sm"
-      title={`${m.fitness_ctl()} ${ctl.toFixed(0)} · ${m.fatigue_atl()} ${atl.toFixed(0)} · ${m.tsb_balance()} ${tsb.toFixed(0)}`}
-    >
-      <span className="tabular-nums">
-        {ctl.toFixed(0)} / {atl.toFixed(0)}
-      </span>
-      <span
-        className={cn(
-          'text-xs tabular-nums',
-          tone === 'tired' && 'text-red-600 dark:text-red-400',
-          tone === 'ready' && 'text-green-600 dark:text-green-400',
-          tone === 'detraining' && 'text-blue-600 dark:text-blue-400',
-        )}
-      >
-        {m.coach_form_value({ tsb: (tsb > 0 ? '+' : '') + tsb.toFixed(0) })}
-      </span>
-    </div>
-  );
-}
-
-function LastActivity({ row }: { row: Row }) {
-  if (!row.lastActivityAt)
-    return <span className="text-muted-foreground">–</span>;
-  return (
-    <span className="text-sm text-muted-foreground">
-      {formatDistanceToNowStrict(new Date(row.lastActivityAt), {
-        addSuffix: true,
-        locale: getDateFnsLocale(getLocale()),
-      })}
-    </span>
-  );
-}
 
 function Actions({ row }: { row: Row }) {
   return (
@@ -319,19 +265,34 @@ function Watchlist({ rows }: { rows: Row[] }) {
                 >
                   {name(row)}
                 </Link>
-                {row.alerts.map((alert) => (
-                  <Badge
-                    key={alert.type}
-                    variant="outline"
-                    data-coach-alert={alert.type}
-                    className={cn(
-                      alert.type === 'pain' &&
-                        'border-red-300 text-red-700 dark:text-red-300',
-                    )}
-                  >
-                    {alertText(alert)}
-                  </Badge>
-                ))}
+                {row.alerts.map((alert, index) =>
+                  alert.type === 'threshold' ? (
+                    // Opens the metric, to see where the value comes from
+                    <Badge
+                      key={`${alert.type}-${index}`}
+                      variant="outline"
+                      data-coach-alert={alert.type}
+                      className="border-red-300 text-red-700 dark:text-red-300"
+                      asChild
+                    >
+                      <Link to={athletePath('metrics', row)}>
+                        {alertText(alert)}
+                      </Link>
+                    </Badge>
+                  ) : (
+                    <Badge
+                      key={`${alert.type}-${index}`}
+                      variant="outline"
+                      data-coach-alert={alert.type}
+                      className={cn(
+                        alert.type === 'pain' &&
+                          'border-red-300 text-red-700 dark:text-red-300',
+                      )}
+                    >
+                      {alertText(alert)}
+                    </Badge>
+                  ),
+                )}
                 {row.unreadMessages > 0 && (
                   <Badge variant="secondary">
                     {m.coach_unread_messages({ count: row.unreadMessages })}
@@ -349,7 +310,34 @@ function Watchlist({ rows }: { rows: Row[] }) {
 export function CoachDashboardView() {
   const [period, setPeriod] = useState<PeriodType>('week');
   const { start, end } = getPeriodDates(period);
-  const { data, isLoading } = useCoachDashboardQuery(start, end);
+  const [comparePrevious, setComparePrevious] = useState(false);
+  const { data, isLoading } = useCoachDashboardQuery(
+    start,
+    end,
+    undefined,
+    comparePrevious,
+  );
+  const { settings, updateSettings } = useCoachDashboardSettings();
+  // Kept in the order of the full list, whatever the order of the clicks
+  const columns = COACH_DASHBOARD_COLUMNS.filter((column) =>
+    settings.columns.includes(column),
+  );
+  const toggleColumn = (column: CoachDashboardColumn) =>
+    updateSettings((current) => ({
+      columns: current.columns.includes(column)
+        ? current.columns.filter((value) => value !== column)
+        : [...current.columns, column],
+    }));
+  const [picked, setPicked] = useState<Set<number>>(new Set());
+  const togglePicked = (athleteId: number) =>
+    setPicked((current) => {
+      const next = new Set(current);
+      if (next.has(athleteId)) next.delete(athleteId);
+      else next.add(athleteId);
+      return next;
+    });
+  const [comparing, setComparing] = useState(false);
+  const [editingThresholds, setEditingThresholds] = useState(false);
   const groupOptions = useGroupFilterOptions();
   const [groupFilter, setGroupFilter] = useState('all');
   const selectedGroup = groupOptions.find(
@@ -387,6 +375,36 @@ export function CoachDashboardView() {
               </SelectContent>
             </Select>
           )}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" data-coach-columns>
+                <Columns3 className="h-4 w-4" />
+                {m.coach_columns()}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-64 space-y-1">
+              {COACH_DASHBOARD_COLUMNS.map((column) => (
+                <label
+                  key={column}
+                  className="flex min-h-9 cursor-pointer items-center gap-2 text-sm"
+                >
+                  <Checkbox
+                    checked={settings.columns.includes(column)}
+                    onCheckedChange={() => toggleColumn(column)}
+                  />
+                  {columnLabel(column)}
+                </label>
+              ))}
+            </PopoverContent>
+          </Popover>
+          <Button
+            variant="outline"
+            onClick={() => setEditingThresholds(true)}
+            data-coach-thresholds
+          >
+            <Bell className="h-4 w-4" />
+            {m.coach_thresholds_button()}
+          </Button>
           <Button variant="outline" asChild>
             <Link to={getPath(['dashboard', 'notes'])}>
               <NotebookPen className="h-4 w-4" />
@@ -408,6 +426,45 @@ export function CoachDashboardView() {
           </Select>
         </div>
       </div>
+
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <label className="flex items-center gap-2 text-sm">
+          <Switch
+            checked={comparePrevious}
+            onCheckedChange={setComparePrevious}
+            data-compare-previous
+          />
+          {m.coach_compare_previous()}
+        </label>
+        {picked.size > 0 && (
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              disabled={picked.size < 2}
+              onClick={() => setComparing(true)}
+              data-compare-athletes-button
+            >
+              {m.coach_compare_athletes({ count: picked.size })}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setPicked(new Set())}
+            >
+              {m.plan_for_athletes_clear()}
+            </Button>
+          </div>
+        )}
+      </div>
+      <CompareAthletesDialog
+        open={comparing}
+        onClose={() => setComparing(false)}
+        rows={allRows.filter((row) => picked.has(row.athleteId))}
+      />
+      <ThresholdsDialog
+        open={editingThresholds}
+        onClose={() => setEditingThresholds(false)}
+      />
 
       {isLoading ? (
         <div className="space-y-2">
@@ -436,26 +493,28 @@ export function CoachDashboardView() {
           <div className="hidden md:block rounded-lg border">
             <table className="w-full table-fixed text-sm" data-coach-table>
               <colgroup>
+                <col className="w-10" />
                 <col />
-                <col className="w-28" />
-                <col className="w-20" />
-                <col className="w-24" />
-                <col className="w-28" />
+                {columns.map((column) => (
+                  <col key={column} className="w-28" />
+                ))}
                 <col className="w-30" />
               </colgroup>
               <thead>
                 <tr className="border-b text-left text-xs text-muted-foreground">
+                  <th className="px-2 py-3 font-medium">
+                    <span className="sr-only">{m.coach_compare_select()}</span>
+                  </th>
                   <th className="px-2 py-3 font-medium">{m.athlete()}</th>
-                  <th className="px-2 py-3 font-medium">
-                    {m.coach_column_sessions()}
-                  </th>
-                  <th className="px-2 py-3 font-medium">
-                    {m.coach_column_volume()}
-                  </th>
-                  <th className="px-2 py-3 font-medium">
-                    {m.coach_column_form()}
-                  </th>
-                  <th className="px-2 py-3 font-medium">{m.last_activity()}</th>
+                  {columns.map((column) => (
+                    <th
+                      key={column}
+                      className="px-2 py-3 font-medium"
+                      data-coach-column={column}
+                    >
+                      {columnLabel(column)}
+                    </th>
+                  ))}
                   <th className="px-2 py-3 font-medium sr-only">
                     {m.actions()}
                   </th>
@@ -466,33 +525,26 @@ export function CoachDashboardView() {
                   <tr
                     key={row.athleteId}
                     className="border-b last:border-0 hover:bg-muted/40"
+                    data-coach-row={name(row)}
                   >
+                    <td className="px-2 py-3">
+                      <Checkbox
+                        checked={picked.has(row.athleteId)}
+                        onCheckedChange={() => togglePicked(row.athleteId)}
+                        aria-label={m.coach_compare_pick({ name: name(row) })}
+                      />
+                    </td>
                     <td className="px-2 py-3">
                       <div className="font-medium truncate">{name(row)}</div>
                       <div className="text-xs text-muted-foreground truncate">
                         {row.email}
                       </div>
                     </td>
-                    <td className="px-2 py-3">
-                      <div className="flex items-center gap-2">
-                        <span className="tabular-nums">
-                          {row.completedSessions}/{row.plannedSessions}
-                        </span>
-                        <ComplianceBadge row={row} />
-                      </div>
-                    </td>
-                    <td className="px-2 py-3 tabular-nums">
-                      <div>{formatSeconds(row.completedTime)}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {formatMeters(row.completedDistance)}
-                      </div>
-                    </td>
-                    <td className="px-2 py-3">
-                      <Form row={row} />
-                    </td>
-                    <td className="px-2 py-3">
-                      <LastActivity row={row} />
-                    </td>
+                    {columns.map((column) => (
+                      <td key={column} className="px-2 py-3">
+                        <ColumnCell column={column} row={row} />
+                      </td>
+                    ))}
                     <td className="px-2 py-3">
                       <Actions row={row} />
                     </td>
@@ -515,29 +567,16 @@ export function CoachDashboardView() {
                     <Actions row={row} />
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-sm">
-                    <div>
-                      <div className="text-xs text-muted-foreground">
-                        {m.coach_column_sessions()}
-                      </div>
-                      <span className="tabular-nums">
-                        {row.completedSessions}/{row.plannedSessions}
-                      </span>{' '}
-                      <ComplianceBadge row={row} />
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">
-                        {m.coach_column_volume()}
-                      </div>
-                      <div className="tabular-nums">
-                        {formatSeconds(row.completedTime)}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">
-                        {m.coach_column_form()}
-                      </div>
-                      <Form row={row} />
-                    </div>
+                    {columns
+                      .filter((column) => column !== 'lastActivity')
+                      .map((column) => (
+                        <div key={column}>
+                          <div className="text-xs text-muted-foreground">
+                            {columnLabel(column)}
+                          </div>
+                          <ColumnCell column={column} row={row} />
+                        </div>
+                      ))}
                   </div>
                 </CardContent>
               </Card>

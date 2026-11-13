@@ -202,8 +202,18 @@ export const routes = {
     load: '/statistics/load',
   },
   coach: {
-    dashboard: (start?: string, end?: string) =>
-      `/coach/dashboard${start && end ? `?start=${start}&end=${end}` : ''}`,
+    dashboard: (start?: string, end?: string, compare?: boolean) => {
+      const params = new URLSearchParams();
+      if (start && end) {
+        params.set('start', start);
+        params.set('end', end);
+      }
+      if (compare) params.set('compare', 'previous');
+      const query = params.toString();
+      return `/coach/dashboard${query ? `?${query}` : ''}`;
+    },
+    thresholds: '/coach/thresholds',
+    threshold: (id: number) => `/coach/thresholds/${id}`,
     getPendingInvitations: '/coach/invitations/pending',
     acceptInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/accept`,
