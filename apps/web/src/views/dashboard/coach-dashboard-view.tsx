@@ -93,17 +93,35 @@ const athletePath = (page: 'calendar' | 'metrics' | 'notes', row: Row) =>
 function Actions({ row }: { row: Row }) {
   return (
     <div className="flex items-center">
-      <Button variant="ghost" size="icon" asChild title={m.view_calendar()}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="max-md:size-11"
+        asChild
+        title={m.view_calendar()}
+      >
         <Link to={athletePath('calendar', row)} aria-label={m.view_calendar()}>
           <Calendar className="h-4 w-4" />
         </Link>
       </Button>
-      <Button variant="ghost" size="icon" asChild title={m.metrics()}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="max-md:size-11"
+        asChild
+        title={m.metrics()}
+      >
         <Link to={athletePath('metrics', row)} aria-label={m.metrics()}>
           <Activity className="h-4 w-4" />
         </Link>
       </Button>
-      <Button variant="ghost" size="icon" asChild title={m.coach_notes()}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="max-md:size-11"
+        asChild
+        title={m.coach_notes()}
+      >
         <Link to={athletePath('notes', row)} aria-label={m.coach_notes()}>
           <NotebookPen className="h-4 w-4" />
         </Link>
@@ -113,7 +131,7 @@ function Actions({ row }: { row: Row }) {
         size="icon"
         asChild
         title={m.messages()}
-        className="relative"
+        className="relative max-md:size-11"
       >
         <Link to={getPath(['dashboard', 'messages'])} aria-label={m.messages()}>
           <MessageCircle className="h-4 w-4" />
@@ -185,6 +203,8 @@ function GroupsOverview({
   groups: GroupFilterOption[];
   onSelect: (value: string) => void;
 }) {
+  // Groups of a single club or of the coach alone need no club name
+  const oneSource = new Set(groups.map((group) => group.club)).size <= 1;
   return (
     <Card data-groups-overview>
       <CardHeader>
@@ -204,8 +224,9 @@ function GroupsOverview({
                   onClick={() => onSelect(group.value)}
                   data-groups-overview-row={group.label}
                 >
-                  <span className="min-w-0 flex-1 truncate font-medium">
-                    {group.label}
+                  {/* Its own line on a phone, where the figures follow */}
+                  <span className="min-w-0 flex-1 truncate font-medium max-sm:basis-full">
+                    {oneSource ? group.name : group.label}
                   </span>
                   <span className="tabular-nums text-muted-foreground">
                     {m.coach_group_athletes({ count: summary.athletes })}
@@ -261,7 +282,8 @@ function Watchlist({ rows }: { rows: Row[] }) {
               >
                 <Link
                   to={athletePath('calendar', row)}
-                  className="font-medium hover:underline"
+                  // A finger-sized target on a phone
+                  className="inline-flex items-center font-medium hover:underline max-md:min-h-11"
                 >
                   {name(row)}
                 </Link>
@@ -272,7 +294,7 @@ function Watchlist({ rows }: { rows: Row[] }) {
                       key={`${alert.type}-${index}`}
                       variant="outline"
                       data-coach-alert={alert.type}
-                      className="border-red-300 text-red-700 dark:text-red-300"
+                      className="border-red-300 text-red-700 max-md:py-1.5 dark:text-red-300"
                       asChild
                     >
                       <Link to={athletePath('metrics', row)}>

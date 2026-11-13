@@ -63,7 +63,7 @@ export function ClubSessionPanel({ event }: { event: Event }) {
               aria-pressed={session.going === going}
               disabled={answer.isPending}
               onClick={() => reply(going)}
-              className={cn('max-sm:flex-1')}
+              className={cn('max-md:h-11 max-sm:flex-1')}
             >
               {going ? m.club_session_going() : m.club_session_not_going()}
             </Button>

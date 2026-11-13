@@ -145,30 +145,27 @@ function ImportDialog({
               <p className="text-sm font-medium">
                 {m.club_invitations_found({ count: parsed.people.length })}
               </p>
-              <div className="max-h-56 overflow-auto rounded-xl border">
-                <table className="w-full text-sm">
-                  <tbody>
-                    {parsed.people.map((person, index) => (
-                      <tr
-                        key={`${person.email}-${index}`}
-                        className="border-b last:border-0"
-                      >
-                        <td className="px-3 py-1.5">
-                          {[person.firstName, person.lastName]
-                            .filter(Boolean)
-                            .join(' ') || '–'}
-                        </td>
-                        <td className="px-3 py-1.5 text-muted-foreground">
-                          {person.email}
-                        </td>
-                        <td className="px-3 py-1.5 text-muted-foreground">
-                          {role === 'ATHLETE' ? (person.group ?? '') : ''}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              {/* Columns on a computer, stacked lines on a phone */}
+              <ul className="max-h-56 divide-y overflow-y-auto rounded-xl border text-sm">
+                {parsed.people.map((person, index) => (
+                  <li
+                    key={`${person.email}-${index}`}
+                    className="grid gap-x-4 px-3 py-1.5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)]"
+                  >
+                    <span className="truncate">
+                      {[person.firstName, person.lastName]
+                        .filter(Boolean)
+                        .join(' ') || '–'}
+                    </span>
+                    <span className="truncate text-muted-foreground">
+                      {person.email}
+                    </span>
+                    <span className="truncate text-muted-foreground">
+                      {role === 'ATHLETE' ? (person.group ?? '') : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
           {parsed.invalidLines.length > 0 && (

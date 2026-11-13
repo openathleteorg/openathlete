@@ -137,7 +137,8 @@ export function CalendarWeekActions({
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 text-muted-foreground"
+            // A finger-sized hit area on a phone, without moving the layout
+            className="relative size-6 text-muted-foreground max-md:after:absolute max-md:after:-inset-2.5"
             aria-label={m.calendar_week_actions({ week: weekLabel })}
             data-week-actions
             disabled={busy}

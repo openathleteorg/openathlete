@@ -159,7 +159,8 @@ export function DraggableTemplate({
       </div>
 
       {isCompact ? (
-        <div className="absolute inset-0 flex items-center justify-end gap-1 ml-10 pr-2 bg-gradient-to-l from-card via-card/95 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+        // Over the name on hover; beside it on a touch screen, which has no hover
+        <div className="absolute inset-0 flex items-center justify-end gap-1 ml-10 pr-2 bg-gradient-to-l from-card via-card/95 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:static pointer-coarse:ml-0 pointer-coarse:shrink-0 pointer-coarse:bg-none pointer-coarse:pr-0 pointer-coarse:opacity-100">
           {onPlanForAthletes && (
             <Button
               variant="outline"

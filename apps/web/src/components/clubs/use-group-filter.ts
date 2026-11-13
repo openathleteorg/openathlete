@@ -7,6 +7,9 @@ import { AthleteGroupDto, isClubStaff } from '@openathlete/shared';
 export type GroupFilterOption = {
   value: string;
   label: string;
+  /** The group's own name, and the club holding it (null: the coach's own) */
+  name: string;
+  club: string | null;
   /** The group's athletes and its sub-groups' */
   athleteIds: Set<number>;
 };
@@ -28,6 +31,8 @@ const optionsOf = (
     return {
       value: `group:${group.athleteGroupId}`,
       label: prefix ? `${prefix} · ${name}` : name,
+      name,
+      club: prefix,
       athleteIds: ids,
     };
   });

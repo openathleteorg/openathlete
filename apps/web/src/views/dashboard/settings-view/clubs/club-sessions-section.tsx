@@ -226,8 +226,9 @@ function SessionDialog({
               </Select>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            <div className="grid gap-1.5">
+          {/* On a phone the date takes a row: three fields cut the time */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="col-span-2 grid gap-1.5 sm:col-span-1">
               <Label htmlFor="club-session-date">
                 {m.club_sessions_first_day()}
               </Label>
