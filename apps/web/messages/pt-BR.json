@@ -2604,5 +2604,9 @@
   "coach_thresholds_max": "Máximo",
   "coach_thresholds_save": "Aplicar a {count} atleta(s)",
   "coach_thresholds_saved": "Alerta salvo",
-  "coach_thresholds_failed": "Não foi possível salvar o alerta. Tente de novo."
+  "coach_thresholds_failed": "Não foi possível salvar o alerta. Tente de novo.",
+  "coach_nav_athletes": "Atletas ({count})",
+  "coach_nav_search": "Buscar um atleta",
+  "coach_nav_none": "Nenhum atleta corresponde.",
+  "coach_nav_athlete_pages": "Páginas do atleta"
 }

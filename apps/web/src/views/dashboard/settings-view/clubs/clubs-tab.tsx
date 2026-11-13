@@ -1,9 +1,10 @@
-import { useCreateClubMutation, useMyClubsQuery } from '@/api/club';
+import { ClubAPI, useCreateClubMutation, useMyClubsQuery } from '@/api/club';
 import { clubRoleLabel } from '@/components/clubs/club-role';
 import { NameDialog } from '@/components/clubs/name-dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { m } from '@/paraglide/messages';
-import { clubPath } from '@/routes/paths';
+import { clubJoinPath, clubPath } from '@/routes/paths';
 import { ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
@@ -28,6 +29,21 @@ export function ClubsTab() {
   const { data: clubs, isPending } = useMyClubsQuery();
   const create = useCreateClubMutation();
   const [creating, setCreating] = useState(false);
+  const [code, setCode] = useState('');
+  const [resolving, setResolving] = useState(false);
+  // The code stands for the club's athlete link: its page shows who will
+  // see the training before anything is shared
+  const joinWithCode = async () => {
+    setResolving(true);
+    try {
+      const { token } = await ClubAPI.resolveCode(code.trim());
+      navigate(clubJoinPath(token));
+    } catch {
+      toast.error(m.club_join_code_unknown());
+    } finally {
+      setResolving(false);
+    }
+  };
 
   if (Number.isInteger(clubParam) && clubParam > 0) {
     return <ClubDetail key={clubParam} clubId={clubParam} />;
@@ -69,6 +85,39 @@ export function ClubsTab() {
             ))}
           </SettingsPanel>
         )}
+      </SettingsSection>
+      <SettingsSection
+        title={m.club_join_with_code()}
+        description={m.club_join_with_code_description()}
+      >
+        <SettingsPanel padded>
+          <form
+            className="flex flex-col gap-2 sm:flex-row"
+            onSubmit={(event) => {
+              event.preventDefault();
+              joinWithCode();
+            }}
+          >
+            <Input
+              value={code}
+              onChange={(event) => setCode(event.target.value.toUpperCase())}
+              maxLength={8}
+              autoCapitalize="characters"
+              className="font-mono tracking-widest sm:max-w-48"
+              placeholder="ABCD2345"
+              aria-label={m.club_join_code_label()}
+              data-club-code-input
+            />
+            <Button
+              type="submit"
+              variant="outline"
+              disabled={code.trim().length !== 8 || resolving}
+              isLoading={resolving}
+            >
+              {m.club_join_with_code_action()}
+            </Button>
+          </form>
+        </SettingsPanel>
       </SettingsSection>
       <NameDialog
         open={creating}

@@ -2604,5 +2604,9 @@
   "coach_thresholds_max": "Maximum",
   "coach_thresholds_save": "Für {count} Athlet(en) setzen",
   "coach_thresholds_saved": "Hinweis gespeichert",
-  "coach_thresholds_failed": "Der Hinweis konnte nicht gespeichert werden. Versuch es noch einmal."
+  "coach_thresholds_failed": "Der Hinweis konnte nicht gespeichert werden. Versuch es noch einmal.",
+  "coach_nav_athletes": "Athleten ({count})",
+  "coach_nav_search": "Athlet suchen",
+  "coach_nav_none": "Kein Athlet passt.",
+  "coach_nav_athlete_pages": "Seiten des Athleten"
 }

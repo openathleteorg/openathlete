@@ -12,7 +12,9 @@ import {
   ClubJoinLinkKind,
   CreateAthleteGroupDto,
   CreateClubDto,
+  InviteToClubDto,
   UpdateClubDto,
+  UpdateClubJoinLinksDto,
 } from '@openathlete/shared';
 
 import { AthleteGroupAPI, ClubAPI } from './club.api';
@@ -112,6 +114,32 @@ export const useRotateClubJoinLinkMutation = (clubId: number) => {
       queryClient.setQueryData(clubKeys.joinLinks(clubId), links),
   });
 };
+
+export const useUpdateClubJoinLinksMutation = (clubId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateClubJoinLinksDto) =>
+      ClubAPI.updateJoinLinks(clubId, body),
+    onSuccess: (links) =>
+      queryClient.setQueryData(clubKeys.joinLinks(clubId), links),
+  });
+};
+
+export const useClubInvitationsQuery = (clubId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: clubKeys.invitations(clubId),
+    queryFn: () => ClubAPI.getInvitations(clubId),
+    enabled,
+  });
+
+export const useInviteToClubMutation = (clubId: number) =>
+  useClubMutation((body: InviteToClubDto) => ClubAPI.invite(clubId, body));
+
+export const useResendClubInvitationMutation = (clubId: number) =>
+  useClubMutation((id: number) => ClubAPI.resendInvitation(clubId, id));
+
+export const useRevokeClubInvitationMutation = (clubId: number) =>
+  useClubMutation((id: number) => ClubAPI.revokeInvitation(clubId, id));
 
 export const useClubJoinInfoQuery = (token: string | undefined) =>
   useQuery({

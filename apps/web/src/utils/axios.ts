@@ -231,8 +231,14 @@ export const routes = {
     transfer: (clubId: number) => `/club/${clubId}/transfer`,
     joinLinks: (clubId: number) => `/club/${clubId}/join-links`,
     rotateJoinLink: (clubId: number) => `/club/${clubId}/join-links/rotate`,
+    invitations: (clubId: number) => `/club/${clubId}/invitations`,
+    invitation: (clubId: number, id: number) =>
+      `/club/${clubId}/invitations/${id}`,
+    resendInvitation: (clubId: number, id: number) =>
+      `/club/${clubId}/invitations/${id}/resend`,
   },
   clubJoin: {
+    code: (code: string) => `/club-join/code/${encodeURIComponent(code)}`,
     info: (token: string) => `/club-join/${encodeURIComponent(token)}`,
     accept: (token: string) => `/club-join/${encodeURIComponent(token)}/accept`,
   },

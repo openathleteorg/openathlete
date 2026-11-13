@@ -4,13 +4,17 @@ import {
   AcceptClubJoinLinkResponseDto,
   AthleteGroupDto,
   ClubDetailDto,
+  ClubInvitationDto,
   ClubJoinLinkInfoDto,
   ClubJoinLinkKind,
   ClubJoinLinksDto,
   ClubSummaryDto,
   CreateAthleteGroupDto,
   CreateClubDto,
+  InviteToClubDto,
+  InviteToClubResultDto,
   UpdateClubDto,
+  UpdateClubJoinLinksDto,
   UpdateClubMemberDto,
 } from '@openathlete/shared';
 
@@ -68,6 +72,37 @@ export class ClubAPI {
   ): Promise<ClubJoinLinksDto> {
     return (await client.post(routes.club.rotateJoinLink(clubId), { kind }))
       .data;
+  }
+
+  static async updateJoinLinks(
+    clubId: number,
+    body: UpdateClubJoinLinksDto,
+  ): Promise<ClubJoinLinksDto> {
+    return (await client.patch(routes.club.joinLinks(clubId), body)).data;
+  }
+
+  static async invite(
+    clubId: number,
+    body: InviteToClubDto,
+  ): Promise<InviteToClubResultDto> {
+    return (await client.post(routes.club.invitations(clubId), body)).data;
+  }
+
+  static async getInvitations(clubId: number): Promise<ClubInvitationDto[]> {
+    return (await client.get(routes.club.invitations(clubId))).data;
+  }
+
+  static async resendInvitation(clubId: number, id: number): Promise<void> {
+    await client.post(routes.club.resendInvitation(clubId, id));
+  }
+
+  static async revokeInvitation(clubId: number, id: number): Promise<void> {
+    await client.delete(routes.club.invitation(clubId, id));
+  }
+
+  /** The athlete link a short code stands for */
+  static async resolveCode(code: string): Promise<{ token: string }> {
+    return (await client.get(routes.clubJoin.code(code))).data;
   }
 
   static async getJoinInfo(token: string): Promise<ClubJoinLinkInfoDto> {
