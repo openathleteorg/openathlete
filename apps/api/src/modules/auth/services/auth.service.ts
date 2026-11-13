@@ -225,6 +225,7 @@ export class AuthService {
               athleteId: true,
             },
           },
+          clubMemberships: { select: { clubId: true, role: true } },
         },
       });
 
@@ -242,6 +243,7 @@ export class AuthService {
         athlete: user.athlete ? { athleteId: user.athlete.athleteId } : null,
         coachAthletes:
           user.coachAthletes?.map((ca) => ({ athleteId: ca.athleteId })) || [],
+        clubMemberships: user.clubMemberships,
       };
     } catch (error) {
       this.logger.error('Error in validateUser', error);

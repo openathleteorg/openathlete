@@ -5,7 +5,10 @@ import { Prisma } from '@openathlete/database';
 
 import { AccountDeletingEvent } from 'src/events';
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
-import { releaseOwnedClubs } from 'src/modules/club/club-ownership';
+import {
+  handOverClubLibrary,
+  releaseOwnedClubs,
+} from 'src/modules/club/club-ownership';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import { StorageService } from 'src/modules/stored-files/storage.service';
 import { StripeService } from 'src/modules/subscription/services/stripe.service';
@@ -83,6 +86,13 @@ export class AccountDeletionService {
 
     await this.prisma.$transaction(
       async (tx) => {
+        // First, as it changes what the user owns: clubs pass to an admin
+        // or go (their library back to its authors), and what the user put
+        // in other clubs' libraries stays there. Memberships, group seats
+        // and their own groups cascade with the user.
+        await releaseOwnedClubs(tx, userId);
+        await handOverClubLibrary(tx, userId);
+
         // Before the activities: each one would otherwise clear its records
         // one by one
         if (athleteId) {
@@ -191,9 +201,6 @@ export class AccountDeletionService {
   }
 
   private async deleteUserData(tx: Tx, userId: number) {
-    // Clubs pass to an admin, or go; memberships, group seats and their own
-    // groups cascade with the user
-    await releaseOwnedClubs(tx, userId);
     await tx.eventTemplateFolder.deleteMany({ where: { userId } });
     await tx.token.deleteMany({ where: { userId } });
     await tx.subscription.deleteMany({ where: { userId } });

@@ -14,6 +14,7 @@ import {
   User,
   Workout,
 } from '@openathlete/database';
+import { CLUB_COACH_ROLES, CLUB_STAFF_ROLES } from '@openathlete/shared';
 
 import { AuthUser } from '../decorators/user.decorator';
 import { PrismaQuery, createPrismaAbility } from './casl-prisma';
@@ -52,6 +53,24 @@ export class CaslAbilityFactory {
     can('manage', 'Athlete', { userId: user.userId });
 
     can('manage', 'Event', { templates: { some: { userId: user.userId } } });
+
+    // The club library: its coaches edit it, its whole staff uses it
+    const clubsWhere = (roles: readonly string[]) =>
+      (user.clubMemberships ?? [])
+        .filter((membership) => roles.includes(membership.role))
+        .map((membership) => membership.clubId);
+    const coachClubs = clubsWhere(CLUB_COACH_ROLES);
+    const staffClubs = clubsWhere(CLUB_STAFF_ROLES);
+    if (coachClubs.length) {
+      can('manage', 'Event', {
+        templates: { some: { clubId: { in: coachClubs } } },
+      });
+    }
+    if (staffClubs.length) {
+      can('read', 'Event', {
+        templates: { some: { clubId: { in: staffClubs } } },
+      });
+    }
 
     if (user.athlete) {
       can('manage', 'Event', { athleteId: user.athlete.athleteId });

@@ -34,6 +34,7 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { accessibleBy } from 'src/modules/auth/services/casl-prisma';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { requireLibraryItem } from '../helpers/template-library';
 import { remapZonesForAthlete, zoneTargetIds } from '../helpers/workout-zones';
 import { EventBulkService } from './event-bulk.service';
 import {
@@ -121,7 +122,9 @@ export class EventBatchService {
         where: { eventTemplateId: source.eventTemplateId },
         include: { event: { include: SOURCE_INCLUDE } },
       });
-      if (!template || template.userId !== user.userId || !template.event) {
+      // The user's own templates, and those of their clubs' libraries
+      await requireLibraryItem(this.prisma, user.userId, template, 'use');
+      if (!template?.event) {
         throw new NotFoundException('Event template not found');
       }
       return [template.event];

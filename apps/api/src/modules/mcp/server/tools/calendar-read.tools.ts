@@ -410,6 +410,7 @@ export const registerCalendarReadTools: ToolRegistrar = (server, ctx, deps) => {
         const templates = await prisma.eventTemplate.findMany({
           where: {
             userId: ctx.user.userId,
+            clubId: null,
             ...(search && {
               event: { name: { contains: search, mode: 'insensitive' } },
             }),

@@ -40,6 +40,8 @@ model Club {
   members       ClubMember[]
   groups        AthleteGroup[]
   coachAthletes CoachAthlete[]
+  templates     EventTemplate[]
+  folders       EventTemplateFolder[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

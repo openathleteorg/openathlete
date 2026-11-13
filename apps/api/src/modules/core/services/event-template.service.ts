@@ -14,6 +14,11 @@ import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import {
+  libraryWhere,
+  requireLibrary,
+  requireLibraryItem,
+} from '../helpers/template-library';
 import { remapZonesForAthlete } from '../helpers/workout-zones';
 import { EVENT_INCLUDES } from './event-includes';
 import { EventService } from './event.service';
@@ -26,10 +31,15 @@ export class EventTemplateService {
     private readonly abilities: CaslAbilityFactory,
   ) {}
 
-  async getMyEventTemplates(user: AuthUser, search?: string) {
+  async getMyEventTemplates(
+    user: AuthUser,
+    search?: string,
+    clubId: number | null = null,
+  ) {
+    await requireLibrary(this.prisma, user.userId, clubId, 'use');
     const templates = await this.prisma.eventTemplate.findMany({
       where: {
-        userId: user.userId,
+        ...libraryWhere(user.userId, clubId),
         ...(search && {
           event: {
             name: {
@@ -52,7 +62,29 @@ export class EventTemplateService {
     }));
   }
 
+  /** A folder of the same library, or a 400: never another one's */
+  private async assertFolderIn(
+    folderId: number | null | undefined,
+    userId: number,
+    clubId: number | null,
+  ) {
+    if (folderId === null || folderId === undefined) return;
+    const folder = await this.prisma.eventTemplateFolder.findFirst({
+      where: {
+        eventTemplateFolderId: folderId,
+        ...libraryWhere(userId, clubId),
+      },
+      select: { eventTemplateFolderId: true },
+    });
+    if (!folder) {
+      throw new BadRequestException('The folder is not in this library');
+    }
+  }
+
   async createEventTemplate(user: AuthUser, body: CreateEventTemplateDto) {
+    const clubId = body.clubId ?? null;
+    await requireLibrary(this.prisma, user.userId, clubId, 'edit');
+    await this.assertFolderIn(body.folderId, user.userId, clubId);
     const event = await this.eventService.duplicateEvent(user, body.eventId);
 
     await this.prisma.event.update({
@@ -172,6 +204,7 @@ export class EventTemplateService {
         userId: user.userId,
         eventId: event.eventId,
         folderId: body.folderId,
+        clubId,
       },
     });
 
@@ -188,13 +221,7 @@ export class EventTemplateService {
       },
     });
 
-    if (!eventTemplate) {
-      throw new NotFoundException('Event template not found');
-    }
-
-    if (eventTemplate.userId !== user.userId) {
-      throw new NotFoundException('Event template not found');
-    }
+    await requireLibraryItem(this.prisma, user.userId, eventTemplate, 'edit');
 
     await this.prisma.eventTemplate.delete({
       where: {
@@ -214,13 +241,12 @@ export class EventTemplateService {
       },
     });
 
-    if (!eventTemplate) {
-      throw new NotFoundException('Event template not found');
-    }
-
-    if (eventTemplate.userId !== user.userId) {
-      throw new NotFoundException('Event template not found');
-    }
+    await requireLibraryItem(this.prisma, user.userId, eventTemplate, 'edit');
+    await this.assertFolderIn(
+      data.folderId,
+      eventTemplate!.userId,
+      eventTemplate!.clubId,
+    );
 
     const updated = await this.prisma.eventTemplate.update({
       where: {
@@ -264,13 +290,9 @@ export class EventTemplateService {
       },
     });
 
-    if (!template) {
-      throw new NotFoundException('Event template not found');
-    }
-
-    if (template.userId !== user.userId) {
-      throw new NotFoundException('Event template not found');
-    }
+    // The user's own templates, and those of the clubs they coach in
+    await requireLibraryItem(this.prisma, user.userId, template, 'use');
+    if (!template) throw new NotFoundException('Event template not found');
 
     if (!template.event) {
       throw new NotFoundException('Template event not found');

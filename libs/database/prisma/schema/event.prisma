@@ -352,12 +352,17 @@ model EventTemplate {
   userId   Int                  @map("user_id")
   folder   EventTemplateFolder? @relation(fields: [folderId], references: [eventTemplateFolderId])
   folderId Int?                 @map("folder_id")
+  /// The club library holding it; null in its author's own library. A club
+  /// gone gives each template back to its author.
+  club     Club?                @relation(fields: [clubId], references: [clubId], onDelete: SetNull)
+  clubId   Int?                 @map("club_id")
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([folderId])
+  @@index([clubId])
   @@map("event_template")
 }
 

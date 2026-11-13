@@ -5,6 +5,8 @@ export const createEventTemplateFolderSchema = z.object({
   color: z.string().optional(),
   description: z.string().optional(),
   parentFolderId: z.number().int().optional().nullable(),
+  /** Created in this club's library; absent for the user's own */
+  clubId: z.number().int().positive().optional().nullable(),
 });
 
 export type CreateEventTemplateFolderDto = z.infer<
