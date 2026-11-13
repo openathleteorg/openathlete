@@ -110,6 +110,15 @@ export class AccountExportService {
         },
       }),
     );
+    // Bounds the user watches, as a coach, on athletes' metrics
+    write(
+      'metricThresholds',
+      await this.prisma.coachMetricThreshold.findMany({
+        where: { coachUserId: userId },
+        select: { athleteId: true, metricType: true, min: true, max: true },
+        orderBy: { metricThresholdId: 'asc' },
+      }),
+    );
     // The user's private notes as a coach, whoever they are about
     write(
       'coachNotes',

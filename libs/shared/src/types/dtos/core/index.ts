@@ -41,3 +41,5 @@ export * from './strength-session.dto';
 export * from './custom-exercise.dto';
 export * from './club.dto';
 export * from './plan-for-athletes.dto';
+export * from './coach-dashboard-settings.dto';
+export * from './metric-threshold.dto';

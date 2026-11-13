@@ -51,6 +51,7 @@ import { EventTemplateService } from './services/event-template.service';
 import { InjuryService } from './services/injury.service';
 import { ManualActivityService } from './services/manual-activity.service';
 import { ManualFitImportService } from './services/manual-fit-import.service';
+import { MetricThresholdService } from './services/metric-threshold.service';
 import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import {
@@ -126,6 +127,7 @@ import { WeatherService } from './services/weather/weather.service';
     CalendarFeedService,
     EventBulkService,
     EventBatchService,
+    MetricThresholdService,
     EventSeriesService,
     ManualActivityService,
     ActivityCorrectionsService,

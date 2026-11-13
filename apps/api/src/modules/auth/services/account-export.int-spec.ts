@@ -39,6 +39,7 @@ const EXPORTED_TABLES = [
   'athlete_settings',
   'club_member',
   'coach_athlete',
+  'coach_metric_threshold',
   'coach_activity_alert_settings',
   'coach_note',
   'coach_notebook',

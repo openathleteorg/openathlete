@@ -57,6 +57,8 @@ model User {
   trainingReminderSentOn DateTime? @map("training_reminder_sent_on") @db.Date
   /// What calendar cards and summaries show (see calendarDisplaySchema)
   calendarDisplay     Json?        @map("calendar_display")
+  /// How the user set up their coach dashboard (columns)
+  coachDashboard      Json?        @map("coach_dashboard")
   /// Tracks hidden from activity charts, per sport (see hiddenActivityTracksSchema)
   hiddenActivityTracks Json?       @map("hidden_activity_tracks")
   /// When the user dismissed the request to support the project
@@ -112,6 +114,7 @@ model User {
   ownedAthleteGroups        AthleteGroup[]
   athleteGroupStaff         AthleteGroupStaff[]
   scheduledMessages         ScheduledMessage[]
+  metricThresholds          CoachMetricThreshold[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

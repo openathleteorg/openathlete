@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { isTimeZone } from '../../../utils/date';
 import { calendarDisplaySchema } from '../core/calendar-display.dto';
+import { coachDashboardSettingsSchema } from '../core/coach-dashboard-settings.dto';
 import { hiddenActivityTracksSchema } from '../core/hidden-activity-tracks.dto';
 import { personNameSchema } from './person-name';
 import { trainingProfileSchema } from './training-profile.dto';
@@ -16,6 +17,7 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   trainingReminders: z.boolean().optional(),
   /** What the calendar shows */
   calendarDisplay: calendarDisplaySchema.optional(),
+  coachDashboard: coachDashboardSettingsSchema.optional(),
   /** Tracks hidden from activity charts, per sport */
   hiddenActivityTracks: hiddenActivityTracksSchema.optional(),
   /** Onboarding tips and alerts about the account, by email */

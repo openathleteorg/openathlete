@@ -1,11 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { EventType, TrainingLoadCalculationType } from '@openathlete/database';
+import {
+  EventType,
+  MetricType,
+  TrainingLoadCalculationType,
+} from '@openathlete/database';
 import {
   CoachAlertDto,
   CoachDashboardAthleteRowDto,
   CoachDashboardResponseDto,
+  CoachPeriodTotalsDto,
+  DASHBOARD_METRIC_TYPES,
   coachDashboardResponseSchema,
+  isOutsideThreshold,
 } from '@openathlete/shared';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -18,6 +25,35 @@ const INACTIVE_AFTER_DAYS = 7;
 /** Pain reported this recently, and not resolved, is still worth a look */
 const PAIN_WITHIN_DAYS = 14;
 const DAY_MS = 24 * 60 * 60 * 1000;
+/** Daily metrics older than this are not shown, nor alerted on */
+const METRIC_RECENT_DAYS = 7;
+
+type Totals = {
+  plannedSessions: number;
+  completedSessions: number;
+  plannedTime: number;
+  completedTime: number;
+  completedDistance: number;
+  averageRpe: number | null;
+  rpeSum: number;
+  rpeCount: number;
+};
+const EMPTY_TOTALS: Totals = {
+  plannedSessions: 0,
+  completedSessions: 0,
+  plannedTime: 0,
+  completedTime: 0,
+  completedDistance: 0,
+  averageRpe: null,
+  rpeSum: 0,
+  rpeCount: 0,
+};
+const pickTotals = (totals: Totals): CoachPeriodTotalsDto => ({
+  plannedSessions: totals.plannedSessions,
+  completedSessions: totals.completedSessions,
+  completedTime: totals.completedTime,
+  completedDistance: totals.completedDistance,
+});
 
 @Injectable()
 export class CoachService {
@@ -61,9 +97,109 @@ export class CoachService {
     return { start, end };
   }
 
+  /** Sessions planned and done, volume and mean RPE, athlete by athlete */
+  private async periodTotals(athleteIds: number[], start: Date, end: Date) {
+    const [planned, activities] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          athleteId: { in: athleteIds },
+          type: EventType.TRAINING,
+          startDate: { gte: start, lte: end },
+        },
+        select: {
+          athleteId: true,
+          training: { select: { goalDuration: true } },
+        },
+      }),
+      this.prisma.event.findMany({
+        where: {
+          athleteId: { in: athleteIds },
+          type: EventType.ACTIVITY,
+          startDate: { gte: start, lte: end },
+        },
+        select: {
+          athleteId: true,
+          startDate: true,
+          endDate: true,
+          activity: { select: { distance: true, rpe: true } },
+        },
+      }),
+    ]);
+    const totals = new Map<number, Totals>();
+    const of = (athleteId: number) => {
+      let entry = totals.get(athleteId);
+      if (!entry) {
+        entry = { ...EMPTY_TOTALS, rpeSum: 0, rpeCount: 0 };
+        totals.set(athleteId, entry);
+      }
+      return entry;
+    };
+    for (const event of planned) {
+      const entry = of(event.athleteId as number);
+      entry.plannedSessions += 1;
+      entry.plannedTime += event.training?.goalDuration ?? 0;
+    }
+    for (const event of activities) {
+      const entry = of(event.athleteId as number);
+      entry.completedSessions += 1;
+      entry.completedTime += Math.max(
+        0,
+        Math.floor(
+          (event.endDate.getTime() - event.startDate.getTime()) / 1000,
+        ),
+      );
+      entry.completedDistance += event.activity?.distance ?? 0;
+      if (event.activity?.rpe != null) {
+        entry.rpeSum += event.activity.rpe;
+        entry.rpeCount += 1;
+      }
+    }
+    for (const entry of totals.values()) {
+      entry.averageRpe = entry.rpeCount
+        ? Math.round((entry.rpeSum / entry.rpeCount) * 10) / 10
+        : null;
+    }
+    return totals;
+  }
+
+  /**
+   * The latest value of each metric type per athlete, over the last days:
+   * an old weight or a month-old sleep says nothing about this morning.
+   */
+  private async latestMetrics(
+    athleteIds: number[],
+    types: MetricType[],
+    now: Date,
+  ) {
+    const rows = await this.prisma.athleteMetric.findMany({
+      where: {
+        athleteId: { in: athleteIds },
+        type: { in: types },
+        date: { gte: new Date(now.getTime() - METRIC_RECENT_DAYS * DAY_MS) },
+      },
+      orderBy: [{ athleteId: 'asc' }, { type: 'asc' }, { date: 'desc' }],
+      distinct: ['athleteId', 'type'],
+      select: { athleteId: true, type: true, value: true, date: true },
+    });
+    const byAthlete = new Map<
+      number,
+      Record<string, { value: number; date: string }>
+    >();
+    for (const row of rows) {
+      const entry = byAthlete.get(row.athleteId) ?? {};
+      entry[row.type] = {
+        value: row.value,
+        date: row.date.toISOString().slice(0, 10),
+      };
+      byAthlete.set(row.athleteId, entry);
+    }
+    return byAthlete;
+  }
+
   async getCoachDashboard(
     user: AuthUser,
     period?: { start?: Date; end?: Date },
+    options: { comparePrevious?: boolean } = {},
   ): Promise<CoachDashboardResponseDto> {
     // Resolve period
     const { start, end } = (() => {
@@ -95,80 +231,15 @@ export class CoachService {
       });
     }
 
-    // Planned training sessions within period
-    const plannedByAthlete = await this.prisma.event.groupBy({
-      by: ['athleteId'],
-      where: {
-        athleteId: { in: athleteIds },
-        type: EventType.TRAINING,
-        startDate: { gte: start, lte: end },
-      },
-      _count: { _all: true },
-    });
-
-    // Planned time: sum of workout estimated_duration when available
-    const plannedTimeByAthleteRaw = await this.prisma.event.findMany({
-      where: {
-        athleteId: { in: athleteIds },
-        type: EventType.TRAINING,
-        startDate: { gte: start, lte: end },
-      },
-      select: {
-        athleteId: true,
-        training: {
-          select: {
-            goalDuration: true,
-          },
-        },
-      },
-    });
-
-    const plannedTimeByAthlete = plannedTimeByAthleteRaw.reduce(
-      (acc, e) => {
-        const aid = e.athleteId as number;
-        const duration = e.training?.goalDuration ?? 0;
-        acc[aid] = (acc[aid] || 0) + duration;
-        return acc;
-      },
-      {} as Record<number, number>,
-    );
-
-    // Completed activity events within period with activity details
-    const activities = await this.prisma.event.findMany({
-      where: {
-        athleteId: { in: athleteIds },
-        type: EventType.ACTIVITY,
-        startDate: { gte: start, lte: end },
-      },
-      select: {
-        athleteId: true,
-        startDate: true,
-        endDate: true,
-        activity: { select: { distance: true } },
-      },
-    });
-
-    const completedByAthlete: Record<
-      number,
-      { count: number; time: number; distance: number }
-    > = {};
-    for (const ev of activities) {
-      const aid = ev.athleteId as number;
-      const startTs = new Date(ev.startDate).getTime();
-      const endTs = new Date(ev.endDate).getTime();
-      const time = Math.max(0, Math.floor((endTs - startTs) / 1000));
-      const distance = ev.activity?.distance ?? 0;
-      if (!completedByAthlete[aid]) {
-        completedByAthlete[aid] = {
-          count: 0,
-          time: 0,
-          distance: 0,
-        };
-      }
-      completedByAthlete[aid].count += 1;
-      completedByAthlete[aid].time += time;
-      completedByAthlete[aid].distance += distance;
-    }
+    const totals = await this.periodTotals(athleteIds, start, end);
+    // The period of the same length just before, to compare with
+    const previousTotals = options.comparePrevious
+      ? await this.periodTotals(
+          athleteIds,
+          new Date(start.getTime() - (end.getTime() - start.getTime()) - 1),
+          new Date(start.getTime() - 1),
+        )
+      : null;
 
     const now = new Date();
     const athleteUserIds = coachedAthletes.map((a) => a.userId);
@@ -206,6 +277,20 @@ export class CoachService {
       }),
       Promise.all(athleteIds.map((id) => this.form(user, id, now))),
     ]);
+    const thresholds = await this.prisma.coachMetricThreshold.findMany({
+      where: { coachUserId: user.userId, athleteId: { in: athleteIds } },
+      select: { athleteId: true, metricType: true, min: true, max: true },
+    });
+    const metrics = await this.latestMetrics(
+      athleteIds,
+      [
+        ...new Set<MetricType>([
+          ...(DASHBOARD_METRIC_TYPES as readonly MetricType[]),
+          ...thresholds.map((threshold) => threshold.metricType),
+        ]),
+      ],
+      now,
+    );
 
     // Build rows
     const rows: CoachDashboardAthleteRowDto[] = coachedAthletes.map(
@@ -229,18 +314,26 @@ export class CoachService {
         if (idleDays === null || idleDays >= INACTIVE_AFTER_DAYS) {
           alerts.push({ type: 'inactive', days: idleDays });
         }
-        const plannedCount =
-          plannedByAthlete.find((p) => p.athleteId === a.athleteId)?._count
-            ._all || 0;
-        const plannedTime = plannedTimeByAthlete[a.athleteId] || 0;
-        const completed = completedByAthlete[a.athleteId] || {
-          count: 0,
-          time: 0,
-          distance: 0,
-        };
+        const own = totals.get(a.athleteId) ?? EMPTY_TOTALS;
+        const latest = metrics.get(a.athleteId) ?? {};
+        for (const threshold of thresholds) {
+          if (threshold.athleteId !== a.athleteId) continue;
+          const reading = latest[threshold.metricType];
+          if (!reading) continue;
+          if (isOutsideThreshold(reading.value, threshold)) {
+            alerts.push({
+              type: 'threshold',
+              metricType: threshold.metricType,
+              value: reading.value,
+              min: threshold.min,
+              max: threshold.max,
+              date: reading.date,
+            });
+          }
+        }
         const compliance =
-          plannedCount > 0
-            ? Math.round((completed.count / plannedCount) * 100)
+          own.plannedSessions > 0
+            ? Math.round((own.completedSessions / own.plannedSessions) * 100)
             : 0;
         return {
           athleteId: a.athleteId,
@@ -249,17 +342,22 @@ export class CoachService {
           email: a.user?.email ?? null,
           start: start.toISOString(),
           end: end.toISOString(),
-          plannedSessions: plannedCount,
-          completedSessions: completed.count,
-          plannedTime: plannedTime,
-          completedTime: completed.time,
-          completedDistance: completed.distance,
+          plannedSessions: own.plannedSessions,
+          completedSessions: own.completedSessions,
+          plannedTime: own.plannedTime,
+          completedTime: own.completedTime,
+          completedDistance: own.completedDistance,
           lastActivityAt: lastActivity?.toISOString() ?? null,
           compliancePercent: compliance,
           form,
           alerts,
           unreadMessages:
             unread.find((u) => u.senderId === a.userId)?._count._all ?? 0,
+          averageRpe: own.averageRpe,
+          metrics: latest,
+          previous: previousTotals
+            ? pickTotals(previousTotals.get(a.athleteId) ?? EMPTY_TOTALS)
+            : null,
         };
       },
     );

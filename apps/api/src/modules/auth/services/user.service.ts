@@ -156,6 +156,7 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        coachDashboard: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
         supportReminderDismissCount: true,
@@ -444,6 +445,7 @@ export class UserService {
         timeZone: data.timeZone,
         trainingReminders: data.trainingReminders,
         calendarDisplay: data.calendarDisplay,
+        coachDashboard: data.coachDashboard,
         hiddenActivityTracks: data.hiddenActivityTracks,
         supportReminderDismissedAt: data.supportReminderDismissed
           ? new Date()
@@ -472,6 +474,7 @@ export class UserService {
         timeZone: true,
         trainingReminders: true,
         calendarDisplay: true,
+        coachDashboard: true,
         hiddenActivityTracks: true,
         supportReminderDismissedAt: true,
         supportReminderDismissCount: true,
