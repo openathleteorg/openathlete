@@ -31,6 +31,9 @@ model Event {
   /// Shared by the occurrences of a repeated session, to edit or delete
   /// one and the following ones together
   seriesId  String?   @map("series_id")
+  /// Shared by the sessions a coach planned for several athletes at once,
+  /// to undo the whole operation
+  batchId   String?   @map("batch_id")
 
   // relationships
   activityChatNotices ActivityChatNotice[]
@@ -52,6 +55,7 @@ model Event {
   /// Every calendar read asks for one athlete's events over a date range
   @@index([athleteId, startDate])
   @@index([seriesId])
+  @@index([batchId])
   @@map("event")
 }
 

@@ -43,6 +43,7 @@ import { CoachNoteService } from './services/coach-note.service';
 import { CoachService } from './services/coach.service';
 import { CustomExerciseService } from './services/custom-exercise.service';
 import { EquipmentService } from './services/equipment.service';
+import { EventBatchService } from './services/event-batch.service';
 import { EventBulkService } from './services/event-bulk.service';
 import { EventSeriesService } from './services/event-series.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
@@ -124,6 +125,7 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityFeedbackService,
     CalendarFeedService,
     EventBulkService,
+    EventBatchService,
     EventSeriesService,
     ManualActivityService,
     ActivityCorrectionsService,
