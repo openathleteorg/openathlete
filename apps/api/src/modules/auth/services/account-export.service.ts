@@ -261,6 +261,15 @@ export class AccountExportService {
         where: { userId },
         select: { group: groupName },
       }),
+      // Whether the user said they come to club sessions
+      sessionAnswers: await this.prisma.clubSessionAttendance.findMany({
+        where: { userId },
+        select: {
+          date: true,
+          going: true,
+          session: { select: { title: true } },
+        },
+      }),
       groupsIn: athleteId
         ? await this.prisma.athleteGroupMember.findMany({
             where: { athleteId },

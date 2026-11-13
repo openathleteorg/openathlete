@@ -116,6 +116,8 @@ model User {
   scheduledMessages         ScheduledMessage[]
   metricThresholds          CoachMetricThreshold[]
   clubInvitationsSent       ClubInvitation[]
+  clubSessionsCreated       ClubSession[]
+  clubSessionAttendance     ClubSessionAttendance[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

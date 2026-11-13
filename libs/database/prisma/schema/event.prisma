@@ -34,6 +34,10 @@ model Event {
   /// Shared by the sessions a coach planned for several athletes at once,
   /// to undo the whole operation
   batchId   String?   @map("batch_id")
+  /// The club session this occurrence comes from; the club creates and
+  /// removes these events
+  clubSession   ClubSession? @relation(fields: [clubSessionId], references: [clubSessionId], onDelete: SetNull)
+  clubSessionId Int?         @map("club_session_id")
 
   // relationships
   activityChatNotices ActivityChatNotice[]
@@ -56,6 +60,7 @@ model Event {
   @@index([athleteId, startDate])
   @@index([seriesId])
   @@index([batchId])
+  @@index([clubSessionId])
   @@map("event")
 }
 
@@ -356,6 +361,7 @@ model EventTemplate {
   /// gone gives each template back to its author.
   club     Club?                @relation(fields: [clubId], references: [clubId], onDelete: SetNull)
   clubId   Int?                 @map("club_id")
+  clubSessions ClubSession[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
