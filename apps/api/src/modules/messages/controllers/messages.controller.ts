@@ -5,8 +5,10 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   UseGuards,
@@ -25,21 +27,30 @@ import type {
   CreateMessageThreadDto,
   CreateMessageThreadMessageDto,
   MarkMessagesAsReadDto,
+  ScheduledMessageDto,
+  ScheduledMessageParamsDto,
+  SendBroadcastDto,
+  SendBroadcastResultDto,
   UpdateMessageThreadDto,
   UpdateMessageThreadMessageDto,
+  UpdateScheduledMessageDto,
 } from '@openathlete/shared';
 import {
   createMessageThreadDtoSchema,
   createMessageThreadMessageDtoSchema,
   markMessagesAsReadDtoSchema,
+  scheduledMessageParamsSchema,
+  sendBroadcastDtoSchema,
   updateMessageThreadDtoSchema,
   updateMessageThreadMessageDtoSchema,
+  updateScheduledMessageDtoSchema,
 } from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 
 import { MessagesGateway } from '../gateways/messages.gateway';
+import { MessageBroadcastService } from '../services/message-broadcast.service';
 import { MessageThreadService } from '../services/message-thread.service';
 import { MessageService } from '../services/message.service';
 
@@ -50,6 +61,7 @@ export class MessagesController {
     private threadService: MessageThreadService,
     private messageService: MessageService,
     private messagesGateway: MessagesGateway,
+    private readonly broadcasts: MessageBroadcastService,
   ) {}
 
   // ==================== Thread Routes ====================
@@ -415,6 +427,70 @@ export class MessagesController {
   }
 
   // ==================== Message Routes ====================
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('broadcast')
+  @ApiOperation({
+    summary: 'Write one message to several people, now or later',
+    description:
+      "Recipients must be the sender's athletes or coaches (403 otherwise). INDIVIDUAL (default): each gets it in their private conversation with the sender. GROUP: one conversation for all, where they see each other's names. With sendAt in the future, the message waits and is sent then to those still coached by then.",
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'The conversations, or the scheduled message',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Some recipients are not linked to the sender',
+  })
+  sendBroadcast(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(sendBroadcastDtoSchema)) dto: SendBroadcastDto,
+  ): Promise<SendBroadcastResultDto> {
+    return this.broadcasts.send(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('scheduled')
+  @ApiOperation({ summary: 'List my messages waiting to be sent' })
+  @ApiResponse({ status: 200, description: 'Pending messages, soonest first' })
+  listScheduled(@JwtUser() user: AuthUser): Promise<ScheduledMessageDto[]> {
+    return this.broadcasts.listScheduled(user);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Patch('scheduled/:scheduledMessageId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Change the text or the time of a waiting message' })
+  @ApiResponse({ status: 204, description: 'Changed' })
+  @ApiResponse({ status: 404, description: 'Not found, or already sent' })
+  async updateScheduled(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(scheduledMessageParamsSchema))
+    params: ScheduledMessageParamsDto,
+    @Body(new ZodValidationPipe(updateScheduledMessageDtoSchema))
+    dto: UpdateScheduledMessageDto,
+  ): Promise<void> {
+    await this.broadcasts.updateScheduled(user, params.scheduledMessageId, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Delete('scheduled/:scheduledMessageId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Cancel a waiting message' })
+  @ApiResponse({ status: 204, description: 'Canceled' })
+  @ApiResponse({ status: 404, description: 'Not found, or already sent' })
+  async cancelScheduled(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(scheduledMessageParamsSchema))
+    params: ScheduledMessageParamsDto,
+  ): Promise<void> {
+    await this.broadcasts.cancelScheduled(user, params.scheduledMessageId);
+  }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()

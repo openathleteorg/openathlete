@@ -111,6 +111,7 @@ model User {
   clubMemberships           ClubMember[]
   ownedAthleteGroups        AthleteGroup[]
   athleteGroupStaff         AthleteGroupStaff[]
+  scheduledMessages         ScheduledMessage[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

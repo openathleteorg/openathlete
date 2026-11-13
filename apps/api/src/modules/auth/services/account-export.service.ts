@@ -81,6 +81,23 @@ export class AccountExportService {
     write('clubs', await this.clubs(userId, athleteId));
     write('templates', await this.templates(userId));
     write('messages', await this.messages(userId));
+    // Messages the user wrote to send later
+    write(
+      'scheduledMessages',
+      await this.prisma.scheduledMessage.findMany({
+        where: { senderId: userId },
+        select: {
+          content: true,
+          mode: true,
+          title: true,
+          sendAt: true,
+          status: true,
+          sentAt: true,
+          createdAt: true,
+        },
+        orderBy: { scheduledMessageId: 'asc' },
+      }),
+    );
     write(
       'activityAlertSettings',
       await this.prisma.coachActivityAlertSettings.findMany({

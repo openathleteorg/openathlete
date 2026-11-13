@@ -53,6 +53,7 @@ const EXPORTED_TABLES = [
   'message',
   'provider_account',
   'record',
+  'scheduled_message',
   'subscription',
   'training_load_calculation',
   'training_plan',
