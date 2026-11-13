@@ -11,7 +11,11 @@ import { join, resolve } from 'node:path';
 
 import type { Browser, BrowserContext, Page } from '@playwright/test';
 
-import { CAMILLE_EMAIL, COACH_EMAIL, PASSWORD } from './lib/accounts';
+import { CAMILLE_EMAIL, COACH_EMAIL, DOMAIN, PASSWORD } from './lib/accounts';
+import { CLUB_NAME } from './lib/club';
+
+/** A member of the club's marathon group, for the athlete's side of club sessions */
+const MEMBER_EMAIL = `thomas.bernard@${DOMAIN}`;
 
 const WEB = process.env.SCREENSHOTS_WEB_URL ?? 'http://localhost:5180';
 const API = process.env.SCREENSHOTS_API_URL ?? 'http://localhost:3010';
@@ -28,7 +32,7 @@ interface Tokens {
   refreshToken: string;
 }
 
-type Who = 'athlete' | 'coach';
+type Who = 'athlete' | 'coach' | 'member';
 type Device = 'desktop' | 'mobile';
 
 interface Shot {
@@ -46,6 +50,8 @@ interface Shot {
 
 interface Ids {
   camilleAthleteId: number;
+  clubId: number;
+  memberAthleteId: number;
   activity: Record<string, number>;
   training: Record<string, number>;
 }
@@ -73,7 +79,9 @@ interface EventRow {
   startDate: string;
 }
 
-async function findIds(athlete: Tokens): Promise<Ids> {
+async function findIds(athlete: Tokens, coach: Tokens, member: Tokens): Promise<Ids> {
+  const clubs = await api<{ clubId: number; name: string }[]>(coach, '/club');
+  const memberMe = await api<{ athleteId: number }>(member, '/athlete/me');
   const day = (offset: number) => new Date(Date.now() + offset * 86_400_000).toISOString().slice(0, 10);
   const events = await api<EventRow[]>(athlete, `/event?startDate=${day(-120)}&endDate=${day(35)}`);
   const me = await api<{ athleteId: number }>(athlete, '/athlete/me');
@@ -90,6 +98,8 @@ async function findIds(athlete: Tokens): Promise<Ids> {
   );
   return {
     camilleAthleteId: me.athleteId,
+    clubId: clubs.find((c) => c.name === CLUB_NAME)?.clubId ?? 0,
+    memberAthleteId: memberMe.athleteId,
     activity: {
       strength: latest((e) => e.type === 'ACTIVITY' && e.name === 'Strength'),
       longTrail: latest((e) => e.type === 'ACTIVITY' && e.name === 'Quintal Trail Running'),
@@ -298,7 +308,174 @@ const statisticsPeriod = (label: string) => async (page: Page) => {
   await page.getByRole('option', { name: label }).click();
 };
 
+/** Scrolls the first element matching the selector near the top of its scroller. */
+const scrollToSelector = (selector: string, offset = 24) => async (page: Page) => {
+  await page.locator(selector).first().evaluate((el, off) => {
+    el.scrollIntoView({ block: 'start' });
+    let scroller: Element | null = el.parentElement;
+    while (scroller && scroller !== document.body) {
+      const { overflowY } = getComputedStyle(scroller);
+      if (/(auto|scroll)/.test(overflowY) && scroller.scrollHeight > scroller.clientHeight) break;
+      scroller = scroller.parentElement;
+    }
+    if (scroller && scroller !== document.body) scroller.scrollBy(0, -off);
+    else window.scrollBy(0, -off);
+  }, offset);
+};
+
+const clubPage = (ids: Ids) => `/dashboard/settings?tab=clubs&club=${ids.clubId}`;
+const group = (name: string) => `+ ${CLUB_NAME} · ${name}`;
+
+const MEMBER_LIST = [
+  'First name;Last name;Email;Group',
+  'Mathis;Chevallier;mathis.chevallier@example.com;Beginners · 10 km',
+  'Anaïs;Lemoine;anais.lemoine@example.com;Beginners · 10 km',
+  'Quentin;Barbier;quentin.barbier@example.com;Trail',
+  'Océane;Renaud;oceane.renaud@example.com;Road · Marathon',
+  'Hélène;Marchand;helene.marchand@example.com;Triathlon',
+  'Yanis;Brunet;yanis.brunet@example.com;Beginners · 10 km',
+].join('\n');
+
+const openNewClubSession = async (page: Page) => {
+  await page.locator('[data-club-session-new]').click();
+  const dialog = page.locator('[data-club-session-dialog]');
+  await dialog.getByLabel('Name').fill('Hill repeats at Semnoz');
+  await dialog.getByLabel('Place').fill('Crêt de Châtillon car park');
+  await dialog.getByLabel('Until (optional)').fill('2027-03-30');
+  await dialog.getByLabel('Notes for the athletes').fill('Headlamp from November. We go up together, everyone comes down at their own pace.');
+  await page.waitForTimeout(600);
+};
+
+const openImport = async (page: Page) => {
+  await page.locator('[data-club-import-button]').click();
+  await page.locator('[data-club-import] textarea').fill(MEMBER_LIST);
+  await page.waitForTimeout(800);
+};
+
+/** The coach copies Thomas's club week to the trail group, then reviews it */
+const planForGroup = async (page: Page) => {
+  await page.getByRole('tab', { name: 'Week' }).click().catch(() => undefined);
+  await page.waitForTimeout(1200);
+  // Three weeks ahead the week holds the club's sessions alone: the copies
+  // land on free days, as a coach planning ahead would see them
+  const next = page.getByRole('button', { name: 'Next week' });
+  if (await next.isVisible()) {
+    for (let week = 0; week < 3; week++) {
+      await next.click();
+      await page.waitForTimeout(800);
+    }
+    await page.locator('[data-week-actions]').first().click();
+  } else {
+    // The phone lists the weeks: the furthest one shown
+    await page.locator('[data-week-actions]').last().click();
+  }
+  await page.getByRole('menuitem', { name: 'Copy to other athletes' }).click();
+  const dialog = page.locator('[data-plan-for-athletes]');
+  await dialog.getByRole('button', { name: group('Trail') }).click();
+  await page.waitForTimeout(400);
+  await dialog.getByRole('button', { name: 'Review' }).click();
+  await page.waitForTimeout(1200);
+};
+
+/** A Wednesday three weeks ahead, free in every calendar, as YYYY-MM-DD */
+function wednesdayAhead(): string {
+  const day = new Date();
+  day.setDate(day.getDate() + 21 + ((3 - day.getDay() + 7) % 7));
+  return day.toLocaleDateString('en-CA');
+}
+
+/** A library session planned for a group from the library itself */
+const planTemplateForGroup = (template: string, groupName: string) => async (page: Page) => {
+  // On a touch screen the item's buttons show without hover
+  await page
+    .locator('.group', { has: page.getByText(template, { exact: true }) })
+    .locator('[data-template-plan-for-athletes]')
+    .first()
+    .click();
+  const dialog = page.locator('[data-plan-for-athletes]');
+  await dialog.locator('input[type="date"]').fill(wednesdayAhead());
+  await dialog.getByRole('button', { name: group(groupName) }).click();
+  await page.waitForTimeout(400);
+  await dialog.getByRole('button', { name: 'Review' }).click();
+  await page.waitForTimeout(1200);
+};
+
+const writeToGroup = async (page: Page) => {
+  await page.locator('[data-broadcast-button]').first().click();
+  const dialog = page.locator('[data-broadcast-dialog]');
+  await dialog.getByRole('button', { name: group('Trail') }).click();
+  await dialog.getByLabel('Message').fill(
+    'Snow is forecast on the Semnoz on Thursday: we run the hills from the Col de Leschaux instead. Same time, headlamps on.',
+  );
+  // Back to the top of the dialog, where its title is
+  await dialog.evaluate((el) => {
+    for (const node of [el, ...Array.from(el.querySelectorAll('*'))]) node.scrollTop = 0;
+  });
+  await page.waitForTimeout(600);
+};
+
+/** The template library, switched to the club's */
+const openClubLibrary = async (page: Page) => {
+  await page.locator('[data-library-switch]').click();
+  await page.getByRole('option', { name: `${CLUB_NAME} library` }).click();
+  await page.waitForTimeout(800);
+};
+
 export const SHOTS: Shot[] = [
+  // Clubs, coach side
+  { name: 'desktop-club', who: 'coach', path: clubPage },
+  { name: 'desktop-club-sessions', who: 'coach', path: clubPage, prepare: scrollToSelector('[data-club-session]', 120) },
+  { name: 'desktop-club-session-new', who: 'coach', path: clubPage, prepare: steps(scrollToSelector('[data-club-session]', 120), openNewClubSession) },
+  { name: 'desktop-club-join', who: 'coach', path: clubPage, prepare: scrollToSelector('[data-club-join-link]', 160) },
+  { name: 'desktop-club-import', who: 'coach', path: clubPage, prepare: steps(scrollToSelector('[data-club-invitations]', 160), openImport) },
+  { name: 'desktop-plan-for-group', who: 'coach', path: (ids) => `/dashboard/calendar/${ids.memberAthleteId}?view=week`, prepare: planForGroup },
+  { name: 'desktop-broadcast', who: 'coach', path: '/dashboard/messages', prepare: writeToGroup },
+  {
+    name: 'desktop-coach-alerts',
+    who: 'coach',
+    path: '/dashboard/coach',
+    prepare: async (p) => p.getByRole('button', { name: 'Alerts' }).click(),
+  },
+  {
+    name: 'desktop-club-library',
+    who: 'coach',
+    path: (ids) => `/dashboard/calendar/${ids.memberAthleteId}?view=week`,
+    prepare: steps(calendarView('Week'), async (p) => p.getByRole('button', { name: /Template Library/i }).click(), openClubLibrary),
+  },
+  { name: 'desktop-club-session-athlete', who: 'member', path: '/dashboard/calendar', prepare: openUpcoming('Sunday long run') },
+  // Clubs, on a phone
+  { name: 'mobile-club', who: 'coach', device: 'mobile', path: clubPage },
+  { name: 'mobile-club-sessions', who: 'coach', device: 'mobile', path: clubPage, prepare: scrollToSelector('[data-club-session]', 140 + 59) },
+  { name: 'mobile-club-session-new', who: 'coach', device: 'mobile', path: clubPage, prepare: steps(scrollToSelector('[data-club-session]', 140 + 59), openNewClubSession) },
+  { name: 'mobile-club-join', who: 'coach', device: 'mobile', path: clubPage, prepare: scrollToSelector('[data-club-join-link]', 160 + 59) },
+  { name: 'mobile-club-import', who: 'coach', device: 'mobile', path: clubPage, prepare: steps(scrollToSelector('[data-club-invitations]', 160 + 59), openImport) },
+  {
+    name: 'mobile-plan-for-group',
+    who: 'coach',
+    device: 'mobile',
+    path: '/dashboard/calendar',
+    prepare: steps(
+      async (p) => p.locator('[data-calendar-options]').click(),
+      async (p) => p.locator('[data-calendar-template-library]').click(),
+      openClubLibrary,
+      planTemplateForGroup("Hill repeats 10 × 1'30", 'Trail'),
+    ),
+  },
+  { name: 'mobile-broadcast', who: 'coach', device: 'mobile', path: '/dashboard/messages', prepare: writeToGroup },
+  { name: 'mobile-coach-alerts', who: 'coach', device: 'mobile', path: '/dashboard/coach', prepare: async (p) => p.getByRole('button', { name: 'Alerts' }).click() },
+  {
+    name: 'mobile-club-library',
+    who: 'coach',
+    device: 'mobile',
+    path: '/dashboard/calendar',
+    prepare: steps(
+      async (p) => p.locator('[data-calendar-options]').click(),
+      async (p) => p.locator('[data-calendar-template-library]').click(),
+      openClubLibrary,
+    ),
+  },
+  { name: 'mobile-club-session-athlete', who: 'member', device: 'mobile', path: '/dashboard/calendar', prepare: openUpcoming('Sunday long run') },
+
   // Athlete, desktop
   { name: 'desktop-calendar-month', who: 'athlete', path: '/dashboard/calendar', prepare: calendarView('Month') },
   {
@@ -545,10 +722,12 @@ export const SHOTS: Shot[] = [
 
 async function main() {
   mkdirSync(OUT, { recursive: true });
-  const tokens = { athlete: await login(CAMILLE_EMAIL), coach: await login(COACH_EMAIL) };
-  const ids = await findIds(tokens.athlete);
+  const tokens = { athlete: await login(CAMILLE_EMAIL), coach: await login(COACH_EMAIL), member: await login(MEMBER_EMAIL) };
+  const ids = await findIds(tokens.athlete, tokens.coach, tokens.member);
   console.log('ids', JSON.stringify(ids)); // eslint-disable-line no-console
-  const browser = await chromium.launch();
+  // Native date and time inputs follow the browser's language, not the
+  // page's: the headless shell ignores it, full Chromium takes it
+  const browser = await chromium.launch({ channel: 'chromium', args: ['--lang=en-GB'] });
   try {
     for (const shot of SHOTS.filter((s) => !ONLY || ONLY.includes(s.name))) {
       // Scrolling to a section sometimes races the page's own layout: retry once

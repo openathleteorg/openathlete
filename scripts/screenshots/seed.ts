@@ -15,6 +15,9 @@ import { join } from 'node:path';
 import type { ConnectorProvider, Prisma, PrismaClient, SportType } from '../../libs/database/generated/client';
 
 import { CAMILLE_EMAIL, COACH_EMAIL, DOMAIN, PASSWORD } from './lib/accounts';
+import {
+  CLUB_DESCRIPTION, CLUB_MEMBERS, CLUB_NAME, GROUPS, GroupKey, PENDING_CLUB_INVITATIONS, ROSTER_GROUPS, STAFF,
+} from './lib/club';
 import { addDays, at, daysBetween, mondayOf, today as getToday, TIME_ZONE } from './lib/dates';
 import { hashSeed, Random } from './lib/random';
 import { PENDING_INVITE, ROSTER, RosterAthlete } from './lib/roster';
@@ -666,10 +669,11 @@ async function seedRosterAthlete(
   spec: RosterAthlete,
   index: number,
   today: Date,
-  coachUserId: number,
+  /** Null for a club member the coach reaches only through the club */
+  coachUserId: number | null,
   passwordHash: string,
   queueIds: { eventActivityId: number; eventId: number }[],
-) {
+): Promise<{ userId: number; athleteId: number }> {
   const rng = new Random(hashSeed(spec.lastName));
   const { user, athleteId } = await createAccount(
     db,
@@ -677,7 +681,9 @@ async function seedRosterAthlete(
     passwordHash,
     today,
   );
-  await db.coachAthlete.create({ data: { userId: coachUserId, athleteId, createdAt: addDays(today, -100 - index * 17) } });
+  if (coachUserId) {
+    await db.coachAthlete.create({ data: { userId: coachUserId, athleteId, createdAt: addDays(today, -100 - index * 17) } });
+  }
   const zoneIds = await createHrZones(db, athleteId, spec.hrRest, spec.hrMax);
   await db.providerAccount.create({
     data: {
@@ -750,7 +756,7 @@ async function seedRosterAthlete(
       data: { athleteId, ...spec.injury, status: 'IMPROVING', createdAt: addDays(today, -6), updatedAt: addDays(today, -1) },
     });
   }
-  if (spec.unread) {
+  if (spec.unread && coachUserId) {
     // Titles as the API writes them: participants by user id, or the activity
     const thread = await db.messageThread.create({
       data: { title: `Julien Moreau, ${spec.firstName} ${spec.lastName}`, participants: { create: [{ userId: user.userId, lastReadAt: today }, { userId: coachUserId, lastReadAt: addDays(today, -3) }] } },
@@ -760,6 +766,7 @@ async function seedRosterAthlete(
     });
   }
   await db.subscription.create({ data: { userId: user.userId, plan: 'FREE', status: 'active' } });
+  return { userId: user.userId, athleteId };
 }
 
 function rosterSession(sport: SportType, long: boolean, rng: Random): Session {
@@ -945,6 +952,283 @@ async function seedSupporter(db: Db, userId: number, interval: 'month' | 'year',
   });
 }
 
+// ---------------------------------------------------------------------------
+// The club
+// ---------------------------------------------------------------------------
+
+const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+/** The club's coaching links, as the API's syncClubAccess makes them */
+async function linkClubStaff(db: Db, clubId: number) {
+  const members = await db.clubMember.findMany({ where: { clubId }, include: { user: { include: { athlete: true } } } });
+  const athletes = members.filter((m) => m.role === 'ATHLETE' && m.user.athlete).map((m) => ({ userId: m.userId, athleteId: m.user.athlete!.athleteId }));
+  const groups = await db.athleteGroup.findMany({ where: { clubId }, include: { members: true, staff: true } });
+  const pairs: { userId: number; athleteId: number }[] = [];
+  for (const staff of members) {
+    if (['OWNER', 'ADMIN', 'COACH'].includes(staff.role)) {
+      for (const a of athletes) if (a.userId !== staff.userId) pairs.push({ userId: staff.userId, athleteId: a.athleteId });
+    } else if (staff.role === 'ASSISTANT') {
+      for (const group of groups.filter((g) => g.staff.some((s) => s.userId === staff.userId))) {
+        for (const m of group.members) pairs.push({ userId: staff.userId, athleteId: m.athleteId });
+      }
+    }
+  }
+  for (const pair of pairs) {
+    // A link the coach and athlete made themselves stays theirs
+    const existing = await db.coachAthlete.findFirst({ where: pair });
+    if (!existing) await db.coachAthlete.create({ data: { ...pair, clubId } });
+  }
+}
+
+async function createClubTemplate(db: Db, userId: number, clubId: number, folderId: number, session: Session, zoneIds: number[], today: Date) {
+  const goals = sessionGoals(session);
+  const structured = !session.unstructured && session.items.length > 0;
+  const template = await db.eventTemplate.create({
+    data: {
+      user: { connect: { userId } },
+      club: { connect: { clubId } },
+      folder: { connect: { eventTemplateFolderId: folderId } },
+      event: {
+        create: {
+          type: 'TRAINING', name: session.name, startDate: at(today, 9), endDate: at(today, 10),
+          training: {
+            create: {
+              sport: session.sport, description: session.description, goalDistance: goals.distance,
+              goalDuration: goals.duration || 2700, goalRpe: session.goalRpe,
+              workout: structured ? { create: workoutCreate(session, zoneIds) } : undefined,
+            },
+          },
+        },
+      },
+    },
+  });
+  return template.eventTemplateId;
+}
+
+interface ClubSessionSpec {
+  title: string;
+  location: string;
+  notes?: string;
+  /** 0 = Monday */
+  weekday: number;
+  startTime: string;
+  durationMinutes: number;
+  group: GroupKey | null;
+  createdBy: number;
+  template?: { id: number; session: Session };
+  /** Called-off dates, in days from today's week */
+  canceledWeek?: number;
+}
+
+async function seedClub(
+  db: Db,
+  today: Date,
+  passwordHash: string,
+  ownerUserId: number,
+  camille: { userId: number; athleteId: number },
+  members: { userId: number; athleteId: number; group: GroupKey }[],
+) {
+  const rng = new Random(hashSeed('club'));
+  const staffIds: Record<string, number> = { julien: ownerUserId };
+  for (const [i, spec] of STAFF.entries()) {
+    const { user, athleteId } = await createAccount(
+      db,
+      { firstName: spec.firstName, lastName: spec.lastName, gender: spec.gender, roles: ['ATHLETE', 'COACH'], createdDaysAgo: 400 - i * 90 },
+      passwordHash,
+      today,
+    );
+    await createHrZones(db, athleteId, 50, 186);
+    staffIds[spec.firstName.toLowerCase()] = user.userId;
+  }
+
+  const code = Array.from({ length: 8 }, (_, i) => CODE_ALPHABET[hashSeed(`code${i}`) % CODE_ALPHABET.length]).join('');
+  const club = await db.club.create({
+    data: {
+      name: CLUB_NAME,
+      description: CLUB_DESCRIPTION,
+      athleteJoinToken: randomBytes(16).toString('base64url'),
+      staffJoinToken: randomBytes(16).toString('base64url'),
+      athleteJoinCode: code,
+      athleteJoinExpiresAt: at(addDays(today, 30), 23, 59),
+      createdAt: addDays(today, -95),
+    },
+  });
+  const clubId = club.clubId;
+  await db.clubMember.createMany({
+    data: [
+      { clubId, userId: ownerUserId, role: 'OWNER', createdAt: addDays(today, -95) },
+      { clubId, userId: staffIds.claire, role: 'ADMIN', createdAt: addDays(today, -94) },
+      { clubId, userId: staffIds.romain, role: 'ASSISTANT', createdAt: addDays(today, -60) },
+      { clubId, userId: camille.userId, role: 'ATHLETE', createdAt: addDays(today, -90) },
+      ...members.map((m, i) => ({ clubId, userId: m.userId, role: 'ATHLETE' as const, createdAt: addDays(today, -88 + i) })),
+    ],
+  });
+
+  const groupIds = {} as Record<GroupKey, number>;
+  for (const spec of GROUPS) {
+    const group = await db.athleteGroup.create({
+      data: {
+        clubId, name: spec.name,
+        members: { create: members.filter((m) => m.group === spec.key).map((m) => ({ athleteId: m.athleteId })) },
+        staff: { create: spec.staff.map((who) => ({ userId: staffIds[who] })) },
+      },
+    });
+    groupIds[spec.key] = group.athleteGroupId;
+  }
+  await db.club.update({ where: { clubId }, data: { athleteJoinGroupId: groupIds.beginners } });
+  await linkClubStaff(db, clubId);
+
+  // The shared library
+  const ownerZones = (await db.trainingZone.findMany({ where: { athlete: { userId: ownerUserId } }, orderBy: { index: 'asc' } })).map((z) => z.trainingZoneId);
+  const folder = (name: string, color: string, description: string) =>
+    db.eventTemplateFolder.create({ data: { userId: ownerUserId, clubId, name, color, description } });
+  const track = await folder('Track Tuesday', '#ef4444', 'The Tuesday sessions at the stadium');
+  const long = await folder('Long runs', '#22c55e', 'Sunday long runs from the Pâquier');
+  const trail = await folder('Trail', '#16a34a', 'Thursday hills and mountain runs');
+  const beginners = await folder('Beginners', '#0ea5e9', 'From the first 5 km to the first 10 km');
+  const library: [Session, number][] = [
+    [sessions.intervals400(12), track.eventTemplateFolderId],
+    [sessions.intervals1000(6), track.eventTemplateFolderId],
+    [sessions.threshold(5), track.eventTemplateFolderId],
+    [sessions.longRun(22, 0), long.eventTemplateFolderId],
+    [sessions.longRun(28, 8), long.eventTemplateFolderId],
+    [sessions.hills(10), trail.eventTemplateFolderId],
+    [sessions.trailLong('semnoz', 18, 1100, 'Semnoz hills'), trail.eventTemplateFolderId],
+    [sessions.easy(6), beginners.eventTemplateFolderId],
+    [sessions.recovery(35), beginners.eventTemplateFolderId],
+  ];
+  const templates: { id: number; session: Session }[] = [];
+  for (const [session, folderId] of library) {
+    templates.push({ id: await createClubTemplate(db, ownerUserId, clubId, folderId, session, ownerZones, today), session });
+  }
+
+  // Weekly club sessions, four weeks ahead in each calendar
+  const specs: ClubSessionSpec[] = [
+    {
+      title: 'Track Tuesday', location: 'Stade des Marquisats', weekday: 1, startTime: '19:00', durationMinutes: 90,
+      group: 'marathon', createdBy: ownerUserId, template: templates[0],
+    },
+    {
+      title: 'Thursday hills', location: 'Semnoz, Crêt de Châtillon car park', weekday: 3, startTime: '18:30', durationMinutes: 75,
+      group: 'trail', createdBy: staffIds.claire, template: templates[5], canceledWeek: 1,
+      notes: 'Headlamp from November.',
+    },
+    {
+      title: 'Saturday brick', location: 'Plage d’Albigny', weekday: 5, startTime: '08:30', durationMinutes: 120,
+      group: 'triathlon', createdBy: staffIds.claire,
+      notes: '1 h 20 on the bike around the lake, then 20 minutes of running off the bike. Bring a pump.',
+    },
+    {
+      title: 'Beginners: run & walk', location: 'Pâquier, by the Pont des Amours', weekday: 5, startTime: '10:00', durationMinutes: 60,
+      group: 'beginners', createdBy: staffIds.romain, template: templates[7],
+    },
+    {
+      title: 'Sunday long run', location: 'Pâquier, by the Pont des Amours', weekday: 6, startTime: '09:00', durationMinutes: 120,
+      group: 'marathon', createdBy: ownerUserId, template: templates[3],
+    },
+  ];
+  const firstMonday = addDays(mondayOf(today), -56);
+  for (const spec of specs) {
+    const firstDate = addDays(firstMonday, spec.weekday);
+    const canceled = spec.canceledWeek === undefined ? [] : [addDays(mondayOf(today), 7 * spec.canceledWeek + spec.weekday)];
+    const session = await db.clubSession.create({
+      data: {
+        clubId, title: spec.title, location: spec.location, notes: spec.notes ?? null, firstDate, weekly: true,
+        startTime: spec.startTime, durationMinutes: spec.durationMinutes, timeZone: TIME_ZONE, canceledDates: canceled,
+        groupId: spec.group ? groupIds[spec.group] : null, templateId: spec.template?.id ?? null,
+        createdById: spec.createdBy, createdAt: addDays(firstDate, -3),
+      },
+    });
+    const recipients = members.filter((m) => !spec.group || m.group === spec.group);
+    const [hour, minute] = spec.startTime.split(':').map(Number);
+    let occurrence = 0;
+    for (let day = firstDate; day <= addDays(today, 28); day = addDays(day, 7)) {
+      if (day < today || canceled.some((c) => c.getTime() === day.getTime())) continue;
+      const start = at(day, hour, minute);
+      const end = new Date(start.getTime() + spec.durationMinutes * 60_000);
+      for (const athlete of recipients) {
+        const event = spec.template
+          ? await createPlannedSession(
+              db, athlete.athleteId, spec.template.session, start,
+              (await db.trainingZone.findMany({ where: { athleteId: athlete.athleteId }, orderBy: { index: 'asc' } })).map((z) => z.trainingZoneId),
+              null, { name: spec.title },
+            )
+          : (await db.event.create({
+              data: {
+                athleteId: athlete.athleteId, type: 'NOTE', name: spec.title, startDate: start, endDate: end,
+                note: { create: { description: spec.notes ?? '' } },
+              },
+            })).eventId;
+        await db.event.update({ where: { eventId: event }, data: { clubSessionId: session.clubSessionId, endDate: end } });
+        // Most answer for the next two dates, a few say no
+        if (occurrence < 2 && rng.chance(occurrence === 0 ? 0.8 : 0.45)) {
+          await db.clubSessionAttendance.create({
+            data: { clubSessionId: session.clubSessionId, date: day, userId: athlete.userId, going: rng.chance(0.85) },
+          });
+        }
+      }
+      occurrence++;
+    }
+  }
+
+  // Invitations sent from the imported member list, still waiting
+  for (const invite of PENDING_CLUB_INVITATIONS) {
+    await db.clubInvitation.create({
+      data: {
+        clubId, email: emailOf(invite).replace(`@${DOMAIN}`, '@example.com'), firstName: invite.firstName, lastName: invite.lastName,
+        role: 'ATHLETE', token: randomBytes(16).toString('base64url'), groupId: groupIds[invite.group], invitedById: ownerUserId,
+        sentAt: addDays(today, -invite.daysAgo), createdAt: addDays(today, -invite.daysAgo),
+      },
+    });
+  }
+
+  // A message to the beginners, written for tomorrow evening
+  const beginnerUsers = members.filter((m) => m.group === 'beginners').map((m) => m.userId);
+  await db.scheduledMessage.create({
+    data: {
+      senderId: staffIds.romain, mode: 'GROUP', title: `${CLUB_NAME} · Beginners`, recipientUserIds: beginnerUsers,
+      content: 'Saturday is our first 5 km together without walking breaks. Easy pace, we wait for everyone at the bridge. Bring a jacket for after!',
+      sendAt: at(addDays(today, 1), 18, 0),
+    },
+  });
+
+  // The trail group's conversation, started from a group message
+  const trailUsers = members.filter((m) => m.group === 'trail').map((m) => m.userId);
+  const thread = await db.messageThread.create({
+    data: {
+      title: `${CLUB_NAME} · Trail`,
+      participants: { create: [staffIds.claire, ownerUserId, ...trailUsers].map((userId) => ({ userId, lastReadAt: at(today, 9) })) },
+    },
+  });
+  const trailMessages: [number, number, number, string][] = [
+    [-2, 20, 5, 'Thursday hills are on, but the car park at Crêt de Châtillon is icy: we meet at the lower one, Col de Leschaux side.'],
+    [-2, 20, 41, 'Thanks Claire! Can I bring a friend who wants to try?'],
+    [-2, 21, 3, 'Of course, send her the club code so she gets the session in her calendar.'],
+  ];
+  for (const [i, [offset, h, m, content]] of trailMessages.entries()) {
+    await db.message.create({
+      data: {
+        messageThreadId: thread.messageThreadId, content, createdAt: at(addDays(today, offset), h, m),
+        senderId: i === 1 ? trailUsers[0] : staffIds.claire,
+      },
+    });
+  }
+
+  // Alerts Julien set: low heart rate variability, high resting heart rate
+  const alertOn = [...members.filter((m) => m.group === 'marathon' || m.group === 'triathlon').slice(0, 10)];
+  await db.coachMetricThreshold.createMany({
+    data: alertOn.map((m) => ({ coachUserId: ownerUserId, athleteId: m.athleteId, metricType: 'HRV_LAST_NIGHT_AVG' as const, min: 48 })),
+  });
+  // Two of them under it this morning
+  for (const m of alertOn.slice(1, 3)) {
+    await db.athleteMetric.upsert({
+      where: { athleteId_type_date: { athleteId: m.athleteId, type: 'HRV_LAST_NIGHT_AVG', date: today } },
+      update: { value: 39 + rng.int(0, 5) },
+      create: { athleteId: m.athleteId, type: 'HRV_LAST_NIGHT_AVG', value: 39 + rng.int(0, 5), date: today },
+    });
+  }
+}
+
 /**
  * Waits until the API processed the activities: each one with a heart rate
  * has its training load. A queue that looks empty is not enough, the last
@@ -975,7 +1259,7 @@ async function waitForProcessing(db: Db, log: (msg: string) => void) {
 async function main() {
   const today = getToday();
   const { prisma: db } = (await import('../../libs/database/client')) as { prisma: Db };
-  const seedEmails = [CAMILLE_EMAIL, COACH_EMAIL, ...ROSTER.map(emailOf)];
+  const seedEmails = [CAMILLE_EMAIL, COACH_EMAIL, ...ROSTER.map(emailOf), ...STAFF.map(emailOf), ...CLUB_MEMBERS.map(emailOf)];
   await reset(db, seedEmails);
 
   const passwordHash = await argon2.hash(PASSWORD, { secret: Buffer.from(PEPPER) });
@@ -1006,9 +1290,19 @@ async function main() {
   log(`Camille: ${camille.activities.length} activities`);
 
   const rosterActivities: { eventActivityId: number; eventId: number }[] = [];
+  const rosterIds: Record<string, { userId: number; athleteId: number }> = {};
   for (const [i, spec] of ROSTER.entries()) {
-    await seedRosterAthlete(db, spec, i, today, coach.user.userId, passwordHash, rosterActivities);
+    rosterIds[spec.lastName] = await seedRosterAthlete(db, spec, i, today, coach.user.userId, passwordHash, rosterActivities);
   }
+  // The club: Julien's athletes and members he reaches through it
+  const members: { userId: number; athleteId: number; group: GroupKey }[] = [];
+  for (const [i, spec] of CLUB_MEMBERS.entries()) {
+    const ids = await seedRosterAthlete(db, spec, ROSTER.length + i, today, null, passwordHash, rosterActivities);
+    members.push({ ...ids, group: spec.group });
+  }
+  for (const [lastName, group] of Object.entries(ROSTER_GROUPS)) members.push({ ...rosterIds[lastName], group });
+  await seedClub(db, today, passwordHash, coach.user.userId, { userId: camille.userId, athleteId: camille.athleteId }, members);
+  log(`club: ${members.length + 1} athletes`);
   await db.athleteInvitation.create({ data: { email: PENDING_INVITE.email, userId: coach.user.userId, status: null, token: randomBytes(16).toString('hex') } });
   log(`roster: ${ROSTER.length} athletes, ${rosterActivities.length} activities`);
 
