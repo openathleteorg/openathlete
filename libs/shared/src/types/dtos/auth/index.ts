@@ -12,3 +12,4 @@ export * from './password';
 export * from './oidc-login.dto';
 export * from './person-name';
 export * from './signup-attribution.dto';
+export * from './coach-join-link.dto';

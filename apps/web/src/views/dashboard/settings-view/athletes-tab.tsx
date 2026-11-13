@@ -5,6 +5,7 @@ import {
   useInviteAthleteMutation,
   useRemoveAthleteMutation,
 } from '@/api/athlete';
+import { CoachJoinLinkCard } from '@/components/coach-join-link';
 import { ConfirmAction } from '@/components/confirm-action';
 import { InviteAthleteDialog } from '@/components/invite-athlete-dialog/invite-athlete.dialog';
 import { ActivityAlertSettings } from '@/components/messages/activity-alert-settings';
@@ -172,6 +173,14 @@ export function AthletesTab() {
             ))}
           </SettingsPanel>
         )}
+      </SettingsSection>
+      <SettingsSection
+        title={m.join_link_title()}
+        description={m.join_link_description()}
+      >
+        <SettingsPanel padded className="divide-y-0">
+          <CoachJoinLinkCard framed={false} withHeader={false} />
+        </SettingsPanel>
       </SettingsSection>
       <SentInvitationsSection
         title={m.sent_invitations_to_athletes()}

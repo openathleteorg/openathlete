@@ -7,6 +7,7 @@ import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { SubscriptionModule } from '../subscription';
 import { AuthController, UserController } from './controllers';
+import { CoachJoinLinkController } from './controllers/coach-join-link.controller';
 import { OidcController } from './controllers/oidc.controller';
 import { UserTypeGuard } from './guards';
 import { AuthService, CaslAbilityFactory, UserService } from './services';
@@ -14,6 +15,7 @@ import { AccountDeletionService } from './services/account-deletion.service';
 import { AccountExportService } from './services/account-export.service';
 import { AthleteInvitationService } from './services/athlete-invitation.service';
 import { CoachInvitationService } from './services/coach-invitation.service';
+import { CoachJoinLinkService } from './services/coach-join-link.service';
 import { FirebaseAuthService } from './services/firebase-auth.service';
 import { InvitationService } from './services/invitation.service';
 import { OidcService } from './services/oidc.service';
@@ -31,7 +33,12 @@ import { JwtStrategy } from './strategies';
     }),
     forwardRef(() => SubscriptionModule),
   ],
-  controllers: [AuthController, OidcController, UserController],
+  controllers: [
+    AuthController,
+    OidcController,
+    UserController,
+    CoachJoinLinkController,
+  ],
   providers: [
     AuthService,
     FirebaseAuthService,
@@ -43,6 +50,7 @@ import { JwtStrategy } from './strategies';
     AthleteInvitationService,
     CoachInvitationService,
     InvitationService,
+    CoachJoinLinkService,
     JwtStrategy,
     CaslAbilityFactory,
     UserTypeGuard,

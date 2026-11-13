@@ -7,6 +7,7 @@ const Page500 = lazy(() => import('@/pages/500'));
 const Page403 = lazy(() => import('@/pages/403'));
 const Page404 = lazy(() => import('@/pages/404'));
 const UnsubscribePage = lazy(() => import('@/pages/emails/unsubscribe'));
+const CoachJoinPage = lazy(() => import('@/pages/join'));
 
 export const mainRoutes: RouteObject[] = [
   {
@@ -23,6 +24,8 @@ export const mainRoutes: RouteObject[] = [
       { path: '403', element: <Page403 /> },
       // The unsubscribe link of the emails, which works signed out
       { path: 'emails/unsubscribe', element: <UnsubscribePage /> },
+      // A coach's shareable join link, which works signed out
+      { path: 'join/:token', element: <CoachJoinPage /> },
     ],
   },
 ];

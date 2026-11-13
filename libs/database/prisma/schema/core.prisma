@@ -31,6 +31,9 @@ model User {
   onboardingCompleted Boolean      @default(false) @map("onboarding_completed")
   /// How the user heard of OpenAthlete, asked during onboarding (optional)
   acquisitionSource   AcquisitionSource? @map("acquisition_source")
+  /// Token of the coach's shareable join link. Created on first request,
+  /// replaced to revoke the previous link.
+  coachJoinToken      String?      @unique @map("coach_join_token")
   /// Campaign, referring site and website pages that led to the signup,
   /// recorded once (see signupAttributionSchema)
   signupAttribution   Json?        @map("signup_attribution")

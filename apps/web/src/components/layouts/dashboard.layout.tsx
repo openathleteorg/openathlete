@@ -3,6 +3,7 @@ import { FinderProvider } from '@/contexts/finder';
 import { SpaceConsumer, SpaceProvider } from '@/contexts/space';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PageActionsProvider } from '@/hooks/use-page-actions';
+import { usePendingCoachJoin } from '@/hooks/use-pending-coach-join';
 import { m } from '@/paraglide/messages';
 import {
   DndContext,
@@ -194,6 +195,8 @@ function LayoutContent({ children }: P) {
 }
 
 export function DashboardLayout({ children }: P) {
+  // A join link opened before signing in, onboarding included
+  usePendingCoachJoin();
   return (
     <SpaceProvider>
       <SidebarProvider>

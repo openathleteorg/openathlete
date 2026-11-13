@@ -207,6 +207,13 @@ export const routes = {
     rejectInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/reject`,
   },
+  coachJoinLink: {
+    get: '/coach-join-link',
+    rotate: '/coach-join-link/rotate',
+    info: (token: string) => `/coach-join-link/${encodeURIComponent(token)}`,
+    accept: (token: string) =>
+      `/coach-join-link/${encodeURIComponent(token)}/accept`,
+  },
   cycle: {
     create: '/cycle',
     update: (cycleId: number) => `/cycle/${cycleId}`,

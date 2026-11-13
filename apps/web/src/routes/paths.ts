@@ -35,6 +35,9 @@ export const paths: Paths = {
     authorize: '/oauth/authorize',
   },
 
+  // A coach's shareable join link, opened signed in or out
+  join: '/join/:token',
+
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,
@@ -97,6 +100,10 @@ export const getPath = (parts: string[]): string => {
   }
   return typeof path === 'string' ? path : path.root;
 };
+
+/** The page a coach's join link opens */
+export const joinPath = (token: string): string =>
+  `/join/${encodeURIComponent(token)}`;
 
 /** The full-screen player of a planned session */
 export const PLAYER_PATH = '/play/:eventId';
