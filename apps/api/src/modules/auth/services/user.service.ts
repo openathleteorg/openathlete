@@ -41,6 +41,7 @@ import {
   AnalyticsService,
   stableUuid,
 } from 'src/modules/analytics/analytics.service';
+import { opensAClub } from 'src/modules/club/club-join-token';
 import { emailTransportKind } from 'src/modules/notification/services/email-transport.service';
 import {
   PrismaService,
@@ -207,6 +208,7 @@ export class UserService {
   private async assertSignupAllowed(
     invitationToken?: string,
     coachInvitationToken?: string,
+    clubJoinToken?: string,
   ) {
     const mode = this.configService.get('SIGNUP_MODE') ?? 'open';
     if (mode === 'open') return;
@@ -220,7 +222,10 @@ export class UserService {
         (coachInvitationToken &&
           (await this.coachInvitationService.verifyInvitationToken(
             coachInvitationToken,
-          )));
+          ))) ||
+        // A club's link or personal invitation: the club is joined once
+        // signed in, as on an open instance
+        (clubJoinToken && (await opensAClub(this.prisma, clubJoinToken)));
       if (invited) return;
       throw new ForbiddenException('SIGNUP_INVITE_ONLY');
     }
@@ -268,12 +273,17 @@ export class UserService {
       lastName,
       invitationToken,
       coachInvitationToken,
+      clubJoinToken,
       language,
       emailNews,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
-    await this.assertSignupAllowed(invitationToken, coachInvitationToken);
+    await this.assertSignupAllowed(
+      invitationToken,
+      coachInvitationToken,
+      clubJoinToken,
+    );
     const normalizedEmail = email.toLowerCase();
     await this.assertInvitationsUsable(
       normalizedEmail,

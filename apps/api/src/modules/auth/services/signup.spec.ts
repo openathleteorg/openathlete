@@ -20,6 +20,24 @@ function setup(env: Record<string, string> = {}) {
       count: jest.fn().mockResolvedValue(3),
       create: jest.fn().mockResolvedValue({ userId: 42 }),
     },
+    // One club link is open: 'club-link'
+    club: {
+      count: jest.fn(
+        async ({
+          where,
+        }: {
+          where: { OR: { athleteJoinToken?: string }[] };
+        }) =>
+          where.OR.some((link) => link.athleteJoinToken === 'club-link')
+            ? 1
+            : 0,
+      ),
+    },
+    clubInvitation: {
+      count: jest.fn(async ({ where }: { where: { token: string } }) =>
+        where.token === 'club-invitation' ? 1 : 0,
+      ),
+    },
   };
   const service = new UserService(
     prisma as unknown as PrismaService,
@@ -99,6 +117,19 @@ describe('sign-up mode', () => {
     await expect(signUp({ invitationToken: 'valid' })).resolves.toEqual({
       userId: 42,
     });
+  });
+
+  it('lets in someone a club invited, with its link or a personal invitation', async () => {
+    const { signUp } = setup({ SIGNUP_MODE: 'invite' });
+    await expect(signUp({ clubJoinToken: 'unknown-link' })).rejects.toThrow(
+      'SIGNUP_INVITE_ONLY',
+    );
+    await expect(signUp({ clubJoinToken: 'club-link' })).resolves.toEqual({
+      userId: 42,
+    });
+    await expect(signUp({ clubJoinToken: 'club-invitation' })).resolves.toEqual(
+      { userId: 42 },
+    );
   });
 
   it('refuses every sign-up when closed', async () => {

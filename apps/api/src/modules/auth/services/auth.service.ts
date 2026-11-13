@@ -51,6 +51,7 @@ export type ProviderIdentity = {
   lastName?: string;
   invitationToken?: string;
   coachInvitationToken?: string;
+  clubJoinToken?: string;
   language?: CreateAccountDto['language'];
 };
 
@@ -137,6 +138,7 @@ export class AuthService {
       name: verified.name,
       invitationToken: body.invitationToken,
       coachInvitationToken: body.coachInvitationToken,
+      clubJoinToken: body.clubJoinToken,
       language: body.language,
     });
     return this.sessionFor(user);
@@ -173,6 +175,7 @@ export class AuthService {
             lastName,
             invitationToken: identity.invitationToken,
             coachInvitationToken: identity.coachInvitationToken,
+            clubJoinToken: identity.clubJoinToken,
             language: identity.language,
           },
           { emailFromProvider: true },

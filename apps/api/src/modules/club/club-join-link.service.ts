@@ -28,6 +28,7 @@ import { coachDisplayName } from 'src/modules/auth/services/coach-join-link.serv
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { lockClubAccess, syncClubAccess } from './club-access';
+import { openClubInvitationWhere, openClubLinkWhere } from './club-join-token';
 import { ensureCoachRole, requireClubRole } from './club.service';
 
 const generateToken = () => randomBytes(16).toString('base64url');
@@ -222,24 +223,7 @@ export class ClubJoinLinkService {
       },
     };
     const club = await this.prisma.club.findFirst({
-      where: {
-        OR: [
-          {
-            athleteJoinToken: token,
-            OR: [
-              { athleteJoinExpiresAt: null },
-              { athleteJoinExpiresAt: { gt: now } },
-            ],
-          },
-          {
-            staffJoinToken: token,
-            OR: [
-              { staffJoinExpiresAt: null },
-              { staffJoinExpiresAt: { gt: now } },
-            ],
-          },
-        ],
-      },
+      where: openClubLinkWhere(token, now),
       select: {
         clubId: true,
         name: true,
@@ -260,7 +244,7 @@ export class ClubJoinLinkService {
     }
 
     const invitation = await this.prisma.clubInvitation.findFirst({
-      where: { token, acceptedAt: null },
+      where: openClubInvitationWhere(token),
       select: {
         clubInvitationId: true,
         role: true,

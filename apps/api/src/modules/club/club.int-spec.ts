@@ -14,6 +14,7 @@ import { StripeService } from 'src/modules/subscription/services/stripe.service'
 import { AthleteGroupService } from './athlete-group.service';
 import { ClubInvitationService } from './club-invitation.service';
 import { ClubJoinLinkService } from './club-join-link.service';
+import { opensAClub } from './club-join-token';
 import { ClubService } from './club.service';
 
 // Integration test: needs a migrated, disposable PostgreSQL database.
@@ -143,6 +144,36 @@ describe('clubs (PostgreSQL)', () => {
     await expect(
       joinLinks.accept(ana.userId, before.athlete.token),
     ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('opens sign-up with a live link or an unused invitation only', async () => {
+    const owner = await signUp('owner', ['COACH']);
+    const { clubId } = await clubs.create(owner.userId, { name: 'Club' });
+    const { athlete, staff } = await joinLinks.getLinks(owner.userId, clubId);
+    expect(await opensAClub(prisma, athlete.token)).toBe(true);
+    expect(await opensAClub(prisma, staff.token)).toBe(true);
+    expect(await opensAClub(prisma, 'not-a-club-token')).toBe(false);
+
+    await prisma.club.update({
+      where: { clubId },
+      data: { athleteJoinExpiresAt: new Date(Date.now() - 60_000) },
+    });
+    expect(await opensAClub(prisma, athlete.token)).toBe(false);
+
+    const invitation = await prisma.clubInvitation.create({
+      data: {
+        clubId,
+        email: 'ana@example.com',
+        role: 'ATHLETE',
+        token: 'personal-invitation-token',
+      },
+    });
+    expect(await opensAClub(prisma, invitation.token)).toBe(true);
+    await prisma.clubInvitation.update({
+      where: { clubInvitationId: invitation.clubInvitationId },
+      data: { acceptedAt: new Date() },
+    });
+    expect(await opensAClub(prisma, invitation.token)).toBe(false);
   });
 
   it('limits an assistant to the athletes of their groups', async () => {
