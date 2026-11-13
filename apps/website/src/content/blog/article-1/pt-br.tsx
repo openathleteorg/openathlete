@@ -72,7 +72,11 @@ export function ContentPtBr() {
         <strong>Assessoria.</strong> O treinador planeja direto no calendário de
         cada atleta, reaproveita modelos e vê o que foi feito de verdade. Um
         atleta pode ter mais de um treinador, e existe um chat em grupo.
-        Acompanhar até cinco atletas é grátis.
+        Acompanhar até cinco atletas é grátis. Os clubes têm um espaço de clube
+        gratuito, com grupos e seus treinadores, uma biblioteca de treinos
+        compartilhada, treinos semanais do clube e planos copiados para um grupo
+        inteiro; os atletas que um treinador acompanha por meio de um clube não
+        contam nesse limite.
       </p>
       <p>
         <strong>IA, se você quiser.</strong> Nada roda sem o seu consentimento,
@@ -97,9 +101,8 @@ export function ContentPtBr() {
           Strava. Os dois são apenas fontes de atividades.
         </li>
         <li>
-          Não existe uma entidade de clube ou equipe. Um treinador pode planejar
-          para vários atletas ao mesmo tempo, mas não há página nem
-          administração de clube.
+          Não há cobrança para clubes: o espaço de clube é gratuito, e as
+          mensalidades são geridas fora do OpenAthlete.
         </li>
         <li>
           Ele não prevê lesões. Registra a dor quando o atleta informa e mostra

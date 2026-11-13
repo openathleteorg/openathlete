@@ -85,51 +85,72 @@ export function ContentEs() {
         implica a los padres.
       </p>
 
-      <h2>Dos formas de llevar un club en OpenAthlete hoy</h2>
+      <h2>Dos formas de llevar un club en OpenAthlete</h2>
       <p>
-        Primero la respuesta directa: OpenAthlete no tiene cuenta de club. No
-        hay grupos, ni calendario de club, ni facturación al club. Lo que existe
-        sirve igualmente para un club, de una de estas dos formas.
+        OpenAthlete tiene un espacio de club. Es gratis en nuestros servidores,
+        sin límite de atletas, y un club que prefiera su propio servidor tiene
+        las mismas funciones instalando OpenAthlete allí.
       </p>
       <p>
-        <strong>Una cuenta por entrenador, en nuestros servidores.</strong> Cada
-        entrenador tiene su propia cuenta gratuita, que cubre hasta cinco
-        atletas; Supporter (5 € al mes o 50 € al año por entrenador) quita el
-        límite. Un atleta puede tener varios entrenadores, así que el de carrera
-        y el de fuerza planifican en el mismo calendario. Las conversaciones de
-        grupo mantienen unido a un grupo de entrenamiento, cada sesión tiene su
-        propio hilo de comentarios y cada entrenador tiene un panel para sus
-        atletas con cumplimiento, volumen, forma y alertas de dolor e
-        inactividad. Los socios pueden usar cualquier reloj: las actividades
-        llegan de Garmin, COROS, Suunto, Polar, Strava o archivos, y los
-        entrenamientos planificados llegan a relojes Garmin, COROS y Suunto.
-        También pueden suscribirse a sus sesiones desde Google Calendar o el
-        Calendario de Apple.
+        <strong>Un espacio de club, en nuestros servidores.</strong> Un
+        entrenador crea el club en Ajustes &gt; Clubes y da a cada miembro un
+        rol: propietario, administrador, entrenador, asistente o atleta. Todos
+        los entrenadores del club llegan a los atletas del club, y esos atletas
+        no cuentan para el límite de cinco atletas de una cuenta de entrenador
+        gratuita. Los socios entran desde una lista que importas (pegada, o en
+        CSV desde la hoja de cálculo del club, con los grupos), con un código de
+        acceso o con enlaces que caducan. Cada grupo, por ritmo o por nivel,
+        tiene sus entrenadores, y la biblioteca del club reúne los
+        entrenamientos y carpetas que usan todos sus entrenadores.
+      </p>
+      <p>
+        Para planificar un grupo, copias una sesión, un día o una semana a
+        muchos atletas a la vez. Cada copia se adapta a las zonas y umbrales del
+        atleta, una vista previa muestra lo que le falta a cada uno antes de
+        confirmar, y un solo deshacer lo revierte todo. Las sesiones semanales
+        del club, como la pista del martes en el estadio, aparecen en los
+        calendarios del grupo con cuatro semanas de antelación: los atletas
+        dicen si van, el entrenador ve cuántos serán y, si anula una fecha,
+        todos reciben una notificación. Los mensajes van a un grupo o a todo el
+        club, al momento o programados, y cada sesión conserva su hilo de
+        comentarios. El panel del entrenador está pensado para decenas de
+        atletas, con totales por periodo, alertas cuando una métrica como la
+        frecuencia cardiaca en reposo o el peso cruza un umbral, y una barra
+        lateral hecha para pasar de un atleta a otro entre treinta.
+      </p>
+      <p>
+        Un atleta puede seguir teniendo varios entrenadores, así que el de
+        carrera y el de fuerza planifican en el mismo calendario. Los socios
+        pueden usar cualquier reloj: las actividades llegan de Garmin, COROS,
+        Suunto, Polar, Strava o archivos, y los entrenamientos planificados
+        llegan a relojes Garmin, COROS y Suunto, no a los Polar. También pueden
+        suscribirse a sus sesiones desde Google Calendar o el Calendario de
+        Apple. Lo que aún falta es la facturación al club: las cuotas se
+        gestionan fuera de OpenAthlete.
       </p>
       <p>
         <strong>El club tiene su propia instancia.</strong> OpenAthlete es de
         código abierto, así que un club puede instalarlo en un servidor pequeño
-        y tener su propia plataforma en su propia dirección, sin límite de
-        atletas ni suscripción. Los socios pueden entrar con inicio de sesión
-        único mediante Authentik, Keycloak o cualquier proveedor OpenID Connect,
-        y el registro puede ser solo por invitación o estar cerrado. Una
-        instancia autoalojada no envía nada a OpenAthlete. Una salvedad honesta:
-        la sincronización con COROS funciona tal cual, pero Garmin, Suunto,
-        Polar y Strava exigen que el club se registre en el programa para
-        desarrolladores de cada marca, y Garmin y Suunto aprueban a los socios
-        uno por uno. La importación de archivos siempre funciona.
+        y tener su propia plataforma en su propia dirección, con las mismas
+        funciones de club, sin límite de atletas ni suscripción. Los socios
+        pueden entrar con inicio de sesión único mediante Authentik, Keycloak o
+        cualquier proveedor OpenID Connect, y el registro puede ser solo por
+        invitación o estar cerrado. Una instancia autoalojada no envía nada a
+        OpenAthlete. Una salvedad honesta: la sincronización con COROS funciona
+        tal cual, pero Garmin, Suunto, Polar y Strava exigen que el club se
+        registre en el programa para desarrolladores de cada marca, y Garmin y
+        Suunto aprueban a los socios uno por uno. La importación de archivos
+        siempre funciona.
       </p>
       <p>
-        Para un club con uno o dos entrenadores y unas decenas de atletas, la
-        primera opción es la forma más rápida de empezar. Para un club más
-        grande, con alguien que se maneje con un servidor, la segunda es lo más
-        parecido a una cuenta de club que existe hoy. La{' '}
-        <Link href="/es/clubs">página de clubes</Link> compara las dos, con el
-        coste para un club de 50 atletas, y la{' '}
+        Para la mayoría de los clubes, el espacio de club en nuestros servidores
+        es la forma más rápida de empezar. Un club que quiera tener los datos de
+        sus socios en su propio servidor, y cuente con alguien que se maneje con
+        uno, puede tomar el segundo camino. La{' '}
+        <Link href="/es/clubs">página de clubes</Link> presenta las dos, y la{' '}
         <Link href="/es/self-hosting">página de autoalojamiento</Link> explica
-        la instalación. Las funciones de club están en la hoja de ruta; si tu
-        club tiene necesidades concretas, contarnos cómo entrenáis de verdad es
-        lo más útil que nos puedes aportar.
+        la instalación. Si tu club tiene necesidades concretas, contarnos cómo
+        entrenáis de verdad es lo más útil que nos puedes aportar.
       </p>
     </div>
   );

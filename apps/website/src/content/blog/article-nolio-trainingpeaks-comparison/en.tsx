@@ -41,7 +41,9 @@ export function ContentEn() {
         <strong>OpenAthlete</strong> is free up to five athletes. Above that,
         the Supporter plan at {q('oaYear')} a year removes the limit, whatever
         the roster, and also adds AI on our keys. Watch sync is free for
-        athletes. Self-hosting is free without limits.
+        athletes. Self-hosting is free without limits. Clubs get a free club
+        space, and athletes a coach reaches through a club don't count against
+        the five.
       </p>
 
       <table>
@@ -105,8 +107,8 @@ export function ContentEn() {
         company, partner of the French athletics federation, with association
         pricing, several coaches on one account, native iOS and Android apps and
         a library of more than 200 exercise videos for strength work. If your
-        club wants one account for three coaches and sixty members, Nolio has a
-        plan for exactly that and we don't.
+        club wants one account for three coaches and sixty members, with native
+        apps on every phone, Nolio has a plan for exactly that.
       </p>
       <p>
         <strong>OpenAthlete</strong> keeps the price flat and adds a few things
@@ -116,9 +118,12 @@ export function ContentEn() {
         athlete gets a short read and a few questions, and the effort and any
         pain they report land in an injury log and on your dashboard. Through
         the MCP server, Claude or ChatGPT can read an athlete's training and
-        plan up to 60 sessions into their calendar. The code is AGPL-3.0, so a
-        club can run its own instance with single sign-on and invite-only
-        signups.
+        plan up to 60 sessions into their calendar. Clubs get a free club space
+        with no athlete limit: groups with their own coaches, a shared library,
+        weekly club sessions that athletes answer, and a session, day or week
+        copied to a whole group, adapted to each athlete's zones. The code is
+        AGPL-3.0, so a club can also run its own instance with single sign-on
+        and invite-only signups.
       </p>
 
       <h2>What each one lacks</h2>
@@ -130,13 +135,12 @@ export function ContentEn() {
       </p>
       <p>
         OpenAthlete's gaps are real too. The iOS and Android apps are in
-        testing, so athletes use the installable web app for now. There is no
-        club account: each coach has their own, and an athlete can have several
-        coaches. No marketplace, no exercise video library, no federation
-        partnership. Workouts go to Garmin, Suunto and COROS watches, not Polar.
-        Training load is Banister TRIMP from heart rate, with session RPE
-        alongside, so the numbers won't match TSS if your athletes come from
-        TrainingPeaks.
+        testing, so athletes use the installable web app for now. The club space
+        has no club billing: membership fees stay outside OpenAthlete. No
+        marketplace, no exercise video library, no federation partnership.
+        Workouts go to Garmin, Suunto and COROS watches, not Polar. Training
+        load is Banister TRIMP from heart rate, with session RPE alongside, so
+        the numbers won't match TSS if your athletes come from TrainingPeaks.
       </p>
 
       <h2>Three coaches, three answers</h2>
@@ -148,9 +152,12 @@ export function ContentEn() {
         on one side and native apps on the other.
       </p>
       <p>
-        A club with three coaches and sixty members who want an app on their
-        phone today: Nolio's club plans fit best. A self-hosted OpenAthlete
-        instance is an option if someone in the club is happy to run a server.
+        A club with three coaches and sixty members: if the members want a
+        native app on their phone today, Nolio's club plans fit best. If the
+        installable web app is enough, OpenAthlete's club space does the job for
+        free, with groups, a shared library and Tuesday's track session already
+        in every member's calendar. A self-hosted instance is an option if
+        someone in the club is happy to run a server.
       </p>
       <p>
         A coach who sells plans to athletes they never speak to: stay on

@@ -121,6 +121,10 @@ export function ContentDe() {
         bringt KI über unsere Schlüssel und unbegrenzt viele betreute Athleten,
         sonst nichts. Der Code steht unter AGPL-3.0, du kannst ihn also auch
         kostenlos und ohne Einschränkungen auf deinem eigenen Server betreiben.
+        Auch Vereine bekommen einen kostenlosen Vereinsbereich ohne
+        Athletenlimit: Gruppen mit eigenen Coaches, eine gemeinsame
+        Workout-Bibliothek, wöchentliche Vereinseinheiten und Pläne, die auf
+        eine ganze Gruppe kopiert werden.
       </p>
       <p>
         Die Trainingsbelastung ist Banister-TRIMP auf Basis der Herzfrequenz,
@@ -135,8 +139,8 @@ export function ContentDe() {
       <p>
         Was es noch nicht kann: Die Apps für iOS und Android sind in der
         Testphase (bis dahin lässt sich die Web-App auf dem Handy installieren),
-        es gibt keinen Marktplatz für Pläne, keine Indoor-Trainings-App, kein
-        Vereinskonto, und die Leistungsanalyse ist weniger tief als bei
+        es gibt keinen Marktplatz für Pläne, keine Indoor-Trainings-App, keine
+        Vereinsabrechnung, und die Leistungsanalyse ist weniger tief als bei
         intervals.icu. Workouts können nicht an Polar-Uhren gehen, weil die API
         von Polar nur Lesezugriff erlaubt. Einheiten gibt es nur metrisch.
       </p>
@@ -194,7 +198,8 @@ export function ContentDe() {
         für ein US-Schul- oder Vereinsteam mit einfachen Pauschalpreisen. Nimm
         OpenAthlete, wenn du Workouts auf Garmin, Suunto oder COROS willst, ohne
         zu bezahlen, einen pauschalen Coach-Preis, KI mit deinem eigenen
-        Schlüssel oder Code, den du selbst hosten kannst.
+        Schlüssel, einen kostenlosen Vereinsbereich oder Code, den du selbst
+        hosten kannst.
       </p>
 
       <h2>Deine Trainingshistorie umziehen</h2>

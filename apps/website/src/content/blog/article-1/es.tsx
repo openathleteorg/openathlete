@@ -73,7 +73,11 @@ export function ContentEs() {
         <strong>Entrenadores.</strong> El entrenador planifica directamente en
         el calendario de cada atleta, reutiliza plantillas y ve lo que se hizo
         de verdad. Un atleta puede tener más de un entrenador, y hay un chat de
-        grupo. Entrenar hasta a cinco atletas es gratis.
+        grupo. Entrenar hasta a cinco atletas es gratis. Los clubes tienen un
+        espacio de club gratuito, con grupos y sus entrenadores, una biblioteca
+        de entrenamientos compartida, sesiones semanales del club y planes
+        copiados a todo un grupo; los atletas a los que un entrenador llega a
+        través de un club no cuentan para ese límite.
       </p>
       <p>
         <strong>IA, si la quieres.</strong> Nada se ejecuta sin tu
@@ -99,9 +103,8 @@ export function ContentEs() {
           Ambos son solo fuentes de actividades.
         </li>
         <li>
-          No existe una entidad de club o equipo. Un entrenador puede planificar
-          para muchos atletas a la vez, pero no hay página ni administración de
-          club.
+          No hay facturación al club: el espacio de club es gratis y las cuotas
+          se gestionan fuera de OpenAthlete.
         </li>
         <li>
           No predice lesiones. Registra el dolor cuando el atleta lo indica y se

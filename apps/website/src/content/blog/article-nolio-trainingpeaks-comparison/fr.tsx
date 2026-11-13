@@ -45,6 +45,8 @@ export function ContentFr() {
         l'offre Supporter à {q('oaYear')} par an lève la limite, quel que soit
         l'effectif, et ajoute l'IA sur nos clés. La synchronisation montre est
         gratuite pour les athlètes. L'auto-hébergement est gratuit, sans limite.
+        Les clubs ont un espace club gratuit, et les athlètes qu'un entraîneur
+        suit via un club ne comptent pas dans les cinq.
       </p>
 
       <table>
@@ -110,7 +112,8 @@ export function ContentFr() {
         associatifs, plusieurs entraîneurs sur un même compte, des applications
         iOS et Android natives et plus de 200 vidéos d'exercices pour le
         renforcement. Si votre club veut un seul compte pour trois entraîneurs
-        et soixante licenciés, Nolio a une offre faite pour ça, et nous non.
+        et soixante licenciés, avec des applications natives sur chaque
+        téléphone, Nolio a une offre faite pour ça.
       </p>
       <p>
         <strong>OpenAthlete</strong> garde un prix fixe et ajoute quelques
@@ -122,9 +125,13 @@ export function ContentFr() {
         ainsi que les douleurs signalées arrivent dans un journal des blessures
         et sur votre tableau de bord. Via le serveur MCP, Claude ou ChatGPT
         peuvent lire l'entraînement d'un athlète et planifier jusqu'à 60 séances
-        dans son calendrier. Le code est sous AGPL-3.0&nbsp;: un club peut
-        héberger sa propre instance, avec authentification unique et
-        inscriptions sur invitation.
+        dans son calendrier. Les clubs ont un espace club gratuit sans limite
+        d'athlètes&nbsp;: des groupes avec leurs entraîneurs, une bibliothèque
+        partagée, des séances de club hebdomadaires auxquelles les athlètes
+        répondent, et une séance, une journée ou une semaine copiée à tout un
+        groupe, adaptée aux zones de chacun. Le code est sous AGPL-3.0&nbsp;: un
+        club peut aussi héberger sa propre instance, avec authentification
+        unique et inscriptions sur invitation.
       </p>
 
       <h2>Ce qui manque à chacun</h2>
@@ -137,12 +144,12 @@ export function ContentFr() {
       <p>
         Les manques d'OpenAthlete sont réels aussi. Les applications iOS et
         Android sont en test&nbsp;: les athlètes utilisent pour l'instant
-        l'application web installable. Il n'y a pas de compte club&nbsp;: chaque
-        entraîneur a le sien, et un athlète peut avoir plusieurs entraîneurs.
-        Pas de boutique, pas de vidéothèque d'exercices, pas de partenariat
-        fédéral. Les séances partent vers les montres Garmin, Suunto et COROS,
-        pas Polar. La charge est le TRIMP de Banister calculé à partir de la
-        fréquence cardiaque, avec le RPE de séance à côté&nbsp;: les chiffres ne
+        l'application web installable. L'espace club n'a pas de facturation au
+        club&nbsp;: les cotisations se gèrent en dehors d'OpenAthlete. Pas de
+        boutique, pas de vidéothèque d'exercices, pas de partenariat fédéral.
+        Les séances partent vers les montres Garmin, Suunto et COROS, pas Polar.
+        La charge est le TRIMP de Banister calculé à partir de la fréquence
+        cardiaque, avec le RPE de séance à côté&nbsp;: les chiffres ne
         correspondront pas au TSS si vos athlètes viennent de TrainingPeaks.
       </p>
 
@@ -156,10 +163,14 @@ export function ContentFr() {
         côté et les applications natives de l'autre.
       </p>
       <p>
-        Un club avec trois entraîneurs et soixante licenciés qui veulent une
-        application sur leur téléphone dès aujourd'hui&nbsp;: les offres club de
-        Nolio sont les plus adaptées. Une instance OpenAthlete auto-hébergée
-        reste une option si quelqu'un au club veut bien gérer un serveur.
+        Un club avec trois entraîneurs et soixante licenciés&nbsp;: s'ils
+        veulent une application native sur leur téléphone dès aujourd'hui, les
+        offres club de Nolio sont les plus adaptées. Si l'application web
+        installable leur suffit, l'espace club d'OpenAthlete fait le travail
+        gratuitement, avec les groupes, une bibliothèque partagée et la piste du
+        mardi déjà dans le calendrier de chaque licencié. Une instance
+        auto-hébergée reste une option si quelqu'un au club veut bien gérer un
+        serveur.
       </p>
       <p>
         Un entraîneur qui vend des plans à des athlètes qu'il ne rencontre

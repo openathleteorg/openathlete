@@ -197,24 +197,27 @@ export function ContentEs() {
         las funciones son gratis en la versión alojada, incluido el coaching de
         hasta 5 atletas; Supporter, a 5 € al mes o 50 € al año, añade atletas
         ilimitados e IA con nuestras claves (
-        <Link href="/es/pricing">precios</Link>). Las sesiones planificadas van
-        a relojes Garmin, Suunto y COROS; las actividades llegan de esas tres
-        marcas, de Polar y de Strava. La carga de entrenamiento es el TRIMP por
-        frecuencia cardiaca, con el RPE de sesión al lado, y la forma, la fatiga
-        y la frescura se proyectan sobre las sesiones planificadas. La IA es
-        opcional y funciona con tu propia clave o con la cuota de Supporter.
+        <Link href="/es/pricing">precios</Link>). Los clubes tienen un espacio
+        de club gratuito, sin límite de atletas: grupos con sus entrenadores,
+        biblioteca compartida, sesiones semanales del club y planes copiados a
+        todo un grupo. Las sesiones planificadas van a relojes Garmin, Suunto y
+        COROS; las actividades llegan de esas tres marcas, de Polar y de Strava.
+        La carga de entrenamiento es el TRIMP por frecuencia cardiaca, con el
+        RPE de sesión al lado, y la forma, la fatiga y la frescura se proyectan
+        sobre las sesiones planificadas. La IA es opcional y funciona con tu
+        propia clave o con la cuota de Supporter.
       </p>
       <p>
         Las limitaciones son reales. Todavía no hay apps nativas en las tiendas:
         las de iOS y Android están en pruebas y, mientras tanto, los atletas
         usan la app web instalable. No hay marketplace para vender planes, ni
-        cuenta de club (un atleta puede tener varios entrenadores, pero no
-        existe una organización con facturación común), ni app de rodillo, ni
-        envío de entrenamientos a relojes Polar. El análisis es menos profundo
-        que el de intervals.icu, y el proyecto es joven y lo desarrolla una sola
-        persona. Nuestra respuesta a «¿y si desaparecéis?» es la licencia: el
-        código y tus datos siguen siendo utilizables sin nosotros. La
-        comparación punto por punto está en{' '}
+        facturación al club (el espacio de club es gratis, pero las cuotas se
+        gestionan fuera de OpenAthlete), ni app de rodillo, ni envío de
+        entrenamientos a relojes Polar. El análisis es menos profundo que el de
+        intervals.icu, y el proyecto es joven y lo desarrolla una sola persona.
+        Nuestra respuesta a «¿y si desaparecéis?» es la licencia: el código y
+        tus datos siguen siendo utilizables sin nosotros. La comparación punto
+        por punto está en{' '}
         <Link href="/es/compare/trainingpeaks">
           OpenAthlete vs TrainingPeaks
         </Link>

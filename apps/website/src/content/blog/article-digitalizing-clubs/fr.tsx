@@ -91,54 +91,74 @@ export function ContentFr() {
         blessure. Pour les jeunes, associez les parents.
       </p>
 
-      <h2>Deux façons de faire tourner un club sur OpenAthlete aujourd'hui</h2>
+      <h2>Deux façons de faire tourner un club sur OpenAthlete</h2>
       <p>
-        Réponse franche d'abord&nbsp;: OpenAthlete n'a pas de compte club. Pas
-        de groupes, pas de calendrier de club, pas de facturation au club. Ce
-        qui existe fonctionne quand même pour un club, de l'une de ces deux
-        façons.
+        OpenAthlete a un espace club. Il est gratuit sur nos serveurs, sans
+        limite d'athlètes, et un club qui préfère son propre serveur y retrouve
+        les mêmes fonctions en installant OpenAthlete chez lui.
       </p>
       <p>
-        <strong>Un compte par entraîneur, sur nos serveurs.</strong> Chaque
-        entraîneur a son propre compte gratuit, qui couvre jusqu'à cinq
-        athlètes&nbsp;; Supporter (5&nbsp;€ par mois ou 50&nbsp;€ par an et par
-        entraîneur) lève la limite. Un athlète peut avoir plusieurs
-        entraîneurs&nbsp;: l'entraîneur course et l'entraîneur renforcement
-        planifient dans le même calendrier. Les conversations de groupe
-        réunissent un groupe d'entraînement, chaque séance a son fil de
-        commentaires, et chaque entraîneur dispose d'un tableau de bord pour ses
-        athlètes&nbsp;: respect du plan, volume, forme et alertes de douleur ou
-        d'inactivité. Les adhérents peuvent avoir n'importe quelle montre&nbsp;:
-        les activités viennent de Garmin, COROS, Suunto, Polar, Strava ou de
-        fichiers, et les séances prévues partent sur les montres Garmin, COROS
-        et Suunto. Ils peuvent aussi s'abonner à leurs séances depuis Google
-        Agenda ou Apple Calendrier.
+        <strong>Un espace club, sur nos serveurs.</strong> Un entraîneur crée le
+        club dans Paramètres &gt; Clubs et donne un rôle à chacun&nbsp;:
+        propriétaire, administrateur, entraîneur, assistant ou athlète. Chaque
+        entraîneur du club accède aux athlètes du club, et ces athlètes ne
+        comptent pas dans la limite de cinq athlètes d'un compte entraîneur
+        gratuit. Les adhérents rejoignent le club depuis une liste que vous
+        importez (collée, ou en CSV depuis le tableur du club, groupes compris),
+        avec un code d'accès ou par des liens qui expirent. Chaque groupe, par
+        allure ou par niveau, a ses entraîneurs, et la bibliothèque du club
+        réunit les séances et les dossiers dont se servent tous ses entraîneurs.
+      </p>
+      <p>
+        Pour planifier un groupe, on copie une séance, une journée ou une
+        semaine à plusieurs athlètes d'un coup. Chaque copie s'adapte aux zones
+        et aux seuils de l'athlète, un aperçu montre ce qui manque à chacun
+        avant de valider, et une seule annulation défait le tout. Les séances de
+        club hebdomadaires, comme la piste du mardi au stade, arrivent dans les
+        calendriers du groupe quatre semaines à l'avance&nbsp;: les athlètes
+        disent s'ils viennent, l'entraîneur voit combien ils seront, et
+        l'annulation d'une date envoie une notification à tout le monde. Les
+        messages partent vers un groupe ou tout le club, tout de suite ou à une
+        heure programmée, et chaque séance garde son fil de commentaires. Le
+        tableau de bord de l'entraîneur est pensé pour des dizaines
+        d'athlètes&nbsp;: totaux sur une période, alertes quand une mesure comme
+        la fréquence cardiaque au repos ou le poids franchit un seuil, et une
+        barre latérale faite pour passer d'un athlète à l'autre parmi trente.
+      </p>
+      <p>
+        Un athlète peut toujours avoir plusieurs entraîneurs&nbsp;: l'entraîneur
+        course et l'entraîneur renforcement planifient dans le même calendrier.
+        Les adhérents peuvent avoir n'importe quelle montre&nbsp;: les activités
+        viennent de Garmin, COROS, Suunto, Polar, Strava ou de fichiers, et les
+        séances prévues partent sur les montres Garmin, COROS et Suunto, pas
+        Polar. Ils peuvent aussi s'abonner à leurs séances depuis Google Agenda
+        ou Apple Calendrier. Ce qui manque encore, c'est la facturation au
+        club&nbsp;: les cotisations se gèrent en dehors d'OpenAthlete.
       </p>
       <p>
         <strong>Le club héberge sa propre instance.</strong> OpenAthlete est
         open source&nbsp;: un club peut l'installer sur un petit serveur et
-        avoir sa propre plateforme à sa propre adresse, sans limite d'athlètes
-        ni abonnement. Les adhérents peuvent se connecter par authentification
-        unique avec Authentik, Keycloak ou tout fournisseur OpenID Connect, et
-        les inscriptions peuvent être sur invitation ou fermées. Une instance
-        auto-hébergée n'envoie rien à OpenAthlete. Une précision honnête&nbsp;:
-        la synchronisation COROS fonctionne d'emblée, mais Garmin, Suunto, Polar
-        et Strava demandent au club de s'inscrire au programme développeur de
-        chaque marque, et Garmin et Suunto valident les partenaires au cas par
-        cas. L'import de fichiers fonctionne toujours.
+        avoir sa propre plateforme à sa propre adresse, avec les mêmes fonctions
+        club, sans limite d'athlètes ni abonnement. Les adhérents peuvent se
+        connecter par authentification unique avec Authentik, Keycloak ou tout
+        fournisseur OpenID Connect, et les inscriptions peuvent être sur
+        invitation ou fermées. Une instance auto-hébergée n'envoie rien à
+        OpenAthlete. Une précision honnête&nbsp;: la synchronisation COROS
+        fonctionne d'emblée, mais Garmin, Suunto, Polar et Strava demandent au
+        club de s'inscrire au programme développeur de chaque marque, et Garmin
+        et Suunto valident les partenaires au cas par cas. L'import de fichiers
+        fonctionne toujours.
       </p>
       <p>
-        Pour un club avec un ou deux entraîneurs et quelques dizaines
-        d'athlètes, la première option est la plus rapide à mettre en place.
-        Pour un club plus grand, avec quelqu'un à l'aise avec un serveur, la
-        seconde est ce qui se rapproche le plus d'un compte club aujourd'hui. La{' '}
-        <Link href="/fr/clubs">page clubs</Link> compare les deux, avec le coût
-        pour un club de 50&nbsp;athlètes, et la{' '}
+        Pour la plupart des clubs, l'espace club sur nos serveurs est le départ
+        le plus rapide. Un club qui veut garder les données de ses adhérents sur
+        son propre serveur, et qui a quelqu'un à l'aise pour le gérer, peut
+        prendre la seconde voie. La <Link href="/fr/clubs">page clubs</Link>{' '}
+        présente les deux, et la{' '}
         <Link href="/fr/self-hosting">page auto-hébergement</Link> détaille
-        l'installation. Les fonctions club sont sur la feuille de route&nbsp;;
-        si votre club a des besoins précis, nous dire comment vous vous
-        entraînez réellement est le retour le plus utile que vous puissiez nous
-        faire.
+        l'installation. Si votre club a des besoins précis, nous dire comment
+        vous vous entraînez réellement est le retour le plus utile que vous
+        puissiez nous faire.
       </p>
     </div>
   );

@@ -5,7 +5,6 @@ import {
 import { buttonStyles } from '@/components/site/button';
 import { CtaBand } from '@/components/site/cta-band';
 import { Faq } from '@/components/site/faq';
-import { DiscordIcon, GithubIcon } from '@/components/site/icons';
 import {
   Container,
   Section,
@@ -13,12 +12,7 @@ import {
 } from '@/components/site/layout-primitives';
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
-import {
-  DISCORD_URL,
-  GITHUB_URL,
-  SELF_HOSTING_DOCS_URL,
-  SUPPORTER_YEARLY_EUR,
-} from '@/config';
+import { SELF_HOSTING_DOCS_URL } from '@/config';
 import {
   COACH_PRICING,
   type Currency,
@@ -26,6 +20,7 @@ import {
   formatPrice,
 } from '@/content/pricing';
 import { initLocale } from '@/i18n/server';
+import { signupUrl } from '@/lib/links';
 import { m } from '@/paraglide/messages';
 import {
   DATE_LOCALES,
@@ -37,11 +32,14 @@ import { cn } from '@/utils/shadcn';
 import {
   ArrowRight,
   CalendarPlus,
-  Languages,
+  FolderOpen,
   LayoutDashboard,
+  MapPin,
   MessagesSquare,
   Server,
+  ShieldCheck,
   Star,
+  UserPlus,
   Users,
   Watch,
 } from 'lucide-react';
@@ -109,8 +107,8 @@ export default async function ClubsPage({ params }: Props) {
     {
       name: m.clubspage_cost_oa_cloud(),
       note: m.clubspage_cost_oa_cloud_note(),
-      amount: SUPPORTER_YEARLY_EUR * 3,
-      label: `${formatPrice(SUPPORTER_YEARLY_EUR, 'EUR', intl)}–${formatPrice(SUPPORTER_YEARLY_EUR * 3, 'EUR', intl)}`,
+      amount: 0,
+      label: formatPrice(0, 'EUR', intl),
       currency: 'EUR',
       ours: true,
     },
@@ -147,22 +145,22 @@ export default async function ClubsPage({ params }: Props) {
 
   const today = [
     {
-      icon: <Users />,
+      icon: <ShieldCheck />,
       title: m.clubspage_today_1_title(),
       body: m.clubspage_today_1_body(),
     },
     {
-      icon: <MessagesSquare />,
+      icon: <UserPlus />,
       title: m.clubspage_today_2_title(),
       body: m.clubspage_today_2_body(),
     },
     {
-      icon: <LayoutDashboard />,
+      icon: <Users />,
       title: m.clubspage_today_3_title(),
       body: m.clubspage_today_3_body(),
     },
     {
-      icon: <Watch />,
+      icon: <FolderOpen />,
       title: m.clubspage_today_4_title(),
       body: m.clubspage_today_4_body(),
     },
@@ -172,9 +170,24 @@ export default async function ClubsPage({ params }: Props) {
       body: m.clubspage_today_5_body(),
     },
     {
-      icon: <Languages />,
+      icon: <MapPin />,
       title: m.clubspage_today_6_title(),
       body: m.clubspage_today_6_body(),
+    },
+    {
+      icon: <MessagesSquare />,
+      title: m.clubspage_today_7_title(),
+      body: m.clubspage_today_7_body(),
+    },
+    {
+      icon: <LayoutDashboard />,
+      title: m.clubspage_today_8_title(),
+      body: m.clubspage_today_8_body(),
+    },
+    {
+      icon: <Watch />,
+      title: m.clubspage_today_9_title(),
+      body: m.clubspage_today_9_body(),
     },
   ];
 
@@ -214,30 +227,33 @@ export default async function ClubsPage({ params }: Props) {
                 {m.clubspage_hero_lead()}
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
-                <a
-                  href="#own-server"
+                <TrackedLink
+                  href={signupUrl(
+                    'clubs_hero',
+                    '/dashboard/settings?tab=clubs',
+                  )}
+                  event="cta_clicked"
+                  properties={{ placement: 'clubs_hero', cta: 'signup' }}
                   className={buttonStyles({
                     variant: 'light',
                     size: 'lg',
                     className: 'w-full sm:w-auto',
                   })}
                 >
-                  {m.clubspage_hero_cta_server()}
+                  {m.clubspage_hero_cta_create()}
                   <ArrowRight />
-                </a>
-                <TrackedLink
-                  href={DISCORD_URL}
-                  event="cta_clicked"
-                  properties={{ placement: 'clubs_hero', cta: 'discord' }}
+                </TrackedLink>
+                <a
+                  href="#own-server"
                   className={buttonStyles({
                     variant: 'outlineLight',
                     size: 'lg',
                     className: 'w-full sm:w-auto',
                   })}
                 >
-                  <DiscordIcon />
-                  {m.clubspage_hero_cta_talk()}
-                </TrackedLink>
+                  <Server />
+                  {m.clubspage_hero_cta_server()}
+                </a>
               </div>
             </div>
           </div>
@@ -481,51 +497,6 @@ export default async function ClubsPage({ params }: Props) {
               </RevealItem>
             ))}
           </RevealGroup>
-        </Container>
-      </Section>
-
-      {/* Roadmap */}
-      <Section className="py-16 sm:py-20">
-        <Container>
-          <Reveal className="relative overflow-hidden rounded-[2rem] border border-border p-8 sm:p-12">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-[radial-gradient(40rem_20rem_at_100%_0%,color-mix(in_oklab,var(--sky)_18%,transparent),transparent),radial-gradient(30rem_18rem_at_0%_100%,color-mix(in_oklab,var(--coral)_14%,transparent),transparent)]"
-            />
-            <div className="relative grid items-center gap-10 lg:grid-cols-12">
-              <div className="lg:col-span-8">
-                <p className="kicker text-muted-foreground">
-                  {m.clubspage_roadmap_kicker()}
-                </p>
-                <h2 className="display-3 mt-3">
-                  {m.clubspage_roadmap_title()}
-                </h2>
-                <p className="mt-4 max-w-2xl leading-relaxed text-muted-foreground">
-                  {m.clubspage_roadmap_body()}
-                </p>
-              </div>
-              <div className="flex flex-col gap-3 lg:col-span-4">
-                <TrackedLink
-                  href={`${GITHUB_URL}/issues/new?template=feature_request.yml`}
-                  event="github_clicked"
-                  properties={{ placement: 'clubs_roadmap' }}
-                  className={buttonStyles({ size: 'lg' })}
-                >
-                  <GithubIcon />
-                  {m.clubspage_roadmap_github()}
-                </TrackedLink>
-                <TrackedLink
-                  href={DISCORD_URL}
-                  event="cta_clicked"
-                  properties={{ placement: 'clubs_roadmap', cta: 'discord' }}
-                  className={buttonStyles({ variant: 'secondary', size: 'lg' })}
-                >
-                  <DiscordIcon />
-                  {m.clubspage_roadmap_discord()}
-                </TrackedLink>
-              </div>
-            </div>
-          </Reveal>
         </Container>
       </Section>
 

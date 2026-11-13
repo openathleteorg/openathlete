@@ -118,7 +118,10 @@ export function ContentEs() {
         Supporter opcional ({q('oaMonth')} al mes o {q('oaYear')} al año) añade
         IA con nuestras claves y atletas ilimitados, y nada más. El código es
         AGPL-3.0, así que también puedes instalarlo en tu propio servidor,
-        gratis y sin límites.
+        gratis y sin límites. Los clubes también tienen un espacio de club
+        gratuito, sin límite de atletas: grupos con sus entrenadores, una
+        biblioteca de entrenamientos compartida, sesiones semanales del club y
+        planes copiados a todo un grupo.
       </p>
       <p>
         La carga de entrenamiento es el TRIMP de Banister a partir de la
@@ -134,8 +137,8 @@ export function ContentEs() {
       <p>
         Lo que todavía no hace: las apps de iOS y Android están en pruebas
         (mientras tanto, la app web se instala en el móvil), no hay tienda de
-        planes, ni app de entrenamiento en interior, ni cuenta de club, y el
-        análisis de potencia es menos profundo que en intervals.icu. Los
+        planes, ni app de entrenamiento en interior, ni facturación al club, y
+        el análisis de potencia es menos profundo que en intervals.icu. Los
         entrenamientos no pueden ir a relojes Polar, porque su API es de solo
         lectura. Las unidades son solo métricas.
       </p>
@@ -192,8 +195,8 @@ export function ContentEs() {
         y apps nativas hoy mismo. Elige Final Surge para un equipo escolar o un
         club de Estados Unidos con tarifa plana. Elige OpenAthlete si quieres
         los entrenamientos en tu Garmin, Suunto o COROS sin pagar, un precio
-        fijo como entrenador, IA con tu propia clave o un código que puedes
-        alojar tú mismo.
+        fijo como entrenador, IA con tu propia clave, un espacio de club
+        gratuito o un código que puedes alojar tú mismo.
       </p>
 
       <h2>Llevarte tu historial</h2>

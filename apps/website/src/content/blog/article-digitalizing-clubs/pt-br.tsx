@@ -84,49 +84,72 @@ export function ContentPtBr() {
         menores de idade, envolva os pais.
       </p>
 
-      <h2>Duas formas de rodar um clube no OpenAthlete hoje</h2>
+      <h2>Duas formas de rodar um clube no OpenAthlete</h2>
       <p>
-        Resposta direta primeiro: o OpenAthlete não tem conta de clube. Não há
-        grupos, nem calendário do clube, nem cobrança para o clube. O que existe
-        funciona mesmo assim para um clube, de uma destas duas formas.
+        O OpenAthlete tem um espaço de clube. Ele é gratuito nos nossos
+        servidores, sem limite de alunos, e um clube que prefere o próprio
+        servidor tem os mesmos recursos instalando o OpenAthlete lá.
       </p>
       <p>
-        <strong>Uma conta por treinador, nos nossos servidores.</strong> Cada
-        treinador tem sua própria conta gratuita, que cobre até cinco alunos; o
-        Supporter (5 € por mês ou 50 € por ano, por treinador) tira o limite. Um
-        aluno pode ter vários treinadores, então o treinador de corrida e o de
-        fortalecimento planejam no mesmo calendário. As conversas em grupo
-        mantêm um grupo de treino unido, cada treino tem sua própria thread de
-        comentários e cada treinador tem um painel para os seus alunos, com
-        cumprimento, volume, forma e alertas de dor e inatividade. Os membros
+        <strong>Um espaço de clube, nos nossos servidores.</strong> Um treinador
+        cria o clube em Configurações &gt; Clubes e dá um papel a cada membro:
+        dono, administrador, treinador, assistente ou atleta. Todo treinador do
+        clube acessa os alunos do clube, e esses alunos não contam no limite de
+        cinco alunos de uma conta gratuita de treinador. Os membros entram a
+        partir de uma lista que você importa (colada, ou em CSV da planilha do
+        clube, com os grupos), com um código de acesso ou por links que expiram.
+        Cada grupo, por pace ou por nível, tem seus treinadores, e a biblioteca
+        do clube reúne os treinos e as pastas que todos os treinadores do clube
+        usam.
+      </p>
+      <p>
+        Para planejar para um grupo, você copia um treino, um dia ou uma semana
+        para vários alunos de uma vez. Cada cópia se adapta às zonas e limiares
+        do aluno, uma prévia mostra o que falta para cada um antes de confirmar,
+        e um único desfazer volta tudo. Os treinos semanais do clube, como a
+        pista de terça no estádio, entram nos calendários do grupo com quatro
+        semanas de antecedência: os alunos dizem se vão, o treinador vê quantos
+        confirmaram e, se cancelar uma data, todos recebem uma notificação. As
+        mensagens vão para um grupo ou para o clube inteiro, na hora ou
+        agendadas, e cada treino mantém sua thread de comentários. O painel do
+        treinador foi pensado para dezenas de alunos, com totais por período,
+        alertas quando uma métrica como a frequência cardíaca de repouso ou o
+        peso passa de um limite, e uma barra lateral feita para alternar entre
+        trinta alunos.
+      </p>
+      <p>
+        Um aluno continua podendo ter vários treinadores, então o treinador de
+        corrida e o de fortalecimento planejam no mesmo calendário. Os membros
         podem usar qualquer relógio: as atividades vêm de Garmin, COROS, Suunto,
         Polar, Strava ou arquivos, e os treinos planejados chegam aos relógios
-        Garmin, COROS e Suunto. Eles também podem assinar os próprios treinos
-        pelo Google Agenda ou pelo Calendário da Apple.
+        Garmin, COROS e Suunto, não aos Polar. Eles também podem assinar os
+        próprios treinos pelo Google Agenda ou pelo Calendário da Apple. O que
+        ainda falta é a cobrança para o clube: as mensalidades continuam sendo
+        geridas fora do OpenAthlete.
       </p>
       <p>
         <strong>O clube roda sua própria instância.</strong> O OpenAthlete é
         open source, então um clube pode instalar num servidor pequeno e ter sua
-        própria plataforma no seu próprio endereço, sem limite de alunos e sem
-        assinatura. Os membros podem entrar com login único via Authentik,
-        Keycloak ou qualquer provedor OpenID Connect, e o cadastro pode ser só
-        por convite ou fechado. Uma instância auto-hospedada não envia nada ao
-        OpenAthlete. Uma ressalva honesta: a sincronização com a COROS funciona
-        de cara, mas Garmin, Suunto, Polar e Strava exigem que o clube se
-        cadastre no programa de desenvolvedores de cada marca, e Garmin e Suunto
-        aprovam parceiros um a um. A importação de arquivos sempre funciona.
+        própria plataforma no seu próprio endereço, com os mesmos recursos de
+        clube, sem limite de alunos e sem assinatura. Os membros podem entrar
+        com login único via Authentik, Keycloak ou qualquer provedor OpenID
+        Connect, e o cadastro pode ser só por convite ou fechado. Uma instância
+        auto-hospedada não envia nada ao OpenAthlete. Uma ressalva honesta: a
+        sincronização com a COROS funciona de cara, mas Garmin, Suunto, Polar e
+        Strava exigem que o clube se cadastre no programa de desenvolvedores de
+        cada marca, e Garmin e Suunto aprovam parceiros um a um. A importação de
+        arquivos sempre funciona.
       </p>
       <p>
-        Para um clube com um ou dois treinadores e algumas dezenas de alunos, a
-        primeira opção é o jeito mais rápido de começar. Para um clube maior,
-        com alguém que se vira bem com um servidor, a segunda é o que existe de
-        mais próximo de uma conta de clube hoje. A{' '}
-        <Link href="/pt-br/clubs">página de clubes</Link> compara as duas, com o
-        custo para um clube de 50 alunos, e a{' '}
+        Para a maioria dos clubes, o espaço de clube nos nossos servidores é o
+        jeito mais rápido de começar. Um clube que quer os dados dos membros no
+        próprio servidor, e tem alguém que se vira bem com um, pode seguir o
+        segundo caminho. A <Link href="/pt-br/clubs">página de clubes</Link>{' '}
+        apresenta as duas, e a{' '}
         <Link href="/pt-br/self-hosting">página de auto-hospedagem</Link>{' '}
-        explica a instalação. Recursos para clubes estão no roadmap; se o seu
-        clube tem necessidades específicas, contar para a gente como vocês
-        treinam de verdade é a ajuda mais útil que você pode dar.
+        explica a instalação. Se o seu clube tem necessidades específicas,
+        contar para a gente como vocês treinam de verdade é a ajuda mais útil
+        que você pode dar.
       </p>
     </div>
   );

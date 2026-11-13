@@ -74,7 +74,11 @@ export function ContentIt() {
         <strong>Allenatori.</strong> L'allenatore pianifica direttamente nel
         calendario di ogni atleta, riusa i modelli e vede cosa è stato fatto
         davvero. Un atleta può avere più di un allenatore, e c'è una chat di
-        gruppo. Seguire fino a cinque atleti è gratis.
+        gruppo. Seguire fino a cinque atleti è gratis. I club hanno uno spazio
+        gratuito, con gruppi e i loro allenatori, una libreria di allenamenti
+        condivisa, sedute settimanali del club e piani copiati a tutto un
+        gruppo; gli atleti che un allenatore segue tramite un club non contano
+        in quel limite.
       </p>
       <p>
         <strong>IA, se la vuoi.</strong> Non parte niente senza il tuo consenso,
@@ -99,8 +103,8 @@ export function ContentIt() {
           Entrambi sono solo fonti di attività.
         </li>
         <li>
-          Non esiste un'entità club o squadra. Un allenatore può pianificare per
-          molti atleti insieme, ma non c'è una pagina né una gestione del club.
+          Non c'è fatturazione per i club: lo spazio club è gratuito e le quote
+          si gestiscono fuori da OpenAthlete.
         </li>
         <li>
           Non prevede gli infortuni. Registra il dolore quando l'atleta lo

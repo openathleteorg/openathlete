@@ -78,7 +78,10 @@ export function ContentFr() {
         calendrier de chaque athlète, réutilise ses modèles de séances et voit
         ce qui a réellement été fait. Un athlète peut avoir plusieurs coachs, et
         une messagerie de groupe est disponible. Suivre jusqu'à cinq athlètes
-        est gratuit.
+        est gratuit. Les clubs ont un espace club gratuit, avec des groupes et
+        leurs coachs, une bibliothèque de séances partagée, des séances de club
+        hebdomadaires et des plans copiés à tout un groupe&nbsp;; les athlètes
+        qu'un coach suit via un club ne comptent pas dans cette limite.
       </p>
       <p>
         <strong>L'IA, si vous le souhaitez.</strong> Rien ne tourne sans votre
@@ -103,9 +106,8 @@ export function ContentFr() {
           Strava. Ces deux services servent uniquement de sources d'activités.
         </li>
         <li>
-          Il n'existe pas d'entité club ou équipe. Un coach peut planifier pour
-          plusieurs athlètes à la fois, mais il n'y a ni page de club ni
-          administration de club.
+          Il n'y a pas de facturation au club&nbsp;: l'espace club est gratuit,
+          et les cotisations se gèrent en dehors d'OpenAthlete.
         </li>
         <li>
           Elle ne prédit pas les blessures. Elle enregistre la douleur quand
