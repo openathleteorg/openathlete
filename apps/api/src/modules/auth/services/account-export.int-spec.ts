@@ -59,6 +59,7 @@ const EXPORTED_TABLES = [
   'subscription',
   'training_load_calculation',
   'training_plan',
+  'training_plan_template',
   'training_zone',
 ];
 const NOT_EXPORTED_TABLES = {
@@ -94,6 +95,7 @@ interface ExportDocument {
   };
   coaching: { coaches: unknown[] };
   templates: { event: { name: string } }[];
+  trainingPlanLibrary: { name: string }[];
   aiAssistant: { messages: { blocks: { content: string }[] }[] }[];
   coachNotes: { title: string }[];
   customExercises: { name: string }[];
@@ -171,6 +173,9 @@ describe('AccountExportService (PostgreSQL)', () => {
       expect.objectContaining({ firstName: 'Co', lastName: 'Ach' }),
     ]);
     expect(data.templates[0].event.name).toBe('Template');
+    expect(data.trainingPlanLibrary).toEqual([
+      expect.objectContaining({ name: 'Library plan' }),
+    ]);
     expect(data.customExercises).toEqual([
       expect.objectContaining({ name: 'Pistol squat' }),
     ]);

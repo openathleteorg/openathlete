@@ -44,3 +44,4 @@ export * from './plan-for-athletes.dto';
 export * from './coach-dashboard-settings.dto';
 export * from './metric-threshold.dto';
 export * from './club-session.dto';
+export * from './training-plan.dto';

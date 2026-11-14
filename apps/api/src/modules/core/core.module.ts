@@ -23,6 +23,7 @@ import { MetricController } from './controllers/metric.controller';
 import { RecordController } from './controllers/record.controller';
 import { StatisticsController } from './controllers/statistics.controller';
 import { TrainingLoadController } from './controllers/training-load.controller';
+import { TrainingPlanController } from './controllers/training-plan.controller';
 import { TrainingZoneController } from './controllers/training-zone.controller';
 import { ActivityFileParserService } from './helpers/activity-file-parser.service';
 import {
@@ -67,6 +68,7 @@ import { RecordService } from './services/record.service';
 import { StatisticsService } from './services/statistics.service';
 import { StrengthSessionService } from './services/strength-session.service';
 import { TrainingLoadService } from './services/training-load.service';
+import { TrainingPlanLibraryService } from './services/training-plan-library.service';
 import { TrainingZoneService } from './services/training-zone.service';
 import { OpenMeteoWeatherProvider } from './services/weather/providers/openmeteo.provider';
 import { WeatherService } from './services/weather/weather.service';
@@ -98,6 +100,7 @@ import { WeatherService } from './services/weather/weather.service';
     TrainingZoneController,
     TrainingLoadController,
     CycleController,
+    TrainingPlanController,
     ManualFitImportController,
   ],
   providers: [
@@ -121,6 +124,7 @@ import { WeatherService } from './services/weather/weather.service';
     TrainingZoneService,
     TrainingLoadService,
     TrainingPlanService,
+    TrainingPlanLibraryService,
     CycleService,
     WeatherService,
     ActivityFeedbackService,
@@ -185,6 +189,8 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityDetailService,
     TrainingLoadService,
     TrainingPlanService,
+    // For the plan apply jobs and the MCP server's tools
+    TrainingPlanLibraryService,
     CycleService,
     ActivityFileParserService,
     // For the MCP server's tools

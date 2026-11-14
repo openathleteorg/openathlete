@@ -893,6 +893,8 @@ export class EventService {
         endDate,
         name,
         type,
+        // Moving or updating its plan later leaves this session as it is now
+        ...(event.trainingPlanId && { planModifiedAt: new Date() }),
         ...(type
           ? {
               [type.toLocaleLowerCase()]: {

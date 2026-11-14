@@ -396,6 +396,22 @@ enum PlanStatus {
   @@map("plan_status")
 }
 
+/// Which end of an applied training plan its date fixes
+enum PlanAnchor {
+  START
+  END
+
+  @@map("plan_anchor")
+}
+
+enum PlanLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@map("plan_level")
+}
+
 enum CyclePhase {
   BASE
   SPECIFIC

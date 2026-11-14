@@ -38,6 +38,9 @@ model Event {
   /// removes these events
   clubSession   ClubSession? @relation(fields: [clubSessionId], references: [clubSessionId], onDelete: SetNull)
   clubSessionId Int?         @map("club_session_id")
+  /// When the athlete or coach changed a session that came from a training
+  /// plan: moving or updating the plan leaves it as they made it
+  planModifiedAt DateTime? @map("plan_modified_at")
 
   // relationships
   activityChatNotices ActivityChatNotice[]
@@ -50,12 +53,16 @@ model Event {
   templates      EventTemplate[]
   trainingWeek   TrainingWeek?     @relation(fields: [trainingWeekId], references: [trainingWeekId])
   trainingWeekId Int?              @map("training_week_id")
+  /// The applied plan the session came from, to move or remove it whole
+  trainingPlan   TrainingPlan?     @relation(fields: [trainingPlanId], references: [trainingPlanId], onDelete: SetNull)
+  trainingPlanId Int?              @map("training_plan_id")
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([trainingWeekId])
+  @@index([trainingPlanId])
   /// Every calendar read asks for one athlete's events over a date range
   @@index([athleteId, startDate])
   @@index([seriesId])

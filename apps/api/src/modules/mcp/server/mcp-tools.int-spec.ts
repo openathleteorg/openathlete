@@ -23,6 +23,7 @@ import { MetricService } from 'src/modules/core/services/metric.service';
 import { RecordService } from 'src/modules/core/services/record.service';
 import { StatisticsService } from 'src/modules/core/services/statistics.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
+import { TrainingPlanLibraryService } from 'src/modules/core/services/training-plan-library.service';
 import { TrainingZoneService } from 'src/modules/core/services/training-zone.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -88,6 +89,7 @@ describe('MCP tools (PostgreSQL)', () => {
         abilities,
         new TrainingLoadService(prisma, abilities),
       ),
+      new TrainingPlanLibraryService(prisma, abilities, events),
     );
   });
 
@@ -173,6 +175,9 @@ describe('MCP tools (PostgreSQL)', () => {
           'delete_period',
           'log_metrics',
           'update_training_zone',
+          'apply_plan',
+          'shift_plan',
+          'remove_plan',
         ].includes(tool.name),
       );
     }

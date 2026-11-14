@@ -12,6 +12,7 @@ import { MetricService } from 'src/modules/core/services/metric.service';
 import { RecordService } from 'src/modules/core/services/record.service';
 import { StatisticsService } from 'src/modules/core/services/statistics.service';
 import { TrainingLoadService } from 'src/modules/core/services/training-load.service';
+import { TrainingPlanLibraryService } from 'src/modules/core/services/training-plan-library.service';
 import { TrainingZoneService } from 'src/modules/core/services/training-zone.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
@@ -24,6 +25,10 @@ import { registerCalendarReadTools } from './tools/calendar-read.tools';
 import { registerCalendarWriteTools } from './tools/calendar-write.tools';
 import { ToolDeps } from './tools/deps';
 import { registerLoadTools } from './tools/load.tools';
+import {
+  registerPlanReadTools,
+  registerPlanWriteTools,
+} from './tools/plan.tools';
 
 /**
  * Builds the MCP server of one request. Tools are registered per request
@@ -47,6 +52,7 @@ export class McpServerFactory {
     zones: TrainingZoneService,
     records: RecordService,
     statistics: StatisticsService,
+    plans: TrainingPlanLibraryService,
   ) {
     this.deps = {
       prisma,
@@ -61,6 +67,7 @@ export class McpServerFactory {
       zones,
       records,
       statistics,
+      plans,
     };
   }
 
@@ -82,10 +89,12 @@ export class McpServerFactory {
       registerAthleteTools(server, ctx, this.deps);
       registerCalendarReadTools(server, ctx, this.deps);
       registerLoadTools(server, ctx, this.deps);
+      registerPlanReadTools(server, ctx, this.deps);
     }
     if (ctx.can('write')) {
       registerCalendarWriteTools(server, ctx, this.deps);
       registerAthleteWriteTools(server, ctx, this.deps);
+      registerPlanWriteTools(server, ctx, this.deps);
     }
     registerPrompts(server, ctx.can('write'));
     return server;

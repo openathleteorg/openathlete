@@ -72,6 +72,8 @@ export const paths: Paths = {
       root: `${ROOTS.DASHBOARD}/notes`,
       athleteId: `${ROOTS.DASHBOARD}/notes/:athleteId`,
     },
+    // The library of training plans, and the plans applied to a calendar
+    plans: `${ROOTS.DASHBOARD}/plans`,
     settings: {
       root: `${ROOTS.DASHBOARD}/settings`,
       athleteId: `${ROOTS.DASHBOARD}/settings/:athleteId`,

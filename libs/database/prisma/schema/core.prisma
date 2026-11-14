@@ -118,6 +118,7 @@ model User {
   clubInvitationsSent       ClubInvitation[]
   clubSessionsCreated       ClubSession[]
   clubSessionAttendance     ClubSessionAttendance[]
+  trainingPlanTemplates     TrainingPlanTemplate[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

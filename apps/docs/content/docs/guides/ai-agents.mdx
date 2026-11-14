@@ -69,6 +69,7 @@ With **read** access:
 | `get_training_load` | Weekly load, done and planned, with fitness, fatigue and form projected over the planned sessions |
 | `get_metrics`, `get_records` | Metric history (weight, resting HR, HRV, sleep...) and best efforts |
 | `list_workout_templates`, `list_athletes` | Your workout library; for coaches, the athletes they coach |
+| `list_plans` | Your library of training plans, and the plans applied to the athlete with their current week and progress |
 
 With **write** access as well:
 
@@ -80,6 +81,7 @@ With **write** access as well:
 | `delete_sessions` | Deletes planned sessions; done sessions and recorded activities are never deleted |
 | `create_period`, `update_period`, `delete_period` | Training blocks, and periods without training (travel, illness, injury) |
 | `log_metrics`, `update_training_zone` | Records measurements, changes a zone after a test |
+| `apply_plan`, `shift_plan`, `remove_plan` | Puts a library plan on the calendar by start date or race day, then moves or removes it whole; done sessions stay |
 
 Workouts read and write in plain units: durations in seconds, paces as
 `4:35` per km, your zones by id, or percentages of your VMA, FTP or maximum
