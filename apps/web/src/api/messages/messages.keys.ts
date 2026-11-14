@@ -5,4 +5,5 @@ export const messagesKeys = {
     ['messages', 'thread', threadId, 'messages'] as const,
   getMessage: (messageId: number) =>
     ['messages', 'message', messageId] as const,
+  scheduled: ['messages', 'scheduled'] as const,
 };

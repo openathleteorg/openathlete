@@ -35,11 +35,25 @@ model Club {
   athleteJoinToken String? @unique @map("athlete_join_token")
   /// Token of the link coaches join through, as COACH. Rotated to revoke it.
   staffJoinToken   String? @unique @map("staff_join_token")
+  /// Short code athletes type to join (the athlete link, by hand). Rotated
+  /// with the athlete link.
+  athleteJoinCode      String?   @unique @map("athlete_join_code")
+  /// After this, the athlete link and code stop working
+  athleteJoinExpiresAt DateTime? @map("athlete_join_expires_at")
+  /// After this, the coaches' link stops working
+  staffJoinExpiresAt   DateTime? @map("staff_join_expires_at")
+  /// The group athletes joining through the link land in
+  athleteJoinGroup     AthleteGroup? @relation("ClubArrivalGroup", fields: [athleteJoinGroupId], references: [athleteGroupId], onDelete: SetNull)
+  athleteJoinGroupId   Int?      @map("athlete_join_group_id")
 
   // relationships
   members       ClubMember[]
   groups        AthleteGroup[]
   coachAthletes CoachAthlete[]
+  templates     EventTemplate[]
+  invitations   ClubInvitation[]
+  sessions      ClubSession[]
+  folders       EventTemplateFolder[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -90,6 +104,9 @@ model AthleteGroup {
   ownerUserId Int?           @map("owner_user_id")
   members     AthleteGroupMember[]
   staff       AthleteGroupStaff[]
+  arrivalOf   Club[]              @relation("ClubArrivalGroup")
+  sessions    ClubSession[]
+  invitations ClubInvitation[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -130,4 +147,106 @@ model AthleteGroupStaff {
   @@id([athleteGroupId, userId])
   @@index([userId])
   @@map("athlete_group_staff")
+}
+
+/// A personal invitation to a club, sent by email (one per person of an
+/// imported list). Its token opens the same join page as the club's links,
+/// once.
+model ClubInvitation {
+  // primary key
+  clubInvitationId Int @id @default(autoincrement()) @map("club_invitation_id")
+
+  // fields
+  email      String
+  firstName  String?   @map("first_name")
+  lastName   String?   @map("last_name")
+  /// ATHLETE or COACH
+  role       ClubRole
+  token      String    @unique
+  sentAt     DateTime  @default(now()) @map("sent_at")
+  acceptedAt DateTime? @map("accepted_at")
+
+  // relationships
+  club        Club          @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId      Int           @map("club_id")
+  /// The group the person lands in
+  group       AthleteGroup? @relation(fields: [groupId], references: [athleteGroupId], onDelete: SetNull)
+  groupId     Int?          @map("group_id")
+  invitedBy   User?         @relation(fields: [invitedById], references: [userId], onDelete: SetNull)
+  invitedById Int?          @map("invited_by_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([clubId])
+  @@index([invitedById])
+  @@map("club_invitation")
+}
+
+/// A session the club holds at a place and time (track on Tuesdays at
+/// 19:00), for a group or all its athletes. Each occurrence becomes an
+/// ordinary session in each athlete's calendar (event.club_session_id),
+/// created a few weeks ahead, so it reaches their watch and calendar feed.
+model ClubSession {
+  // primary key
+  clubSessionId Int @id @default(autoincrement()) @map("club_session_id")
+
+  // fields
+  title           String
+  location        String?
+  /// What it is about, when no template gives the content
+  notes           String?
+  /// The first day (local to the club)
+  firstDate       DateTime   @map("first_date") @db.Date
+  /// Every week from the first day, until untilDate (null: no end)
+  weekly          Boolean    @default(false)
+  untilDate       DateTime?  @map("until_date") @db.Date
+  /// Local start time, HH:mm, in timeZone: the same for every athlete
+  startTime       String     @map("start_time")
+  durationMinutes Int        @map("duration_minutes")
+  timeZone        String     @map("time_zone")
+  /// Occurrences called off
+  canceledDates   DateTime[] @map("canceled_dates") @db.Date
+
+  // relationships
+  club        Club           @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId      Int            @map("club_id")
+  /// Its athletes only; null for all the club's athletes
+  group       AthleteGroup?  @relation(fields: [groupId], references: [athleteGroupId], onDelete: SetNull)
+  groupId     Int?           @map("group_id")
+  /// The structured session from the club's library, if any
+  template    EventTemplate? @relation(fields: [templateId], references: [eventTemplateId], onDelete: SetNull)
+  templateId  Int?           @map("template_id")
+  createdBy   User?          @relation(fields: [createdById], references: [userId], onDelete: SetNull)
+  createdById Int?           @map("created_by_id")
+  events      Event[]
+  attendance  ClubSessionAttendance[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([clubId])
+  @@map("club_session")
+}
+
+/// Whether an athlete comes to an occurrence of a club session
+model ClubSessionAttendance {
+  date  DateTime @db.Date
+  going Boolean
+
+  // relationships
+  session       ClubSession @relation(fields: [clubSessionId], references: [clubSessionId], onDelete: Cascade)
+  clubSessionId Int         @map("club_session_id")
+  user          User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId        Int         @map("user_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([clubSessionId, date, userId])
+  @@index([userId])
+  @@map("club_session_attendance")
 }

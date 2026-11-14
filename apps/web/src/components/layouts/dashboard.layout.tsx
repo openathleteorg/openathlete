@@ -1,3 +1,4 @@
+import { AthleteTabs } from '@/components/coach-nav/athlete-tabs';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { FinderProvider } from '@/contexts/finder';
 import { SpaceConsumer, SpaceProvider } from '@/contexts/space';
@@ -180,7 +181,10 @@ function LayoutContent({ children }: P) {
           <>
             <div className="flex min-w-0 flex-1 bg-background md:my-2 md:mr-2 md:overflow-hidden md:rounded-xl">
               <TemplateLibrarySidebar />
-              <SidebarInset className="min-w-0 flex-1">{children}</SidebarInset>
+              <SidebarInset className="min-w-0 flex-1">
+                <AthleteTabs />
+                {children}
+              </SidebarInset>
             </div>
             <ChatBubble />
             <ChatWindow />

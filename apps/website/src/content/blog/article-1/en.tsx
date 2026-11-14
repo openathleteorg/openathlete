@@ -70,7 +70,10 @@ export function ContentEn() {
         <strong>Coaching.</strong> A coach plans directly in each athlete's
         calendar, reuses templates and sees what was actually done. An athlete
         can have more than one coach, and there is a group chat. Coaching up to
-        five athletes is free.
+        five athletes is free. Clubs get a free club space, with groups and
+        their coaches, a shared workout library, weekly club sessions and plans
+        copied to a whole group; athletes a coach reaches through a club don't
+        count against that limit.
       </p>
       <p>
         <strong>AI, if you want it.</strong> Nothing runs until you agree to it,
@@ -94,8 +97,8 @@ export function ContentEn() {
           sources of activities only.
         </li>
         <li>
-          There is no club or team entity. A coach can plan for many athletes at
-          once, but there is no club page or club administration.
+          There is no club billing: the club space is free, and membership fees
+          are handled outside OpenAthlete.
         </li>
         <li>
           It does not predict injuries. It records pain when athletes report it

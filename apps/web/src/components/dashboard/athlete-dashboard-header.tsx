@@ -28,6 +28,8 @@ import { EVENT_TYPE, METRIC_TYPE } from '@openathlete/shared';
 
 interface AthleteDashboardHeaderProps {
   athleteId?: number;
+  /** A coach looking at one of their athletes */
+  asCoach?: boolean;
 }
 
 const formInsight: Record<FormStatus, typeof m.insight_form_balanced> = {
@@ -38,12 +40,13 @@ const formInsight: Record<FormStatus, typeof m.insight_form_balanced> = {
 
 export function AthleteDashboardHeader({
   athleteId,
+  asCoach = false,
 }: AthleteDashboardHeaderProps) {
   const isMobile = isCapacitor();
   const {
     data: upcomingCompetitionsData = [],
     isLoading: isLoadingCompetitions,
-  } = useGetUpcomingCompetitionsQuery(false, athleteId);
+  } = useGetUpcomingCompetitionsQuery(asCoach, athleteId);
 
   const upcomingCompetitions = useMemo(() => {
     return upcomingCompetitionsData.slice(0, 2);

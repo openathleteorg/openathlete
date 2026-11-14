@@ -45,6 +45,12 @@ export class EventTemplateController {
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Get()
+  @ApiQuery({
+    name: 'clubId',
+    type: Number,
+    required: false,
+    description: "A club's library, for its staff; the user's own without it",
+  })
   @ApiOperation({
     summary: 'Get all event templates for the authenticated user',
     description:
@@ -128,8 +134,13 @@ export class EventTemplateController {
   getMyEventTemplates(
     @JwtUser() user: AuthUser,
     @Query('search') search?: string,
+    @Query('clubId', new ParseIntPipe({ optional: true })) clubId?: number,
   ) {
-    return this.eventTemplateService.getMyEventTemplates(user, search);
+    return this.eventTemplateService.getMyEventTemplates(
+      user,
+      search,
+      clubId ?? null,
+    );
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

@@ -86,51 +86,72 @@ export function ContentIt() {
         coinvolgi i genitori.
       </p>
 
-      <h2>Due modi per gestire una società su OpenAthlete oggi</h2>
+      <h2>Due modi per gestire una società su OpenAthlete</h2>
       <p>
-        Prima la risposta diretta: OpenAthlete non ha un account per società.
-        Niente gruppi, niente calendario di società, niente fatturazione alla
-        società. Quello che c'è funziona comunque per una società, in uno di
-        questi due modi.
+        OpenAthlete ha uno spazio per le società. È gratuito sui nostri server,
+        senza limiti di atleti, e una società che preferisce il proprio server
+        ha le stesse funzioni installando OpenAthlete lì.
       </p>
       <p>
-        <strong>Un account per allenatore, sui nostri server.</strong> Ogni
-        allenatore ha il suo account gratuito, che copre fino a cinque atleti;
-        Supporter (5 € al mese o 50 € l'anno per allenatore) toglie il limite.
-        Un atleta può avere più allenatori, quindi quello di corsa e quello di
-        forza pianificano nello stesso calendario. Le conversazioni di gruppo
-        tengono insieme un gruppo di allenamento, ogni seduta ha il suo filo di
-        commenti e ogni allenatore ha una dashboard per i propri atleti con
-        rispetto del piano, volume, forma e avvisi su dolori e inattività. I
-        tesserati possono usare qualsiasi orologio: le attività arrivano da
-        Garmin, COROS, Suunto, Polar, Strava o da file, e gli allenamenti
-        pianificati arrivano sugli orologi Garmin, COROS e Suunto. Possono anche
-        iscriversi alle proprie sedute da Google Calendar o Calendario di Apple.
+        <strong>Uno spazio per la società, sui nostri server.</strong> Un
+        allenatore crea la società in Impostazioni &gt; Club e assegna a
+        ciascuno un ruolo: proprietario, amministratore, allenatore, assistente
+        o atleta. Ogni allenatore della società raggiunge gli atleti della
+        società, e questi atleti non contano nel limite di cinque atleti di un
+        account allenatore gratuito. I tesserati entrano da un elenco che
+        importi (incollato, o in CSV dal foglio di calcolo della società, gruppi
+        compresi), con un codice di accesso o tramite link che scadono. Ogni
+        gruppo, per ritmo o per livello, ha i suoi allenatori, e la libreria
+        della società raccoglie gli allenamenti e le cartelle che usano tutti i
+        suoi allenatori.
+      </p>
+      <p>
+        Per pianificare un gruppo, copi una seduta, un giorno o una settimana a
+        molti atleti in una volta. Ogni copia si adatta alle zone e alle soglie
+        dell'atleta, un'anteprima mostra cosa manca a ciascuno prima di
+        confermare, e un solo annullamento riporta tutto indietro. Le sedute
+        settimanali della società, come la pista del martedì allo stadio,
+        arrivano nei calendari del gruppo con quattro settimane di anticipo: gli
+        atleti dicono se vengono, l'allenatore vede quanti saranno e, se annulla
+        una data, tutti ricevono una notifica. I messaggi vanno a un gruppo o a
+        tutta la società, subito o programmati, e ogni seduta conserva il suo
+        filo di commenti. La dashboard dell'allenatore è pensata per decine di
+        atleti, con i totali di un periodo, avvisi quando una metrica come la
+        frequenza cardiaca a riposo o il peso supera una soglia, e una barra
+        laterale fatta per passare da un atleta all'altro fra trenta.
+      </p>
+      <p>
+        Un atleta può comunque avere più allenatori, quindi quello di corsa e
+        quello di forza pianificano nello stesso calendario. I tesserati possono
+        usare qualsiasi orologio: le attività arrivano da Garmin, COROS, Suunto,
+        Polar, Strava o da file, e gli allenamenti pianificati arrivano sugli
+        orologi Garmin, COROS e Suunto, non sui Polar. Possono anche iscriversi
+        alle proprie sedute da Google Calendar o Calendario di Apple. Quello che
+        manca ancora è la fatturazione alla società: le quote si gestiscono
+        fuori da OpenAthlete.
       </p>
       <p>
         <strong>La società ha la sua istanza.</strong> OpenAthlete è open
         source, quindi una società può installarlo su un piccolo server e avere
-        la propria piattaforma al proprio indirizzo, senza limiti di atleti né
-        abbonamento. I tesserati possono accedere con single sign-on tramite
-        Authentik, Keycloak o qualsiasi provider OpenID Connect, e le iscrizioni
-        possono essere solo su invito o chiuse. Un'istanza self-hosted non invia
-        nulla a OpenAthlete. Una precisazione onesta: la sincronizzazione con
-        COROS funziona subito, ma Garmin, Suunto, Polar e Strava chiedono alla
-        società di registrarsi al programma per sviluppatori di ciascun marchio,
-        e Garmin e Suunto approvano i partner uno per uno. L'importazione di
-        file funziona sempre.
+        la propria piattaforma al proprio indirizzo, con le stesse funzioni per
+        le società, senza limiti di atleti né abbonamento. I tesserati possono
+        accedere con single sign-on tramite Authentik, Keycloak o qualsiasi
+        provider OpenID Connect, e le iscrizioni possono essere solo su invito o
+        chiuse. Un'istanza self-hosted non invia nulla a OpenAthlete. Una
+        precisazione onesta: la sincronizzazione con COROS funziona subito, ma
+        Garmin, Suunto, Polar e Strava chiedono alla società di registrarsi al
+        programma per sviluppatori di ciascun marchio, e Garmin e Suunto
+        approvano i partner uno per uno. L'importazione di file funziona sempre.
       </p>
       <p>
-        Per una società con uno o due allenatori e qualche decina di atleti, la
-        prima opzione è il modo più rapido per iniziare. Per una società più
-        grande, con qualcuno a proprio agio con un server, la seconda è quanto
-        di più vicino a un account di società esista oggi. La{' '}
-        <Link href="/it/clubs">pagina per le società</Link> confronta le due,
-        con i costi per una società di 50 atleti, e la{' '}
-        <Link href="/it/self-hosting">pagina sul self-hosting</Link> spiega
-        l'installazione. Le funzioni per le società sono nella roadmap; se la
-        tua ha esigenze precise, raccontarci come vi allenate davvero è il
-        contributo più utile che puoi darci.
+        Per la maggior parte delle società, lo spazio sui nostri server è il
+        modo più rapido per iniziare. Una società che vuole tenere i dati dei
+        tesserati sul proprio server, e ha qualcuno a proprio agio nel gestirne
+        uno, può scegliere la seconda strada. La{' '}
+        <Link href="/it/clubs">pagina per le società</Link> presenta le due, e
+        la <Link href="/it/self-hosting">pagina sul self-hosting</Link> spiega
+        l'installazione. Se la tua società ha esigenze precise, raccontarci come
+        vi allenate davvero è il contributo più utile che puoi darci.
       </p>
     </div>
   );

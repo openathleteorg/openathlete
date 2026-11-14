@@ -1,3 +1,4 @@
+import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
@@ -7,9 +8,10 @@ import { format } from 'date-fns';
 import { Plus } from 'lucide-react';
 import { useRef, useState } from 'react';
 
-import { Event } from '@openathlete/shared';
+import { EVENT_TYPE, Event } from '@openathlete/shared';
 
 import { AiSetupDialog } from '../ai-settings';
+import { PlanForAthletesDialog } from '../plan-for-athletes/plan-for-athletes-dialog';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -57,6 +59,17 @@ export function CalendarDay({
   } = useCalendarContext();
   // Activity files dragged from the computer over this day
   const [fileOver, setFileOver] = useState(false);
+  // The day's plan, copied to other athletes the coach picks
+  const [copyingDay, setCopyingDay] = useState(false);
+  const { data: coached } = useGetMyCoachedAthletesQuery();
+  const dayPlan = events.filter((event) => event.type !== EVENT_TYPE.ACTIVITY);
+  const copyToAthletes =
+    dayPlan.length > 0 &&
+    (coached ?? []).some(
+      (athlete) => athlete.athleteId !== dayPlan[0].athleteId,
+    )
+      ? () => setCopyingDay(true)
+      : undefined;
   const draggingFiles = (event: React.DragEvent) =>
     !!importFiles && event.dataTransfer.types.includes('Files');
   const [aiSetupOpen, setAiSetupOpen] = useState(false);
@@ -277,6 +290,7 @@ export function CalendarDay({
                     day={day}
                     menu="dropdown"
                     onAiSetupNeeded={() => setAiSetupOpen(true)}
+                    onCopyToAthletes={copyToAthletes}
                   />
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -321,10 +335,31 @@ export function CalendarDay({
               day={day}
               menu="context"
               onAiSetupNeeded={() => setAiSetupOpen(true)}
+              onCopyToAthletes={copyToAthletes}
             />
           </ContextMenuContent>
         )}
       </ContextMenu>
+      {dayPlan.length > 0 && (
+        <PlanForAthletesDialog
+          open={copyingDay}
+          onClose={() => setCopyingDay(false)}
+          source={{
+            kind: 'events',
+            eventIds: dayPlan.map((event) => event.eventId),
+          }}
+          label={m.plan_for_athletes_day_label({
+            count: dayPlan.length,
+            day: day.toLocaleDateString(getDateLocale(getLocale()), {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+            }),
+          })}
+          defaultDate={format(day, 'yyyy-MM-dd')}
+          sourceAthleteId={dayPlan[0].athleteId}
+        />
+      )}
       <AiSetupDialog
         open={aiSetupOpen}
         onOpenChange={setAiSetupOpen}

@@ -29,7 +29,12 @@ const PROVIDERS: ConnectorProvider[] = [
 ];
 
 const LOGOS: Record<string, ReactNode> = {
-  STRAVA: <StravaIcon />,
+  // The icon draws at 64px: its box sets the size
+  STRAVA: (
+    <span className="flex size-6 [&>svg]:size-full">
+      <StravaIcon />
+    </span>
+  ),
   GARMIN: <GarminLogo className="h-6 w-auto" />,
   POLAR: <PolarLogo className="h-6 w-auto" />,
   SUUNTO: <SuuntoLogo className="h-6 w-auto" />,

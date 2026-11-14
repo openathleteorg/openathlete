@@ -37,3 +37,32 @@ model AthleteMetric {
   @@index([athleteId, date])
   @@map("athlete_metric")
 }
+
+/// Bounds a coach watches on one metric of one athlete: past them, the
+/// dashboard flags it and the coach gets a notification.
+model CoachMetricThreshold {
+  // primary key
+  metricThresholdId Int @id @default(autoincrement()) @map("metric_threshold_id")
+
+  // fields
+  metricType MetricType @map("metric_type")
+  min        Float?
+  max        Float?
+  /// Values written up to then were checked for a notification: each new
+  /// or updated value is notified once
+  lastCheckedAt DateTime @default(now()) @map("last_checked_at")
+
+  // relationships
+  coach       User    @relation(fields: [coachUserId], references: [userId], onDelete: Cascade)
+  coachUserId Int     @map("coach_user_id")
+  athlete     Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)
+  athleteId   Int     @map("athlete_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([coachUserId, athleteId, metricType])
+  @@index([athleteId])
+  @@map("coach_metric_threshold")
+}

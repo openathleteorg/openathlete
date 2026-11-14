@@ -27,6 +27,9 @@ model EventTemplateFolder {
   parentFolderId Int?                  @map("parent_folder_id")
   childFolders   EventTemplateFolder[] @relation("FolderHierarchy")
   eventTemplates EventTemplate[]
+  /// The club library holding it; null in its author's own library
+  club           Club?                 @relation(fields: [clubId], references: [clubId], onDelete: Cascade)
+  clubId         Int?                  @map("club_id")
   trainingPlanTemplates TrainingPlanTemplate[]
 
   // timestamps
@@ -35,5 +38,6 @@ model EventTemplateFolder {
 
   @@index([userId])
   @@index([parentFolderId])
+  @@index([clubId])
   @@map("event_template_folder")
 }

@@ -1,9 +1,15 @@
+import { ZodValidationPipe } from 'nestjs-zod';
+
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -18,12 +24,22 @@ import {
 } from '@nestjs/swagger';
 
 import { InvitationStatus } from '@openathlete/database';
+import {
+  MetricThresholdDto,
+  MetricThresholdParamsDto,
+  MetricThresholdsQueryDto,
+  SetMetricThresholdsDto,
+  metricThresholdParamsSchema,
+  metricThresholdsQuerySchema,
+  setMetricThresholdsDtoSchema,
+} from '@openathlete/shared';
 
 import { JwtUser, UserTypeGuard } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { CoachInvitationService } from 'src/modules/auth/services/coach-invitation.service';
 
 import { CoachService } from '../services/coach.service';
+import { MetricThresholdService } from '../services/metric-threshold.service';
 
 @ApiTags('Coach')
 @Controller('coach')
@@ -31,6 +47,7 @@ export class CoachController {
   constructor(
     private readonly coachService: CoachService,
     private coachInvitationService: CoachInvitationService,
+    private readonly thresholds: MetricThresholdService,
   ) {}
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
@@ -154,10 +171,62 @@ export class CoachController {
     @JwtUser() user: AuthUser,
     @Query('start') start?: string,
     @Query('end') end?: string,
+    @Query('compare') compare?: string,
   ) {
     const period =
       start && end ? { start: new Date(start), end: new Date(end) } : undefined;
-    return this.coachService.getCoachDashboard(user, period);
+    return this.coachService.getCoachDashboard(user, period, {
+      comparePrevious: compare === 'previous',
+    });
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Get('thresholds')
+  @ApiOperation({
+    summary: "List the bounds the coach watches on athletes' metrics",
+  })
+  @ApiQuery({ name: 'athleteId', type: Number, required: false })
+  @ApiResponse({ status: 200, description: 'The thresholds' })
+  listThresholds(
+    @JwtUser() user: AuthUser,
+    @Query(new ZodValidationPipe(metricThresholdsQuerySchema))
+    query: MetricThresholdsQueryDto,
+  ): Promise<MetricThresholdDto[]> {
+    return this.thresholds.list(user, query.athleteId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Put('thresholds')
+  @ApiOperation({
+    summary: 'Watch a metric of one or several athletes',
+    description:
+      'Sets a minimum, a maximum or both on one metric for each athlete given (a whole group at once), replacing their previous bounds. A value past them shows on the dashboard, and notifies the coach once. Only values recorded from now on notify.',
+  })
+  @ApiResponse({ status: 200, description: 'The thresholds set' })
+  @ApiResponse({ status: 403, description: 'Not an athlete the user coaches' })
+  setThresholds(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(setMetricThresholdsDtoSchema))
+    dto: SetMetricThresholdsDto,
+  ): Promise<MetricThresholdDto[]> {
+    return this.thresholds.set(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Delete('thresholds/:metricThresholdId')
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Stop watching a metric of an athlete' })
+  @ApiResponse({ status: 204, description: 'Removed' })
+  @ApiResponse({ status: 404, description: 'Not one of the user’s thresholds' })
+  async deleteThreshold(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(metricThresholdParamsSchema))
+    params: MetricThresholdParamsDto,
+  ): Promise<void> {
+    await this.thresholds.delete(user, params.metricThresholdId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

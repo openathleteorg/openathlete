@@ -38,7 +38,7 @@ export function StepHeader({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-[1.75rem]">
+      <h1 className="text-2xl font-bold tracking-tight text-balance sm:text-[1.75rem] lg:text-[2rem]">
         {title}
       </h1>
       {subtitle && (
@@ -70,7 +70,7 @@ export function ChoiceCard({
       aria-pressed={selected}
       onClick={onSelect}
       className={cn(
-        'flex min-h-14 w-full items-center gap-3 rounded-xl border-[1.5px] bg-background px-4 py-3 text-left transition-colors',
+        'flex min-h-14 w-full items-center gap-3 rounded-xl sm:min-h-16 border-[1.5px] bg-background px-4 py-3 text-left transition-colors',
         'focus-visible:ring-ring/50 outline-none focus-visible:ring-[3px]',
         selected
           ? 'border-primary bg-secondary'
@@ -191,7 +191,7 @@ export function TeamStep({
         title={m.onboarding_team_title()}
         subtitle={m.onboarding_team_subtitle()}
       />
-      <div className="flex flex-col gap-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         {COACH_TEAM_SIZES.map((size) => (
           <ChoiceCard
             key={size}
@@ -383,7 +383,7 @@ export function GoalStep({
   return (
     <>
       <StepHeader title={m.onboarding_goal_title()} />
-      <div className="flex flex-col gap-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         {GOALS.map((item) => (
           <ChoiceCard
             key={item.goal}
@@ -449,7 +449,7 @@ export function HoursStep({
         title={m.onboarding_hours_title()}
         subtitle={m.onboarding_hours_subtitle()}
       />
-      <div className="flex flex-col gap-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         {WEEKLY_TRAINING_HOURS.map((value) => (
           <ChoiceCard
             key={value}

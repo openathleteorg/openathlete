@@ -1,6 +1,7 @@
 import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import logoDarkSrc from '@/assets/logos/logo_dark.svg';
 import logoWhiteSrc from '@/assets/logos/logo_white.svg';
+import { CoachAthleteNav } from '@/components/coach-nav/coach-athlete-nav';
 import { FinderButton } from '@/components/finder/finder-button';
 import { CollapsedAthleteMenu } from '@/components/sidebar/collapsed-athlete-menu';
 import { NavMain } from '@/components/sidebar/nav-main';
@@ -197,17 +198,21 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <FinderButton />
-        <NavMain
-          items={
-            showAthleteSelector
-              ? sidebarNavigation.filter((item) => !item.items)
-              : sidebarNavigation
-          }
-        />
-        {showAthleteSelector && (
+        {/* Athletes have their own list: one line each, with a search */}
+        <NavMain items={sidebarNavigation.filter((item) => !item.items)} />
+        {showAthleteSelector ? (
           <CollapsedAthleteMenu
             athletes={sidebarNavigation.filter((item) => item.items)}
           />
+        ) : (
+          space === 'COACH' && (
+            <CoachAthleteNav
+              athletes={(athletes ?? []).map((athlete) => ({
+                athleteId: athlete.athleteId,
+                name: `${athlete.user?.firstName ?? ''} ${athlete.user?.lastName ?? ''}`.trim(),
+              }))}
+            />
+          )
         )}
       </SidebarContent>
       <SidebarFooter>

@@ -40,6 +40,7 @@ model Athlete {
   injuries                 AthleteInjury[]
   coachNotes               CoachNote[]
   groupMemberships         AthleteGroupMember[]
+  metricThresholds         CoachMetricThreshold[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")

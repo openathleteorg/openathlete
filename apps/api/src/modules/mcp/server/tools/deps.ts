@@ -7,6 +7,7 @@ import { z } from 'zod';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { CycleService } from 'src/modules/core/services/cycle.service';
+import { EventBatchService } from 'src/modules/core/services/event-batch.service';
 import { EventBulkService } from 'src/modules/core/services/event-bulk.service';
 import { EventSeriesService } from 'src/modules/core/services/event-series.service';
 import { EventService } from 'src/modules/core/services/event.service';
@@ -26,6 +27,7 @@ export type ToolDeps = {
   abilities: CaslAbilityFactory;
   events: EventService;
   bulk: EventBulkService;
+  batch: EventBatchService;
   series: EventSeriesService;
   cycles: CycleService;
   metrics: MetricService;

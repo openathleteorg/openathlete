@@ -43,7 +43,9 @@ import {
   SettingsRowsSkeleton,
   SettingsSection,
 } from '../settings-section';
+import { ClubInvitationsSection } from './club-invitations-section';
 import { ClubJoinLinksSection } from './club-join-links-section';
+import { ClubSessionsSection } from './club-sessions-section';
 
 const clubsTab = `${getPath(['dashboard', 'settings'])}?tab=clubs`;
 
@@ -262,7 +264,12 @@ export function ClubDetail({ clubId }: { clubId: number }) {
         />
       )}
 
+      {isClubStaff(role) && (
+        <ClubSessionsSection clubId={clubId} canManage={isClubCoach(role)} />
+      )}
+
       {isClubAdmin(role) && <ClubJoinLinksSection clubId={clubId} />}
+      {isClubAdmin(role) && <ClubInvitationsSection clubId={clubId} />}
 
       <SettingsSection title={m.club_settings_title()}>
         <SettingsPanel>

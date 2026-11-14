@@ -48,6 +48,9 @@ export const routes = {
     repeatEvent: (eventId: Event['eventId']) => `/event/${eventId}/repeat`,
     eventSeries: (eventId: Event['eventId']) => `/event/${eventId}/series`,
     moveEvents: '/event/bulk/move',
+    planForAthletes: '/event/plan-for-athletes',
+    planForAthletesPreview: '/event/plan-for-athletes/preview',
+    batch: (batchId: string) => `/event/batch/${encodeURIComponent(batchId)}`,
     getMyEvents: '/event',
     season: '/event/season',
     getUpcomingCompetitions: '/event/upcoming-competitions',
@@ -199,8 +202,18 @@ export const routes = {
     load: '/statistics/load',
   },
   coach: {
-    dashboard: (start?: string, end?: string) =>
-      `/coach/dashboard${start && end ? `?start=${start}&end=${end}` : ''}`,
+    dashboard: (start?: string, end?: string, compare?: boolean) => {
+      const params = new URLSearchParams();
+      if (start && end) {
+        params.set('start', start);
+        params.set('end', end);
+      }
+      if (compare) params.set('compare', 'previous');
+      const query = params.toString();
+      return `/coach/dashboard${query ? `?${query}` : ''}`;
+    },
+    thresholds: '/coach/thresholds',
+    threshold: (id: number) => `/coach/thresholds/${id}`,
     getPendingInvitations: '/coach/invitations/pending',
     acceptInvitation: (invitationId: number) =>
       `/coach/invitations/${invitationId}/accept`,
@@ -218,8 +231,22 @@ export const routes = {
     transfer: (clubId: number) => `/club/${clubId}/transfer`,
     joinLinks: (clubId: number) => `/club/${clubId}/join-links`,
     rotateJoinLink: (clubId: number) => `/club/${clubId}/join-links/rotate`,
+    invitations: (clubId: number) => `/club/${clubId}/invitations`,
+    invitation: (clubId: number, id: number) =>
+      `/club/${clubId}/invitations/${id}`,
+    resendInvitation: (clubId: number, id: number) =>
+      `/club/${clubId}/invitations/${id}/resend`,
+    sessions: (clubId: number) => `/club/${clubId}/sessions`,
+    session: (clubId: number, id: number) => `/club/${clubId}/sessions/${id}`,
+    cancelSession: (clubId: number, id: number) =>
+      `/club/${clubId}/sessions/${id}/cancel`,
+  },
+  clubSessions: {
+    forEvent: (eventId: number) => `/club-sessions/event/${eventId}`,
+    attendance: '/club-sessions/attendance',
   },
   clubJoin: {
+    code: (code: string) => `/club-join/code/${encodeURIComponent(code)}`,
     info: (token: string) => `/club-join/${encodeURIComponent(token)}`,
     accept: (token: string) => `/club-join/${encodeURIComponent(token)}/accept`,
   },
@@ -282,6 +309,9 @@ export const routes = {
     updateMessage: (messageId: number) => `/messages/messages/${messageId}`,
     deleteMessage: (messageId: number) => `/messages/messages/${messageId}`,
     markAsRead: (threadId: number) => `/messages/threads/${threadId}/read`,
+    broadcast: '/messages/broadcast',
+    scheduled: '/messages/scheduled',
+    scheduledMessage: (id: number) => `/messages/scheduled/${id}`,
     eventCommentCounts: '/messages/events/comments',
     eventComments: (eventId: number) => `/messages/events/${eventId}/comments`,
     eventCommentsRead: (eventId: number) =>

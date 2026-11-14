@@ -1,5 +1,6 @@
 import { athleteKeys } from '@/api/athlete/athlete.keys';
 import { coachKeys } from '@/api/coach/coach.keys';
+import { eventKeys } from '@/api/event/event.keys';
 import { useAuthContext } from '@/contexts/auth';
 import {
   QueryClient,
@@ -12,7 +13,10 @@ import {
   ClubJoinLinkKind,
   CreateAthleteGroupDto,
   CreateClubDto,
+  CreateClubSessionDto,
+  InviteToClubDto,
   UpdateClubDto,
+  UpdateClubJoinLinksDto,
 } from '@openathlete/shared';
 
 import { AthleteGroupAPI, ClubAPI } from './club.api';
@@ -110,6 +114,86 @@ export const useRotateClubJoinLinkMutation = (clubId: number) => {
       ClubAPI.rotateJoinLink(clubId, kind),
     onSuccess: (links) =>
       queryClient.setQueryData(clubKeys.joinLinks(clubId), links),
+  });
+};
+
+export const useUpdateClubJoinLinksMutation = (clubId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateClubJoinLinksDto) =>
+      ClubAPI.updateJoinLinks(clubId, body),
+    onSuccess: (links) =>
+      queryClient.setQueryData(clubKeys.joinLinks(clubId), links),
+  });
+};
+
+export const useClubInvitationsQuery = (clubId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: clubKeys.invitations(clubId),
+    queryFn: () => ClubAPI.getInvitations(clubId),
+    enabled,
+  });
+
+export const useInviteToClubMutation = (clubId: number) =>
+  useClubMutation((body: InviteToClubDto) => ClubAPI.invite(clubId, body));
+
+export const useResendClubInvitationMutation = (clubId: number) =>
+  useClubMutation((id: number) => ClubAPI.resendInvitation(clubId, id));
+
+export const useRevokeClubInvitationMutation = (clubId: number) =>
+  useClubMutation((id: number) => ClubAPI.revokeInvitation(clubId, id));
+
+export const useClubSessionsQuery = (clubId: number, enabled: boolean) =>
+  useQuery({
+    queryKey: clubKeys.sessions(clubId),
+    queryFn: () => ClubAPI.getSessions(clubId),
+    enabled,
+  });
+
+/** Club sessions land in calendars: those refresh too */
+const useClubSessionMutation = <TArgs, TResult>(
+  mutationFn: (args: TArgs) => Promise<TResult>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: clubKeys.all });
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+    },
+  });
+};
+
+export const useSaveClubSessionMutation = (clubId: number) =>
+  useClubSessionMutation(
+    ({ id, body }: { id?: number; body: CreateClubSessionDto }) =>
+      id
+        ? ClubAPI.updateSession(clubId, id, body)
+        : ClubAPI.createSession(clubId, body),
+  );
+
+export const useDeleteClubSessionMutation = (clubId: number) =>
+  useClubSessionMutation((id: number) => ClubAPI.deleteSession(clubId, id));
+
+export const useCancelClubSessionOccurrenceMutation = (clubId: number) =>
+  useClubSessionMutation(({ id, date }: { id: number; date: string }) =>
+    ClubAPI.cancelSessionOccurrence(clubId, id, date),
+  );
+
+export const useClubSessionForEventQuery = (eventId: number | null) =>
+  useQuery({
+    queryKey: clubKeys.sessionForEvent(eventId ?? 0),
+    queryFn: () => ClubAPI.getSessionForEvent(eventId as number),
+    enabled: eventId !== null,
+    retry: false,
+  });
+
+export const useAnswerClubSessionMutation = (eventId: number) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (going: boolean) => ClubAPI.answerSession(eventId, going),
+    onSuccess: (answer) =>
+      queryClient.setQueryData(clubKeys.sessionForEvent(eventId), answer),
   });
 };
 

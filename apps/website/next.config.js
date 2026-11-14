@@ -3,8 +3,24 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  // Lint and types are checked in CI: skipping them here saves build minutes
+  // on Vercel's two cores
+  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: true },
+  // Social cards render on demand (app/og) from files read at runtime: the
+  // page list, the training plans and the logo. Keys are globs too, where
+  // `[locale]` would be a character class
+  outputFileTracingIncludes: {
+    '/og/**': [
+      './src/app/**/page.tsx',
+      './src/lib/training-plans/plans/**/*.json',
+      './public/logo-mark-white.svg',
+    ],
+  },
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // WebP only: each format is a separate transformation, and the Hobby
+    // plan's quota counts them
+    formats: ['image/webp'],
     remotePatterns: [
       {
         protocol: 'https',

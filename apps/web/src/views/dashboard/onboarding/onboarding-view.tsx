@@ -36,6 +36,7 @@ import {
   isFullImportInProgress,
 } from '@openathlete/shared';
 
+import { OnboardingAside } from './onboarding-aside';
 import { ConnectStep } from './onboarding-connect-step';
 import { DoneStep } from './onboarding-done-step';
 import {
@@ -625,14 +626,14 @@ export function OnboardingView() {
     current !== 'done' && current !== 'role' && history.length > 0;
 
   return (
-    <div className="bg-background fixed inset-0 z-50 flex flex-col overflow-y-auto pt-[var(--safe-top)] pb-[var(--safe-bottom)]">
-      <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 sm:px-6 sm:py-8">
+    <div className="bg-background fixed inset-0 z-50 flex flex-col overflow-y-auto pt-[var(--safe-top)] pb-[var(--safe-bottom)] lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.8fr)] lg:pt-0 lg:pb-0">
+      <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-4 sm:px-6 sm:py-8 lg:min-h-svh lg:max-w-xl lg:px-10 lg:pt-[max(3rem,14vh)] lg:pb-12">
         <header className="flex min-h-14 items-center gap-3 py-2">
           {current === 'role' ? (
             <img
               src={resolvedTheme === 'dark' ? logoWhiteSrc : logoDarkSrc}
               alt="OpenAthlete"
-              className="h-6"
+              className="h-6 lg:hidden"
             />
           ) : (
             <Button
@@ -648,7 +649,7 @@ export function OnboardingView() {
           )}
           {current !== 'done' && current !== 'role' && (
             <div
-              className="flex flex-1 gap-1"
+              className="flex flex-1 gap-1 lg:sr-only"
               role="progressbar"
               aria-valuemin={1}
               aria-valuemax={questions}
@@ -697,7 +698,7 @@ export function OnboardingView() {
             animate={{ opacity: 1, y: 0 }}
             exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
             transition={{ duration: 0.22 }}
-            className="flex flex-1 flex-col gap-5 pt-2 pb-4"
+            className="flex flex-1 flex-col gap-5 pt-2 pb-4 lg:flex-none lg:gap-6"
           >
             {screen.body}
             {current === 'role' && (
@@ -709,11 +710,12 @@ export function OnboardingView() {
         </AnimatePresence>
 
         {screen.footer && (
-          <footer className="bg-background sticky bottom-0 flex flex-col gap-1 pt-2 pb-4">
+          <footer className="bg-background sticky bottom-0 flex flex-col gap-1 pt-2 pb-4 lg:static lg:flex-row-reverse lg:justify-start lg:gap-2 lg:pt-4 lg:*:w-auto lg:*:min-w-36 lg:*:px-6">
             {screen.footer}
           </footer>
         )}
       </div>
+      <OnboardingAside path={path} current={current} />
     </div>
   );
 }

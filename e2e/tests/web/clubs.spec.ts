@@ -222,10 +222,21 @@ test('a coach creates a club, sorts its athletes in groups and filters the dashb
   await page.goto('/dashboard/coach');
   const table = page.locator('[data-coach-table]');
   await expect(table.getByText('Jon Athlete')).toBeVisible();
+  // Each group's figures side by side
+  await expect(
+    page.locator('[data-groups-overview-row="Trail Club · Juniors"]'),
+  ).toContainText('Athletes: 1');
+  await expect(page.locator('[data-group-summary]')).toContainText(
+    'All athletes',
+  );
   await page.locator('[data-group-filter]').click();
   await page.getByRole('option', { name: 'Trail Club · Juniors' }).click();
   await expect(table.getByText('Ines Athlete')).toBeVisible();
   await expect(table.getByText('Jon Athlete')).toBeHidden();
+  await expect(page.locator('[data-group-summary]')).toContainText(
+    'Trail Club · Juniors',
+  );
+  await expect(page.locator('[data-groups-overview]')).toBeHidden();
   expect(problems).toEqual([]);
 });
 

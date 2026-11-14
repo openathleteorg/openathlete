@@ -226,3 +226,42 @@ export const useMarkMessagesAsReadMutation = (
     },
   });
 };
+
+/** Messages to several people: the conversations and the queue change */
+export const useSendBroadcastMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: MessagesAPI.sendBroadcast,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: messagesKeys.getUserThreads });
+      queryClient.invalidateQueries({ queryKey: messagesKeys.scheduled });
+    },
+  });
+};
+
+export const useScheduledMessagesQuery = ({
+  enabled = true,
+}: { enabled?: boolean } = {}) =>
+  useQuery({
+    queryKey: messagesKeys.scheduled,
+    queryFn: MessagesAPI.getScheduled,
+    enabled,
+  });
+
+export const useUpdateScheduledMessageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: MessagesAPI.updateScheduled,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: messagesKeys.scheduled }),
+  });
+};
+
+export const useCancelScheduledMessageMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: MessagesAPI.cancelScheduled,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: messagesKeys.scheduled }),
+  });
+};

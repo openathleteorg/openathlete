@@ -31,6 +31,13 @@ model Event {
   /// Shared by the occurrences of a repeated session, to edit or delete
   /// one and the following ones together
   seriesId  String?   @map("series_id")
+  /// Shared by the sessions a coach planned for several athletes at once,
+  /// to undo the whole operation
+  batchId   String?   @map("batch_id")
+  /// The club session this occurrence comes from; the club creates and
+  /// removes these events
+  clubSession   ClubSession? @relation(fields: [clubSessionId], references: [clubSessionId], onDelete: SetNull)
+  clubSessionId Int?         @map("club_session_id")
   /// When the athlete or coach changed a session that came from a training
   /// plan: moving or updating the plan leaves it as they made it
   planModifiedAt DateTime? @map("plan_modified_at")
@@ -59,6 +66,8 @@ model Event {
   /// Every calendar read asks for one athlete's events over a date range
   @@index([athleteId, startDate])
   @@index([seriesId])
+  @@index([batchId])
+  @@index([clubSessionId])
   @@map("event")
 }
 
@@ -355,12 +364,18 @@ model EventTemplate {
   userId   Int                  @map("user_id")
   folder   EventTemplateFolder? @relation(fields: [folderId], references: [eventTemplateFolderId])
   folderId Int?                 @map("folder_id")
+  /// The club library holding it; null in its author's own library. A club
+  /// gone gives each template back to its author.
+  club     Club?                @relation(fields: [clubId], references: [clubId], onDelete: SetNull)
+  clubId   Int?                 @map("club_id")
+  clubSessions ClubSession[]
 
   // timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([folderId])
+  @@index([clubId])
   @@map("event_template")
 }
 

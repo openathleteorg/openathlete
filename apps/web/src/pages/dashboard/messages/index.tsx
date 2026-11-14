@@ -6,6 +6,7 @@ import {
 } from '@/api/messages';
 import { useGetMeQuery } from '@/api/user';
 import { ChatInput } from '@/components/chatbot/chat-input';
+import { BroadcastControls } from '@/components/messages/broadcast-controls';
 import { MessageMessages } from '@/components/messages/message-messages';
 import { MessageSearch } from '@/components/messages/message-search';
 import { NewMessageThreadDialog } from '@/components/messages/new-message-thread-dialog';
@@ -183,6 +184,7 @@ export function MessagesPage() {
       ) : (
         <>
           <MessageSearch onSelect={handleSearchResult} />
+          <BroadcastControls compact />
           <Button
             variant="ghost"
             size="icon"
@@ -379,14 +381,17 @@ export function MessagesPage() {
         <div className="flex-shrink-0 p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <MessageSearch onSelect={handleSearchResult} />
-            <Button
-              onClick={handleNewConversation}
-              size="icon"
-              variant="default"
-              disabled={createMessageThreadMutation.isPending}
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <BroadcastControls />
+              <Button
+                onClick={handleNewConversation}
+                size="icon"
+                variant="default"
+                disabled={createMessageThreadMutation.isPending}
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
           <div className="flex items-center gap-2 mb-2">
             <Button

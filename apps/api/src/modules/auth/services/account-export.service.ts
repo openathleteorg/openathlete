@@ -82,6 +82,23 @@ export class AccountExportService {
     write('templates', await this.templates(userId));
     write('trainingPlanLibrary', await this.trainingPlanLibrary(userId));
     write('messages', await this.messages(userId));
+    // Messages the user wrote to send later
+    write(
+      'scheduledMessages',
+      await this.prisma.scheduledMessage.findMany({
+        where: { senderId: userId },
+        select: {
+          content: true,
+          mode: true,
+          title: true,
+          sendAt: true,
+          status: true,
+          sentAt: true,
+          createdAt: true,
+        },
+        orderBy: { scheduledMessageId: 'asc' },
+      }),
+    );
     write(
       'activityAlertSettings',
       await this.prisma.coachActivityAlertSettings.findMany({
@@ -92,6 +109,15 @@ export class AccountExportService {
           notifyRpe: true,
           notifyNewActivities: true,
         },
+      }),
+    );
+    // Bounds the user watches, as a coach, on athletes' metrics
+    write(
+      'metricThresholds',
+      await this.prisma.coachMetricThreshold.findMany({
+        where: { coachUserId: userId },
+        select: { athleteId: true, metricType: true, min: true, max: true },
+        orderBy: { metricThresholdId: 'asc' },
       }),
     );
     // The user's private notes as a coach, whoever they are about
@@ -235,6 +261,15 @@ export class AccountExportService {
       entrustedGroups: await this.prisma.athleteGroupStaff.findMany({
         where: { userId },
         select: { group: groupName },
+      }),
+      // Whether the user said they come to club sessions
+      sessionAnswers: await this.prisma.clubSessionAttendance.findMany({
+        where: { userId },
+        select: {
+          date: true,
+          going: true,
+          session: { select: { title: true } },
+        },
       }),
       groupsIn: athleteId
         ? await this.prisma.athleteGroupMember.findMany({

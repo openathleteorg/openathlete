@@ -32,6 +32,7 @@ import { OIDC_STATE_COOKIE, OidcService } from '../services/oidc.service';
 const startQuerySchema = z.object({
   invitation: z.string().max(200).optional(),
   coachInvitation: z.string().max(200).optional(),
+  clubJoin: z.string().max(200).optional(),
   language: emailLanguageSchema.optional(),
 });
 
@@ -83,6 +84,7 @@ export class OidcController {
     const { url, cookie } = await this.oidc.start({
       invitationToken: query.invitation,
       coachInvitationToken: query.coachInvitation,
+      clubJoinToken: query.clubJoin,
       language: query.language,
     });
     res

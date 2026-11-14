@@ -76,7 +76,11 @@ export function ContentDe() {
         <strong>Coaching.</strong> Ein Coach plant direkt im Kalender jedes
         Athleten, nutzt Vorlagen und sieht, was tatsächlich trainiert wurde. Ein
         Athlet kann mehrere Coaches haben, und es gibt einen Gruppenchat. Das
-        Coaching von bis zu fünf Athleten ist kostenlos.
+        Coaching von bis zu fünf Athleten ist kostenlos. Vereine bekommen einen
+        kostenlosen Vereinsbereich mit Gruppen und ihren Coaches, einer
+        gemeinsamen Workout-Bibliothek, wöchentlichen Vereinseinheiten und
+        Plänen, die auf eine ganze Gruppe kopiert werden; Athleten, die ein
+        Coach über einen Verein betreut, zählen nicht zu dieser Grenze.
       </p>
       <p>
         <strong>KI, wenn du willst.</strong> Nichts läuft, bevor du zustimmst,
@@ -102,9 +106,8 @@ export function ContentDe() {
           dienen nur als Quelle für Aktivitäten.
         </li>
         <li>
-          Es gibt keine Vereins- oder Team-Struktur. Ein Coach kann für viele
-          Athleten gleichzeitig planen, aber es gibt keine Vereinsseite und
-          keine Vereinsverwaltung.
+          Es gibt keine Vereinsabrechnung: Der Vereinsbereich ist kostenlos, und
+          Mitgliedsbeiträge laufen außerhalb von OpenAthlete.
         </li>
         <li>
           Es sagt keine Verletzungen voraus. Es erfasst Schmerzen, wenn Athleten

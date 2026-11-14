@@ -40,7 +40,7 @@ export const article1: BlogPost = {
       email: 'contact@openathlete.org',
     },
     publishedAt: '2025-01-15',
-    updatedAt: '2026-11-03',
+    updatedAt: '2026-11-13',
     tags: ['OpenAthlete', 'Open source', 'Coaching', 'Training planning'],
     readingTime: 4,
     image:
