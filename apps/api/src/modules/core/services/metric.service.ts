@@ -4,7 +4,9 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { Athlete, AthleteMetric, MetricType } from '@openathlete/database';
 import {
@@ -13,6 +15,7 @@ import {
   metricCalculationMap,
 } from '@openathlete/shared';
 
+import { HeartRateProfileChangedEvent } from 'src/events';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
@@ -22,7 +25,24 @@ export class MetricService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly abilities: CaslAbilityFactory,
+    @Optional() private readonly eventEmitter?: EventEmitter2,
   ) {}
+
+  /** TRIMP depends on HR max and resting HR: a change recomputes it */
+  private afterChange<T extends Pick<AthleteMetric, 'athleteId' | 'type'>>(
+    metric: T,
+  ): T {
+    if (
+      metric.type === MetricType.HR_MAX ||
+      metric.type === MetricType.HR_REST
+    ) {
+      this.eventEmitter?.emit(
+        HeartRateProfileChangedEvent.SLUG,
+        new HeartRateProfileChangedEvent({ athleteId: metric.athleteId }),
+      );
+    }
+    return metric;
+  }
 
   /**
    * Create a new metric for the authenticated user or a specific athlete (if coach)
@@ -97,30 +117,34 @@ export class MetricService {
 
     if (existingMetric) {
       // Update existing metric instead of creating a new one
-      return await this.prisma.athleteMetric.update({
-        where: {
-          athleteMetricId: existingMetric.athleteMetricId,
-        },
-        data: {
-          value: dto.value,
-          notes: dto.notes,
-        },
-      });
+      return this.afterChange(
+        await this.prisma.athleteMetric.update({
+          where: {
+            athleteMetricId: existingMetric.athleteMetricId,
+          },
+          data: {
+            value: dto.value,
+            notes: dto.notes,
+          },
+        }),
+      );
     }
 
-    return await this.prisma.athleteMetric.create({
-      data: {
-        type: dto.type as MetricType,
-        date,
-        value: dto.value,
-        notes: dto.notes,
-        athlete: {
-          connect: {
-            athleteId: targetAthleteId,
+    return this.afterChange(
+      await this.prisma.athleteMetric.create({
+        data: {
+          type: dto.type as MetricType,
+          date,
+          value: dto.value,
+          notes: dto.notes,
+          athlete: {
+            connect: {
+              athleteId: targetAthleteId,
+            },
           },
         },
-      },
-    });
+      }),
+    );
   }
 
   /**
@@ -162,15 +186,17 @@ export class MetricService {
       throw new ForbiddenException('Not allowed to update this metric');
     }
 
-    return await this.prisma.athleteMetric.update({
-      where: {
-        athleteMetricId: metricId,
-      },
-      data: {
-        ...(dto.value !== undefined && { value: dto.value }),
-        ...(dto.notes !== undefined && { notes: dto.notes }),
-      },
-    });
+    return this.afterChange(
+      await this.prisma.athleteMetric.update({
+        where: {
+          athleteMetricId: metricId,
+        },
+        data: {
+          ...(dto.value !== undefined && { value: dto.value }),
+          ...(dto.notes !== undefined && { notes: dto.notes }),
+        },
+      }),
+    );
   }
 
   /**
@@ -216,6 +242,7 @@ export class MetricService {
         athleteMetricId: metricId,
       },
     });
+    this.afterChange(metric);
   }
 
   /**
