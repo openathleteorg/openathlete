@@ -99,4 +99,18 @@ describe('recalculating TRIMP after the heart rate profile changes (PostgreSQL)'
       }),
     ).toBe(1);
   });
+
+  it('skips activities recorded without heart rate', async () => {
+    await prisma.eventActivity.update({
+      where: { eventActivityId: ACTIVITY_ID },
+      data: { averageHeartrate: 0 },
+    });
+    await logHeartRate('HR_MAX', 183);
+    await logHeartRate('HR_REST', 50);
+    expect(await service.recalculateAthleteTrimp(DELETED_ATHLETE_ID)).toEqual({
+      processed: 0,
+      errors: 0,
+    });
+    expect(await trimpOfTheRun()).toBe(80);
+  });
 });
