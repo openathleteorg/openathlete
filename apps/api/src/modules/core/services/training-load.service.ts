@@ -1304,7 +1304,8 @@ export class TrainingLoadService {
       where: {
         athleteId,
         type: 'ACTIVITY',
-        activity: { averageHeartrate: { not: null } },
+        // Some watches report 0 for a session recorded without a strap
+        activity: { averageHeartrate: { gt: 0 } },
       },
       select: { eventId: true },
       orderBy: { startDate: 'asc' },
