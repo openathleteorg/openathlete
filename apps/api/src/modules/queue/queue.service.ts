@@ -71,6 +71,11 @@ export interface StravaDescriptionJobData {
   eventActivityId: number;
 }
 
+/** TRIMP of all an athlete's activities, after HR max or resting HR changed */
+export interface TrainingLoadRecalcJobData {
+  athleteId: number;
+}
+
 export interface ActivityProcessingJobData {
   eventActivityId: number;
   eventId: number;
@@ -100,7 +105,36 @@ export class QueueService {
     private readonly duplicateActivitiesQueue: Queue<DuplicateActivitiesJobData>,
     @InjectQueue('strava-description')
     private readonly stravaDescriptionQueue: Queue<StravaDescriptionJobData>,
+    @InjectQueue('training-load-recalc')
+    private readonly trainingLoadRecalcQueue: Queue<TrainingLoadRecalcJobData>,
   ) {}
+
+  /**
+   * Waits a minute so that HR max and resting HR typed one after the other
+   * make one run, not two: a job still waiting absorbs the next request.
+   */
+  async addTrainingLoadRecalcJob(athleteId: number): Promise<void> {
+    const id = `training-load-recalc-${athleteId}`;
+    const previous = await this.trainingLoadRecalcQueue.getJob(id);
+    const state = await previous?.getState();
+    if (state === 'delayed' || state === 'waiting') return;
+    // A run under way reads the values it started with: queue another one.
+    // A finished run only holds the id, which the new job takes over
+    if (state === 'active') {
+      await this.trainingLoadRecalcQueue.add(
+        'recalc',
+        { athleteId },
+        { jobId: `${id}-${Date.now()}`, delay: 60_000 },
+      );
+      return;
+    }
+    await previous?.remove();
+    await this.trainingLoadRecalcQueue.add(
+      'recalc',
+      { athleteId },
+      { jobId: id, delay: 60_000 },
+    );
+  }
 
   /**
    * One job per Strava activity: the import and a duplicate skip of the same

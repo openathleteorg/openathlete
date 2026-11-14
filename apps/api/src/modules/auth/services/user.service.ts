@@ -36,7 +36,7 @@ import {
 import { Language } from 'src/common/constants/languages.constant';
 import { maskEmail } from 'src/common/utils/mask-email';
 import { zonedInstant } from 'src/common/utils/time-zone';
-import { SendEmailEvent } from 'src/events';
+import { HeartRateProfileChangedEvent, SendEmailEvent } from 'src/events';
 import {
   AnalyticsService,
   stableUuid,
@@ -676,6 +676,13 @@ export class UserService {
           source: null,
         },
       });
+    }
+    // A watch connected before onboarding may already have brought activities
+    if (data.hrMax || data.hrRest) {
+      this.eventEmitter.emit(
+        HeartRateProfileChangedEvent.SLUG,
+        new HeartRateProfileChangedEvent({ athleteId: athlete.athleteId }),
+      );
     }
 
     if (data.targetRace && data.roles.includes('ATHLETE')) {

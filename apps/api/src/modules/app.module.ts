@@ -15,6 +15,7 @@ import {
   NotificationListener,
   ProviderDeregistrationListener,
   TrainingLoadListener,
+  TrainingLoadRecalcListener,
   WorkoutSyncListener,
 } from 'src/listeners';
 
@@ -96,6 +97,7 @@ import { SubscriptionModule } from './subscription';
     ActivityFeedbackExtractionListener,
     ProviderDeregistrationListener,
     WorkoutSyncListener,
+    TrainingLoadRecalcListener,
   ],
 })
 export class AppModule {}
