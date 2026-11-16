@@ -116,3 +116,31 @@ export const recordExclusionSchema = z.object({
 });
 
 export type RecordExclusionDto = z.infer<typeof recordExclusionSchema>;
+
+/** An FTP modelled from the best power of recent activities. */
+export const modeledFtpSchema = z.object({
+  /** Watts */
+  value: z.number(),
+  /** Seconds of the best effort the value comes from: 1200 or 3600 */
+  duration: z.number(),
+  /** Watts held over that duration */
+  power: z.number(),
+  /** Share of that power taken as FTP: 0.95 for 20 minutes, 1 for an hour */
+  factor: z.number(),
+  date: z.coerce.date(),
+  eventId: z.number().nullable(),
+  activityName: z.string().nullable(),
+});
+
+export type ModeledFtpDto = z.infer<typeof modeledFtpSchema>;
+
+/** Metrics modelled from the activities of the last days, not entered. */
+export const modeledMetricsSchema = z.object({
+  /** First day of the activities the model reads */
+  from: z.coerce.date(),
+  days: z.number(),
+  ftpRunning: modeledFtpSchema.nullable(),
+  ftpCycling: modeledFtpSchema.nullable(),
+});
+
+export type ModeledMetricsDto = z.infer<typeof modeledMetricsSchema>;

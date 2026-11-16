@@ -136,6 +136,85 @@ describe('RecordService (PostgreSQL)', () => {
     ]);
   });
 
+  describe('modelled FTP', () => {
+    const now = new Date('2026-11-16T10:00:00Z');
+    const power = (
+      eventActivityId: number,
+      duration: number,
+      value: number,
+      date = '2026-11-01',
+    ) =>
+      prisma.record.create({
+        data: {
+          type: 'POWER',
+          duration,
+          value,
+          date: new Date(date),
+          athleteId: DELETED_ATHLETE_ID,
+          eventActivityId,
+        },
+      });
+
+    const ride = async () => {
+      const event = await prisma.event.create({
+        data: {
+          name: 'Ride',
+          type: 'ACTIVITY',
+          startDate: new Date('2026-11-02'),
+          endDate: new Date('2026-11-02'),
+          athleteId: DELETED_ATHLETE_ID,
+          activity: {
+            create: {
+              sport: 'VIRTUAL_RIDE',
+              distance: 30000,
+              elevationGain: 0,
+              movingTime: 3600,
+              averageSpeed: 8,
+              maxSpeed: 12,
+              externalId: 'ride-ftp',
+            },
+          },
+        },
+        include: { activity: true },
+      });
+      return event.activity!.eventActivityId;
+    };
+
+    beforeEach(() => prisma.record.deleteMany());
+
+    it('reads running and cycling apart, from the last 90 days', async () => {
+      const rideId = await ride();
+      // The fixture's run is activity 3501
+      await power(3501, 1200, 335);
+      await power(3501, 1200, 400, '2026-08-01'); // too old
+      await power(3501, 300, 360); // too short to count
+      await power(rideId, 3600, 250);
+      await power(rideId, 1200, 260);
+
+      const modeled = await service.getModeledMetrics(athlete, undefined, now);
+      expect(modeled.days).toBe(90);
+      expect(modeled.from).toEqual(new Date('2026-08-18T00:00:00Z'));
+      expect(modeled.ftpRunning).toMatchObject({
+        value: 318,
+        duration: 1200,
+        power: 335,
+        eventId: 3002,
+        activityName: 'Run',
+      });
+      expect(modeled.ftpCycling).toMatchObject({ value: 250, duration: 3600 });
+    });
+
+    it('leaves out an excluded effort', async () => {
+      await power(3501, 1200, 335);
+      await prisma.recordExclusion.create({
+        data: { eventActivityId: 3501, type: 'POWER', duration: 1200 },
+      });
+      const modeled = await service.getModeledMetrics(athlete, undefined, now);
+      expect(modeled.ftpRunning).toBeNull();
+      expect(modeled.ftpCycling).toBeNull();
+    });
+  });
+
   describe('exclusions', () => {
     const owner = {
       ...athlete,
