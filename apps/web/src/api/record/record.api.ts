@@ -6,10 +6,12 @@ import {
   GetRecordEffortsQueryDto,
   GetRecordHistoryQueryDto,
   GetRecordsQueryDto,
+  ModeledMetricsDto,
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
   SPORT_TYPE,
+  modeledMetricsSchema,
 } from '@openathlete/shared';
 
 export class RecordAPI {
@@ -22,6 +24,16 @@ export class RecordAPI {
       },
     });
     return res.data;
+  }
+
+  /** FTP for running and cycling, modelled from the last 90 days. */
+  static async getModeledMetrics(
+    athleteId?: number,
+  ): Promise<ModeledMetricsDto> {
+    const res = await client.get(routes.record.getModeledMetrics, {
+      params: { athleteId },
+    });
+    return modeledMetricsSchema.parse(res.data);
   }
 
   /** Sports that have records, the most frequent first. */

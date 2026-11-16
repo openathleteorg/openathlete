@@ -108,6 +108,7 @@ export const routes = {
   record: {
     getRecords: '/record',
     getRecordSports: '/record/sports',
+    getModeledMetrics: '/record/modeled-metrics',
     getRecordHistory: '/record/history',
     getRecordEfforts: '/record/efforts',
     getRecordExclusions: '/record/exclusions',

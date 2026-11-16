@@ -17,12 +17,18 @@ import {
 import {
   BestRecordDto,
   CreateRecordExclusionDto,
+  FTP_MODEL_DAYS,
+  FTP_MODEL_EFFORTS,
+  FTP_MODEL_SPORTS,
   GetRecordEffortsQueryDto,
+  ModeledMetricsDto,
+  PowerEffort,
   RECORD_TYPE,
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
   YearBestRecordDto,
+  modelFtp,
 } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -175,6 +181,58 @@ export class RecordService {
       ORDER BY r.type, r.distance, r.duration, ${bestFirst}`;
 
     return rows.map(toBestRecord);
+  }
+
+  /**
+   * FTP for running and cycling, modelled from the best 20-minute and
+   * hour power of the last days. Records an athlete excluded do not count.
+   */
+  async getModeledMetrics(
+    user: AuthUser,
+    athleteId?: Athlete['athleteId'],
+    now = new Date(),
+  ): Promise<ModeledMetricsDto> {
+    const targetAthleteId = await this.targetAthleteId(user, athleteId);
+    const from = new Date(now);
+    from.setUTCHours(0, 0, 0, 0);
+    from.setUTCDate(from.getUTCDate() - FTP_MODEL_DAYS);
+
+    const efforts = async (
+      sports: readonly string[],
+    ): Promise<PowerEffort[]> => {
+      const rows = await this.prisma.$queryRaw<BestRecordRow[]>`
+        SELECT DISTINCT ON (r.duration)
+          r.record_id, r.type, r.distance, r.duration, r.value, r.date,
+          a.event_id, e.name AS activity_name
+        FROM record r
+        JOIN event_activity a ON a.event_activity_id = r.event_activity_id
+        LEFT JOIN event e ON e.event_id = a.event_id
+        WHERE r.athlete_id = ${targetAthleteId}
+          AND r.type = 'POWER'
+          AND r.duration IN (${Prisma.join(FTP_MODEL_EFFORTS.map((e) => e.duration))})
+          AND a.sport::text IN (${Prisma.join([...sports])})
+          AND r.date >= ${from}
+          AND ${notExcluded}
+        ORDER BY r.duration, r.value DESC`;
+      return rows.map((row) => ({
+        duration: row.duration ?? 0,
+        value: row.value,
+        date: row.date,
+        eventId: row.event_id,
+        activityName: row.activity_name,
+      }));
+    };
+
+    const [running, cycling] = await Promise.all([
+      efforts(FTP_MODEL_SPORTS.running),
+      efforts(FTP_MODEL_SPORTS.cycling),
+    ]);
+    return {
+      from,
+      days: FTP_MODEL_DAYS,
+      ftpRunning: modelFtp(running),
+      ftpCycling: modelFtp(cycling),
+    };
   }
 
   /** What the records page reads for a sport, in one round trip. */
