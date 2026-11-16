@@ -28,6 +28,7 @@ import {
   RecordHistoryDto,
   TRAINING_FOCUS_DURATIONS,
   YearBestRecordDto,
+  missingTrainingFocusValues,
   modelFtp,
   modelTrainingFocus,
   powerAt,
@@ -230,24 +231,27 @@ export class RecordService {
       efforts(FTP_MODEL_SPORTS.cycling),
     ]);
     const ftpRunning = modelFtp(running);
-    const aerobicThreshold = powerAt(
-      running,
-      TRAINING_FOCUS_DURATIONS.aerobicThreshold,
-    );
-    const vo2max = powerAt(running, TRAINING_FOCUS_DURATIONS.vo2max);
+    // Read from the records, never guessed: a value they cannot give leaves
+    // the focus unnamed, and says which
+    const focusValues = {
+      aerobicThreshold: powerAt(
+        running,
+        TRAINING_FOCUS_DURATIONS.aerobicThreshold,
+      ),
+      lactateThreshold: ftpRunning?.value ?? null,
+      vo2max: powerAt(running, TRAINING_FOCUS_DURATIONS.vo2max),
+    };
+    const { aerobicThreshold, lactateThreshold, vo2max } = focusValues;
     return {
       from,
       days: FTP_MODEL_DAYS,
       ftpRunning,
       ftpCycling: modelFtp(cycling),
       trainingFocusRunning:
-        ftpRunning && aerobicThreshold && vo2max
-          ? modelTrainingFocus({
-              aerobicThreshold,
-              lactateThreshold: ftpRunning.value,
-              vo2max,
-            })
+        aerobicThreshold && lactateThreshold && vo2max
+          ? modelTrainingFocus({ aerobicThreshold, lactateThreshold, vo2max })
           : null,
+      trainingFocusRunningMissing: missingTrainingFocusValues(focusValues),
     };
   }
 

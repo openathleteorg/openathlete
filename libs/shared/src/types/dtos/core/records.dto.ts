@@ -147,6 +147,14 @@ export type TrainingFocus = (typeof TRAINING_FOCUS)[number];
 export const TRAINING_WEAKNESS = ['AEROBIC', 'THRESHOLD', 'VO2MAX'] as const;
 export type TrainingWeakness = (typeof TRAINING_WEAKNESS)[number];
 
+/** A value of the test the power records give */
+export const TRAINING_FOCUS_VALUE = [
+  'AEROBIC_THRESHOLD',
+  'LACTATE_THRESHOLD',
+  'VO2MAX',
+] as const;
+export type TrainingFocusValue = (typeof TRAINING_FOCUS_VALUE)[number];
+
 /**
  * Where an athlete's running power profile is weak, from the aerobic
  * threshold (70 minutes), the lactate threshold (FTP) and VO2max (3 minutes).
@@ -164,11 +172,6 @@ export const trainingFocusSchema = z.object({
   }),
   weaknesses: z.array(z.enum(TRAINING_WEAKNESS)),
   focus: z.enum(TRAINING_FOCUS),
-  /**
-   * False when no rule of the test matched and the focus is the system the
-   * ratios point to the most
-   */
-  byRule: z.boolean(),
 });
 
 export type TrainingFocusDto = z.infer<typeof trainingFocusSchema>;
@@ -182,6 +185,11 @@ export const modeledMetricsSchema = z.object({
   ftpCycling: modeledFtpSchema.nullable(),
   /** Running only: the reference values of the test are for running */
   trainingFocusRunning: trainingFocusSchema.nullable(),
+  /**
+   * The values the records could not give, so no focus is named: no record
+   * close enough to the duration, or records that are not maximal efforts
+   */
+  trainingFocusRunningMissing: z.array(z.enum(TRAINING_FOCUS_VALUE)),
 });
 
 export type ModeledMetricsDto = z.infer<typeof modeledMetricsSchema>;

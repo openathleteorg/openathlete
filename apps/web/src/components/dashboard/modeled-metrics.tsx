@@ -11,8 +11,10 @@ import { getDateLocale } from '@/utils/locales';
 import {
   METRIC_TYPE,
   ModeledFtpDto,
+  TRAINING_FOCUS_RATIOS,
   TrainingFocus,
   TrainingFocusDto,
+  TrainingFocusValue,
   TrainingWeakness,
 } from '@openathlete/shared';
 
@@ -73,17 +75,43 @@ const weaknessLabel: Record<TrainingWeakness, () => string> = {
   VO2MAX: m.training_weakness_vo2max,
 };
 
-const percent = (share: number) => (share * 100).toFixed(1);
+const valueLabel: Record<TrainingFocusValue, () => string> = {
+  AEROBIC_THRESHOLD: m.training_focus_value_aerobic,
+  LACTATE_THRESHOLD: m.training_focus_value_threshold,
+  VO2MAX: m.training_focus_value_vo2max,
+};
 
 function TrainingFocusTile({
   focus,
+  missing,
   days,
 }: {
   focus: TrainingFocusDto | null;
+  missing: TrainingFocusValue[];
   days: number;
 }) {
   const label = m.modeled_training_focus();
-  if (!focus) return <MetricTile label={label} value="–" />;
+  if (!focus) {
+    if (missing.length === 0) return <MetricTile label={label} value="–" />;
+    return (
+      <div
+        title={m.modeled_training_focus_missing_title({
+          values: missing.map((value) => valueLabel[value]()).join(', '),
+          days,
+        })}
+      >
+        <MetricTile
+          label={label}
+          value="–"
+          caption={m.modeled_training_focus_missing()}
+        />
+      </div>
+    );
+  }
+  const percent = new Intl.NumberFormat(getLocale(), {
+    maximumFractionDigits: 1,
+  });
+  const share = (value: number) => percent.format(value * 100);
   const { ratios } = focus;
   const title = [
     m.modeled_training_focus_title({
@@ -91,16 +119,18 @@ function TrainingFocusTile({
       threshold: focus.lactateThreshold,
       vo2max: focus.vo2max,
       days,
-      r1: percent(ratios.aerobicToVo2max),
-      r2: percent(ratios.aerobicToThreshold),
-      r3: percent(ratios.thresholdToVo2max),
+      r1: share(ratios.aerobicToVo2max),
+      r2: share(ratios.aerobicToThreshold),
+      r3: share(ratios.thresholdToVo2max),
+      a1: share(TRAINING_FOCUS_RATIOS.aerobicToVo2max.average),
+      a2: share(TRAINING_FOCUS_RATIOS.aerobicToThreshold.average),
+      a3: share(TRAINING_FOCUS_RATIOS.thresholdToVo2max.average),
     }),
     focus.weaknesses.length > 0
       ? m.modeled_training_focus_weak({
           systems: focus.weaknesses.map((w) => weaknessLabel[w]()).join(', '),
         })
       : null,
-    focus.byRule ? null : m.modeled_training_focus_no_rule(),
   ]
     .filter(Boolean)
     .join(' ');
@@ -111,14 +141,15 @@ function TrainingFocusTile({
         // Words, not a number: smaller to fit the tile
         value={focusLabel[focus.focus]()}
         valueClassName="text-sm leading-6"
-        caption={[
-          ratios.aerobicToVo2max,
-          ratios.aerobicToThreshold,
-          ratios.thresholdToVo2max,
-        ]
-          .map((share) => Math.round(share * 100))
-          .join(' · ')
-          .concat(' %')}
+        caption={
+          focus.weaknesses.length > 0
+            ? m.modeled_training_focus_caption_weak({
+                systems: focus.weaknesses
+                  .map((w) => weaknessLabel[w]())
+                  .join(', '),
+              })
+            : m.modeled_training_focus_caption_none()
+        }
       />
     </div>
   );
@@ -157,6 +188,7 @@ export function ModeledMetrics({ athleteId }: { athleteId?: number }) {
             />
             <TrainingFocusTile
               focus={data.trainingFocusRunning}
+              missing={data.trainingFocusRunningMissing}
               days={data.days}
             />
           </div>

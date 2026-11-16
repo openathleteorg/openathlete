@@ -205,39 +205,57 @@ describe('RecordService (PostgreSQL)', () => {
     });
 
     it('names the system to train from the running power profile', async () => {
-      // The profile of the test: 3 and 70 minutes read between records
+      // 3 and 70 minutes read between records on a log time axis
       for (const [duration, value] of [
         [120, 346],
         [300, 342],
         [1200, 335],
         [3600, 278],
+        [7200, 240],
+      ])
+        await power(3501, duration, value);
+
+      const modeled = await service.getModeledMetrics(athlete, undefined, now);
+      expect(modeled.trainingFocusRunningMissing).toEqual([]);
+      expect(modeled.trainingFocusRunning).toMatchObject({
+        aerobicThreshold: 270,
+        lactateThreshold: 318,
+        vo2max: 344,
+        // 84.8% of the threshold: the base holds, VO2max lags
+        weaknesses: ['VO2MAX'],
+        focus: 'VO2MAX',
+      });
+    });
+
+    it('names nothing when the long record is no maximal effort', async () => {
+      for (const [duration, value] of [
+        [120, 346],
+        [300, 342],
+        [1200, 335],
+        [3600, 278],
+        // An easy two-hour run, 69% of the hour
         [7200, 193],
       ])
         await power(3501, duration, value);
 
-      const { trainingFocusRunning } = await service.getModeledMetrics(
-        athlete,
-        undefined,
-        now,
-      );
-      expect(trainingFocusRunning).toMatchObject({
-        aerobicThreshold: 264,
-        lactateThreshold: 318,
-        vo2max: 345,
-        // 263.8 / 318 W is 82.97%: just below the 83% of a weak base
-        weaknesses: ['AEROBIC', 'VO2MAX'],
-        focus: 'VO2MAX',
-        byRule: false,
-      });
+      const modeled = await service.getModeledMetrics(athlete, undefined, now);
+      expect(modeled.trainingFocusRunning).toBeNull();
+      expect(modeled.trainingFocusRunningMissing).toEqual([
+        'AEROBIC_THRESHOLD',
+      ]);
     });
 
-    it('names nothing without two hours of power', async () => {
+    it('names nothing without the records around 3 and 70 minutes', async () => {
       await power(3501, 300, 342);
       await power(3501, 1200, 335);
       await power(3501, 3600, 278);
       const modeled = await service.getModeledMetrics(athlete, undefined, now);
       expect(modeled.ftpRunning?.value).toBe(318);
       expect(modeled.trainingFocusRunning).toBeNull();
+      expect(modeled.trainingFocusRunningMissing).toEqual([
+        'AEROBIC_THRESHOLD',
+        'VO2MAX',
+      ]);
     });
 
     it('leaves out an excluded effort', async () => {
