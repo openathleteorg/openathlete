@@ -49,7 +49,7 @@ function draw(
   if (attribution) {
     // Garmin requires its attribution on every image made from its data
     context.font = '400 26px system-ui, sans-serif';
-    context.fillText(attribution, 90, SIZE.height - 150);
+    context.fillText(attribution, 90, SIZE.height - 45);
   }
   return canvas;
 }

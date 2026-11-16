@@ -80,9 +80,10 @@ function EventRow({ event, showDay }: { event: Event; showDay?: boolean }) {
       }),
     !!duration && formatCompactDuration(duration),
     !!distance && `${formatCompactKilometers(distance, getLocale())} km`,
-    // Garmin requires "Garmin [device model]" beside its activities
-    garminActivityLabel(event),
   ].filter(Boolean);
+  // Garmin requires "Garmin [device model]" beside its activities: a line of
+  // its own, which the facts never truncate
+  const garminLabel = garminActivityLabel(event);
 
   return (
     <Link
@@ -102,6 +103,14 @@ function EventRow({ event, showDay }: { event: Event; showDay?: boolean }) {
         <span className="block truncate text-sm text-muted-foreground">
           {facts.join(' · ')}
         </span>
+        {garminLabel && (
+          <span
+            className="block truncate text-xs text-muted-foreground"
+            data-garmin-attribution="activity"
+          >
+            {garminLabel}
+          </span>
+        )}
       </span>
       {compliance && isShownCompliance(compliance) && (
         <span className="flex items-center gap-1.5">

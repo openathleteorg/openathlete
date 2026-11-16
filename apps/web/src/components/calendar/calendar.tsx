@@ -938,7 +938,7 @@ export function Calendar({
               {view !== 'week' && hasGarminActivities && (
                 <GarminAttributionText
                   kind="data"
-                  className={cn('text-right', isMobile && 'px-4 py-1')}
+                  className={cn(isMobile && 'px-4 py-1')}
                 />
               )}
               {importFiles && (
