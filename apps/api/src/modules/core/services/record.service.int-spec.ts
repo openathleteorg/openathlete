@@ -215,6 +215,62 @@ describe('RecordService (PostgreSQL)', () => {
     });
   });
 
+  describe('running economy', () => {
+    const now = new Date('2026-11-16T10:00:00Z');
+    /** A steady run: a sample a second for 15 minutes */
+    const steadyRun = (speed: number, watts: number) => ({
+      time: [{ s: 0, i: 900 }],
+      distance: Array.from({ length: 900 }, (_, i) => i * speed),
+      watts: [{ r: 900, v: watts }],
+    });
+    const addRun = async (
+      id: number,
+      stream: object,
+      { elevationGain = 20, sport = 'RUNNING', date = '2026-11-01' } = {},
+    ) =>
+      prisma.event.create({
+        data: {
+          name: `Run ${id}`,
+          type: 'ACTIVITY',
+          startDate: new Date(date),
+          endDate: new Date(date),
+          athleteId: DELETED_ATHLETE_ID,
+          activity: {
+            create: {
+              sport: sport as 'RUNNING',
+              distance: 3600,
+              elevationGain,
+              movingTime: 900,
+              averageSpeed: 4,
+              maxSpeed: 5,
+              externalId: `economy-${id}`,
+              stream,
+            },
+          },
+        },
+      });
+
+    it('takes the median of the flat runs with power', async () => {
+      await addRun(1, steadyRun(4, 320)); // 80 J/m
+      await addRun(2, steadyRun(4, 328)); // 82 J/m
+      await addRun(3, steadyRun(3.5, 315), { sport: 'TRAIL_RUNNING' }); // 90 J/m
+      await addRun(4, steadyRun(4, 400), { elevationGain: 200 }); // hilly
+      await addRun(5, steadyRun(4, 400), { date: '2026-07-01' }); // too old
+
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toMatchObject({ value: 82, activities: 3, days: 90 });
+    });
+
+    it('needs three flat runs', async () => {
+      await addRun(1, steadyRun(4, 320));
+      await addRun(2, steadyRun(4, 328));
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toBeNull();
+    });
+  });
+
   describe('exclusions', () => {
     const owner = {
       ...athlete,

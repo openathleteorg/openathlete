@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Tag auf andere Athleten kopieren",
   "plan_for_athletes_day_label": "Einträge vom {day}: {count}",
   "garmin_attribution_data": "Enthält Daten von Garmin-Geräten.",
-  "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet."
+  "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet.",
+  "zones_threshold_open": "Aus Schwelle berechnen",
+  "zones_threshold_title": "Fünf Zonen aus deiner Schwelle",
+  "zones_threshold_help": "Grenzen bei 80, 88, 96 und 102 % der Schwelle (Pace: 128, 114, 107 und 100 %). Übernommen werden die Zonen erst beim Speichern.",
+  "zones_threshold_power_label": "Schwellenleistung (W)",
+  "zones_threshold_hr_label": "Schwellenpuls (bpm)",
+  "zones_threshold_hr_help": "Zum Beispiel der Durchschnittspuls zwischen Minute 10 und 30 eines 45-Minuten-Testlaufs.",
+  "zones_threshold_pace_label": "Schwellen-Pace (min/km)",
+  "zones_threshold_source_modeled": "Modellierte {metric}: {value}",
+  "zones_threshold_source_entered": "Eingetragene {metric}: {value}",
+  "zones_threshold_economy": "Pace aus Leistung: {value} J/m, aus {count} flachen Läufen der letzten {days} Tage.",
+  "zones_threshold_no_economy": "Noch keine Pace aus Leistung: Dafür braucht es drei flache Läufe mit Leistung in den letzten 90 Tagen.",
+  "zones_threshold_apply": "Zonen berechnen"
 }

@@ -16,6 +16,7 @@ import {
 } from '@openathlete/database';
 import {
   BestRecordDto,
+  CompressedActivityStream,
   CreateRecordExclusionDto,
   FTP_MODEL_DAYS,
   FTP_MODEL_EFFORTS,
@@ -27,13 +28,18 @@ import {
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
+  RunningEconomyDto,
   YearBestRecordDto,
+  median,
   modelFtp,
+  runEnergyPerMetre,
 } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+
+import { uncompressActivityStream } from '../helpers/activity-stream';
 
 interface BestRecordRow {
   record_id: number;
@@ -233,6 +239,48 @@ export class RecordService {
       ftpRunning: modelFtp(running),
       ftpCycling: modelFtp(cycling),
     };
+  }
+
+  /**
+   * Joules per metre on the flat runs of the last days (at most 1% climbing,
+   * 3 km or more), the median of the runs: watts per m/s, which turns a power
+   * into a pace. Null without three such runs with power.
+   */
+  async getRunningEconomy(
+    user: AuthUser,
+    athleteId?: Athlete['athleteId'],
+    now = new Date(),
+  ): Promise<RunningEconomyDto | null> {
+    const targetAthleteId = await this.targetAthleteId(user, athleteId);
+    const from = new Date(now);
+    from.setUTCHours(0, 0, 0, 0);
+    from.setUTCDate(from.getUTCDate() - FTP_MODEL_DAYS);
+
+    const runs = await this.prisma.eventActivity.findMany({
+      where: {
+        sport: { in: [...FTP_MODEL_SPORTS.running] as SportType[] },
+        distance: { gte: 3000 },
+        event: { athleteId: targetAthleteId, startDate: { gte: from } },
+      },
+      select: { distance: true, elevationGain: true, stream: true },
+    });
+    const values = runs
+      .filter((run) => run.elevationGain <= run.distance * 0.01 && run.stream)
+      .map((run) =>
+        runEnergyPerMetre(
+          uncompressActivityStream(run.stream as CompressedActivityStream),
+        ),
+      )
+      .filter((value): value is number => value !== null);
+    const value = values.length >= 3 ? median(values) : null;
+    return value === null
+      ? null
+      : {
+          value: Math.round(value * 10) / 10,
+          activities: values.length,
+          from,
+          days: FTP_MODEL_DAYS,
+        };
   }
 
   /** What the records page reads for a sport, in one round trip. */

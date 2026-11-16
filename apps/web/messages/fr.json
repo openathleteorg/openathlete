@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Copier la journée vers d'autres athlètes",
   "plan_for_athletes_day_label": "Éléments du {day} : {count}",
   "garmin_attribution_data": "Inclut des données fournies par des appareils Garmin.",
-  "garmin_attribution_insights": "Analyses issues en partie de données d'appareils Garmin."
+  "garmin_attribution_insights": "Analyses issues en partie de données d'appareils Garmin.",
+  "zones_threshold_open": "Calculer depuis le seuil",
+  "zones_threshold_title": "Cinq zones depuis ton seuil",
+  "zones_threshold_help": "Limites à 80, 88, 96 et 102 % du seuil (allure : 128, 114, 107 et 100 %). Les zones ne sont gardées qu’à l’enregistrement.",
+  "zones_threshold_power_label": "Puissance au seuil (W)",
+  "zones_threshold_hr_label": "Fréquence cardiaque au seuil (bpm)",
+  "zones_threshold_hr_help": "Par exemple la fréquence cardiaque moyenne entre les minutes 10 et 30 d’un test de 45 minutes.",
+  "zones_threshold_pace_label": "Allure au seuil (min/km)",
+  "zones_threshold_source_modeled": "{metric} modélisée : {value}",
+  "zones_threshold_source_entered": "{metric} saisie : {value}",
+  "zones_threshold_economy": "Allure depuis la puissance : {value} J/m, sur {count} sorties plates des {days} derniers jours.",
+  "zones_threshold_no_economy": "Pas encore d’allure depuis la puissance : il faut trois sorties plates avec puissance sur 90 jours.",
+  "zones_threshold_apply": "Calculer les zones"
 }

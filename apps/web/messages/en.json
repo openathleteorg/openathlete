@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Copy the day to other athletes",
   "plan_for_athletes_day_label": "Items of {day}: {count}",
   "garmin_attribution_data": "Includes data provided by Garmin devices.",
-  "garmin_attribution_insights": "Insights derived in part from Garmin device-sourced data."
+  "garmin_attribution_insights": "Insights derived in part from Garmin device-sourced data.",
+  "zones_threshold_open": "Calculate from threshold",
+  "zones_threshold_title": "Five zones from your threshold",
+  "zones_threshold_help": "Limits at 80, 88, 96 and 102% of the threshold (pace: 128, 114, 107 and 100%). The zones are only kept once you save.",
+  "zones_threshold_power_label": "Threshold power (W)",
+  "zones_threshold_hr_label": "Threshold heart rate (bpm)",
+  "zones_threshold_hr_help": "For example the average heart rate between minutes 10 and 30 of a 45-minute test run.",
+  "zones_threshold_pace_label": "Threshold pace (min/km)",
+  "zones_threshold_source_modeled": "Modeled {metric}: {value}",
+  "zones_threshold_source_entered": "Entered {metric}: {value}",
+  "zones_threshold_economy": "Pace from power: {value} J/m, from {count} flat runs of the last {days} days.",
+  "zones_threshold_no_economy": "No pace from power yet: it needs three flat runs with power in the last 90 days.",
+  "zones_threshold_apply": "Calculate zones"
 }

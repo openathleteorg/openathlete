@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Copia la giornata ad altri atleti",
   "plan_for_athletes_day_label": "Elementi del {day}: {count}",
   "garmin_attribution_data": "Include dati forniti da dispositivi Garmin.",
-  "garmin_attribution_insights": "Analisi derivate in parte da dati di dispositivi Garmin."
+  "garmin_attribution_insights": "Analisi derivate in parte da dati di dispositivi Garmin.",
+  "zones_threshold_open": "Calcola dalla soglia",
+  "zones_threshold_title": "Cinque zone dalla tua soglia",
+  "zones_threshold_help": "Limiti all’80, 88, 96 e 102% della soglia (passo: 128, 114, 107 e 100%). Le zone sono tenute solo al salvataggio.",
+  "zones_threshold_power_label": "Potenza di soglia (W)",
+  "zones_threshold_hr_label": "Frequenza cardiaca di soglia (bpm)",
+  "zones_threshold_hr_help": "Per esempio la frequenza cardiaca media tra il minuto 10 e 30 di un test di 45 minuti.",
+  "zones_threshold_pace_label": "Passo di soglia (min/km)",
+  "zones_threshold_source_modeled": "{metric} modellata: {value}",
+  "zones_threshold_source_entered": "{metric} inserita: {value}",
+  "zones_threshold_economy": "Passo dalla potenza: {value} J/m, da {count} corse in piano degli ultimi {days} giorni.",
+  "zones_threshold_no_economy": "Ancora nessun passo dalla potenza: servono tre corse in piano con potenza negli ultimi 90 giorni.",
+  "zones_threshold_apply": "Calcola le zone"
 }

@@ -34,10 +34,24 @@ export const useGetRecordsQuery = (
     ...(keepPrevious && { placeholderData: keepPreviousData }),
   });
 
-export const useGetModeledMetricsQuery = (athleteId?: number) =>
+export const useGetModeledMetricsQuery = (
+  athleteId?: number,
+  { enabled = true }: { enabled?: boolean } = {},
+) =>
   useQuery({
     queryFn: () => RecordAPI.getModeledMetrics(athleteId),
     queryKey: [recordKeys.getModeledMetrics, athleteId],
+    enabled,
+  });
+
+export const useGetRunningEconomyQuery = (
+  athleteId?: number,
+  { enabled = true }: { enabled?: boolean } = {},
+) =>
+  useQuery({
+    queryFn: () => RecordAPI.getRunningEconomy(athleteId),
+    queryKey: [recordKeys.getRunningEconomy, athleteId],
+    enabled,
   });
 
 export const useGetRecordSportsQuery = (athleteId?: number) =>

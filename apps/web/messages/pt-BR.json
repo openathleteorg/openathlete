@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Copiar o dia para outros atletas",
   "plan_for_athletes_day_label": "Itens de {day}: {count}",
   "garmin_attribution_data": "Inclui dados fornecidos por dispositivos Garmin.",
-  "garmin_attribution_insights": "Análises derivadas em parte de dados de dispositivos Garmin."
+  "garmin_attribution_insights": "Análises derivadas em parte de dados de dispositivos Garmin.",
+  "zones_threshold_open": "Calcular a partir do limiar",
+  "zones_threshold_title": "Cinco zonas a partir do seu limiar",
+  "zones_threshold_help": "Limites em 80, 88, 96 e 102% do limiar (ritmo: 128, 114, 107 e 100%). As zonas só ficam ao salvar.",
+  "zones_threshold_power_label": "Potência de limiar (W)",
+  "zones_threshold_hr_label": "Frequência cardíaca de limiar (bpm)",
+  "zones_threshold_hr_help": "Por exemplo a frequência cardíaca média entre os minutos 10 e 30 de um teste de 45 minutos.",
+  "zones_threshold_pace_label": "Ritmo de limiar (min/km)",
+  "zones_threshold_source_modeled": "{metric} modelada: {value}",
+  "zones_threshold_source_entered": "{metric} informada: {value}",
+  "zones_threshold_economy": "Ritmo a partir da potência: {value} J/m, de {count} corridas planas dos últimos {days} dias.",
+  "zones_threshold_no_economy": "Ainda sem ritmo a partir da potência: são precisas três corridas planas com potência em 90 dias.",
+  "zones_threshold_apply": "Calcular zonas"
 }
