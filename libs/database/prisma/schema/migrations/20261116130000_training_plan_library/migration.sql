@@ -10,6 +10,7 @@ ADD COLUMN     "training_plan_id" INTEGER;
 
 -- AlterTable
 ALTER TABLE "training_plan" ADD COLUMN     "anchor" "plan_anchor",
+ADD COLUMN     "apply_job_id" TEXT,
 ADD COLUMN     "template_id" INTEGER,
 ADD COLUMN     "week_starts_on" INTEGER NOT NULL DEFAULT 1;
 
@@ -39,6 +40,9 @@ CREATE INDEX "training_plan_template_folder_id_idx" ON "training_plan_template"(
 
 -- CreateIndex
 CREATE INDEX "training_plan_template_id_idx" ON "training_plan"("template_id");
+
+-- CreateIndex
+CREATE INDEX "training_plan_athlete_id_apply_job_id_idx" ON "training_plan"("athlete_id", "apply_job_id");
 
 -- AddForeignKey
 ALTER TABLE "event" ADD CONSTRAINT "event_training_plan_id_fkey" FOREIGN KEY ("training_plan_id") REFERENCES "training_plan"("training_plan_id") ON DELETE SET NULL ON UPDATE CASCADE;

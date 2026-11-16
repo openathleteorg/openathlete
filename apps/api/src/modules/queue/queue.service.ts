@@ -6,6 +6,7 @@ import { Injectable, Logger } from '@nestjs/common';
 
 import { ProviderAccount } from '@openathlete/database';
 import {
+  TrainingPlanApplyFailure,
   TrainingPlanApplyJobStatus,
   TrainingPlanApplyResult,
   TrainingPlanApplyTarget,
@@ -89,6 +90,8 @@ export interface TrainingPlanApplyJobData {
   options: ApplyOptions;
   /** Filled as athletes are done, so a retry skips them */
   results: TrainingPlanApplyResult[];
+  /** Athletes skipped for a lasting reason, such as a deleted race */
+  failures?: TrainingPlanApplyFailure[];
 }
 
 export interface ActivityProcessingJobData {
@@ -125,11 +128,12 @@ export class QueueService {
   ) {}
 
   async addTrainingPlanApplyJob(
-    data: Omit<TrainingPlanApplyJobData, 'results'>,
+    data: Omit<TrainingPlanApplyJobData, 'results' | 'failures'>,
   ): Promise<string> {
     const job = await this.trainingPlanApplyQueue.add('apply', {
       ...data,
       results: [],
+      failures: [],
     });
     return String(job.id);
   }
@@ -152,6 +156,7 @@ export class QueueService {
           ? 'waiting'
           : 'unknown',
       results: job.data.results,
+      failures: job.data.failures ?? [],
       error: job.failedReason ?? null,
     };
   }

@@ -272,10 +272,17 @@ export type TrainingPlanApplyResponse =
   | { status: 'done'; results: TrainingPlanApplyResult[] }
   | { status: 'queued'; jobId: string };
 
+/** An athlete the plan could not be applied to, the others go on */
+export interface TrainingPlanApplyFailure {
+  athleteId: number;
+  error: string;
+}
+
 export interface TrainingPlanApplyJobStatus {
   jobId: string;
   state: 'waiting' | 'active' | 'completed' | 'failed' | 'unknown';
   results: TrainingPlanApplyResult[];
+  failures: TrainingPlanApplyFailure[];
   error: string | null;
 }
 

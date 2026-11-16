@@ -32,6 +32,7 @@ import {
   ShiftTrainingPlanDto,
   TRAINING_PLAN_CONFLICT_MODE,
   TRAINING_PLAN_FILE_FORMAT,
+  TRAINING_PLAN_MAX_WEEKS,
   TrainingPlanApplyPreview,
   TrainingPlanApplyResult,
   TrainingPlanApplyTarget,
@@ -258,8 +259,10 @@ export class TrainingPlanLibraryService {
     const firstWeekStart = weekStartOfDateKey(dto.startDate, dto.weekStartsOn);
     const lastWeekStart = weekStartOfDateKey(dto.endDate, dto.weekStartsOn);
     const weeks = daysBetweenDateKeys(firstWeekStart, lastWeekStart) / 7 + 1;
-    if (weeks > 52) {
-      throw new BadRequestException('A plan has at most 52 weeks');
+    if (weeks > TRAINING_PLAN_MAX_WEEKS) {
+      throw new BadRequestException(
+        `A plan has at most ${TRAINING_PLAN_MAX_WEEKS} weeks`,
+      );
     }
     const from = startOfZonedDay(dto.startDate, timeZone);
     const to = startOfZonedDay(addDaysToDateKey(dto.endDate, 1), timeZone);
@@ -399,7 +402,16 @@ export class TrainingPlanLibraryService {
     plan: PlanToApply,
     target: TrainingPlanApplyTarget,
     options: ApplyOptions,
+    applyJobId?: string,
   ): Promise<TrainingPlanApplyResult> {
+    if (applyJobId) {
+      const resumed = await this.resumeJobApply(
+        target.athleteId,
+        applyJobId,
+        options,
+      );
+      if (resumed) return resumed;
+    }
     const athlete = await this.prisma.athlete.findUniqueOrThrow({
       where: { athleteId: target.athleteId },
       select: { user: { select: { timeZone: true } } },
@@ -446,6 +458,7 @@ export class TrainingPlanLibraryService {
           data: {
             athleteId,
             templateId: plan.templateId,
+            applyJobId: applyJobId ?? null,
             name: plan.name,
             description: plan.description,
             goal: plan.goal || plan.name,
@@ -540,6 +553,56 @@ export class TrainingPlanLibraryService {
       athleteId,
       trainingPlanId: created.trainingPlanId,
       sessions: created.eventIds.length,
+      replaced: conflicts.length,
+    };
+  }
+
+  /**
+   * A job retried after the plan was saved for this athlete (a worker
+   * restart, a failed removal) finishes that athlete's work instead of
+   * applying the plan a second time. The sessions REPLACE removes are then
+   * those of the plan's days that are not the plan's own.
+   */
+  private async resumeJobApply(
+    athleteId: number,
+    applyJobId: string,
+    options: ApplyOptions,
+  ): Promise<TrainingPlanApplyResult | null> {
+    const existing = await this.prisma.trainingPlan.findFirst({
+      where: { athleteId, applyJobId },
+      select: {
+        trainingPlanId: true,
+        startDate: true,
+        endDate: true,
+        sessions: { select: { eventId: true } },
+      },
+    });
+    if (!existing) return null;
+    const conflicts =
+      options.conflictMode === TRAINING_PLAN_CONFLICT_MODE.REPLACE
+        ? await this.prisma.event.findMany({
+            where: {
+              athleteId,
+              type: EventType.TRAINING,
+              training: { relatedActivityId: null },
+              startDate: { gte: existing.startDate, lte: existing.endDate },
+              OR: [
+                { trainingPlanId: null },
+                { trainingPlanId: { not: existing.trainingPlanId } },
+              ],
+            },
+            select: { eventId: true },
+          })
+        : [];
+    for (const conflict of conflicts) {
+      await this.eventService.removeEvent(conflict.eventId, { notify: false });
+    }
+    const eventIds = existing.sessions.map((session) => session.eventId);
+    await this.afterSessionsChanged(athleteId, eventIds);
+    return {
+      athleteId,
+      trainingPlanId: existing.trainingPlanId,
+      sessions: eventIds.length,
       replaced: conflicts.length,
     };
   }
@@ -810,7 +873,12 @@ export class TrainingPlanLibraryService {
   private async checkFolder(user: AuthUser, folderId?: number | null) {
     if (!folderId) return;
     const folder = await this.prisma.eventTemplateFolder.findFirst({
-      where: { eventTemplateFolderId: folderId, userId: user.userId },
+      // Club libraries have no plans yet: a plan stays in its author's own
+      where: {
+        eventTemplateFolderId: folderId,
+        userId: user.userId,
+        clubId: null,
+      },
     });
     if (!folder) throw new NotFoundException('Folder not found');
   }
@@ -877,14 +945,23 @@ export class TrainingPlanLibraryService {
     return best;
   }
 
+  /** Website files are checked as such, not as library plans: 400, not 500 */
   private fromWebsitePlan(file: SEOPlanData) {
+    const content = trainingPlanContentSchema.safeParse({
+      cycles: file.cycles,
+    });
+    if (!content.success) {
+      throw new BadRequestException(
+        content.error.issues[0]?.message ?? 'Invalid training plan',
+      );
+    }
     return {
       name: file.plan.name,
       description: file.plan.description,
       goal: file.plan.goal,
       sport: file.plan.sportType,
       level: null,
-      content: trainingPlanContentSchema.parse({ cycles: file.cycles }),
+      content: content.data,
     };
   }
 

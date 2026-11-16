@@ -40,6 +40,8 @@ model TrainingPlan {
   /// The library plan it was applied from, if it still exists
   template   TrainingPlanTemplate? @relation(fields: [templateId], references: [trainingPlanTemplateId], onDelete: SetNull)
   templateId Int?                  @map("template_id")
+  /// The background job that applied it, so a retry does not apply it twice
+  applyJobId String?               @map("apply_job_id")
   cycles     Cycle[]
   sessions   Event[]
 
@@ -49,6 +51,7 @@ model TrainingPlan {
 
   @@index([athleteId, status])
   @@index([templateId])
+  @@index([athleteId, applyJobId])
   @@map("training_plan")
 }
 

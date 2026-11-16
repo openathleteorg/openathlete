@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import {
@@ -38,6 +38,12 @@ if (!databaseUrl)
   );
 
 const BERLIN = 'Europe/Berlin';
+// Plans applied in the future, whatever year the tests run in: 2030 or a
+// later year with the same calendar (28 years on), so weekdays and the
+// switch to summer time stay where the expectations put them
+const Y =
+  2030 +
+  28 * Math.ceil(Math.max(0, new Date().getUTCFullYear() + 2 - 2030) / 28);
 
 /** Two weeks: Tuesday intervals with a % FTP target, a Sunday long run, a note */
 const content: TrainingPlanContent = {
@@ -213,9 +219,9 @@ describe('training plan library (PostgreSQL)', () => {
     expect(template.sessions).toBe(3);
     expect(template.sport).toBe(SPORT_TYPE.RUNNING);
 
-    // Monday 2030-03-04
+    // Monday, March 4
     const result = await apply(template.trainingPlanTemplateId, {
-      targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
     });
     expect(result.sessions).toBe(3);
 
@@ -231,7 +237,7 @@ describe('training plan library (PostgreSQL)', () => {
       weekStartsOn: 1,
       templateId: template.trainingPlanTemplateId,
       // Local midnight in Berlin (UTC+1 in March)
-      startDate: new Date('2030-03-03T23:00:00Z'),
+      startDate: new Date(`${Y}-03-03T23:00:00Z`),
     });
     expect(plan.cycles.map((cycle) => cycle.name)).toEqual(['Build', 'Rest']);
     expect(plan.cycles[0].weeks[0]).toMatchObject({
@@ -242,11 +248,11 @@ describe('training plan library (PostgreSQL)', () => {
     const sessions = await sessionsOf(result.trainingPlanId);
     expect(sessions.map((event) => [event.name, event.startDate])).toEqual([
       // Tuesday 18:30 Berlin
-      ['Intervals', new Date('2030-03-05T17:30:00Z')],
+      ['Intervals', new Date(`${Y}-03-05T17:30:00Z`)],
       // Sunday 09:00, the default time
-      ['Long run', new Date('2030-03-10T08:00:00Z')],
+      ['Long run', new Date(`${Y}-03-10T08:00:00Z`)],
       // Wednesday of week 2
-      ['Check the shoes', new Date('2030-03-13T08:00:00Z')],
+      ['Check the shoes', new Date(`${Y}-03-13T08:00:00Z`)],
     ]);
     expect(sessions[0].training?.goalRpe).toBeCloseTo(0.8);
     // The percentage target keeps its metric
@@ -267,9 +273,9 @@ describe('training plan library (PostgreSQL)', () => {
         athleteId: DELETED_ATHLETE_ID,
         type: 'COMPETITION',
         name: 'Trail race',
-        // Saturday 2030-03-16, 10:00 Berlin
-        startDate: new Date('2030-03-16T09:00:00Z'),
-        endDate: new Date('2030-03-16T13:00:00Z'),
+        // Saturday, March 16, 10:00 Berlin
+        startDate: new Date(`${Y}-03-16T09:00:00Z`),
+        endDate: new Date(`${Y}-03-16T13:00:00Z`),
         competition: { create: { sport: 'TRAIL_RUNNING' } },
       },
     });
@@ -283,12 +289,12 @@ describe('training plan library (PostgreSQL)', () => {
       applyTrainingPlanSchema.parse(request),
     );
     expect(preview).toMatchObject({
-      startDate: '2030-03-04',
-      endDate: '2030-03-16',
+      startDate: `${Y}-03-04`,
+      endDate: `${Y}-03-16`,
       sessions: 3,
       skipped: 0,
       races: [
-        expect.objectContaining({ name: 'Trail race', date: '2030-03-16' }),
+        expect.objectContaining({ name: 'Trail race', date: `${Y}-03-16` }),
       ],
     });
 
@@ -297,7 +303,7 @@ describe('training plan library (PostgreSQL)', () => {
       where: { trainingPlanId: result.trainingPlanId },
     });
     expect(plan.anchor).toBe('END');
-    expect(plan.endDate).toEqual(new Date('2030-03-16T22:59:59.999Z'));
+    expect(plan.endDate).toEqual(new Date(`${Y}-03-16T22:59:59.999Z`));
   });
 
   it('replaces the trainings still to do, never the done ones', async () => {
@@ -307,14 +313,14 @@ describe('training plan library (PostgreSQL)', () => {
         athleteId: DELETED_ATHLETE_ID,
         type: 'TRAINING',
         name: 'Old easy run',
-        startDate: new Date('2030-03-06T08:00:00Z'),
-        endDate: new Date('2030-03-06T09:00:00Z'),
+        startDate: new Date(`${Y}-03-06T08:00:00Z`),
+        endDate: new Date(`${Y}-03-06T09:00:00Z`),
         training: { create: { sport: 'RUNNING' } },
       },
     });
 
     const kept = await apply(template.trainingPlanTemplateId, {
-      targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
     });
     expect(kept.replaced).toBe(0);
     expect(
@@ -322,7 +328,7 @@ describe('training plan library (PostgreSQL)', () => {
     ).not.toBeNull();
 
     const replaced = await apply(template.trainingPlanTemplateId, {
-      targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
       conflictMode: TRAINING_PLAN_CONFLICT_MODE.REPLACE,
     });
     // The old run, and the first application's two trainings
@@ -340,7 +346,7 @@ describe('training plan library (PostgreSQL)', () => {
   it('moves the plan whole, at the same local time across the DST change', async () => {
     const template = await newTemplate();
     const { trainingPlanId } = await apply(template.trainingPlanTemplateId, {
-      targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-18' }],
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-18` }],
     });
 
     const moved = await library.shiftApplied(athlete, trainingPlanId, {
@@ -349,12 +355,12 @@ describe('training plan library (PostgreSQL)', () => {
     expect(moved.moved).toBe(3);
 
     const sessions = await sessionsOf(trainingPlanId);
-    // Tuesday 2030-04-02 18:30, now summer time (UTC+2)
-    expect(sessions[0].startDate).toEqual(new Date('2030-04-02T16:30:00Z'));
+    // Tuesday, April 2, 18:30, now summer time (UTC+2)
+    expect(sessions[0].startDate).toEqual(new Date(`${Y}-04-02T16:30:00Z`));
     const plan = await prisma.trainingPlan.findUniqueOrThrow({
       where: { trainingPlanId },
     });
-    expect(plan.startDate).toEqual(new Date('2030-03-31T22:00:00Z'));
+    expect(plan.startDate).toEqual(new Date(`${Y}-03-31T22:00:00Z`));
 
     // The service checks the dates, whatever the request schema allows
     await expect(
@@ -365,7 +371,7 @@ describe('training plan library (PostgreSQL)', () => {
   it('marks sessions changed by hand', async () => {
     const template = await newTemplate();
     const { trainingPlanId } = await apply(template.trainingPlanTemplateId, {
-      targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
     });
     const [first] = await sessionsOf(trainingPlanId);
     await events.updateEvent(athlete, first.eventId, { name: 'Hills instead' });
@@ -380,15 +386,15 @@ describe('training plan library (PostgreSQL)', () => {
       sessions: 3,
       done: 0,
       modified: 1,
-      startDate: '2030-03-04',
-      endDate: '2030-03-17',
+      startDate: `${Y}-03-04`,
+      endDate: `${Y}-03-17`,
     });
   });
 
   it('removes what is still to do, and keeps the past as history', async () => {
     const template = await newTemplate();
     const future = await apply(template.trainingPlanTemplateId, {
-      targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
     });
     const past = await apply(template.trainingPlanTemplateId, {
       targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2020-03-02' }],
@@ -459,11 +465,120 @@ describe('training plan library (PostgreSQL)', () => {
     expect(imported.content).toEqual(saved.content);
   });
 
+  it('finishes a retried job without applying the plan twice', async () => {
+    const template = await newTemplate();
+    const dto = applyTrainingPlanSchema.parse({
+      targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
+      conflictMode: TRAINING_PLAN_CONFLICT_MODE.REPLACE,
+    });
+    const plan = await library.checkApply(
+      athlete,
+      template.trainingPlanTemplateId,
+      dto,
+    );
+    const { targets, ...options } = dto;
+    // A session the plan replaces, still there as after a restart between
+    // the saved plan and the removals
+    const first = await library.applyToAthlete(
+      plan,
+      targets[0],
+      options,
+      'job-1',
+    );
+    const leftover = await prisma.event.create({
+      data: {
+        athleteId: DELETED_ATHLETE_ID,
+        type: 'TRAINING',
+        name: 'Old session',
+        startDate: new Date(`${Y}-03-06T08:00:00Z`),
+        endDate: new Date(`${Y}-03-06T09:00:00Z`),
+        training: { create: { sport: SPORT_TYPE.RUNNING, description: '' } },
+      },
+    });
+
+    const retried = await library.applyToAthlete(
+      plan,
+      targets[0],
+      options,
+      'job-1',
+    );
+    expect(retried).toEqual({
+      athleteId: DELETED_ATHLETE_ID,
+      trainingPlanId: first.trainingPlanId,
+      sessions: 3,
+      replaced: 1,
+    });
+    expect(
+      await prisma.trainingPlan.count({
+        where: {
+          athleteId: DELETED_ATHLETE_ID,
+          templateId: template.trainingPlanTemplateId,
+        },
+      }),
+    ).toBe(1);
+    expect(
+      await prisma.event.findUnique({ where: { eventId: leftover.eventId } }),
+    ).toBeNull();
+    expect(await sessionsOf(first.trainingPlanId)).toHaveLength(3);
+
+    // Another job is another application
+    const second = await library.applyToAthlete(
+      plan,
+      targets[0],
+      options,
+      'job-2',
+    );
+    expect(second.trainingPlanId).not.toBe(first.trainingPlanId);
+  });
+
+  it('keeps plans out of club folders, and refuses website files that are no plan', async () => {
+    const club = await prisma.club.create({ data: { name: 'Club' } });
+    const folder = await prisma.eventTemplateFolder.create({
+      data: {
+        name: 'Club folder',
+        userId: DELETED_USER_ID,
+        clubId: club.clubId,
+      },
+    });
+    await expect(
+      newTemplate(athlete, { folderId: folder.eventTemplateFolderId }),
+    ).rejects.toThrow('Folder not found');
+    await expect(
+      newTemplate(athlete, { folderId: 4001 }),
+    ).resolves.toMatchObject({ folderId: 4001 });
+
+    const service = new TrainingPlanService(prisma, library);
+    await expect(
+      service.importSeoPlan(
+        athlete,
+        {
+          plan: {
+            name: 'Empty',
+            description: '',
+            goal: '',
+            sportType: SPORT_TYPE.RUNNING,
+            distance: 0,
+            duration: 1,
+          },
+          cycles: [
+            {
+              name: 'Base',
+              description: '',
+              phase: 'BASE' as never,
+              weeks: [],
+            },
+          ],
+        },
+        new Date(`${Y}-03-05T23:00:00Z`),
+      ),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it('lets a coach apply their plan to an athlete, and nobody else', async () => {
     const template = await newTemplate(coach);
     const result = await apply(
       template.trainingPlanTemplateId,
-      { targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }] },
+      { targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }] },
       coach,
     );
     expect(result.sessions).toBe(3);
@@ -474,7 +589,7 @@ describe('training plan library (PostgreSQL)', () => {
         athlete,
         template.trainingPlanTemplateId,
         applyTrainingPlanSchema.parse({
-          targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+          targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
         }),
       ),
     ).rejects.toThrow('Training plan not found');
@@ -494,7 +609,7 @@ describe('training plan library (PostgreSQL)', () => {
         stranger,
         own.trainingPlanTemplateId,
         applyTrainingPlanSchema.parse({
-          targets: [{ athleteId: DELETED_ATHLETE_ID, date: '2030-03-04' }],
+          targets: [{ athleteId: DELETED_ATHLETE_ID, date: `${Y}-03-04` }],
         }),
       ),
     ).rejects.toBeInstanceOf(ForbiddenException);
@@ -537,12 +652,12 @@ describe('training plan library (PostgreSQL)', () => {
           },
         ],
       },
-      // Wednesday 2030-03-06, local midnight in Berlin as the app sends it
-      new Date('2030-03-05T23:00:00Z'),
+      // Wednesday, March 6, local midnight in Berlin as the app sends it
+      new Date(`${Y}-03-05T23:00:00Z`),
     );
     expect(imported?.anchor).toBe('START');
     // Weeks start on the chosen Wednesday: Monday ends the week
     const [session] = await sessionsOf(imported!.trainingPlanId);
-    expect(session.startDate).toEqual(new Date('2030-03-11T08:00:00Z'));
+    expect(session.startDate).toEqual(new Date(`${Y}-03-11T08:00:00Z`));
   });
 });
