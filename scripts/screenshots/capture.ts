@@ -5,7 +5,7 @@
  *
  * Needs start.sh running and seed.ts applied (processing finished).
  */
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 
@@ -323,6 +323,34 @@ const scrollToSelector = (selector: string, offset = 24) => async (page: Page) =
   }, offset);
 };
 
+/** Brings Garmin's attribution of that kind to the middle of the screen */
+const revealGarmin = (kind: 'activity' | 'metric' | 'data' | 'insights') => async (page: Page) => {
+  // Sections load as they come into view and push the line further down
+  for (let i = 0; i < 4; i++) {
+    await page.locator(`[data-garmin-attribution="${kind}"]`).last().evaluate((el) => el.scrollIntoView({ block: 'end' }));
+    await page.waitForTimeout(1500);
+  }
+};
+
+/**
+ * Clicks what downloads a file, keeps the file next to the shots, and shows
+ * a text file's end in the page so the shot shows its attribution line.
+ */
+const download = (trigger: string, file: string, showText = false) => async (page: Page) => {
+  // Chromium offers the share sheet for files: the app then shares instead of saving
+  await page.evaluate(() => Object.defineProperty(navigator, 'canShare', { value: undefined }));
+  const [received] = await Promise.all([page.waitForEvent('download'), page.locator(trigger).first().click()]);
+  const path = join(OUT, file);
+  await received.saveAs(path);
+  if (showText) {
+    const lines = readFileSync(path, 'utf8').trimEnd().split('\n');
+    const shown = [...lines.slice(0, 4), '…', ...lines.slice(-6)].join('\n');
+    await page.setContent(
+      `<pre style="font: 15px/1.5 ui-monospace, monospace; padding: 32px; white-space: pre-wrap">${file}\n\n${shown.replace(/</g, '&lt;')}</pre>`,
+    );
+  }
+};
+
 const clubPage = (ids: Ids) => `/dashboard/settings?tab=clubs&club=${ids.clubId}`;
 const group = (name: string) => `+ ${CLUB_NAME} · ${name}`;
 
@@ -637,6 +665,109 @@ export const SHOTS: Shot[] = [
     path: (ids) => `/dashboard/calendar/${ids.camilleAthleteId}`,
     prepare: steps(calendarView('Week'), async (p) => p.getByRole('button', { name: /Template Library/i }).click()),
   },
+  // Garmin's production review: every place its data and brand appear
+  { name: 'garmin-01-connectors', who: 'athlete', path: '/dashboard/settings?tab=connectors' },
+  { name: 'garmin-02-activity', who: 'athlete', path: (ids) => `/dashboard/activity/${ids.activity.longTrail}` },
+  {
+    name: 'garmin-03-activity-ai-summary',
+    who: 'athlete',
+    path: (ids) => `/dashboard/activity/${ids.activity.longTrail}`,
+    prepare: scrollToSelector('[data-ai-summary]', 120),
+  },
+  { name: 'garmin-04-activity-race', who: 'athlete', path: (ids) => `/dashboard/activity/${ids.activity.race}` },
+  { name: 'garmin-05-mobile-activity', who: 'athlete', device: 'mobile', path: (ids) => `/dashboard/activity/${ids.activity.longTrail}` },
+  { name: 'garmin-06-dashboard-header', who: 'athlete', path: '/dashboard/calendar', prepare: calendarView('Month') },
+  {
+    name: 'garmin-07-calendar-month',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    prepare: steps(calendarView('Month'), revealGarmin('data')),
+  },
+  {
+    name: 'garmin-08-calendar-week',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    // Last week: this one has no activity yet on Monday
+    prepare: steps(
+      calendarView('Week'),
+      async (p) => p.getByRole('button', { name: 'Previous week' }).click(),
+      scrollTo(/^Calendar of /),
+    ),
+  },
+  {
+    name: 'garmin-09-calendar-season',
+    who: 'athlete',
+    path: '/dashboard/calendar',
+    prepare: steps(calendarView('Season'), revealGarmin('data')),
+  },
+  {
+    name: 'garmin-10-mobile-calendar-month',
+    who: 'athlete',
+    device: 'mobile',
+    path: '/dashboard/calendar',
+    // Back to the last activities: the agenda opens on the start of its range
+    prepare: steps(calendarView('Month'), async (p) => {
+      const today = p.locator('[data-calendar-today]');
+      if (await today.isVisible()) await today.click();
+    }),
+  },
+  { name: 'garmin-11-mobile-calendar-week', who: 'athlete', device: 'mobile', path: '/dashboard/calendar', prepare: calendarView('Week') },
+  { name: 'garmin-12-mobile-today', who: 'athlete', device: 'mobile', path: '/dashboard/today' },
+  {
+    name: 'garmin-13-mobile-today-recent',
+    who: 'athlete',
+    device: 'mobile',
+    path: '/dashboard/today',
+    prepare: scrollTo(/^Latest activities$/, 16 + 59),
+  },
+  { name: 'garmin-14-metrics', who: 'athlete', path: '/dashboard/metrics' },
+  { name: 'garmin-15-metric-chart', who: 'athlete', path: '/dashboard/metrics', prepare: revealGarmin('data') },
+  {
+    name: 'garmin-16-metric-history',
+    who: 'athlete',
+    path: '/dashboard/metrics',
+    prepare: scrollTo(/^History$/, 120),
+  },
+  { name: 'garmin-17-mobile-metrics', who: 'athlete', device: 'mobile', path: '/dashboard/metrics' },
+  {
+    name: 'garmin-18-statistics',
+    who: 'athlete',
+    path: '/dashboard/statistics',
+    prepare: revealGarmin('insights'),
+  },
+  {
+    name: 'garmin-19-statistics-load',
+    who: 'athlete',
+    path: '/dashboard/statistics',
+    prepare: steps(statisticsTab('Load'), revealGarmin('insights')),
+  },
+  {
+    name: 'garmin-19-statistics-recovery',
+    who: 'athlete',
+    path: '/dashboard/statistics',
+    prepare: steps(statisticsTab('Load'), scrollToSelector('#recovery', 24)),
+  },
+  { name: 'garmin-20-records', who: 'athlete', path: '/dashboard/records', prepare: revealGarmin('insights') },
+  { name: 'garmin-21-coach-dashboard', who: 'coach', path: '/dashboard/coach', prepare: revealGarmin('insights') },
+  {
+    name: 'garmin-22-coach-athlete-calendar',
+    who: 'coach',
+    path: (ids) => `/dashboard/calendar/${ids.camilleAthleteId}`,
+    prepare: calendarView('Month'),
+  },
+  {
+    name: 'garmin-23-export-csv',
+    who: 'athlete',
+    path: '/dashboard/statistics',
+    prepare: steps(statisticsTab('Load'), download('[data-export="load"]', 'garmin-23-export.csv', true)),
+  },
+  {
+    name: 'garmin-24-year-in-review',
+    who: 'athlete',
+    path: '/dashboard/statistics',
+    prepare: steps(statisticsTab('Year in review'), download('[data-year-share]', 'garmin-24-year-image.png')),
+  },
+  { name: 'garmin-25-dark-activity', who: 'athlete', theme: 'dark', path: (ids) => `/dashboard/activity/${ids.activity.longTrail}` },
   // Dark theme
   { name: 'desktop-dark-calendar-week', who: 'athlete', theme: 'dark', path: '/dashboard/calendar', prepare: steps(calendarView('Week'), scrollTo(/^Calendar of /)) },
   { name: 'desktop-dark-activity-trail', who: 'athlete', theme: 'dark', path: (ids) => `/dashboard/activity/${ids.activity.longTrail}` },
