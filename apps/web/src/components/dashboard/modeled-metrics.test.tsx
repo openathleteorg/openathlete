@@ -9,6 +9,9 @@ const response = vi.hoisted(() => ({ data: undefined as unknown }));
 vi.mock('@/api/record', () => ({
   useGetModeledMetricsQuery: () => ({ data: response.data, isLoading: false }),
 }));
+vi.mock('@/components/garmin-attribution/garmin-attribution', () => ({
+  GarminAttribution: () => <p data-testid="garmin-attribution" />,
+}));
 vi.mock('@/utils/label-map/core/metric-type.label-map', () => ({
   metricTypeLabelMap: { FTP_RUNNING: 'FTP run', FTP_CYCLING: 'FTP bike' },
 }));
@@ -74,6 +77,10 @@ describe('ModeledMetrics', () => {
         .querySelector('[title^="modeled_ftp_title"]')
         ?.getAttribute('title'),
     ).toContain('335');
+    // Insights derived from activity power carry Garmin's attribution
+    expect(
+      container.querySelector('[data-testid="garmin-attribution"]'),
+    ).not.toBeNull();
   });
 
   it('says so when no activity has 20 minutes of power', () => {
@@ -85,6 +92,9 @@ describe('ModeledMetrics', () => {
     };
     act(() => root.render(<ModeledMetrics />));
     expect(tiles()).toEqual([]);
+    expect(
+      container.querySelector('[data-testid="garmin-attribution"]'),
+    ).toBeNull();
     expect(container.textContent).toContain(
       'dashboard_header_no_modeled_metrics 90',
     );
