@@ -30,6 +30,7 @@ import {
   SubscriptionService,
   SubscriptionUserMissingError,
 } from '../services/subscription.service';
+import { billingEventProperties } from '../subscription-events';
 
 @ApiTags('Subscription')
 @SkipThrottle()
@@ -208,8 +209,9 @@ export class StripeWebhookController {
       return;
     }
 
+    let saved;
     try {
-      await this.subscriptionService.createSubscriptionFromCheckout(
+      saved = await this.subscriptionService.createSubscriptionFromCheckout(
         numericUserId,
         customerId,
         subscriptionId,
@@ -226,14 +228,10 @@ export class StripeWebhookController {
 
     this.logger.log(`Supporter subscription created for user ${userId}`);
 
-    await this.analytics?.capture(
+    this.analytics?.send(
       numericUserId,
       'subscription_started',
-      {
-        store: 'stripe',
-        amount: (session.amount_total ?? 0) / 100,
-        currency: session.currency,
-      },
+      billingEventProperties(saved),
       {
         uuid: stableUuid(eventId),
         set: { plan: 'SUPPORTER', store: 'stripe' },
@@ -255,6 +253,8 @@ export class StripeWebhookController {
           params: {
             name: user.firstName || undefined,
             subscription_settings_url: `${appUrl}/dashboard/settings?tab=subscription`,
+            amount_cents: saved.amountCents ?? undefined,
+            interval: saved.billingInterval ?? undefined,
           },
         }),
       );
@@ -268,7 +268,11 @@ export class StripeWebhookController {
     try {
       const previous = await this.prisma.subscription.findUnique({
         where: { stripeSubscriptionId: subscription.id },
-        select: { cancelAtPeriodEnd: true },
+        select: {
+          cancelAtPeriodEnd: true,
+          amountCents: true,
+          billingInterval: true,
+        },
       });
       const updated =
         await this.subscriptionService.updateSubscriptionFromWebhook(
@@ -279,12 +283,30 @@ export class StripeWebhookController {
         previous &&
         previous.cancelAtPeriodEnd !== updated.cancelAtPeriodEnd
       ) {
-        await this.analytics?.capture(
+        this.analytics?.send(
           updated.userId,
           updated.cancelAtPeriodEnd
             ? 'subscription_cancel_scheduled'
             : 'subscription_cancel_reverted',
-          { store: 'stripe' },
+          billingEventProperties(updated),
+          { uuid: stableUuid(eventId) },
+        );
+      }
+      // Tier or interval changes from the portal; the app's own are sent
+      // when it makes them
+      if (
+        previous?.amountCents != null &&
+        (previous.amountCents !== updated.amountCents ||
+          previous.billingInterval !== updated.billingInterval)
+      ) {
+        this.analytics?.send(
+          updated.userId,
+          'subscription_changed',
+          {
+            ...billingEventProperties(updated),
+            previous_amount_cents: previous.amountCents,
+            previous_interval: previous.billingInterval,
+          },
           { uuid: stableUuid(eventId) },
         );
       }
@@ -305,14 +327,14 @@ export class StripeWebhookController {
     eventId: string,
   ) {
     try {
-      const { userId } =
+      const ended =
         await this.subscriptionService.updateSubscriptionFromWebhook(
           subscription,
         );
-      await this.analytics?.capture(
-        userId,
-        'subscription_ended',
-        { store: 'stripe' },
+      this.analytics?.send(
+        ended.userId,
+        'subscription_canceled',
+        billingEventProperties(ended),
         { uuid: stableUuid(eventId), set: { plan: 'FREE' } },
       );
     } catch (e) {
@@ -335,7 +357,7 @@ export class StripeWebhookController {
         invoice.customer,
         'subscription_renewed',
         eventId,
-        { amount: invoice.amount_paid / 100, currency: invoice.currency },
+        { paid_cents: invoice.amount_paid },
       );
     }
   }
@@ -351,13 +373,12 @@ export class StripeWebhookController {
     if (!stripeCustomerId) return;
     const subscription = await this.prisma.subscription.findUnique({
       where: { stripeCustomerId },
-      select: { userId: true },
     });
     if (subscription) {
-      await this.analytics?.capture(
+      this.analytics?.send(
         subscription.userId,
         event,
-        { store: 'stripe', ...properties },
+        { ...billingEventProperties(subscription), ...properties },
         { uuid: stableUuid(eventId) },
       );
     }

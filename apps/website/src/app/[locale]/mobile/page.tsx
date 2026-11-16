@@ -20,6 +20,7 @@ import { PhoneShot } from '@/components/site/visuals/screenshot';
 import { GITHUB_URL, GOOGLE_PLAY_URL } from '@/config';
 import { initLocale } from '@/i18n/server';
 import { signupUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
@@ -131,7 +132,7 @@ function Steps({
 
 export default async function MobilePage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('mobile_faq', 5);
+  const faqs = faqEntries('mobile_faq', 5, supporterPriceVars(locale));
 
   const features = [
     { shot: shots.mobileHome, alt: m.mobile_shot_alt_home(), n: 1 },

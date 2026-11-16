@@ -17,6 +17,7 @@ import { ProviderLogos } from '@/components/site/visuals/provider-logos';
 import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
 import { WorkoutBlocks } from '@/components/site/visuals/workout-blocks';
 import { GITHUB_URL, GOOGLE_PLAY_URL } from '@/config';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { type SupportedLocale, localePath } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
@@ -48,6 +49,7 @@ export function HomeLogos() {
 }
 
 export function HomePaths({ locale }: { locale: SupportedLocale }) {
+  const prices = supporterPriceVars(locale);
   const cards = [
     {
       href: localePath(locale, '/athletes'),
@@ -62,8 +64,8 @@ export function HomePaths({ locale }: { locale: SupportedLocale }) {
     {
       href: localePath(locale, '/coaches'),
       title: m.home_paths_coach_title(),
-      body: m.home_paths_coach_body(),
-      stat: m.home_paths_coach_stat(),
+      body: m.home_paths_coach_body(prices),
+      stat: m.home_paths_coach_stat(prices),
       statLabel: m.home_paths_coach_stat_label(),
       cta: m.home_paths_coach_cta(),
       note: m.home_paths_coach_compare(),
@@ -525,13 +527,13 @@ export function HomeOpenSource({ locale }: { locale: SupportedLocale }) {
   );
 }
 
-export function HomePricing() {
+export function HomePricing({ locale }: { locale: SupportedLocale }) {
   return (
     <Section>
       <Container>
         <SectionHeading
           kicker={m.home_pricing_kicker()}
-          title={m.home_pricing_title()}
+          title={m.home_pricing_title(supporterPriceVars(locale))}
           lead={m.home_pricing_lead()}
           align="center"
         />
@@ -595,12 +597,12 @@ export function HomeMobile({ locale }: { locale: SupportedLocale }) {
   );
 }
 
-export function HomeFaq() {
+export function HomeFaq({ locale }: { locale: SupportedLocale }) {
   return (
     <Section>
       <Container size="narrow">
         <h2 className="display-2 mb-10">{m.home_faq_title()}</h2>
-        <Faq items={homeFaqEntries()} placement="home" />
+        <Faq items={homeFaqEntries(locale)} placement="home" />
       </Container>
     </Section>
   );

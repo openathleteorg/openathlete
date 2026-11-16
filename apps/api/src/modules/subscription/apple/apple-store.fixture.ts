@@ -6,11 +6,7 @@ import { createPrivateKey, sign } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-import {
-  APPLE_SUPPORTER_PRODUCT_IDS,
-  BillingInterval,
-  IOS_APP_BUNDLE_ID,
-} from '@openathlete/shared';
+import { IOS_APP_BUNDLE_ID } from '@openathlete/shared';
 
 import { AppleStoreService } from './apple-store.service';
 
@@ -52,7 +48,7 @@ export function appleTransaction(overrides: Record<string, unknown> = {}) {
     transactionId: '2000000000000002',
     originalTransactionId: '2000000000000001',
     bundleId: IOS_APP_BUNDLE_ID,
-    productId: APPLE_SUPPORTER_PRODUCT_IDS[BillingInterval.MONTH],
+    productId: 'org.openathlete.supporter.monthly',
     purchaseDate: now - DAY,
     originalPurchaseDate: now - DAY,
     expiresDate: now + 29 * DAY,
@@ -72,8 +68,8 @@ export function appleTransaction(overrides: Record<string, unknown> = {}) {
 export function appleRenewalInfo(overrides: Record<string, unknown> = {}) {
   return {
     originalTransactionId: '2000000000000001',
-    autoRenewProductId: APPLE_SUPPORTER_PRODUCT_IDS[BillingInterval.MONTH],
-    productId: APPLE_SUPPORTER_PRODUCT_IDS[BillingInterval.MONTH],
+    autoRenewProductId: 'org.openathlete.supporter.monthly',
+    productId: 'org.openathlete.supporter.monthly',
     autoRenewStatus: 1,
     signedDate: Date.now(),
     environment: Environment.PRODUCTION,

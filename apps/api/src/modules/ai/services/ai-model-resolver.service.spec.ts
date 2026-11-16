@@ -57,7 +57,7 @@ interface Setup {
   subscribers?: number[];
   env?: Record<string, string>;
   coaches?: number[];
-  /** Users whose monthly allowance on the instance keys is used up */
+  /** Users whose weekly allowance on the instance keys is used up */
   quotaExhausted?: number[];
   /** Users who have not allowed their data to be sent to AI providers */
   notConsented?: number[];
@@ -123,7 +123,6 @@ function setup({
       Promise.resolve(!quotaExhausted.includes(userId)),
     ),
     describe: jest.fn().mockResolvedValue({
-      hostedTokens: 0,
       ownKeyTokens: 0,
       hostedBudgetUsed: null,
       resetsAt: '2026-11-01T00:00:00.000Z',
@@ -439,7 +438,7 @@ describe('AiModelResolverService', () => {
     });
   });
 
-  describe('monthly allowance on the instance keys', () => {
+  describe('weekly allowance on the instance keys', () => {
     const instance = { OPENAI_API_KEY: 'sk-instance' };
 
     it('stops hosted AI once the allowance is used up', async () => {
@@ -478,6 +477,39 @@ describe('AiModelResolverService', () => {
       await expect(
         resolver.resolveForUser(AiTask.EVENT_GENERATION, 1),
       ).rejects.toBeInstanceOf(AiNotConfiguredException);
+    });
+
+    it("spends a coach's allowance first, then the Supporter athlete's", async () => {
+      const { resolver } = setup({
+        env: instance,
+        subscribers: [1, 2],
+        quotaExhausted: [2],
+      });
+
+      // Coach 2 plans a session for athlete 1 (the athlete's user is 1)
+      await expect(
+        resolver.resolveForUser(AiTask.EVENT_GENERATION, 2, { athleteId: 9 }),
+      ).resolves.toMatchObject({ source: 'hosted', userId: 1 });
+    });
+
+    it('bills the coach while their allowance lasts', async () => {
+      const { resolver } = setup({ env: instance, subscribers: [1, 2] });
+
+      await expect(
+        resolver.resolveForUser(AiTask.EVENT_GENERATION, 2, { athleteId: 9 }),
+      ).resolves.toMatchObject({ userId: 2 });
+    });
+
+    it('never spends the allowance of an athlete who is not a Supporter', async () => {
+      const { resolver } = setup({
+        env: instance,
+        subscribers: [2],
+        quotaExhausted: [2],
+      });
+
+      await expect(
+        resolver.resolveForUser(AiTask.EVENT_GENERATION, 2, { athleteId: 9 }),
+      ).rejects.toBeInstanceOf(AiHostedQuotaExceededException);
     });
 
     it("falls back to a coach's allowance for background work", async () => {

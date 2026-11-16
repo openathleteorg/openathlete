@@ -16,6 +16,8 @@ enum AiTask {
   FEEDBACK_EXTRACTION
   TRAINING_LOAD_ESTIMATION
   ACTIVITY_SUMMARY
+  /// Voice notes turned into text (Whisper, on the instance key)
+  VOICE_TRANSCRIPTION
 
   @@map("ai_task")
 }
@@ -113,20 +115,25 @@ model AiCustomInstruction {
 enum AiKeySource {
   /// The user's own key: billed to them, only counted for their information
   OWN_KEY
-  /// The instance keys: counted against the monthly allowance
+  /// The instance keys: counted against the user's weekly allowance
   HOSTED
+  /// The instance keys, for automatic tasks with their own budget, outside
+  /// the user's allowance
+  AUTOMATED
 
   @@map("ai_key_source")
 }
 
-/// Tokens a user's AI calls used in a month, per feature and key source.
+/// Tokens a user's AI calls used in a day, per feature and key source.
+/// Allowance windows (the week) are sums of days.
 model AiUsage {
   // primary key
   aiUsageId Int @id @default(autoincrement()) @map("ai_usage_id")
 
   // fields
-  /// First day of the month, in UTC
-  month        DateTime    @db.Date
+  /// Calendar day in the user's time zone, the one their week resets in.
+  /// Rows from before daily counts hold a whole month on its first day.
+  day          DateTime    @db.Date
   task         AiTask
   source       AiKeySource
   inputTokens  Int         @default(0) @map("input_tokens")
@@ -144,6 +151,6 @@ model AiUsage {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([userId, month, task, source])
+  @@unique([userId, day, task, source])
   @@map("ai_usage")
 }

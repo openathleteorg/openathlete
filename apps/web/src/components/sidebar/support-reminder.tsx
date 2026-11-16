@@ -21,6 +21,8 @@ import { Link } from 'react-router-dom';
 
 import { User } from '@openathlete/shared';
 
+import { SupporterGauge } from '../supporter/supporter-goal';
+
 /**
  * Asks at the foot of the sidebar: self-hosters once for a coffee, users of
  * the hosted instance to become Supporters, a few times a year at most
@@ -94,7 +96,7 @@ export function SupportReminder() {
           <p className="text-muted-foreground">
             {m.support_reminder_supporter_text()}
           </p>
-          {supporters && <SupporterGauge {...supporters} />}
+          {supporters && <SupporterGauge {...supporters} className="mt-2" />}
           <Button
             asChild
             variant="outline"
@@ -125,28 +127,6 @@ export function SupportReminder() {
           </Button>
         </>
       )}
-    </div>
-  );
-}
-
-/** How far the Supporters are from the goal: true figures, no pressure */
-function SupporterGauge({ count, goal }: { count: number; goal: number }) {
-  const percent = Math.min(100, Math.round((count / goal) * 100));
-  return (
-    <div className="mt-2 space-y-1" data-supporter-gauge>
-      <div
-        className="h-1.5 overflow-hidden rounded-full bg-muted"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={goal}
-        aria-valuenow={count}
-        aria-label={m.support_reminder_supporter_count({ count, goal })}
-      >
-        <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        {m.support_reminder_supporter_count({ count, goal })}
-      </p>
     </div>
   );
 }

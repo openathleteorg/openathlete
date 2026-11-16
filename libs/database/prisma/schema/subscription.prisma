@@ -37,6 +37,15 @@ model Subscription {
   appleOriginalTransactionId String?          @unique @map("apple_original_transaction_id")
   /// UUID the iOS app passes to StoreKit as appAccountToken, tying purchases to this user
   appleAppAccountToken       String?          @unique @map("apple_app_account_token") @db.Uuid
+  /// Price of the subscription's tier, in cents (VAT included); null on the free plan
+  amountCents                Int?             @map("amount_cents")
+  /// ISO currency of amountCents, lowercase as Stripe writes it
+  currency                   String?
+  /// Subscribed before the tiered pricing: keeps their price and unlimited
+  /// coached athletes until the subscription ends
+  isFounder                  Boolean          @default(false) @map("is_founder")
+  /// When the founder's subscription started
+  founderSince               DateTime?        @map("founder_since")
 
   // relationships
   user   User @relation(fields: [userId], references: [userId])

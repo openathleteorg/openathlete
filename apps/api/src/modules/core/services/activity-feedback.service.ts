@@ -12,7 +12,10 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { UserLanguage } from '@openathlete/database';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
-import { ActivityFeedbackCompletedEvent } from 'src/events';
+import {
+  ActivityFeedbackCompletedEvent,
+  VoiceTranscribedEvent,
+} from 'src/events';
 import { AiConsentRequiredException } from 'src/modules/ai/ai.errors';
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -407,7 +410,16 @@ export class ActivityFeedbackService {
         file: fileForOpenAI as Uploadable,
         model: 'whisper-1',
         language: WHISPER_LANGUAGE[language],
+        // Gives the duration, which the instance pays for
+        response_format: 'verbose_json',
       });
+      this.eventEmitter.emit(
+        VoiceTranscribedEvent.SLUG,
+        new VoiceTranscribedEvent({
+          userId: user.userId,
+          seconds: transcription.duration ?? 0,
+        }),
+      );
 
       return { text: transcription.text };
     } catch (error) {

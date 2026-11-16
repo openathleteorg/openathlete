@@ -1,8 +1,10 @@
 import Stripe from 'stripe';
 
 import {
+  BadRequestException,
   Injectable,
   Logger,
+  OnApplicationBootstrap,
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -10,15 +12,32 @@ import { ConfigService } from '@nestjs/config';
 import {
   ApiEnvSchemaType,
   BillingInterval,
+  Offer,
   TERMS_OF_SALE_VERSION,
+  isTierPrice,
+  stripeLookupKey,
+  supporterStripePrices,
+  tierPrices,
 } from '@openathlete/shared';
 
+/** A Supporter price of the Stripe catalogue. */
+export interface SupporterStripePrice {
+  priceId: string;
+  interval: BillingInterval;
+  amountCents: number;
+}
+
 @Injectable()
-export class StripeService {
+export class StripeService implements OnApplicationBootstrap {
   private readonly logger = new Logger(StripeService.name);
   private readonly client: Stripe | null;
-  /** Supporter prices, the only plan for sale */
-  private readonly priceIds: Record<BillingInterval, string | undefined>;
+  /**
+   * Prices set by STRIPE_PRICE_SUPPORTER_*, from before lookup keys: they
+   * stand for the lowest tier when the catalogue has no price for it.
+   */
+  private readonly legacyPriceIds: Record<BillingInterval, string | undefined>;
+  /** The Supporter prices, by lookup key, found on first use */
+  private catalog: Promise<Map<string, SupporterStripePrice>> | null = null;
 
   constructor(
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
@@ -34,7 +53,7 @@ export class StripeService {
       this.logger.warn('STRIPE_SECRET_KEY is not set, billing is disabled');
     }
 
-    this.priceIds = {
+    this.legacyPriceIds = {
       [BillingInterval.MONTH]: this.configService.get(
         'STRIPE_PRICE_SUPPORTER_MONTHLY',
       ),
@@ -42,6 +61,12 @@ export class StripeService {
         'STRIPE_PRICE_SUPPORTER_YEARLY',
       ),
     };
+  }
+
+  /** Finds the prices at boot, so a missing one shows in the logs at once. */
+  onApplicationBootstrap(): void {
+    if (!this.client) return;
+    void this.supporterPrices().catch(() => undefined);
   }
 
   /**
@@ -111,13 +136,15 @@ export class StripeService {
   async createCheckoutSession(
     customerId: string,
     interval: BillingInterval,
+    amountCents: number,
     successUrl: string,
     cancelUrl: string,
   ): Promise<Stripe.Checkout.Session> {
+    const price = await this.priceIdFor(interval, amountCents);
     return await this.stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
-      line_items: [{ price: this.priceIdFor(interval), quantity: 1 }],
+      line_items: [{ price, quantity: 1 }],
       allow_promotion_codes: true,
       automatic_tax: { enabled: true },
       billing_address_collection: 'auto',
@@ -168,26 +195,79 @@ export class StripeService {
   }
 
   /**
-   * The billing interval of a Supporter price, or null for a price this
-   * instance does not sell (an old plan, another product).
+   * The Supporter prices of the catalogue, by lookup key (created by
+   * scripts/stripe/setup-pricing-v2.ts). A failed lookup is retried on the
+   * next call instead of being kept.
    */
-  intervalOfPrice(priceId: string | undefined): BillingInterval | null {
-    if (!priceId) return null;
-    for (const interval of Object.values(BillingInterval)) {
-      if (this.priceIds[interval] === priceId) return interval;
+  supporterPrices(): Promise<Map<string, SupporterStripePrice>> {
+    if (!this.catalog) {
+      this.catalog = this.loadSupporterPrices().catch((error: unknown) => {
+        this.catalog = null;
+        this.logger.error(
+          `Could not read the Supporter prices from Stripe: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        throw new ServiceUnavailableException('STRIPE_PRICES_UNAVAILABLE');
+      });
     }
-    this.logger.warn(`Price ID ${priceId} is not a Supporter price`);
-    return null;
+    return this.catalog;
   }
 
-  private priceIdFor(interval: BillingInterval): string {
-    const priceId = this.priceIds[interval];
-    if (!priceId) {
-      throw new ServiceUnavailableException(
-        `No Stripe price is configured for the ${interval}ly Supporter subscription`,
+  private async loadSupporterPrices(): Promise<
+    Map<string, SupporterStripePrice>
+  > {
+    const wanted = supporterStripePrices();
+    const found = await this.stripe.prices.list({
+      lookup_keys: wanted.map((price) => price.lookupKey),
+      active: true,
+      limit: 100,
+    });
+    const prices = new Map<string, SupporterStripePrice>();
+    for (const price of found.data) {
+      const tier = wanted.find((item) => item.lookupKey === price.lookup_key);
+      // A price edited by hand that no longer matches its key is not sold
+      if (
+        tier &&
+        price.unit_amount === tier.amountCents &&
+        price.recurring?.interval === tier.interval
+      ) {
+        prices.set(tier.lookupKey, { priceId: price.id, ...tier });
+      }
+    }
+    for (const interval of Object.values(BillingInterval)) {
+      const lowest = tierPrices(Offer.SUPPORTER, interval)[0];
+      const key = stripeLookupKey(Offer.SUPPORTER, interval, lowest);
+      const legacy = this.legacyPriceIds[interval];
+      if (!prices.has(key) && legacy) {
+        prices.set(key, { priceId: legacy, interval, amountCents: lowest });
+      }
+    }
+    const missing = wanted.filter((price) => !prices.has(price.lookupKey));
+    if (missing.length) {
+      this.logger.warn(
+        `Stripe has no active price for ${missing.map((price) => price.lookupKey).join(', ')}: run scripts/stripe/setup-pricing-v2.ts`,
       );
     }
-    return priceId;
+    return prices;
+  }
+
+  /** The Stripe price of a Supporter tier. */
+  async priceIdFor(
+    interval: BillingInterval,
+    amountCents: number,
+  ): Promise<string> {
+    if (!isTierPrice(Offer.SUPPORTER, interval, amountCents)) {
+      throw new BadRequestException('UNKNOWN_TIER');
+    }
+    const prices = await this.supporterPrices();
+    const price = prices.get(
+      stripeLookupKey(Offer.SUPPORTER, interval, amountCents),
+    );
+    if (!price) {
+      throw new ServiceUnavailableException(
+        `No Stripe price is configured for the ${amountCents / 100} € ${interval}ly Supporter tier`,
+      );
+    }
+    return price.priceId;
   }
 
   /**
@@ -252,23 +332,23 @@ export class StripeService {
     });
   }
 
-  /** Switches a Supporter subscription between monthly and yearly billing. */
-  async changeBillingInterval(
+  /**
+   * Moves a Supporter subscription to another tier or interval, at once.
+   * The unused part of the period is credited and the difference invoiced.
+   */
+  async changeSupporterPrice(
     subscriptionId: string,
     interval: BillingInterval,
+    amountCents: number,
   ): Promise<Stripe.Subscription> {
+    const price = await this.priceIdFor(interval, amountCents);
     const subscription = await this.getSubscription(subscriptionId);
     if (!subscription) {
       throw new Error('Subscription not found');
     }
 
     return await this.stripe.subscriptions.update(subscriptionId, {
-      items: [
-        {
-          id: subscription.items.data[0].id,
-          price: this.priceIdFor(interval),
-        },
-      ],
+      items: [{ id: subscription.items.data[0].id, price }],
       proration_behavior: 'always_invoice',
     });
   }

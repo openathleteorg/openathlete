@@ -17,13 +17,9 @@ import {
 import { PROVIDERS } from '@/components/site/providers';
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
-import {
-  MCP_URL,
-  SELF_HOSTING_DOCS_URL,
-  SUPPORTER_MONTHLY_EUR,
-  SUPPORTER_YEARLY_EUR,
-} from '@/config';
+import { MCP_URL, SELF_HOSTING_DOCS_URL } from '@/config';
 import { signupUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   type SupportedLocale,
@@ -719,10 +715,9 @@ export function AiGuidePage({ locale, brand }: Props) {
               </h2>
               <p className="mt-5 leading-relaxed text-white/70">
                 {m.aig_sup_body({
+                  ...supporterPriceVars(locale),
                   ai,
                   company,
-                  month: String(SUPPORTER_MONTHLY_EUR),
-                  year: String(SUPPORTER_YEARLY_EUR),
                 })}
               </p>
               <ArrowLink

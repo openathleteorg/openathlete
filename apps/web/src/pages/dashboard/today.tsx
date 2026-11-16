@@ -22,6 +22,7 @@ import { GarminAttribution } from '@/components/garmin-attribution/garmin-attrib
 import { garminActivityLabel } from '@/components/garmin-attribution/garmin-source';
 import { PushPromptCard } from '@/components/mobile/push-prompt-card';
 import { SportIcon } from '@/components/sport-icon/sport-icon';
+import { SupporterGoal } from '@/components/supporter/supporter-goal';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAppBar } from '@/hooks/use-app-bar';
@@ -384,6 +385,8 @@ function TodayScreen() {
           </List>
         </Section>
       )}
+
+      <SupporterGoal className="px-1" />
     </div>
   );
 }

@@ -1,4 +1,6 @@
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
+import type { SupportedLocale } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
 import {
   ArrowDown,
@@ -325,7 +327,7 @@ export function AiKeyFlow() {
 }
 
 /** Twelve athletes: the first five are free, the rest are covered by one plan. */
-export function RosterDots() {
+export function RosterDots({ locale }: { locale: SupportedLocale }) {
   return (
     <div>
       <div className="flex flex-wrap gap-2">
@@ -351,7 +353,7 @@ export function RosterDots() {
         </p>
         <p className="flex items-center gap-2">
           <span className="size-3 rounded-full bg-ink" />
-          {m.coachespage_price_paid()}
+          {m.coachespage_price_paid(supporterPriceVars(locale))}
         </p>
       </div>
     </div>

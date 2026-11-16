@@ -22,6 +22,7 @@ import { Screenshot } from '@/components/site/visuals/screenshot';
 import { BUY_ME_A_COFFEE_URL } from '@/config';
 import { initLocale } from '@/i18n/server';
 import { signupUrl, supporterUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl } from '@/utils/locales';
 import {
@@ -61,7 +62,8 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function AthletesPage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('athletes_faq', 6);
+  const prices = supporterPriceVars(locale);
+  const faqs = faqEntries('athletes_faq', 6, prices);
 
   return (
     <>
@@ -482,7 +484,7 @@ export default async function AthletesPage({ params }: Props) {
                   {m.athletes_support_title()}
                 </h3>
                 <p className="mt-3 text-[0.95rem] leading-relaxed text-white/70">
-                  {m.athletes_support_body()}
+                  {m.athletes_support_body(prices)}
                 </p>
                 <div className="mt-7 flex flex-col gap-3">
                   <TrackedLink

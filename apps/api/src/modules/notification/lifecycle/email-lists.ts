@@ -13,6 +13,8 @@ export const LIST_OF_KIND: Record<LifecycleEmailKind, EmailList | null> = {
   MONTHLY_RECAP: 'recap',
   SUPPORTER_ASK: 'news',
   SUPPORTER_CANCELLED: null,
+  // About the subscription they pay for
+  FOUNDER_ANNOUNCEMENT: null,
 };
 
 /** Why the person gets the emails of a list, at their foot */

@@ -9,20 +9,32 @@ import {
   Workflow,
 } from 'lucide-react';
 
+type Inputs = Record<string, string>;
+
 /**
  * Reads a message by its key, for the numbered lists of the feature pages
- * (points, FAQ entries, table rows). Only for messages without inputs.
+ * (points, FAQ entries, table rows). Inputs a message does not use are
+ * ignored.
  */
-export function msg(key: string): string {
-  const fn = (m as unknown as Record<string, (() => string) | undefined>)[key];
-  return fn ? fn() : key;
+export function msg(key: string, inputs: Inputs = {}): string {
+  const fn = (
+    m as unknown as Record<string, ((inputs: Inputs) => string) | undefined>
+  )[key];
+  return fn ? fn(inputs) : key;
 }
 
-/** `features_x_faq_1_q` … for `count` entries. */
-export function faqEntries(prefix: string, count: number): FaqEntry[] {
+/**
+ * `features_x_faq_1_q` … for `count` entries. Answers quoting a price take it
+ * from `inputs` (supporterPriceVars).
+ */
+export function faqEntries(
+  prefix: string,
+  count: number,
+  inputs: Inputs = {},
+): FaqEntry[] {
   return Array.from({ length: count }, (_, i) => ({
-    question: msg(`${prefix}_${i + 1}_q`),
-    answer: msg(`${prefix}_${i + 1}_a`),
+    question: msg(`${prefix}_${i + 1}_q`, inputs),
+    answer: msg(`${prefix}_${i + 1}_a`, inputs),
   }));
 }
 

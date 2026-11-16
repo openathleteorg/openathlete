@@ -12,7 +12,14 @@ import { PurchaseCancelledError, supporterPrices } from '@/utils/app-store';
 import { purchaseChannel } from '@/utils/capacitor';
 import { privacyPolicyUrl } from '@/utils/consent';
 import { cn } from '@/utils/shadcn';
-import { supporterPriceLabel, termsOfSaleUrl } from '@/utils/supporter';
+import {
+  FEATURED_SUPPORTER_TIER,
+  featuredSupporterTier,
+  sameTierIn,
+  supporterPriceLabel,
+  supporterTiers,
+  termsOfSaleUrl,
+} from '@/utils/supporter';
 import { useQuery } from '@tanstack/react-query';
 import { Check } from 'lucide-react';
 import { usePostHog } from 'posthog-js/react';
@@ -20,9 +27,11 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import {
+  APPLE_SUPPORTER_PRODUCTS,
   BillingInterval,
   FREE_PLAN_MAX_ATHLETES,
   SubscriptionPlan,
+  appleProductFor,
 } from '@openathlete/shared';
 
 import { Badge } from '../ui/badge';
@@ -43,8 +52,9 @@ type OfferProps = {
 
 /**
  * The Supporter subscription: what it adds to the free plan, monthly or
- * yearly, sold through Stripe on the web and the App Store in the iOS app.
- * Builds that sell nothing (the Android app) never show it.
+ * yearly, at the tier the user picks (every tier gives the same), sold
+ * through Stripe on the web and the App Store in the iOS app. Builds that
+ * sell nothing (the Android app) never show it.
  */
 export function SupporterOffer(props: OfferProps) {
   return purchaseChannel() === 'app-store' ? (
@@ -105,6 +115,54 @@ function IntervalPicker({
   );
 }
 
+/**
+ * The tier: a bigger contribution for the same perks. The suggested one is
+ * preselected, and the lowest stays in sight.
+ */
+export function TierPicker({
+  tiers,
+  value,
+  onChange,
+  label,
+}: {
+  tiers: readonly number[];
+  value: number;
+  onChange: (amountCents: number) => void;
+  label: (amountCents: number) => string;
+}) {
+  return (
+    <div className="space-y-2">
+      <div
+        role="radiogroup"
+        aria-label={m.supporter_tier_label()}
+        className="grid grid-cols-3 gap-2"
+      >
+        {tiers.map((tier, index) => (
+          <button
+            key={tier}
+            type="button"
+            role="radio"
+            aria-checked={value === tier}
+            onClick={() => onChange(tier)}
+            className={cn(
+              'flex min-h-11 flex-col items-center justify-center rounded-md border px-2 py-2 text-center text-sm transition-colors',
+              value === tier ? 'border-primary bg-primary/5' : 'hover:bg-muted',
+            )}
+          >
+            <span className="font-medium">{label(tier)}</span>
+            {index === FEATURED_SUPPORTER_TIER && (
+              <span className="text-xs text-primary">
+                {m.supporter_tier_featured()}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">{m.supporter_tier_note()}</p>
+    </div>
+  );
+}
+
 function SupporterPerks() {
   const perks = [
     m.supporter_perk_athletes({ count: FREE_PLAN_MAX_ATHLETES }),
@@ -112,14 +170,17 @@ function SupporterPerks() {
     m.supporter_perk_project(),
   ];
   return (
-    <ul className="space-y-2">
-      {perks.map((perk) => (
-        <li key={perk} className="flex items-start gap-2 text-sm">
-          <Check className="mt-0.5 size-4 shrink-0 text-green-600" />
-          <span>{perk}</span>
-        </li>
-      ))}
-    </ul>
+    <div className="space-y-2">
+      <p className="text-sm font-medium">{m.supporter_perks_title()}</p>
+      <ul className="space-y-2">
+        {perks.map((perk) => (
+          <li key={perk} className="flex items-start gap-2 text-sm">
+            <Check className="mt-0.5 size-4 shrink-0 text-green-600" />
+            <span>{perk}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -127,13 +188,21 @@ function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
   const posthog = usePostHog();
   const createCheckout = useCreateCheckout();
   const [interval, setInterval] = useState(BillingInterval.YEAR);
+  const [amountCents, setAmountCents] = useState(() =>
+    featuredSupporterTier(BillingInterval.YEAR),
+  );
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const changeInterval = (next: BillingInterval) => {
+    setAmountCents(sameTierIn(amountCents, interval, next));
+    setInterval(next);
+  };
 
   const subscribe = async () => {
     const settingsUrl = `${window.location.origin}/dashboard/settings?tab=subscription`;
     try {
       const { url } = await createCheckout.mutateAsync({
         interval,
+        amountCents,
         acceptTerms: true,
         successUrl: `${settingsUrl}&success=true`,
         cancelUrl: `${settingsUrl}&canceled=true`,
@@ -141,6 +210,7 @@ function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
       posthog?.capture('subscription_upgrade_initiated', {
         plan: SubscriptionPlan.SUPPORTER,
         interval,
+        amount_cents: amountCents,
         source: analyticsSource,
       });
       window.location.href = url;
@@ -160,8 +230,16 @@ function StripeSupporterOffer({ analyticsSource, className }: OfferProps) {
       <OfferHeader />
       <IntervalPicker
         value={interval}
-        onChange={setInterval}
-        priceLabel={supporterPriceLabel}
+        onChange={changeInterval}
+        priceLabel={(option) =>
+          supporterPriceLabel(option, sameTierIn(amountCents, interval, option))
+        }
+      />
+      <TierPicker
+        tiers={supporterTiers(interval)}
+        value={amountCents}
+        onChange={setAmountCents}
+        label={(tier) => supporterPriceLabel(interval, tier)}
       />
       <SupporterPerks />
 
@@ -213,15 +291,33 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
   const purchase = useAppStorePurchase();
   const restore = useRestoreAppStorePurchases();
   const [interval, setInterval] = useState(BillingInterval.YEAR);
+  const [amountCents, setAmountCents] = useState(() =>
+    featuredSupporterTier(BillingInterval.YEAR),
+  );
   const prices = useQuery({
     queryKey: ['app-store', 'supporter-prices'],
     queryFn: supporterPrices,
     staleTime: Infinity,
   });
   const privacyUrl = privacyPolicyUrl();
+  // Only the tiers the App Store sells for this storefront
+  const tiers = supporterTiers(interval).filter((tier) =>
+    APPLE_SUPPORTER_PRODUCTS.some(
+      (item) => item.interval === interval && item.amountCents === tier,
+    ),
+  );
+  const productId = appleProductFor(interval, amountCents)?.productId;
+  const storePrice = (option: BillingInterval, tier: number) => {
+    const id = appleProductFor(option, tier)?.productId;
+    return id ? prices.data?.[id] : undefined;
+  };
 
-  const priceLabel = (option: BillingInterval) => {
-    const price = prices.data?.[option];
+  const changeInterval = (next: BillingInterval) => {
+    setAmountCents(sameTierIn(amountCents, interval, next));
+    setInterval(next);
+  };
+  const priceLabel = (option: BillingInterval, tier: number) => {
+    const price = storePrice(option, tier);
     if (!price) return '…';
     return option === BillingInterval.YEAR
       ? m.app_store_price_year({ price })
@@ -229,14 +325,16 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
   };
 
   const subscribe = async () => {
+    if (!productId) return;
     posthog?.capture('subscription_upgrade_initiated', {
       plan: SubscriptionPlan.SUPPORTER,
       interval,
+      amount_cents: amountCents,
       source: analyticsSource,
       store: 'app_store',
     });
     try {
-      await purchase.mutateAsync(interval);
+      await purchase.mutateAsync(productId);
       toast.success(m.app_store_purchase_success());
     } catch (error) {
       if (error instanceof PurchaseCancelledError) return;
@@ -266,8 +364,16 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
       <OfferHeader />
       <IntervalPicker
         value={interval}
-        onChange={setInterval}
-        priceLabel={priceLabel}
+        onChange={changeInterval}
+        priceLabel={(option) =>
+          priceLabel(option, sameTierIn(amountCents, interval, option))
+        }
+      />
+      <TierPicker
+        tiers={tiers}
+        value={amountCents}
+        onChange={setAmountCents}
+        label={(tier) => storePrice(interval, tier) ?? '…'}
       />
       <SupporterPerks />
 
@@ -275,13 +381,14 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
         <Button
           className="h-11 w-full"
           onClick={subscribe}
-          disabled={purchase.isPending || !prices.data?.[interval]}
+          disabled={purchase.isPending || !storePrice(interval, amountCents)}
         >
           {purchase.isPending ? m.loading() : m.supporter_cta()}
         </Button>
         {/* StoreKit answers without products when they are not set up for
             this storefront: say so instead of showing "…" forever */}
-        {(prices.isError || (prices.isSuccess && !prices.data[interval])) && (
+        {(prices.isError ||
+          (prices.isSuccess && !storePrice(interval, amountCents))) && (
           <div className="flex flex-col items-center gap-2 text-center">
             <p className="text-xs text-destructive">
               {m.app_store_products_unavailable()}

@@ -116,6 +116,9 @@ export const emailLibrary = {
     props: {} as {
       name?: string;
       subscription_settings_url: string;
+      /** Price of the Supporter tier, in euro cents */
+      amount_cents?: number;
+      interval?: 'month' | 'year';
     },
   },
   'athlete-invitation': {

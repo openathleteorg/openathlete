@@ -11,15 +11,25 @@ import type { ReactNode } from 'react';
  * clubs, pricing, open source). They render on the server.
  */
 
-/** A message looked up by key, for numbered series (`*_1_title`, `*_2_title`…). */
-export function msg(key: string): string {
-  return (m[key as keyof typeof m] as () => string)();
+type Inputs = Record<string, string>;
+
+/**
+ * A message looked up by key, for numbered series (`*_1_title`, `*_2_title`…).
+ * Inputs a message does not use are ignored.
+ */
+export function msg(key: string, inputs: Inputs = {}): string {
+  return (m[key as keyof typeof m] as (inputs: Inputs) => string)(inputs);
 }
 
-export function faqEntries(prefix: string, count: number): FaqEntry[] {
+/** Answers quoting a price take it from `inputs` (supporterPriceVars). */
+export function faqEntries(
+  prefix: string,
+  count: number,
+  inputs: Inputs = {},
+): FaqEntry[] {
   return Array.from({ length: count }, (_, index) => ({
-    question: msg(`${prefix}_${index + 1}_q`),
-    answer: msg(`${prefix}_${index + 1}_a`),
+    question: msg(`${prefix}_${index + 1}_q`, inputs),
+    answer: msg(`${prefix}_${index + 1}_a`, inputs),
   }));
 }
 

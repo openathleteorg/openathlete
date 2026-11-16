@@ -366,7 +366,47 @@ export const ApiEnvSchema = z
       .optional()
       .transform((val) => (val === undefined ? undefined : Number(val)))
       .describe(
-        "What each user may spend per month on the instance AI keys, in US dollars at the providers' prices (e.g. 3). Unset: no limit",
+        "What each user may spend per month on the instance AI keys, in US dollars at the providers' prices, spread over the weeks. Used when AI_HOSTED_BUDGET_SHARE is not set. Unset: no limit without Stripe",
+      ),
+
+    // Weekly allowance of each offer on the instance AI keys: a share of the
+    // offer's reference price. Read leniently (an invalid value turns hosted
+    // AI off with an error in the logs) so that a typo never stops the API.
+    AI_HOSTED_BUDGET_SHARE: z
+      .string()
+      .optional()
+      .describe(
+        "Share of each offer's price spent on the instance AI keys, between 0 and 1. Required, with AI_EUR_TO_USD, for hosted AI on an instance with Stripe (unless AI_HOSTED_MONTHLY_BUDGET_USD is set)",
+      ),
+    AI_HOSTED_BUDGET_SHARE_SUPPORTER: z
+      .string()
+      .optional()
+      .describe('AI_HOSTED_BUDGET_SHARE for the Supporter offer only'),
+    AI_HOSTED_BUDGET_SHARE_COACH: z
+      .string()
+      .optional()
+      .describe('AI_HOSTED_BUDGET_SHARE for the Coach offer only'),
+    AI_HOSTED_BUDGET_SHARE_COACH_PRO: z
+      .string()
+      .optional()
+      .describe('AI_HOSTED_BUDGET_SHARE for the Coach Pro offer only'),
+    AI_HOSTED_BUDGET_SHARE_CLUB: z
+      .string()
+      .optional()
+      .describe('AI_HOSTED_BUDGET_SHARE for the Club offer only'),
+    AI_HOSTED_BUDGET_SHARE_CLUB_PLUS: z
+      .string()
+      .optional()
+      .describe('AI_HOSTED_BUDGET_SHARE for the Club+ offer only'),
+    AI_HOSTED_BUDGET_SHARE_COACH_SEAT: z
+      .string()
+      .optional()
+      .describe('AI_HOSTED_BUDGET_SHARE for athletes a coach makes Supporters'),
+    AI_EUR_TO_USD: z
+      .string()
+      .optional()
+      .describe(
+        'US dollars per euro, to turn the share of a price in euros into a budget at the AI providers, who charge in dollars',
       ),
 
     AI_ALLOW_CUSTOM_ENDPOINTS: z

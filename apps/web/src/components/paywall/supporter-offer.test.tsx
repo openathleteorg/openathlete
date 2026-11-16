@@ -48,8 +48,12 @@ vi.mock('@/paraglide/messages', () => ({
     supporter_interval_monthly: () => 'Monthly',
     supporter_interval_yearly: () => 'Yearly',
     supporter_yearly_saving: () => '2 months free',
-    supporter_price_month: ({ price }: { price: number }) => `€${price}/month`,
-    supporter_price_year: ({ price }: { price: number }) => `€${price}/year`,
+    supporter_price_month: ({ price }: { price: string }) => `€${price}/month`,
+    supporter_price_year: ({ price }: { price: string }) => `€${price}/year`,
+    supporter_tier_label: () => 'Your contribution',
+    supporter_tier_featured: () => 'Suggested',
+    supporter_tier_note: () => 'Same perks at every amount',
+    supporter_perks_title: () => 'What your support unlocks',
     supporter_perk_athletes: ({ count }: { count: number }) =>
       `Unlimited athletes (free: ${count})`,
     supporter_perk_ai: () => 'AI included',
@@ -122,10 +126,32 @@ describe('SupporterOffer on the web (Stripe)', () => {
       container.querySelector<HTMLButtonElement>('[role="checkbox"]')!.click(),
     );
 
-  it('shows both prices and the free-plan limit', () => {
-    expect(container.textContent).toContain('€5/month');
-    expect(container.textContent).toContain('€50/year');
+  const radio = (group: string, name: string) =>
+    [
+      ...container.querySelectorAll(
+        `[role="radiogroup"][aria-label="${group}"] [role="radio"]`,
+      ),
+    ].find((item) => item.textContent?.includes(name)) as HTMLButtonElement;
+
+  it('shows the three yearly tiers, the suggested one picked, and the free-plan limit', () => {
+    for (const price of ['€50/year', '€80/year', '€120/year']) {
+      expect(container.textContent).toContain(price);
+    }
+    const picked = radio('Your contribution', '€80/year');
+    expect(picked.getAttribute('aria-checked')).toBe('true');
+    expect(picked.textContent).toContain('Suggested');
     expect(container.textContent).toContain('Unlimited athletes (free: 5)');
+  });
+
+  it('keeps the tier when switching to monthly billing', () => {
+    act(() => button('Monthly').click());
+
+    for (const price of ['€5/month', '€8/month', '€12/month']) {
+      expect(container.textContent).toContain(price);
+    }
+    expect(
+      radio('Your contribution', '€8/month').getAttribute('aria-checked'),
+    ).toBe('true');
   });
 
   it('waits for the terms of sale to be accepted', () => {
@@ -144,32 +170,49 @@ describe('SupporterOffer on the web (Stripe)', () => {
     await act(async () => button('Become a Supporter').click());
 
     expect(mocks.checkout).toHaveBeenCalledWith(
-      expect.objectContaining({ interval: 'year', acceptTerms: true }),
+      expect.objectContaining({
+        interval: 'year',
+        amountCents: 8000,
+        acceptTerms: true,
+      }),
     );
   });
 
-  it('checks out the interval the user picks', async () => {
+  it('checks out the interval and tier the user picks', async () => {
     act(() => button('Monthly').click());
+    act(() => radio('Your contribution', '€5/month').click());
     acceptTerms();
     await act(async () => button('Become a Supporter').click());
 
     expect(mocks.checkout).toHaveBeenCalledWith(
-      expect.objectContaining({ interval: 'month' }),
+      expect.objectContaining({ interval: 'month', amountCents: 500 }),
     );
   });
 });
+
+const APP_STORE_PRICES = {
+  'org.openathlete.supporter.monthly': '4,99 €',
+  'org.openathlete.supporter.monthly.800': '7,99 €',
+  'org.openathlete.supporter.monthly.1200': '11,99 €',
+  'org.openathlete.supporter.yearly': '49,99 €',
+  'org.openathlete.supporter.yearly.8000': '79,99 €',
+  'org.openathlete.supporter.yearly.12000': '119,99 €',
+};
 
 describe('SupporterOffer in the iOS app (App Store)', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     mocks.channel.mockReturnValue('app-store');
-    mocks.prices.mockResolvedValue({ month: '4,99 €', year: '49,99 €' });
+    mocks.prices.mockResolvedValue(APP_STORE_PRICES);
     await render();
   });
 
   it("shows what App Review requires: Apple's prices, terms, links and restore", () => {
-    expect(container.textContent).toContain('4,99 €/month');
-    expect(container.textContent).toContain('49,99 €/year');
+    // Yearly by default, each tier at Apple's price
+    for (const price of ['49,99 €', '79,99 €', '119,99 €']) {
+      expect(container.textContent).toContain(price);
+    }
+    expect(container.textContent).toContain('79,99 €/year');
     expect(container.textContent).toContain('Renews automatically');
     expect(
       container.querySelector('a[href*="apple.com/legal"]')?.textContent,
@@ -186,12 +229,15 @@ describe('SupporterOffer in the iOS app (App Store)', () => {
     expect(container.textContent).not.toContain('€5/month');
   });
 
-  it('buys the interval the user picks through the App Store', async () => {
+  it('buys the interval and tier the user picks through the App Store', async () => {
     mocks.purchase.mockResolvedValue({});
     act(() => button('Monthly').click());
+    act(() => button('11,99 €').click());
     await act(async () => button('Become a Supporter').click());
 
-    expect(mocks.purchase).toHaveBeenCalledWith('month');
+    expect(mocks.purchase).toHaveBeenCalledWith(
+      'org.openathlete.supporter.monthly.1200',
+    );
     expect(mocks.checkout).not.toHaveBeenCalled();
     expect(mocks.toast.success).toHaveBeenCalledWith('Thank you');
   });
@@ -230,12 +276,12 @@ describe('SupporterOffer when the App Store returns no products', () => {
     expect(container.textContent).toContain('No prices');
     expect(button('Become a Supporter').disabled).toBe(true);
 
-    mocks.prices.mockResolvedValue({ month: '4,99 €', year: '49,99 €' });
+    mocks.prices.mockResolvedValue(APP_STORE_PRICES);
     await act(async () => button('Try again').click());
     await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
 
     expect(mocks.prices).toHaveBeenCalledTimes(2);
-    expect(container.textContent).toContain('49,99 €/year');
+    expect(container.textContent).toContain('79,99 €/year');
     expect(container.textContent).not.toContain('No prices');
   });
 });

@@ -45,7 +45,7 @@ export default async function HomePage({ params }: Props) {
         locale={locale}
         description={m.home_seo_description()}
       />
-      <FAQPageStructuredData faqs={homeFaqEntries()} />
+      <FAQPageStructuredData faqs={homeFaqEntries(locale)} />
       <HomeHero locale={locale} />
       <HomeLogos />
       <HomePaths locale={locale} />
@@ -54,9 +54,9 @@ export default async function HomePage({ params }: Props) {
       <HomeAi locale={locale} />
       <HomeCost />
       <HomeOpenSource locale={locale} />
-      <HomePricing />
+      <HomePricing locale={locale} />
       <HomeMobile locale={locale} />
-      <HomeFaq />
+      <HomeFaq locale={locale} />
       <CtaBand
         locale={locale}
         placement="home_final"

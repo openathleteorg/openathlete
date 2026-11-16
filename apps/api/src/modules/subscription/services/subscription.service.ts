@@ -25,10 +25,11 @@ import {
 } from '@openathlete/database';
 import {
   BillingInterval,
+  Offer,
+  OfferEntitlements,
   SubscriptionPlan,
-  billingIntervalOfAppleProduct,
-  getMaxAthletes,
-  planHasAIFeatures,
+  appleSupporterProduct,
+  entitlementsOf,
 } from '@openathlete/shared';
 
 import { PrismaService } from '../../prisma/services/prisma.service';
@@ -44,8 +45,8 @@ export function appleSubscriptionFields(
   renewalInfo: JWSRenewalInfoDecodedPayload | null,
   now: Date,
 ) {
-  const interval = billingIntervalOfAppleProduct(transaction.productId ?? '');
-  if (!interval || !transaction.originalTransactionId) {
+  const product = appleSupporterProduct(transaction.productId ?? '');
+  if (!product || !transaction.originalTransactionId) {
     throw new BadRequestException('UNKNOWN_APPLE_PRODUCT');
   }
   const date = (ms: number | undefined) =>
@@ -61,9 +62,12 @@ export function appleSubscriptionFields(
     plan: PrismaSubscriptionPlan.SUPPORTER,
     provider: BillingProvider.apple,
     billingInterval:
-      interval === BillingInterval.YEAR
+      product.interval === BillingInterval.YEAR
         ? PrismaBillingInterval.year
         : PrismaBillingInterval.month,
+    // Apple charges its nearest price point; the tier is what it stands for
+    amountCents: product.amountCents,
+    currency: 'eur',
     status: entitled ? SubscriptionStatus.active : SubscriptionStatus.canceled,
     currentPeriodStart: date(transaction.purchaseDate),
     currentPeriodEnd: periodEnd,
@@ -81,6 +85,46 @@ export class SubscriptionUserMissingError extends Error {
     super(`User ${userId} does not exist`);
     this.name = 'SubscriptionUserMissingError';
   }
+}
+
+/** Statuses after which a subscription is over for good, founder's included */
+const ENDED_STATUSES: SubscriptionStatus[] = [
+  SubscriptionStatus.canceled,
+  SubscriptionStatus.incomplete_expired,
+];
+
+/**
+ * A founder stays one for as long as the subscription they had runs: it
+ * ends with it, and a new subscription (another Stripe id or App Store
+ * original transaction) is one at today's prices.
+ */
+export function keepsFounder(
+  existing: Pick<
+    Subscription,
+    'isFounder' | 'stripeSubscriptionId' | 'appleOriginalTransactionId'
+  > | null,
+  next: {
+    status: SubscriptionStatus;
+    stripeSubscriptionId?: string | null;
+    appleOriginalTransactionId?: string | null;
+  },
+): boolean {
+  if (!existing?.isFounder || ENDED_STATUSES.includes(next.status)) {
+    return false;
+  }
+  if (
+    next.stripeSubscriptionId !== undefined &&
+    next.stripeSubscriptionId !== existing.stripeSubscriptionId
+  ) {
+    return false;
+  }
+  if (
+    next.appleOriginalTransactionId !== undefined &&
+    next.appleOriginalTransactionId !== existing.appleOriginalTransactionId
+  ) {
+    return false;
+  }
+  return true;
 }
 
 @Injectable()
@@ -210,10 +254,15 @@ export class SubscriptionService {
       return existing;
     }
 
+    const fields = this.fieldsFromStripe(stripeSubscription);
     const data = {
-      ...this.fieldsFromStripe(stripeSubscription),
+      ...fields,
       stripeCustomerId: customerId,
       stripeSubscriptionId: stripeSubscription.id,
+      isFounder: keepsFounder(existing, {
+        status: fields.status,
+        stripeSubscriptionId: stripeSubscription.id,
+      }),
     };
     return await this.prisma.subscription.upsert({
       where: { userId },
@@ -252,9 +301,13 @@ export class SubscriptionService {
       if (this.billedByAnotherStore(existing, BillingProvider.stripe)) {
         return existing;
       }
+      const fields = this.fieldsFromStripe(stripeSubscription);
       return await this.prisma.subscription.update({
         where: { subscriptionId: existing.subscriptionId },
-        data: this.fieldsFromStripe(stripeSubscription),
+        data: {
+          ...fields,
+          isFounder: keepsFounder(existing, { status: fields.status }),
+        },
       });
     }
 
@@ -290,10 +343,14 @@ export class SubscriptionService {
       | undefined;
     const date = (seconds: number | null | undefined) =>
       seconds != null ? new Date(seconds * 1000) : null;
+    const price = item?.price;
     return {
       plan: PrismaSubscriptionPlan.SUPPORTER,
       provider: BillingProvider.stripe,
-      billingInterval: this.billingIntervalOf(stripeSubscription),
+      billingInterval: this.billingIntervalOf(price),
+      // Founders keep the price they subscribed at, whatever it was
+      amountCents: price?.unit_amount ?? null,
+      currency: price?.currency ?? null,
       status: this.mapStatusToPrisma(stripeSubscription.status),
       currentPeriodStart: date(
         stripeSub.current_period_start ?? item?.current_period_start,
@@ -307,13 +364,9 @@ export class SubscriptionService {
   }
 
   private billingIntervalOf(
-    stripeSubscription: Stripe.Subscription,
+    price: Stripe.Price | undefined,
   ): PrismaBillingInterval | null {
-    const price = stripeSubscription.items?.data?.[0]?.price;
-    const interval =
-      this.stripeService.intervalOfPrice(price?.id) ??
-      price?.recurring?.interval;
-    switch (interval) {
+    switch (price?.recurring?.interval) {
       case 'month':
         return PrismaBillingInterval.month;
       case 'year':
@@ -383,13 +436,36 @@ export class SubscriptionService {
     if (!this.stripeService.billingEnabled) return null;
 
     const subscription = await this.getOrCreateSubscription(userId);
+    return this.entitlements(subscription).maxCoachedAthletes;
+  }
 
-    if (!this.isEntitled(subscription)) {
-      return getMaxAthletes(SubscriptionPlan.FREE);
-    }
+  /** The offer a subscription gives right now. */
+  offerOf(subscription: Subscription, now = new Date()): Offer {
+    return this.isEntitled(subscription, now) &&
+      subscription.plan === PrismaSubscriptionPlan.SUPPORTER
+      ? Offer.SUPPORTER
+      : Offer.FREE;
+  }
 
-    const plan = this.mapPrismaPlanToEnum(subscription.plan);
-    return getMaxAthletes(plan);
+  /** What a subscription gives right now, founders' rights included. */
+  entitlements(
+    subscription: Subscription,
+    now = new Date(),
+  ): OfferEntitlements {
+    const offer = this.offerOf(subscription, now);
+    return entitlementsOf(offer, subscription.isFounder);
+  }
+
+  /** The offer and founder status of a user, for their AI allowance. */
+  async offerForUser(
+    userId: number,
+  ): Promise<{ offer: Offer; isFounder: boolean }> {
+    const subscription = await this.getOrCreateSubscription(userId);
+    const offer = this.offerOf(subscription);
+    return {
+      offer,
+      isFounder: offer !== Offer.FREE && subscription.isFounder,
+    };
   }
 
   /**
@@ -552,7 +628,13 @@ export class SubscriptionService {
       fields.currentPeriodEnd < subscription.currentPeriodEnd;
     const data = earlierPeriod
       ? { cancelAtPeriodEnd: fields.cancelAtPeriodEnd }
-      : fields;
+      : {
+          ...fields,
+          isFounder: keepsFounder(subscription, {
+            status: fields.status,
+            appleOriginalTransactionId: fields.appleOriginalTransactionId,
+          }),
+        };
 
     return await this.prisma.subscription.update({
       where: { subscriptionId: subscription.subscriptionId },
@@ -565,13 +647,7 @@ export class SubscriptionService {
    */
   async hasAIFeaturesAccess(userId: number): Promise<boolean> {
     const subscription = await this.getOrCreateSubscription(userId);
-
-    if (!this.isEntitled(subscription)) {
-      return false;
-    }
-
-    const plan = this.mapPrismaPlanToEnum(subscription.plan);
-    return planHasAIFeatures(plan);
+    return this.entitlements(subscription).hostedAi;
   }
 
   /**
@@ -615,12 +691,6 @@ export class SubscriptionService {
       default:
         return SubscriptionStatus.active;
     }
-  }
-
-  private mapPrismaPlanToEnum(plan: PrismaSubscriptionPlan): SubscriptionPlan {
-    return plan === PrismaSubscriptionPlan.SUPPORTER
-      ? SubscriptionPlan.SUPPORTER
-      : SubscriptionPlan.FREE;
   }
 
   private async assertUserExistsForSubscription(userId: number): Promise<void> {

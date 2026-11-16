@@ -10,6 +10,7 @@ import {
 import { getPostBySlug } from '@/content/blog';
 import { ogContent } from '@/lib/og-titles';
 import { siteRoutes } from '@/lib/site-routes';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localizedUrl } from '@/utils/locales';
 
@@ -25,6 +26,7 @@ export const dynamic = 'force-static';
  */
 
 const en = { locale: 'en' } as const;
+const prices = supporterPriceVars('en');
 
 /** Sections in reading order: what OpenAthlete is before what it publishes. */
 const SECTIONS: Array<{ title: string; match: (path: string) => boolean }> = [
@@ -59,7 +61,7 @@ const SEO_TITLES: Record<string, () => string> = {
   '/athletes': () => m.athletes_seo_title({}, en),
   '/coaches': () => m.coachespage_seo_title({}, en),
   '/clubs': () => m.clubspage_seo_title({}, en),
-  '/pricing': () => m.pricing_page_seo_title({}, en),
+  '/pricing': () => m.pricing_page_seo_title(prices, en),
   '/open-source': () => m.opensource_seo_title({}, en),
   '/mobile': () => m.mobile_seo_title({}, en),
   '/connect': () => m.connect_hub_seo_title({}, en),
@@ -113,7 +115,7 @@ function body(): string {
     '',
     '## Frequently asked questions',
     '',
-    ...FAQ.flatMap(([q, a]) => [`### ${q({}, en)}`, '', a({}, en), '']),
+    ...FAQ.flatMap(([q, a]) => [`### ${q(prices, en)}`, '', a(prices, en), '']),
   ];
 
   const listed = new Set<string>();

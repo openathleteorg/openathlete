@@ -3,6 +3,8 @@
  * the vendor's own pricing page on PRICES_CHECKED_ON; update the date with
  * the figures. Prices in USD are before tax, as the vendors show them.
  */
+import { SUPPORTER_YEARLY_EUR } from '@/config';
+
 export const PRICES_CHECKED_ON = '2026-11-03';
 
 export type Currency = 'EUR' | 'USD';
@@ -16,9 +18,9 @@ export interface CoachPricing {
   yearly: (athletes: number) => number;
 }
 
-/** OpenAthlete: five coached athletes free, unlimited with Supporter. */
+/** OpenAthlete: five coached athletes free, unlimited with any Supporter tier. */
 export function openAthleteYearly(athletes: number): number {
-  return athletes <= 5 ? 0 : 50;
+  return athletes <= 5 ? 0 : SUPPORTER_YEARLY_EUR;
 }
 
 /**

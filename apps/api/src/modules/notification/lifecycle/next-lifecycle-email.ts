@@ -37,6 +37,8 @@ export interface LifecycleState {
   /** The instance sells Supporter subscriptions */
   billingEnabled: boolean;
   isSupporter: boolean;
+  /** Subscribed before the Supporter tiers, and still subscribed */
+  isFounder: boolean;
   providers: {
     providerAccountId: number;
     status: 'active' | 'revoked';
@@ -104,6 +106,16 @@ export function nextLifecycleEmail(state: LifecycleState): NextEmail | null {
       kind: 'SUPPORTER_CANCELLED',
       ref: String(state.cancellation.subscriptionId),
     };
+  }
+
+  // Customers are told about a change of their offer, whatever the lists
+  if (
+    state.billingEnabled &&
+    state.isFounder &&
+    state.isSupporter &&
+    !wasSent('FOUNDER_ANNOUNCEMENT')
+  ) {
+    return { kind: 'FOUNDER_ANNOUNCEMENT', ref: '' };
   }
 
   const lastSent = Math.max(0, ...state.sent.map((e) => e.sentAt.getTime()));

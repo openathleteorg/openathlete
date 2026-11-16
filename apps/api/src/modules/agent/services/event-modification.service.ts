@@ -188,6 +188,7 @@ IMPORTANT: This is a FULL UPDATE. Return the complete event structure with all f
     const model = await this.aiModelResolver.resolveForUser(
       AiTask.EVENT_MODIFICATION,
       userId,
+      { athleteId },
     );
 
     return withRetry(async () => {

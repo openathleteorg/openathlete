@@ -16,6 +16,7 @@ function state(overrides: Partial<LifecycleState> = {}): LifecycleState {
     newsConsent: false,
     billingEnabled: true,
     isSupporter: false,
+    isFounder: false,
     providers: [],
     activityCount: 0,
     plannedCount: 0,
@@ -295,6 +296,57 @@ describe('nextLifecycleEmail', () => {
               { kind: 'SUPPORTER_CANCELLED', ref: '9', sentAt: ago(HOUR) },
             ],
           }),
+        ),
+      ).toBeNull();
+    });
+  });
+
+  describe('founder announcement', () => {
+    it('tells each running founder once, without asking for news consent', () => {
+      const founder = state({
+        isSupporter: true,
+        isFounder: true,
+        sent: [{ kind: 'IMPORT_DONE', ref: '', sentAt: ago(HOUR) }],
+      });
+
+      expect(nextLifecycleEmail(founder)).toEqual({
+        kind: 'FOUNDER_ANNOUNCEMENT',
+        ref: '',
+      });
+      expect(
+        nextLifecycleEmail({
+          ...founder,
+          sent: [
+            ...founder.sent,
+            { kind: 'FOUNDER_ANNOUNCEMENT', ref: '', sentAt: ago(HOUR) },
+          ],
+        }),
+      ).toBeNull();
+    });
+
+    it('skips founders on their way out, and instances that sell nothing', () => {
+      const quiet = { emailTips: false, emailRecap: false };
+      expect(
+        nextLifecycleEmail(
+          state({ ...quiet, isSupporter: false, isFounder: true }),
+        ),
+      ).toBeNull();
+      expect(
+        nextLifecycleEmail(
+          state({
+            ...quiet,
+            isSupporter: true,
+            isFounder: true,
+            billingEnabled: false,
+          }),
+        ),
+      ).toBeNull();
+    });
+
+    it('waits for daytime like the others', () => {
+      expect(
+        nextLifecycleEmail(
+          state({ isSupporter: true, isFounder: true, localHour: 23 }),
         ),
       ).toBeNull();
     });

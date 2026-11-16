@@ -525,6 +525,8 @@ enum LifecycleEmailKind {
   SUPPORTER_ASK
   /// A Supporter cancelled: why?
   SUPPORTER_CANCELLED
+  /// Once, to founders of the Supporter tiers: nothing changes for them
+  FOUNDER_ANNOUNCEMENT
 
   @@map("lifecycle_email_kind")
 }
