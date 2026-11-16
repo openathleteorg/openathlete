@@ -134,6 +134,45 @@ export const modeledFtpSchema = z.object({
 
 export type ModeledFtpDto = z.infer<typeof modeledFtpSchema>;
 
+/** The system a training block should work on */
+export const TRAINING_FOCUS = [
+  'AEROBIC_BASE',
+  'VO2MAX_THEN_THRESHOLD',
+  'VO2MAX',
+  'THRESHOLD',
+] as const;
+export type TrainingFocus = (typeof TRAINING_FOCUS)[number];
+
+/** A system a ratio shows as clearly weak */
+export const TRAINING_WEAKNESS = ['AEROBIC', 'THRESHOLD', 'VO2MAX'] as const;
+export type TrainingWeakness = (typeof TRAINING_WEAKNESS)[number];
+
+/**
+ * Where an athlete's running power profile is weak, from the aerobic
+ * threshold (70 minutes), the lactate threshold (FTP) and VO2max (3 minutes).
+ */
+export const trainingFocusSchema = z.object({
+  /** Watts */
+  aerobicThreshold: z.number(),
+  lactateThreshold: z.number(),
+  vo2max: z.number(),
+  /** Shares, 0.7552 for 75.52% */
+  ratios: z.object({
+    aerobicToVo2max: z.number(),
+    aerobicToThreshold: z.number(),
+    thresholdToVo2max: z.number(),
+  }),
+  weaknesses: z.array(z.enum(TRAINING_WEAKNESS)),
+  focus: z.enum(TRAINING_FOCUS),
+  /**
+   * False when no rule of the test matched and the focus is the system the
+   * ratios point to the most
+   */
+  byRule: z.boolean(),
+});
+
+export type TrainingFocusDto = z.infer<typeof trainingFocusSchema>;
+
 /** Metrics modelled from the activities of the last days, not entered. */
 export const modeledMetricsSchema = z.object({
   /** First day of the activities the model reads */
@@ -141,6 +180,8 @@ export const modeledMetricsSchema = z.object({
   days: z.number(),
   ftpRunning: modeledFtpSchema.nullable(),
   ftpCycling: modeledFtpSchema.nullable(),
+  /** Running only: the reference values of the test are for running */
+  trainingFocusRunning: trainingFocusSchema.nullable(),
 });
 
 export type ModeledMetricsDto = z.infer<typeof modeledMetricsSchema>;

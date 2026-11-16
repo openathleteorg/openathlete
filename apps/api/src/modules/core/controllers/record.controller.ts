@@ -118,7 +118,7 @@ export class RecordController {
   @ApiOperation({
     summary: 'Metrics modelled from recent activities',
     description:
-      'FTP for running and cycling, modelled from the best power of the last 90 days: the higher of the best hour and 95% of the best 20 minutes. Each value says which effort it comes from; null when no running or cycling activity of the period has 20 minutes of power. Nothing is stored: the athlete decides whether to log the value as a metric.',
+      'FTP for running and cycling, modelled from the best power of the last 90 days: the higher of the best hour and 95% of the best 20 minutes. Each value says which effort it comes from; null when no running or cycling activity of the period has 20 minutes of power. For running, trainingFocusRunning compares the aerobic threshold (power over 70 minutes), the lactate threshold (that FTP) and VO2max (power over 3 minutes), read between the nearest records, to the averages of runners, and names the system to train; null without records on both sides of 3 and 70 minutes. Nothing is stored: the athlete decides whether to log a value as a metric.',
   })
   @ApiQuery({
     name: 'athleteId',

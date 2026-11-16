@@ -5,6 +5,7 @@ export * from './geoposition';
 export * from './date';
 export * from './metric-unit.map';
 export * from './ftp-model';
+export * from './training-focus';
 export * from './metric-calculation.map';
 export * from './metric-category.map';
 export * from './metric-registry';

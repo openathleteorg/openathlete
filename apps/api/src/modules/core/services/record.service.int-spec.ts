@@ -204,6 +204,42 @@ describe('RecordService (PostgreSQL)', () => {
       expect(modeled.ftpCycling).toMatchObject({ value: 250, duration: 3600 });
     });
 
+    it('names the system to train from the running power profile', async () => {
+      // The profile of the test: 3 and 70 minutes read between records
+      for (const [duration, value] of [
+        [120, 346],
+        [300, 342],
+        [1200, 335],
+        [3600, 278],
+        [7200, 193],
+      ])
+        await power(3501, duration, value);
+
+      const { trainingFocusRunning } = await service.getModeledMetrics(
+        athlete,
+        undefined,
+        now,
+      );
+      expect(trainingFocusRunning).toMatchObject({
+        aerobicThreshold: 264,
+        lactateThreshold: 318,
+        vo2max: 345,
+        // 263.8 / 318 W is 82.97%: just below the 83% of a weak base
+        weaknesses: ['AEROBIC', 'VO2MAX'],
+        focus: 'VO2MAX',
+        byRule: false,
+      });
+    });
+
+    it('names nothing without two hours of power', async () => {
+      await power(3501, 300, 342);
+      await power(3501, 1200, 335);
+      await power(3501, 3600, 278);
+      const modeled = await service.getModeledMetrics(athlete, undefined, now);
+      expect(modeled.ftpRunning?.value).toBe(318);
+      expect(modeled.trainingFocusRunning).toBeNull();
+    });
+
     it('leaves out an excluded effort', async () => {
       await power(3501, 1200, 335);
       await prisma.recordExclusion.create({

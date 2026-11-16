@@ -8,7 +8,13 @@ import { getLocale } from '@/paraglide/runtime';
 import { metricTypeLabelMap } from '@/utils/label-map/core/metric-type.label-map';
 import { getDateLocale } from '@/utils/locales';
 
-import { METRIC_TYPE, ModeledFtpDto } from '@openathlete/shared';
+import {
+  METRIC_TYPE,
+  ModeledFtpDto,
+  TrainingFocus,
+  TrainingFocusDto,
+  TrainingWeakness,
+} from '@openathlete/shared';
 
 const formatDay = (date: Date) =>
   date.toLocaleDateString(getDateLocale(getLocale()), {
@@ -54,6 +60,70 @@ function ModeledFtpTile({
   );
 }
 
+const focusLabel: Record<TrainingFocus, () => string> = {
+  AEROBIC_BASE: m.training_focus_aerobic_base,
+  VO2MAX_THEN_THRESHOLD: m.training_focus_vo2max_then_threshold,
+  VO2MAX: m.training_focus_vo2max,
+  THRESHOLD: m.training_focus_threshold,
+};
+
+const weaknessLabel: Record<TrainingWeakness, () => string> = {
+  AEROBIC: m.training_weakness_aerobic,
+  THRESHOLD: m.training_weakness_threshold,
+  VO2MAX: m.training_weakness_vo2max,
+};
+
+const percent = (share: number) => (share * 100).toFixed(1);
+
+function TrainingFocusTile({
+  focus,
+  days,
+}: {
+  focus: TrainingFocusDto | null;
+  days: number;
+}) {
+  const label = m.modeled_training_focus();
+  if (!focus) return <MetricTile label={label} value="–" />;
+  const { ratios } = focus;
+  const title = [
+    m.modeled_training_focus_title({
+      aerobic: focus.aerobicThreshold,
+      threshold: focus.lactateThreshold,
+      vo2max: focus.vo2max,
+      days,
+      r1: percent(ratios.aerobicToVo2max),
+      r2: percent(ratios.aerobicToThreshold),
+      r3: percent(ratios.thresholdToVo2max),
+    }),
+    focus.weaknesses.length > 0
+      ? m.modeled_training_focus_weak({
+          systems: focus.weaknesses.map((w) => weaknessLabel[w]()).join(', '),
+        })
+      : null,
+    focus.byRule ? null : m.modeled_training_focus_no_rule(),
+  ]
+    .filter(Boolean)
+    .join(' ');
+  return (
+    <div title={title}>
+      <MetricTile
+        label={label}
+        // Words, not a number: smaller to fit the tile
+        value={focusLabel[focus.focus]()}
+        valueClassName="text-sm leading-6"
+        caption={[
+          ratios.aerobicToVo2max,
+          ratios.aerobicToThreshold,
+          ratios.thresholdToVo2max,
+        ]
+          .map((share) => Math.round(share * 100))
+          .join(' · ')
+          .concat(' %')}
+      />
+    </div>
+  );
+}
+
 /** FTP modelled from the best power of the last days, next to the load. */
 export function ModeledMetrics({ athleteId }: { athleteId?: number }) {
   const { data, isLoading } = useGetModeledMetricsQuery(athleteId);
@@ -62,18 +132,19 @@ export function ModeledMetrics({ athleteId }: { athleteId?: number }) {
     <div className="space-y-1.5">
       <SectionLabel>{m.dashboard_header_modeled_metrics()}</SectionLabel>
       {isLoading ? (
-        <div className="grid grid-cols-2 gap-2">
-          {Array.from({ length: 2 }).map((_, i) => (
+        <div className="grid grid-cols-3 gap-2">
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-16 rounded-md" />
           ))}
         </div>
-      ) : !data || (!data.ftpRunning && !data.ftpCycling) ? (
+      ) : !data ||
+        (!data.ftpRunning && !data.ftpCycling && !data.trainingFocusRunning) ? (
         <p className="text-xs text-muted-foreground">
           {m.dashboard_header_no_modeled_metrics({ days: data?.days ?? 90 })}
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <ModeledFtpTile
               type={METRIC_TYPE.FTP_RUNNING}
               ftp={data.ftpRunning}
@@ -82,6 +153,10 @@ export function ModeledMetrics({ athleteId }: { athleteId?: number }) {
             <ModeledFtpTile
               type={METRIC_TYPE.FTP_CYCLING}
               ftp={data.ftpCycling}
+              days={data.days}
+            />
+            <TrainingFocusTile
+              focus={data.trainingFocusRunning}
               days={data.days}
             />
           </div>

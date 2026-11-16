@@ -64,6 +64,7 @@ describe('ModeledMetrics', () => {
         activityName: 'Bahn',
       },
       ftpCycling: null,
+      trainingFocusRunning: null,
     };
     act(() => root.render(<ModeledMetrics />));
 
@@ -89,6 +90,7 @@ describe('ModeledMetrics', () => {
       days: 90,
       ftpRunning: null,
       ftpCycling: null,
+      trainingFocusRunning: null,
     };
     act(() => root.render(<ModeledMetrics />));
     expect(tiles()).toEqual([]);
@@ -98,5 +100,41 @@ describe('ModeledMetrics', () => {
     expect(container.textContent).toContain(
       'dashboard_header_no_modeled_metrics 90',
     );
+  });
+
+  it('names the training focus, with the ratios behind it', () => {
+    response.data = {
+      from: new Date('2026-08-18'),
+      days: 90,
+      ftpRunning: null,
+      ftpCycling: null,
+      trainingFocusRunning: {
+        aerobicThreshold: 264,
+        lactateThreshold: 318,
+        vo2max: 345,
+        ratios: {
+          aerobicToVo2max: 0.7652,
+          aerobicToThreshold: 0.8297,
+          thresholdToVo2max: 0.9217,
+        },
+        weaknesses: ['AEROBIC', 'VO2MAX'],
+        focus: 'VO2MAX',
+        byRule: false,
+      },
+    };
+    act(() => root.render(<ModeledMetrics />));
+
+    const focus = tiles()[2];
+    expect(focus).toContain('modeled_training_focus');
+    expect(focus).toContain('training_focus_vo2max');
+    expect(focus).toContain('77 · 83 · 92 %');
+    const title = container
+      .querySelector('[title^="modeled_training_focus_title"]')
+      ?.getAttribute('title');
+    expect(title).toContain('76.5');
+    expect(title).toContain(
+      'modeled_training_focus_weak training_weakness_aerobic, training_weakness_vo2max',
+    );
+    expect(title).toContain('modeled_training_focus_no_rule');
   });
 });

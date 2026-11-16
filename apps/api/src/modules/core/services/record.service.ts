@@ -18,7 +18,6 @@ import {
   BestRecordDto,
   CreateRecordExclusionDto,
   FTP_MODEL_DAYS,
-  FTP_MODEL_EFFORTS,
   FTP_MODEL_SPORTS,
   GetRecordEffortsQueryDto,
   ModeledMetricsDto,
@@ -27,8 +26,11 @@ import {
   RecordEffortDto,
   RecordExclusionDto,
   RecordHistoryDto,
+  TRAINING_FOCUS_DURATIONS,
   YearBestRecordDto,
   modelFtp,
+  modelTrainingFocus,
+  powerAt,
 } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
@@ -185,7 +187,8 @@ export class RecordService {
 
   /**
    * FTP for running and cycling, modelled from the best 20-minute and
-   * hour power of the last days. Records an athlete excluded do not count.
+   * hour power of the last days, and for running where training should
+   * focus. Records an athlete excluded do not count.
    */
   async getModeledMetrics(
     user: AuthUser,
@@ -209,7 +212,6 @@ export class RecordService {
         LEFT JOIN event e ON e.event_id = a.event_id
         WHERE r.athlete_id = ${targetAthleteId}
           AND r.type = 'POWER'
-          AND r.duration IN (${Prisma.join(FTP_MODEL_EFFORTS.map((e) => e.duration))})
           AND a.sport::text IN (${Prisma.join([...sports])})
           AND r.date >= ${from}
           AND ${notExcluded}
@@ -227,11 +229,25 @@ export class RecordService {
       efforts(FTP_MODEL_SPORTS.running),
       efforts(FTP_MODEL_SPORTS.cycling),
     ]);
+    const ftpRunning = modelFtp(running);
+    const aerobicThreshold = powerAt(
+      running,
+      TRAINING_FOCUS_DURATIONS.aerobicThreshold,
+    );
+    const vo2max = powerAt(running, TRAINING_FOCUS_DURATIONS.vo2max);
     return {
       from,
       days: FTP_MODEL_DAYS,
-      ftpRunning: modelFtp(running),
+      ftpRunning,
       ftpCycling: modelFtp(cycling),
+      trainingFocusRunning:
+        ftpRunning && aerobicThreshold && vo2max
+          ? modelTrainingFocus({
+              aerobicThreshold,
+              lactateThreshold: ftpRunning.value,
+              vo2max,
+            })
+          : null,
     };
   }
 
