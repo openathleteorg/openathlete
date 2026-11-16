@@ -2665,5 +2665,7 @@
   "club_session_answer_not_going": "Kommt nicht",
   "club_session_no_answer": "Noch keine Antwort",
   "plan_for_athletes_day_action": "Tag auf andere Athleten kopieren",
-  "plan_for_athletes_day_label": "Einträge vom {day}: {count}"
+  "plan_for_athletes_day_label": "Einträge vom {day}: {count}",
+  "garmin_attribution_data": "Enthält Daten von Garmin-Geräten.",
+  "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet."
 }

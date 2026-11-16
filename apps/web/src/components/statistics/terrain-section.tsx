@@ -59,7 +59,13 @@ function SlopeCard({
   );
 }
 
-function Terrain({ data }: { data: StatisticsTerrainDto }) {
+function Terrain({
+  athleteId,
+  data,
+}: {
+  athleteId: number;
+  data: StatisticsTerrainDto;
+}) {
   const climb = data.bins.filter(({ bin }) => bin > 0);
   const descent = data.bins.filter(({ bin }) => bin < 0);
   // A single point is not a curve
@@ -116,6 +122,7 @@ function Terrain({ data }: { data: StatisticsTerrainDto }) {
       </div>
       <div className="flex justify-end">
         <ExportButton
+          athleteId={athleteId}
           name="terrain"
           header={['slope_percent', 'low', 'median', 'high', 'activities']}
           rows={() =>
@@ -208,5 +215,5 @@ function TerrainData({
       </div>
     );
   }
-  return <Terrain data={data} />;
+  return <Terrain athleteId={athleteId} data={data} />;
 }

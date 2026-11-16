@@ -27,6 +27,15 @@ export const useGetMyCoachedAthletesQuery = (
     queryKey: [athleteKeys.getCoachedAthletes],
   });
 
+/** Athletes the user sees whose data comes in part from Garmin */
+export const useGarminDataQuery = () =>
+  useQuery({
+    queryFn: AthleteAPI.getGarminData,
+    queryKey: [athleteKeys.getGarminData],
+    // Changes only when a first Garmin activity or metric arrives
+    staleTime: 10 * 60 * 1000,
+  });
+
 export const useGetMyCoachesQuery = (
   opt?: QueryOptions<Awaited<ReturnType<typeof AthleteAPI.getMyCoaches>>>,
 ) =>

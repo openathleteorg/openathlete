@@ -1,3 +1,4 @@
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { StoredImage } from '@/components/images';
 import { Button } from '@/components/ui/button';
 import { Loader } from '@/components/ui/loader';
@@ -164,6 +165,8 @@ export function ChatInput({
           {isStreaming ? <Loader size="sm" /> : <Send className="h-5 w-5" />}
         </Button>
       </div>
+      {/* The coach's answers read the activities and metrics it is given */}
+      <GarminAttribution athleteId="any" className="text-center" />
     </div>
   );
 }

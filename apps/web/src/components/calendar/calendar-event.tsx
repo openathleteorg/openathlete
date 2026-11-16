@@ -41,6 +41,7 @@ import {
 } from '@openathlete/shared';
 
 import { ConfirmAction } from '../confirm-action';
+import { garminActivityLabel } from '../garmin-attribution/garmin-source';
 import { SportIcon } from '../sport-icon/sport-icon';
 import { isStrengthSport } from '../strength/strength-sports';
 import {
@@ -155,6 +156,7 @@ function EventDetails({ event }: { event: Event }) {
     hour: '2-digit',
     minute: '2-digit',
   });
+  const garminLabel = garminActivityLabel(event);
 
   return (
     <div className="w-full space-y-0.5 px-1 pb-0.5 text-xs text-muted-foreground">
@@ -162,6 +164,9 @@ function EventDetails({ event }: { event: Event }) {
         <span>{time}</span>
         {rpe != null && (
           <span>{m.calendar_card_rpe({ rpe: Math.round(rpe * 10) })}</span>
+        )}
+        {garminLabel && (
+          <span data-garmin-attribution="activity">{garminLabel}</span>
         )}
       </div>
       {description && (

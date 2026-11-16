@@ -3,6 +3,7 @@ import client, { routes } from '@/utils/axios';
 import {
   Athlete,
   AthleteSettings,
+  GarminDataAthletes,
   InviteCoachDto,
   TrainingZone,
   TrainingZoneValue,
@@ -35,6 +36,11 @@ export class AthleteAPI {
     })[]
   > {
     const res = await client.get(routes.athlete.getCoachedAthletes);
+    return res.data;
+  }
+
+  static async getGarminData(): Promise<GarminDataAthletes> {
+    const res = await client.get(routes.athlete.getGarminData);
     return res.data;
   }
 

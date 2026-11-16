@@ -18,6 +18,8 @@ import {
   formatCompactDuration,
   formatCompactKilometers,
 } from '@/components/calendar/utils/week-summary';
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
+import { garminActivityLabel } from '@/components/garmin-attribution/garmin-source';
 import { PushPromptCard } from '@/components/mobile/push-prompt-card';
 import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { SectionLabel } from '@/components/ui/section-label';
@@ -78,6 +80,8 @@ function EventRow({ event, showDay }: { event: Event; showDay?: boolean }) {
       }),
     !!duration && formatCompactDuration(duration),
     !!distance && `${formatCompactKilometers(distance, getLocale())} km`,
+    // Garmin requires "Garmin [device model]" beside its activities
+    garminActivityLabel(event),
   ].filter(Boolean);
 
   return (
@@ -320,6 +324,8 @@ function TodayScreen() {
           )}
         </Link>
       </div>
+      {/* Form and the week's load are computed from the activities */}
+      <GarminAttribution className="-mt-4 px-1" />
 
       {race && (
         <Link
