@@ -1008,6 +1008,7 @@ export class ProviderOAuthController {
     'garmin/webhook/activity-ping',
     'garmin/webhook/health-ping',
     'garmin/webhook/activity-files',
+    'garmin/webhook/activity-details',
     'garmin/webhook/deregistration',
     'garmin/webhook/user-permissions-change',
   ])
