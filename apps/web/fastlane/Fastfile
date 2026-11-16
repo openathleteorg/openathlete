@@ -254,7 +254,8 @@ platform :ios do
       app_version: version["marketingVersion"],
       build_number: version["buildNumber"].to_s,
       submit_for_review: true,
-      automatic_release: false,
+      # Ships as soon as Apple approves, like Android after promote
+      automatic_release: true,
       skip_binary_upload: true,
       skip_metadata: true,
       skip_screenshots: true,
