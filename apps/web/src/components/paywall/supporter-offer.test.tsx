@@ -264,6 +264,31 @@ describe('SupporterOffer in the iOS app (App Store)', () => {
   });
 });
 
+describe('SupporterOffer while new App Store tiers await review', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    mocks.channel.mockReturnValue('app-store');
+    // StoreKit returns only the products already approved
+    mocks.prices.mockResolvedValue({
+      'org.openathlete.supporter.monthly': '4,99 €',
+      'org.openathlete.supporter.yearly': '49,99 €',
+    });
+    await render();
+  });
+
+  it('offers the tiers on sale only, the one there is picked', async () => {
+    expect(container.textContent).not.toContain('…');
+    expect(container.textContent).not.toContain('No prices');
+    expect(container.textContent).toContain('49,99 €/year');
+    mocks.purchase.mockResolvedValue({});
+    await act(async () => button('Become a Supporter').click());
+
+    expect(mocks.purchase).toHaveBeenCalledWith(
+      'org.openathlete.supporter.yearly',
+    );
+  });
+});
+
 describe('SupporterOffer when the App Store returns no products', () => {
   beforeEach(async () => {
     vi.clearAllMocks();

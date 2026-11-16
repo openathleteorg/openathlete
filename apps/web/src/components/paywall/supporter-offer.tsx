@@ -27,7 +27,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import {
-  APPLE_SUPPORTER_PRODUCTS,
   BillingInterval,
   FREE_PLAN_MAX_ATHLETES,
   SubscriptionPlan,
@@ -291,7 +290,7 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
   const purchase = useAppStorePurchase();
   const restore = useRestoreAppStorePurchases();
   const [interval, setInterval] = useState(BillingInterval.YEAR);
-  const [amountCents, setAmountCents] = useState(() =>
+  const [chosen, setAmountCents] = useState(() =>
     featuredSupporterTier(BillingInterval.YEAR),
   );
   const prices = useQuery({
@@ -300,17 +299,23 @@ function AppStoreSupporterOffer({ analyticsSource, className }: OfferProps) {
     staleTime: Infinity,
   });
   const privacyUrl = privacyPolicyUrl();
-  // Only the tiers the App Store sells for this storefront
-  const tiers = supporterTiers(interval).filter((tier) =>
-    APPLE_SUPPORTER_PRODUCTS.some(
-      (item) => item.interval === interval && item.amountCents === tier,
-    ),
-  );
-  const productId = appleProductFor(interval, amountCents)?.productId;
   const storePrice = (option: BillingInterval, tier: number) => {
     const id = appleProductFor(option, tier)?.productId;
     return id ? prices.data?.[id] : undefined;
   };
+  // Only the tiers the App Store sells for this storefront: a product
+  // waiting for App Review is not returned yet
+  const tiers = supporterTiers(interval).filter(
+    (tier) =>
+      appleProductFor(interval, tier) !== null &&
+      (!prices.isSuccess || storePrice(interval, tier) !== undefined),
+  );
+  const amountCents = tiers.includes(chosen)
+    ? chosen
+    : tiers.includes(featuredSupporterTier(interval))
+      ? featuredSupporterTier(interval)
+      : (tiers[0] ?? chosen);
+  const productId = appleProductFor(interval, amountCents)?.productId;
 
   const changeInterval = (next: BillingInterval) => {
     setAmountCents(sameTierIn(amountCents, interval, next));
