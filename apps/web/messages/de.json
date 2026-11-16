@@ -1809,6 +1809,8 @@
   "event_dialog_plan_activity": "Aktivität hinzufügen",
   "activity_is_race": "Es war ein Wettkampf",
   "activity_race_badge": "Wettkampf",
+  "activity_gpx_download": "GPX-Track herunterladen",
+  "activity_gpx_download_failed": "Der Track konnte nicht heruntergeladen werden",
   "activity_open_page": "Als Seite öffnen",
   "activity_copy_link": "Link kopieren",
   "activity_link_copied": "Link kopiert",

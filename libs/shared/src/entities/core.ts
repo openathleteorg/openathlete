@@ -146,6 +146,11 @@ export type ActivityEvent = Omit<
     trainingLoad?: number | null;
     /** Only when the activity is read on its own */
     plannedSession?: PlannedSession;
+    /**
+     * True when the activity has a GPS track, which downloads as GPX. Only
+     * when the activity is read on its own
+     */
+    hasTrack?: boolean;
   };
 
 export type Event =

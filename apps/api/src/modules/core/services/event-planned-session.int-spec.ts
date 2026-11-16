@@ -113,4 +113,46 @@ describe('an activity read on its own (PostgreSQL)', () => {
 
     expect(run).not.toHaveProperty('plannedSession');
   });
+
+  describe('GPS track', () => {
+    it('says whether there is one, and gives it as GPX', async () => {
+      expect((await events.getEventById(athlete, RUN_EVENT_ID)).hasTrack).toBe(
+        undefined,
+      );
+      await expect(events.getEventGpx(athlete, RUN_EVENT_ID)).rejects.toThrow(
+        'No GPS track',
+      );
+
+      // As the imports store it: compressed, latlng only with a valid point
+      await prisma.eventActivity.update({
+        where: { eventId: RUN_EVENT_ID },
+        data: {
+          stream: {
+            time: [{ s: 0, i: 3 }],
+            latlng: [[47.6, 11.2], [], [47.61, 11.21]],
+            altitude: [{ r: 3, v: 640 }],
+          },
+        },
+      });
+      const run = await events.getEventById(athlete, RUN_EVENT_ID);
+      expect(run.hasTrack).toBe(true);
+
+      const gpx = await events.getEventGpx(athlete, RUN_EVENT_ID);
+      expect(gpx.fileName).toMatch(/^\d{4}-\d{2}-\d{2}-Run\.gpx$/);
+      expect(gpx.content.match(/<trkseg>/g)).toHaveLength(2);
+      expect(gpx.content).toContain('<ele>640.0</ele>');
+    });
+
+    it("is not given for another athlete's activity", async () => {
+      const stranger = {
+        userId: 999999,
+        email: 'stranger@example.com',
+        athlete: { athleteId: 999999 },
+        coachAthletes: [],
+      } as unknown as AuthUser;
+      await expect(events.getEventGpx(stranger, RUN_EVENT_ID)).rejects.toThrow(
+        'Event not found',
+      );
+    });
+  });
 });
