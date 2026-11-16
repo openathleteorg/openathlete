@@ -114,25 +114,27 @@ export class QueueService {
    * make one run, not two: a job still waiting absorbs the next request.
    */
   async addTrainingLoadRecalcJob(athleteId: number): Promise<void> {
-    const id = `training-load-recalc-${athleteId}`;
-    const previous = await this.trainingLoadRecalcQueue.getJob(id);
-    const state = await previous?.getState();
-    if (state === 'delayed' || state === 'waiting') return;
-    // A run under way reads the values it started with: queue another one.
-    // A finished run only holds the id, which the new job takes over
-    if (state === 'active') {
-      await this.trainingLoadRecalcQueue.add(
-        'recalc',
-        { athleteId },
-        { jobId: `${id}-${Date.now()}`, delay: 60_000 },
-      );
+    // Two ids, so that requests during a run collapse into one follow-up
+    const ids = [
+      `training-load-recalc-${athleteId}`,
+      `training-load-recalc-${athleteId}-next`,
+    ];
+    const jobs = await Promise.all(
+      ids.map((id) => this.trainingLoadRecalcQueue.getJob(id)),
+    );
+    const states = await Promise.all(jobs.map((job) => job?.getState()));
+    if (states.some((state) => state === 'delayed' || state === 'waiting')) {
       return;
     }
-    await previous?.remove();
+    // A run under way reads the values it started with: the other id queues
+    // the next one. A finished run only holds its id, which is taken over
+    const free = states.findIndex((state) => state !== 'active');
+    if (free === -1) return;
+    await jobs[free]?.remove();
     await this.trainingLoadRecalcQueue.add(
       'recalc',
       { athleteId },
-      { jobId: id, delay: 60_000 },
+      { jobId: ids[free], delay: 60_000 },
     );
   }
 
