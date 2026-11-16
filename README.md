@@ -74,8 +74,8 @@ OpenAthlete is free on our servers in France and free on yours. The code is publ
 | Planned workouts sent to the watch | ✅ Free (Garmin, COROS, Suunto) | Premium only | ✅ | ❌ |
 | Fitness / fatigue / form | ✅ Formulas in the code | ✅ | ✅ | Subscription |
 | AI | Your key, or included with Supporter; MCP server | — | Connector (Supporter) | — |
-| Coaching | 5 athletes free, unlimited €50/yr | From $21.99/mo + per-athlete fees | Supporter | — |
-| Athlete price | Free (Supporter €5/mo or €50/yr, optional) | $19.95/mo or $134.99/yr | Free ($4/mo Supporter) | €59.99/yr |
+| Coaching | 5 athletes free, unlimited from €50/yr | From $21.99/mo + per-athlete fees | Supporter | — |
+| Athlete price | Free (Supporter from €5/mo or €50/yr, optional) | $19.95/mo or $134.99/yr | Free ($4/mo Supporter) | €59.99/yr |
 
 Prices from each vendor's pricing page, checked on 3 November 2026 (USD before tax). Detailed, sourced comparisons: [openathlete.org/compare](https://openathlete.org/compare).
 
@@ -281,7 +281,7 @@ For a complete list of environment variables, see the `.env.example` files in ea
 
 > OpenAthlete is built by one developer in Grenoble, supported by the community. There are three ways to help the project thrive:
 >
-> - **Become a Supporter** on [openathlete.org](https://openathlete.org/pricing): €5/month or €50/year. It pays for the servers and adds AI on our keys and unlimited coached athletes.
+> - **Become a Supporter** on [openathlete.org](https://openathlete.org/pricing): from €5/month or €50/year. It pays for the servers and adds AI on our keys and unlimited coached athletes.
 > - **Buy a coffee**: one-off support, even if you self-host. [buymeacoffee.com/openathlete](https://buymeacoffee.com/openathlete).
 > - **Contribute**: star the repo, open issues, send pull requests, translate, or join the [Discord](https://discord.gg/j4PP6tDwuP).
 >

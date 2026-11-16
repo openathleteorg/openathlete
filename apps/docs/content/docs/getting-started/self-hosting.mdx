@@ -100,7 +100,7 @@ Coaches can add images to their notes and to messages once the API has a bucket 
 
 Images are resized in the browser before upload. An image that no note or message shows anymore is deleted after a day, and a user's images are deleted with their account. Back the bucket up along with the database.
 
-Without Stripe, the instance sells nothing and limits nobody: every account can coach any number of athletes. With Stripe, free accounts coach up to 5 athletes and the Supporter subscription (`STRIPE_PRICE_SUPPORTER_MONTHLY`, `STRIPE_PRICE_SUPPORTER_YEARLY`) removes the limit and includes AI on the instance keys.
+Without Stripe, the instance sells nothing and limits nobody: every account can coach any number of athletes. With Stripe, free accounts coach up to 5 athletes and the Supporter subscription removes the limit and includes AI on the instance keys.
 
 The app only offers what is set up: without Firebase there is no "Continue with Google" button, and without device sync settings Settings > Connectors points to file import instead of offering connectors that would fail. `GET /api/instance` lists what the instance offers.
 
@@ -150,7 +150,7 @@ AI features (workout generation and editing, post-activity questions, feedback a
   Without `AI_MODEL_DEFAULT`, every feature uses `openai/gpt-5.6-luna`, so `OPENAI_API_KEY` is enough. `AI_MODEL_EVENT_GENERATION`, `AI_MODEL_EVENT_MODIFICATION`, `AI_MODEL_POST_ACTIVITY_FEEDBACK`, `AI_MODEL_FEEDBACK_EXTRACTION`, `AI_MODEL_TRIMP_ESTIMATION` and `AI_MODEL_ACTIVITY_SUMMARY` override one feature. A feature whose model has no key configured is simply unavailable on the instance keys.
 
 - **Who may use the instance keys**: `AI_HOSTED_ACCESS=everyone` (default without Stripe), `subscribers` (users whose plan includes AI), or `none`.
-- **Monthly budget**: `AI_HOSTED_MONTHLY_BUDGET_USD` caps what each user may spend per month on the instance keys, in US dollars at the providers' prices, for example `3`. Calls are charged at their model's price (input and output tokens apart); a model the API does not know is charged like a flagship model. Once the budget is used, features run only on the user's own key until the next month. Unset, usage is not limited. Users see the share they used in Settings > AI.
+- **Budget**: `AI_HOSTED_MONTHLY_BUDGET_USD` caps what each user may spend per month on the instance keys, in US dollars at the providers' prices, spread over the weeks: the allowance refills every Monday at midnight in the user's time zone. Calls are charged at their model's price (input and output tokens apart); a model the API does not know is charged like a flagship model. Once the week's allowance is used, features run only on the user's own key until the next Monday. Unset, usage is not limited. Users see the share they used in Settings > AI.
 - **Local models**: users can add any OpenAI-compatible endpoint, such as Ollama (`http://ollama:11434/v1`), vLLM or LM Studio. This is on by default without Stripe. Set `AI_ALLOW_CUSTOM_ENDPOINTS=false` on an instance open to the public: the server calls these URLs on users' behalf.
 
 For background features (post-activity questions, feedback analysis, AI load estimation fallback), an athlete without AI uses their coach's key or plan.
