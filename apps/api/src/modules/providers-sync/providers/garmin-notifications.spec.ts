@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { ProviderAccount } from '@openathlete/database';
 
+import { GarminActivityNotSavedError } from '../errors/garmin-activity-not-saved.error';
 import {
   GarminProviderService,
   garminDeviceName,
@@ -204,6 +205,50 @@ describe('GarminProviderService.processNotification', () => {
         { lastAttempt: false },
       ),
     ).resolves.toBeUndefined();
+  });
+
+  describe('an activity file that arrives before its activity', () => {
+    const fileNotification = {
+      summaryType: 'activityFiles',
+      userId: 'u1',
+      callbackURL:
+        'https://apis.garmin.com/wellness-api/rest/activityFile?id=9&token=t',
+      entry: { fileType: 'FIT', activityId: 9 },
+    };
+
+    function setupWithoutActivity() {
+      const context = setup([account]);
+      Object.assign(context.prisma.eventActivity, {
+        findFirst: jest.fn().mockResolvedValue(null),
+      });
+      return context;
+    }
+
+    it('waits for the import without pulling the file', async () => {
+      const { service } = setupWithoutActivity();
+
+      await expect(
+        service.processNotification(fileNotification, { lastAttempt: false }),
+      ).rejects.toBeInstanceOf(GarminActivityNotSavedError);
+      expect(mockedGet).not.toHaveBeenCalled();
+    });
+
+    it('answers the ping on the last attempt and says the file is dropped', async () => {
+      const { service } = setupWithoutActivity();
+      const warn = jest
+        .spyOn(service['logger'], 'warn')
+        .mockImplementation(() => undefined);
+      mockedGet.mockResolvedValue({ data: new ArrayBuffer(8) });
+
+      await service.processNotification(fileNotification, {
+        lastAttempt: true,
+      });
+
+      expect(mockedGet).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Garmin activity 9 was still not saved'),
+      );
+    });
   });
 
   it('deregisters a revoked account still holding a refresh token', async () => {

@@ -6,6 +6,7 @@ import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
+import { GarminActivityNotSavedError } from '../../providers-sync/errors/garmin-activity-not-saved.error';
 import { GarminProviderService } from '../../providers-sync/providers';
 import { GarminNotificationJobData } from '../queue.service';
 
@@ -37,9 +38,15 @@ export class GarminNotificationProcessor extends WorkerHost {
 
   @OnWorkerEvent('failed')
   onFailed(job: Job<GarminNotificationJobData>, error: Error) {
-    reportJobFailure(this.analytics, job, error);
     const final = job.attemptsMade >= (job.opts.attempts ?? 1);
     const message = `Garmin ${job.data.summaryType} notification for user ${job.data.userId} failed (attempt ${job.attemptsMade}): ${error.message}`;
+    // Waiting for the activity import is routine: the service warns if the
+    // file is dropped in the end
+    if (error instanceof GarminActivityNotSavedError) {
+      this.logger.debug(message);
+      return;
+    }
+    reportJobFailure(this.analytics, job, error);
     if (final) {
       this.logger.error(message, error.stack);
     } else {

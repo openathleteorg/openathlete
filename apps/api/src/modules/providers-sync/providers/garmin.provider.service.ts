@@ -72,6 +72,7 @@ import {
   ProviderImportCapability,
 } from '../base';
 import { providerRedirectUri } from '../base/provider-urls';
+import { GarminActivityNotSavedError } from '../errors/garmin-activity-not-saved.error';
 import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
@@ -1097,8 +1098,12 @@ export class GarminProviderService
         },
       });
       if (!activity && !lastAttempt) {
-        throw new Error(
-          `Garmin activity ${activityId} is not saved yet; its file will be fetched on the next attempt`,
+        throw new GarminActivityNotSavedError(activityId);
+      }
+      if (!activity) {
+        // The file is still pulled to answer the ping, but its stream is lost
+        this.logger.warn(
+          `Garmin activity ${activityId} was still not saved after every attempt: its file is dropped`,
         );
       }
     }
