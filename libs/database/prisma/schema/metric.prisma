@@ -22,6 +22,9 @@ model AthleteMetric {
   value Float
   /// Optional notes
   notes String?
+  /// Provider the value was imported from; null when entered by hand.
+  /// Garmin requires its data to be attributed wherever it is shown
+  source ConnectorProvider?
 
   // relationships
   athlete   Athlete @relation(fields: [athleteId], references: [athleteId], onDelete: Cascade)

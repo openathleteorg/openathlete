@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { Prisma } from '@openathlete/database';
+import { ConnectorProvider, Prisma } from '@openathlete/database';
 import {
   SPORT_TYPE,
   getSportConfig,
@@ -63,6 +63,8 @@ const ACTIVITY_SELECT = {
   rpe: true,
   isRace: true,
   description: true,
+  provider: true,
+  deviceName: true,
   // The load the app charts: TRIMP
   trainingLoadEntries: {
     where: { calculation: { type: 'TRIMP' } },
@@ -137,6 +139,12 @@ export const calendarItemSchema = z.object({
   rpe: optionalNumber.describe('Perceived effort, 1-10'),
   load: optionalNumber.describe('Training load of the activity (TRIMP)'),
   isRace: z.boolean().optional(),
+  source: z
+    .string()
+    .optional()
+    .describe(
+      'Where the activity was recorded, e.g. "Garmin Forerunner 965": cite it whenever showing the activity or what you derive from it',
+    ),
   plannedSessionId: optionalNumber.describe(
     'eventId of the planned session it fulfils',
   ),
@@ -159,6 +167,18 @@ export function speedFields(sport: string, metersPerSecond: number) {
     };
   }
   return { avgSpeedKmh: round(metersPerSecond * 3.6, 1) };
+}
+
+/**
+ * Garmin's attribution, which its data keeps when shared through an API:
+ * "Garmin [device model]", or "Garmin" when the model is unknown
+ */
+export function activitySource(
+  provider: ConnectorProvider | null,
+  deviceName: string | null,
+): string | undefined {
+  if (provider !== 'GARMIN') return undefined;
+  return deviceName ? `Garmin ${deviceName}` : 'Garmin';
 }
 
 /** RPE is stored 0-1, read 1-10 */
@@ -268,6 +288,7 @@ export function toCalendarItem(
         rpe: rpeOutOfTen(activity.rpe),
         load: activity.trainingLoadEntries.length ? round(load) : undefined,
         isRace: activity.isRace || undefined,
+        source: activitySource(activity.provider, activity.deviceName),
         plannedSessionId:
           activity.relatedTraining?.eventId ??
           activity.relatedCompetition?.eventId,

@@ -101,9 +101,11 @@ export class MetricService {
         where: {
           athleteMetricId: existingMetric.athleteMetricId,
         },
+        // A value typed in replaces the imported one: it is no longer theirs
         data: {
           value: dto.value,
           notes: dto.notes,
+          source: null,
         },
       });
     }
@@ -167,7 +169,8 @@ export class MetricService {
         athleteMetricId: metricId,
       },
       data: {
-        ...(dto.value !== undefined && { value: dto.value }),
+        // A corrected value is no longer the provider's
+        ...(dto.value !== undefined && { value: dto.value, source: null }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
       },
     });

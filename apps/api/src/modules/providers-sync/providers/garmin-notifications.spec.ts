@@ -4,6 +4,7 @@ import { ProviderAccount } from '@openathlete/database';
 
 import {
   GarminProviderService,
+  garminDeviceName,
   parseGarminNotifications,
   toImportedGarminActivity,
 } from './garmin.provider.service';
@@ -24,6 +25,19 @@ jest.mock('axios', () => {
 
 const mockedGet = axios.get as jest.Mock;
 const mockedDelete = axios.delete as jest.Mock;
+
+describe('garminDeviceName', () => {
+  it('keeps the model, without the brand the attribution adds', () => {
+    expect(garminDeviceName('Forerunner 965')).toBe('Forerunner 965');
+    expect(garminDeviceName(' Garmin fenix 8 ')).toBe('fenix 8');
+  });
+
+  it('drops the model of manual activities and missing ones', () => {
+    expect(garminDeviceName('unknown')).toBeNull();
+    expect(garminDeviceName('')).toBeNull();
+    expect(garminDeviceName(undefined)).toBeNull();
+  });
+});
 
 describe('parseGarminNotifications', () => {
   it('queues pings and pushes, but not deregistrations', () => {
@@ -252,6 +266,13 @@ describe('GarminProviderService.processNotification', () => {
 
     expect(mockedGet).not.toHaveBeenCalled();
     expect(prisma.$transaction).toHaveBeenCalled();
+    // Labelled as Garmin's, for the attribution the app shows
+    expect(prisma.athleteMetric.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ source: 'GARMIN' }),
+        update: expect.objectContaining({ source: 'GARMIN' }),
+      }),
+    );
   });
 
   it('drops pushed data of unknown users, with nothing left to answer', async () => {

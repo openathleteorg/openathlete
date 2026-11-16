@@ -265,7 +265,19 @@ function activityMetrics(summary: GarminActivitySummary) {
       ? roundEnergy(summary.activeKilocalories * 4.184)
       : undefined,
     sport: mapGarminActivityType(summary.activityType),
+    deviceName: garminDeviceName(summary.deviceName),
   };
+}
+
+/**
+ * The model Garmin names, for the "Garmin Forerunner 965" attribution its
+ * brand guidelines require. Manual activities say "unknown": the
+ * attribution then falls back to "Garmin".
+ */
+export function garminDeviceName(name: string | undefined): string | null {
+  const trimmed = name?.trim().replace(/^garmin\s+/i, '');
+  if (!trimmed || trimmed.toLowerCase() === 'unknown') return null;
+  return trimmed.slice(0, 100);
 }
 
 @Injectable()
@@ -1296,8 +1308,12 @@ export class GarminProviderService
             type: metric.type,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: ConnectorProvider.GARMIN,
           },
-          update: { value: roundMetricValue(metric.value) },
+          update: {
+            value: roundMetricValue(metric.value),
+            source: ConnectorProvider.GARMIN,
+          },
         }),
       ),
     );

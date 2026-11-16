@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 
 import { Athlete, SportType } from '@openathlete/database';
+import { GarminDataAthletes } from '@openathlete/shared';
 
 import { CaslAbilityFactory } from 'src/modules/auth';
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
@@ -181,6 +182,31 @@ export class AthleteService {
       ...athlete,
       club: coachAthletes[0]?.club ?? null,
     }));
+  }
+
+  /**
+   * The athletes the user sees (their own profile and the ones they coach)
+   * holding data from Garmin: Garmin's brand guidelines require its
+   * attribution wherever that data, or anything derived from it, is shown.
+   */
+  async getGarminDataAthleteIds(
+    userId: AuthUser['userId'],
+  ): Promise<GarminDataAthletes> {
+    const athletes = await this.prisma.athlete.findMany({
+      where: {
+        AND: [
+          { OR: [{ userId }, { coachAthletes: { some: { userId } } }] },
+          {
+            OR: [
+              { events: { some: { activity: { provider: 'GARMIN' } } } },
+              { metrics: { some: { source: 'GARMIN' } } },
+            ],
+          },
+        ],
+      },
+      select: { athleteId: true },
+    });
+    return { athleteIds: athletes.map(({ athleteId }) => athleteId) };
   }
 
   async getMyCoaches(userId: AuthUser['userId']) {

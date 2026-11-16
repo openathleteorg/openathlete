@@ -673,6 +673,7 @@ export class UserService {
         },
         update: {
           value: metric.value,
+          source: null,
         },
       });
     }

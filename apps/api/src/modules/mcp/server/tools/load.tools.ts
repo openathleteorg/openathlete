@@ -87,6 +87,12 @@ const metricsOutput = z.object({
           date: z.string(),
           value: z.number(),
           notes: z.string().optional(),
+          source: z
+            .string()
+            .optional()
+            .describe(
+              'Device brand the value comes from, e.g. "Garmin": cite it whenever showing the value or what you derive from it',
+            ),
         }),
       ),
     }),
@@ -382,6 +388,8 @@ export const registerLoadTools: ToolRegistrar = (server, ctx, deps) => {
                 date: value.date.toISOString().slice(0, 10),
                 value: value.value,
                 ...(value.notes && { notes: value.notes }),
+                // Garmin's attribution, which its data keeps through an API
+                ...(value.source === 'GARMIN' && { source: 'Garmin' }),
               })),
           })),
         };

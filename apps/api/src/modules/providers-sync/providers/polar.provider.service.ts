@@ -722,8 +722,8 @@ export class PolarProviderService
       const rounded = roundMetricValue(value);
       await this.prisma.athleteMetric.upsert({
         where: { athleteId_type_date: { athleteId, type, date } },
-        create: { athleteId, type, date, value: rounded },
-        update: { value: rounded },
+        create: { athleteId, type, date, value: rounded, source: 'POLAR' },
+        update: { value: rounded, source: 'POLAR' },
       });
     }
   }

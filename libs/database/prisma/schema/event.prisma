@@ -163,6 +163,10 @@ model EventActivity {
   // fields
   /// Provider from which this activity was imported (null if manually created)
   provider               ConnectorProvider?
+  /// Model of the device that recorded it, as the provider names it
+  /// ("Forerunner 965"); null when the provider doesn't say. Garmin requires
+  /// it in the attribution of its data
+  deviceName             String?            @map("device_name")
   /// Total distance in meters
   distance               Float
   /// Total elevation gain in meters
