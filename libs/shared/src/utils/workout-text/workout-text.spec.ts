@@ -299,6 +299,33 @@ describe('repeats', () => {
     ]);
   });
 
+  it('writes a repeat name once, without the count it ends with', () => {
+    const repeat = (name: string): CreateWorkoutStepDto[] => [
+      {
+        orderIndex: 0,
+        stepType: S.REPEAT,
+        name,
+        durationType: 'OPEN',
+        repeatBlock: {
+          repetitions: 5,
+          childSteps: only('- 3m Z4'),
+        },
+      } as CreateWorkoutStepDto,
+    ];
+    const header = (name: string) =>
+      serializeWorkoutText(repeat(name), run).split('\n')[0];
+
+    expect(header('Main set 5x')).toBe('Main set 5x');
+    expect(header('Main set 5 ×')).toBe('Main set 5x');
+    expect(header('Box')).toBe('Box 5x');
+    expect(header('x')).toBe('x 5x');
+
+    // A long run of digits must not take quadratic time
+    const started = Date.now();
+    header(`${'0'.repeat(50_000)}!`);
+    expect(Date.now() - started).toBeLessThan(500);
+  });
+
   it('reads indented blocks, which end at the dedent', () => {
     const steps = only('5x\n  - 3m Z4\n  - 2m Z1\n- 10m Z1');
     expect(shape(steps)).toEqual([
