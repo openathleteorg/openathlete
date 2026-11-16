@@ -184,6 +184,8 @@ interface ActivityInput {
   sport: SportType;
   start: Date;
   provider: ConnectorProvider | null;
+  /** The watch Garmin names, shown in its attribution; one per athlete otherwise */
+  deviceName?: string;
   externalId: string;
   rpe: number | null;
   description?: string;
@@ -196,6 +198,9 @@ interface ActivityInput {
   /** Sets done in the session player (strength) */
   strengthLog?: unknown;
 }
+
+const GARMIN_DEVICES = ['Forerunner 265', 'fenix 8', 'Forerunner 965', 'Enduro 3', 'Forerunner 165'];
+const garminDevice = (athleteId: number) => GARMIN_DEVICES[athleteId % GARMIN_DEVICES.length];
 
 async function createActivity(db: Db, input: ActivityInput) {
   const s = input.recording?.summary;
@@ -212,6 +217,7 @@ async function createActivity(db: Db, input: ActivityInput) {
       activity: {
         create: {
           provider: input.provider,
+          deviceName: input.provider === 'GARMIN' ? (input.deviceName ?? garminDevice(input.athleteId)) : null,
           externalId: input.externalId,
           sport: input.sport,
           description: input.description ?? '',
@@ -487,6 +493,7 @@ async function seedCamille(db: Db, today: Date, coachUserId: number, passwordHas
       const showcase = d.day >= recentFrom;
       const equipment = ride ? shoes.bike : d.session.sport === 'TRAIL_RUNNING' ? shoes.trail : strength ? null : shoes.road;
       activity = await createActivity(db, {
+        deviceName: 'Forerunner 965',
         athleteId,
         name: activityName(d.session, d.hour),
         sport: d.session.sport,
@@ -589,6 +596,7 @@ async function createRace(
     });
     const shoe = trail ? trailShoeId : roadShoeId;
     const activity = await createActivity(db, {
+      deviceName: 'Forerunner 965',
       athleteId, name: race.result.activityName, sport: race.sport, start, provider: 'GARMIN',
       externalId: String(externalId), rpe: race.result.rpe, description: race.result.notes, isRace: true,
       equipmentId: shoe, recording,
@@ -623,8 +631,16 @@ async function createRace(
 async function seedCamilleMetrics(db: Db, athleteId: number, today: Date) {
   const rng = new Random(7);
   const rows: Prisma.AthleteMetricCreateManyInput[] = [];
+  // What her watch and scale measure comes from Garmin; tests are typed in
+  const fromGarmin = new Set(['HRV_LAST_NIGHT_AVG', 'HR_REST', 'SLEEP_DURATION', 'SLEEP_SCORE', 'DAILY_STEPS', 'VO2MAX', 'WEIGHT', 'BODY_FAT']);
   const add = (day: Date, type: Prisma.AthleteMetricCreateManyInput['type'], value: number) =>
-    rows.push({ athleteId, date: day, type, value: Math.round(value * 10) / 10 });
+    rows.push({
+      athleteId,
+      date: day,
+      type,
+      value: Math.round(value * 10) / 10,
+      source: fromGarmin.has(type) ? 'GARMIN' : null,
+    });
   let weight = 58.4;
   let hrv = 62;
   for (let i = 365; i >= 0; i--) {
@@ -697,8 +713,9 @@ async function seedRosterAthlete(
     { athleteId, type: 'HR_REST', value: spec.hrRest, date: addDays(today, -110) },
   ];
   for (let i = 0; i < 30; i++) {
-    metrics.push({ athleteId, type: 'HRV_LAST_NIGHT_AVG', value: Math.round(rng.normal(58, 7)), date: addDays(today, -i) });
-    metrics.push({ athleteId, type: 'SLEEP_DURATION', value: Math.round(rng.normal(7.3, 0.6) * 10) / 10, date: addDays(today, -i) });
+    const source = spec.provider === 'GARMIN' ? ('GARMIN' as const) : null;
+    metrics.push({ athleteId, type: 'HRV_LAST_NIGHT_AVG', value: Math.round(rng.normal(58, 7)), date: addDays(today, -i), source });
+    metrics.push({ athleteId, type: 'SLEEP_DURATION', value: Math.round(rng.normal(7.3, 0.6) * 10) / 10, date: addDays(today, -i), source });
   }
   await db.athleteMetric.createMany({ data: metrics, skipDuplicates: true });
 

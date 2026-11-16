@@ -17,6 +17,7 @@ import { CompareAthletesDialog } from '@/components/coach-dashboard/compare-athl
 import { summarizeGroup } from '@/components/coach-dashboard/group-summary';
 import { ThresholdsDialog } from '@/components/coach-dashboard/thresholds-dialog';
 import { useCoachDashboardSettings } from '@/components/coach-dashboard/use-coach-dashboard-settings';
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -606,6 +607,7 @@ export function CoachDashboardView() {
           </div>
         </>
       )}
+      <GarminAttribution athleteId="any" />
     </div>
   );
 }

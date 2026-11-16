@@ -206,6 +206,22 @@ function formatStep(
   return `- ${parts.join(' ')}`;
 }
 
+/**
+ * A repeat's name without the count it may end with ("Main set 5x"), which
+ * the header writes again. Scanned by hand: the equivalent regex,
+ * /\d+\s*[x×]$/, backtracks quadratically on a long run of digits.
+ */
+function withoutRepeatCount(name: string): string {
+  let end = name.length - 1;
+  if (end < 0 || !/[x×]/i.test(name[end])) return name.trim();
+  end--;
+  while (end >= 0 && /\s/.test(name[end])) end--;
+  let start = end;
+  while (start >= 0 && name[start] >= '0' && name[start] <= '9') start--;
+  if (start === end) return name.trim();
+  return name.slice(0, start + 1).trim();
+}
+
 /** One step as the line the parser reads back, with `- ` left out */
 export function serializeStepLine(
   step: CreateWorkoutStepDto,
@@ -230,7 +246,8 @@ export function serializeWorkoutText(
       loose = [];
       const children = step.repeatBlock.childSteps ?? [];
       const name = step.name?.replace(/\s+/g, ' ').trim();
-      const header = `${name ? `${name.replace(/\d+\s*[x×]$/i, '').trim()} ` : ''}${step.repeatBlock.repetitions}x`;
+      const label = name ? withoutRepeatCount(name) : '';
+      const header = `${label ? `${label} ` : ''}${step.repeatBlock.repetitions}x`;
       blocks.push([
         header,
         ...children.map((child, childIndex) =>

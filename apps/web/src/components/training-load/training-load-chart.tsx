@@ -403,6 +403,7 @@ export function TrainingLoadChart({
             </div>
             <div className="flex justify-end">
               <ExportButton
+                athleteId={athleteId}
                 name="load"
                 header={['date', 'load', 'ctl', 'atl', 'tsb', 'session_rpe']}
                 rows={() =>

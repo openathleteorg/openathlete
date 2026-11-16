@@ -3,6 +3,7 @@ import { AthleteMetric, useGetMetricsQuery } from '@/api/metric';
 import { useTrainingLoadMetrics } from '@/api/training-load';
 import { TrainingLoadCalculationType } from '@/api/training-load/training-load.api';
 import { CompetitionPriorityBadge } from '@/components/calendar/competition-priority-badge';
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { Card, CardContent } from '@/components/ui/card';
 import { InsightBanner } from '@/components/ui/insight-banner';
 import { MetricTile } from '@/components/ui/metric-tile';
@@ -25,6 +26,8 @@ import { Calendar } from 'lucide-react';
 import { useMemo } from 'react';
 
 import { EVENT_TYPE, METRIC_TYPE } from '@openathlete/shared';
+
+import { ModeledMetrics } from './modeled-metrics';
 
 interface AthleteDashboardHeaderProps {
   athleteId?: number;
@@ -120,9 +123,10 @@ export function AthleteDashboardHeader({
       )}
       <Card className="mx-4 mb-6 md:mx-0">
         <CardContent>
-          {/* Two columns on laptops, with the races across the top: three
-            would leave the tiles too narrow for their labels */}
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {/* Two columns on laptops, with the races across the top: four
+            would leave the tiles too narrow for their labels. On wide
+            screens the races and the two modelled tiles take less room */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)_minmax(0,1.5fr)]">
             {/* Upcoming Competitions */}
             <div className="space-y-1.5 md:col-span-2 xl:col-span-1">
               <SectionLabel>
@@ -208,10 +212,15 @@ export function AthleteDashboardHeader({
                   {m.no_data_for_metric()}
                 </p>
               )}
+              {trainingLoadMetrics && (
+                <GarminAttribution athleteId={athleteId} />
+              )}
             </div>
 
+            <ModeledMetrics athleteId={athleteId} />
+
             {/* Recent Metrics */}
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 md:col-span-2 xl:col-span-1">
               <SectionLabel>{m.dashboard_header_recent_metrics()}</SectionLabel>
               {isLoadingMetrics ? (
                 <div className="grid grid-cols-3 gap-2">
@@ -234,6 +243,10 @@ export function AthleteDashboardHeader({
                       }
                       value={metric.value}
                       unit={getMetricUnit(metric.type as METRIC_TYPE) || ''}
+                      // Garmin's attribution, beside each value it provided
+                      caption={
+                        metric.source === 'GARMIN' ? 'Garmin' : undefined
+                      }
                     />
                   ))}
                 </div>

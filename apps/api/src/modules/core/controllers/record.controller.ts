@@ -114,6 +114,35 @@ export class RecordController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('modeled-metrics')
+  @ApiOperation({
+    summary: 'Metrics modelled from recent activities',
+    description:
+      'FTP for running and cycling, modelled from the best power of the last 90 days: the higher of the best hour and 95% of the best 20 minutes. Each value says which effort it comes from; null when no running or cycling activity of the period has 20 minutes of power. Nothing is stored: the athlete decides whether to log the value as a metric.',
+  })
+  @ApiQuery({
+    name: 'athleteId',
+    type: Number,
+    description:
+      "Optional athlete ID. If not provided, uses authenticated user's athlete.",
+    required: false,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Modelled FTP for running and cycling',
+  })
+  @ApiResponse({ status: 403, description: 'Not allowed to read the athlete' })
+  @ApiResponse({ status: 404, description: 'Athlete not found' })
+  getModeledMetrics(
+    @JwtUser() user: AuthUser,
+    @Query('athleteId', new ParseIntPipe({ optional: true }))
+    athleteId?: Athlete['athleteId'],
+  ) {
+    return this.recordService.getModeledMetrics(user, athleteId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('sports')
   @ApiOperation({
     summary: 'Sports that have records',

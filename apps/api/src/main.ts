@@ -12,6 +12,7 @@ import {
   GARMIN_WEBHOOK_BODY_LIMIT,
   GARMIN_WEBHOOK_PATH,
   JSON_BODY_LIMIT,
+  drainGarminActivityDetails,
   rejectOversizedArrays,
 } from './common/security/payload-limits';
 import {
@@ -38,6 +39,7 @@ async function bootstrap() {
 
   // Garmin notifications get their larger limit first; the global parser
   // then skips the body it already read
+  app.use(drainGarminActivityDetails);
   app.use(GARMIN_WEBHOOK_PATH, json({ limit: GARMIN_WEBHOOK_BODY_LIMIT }));
   app.useBodyParser('json', { limit: JSON_BODY_LIMIT });
   app.use(rejectOversizedArrays);

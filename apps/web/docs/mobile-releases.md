@@ -107,7 +107,7 @@ One-time setup:
 
 1. Push the tag, as for any release (see the `release` skill). The **Release** workflow uploads both apps next to the Docker images.
 2. iOS: the build reaches internal TestFlight testers once Apple has processed it (about 15 minutes), with the release notes as _What to Test_. Android: it reaches the `PLAY_TRACK` testers within minutes.
-3. Once it is tested, run **Mobile promote** from the Actions tab with the tag. Android goes to production right away. iOS is submitted for review, and you release it from App Store Connect once it is approved (automatic release is off).
+3. Once it is tested, run **Mobile promote** from the Actions tab with the tag. Android goes to production right away. iOS is submitted for review and goes live as soon as Apple approves it.
 
 ## Running lanes locally
 

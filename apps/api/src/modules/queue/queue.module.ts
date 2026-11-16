@@ -304,9 +304,10 @@ function parseRedisUrl(redisUrl: string): {
     BullModule.registerQueue({
       name: 'garmin-notification',
       defaultJobOptions: {
-        // An activity file can arrive before its activity is saved: retry
-        // for about two hours, well within the file's 24-hour validity
-        attempts: 8,
+        // An activity file can arrive before its activity is saved, and a
+        // history import can take hours to reach it: 12 attempts space the
+        // retries over about 17 hours, within the file's 24-hour validity
+        attempts: 12,
         backoff: {
           type: 'exponential',
           delay: 30_000,

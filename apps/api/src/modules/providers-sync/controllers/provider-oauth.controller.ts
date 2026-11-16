@@ -820,7 +820,7 @@ export class ProviderOAuthController {
           minimum: 1,
           maximum: 24,
           description:
-            'Only the last months (Strava, COROS). The settings can then still ask for the whole history.',
+            'Only the last months (Strava, COROS, Suunto). The settings can then still ask for the whole history.',
         },
       },
     },
@@ -1008,6 +1008,7 @@ export class ProviderOAuthController {
     'garmin/webhook/activity-ping',
     'garmin/webhook/health-ping',
     'garmin/webhook/activity-files',
+    'garmin/webhook/activity-details',
     'garmin/webhook/deregistration',
     'garmin/webhook/user-permissions-change',
   ])

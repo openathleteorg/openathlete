@@ -14,6 +14,7 @@ import { useState } from 'react';
 
 import { formatDistance, formatDuration } from '@openathlete/shared';
 
+import { useHasGarminData } from '../garmin-attribution/garmin-source';
 import { SupporterNudge } from '../supporter/supporter-nudge';
 import { useSupporterNudge } from '../supporter/use-supporter-nudge';
 import { Button } from '../ui/button';
@@ -46,6 +47,7 @@ function Review({
   const from = new Date(year, 0, 1);
   const to = new Date(year, 11, 31, 23, 59, 59);
   const params = { athleteId, from, to };
+  const hasGarminData = useHasGarminData(athleteId);
   const { data: days } = useStatisticsDaysQuery(params, visible);
   const { data: overview } = useStatisticsOverviewQuery(params, visible);
   const { data: records } = useGetRecordsQuery(
@@ -154,6 +156,9 @@ function Review({
                 label,
                 unit ? `${value} ${unit}` : value,
               ]),
+            attribution: hasGarminData
+              ? m.garmin_attribution_insights()
+              : undefined,
           })
         }
       >

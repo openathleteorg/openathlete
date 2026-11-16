@@ -1199,6 +1199,10 @@
   "dashboard_header_recent_metrics": "Métricas recentes",
   "dashboard_header_no_upcoming_competitions": "Nenhuma competição próxima",
   "dashboard_header_no_recent_metrics": "Nenhuma métrica recente",
+  "dashboard_header_modeled_metrics": "Métricas modeladas",
+  "dashboard_header_no_modeled_metrics": "Sem potência de 20 minutos nos últimos {days} dias",
+  "modeled_ftp_caption": "{percent}% de {minutes} min · {date}",
+  "modeled_ftp_title": "{percent}% de {power} W mantidos por {minutes} min em “{activity}” em {date}: o melhor dos últimos {days} dias. Não salvo como métrica.",
   "dashboard_header_days_until": "em {days} dias",
   "dashboard_header_today": "Hoje",
   "dashboard_header_tomorrow": "Amanhã",
@@ -2737,5 +2741,7 @@
   "club_session_answer_not_going": "Não vai",
   "club_session_no_answer": "Ainda sem resposta",
   "plan_for_athletes_day_action": "Copiar o dia para outros atletas",
-  "plan_for_athletes_day_label": "Itens de {day}: {count}"
+  "plan_for_athletes_day_label": "Itens de {day}: {count}",
+  "garmin_attribution_data": "Inclui dados fornecidos por dispositivos Garmin.",
+  "garmin_attribution_insights": "Análises derivadas em parte de dados de dispositivos Garmin."
 }

@@ -69,6 +69,8 @@ import { AiSetupDialog } from '../ai-settings';
 import { CreateCycleDialog } from '../create-cycle-dialog';
 import { CreateEventDialog } from '../create-event-dialog';
 import { CreateEventFromTemplateDialog } from '../create-event-from-template-dialog/create-event-from-template.dialog';
+import { GarminAttributionText } from '../garmin-attribution/garmin-attribution';
+import { garminActivityLabel } from '../garmin-attribution/garmin-source';
 import { ImportFitDialog } from '../import-fit-dialog/import-fit-dialog';
 import { CalendarBody } from './calendar-body';
 import { CalendarBulkDelete } from './calendar-bulk-delete';
@@ -134,6 +136,10 @@ export function Calendar({
   const view = chosenView ?? display.view;
   const calendarData = useCalendarData({ events, view });
   const { goToWeek, displayedMonth } = calendarData;
+  const hasGarminActivities = useMemo(
+    () => calendarData.events.some((event) => garminActivityLabel(event)),
+    [calendarData.events],
+  );
   const setView = useCallback(
     (next: CalendarView) => {
       if (next === 'week') goToWeek(displayedMonth);
@@ -927,6 +933,14 @@ export function Calendar({
                   </>
                 )}
               </div>
+              {/* The week view names the device on each card; the other
+                  views attribute the Garmin activities they hold at once */}
+              {view !== 'week' && hasGarminActivities && (
+                <GarminAttributionText
+                  kind="data"
+                  className={cn(isMobile && 'px-4 py-1')}
+                />
+              )}
               {importFiles && (
                 <ImportFitDialog trigger={false} dropped={droppedFiles} />
               )}

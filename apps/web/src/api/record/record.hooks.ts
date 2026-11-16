@@ -34,6 +34,12 @@ export const useGetRecordsQuery = (
     ...(keepPrevious && { placeholderData: keepPreviousData }),
   });
 
+export const useGetModeledMetricsQuery = (athleteId?: number) =>
+  useQuery({
+    queryFn: () => RecordAPI.getModeledMetrics(athleteId),
+    queryKey: [recordKeys.getModeledMetrics, athleteId],
+  });
+
 export const useGetRecordSportsQuery = (athleteId?: number) =>
   useQuery({
     queryFn: () => RecordAPI.getRecordSports(athleteId),

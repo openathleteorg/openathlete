@@ -29,9 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
+      # The branch's lanes, not the tag's: nothing is built here, and a fix
+      # to promote or submit must apply to versions tagged before it
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.tag }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
@@ -53,9 +53,9 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 30
     steps:
+      # The branch's lanes, not the tag's: nothing is built here, and a fix
+      # to promote or submit must apply to versions tagged before it
       - uses: actions/checkout@v7
-        with:
-          ref: ${{ inputs.tag }}
       - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'

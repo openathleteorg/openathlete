@@ -129,8 +129,8 @@ export class ProviderFullImportProcessor extends WorkerHost {
   }
 
   /**
-   * Garmin and Suunto serve the last month at most: the limit only matters
-   * to Strava and COROS, which go back years.
+   * Garmin serves the last month at most: the limit only matters to Strava,
+   * COROS and Suunto, which go back years.
    */
   private runProviderImport(
     account: ProviderAccount,
@@ -142,7 +142,7 @@ export class ProviderFullImportProcessor extends WorkerHost {
       case ConnectorProvider.GARMIN:
         return this.garminProviderService.queueFullImport(account);
       case ConnectorProvider.SUUNTO:
-        return this.suuntoProviderService.queueFullImport(account);
+        return this.suuntoProviderService.queueFullImport(account, options);
       case ConnectorProvider.COROS:
         return this.corosProviderService.queueFullImport(account, options);
       default:

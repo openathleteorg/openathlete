@@ -14,7 +14,11 @@ function palette() {
   };
 }
 
-function draw(title: string, lines: string[][]): HTMLCanvasElement {
+function draw(
+  title: string,
+  lines: string[][],
+  attribution?: string,
+): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = SIZE.width;
   canvas.height = SIZE.height;
@@ -42,6 +46,11 @@ function draw(title: string, lines: string[][]): HTMLCanvasElement {
   context.fillStyle = muted;
   context.font = '400 36px system-ui, sans-serif';
   context.fillText('OpenAthlete', 90, SIZE.height - 90);
+  if (attribution) {
+    // Garmin requires its attribution on every image made from its data
+    context.font = '400 26px system-ui, sans-serif';
+    context.fillText(attribution, 90, SIZE.height - 45);
+  }
   return canvas;
 }
 
@@ -52,12 +61,15 @@ function draw(title: string, lines: string[][]): HTMLCanvasElement {
 export async function shareYearCard({
   title,
   lines,
+  attribution,
 }: {
   title: string;
   lines: string[][];
+  /** A line naming the source of the figures, under them */
+  attribution?: string;
 }) {
   const blob = await new Promise<Blob | null>((resolve) =>
-    draw(title, lines).toBlob(resolve, 'image/png'),
+    draw(title, lines, attribution).toBlob(resolve, 'image/png'),
   );
   if (!blob) return;
   const name = 'openathlete-year.png';

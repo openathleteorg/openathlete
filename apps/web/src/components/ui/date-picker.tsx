@@ -32,7 +32,9 @@ export function DatePicker({
 }: DatePickerProps) {
   const locale = getLocale();
   return (
-    <Popover>
+    // Modal: inside a dialog, Safari and Firefox otherwise leave the calendar
+    // closed, as the dialog takes the focus back from it
+    <Popover modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"

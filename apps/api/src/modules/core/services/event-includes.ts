@@ -71,6 +71,7 @@ export const EVENT_INCLUDES = {
       externalId: true,
       sport: true,
       provider: true,
+      deviceName: true,
       description: true,
       records: true,
       equipmentId: true,

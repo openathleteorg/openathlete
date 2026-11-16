@@ -163,6 +163,32 @@ export class AthleteController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get('garmin-data')
+  @ApiOperation({
+    summary: 'Athletes whose data comes in part from Garmin',
+    description:
+      "Lists, among the current user's athlete profile and the athletes they coach, the ones holding activities or metrics imported from Garmin. The app shows Garmin's attribution next to their data and anything derived from it, as Garmin's brand guidelines require.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Athlete ids holding Garmin data',
+    schema: {
+      type: 'object',
+      properties: {
+        athleteIds: { type: 'array', items: { type: 'number' } },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  getGarminDataAthletes(@JwtUser() user: AuthUser) {
+    return this.athleteService.getGarminDataAthleteIds(user.userId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get('coaches')
   @ApiOperation({
     summary: 'Get all coaches for the current athlete',

@@ -54,6 +54,7 @@ import { PrismaService } from '../../prisma/services/prisma.service';
 import { QueueService } from '../../queue/queue.service';
 import {
   BaseProviderService,
+  FullImportOptions,
   FullImportResult,
   OAuthConfig,
   OAuthTokenResponse,
@@ -950,11 +951,17 @@ export class SuuntoProviderService
   }
 
   /**
-   * Queue full import of activities
+   * Queue the import of the activity history: all of it, as the workout
+   * list has no time limit (`since` defaults to 0), or the activities since
+   * `since` when the user asked for the last months only.
    */
-  async queueFullImport(account: ProviderAccount): Promise<FullImportResult> {
+  async queueFullImport(
+    account: ProviderAccount,
+    { since }: FullImportOptions = {},
+  ): Promise<FullImportResult> {
     const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - this.importWindowMs);
+    const startDate = since ?? new Date(0);
+    const partial = since ? { partial: true } : {};
 
     if (account.importMetricsEnabled) {
       // The 24/7 history Suunto serves, from the day after the first, which
@@ -973,7 +980,7 @@ export class SuuntoProviderService
       });
 
       if (activities.length === 0) {
-        return { queuedActivities: 0 };
+        return { queuedActivities: 0, ...partial };
       }
 
       const queued = await this.enqueueActivities(account, activities);
@@ -981,6 +988,7 @@ export class SuuntoProviderService
       return {
         queuedActivities: queued,
         backfillRequested: false,
+        ...partial,
       };
     } catch (error) {
       const errorName =
@@ -1332,9 +1340,11 @@ export class SuuntoProviderService
             type: metric.type as unknown as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: 'SUUNTO',
           },
           update: {
             value: roundMetricValue(metric.value),
+            source: 'SUUNTO',
           },
         }),
       ),

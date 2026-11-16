@@ -91,6 +91,13 @@ function MetricRow({ type, history, selected, onSelect }: RowProps) {
   );
   const { last, deltaPercent } = analysis;
   const delta = deltaPercent === null ? null : Math.round(deltaPercent);
+  // Garmin's attribution, beside each value it provided
+  const fromGarmin =
+    !!last &&
+    history.some(
+      (metric) =>
+        metric.source === 'GARMIN' && toMetricDay(metric.date) === last.day,
+    );
 
   return (
     <button
@@ -112,6 +119,9 @@ function MetricRow({ type, history, selected, onSelect }: RowProps) {
           {last && isMetricOutdated(last.day)
             ? ` · ${m.metrics_outdated_badge()}`
             : ''}
+          {fromGarmin && (
+            <span data-garmin-attribution="metric"> · Garmin</span>
+          )}
         </span>
       </span>
       <Sparkline analysis={analysis} />

@@ -108,6 +108,7 @@ export const routes = {
   record: {
     getRecords: '/record',
     getRecordSports: '/record/sports',
+    getModeledMetrics: '/record/modeled-metrics',
     getRecordHistory: '/record/history',
     getRecordEfforts: '/record/efforts',
     getRecordExclusions: '/record/exclusions',
@@ -183,6 +184,7 @@ export const routes = {
     getMyAthlete: '/athlete/me',
     getCoachedAthletes: '/athlete/coached',
     getCoaches: '/athlete/coaches',
+    getGarminData: '/athlete/garmin-data',
     inviteCoach: '/athlete/invite/coach',
     inviteAthlete: '/athlete/invite/athlete',
     removeAthlete: (athleteId: number) => `/athlete/${athleteId}`,

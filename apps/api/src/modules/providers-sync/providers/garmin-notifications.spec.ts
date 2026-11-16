@@ -2,8 +2,10 @@ import axios from 'axios';
 
 import { ProviderAccount } from '@openathlete/database';
 
+import { GarminActivityNotSavedError } from '../errors/garmin-activity-not-saved.error';
 import {
   GarminProviderService,
+  garminDeviceName,
   parseGarminNotifications,
   toImportedGarminActivity,
 } from './garmin.provider.service';
@@ -24,6 +26,19 @@ jest.mock('axios', () => {
 
 const mockedGet = axios.get as jest.Mock;
 const mockedDelete = axios.delete as jest.Mock;
+
+describe('garminDeviceName', () => {
+  it('keeps the model, without the brand the attribution adds', () => {
+    expect(garminDeviceName('Forerunner 965')).toBe('Forerunner 965');
+    expect(garminDeviceName(' Garmin fenix 8 ')).toBe('fenix 8');
+  });
+
+  it('drops the model of manual activities and missing ones', () => {
+    expect(garminDeviceName('unknown')).toBeNull();
+    expect(garminDeviceName('')).toBeNull();
+    expect(garminDeviceName(undefined)).toBeNull();
+  });
+});
 
 describe('parseGarminNotifications', () => {
   it('queues pings and pushes, but not deregistrations', () => {
@@ -192,6 +207,50 @@ describe('GarminProviderService.processNotification', () => {
     ).resolves.toBeUndefined();
   });
 
+  describe('an activity file that arrives before its activity', () => {
+    const fileNotification = {
+      summaryType: 'activityFiles',
+      userId: 'u1',
+      callbackURL:
+        'https://apis.garmin.com/wellness-api/rest/activityFile?id=9&token=t',
+      entry: { fileType: 'FIT', activityId: 9 },
+    };
+
+    function setupWithoutActivity() {
+      const context = setup([account]);
+      Object.assign(context.prisma.eventActivity, {
+        findFirst: jest.fn().mockResolvedValue(null),
+      });
+      return context;
+    }
+
+    it('waits for the import without pulling the file', async () => {
+      const { service } = setupWithoutActivity();
+
+      await expect(
+        service.processNotification(fileNotification, { lastAttempt: false }),
+      ).rejects.toBeInstanceOf(GarminActivityNotSavedError);
+      expect(mockedGet).not.toHaveBeenCalled();
+    });
+
+    it('answers the ping on the last attempt and says the file is dropped', async () => {
+      const { service } = setupWithoutActivity();
+      const warn = jest
+        .spyOn(service['logger'], 'warn')
+        .mockImplementation(() => undefined);
+      mockedGet.mockResolvedValue({ data: new ArrayBuffer(8) });
+
+      await service.processNotification(fileNotification, {
+        lastAttempt: true,
+      });
+
+      expect(mockedGet).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Garmin activity 9 was still not saved'),
+      );
+    });
+  });
+
   it('deregisters a revoked account still holding a refresh token', async () => {
     const revoked = { ...account, status: 'revoked' } as ProviderAccount;
     const { service } = setup([revoked]);
@@ -252,6 +311,13 @@ describe('GarminProviderService.processNotification', () => {
 
     expect(mockedGet).not.toHaveBeenCalled();
     expect(prisma.$transaction).toHaveBeenCalled();
+    // Labelled as Garmin's, for the attribution the app shows
+    expect(prisma.athleteMetric.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: expect.objectContaining({ source: 'GARMIN' }),
+        update: expect.objectContaining({ source: 'GARMIN' }),
+      }),
+    );
   });
 
   it('drops pushed data of unknown users, with nothing left to answer', async () => {
