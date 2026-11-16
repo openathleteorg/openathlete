@@ -18,7 +18,13 @@ const finite = (value: number | undefined): value is number =>
  * segment, so no straight line is drawn across it. Null without a point.
  */
 export function activityToGpx(
-  activity: { name: string; startDate: Date; sport: string },
+  activity: {
+    name: string;
+    startDate: Date;
+    sport: string;
+    /** Who the data comes from, when they must be named */
+    source?: string | null;
+  },
   stream: ActivityStream,
 ): string | null {
   const latlng = stream.latlng ?? [];
@@ -76,6 +82,10 @@ export function activityToGpx(
     '  </metadata>',
     '  <trk>',
     `    <name>${name}</name>`,
+    // GPX 1.1 puts src between name and type
+    ...(activity.source
+      ? [`    <src>${escapeXml(activity.source)}</src>`]
+      : []),
     `    <type>${escapeXml(activity.sport.toLowerCase())}</type>`,
     ...segments.map((points) =>
       ['    <trkseg>', ...points, '    </trkseg>'].join('\n'),
@@ -84,6 +94,11 @@ export function activityToGpx(
     '</gpx>',
     '',
   ].join('\n');
+}
+
+/** "Garmin [device model]", or "Garmin": the web shows the same label */
+export function garminSourceLabel(deviceName?: string | null): string {
+  return deviceName ? `Garmin ${deviceName}` : 'Garmin';
 }
 
 /** The name a downloaded track gets: the activity's date and name */

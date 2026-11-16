@@ -630,10 +630,11 @@ export class EventController {
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Get(':eventId/gpx')
+  @Throttle(RATE_LIMITS.activityFile)
   @ApiOperation({
     summary: 'Download the GPS track of an activity as GPX',
     description:
-      'The GPS track as a GPX 1.1 file, to follow the route again or open it in another app. Each point has its altitude and time, and heart rate and cadence in the Garmin TrackPointExtension; a GPS gap starts a new segment. Any activity with GPS has one, whatever it was imported from; the event carries `hasTrack` when it does. Uses CASL authorization to verify that the user has read access to the event.',
+      'The GPS track as a GPX 1.1 file, to follow the route again or open it in another app. Each point has its altitude and time, and heart rate and cadence in the Garmin TrackPointExtension; a GPS gap starts a new segment. Any activity with GPS has one, whatever it was imported from; the activity stream has `latlng` when it does. An activity imported from Garmin names it as its source (`<src>Garmin [device]</src>`), as the Garmin brand guidelines require. Limited to 30 files a minute. Uses CASL authorization to verify that the user has read access to the event.',
   })
   @ApiParam({
     name: 'eventId',
@@ -658,6 +659,7 @@ export class EventController {
     description:
       'Not found - event not found or not readable by the user, or no GPS track',
   })
+  @ApiResponse({ status: 429, description: 'Too many files requested' })
   async getEventGpx(
     @JwtUser() user: AuthUser,
     @Param('eventId', ParseIntPipe) eventId: Event['eventId'],

@@ -31,6 +31,8 @@ export const RATE_LIMITS = {
   providerSync: { default: { limit: 3, ttl: 15 * MINUTE } },
   /** Full account data export: heavy queries */
   dataExport: { default: { limit: 5, ttl: 60 * MINUTE } },
+  /** Files built from a whole activity recording, such as GPX */
+  activityFile: { default: { limit: 30, ttl: MINUTE } },
   /** Routes calling an AI provider on the user's key just to check it */
   aiCheck: { default: { limit: 10, ttl: MINUTE } },
   /**

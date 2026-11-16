@@ -1,4 +1,4 @@
-import { activityToGpx, gpxFileName } from './activity-gpx';
+import { activityToGpx, garminSourceLabel, gpxFileName } from './activity-gpx';
 import { prepareManualGpx } from './manual-gpx-import';
 
 const activity = {
@@ -39,6 +39,19 @@ describe('activityToGpx', () => {
     expect(gpx.match(/<trkpt /g)).toHaveLength(2);
   });
 
+  it('names its source between the name and the type', () => {
+    const gpx = activityToGpx(
+      { ...activity, source: 'Garmin Forerunner 965' },
+      { time: [0], latlng: [[47.6, 11.2]] },
+    )!;
+    expect(gpx).toMatch(
+      /<name>Heimgarten &amp; &lt;Herzogstand&gt;<\/name>\n\s*<src>Garmin Forerunner 965<\/src>\n\s*<type>trail_running<\/type>/,
+    );
+    expect(
+      activityToGpx(activity, { time: [0], latlng: [[47.6, 11.2]] }),
+    ).not.toContain('<src>');
+  });
+
   it('gives nothing without GPS', () => {
     expect(
       activityToGpx(activity, { time: [0, 1], heartrate: [100, 101] }),
@@ -72,5 +85,12 @@ describe('gpxFileName', () => {
         startDate: new Date('2026-01-06T07:00:00Z'),
       }),
     ).toBe('2026-01-06-Langer-Lauf-Zurich.gpx');
+  });
+});
+
+describe('garminSourceLabel', () => {
+  it('names the device when Garmin does', () => {
+    expect(garminSourceLabel('Fenix 7')).toBe('Garmin Fenix 7');
+    expect(garminSourceLabel(null)).toBe('Garmin');
   });
 });

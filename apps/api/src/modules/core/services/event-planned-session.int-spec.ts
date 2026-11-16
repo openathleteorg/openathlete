@@ -115,10 +115,7 @@ describe('an activity read on its own (PostgreSQL)', () => {
   });
 
   describe('GPS track', () => {
-    it('says whether there is one, and gives it as GPX', async () => {
-      expect((await events.getEventById(athlete, RUN_EVENT_ID)).hasTrack).toBe(
-        undefined,
-      );
+    it('gives it as GPX, and nothing without one', async () => {
       await expect(events.getEventGpx(athlete, RUN_EVENT_ID)).rejects.toThrow(
         'No GPS track',
       );
@@ -134,13 +131,32 @@ describe('an activity read on its own (PostgreSQL)', () => {
           },
         },
       });
-      const run = await events.getEventById(athlete, RUN_EVENT_ID);
-      expect(run.hasTrack).toBe(true);
-
       const gpx = await events.getEventGpx(athlete, RUN_EVENT_ID);
       expect(gpx.fileName).toMatch(/^\d{4}-\d{2}-\d{2}-Run\.gpx$/);
       expect(gpx.content.match(/<trkseg>/g)).toHaveLength(2);
       expect(gpx.content).toContain('<ele>640.0</ele>');
+      expect(gpx.content).not.toContain('<src>');
+    });
+
+    it('names Garmin and the device as the source of a Garmin activity', async () => {
+      await prisma.eventActivity.update({
+        where: { eventId: RUN_EVENT_ID },
+        data: {
+          provider: 'GARMIN',
+          deviceName: 'Forerunner 965',
+          stream: {
+            time: [0, 1],
+            latlng: [
+              [47.6, 11.2],
+              [47.61, 11.21],
+            ],
+          },
+        },
+      });
+      const gpx = await events.getEventGpx(athlete, RUN_EVENT_ID);
+      expect(gpx.content).toMatch(
+        /<name>Run<\/name>\n\s*<src>Garmin Forerunner 965<\/src>\n\s*<type>/,
+      );
     });
 
     it("is not given for another athlete's activity", async () => {
