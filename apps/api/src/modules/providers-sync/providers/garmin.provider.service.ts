@@ -72,6 +72,7 @@ import {
   ProviderImportCapability,
 } from '../base';
 import { providerRedirectUri } from '../base/provider-urls';
+import { GarminActivityNotSavedError } from '../errors/garmin-activity-not-saved.error';
 import { InvalidRefreshTokenError } from '../errors/invalid-refresh-token.error';
 import { ProviderRateLimitError } from '../errors/provider-rate-limit.error';
 import {
@@ -265,7 +266,19 @@ function activityMetrics(summary: GarminActivitySummary) {
       ? roundEnergy(summary.activeKilocalories * 4.184)
       : undefined,
     sport: mapGarminActivityType(summary.activityType),
+    deviceName: garminDeviceName(summary.deviceName),
   };
+}
+
+/**
+ * The model Garmin names, for the "Garmin Forerunner 965" attribution its
+ * brand guidelines require. Manual activities say "unknown": the
+ * attribution then falls back to "Garmin".
+ */
+export function garminDeviceName(name: string | undefined): string | null {
+  const trimmed = name?.trim().replace(/^garmin\s+/i, '');
+  if (!trimmed || trimmed.toLowerCase() === 'unknown') return null;
+  return trimmed.slice(0, 100);
 }
 
 @Injectable()
@@ -1085,8 +1098,12 @@ export class GarminProviderService
         },
       });
       if (!activity && !lastAttempt) {
-        throw new Error(
-          `Garmin activity ${activityId} is not saved yet; its file will be fetched on the next attempt`,
+        throw new GarminActivityNotSavedError(activityId);
+      }
+      if (!activity) {
+        // The file is still pulled to answer the ping, but its stream is lost
+        this.logger.warn(
+          `Garmin activity ${activityId} was still not saved after every attempt: its file is dropped`,
         );
       }
     }
@@ -1296,8 +1313,12 @@ export class GarminProviderService
             type: metric.type,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: ConnectorProvider.GARMIN,
           },
-          update: { value: roundMetricValue(metric.value) },
+          update: {
+            value: roundMetricValue(metric.value),
+            source: ConnectorProvider.GARMIN,
+          },
         }),
       ),
     );

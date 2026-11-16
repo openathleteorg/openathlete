@@ -43,6 +43,7 @@ import { CoachNoteService } from './services/coach-note.service';
 import { CoachService } from './services/coach.service';
 import { CustomExerciseService } from './services/custom-exercise.service';
 import { EquipmentService } from './services/equipment.service';
+import { EventBatchService } from './services/event-batch.service';
 import { EventBulkService } from './services/event-bulk.service';
 import { EventSeriesService } from './services/event-series.service';
 import { EventTemplateFolderService } from './services/event-template-folder.service';
@@ -50,6 +51,7 @@ import { EventTemplateService } from './services/event-template.service';
 import { InjuryService } from './services/injury.service';
 import { ManualActivityService } from './services/manual-activity.service';
 import { ManualFitImportService } from './services/manual-fit-import.service';
+import { MetricThresholdService } from './services/metric-threshold.service';
 import { MetricService } from './services/metric.service';
 import { ActivityPipelineService } from './services/pipeline/activity-pipeline.service';
 import {
@@ -124,6 +126,8 @@ import { WeatherService } from './services/weather/weather.service';
     ActivityFeedbackService,
     CalendarFeedService,
     EventBulkService,
+    EventBatchService,
+    MetricThresholdService,
     EventSeriesService,
     ManualActivityService,
     ActivityCorrectionsService,
@@ -186,6 +190,7 @@ import { WeatherService } from './services/weather/weather.service';
     // For the MCP server's tools
     StatisticsService,
     EventBulkService,
+    EventBatchService,
     EventSeriesService,
     MetricService,
     RecordService,

@@ -3,12 +3,16 @@ import client, { routes } from '@/utils/axios';
 import {
   Athlete,
   AthleteSettings,
+  GarminDataAthletes,
   InviteCoachDto,
   TrainingZone,
   TrainingZoneValue,
   UpdateAthleteSettingsDto,
   User,
 } from '@openathlete/shared';
+
+/** The club that made a coach-athlete link, and ends it */
+export type LinkClub = { clubId: number; name: string };
 
 export class AthleteAPI {
   static async getMyAthlete(): Promise<
@@ -27,13 +31,20 @@ export class AthleteAPI {
       trainingZones: (TrainingZone & {
         values: TrainingZoneValue[];
       })[];
+      /** The club through which the coach coaches the athlete, if any */
+      club: LinkClub | null;
     })[]
   > {
     const res = await client.get(routes.athlete.getCoachedAthletes);
     return res.data;
   }
 
-  static async getMyCoaches(): Promise<User[]> {
+  static async getGarminData(): Promise<GarminDataAthletes> {
+    const res = await client.get(routes.athlete.getGarminData);
+    return res.data;
+  }
+
+  static async getMyCoaches(): Promise<(User & { club: LinkClub | null })[]> {
     const res = await client.get(routes.athlete.getCoaches);
     return res.data;
   }

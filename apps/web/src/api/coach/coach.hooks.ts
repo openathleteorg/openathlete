@@ -16,13 +16,15 @@ import { coachKeys } from './coach.keys';
 export function useCoachDashboardQuery(
   start?: Date,
   end?: Date,
-  options?: UseQueryOptions<CoachDashboardResponseDto>,
+  options?: Partial<UseQueryOptions<CoachDashboardResponseDto>>,
+  /** Adds the figures of the period before, to compare */
+  comparePrevious = false,
 ) {
   const startIso = start?.toISOString();
   const endIso = end?.toISOString();
   return useQuery<CoachDashboardResponseDto>({
-    queryKey: coachKeys.dashboard(startIso, endIso),
-    queryFn: () => CoachAPI.getDashboard(start, end),
+    queryKey: coachKeys.dashboard(startIso, endIso, comparePrevious),
+    queryFn: () => CoachAPI.getDashboard(start, end, comparePrevious),
     staleTime: 60 * 1000,
     ...options,
   });
@@ -88,3 +90,29 @@ export const useRejectInvitationMutation = (
     },
   });
 };
+
+export const useMetricThresholdsQuery = ({
+  enabled = true,
+}: { enabled?: boolean } = {}) =>
+  useQuery({
+    queryKey: coachKeys.thresholds,
+    queryFn: CoachAPI.getThresholds,
+    enabled,
+  });
+
+/** Thresholds change the dashboard's alerts too */
+const useThresholdMutation = <TArgs, TResult>(
+  mutationFn: (args: TArgs) => Promise<TResult>,
+) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: coachKeys.all }),
+  });
+};
+
+export const useSetThresholdsMutation = () =>
+  useThresholdMutation(CoachAPI.setThresholds);
+
+export const useDeleteThresholdMutation = () =>
+  useThresholdMutation(CoachAPI.deleteThreshold);

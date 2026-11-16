@@ -37,6 +37,8 @@ export const paths: Paths = {
 
   // A coach's shareable join link, opened signed in or out
   join: '/join/:token',
+  // A club's join link (athletes or coaches), opened signed in or out
+  clubJoin: '/club-join/:token',
 
   // DASHBOARD
   dashboard: {
@@ -100,6 +102,14 @@ export const getPath = (parts: string[]): string => {
   }
   return typeof path === 'string' ? path : path.root;
 };
+
+/** A club's page, in the settings */
+export const clubPath = (clubId: number): string =>
+  `${getPath(['dashboard', 'settings'])}?tab=clubs&club=${clubId}`;
+
+/** The page a club's join link opens */
+export const clubJoinPath = (token: string): string =>
+  `/club-join/${encodeURIComponent(token)}`;
 
 /** The page a coach's join link opens */
 export const joinPath = (token: string): string =>

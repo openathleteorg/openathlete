@@ -7,6 +7,7 @@ import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
 import { isCapacitor, isIOS } from '@/utils/capacitor';
+import { readPendingClubJoinToken } from '@/utils/club-join';
 import {
   type OAuthProviderId,
   getFirebaseIdTokenForProvider,
@@ -37,6 +38,9 @@ export function OAuthButtons({
 }: Props) {
   const nav = useNavigate();
   const { initialize } = useAuthContext();
+  // A club link opened before: it lets a new account in on an invite-only
+  // instance, and the club is joined once signed in
+  const clubJoinToken = readPendingClubJoinToken() ?? undefined;
   const posthog = usePostHog();
   const { data: instance } = useInstanceInfoQuery();
   const [pendingProvider, setPendingProvider] =
@@ -69,6 +73,7 @@ export function OAuthButtons({
         idToken,
         invitationToken: invitationToken || undefined,
         coachInvitationToken: coachInvitationToken || undefined,
+        clubJoinToken,
         // Saved only if this sign-in creates the account
         language: currentLanguage(),
       });
@@ -99,6 +104,7 @@ export function OAuthButtons({
       AuthAPI.oidcSignInUrl({
         invitation: invitationToken || undefined,
         coachInvitation: coachInvitationToken || undefined,
+        clubJoin: clubJoinToken,
         language: currentLanguage(),
       }),
     );

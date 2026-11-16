@@ -4,6 +4,8 @@ import { ArrowRight } from 'lucide-react';
 
 import { ActivityEvent, activityAiSummarySchema } from '@openathlete/shared';
 
+import { GarminAttributionText } from '../garmin-attribution/garmin-attribution';
+import { garminActivityLabel } from '../garmin-attribution/garmin-source';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 /**
@@ -43,6 +45,10 @@ export function AiSummaryCard({ event }: { event: ActivityEvent }) {
               {suggestion}
             </span>
           </p>
+        )}
+        {/* The AI read a Garmin recording: Garmin requires saying so */}
+        {garminActivityLabel(event) && (
+          <GarminAttributionText kind="insights" />
         )}
       </CardContent>
     </Card>

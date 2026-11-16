@@ -21,9 +21,11 @@ interface P {
 }
 
 function Cost({
+  athleteId,
   data,
   before,
 }: {
+  athleteId: number;
   data: StatisticsCardiacCostDto;
   before?: StatisticsCardiacCostDto;
 }) {
@@ -83,6 +85,7 @@ function Cost({
           />
           <div className="flex justify-end">
             <ExportButton
+              athleteId={athleteId}
               name="cardiac-cost"
               header={[data.unit, 'low', 'median', 'high', 'activities']}
               rows={() =>
@@ -128,7 +131,13 @@ function CostData({
     visible && !!compared,
   );
   if (!data) return <SkeletonChart className="h-[400px] rounded-xl" />;
-  return <Cost data={data} before={compared ? before : undefined} />;
+  return (
+    <Cost
+      athleteId={athleteId}
+      data={data}
+      before={compared ? before : undefined}
+    />
+  );
 }
 
 export function PhysiologySection(props: P) {

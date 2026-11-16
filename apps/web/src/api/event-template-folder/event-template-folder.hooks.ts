@@ -14,11 +14,13 @@ export const useGetMyFoldersQuery = (
   opt?: QueryOptions<
     Awaited<ReturnType<typeof EventTemplateFolderAPI.getMyFolders>>
   >,
+  /** A club's library; the user's own when null */
+  clubId: number | null = null,
 ) =>
   useQuery({
     ...opt,
-    queryFn: EventTemplateFolderAPI.getMyFolders,
-    queryKey: [eventTemplateFolderKeys.getMyFolders],
+    queryFn: () => EventTemplateFolderAPI.getMyFolders(clubId),
+    queryKey: [eventTemplateFolderKeys.getMyFolders, clubId],
   });
 
 export const useCreateFolderMutation = (

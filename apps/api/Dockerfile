@@ -18,7 +18,11 @@ COPY libs/database/package.json libs/database/package.json
 # for `pnpm db:generate`. Force a full install on this RUN only.
 RUN NODE_ENV=development pnpm install --frozen-lockfile --prod=false
 
-COPY . .
+# Only what the API is built from: a change to the web app, the website or
+# the docs must not invalidate the build layers below
+COPY libs/database libs/database
+COPY libs/shared libs/shared
+COPY apps/api apps/api
 
 # Dummy URL is enough for `prisma generate` (no DB connection).
 # Keep NODE_ENV=development so prisma (devDependency) remains on PATH.

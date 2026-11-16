@@ -44,7 +44,9 @@ export function ContentPtBr() {
         o plano Supporter a {q('oaYear')} por ano tira o limite, seja qual for o
         tamanho da assessoria, e ainda acrescenta IA com as nossas chaves. A
         sincronização com o relógio é grátis para os atletas. Hospedar no seu
-        próprio servidor é grátis e sem limites.
+        próprio servidor é grátis e sem limites. Os clubes têm um espaço de
+        clube gratuito, e os atletas que um treinador acompanha por meio de um
+        clube não contam entre os cinco.
       </p>
 
       <table>
@@ -109,7 +111,8 @@ export function ContentPtBr() {
         associações, vários treinadores na mesma conta, apps nativos de iOS e
         Android e uma biblioteca com mais de 200 vídeos de exercícios de força.
         Se o seu clube quer uma conta só para três treinadores e sessenta
-        associados, a Nolio tem um plano feito para isso e nós não.
+        associados, com apps nativos em cada celular, a Nolio tem um plano feito
+        para isso.
       </p>
       <p>
         O <strong>OpenAthlete</strong> mantém preço fixo e acrescenta algumas
@@ -120,8 +123,12 @@ export function ContentPtBr() {
         algumas perguntas, e o esforço e qualquer dor relatada vão para um
         registro de lesões e para o seu painel. Pelo servidor MCP, Claude ou
         ChatGPT podem ler o treino de um atleta e planejar até 60 treinos no
-        calendário dele. O código é AGPL-3.0, então um clube pode rodar a
-        própria instância, com login único (SSO) e cadastro só por convite.
+        calendário dele. Os clubes têm um espaço de clube gratuito sem limite de
+        atletas: grupos com seus treinadores, uma biblioteca compartilhada,
+        treinos semanais do clube que os atletas confirmam, e um treino, um dia
+        ou uma semana copiados para um grupo inteiro, adaptados às zonas de cada
+        um. O código é AGPL-3.0, então um clube também pode rodar a própria
+        instância, com login único (SSO) e cadastro só por convite.
       </p>
 
       <h2>O que falta em cada um</h2>
@@ -134,8 +141,8 @@ export function ContentPtBr() {
       <p>
         As lacunas do OpenAthlete também são reais. Os apps de iOS e Android
         estão em teste, então por enquanto os atletas usam o app web instalável.
-        Não existe conta de clube: cada treinador tem a sua, e um atleta pode
-        ter vários treinadores. Sem loja, sem biblioteca de vídeos, sem parceria
+        O espaço de clube não tem cobrança para o clube: as mensalidades ficam
+        fora do OpenAthlete. Sem loja, sem biblioteca de vídeos, sem parceria
         com federação. Os treinos vão para relógios Garmin, Suunto e COROS, não
         Polar. A carga é o TRIMP de Banister pela frequência cardíaca, com o RPE
         da sessão ao lado, então os números não vão bater com o TSS se seus
@@ -151,10 +158,12 @@ export function ContentPtBr() {
         por ano, IA de um lado e apps nativos do outro.
       </p>
       <p>
-        Um clube com três treinadores e sessenta associados que querem um app no
-        celular agora: os planos de clube da Nolio servem melhor. Uma instância
-        própria do OpenAthlete é uma opção se alguém do clube topar cuidar de um
-        servidor.
+        Um clube com três treinadores e sessenta associados: se eles querem um
+        app nativo no celular agora, os planos de clube da Nolio servem melhor.
+        Se o app web instalável basta, o espaço de clube do OpenAthlete resolve
+        de graça, com grupos, uma biblioteca compartilhada e a pista de terça já
+        no calendário de cada associado. Uma instância própria é uma opção se
+        alguém do clube topar cuidar de um servidor.
       </p>
       <p>
         Um treinador que vende planilhas para atletas com quem nunca fala: fique

@@ -105,7 +105,12 @@ function HistoryEntry({ metric, hidden, onEdit, athleteId }: EntryProps) {
   return (
     <li className="flex min-h-11 items-center gap-2 border-t text-sm tabular-nums">
       <span className="flex min-w-0 flex-1 flex-col py-1">
-        <span className="text-muted-foreground">{label}</span>
+        <span className="text-muted-foreground">
+          {label}
+          {metric.source === 'GARMIN' && (
+            <span data-garmin-attribution="metric"> · Garmin</span>
+          )}
+        </span>
         {metric.notes && (
           <span className="truncate text-xs text-muted-foreground">
             {metric.notes}
@@ -205,6 +210,14 @@ export function MetricDetail({ type, pinned, onTogglePinned, athleteId }: P) {
     value === null ? '—' : formatMetricValue(type, value);
 
   const newestFirst = useMemo(() => [...history].reverse(), [history]);
+  // Garmin requires its attribution beside the values and the chart it feeds
+  const lastFromGarmin =
+    !!last &&
+    history.some(
+      (metric) =>
+        metric.source === 'GARMIN' && toMetricDay(metric.date) === last.day,
+    );
+  const chartFromGarmin = history.some((metric) => metric.source === 'GARMIN');
   const shown = showAll ? newestFirst : newestFirst.slice(0, HISTORY_PREVIEW);
 
   const handleSubmit = async ({ value, notes, ...entry }: CreateMetricDto) => {
@@ -248,6 +261,9 @@ export function MetricDetail({ type, pinned, onTogglePinned, athleteId }: P) {
               <span className="text-muted-foreground">{unit}</span>
               <span className="ml-1 text-sm text-muted-foreground">
                 {dateLabel(last.day)}
+                {lastFromGarmin && (
+                  <span data-garmin-attribution="metric"> · Garmin</span>
+                )}
               </span>
             </p>
           ) : (
@@ -321,6 +337,11 @@ export function MetricDetail({ type, pinned, onTogglePinned, athleteId }: P) {
           {hiddenDays.size > 0 && (
             <span data-metric-hidden>
               {m.metrics_hidden_values({ count: hiddenDays.size })}
+            </span>
+          )}
+          {chartFromGarmin && (
+            <span data-garmin-attribution="data">
+              {m.garmin_attribution_data()}
             </span>
           )}
         </div>

@@ -787,8 +787,14 @@ export class CorosProviderService
         where: {
           athleteId_type_date: { athleteId: account.athleteId, type, date },
         },
-        create: { athleteId: account.athleteId, type, date, value: rounded },
-        update: { value: rounded },
+        create: {
+          athleteId: account.athleteId,
+          type,
+          date,
+          value: rounded,
+          source: 'COROS',
+        },
+        update: { value: rounded, source: 'COROS' },
       });
     }
   }

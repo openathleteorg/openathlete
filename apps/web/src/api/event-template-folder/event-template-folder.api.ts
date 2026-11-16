@@ -7,8 +7,13 @@ import {
 } from '@openathlete/shared';
 
 export class EventTemplateFolderAPI {
-  static async getMyFolders(): Promise<EventTemplateFolder[]> {
-    const res = await client.get(routes.eventTemplateFolder.getMyFolders);
+  /** The user's own folders, or a club's library with clubId */
+  static async getMyFolders(
+    clubId?: number | null,
+  ): Promise<EventTemplateFolder[]> {
+    const res = await client.get(routes.eventTemplateFolder.getMyFolders, {
+      params: clubId ? { clubId } : undefined,
+    });
     return res.data;
   }
 

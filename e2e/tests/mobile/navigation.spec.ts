@@ -49,7 +49,7 @@ test('the finder opens from the top bar, full screen', async ({ page }) => {
   await expect(finder.getByRole('combobox')).toBeVisible();
 });
 
-test('the install view lists the stores to come and the web app', async ({
+test('the install view offers Google Play, the iPhone app to come and the web app', async ({
   page,
 }) => {
   await page.goto('/dashboard/profile');
@@ -57,7 +57,16 @@ test('the install view lists the stores to come and the web app', async ({
   await page.getByRole('button', { name: 'Install app' }).tap();
   const dialog = page.getByRole('dialog');
   await expect(dialog.locator('[data-install-channel]')).toHaveCount(3);
-  await expect(dialog.getByText('Coming soon')).toHaveCount(2);
+  // Android is live: an install link to its store listing
+  await expect(
+    dialog
+      .locator('[data-install-channel]', { hasText: 'Google Play' })
+      .getByRole('link', { name: 'Install' }),
+  ).toHaveAttribute(
+    'href',
+    /play\.google\.com\/store\/apps\/details\?id=org\.openathlete/,
+  );
+  await expect(dialog.getByText('Coming soon')).toHaveCount(1);
 });
 
 test('fits the screen without horizontal scrolling', async ({ page }) => {

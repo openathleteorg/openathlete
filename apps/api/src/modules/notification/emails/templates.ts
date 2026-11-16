@@ -3,6 +3,7 @@ import { EmailId, EmailLanguage, EmailPropsFromId } from '@openathlete/shared';
 import { RenderedEmail } from './core/layout';
 import { buildAthleteInvitationExistingEmail } from './templates/athlete-invitation-existing.template';
 import { buildAthleteInvitationEmail } from './templates/athlete-invitation.template';
+import { buildClubInvitationEmail } from './templates/club-invitation.template';
 import { buildCoachInvitationExistingEmail } from './templates/coach-invitation-existing.template';
 import { buildCoachInvitationNewEmail } from './templates/coach-invitation-new.template';
 import { buildPasswordResetEmail } from './templates/password-reset.template';
@@ -23,4 +24,5 @@ export const emailTemplates: {
   'coach-invitation-new': buildCoachInvitationNewEmail,
   'coach-invitation-existing': buildCoachInvitationExistingEmail,
   'signup-notification': buildSignupNotificationEmail,
+  'club-invitation': buildClubInvitationEmail,
 };

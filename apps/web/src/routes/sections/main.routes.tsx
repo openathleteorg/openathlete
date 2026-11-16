@@ -8,6 +8,7 @@ const Page403 = lazy(() => import('@/pages/403'));
 const Page404 = lazy(() => import('@/pages/404'));
 const UnsubscribePage = lazy(() => import('@/pages/emails/unsubscribe'));
 const CoachJoinPage = lazy(() => import('@/pages/join'));
+const ClubJoinPage = lazy(() => import('@/pages/join/club'));
 
 export const mainRoutes: RouteObject[] = [
   {
@@ -26,6 +27,8 @@ export const mainRoutes: RouteObject[] = [
       { path: 'emails/unsubscribe', element: <UnsubscribePage /> },
       // A coach's shareable join link, which works signed out
       { path: 'join/:token', element: <CoachJoinPage /> },
+      // A club's join links, for athletes or coaches, signed in or out
+      { path: 'club-join/:token', element: <ClubJoinPage /> },
     ],
   },
 ];

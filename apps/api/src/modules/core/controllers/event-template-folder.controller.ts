@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -17,6 +18,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -41,6 +43,12 @@ export class EventTemplateFolderController {
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
   @Get()
+  @ApiQuery({
+    name: 'clubId',
+    type: Number,
+    required: false,
+    description: "A club's library, for its staff; the user's own without it",
+  })
   @ApiOperation({
     summary: 'Get all folders for the authenticated user',
     description:
@@ -131,8 +139,11 @@ export class EventTemplateFolderController {
     status: 401,
     description: 'Unauthorized - invalid or missing authentication token',
   })
-  getMyFolders(@JwtUser() user: AuthUser) {
-    return this.eventTemplateFolderService.getMyFolders(user);
+  getMyFolders(
+    @JwtUser() user: AuthUser,
+    @Query('clubId', new ParseIntPipe({ optional: true })) clubId?: number,
+  ) {
+    return this.eventTemplateFolderService.getMyFolders(user, clubId ?? null);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

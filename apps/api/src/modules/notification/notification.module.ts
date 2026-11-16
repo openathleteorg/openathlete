@@ -8,6 +8,7 @@ import {
   PushNotificationService,
   TrainingReminderScheduler,
 } from './services';
+import { MetricThresholdScheduler } from './services/metric-threshold.scheduler';
 
 @Module({
   providers: [
@@ -16,6 +17,7 @@ import {
     PushNotificationService,
     TrainingReminderScheduler,
     LifecycleEmailScheduler,
+    MetricThresholdScheduler,
   ],
   controllers: [EmailPreferencesController],
   exports: [

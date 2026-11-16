@@ -22,6 +22,13 @@ Dates are relative to the day it runs (`SEED_TODAY=YYYY-MM-DD` pins them).
   behind on the plan, coming back from an injury, gone quiet, waiting for an
   answer. A template library in folders.
 
+- **Annecy Lakeside Runners**, the club Julien owns, with Claire Vidal
+  (admin) and Romain Blanc (assistant, beginners group): thirty athletes,
+  his eleven plus eighteen members he reaches through the club, in four
+  groups; a shared library; five weekly club sessions four weeks ahead with
+  answers (one Thursday called off); pending invitations from an imported
+  list; a group conversation, a scheduled message and metric alerts.
+
 Records, grade-adjusted pace, intensity, profiles and training load are not
 seeded: the API computes them, as it would for an import.
 
@@ -29,6 +36,8 @@ seeded: the API computes them, as it would for an import.
 | --- | --- | --- |
 | Athlete | `camille.laurent@openathlete.org` | `Screenshots2026!` |
 | Coach | `julien.moreau@openathlete.org` | `Screenshots2026!` |
+| Club member (marathon group) | `thomas.bernard@openathlete.org` | `Screenshots2026!` |
+| Club admin | `claire.vidal@openathlete.org` | `Screenshots2026!` |
 
 Roster athletes use `firstname.lastname@openathlete.org` and the same
 password. No email is ever sent: the stack has no mail key.
@@ -52,7 +61,9 @@ scripts/screenshots/stop.sh       # stops the API and web app, keeps the data
   accounts it did not create (`--force` overrides).
 - Screenshots go to `scripts/screenshots/out/` by default (ignored by git),
   at 2× scale: desktop 1440×900, mobile 390×844, light theme plus a few dark
-  ones. The shot list is `SHOTS` in `capture.ts`.
+  ones. The shot list is `SHOTS` in `capture.ts`. Shots run in full
+  Chromium (`channel: 'chromium'`): the headless shell ignores `--lang`, and
+  native date fields would read mm/dd/yyyy.
 
 Type-check the scripts with
 `libs/database/node_modules/.bin/tsc -p scripts/screenshots/tsconfig.json`.

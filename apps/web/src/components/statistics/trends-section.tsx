@@ -187,6 +187,7 @@ function Trends({
     >
       <div className="flex justify-end md:col-span-2">
         <ExportButton
+          athleteId={athleteId}
           name="trends"
           header={['period', ...trends.map(({ key }) => key)]}
           rows={() =>

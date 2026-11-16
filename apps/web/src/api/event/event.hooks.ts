@@ -1,3 +1,4 @@
+import { coachKeys } from '@/api/coach/coach.keys';
 import {
   MutationOptions,
   QueryClient,
@@ -864,6 +865,23 @@ export const useRemoveActivityCorrectionMutation = (
     onSuccess: (...args) => {
       invalidateCorrectedActivity(queryClient, args[1].eventId);
       opt?.onSuccess?.(...args);
+    },
+  });
+};
+
+/** What planning for several athletes would meet, athlete by athlete */
+export const usePlanForAthletesPreviewMutation = () =>
+  useMutation({ mutationFn: EventAPI.previewPlanForAthletes });
+
+/** Plans sessions for several athletes; every calendar may have changed */
+export const usePlanForAthletesMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: EventAPI.planForAthletes,
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [eventKeys.getMyEvents] });
+      queryClient.invalidateQueries({ queryKey: coachKeys.all });
+      invalidateTrainingLoadQueries(queryClient);
     },
   });
 };

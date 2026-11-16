@@ -24,9 +24,13 @@ export class EventTemplateAPI {
     return res.data;
   }
 
-  static async getMyEventTemplates(search?: string): Promise<EventTemplate[]> {
+  /** The user's own templates, or a club's library with clubId */
+  static async getMyEventTemplates(
+    search?: string,
+    clubId?: number | null,
+  ): Promise<EventTemplate[]> {
     const res = await client.get(routes.eventTemplate.getMyTemplates, {
-      params: { search },
+      params: { search, ...(clubId && { clubId }) },
     });
     return res.data;
   }

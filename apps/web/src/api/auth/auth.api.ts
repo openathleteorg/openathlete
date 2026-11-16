@@ -33,6 +33,7 @@ export class AuthAPI {
   static oidcSignInUrl(params: {
     invitation?: string;
     coachInvitation?: string;
+    clubJoin?: string;
     language?: EmailLanguage;
   }): string {
     const query = new URLSearchParams(

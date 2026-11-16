@@ -3,7 +3,15 @@ import { m } from '@/paraglide/messages';
 import { sportTypeLabelMap } from '@/utils/label-map/core';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Edit, FileText, GripVertical, StickyNote, Trash } from 'lucide-react';
+import {
+  Edit,
+  FileText,
+  GripVertical,
+  Share2,
+  StickyNote,
+  Trash,
+  Users,
+} from 'lucide-react';
 import { useState } from 'react';
 
 import { EventTemplate } from '@openathlete/shared';
@@ -22,6 +30,12 @@ type Props = {
   template: EventTemplate;
   onCreate: () => void;
   onEdit: () => void;
+  /** Plans the template for several athletes; absent without athletes */
+  onPlanForAthletes?: () => void;
+  /** Copies the template into a club's library; absent without one */
+  onShareToClub?: () => void;
+  /** A club library its assistant uses but does not change */
+  readOnly?: boolean;
   depth?: number;
   showUseButton?: boolean;
 };
@@ -30,6 +44,9 @@ export function DraggableTemplate({
   template,
   onCreate,
   onEdit,
+  onPlanForAthletes,
+  onShareToClub,
+  readOnly = false,
   depth = 0,
   showUseButton = true,
 }: Props) {
@@ -67,6 +84,7 @@ export function DraggableTemplate({
     <div
       ref={setNodeRef}
       style={style}
+      data-template={template.event?.name}
       className={`
         group relative flex items-center gap-2 p-2 rounded-lg border bg-card overflow-hidden
         transition-all duration-200
@@ -141,33 +159,102 @@ export function DraggableTemplate({
       </div>
 
       {isCompact ? (
-        <div className="absolute inset-0 flex items-center justify-end gap-1 ml-10 pr-2 bg-gradient-to-l from-card via-card/95 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="outline" size="icon" onClick={onEdit}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
+        // Over the name on hover; beside it on a touch screen, which has no hover
+        <div className="absolute inset-0 flex items-center justify-end gap-1 ml-10 pr-2 bg-gradient-to-l from-card via-card/95 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-coarse:static pointer-coarse:ml-0 pointer-coarse:shrink-0 pointer-coarse:bg-none pointer-coarse:pr-0 pointer-coarse:opacity-100">
+          {onPlanForAthletes && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onPlanForAthletes}
+              aria-label={m.plan_for_athletes_template_action()}
+              title={m.plan_for_athletes_template_action()}
+              data-template-plan-for-athletes
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+          )}
+          {onShareToClub && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onShareToClub}
+              aria-label={m.club_library_share()}
+              title={m.club_library_share()}
+              data-template-share-to-club
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
+          {!readOnly && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onEdit}
+                data-template-edit
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDeleteDialogOpen(true)}
+                data-template-delete
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       ) : (
         <div className="flex gap-1 flex-shrink-0">
           <Button variant="outline" onClick={onCreate}>
             {m.use()}
           </Button>
-          <Button variant="outline" size="icon" onClick={onEdit}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash className="h-4 w-4" />
-          </Button>
+          {onPlanForAthletes && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onPlanForAthletes}
+              aria-label={m.plan_for_athletes_template_action()}
+              title={m.plan_for_athletes_template_action()}
+              data-template-plan-for-athletes
+            >
+              <Users className="h-4 w-4" />
+            </Button>
+          )}
+          {onShareToClub && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onShareToClub}
+              aria-label={m.club_library_share()}
+              title={m.club_library_share()}
+              data-template-share-to-club
+            >
+              <Share2 className="h-4 w-4" />
+            </Button>
+          )}
+          {!readOnly && (
+            <>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onEdit}
+                data-template-edit
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setDeleteDialogOpen(true)}
+                data-template-delete
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            </>
+          )}
         </div>
       )}
 

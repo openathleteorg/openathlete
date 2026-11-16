@@ -18,6 +18,9 @@ const state = vi.hoisted(() => ({
 vi.mock('@/contexts/finder', () => ({
   useFinder: () => ({ openFinder: vi.fn() }),
 }));
+vi.mock('@/components/clubs/use-group-filter', () => ({
+  useGroupFilterOptions: () => [],
+}));
 vi.mock('@/api/athlete', () => ({
   useGetMyCoachedAthletesQuery: () => ({ data: state.athletes }),
 }));

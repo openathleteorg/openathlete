@@ -304,6 +304,7 @@ function VolumeCharts({
               </ChartContainer>
               <div className="flex justify-end">
                 <ExportButton
+                  athleteId={athleteId}
                   name="volume"
                   header={['period', ...series.map(String)]}
                   rows={() =>

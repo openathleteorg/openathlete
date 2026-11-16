@@ -15,6 +15,7 @@ import {
   accountFixtureSql,
 } from 'src/modules/auth/services/account-deletion.fixture';
 import { CycleService } from 'src/modules/core/services/cycle.service';
+import { EventBatchService } from 'src/modules/core/services/event-batch.service';
 import { EventBulkService } from 'src/modules/core/services/event-bulk.service';
 import { EventSeriesService } from 'src/modules/core/services/event-series.service';
 import { EventService } from 'src/modules/core/services/event.service';
@@ -75,6 +76,7 @@ describe('MCP tools (PostgreSQL)', () => {
       abilities,
       events,
       bulk,
+      new EventBatchService(prisma, abilities, events, bulk),
       new EventSeriesService(prisma, abilities, events, bulk),
       new CycleService(prisma, abilities),
       new MetricService(prisma, abilities),
@@ -163,6 +165,7 @@ describe('MCP tools (PostgreSQL)', () => {
           'update_session',
           'move_sessions',
           'copy_sessions',
+          'copy_sessions_to_athletes',
           'repeat_session',
           'delete_sessions',
           'create_period',
@@ -401,6 +404,64 @@ describe('MCP tools (PostgreSQL)', () => {
         await call('update_training_zone', { zoneId: 2203, min: 1, max: 2 }),
       ),
     ).toContain('not found');
+  });
+
+  it("copies a coach's sessions to their athletes, saying what each lacks", async () => {
+    const coach = {
+      userId: COACH_USER_ID,
+      email: 'coach@example.com',
+      athlete: { athleteId: COACH_ATHLETE_ID },
+      coachAthletes: [{ athleteId: DELETED_ATHLETE_ID }],
+    } as AuthUser;
+    const { call } = await connect(coach);
+    const planned = data<{ items: { eventId: number }[] }>(
+      await call('plan_sessions', {
+        sessions: [
+          { date: '2026-12-01', time: '07:00', name: 'Easy', sport: 'RUNNING' },
+          { date: '2026-12-03', time: '07:00', name: 'Long', sport: 'RUNNING' },
+        ],
+      }),
+    );
+
+    const copied = data<{
+      batchId: string;
+      created: number;
+      athletes: { athleteId: number }[];
+    }>(
+      await call('copy_sessions_to_athletes', {
+        eventIds: planned.items.map((item) => item.eventId),
+        athleteIds: [DELETED_ATHLETE_ID],
+        date: '2026-12-08',
+        time: '18:00',
+      }),
+    );
+    expect(copied.created).toBe(2);
+    expect(copied.batchId).toBeTruthy();
+    expect(copied.athletes.map((row) => row.athleteId)).toEqual([
+      DELETED_ATHLETE_ID,
+    ]);
+    const theirs = await prisma.event.findMany({
+      where: { athleteId: DELETED_ATHLETE_ID, name: { in: ['Easy', 'Long'] } },
+      orderBy: { startDate: 'asc' },
+    });
+    // Two days apart, as planned, at the time asked in Paris
+    expect(theirs.map((event) => event.startDate.toISOString())).toEqual([
+      '2026-12-08T17:00:00.000Z',
+      '2026-12-10T17:00:00.000Z',
+    ]);
+
+    expect(
+      errorOf(
+        await call('copy_sessions_to_athletes', {
+          eventIds: [planned.items[0].eventId],
+          athleteIds: [STRANGER_ATHLETE_ID],
+          date: '2026-12-08',
+        }),
+      ),
+    ).not.toBe('');
+    expect(
+      await prisma.event.count({ where: { athleteId: STRANGER_ATHLETE_ID } }),
+    ).toBe(0);
   });
 
   it('keeps history: done sessions and activities are not deleted', async () => {

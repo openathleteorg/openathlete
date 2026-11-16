@@ -41,7 +41,7 @@ export const articleOpenathleteFreeAlternativeTrainingpeaks: BlogPost = {
       email: 'contact@openathlete.org',
     },
     publishedAt: '2025-01-20',
-    updatedAt: '2026-11-03',
+    updatedAt: '2026-11-13',
     tags: ['TrainingPeaks', 'Alternatives', 'Coaching software', 'Pricing'],
     readingTime: 5,
     image:

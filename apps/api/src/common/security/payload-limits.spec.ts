@@ -1,6 +1,11 @@
 import type { Request, Response } from 'express';
+import { PassThrough } from 'node:stream';
 
-import { exceedsArrayLimit, rejectOversizedArrays } from './payload-limits';
+import {
+  drainGarminActivityDetails,
+  exceedsArrayLimit,
+  rejectOversizedArrays,
+} from './payload-limits';
 
 describe('exceedsArrayLimit', () => {
   it('accepts arrays up to the limit', () => {
@@ -56,6 +61,54 @@ describe('rejectOversizedArrays', () => {
   it('lets Garmin notifications through, which skip Zod', () => {
     expect(
       run('/provider/garmin/webhook/health-ping', huge).next,
+    ).toHaveBeenCalled();
+  });
+});
+
+describe('drainGarminActivityDetails', () => {
+  function run(path: string, length: number) {
+    const req = Object.assign(new PassThrough(), {
+      method: 'POST',
+      path,
+      headers: { 'content-length': String(length) },
+    });
+    const json = jest.fn();
+    const res = { status: jest.fn().mockReturnValue({ json }) };
+    const next = jest.fn();
+    drainGarminActivityDetails(
+      req as unknown as Request,
+      res as unknown as Response,
+      next,
+    );
+    return { req, res, json, next };
+  }
+
+  it('reads oversized activity details to the end and answers 200', async () => {
+    const { req, res, next } = run(
+      '/provider/garmin/webhook/activity-details',
+      50 * 1024 * 1024,
+    );
+    req.end(Buffer.alloc(1024));
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('refuses activity details past 100 MB', () => {
+    const { res, next } = run(
+      '/provider/garmin/webhook/activity-details',
+      101 * 1024 * 1024,
+    );
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(413);
+  });
+
+  it('leaves smaller bodies and other routes to the JSON parser', () => {
+    expect(
+      run('/provider/garmin/webhook/activity-details', 1024).next,
+    ).toHaveBeenCalled();
+    expect(
+      run('/provider/garmin/webhook', 50 * 1024 * 1024).next,
     ).toHaveBeenCalled();
   });
 });

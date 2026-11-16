@@ -7,6 +7,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   ParseArrayPipe,
@@ -38,17 +39,24 @@ import {
   DuplicateEventDto,
   DuplicateWorkoutDto,
   EVENT_TYPE,
+  EventBatchParamsDto,
   EventSearchQuery,
+  PlanForAthletesDto,
+  PlanForAthletesPreviewDto,
+  PlanForAthletesResultDto,
   ReorderWorkoutStepsDto,
   RepeatEventDto,
   SeasonEvent,
   ShiftEventsDto,
+  UndoEventBatchResultDto,
   UpdateEventDto,
   activityCorrectionSchema,
   createEventDtoSchema,
   duplicateEventDtoSchema,
   duplicateWorkoutSchema,
+  eventBatchParamsSchema,
   eventSearchQuerySchema,
+  planForAthletesDtoSchema,
   reorderWorkoutStepsSchema,
   repeatEventDtoSchema,
   shiftEventsDtoSchema,
@@ -63,6 +71,7 @@ import { EventService } from '../services';
 import { ActivityCorrectionsService } from '../services/activity-corrections.service';
 import { ActivityFeedbackService } from '../services/activity-feedback.service';
 import { CalendarFeedService } from '../services/calendar-feed.service';
+import { EventBatchService } from '../services/event-batch.service';
 import { EventBulkService } from '../services/event-bulk.service';
 import { EventSeriesService } from '../services/event-series.service';
 import { ManualActivityService } from '../services/manual-activity.service';
@@ -75,6 +84,7 @@ export class EventController {
     private activityFeedbackService: ActivityFeedbackService,
     private calendarFeedService: CalendarFeedService,
     private eventBulkService: EventBulkService,
+    private readonly eventBatchService: EventBatchService,
     private eventSeriesService: EventSeriesService,
     private manualActivityService: ManualActivityService,
     private activityCorrectionsService: ActivityCorrectionsService,
@@ -1116,6 +1126,63 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
   ) {
     return this.eventSeriesService.deleteFollowing(user, eventId);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('plan-for-athletes/preview')
+  @HttpCode(200)
+  @ApiOperation({
+    summary: 'Preview sessions planned for several athletes',
+    description:
+      'What planning a template, or sessions of one calendar, for these athletes would meet, athlete by athlete: thresholds missing for percentage targets, zones missing, sessions already planned on those days, illness, injury or travel periods. Writes nothing. Fails with 403 if the user cannot plan for one of the athletes.',
+  })
+  @ApiResponse({ status: 200, description: 'The preview' })
+  @ApiResponse({ status: 403, description: 'Not allowed for some athletes' })
+  @ApiResponse({ status: 404, description: 'Template or events not found' })
+  previewPlanForAthletes(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(planForAthletesDtoSchema))
+    dto: PlanForAthletesDto,
+  ): Promise<PlanForAthletesPreviewDto> {
+    return this.eventBatchService.preview(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Post('plan-for-athletes')
+  @ApiOperation({
+    summary: 'Plan sessions for several athletes at once',
+    description:
+      "Copies a template, or sessions of one calendar, to each athlete: the first session lands on `date`, the others keep their distance in days, at `time` or their own time, in each athlete's time zone. Each copy is an ordinary session of its athlete, with their own zones; percentage targets follow their thresholds. All or nothing. The copies share a batch id, to undo them together.",
+  })
+  @ApiResponse({ status: 201, description: 'The batch id and the new events' })
+  @ApiResponse({ status: 403, description: 'Not allowed for some athletes' })
+  @ApiResponse({ status: 404, description: 'Template or events not found' })
+  planForAthletes(
+    @JwtUser() user: AuthUser,
+    @Body(new ZodValidationPipe(planForAthletesDtoSchema))
+    dto: PlanForAthletesDto,
+  ): Promise<PlanForAthletesResultDto> {
+    return this.eventBatchService.plan(user, dto);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
+  @Delete('batch/:batchId')
+  @ApiOperation({
+    summary: 'Undo sessions planned for several athletes',
+    description:
+      'Deletes the sessions of a batch the user may delete. Sessions already done (an activity is linked) stay.',
+  })
+  @ApiResponse({ status: 200, description: 'How many were deleted and kept' })
+  @ApiResponse({ status: 404, description: 'No such batch for this user' })
+  undoEventBatch(
+    @JwtUser() user: AuthUser,
+    @Param(new ZodValidationPipe(eventBatchParamsSchema))
+    params: EventBatchParamsDto,
+  ): Promise<UndoEventBatchResultDto> {
+    return this.eventBatchService.undo(user, params.batchId);
   }
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)

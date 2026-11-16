@@ -114,7 +114,9 @@ export function ContentEn() {
         to five athletes. The optional Supporter plan ({q('oaMonth')}a month or{' '}
         {q('oaYear')} a year) adds AI on our keys and unlimited coached
         athletes, and nothing else. The code is AGPL-3.0, so you can also run it
-        on your own server for free, without limits.
+        on your own server for free, without limits. Clubs get a free club space
+        too, with no athlete limit: groups with their own coaches, a shared
+        workout library, weekly club sessions and plans copied to a whole group.
       </p>
       <p>
         Training load is Banister TRIMP from heart rate, with session RPE
@@ -128,7 +130,7 @@ export function ContentEn() {
       <p>
         What it doesn't do yet: the iOS and Android apps are in testing (the web
         app installs on a phone in the meantime), there is no plan marketplace,
-        no indoor training app, no club account, and power analysis is shallower
+        no indoor training app, no club billing, and power analysis is shallower
         than on intervals.icu. Workouts can't go to Polar watches, because
         Polar's API is read-only. Units are metric only.
       </p>
@@ -185,7 +187,7 @@ export function ContentEn() {
         pricing and native apps today. Pick Final Surge for a US school or club
         team on simple flat pricing. Pick OpenAthlete if you want workouts on
         Garmin, Suunto or COROS without paying, a flat coach price, AI on your
-        own key, or code you can host yourself.
+        own key, a free club space, or code you can host yourself.
       </p>
 
       <h2>Moving your history</h2>

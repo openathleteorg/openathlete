@@ -15,11 +15,14 @@ import { useState } from 'react';
 
 import { InstallChannel } from './install-channel';
 
+const GOOGLE_PLAY_URL =
+  'https://play.google.com/store/apps/details?id=org.openathlete';
+
 /**
- * "Install app" action for the account menus: the store apps to come and the
- * web app, through the browser's own dialog where available, otherwise
- * (iPhone/iPad) the Add to Home Screen steps. Render `dialog` next to the
- * trigger. Not available once installed.
+ * "Install app" action for the account menus: the Android app on Google Play,
+ * the iPhone app to come, and the web app, through the browser's own dialog
+ * where available, otherwise (iPhone/iPad) the Add to Home Screen steps.
+ * Render `dialog` next to the trigger. Not available once installed.
  */
 export function useInstallApp() {
   const method = useInstallMethod();
@@ -47,7 +50,16 @@ export function useInstallApp() {
               name={m.pwa_channel_android()}
               description="Google Play"
             >
-              <Badge variant="secondary">{m.pwa_coming_soon()}</Badge>
+              <Button size="sm" asChild>
+                <a
+                  href={GOOGLE_PLAY_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setOpen(false)}
+                >
+                  {m.pwa_install_action()}
+                </a>
+              </Button>
             </InstallChannel>
             <InstallChannel
               icon={Globe}

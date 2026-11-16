@@ -3,6 +3,7 @@ import { AthleteMetric, useGetMetricsQuery } from '@/api/metric';
 import { useTrainingLoadMetrics } from '@/api/training-load';
 import { TrainingLoadCalculationType } from '@/api/training-load/training-load.api';
 import { CompetitionPriorityBadge } from '@/components/calendar/competition-priority-badge';
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { Card, CardContent } from '@/components/ui/card';
 import { InsightBanner } from '@/components/ui/insight-banner';
 import { MetricTile } from '@/components/ui/metric-tile';
@@ -28,6 +29,8 @@ import { EVENT_TYPE, METRIC_TYPE } from '@openathlete/shared';
 
 interface AthleteDashboardHeaderProps {
   athleteId?: number;
+  /** A coach looking at one of their athletes */
+  asCoach?: boolean;
 }
 
 const formInsight: Record<FormStatus, typeof m.insight_form_balanced> = {
@@ -38,12 +41,13 @@ const formInsight: Record<FormStatus, typeof m.insight_form_balanced> = {
 
 export function AthleteDashboardHeader({
   athleteId,
+  asCoach = false,
 }: AthleteDashboardHeaderProps) {
   const isMobile = isCapacitor();
   const {
     data: upcomingCompetitionsData = [],
     isLoading: isLoadingCompetitions,
-  } = useGetUpcomingCompetitionsQuery(false, athleteId);
+  } = useGetUpcomingCompetitionsQuery(asCoach, athleteId);
 
   const upcomingCompetitions = useMemo(() => {
     return upcomingCompetitionsData.slice(0, 2);
@@ -205,6 +209,9 @@ export function AthleteDashboardHeader({
                   {m.no_data_for_metric()}
                 </p>
               )}
+              {trainingLoadMetrics && (
+                <GarminAttribution athleteId={athleteId} />
+              )}
             </div>
 
             {/* Recent Metrics */}
@@ -231,6 +238,10 @@ export function AthleteDashboardHeader({
                       }
                       value={metric.value}
                       unit={getMetricUnit(metric.type as METRIC_TYPE) || ''}
+                      // Garmin's attribution, beside each value it provided
+                      caption={
+                        metric.source === 'GARMIN' ? 'Garmin' : undefined
+                      }
                     />
                   ))}
                 </div>

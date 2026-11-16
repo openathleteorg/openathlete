@@ -1,19 +1,43 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 
 import { EventTemplateFolder } from '@openathlete/database';
 
 import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import {
+  libraryWhere,
+  requireLibrary,
+  requireLibraryItem,
+} from '../helpers/template-library';
+
 @Injectable()
 export class EventTemplateFolderService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getMyFolders(user: AuthUser) {
-    const folders = await this.prisma.eventTemplateFolder.findMany({
+  /** A parent folder of the same library, or a 400 */
+  private async assertParentIn(
+    parentFolderId: number | null | undefined,
+    userId: number,
+    clubId: number | null,
+  ) {
+    if (parentFolderId === null || parentFolderId === undefined) return;
+    const parent = await this.prisma.eventTemplateFolder.findFirst({
       where: {
-        userId: user.userId,
+        eventTemplateFolderId: parentFolderId,
+        ...libraryWhere(userId, clubId),
       },
+      select: { eventTemplateFolderId: true },
+    });
+    if (!parent) {
+      throw new BadRequestException('The folder is not in this library');
+    }
+  }
+
+  async getMyFolders(user: AuthUser, clubId: number | null = null) {
+    await requireLibrary(this.prisma, user.userId, clubId, 'use');
+    const folders = await this.prisma.eventTemplateFolder.findMany({
+      where: libraryWhere(user.userId, clubId),
       include: {
         _count: {
           select: {
@@ -36,11 +60,16 @@ export class EventTemplateFolderService {
       color?: string;
       description?: string;
       parentFolderId?: number | null;
+      clubId?: number | null;
     },
   ) {
+    const clubId = data.clubId ?? null;
+    await requireLibrary(this.prisma, user.userId, clubId, 'edit');
+    await this.assertParentIn(data.parentFolderId, user.userId, clubId);
     const folder = await this.prisma.eventTemplateFolder.create({
       data: {
         userId: user.userId,
+        clubId,
         name: data.name,
         color: data.color,
         description: data.description,
@@ -74,13 +103,18 @@ export class EventTemplateFolderService {
       },
     });
 
-    if (!folder) {
-      throw new Error('Folder not found');
-    }
-
-    if (folder.userId !== user.userId) {
-      throw new Error('Unauthorized');
-    }
+    await requireLibraryItem(
+      this.prisma,
+      user.userId,
+      folder,
+      'edit',
+      'Folder',
+    );
+    await this.assertParentIn(
+      data.parentFolderId,
+      folder!.userId,
+      folder!.clubId,
+    );
 
     const updated = await this.prisma.eventTemplateFolder.update({
       where: {
@@ -114,13 +148,13 @@ export class EventTemplateFolderService {
       },
     });
 
-    if (!folder) {
-      throw new Error('Folder not found');
-    }
-
-    if (folder.userId !== user.userId) {
-      throw new Error('Unauthorized');
-    }
+    await requireLibraryItem(
+      this.prisma,
+      user.userId,
+      folder,
+      'edit',
+      'Folder',
+    );
 
     await this.prisma.eventTemplateFolder.delete({
       where: {

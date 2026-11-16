@@ -21,7 +21,16 @@ const emailSubjects: {
   'coach-invitation-new': Record<EmailLanguage, string>;
   'coach-invitation-existing': Record<EmailLanguage, string>;
   'signup-notification': Record<EmailLanguage, string>;
+  'club-invitation': Record<EmailLanguage, string>;
 } = {
+  'club-invitation': {
+    ES: 'Únete a tu club en OpenAthlete',
+    FR: 'Rejoignez votre club sur OpenAthlete',
+    EN: 'Join your club on OpenAthlete',
+    IT: 'Entra nel tuo club su OpenAthlete',
+    PT_BR: 'Entre no seu clube no OpenAthlete',
+    DE: 'Tritt deinem Verein auf OpenAthlete bei',
+  },
   'password-reset': {
     ES: 'Restablece tu contraseña',
     FR: 'Réinitialisation de votre mot de passe',
@@ -124,6 +133,16 @@ export const emailLibrary = {
   'coach-invitation-existing': {
     defaultSubject: emailSubjects['coach-invitation-existing'],
     props: {} as { athleteName: string; url: string },
+  },
+  'club-invitation': {
+    defaultSubject: emailSubjects['club-invitation'],
+    props: {} as {
+      clubName: string;
+      inviterName: string;
+      url: string;
+      /** COACH invites to coach, ATHLETE to train */
+      role: 'ATHLETE' | 'COACH';
+    },
   },
   'signup-notification': {
     defaultSubject: emailSubjects['signup-notification'],

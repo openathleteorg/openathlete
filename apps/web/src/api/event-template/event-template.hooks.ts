@@ -47,11 +47,13 @@ export const useGetMyEventTemplatesQuery = (
   opt?: QueryOptions<
     Awaited<ReturnType<typeof EventTemplateAPI.getMyEventTemplates>>
   >,
+  /** A club's library; the user's own when null */
+  clubId: number | null = null,
 ) =>
   useQuery({
     ...opt,
-    queryFn: () => EventTemplateAPI.getMyEventTemplates(search),
-    queryKey: [eventTemplateKeys.getMyEventTemplates, search],
+    queryFn: () => EventTemplateAPI.getMyEventTemplates(search, clubId),
+    queryKey: [eventTemplateKeys.getMyEventTemplates, search, clubId],
   });
 
 export const useUpdateEventTemplateMutation = (

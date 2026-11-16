@@ -47,7 +47,9 @@ export function ContentDe() {
         hebt der Supporter-Plan für {q('oaYear')} im Jahr das Limit auf, egal
         wie viele Athleten du betreust, und bringt zusätzlich KI über unsere
         Schlüssel mit. Die Synchronisierung mit der Uhr ist für Athleten
-        kostenlos. Selbst gehostet ist es kostenlos und ohne Limits.
+        kostenlos. Selbst gehostet ist es kostenlos und ohne Limits. Vereine
+        bekommen einen kostenlosen Vereinsbereich, und Athleten, die ein Coach
+        über einen Verein betreut, zählen nicht zu den fünf.
       </p>
 
       <table>
@@ -113,8 +115,8 @@ export function ContentDe() {
         Leichtathletikverbands, mit Preisen für Vereine, mehreren Coaches in
         einem Konto, nativen Apps für iOS und Android und einer Bibliothek mit
         mehr als 200 Übungsvideos fürs Krafttraining. Wenn dein Verein ein Konto
-        für drei Coaches und sechzig Mitglieder will, hat Nolio genau dafür
-        einen Plan, wir nicht.
+        für drei Coaches und sechzig Mitglieder will, mit nativen Apps auf jedem
+        Handy, hat Nolio genau dafür einen Plan.
       </p>
       <p>
         <strong>OpenAthlete</strong> hält den Preis pauschal und bietet ein paar
@@ -126,9 +128,14 @@ export function ContentDe() {
         Anstrengung und eventuelle Schmerzen landen in einem
         Verletzungsprotokoll und auf deinem Dashboard. Über den MCP-Server
         können Claude oder ChatGPT das Training eines Athleten lesen und bis zu
-        60 Einheiten in seinen Kalender planen. Der Code steht unter AGPL-3.0,
-        ein Verein kann also eine eigene Instanz mit Single Sign-on und
-        Registrierung nur auf Einladung betreiben.
+        60 Einheiten in seinen Kalender planen. Vereine bekommen einen
+        kostenlosen Vereinsbereich ohne Athletenlimit: Gruppen mit eigenen
+        Coaches, eine gemeinsame Bibliothek, wöchentliche Vereinseinheiten, für
+        die Athleten zu- oder absagen, und eine Einheit, einen Tag oder eine
+        Woche, auf eine ganze Gruppe kopiert und an die Zonen jedes Athleten
+        angepasst. Der Code steht unter AGPL-3.0, ein Verein kann also auch eine
+        eigene Instanz mit Single Sign-on und Registrierung nur auf Einladung
+        betreiben.
       </p>
 
       <h2>Was jedem fehlt</h2>
@@ -140,9 +147,9 @@ export function ContentDe() {
       </p>
       <p>
         Auch OpenAthlete hat echte Lücken. Die Apps für iOS und Android sind in
-        der Testphase, Athleten nutzen vorerst die installierbare Web-App. Es
-        gibt kein Vereinskonto: Jeder Coach hat sein eigenes, und ein Athlet
-        kann mehrere Coaches haben. Kein Marktplatz, keine Bibliothek mit
+        der Testphase, Athleten nutzen vorerst die installierbare Web-App. Der
+        Vereinsbereich hat keine Vereinsabrechnung: Mitgliedsbeiträge laufen
+        außerhalb von OpenAthlete. Kein Marktplatz, keine Bibliothek mit
         Übungsvideos, keine Partnerschaft mit einem Verband. Workouts gehen an
         Uhren von Garmin, Suunto und COROS, nicht an Polar. Die
         Trainingsbelastung ist Banister-TRIMP aus der Herzfrequenz, mit
@@ -160,10 +167,13 @@ export function ContentDe() {
         einen Seite und native Apps auf der anderen.
       </p>
       <p>
-        Ein Verein mit drei Coaches und sechzig Mitgliedern, die heute schon
-        eine App auf dem Handy wollen: Die Vereinspläne von Nolio passen am
-        besten. Eine selbst gehostete OpenAthlete-Instanz ist eine Option, wenn
-        jemand im Verein gern einen Server betreibt.
+        Ein Verein mit drei Coaches und sechzig Mitgliedern: Wollen die
+        Mitglieder heute schon eine native App auf dem Handy, passen die
+        Vereinspläne von Nolio am besten. Reicht die installierbare Web-App,
+        erledigt das der Vereinsbereich von OpenAthlete kostenlos, mit Gruppen,
+        einer gemeinsamen Bibliothek und dem Bahntraining am Dienstag schon im
+        Kalender jedes Mitglieds. Eine selbst gehostete Instanz ist eine Option,
+        wenn jemand im Verein gern einen Server betreibt.
       </p>
       <p>
         Ein Coach, der Pläne an Athleten verkauft, mit denen er nie spricht:

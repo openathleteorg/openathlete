@@ -91,53 +91,75 @@ export function ContentDe() {
         ein.
       </p>
 
-      <h2>Zwei Wege, einen Verein heute mit OpenAthlete zu führen</h2>
+      <h2>Zwei Wege, einen Verein mit OpenAthlete zu führen</h2>
       <p>
-        Zuerst die ehrliche Antwort: OpenAthlete hat kein Vereinskonto. Es gibt
-        keine Trainingsgruppen als eigene Struktur, keinen Vereinskalender und
-        keine Vereinsabrechnung. Was es gibt, funktioniert für Vereine trotzdem,
-        auf eine von zwei Arten.
+        OpenAthlete hat einen Vereinsbereich. Er ist auf unseren Servern
+        kostenlos, ohne Athletenlimit, und ein Verein, der lieber einen eigenen
+        Server nutzt, bekommt dieselben Funktionen, wenn er OpenAthlete dort
+        installiert.
       </p>
       <p>
-        <strong>Ein Konto pro Coach, auf unseren Servern.</strong> Jeder Coach
-        hat ein eigenes kostenloses Konto, das bis zu fünf Athleten abdeckt.
-        Supporter (5 € im Monat oder 50 € im Jahr pro Coach) hebt die Grenze
-        auf. Ein Athlet kann mehrere Coaches haben, sodass Lauftrainer und
-        Krafttrainer im selben Kalender planen. Gruppenunterhaltungen halten
-        eine Trainingsgruppe zusammen, jede Einheit hat ihren eigenen
-        Kommentarverlauf, und jeder Coach hat ein Dashboard für seine Athleten
-        mit Umsetzungsquote, Umfang, Form und Warnungen bei Schmerzen und
-        Inaktivität. Die Mitglieder können jede Uhr nutzen: Aktivitäten kommen
-        von Garmin, COROS, Suunto, Polar, Strava oder aus Dateien, und geplante
-        Workouts gehen auf Uhren von Garmin, COROS und Suunto. Mitglieder können
-        ihre geplanten Einheiten außerdem in Google oder Apple Kalender
-        abonnieren.
+        <strong>Ein Vereinsbereich, auf unseren Servern.</strong> Ein Coach legt
+        den Verein unter Einstellungen &gt; Vereine an und gibt jedem Mitglied
+        eine Rolle: Inhaber, Admin, Coach, Assistent oder Athlet. Jeder Coach
+        des Vereins erreicht die Athleten des Vereins, und diese Athleten zählen
+        nicht zur Grenze von fünf Athleten eines kostenlosen Coach-Kontos. Die
+        Mitglieder kommen über eine Liste, die du importierst (eingefügt oder
+        als CSV aus der Vereinstabelle, mit Gruppen), über einen Beitrittscode
+        oder über Links, die ablaufen. Jede Gruppe, nach Pace oder Niveau, hat
+        ihre eigenen Coaches, und die Vereinsbibliothek enthält die Workouts und
+        Ordner, die alle Coaches des Vereins nutzen.
+      </p>
+      <p>
+        Um für eine Gruppe zu planen, kopierst du eine Einheit, einen Tag oder
+        eine Woche auf viele Athleten auf einmal. Jede Kopie richtet sich nach
+        den Zonen und Schwellen des jeweiligen Athleten, eine Vorschau zeigt vor
+        dem Bestätigen, was jedem fehlt, und ein einziges Rückgängig nimmt alles
+        zurück. Wöchentliche Vereinseinheiten, etwa das Bahntraining am Dienstag
+        im Stadion, landen vier Wochen im Voraus in den Kalendern der Gruppe:
+        Die Athleten sagen, ob sie kommen, der Coach sieht, wie viele es sind,
+        und sagt er einen Termin ab, bekommen alle eine Benachrichtigung.
+        Nachrichten gehen an eine Gruppe oder den ganzen Verein, sofort oder
+        geplant, und jede Einheit behält ihren eigenen Kommentarverlauf. Das
+        Coach-Dashboard ist für Dutzende Athleten gebaut, mit Summen über einen
+        Zeitraum, Warnungen, wenn ein Messwert wie Ruhepuls oder Gewicht eine
+        Schwelle überschreitet, und einer Seitenleiste, mit der man zwischen
+        dreißig Athleten wechselt.
+      </p>
+      <p>
+        Ein Athlet kann weiterhin mehrere Coaches haben, sodass Lauftrainer und
+        Krafttrainer im selben Kalender planen. Die Mitglieder können jede Uhr
+        nutzen: Aktivitäten kommen von Garmin, COROS, Suunto, Polar, Strava oder
+        aus Dateien, und geplante Workouts gehen auf Uhren von Garmin, COROS und
+        Suunto, nicht auf Polar. Mitglieder können ihre geplanten Einheiten
+        außerdem in Google oder Apple Kalender abonnieren. Was noch fehlt, ist
+        eine Vereinsabrechnung: Mitgliedsbeiträge laufen weiter außerhalb von
+        OpenAthlete.
       </p>
       <p>
         <strong>Der Verein betreibt seine eigene Instanz.</strong> OpenAthlete
         ist Open Source, also kann ein Verein es auf einem kleinen Server
         installieren und hat dann seine eigene Plattform unter eigener Adresse,
-        ohne Athletenlimit und ohne Abo. Mitglieder können sich per Single
-        Sign-on mit Authentik, Keycloak oder jedem OpenID-Connect-Anbieter
-        anmelden, und die Registrierung lässt sich auf Einladung beschränken
-        oder ganz schließen. Eine selbst gehostete Instanz sendet nichts an
-        OpenAthlete. Eine ehrliche Einschränkung: Die COROS-Synchronisierung
-        funktioniert sofort, aber für Garmin, Suunto, Polar und Strava muss sich
-        der Verein beim Entwicklerprogramm der jeweiligen Marke registrieren,
-        und Garmin und Suunto lassen Partner einzeln zu. Der Dateiimport
-        funktioniert immer.
+        mit denselben Vereinsfunktionen, ohne Athletenlimit und ohne Abo.
+        Mitglieder können sich per Single Sign-on mit Authentik, Keycloak oder
+        jedem OpenID-Connect-Anbieter anmelden, und die Registrierung lässt sich
+        auf Einladung beschränken oder ganz schließen. Eine selbst gehostete
+        Instanz sendet nichts an OpenAthlete. Eine ehrliche Einschränkung: Die
+        COROS-Synchronisierung funktioniert sofort, aber für Garmin, Suunto,
+        Polar und Strava muss sich der Verein beim Entwicklerprogramm der
+        jeweiligen Marke registrieren, und Garmin und Suunto lassen Partner
+        einzeln zu. Der Dateiimport funktioniert immer.
       </p>
       <p>
-        Für einen Verein mit ein oder zwei Coaches und ein paar Dutzend Athleten
-        ist die erste Variante der schnellere Start. Für einen größeren Verein
-        mit jemandem, der sich den Betrieb eines Servers zutraut, ist die zweite
-        das, was einem Vereinskonto heute am nächsten kommt. Die{' '}
-        <Link href="/de/clubs">Seite für Vereine</Link> vergleicht beide, mit
-        den Kosten für einen Verein mit 50 Athleten, und die{' '}
-        <Link href="/de/self-hosting">Self-Hosting-Seite</Link> beschreibt die
-        Installation. Vereinsfunktionen stehen auf der Roadmap. Wenn dein Verein
-        besondere Anforderungen hat, ist eine Beschreibung, wie ihr tatsächlich
-        trainiert, der wertvollste Input, den wir bekommen können.
+        Für die meisten Vereine ist der Vereinsbereich auf unseren Servern der
+        schnellere Start. Ein Verein, der die Daten seiner Mitglieder auf einem
+        eigenen Server haben will und jemanden hat, der sich den Betrieb
+        zutraut, kann den zweiten Weg gehen. Die{' '}
+        <Link href="/de/clubs">Seite für Vereine</Link> stellt beide vor, und
+        die <Link href="/de/self-hosting">Self-Hosting-Seite</Link> beschreibt
+        die Installation. Wenn dein Verein besondere Anforderungen hat, ist eine
+        Beschreibung, wie ihr tatsächlich trainiert, der wertvollste Input, den
+        wir bekommen können.
       </p>
     </div>
   );

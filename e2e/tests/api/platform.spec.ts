@@ -62,3 +62,18 @@ test('accepts large Garmin notifications, as its review requires', async ({
   });
   expect(response.status()).toBe(200);
 });
+
+test('accepts pushed Garmin activity details past the JSON limit', async ({
+  request,
+}) => {
+  // Garmin's review sends activity details of up to 100 MB
+  const body = JSON.stringify({
+    activityDetails: [],
+    padding: 'x'.repeat(15 * 1024 * 1024),
+  });
+  const response = await request.post(
+    `${API_URL}/provider/garmin/webhook/activity-details`,
+    { data: body, headers: { 'Content-Type': 'application/json' } },
+  );
+  expect(response.status()).toBe(200);
+});

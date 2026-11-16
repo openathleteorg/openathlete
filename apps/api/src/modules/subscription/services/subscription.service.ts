@@ -401,8 +401,9 @@ export class SubscriptionService {
       return true; // Unlimited
     }
 
+    // Athletes coached through a club do not count: clubs are free for now
     const currentCount = await this.prisma.coachAthlete.count({
-      where: { userId: userId },
+      where: { userId: userId, clubId: null },
     });
 
     return currentCount < maxAthletes;
@@ -582,8 +583,9 @@ export class SubscriptionService {
       return false; // Unlimited
     }
 
+    // Athletes coached through a club do not count: clubs are free for now
     const currentCount = await this.prisma.coachAthlete.count({
-      where: { userId: userId },
+      where: { userId: userId, clubId: null },
     });
 
     return currentCount > maxAthletes;

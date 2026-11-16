@@ -1,6 +1,7 @@
 import client, { routes } from '@/utils/axios';
 
 import {
+  ConnectorProvider,
   CreateMetricDto,
   METRIC_TYPE,
   UpdateMetricDto,
@@ -12,6 +13,8 @@ export interface AthleteMetric {
   date: string;
   value: number;
   notes: string | null;
+  /** Provider the value was imported from; null when entered by hand */
+  source: ConnectorProvider | null;
   athleteId: number;
   createdAt: string;
   updatedAt: string;

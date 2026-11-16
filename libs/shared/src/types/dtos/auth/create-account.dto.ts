@@ -11,6 +11,8 @@ export const createAccountDtoSchema = z.object({
   lastName: personNameSchema,
   invitationToken: z.string().optional(),
   coachInvitationToken: z.string().optional(),
+  /** A club's link or invitation, opening sign-up on an invite-only instance */
+  clubJoinToken: z.string().max(200).optional(),
   /** Language the app is shown in, saved on the new account for its emails */
   language: emailLanguageSchema.optional(),
   /** Asked for news about the project, Supporter included (unticked by default) */

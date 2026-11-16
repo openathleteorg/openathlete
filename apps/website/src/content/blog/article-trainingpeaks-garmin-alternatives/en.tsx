@@ -188,23 +188,25 @@ export function ContentEn() {
         or hosted by us in France. Every feature is free on the hosted version,
         coaching up to 5 athletes included; Supporter, at €5 a month or €50 a
         year, adds unlimited coached athletes and AI on our keys (
-        <Link href="/pricing">pricing</Link>). Planned sessions go to Garmin,
-        Suunto and COROS watches; activities come in from those three plus Polar
-        and Strava. Training load is TRIMP from heart rate with session RPE
-        alongside, and fitness, fatigue and form are projected over the sessions
-        you have planned. AI is optional and runs on your own key or the
-        Supporter allowance.
+        <Link href="/pricing">pricing</Link>). Clubs get a free club space with
+        no athlete limit: groups with their coaches, a shared library, weekly
+        club sessions and plans copied to a whole group. Planned sessions go to
+        Garmin, Suunto and COROS watches; activities come in from those three
+        plus Polar and Strava. Training load is TRIMP from heart rate with
+        session RPE alongside, and fitness, fatigue and form are projected over
+        the sessions you have planned. AI is optional and runs on your own key
+        or the Supporter allowance.
       </p>
       <p>
         The limits are real. There are no native apps in the stores yet: the iOS
         and Android apps are in testing, and athletes use the installable web
         app in the meantime. There is no marketplace for selling plans, no club
-        account (an athlete can have several coaches, but there is no
-        organisation with shared billing), no indoor training app and no
-        workouts sent to Polar watches. The analysis is shallower than
-        intervals.icu, and the project is young and built by one developer. Our
-        answer to &quot;what if you disappear&quot; is the licence: the code and
-        your data stay usable without us. The line-by-line comparison is on{' '}
+        billing (the club space is free, but membership fees are handled outside
+        OpenAthlete), no indoor training app and no workouts sent to Polar
+        watches. The analysis is shallower than intervals.icu, and the project
+        is young and built by one developer. Our answer to &quot;what if you
+        disappear&quot; is the licence: the code and your data stay usable
+        without us. The line-by-line comparison is on{' '}
         <Link href="/compare/trainingpeaks">OpenAthlete vs TrainingPeaks</Link>,
         how coaching works is on <Link href="/coaches">the coaches page</Link>,
         and the other comparisons are <Link href="/compare">here</Link>.

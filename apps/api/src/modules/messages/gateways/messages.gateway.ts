@@ -30,6 +30,10 @@ import { AuthUser } from 'src/modules/auth/decorators/user.decorator';
 import { WebSocketRedisService } from '../../websocket/websocket-redis.service';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';
 import { WsZodValidationPipe } from '../pipes/ws-zod-validation.pipe';
+import {
+  BROADCAST_DELIVERED,
+  BroadcastDeliveredPayload,
+} from '../services/message-broadcast.service';
 import { MessageThreadService } from '../services/message-thread.service';
 import { MessageService } from '../services/message.service';
 
@@ -82,6 +86,19 @@ export class MessagesGateway
     if (!this.server) return;
     for (const userId of payload.userIds)
       this.server.to(`user:${userId}`).emit('activity_notice', payload);
+  }
+
+  /** A message to several people, sent now or by the scheduler */
+  @OnEvent(BROADCAST_DELIVERED)
+  broadcastDelivered(payload: BroadcastDeliveredPayload) {
+    if (!this.server) return;
+    for (const messageThreadId of payload.messageThreadIds) {
+      this.broadcastToUsers(
+        'thread_updated',
+        { messageThreadId },
+        payload.userIds,
+      );
+    }
   }
 
   @UseGuards(WsJwtAuthGuard)

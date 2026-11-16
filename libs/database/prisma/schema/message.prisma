@@ -118,3 +118,54 @@ model MessageReadReceipt {
   @@index([messageId])
   @@map("message_read_receipt")
 }
+
+/// How a message to several people goes out: one private conversation per
+/// recipient (their answers stay private), or one conversation for all of
+/// them (they see each other's names).
+enum BroadcastMode {
+  INDIVIDUAL
+  GROUP
+
+  @@map("broadcast_mode")
+}
+
+enum ScheduledMessageStatus {
+  PENDING
+  /// Claimed by one instance of the API, which is sending it
+  SENDING
+  SENT
+  CANCELED
+  FAILED
+
+  @@map("scheduled_message_status")
+}
+
+/// A message a coach wrote to send later, to one or several people.
+model ScheduledMessage {
+  // primary key
+  scheduledMessageId Int @id @default(autoincrement()) @map("scheduled_message_id")
+
+  // fields
+  content          String
+  mode             BroadcastMode
+  /// Title of the group conversation (GROUP only)
+  title            String?
+  /// Users it goes to. Checked again when it is sent: someone the coach no
+  /// longer coaches by then does not get it.
+  recipientUserIds Int[]                  @map("recipient_user_ids")
+  sendAt           DateTime               @map("send_at")
+  status           ScheduledMessageStatus @default(PENDING)
+  sentAt           DateTime?              @map("sent_at")
+
+  // relationships
+  sender   User @relation(fields: [senderId], references: [userId], onDelete: Cascade)
+  senderId Int  @map("sender_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([status, sendAt])
+  @@index([senderId])
+  @@map("scheduled_message")
+}

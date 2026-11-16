@@ -1,5 +1,7 @@
 import { useGetMyEventsQuery } from '@/api/event';
 import { Calendar } from '@/components/calendar/calendar';
+import { AthleteDashboardHeader } from '@/components/dashboard/athlete-dashboard-header';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
@@ -8,6 +10,7 @@ interface P {
 }
 
 export function AthleteCalendarView({ athleteId }: P) {
+  const isMobile = useIsMobile();
   const [displayedMonth, setDisplayedMonth] = useState(new Date());
 
   const { startDate, endDate } = useMemo(() => {
@@ -48,12 +51,16 @@ export function AthleteCalendarView({ athleteId }: P) {
   }
   return (
     <div className="flex h-full w-full flex-col md:p-8">
-      <Calendar
-        events={data}
-        athleteId={athleteId}
-        onMonthChange={handleMonthChange}
-        isLoading={isFetching}
-      />
+      {/* The athlete's form and next races, as on their own calendar */}
+      {!isMobile && <AthleteDashboardHeader athleteId={athleteId} asCoach />}
+      <div className="min-h-0 flex-1">
+        <Calendar
+          events={data}
+          athleteId={athleteId}
+          onMonthChange={handleMonthChange}
+          isLoading={isFetching}
+        />
+      </div>
     </div>
   );
 }

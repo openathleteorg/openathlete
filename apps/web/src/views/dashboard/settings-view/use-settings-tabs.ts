@@ -10,6 +10,7 @@ import {
   type LucideIcon,
   Mail,
   Plug,
+  Shield,
   ShieldUser,
   Sparkles,
   UserRound,
@@ -26,6 +27,7 @@ export const SETTINGS_TAB_ICONS: Record<string, LucideIcon> = {
   agents: Bot,
   athletes: Users,
   coaches: ShieldUser,
+  clubs: Shield,
   invitations: Mail,
   subscription: CreditCard,
   contribute: Heart,
@@ -37,6 +39,7 @@ const TRAINING_TABS = [
   'equipment',
   'coaches',
   'athletes',
+  'clubs',
   'invitations',
 ];
 
@@ -62,6 +65,8 @@ export function useSettingsTabs() {
     'agents',
     ...(roles?.includes('COACH') ? ['athletes'] : []),
     ...(roles?.includes('ATHLETE') ? ['coaches'] : []),
+    // Anyone can belong to a club, or create one
+    'clubs',
     'invitations',
     ...(showSubscription ? ['subscription'] : []),
     'contribute',
@@ -75,6 +80,7 @@ export function useSettingsTabs() {
     agents: m.mcp_tab(),
     athletes: m.athletes(),
     coaches: m.coaches(),
+    clubs: m.clubs(),
     invitations: m.invitations(),
     subscription: m.subscription(),
     contribute: m.contribute(),
@@ -88,6 +94,7 @@ export function useSettingsTabs() {
     agents: m.mcp_intro_description(),
     athletes: m.athletes_tab_description(),
     coaches: m.coaches_tab_description(),
+    clubs: m.clubs_tab_description(),
     invitations: m.pending_invitations_description(),
   };
 

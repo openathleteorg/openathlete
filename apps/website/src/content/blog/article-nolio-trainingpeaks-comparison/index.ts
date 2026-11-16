@@ -41,7 +41,7 @@ export const articleNolioTrainingpeaksComparison: BlogPost = {
       email: 'contact@openathlete.org',
     },
     publishedAt: '2025-04-10',
-    updatedAt: '2026-11-03',
+    updatedAt: '2026-11-13',
     tags: ['Nolio', 'TrainingPeaks', 'Coaching software', 'Pricing'],
     readingTime: 4,
     image:

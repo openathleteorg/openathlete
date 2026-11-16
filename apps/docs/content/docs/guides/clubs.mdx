@@ -1,0 +1,186 @@
+---
+title: Run a club
+description: Create a club, bring its members in, organise groups, and plan, meet and write for a whole group at once.
+---
+
+A club gathers coaches and athletes in one place. Its coaches reach every
+athlete of the club, plan for a group in one go, share a workout library and
+run the weekly club sessions. Club features are free on openathlete.org, with
+no limit on athletes or coaches, and the same on a self-hosted instance.
+
+Everything below lives in **Settings › Clubs**, apart from planning and
+messages, which start from the calendar and the messages page.
+
+## Create the club
+
+In **Settings › Clubs**, choose **Create a club**, then give it a name and,
+if you like, a description. You are its owner.
+
+Each member has one role:
+
+| Role | What they can do |
+| --- | --- |
+| Owner | Everything an admin can, and manage the admins. Hands the club over with **Hand over the club**, or deletes it. |
+| Admin | Invite and remove members, change roles, manage groups, join links and invitations. |
+| Coach | Reach every athlete of the club: calendar, statistics, metrics, notes and messages. Edit the club library and the club sessions. |
+| Assistant | Reach only the athletes of the groups entrusted to them, and of their sub-groups. Uses the club library without editing it. |
+| Athlete | Is coached by the club's staff. Sees the club's name and its staff, never the other athletes. |
+
+Athletes a coach reaches through a club do not count toward the coach's own
+plan. A coach and an athlete who were already linked keep their own link; the
+club adds nothing on top.
+
+## Bring the members in
+
+There are three ways, all in the club's page; use the one that suits the
+start of your season.
+
+**Import the member list.** Under **Invitations**, choose **Import a list**,
+then paste it or open the CSV your spreadsheet exports, one person per line:
+
+```text
+First name;Last name;Email;Group
+Mathis;Chevallier;mathis.chevallier@example.com;Beginners
+Anaïs;Lemoine;anais.lemoine@example.com;Beginners
+```
+
+Commas, semicolons and tabs all work, and the header line is optional:
+without it, the column with an `@` is the email, the others are first name,
+last name and group. Check the preview, pick **Athlete** or **Coach**, then
+send. Each person gets a personal invitation by email (in their language when
+they already have an account, in yours otherwise) and lands in the group of
+their line once they accept. Up to 500 people at a time; lines without a
+valid email are pointed out and skipped. The list of pending invitations lets
+you resend or revoke each one.
+
+**Share a join link.** Under **Join links**, the club has one link for
+athletes and one for coaches. Post them in the club's group chat or a
+newsletter. You can set an expiry date, choose the group new athletes land
+in, and reset a link: the old one stops working at once.
+
+**Give the join code.** The athletes' link comes with a short code, such as
+`R9SAP7Q8`. Someone who already has an account types it in **Settings ›
+Clubs › Join with a code**.
+
+Before joining, everyone sees the club's name and its staff, so they know who
+will see their training.
+
+## Groups
+
+Groups split the club by pace, level or discipline: *Road · Marathon*,
+*Trail*, *Beginners*. Create them in the club's page under **Groups**, add
+athletes, and entrust each group to its coaches. A group can hold sub-groups.
+A coach can also keep groups of their own athletes, outside any club, in
+**Settings › Athletes**.
+
+Groups are what you pick everywhere else: when you plan for several athletes,
+write to several athletes, filter the sidebar and the coach dashboard, or set
+who a club session is for. Entrusting a group to an assistant is what gives
+them its athletes.
+
+## The club library
+
+In the calendar, open the **Template Library** and switch it from **My
+library** to the club's. Its folders and workouts are shared by the whole
+staff: coaches create and edit them, assistants use them. To move one of your
+own workouts there, choose **Share with a club** on it; a copy goes into the
+club library.
+
+A workout from the library uses each athlete's own zones and thresholds when
+it lands in their calendar.
+
+## Plan for a whole group
+
+Three starting points open the same dialog:
+
+- a workout of the library: **Plan for several athletes**;
+- a week of an athlete's calendar: the week's menu, **Copy to other
+  athletes**;
+- a day: the day's menu, **Copy the day to other athletes**.
+
+Pick a group or athletes, the first day, and optionally a start time; the
+sessions keep the days between them. **Review** shows, for each athlete,
+what they lack before anything is created: a threshold for the percentage
+targets, matching zones, or other sessions already planned on those days, and
+whether they are ill, injured or travelling. Then plan: each copy takes the
+athlete's own zones, and every copy can be changed afterwards on its own.
+**Undo** in the confirmation takes the whole operation back. Up to 60 items
+for up to 200 athletes at once.
+
+## Weekly club sessions
+
+In the club's page, **Club sessions › New session** sets a recurring meeting:
+a name, a place, a group or the whole club, a start time and duration, and
+either a workout of the club library or notes for the athletes. Tick **Every
+week** for a weekly session, with an optional end date.
+
+Each session lands in the calendar of every athlete it is for, four weeks
+ahead, and reaches their watch like any planned session. It keeps up with the
+group: an athlete who joins gets the coming dates, one who leaves loses them
+(within the hour). Athletes answer **I'm coming** or **I can't come** from
+the session; the staff sees how many are coming on each date, the athletes do
+not see each other's answers.
+
+**Call off** removes one date from every calendar and sends a notification
+to the athletes who had it. Changing the session updates the dates to come;
+stopping it removes them. Sessions already done stay in everyone's history.
+
+## Write to a group
+
+On the messages page, the megaphone button writes to several athletes at
+once. Pick a group or athletes, then choose:
+
+- **One conversation per athlete**: each gets the message in their
+  conversation with you and answers in private;
+- **One group conversation**: everyone sees the others' names and answers.
+
+**Send later** schedules the message. Scheduled messages are listed behind
+the clock button, where you can cancel them; they go to the athletes you
+still coach at that time.
+
+## The coach dashboard
+
+The dashboard sums up the period for all your athletes or one group:
+sessions done against planned, volume, form, and the athletes to watch, those
+who report pain, go quiet or have a message waiting. **Groups** puts the
+groups side by side; select one to focus on it.
+
+**Alerts** sets bounds on a metric for a group or some athletes, such as
+heart rate variability below 48 or resting heart rate above 60. A value past
+them shows on the dashboard and sends you a notification. **Compare with the
+period before** shows how each figure moved, **Pick to compare** puts
+athletes side by side, and **Columns** chooses what the table shows.
+
+The sidebar lists every athlete you coach, with a search and a group filter,
+so moving between thirty athletes stays quick.
+
+## AI agents
+
+An agent connected through [MCP](/docs/guides/ai-agents) can copy sessions
+of one calendar to the athletes you coach with `copy_sessions_to_athletes`,
+through the same checks as the dialog. It reports what each athlete lacks
+and returns the operation's id, which you can undo in the app.
+
+## Leaving, removing, deleting
+
+- Removing a member, or a member leaving, removes the club's access to their
+  training at once. Their data stays theirs.
+- The owner cannot leave without handing the club over first.
+  An owner who deletes their account passes the club to the longest-standing
+  admin, or deletes it when there is none.
+- Deleting the club removes its groups and links, and takes the dates to
+  come of its sessions out of the calendars, telling the athletes. Dates
+  already done stay in their history, and the members keep all their own
+  data. Workouts of the club library go back to the library of the coach
+  who wrote them.
+- A coach who deletes their account leaves the workouts they put in a club
+  library to the club, under its owner.
+
+## On a self-hosted instance
+
+Clubs work the same way. With sign-ups set to invitation only
+(`SIGNUP_MODE=invite`, what the install script sets on a public domain), a
+club's join link and its personal invitations also let a new person create
+their account, then join the club. The join code needs an account first: on
+such an instance, send the link instead. See
+[Self-hosting](/docs/getting-started/self-hosting).

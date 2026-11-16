@@ -108,4 +108,5 @@ Project workflows live in `.claude/skills/`:
 - Jest cannot load Mastra's ESM providers. Agent tests use `node:test` against the build (`pnpm api build && pnpm api test:agents`).
 - Paraglide output (`apps/web/src/paraglide`) is generated: recompile after editing `apps/web/messages/*.json`.
 - Login is limited to 10 requests per minute per IP. Tests set `X-Forwarded-For`, which the API trusts only from private networks.
+- Vercel builds web, website and docs only when the paths listed for them in `scripts/vercel-ignore-build.sh` changed since the last deployment. An app that starts depending on another folder needs it added there, or its deployments will skip that change.
 - `apps/docs` must be installed with pnpm 9.15.9 (`packageManager` field); pnpm 10 rewrites its lockfile.

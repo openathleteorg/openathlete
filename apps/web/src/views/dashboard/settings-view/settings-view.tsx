@@ -11,6 +11,7 @@ import { Navigate, useSearchParams } from 'react-router-dom';
 import { AgentsTab } from './agents/agents-tab';
 import { AiTab } from './ai/ai-tab';
 import { AthletesTab } from './athletes-tab';
+import { ClubsTab } from './clubs/clubs-tab';
 import { CoachesTab } from './coaches-tab';
 import { ConnectorsTab } from './connectors-tab';
 import { ContributeTab } from './contribute-tab';
@@ -30,6 +31,7 @@ const TAB_PAGES: Record<string, ComponentType> = {
   agents: AgentsTab,
   athletes: AthletesTab,
   coaches: CoachesTab,
+  clubs: ClubsTab,
   invitations: InvitationsTab,
   subscription: SubscriptionSettingsPage,
   contribute: ContributeTab,

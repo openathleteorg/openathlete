@@ -1,4 +1,5 @@
 import { useStatisticsFiltersQuery } from '@/api/statistics';
+import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
 import { EnduranceSection } from '@/components/statistics/endurance-section';
 import { IntensitySection } from '@/components/statistics/intensity-section';
 import { LoadSection } from '@/components/statistics/load-section';
@@ -163,6 +164,7 @@ export function StatisticsView({ athleteId }: P) {
             )}
           </>
         )}
+      <GarminAttribution athleteId={athleteId} />
     </div>
   );
 }

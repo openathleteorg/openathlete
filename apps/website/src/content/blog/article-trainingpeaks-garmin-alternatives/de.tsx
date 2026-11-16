@@ -206,9 +206,12 @@ export function ContentDe() {
         In der gehosteten Version ist jede Funktion kostenlos, Coaching von bis
         zu 5 Athleten eingeschlossen; Supporter für 5&nbsp;€ im Monat oder
         50&nbsp;€ im Jahr bringt unbegrenzt viele betreute Athleten und KI über
-        unsere Schlüssel (<Link href="/de/pricing">Preise</Link>). Geplante
-        Einheiten gehen an Uhren von Garmin, Suunto und COROS; Aktivitäten
-        kommen von diesen dreien sowie von Polar und Strava. Die
+        unsere Schlüssel (<Link href="/de/pricing">Preise</Link>). Vereine
+        bekommen einen kostenlosen Vereinsbereich ohne Athletenlimit: Gruppen
+        mit eigenen Coaches, eine gemeinsame Bibliothek, wöchentliche
+        Vereinseinheiten und Pläne, die auf eine ganze Gruppe kopiert werden.
+        Geplante Einheiten gehen an Uhren von Garmin, Suunto und COROS;
+        Aktivitäten kommen von diesen dreien sowie von Polar und Strava. Die
         Trainingsbelastung ist TRIMP aus der Herzfrequenz mit Session-RPE
         daneben, und Fitness, Ermüdung und Form werden über die geplanten
         Einheiten vorausberechnet. KI ist optional und läuft über deinen eigenen
@@ -218,8 +221,8 @@ export function ContentDe() {
         Die Grenzen sind real. Native Apps in den Stores gibt es noch nicht: Die
         Apps für iOS und Android sind in der Testphase, bis dahin nutzen
         Athleten die installierbare Web-App. Es gibt keinen Marktplatz für den
-        Verkauf von Plänen, kein Vereinskonto (ein Athlet kann mehrere Coaches
-        haben, aber es gibt keine Organisation mit gemeinsamer Abrechnung),
+        Verkauf von Plänen, keine Vereinsabrechnung (der Vereinsbereich ist
+        kostenlos, aber Mitgliedsbeiträge laufen außerhalb von OpenAthlete),
         keine App fürs Indoor-Training und keine Workouts für Polar-Uhren. Die
         Analyse ist weniger tief als bei intervals.icu, und das Projekt ist jung
         und wird von einem einzelnen Entwickler gebaut. Unsere Antwort auf „Was,

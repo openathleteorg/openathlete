@@ -1,4 +1,7 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile --filter @openathlete/monorepo --filter '@openathlete/web...' && pnpm database run db:generate && pnpm shared build",
+  "ignoreCommand": "bash ../../scripts/vercel-ignore-build.sh web",
   "rewrites": [
     {
       "source": "/ingest/static/(.*)",

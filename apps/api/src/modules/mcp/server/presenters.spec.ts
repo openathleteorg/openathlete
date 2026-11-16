@@ -1,6 +1,6 @@
 import { SPORT_TYPE } from '@openathlete/shared';
 
-import { speedFields } from './presenters';
+import { activitySource, speedFields } from './presenters';
 
 describe('speedFields', () => {
   it('gives runners a pace per km', () => {
@@ -21,5 +21,19 @@ describe('speedFields', () => {
   it('gives cyclists a speed and skips missing values', () => {
     expect(speedFields(SPORT_TYPE.CYCLING, 10)).toEqual({ avgSpeedKmh: 36 });
     expect(speedFields(SPORT_TYPE.RUNNING, 0)).toEqual({});
+  });
+});
+
+describe('activitySource', () => {
+  it("names Garmin and the device, as Garmin's attribution requires", () => {
+    expect(activitySource('GARMIN', 'Forerunner 965')).toBe(
+      'Garmin Forerunner 965',
+    );
+    expect(activitySource('GARMIN', null)).toBe('Garmin');
+  });
+
+  it('leaves other sources unlabelled', () => {
+    expect(activitySource('STRAVA', 'Forerunner 965')).toBeUndefined();
+    expect(activitySource(null, null)).toBeUndefined();
   });
 });

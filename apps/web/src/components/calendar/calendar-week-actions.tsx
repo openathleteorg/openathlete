@@ -1,3 +1,4 @@
+import { useGetMyCoachedAthletesQuery } from '@/api/athlete';
 import { EventAPI } from '@/api/event';
 import { eventKeys } from '@/api/event/event.keys';
 import { invalidateTrainingLoadQueries } from '@/api/training-load/training-load.keys';
@@ -5,6 +6,7 @@ import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
 import { getDateLocale } from '@/utils/locales';
 import { useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import {
   ArrowLeftRight,
   ClipboardPaste,
@@ -12,6 +14,7 @@ import {
   MoreHorizontal,
   Scissors,
   Trash2,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -19,6 +22,7 @@ import { toast } from 'sonner';
 import { Event } from '@openathlete/shared';
 
 import { ConfirmAction } from '../confirm-action';
+import { PlanForAthletesDialog } from '../plan-for-athletes/plan-for-athletes-dialog';
 import { Button } from '../ui/button';
 import {
   DropdownMenu,
@@ -62,6 +66,8 @@ export function CalendarWeekActions({
   const [deleting, setDeleting] = useState(false);
   const shift = useShiftActions();
   const busy = shift.busy || deleting;
+  const [planningForOthers, setPlanningForOthers] = useState(false);
+  const { data: coached } = useGetMyCoachedAthletesQuery();
 
   const plan = weekPlan(events, weekStart);
   const movable = movablePlan(plan);
@@ -70,6 +76,19 @@ export function CalendarWeekActions({
     ? weekOffsetDays(weekClipboard.weekStart, weekStart)
     : 0;
   const canPaste = !!weekClipboard && pasteOffset !== 0;
+  const sourceAthleteId = plan[0]?.athleteId ?? null;
+  // Someone else to copy to: a coach with an athlete besides this calendar's
+  const canCopyToOthers =
+    plan.length > 0 &&
+    (coached ?? []).some((athlete) => athlete.athleteId !== sourceAthleteId);
+  const firstDay = plan.length
+    ? format(
+        new Date(
+          Math.min(...plan.map((event) => new Date(event.startDate).getTime())),
+        ),
+        'yyyy-MM-dd',
+      )
+    : '';
   const weekLabel = weekStart.toLocaleDateString(getDateLocale(getLocale()), {
     day: 'numeric',
     month: 'short',
@@ -118,7 +137,8 @@ export function CalendarWeekActions({
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 text-muted-foreground"
+            // A finger-sized hit area on a phone, without moving the layout
+            className="relative size-6 text-muted-foreground max-md:after:absolute max-md:after:-inset-2.5"
             aria-label={m.calendar_week_actions({ week: weekLabel })}
             data-week-actions
             disabled={busy}
@@ -159,6 +179,15 @@ export function CalendarWeekActions({
             <ClipboardPaste className="size-4" />
             {m.calendar_week_paste()}
           </DropdownMenuItem>
+          {canCopyToOthers && (
+            <DropdownMenuItem
+              onSelect={() => setPlanningForOthers(true)}
+              data-week-copy-to-athletes
+            >
+              <Users className="size-4" />
+              {m.plan_for_athletes_week_action()}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuSub>
             <DropdownMenuSubTrigger
@@ -195,6 +224,22 @@ export function CalendarWeekActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {canCopyToOthers && (
+        <PlanForAthletesDialog
+          open={planningForOthers}
+          onClose={() => setPlanningForOthers(false)}
+          source={{
+            kind: 'events',
+            eventIds: plan.map((event) => event.eventId),
+          }}
+          label={m.plan_for_athletes_week_label({
+            count: plan.length,
+            week: weekLabel,
+          })}
+          defaultDate={firstDay}
+          sourceAthleteId={sourceAthleteId}
+        />
+      )}
       <ConfirmAction
         open={confirmDelete}
         onClose={() => setConfirmDelete(false)}

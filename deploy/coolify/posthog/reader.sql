@@ -93,4 +93,37 @@ where exists (select from posthog_hidden h where h.tbl = t.tbl)
   and not exists (select from posthog_hidden h where h.tbl = t.tbl and h.col = c.column_name)
 group by t.tbl \gexec
 
+-- Garmin data stays out of the warehouse: Garmin's developer agreement
+-- lets it reach only the processors our privacy policy names for it
+-- (#garmin), and PostHog is not one. Row-level security hides, from this
+-- role only, the activities imported from Garmin with everything recorded
+-- with them, and the metrics Garmin provided. The app's own role owns the
+-- tables, so the policies don't apply to it.
+create or replace function public.posthog_reader_garmin_event(id integer)
+returns boolean language sql stable security definer set search_path = public
+as $$ select exists (
+  select from event_activity where event_id = id and provider = 'GARMIN'
+) $$;
+revoke all on function public.posthog_reader_garmin_event(integer) from public;
+grant execute on function public.posthog_reader_garmin_event(integer) to posthog_reader;
+
+create temp table posthog_garmin (tbl text primary key, rule text) on commit drop;
+insert into posthog_garmin values
+  ('event_activity', $$provider is distinct from 'GARMIN'$$),
+  ('athlete_metric', $$source is distinct from 'GARMIN'$$),
+  ('event', $$not public.posthog_reader_garmin_event(event_id)$$),
+  -- Through event_activity, whose Garmin rows this role cannot see
+  ('activity_segment', $$exists (select from public.event_activity a where a.event_activity_id = activity_segment.event_activity_id)$$),
+  ('event_activity_weather', $$exists (select from public.event_activity a where a.event_activity_id = event_activity_weather.event_activity_id)$$),
+  ('event_activity_normalization', $$exists (select from public.event_activity a where a.event_activity_id = event_activity_normalization.event_activity_id)$$),
+  ('event_activity_normalization_factor', $$exists (select from public.event_activity_normalization n where n.event_activity_normalization_id = event_activity_normalization_factor.event_activity_normalization_id)$$),
+  ('training_load_entry', $$exists (select from public.event_activity a where a.event_activity_id = training_load_entry.activity_id)$$);
+
+select format('drop policy if exists posthog_reader_no_garmin on public.%I', tbl)
+from posthog_garmin \gexec
+select format('create policy posthog_reader_no_garmin on public.%I for select to posthog_reader using (%s)', tbl, rule)
+from posthog_garmin \gexec
+select format('alter table public.%I enable row level security', tbl)
+from posthog_garmin \gexec
+
 commit;

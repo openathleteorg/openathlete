@@ -1332,9 +1332,11 @@ export class SuuntoProviderService
             type: metric.type as unknown as MetricType,
             date: metric.date,
             value: roundMetricValue(metric.value),
+            source: 'SUUNTO',
           },
           update: {
             value: roundMetricValue(metric.value),
+            source: 'SUUNTO',
           },
         }),
       ),

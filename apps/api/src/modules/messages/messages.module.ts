@@ -11,6 +11,7 @@ import { MessagesGateway } from './gateways/messages.gateway';
 import { WsJwtAuthGuard } from './guards/ws-jwt-auth.guard';
 import { CoachActivityNoticeService } from './services/coach-activity-notice.service';
 import { EventCommentService } from './services/event-comment.service';
+import { MessageBroadcastService } from './services/message-broadcast.service';
 import { MessageNotificationScheduler } from './services/message-notification.scheduler';
 import { MessageThreadService } from './services/message-thread.service';
 import { MessageService } from './services/message.service';
@@ -35,6 +36,7 @@ import { MessageService } from './services/message.service';
     MessagesGateway,
     WsJwtAuthGuard,
     MessageNotificationScheduler,
+    MessageBroadcastService,
   ],
   exports: [MessageThreadService, MessageService],
 })

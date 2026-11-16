@@ -1,6 +1,7 @@
 import { useStatisticsRecoveryQuery } from '@/api/statistics';
 import { m } from '@/paraglide/messages';
 
+import { GarminAttribution } from '../garmin-attribution/garmin-attribution';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { SkeletonChart } from '../ui/skeleton';
 import { MetricInfo } from './metric-info';
@@ -124,7 +125,13 @@ function Recovery({ athleteId, period, visible }: P & { visible: boolean }) {
 
 export function RecoverySection(props: P) {
   return (
-    <StatSection id="recovery" title={m.statistics_section_recovery()}>
+    <StatSection
+      id="recovery"
+      title={m.statistics_section_recovery()}
+      // Heart rate variability, resting heart rate and sleep come from the
+      // watch: Garmin's attribution sits by the title of what it provided
+      actions={<GarminAttribution athleteId={props.athleteId} kind="data" />}
+    >
       {(visible) => <Recovery {...props} visible={visible} />}
     </StatSection>
   );

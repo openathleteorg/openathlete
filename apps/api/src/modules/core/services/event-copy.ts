@@ -52,12 +52,46 @@ export function copyOf(
   event: SourceEvent,
   offsetDays: number,
 ): Prisma.EventCreateInput {
+  return copyTo(event, {
+    athleteId: event.athleteId,
+    ...shiftedDates(event, offsetDays),
+    keepLoad: true,
+  });
+}
+
+export type WorkoutSteps = ReturnType<typeof mapPrismaWorkoutToDto>['steps'];
+
+/** The workout's steps, in the shape the API writes them back */
+export const stepsOf = (event: SourceEvent): WorkoutSteps | null =>
+  event.training?.workout
+    ? mapPrismaWorkoutToDto(event.training.workout).steps
+    : null;
+
+export type CopyTarget = {
+  athleteId: number | null;
+  startDate: Date;
+  endDate: Date;
+  /** Steps adapted to the target athlete (their zones); the source's else */
+  steps?: WorkoutSteps | null;
+  /** The load estimate holds for the same athlete only */
+  keepLoad: boolean;
+  /** Shared by the copies of one operation, to undo them together */
+  batchId?: string;
+};
+
+/** A copy of the plan into any calendar, at the given dates. */
+export function copyTo(
+  event: SourceEvent,
+  target: CopyTarget,
+): Prisma.EventCreateInput {
   const base = {
     name: event.name,
     type: event.type,
-    ...shiftedDates(event, offsetDays),
-    ...(event.athleteId && {
-      athlete: { connect: { athleteId: event.athleteId } },
+    startDate: target.startDate,
+    endDate: target.endDate,
+    ...(target.batchId && { batchId: target.batchId }),
+    ...(target.athleteId && {
+      athlete: { connect: { athleteId: target.athleteId } },
     }),
   };
 
@@ -69,20 +103,20 @@ export function copyOf(
       // The comment thread stays with the original session (it is unique)
       messageThreadId: _thread,
       workout,
+      estimatedLoad,
       ...training
     } = event.training;
+    const steps = target.steps ?? stepsOf(event);
     return {
       ...base,
       training: {
         create: {
           ...training,
-          ...(workout && {
-            workout: {
-              create: mapWorkoutDtoToPrisma({
-                steps: mapPrismaWorkoutToDto(workout).steps,
-              }),
-            },
-          }),
+          ...(target.keepLoad && { estimatedLoad }),
+          ...(workout &&
+            steps && {
+              workout: { create: mapWorkoutDtoToPrisma({ steps }) },
+            }),
         },
       },
     };

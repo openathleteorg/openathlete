@@ -38,6 +38,7 @@ const USER_SELECT = {
   email: true,
   athlete: { select: { athleteId: true } },
   coachAthletes: { select: { athleteId: true } },
+  clubMemberships: { select: { clubId: true, role: true } },
 } as const;
 
 function toConnection(

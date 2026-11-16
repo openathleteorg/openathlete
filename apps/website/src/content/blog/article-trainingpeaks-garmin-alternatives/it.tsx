@@ -201,21 +201,24 @@ export function ContentIt() {
         funzioni sono gratuite nella versione ospitata, compreso il coaching
         fino a 5 atleti; Supporter, a 5 € al mese o 50 € all&apos;anno, aggiunge
         atleti illimitati e IA con le nostre chiavi (
-        <Link href="/it/pricing">prezzi</Link>). Le sedute pianificate vanno
-        sugli orologi Garmin, Suunto e COROS; le attività arrivano da questi tre
-        marchi, da Polar e da Strava. Il carico di allenamento è il TRIMP da
-        frequenza cardiaca, con l&apos;RPE di seduta accanto, e forma, fatica e
-        freschezza vengono proiettate sulle sedute pianificate. L&apos;IA è
-        facoltativa e funziona con la tua chiave o con la quota Supporter.
+        <Link href="/it/pricing">prezzi</Link>). I club hanno uno spazio
+        gratuito, senza limiti di atleti: gruppi con i loro allenatori, libreria
+        condivisa, sedute settimanali del club e piani copiati a tutto un
+        gruppo. Le sedute pianificate vanno sugli orologi Garmin, Suunto e
+        COROS; le attività arrivano da questi tre marchi, da Polar e da Strava.
+        Il carico di allenamento è il TRIMP da frequenza cardiaca, con
+        l&apos;RPE di seduta accanto, e forma, fatica e freschezza vengono
+        proiettate sulle sedute pianificate. L&apos;IA è facoltativa e funziona
+        con la tua chiave o con la quota Supporter.
       </p>
       <p>
         I limiti sono reali. Non ci sono ancora app native negli store: le app
         iOS e Android sono in fase di test e nel frattempo gli atleti usano la
         web app installabile. Non c&apos;è un marketplace per vendere piani, né
-        un account club (un atleta può avere più allenatori, ma non esiste
-        un&apos;organizzazione con fatturazione comune), né un&apos;app per i
-        rulli, né l&apos;invio di allenamenti agli orologi Polar. L&apos;analisi
-        è meno profonda di quella di intervals.icu, e il progetto è giovane e
+        la fatturazione per i club (lo spazio club è gratuito, ma le quote si
+        gestiscono fuori da OpenAthlete), né un&apos;app per i rulli, né
+        l&apos;invio di allenamenti agli orologi Polar. L&apos;analisi è meno
+        profonda di quella di intervals.icu, e il progetto è giovane e
         sviluppato da una sola persona. La nostra risposta a «e se sparite?» è
         la licenza: il codice e i tuoi dati restano utilizzabili senza di noi.
         Il confronto voce per voce è su{' '}

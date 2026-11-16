@@ -1,7 +1,9 @@
 version: 2
 
 # Security updates are always raised individually. Version updates are
-# grouped weekly so they arrive as a few reviewable PRs instead of dozens.
+# grouped monthly so they arrive as a few reviewable PRs instead of dozens,
+# and each merge rebuilds the deployed apps (Vercel build minutes, the API
+# image on the server).
 # Major versions are left out of version updates: they need a planned
 # migration (Nest, Capacitor, Prisma, Mastra...), not an automatic PR.
 updates:
@@ -11,8 +13,7 @@ updates:
     exclude-paths:
       - apps/docs/**
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     open-pull-requests-limit: 5
     groups:
       minor-and-patch:
@@ -27,8 +28,7 @@ updates:
   - package-ecosystem: npm
     directory: /apps/docs
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     open-pull-requests-limit: 2
     groups:
       docs:
@@ -44,8 +44,7 @@ updates:
   - package-ecosystem: docker
     directories: [/apps/api, /apps/web]
     schedule:
-      interval: weekly
-      day: monday
+      interval: monthly
     groups:
       base-images:
         patterns: ['*']

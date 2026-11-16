@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useAuthContext } from '@/contexts/auth';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
+import { readPendingClubJoinToken } from '@/utils/club-join';
 import { currentLanguage } from '@/utils/language-choice';
 import { localizedNewPasswordSchema } from '@/utils/password';
 import { localizedPersonNameSchema } from '@/utils/person-name';
@@ -35,6 +36,9 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   const [searchParams] = useSearchParams();
   const invitationToken = searchParams.get('invitation');
   const coachInvitationToken = searchParams.get('coach-invitation');
+  // A club link opened before signing up: on an invite-only instance it
+  // opens the form, and the club is joined once signed in
+  const [clubJoinToken] = useState(readPendingClubJoinToken);
   const planToken = searchParams.get('planToken');
   const [invitationEmail, setInvitationEmail] = useState<string | null>(null);
   const [isVerifyingInvitation, setIsVerifyingInvitation] = useState(false);
@@ -112,7 +116,10 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
   // In invite mode, the link of an invitation still opens the form
   const signupBlocked =
     signup === 'closed' ||
-    (signup === 'invite' && !invitationToken && !coachInvitationToken);
+    (signup === 'invite' &&
+      !invitationToken &&
+      !coachInvitationToken &&
+      !clubJoinToken);
 
   const { handleSubmit } = methods;
 
@@ -121,6 +128,7 @@ export function CreateAccountView({ className }: React.ComponentProps<'form'>) {
       ...data,
       invitationToken: invitationToken || undefined,
       coachInvitationToken: coachInvitationToken || undefined,
+      clubJoinToken: clubJoinToken ?? undefined,
       // Emails, starting with the welcome one, follow the app's language
       language: currentLanguage(),
     };

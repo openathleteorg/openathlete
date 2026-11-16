@@ -162,6 +162,11 @@ export class UserController {
           description: 'Optional coach invitation token to link to an athlete',
           example: 'xyz789uvw012...',
         },
+        clubJoinToken: {
+          type: 'string',
+          description:
+            'Optional club link or invitation token: lets the account be created on an invite-only instance, the club is joined once signed in',
+        },
         language: {
           type: 'string',
           enum: Object.values(UserLanguage),

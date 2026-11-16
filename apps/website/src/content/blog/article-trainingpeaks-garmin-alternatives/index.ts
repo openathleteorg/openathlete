@@ -40,7 +40,7 @@ export const articleTrainingpeaksGarminAlternatives: BlogPost = {
       email: 'contact@openathlete.org',
     },
     publishedAt: '2026-11-03',
-    updatedAt: '2026-11-03',
+    updatedAt: '2026-11-13',
     tags: ['TrainingPeaks', 'Garmin', 'Coaching software', 'Data export'],
     readingTime: 8,
   },

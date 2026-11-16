@@ -9,6 +9,41 @@ export const JSON_BODY_LIMIT = '1mb';
  */
 export const GARMIN_WEBHOOK_PATH = '/provider/garmin/webhook';
 export const GARMIN_WEBHOOK_BODY_LIMIT = '10mb';
+const GARMIN_WEBHOOK_BODY_BYTES = 10 * 1024 * 1024;
+
+/**
+ * Activity details, which the review requires accepting up to 100 MB. The
+ * app drops them (the activity file brings the same stream): a body past
+ * the JSON limit is read to its end and answered 200, without being kept.
+ */
+export const GARMIN_ACTIVITY_DETAILS_PATH = `${GARMIN_WEBHOOK_PATH}/activity-details`;
+export const GARMIN_ACTIVITY_DETAILS_MAX_BYTES = 100 * 1024 * 1024;
+
+/** Drains pushed activity details too large to parse, before any parser */
+export function drainGarminActivityDetails(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const length = Number(req.headers['content-length']);
+  if (
+    req.method !== 'POST' ||
+    !req.path.startsWith(GARMIN_ACTIVITY_DETAILS_PATH) ||
+    !(length > GARMIN_WEBHOOK_BODY_BYTES)
+  ) {
+    next();
+    return;
+  }
+  if (length > GARMIN_ACTIVITY_DETAILS_MAX_BYTES) {
+    res.status(413).json({ statusCode: 413, message: 'Payload too large' });
+    return;
+  }
+  req.on('end', () => res.status(200).json({ success: true }));
+  req.on('error', () => {
+    if (!res.headersSent) res.status(400).end();
+  });
+  req.resume();
+}
 
 /**
  * Array items a request may carry, all arrays together. Zod 3 records an

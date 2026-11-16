@@ -1,8 +1,10 @@
+import { AthleteTabs } from '@/components/coach-nav/athlete-tabs';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { FinderProvider } from '@/contexts/finder';
 import { SpaceConsumer, SpaceProvider } from '@/contexts/space';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PageActionsProvider } from '@/hooks/use-page-actions';
+import { usePendingClubJoin } from '@/hooks/use-pending-club-join';
 import { usePendingCoachJoin } from '@/hooks/use-pending-coach-join';
 import { m } from '@/paraglide/messages';
 import {
@@ -179,7 +181,10 @@ function LayoutContent({ children }: P) {
           <>
             <div className="flex min-w-0 flex-1 bg-background md:my-2 md:mr-2 md:overflow-hidden md:rounded-xl">
               <TemplateLibrarySidebar />
-              <SidebarInset className="min-w-0 flex-1">{children}</SidebarInset>
+              <SidebarInset className="min-w-0 flex-1">
+                <AthleteTabs />
+                {children}
+              </SidebarInset>
             </div>
             <ChatBubble />
             <ChatWindow />
@@ -197,6 +202,7 @@ function LayoutContent({ children }: P) {
 export function DashboardLayout({ children }: P) {
   // A join link opened before signing in, onboarding included
   usePendingCoachJoin();
+  usePendingClubJoin();
   return (
     <SpaceProvider>
       <SidebarProvider>

@@ -79,45 +79,66 @@ export function ContentEn() {
         members, involve the parents.
       </p>
 
-      <h2>Two ways to run a club on OpenAthlete today</h2>
+      <h2>Two ways to run a club on OpenAthlete</h2>
       <p>
-        Straight answer first: OpenAthlete has no club account. There are no
-        squads, no club calendar and no club billing. What exists works for
-        clubs anyway, in one of two ways.
+        OpenAthlete has a club space. It is free on our servers, with no limit
+        on the number of athletes, and a club that prefers its own server gets
+        the same features by installing OpenAthlete there.
       </p>
       <p>
-        <strong>One account per coach, on our servers.</strong> Each coach has
-        their own free account, which covers up to five athletes; Supporter (€5
-        a month or €50 a year per coach) removes the limit. An athlete can have
-        several coaches, so the running coach and the strength coach plan in the
-        same calendar. Group conversations keep a training group together, every
-        session has its own comment thread, and each coach has a dashboard for
-        their own athletes with compliance, volume, form and alerts for pain and
-        inactivity. Members can be on any watch: activities come from Garmin,
-        COROS, Suunto, Polar, Strava or files, and planned workouts reach
-        Garmin, COROS and Suunto watches. Members can also subscribe to their
-        planned sessions from Google or Apple Calendar.
+        <strong>A club space, on our servers.</strong> A coach creates the club
+        in Settings &gt; Clubs and gives each member a role: owner, admin,
+        coach, assistant or athlete. Every coach of the club reaches the club's
+        athletes, and those athletes don't count against the five-athlete limit
+        of a free coach account. Members join from a list you import (pasted, or
+        a CSV from the club spreadsheet, groups included), with a join code, or
+        through links that expire. Each group, by pace or level, has its own
+        coaches, and the club library holds the workouts and folders every coach
+        of the club uses.
+      </p>
+      <p>
+        To plan for a group, copy a session, a day or a week to many athletes at
+        once. Each copy is adapted to the athlete's own zones and thresholds, a
+        preview shows what each athlete is missing before you confirm, and one
+        undo takes the whole lot back. Weekly club sessions, such as Tuesday
+        track at the stadium, land in the group's calendars four weeks ahead:
+        athletes say whether they're coming, the coach sees the count, and
+        calling off one date sends everyone a notification. Messages go to a
+        group or to the whole club, now or at a scheduled time, and every
+        session keeps its own comment thread. The coach dashboard is built for
+        dozens of athletes, with totals over a period, alerts when a metric such
+        as resting heart rate or weight crosses a threshold, and a sidebar made
+        for switching between thirty athletes.
+      </p>
+      <p>
+        An athlete can still have several coaches, so the running coach and the
+        strength coach plan in the same calendar. Members can be on any watch:
+        activities come from Garmin, COROS, Suunto, Polar, Strava or files, and
+        planned workouts reach Garmin, COROS and Suunto watches, not Polar ones.
+        Members can also subscribe to their planned sessions from Google or
+        Apple Calendar. What's still missing is club billing: membership fees
+        are handled outside OpenAthlete.
       </p>
       <p>
         <strong>The club runs its own instance.</strong> OpenAthlete is open
         source, so a club can install it on a small server and have its own
-        platform at its own address, with no athlete limit and no subscription.
-        Members can sign in through single sign-on with Authentik, Keycloak or
-        any OpenID Connect provider, and sign-ups can be invite-only or closed.
-        A self-hosted instance sends nothing to OpenAthlete. One honest caveat:
-        COROS sync works out of the box, but Garmin, Suunto, Polar and Strava
-        require the club to register with each brand's developer program, and
-        Garmin and Suunto approve partners one by one. File import always works.
+        platform at its own address, with the same club features, no athlete
+        limit and no subscription. Members can sign in through single sign-on
+        with Authentik, Keycloak or any OpenID Connect provider, and sign-ups
+        can be invite-only or closed. A self-hosted instance sends nothing to
+        OpenAthlete. One honest caveat: COROS sync works out of the box, but
+        Garmin, Suunto, Polar and Strava require the club to register with each
+        brand's developer program, and Garmin and Suunto approve partners one by
+        one. File import always works.
       </p>
       <p>
-        For a club with one or two coaches and a few dozen athletes, the first
-        option is the quicker start. For a larger club with someone who is
-        comfortable running a server, the second is the closest thing to a club
-        account available today. The <Link href="/clubs">clubs page</Link>{' '}
-        compares both, with costs for a 50-athlete club, and the{' '}
+        For most clubs, the club space on our servers is the quicker start. A
+        club that wants its members' data on its own server, and has someone
+        comfortable running one, can take the second route. The{' '}
+        <Link href="/clubs">clubs page</Link> covers both, and the{' '}
         <Link href="/self-hosting">self-hosting page</Link> covers the install.
-        Club features are on the roadmap; if your club has specific needs,
-        telling us how you actually train is the most useful input we can get.
+        If your club has specific needs, telling us how you actually train is
+        the most useful input we can get.
       </p>
     </div>
   );
