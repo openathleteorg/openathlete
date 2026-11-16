@@ -173,6 +173,8 @@ enum RecordType {
   ELEVATION_GAIN
   ELEVATION_LOSS
   CADENCE
+  /// Metres climbed per hour, by duration
+  VERTICAL_SPEED
 
   @@map("record_type")
 }

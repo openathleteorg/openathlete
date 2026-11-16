@@ -21,6 +21,8 @@ const HEADLINES: Partial<Record<RECORD_TYPE, number[]>> = {
   [RECORD_TYPE.POWER]: [60, 300, 1200, 3600],
   [RECORD_TYPE.HEARTRATE]: [60, 300, 1200, 3600],
   [RECORD_TYPE.ELEVATION_GAIN]: [1000, 5000, 10000, 21097.5],
+  // The durations of the WKO chart climbers know
+  [RECORD_TYPE.VERTICAL_SPEED]: [300, 1200, 2400, 3600],
 };
 
 export const recordKey = (record: ChartRecord) =>

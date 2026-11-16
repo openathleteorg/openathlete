@@ -21,6 +21,10 @@ const TARGET_DISTANCES = [
 // Durations for power and heart rate records (in seconds)
 const TARGET_DURATIONS = [5, 15, 30, 60, 120, 300, 600, 1200, 1800, 3600, 7200];
 
+// Durations for climbing speed records (VAM), in seconds: shorter ones
+// measure the altimeter's noise more than the climb
+const VERTICAL_SPEED_DURATIONS = [60, 300, 600, 1200, 1800, 2400, 3600, 7200];
+
 // A sample stands for the time until the next one, but no longer than this:
 // a longer gap is a pause or a dropout, counted as zero
 const MAX_SAMPLE_HOLD = 15;
@@ -185,6 +189,54 @@ function computeDurationRecords(
   return records;
 }
 
+/**
+ * Fastest climbing over each duration, in metres per hour: the altitude
+ * gained between the start and the end of the stretch, read between samples
+ * at the end. A net gain, so the noise of the altimeter cancels out, and
+ * elapsed time, so a pause can only make it slower.
+ */
+function computeVerticalSpeedRecords(
+  timeStream: number[],
+  altitude: number[],
+): ComputedRecord[] {
+  const samples: { t: number; alt: number }[] = [];
+  const length = Math.min(timeStream.length, altitude.length);
+  for (let i = 0; i < length; i++) {
+    if (Number.isFinite(timeStream[i]) && Number.isFinite(altitude[i]))
+      samples.push({ t: timeStream[i], alt: altitude[i] });
+  }
+  if (samples.length < 2) return [];
+  const records: ComputedRecord[] = [];
+  for (const duration of VERTICAL_SPEED_DURATIONS) {
+    let best: { value: number; start: number } | null = null;
+    let last = 0;
+    for (let first = 0; first < samples.length; first++) {
+      const end = samples[first].t + duration;
+      if (end > samples[samples.length - 1].t) break;
+      while (last + 1 < samples.length && samples[last + 1].t <= end) last++;
+      const a = samples[last];
+      const b = samples[Math.min(last + 1, samples.length - 1)];
+      const altitudeAtEnd =
+        b.t > a.t
+          ? a.alt + ((b.alt - a.alt) * (end - a.t)) / (b.t - a.t)
+          : a.alt;
+      const value = ((altitudeAtEnd - samples[first].alt) / duration) * 3600;
+      if (!best || value > best.value)
+        best = { value, start: samples[first].t };
+    }
+    if (!best || best.value <= 0) continue;
+    records.push({
+      type: 'VERTICAL_SPEED',
+      distance: null,
+      duration,
+      value: best.value,
+      startDuration: Math.round(best.start),
+      endDuration: Math.round(best.start + duration),
+    });
+  }
+  return records;
+}
+
 /** Most climbing over each distance. */
 function computeElevationGainRecords(
   timeStream: number[],
@@ -210,7 +262,7 @@ function computeElevationGainRecords(
 
 /**
  * Records of an activity: pace and climbing by distance (they need the GPS
- * route), power and heart rate by duration (indoor sessions have them too).
+ * route), power, heart rate and climbing speed by duration.
  */
 export const computeRecords = (stream: ActivityStream): ComputedRecord[] => {
   const { time, latlng, altitude, heartrate, watts } = stream;
@@ -221,6 +273,8 @@ export const computeRecords = (stream: ActivityStream): ComputedRecord[] => {
     ...(heartrate?.length
       ? computeDurationRecords('HEARTRATE', time, heartrate)
       : []),
+    // Climbing needs the altitude only: a treadmill with an incline has none
+    ...(altitude?.length ? computeVerticalSpeedRecords(time, altitude) : []),
   ];
 
   // Distance records require a route aligned with time

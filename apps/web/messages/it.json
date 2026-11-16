@@ -2682,5 +2682,9 @@
   "plan_for_athletes_day_action": "Copia la giornata ad altri atleti",
   "plan_for_athletes_day_label": "Elementi del {day}: {count}",
   "garmin_attribution_data": "Include dati forniti da dispositivi Garmin.",
-  "garmin_attribution_insights": "Analisi derivate in parte da dati di dispositivi Garmin."
+  "garmin_attribution_insights": "Analisi derivate in parte da dati di dispositivi Garmin.",
+  "records_vertical_speed": "Velocità di salita",
+  "records_last_days": "Ultimi {days} giorni",
+  "records_threshold_vam": "VAM di soglia {value} m/h: {percent}% dei migliori {minutes} min degli ultimi {days} giorni.",
+  "records_threshold_vam_help": "Come un FTP per la salita: il più alto tra la migliore ora e il 95% dei migliori 20 minuti."
 }

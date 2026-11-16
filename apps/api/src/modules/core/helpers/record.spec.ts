@@ -1,3 +1,5 @@
+import { ActivityStream } from '@openathlete/shared';
+
 import { computeRecords } from './record';
 
 // Metres per degree of latitude on the sphere used by the haversine formula
@@ -125,5 +127,50 @@ describe('duration records', () => {
     expect(power.get(15)).toBe(300);
     // At most 15 s of the dropout borrow the last sample
     expect(power.get(600)).toBeLessThan(300 * (55 / 600) + 1e-9);
+  });
+});
+
+describe('climbing speed records', () => {
+  const verticalSpeed = (stream: ActivityStream) =>
+    new Map(
+      computeRecords(stream)
+        .filter((record) => record.type === 'VERTICAL_SPEED')
+        .map((record) => [record.duration!, record.value]),
+    );
+
+  test('measures the metres gained per hour over each duration', () => {
+    // 10 min flat, 20 min climbing 400 m (1200 m/h), 10 min down
+    const time = Array.from({ length: 2401 }, (_, i) => i);
+    const altitude = time.map((t) =>
+      t < 600
+        ? 700
+        : t < 1800
+          ? 700 + ((t - 600) / 1200) * 400
+          : 1100 - (t - 1800) / 3,
+    );
+    const vam = verticalSpeed({ time, altitude });
+    expect(vam.get(300)).toBeCloseTo(1200, 6);
+    expect(vam.get(1200)).toBeCloseTo(1200, 6);
+    // 40 minutes take in the flat start and the descent: 200 m net
+    expect(vam.get(2400)).toBeCloseTo(300, 6);
+    expect(vam.has(3600)).toBe(false);
+  });
+
+  test('counts the net gain, so an altimeter wobbling up and down adds nothing', () => {
+    const time = Array.from({ length: 601 }, (_, i) => i);
+    const altitude = time.map((t) => 500 + (t % 2 ? 1 : 0));
+    expect(verticalSpeed({ time, altitude }).get(300) ?? 0).toBeLessThanOrEqual(
+      12,
+    );
+  });
+
+  test('reads between sparse samples, and leaves a descent without record', () => {
+    // A sample every 20 s, 300 m climbed in 15 min
+    const time = Array.from({ length: 46 }, (_, i) => i * 20);
+    const altitude = time.map((t) => 1000 + t / 3);
+    expect(verticalSpeed({ time, altitude }).get(600)).toBeCloseTo(1200, 6);
+    expect(
+      verticalSpeed({ time, altitude: altitude.map((a) => 3000 - a) }).size,
+    ).toBe(0);
   });
 });

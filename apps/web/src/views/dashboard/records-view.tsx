@@ -4,6 +4,7 @@ import {
   useGetRecordExclusionsQuery,
   useGetRecordHistoryQuery,
   useGetRecordSportsQuery,
+  useGetRecordsQuery,
 } from '@/api/record';
 import { EventDetails } from '@/components/event-details/event-details';
 import { GarminAttribution } from '@/components/garmin-attribution/garmin-attribution';
@@ -50,8 +51,10 @@ import { toast } from 'sonner';
 
 import {
   CreateRecordExclusionDto,
+  FTP_MODEL_DAYS,
   RECORD_TYPE,
   SPORT_TYPE,
+  modelFtp,
 } from '@openathlete/shared';
 
 interface P {
@@ -67,6 +70,21 @@ const YEAR_COLORS = [
   'var(--chart-7)',
 ];
 const yearColor = (index: number) => YEAR_COLORS[index % YEAR_COLORS.length];
+
+/** Recent days to set against the bests, as the WKO VAM chart does */
+const RECENT_DAYS = [7, 30] as const;
+const RECENT_COLORS: Record<(typeof RECENT_DAYS)[number], string> = {
+  7: 'var(--chart-6)',
+  30: 'var(--chart-3)',
+};
+
+/** Midnight UTC, `days` ago: stable for the whole day, as query keys need */
+const daysAgo = (days: number) => {
+  const date = new Date();
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCDate(date.getUTCDate() - days + 1);
+  return date;
+};
 
 export function RecordsView({ athleteId }: P) {
   const { data: sports, isPending: isLoadingSports } =
@@ -87,6 +105,12 @@ export function RecordsView({ athleteId }: P) {
 
   const [metricType, setMetricType] = useState(RECORD_TYPE.SPEED);
   const [toggledYears, setToggledYears] = useState<number[] | null>(null);
+  const [toggledRecent, setToggledRecent] = useState<number[] | null>(null);
+  const [since] = useState(() => ({
+    7: daysAgo(7),
+    30: daysAgo(30),
+    model: daysAgo(FTP_MODEL_DAYS),
+  }));
   const [selected, setSelected] = useState<{
     metric: RecordMetric;
     position: number;
@@ -126,6 +150,30 @@ export function RecordsView({ athleteId }: P) {
   );
   const metric =
     metrics.find((candidate) => candidate.type === metricType) ?? metrics[0];
+  const isClimbing = metric?.type === RECORD_TYPE.VERTICAL_SPEED;
+  // Climbing reads best against the last weeks, the others against seasons
+  const recent = toggledRecent ?? (isClimbing ? [30] : []);
+  const { data: last7 = [] } = useGetRecordsQuery(
+    { sport: sport ?? undefined, athleteId, from: since[7] },
+    { enabled: sport !== null && recent.includes(7) },
+  );
+  const { data: last30 = [] } = useGetRecordsQuery(
+    { sport: sport ?? undefined, athleteId, from: since[30] },
+    { enabled: sport !== null && recent.includes(30) },
+  );
+  const { data: modelPeriod = [] } = useGetRecordsQuery(
+    { sport: sport ?? undefined, athleteId, from: since.model },
+    { enabled: sport !== null && isClimbing },
+  );
+  const thresholdVam = isClimbing
+    ? modelFtp(
+        modelPeriod.filter(
+          (record) =>
+            record.type === RECORD_TYPE.VERTICAL_SPEED &&
+            record.duration !== null,
+        ) as Parameters<typeof modelFtp>[0],
+      )
+    : null;
   const positions = records
     .filter((record) => record.type === metric?.type)
     .map((record) => recordPosition(record) ?? 0)
@@ -154,6 +202,12 @@ export function RecordsView({ athleteId }: P) {
         ...rest,
         records: history ? recordsOfYear(history, year) : [],
       })),
+    ...RECENT_DAYS.filter((days) => recent.includes(days)).map((days) => ({
+      key: `d${days}`,
+      label: m.records_last_days({ days }),
+      color: RECENT_COLORS[days],
+      records: days === 7 ? last7 : last30,
+    })),
   ];
 
   const suspectActivities = [
@@ -181,6 +235,12 @@ export function RecordsView({ athleteId }: P) {
     setMetricType(next.type);
     setSelected({ metric: next, position });
   };
+  const toggleRecent = (days: number) =>
+    setToggledRecent(
+      recent.includes(days)
+        ? recent.filter((other) => other !== days)
+        : [...recent, days],
+    );
   const toggleYear = (year: number) =>
     setToggledYears(
       compared.includes(year)
@@ -282,6 +342,36 @@ export function RecordsView({ athleteId }: P) {
                   </TabsList>
                 </Tabs>
                 <div className="flex max-w-full gap-1.5 overflow-x-auto">
+                  {RECENT_DAYS.map((days) => {
+                    const active = recent.includes(days);
+                    return (
+                      <button
+                        key={`d${days}`}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => toggleRecent(days)}
+                        className={cn(
+                          'flex min-h-11 md:min-h-9 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-sm font-medium cursor-pointer',
+                          !active && 'text-muted-foreground',
+                        )}
+                        style={
+                          active
+                            ? { borderColor: RECENT_COLORS[days] }
+                            : undefined
+                        }
+                      >
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'size-2 rounded-full',
+                            !active && 'opacity-30',
+                          )}
+                          style={{ backgroundColor: RECENT_COLORS[days] }}
+                        />
+                        {m.records_last_days({ days })}
+                      </button>
+                    );
+                  })}
                   {years.map((year, index) => {
                     const active = compared.includes(year);
                     return (
@@ -330,6 +420,20 @@ export function RecordsView({ athleteId }: P) {
                 dateFormat={dateFormat}
                 onSelect={(position) => openRecord(metric, position)}
               />
+              {thresholdVam && (
+                <p
+                  className="border-t px-4 py-2 text-sm"
+                  title={m.records_threshold_vam_help()}
+                  data-testid="threshold-vam"
+                >
+                  {m.records_threshold_vam({
+                    value: thresholdVam.value,
+                    percent: Math.round(thresholdVam.factor * 100),
+                    minutes: thresholdVam.duration / 60,
+                    days: FTP_MODEL_DAYS,
+                  })}
+                </p>
+              )}
               <p className="border-t px-4 py-2 text-xs text-muted-foreground">
                 {m.records_legend()}
               </p>

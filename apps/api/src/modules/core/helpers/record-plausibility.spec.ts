@@ -43,3 +43,16 @@ describe('isPlausibleRecord', () => {
     ).toBe(false);
   });
 });
+
+describe('climbing speed records', () => {
+  it('keeps what a fast mountain runner climbs, not a lift', () => {
+    const vam = (duration: number, value: number) =>
+      isPlausibleRecord(
+        { type: 'VERTICAL_SPEED', duration, value },
+        'TRAIL_RUNNING',
+      );
+    expect(vam(1800, 1500)).toBe(true);
+    expect(vam(1800, 2500)).toBe(false);
+    expect(vam(60, 2900)).toBe(true);
+  });
+});

@@ -42,6 +42,22 @@ const HIGHEST_POWER: [number, number][] = [
   [7200, 550],
 ];
 
+/**
+ * Seconds and the most metres climbed per hour: the best vertical-kilometre
+ * runners reach about 2000 m/h over half an hour. Faster is a lift, a car or
+ * an altimeter jump.
+ */
+const HIGHEST_VERTICAL_SPEED: [number, number][] = [
+  [60, 3000],
+  [300, 2600],
+  [600, 2400],
+  [1200, 2300],
+  [1800, 2200],
+  [2400, 2100],
+  [3600, 2000],
+  [7200, 1700],
+];
+
 const HIGHEST_HEART_RATE = 230;
 const RUNNING = new Set(['RUNNING', 'TRAIL_RUNNING']);
 
@@ -54,6 +70,9 @@ export function isPlausibleRecord(
   sport: string,
 ): boolean {
   if (type === 'HEARTRATE') return value <= HIGHEST_HEART_RATE;
+  if (type === 'VERTICAL_SPEED') {
+    return value <= (lookup(HIGHEST_VERTICAL_SPEED, duration) ?? Infinity);
+  }
   if (type === 'POWER') {
     return value <= (lookup(HIGHEST_POWER, duration) ?? Infinity);
   }
