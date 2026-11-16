@@ -417,7 +417,8 @@ export function SessionBuilder({
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (isTyping(event.target) || mode !== 'blocks') return;
+    // Autofill fires keyboard events without a key
+    if (!event.key || isTyping(event.target) || mode !== 'blocks') return;
     const mod = event.metaKey || event.ctrlKey;
     const key = event.key.toLowerCase();
     const index = selectable.findIndex((row) => row.id === state.selected);

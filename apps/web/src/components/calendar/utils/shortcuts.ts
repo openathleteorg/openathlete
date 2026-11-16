@@ -40,6 +40,8 @@ export function shortcutFor(
   >,
   overlayOpen: boolean,
 ): CalendarShortcut | null {
+  // Autofill fires keyboard events without a key
+  if (!event.key) return null;
   if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) {
     return null;
   }
@@ -66,7 +68,7 @@ export function isUndoKey(
   >,
   overlayOpen: boolean,
 ): boolean {
-  if (event.key.toLowerCase() !== 'z') return false;
+  if (!event.key || event.key.toLowerCase() !== 'z') return false;
   if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) {
     return false;
   }
@@ -93,7 +95,9 @@ const held = new Set<string>();
 
 /** Tracks keys held down, for copy-on-drag and edit-on-click */
 export function trackHeldKeys(win: Window = window): () => void {
+  // Autofill fires keydown and keyup without a key
   const down = (event: KeyboardEvent) => {
+    if (!event.key) return;
     const target = event.target as HTMLElement | null;
     if (
       target &&
@@ -103,7 +107,9 @@ export function trackHeldKeys(win: Window = window): () => void {
     }
     held.add(event.key.toLowerCase());
   };
-  const up = (event: KeyboardEvent) => held.delete(event.key.toLowerCase());
+  const up = (event: KeyboardEvent) => {
+    if (event.key) held.delete(event.key.toLowerCase());
+  };
   // Switching window while holding a key never fires its keyup
   const clear = () => held.clear();
   win.addEventListener('keydown', down);
