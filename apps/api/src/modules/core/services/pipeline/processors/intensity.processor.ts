@@ -4,6 +4,7 @@ import { ActivityStream, ZoneRange } from '@openathlete/shared';
 
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
+import { activityEfficiency } from '../../../helpers/activity-efficiency';
 import { activityIntensity } from '../../../helpers/activity-intensity';
 import { activityProfile } from '../../../helpers/activity-profile';
 import { uncompressActivityStream } from '../../../helpers/activity-stream';
@@ -13,7 +14,7 @@ import { ActivityPipelineContext, ActivityProcessor } from '../types';
  * Bump when the figures below change: activities computed with an older
  * version are recomputed in the background (IntensityBackfillService).
  */
-export const INTENSITY_VERSION = 4;
+export const INTENSITY_VERSION = 5;
 
 /** Reads the recording once, so statistics never have to. */
 @Injectable()
@@ -50,6 +51,9 @@ export class IntensityProcessor implements ActivityProcessor {
       select: {
         stream: true,
         sport: true,
+        distance: true,
+        elevationGain: true,
+        movingTime: true,
         event: { select: { athleteId: true } },
       },
     });
@@ -63,6 +67,7 @@ export class IntensityProcessor implements ActivityProcessor {
       await this.zonesOf(athleteId, 'HEARTRATE', activity.sport),
       await this.zonesOf(athleteId, 'POWER', activity.sport),
     );
+    const efficiency = activityEfficiency(stream, activity);
     const bins = activityProfile(stream, activity.sport);
     await this.prisma.$transaction(async (tx) => {
       // The pipeline and the backfill can refresh the same activity at once:
@@ -79,6 +84,7 @@ export class IntensityProcessor implements ActivityProcessor {
           intensitySeconds: seconds,
           efficiencyFactor,
           decouplingPercent,
+          ...efficiency,
           intensityVersion: INTENSITY_VERSION,
         },
       });

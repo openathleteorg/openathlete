@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Copiar el día a otros atletas",
   "plan_for_athletes_day_label": "Elementos del {day}: {count}",
   "garmin_attribution_data": "Incluye datos proporcionados por dispositivos Garmin.",
-  "garmin_attribution_insights": "Análisis derivados en parte de datos de dispositivos Garmin."
+  "garmin_attribution_insights": "Análisis derivados en parte de datos de dispositivos Garmin.",
+  "statistics_run_efficiency": "Eficiencia de carrera",
+  "metric_run_efficiency_what": "Cuánto avanza una carrera por julio de potencia y por latido, desnivel incluido: un metro de subida cuenta como 9 metros y suma 0,14 W por m/h de velocidad de ascenso. Si sube con los meses, el mismo esfuerzo te lleva más lejos.",
+  "metric_run_efficiency_limits": "Los factores vienen de un gráfico de WKO5, no de un estudio. Calor, fatiga, terreno y medidor de potencia mueven los valores: lee la tendencia, no una carrera.",
+  "statistics_efficiency_total": "Distancia por latido",
+  "statistics_efficiency_metabolic": "Potencia por latido",
+  "statistics_efficiency_biomechanical": "Distancia por energía",
+  "statistics_efficiency_average": "Media de {count} carreras",
+  "statistics_efficiency_trend": "Tendencia",
+  "statistics_efficiency_runs": "Carreras",
+  "statistics_efficiency_read": "En el periodo la tendencia cambió {change} ({from} → {to} {unit}).",
+  "statistics_efficiency_read_limit": "Cada punto es una carrera. Calor, fatiga y terreno mueven carreras sueltas: la línea de 28 carreras y la tendencia dicen más.",
+  "statistics_efficiency_empty": "Ninguna carrera con potencia o pulso en este periodo."
 }

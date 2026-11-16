@@ -212,6 +212,12 @@ model EventActivity {
   efficiencyFactor       Float?             @map("efficiency_factor")
   /// Efficiency lost from the first half to the second, in percent
   decouplingPercent      Float?             @map("decoupling_percent")
+  /// Runs: metres per joule, climbing counted as distance and power
+  biomechanicalEfficiency Float?            @map("biomechanical_efficiency")
+  /// Runs: joules per heartbeat, climbing counted as power
+  metabolicEfficiency    Float?             @map("metabolic_efficiency")
+  /// Runs: metres per heartbeat, climbing counted as distance
+  totalEfficiency        Float?             @map("total_efficiency")
   /// Version of the figures above: older ones are recomputed in the background
   intensityVersion       Int                @default(0) @map("intensity_version")
   /// Activity description/notes

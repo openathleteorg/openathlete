@@ -7,6 +7,7 @@ export const statisticsKeys = {
   recovery: 'StatisticsAPI.recovery',
   terrain: 'StatisticsAPI.terrain',
   cardiacCost: 'StatisticsAPI.cardiacCost',
+  efficiency: 'StatisticsAPI.efficiency',
   durability: 'StatisticsAPI.durability',
   longRuns: 'StatisticsAPI.longRuns',
   intensity: 'StatisticsAPI.intensity',

@@ -88,6 +88,17 @@ export const METRIC_REGISTRY = {
       },
     ],
   },
+  runEfficiency: {
+    verdict: 'estimate',
+    formula:
+      '(distance + 9 × climbing) / time ÷ (power + 0.14 × VAM), or ÷ heartbeats',
+    sources: [
+      {
+        label: 'Rothschild et al. 2025',
+        url: 'https://doi.org/10.1007/s00421-025-05815-0',
+      },
+    ],
+  },
   decoupling: {
     verdict: 'estimate',
     formula: '(EF1 - EF2) / EF1',

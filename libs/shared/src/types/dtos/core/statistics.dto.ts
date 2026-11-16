@@ -248,6 +248,28 @@ export type StatisticsCardiacCostDto = z.infer<
   typeof statisticsCardiacCostSchema
 >;
 
+/** The efficiency of each run of the period, oldest first */
+export const statisticsEfficiencySchema = z.object({
+  runs: z.array(
+    z.object({
+      eventId: z.number(),
+      name: z.string(),
+      date: z.coerce.date(),
+      /** Metres per joule */
+      biomechanical: z.number().nullable(),
+      /** Joules per heartbeat */
+      metabolic: z.number().nullable(),
+      /** Metres per heartbeat */
+      total: z.number().nullable(),
+      /** Efficiency factor: metres a minute, grade adjusted, per heartbeat */
+      factor: z.number().nullable(),
+    }),
+  ),
+});
+export type StatisticsEfficiencyDto = z.infer<
+  typeof statisticsEfficiencySchema
+>;
+
 export const statisticsDurabilitySchema = z.object({
   /** How much the output dropped and the heart rate rose, by outing length */
   series: z.array(

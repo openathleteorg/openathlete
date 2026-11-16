@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Tag auf andere Athleten kopieren",
   "plan_for_athletes_day_label": "Einträge vom {day}: {count}",
   "garmin_attribution_data": "Enthält Daten von Garmin-Geräten.",
-  "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet."
+  "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet.",
+  "statistics_run_efficiency": "Laufeffizienz",
+  "metric_run_efficiency_what": "Wie weit ein Lauf pro Joule Leistung und pro Herzschlag kommt, Steigung eingerechnet: Ein Höhenmeter zählt wie 9 Meter Strecke und bringt 0,14 W je m/h Steiggeschwindigkeit dazu. Steigt der Wert über Monate, trägt dich dieselbe Anstrengung weiter.",
+  "metric_run_efficiency_limits": "Die Faktoren stammen aus einem WKO5-Chart, nicht aus einer Studie. Hitze, Müdigkeit, Untergrund und der Leistungsmesser verschieben die Werte: Lies den Trend, nicht einen einzelnen Lauf.",
+  "statistics_efficiency_total": "Strecke pro Herzschlag",
+  "statistics_efficiency_metabolic": "Leistung pro Herzschlag",
+  "statistics_efficiency_biomechanical": "Strecke pro Energie",
+  "statistics_efficiency_average": "Mittel aus {count} Läufen",
+  "statistics_efficiency_trend": "Trend",
+  "statistics_efficiency_runs": "Läufe",
+  "statistics_efficiency_read": "Über den Zeitraum ging der Trend um {change} ({from} → {to} {unit}).",
+  "statistics_efficiency_read_limit": "Jeder Punkt ist ein Lauf. Hitze, Müdigkeit und Gelände verschieben einzelne Läufe: Mehr sagen die Linie über 28 Läufe und der Trend.",
+  "statistics_efficiency_empty": "Kein Lauf mit Leistung oder Puls in diesem Zeitraum."
 }

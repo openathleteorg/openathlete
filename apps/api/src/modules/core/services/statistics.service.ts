@@ -6,7 +6,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 
-import { ActivityProfileKind, Athlete, Prisma } from '@openathlete/database';
+import {
+  ActivityProfileKind,
+  Athlete,
+  Prisma,
+  SportType,
+} from '@openathlete/database';
 import {
   GetStatisticsOverviewQueryDto,
   GetStatisticsSectionQueryDto,
@@ -17,6 +22,7 @@ import {
   StatisticsCardiacCostDto,
   StatisticsDaysDto,
   StatisticsDurabilityDto,
+  StatisticsEfficiencyDto,
   StatisticsFiltersDto,
   StatisticsIntensityDto,
   StatisticsLoadDto,
@@ -463,6 +469,53 @@ export class StatisticsService {
     return power.length > speed.length
       ? { unit: 'power', bins: power }
       : { unit: 'speed', bins: speed };
+  }
+
+  /** How well each run of the period turned power and heartbeats into distance */
+  async getEfficiency(
+    user: AuthUser,
+    { athleteId, from, to, sport }: GetStatisticsTrendsQueryDto,
+  ): Promise<StatisticsEfficiencyDto> {
+    await this.assertCanRead(user, athleteId);
+    const runs = await this.prisma.event.findMany({
+      where: {
+        athleteId,
+        type: 'ACTIVITY',
+        startDate: { gte: from, lte: to },
+        activity: {
+          sport: sport as SportType,
+          OR: [
+            { totalEfficiency: { not: null } },
+            { efficiencyFactor: { not: null } },
+          ],
+        },
+      },
+      select: {
+        eventId: true,
+        name: true,
+        startDate: true,
+        activity: {
+          select: {
+            biomechanicalEfficiency: true,
+            metabolicEfficiency: true,
+            totalEfficiency: true,
+            efficiencyFactor: true,
+          },
+        },
+      },
+      orderBy: { startDate: 'asc' },
+    });
+    return {
+      runs: runs.map(({ eventId, name, startDate, activity }) => ({
+        eventId,
+        name,
+        date: startDate,
+        biomechanical: activity?.biomechanicalEfficiency ?? null,
+        metabolic: activity?.metabolicEfficiency ?? null,
+        total: activity?.totalEfficiency ?? null,
+        factor: activity?.efficiencyFactor ?? null,
+      })),
+    };
   }
 
   /** How efforts hold over time, by the length of the outing. */

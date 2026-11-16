@@ -326,6 +326,52 @@ describe('StatisticsService (PostgreSQL)', () => {
     });
   }
 
+  it('lists the efficiency of each run, oldest first', async () => {
+    const later = await activity('later', '2026-03-20T08:00:00Z');
+    const earlier = await activity('earlier', '2026-03-05T08:00:00Z');
+    await activity('no figures', '2026-03-10T08:00:00Z');
+    await activity('ride', '2026-03-12T08:00:00Z', { sport: 'CYCLING' });
+    await prisma.eventActivity.update({
+      where: { eventId: later.eventId },
+      data: {
+        biomechanicalEfficiency: 0.0135,
+        metabolicEfficiency: 122,
+        totalEfficiency: 1.65,
+        efficiencyFactor: 1.4,
+      },
+    });
+    await prisma.eventActivity.update({
+      where: { eventId: earlier.eventId },
+      data: { totalEfficiency: 1.6 },
+    });
+
+    const { runs } = await service.getEfficiency(athlete, {
+      ...period,
+      sport: 'RUNNING' as SPORT_TYPE,
+    });
+    expect(runs).toEqual([
+      expect.objectContaining({
+        name: 'earlier',
+        total: 1.6,
+        biomechanical: null,
+        factor: null,
+      }),
+      expect.objectContaining({
+        name: 'later',
+        biomechanical: 0.0135,
+        metabolic: 122,
+        total: 1.65,
+        factor: 1.4,
+      }),
+    ]);
+    await expect(
+      service.getEfficiency(stranger, {
+        ...period,
+        sport: 'RUNNING' as SPORT_TYPE,
+      }),
+    ).rejects.toThrow();
+  });
+
   it('reads the median vertical speed of a slope across activities', async () => {
     for (const [index, value] of [600, 700, 800].entries()) {
       const session = await activity(

@@ -2682,5 +2682,17 @@
   "plan_for_athletes_day_action": "Copy the day to other athletes",
   "plan_for_athletes_day_label": "Items of {day}: {count}",
   "garmin_attribution_data": "Includes data provided by Garmin devices.",
-  "garmin_attribution_insights": "Insights derived in part from Garmin device-sourced data."
+  "garmin_attribution_insights": "Insights derived in part from Garmin device-sourced data.",
+  "statistics_run_efficiency": "Run efficiency",
+  "metric_run_efficiency_what": "How far a run goes per joule of power and per heartbeat, climbing included: a metre climbed counts as 9 metres run and adds 0.14 W per m/h of vertical speed. Rising over months, the same effort carries you further.",
+  "metric_run_efficiency_limits": "The factors come from a WKO5 chart, not from a study. Heat, fatigue, terrain and the power meter move the values: read the trend, not a single run.",
+  "statistics_efficiency_total": "Distance per heartbeat",
+  "statistics_efficiency_metabolic": "Power per heartbeat",
+  "statistics_efficiency_biomechanical": "Distance per energy",
+  "statistics_efficiency_average": "Average of {count} runs",
+  "statistics_efficiency_trend": "Trend",
+  "statistics_efficiency_runs": "Runs",
+  "statistics_efficiency_read": "Over the period the trend went {change} ({from} → {to} {unit}).",
+  "statistics_efficiency_read_limit": "Each dot is a run. Heat, fatigue and terrain move single runs: the line of 28 runs and the trend say more.",
+  "statistics_efficiency_empty": "No run with power or heart rate in this period."
 }

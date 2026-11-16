@@ -117,6 +117,16 @@ export const useStatisticsCardiacCostQuery = (
     queryKey: [statisticsKeys.cardiacCost, ...paramsKey(params)],
   });
 
+export const useStatisticsEfficiencyQuery = (
+  params: StatisticsSectionParams & { sport: SPORT_TYPE },
+  enabled: boolean,
+) =>
+  useQuery({
+    ...sectionOptions(enabled),
+    queryFn: () => StatisticsAPI.getEfficiency(params),
+    queryKey: [statisticsKeys.efficiency, ...paramsKey(params)],
+  });
+
 export const useStatisticsDurabilityQuery = (
   params: StatisticsSectionParams & { sport: SPORT_TYPE },
   enabled: boolean,
