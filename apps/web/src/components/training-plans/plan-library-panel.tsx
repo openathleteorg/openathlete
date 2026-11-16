@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
+import { downloadFile } from '@/utils/csv';
 import {
   CalendarPlus,
   Download,
@@ -92,16 +93,12 @@ export function PlanLibraryPanel() {
       const file = await TrainingPlanAPI.exportTemplate(
         plan.trainingPlanTemplateId,
       );
-      const url = URL.createObjectURL(
+      downloadFile(
+        planFileName(plan.name),
         new Blob([JSON.stringify(file, null, 2)], {
           type: 'application/json',
         }),
       );
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = planFileName(plan.name);
-      link.click();
-      URL.revokeObjectURL(url);
     } catch {
       toast.error(m.training_plans_failed());
     }
