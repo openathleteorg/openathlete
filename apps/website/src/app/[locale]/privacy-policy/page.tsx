@@ -9,7 +9,7 @@ import { generateMetadata as pageMetadata } from '../../metadata';
 type Props = { params: Promise<{ locale: string }> };
 
 // Update when the policy changes; never the build date
-const LAST_UPDATED = '2026-11-11';
+const LAST_UPDATED = '2026-11-16';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
@@ -128,8 +128,31 @@ export default async function PrivacyPolicyPage({ params }: Props) {
                   m.privacy_policy_processors_list_6(),
                   m.privacy_policy_processors_list_7(),
                   m.privacy_policy_processors_list_8(),
+                  m.privacy_policy_processors_list_9(),
                 ]}
               />
+            ),
+          },
+          {
+            // Linked from Garmin's developer program review: keep the id.
+            // Garmin must approve in writing any change to this section.
+            id: 'garmin',
+            title: m.privacy_policy_garmin_title(),
+            body: (
+              <>
+                <p>{m.privacy_policy_garmin_intro()}</p>
+                <List
+                  items={[
+                    m.privacy_policy_garmin_list_1(),
+                    m.privacy_policy_garmin_list_2(),
+                    m.privacy_policy_garmin_list_3(),
+                    m.privacy_policy_garmin_list_4(),
+                    m.privacy_policy_garmin_list_5(),
+                    m.privacy_policy_garmin_list_6(),
+                  ]}
+                />
+                <p>{m.privacy_policy_garmin_outro()}</p>
+              </>
             ),
           },
           {
