@@ -1,3 +1,5 @@
+import { createHash } from 'crypto';
+
 import type { NormalizedWorkout } from '@openathlete/shared';
 
 import { ProviderExportService } from './export.service';
@@ -87,6 +89,21 @@ describe('ProviderExportService.upsertPlannedExport', () => {
     expect(result).toEqual({ skipped: true, externalId: '55' });
     expect(again.garmin.upsertPlannedWorkout).not.toHaveBeenCalled();
     expect(again.prisma.providerWorkoutExport.upsert).not.toHaveBeenCalled();
+  });
+
+  it('sends again a workout exported before its provider format changed', async () => {
+    const again = setup({
+      status: 'success',
+      // The hash exports had before the format was part of it
+      contentHash: createHash('sha256')
+        .update(JSON.stringify({ date: params.date, normalized }))
+        .digest('hex'),
+      externalId: '55',
+    });
+    const result = await again.service.upsertPlannedExport(params);
+
+    expect(again.garmin.upsertPlannedWorkout).toHaveBeenCalledTimes(1);
+    expect(result.skipped).toBe(false);
   });
 
   it('skips a session without steps, which is no failure', async () => {

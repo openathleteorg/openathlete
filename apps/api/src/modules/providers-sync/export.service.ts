@@ -12,6 +12,18 @@ import { mapToCoros, mapToGarmin, mapToSuunto } from './mapping';
 import type { ProviderAdapter } from './provider-adapter.interface';
 
 type ProviderKey = 'garmin' | 'suunto' | 'coros';
+
+/**
+ * Bumped when what a provider receives for the same workout changes: an
+ * unchanged workout is skipped by its hash, so it would otherwise keep the
+ * old format until edited. Suunto 2: guides offered in every mode of their
+ * sport's group.
+ */
+const EXPORT_FORMAT_VERSION: Record<ProviderKey, number> = {
+  garmin: 1,
+  suunto: 2,
+  coros: 1,
+};
 type ProviderEnum = 'GARMIN' | 'SUUNTO' | 'COROS';
 
 function providerKeyToEnum(provider: ProviderKey): ProviderEnum {
@@ -45,8 +57,16 @@ export class ProviderExportService {
     } as const;
   }
 
-  private computeHash(date: string, normalized: NormalizedWorkout): string {
-    const json = JSON.stringify({ date, normalized });
+  private computeHash(
+    provider: ProviderKey,
+    date: string,
+    normalized: NormalizedWorkout,
+  ): string {
+    const json = JSON.stringify({
+      date,
+      normalized,
+      format: EXPORT_FORMAT_VERSION[provider],
+    });
     return createHash('sha256').update(json).digest('hex');
   }
 
@@ -78,7 +98,7 @@ export class ProviderExportService {
     const plannedDate = new Date(`${date}T00:00:00.000Z`);
     const adapter = this.adapters[provider];
 
-    const contentHash = this.computeHash(date, normalized);
+    const contentHash = this.computeHash(provider, date, normalized);
     const payload = this.mapPayload(provider, date, normalized);
 
     const staleExports = await this.prisma.providerWorkoutExport.findMany({
