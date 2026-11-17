@@ -5,7 +5,11 @@ import { ConfigService } from '@nestjs/config';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import { PrismaService } from '../prisma/services/prisma.service';
-import { AnalyticsService, stableUuid } from './analytics.service';
+import {
+  AnalyticsService,
+  isShutdownNoise,
+  stableUuid,
+} from './analytics.service';
 
 const capture = jest.fn();
 const captureException = jest.fn();
@@ -85,5 +89,20 @@ describe('AnalyticsService', () => {
     expect(stableUuid('evt_1')).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     );
+  });
+});
+
+describe('isShutdownNoise', () => {
+  const closed = {
+    event: '$exception',
+    properties: { $exception_list: [{ value: 'Connection is closed.' }] },
+  };
+
+  it('drops the Redis connections a deploy closes', () => {
+    expect(isShutdownNoise(closed, true)).toBe(true);
+  });
+
+  it('keeps them while the process runs: Redis really went away', () => {
+    expect(isShutdownNoise(closed, false)).toBe(false);
   });
 });
