@@ -135,13 +135,12 @@ export function ContentEn() {
         Neither is open source.
       </p>
       <p>
-        OpenAthlete's gaps are real too. The iOS and Android apps are in
-        testing, so athletes use the installable web app for now. The club space
-        has no club billing: membership fees stay outside OpenAthlete. No
-        marketplace, no exercise video library, no federation partnership.
-        Workouts go to Garmin, Suunto and COROS watches, not Polar. Training
-        load is Banister TRIMP from heart rate, with session RPE alongside, so
-        the numbers won't match TSS if your athletes come from TrainingPeaks.
+        OpenAthlete's gaps are real too. The club space has no club billing:
+        membership fees stay outside OpenAthlete. No marketplace, no exercise
+        video library, no federation partnership. Workouts go to Garmin, Suunto
+        and COROS watches, not Polar. Training load is Banister TRIMP from heart
+        rate, with session RPE alongside, so the numbers won't match TSS if your
+        athletes come from TrainingPeaks.
       </p>
 
       <h2>Three coaches, three answers</h2>
@@ -150,15 +149,15 @@ export function ContentEn() {
         and a Suunto: TrainingPeaks costs the most here unless the athletes pay
         their own Premium. Nolio Classic and OpenAthlete both do the job; the
         difference is {coachYear('nolio', 12)} against {q('oaYear')} a year, AI
-        on one side and native apps on the other.
+        on one side and more mature mobile apps on the other.
       </p>
       <p>
-        A club with three coaches and sixty members: if the members want a
-        native app on their phone today, Nolio's club plans fit best. If the
-        installable web app is enough, OpenAthlete's club space does the job for
-        free, with groups, a shared library and Tuesday's track session already
-        in every member's calendar. A self-hosted instance is an option if
-        someone in the club is happy to run a server.
+        A club with three coaches and sixty members: if they want a federation
+        partner and an exercise video library, Nolio's club plans fit best. If
+        not, OpenAthlete's club space does the job for free, with groups, a
+        shared library and Tuesday's track session already in every member's
+        calendar. A self-hosted instance is an option if someone in the club is
+        happy to run a server.
       </p>
       <p>
         A coach who sells plans to athletes they never speak to: stay on

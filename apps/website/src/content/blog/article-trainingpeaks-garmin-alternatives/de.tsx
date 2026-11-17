@@ -218,16 +218,14 @@ export function ContentDe() {
         Schlüssel oder das Supporter-Kontingent.
       </p>
       <p>
-        Die Grenzen sind real. Native Apps in den Stores gibt es noch nicht: Die
-        Apps für iOS und Android sind in der Testphase, bis dahin nutzen
-        Athleten die installierbare Web-App. Es gibt keinen Marktplatz für den
-        Verkauf von Plänen, keine Vereinsabrechnung (der Vereinsbereich ist
-        kostenlos, aber Mitgliedsbeiträge laufen außerhalb von OpenAthlete),
-        keine App fürs Indoor-Training und keine Workouts für Polar-Uhren. Die
-        Analyse ist weniger tief als bei intervals.icu, und das Projekt ist jung
-        und wird von einem einzelnen Entwickler gebaut. Unsere Antwort auf „Was,
-        wenn es euch nicht mehr gibt?“ ist die Lizenz: Der Code und deine Daten
-        bleiben ohne uns nutzbar. Der Vergleich Punkt für Punkt steht unter{' '}
+        Die Grenzen sind real. Es gibt keinen Marktplatz für den Verkauf von
+        Plänen, keine Vereinsabrechnung (der Vereinsbereich ist kostenlos, aber
+        Mitgliedsbeiträge laufen außerhalb von OpenAthlete), keine App fürs
+        Indoor-Training und keine Workouts für Polar-Uhren. Die Analyse ist
+        weniger tief als bei intervals.icu, und das Projekt ist jung und wird
+        von einem einzelnen Entwickler gebaut. Unsere Antwort auf „Was, wenn es
+        euch nicht mehr gibt?“ ist die Lizenz: Der Code und deine Daten bleiben
+        ohne uns nutzbar. Der Vergleich Punkt für Punkt steht unter{' '}
         <Link href="/de/compare/trainingpeaks">
           OpenAthlete vs. TrainingPeaks
         </Link>

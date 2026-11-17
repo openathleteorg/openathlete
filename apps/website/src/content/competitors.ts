@@ -464,7 +464,7 @@ export const HUB_ROWS: readonly {
   {
     topic: 'mobile_apps',
     cells: {
-      openathlete: { verdict: 'partial', note: 'soon' },
+      openathlete: { verdict: 'yes' },
       trainingpeaks: { verdict: 'yes' },
       nolio: { verdict: 'yes' },
       'intervals-icu': { verdict: 'partial', note: 'third_party' },

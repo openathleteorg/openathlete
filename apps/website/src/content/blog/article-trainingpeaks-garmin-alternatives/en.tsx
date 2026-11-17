@@ -198,9 +198,7 @@ export function ContentEn() {
         or the Supporter allowance.
       </p>
       <p>
-        The limits are real. There are no native apps in the stores yet: the iOS
-        and Android apps are in testing, and athletes use the installable web
-        app in the meantime. There is no marketplace for selling plans, no club
+        The limits are real. There is no marketplace for selling plans, no club
         billing (the club space is free, but membership fees are handled outside
         OpenAthlete), no indoor training app and no workouts sent to Polar
         watches. The analysis is shallower than intervals.icu, and the project

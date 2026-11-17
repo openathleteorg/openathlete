@@ -16,7 +16,7 @@ import { FitnessChart } from '@/components/site/visuals/fitness-chart';
 import { ProviderLogos } from '@/components/site/visuals/provider-logos';
 import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
 import { WorkoutBlocks } from '@/components/site/visuals/workout-blocks';
-import { GITHUB_URL, GOOGLE_PLAY_URL } from '@/config';
+import { APP_STORE_URL, GITHUB_URL, GOOGLE_PLAY_URL } from '@/config';
 import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { type SupportedLocale, localePath } from '@/utils/locales';
@@ -553,6 +553,14 @@ export function HomeMobile({ locale }: { locale: SupportedLocale }) {
           <Reveal>
             <div className="flex gap-2">
               <TrackedLink
+                href={APP_STORE_URL}
+                event="cta_clicked"
+                properties={{ placement: 'home_mobile', cta: 'app_store' }}
+                className="flex items-center gap-1.5 rounded-full border border-mint/50 bg-mint/[0.12] px-3 py-1 text-[0.8rem] font-medium text-mint-strong hover:bg-mint/25"
+              >
+                <AppleIcon className="size-4" /> App Store
+              </TrackedLink>
+              <TrackedLink
                 href={GOOGLE_PLAY_URL}
                 event="cta_clicked"
                 properties={{ placement: 'home_mobile', cta: 'google_play' }}
@@ -560,12 +568,6 @@ export function HomeMobile({ locale }: { locale: SupportedLocale }) {
               >
                 <AndroidIcon className="size-4" /> Google Play
               </TrackedLink>
-              <span className="flex items-center gap-1.5 rounded-full border border-border bg-white px-3 py-1 text-[0.8rem]">
-                <AppleIcon className="size-4" /> iOS
-                <span className="text-muted-foreground">
-                  · {m.site_nav_soon()}
-                </span>
-              </span>
             </div>
             <h2 className="display-3 mt-5">{m.home_mobile_title()}</h2>
             <p className="mt-3 max-w-xl text-muted-foreground">

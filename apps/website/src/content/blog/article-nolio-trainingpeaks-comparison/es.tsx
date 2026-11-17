@@ -141,15 +141,13 @@ export function ContentEs() {
         dos es de código abierto.
       </p>
       <p>
-        Las carencias de OpenAthlete también son reales. Las apps de iOS y
-        Android están en pruebas, así que por ahora los atletas usan la app web
-        instalable. El espacio de club no tiene facturación al club: las cuotas
-        se gestionan fuera de OpenAthlete. No hay tienda, ni biblioteca de
-        vídeos, ni acuerdo con ninguna federación. Los entrenamientos van a
-        relojes Garmin, Suunto y COROS, no a Polar. La carga es el TRIMP de
-        Banister a partir de la frecuencia cardíaca, con el RPE de sesión al
-        lado, así que los números no coincidirán con el TSS si tus atletas
-        vienen de TrainingPeaks.
+        Las carencias de OpenAthlete también son reales. El espacio de club no
+        tiene facturación al club: las cuotas se gestionan fuera de OpenAthlete.
+        No hay tienda, ni biblioteca de vídeos, ni acuerdo con ninguna
+        federación. Los entrenamientos van a relojes Garmin, Suunto y COROS, no
+        a Polar. La carga es el TRIMP de Banister a partir de la frecuencia
+        cardíaca, con el RPE de sesión al lado, así que los números no
+        coincidirán con el TSS si tus atletas vienen de TrainingPeaks.
       </p>
 
       <h2>Tres entrenadores, tres respuestas</h2>
@@ -158,15 +156,17 @@ export function ContentEs() {
         Forerunner, un COROS Pace y un Suunto: aquí TrainingPeaks es lo más
         caro, salvo que los atletas paguen su Premium. Nolio Classic y
         OpenAthlete cumplen; la diferencia está entre {coachYear('nolio', 12)} y{' '}
-        {q('oaYear')} al año, IA por un lado y apps nativas por el otro.
+        {q('oaYear')} al año, IA por un lado y apps móviles más maduras por el
+        otro.
       </p>
       <p>
-        Un club con tres entrenadores y sesenta socios: si quieren una app
-        nativa en el móvil ya, los planes para clubes de Nolio encajan mejor. Si
-        les basta la app web instalable, el espacio de club de OpenAthlete lo
-        resuelve gratis, con grupos, una biblioteca compartida y la pista del
-        martes ya en el calendario de cada socio. Una instancia propia es una
-        opción si alguien del club se anima a mantener un servidor.
+        Un club con tres entrenadores y sesenta socios: si quieren el respaldo
+        de una federación y una biblioteca de vídeos de ejercicios, los planes
+        para clubes de Nolio encajan mejor. Si no, el espacio de club de
+        OpenAthlete lo resuelve gratis, con grupos, una biblioteca compartida y
+        la pista del martes ya en el calendario de cada socio. Una instancia
+        propia es una opción si alguien del club se anima a mantener un
+        servidor.
       </p>
       <p>
         Un entrenador que vende planes a atletas con los que nunca habla:

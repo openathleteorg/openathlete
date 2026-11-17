@@ -14,6 +14,7 @@ export const API_URL =
 
 export const BUY_ME_A_COFFEE_URL = 'https://buymeacoffee.com/openathlete';
 export const GITHUB_URL = 'https://github.com/openathleteorg/openathlete';
+export const APP_STORE_URL = 'https://apps.apple.com/app/id6756783342';
 export const GOOGLE_PLAY_URL =
   'https://play.google.com/store/apps/details?id=org.openathlete';
 export const DISCORD_URL = 'https://discord.gg/j4PP6tDwuP';

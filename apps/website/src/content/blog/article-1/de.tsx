@@ -116,11 +116,6 @@ export function ContentDe() {
         </li>
         <li>Es gibt nur metrische Einheiten.</li>
         <li>
-          Die Apps für iOS und Android sind in der Testphase. Bis dahin
-          funktioniert die Web-App auf dem Smartphone und lässt sich auf dem
-          Startbildschirm installieren.
-        </li>
-        <li>
           Die COROS-Anbindung ist neu. Rechne mit Ecken und Kanten und sag uns
           Bescheid, wenn du auf eine stößt.
         </li>

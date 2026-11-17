@@ -31,7 +31,8 @@
    <a href="https://github.com/openathleteorg/openathlete/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
    <a href="https://github.com/openathleteorg/openathlete/releases"><img src="https://img.shields.io/github/v/release/openathleteorg/openathlete" alt="Latest release"></a>
    <a href="https://github.com/openathleteorg/openathlete/pulse"><img src="https://img.shields.io/github/commit-activity/m/openathleteorg/openathlete" alt="Commits per month"></a>
-   <a href="https://testflight.apple.com/join/1hBg4mR1"><img src="https://img.shields.io/badge/iOS-TestFlight-blue" alt="iOS on TestFlight"></a>
+   <a href="https://apps.apple.com/app/id6756783342"><img src="https://img.shields.io/badge/App_Store-iPhone-0D96F6?logo=apple&logoColor=white" alt="Download on the App Store"></a>
+   <a href="https://play.google.com/store/apps/details?id=org.openathlete"><img src="https://img.shields.io/badge/Google_Play-Android-34A853?logo=googleplay&logoColor=white" alt="Get it on Google Play"></a>
    <a href="https://discord.gg/j4PP6tDwuP"><img src="https://img.shields.io/badge/Discord-Community-5865F2" alt="Discord"></a>
    <a href="https://buymeacoffee.com/openathlete"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee"></a>
 </p>
@@ -64,7 +65,7 @@ OpenAthlete is free on our servers in France and free on yours. The code is publ
 
 **AI, on your terms.** Generate or edit a session from a sentence, get a short read of each activity and three questions on how it felt. Bring your own key (OpenAI, Anthropic, Google, Mistral, OpenRouter, DeepSeek, xAI, Groq, or a local model when self-hosted), pick the model per feature, or use the allowance included with Supporter. Nothing reaches an AI provider until you allow it. An **MCP server** lets Claude, ChatGPT or Cursor read your training and plan sessions straight into your calendar.
 
-**Mobile.** The web app is built for phones and installs on the home screen. iOS and Android apps are in testing ([TestFlight](https://testflight.apple.com/join/1hBg4mR1)).
+**Mobile.** Native apps on the [App Store](https://apps.apple.com/app/id6756783342) for iPhone and on [Google Play](https://play.google.com/store/apps/details?id=org.openathlete) for Android, with notifications and session reminders. The web app is built for phones too and installs on the home screen.
 
 ## How it compares
 
@@ -297,7 +298,6 @@ OpenAthlete is actively developed. Here's what's coming next:
 - 📈 **Enhanced Dashboards** - Intuitive data visualizations and performance analytics
 - 🔗 **More Integrations** - Wahoo, Zwift, Oura, and more
 - 👥 **Clubs** - Club accounts with several coaches and groups
-- 📱 **Native apps** - iOS and Android apps in the stores
 
 See our [GitHub Issues](https://github.com/openathleteorg/openathlete/issues) for a detailed list of proposed features and known issues.
 

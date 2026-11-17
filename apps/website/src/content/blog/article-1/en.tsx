@@ -106,10 +106,6 @@ export function ContentEn() {
         </li>
         <li>Units are metric only.</li>
         <li>
-          The iOS and Android apps are in testing. In the meantime the web app
-          works on a phone and can be installed on the home screen.
-        </li>
-        <li>
           The COROS connection is new, so expect rough edges and tell us when
           you find one.
         </li>

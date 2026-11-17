@@ -1,4 +1,5 @@
 import {
+  APP_STORE_URL,
   APP_URL,
   DISCORD_URL,
   DOCS_URL,
@@ -106,6 +107,7 @@ function body(): string {
     m.home_hero_lead({}, en),
     '',
     `- Web app: ${APP_URL}`,
+    `- iPhone app: ${APP_STORE_URL}`,
     `- Android app: ${GOOGLE_PLAY_URL}`,
     `- Source code (AGPL-3.0): ${GITHUB_URL}`,
     `- Documentation: ${DOCS_URL} (full text: ${DOCS_URL}/llms-full.txt)`,

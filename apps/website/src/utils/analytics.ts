@@ -111,8 +111,7 @@ export type SiteEvent =
   | 'pricing_tier_changed'
   | 'cost_calculator_changed'
   | 'faq_opened'
-  | 'language_changed'
-  | 'mobile_waitlist_clicked';
+  | 'language_changed';
 
 export function track(event: SiteEvent, properties: Record<string, unknown>) {
   if (!started) return;

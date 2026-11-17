@@ -36,7 +36,7 @@ curl -fsSL https://raw.githubusercontent.com/openathleteorg/openathlete/main/scr
 
 ### Mobile app
 
-The iOS and Android apps start with the server configured when they were built. To connect to your own instance, choose **Change server** on the login screen or in Settings > Profile. Enter the HTTPS address of your web instance, such as `https://openathlete.example.org`; the app checks its `/api` endpoint. Changing servers signs you out and clears local app data. Choosing the server already in use keeps your session.
+The [iPhone app](https://apps.apple.com/app/id6756783342) and the [Android app](https://play.google.com/store/apps/details?id=org.openathlete) start with the server configured when they were built. To connect to your own instance, choose **Change server** on the login screen or in Settings > Profile. Enter the HTTPS address of your web instance, such as `https://openathlete.example.org`; the app checks its `/api` endpoint. Changing servers signs you out and clears local app data. Choosing the server already in use keeps your session.
 
 For a self-hosted API, add the mobile WebView origin to `.env` while keeping your web address in the list: `CORS_ORIGINS=https://openathlete.example.org,https://localhost`. Restart the API after changing it. If you use a separate API host, the same origin list must be allowed there. The app's server check will report an unreachable server when CORS blocks it.
 

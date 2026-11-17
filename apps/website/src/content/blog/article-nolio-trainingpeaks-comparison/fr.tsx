@@ -145,15 +145,14 @@ export function ContentFr() {
         n'annonce pas d'IA. Aucun des deux n'est open source.
       </p>
       <p>
-        Les manques d'OpenAthlete sont réels aussi. Les applications iOS et
-        Android sont en test&nbsp;: les athlètes utilisent pour l'instant
-        l'application web installable. L'espace club n'a pas de facturation au
-        club&nbsp;: les cotisations se gèrent en dehors d'OpenAthlete. Pas de
-        boutique, pas de vidéothèque d'exercices, pas de partenariat fédéral.
-        Les séances partent vers les montres Garmin, Suunto et COROS, pas Polar.
-        La charge est le TRIMP de Banister calculé à partir de la fréquence
-        cardiaque, avec le RPE de séance à côté&nbsp;: les chiffres ne
-        correspondront pas au TSS si vos athlètes viennent de TrainingPeaks.
+        Les manques d'OpenAthlete sont réels aussi. L'espace club n'a pas de
+        facturation au club&nbsp;: les cotisations se gèrent en dehors
+        d'OpenAthlete. Pas de boutique, pas de vidéothèque d'exercices, pas de
+        partenariat fédéral. Les séances partent vers les montres Garmin, Suunto
+        et COROS, pas Polar. La charge est le TRIMP de Banister calculé à partir
+        de la fréquence cardiaque, avec le RPE de séance à côté&nbsp;: les
+        chiffres ne correspondront pas au TSS si vos athlètes viennent de
+        TrainingPeaks.
       </p>
 
       <h2>Trois entraîneurs, trois réponses</h2>
@@ -163,17 +162,16 @@ export function ContentFr() {
         plus cher, sauf si les athlètes paient leur propre Premium. Nolio
         Classic et OpenAthlete font tous deux le travail&nbsp;; la différence se
         joue entre {coachYear('nolio', 12)} et {q('oaYear')} par an, l'IA d'un
-        côté et les applications natives de l'autre.
+        côté et des applications mobiles plus abouties de l'autre.
       </p>
       <p>
         Un club avec trois entraîneurs et soixante licenciés&nbsp;: s'ils
-        veulent une application native sur leur téléphone dès aujourd'hui, les
-        offres club de Nolio sont les plus adaptées. Si l'application web
-        installable leur suffit, l'espace club d'OpenAthlete fait le travail
-        gratuitement, avec les groupes, une bibliothèque partagée et la piste du
-        mardi déjà dans le calendrier de chaque licencié. Une instance
-        auto-hébergée reste une option si quelqu'un au club veut bien gérer un
-        serveur.
+        veulent un partenaire fédéral et une vidéothèque d'exercices, les offres
+        club de Nolio sont les plus adaptées. Sinon, l'espace club d'OpenAthlete
+        fait le travail gratuitement, avec les groupes, une bibliothèque
+        partagée et la piste du mardi déjà dans le calendrier de chaque
+        licencié. Une instance auto-hébergée reste une option si quelqu'un au
+        club veut bien gérer un serveur.
       </p>
       <p>
         Un entraîneur qui vend des plans à des athlètes qu'il ne rencontre

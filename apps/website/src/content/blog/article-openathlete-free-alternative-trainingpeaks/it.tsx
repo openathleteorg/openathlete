@@ -134,12 +134,11 @@ export function ContentIt() {
         tramite il server MCP.
       </p>
       <p>
-        Cosa non fa ancora: le app iOS e Android sono in test (nel frattempo
-        l'app web si installa sul telefono), non ci sono negozio di piani, app
-        per l'allenamento indoor né fatturazione per i club, e l'analisi della
-        potenza è meno approfondita che su intervals.icu. Gli allenamenti non
-        possono andare sugli orologi Polar, perché la loro API è in sola
-        lettura. Le unità sono solo metriche.
+        Cosa non fa ancora: non ci sono negozio di piani, app per l'allenamento
+        indoor né fatturazione per i club, e l'analisi della potenza è meno
+        approfondita che su intervals.icu. Gli allenamenti non possono andare
+        sugli orologi Polar, perché la loro API è in sola lettura. Le unità sono
+        solo metriche.
       </p>
 
       <h2>I numeri a confronto</h2>
@@ -191,7 +190,7 @@ export function ContentIt() {
         non vuoi reimparare i numeri. Scegli intervals.icu per l'analisi
         gratuita più profonda, soprattutto con un misuratore di potenza. Scegli
         Nolio se alleni in un club francese e vuoi prezzi per associazioni e app
-        native subito. Scegli Final Surge per una squadra scolastica o un club
+        native mature. Scegli Final Surge per una squadra scolastica o un club
         americano con tariffa fissa. Scegli OpenAthlete se vuoi gli allenamenti
         sul tuo Garmin, Suunto o COROS senza pagare, un prezzo fisso da
         allenatore, l'IA con la tua chiave, uno spazio club gratuito o un codice

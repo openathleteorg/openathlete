@@ -208,15 +208,13 @@ export function ContentPtBr() {
         com a cota do Supporter.
       </p>
       <p>
-        As limitações são reais. Ainda não há apps nativos nas lojas: os apps de
-        iOS e Android estão em teste e, enquanto isso, os atletas usam o app web
-        instalável. Não há marketplace para vender planilhas, nem cobrança para
-        clubes (o espaço de clube é gratuito, mas as mensalidades ficam fora do
-        OpenAthlete), nem app de rolo, nem envio de treinos para relógios Polar.
-        A análise é menos profunda que a do intervals.icu, e o projeto é jovem e
-        desenvolvido por uma única pessoa. Nossa resposta para &quot;e se vocês
-        sumirem?&quot; é a licença: o código e os seus dados continuam
-        utilizáveis sem a gente. A comparação item por item está em{' '}
+        As limitações são reais. Não há marketplace para vender planilhas, nem
+        cobrança para clubes (o espaço de clube é gratuito, mas as mensalidades
+        ficam fora do OpenAthlete), nem app de rolo, nem envio de treinos para
+        relógios Polar. A análise é menos profunda que a do intervals.icu, e o
+        projeto é jovem e desenvolvido por uma única pessoa. Nossa resposta para
+        &quot;e se vocês sumirem?&quot; é a licença: o código e os seus dados
+        continuam utilizáveis sem a gente. A comparação item por item está em{' '}
         <Link href="/pt-br/compare/trainingpeaks">
           OpenAthlete vs TrainingPeaks
         </Link>

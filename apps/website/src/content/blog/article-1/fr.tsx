@@ -116,11 +116,6 @@ export function ContentFr() {
         </li>
         <li>Les unités sont uniquement métriques.</li>
         <li>
-          Les applications iOS et Android sont en phase de test. En attendant,
-          l'application web fonctionne sur téléphone et s'installe sur l'écran
-          d'accueil.
-        </li>
-        <li>
           La connexion COROS est toute récente&nbsp;: attendez-vous à quelques
           imperfections, et signalez-les-nous.
         </li>

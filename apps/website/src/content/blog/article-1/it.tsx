@@ -112,10 +112,6 @@ export function ContentIt() {
         </li>
         <li>Le unità sono solo metriche.</li>
         <li>
-          Le app per iOS e Android sono in fase di test. Nel frattempo l'app web
-          funziona sul telefono e si può installare nella schermata home.
-        </li>
-        <li>
           Il collegamento con COROS è nuovo: qualche imperfezione è possibile, e
           ci fa piacere se ce la segnali.
         </li>

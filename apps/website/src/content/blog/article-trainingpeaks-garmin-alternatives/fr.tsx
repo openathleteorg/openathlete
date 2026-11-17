@@ -225,17 +225,15 @@ export function ContentFr() {
         le quota Supporter.
       </p>
       <p>
-        Les limites sont réelles. Pas encore d&apos;applications natives dans
-        les stores&nbsp;: les applis iOS et Android sont en test, et les
-        athlètes utilisent en attendant l&apos;application web installable. Pas
-        de marketplace pour vendre des plans, pas de facturation au club
-        (l&apos;espace club est gratuit, mais les cotisations se gèrent en
-        dehors d&apos;OpenAthlete), pas d&apos;application home trainer, pas
-        d&apos;envoi de séances vers les montres Polar. L&apos;analyse est moins
-        poussée qu&apos;intervals.icu, et le projet est jeune, développé par une
-        seule personne. Notre réponse à «&nbsp;et si vous
-        disparaissez&nbsp;?&nbsp;» tient dans la licence&nbsp;: le code et vos
-        données restent utilisables sans nous. La comparaison détaillée est sur{' '}
+        Les limites sont réelles. Pas de marketplace pour vendre des plans, pas
+        de facturation au club (l&apos;espace club est gratuit, mais les
+        cotisations se gèrent en dehors d&apos;OpenAthlete), pas
+        d&apos;application home trainer, pas d&apos;envoi de séances vers les
+        montres Polar. L&apos;analyse est moins poussée qu&apos;intervals.icu,
+        et le projet est jeune, développé par une seule personne. Notre réponse
+        à «&nbsp;et si vous disparaissez&nbsp;?&nbsp;» tient dans la
+        licence&nbsp;: le code et vos données restent utilisables sans nous. La
+        comparaison détaillée est sur{' '}
         <Link href="/fr/compare/trainingpeaks">
           OpenAthlete vs TrainingPeaks
         </Link>

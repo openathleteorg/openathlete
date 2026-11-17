@@ -140,14 +140,13 @@ export function ContentIt() {
         pubblicizza IA. Nessuno dei due è open source.
       </p>
       <p>
-        Anche le lacune di OpenAthlete sono reali. Le app iOS e Android sono in
-        test, quindi per ora gli atleti usano l'app web installabile. Lo spazio
-        club non prevede fatturazione al club: le quote si gestiscono fuori da
-        OpenAthlete. Niente negozio, niente libreria di video, nessuna
-        partnership con federazioni. Gli allenamenti vanno su orologi Garmin,
-        Suunto e COROS, non Polar. Il carico è il TRIMP di Banister dalla
-        frequenza cardiaca, con l'RPE di seduta accanto, quindi i numeri non
-        corrisponderanno al TSS se i tuoi atleti arrivano da TrainingPeaks.
+        Anche le lacune di OpenAthlete sono reali. Lo spazio club non prevede
+        fatturazione al club: le quote si gestiscono fuori da OpenAthlete.
+        Niente negozio, niente libreria di video, nessuna partnership con
+        federazioni. Gli allenamenti vanno su orologi Garmin, Suunto e COROS,
+        non Polar. Il carico è il TRIMP di Banister dalla frequenza cardiaca,
+        con l'RPE di seduta accanto, quindi i numeri non corrisponderanno al TSS
+        se i tuoi atleti arrivano da TrainingPeaks.
       </p>
 
       <h2>Tre allenatori, tre risposte</h2>
@@ -156,15 +155,16 @@ export function ContentIt() {
         COROS Pace e un Suunto: qui TrainingPeaks costa di più, a meno che gli
         atleti non paghino il proprio Premium. Nolio Classic e OpenAthlete fanno
         entrambi il lavoro; la differenza è tra {coachYear('nolio', 12)} e{' '}
-        {q('oaYear')} all'anno, l'IA da una parte e le app native dall'altra.
+        {q('oaYear')} all'anno, l'IA da una parte e app mobili più mature
+        dall'altra.
       </p>
       <p>
-        Un club con tre allenatori e sessanta tesserati: se vogliono un'app
-        nativa sul telefono subito, i piani club di Nolio sono i più adatti. Se
-        basta l'app web installabile, lo spazio club di OpenAthlete fa il lavoro
-        gratis, con i gruppi, una libreria condivisa e la pista del martedì già
-        nel calendario di ogni tesserato. Un'istanza propria è un'opzione se
-        qualcuno nel club è disposto a gestire un server.
+        Un club con tre allenatori e sessanta tesserati: se vogliono una
+        federazione partner e una libreria di video di esercizi, i piani club di
+        Nolio sono i più adatti. Altrimenti, lo spazio club di OpenAthlete fa il
+        lavoro gratis, con i gruppi, una libreria condivisa e la pista del
+        martedì già nel calendario di ogni tesserato. Un'istanza propria è
+        un'opzione se qualcuno nel club è disposto a gestire un server.
       </p>
       <p>
         Un allenatore che vende piani ad atleti con cui non parla mai: resta su

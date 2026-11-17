@@ -112,11 +112,6 @@ export function ContentEs() {
         </li>
         <li>Las unidades son solo métricas.</li>
         <li>
-          Las apps de iOS y Android están en fase de pruebas. Mientras tanto, la
-          app web funciona en el móvil y se puede instalar en la pantalla de
-          inicio.
-        </li>
-        <li>
           La conexión con COROS es nueva: puede tener algún fallo, y nos viene
           bien que nos avises.
         </li>

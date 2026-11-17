@@ -110,10 +110,6 @@ export function ContentPtBr() {
         </li>
         <li>As unidades são apenas métricas.</li>
         <li>
-          Os apps para iOS e Android estão em fase de testes. Enquanto isso, o
-          app web funciona no celular e pode ser instalado na tela inicial.
-        </li>
-        <li>
           A conexão com o COROS é nova: pode haver alguma aresta, e vale avisar
           quando encontrar uma.
         </li>

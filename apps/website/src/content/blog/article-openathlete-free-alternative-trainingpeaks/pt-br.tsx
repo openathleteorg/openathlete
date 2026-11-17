@@ -133,12 +133,10 @@ export function ContentPtBr() {
         no calendário pelo servidor MCP.
       </p>
       <p>
-        O que ainda não faz: os apps de iOS e Android estão em teste (enquanto
-        isso, o app web pode ser instalado no celular), não há loja de
-        planilhas, nem app de treino indoor, nem cobrança para clubes, e a
-        análise de potência é menos profunda que no intervals.icu. Os treinos
-        não vão para relógios Polar, porque a API da Polar é só de leitura. As
-        unidades são apenas métricas.
+        O que ainda não faz: não há loja de planilhas, nem app de treino indoor,
+        nem cobrança para clubes, e a análise de potência é menos profunda que
+        no intervals.icu. Os treinos não vão para relógios Polar, porque a API
+        da Polar é só de leitura. As unidades são apenas métricas.
       </p>
 
       <h2>Os números lado a lado</h2>
@@ -190,11 +188,11 @@ export function ContentPtBr() {
         construída em cima do TSS e você não quer reaprender os números. Escolha
         o intervals.icu para a análise gratuita mais profunda, principalmente
         com medidor de potência. Escolha a Nolio se você treina um clube francês
-        e quer preço para associações e apps nativos já. Escolha o Final Surge
-        para uma equipe escolar ou clube dos Estados Unidos com preço fixo.
-        Escolha o OpenAthlete se você quer os treinos no Garmin, Suunto ou COROS
-        sem pagar, um preço fixo de treinador, IA com a sua chave, um espaço de
-        clube gratuito ou um código que você mesmo pode hospedar.
+        e quer preço para associações e apps nativos maduros. Escolha o Final
+        Surge para uma equipe escolar ou clube dos Estados Unidos com preço
+        fixo. Escolha o OpenAthlete se você quer os treinos no Garmin, Suunto ou
+        COROS sem pagar, um preço fixo de treinador, IA com a sua chave, um
+        espaço de clube gratuito ou um código que você mesmo pode hospedar.
       </p>
 
       <h2>Levando seu histórico</h2>

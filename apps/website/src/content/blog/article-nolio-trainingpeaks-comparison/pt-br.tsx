@@ -140,14 +140,12 @@ export function ContentPtBr() {
         IA. Nenhum dos dois é open source.
       </p>
       <p>
-        As lacunas do OpenAthlete também são reais. Os apps de iOS e Android
-        estão em teste, então por enquanto os atletas usam o app web instalável.
-        O espaço de clube não tem cobrança para o clube: as mensalidades ficam
-        fora do OpenAthlete. Sem loja, sem biblioteca de vídeos, sem parceria
-        com federação. Os treinos vão para relógios Garmin, Suunto e COROS, não
-        Polar. A carga é o TRIMP de Banister pela frequência cardíaca, com o RPE
-        da sessão ao lado, então os números não vão bater com o TSS se seus
-        atletas vêm do TrainingPeaks.
+        As lacunas do OpenAthlete também são reais. O espaço de clube não tem
+        cobrança para o clube: as mensalidades ficam fora do OpenAthlete. Sem
+        loja, sem biblioteca de vídeos, sem parceria com federação. Os treinos
+        vão para relógios Garmin, Suunto e COROS, não Polar. A carga é o TRIMP
+        de Banister pela frequência cardíaca, com o RPE da sessão ao lado, então
+        os números não vão bater com o TSS se seus atletas vêm do TrainingPeaks.
       </p>
 
       <h2>Três treinadores, três respostas</h2>
@@ -156,15 +154,15 @@ export function ContentPtBr() {
         COROS Pace e um Suunto: aqui o TrainingPeaks sai mais caro, a não ser
         que os atletas paguem o próprio Premium. Nolio Classic e OpenAthlete dão
         conta; a diferença fica entre {coachYear('nolio', 12)} e {q('oaYear')}{' '}
-        por ano, IA de um lado e apps nativos do outro.
+        por ano, IA de um lado e apps móveis mais maduros do outro.
       </p>
       <p>
-        Um clube com três treinadores e sessenta associados: se eles querem um
-        app nativo no celular agora, os planos de clube da Nolio servem melhor.
-        Se o app web instalável basta, o espaço de clube do OpenAthlete resolve
-        de graça, com grupos, uma biblioteca compartilhada e a pista de terça já
-        no calendário de cada associado. Uma instância própria é uma opção se
-        alguém do clube topar cuidar de um servidor.
+        Um clube com três treinadores e sessenta associados: se eles querem uma
+        parceria com federação e uma biblioteca de vídeos de exercícios, os
+        planos de clube da Nolio servem melhor. Se não, o espaço de clube do
+        OpenAthlete resolve de graça, com grupos, uma biblioteca compartilhada e
+        a pista de terça já no calendário de cada associado. Uma instância
+        própria é uma opção se alguém do clube topar cuidar de um servidor.
       </p>
       <p>
         Um treinador que vende planilhas para atletas com quem nunca fala: fique

@@ -141,13 +141,11 @@ export function ContentFr() {
         dans le calendrier via le serveur MCP.
       </p>
       <p>
-        Ce qu'OpenAthlete ne fait pas encore&nbsp;: les applications iOS et
-        Android sont en test (en attendant, l'application web s'installe sur le
-        téléphone), il n'y a ni boutique de plans, ni application d'entraînement
-        en intérieur, ni facturation au club, et l'analyse de la puissance est
-        moins poussée que sur intervals.icu. Les séances ne peuvent pas partir
-        vers les montres Polar, dont l'API est en lecture seule. Les unités sont
-        uniquement métriques.
+        Ce qu'OpenAthlete ne fait pas encore&nbsp;: il n'y a ni boutique de
+        plans, ni application d'entraînement en intérieur, ni facturation au
+        club, et l'analyse de la puissance est moins poussée que sur
+        intervals.icu. Les séances ne peuvent pas partir vers les montres Polar,
+        dont l'API est en lecture seule. Les unités sont uniquement métriques.
       </p>
 
       <h2>Les chiffres côte à côte</h2>
@@ -200,8 +198,8 @@ export function ContentFr() {
         Choisissez intervals.icu pour l'analyse gratuite la plus poussée,
         surtout avec un capteur de puissance. Choisissez Nolio si vous entraînez
         dans un club français et voulez des tarifs associatifs et des
-        applications natives dès aujourd'hui. Choisissez Final Surge pour une
-        équipe scolaire ou un club américain avec un forfait simple. Choisissez
+        applications natives éprouvées. Choisissez Final Surge pour une équipe
+        scolaire ou un club américain avec un forfait simple. Choisissez
         OpenAthlete si vous voulez vos séances sur Garmin, Suunto ou COROS sans
         payer, un prix entraîneur fixe, l'IA avec votre propre clé, un espace
         club gratuit, ou un code que vous pouvez héberger vous-même.

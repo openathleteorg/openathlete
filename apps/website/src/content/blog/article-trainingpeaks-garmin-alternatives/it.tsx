@@ -212,9 +212,7 @@ export function ContentIt() {
         con la tua chiave o con la quota Supporter.
       </p>
       <p>
-        I limiti sono reali. Non ci sono ancora app native negli store: le app
-        iOS e Android sono in fase di test e nel frattempo gli atleti usano la
-        web app installabile. Non c&apos;è un marketplace per vendere piani, né
+        I limiti sono reali. Non c&apos;è un marketplace per vendere piani, né
         la fatturazione per i club (lo spazio club è gratuito, ma le quote si
         gestiscono fuori da OpenAthlete), né un&apos;app per i rulli, né
         l&apos;invio di allenamenti agli orologi Polar. L&apos;analisi è meno
