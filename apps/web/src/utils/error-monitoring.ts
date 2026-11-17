@@ -19,14 +19,39 @@ const NOISE = [
   /window\.ethereum/,
 ];
 
+type ExceptionEntry = {
+  value?: string;
+  stacktrace?: { frames?: { filename?: string }[] };
+};
+
+/**
+ * Chrome on iOS injects its own scripts (autofill, translation) into the
+ * page, and one of them overflows the stack: its frames point into the HTML
+ * document, never into our bundles.
+ */
+function isChromeIosOverflow(
+  exception: ExceptionEntry,
+  browser: unknown,
+): boolean {
+  return (
+    browser === 'Chrome iOS' &&
+    /^Maximum call stack size exceeded/.test(exception.value ?? '') &&
+    !exception.stacktrace?.frames?.some((frame) =>
+      frame.filename?.includes('/assets/'),
+    )
+  );
+}
+
 export function isBrowserNoise(event: CaptureResult | null): boolean {
   if (event?.event !== '$exception') return false;
   const list = event.properties?.$exception_list as
-    { value?: string }[] | undefined;
+    ExceptionEntry[] | undefined;
   return (
     !!list?.length &&
-    list.every((exception) =>
-      NOISE.some((pattern) => pattern.test(exception.value ?? '')),
+    list.every(
+      (exception) =>
+        NOISE.some((pattern) => pattern.test(exception.value ?? '')) ||
+        isChromeIosOverflow(exception, event.properties?.$browser),
     )
   );
 }
