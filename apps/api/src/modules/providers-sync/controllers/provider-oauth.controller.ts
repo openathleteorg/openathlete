@@ -60,7 +60,10 @@ import {
 } from '../../core/types/connector';
 import { configuredProviders } from '../base/provider-config';
 import { CorosProviderService, SuuntoProviderService } from '../providers';
-import { GarminProviderService } from '../providers/garmin.provider.service';
+import {
+  GarminProviderService,
+  garminSharesHistory,
+} from '../providers/garmin.provider.service';
 import { PolarProviderService } from '../providers/polar.provider.service';
 import {
   StravaProviderService,
@@ -526,6 +529,12 @@ export class ProviderOAuthController {
             description:
               'Whether the connection allows editing activities; without it, the user connects again to turn the analysis on',
           },
+          historyShared: {
+            type: 'boolean',
+            example: true,
+            description:
+              'Whether the provider lets us import the history; false when a Garmin user did not allow sharing it',
+          },
           fullImportRequestedAt: {
             type: 'string',
             format: 'date-time',
@@ -576,6 +585,9 @@ export class ProviderOAuthController {
       activityDescriptionAuthorized:
         account.provider === ConnectorProvider.STRAVA &&
         hasStravaWriteScope(account.scopes),
+      historyShared:
+        account.provider !== ConnectorProvider.GARMIN ||
+        garminSharesHistory(account.scopes),
       fullImportRequestedAt: account.fullImportRequestedAt,
       fullImportCompletedAt: account.fullImportCompletedAt,
     }));
@@ -840,6 +852,16 @@ export class ProviderOAuthController {
     if (!account.importActivitiesEnabled) {
       throw new BadRequestException(
         `Importing activities is disabled for ${provider}`,
+      );
+    }
+
+    // Garmin would refuse it: the settings tell the user how to allow it
+    if (
+      providerEnum === ConnectorProvider.GARMIN &&
+      !garminSharesHistory(account.scopes)
+    ) {
+      throw new BadRequestException(
+        'This Garmin user does not share their history with OpenAthlete',
       );
     }
 

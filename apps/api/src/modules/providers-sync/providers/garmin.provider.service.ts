@@ -182,6 +182,16 @@ export function parseGarminPermissions(
   return scopes.slice(PERMISSIONS_PREFIX.length).split(' ').filter(Boolean);
 }
 
+/**
+ * Whether the user lets Garmin send us their history: without it, a backfill
+ * is refused (412). Permissions not stored yet (older connections) leave the
+ * answer to Garmin.
+ */
+export function garminSharesHistory(scopes?: string | null): boolean {
+  const permissions = parseGarminPermissions(scopes);
+  return !permissions || permissions.includes('HISTORICAL_DATA_EXPORT');
+}
+
 export function formatGarminPermissions(permissions: string[]): string {
   return `${PERMISSIONS_PREFIX}${permissions.join(' ')}`;
 }

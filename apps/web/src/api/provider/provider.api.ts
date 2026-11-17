@@ -23,6 +23,8 @@ export interface ConnectedProvider {
   activityDescriptionLanguage: EmailLanguage | null;
   /** The connection allows editing activities; otherwise connect again */
   activityDescriptionAuthorized: boolean;
+  /** False when a Garmin user did not allow sharing their history */
+  historyShared: boolean;
   fullImportRequestedAt: string | null;
   fullImportCompletedAt: string | null;
 }

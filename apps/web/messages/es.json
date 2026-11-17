@@ -1078,6 +1078,7 @@
   "full_import_title": "Importar historial",
   "full_import_description": "Solicitar una importación puntual de todas las actividades anteriores de {provider}.",
   "full_import_garmin_hint": "Garmin solo envía los últimos 31 días. Para actividades más antiguas, solicita la exportación de tus datos desde tu cuenta Garmin, descomprímela e importa sus archivos FIT más abajo: las actividades que ya están aquí no se duplican.",
+  "full_import_garmin_history_not_shared": "Garmin aún no comparte tu historial con OpenAthlete: en Garmin Connect, abre Aplicaciones conectadas, elige OpenAthlete y permite los datos históricos; después vuelve aquí.",
   "full_import_cta": "Importar todas las actividades",
   "full_import_in_progress": "Importación en curso…",
   "full_import_completed": "La importación del historial ya se ha completado.",
