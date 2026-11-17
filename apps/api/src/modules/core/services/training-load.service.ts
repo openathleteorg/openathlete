@@ -1282,4 +1282,52 @@ export class TrainingLoadService {
 
     return { processed, errors };
   }
+
+  /**
+   * The TRIMP of every activity of an athlete, computed again with their
+   * current HR max and resting HR. Without both, nothing changes: the loads
+   * already there stay. For the recalculation job, without access check.
+   */
+  async recalculateAthleteTrimp(
+    athleteId: number,
+  ): Promise<{ processed: number; errors: number; skipped?: string }> {
+    const athlete = await this.prisma.athlete.findUnique({
+      where: { athleteId },
+      select: { userId: true },
+    });
+    if (!athlete) return { processed: 0, errors: 0, skipped: 'no athlete' };
+    if (!(await this.getHeartRateProfile(athleteId))) {
+      return { processed: 0, errors: 0, skipped: 'no HR max or resting HR' };
+    }
+
+    const events = await this.prisma.event.findMany({
+      where: {
+        athleteId,
+        type: 'ACTIVITY',
+        // Some watches report 0 for a session recorded without a strap
+        activity: { averageHeartrate: { gt: 0 } },
+      },
+      select: { eventId: true },
+      orderBy: { startDate: 'asc' },
+    });
+    const user = { userId: athlete.userId } as AuthUser;
+
+    let processed = 0;
+    let errors = 0;
+    for (const { eventId } of events) {
+      try {
+        await this.calculateActivityLoad(user, eventId, 'TRIMP');
+        processed++;
+      } catch (error) {
+        this.logger.warn(
+          `TRIMP not recalculated for activity ${eventId}: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        errors++;
+      }
+    }
+    this.logger.log(
+      `TRIMP recalculated for athlete ${athleteId}: ${processed} activities, ${errors} errors`,
+    );
+    return { processed, errors };
+  }
 }

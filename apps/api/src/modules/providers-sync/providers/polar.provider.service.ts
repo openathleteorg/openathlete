@@ -24,6 +24,7 @@ import { streamUpdate } from 'src/modules/core/helpers/activity-corrections';
 
 import { ActivityFileParserService } from '../../core/helpers/activity-file-parser.service';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
+import { savingCompletesHeartRateProfile } from '../../core/helpers/heart-rate-profile';
 import {
   roundDistance,
   roundEnergy,
@@ -718,14 +719,22 @@ export class PolarProviderService
     athleteId: number,
     metrics: PolarMetricRecord[],
   ): Promise<void> {
-    for (const { type, date, value } of metrics) {
-      const rounded = roundMetricValue(value);
-      await this.prisma.athleteMetric.upsert({
-        where: { athleteId_type_date: { athleteId, type, date } },
-        create: { athleteId, type, date, value: rounded, source: 'POLAR' },
-        update: { value: rounded, source: 'POLAR' },
-      });
-    }
+    const completed = await savingCompletesHeartRateProfile(
+      this.prisma,
+      athleteId,
+      metrics.map((metric) => metric.type),
+      async () => {
+        for (const { type, date, value } of metrics) {
+          const rounded = roundMetricValue(value);
+          await this.prisma.athleteMetric.upsert({
+            where: { athleteId_type_date: { athleteId, type, date } },
+            create: { athleteId, type, date, value: rounded, source: 'POLAR' },
+            update: { value: rounded, source: 'POLAR' },
+          });
+        }
+      },
+    );
+    if (completed) await this.queueService.addTrainingLoadRecalcJob(athleteId);
   }
 
   /**

@@ -30,6 +30,7 @@ import { ActivityFileParserService } from '../../core/helpers/activity-file-pars
 import { ActivityParseResult } from '../../core/helpers/activity-parser.interface';
 import { compressActivityStream } from '../../core/helpers/activity-stream';
 import { mapCorosSportType } from '../../core/helpers/coros';
+import { savingCompletesHeartRateProfile } from '../../core/helpers/heart-rate-profile';
 import {
   roundDistance,
   roundEnergy,
@@ -781,22 +782,23 @@ export class CorosProviderService
     }
     if (failures.length === sources.length) throw failures[0];
 
-    for (const { type, date, value } of metrics) {
-      const rounded = roundMetricValue(value);
-      await this.prisma.athleteMetric.upsert({
-        where: {
-          athleteId_type_date: { athleteId: account.athleteId, type, date },
-        },
-        create: {
-          athleteId: account.athleteId,
-          type,
-          date,
-          value: rounded,
-          source: 'COROS',
-        },
-        update: { value: rounded, source: 'COROS' },
-      });
-    }
+    const { athleteId } = account;
+    const completed = await savingCompletesHeartRateProfile(
+      this.prisma,
+      athleteId,
+      metrics.map((metric) => metric.type),
+      async () => {
+        for (const { type, date, value } of metrics) {
+          const rounded = roundMetricValue(value);
+          await this.prisma.athleteMetric.upsert({
+            where: { athleteId_type_date: { athleteId, type, date } },
+            create: { athleteId, type, date, value: rounded, source: 'COROS' },
+            update: { value: rounded, source: 'COROS' },
+          });
+        }
+      },
+    );
+    if (completed) await this.queueService.addTrainingLoadRecalcJob(athleteId);
   }
 
   /** COROS has no webhooks: activities arrive with this poll */

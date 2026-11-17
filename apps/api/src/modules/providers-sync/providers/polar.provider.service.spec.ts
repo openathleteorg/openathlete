@@ -75,7 +75,7 @@ function setup(env: Record<string, unknown> = {}, storedSecret?: string) {
       update: jest.fn(),
     },
     event: { create: jest.fn().mockResolvedValue({ eventId: 2 }) },
-    athleteMetric: { upsert: jest.fn() },
+    athleteMetric: { upsert: jest.fn(), findMany: jest.fn() },
     $transaction: jest.fn(),
   };
   prisma.$transaction.mockImplementation((run) => run(prisma));
@@ -86,6 +86,7 @@ function setup(env: Record<string, unknown> = {}, storedSecret?: string) {
     addActivityImportJobs: jest.fn(),
     getPolarWebhookSecret: jest.fn().mockResolvedValue(storedSecret ?? null),
     setPolarWebhookSecret: jest.fn(),
+    addTrainingLoadRecalcJob: jest.fn(),
   };
   const config = { get: (key: string) => env[key] };
   const service = new PolarProviderService(
@@ -424,6 +425,47 @@ describe('PolarProviderService metrics', () => {
     await service.syncAccountMetrics(4);
 
     expect(prisma.athleteMetric.upsert).toHaveBeenCalledTimes(2);
+  });
+
+  it('computes the loads again once HR max and resting HR are both in', async () => {
+    const { service, prisma, queue } = setup();
+    // The physical info brings both values to an athlete who had neither
+    prisma.athleteMetric.findMany
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ type: 'HR_MAX' }, { type: 'HR_REST' }]);
+    http.get.mockImplementation((url: string) =>
+      Promise.resolve(
+        url.endsWith('/users/physical-info')
+          ? {
+              status: 200,
+              data: { maximum_heart_rate: 186, resting_heart_rate: 48 },
+            }
+          : { status: 204, data: '' },
+      ),
+    );
+
+    await service.syncAccountMetrics(4);
+
+    expect(queue.addTrainingLoadRecalcJob).toHaveBeenCalledWith(9);
+  });
+
+  it('leaves the loads alone when the profile was complete already', async () => {
+    const { service, prisma, queue } = setup();
+    prisma.athleteMetric.findMany.mockResolvedValue([
+      { type: 'HR_MAX' },
+      { type: 'HR_REST' },
+    ]);
+    http.get.mockImplementation((url: string) =>
+      Promise.resolve(
+        url.endsWith('/users/physical-info')
+          ? { status: 200, data: { resting_heart_rate: 47 } }
+          : { status: 204, data: '' },
+      ),
+    );
+
+    await service.syncAccountMetrics(4);
+
+    expect(queue.addTrainingLoadRecalcJob).not.toHaveBeenCalled();
   });
 
   it('retries when every endpoint fails', async () => {
