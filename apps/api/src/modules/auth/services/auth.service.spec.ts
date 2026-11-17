@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 
@@ -76,5 +76,21 @@ describe('AuthService.loginWithFirebase', () => {
     await expect(
       service.loginWithFirebase({ idToken: 'token' }),
     ).rejects.toBeInstanceOf(ConflictException);
+  });
+});
+
+describe('AuthService.validateUser', () => {
+  it('refuses the token of a deleted account without naming its email', async () => {
+    const { service, prisma } = setup();
+    Object.assign(prisma.user, {
+      findUnique: jest.fn().mockResolvedValue(null),
+    });
+
+    const error = await service
+      .validateUser({ userId: 7, email: 'runner@example.com' } as never)
+      .catch((e: Error) => e);
+
+    expect(error).toBeInstanceOf(UnauthorizedException);
+    expect((error as Error).message).not.toContain('runner@example.com');
   });
 });
