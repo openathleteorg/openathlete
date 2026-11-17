@@ -1,7 +1,7 @@
 import { Job, UnrecoverableError } from 'bullmq';
 
 import { AnalyticsService } from './analytics.service';
-import { reportJobFailure } from './job-failure';
+import { RefusedJobError, reportJobFailure } from './job-failure';
 
 const job = (attemptsMade: number) =>
   ({
@@ -30,6 +30,11 @@ describe('reportJobFailure', () => {
   it('reports an error no retry can fix at once', () => {
     reportJobFailure(analytics, job(1), new UnrecoverableError('boom'));
     expect(captureException).toHaveBeenCalledTimes(1);
+  });
+
+  it('leaves out a job the provider refused', () => {
+    reportJobFailure(analytics, job(1), new RefusedJobError('no permission'));
+    expect(captureException).not.toHaveBeenCalled();
   });
 
   it('reports a job BullMQ lost', () => {
