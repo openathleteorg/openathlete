@@ -1,7 +1,10 @@
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
 import { getLocale } from '@/paraglide/runtime';
+import { hapticTap } from '@/utils/haptics';
 import { addDays, getISOWeek } from 'date-fns';
+import { useRef } from 'react';
 
 import { EVENT_TYPE } from '@openathlete/shared';
 
@@ -12,6 +15,7 @@ import { CalendarWeekSummary } from './calendar-week-summary';
 import { useCalendarContext } from './hooks/use-calendar-context';
 import { calculateCyclesForDay } from './utils/cycle-day-layout';
 import { formatDayTotal } from './utils/day-total';
+import { type TouchPoint, horizontalSwipe } from './utils/swipe';
 import { summarizeWeek } from './utils/week-summary';
 
 /** Reuses calendar day interactions and the existing planned/actual summary. */
@@ -27,7 +31,11 @@ export function CalendarWeekView({
     cycles,
     cycleResize,
     allowCreate,
+    nextWeek,
+    prevWeek,
   } = useCalendarContext();
+  const isMobile = useIsMobile();
+  const touchStart = useRef<TouchPoint | null>(null);
   const days = displayedWeeks[0] ?? [];
   const end = addDays(weekStart, 7);
   const weekEvents = events.filter(
@@ -54,6 +62,34 @@ export function CalendarWeekView({
       data-calendar-week
       className="space-y-3 px-4 pt-3 pb-24 md:p-0"
       aria-busy={isLoading}
+      // On phones, a sideways swipe on the days steps a week, as the arrows
+      // of the header do
+      onTouchStart={
+        isMobile
+          ? (event) => {
+              const touch = event.touches[0];
+              touchStart.current = { x: touch.clientX, y: touch.clientY };
+            }
+          : undefined
+      }
+      onTouchEnd={
+        isMobile
+          ? (event) => {
+              const start = touchStart.current;
+              touchStart.current = null;
+              if (!start) return;
+              const touch = event.changedTouches[0];
+              const direction = horizontalSwipe(start, {
+                x: touch.clientX,
+                y: touch.clientY,
+              });
+              if (!direction) return;
+              hapticTap();
+              if (direction > 0) nextWeek();
+              else prevWeek();
+            }
+          : undefined
+      }
     >
       {/* The summary sits beside the days once there is room for both */}
       <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_11rem] xl:rounded-lg xl:border xl:shadow-sm">
