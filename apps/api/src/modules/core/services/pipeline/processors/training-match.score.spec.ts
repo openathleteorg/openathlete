@@ -65,7 +65,7 @@ describe('closenessScore', () => {
   it('averages how close the duration and distance are', () => {
     const tenK = session('10 km', { goalDuration: 3000, goalDistance: 10000 });
     expect(closenessScore(run, tenK)).toBe(95); // (1 + 0.9) / 2
-    expect(closenessScore(run, session('Free run'))).toBe(100);
+    expect(closenessScore(run, session('Free run'))).toBe(50);
   });
 });
 
@@ -95,6 +95,23 @@ describe('pickTraining', () => {
     const jog = { ...run, movingTime: 600, distance: 2000 };
     expect(pickTraining(jog, [tenK])).toBeNull();
     expect(pickTraining(run, [tenK])?.training).toBe(tenK);
+  });
+
+  it('gives a run to the planned session it fits rather than an unplanned one', () => {
+    const easyRun = session('Easy run', { startDate: at('17:00') });
+    const longRun = session('Long run', { goalDuration: 5400 });
+    const run85 = { ...run, movingTime: 5100 };
+    expect(pickTraining(run85, [easyRun, longRun])?.training).toBe(longRun);
+  });
+
+  it('keeps a run far shorter than the planned session for the unplanned one', () => {
+    const easyRun = session('Easy run', { startDate: at('07:00') });
+    const longRun = session('Long run', {
+      goalDuration: 5400,
+      startDate: at('18:00'),
+    });
+    const run40 = { ...run, movingTime: 2400, startDate: at('07:00') };
+    expect(pickTraining(run40, [easyRun, longRun])?.training).toBe(easyRun);
   });
 
   it('breaks a tie with the session starting closest to the activity', () => {

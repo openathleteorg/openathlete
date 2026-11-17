@@ -46,16 +46,24 @@ export function isCandidate(
 }
 
 /**
+ * Score of a session that plans neither a duration nor a distance
+ * (lap-button steps only, some MCP or AI sessions). Nothing says it fits,
+ * so it must not outrank a planned session the activity matches, nor take
+ * the activity from one: a planned session wins while the activity stays
+ * between half and double of it.
+ */
+const UNPLANNED_SCORE = 50;
+
+/**
  * How close (0-100) the activity's duration and distance are to the
- * session's, to choose between several candidates. 100 when the session
- * plans neither.
+ * session's, to choose between several candidates.
  */
 export function closenessScore(
   activity: MatchActivity,
   training: MatchTraining,
 ): number {
   const lengths = plannedLengths(activity, training);
-  if (lengths.length === 0) return 100;
+  if (lengths.length === 0) return UNPLANNED_SCORE;
   const ratios = lengths.map(({ done, planned }) =>
     done > 0 ? Math.min(done / planned, planned / done) : 0,
   );
