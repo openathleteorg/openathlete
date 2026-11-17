@@ -59,6 +59,11 @@ import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.
 import { ProviderExportService } from '../../providers-sync/export.service';
 import { TrainingLoadEstimationService } from '../../queue/services/training-load-estimation.service';
 import {
+  activityToGpx,
+  garminSourceLabel,
+  gpxFileName,
+} from '../helpers/activity-gpx';
+import {
   reductActivityStreamToResolution,
   uncompressActivityStream,
 } from '../helpers/activity-stream';
@@ -378,6 +383,55 @@ export class EventService {
       ...this.prismaEventToEvent(event),
       ...(plannedSession ? { plannedSession } : {}),
     };
+  }
+
+  /**
+   * The GPS track of an activity as a GPX file, for whoever may read the
+   * activity. Any activity with GPS has one, whatever it was imported from.
+   */
+  async getEventGpx(user: AuthUser, eventId: Event['eventId']) {
+    const ability = await this.abilities.getFor({ user });
+    const event = await this.prisma.event.findFirst({
+      where: {
+        AND: [{ eventId }, accessibleBy(ability, 'read').Event],
+      },
+      select: {
+        name: true,
+        startDate: true,
+        activity: {
+          select: {
+            sport: true,
+            stream: true,
+            provider: true,
+            deviceName: true,
+          },
+        },
+      },
+    });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    const compressed = event.activity
+      ?.stream as CompressedActivityStream | null;
+    const gpx =
+      event.activity && compressed
+        ? activityToGpx(
+            {
+              ...event,
+              sport: event.activity.sport,
+              // Garmin's brand guidelines: its data names it as its source
+              source:
+                event.activity.provider === 'GARMIN'
+                  ? garminSourceLabel(event.activity.deviceName)
+                  : null,
+            },
+            uncompressActivityStream(compressed),
+          )
+        : null;
+    if (!gpx) {
+      throw new NotFoundException('No GPS track for this activity');
+    }
+    return { content: gpx, fileName: gpxFileName(event) };
   }
 
   /**

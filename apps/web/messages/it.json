@@ -1818,6 +1818,8 @@
   "event_dialog_plan_activity": "Aggiungi un’attività",
   "activity_is_race": "Era una gara",
   "activity_race_badge": "Gara",
+  "activity_gpx_download": "Scarica la traccia GPX",
+  "activity_gpx_download_failed": "Non è stato possibile scaricare la traccia",
   "activity_open_page": "Apri come pagina",
   "activity_copy_link": "Copia link",
   "activity_link_copied": "Link copiato",
