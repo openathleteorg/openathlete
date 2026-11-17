@@ -12,6 +12,14 @@ test('switches to week view, navigates, and remembers the selected view', async 
 }) => {
   await signIn(page, await createAthlete(request));
   await page.goto('/dashboard/calendar');
+  // The view is shown at once and saved in the background: reload only once
+  // the account has it
+  const saved = page.waitForResponse(
+    (response) =>
+      response.request().method() !== 'GET' &&
+      (response.request().postData() ?? '').includes('calendarDisplay') &&
+      response.ok(),
+  );
   await page.getByRole('tab', { name: 'Week', exact: true }).click();
   const week = page.locator('[data-calendar-week]');
   await expect(week).toBeVisible();
@@ -32,6 +40,7 @@ test('switches to week view, navigates, and remembers the selected view', async 
     'data-calendar-day',
     first!,
   );
+  await saved;
   await page.reload();
   await expect(
     page.getByRole('tab', { name: 'Week', exact: true }),

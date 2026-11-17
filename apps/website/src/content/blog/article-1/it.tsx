@@ -112,10 +112,6 @@ export function ContentIt() {
         </li>
         <li>Le unità sono solo metriche.</li>
         <li>
-          Le app per iOS e Android sono in fase di test. Nel frattempo l'app web
-          funziona sul telefono e si può installare nella schermata home.
-        </li>
-        <li>
           Il collegamento con COROS è nuovo: qualche imperfezione è possibile, e
           ci fa piacere se ce la segnali.
         </li>
@@ -124,10 +120,11 @@ export function ContentIt() {
       <h2>Come si finanzia</h2>
       <p>
         Tutte le funzioni sono gratuite sulla versione ospitata. Il piano
-        Supporter, a 5 € al mese o 50 € all'anno, aggiunge due cose: l'IA sulle
-        chiavi di OpenAthlete, con una quota mensile, e la possibilità di
-        seguire più di cinque atleti. Il self-hosting è gratuito e senza limiti.
-        I dettagli sono nella <Link href="/it/pricing">pagina dei prezzi</Link>.
+        Supporter, a partire da 5 € al mese o 50 € all'anno, aggiunge due cose:
+        l'IA sulle chiavi di OpenAthlete, con una quota settimanale per un uso
+        ragionevole che si rinnova ogni lunedì, e la possibilità di seguire più
+        di cinque atleti. Il self-hosting è gratuito e senza limiti. I dettagli
+        sono nella <Link href="/it/pricing">pagina dei prezzi</Link>.
       </p>
       <p>
         L'API e il database della versione ospitata girano su OVH, in Francia, e

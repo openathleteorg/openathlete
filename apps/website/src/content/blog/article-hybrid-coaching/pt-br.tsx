@@ -180,8 +180,8 @@ export function ContentPtBr() {
         os alunos respondem algumas perguntas depois de cada atividade, e o
         Claude ou o ChatGPT pode rascunhar um bloco inteiro no calendário de um
         aluno pelo <Link href="/pt-br/features/mcp-server">servidor MCP</Link>,
-        para você revisar. É gratuito até cinco alunos; o Supporter (5 € por mês
-        ou 50 € por ano) tira o limite, e uma instância auto-hospedada não tem
+        para você revisar. É gratuito até cinco alunos; o Supporter, a partir de
+        50 € por ano, tira o limite, e uma instância auto-hospedada não tem
         nenhum. Mais detalhes na{' '}
         <Link href="/pt-br/coaches">página para treinadores</Link> e em{' '}
         <Link href="/pt-br/pricing">preços</Link>.

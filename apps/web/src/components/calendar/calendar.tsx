@@ -92,6 +92,7 @@ import { UnavailableSessionsDialog } from './unavailable-sessions-dialog';
 import { isPlannedEvent } from './utils/compliance';
 import { isUnavailableKind } from './utils/cycle-kind';
 import { parseLinkDropId } from './utils/link-drop';
+import { createRefreshBatcher } from './utils/refresh-batcher';
 import {
   COPY_KEY,
   isKeyHeld,
@@ -229,16 +230,13 @@ export function Calendar({
   );
 
   const queryClient = useQueryClient();
-  const {
-    data: weeklyLoadSummary,
-    isPending: weeklyLoadSummaryLoading,
-    refetch: refetchWeeklyLoadSummary,
-  } = useWeeklyLoadSummaryQuery(
-    loadRange.start,
-    loadRange.end,
-    athleteId,
-    Boolean(loadRange.start && loadRange.end),
-  );
+  const { data: weeklyLoadSummary, isPending: weeklyLoadSummaryLoading } =
+    useWeeklyLoadSummaryQuery(
+      loadRange.start,
+      loadRange.end,
+      athleteId,
+      Boolean(loadRange.start && loadRange.end),
+    );
 
   // Track events with ongoing load estimations
   const [estimatingEvents, setEstimatingEvents] = useState<Set<number>>(
@@ -331,6 +329,10 @@ export function Calendar({
       isSubscribed = true;
     }
 
+    const refresh = createRefreshBatcher((queryKey) =>
+      queryClient.invalidateQueries({ queryKey }),
+    );
+
     // Set up event listeners
     const cleanup = CalendarAPI.onEvent((event) => {
       switch (event.type) {
@@ -348,11 +350,7 @@ export function Calendar({
             next.delete(event.payload.eventId);
             return next;
           });
-          // Invalidate and refetch weekly load summary
-          queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
-          });
-          refetchWeeklyLoadSummary();
+          refresh.add([trainingLoadKeys.getWeeklyLoadSummary]);
           break;
         }
         case 'training_load_estimation_failed': {
@@ -364,33 +362,21 @@ export function Calendar({
           break;
         }
         case 'activity_processed': {
-          // Invalidate events query to refresh the calendar
-          queryClient.invalidateQueries({
-            queryKey: [eventKeys.getMyEvents],
-          });
-          // Invalidate the specific event query to update event details if open
-          queryClient.invalidateQueries({
-            queryKey: [eventKeys.getEvent, event.payload.eventId],
-          });
-          // Also invalidate weekly load summary
-          queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
-          });
-          refetchWeeklyLoadSummary();
+          refresh.add(
+            [eventKeys.getMyEvents],
+            // The event's details, if open
+            [eventKeys.getEvent, event.payload.eventId],
+            [trainingLoadKeys.getWeeklyLoadSummary],
+          );
           break;
         }
         case 'weekly_load_updated': {
           // Deleted elsewhere: another device, or the removal of duplicate
           // activities, which runs in the background
           if (event.payload.reason === 'event_deleted') {
-            queryClient.invalidateQueries({
-              queryKey: [eventKeys.getMyEvents],
-            });
+            refresh.add([eventKeys.getMyEvents]);
           }
-          queryClient.invalidateQueries({
-            queryKey: [trainingLoadKeys.getWeeklyLoadSummary],
-          });
-          refetchWeeklyLoadSummary();
+          refresh.add([trainingLoadKeys.getWeeklyLoadSummary]);
           break;
         }
       }
@@ -398,6 +384,7 @@ export function Calendar({
 
     return () => {
       cleanup();
+      refresh.cancel();
       socket.off('connect', handleConnect);
       socket.off('disconnect', handleDisconnect);
       socket.off('reconnect_error', handleReconnectError);
@@ -408,7 +395,7 @@ export function Calendar({
         CalendarAPI.unsubscribe(athleteId);
       }
     };
-  }, [athleteId, queryClient, refetchWeeklyLoadSummary]);
+  }, [athleteId, queryClient]);
 
   // ?event= opens a session from another screen, such as Today
   const [eventDetailsOpened, setEventDetailsOpened] = useState<

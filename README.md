@@ -31,7 +31,8 @@
    <a href="https://github.com/openathleteorg/openathlete/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-AGPLv3-purple" alt="License"></a>
    <a href="https://github.com/openathleteorg/openathlete/releases"><img src="https://img.shields.io/github/v/release/openathleteorg/openathlete" alt="Latest release"></a>
    <a href="https://github.com/openathleteorg/openathlete/pulse"><img src="https://img.shields.io/github/commit-activity/m/openathleteorg/openathlete" alt="Commits per month"></a>
-   <a href="https://testflight.apple.com/join/1hBg4mR1"><img src="https://img.shields.io/badge/iOS-TestFlight-blue" alt="iOS on TestFlight"></a>
+   <a href="https://apps.apple.com/app/id6756783342"><img src="https://img.shields.io/badge/App_Store-iPhone-0D96F6?logo=apple&logoColor=white" alt="Download on the App Store"></a>
+   <a href="https://play.google.com/store/apps/details?id=org.openathlete"><img src="https://img.shields.io/badge/Google_Play-Android-34A853?logo=googleplay&logoColor=white" alt="Get it on Google Play"></a>
    <a href="https://discord.gg/j4PP6tDwuP"><img src="https://img.shields.io/badge/Discord-Community-5865F2" alt="Discord"></a>
    <a href="https://buymeacoffee.com/openathlete"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee"></a>
 </p>
@@ -64,7 +65,7 @@ OpenAthlete is free on our servers in France and free on yours. The code is publ
 
 **AI, on your terms.** Generate or edit a session from a sentence, get a short read of each activity and three questions on how it felt. Bring your own key (OpenAI, Anthropic, Google, Mistral, OpenRouter, DeepSeek, xAI, Groq, or a local model when self-hosted), pick the model per feature, or use the allowance included with Supporter. Nothing reaches an AI provider until you allow it. An **MCP server** lets Claude, ChatGPT or Cursor read your training and plan sessions straight into your calendar.
 
-**Mobile.** The web app is built for phones and installs on the home screen. iOS and Android apps are in testing ([TestFlight](https://testflight.apple.com/join/1hBg4mR1)).
+**Mobile.** Native apps on the [App Store](https://apps.apple.com/app/id6756783342) for iPhone and on [Google Play](https://play.google.com/store/apps/details?id=org.openathlete) for Android, with notifications and session reminders. The web app is built for phones too and installs on the home screen.
 
 ## How it compares
 
@@ -74,8 +75,8 @@ OpenAthlete is free on our servers in France and free on yours. The code is publ
 | Planned workouts sent to the watch | ✅ Free (Garmin, COROS, Suunto) | Premium only | ✅ | ❌ |
 | Fitness / fatigue / form | ✅ Formulas in the code | ✅ | ✅ | Subscription |
 | AI | Your key, or included with Supporter; MCP server | — | Connector (Supporter) | — |
-| Coaching | 5 athletes free, unlimited €50/yr | From $21.99/mo + per-athlete fees | Supporter | — |
-| Athlete price | Free (Supporter €5/mo or €50/yr, optional) | $19.95/mo or $134.99/yr | Free ($4/mo Supporter) | €59.99/yr |
+| Coaching | 5 athletes free, unlimited from €50/yr | From $21.99/mo + per-athlete fees | Supporter | — |
+| Athlete price | Free (Supporter from €5/mo or €50/yr, optional) | $19.95/mo or $134.99/yr | Free ($4/mo Supporter) | €59.99/yr |
 
 Prices from each vendor's pricing page, checked on 3 November 2026 (USD before tax). Detailed, sourced comparisons: [openathlete.org/compare](https://openathlete.org/compare).
 
@@ -281,7 +282,7 @@ For a complete list of environment variables, see the `.env.example` files in ea
 
 > OpenAthlete is built by one developer in Grenoble, supported by the community. There are three ways to help the project thrive:
 >
-> - **Become a Supporter** on [openathlete.org](https://openathlete.org/pricing): €5/month or €50/year. It pays for the servers and adds AI on our keys and unlimited coached athletes.
+> - **Become a Supporter** on [openathlete.org](https://openathlete.org/pricing): from €5/month or €50/year. It pays for the servers and adds AI on our keys and unlimited coached athletes.
 > - **Buy a coffee**: one-off support, even if you self-host. [buymeacoffee.com/openathlete](https://buymeacoffee.com/openathlete).
 > - **Contribute**: star the repo, open issues, send pull requests, translate, or join the [Discord](https://discord.gg/j4PP6tDwuP).
 >
@@ -297,7 +298,6 @@ OpenAthlete is actively developed. Here's what's coming next:
 - 📈 **Enhanced Dashboards** - Intuitive data visualizations and performance analytics
 - 🔗 **More Integrations** - Wahoo, Zwift, Oura, and more
 - 👥 **Clubs** - Club accounts with several coaches and groups
-- 📱 **Native apps** - iOS and Android apps in the stores
 
 See our [GitHub Issues](https://github.com/openathleteorg/openathlete/issues) for a detailed list of proposed features and known issues.
 

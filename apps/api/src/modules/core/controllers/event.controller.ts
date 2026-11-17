@@ -629,6 +629,55 @@ export class EventController {
 
   @UseGuards(AuthGuard('jwt'), UserTypeGuard)
   @ApiBearerAuth()
+  @Get(':eventId/gpx')
+  @Throttle(RATE_LIMITS.activityFile)
+  @ApiOperation({
+    summary: 'Download the GPS track of an activity as GPX',
+    description:
+      'The GPS track as a GPX 1.1 file, to follow the route again or open it in another app. Each point has its altitude and time, and heart rate and cadence in the Garmin TrackPointExtension; a GPS gap starts a new segment. Any activity with GPS has one, whatever it was imported from; the activity stream has `latlng` when it does. An activity imported from Garmin names it as its source (`<src>Garmin [device]</src>`), as the Garmin brand guidelines require. Limited to 30 files a minute. Uses CASL authorization to verify that the user has read access to the event.',
+  })
+  @ApiParam({
+    name: 'eventId',
+    type: Number,
+    description: 'ID of the activity event',
+    example: 1,
+  })
+  @ApiProduces('application/gpx+xml')
+  @ApiResponse({
+    status: 200,
+    description: 'The GPX file, as an attachment',
+    content: {
+      'application/gpx+xml': { schema: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - invalid or missing authentication token',
+  })
+  @ApiResponse({
+    status: 404,
+    description:
+      'Not found - event not found or not readable by the user, or no GPS track',
+  })
+  @ApiResponse({ status: 429, description: 'Too many files requested' })
+  async getEventGpx(
+    @JwtUser() user: AuthUser,
+    @Param('eventId', ParseIntPipe) eventId: Event['eventId'],
+    @Res() res: Response,
+  ) {
+    const file = await this.eventService.getEventGpx(user, eventId);
+    res.setHeader('Content-Type', 'application/gpx+xml; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${file.fileName}"`,
+    );
+    // Private data: never from a shared cache
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(file.content);
+  }
+
+  @UseGuards(AuthGuard('jwt'), UserTypeGuard)
+  @ApiBearerAuth()
   @Get(':eventId/weather')
   @ApiOperation({
     summary: 'Get weather data for an activity',

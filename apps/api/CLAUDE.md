@@ -33,7 +33,7 @@ The same image runs as the HTTP API and as the background worker. Which BullMQ p
   - throw `UnrecoverableError` for failures a retry cannot fix;
   - clear any "in progress" state once the last attempt fails.
 - **Optional third parties** (Stripe, OpenAI, Brevo, Firebase): create the client on first use and throw `ServiceUnavailableException` when it is not configured. The API must boot with only `DATABASE_URL`, `REDIS_URL`, `JWT_SECRET_KEY` and `HASH_PEPPER`.
-- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
+- **Emails**: templates in `modules/notification/emails/templates/` hold one translation block per language (`FR`, `EN`, `IT`, `ES`, `PT_BR`, `DE`). Send through the `SendEmailEvent`; `EmailTransportService` (Brevo) is a no-op without a key.
 
 ## Data and deletion
 
@@ -54,7 +54,7 @@ Every model call goes through `modules/ai`. No agent runs on a hardcoded model o
   1. the user's model for that task, or their DEFAULT model, on their own encrypted key (Settings > AI);
   2. otherwise the instance keys from env (`AI_MODEL_*`, `AI_MODEL_DEFAULT`), when `AI_HOSTED_ACCESS` allows: subscribers, everyone or none.
 
-  The instance keys also stop once the user's monthly budget is spent (`AI_HOSTED_MONTHLY_BUDGET_USD`, unset: no limit). `AiService` counts every call's tokens in `ai_usage`, per user, month, task and key source, and charges calls on the instance keys at the prices of `HOSTED_MODEL_PRICES` (`AiUsageService`). Add a model there before making it a hosted default.
+  The instance keys also stop once the user's weekly allowance is spent (`AiPolicyService.weeklyAllowanceUsd`; without Stripe and without `AI_HOSTED_MONTHLY_BUDGET_USD`: no limit). `AiService` counts every call's tokens in `ai_usage`, per user, local day, task and key source, and charges calls on the instance keys at the prices of `HOSTED_MODEL_PRICES` (`AiUsageService`). Add a model there before making it a hosted default. What the instance keys cost never leaves the server: the app gets the share of the allowance used.
 
   Use `resolveForUser` for user-triggered features: it throws `AI_NOT_CONFIGURED`, or `AI_HOSTED_QUOTA_EXCEEDED` when only the allowance is missing (403). Use `tryResolveForAthlete` for background work: it tries the athlete, then each coach, and returns null to skip.
 - **Running**: `AiService.generateText` or `generateObject(agent, model, prompt, schema)`. It handles:

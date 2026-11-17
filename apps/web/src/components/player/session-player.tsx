@@ -589,6 +589,7 @@ export function SessionPlayer({
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       if (state.phase !== 'running' && state.phase !== 'paused') return;
+      if (!event.key) return; // Autofill fires keyboard events without a key
       if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
       if (event.key === ' ' || event.key === 'Enter') {
         event.preventDefault();

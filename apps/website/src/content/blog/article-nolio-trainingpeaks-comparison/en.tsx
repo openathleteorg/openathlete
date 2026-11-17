@@ -39,9 +39,9 @@ export function ContentEn() {
       </p>
       <p>
         <strong>OpenAthlete</strong> is free up to five athletes. Above that,
-        the Supporter plan at {q('oaYear')} a year removes the limit, whatever
-        the roster, and also adds AI on our keys. Watch sync is free for
-        athletes. Self-hosting is free without limits. Clubs get a free club
+        the Supporter plan, from {q('oaYear')} a year, removes the limit,
+        whatever the roster, and also adds AI on our keys. Watch sync is free
+        for athletes. Self-hosting is free without limits. Clubs get a free club
         space, and athletes a coach reaches through a club don't count against
         the five.
       </p>
@@ -83,10 +83,11 @@ export function ContentEn() {
         </tbody>
       </table>
       <p>
-        Yearly cost for one coach, monthly billing, list prices checked on 3
-        November 2026. The TrainingPeaks column assumes the coach pays for every
-        athlete's Premium; if your athletes already pay for their own, your bill
-        is much lower.
+        Yearly cost for one coach, list prices: monthly billing for Nolio and
+        TrainingPeaks, the smallest yearly Supporter amount for OpenAthlete.
+        Prices checked on 3 November 2026. The TrainingPeaks column assumes the
+        coach pays for every athlete's Premium; if your athletes already pay for
+        their own, your bill is much lower.
       </p>
 
       <h2>What each one does best</h2>
@@ -134,13 +135,12 @@ export function ContentEn() {
         Neither is open source.
       </p>
       <p>
-        OpenAthlete's gaps are real too. The iOS and Android apps are in
-        testing, so athletes use the installable web app for now. The club space
-        has no club billing: membership fees stay outside OpenAthlete. No
-        marketplace, no exercise video library, no federation partnership.
-        Workouts go to Garmin, Suunto and COROS watches, not Polar. Training
-        load is Banister TRIMP from heart rate, with session RPE alongside, so
-        the numbers won't match TSS if your athletes come from TrainingPeaks.
+        OpenAthlete's gaps are real too. The club space has no club billing:
+        membership fees stay outside OpenAthlete. No marketplace, no exercise
+        video library, no federation partnership. Workouts go to Garmin, Suunto
+        and COROS watches, not Polar. Training load is Banister TRIMP from heart
+        rate, with session RPE alongside, so the numbers won't match TSS if your
+        athletes come from TrainingPeaks.
       </p>
 
       <h2>Three coaches, three answers</h2>
@@ -149,15 +149,15 @@ export function ContentEn() {
         and a Suunto: TrainingPeaks costs the most here unless the athletes pay
         their own Premium. Nolio Classic and OpenAthlete both do the job; the
         difference is {coachYear('nolio', 12)} against {q('oaYear')} a year, AI
-        on one side and native apps on the other.
+        on one side and more mature mobile apps on the other.
       </p>
       <p>
-        A club with three coaches and sixty members: if the members want a
-        native app on their phone today, Nolio's club plans fit best. If the
-        installable web app is enough, OpenAthlete's club space does the job for
-        free, with groups, a shared library and Tuesday's track session already
-        in every member's calendar. A self-hosted instance is an option if
-        someone in the club is happy to run a server.
+        A club with three coaches and sixty members: if they want a federation
+        partner and an exercise video library, Nolio's club plans fit best. If
+        not, OpenAthlete's club space does the job for free, with groups, a
+        shared library and Tuesday's track session already in every member's
+        calendar. A self-hosted instance is an option if someone in the club is
+        happy to run a server.
       </p>
       <p>
         A coach who sells plans to athletes they never speak to: stay on

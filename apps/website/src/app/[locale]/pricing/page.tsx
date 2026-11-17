@@ -16,15 +16,11 @@ import {
 import { PricingPlans } from '@/components/site/pricing-plans';
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
 import { TrackedLink } from '@/components/site/tracked-link';
-import {
-  BUY_ME_A_COFFEE_URL,
-  SITE_URL,
-  SUPPORTER_MONTHLY_EUR,
-  SUPPORTER_YEARLY_EUR,
-} from '@/config';
+import { BUY_ME_A_COFFEE_URL, SITE_URL, SUPPORTER_YEARLY_EUR } from '@/config';
 import { formatPrice } from '@/content/pricing';
 import { initLocale } from '@/i18n/server';
 import { supporterUrl } from '@/lib/links';
+import { supporterOffers, supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   DATE_LOCALES,
@@ -46,32 +42,18 @@ type Props = { params: Promise<{ locale: string }> };
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
   return pageMetadata({
     locale,
     path: '/pricing',
-    title: m.pricing_page_seo_title(),
-    description: m.pricing_page_seo_description(),
+    title: m.pricing_page_seo_title(prices),
+    description: m.pricing_page_seo_description(prices),
   });
 }
 
 /** The plans as offers, with their billing period, for search engines. */
 function PricingStructuredData({ locale }: { locale: SupportedLocale }) {
   const url = localizedUrl(locale, '/pricing');
-  const supporter = (price: number, duration: 'P1M' | 'P1Y', name: string) => ({
-    '@type': 'Offer',
-    name,
-    url,
-    price: String(price),
-    priceCurrency: 'EUR',
-    availability: 'https://schema.org/InStock',
-    priceSpecification: {
-      '@type': 'UnitPriceSpecification',
-      price,
-      priceCurrency: 'EUR',
-      valueAddedTaxIncluded: true,
-      billingDuration: duration,
-    },
-  });
   return (
     <JsonLd
       data={{
@@ -79,7 +61,7 @@ function PricingStructuredData({ locale }: { locale: SupportedLocale }) {
         '@id': `${SITE_URL}/#software`,
         name: 'OpenAthlete',
         url: localizedUrl(locale),
-        description: m.pricing_page_seo_description(),
+        description: m.pricing_page_seo_description(supporterPriceVars(locale)),
         applicationCategory: 'SportsApplication',
         operatingSystem: 'Web, iOS, Android',
         inLanguage: htmlLang(locale),
@@ -95,8 +77,7 @@ function PricingStructuredData({ locale }: { locale: SupportedLocale }) {
             priceCurrency: 'EUR',
             availability: 'https://schema.org/InStock',
           },
-          supporter(SUPPORTER_MONTHLY_EUR, 'P1M', 'Supporter (monthly)'),
-          supporter(SUPPORTER_YEARLY_EUR, 'P1Y', 'Supporter (yearly)'),
+          ...supporterOffers(url),
           {
             '@type': 'Offer',
             name: 'Self-hosted',
@@ -114,7 +95,8 @@ function PricingStructuredData({ locale }: { locale: SupportedLocale }) {
 export default async function PricingPage({ params }: Props) {
   const locale = initLocale((await params).locale);
   const intl = DATE_LOCALES[locale];
-  const faqs = faqEntries('pricing_page_faq', 9);
+  const prices = supporterPriceVars(locale);
+  const faqs = faqEntries('pricing_page_faq', 12, prices);
   const free = formatPrice(0, 'EUR', intl);
   const perMonth = formatPrice(
     Math.round((SUPPORTER_YEARLY_EUR / 12) * 100) / 100,
@@ -170,7 +152,7 @@ export default async function PricingPage({ params }: Props) {
                 {m.pricing_page_coach_title()}
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-white/70">
-                {m.pricing_page_coach_body()}
+                {m.pricing_page_coach_body(prices)}
               </p>
               <div className="mt-8 flex items-end gap-3">
                 <p className="text-6xl font-semibold tracking-[-0.04em] text-white tabular-nums">
@@ -221,7 +203,7 @@ export default async function PricingPage({ params }: Props) {
           />
           <Reveal className="mt-12">
             <FeatureTable
-              prices={[free, m.pricing_page_cell_supporter_price(), free]}
+              prices={[free, m.pricing_page_cell_supporter_price(prices), free]}
             />
           </Reveal>
         </Container>

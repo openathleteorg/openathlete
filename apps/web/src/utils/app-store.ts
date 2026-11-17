@@ -4,27 +4,24 @@ import {
   type Transaction,
 } from '@capgo/native-purchases';
 
-import {
-  APPLE_SUPPORTER_PRODUCT_IDS,
-  BillingInterval,
-} from '@openathlete/shared';
+import { APPLE_SUPPORTER_PRODUCTS } from '@openathlete/shared';
 
-/** The App Store's localized price of each Supporter product, e.g. "4,99 €" */
-export async function supporterPrices(): Promise<
-  Partial<Record<BillingInterval, string>>
-> {
+const PRODUCT_IDS = APPLE_SUPPORTER_PRODUCTS.map((item) => item.productId);
+
+/**
+ * The App Store's localized price of each Supporter product, by product id,
+ * e.g. "7,99 €". Products not set up for the storefront are missing.
+ */
+export async function supporterPrices(): Promise<Record<string, string>> {
   const { products } = await NativePurchases.getProducts({
-    productIdentifiers: Object.values(APPLE_SUPPORTER_PRODUCT_IDS),
+    productIdentifiers: PRODUCT_IDS,
     productType: PURCHASE_TYPE.SUBS,
   });
-  const prices: Partial<Record<BillingInterval, string>> = {};
-  for (const interval of Object.values(BillingInterval)) {
-    const product = products.find(
-      (item) => item.identifier === APPLE_SUPPORTER_PRODUCT_IDS[interval],
-    );
-    if (product) prices[interval] = product.priceString;
-  }
-  return prices;
+  return Object.fromEntries(
+    products
+      .filter((item) => PRODUCT_IDS.includes(item.identifier))
+      .map((item) => [item.identifier, item.priceString]),
+  );
 }
 
 export class PurchaseCancelledError extends Error {
@@ -40,13 +37,13 @@ export class PurchaseCancelledError extends Error {
  * and every renewal Apple reports, to the user.
  */
 export async function buySupporter(
-  interval: BillingInterval,
+  productId: string,
   appAccountToken: string,
 ): Promise<string> {
   let transaction: Transaction;
   try {
     transaction = await NativePurchases.purchaseProduct({
-      productIdentifier: APPLE_SUPPORTER_PRODUCT_IDS[interval],
+      productIdentifier: productId,
       productType: PURCHASE_TYPE.SUBS,
       appAccountToken,
     });
@@ -69,7 +66,7 @@ export async function activeSupporterTransactions(): Promise<string[]> {
   const { purchases } = await NativePurchases.getPurchases({
     productType: PURCHASE_TYPE.SUBS,
   });
-  const ours = new Set(Object.values(APPLE_SUPPORTER_PRODUCT_IDS));
+  const ours = new Set(PRODUCT_IDS);
   return purchases
     .filter((purchase) => ours.has(purchase.productIdentifier))
     .filter((purchase) => purchase.isActive !== false)

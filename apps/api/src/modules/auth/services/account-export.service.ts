@@ -366,17 +366,22 @@ export class AccountExportService {
       this.prisma.aiUsage.findMany({
         where: { userId },
         select: {
-          month: true,
+          day: true,
           task: true,
           source: true,
           inputTokens: true,
           outputTokens: true,
           calls: true,
         },
-        orderBy: [{ month: 'asc' }, { task: 'asc' }],
+        orderBy: [{ day: 'asc' }, { task: 'asc' }],
       }),
     ]);
-    return { keys: credentials, models, instructions, usage };
+    return {
+      keys: credentials,
+      models,
+      instructions,
+      usage: monthlyAiUsage(usage),
+    };
   }
 
   private async writeEvents(
@@ -420,4 +425,46 @@ export class AccountExportService {
       cursor = events[events.length - 1].eventId;
     }
   }
+}
+
+/**
+ * AI usage is counted per day; the export keeps its monthly totals, the
+ * shape it always had.
+ */
+export function monthlyAiUsage(
+  rows: {
+    day: Date;
+    task: string;
+    source: string;
+    inputTokens: number;
+    outputTokens: number;
+    calls: number;
+  }[],
+) {
+  const months = new Map<
+    string,
+    {
+      month: Date;
+      task: string;
+      source: string;
+      inputTokens: number;
+      outputTokens: number;
+      calls: number;
+    }
+  >();
+  for (const { day, ...row } of rows) {
+    const month = new Date(
+      Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), 1),
+    );
+    const key = `${month.toISOString()}|${row.task}|${row.source}`;
+    const total = months.get(key);
+    if (total) {
+      total.inputTokens += row.inputTokens;
+      total.outputTokens += row.outputTokens;
+      total.calls += row.calls;
+    } else {
+      months.set(key, { month, ...row });
+    }
+  }
+  return [...months.values()];
 }

@@ -44,8 +44,8 @@ export function ContentDe() {
       </p>
       <p>
         <strong>OpenAthlete</strong> ist bis zu fünf Athleten kostenlos. Darüber
-        hebt der Supporter-Plan für {q('oaYear')} im Jahr das Limit auf, egal
-        wie viele Athleten du betreust, und bringt zusätzlich KI über unsere
+        hebt der Supporter-Plan ab {q('oaYear')} im Jahr das Limit auf, egal wie
+        viele Athleten du betreust, und bringt zusätzlich KI über unsere
         Schlüssel mit. Die Synchronisierung mit der Uhr ist für Athleten
         kostenlos. Selbst gehostet ist es kostenlos und ohne Limits. Vereine
         bekommen einen kostenlosen Vereinsbereich, und Athleten, die ein Coach
@@ -89,10 +89,12 @@ export function ContentDe() {
         </tbody>
       </table>
       <p>
-        Jahreskosten für einen Coach bei monatlicher Abrechnung, Listenpreise
-        geprüft am 03.11.2026. Die Spalte TrainingPeaks geht davon aus, dass der
-        Coach für jeden Athleten Premium bezahlt; zahlen deine Athleten ihr
-        Premium bereits selbst, fällt deine Rechnung deutlich niedriger aus.
+        Jahreskosten für einen Coach zu Listenpreisen: monatliche Abrechnung bei
+        Nolio und TrainingPeaks, kleinster jährlicher Supporter-Betrag bei
+        OpenAthlete. Preise geprüft am 03.11.2026. Die Spalte TrainingPeaks geht
+        davon aus, dass der Coach für jeden Athleten Premium bezahlt; zahlen
+        deine Athleten ihr Premium bereits selbst, fällt deine Rechnung deutlich
+        niedriger aus.
       </p>
 
       <h2>Was jedes Tool am besten kann</h2>
@@ -146,15 +148,13 @@ export function ContentDe() {
         wirbt Nolio nicht. Keines von beiden ist Open Source.
       </p>
       <p>
-        Auch OpenAthlete hat echte Lücken. Die Apps für iOS und Android sind in
-        der Testphase, Athleten nutzen vorerst die installierbare Web-App. Der
-        Vereinsbereich hat keine Vereinsabrechnung: Mitgliedsbeiträge laufen
-        außerhalb von OpenAthlete. Kein Marktplatz, keine Bibliothek mit
-        Übungsvideos, keine Partnerschaft mit einem Verband. Workouts gehen an
-        Uhren von Garmin, Suunto und COROS, nicht an Polar. Die
-        Trainingsbelastung ist Banister-TRIMP aus der Herzfrequenz, mit
-        Session-RPE daneben, die Zahlen stimmen also nicht mit TSS überein, wenn
-        deine Athleten von TrainingPeaks kommen.
+        Auch OpenAthlete hat echte Lücken. Der Vereinsbereich hat keine
+        Vereinsabrechnung: Mitgliedsbeiträge laufen außerhalb von OpenAthlete.
+        Kein Marktplatz, keine Bibliothek mit Übungsvideos, keine Partnerschaft
+        mit einem Verband. Workouts gehen an Uhren von Garmin, Suunto und COROS,
+        nicht an Polar. Die Trainingsbelastung ist Banister-TRIMP aus der
+        Herzfrequenz, mit Session-RPE daneben, die Zahlen stimmen also nicht mit
+        TSS überein, wenn deine Athleten von TrainingPeaks kommen.
       </p>
 
       <h2>Drei Coaches, drei Antworten</h2>
@@ -164,16 +164,16 @@ export function ContentDe() {
         teuersten, sofern die Athleten ihr Premium nicht selbst zahlen. Nolio
         Classic und OpenAthlete erledigen beide den Job; der Unterschied liegt
         bei {coachYear('nolio', 12)} gegenüber {q('oaYear')} im Jahr, KI auf der
-        einen Seite und native Apps auf der anderen.
+        einen Seite und ausgereiftere mobile Apps auf der anderen.
       </p>
       <p>
-        Ein Verein mit drei Coaches und sechzig Mitgliedern: Wollen die
-        Mitglieder heute schon eine native App auf dem Handy, passen die
-        Vereinspläne von Nolio am besten. Reicht die installierbare Web-App,
-        erledigt das der Vereinsbereich von OpenAthlete kostenlos, mit Gruppen,
-        einer gemeinsamen Bibliothek und dem Bahntraining am Dienstag schon im
-        Kalender jedes Mitglieds. Eine selbst gehostete Instanz ist eine Option,
-        wenn jemand im Verein gern einen Server betreibt.
+        Ein Verein mit drei Coaches und sechzig Mitgliedern: Wollen sie einen
+        Verbandspartner und eine Bibliothek mit Übungsvideos, passen die
+        Vereinspläne von Nolio am besten. Wenn nicht, erledigt das der
+        Vereinsbereich von OpenAthlete kostenlos, mit Gruppen, einer gemeinsamen
+        Bibliothek und dem Bahntraining am Dienstag schon im Kalender jedes
+        Mitglieds. Eine selbst gehostete Instanz ist eine Option, wenn jemand im
+        Verein gern einen Server betreibt.
       </p>
       <p>
         Ein Coach, der Pläne an Athleten verkauft, mit denen er nie spricht:

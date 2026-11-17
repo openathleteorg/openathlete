@@ -80,6 +80,27 @@ describe('held keys', () => {
     window.dispatchEvent(new Event('blur'));
     expect(isKeyHeld('e')).toBe(false);
   });
+
+  it('ignores the keyless events autofill fires', () => {
+    stop = trackHeldKeys(window);
+    // Chrome's autofill dispatches plain events, without a key. A listener
+    // that throws is reported to window, not to dispatchEvent's caller.
+    const errors: unknown[] = [];
+    const onError = (event: ErrorEvent) => {
+      errors.push(event.error);
+      event.preventDefault();
+    };
+    window.addEventListener('error', onError);
+    window.dispatchEvent(new Event('keydown'));
+    window.dispatchEvent(new Event('keyup'));
+    window.removeEventListener('error', onError);
+    expect(errors).toEqual([]);
+    const keyless = { key: undefined } as unknown as KeyboardEvent;
+    expect(shortcutFor({ ...press('t'), ...keyless }, false)).toBeNull();
+    expect(
+      isUndoKey({ ...press('z', { ctrlKey: true }), ...keyless }, false),
+    ).toBe(false);
+  });
 });
 
 describe('undo key', () => {

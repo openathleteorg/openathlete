@@ -20,6 +20,14 @@ export const currentSubscriptionDtoSchema = z.object({
   cancelAtPeriodEnd: z.boolean(),
   /** Billing interval of a Supporter subscription */
   billingInterval: billingIntervalSchema.nullable(),
+  /** Price of its tier, in cents (VAT included); null on the free plan */
+  amountCents: z.number().int().nullable(),
+  /** ISO currency of amountCents, lowercase */
+  currency: z.string().nullable(),
+  /** The subscription gives its benefits now (paid and running) */
+  entitled: z.boolean(),
+  /** Subscribed before the tiered pricing: keeps their price and rights */
+  isFounder: z.boolean(),
   /** Store billing the subscription; null on the free plan */
   provider: billingProviderSchema.nullable(),
   /** Athletes the user may coach right now; null = unlimited */
@@ -46,12 +54,17 @@ export type SupporterCountDto = z.infer<typeof supporterCountDtoSchema>;
  * Create checkout session DTO
  */
 export const createCheckoutSessionDtoSchema = z.object({
-  /** Supporter is the only plan for sale; the interval picks its price */
+  /** Supporter is the only offer for sale; interval and tier pick its price */
   interval: billingIntervalSchema,
+  /**
+   * Price of the chosen Supporter tier for the interval, in cents. Defaults
+   * to the featured tier. Already a Supporter: the tier to move to.
+   */
+  amountCents: z.number().int().positive().optional(),
   /**
    * The customer accepts the terms of sale and asks for the subscription to
    * start at once, within the withdrawal period. Required to subscribe, not
-   * to switch interval.
+   * to switch tier or interval.
    */
   acceptTerms: z.literal(true).optional(),
   successUrl: z.string().url(),

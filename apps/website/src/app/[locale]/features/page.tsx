@@ -18,6 +18,7 @@ import { ProviderLogos } from '@/components/site/visuals/provider-logos';
 import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
 import { WorkoutBlocks } from '@/components/site/visuals/workout-blocks';
 import { initLocale } from '@/i18n/server';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath } from '@/utils/locales';
 import { cn } from '@/utils/shadcn';
@@ -112,6 +113,7 @@ const ELSE_ICONS = [
 
 export default async function FeaturesPage({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
   const p = (path: string) =>
     path.startsWith('#') ? path : localePath(locale, path);
 
@@ -350,7 +352,7 @@ export default async function FeaturesPage({ params }: Props) {
             title={m.features_hub_coach_title()}
             body={m.features_hub_coach_body()}
             points={[
-              m.features_hub_coach_p1(),
+              m.features_hub_coach_p1(prices),
               m.features_hub_coach_p2(),
               m.features_hub_coach_p3(),
             ]}

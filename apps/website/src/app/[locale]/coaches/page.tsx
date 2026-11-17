@@ -22,6 +22,7 @@ import { DISCORD_URL, GITHUB_URL, SUPPORTER_YEARLY_EUR } from '@/config';
 import { PRICES_CHECKED_ON, formatPrice } from '@/content/pricing';
 import { initLocale } from '@/i18n/server';
 import { signupUrl, supporterUrl } from '@/lib/links';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   DATE_LOCALES,
@@ -57,18 +58,20 @@ type Props = { params: Promise<{ locale: string }> };
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
   return pageMetadata({
     locale,
     path: '/coaches',
     title: m.coachespage_seo_title(),
-    description: m.coachespage_seo_description(),
+    description: m.coachespage_seo_description(prices),
   });
 }
 
 export default async function CoachesPage({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
   const intl = DATE_LOCALES[locale];
-  const faqs = faqEntries('coachespage_faq', 6);
+  const faqs = faqEntries('coachespage_faq', 6, prices);
   const checkedOn = formatLongDate(PRICES_CHECKED_ON, locale);
 
   const stats = [
@@ -127,7 +130,7 @@ export default async function CoachesPage({ params }: Props) {
     <>
       <SoftwareApplicationStructuredData
         locale={locale}
-        description={m.coachespage_seo_description()}
+        description={m.coachespage_seo_description(prices)}
       />
       <BreadcrumbListStructuredData
         items={[
@@ -160,7 +163,9 @@ export default async function CoachesPage({ params }: Props) {
                 *
               </span>
             </h1>
-            <p className="lead mt-6 max-w-2xl">{m.coachespage_hero_lead()}</p>
+            <p className="lead mt-6 max-w-2xl">
+              {m.coachespage_hero_lead(prices)}
+            </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <TrackedLink
                 href={signupUrl('coaches_hero')}
@@ -199,7 +204,7 @@ export default async function CoachesPage({ params }: Props) {
             />
           </TiltIn>
           <p className="mt-8 max-w-3xl text-[0.75rem] leading-relaxed text-muted-foreground">
-            {m.coachespage_hero_footnote({ date: checkedOn })}
+            {m.coachespage_hero_footnote({ ...prices, date: checkedOn })}
           </p>
         </Container>
       </section>
@@ -378,11 +383,11 @@ export default async function CoachesPage({ params }: Props) {
               <SectionHeading
                 size="side"
                 kicker={m.coachespage_price_kicker()}
-                title={m.coachespage_price_title()}
+                title={m.coachespage_price_title(prices)}
                 lead={m.coachespage_price_lead()}
               />
               <div className="mt-8">
-                <RosterDots />
+                <RosterDots locale={locale} />
               </div>
               <p className="mt-8 rounded-2xl border border-border bg-paper p-5 text-[0.9rem] leading-relaxed text-muted-foreground">
                 {m.coachespage_price_stop()}
@@ -519,7 +524,7 @@ export default async function CoachesPage({ params }: Props) {
                   {m.coachespage_supporter_kicker()}
                 </p>
                 <h2 className="display-3 mt-3 text-white">
-                  {m.coachespage_supporter_title()}
+                  {m.coachespage_supporter_title(prices)}
                 </h2>
                 <p className="mt-4 max-w-2xl leading-relaxed text-white/70">
                   {m.coachespage_supporter_body({

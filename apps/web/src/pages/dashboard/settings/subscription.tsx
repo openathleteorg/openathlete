@@ -7,13 +7,23 @@ import {
   useResumeSubscription,
 } from '@/api/subscription';
 import { ConfirmAction } from '@/components/confirm-action';
-import { SupporterOffer } from '@/components/paywall/supporter-offer';
+import {
+  SupporterOffer,
+  TierPicker,
+} from '@/components/paywall/supporter-offer';
+import { SupporterGoal } from '@/components/supporter/supporter-goal';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { m } from '@/paraglide/messages';
 import { AnalyticsEvent } from '@/utils/analytics-events';
 import { manageAppStoreSubscription } from '@/utils/app-store';
 import { purchaseChannel } from '@/utils/capacitor';
-import { supporterPriceLabel } from '@/utils/supporter';
+import {
+  featuredSupporterTier,
+  sameTierIn,
+  supporterPriceLabel,
+  supporterTiers,
+} from '@/utils/supporter';
 import {
   SettingsEmpty,
   SettingsPanel,
@@ -146,6 +156,7 @@ export function SubscriptionSettingsPage() {
           count: FREE_PLAN_MAX_ATHLETES,
         })}
       >
+        <SupporterGoal />
         <SupporterOffer
           analyticsSource="subscription_settings"
           className="rounded-2xl"
@@ -154,32 +165,11 @@ export function SubscriptionSettingsPage() {
     );
   }
 
-  const otherInterval =
-    interval === BillingInterval.YEAR
-      ? BillingInterval.MONTH
-      : BillingInterval.YEAR;
   const billedByAppStore = subscription.provider === BillingProvider.APPLE;
   // Stripe is managed on the web only; the App Store in the iOS app, and the
   // web says where. The other apps show the subscription without managing it
   const managesStripe = channel === 'stripe' && !billedByAppStore;
   const managesAppStore = channel === 'app-store' && billedByAppStore;
-
-  const handleSwitchInterval = async () => {
-    const settingsUrl = `${window.location.origin}/dashboard/settings?tab=subscription`;
-    try {
-      await createCheckout.mutateAsync({
-        interval: otherInterval,
-        successUrl: settingsUrl,
-        cancelUrl: settingsUrl,
-      });
-      posthog?.capture('subscription_interval_changed', {
-        interval: otherInterval,
-      });
-      toast.success(m.subscription_switch_success());
-    } catch {
-      toast.error(m.subscription_checkout_error());
-    }
-  };
 
   return (
     <div className="space-y-8">
@@ -188,16 +178,27 @@ export function SubscriptionSettingsPage() {
         description={m.subscription_supporter_thanks()}
       >
         <SettingsPanel>
-          <SettingsRow title={m.subscription_plan()}>
-            <span className="text-sm text-muted-foreground">
+          <SettingsRow
+            title={m.subscription_plan()}
+            description={
+              subscription.isFounder && m.subscription_founder_description()
+            }
+          >
+            <span className="flex flex-wrap items-center justify-end gap-2 text-sm text-muted-foreground">
+              {subscription.isFounder && (
+                <Badge variant="secondary">
+                  {m.subscription_founder_badge()}
+                </Badge>
+              )}
               {m.plan_supporter_name()}
               {interval &&
                 ` · ${
-                  billedByAppStore
+                  // Apple bills its own price point; the store shows it
+                  billedByAppStore || subscription.amountCents === null
                     ? interval === BillingInterval.YEAR
                       ? m.supporter_interval_yearly()
                       : m.supporter_interval_monthly()
-                    : supporterPriceLabel(interval)
+                    : supporterPriceLabel(interval, subscription.amountCents)
                 }`}
             </span>
           </SettingsRow>
@@ -254,22 +255,6 @@ export function SubscriptionSettingsPage() {
               <ExternalLink className="size-4" />
               {m.subscription_manage_billing()}
             </Button>
-            {interval && !subscription.cancelAtPeriodEnd && (
-              <Button
-                variant="outline"
-                onClick={handleSwitchInterval}
-                disabled={createCheckout.isPending}
-                className="w-full sm:w-auto"
-              >
-                {otherInterval === BillingInterval.YEAR
-                  ? m.subscription_switch_to_yearly({
-                      price: supporterPriceLabel(BillingInterval.YEAR),
-                    })
-                  : m.subscription_switch_to_monthly({
-                      price: supporterPriceLabel(BillingInterval.MONTH),
-                    })}
-              </Button>
-            )}
             {subscription.cancelAtPeriodEnd ? (
               <Button
                 onClick={handleResume}
@@ -290,7 +275,34 @@ export function SubscriptionSettingsPage() {
             )}
           </div>
         )}
+        <SupporterGoal />
       </SettingsSection>
+
+      {managesStripe && interval && !subscription.cancelAtPeriodEnd && (
+        <ChangeContribution
+          interval={interval}
+          amountCents={subscription.amountCents}
+          isFounder={subscription.isFounder}
+          onChange={async (next) => {
+            const settingsUrl = `${window.location.origin}/dashboard/settings?tab=subscription`;
+            try {
+              await createCheckout.mutateAsync({
+                ...next,
+                successUrl: settingsUrl,
+                cancelUrl: settingsUrl,
+              });
+              posthog?.capture('subscription_tier_changed', {
+                interval: next.interval,
+                amount_cents: next.amountCents,
+              });
+              toast.success(m.subscription_switch_success());
+            } catch {
+              toast.error(m.subscription_checkout_error());
+            }
+          }}
+          isPending={createCheckout.isPending}
+        />
+      )}
 
       {managesStripe && (
         <SettingsSection title={m.subscription_invoices()}>
@@ -345,5 +357,88 @@ export function SubscriptionSettingsPage() {
         isLoading={cancelMutation.isPending}
       />
     </div>
+  );
+}
+
+/**
+ * Another tier or interval for a Stripe Supporter, at once and prorated.
+ * A founder may leave their old price; they stay a founder.
+ */
+function ChangeContribution({
+  interval,
+  amountCents,
+  isFounder,
+  onChange,
+  isPending,
+}: {
+  interval: BillingInterval;
+  amountCents: number | null;
+  isFounder: boolean;
+  onChange: (next: {
+    interval: BillingInterval;
+    amountCents: number;
+  }) => Promise<void>;
+  isPending: boolean;
+}) {
+  const [nextInterval, setNextInterval] = useState(interval);
+  const [nextAmount, setNextAmount] = useState(() =>
+    amountCents !== null && supporterTiers(interval).includes(amountCents)
+      ? amountCents
+      : featuredSupporterTier(interval),
+  );
+  const unchanged = nextInterval === interval && nextAmount === amountCents;
+
+  return (
+    <SettingsSection
+      title={m.subscription_change_title()}
+      description={m.subscription_change_description()}
+    >
+      <SettingsPanel padded className="space-y-4 divide-y-0">
+        <div
+          role="radiogroup"
+          aria-label={m.supporter_interval_label()}
+          className="grid grid-cols-2 gap-2"
+        >
+          {[BillingInterval.MONTH, BillingInterval.YEAR].map((option) => (
+            <Button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={nextInterval === option}
+              variant={nextInterval === option ? 'secondary' : 'outline'}
+              className="h-11"
+              onClick={() => {
+                setNextAmount(sameTierIn(nextAmount, nextInterval, option));
+                setNextInterval(option);
+              }}
+            >
+              {option === BillingInterval.YEAR
+                ? m.supporter_interval_yearly()
+                : m.supporter_interval_monthly()}
+            </Button>
+          ))}
+        </div>
+        <TierPicker
+          tiers={supporterTiers(nextInterval)}
+          value={nextAmount}
+          onChange={setNextAmount}
+          label={(tier) => supporterPriceLabel(nextInterval, tier)}
+        />
+        {isFounder && !unchanged && (
+          <p className="text-sm text-muted-foreground">
+            {m.subscription_founder_price_warning()}
+          </p>
+        )}
+        <Button
+          className="h-11 w-full sm:w-auto"
+          disabled={unchanged || isPending}
+          onClick={() =>
+            onChange({ interval: nextInterval, amountCents: nextAmount })
+          }
+        >
+          {isPending ? m.loading() : m.subscription_change_cta()}
+        </Button>
+      </SettingsPanel>
+    </SettingsSection>
   );
 }

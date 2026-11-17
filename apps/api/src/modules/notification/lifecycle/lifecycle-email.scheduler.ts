@@ -27,6 +27,7 @@ import {
 import { buildConnectQuestionEmail } from '../emails/templates/lifecycle/connect-question.template';
 import { buildConnectReminderEmail } from '../emails/templates/lifecycle/connect-reminder.template';
 import { buildConnectionLostEmail } from '../emails/templates/lifecycle/connection-lost.template';
+import { buildFounderAnnouncementEmail } from '../emails/templates/lifecycle/founder-announcement.template';
 import { buildImportDoneEmail } from '../emails/templates/lifecycle/import-done.template';
 import { buildMonthlyRecapEmail } from '../emails/templates/lifecycle/monthly-recap.template';
 import { buildPlanNudgeEmail } from '../emails/templates/lifecycle/plan-nudge.template';
@@ -82,6 +83,7 @@ const userSelect = {
       status: true,
       cancelAtPeriodEnd: true,
       updatedAt: true,
+      isFounder: true,
     },
   },
   lifecycleEmails: { select: { kind: true, ref: true, sentAt: true } },
@@ -220,6 +222,7 @@ export class LifecycleEmailScheduler {
       newsConsent: user.emailNewsConsentAt !== null,
       billingEnabled,
       isSupporter,
+      isFounder: Boolean(subscription?.isFounder),
       providers: user.athlete.providerAccounts,
       activityCount: facts.activities.get(athleteId) ?? 0,
       plannedCount: facts.planned.get(athleteId) ?? 0,
@@ -454,6 +457,14 @@ export class LifecycleEmailScheduler {
 
       case LifecycleEmailKind.SUPPORTER_CANCELLED:
         return buildSupporterCancelledEmail(base);
+
+      case LifecycleEmailKind.FOUNDER_ANNOUNCEMENT:
+        return buildFounderAnnouncementEmail({
+          ...base,
+          subscriptionUrl: link(
+            `${appUrl}/dashboard/settings?tab=subscription`,
+          ),
+        });
     }
   }
 

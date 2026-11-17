@@ -37,17 +37,25 @@ describe('App Store helpers', () => {
     });
 
     await expect(supporterPrices()).resolves.toEqual({
-      month: '4,99 €',
-      year: '49,99 €',
+      'org.openathlete.supporter.yearly': '49,99 €',
+      'org.openathlete.supporter.monthly': '4,99 €',
     });
+    expect(plugin.getProducts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        productIdentifiers: expect.arrayContaining([
+          'org.openathlete.supporter.monthly.800',
+          'org.openathlete.supporter.yearly.12000',
+        ]),
+      }),
+    );
   });
 
   it('buys with the account token and returns the signed transaction', async () => {
     plugin.purchaseProduct.mockResolvedValue({ jwsRepresentation: 'jws' });
 
-    await expect(buySupporter('year' as never, 'token-uuid')).resolves.toBe(
-      'jws',
-    );
+    await expect(
+      buySupporter('org.openathlete.supporter.yearly', 'token-uuid'),
+    ).resolves.toBe('jws');
     expect(plugin.purchaseProduct).toHaveBeenCalledWith({
       productIdentifier: 'org.openathlete.supporter.yearly',
       productType: 'subs',
@@ -57,14 +65,14 @@ describe('App Store helpers', () => {
 
   it('tells a cancelled purchase apart from a failure', async () => {
     plugin.purchaseProduct.mockRejectedValue(new Error('User cancelled'));
-    await expect(buySupporter('month' as never, 't')).rejects.toBeInstanceOf(
-      PurchaseCancelledError,
-    );
+    await expect(
+      buySupporter('org.openathlete.supporter.monthly', 't'),
+    ).rejects.toBeInstanceOf(PurchaseCancelledError);
 
     plugin.purchaseProduct.mockRejectedValue(new Error('Network down'));
-    await expect(buySupporter('month' as never, 't')).rejects.toThrow(
-      'Network down',
-    );
+    await expect(
+      buySupporter('org.openathlete.supporter.monthly', 't'),
+    ).rejects.toThrow('Network down');
   });
 
   it('restores only active Supporter subscriptions', async () => {

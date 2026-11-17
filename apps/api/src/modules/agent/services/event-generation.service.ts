@@ -83,6 +83,7 @@ ${buildWorkoutTargetsInstructions()}`;
     const model = await this.aiModelResolver.resolveForUser(
       AiTask.EVENT_GENERATION,
       userId,
+      { athleteId },
     );
 
     return withRetry(async () => {

@@ -68,7 +68,6 @@ function access(overrides: Partial<AiAccessDto> = {}): AiAccessDto {
     customEndpointsAllowed: false,
     hostedQuotaExhausted: false,
     usage: {
-      hostedTokens: 0,
       ownKeyTokens: 0,
       hostedBudgetUsed: null,
       resetsAt: '2026-11-01T00:00:00.000Z',

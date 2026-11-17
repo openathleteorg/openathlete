@@ -20,6 +20,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthGuard } from '@nestjs/passport';
 import {
   ApiBearerAuth,
@@ -44,13 +45,21 @@ import {
   CurrentSubscriptionDto,
   FeatureName,
   InvoiceDto,
+  Offer,
   SUPPORTER_GOAL,
   SupporterCountDto,
   appleTransactionDtoSchema,
   createCheckoutSessionDtoSchema,
+  featuredPrice,
+  isTierPrice,
 } from '@openathlete/shared';
 
-import { AnalyticsService } from 'src/modules/analytics/analytics.service';
+import { SendEmailEvent } from 'src/events';
+import {
+  AnalyticsService,
+  stableUuid,
+} from 'src/modules/analytics/analytics.service';
+import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 
 import { JwtUser } from '../../auth/decorators/user.decorator';
 import { AuthUser } from '../../auth/decorators/user.decorator';
@@ -59,6 +68,7 @@ import { AppleStoreService } from '../apple/apple-store.service';
 import { FeatureAccessService } from '../services/feature-access.service';
 import { StripeService } from '../services/stripe.service';
 import { SubscriptionService } from '../services/subscription.service';
+import { billingEventProperties } from '../subscription-events';
 
 @ApiTags('Subscription')
 @Controller('subscription')
@@ -71,6 +81,8 @@ export class SubscriptionController {
     private readonly featureAccessService: FeatureAccessService,
     private readonly appleStoreService: AppleStoreService,
     private readonly configService: ConfigService<ApiEnvSchemaType, true>,
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
     @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
@@ -102,6 +114,28 @@ export class SubscriptionController {
           enum: ['month', 'year'],
           nullable: true,
           description: 'Billing interval of a Supporter subscription',
+        },
+        amountCents: {
+          type: 'number',
+          nullable: true,
+          example: 800,
+          description:
+            'Price of the Supporter tier in cents, VAT included (a founder keeps the price they subscribed at)',
+        },
+        currency: {
+          type: 'string',
+          nullable: true,
+          example: 'eur',
+          description: 'Currency of amountCents',
+        },
+        entitled: {
+          type: 'boolean',
+          description: 'Whether the subscription gives its benefits now',
+        },
+        isFounder: {
+          type: 'boolean',
+          description:
+            'Subscribed before the tiered pricing: keeps their price and unlimited coached athletes while the subscription runs',
         },
         maxAthletes: {
           type: 'number',
@@ -166,6 +200,10 @@ export class SubscriptionController {
         'status',
         'cancelAtPeriodEnd',
         'billingInterval',
+        'amountCents',
+        'currency',
+        'entitled',
+        'isFounder',
         'maxAthletes',
         'billingEnabled',
         'provider',
@@ -200,6 +238,10 @@ export class SubscriptionController {
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       billingInterval:
         subscription.billingInterval as CurrentSubscriptionDto['billingInterval'],
+      amountCents: subscription.amountCents,
+      currency: subscription.currency,
+      entitled: this.subscriptionService.isEntitled(subscription),
+      isFounder: subscription.isFounder,
       provider: subscription.provider as CurrentSubscriptionDto['provider'],
       maxAthletes: await this.subscriptionService.getMaxAthletesForUser(userId),
       billingEnabled: this.stripeService.billingEnabled,
@@ -309,11 +351,64 @@ export class SubscriptionController {
       }
       throw new BadRequestException('INVALID_APPLE_TRANSACTION');
     }
+    const before = await this.subscriptionService.getCurrentSubscription(
+      user.userId,
+    );
     const subscription = await this.subscriptionService.linkAppleTransaction(
       user.userId,
       transaction,
     );
+    const started =
+      this.subscriptionService.isEntitled(subscription) &&
+      !(before && this.subscriptionService.isEntitled(before));
+    if (started) {
+      // Restores of a running subscription are not new ones
+      this.analytics?.send(
+        user.userId,
+        'subscription_started',
+        billingEventProperties(subscription),
+        {
+          uuid: stableUuid(`apple:${transaction.transactionId}`),
+          set: { plan: 'SUPPORTER', store: 'apple' },
+        },
+      );
+      await this.sendConfirmationEmail(user.userId, subscription);
+    } else if (
+      before?.amountCents != null &&
+      (before.amountCents !== subscription.amountCents ||
+        before.billingInterval !== subscription.billingInterval)
+    ) {
+      this.analytics?.send(user.userId, 'subscription_changed', {
+        ...billingEventProperties(subscription),
+        previous_amount_cents: before.amountCents,
+        previous_interval: before.billingInterval,
+      });
+    }
     return this.toCurrentSubscriptionDto(subscription, user.userId);
+  }
+
+  private async sendConfirmationEmail(
+    userId: number,
+    subscription: Subscription,
+  ): Promise<void> {
+    const recipient = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { email: true, firstName: true },
+    });
+    if (!recipient?.email) return;
+    this.eventEmitter.emit(
+      SendEmailEvent.SLUG,
+      new SendEmailEvent({
+        type: 'subscription-confirmation',
+        to: recipient.email,
+        params: {
+          name: recipient.firstName || undefined,
+          subscription_settings_url: `${this.configService.get('APP_URL')}/dashboard/settings?tab=subscription`,
+          amount_cents: subscription.amountCents ?? undefined,
+          interval: subscription.billingInterval ?? undefined,
+        },
+      }),
+    );
   }
 
   private assertAppStoreEnabled(): void {
@@ -324,9 +419,9 @@ export class SubscriptionController {
 
   @Post('checkout')
   @ApiOperation({
-    summary: 'Become a Supporter, or change the billing interval',
+    summary: 'Become a Supporter, or change tier or billing interval',
     description:
-      'Creates a Stripe checkout session for the Supporter subscription, billed monthly or yearly (no trial). Subscribing requires acceptTerms: the terms of sale and an immediate start within the withdrawal period; the accepted version is stored on the Stripe subscription. A user who is already a Supporter switches interval immediately, with proration, and gets the success URL back.',
+      'Creates a Stripe checkout session for the Supporter subscription at the chosen tier, billed monthly or yearly (no trial). Subscribing requires acceptTerms: the terms of sale and an immediate start within the withdrawal period; the accepted version is stored on the Stripe subscription. A user who is already a Supporter moves to the tier and interval immediately, with proration, and gets the success URL back.',
   })
   @ApiBody({
     description: 'Checkout session creation data',
@@ -338,6 +433,12 @@ export class SubscriptionController {
           enum: ['month', 'year'],
           example: 'year',
           description: 'Billing interval of the Supporter subscription',
+        },
+        amountCents: {
+          type: 'number',
+          example: 8000,
+          description:
+            'Price of the Supporter tier for the interval, in cents (500, 800 or 1200 a month; 5000, 8000 or 12000 a year). Defaults to the featured tier.',
         },
         acceptTerms: {
           type: 'boolean',
@@ -391,7 +492,7 @@ export class SubscriptionController {
   @ApiResponse({
     status: 400,
     description:
-      'Bad request - invalid interval, or TERMS_NOT_ACCEPTED when subscribing without accepting the terms of sale',
+      'Bad request - invalid interval, UNKNOWN_TIER, or TERMS_NOT_ACCEPTED when subscribing without accepting the terms of sale',
   })
   @ApiResponse({
     status: 401,
@@ -406,7 +507,15 @@ export class SubscriptionController {
     @Body(new ZodValidationPipe(createCheckoutSessionDtoSchema))
     dto: CreateCheckoutSessionDto,
   ) {
-    // A Supporter switching between monthly and yearly billing
+    const amountCents =
+      dto.amountCents ?? featuredPrice(Offer.SUPPORTER, dto.interval);
+    if (
+      amountCents === null ||
+      !isTierPrice(Offer.SUPPORTER, dto.interval, amountCents)
+    ) {
+      throw new BadRequestException('UNKNOWN_TIER');
+    }
+    // A Supporter changing tier or billing interval
     const currentSubscription =
       await this.subscriptionService.getCurrentSubscription(user.userId);
     // Supporters through the App Store switch or cancel in iOS settings
@@ -416,14 +525,23 @@ export class SubscriptionController {
       (currentSubscription.status === SubscriptionStatus.active ||
         currentSubscription.status === SubscriptionStatus.trialing)
     ) {
-      const updatedSubscription =
-        await this.stripeService.changeBillingInterval(
-          currentSubscription.stripeSubscriptionId,
-          dto.interval,
-        );
+      const updatedSubscription = await this.stripeService.changeSupporterPrice(
+        currentSubscription.stripeSubscriptionId,
+        dto.interval,
+        amountCents,
+      );
       await this.subscriptionService.updateSubscriptionFromWebhook(
         updatedSubscription,
       );
+      await this.analytics?.send(user.userId, 'subscription_changed', {
+        offer: Offer.SUPPORTER,
+        amount_cents: amountCents,
+        interval: dto.interval,
+        provider: 'stripe',
+        founder: currentSubscription.isFounder,
+        previous_amount_cents: currentSubscription.amountCents,
+        previous_interval: currentSubscription.billingInterval,
+      });
       // No checkout needed: back to the app
       return { sessionId: null, url: dto.successUrl };
     }
@@ -432,12 +550,10 @@ export class SubscriptionController {
       throw new BadRequestException('TERMS_NOT_ACCEPTED');
     }
 
-    const userRecord = await this.subscriptionService['prisma'].user.findUnique(
-      {
-        where: { userId: user.userId },
-        select: { email: true },
-      },
-    );
+    const userRecord = await this.prisma.user.findUnique({
+      where: { userId: user.userId },
+      select: { email: true },
+    });
     if (!userRecord) {
       throw new NotFoundException('User not found');
     }
@@ -450,6 +566,7 @@ export class SubscriptionController {
     const session = await this.stripeService.createCheckoutSession(
       customer.id,
       dto.interval,
+      amountCents,
       dto.successUrl,
       dto.cancelUrl,
     );
@@ -457,6 +574,7 @@ export class SubscriptionController {
     // Sent from here: the redirect to Stripe often cuts off the browser's event
     await this.analytics?.capture(user.userId, 'checkout_started', {
       interval: dto.interval,
+      amount_cents: amountCents,
     });
 
     return {

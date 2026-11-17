@@ -30,12 +30,15 @@ import {
   VerifiedAppleNotification,
 } from '../apple/apple-store.service';
 import { SubscriptionService } from '../services/subscription.service';
+import { billingEventProperties } from '../subscription-events';
 
 // The notifications that say something of churn; the rest is bookkeeping
 const APPLE_EVENTS: Record<string, string> = {
   DID_RENEW: 'subscription_renewed',
   DID_FAIL_TO_RENEW: 'subscription_payment_failed',
-  EXPIRED: 'subscription_ended',
+  // A tier change: upgrades apply at once, downgrades at the next renewal
+  DID_CHANGE_RENEWAL_PREF: 'subscription_changed',
+  EXPIRED: 'subscription_canceled',
   REFUND: 'subscription_refunded',
 };
 
@@ -115,10 +118,15 @@ export class AppleNotificationsController {
       }
       const event = APPLE_EVENTS[notification.notificationType ?? ''];
       if (subscription && event) {
-        await this.analytics?.capture(subscription.userId, event, {
-          store: 'apple',
-          subtype: notification.subtype,
-        });
+        this.analytics?.send(
+          subscription.userId,
+          event,
+          {
+            ...billingEventProperties(subscription),
+            subtype: notification.subtype,
+          },
+          { uuid: notification.notificationUUID },
+        );
       }
     }
     return { received: true };

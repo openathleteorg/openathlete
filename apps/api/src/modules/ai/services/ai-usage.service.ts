@@ -1,10 +1,25 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 
-import { AiKeySource } from '@openathlete/database';
-import { AiAccessSource, AiFeatureTask, AiUsageDto } from '@openathlete/shared';
+import { AiKeySource, AiTask } from '@openathlete/database';
+import {
+  AI_ALLOWANCE_WARNING_SHARE,
+  AiAccessSource,
+  AiFeatureTask,
+  AiUsageDto,
+} from '@openathlete/shared';
 
 import { hostedCallCostMicroUsd } from 'src/common/constants/ai-models.constant';
+import {
+  addDaysToDateKey,
+  startOfZonedDay,
+  validTimeZone,
+  zonedClock,
+} from 'src/common/utils/time-zone';
+import { VoiceTranscribedEvent } from 'src/events/voice-transcribed.event';
+import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { PrismaService } from 'src/modules/prisma/services/prisma.service';
+import { SubscriptionService } from 'src/modules/subscription/services/subscription.service';
 
 import { AiPolicyService } from './ai-policy.service';
 
@@ -23,16 +38,36 @@ export interface AiUsageOwner {
   modelId: string;
 }
 
+/** Whisper's price: 0.006 USD a minute */
+const TRANSCRIPTION_MICRO_USD_PER_SECOND = 100;
+
 const KEY_SOURCES: Record<AiAccessSource, AiKeySource> = {
   own_key: AiKeySource.OWN_KEY,
   hosted: AiKeySource.HOSTED,
 };
 
-/** First day of the month in UTC, the key of the monthly counts. */
-export function monthStart(date: Date, monthsLater = 0): Date {
-  return new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + monthsLater, 1),
-  );
+/** A calendar date (YYYY-MM-DD) as Prisma reads and writes `@db.Date`. */
+function dateColumn(date: string): Date {
+  return new Date(`${date}T00:00:00Z`);
+}
+
+/**
+ * The week the allowance counts: from Monday to Sunday in the user's time
+ * zone, the rhythm of a training week. Dates are local calendar days.
+ */
+export function allowanceWeek(now: Date, timeZone: string) {
+  const zone = validTimeZone(timeZone);
+  const today = zonedClock(now, zone).date;
+  // 0 is Sunday: go back to the last Monday
+  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+  const monday = addDaysToDateKey(today, -((weekday + 6) % 7));
+  const nextMonday = addDaysToDateKey(monday, 7);
+  return {
+    today,
+    monday,
+    nextMonday,
+    resetsAt: startOfZonedDay(nextMonday, zone),
+  };
 }
 
 const tokens = (value: number | undefined) =>
@@ -41,14 +76,18 @@ const tokens = (value: number | undefined) =>
     : 0;
 
 /**
- * Counts the tokens of every AI call per user and month, and enforces the
- * monthly budget on the instance keys (AI_HOSTED_MONTHLY_BUDGET_USD): calls
- * on the instance keys are charged at their model's price, since output
- * tokens cost several times more than input ones.
+ * Counts the tokens of every AI call per user and day, and enforces the
+ * weekly allowance on the instance keys: calls on the instance keys are
+ * charged at their model's price, since output tokens cost several times
+ * more than input ones. Days are the user's local ones, so that the week
+ * starts at their Monday midnight.
  *
- * The budget is checked before a call and charged after it, so calls
+ * The allowance is checked before a call and charged after it, so calls
  * running at the same time can each go a little over: one call's worth at
- * most, a few hundredths of a cent with the default model.
+ * most.
+ *
+ * What the instance keys cost never leaves the server: the app gets a
+ * share, analytics a threshold crossed, and logs no amounts.
  */
 @Injectable()
 export class AiUsageService {
@@ -57,9 +96,11 @@ export class AiUsageService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly policy: AiPolicyService,
+    private readonly subscriptions: SubscriptionService,
+    @Optional() private readonly analytics?: AnalyticsService,
   ) {}
 
-  /** Adds a successful call to the month's count. Never fails the call. */
+  /** Adds a successful call to the day's count. Never fails the call. */
   async record(
     owner: AiUsageOwner,
     usage: TokenUsage | undefined,
@@ -76,15 +117,17 @@ export class AiUsageService {
             outputTokens,
           )
         : 0;
-    const key = {
-      userId: owner.userId,
-      month: monthStart(now),
-      task: owner.task,
-      source: KEY_SOURCES[owner.source],
-    };
     try {
+      const timeZone = await this.timeZoneOf(owner.userId);
+      const week = allowanceWeek(now, timeZone);
+      const key = {
+        userId: owner.userId,
+        day: dateColumn(week.today),
+        task: owner.task,
+        source: KEY_SOURCES[owner.source],
+      };
       await this.prisma.aiUsage.upsert({
-        where: { userId_month_task_source: key },
+        where: { userId_day_task_source: key },
         create: { ...key, inputTokens, outputTokens, costMicroUsd, calls: 1 },
         update: {
           inputTokens: { increment: inputTokens },
@@ -93,6 +136,9 @@ export class AiUsageService {
           calls: { increment: 1 },
         },
       });
+      if (costMicroUsd > 0) {
+        await this.reportThresholds(owner.userId, week, costMicroUsd);
+      }
     } catch (error) {
       this.logger.warn(
         `Could not record AI usage of user ${owner.userId}: ${error instanceof Error ? error.message : String(error)}`,
@@ -100,53 +146,140 @@ export class AiUsageService {
     }
   }
 
-  /** Whether the user may still run calls on the instance keys this month. */
+  /**
+   * Counts a voice note transcribed on the instance's OpenAI key, priced by
+   * its length. It never blocks: transcription is free for everyone.
+   */
+  @OnEvent(VoiceTranscribedEvent.SLUG, { async: true })
+  async onVoiceTranscribed({ payload }: VoiceTranscribedEvent): Promise<void> {
+    await this.recordTranscription(payload.userId, payload.seconds);
+  }
+
+  async recordTranscription(
+    userId: number,
+    seconds: number,
+    now = new Date(),
+  ): Promise<void> {
+    try {
+      const week = allowanceWeek(now, await this.timeZoneOf(userId));
+      const costMicroUsd = Math.round(
+        Math.max(0, seconds) * TRANSCRIPTION_MICRO_USD_PER_SECOND,
+      );
+      const key = {
+        userId,
+        day: dateColumn(week.today),
+        task: AiTask.VOICE_TRANSCRIPTION,
+        source: AiKeySource.HOSTED,
+      };
+      await this.prisma.aiUsage.upsert({
+        where: { userId_day_task_source: key },
+        create: { ...key, costMicroUsd, calls: 1 },
+        update: {
+          costMicroUsd: { increment: costMicroUsd },
+          calls: { increment: 1 },
+        },
+      });
+      if (costMicroUsd > 0) {
+        await this.reportThresholds(userId, week, costMicroUsd);
+      }
+    } catch (error) {
+      this.logger.warn(
+        `Could not record a transcription of user ${userId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  /** Whether the user may still run calls on the instance keys this week. */
   async hasHostedAllowanceLeft(userId: number, now = new Date()) {
-    const budget = this.budgetMicroUsd();
-    if (budget === undefined) return true;
-    const { hostedCostMicroUsd } = await this.monthTotals(userId, now);
-    return hostedCostMicroUsd < budget;
+    const allowance = await this.allowanceMicroUsd(userId);
+    if (allowance === undefined) return true;
+    const week = allowanceWeek(now, await this.timeZoneOf(userId));
+    const { hostedCostMicroUsd } = await this.weekTotals(userId, week);
+    return hostedCostMicroUsd < allowance;
   }
 
   async describe(userId: number, now = new Date()): Promise<AiUsageDto> {
-    const { hostedCostMicroUsd, ...totals } = await this.monthTotals(
+    const week = allowanceWeek(now, await this.timeZoneOf(userId));
+    const { hostedCostMicroUsd, ownKeyTokens } = await this.weekTotals(
       userId,
-      now,
+      week,
     );
-    const budget = this.budgetMicroUsd();
+    const allowance = await this.allowanceMicroUsd(userId);
     return {
-      ...totals,
-      hostedBudgetUsed:
-        budget === undefined
-          ? null
-          : budget > 0
-            ? Math.min(1, hostedCostMicroUsd / budget)
-            : 1,
-      resetsAt: monthStart(now, 1).toISOString(),
+      ownKeyTokens,
+      hostedBudgetUsed: usedShare(hostedCostMicroUsd, allowance),
+      resetsAt: week.resetsAt.toISOString(),
     };
   }
 
-  private budgetMicroUsd(): number | undefined {
-    const budget = this.policy.hostedMonthlyBudgetUsd;
-    return budget === undefined ? undefined : Math.round(budget * 1_000_000);
+  /** The user's weekly allowance in millionths of a dollar; undefined: none. */
+  private async allowanceMicroUsd(userId: number): Promise<number | undefined> {
+    const { offer } = await this.subscriptions.offerForUser(userId);
+    const allowance = this.policy.weeklyAllowanceUsd(offer);
+    return allowance === undefined
+      ? undefined
+      : Math.round(allowance * 1_000_000);
   }
 
-  private async monthTotals(userId: number, now: Date) {
+  /** Tells analytics when a call crosses the warning share or empties it. */
+  private async reportThresholds(
+    userId: number,
+    week: ReturnType<typeof allowanceWeek>,
+    costMicroUsd: number,
+  ): Promise<void> {
+    if (!this.analytics?.enabled) return;
+    const allowance = await this.allowanceMicroUsd(userId);
+    if (!allowance) return;
+    const { hostedCostMicroUsd: after } = await this.weekTotals(userId, week);
+    const before = after - costMicroUsd;
+    const { offer, isFounder } = await this.subscriptions.offerForUser(userId);
+    const properties = { offer, founder: isFounder, week: week.monday };
+    if (before < allowance && after >= allowance) {
+      this.analytics.send(userId, 'ai_allowance_exhausted', properties);
+    } else if (
+      before < allowance * AI_ALLOWANCE_WARNING_SHARE &&
+      after >= allowance * AI_ALLOWANCE_WARNING_SHARE
+    ) {
+      this.analytics.send(userId, 'ai_allowance_warning', properties);
+    }
+  }
+
+  private async timeZoneOf(userId: number): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { timeZone: true },
+    });
+    return validTimeZone(user?.timeZone);
+  }
+
+  private async weekTotals(
+    userId: number,
+    week: ReturnType<typeof allowanceWeek>,
+  ) {
     const rows = await this.prisma.aiUsage.groupBy({
       by: ['source'],
-      where: { userId, month: monthStart(now) },
+      where: {
+        userId,
+        day: { gte: dateColumn(week.monday), lt: dateColumn(week.nextMonday) },
+      },
       _sum: { inputTokens: true, outputTokens: true, costMicroUsd: true },
     });
-    const total = (source: AiKeySource) => {
-      const row = rows.find((item) => item.source === source);
-      return (row?._sum.inputTokens ?? 0) + (row?._sum.outputTokens ?? 0);
-    };
+    const sum = (source: AiKeySource) =>
+      rows.find((item) => item.source === source)?._sum;
+    const own = sum(AiKeySource.OWN_KEY);
     return {
-      hostedTokens: total(AiKeySource.HOSTED),
-      ownKeyTokens: total(AiKeySource.OWN_KEY),
-      hostedCostMicroUsd:
-        rows.find((item) => item.source === AiKeySource.HOSTED)?._sum
-          .costMicroUsd ?? 0,
+      ownKeyTokens: (own?.inputTokens ?? 0) + (own?.outputTokens ?? 0),
+      hostedCostMicroUsd: sum(AiKeySource.HOSTED)?.costMicroUsd ?? 0,
     };
   }
+}
+
+/** Share of the allowance used, from 0 to 1; null when unlimited. */
+function usedShare(
+  costMicroUsd: number,
+  allowance: number | undefined,
+): number | null {
+  if (allowance === undefined) return null;
+  if (allowance <= 0) return 1;
+  return Math.min(1, costMicroUsd / allowance);
 }

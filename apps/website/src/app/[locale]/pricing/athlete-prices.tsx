@@ -5,6 +5,7 @@ import {
   PRICES_CHECKED_ON,
   formatPrice,
 } from '@/content/pricing';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import {
   DATE_LOCALES,
@@ -24,10 +25,12 @@ const SOURCES: Partial<Record<AthleteVendor, string>> = {
   trainingpeaks: 'https://www.trainingpeaks.com/pricing/',
 };
 
-function note(id: AthleteVendor): string {
+function note(id: AthleteVendor, locale: SupportedLocale): string {
   switch (id) {
     case 'openathlete':
-      return m.pricing_page_athletes_note_openathlete();
+      return m.pricing_page_athletes_note_openathlete(
+        supporterPriceVars(locale),
+      );
     case 'intervals-icu':
       return m.pricing_page_athletes_note_intervals();
     case 'strava':
@@ -100,7 +103,7 @@ export function AthletePrices({
                   )}
                 </div>
                 <p className="mt-1.5 text-[0.78rem] text-muted-foreground">
-                  {note(row.id)}
+                  {note(row.id, locale)}
                 </p>
               </li>
             );

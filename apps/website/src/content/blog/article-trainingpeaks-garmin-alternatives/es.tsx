@@ -195,8 +195,8 @@ export function ContentEs() {
         El nuestro, así que júzgalo con eso en mente. Es de código abierto
         (AGPL), gratis si lo alojas tú, o alojado por nosotros en Francia. Todas
         las funciones son gratis en la versión alojada, incluido el coaching de
-        hasta 5 atletas; Supporter, a 5 € al mes o 50 € al año, añade atletas
-        ilimitados e IA con nuestras claves (
+        hasta 5 atletas; Supporter, desde 5 € al mes o 50 € al año, añade
+        atletas ilimitados e IA con nuestras claves (
         <Link href="/es/pricing">precios</Link>). Los clubes tienen un espacio
         de club gratuito, sin límite de atletas: grupos con sus entrenadores,
         biblioteca compartida, sesiones semanales del club y planes copiados a
@@ -208,9 +208,7 @@ export function ContentEs() {
         propia clave o con la cuota de Supporter.
       </p>
       <p>
-        Las limitaciones son reales. Todavía no hay apps nativas en las tiendas:
-        las de iOS y Android están en pruebas y, mientras tanto, los atletas
-        usan la app web instalable. No hay marketplace para vender planes, ni
+        Las limitaciones son reales. No hay marketplace para vender planes, ni
         facturación al club (el espacio de club es gratis, pero las cuotas se
         gestionan fuera de OpenAthlete), ni app de rodillo, ni envío de
         entrenamientos a relojes Polar. El análisis es menos profundo que el de

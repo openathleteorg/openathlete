@@ -1,6 +1,7 @@
 import { LegalPage } from '@/components/legal/legal-page';
 import { BreadcrumbListStructuredData } from '@/components/seo/structured-data';
 import { initLocale } from '@/i18n/server';
+import { supporterPriceVars } from '@/lib/supporter-prices';
 import { m } from '@/paraglide/messages';
 import { localePath, localizedUrl } from '@/utils/locales';
 import Link from 'next/link';
@@ -10,21 +11,23 @@ import { generateMetadata as pageMetadata } from '../../metadata';
 type Props = { params: Promise<{ locale: string }> };
 
 // Update with the terms version accepted in the app; never the build date
-const LAST_UPDATED = '2026-10-05';
+const LAST_UPDATED = '2026-11-16';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export async function generateMetadata({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
   return pageMetadata({
     locale,
     path: '/terms-of-sale',
     title: `${m.terms_title()} | OpenAthlete`,
-    description: m.terms_seo_description(),
+    description: m.terms_seo_description(prices),
   });
 }
 
 export default async function TermsOfSalePage({ params }: Props) {
   const locale = initLocale((await params).locale);
+  const prices = supporterPriceVars(locale);
 
   return (
     <>
@@ -66,7 +69,12 @@ export default async function TermsOfSalePage({ params }: Props) {
           {
             id: 'price',
             title: m.terms_price_title(),
-            body: <p>{m.terms_price_content()}</p>,
+            body: (
+              <>
+                <p>{m.terms_price_content(prices)}</p>
+                <p>{m.terms_price_founders()}</p>
+              </>
+            ),
           },
           {
             id: 'order',

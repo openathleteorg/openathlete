@@ -128,7 +128,7 @@ export function ContentFr() {
         vers les montres Garmin, Suunto et COROS, import des activités de ces
         marques ainsi que de Polar et Strava, et charge d'entraînement calculée
         à partir de la fréquence cardiaque avec le RPE de séance à côté. Au-delà
-        de cinq athlètes, Supporter coûte 50 € par an pour un effectif illimité.
+        de cinq athlètes, Supporter, à partir de 50 € par an, lève la limite.
         Vous pouvez le tester à côté de votre tableur avec un ou deux athlètes
         pendant un mois avant de décider. La{' '}
         <Link href="/fr/coaches">page entraîneurs</Link> montre à quoi ressemble

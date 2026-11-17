@@ -1,11 +1,5 @@
-import {
-  CONTACT_EMAIL,
-  DISCORD_URL,
-  GITHUB_URL,
-  SITE_URL,
-  SUPPORTER_MONTHLY_EUR,
-  SUPPORTER_YEARLY_EUR,
-} from '@/config';
+import { CONTACT_EMAIL, DISCORD_URL, GITHUB_URL, SITE_URL } from '@/config';
+import { supporterOffers } from '@/lib/supporter-prices';
 import { type SupportedLocale, htmlLang, localizedUrl } from '@/utils/locales';
 
 /** JSON-LD, rendered in the HTML so crawlers read it without JavaScript. */
@@ -82,18 +76,7 @@ export function SoftwareApplicationStructuredData({
             price: '0',
             priceCurrency: 'EUR',
           },
-          {
-            '@type': 'Offer',
-            name: 'Supporter (monthly)',
-            price: String(SUPPORTER_MONTHLY_EUR),
-            priceCurrency: 'EUR',
-          },
-          {
-            '@type': 'Offer',
-            name: 'Supporter (yearly)',
-            price: String(SUPPORTER_YEARLY_EUR),
-            priceCurrency: 'EUR',
-          },
+          ...supporterOffers(),
         ],
       }}
     />

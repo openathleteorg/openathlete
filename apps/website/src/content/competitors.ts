@@ -9,6 +9,8 @@
  * - competitor cell: `compare_<prefix>_row_<topic>`, or "Yes"/"No" when absent
  * - OpenAthlete cell: `compare_<prefix>_oa_<topic>`, else `compare_oa_<topic>`
  */
+import { SUPPORTER_MONTHLY_EUR, SUPPORTER_YEARLY_EUR } from '@/config';
+
 import { ATHLETE_PRICING, COACH_PRICING, PRICES_CHECKED_ON } from './pricing';
 
 export const COMPARISONS_CHECKED_ON = PRICES_CHECKED_ON;
@@ -348,8 +350,9 @@ const coach = (id: string, athletes: number) =>
 export type Money = readonly [amount: number, currency: 'EUR' | 'USD'];
 
 export const QUOTED_PRICES = {
-  oaMonth: [5, 'EUR'],
-  oaYear: [50, 'EUR'],
+  // The lowest Supporter tier: "from" prices, and the coach price
+  oaMonth: [SUPPORTER_MONTHLY_EUR, 'EUR'],
+  oaYear: [SUPPORTER_YEARLY_EUR, 'EUR'],
   tpMonth: [19.95, 'USD'],
   tpYear: [athlete('trainingpeaks'), 'USD'],
   tpCoach: [21.99, 'USD'],
@@ -461,7 +464,7 @@ export const HUB_ROWS: readonly {
   {
     topic: 'mobile_apps',
     cells: {
-      openathlete: { verdict: 'partial', note: 'soon' },
+      openathlete: { verdict: 'yes' },
       trainingpeaks: { verdict: 'yes' },
       nolio: { verdict: 'yes' },
       'intervals-icu': { verdict: 'partial', note: 'third_party' },
@@ -503,7 +506,7 @@ export const HUB_PRICE_ROWS: readonly {
   {
     topic: 'coach10',
     cells: {
-      openathlete: { price: [50, 'EUR'], note: 'unlimited' },
+      openathlete: { price: QUOTED_PRICES.oaYear, note: 'unlimited' },
       trainingpeaks: {
         price: [coach('trainingpeaks', 10), 'USD'],
         note: 'tp_premium',

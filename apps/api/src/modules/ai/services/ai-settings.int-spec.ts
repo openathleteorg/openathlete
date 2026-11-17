@@ -50,7 +50,12 @@ describe('AiSettingsService (PostgreSQL)', () => {
   const cipher = new AiCredentialCipher(
     'pepper-at-least-32-characters-long-xx',
   );
-  const policy = { hostedAccess: 'subscribers', customEndpointsAllowed: false };
+  const policy = {
+    hostedAccess: 'subscribers',
+    customEndpointsAllowed: false,
+    weeklyAllowanceUsd: () => undefined,
+  };
+  const asPolicy = () => policy as unknown as AiPolicyService;
   const ping = jest.fn();
   let service: AiSettingsService;
   let resolver: AiModelResolverService;
@@ -62,23 +67,23 @@ describe('AiSettingsService (PostgreSQL)', () => {
   beforeAll(async () => {
     prisma = new PrismaService({ datasourceUrl: databaseUrl });
     await prisma.$connect();
-    const catalog = new AiProviderCatalogService(
-      registry,
-      policy as AiPolicyService,
-    );
+    const catalog = new AiProviderCatalogService(registry, asPolicy());
     resolver = new AiModelResolverService(
       prisma,
-      policy as AiPolicyService,
+      asPolicy(),
       catalog,
       { hasAIFeaturesAccess: () => Promise.resolve(false) } as never,
-      new AiUsageService(prisma, policy as AiPolicyService),
+      new AiUsageService(prisma, asPolicy(), {
+        offerForUser: () =>
+          Promise.resolve({ offer: 'FREE', isFounder: false }),
+      } as never),
       cipher,
       {},
     );
     service = new AiSettingsService(
       prisma,
       catalog,
-      policy as AiPolicyService,
+      asPolicy(),
       resolver,
       { ping } as unknown as AiService,
       cipher,
