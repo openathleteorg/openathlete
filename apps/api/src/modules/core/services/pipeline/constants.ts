@@ -5,18 +5,14 @@
  */
 
 /**
- * Training Match Threshold
+ * Training Match Minimum
  *
- * Minimum match score (0-100) required for an imported activity to be automatically
- * linked to a planned training session.
+ * An imported activity is linked to an unlinked session of the same sport on
+ * the athlete's same day. When the session plans a duration or distance, the
+ * activity must reach at least this share of either: a 5-minute aborted
+ * recording, or the warm-up jog before a race, does not take the session.
  *
- * Matching score is calculated based on:
- * - Sport match: 40% weight
- * - Duration match: 30% weight (if goal_duration specified)
- * - Distance match: 30% weight (if goal_distance specified)
- *
- * Default: 75% - A good balance between precision and flexibility
- * - Higher values (85-95): More strict, only very close matches
- * - Lower values (60-70): More lenient, may match less similar activities
+ * With several candidates, the closest in duration and distance wins, then
+ * the closest in start time. See training-match.score.ts.
  */
-export const TRAINING_MATCH_THRESHOLD = 75;
+export const TRAINING_MATCH_MIN_DONE_RATIO = 0.4;
