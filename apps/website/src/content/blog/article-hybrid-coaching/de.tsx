@@ -191,9 +191,9 @@ export function ContentDe() {
         nach jeder Aktivität ein paar Fragen, und Claude oder ChatGPT können
         über den <Link href="/de/features/mcp-server">MCP-Server</Link> einen
         ganzen Block in den Kalender eines Athleten entwerfen, den du dann
-        prüfst. Bis zu fünf Athleten ist es kostenlos; Supporter (5&nbsp;€ im
-        Monat oder 50&nbsp;€ im Jahr) hebt das Limit auf, und eine selbst
-        gehostete Instanz hat gar keines. Details auf der{' '}
+        prüfst. Bis zu fünf Athleten ist es kostenlos; Supporter hebt das Limit
+        ab 50&nbsp;€ im Jahr auf, und eine selbst gehostete Instanz hat gar
+        keines. Details auf der{' '}
         <Link href="/de/coaches">Seite für Coaches</Link> und bei den{' '}
         <Link href="/de/pricing">Preisen</Link>.
       </p>

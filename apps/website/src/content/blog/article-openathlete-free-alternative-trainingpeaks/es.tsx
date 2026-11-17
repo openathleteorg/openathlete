@@ -115,9 +115,9 @@ export function ContentEs() {
         Todas las funciones son gratuitas en nuestros servidores: calendario,
         editor de entrenamientos, envío de entrenamientos a Garmin, Suunto y
         COROS, carga de entrenamiento y coaching de hasta cinco atletas. El plan
-        Supporter opcional ({q('oaMonth')} al mes o {q('oaYear')} al año) añade
-        IA con nuestras claves y atletas ilimitados, y nada más. El código es
-        AGPL-3.0, así que también puedes instalarlo en tu propio servidor,
+        Supporter opcional (desde {q('oaMonth')} al mes o {q('oaYear')} al año)
+        añade IA con nuestras claves y atletas ilimitados, y nada más. El código
+        es AGPL-3.0, así que también puedes instalarlo en tu propio servidor,
         gratis y sin límites. Los clubes también tienen un espacio de club
         gratuito, sin límite de atletas: grupos con sus entrenadores, una
         biblioteca de entrenamientos compartida, sesiones semanales del club y

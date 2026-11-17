@@ -113,14 +113,14 @@ export function ContentPtBr() {
       <p>
         Todos os recursos são grátis nos nossos servidores: calendário, editor
         de treinos, envio de treinos para Garmin, Suunto e COROS, carga de
-        treino e assessoria de até cinco atletas. O plano Supporter opcional (
-        {q('oaMonth')} por mês ou {q('oaYear')} por ano) acrescenta IA com as
-        nossas chaves e atletas ilimitados, e nada mais. O código é AGPL-3.0,
-        então você também pode rodar no seu próprio servidor, de graça e sem
-        limites. Os clubes também têm um espaço de clube gratuito, sem limite de
-        atletas: grupos com seus treinadores, uma biblioteca de treinos
-        compartilhada, treinos semanais do clube e planos copiados para um grupo
-        inteiro.
+        treino e assessoria de até cinco atletas. O plano Supporter opcional (a
+        partir de {q('oaMonth')} por mês ou {q('oaYear')} por ano) acrescenta IA
+        com as nossas chaves e atletas ilimitados, e nada mais. O código é
+        AGPL-3.0, então você também pode rodar no seu próprio servidor, de graça
+        e sem limites. Os clubes também têm um espaço de clube gratuito, sem
+        limite de atletas: grupos com seus treinadores, uma biblioteca de
+        treinos compartilhada, treinos semanais do clube e planos copiados para
+        um grupo inteiro.
       </p>
       <p>
         A carga de treino é o TRIMP de Banister calculado pela frequência

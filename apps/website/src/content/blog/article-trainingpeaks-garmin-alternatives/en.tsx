@@ -186,7 +186,7 @@ export function ContentEn() {
       <p>
         Ours, so judge accordingly. It is open source (AGPL), free to self-host,
         or hosted by us in France. Every feature is free on the hosted version,
-        coaching up to 5 athletes included; Supporter, at €5 a month or €50 a
+        coaching up to 5 athletes included; Supporter, from €5 a month or €50 a
         year, adds unlimited coached athletes and AI on our keys (
         <Link href="/pricing">pricing</Link>). Clubs get a free club space with
         no athlete limit: groups with their coaches, a shared library, weekly

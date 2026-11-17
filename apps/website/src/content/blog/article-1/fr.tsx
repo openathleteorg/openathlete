@@ -129,11 +129,12 @@ export function ContentFr() {
       <h2>Comment le projet est financé</h2>
       <p>
         Toutes les fonctionnalités sont gratuites sur la version hébergée.
-        L'offre Supporter, à 5 € par mois ou 50 € par an, ajoute deux
-        choses&nbsp;: l'IA sur les clés d'OpenAthlete, avec un quota mensuel, et
-        le suivi de plus de cinq athlètes. L'auto-hébergement est gratuit et
-        sans limite. Tout est détaillé sur la{' '}
-        <Link href="/fr/pricing">page des tarifs</Link>.
+        L'offre Supporter, à partir de 5 € par mois ou 50 € par an, ajoute deux
+        choses&nbsp;: l'IA sur les clés d'OpenAthlete, avec un quota
+        hebdomadaire d'usage raisonnable, renouvelé chaque lundi, et le suivi de
+        plus de cinq athlètes. L'auto-hébergement est gratuit et sans limite.
+        Tout est détaillé sur la <Link href="/fr/pricing">page des tarifs</Link>
+        .
       </p>
       <p>
         L'API et la base de données de la version hébergée tournent chez OVH, en

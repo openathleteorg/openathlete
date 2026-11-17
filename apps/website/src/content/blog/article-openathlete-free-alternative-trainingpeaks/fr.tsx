@@ -120,14 +120,14 @@ export function ContentFr() {
         Toutes les fonctionnalités sont gratuites sur nos serveurs&nbsp;:
         calendrier, éditeur de séances, envoi des séances vers Garmin, Suunto et
         COROS, charge d'entraînement et coaching jusqu'à cinq athlètes. L'offre
-        Supporter facultative ({q('oaMonth')} par mois ou {q('oaYear')} par an)
-        ajoute l'IA sur nos clés et un nombre illimité d'athlètes suivis, rien
-        d'autre. Le code est sous licence AGPL-3.0&nbsp;: vous pouvez aussi
-        l'héberger sur votre propre serveur, gratuitement et sans limite. Les
-        clubs ont aussi un espace club gratuit, sans limite d'athlètes&nbsp;:
-        des groupes avec leurs entraîneurs, une bibliothèque de séances
-        partagée, des séances de club hebdomadaires et des plans copiés à tout
-        un groupe.
+        Supporter facultative (à partir de {q('oaMonth')} par mois ou{' '}
+        {q('oaYear')} par an) ajoute l'IA sur nos clés et un nombre illimité
+        d'athlètes suivis, rien d'autre. Le code est sous licence
+        AGPL-3.0&nbsp;: vous pouvez aussi l'héberger sur votre propre serveur,
+        gratuitement et sans limite. Les clubs ont aussi un espace club gratuit,
+        sans limite d'athlètes&nbsp;: des groupes avec leurs entraîneurs, une
+        bibliothèque de séances partagée, des séances de club hebdomadaires et
+        des plans copiés à tout un groupe.
       </p>
       <p>
         La charge d'entraînement est le TRIMP de Banister calculé à partir de la

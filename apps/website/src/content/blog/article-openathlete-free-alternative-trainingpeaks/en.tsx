@@ -111,8 +111,8 @@ export function ContentEn() {
       <p>
         Every feature is free on our servers: calendar, workout builder, planned
         workouts sent to Garmin, Suunto and COROS, training load and coaching up
-        to five athletes. The optional Supporter plan ({q('oaMonth')}a month or{' '}
-        {q('oaYear')} a year) adds AI on our keys and unlimited coached
+        to five athletes. The optional Supporter plan (from {q('oaMonth')} a
+        month or {q('oaYear')} a year) adds AI on our keys and unlimited coached
         athletes, and nothing else. The code is AGPL-3.0, so you can also run it
         on your own server for free, without limits. Clubs get a free club space
         too, with no athlete limit: groups with their own coaches, a shared

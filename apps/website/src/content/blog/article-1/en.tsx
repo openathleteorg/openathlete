@@ -117,10 +117,11 @@ export function ContentEn() {
 
       <h2>How it is paid for</h2>
       <p>
-        Every feature is free on the hosted version. The Supporter plan, at €5 a
-        month or €50 a year, adds two things: AI that runs on OpenAthlete's
-        keys, with a monthly allowance, and coaching for more than five
-        athletes. Self-hosting is free, with no limits. Details are on the{' '}
+        Every feature is free on the hosted version. The Supporter plan, from €5
+        a month or €50 a year, adds two things: AI that runs on OpenAthlete's
+        keys, within a weekly allowance for reasonable use that resets every
+        Monday, and coaching for more than five athletes. Self-hosting is free,
+        with no limits. Details are on the{' '}
         <Link href="/pricing">pricing page</Link>.
       </p>
       <p>

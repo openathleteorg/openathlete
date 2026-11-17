@@ -204,7 +204,7 @@ export function ContentDe() {
         Unser eigenes Projekt, urteile also entsprechend. Es ist Open Source
         (AGPL), kostenlos selbst zu hosten oder von uns in Frankreich gehostet.
         In der gehosteten Version ist jede Funktion kostenlos, Coaching von bis
-        zu 5 Athleten eingeschlossen; Supporter für 5&nbsp;€ im Monat oder
+        zu 5 Athleten eingeschlossen; Supporter ab 5&nbsp;€ im Monat oder
         50&nbsp;€ im Jahr bringt unbegrenzt viele betreute Athleten und KI über
         unsere Schlüssel (<Link href="/de/pricing">Preise</Link>). Vereine
         bekommen einen kostenlosen Vereinsbereich ohne Athletenlimit: Gruppen

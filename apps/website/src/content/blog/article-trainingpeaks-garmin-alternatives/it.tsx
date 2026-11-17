@@ -199,8 +199,8 @@ export function ContentIt() {
         Il nostro, quindi giudica di conseguenza. È open source (AGPL), gratis
         da ospitare in proprio, oppure ospitato da noi in Francia. Tutte le
         funzioni sono gratuite nella versione ospitata, compreso il coaching
-        fino a 5 atleti; Supporter, a 5 € al mese o 50 € all&apos;anno, aggiunge
-        atleti illimitati e IA con le nostre chiavi (
+        fino a 5 atleti; Supporter, a partire da 5 € al mese o 50 €
+        all&apos;anno, aggiunge atleti illimitati e IA con le nostre chiavi (
         <Link href="/it/pricing">prezzi</Link>). I club hanno uno spazio
         gratuito, senza limiti di atleti: gruppi con i loro allenatori, libreria
         condivisa, sedute settimanali del club e piani copiati a tutto un

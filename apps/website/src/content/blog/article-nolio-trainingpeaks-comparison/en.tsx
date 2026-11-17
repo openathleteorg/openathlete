@@ -39,9 +39,9 @@ export function ContentEn() {
       </p>
       <p>
         <strong>OpenAthlete</strong> is free up to five athletes. Above that,
-        the Supporter plan at {q('oaYear')} a year removes the limit, whatever
-        the roster, and also adds AI on our keys. Watch sync is free for
-        athletes. Self-hosting is free without limits. Clubs get a free club
+        the Supporter plan, from {q('oaYear')} a year, removes the limit,
+        whatever the roster, and also adds AI on our keys. Watch sync is free
+        for athletes. Self-hosting is free without limits. Clubs get a free club
         space, and athletes a coach reaches through a club don't count against
         the five.
       </p>
@@ -83,10 +83,11 @@ export function ContentEn() {
         </tbody>
       </table>
       <p>
-        Yearly cost for one coach, monthly billing, list prices checked on 3
-        November 2026. The TrainingPeaks column assumes the coach pays for every
-        athlete's Premium; if your athletes already pay for their own, your bill
-        is much lower.
+        Yearly cost for one coach, list prices: monthly billing for Nolio and
+        TrainingPeaks, the smallest yearly Supporter amount for OpenAthlete.
+        Prices checked on 3 November 2026. The TrainingPeaks column assumes the
+        coach pays for every athlete's Premium; if your athletes already pay for
+        their own, your bill is much lower.
       </p>
 
       <h2>What each one does best</h2>

@@ -195,8 +195,8 @@ export function ContentPtBr() {
         O nosso, então julgue levando isso em conta. É open source (AGPL),
         gratuito para hospedar por conta própria, ou hospedado por nós na
         França. Todas as funções são gratuitas na versão hospedada, incluindo a
-        assessoria de até 5 atletas; o Supporter, a € 5 por mês ou € 50 por ano,
-        acrescenta atletas ilimitados e IA com as nossas chaves (
+        assessoria de até 5 atletas; o Supporter, a partir de € 5 por mês ou €
+        50 por ano, acrescenta atletas ilimitados e IA com as nossas chaves (
         <Link href="/pt-br/pricing">preços</Link>). Os clubes têm um espaço de
         clube gratuito, sem limite de atletas: grupos com seus treinadores,
         biblioteca compartilhada, treinos semanais do clube e planos copiados

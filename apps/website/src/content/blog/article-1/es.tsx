@@ -125,10 +125,11 @@ export function ContentEs() {
       <h2>Cómo se financia</h2>
       <p>
         Todas las funciones son gratuitas en la versión alojada. El plan
-        Supporter, a 5 € al mes o 50 € al año, añade dos cosas: IA con las
-        claves de OpenAthlete, con una cuota mensual, y entrenar a más de cinco
-        atletas. El autoalojamiento es gratuito y sin límites. Los detalles
-        están en la <Link href="/es/pricing">página de precios</Link>.
+        Supporter, desde 5 € al mes o 50 € al año, añade dos cosas: IA con las
+        claves de OpenAthlete, con una cuota semanal para un uso razonable que
+        se renueva cada lunes, y entrenar a más de cinco atletas. El
+        autoalojamiento es gratuito y sin límites. Los detalles están en la{' '}
+        <Link href="/es/pricing">página de precios</Link>.
       </p>
       <p>
         La API y la base de datos de la versión alojada funcionan en OVH, en

@@ -129,11 +129,12 @@ export function ContentDe() {
       <h2>Wie es finanziert wird</h2>
       <p>
         Alle Funktionen sind in der gehosteten Version kostenlos. Der
-        Supporter-Plan für 5 € im Monat oder 50 € im Jahr bringt zwei Dinge
-        dazu: KI, die über die Schlüssel von OpenAthlete läuft, mit einem
-        monatlichen Kontingent, und Coaching für mehr als fünf Athleten. Selbst
-        hosten ist kostenlos und ohne Einschränkungen. Details findest du auf
-        der <Link href="/de/pricing">Preisseite</Link>.
+        Supporter-Plan ab 5 € im Monat oder 50 € im Jahr bringt zwei Dinge dazu:
+        KI, die über die Schlüssel von OpenAthlete läuft, mit einem
+        wöchentlichen Kontingent für eine angemessene Nutzung, das jeden Montag
+        neu beginnt, und Coaching für mehr als fünf Athleten. Selbst hosten ist
+        kostenlos und ohne Einschränkungen. Details findest du auf der{' '}
+        <Link href="/de/pricing">Preisseite</Link>.
       </p>
       <p>
         Die gehostete API und die Datenbank laufen bei OVH in Frankreich, die

@@ -44,8 +44,8 @@ export function ContentDe() {
       </p>
       <p>
         <strong>OpenAthlete</strong> ist bis zu fünf Athleten kostenlos. Darüber
-        hebt der Supporter-Plan für {q('oaYear')} im Jahr das Limit auf, egal
-        wie viele Athleten du betreust, und bringt zusätzlich KI über unsere
+        hebt der Supporter-Plan ab {q('oaYear')} im Jahr das Limit auf, egal wie
+        viele Athleten du betreust, und bringt zusätzlich KI über unsere
         Schlüssel mit. Die Synchronisierung mit der Uhr ist für Athleten
         kostenlos. Selbst gehostet ist es kostenlos und ohne Limits. Vereine
         bekommen einen kostenlosen Vereinsbereich, und Athleten, die ein Coach
@@ -89,10 +89,12 @@ export function ContentDe() {
         </tbody>
       </table>
       <p>
-        Jahreskosten für einen Coach bei monatlicher Abrechnung, Listenpreise
-        geprüft am 03.11.2026. Die Spalte TrainingPeaks geht davon aus, dass der
-        Coach für jeden Athleten Premium bezahlt; zahlen deine Athleten ihr
-        Premium bereits selbst, fällt deine Rechnung deutlich niedriger aus.
+        Jahreskosten für einen Coach zu Listenpreisen: monatliche Abrechnung bei
+        Nolio und TrainingPeaks, kleinster jährlicher Supporter-Betrag bei
+        OpenAthlete. Preise geprüft am 03.11.2026. Die Spalte TrainingPeaks geht
+        davon aus, dass der Coach für jeden Athleten Premium bezahlt; zahlen
+        deine Athleten ihr Premium bereits selbst, fällt deine Rechnung deutlich
+        niedriger aus.
       </p>
 
       <h2>Was jedes Tool am besten kann</h2>

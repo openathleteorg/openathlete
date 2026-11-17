@@ -42,11 +42,12 @@ export function ContentFr() {
       </p>
       <p>
         <strong>OpenAthlete</strong> est gratuit jusqu'à cinq athlètes. Au-delà,
-        l'offre Supporter à {q('oaYear')} par an lève la limite, quel que soit
-        l'effectif, et ajoute l'IA sur nos clés. La synchronisation montre est
-        gratuite pour les athlètes. L'auto-hébergement est gratuit, sans limite.
-        Les clubs ont un espace club gratuit, et les athlètes qu'un entraîneur
-        suit via un club ne comptent pas dans les cinq.
+        l'offre Supporter, à partir de {q('oaYear')} par an, lève la limite,
+        quel que soit l'effectif, et ajoute l'IA sur nos clés. La
+        synchronisation montre est gratuite pour les athlètes.
+        L'auto-hébergement est gratuit, sans limite. Les clubs ont un espace
+        club gratuit, et les athlètes qu'un entraîneur suit via un club ne
+        comptent pas dans les cinq.
       </p>
 
       <table>
@@ -86,10 +87,12 @@ export function ContentFr() {
         </tbody>
       </table>
       <p>
-        Coût annuel pour un entraîneur, facturation mensuelle, prix publics
-        relevés le 3 novembre 2026. La colonne TrainingPeaks suppose que
-        l'entraîneur paie le Premium de chaque athlète&nbsp;; si vos athlètes le
-        paient déjà, votre facture est bien plus basse.
+        Coût annuel pour un entraîneur, aux prix publics&nbsp;: facturation
+        mensuelle pour Nolio et TrainingPeaks, le plus petit montant Supporter
+        annuel pour OpenAthlete. Prix relevés le 3 novembre 2026. La colonne
+        TrainingPeaks suppose que l'entraîneur paie le Premium de chaque
+        athlète&nbsp;; si vos athlètes le paient déjà, votre facture est bien
+        plus basse.
       </p>
 
       <h2>Ce que chacun fait le mieux</h2>

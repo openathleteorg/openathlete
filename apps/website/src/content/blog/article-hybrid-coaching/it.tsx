@@ -186,8 +186,8 @@ export function ContentIt() {
         attività, e Claude o ChatGPT può abbozzare un intero blocco nel
         calendario di un atleta tramite il{' '}
         <Link href="/it/features/mcp-server">server MCP</Link>, perché tu lo
-        riveda. È gratuito fino a cinque atleti; Supporter (5 € al mese o 50 €
-        l'anno) toglie il limite, e un'istanza self-hosted non ne ha. Dettagli
+        riveda. È gratuito fino a cinque atleti; Supporter, a partire da 50 €
+        all'anno, toglie il limite, e un'istanza self-hosted non ne ha. Dettagli
         nella <Link href="/it/coaches">pagina per allenatori</Link> e nei{' '}
         <Link href="/it/pricing">prezzi</Link>.
       </p>

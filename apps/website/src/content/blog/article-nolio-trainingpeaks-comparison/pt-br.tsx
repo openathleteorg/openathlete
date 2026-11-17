@@ -41,12 +41,12 @@ export function ContentPtBr() {
       </p>
       <p>
         O <strong>OpenAthlete</strong> é grátis até cinco atletas. Acima disso,
-        o plano Supporter a {q('oaYear')} por ano tira o limite, seja qual for o
-        tamanho da assessoria, e ainda acrescenta IA com as nossas chaves. A
-        sincronização com o relógio é grátis para os atletas. Hospedar no seu
-        próprio servidor é grátis e sem limites. Os clubes têm um espaço de
-        clube gratuito, e os atletas que um treinador acompanha por meio de um
-        clube não contam entre os cinco.
+        o plano Supporter, a partir de {q('oaYear')} por ano, tira o limite,
+        seja qual for o tamanho da assessoria, e ainda acrescenta IA com as
+        nossas chaves. A sincronização com o relógio é grátis para os atletas.
+        Hospedar no seu próprio servidor é grátis e sem limites. Os clubes têm
+        um espaço de clube gratuito, e os atletas que um treinador acompanha por
+        meio de um clube não contam entre os cinco.
       </p>
 
       <table>
@@ -86,10 +86,11 @@ export function ContentPtBr() {
         </tbody>
       </table>
       <p>
-        Custo anual para um treinador, cobrança mensal, preços de tabela
-        conferidos em 3 de novembro de 2026. A coluna do TrainingPeaks supõe que
-        o treinador paga o Premium de cada atleta; se seus atletas já pagam o
-        deles, a sua conta fica bem menor.
+        Custo anual para um treinador, a preços de tabela: cobrança mensal no
+        Nolio e no TrainingPeaks, o menor valor anual do Supporter no
+        OpenAthlete. Preços conferidos em 3 de novembro de 2026. A coluna do
+        TrainingPeaks supõe que o treinador paga o Premium de cada atleta; se
+        seus atletas já pagam o deles, a sua conta fica bem menor.
       </p>
 
       <h2>O que cada um faz melhor</h2>

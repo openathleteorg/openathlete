@@ -41,8 +41,8 @@ export function ContentIt() {
       </p>
       <p>
         <strong>OpenAthlete</strong> è gratuito fino a cinque atleti. Oltre, il
-        piano Supporter a {q('oaYear')} all'anno toglie il limite, qualunque sia
-        il gruppo, e aggiunge anche l'IA sulle nostre chiavi. La
+        piano Supporter, a partire da {q('oaYear')} all'anno, toglie il limite,
+        qualunque sia il gruppo, e aggiunge anche l'IA sulle nostre chiavi. La
         sincronizzazione dell'orologio è gratuita per gli atleti. Installarlo
         sul proprio server è gratuito e senza limiti. I club hanno uno spazio
         gratuito, e gli atleti che un allenatore segue tramite un club non
@@ -86,10 +86,11 @@ export function ContentIt() {
         </tbody>
       </table>
       <p>
-        Costo annuale per un allenatore, fatturazione mensile, prezzi di listino
-        controllati il 3 novembre 2026. La colonna TrainingPeaks presuppone che
-        l'allenatore paghi il Premium di ogni atleta; se i tuoi atleti lo pagano
-        già, il conto è molto più basso.
+        Costo annuale per un allenatore, a prezzi di listino: fatturazione
+        mensile per Nolio e TrainingPeaks, l'importo Supporter annuale più basso
+        per OpenAthlete. Prezzi controllati il 3 novembre 2026. La colonna
+        TrainingPeaks presuppone che l'allenatore paghi il Premium di ogni
+        atleta; se i tuoi atleti lo pagano già, il conto è molto più basso.
       </p>
 
       <h2>Cosa fa meglio ciascuno</h2>

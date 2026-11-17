@@ -118,7 +118,7 @@ export function ContentEn() {
       <p>
         The hosted version is free with every feature. Its API and database run
         at OVH in France, and the web app is served by Vercel. The Supporter
-        plan (€5 a month or €50 a year) adds AI on OpenAthlete's keys and
+        plan (from €5 a month or €50 a year) adds AI on OpenAthlete's keys and
         coaching for more than five athletes, and it helps pay for the servers.
         More on the reasoning behind the project on the{' '}
         <Link href="/open-source">open source page</Link>.

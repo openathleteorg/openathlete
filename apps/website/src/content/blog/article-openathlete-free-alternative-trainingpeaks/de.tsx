@@ -117,7 +117,7 @@ export function ContentDe() {
         Auf unseren Servern ist jede Funktion kostenlos: Kalender,
         Workout-Builder, geplante Workouts an Garmin, Suunto und COROS,
         Trainingsbelastung und Coaching für bis zu fünf Athleten. Der optionale
-        Supporter-Tarif ({q('oaMonth')} im Monat oder {q('oaYear')} im Jahr)
+        Supporter-Tarif (ab {q('oaMonth')} im Monat oder {q('oaYear')} im Jahr)
         bringt KI über unsere Schlüssel und unbegrenzt viele betreute Athleten,
         sonst nichts. Der Code steht unter AGPL-3.0, du kannst ihn also auch
         kostenlos und ohne Einschränkungen auf deinem eigenen Server betreiben.

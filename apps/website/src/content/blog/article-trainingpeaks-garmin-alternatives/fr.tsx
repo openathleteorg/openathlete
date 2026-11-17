@@ -211,18 +211,18 @@ export function ContentFr() {
         Le nôtre, jugez en conséquence. Il est open source (AGPL), gratuit à
         auto-héberger, ou hébergé par nos soins en France. Toutes les fonctions
         sont gratuites sur la version hébergée, coaching jusqu&apos;à 5 athlètes
-        compris&nbsp;; la formule Supporter, à 5&nbsp;€ par mois ou 50&nbsp;€
-        par an, ajoute les athlètes illimités et l&apos;IA sur nos clés (
-        <Link href="/fr/pricing">tarifs</Link>). Les clubs ont un espace club
-        gratuit, sans limite d&apos;athlètes&nbsp;: groupes avec leurs coachs,
-        bibliothèque partagée, séances de club hebdomadaires et plans copiés à
-        tout un groupe. Les séances programmées partent vers les montres Garmin,
-        Suunto et COROS&nbsp;; les activités arrivent de ces trois marques, de
-        Polar et de Strava. La charge d&apos;entraînement repose sur le TRIMP
-        (fréquence cardiaque), avec le RPE de séance à côté, et la forme, la
-        fatigue et la fraîcheur sont projetées sur les séances prévues.
-        L&apos;IA est facultative et tourne sur votre propre clé ou sur le quota
-        Supporter.
+        compris&nbsp;; la formule Supporter, à partir de 5&nbsp;€ par mois ou
+        50&nbsp;€ par an, ajoute les athlètes illimités et l&apos;IA sur nos
+        clés (<Link href="/fr/pricing">tarifs</Link>). Les clubs ont un espace
+        club gratuit, sans limite d&apos;athlètes&nbsp;: groupes avec leurs
+        coachs, bibliothèque partagée, séances de club hebdomadaires et plans
+        copiés à tout un groupe. Les séances programmées partent vers les
+        montres Garmin, Suunto et COROS&nbsp;; les activités arrivent de ces
+        trois marques, de Polar et de Strava. La charge d&apos;entraînement
+        repose sur le TRIMP (fréquence cardiaque), avec le RPE de séance à côté,
+        et la forme, la fatigue et la fraîcheur sont projetées sur les séances
+        prévues. L&apos;IA est facultative et tourne sur votre propre clé ou sur
+        le quota Supporter.
       </p>
       <p>
         Les limites sont réelles. Pas encore d&apos;applications natives dans
