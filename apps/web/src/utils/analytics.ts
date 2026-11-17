@@ -5,6 +5,7 @@ import posthog from 'posthog-js';
 import type { User } from '@openathlete/shared';
 
 import { whenConsentGranted } from './consent';
+import { isBrowserNoise } from './error-monitoring';
 
 const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN as
   string | undefined;
@@ -32,6 +33,7 @@ function startAnalytics() {
       ui_host: 'https://eu.posthog.com',
       defaults: '2026-01-30',
       capture_exceptions: true,
+      before_send: (event) => (isBrowserNoise(event) ? null : event),
       capture_dead_clicks: true,
       // The screens show health data: recordings keep the layout and the
       // clicks, never the text

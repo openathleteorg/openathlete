@@ -1,4 +1,4 @@
-import posthog, { type PostHog } from 'posthog-js';
+import posthog, { type CaptureResult, type PostHog } from 'posthog-js';
 
 import { getConsent } from './consent';
 
@@ -6,6 +6,30 @@ const posthogToken = import.meta.env.VITE_PUBLIC_POSTHOG_PROJECT_TOKEN as
   string | undefined;
 
 let errorClient: PostHog | undefined;
+
+/**
+ * Errors that are not ours: browser warnings with no effect, scripts from
+ * another origin the browser hides ("Script error."), and extensions that
+ * inject code into the page (wallets, tab managers).
+ */
+const NOISE = [
+  /^ResizeObserver loop/,
+  /^Script error\.?$/,
+  /^No Listener: tabs:/,
+  /window\.ethereum/,
+];
+
+export function isBrowserNoise(event: CaptureResult | null): boolean {
+  if (event?.event !== '$exception') return false;
+  const list = event.properties?.$exception_list as
+    { value?: string }[] | undefined;
+  return (
+    !!list?.length &&
+    list.every((exception) =>
+      NOISE.some((pattern) => pattern.test(exception.value ?? '')),
+    )
+  );
+}
 
 /**
  * Error reports are legitimate interest, so they run before and without
@@ -34,7 +58,9 @@ export function initErrorMonitoring() {
       advanced_disable_flags: true,
       capture_exceptions: true,
       before_send: (event) =>
-        event?.event === '$exception' && getConsent() !== 'granted'
+        event?.event === '$exception' &&
+        getConsent() !== 'granted' &&
+        !isBrowserNoise(event)
           ? event
           : null,
     },
