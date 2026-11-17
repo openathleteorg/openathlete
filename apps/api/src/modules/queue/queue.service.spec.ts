@@ -18,9 +18,10 @@ function setup(states: Record<string, State>) {
     ),
     add: jest.fn(async () => undefined),
   };
+  const logger = { error: jest.fn() };
   const service = Object.create(QueueService.prototype) as QueueService;
-  Object.assign(service, { trainingLoadRecalcQueue: queue });
-  return { service, queue, removed };
+  Object.assign(service, { trainingLoadRecalcQueue: queue, logger });
+  return { service, queue, removed, logger };
 }
 
 const BASE = 'training-load-recalc-9';
@@ -72,6 +73,15 @@ describe('addTrainingLoadRecalcJob', () => {
       expect(added(queue)).toEqual([BASE]);
     },
   );
+
+  it('logs instead of failing the caller when Redis is unreachable', async () => {
+    const { service, queue, logger } = setup({});
+    queue.getJob.mockRejectedValueOnce(new Error('connect ECONNREFUSED'));
+    await expect(service.addTrainingLoadRecalcJob(9)).resolves.toBeUndefined();
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining('ECONNREFUSED'),
+    );
+  });
 
   it('queues behind the follow-up when that one is running', async () => {
     const { service, queue, removed } = setup({

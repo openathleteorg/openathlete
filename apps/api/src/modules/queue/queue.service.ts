@@ -112,8 +112,22 @@ export class QueueService {
   /**
    * Waits a minute so that HR max and resting HR typed one after the other
    * make one run, not two: a job still waiting absorbs the next request.
+   *
+   * Never throws: callers have already saved the metrics, and a provider
+   * sync failing here would be retried with a profile already complete, so
+   * the recalculation would never be queued. The loads stay as they are.
    */
   async addTrainingLoadRecalcJob(athleteId: number): Promise<void> {
+    try {
+      await this.queueTrainingLoadRecalc(athleteId);
+    } catch (error) {
+      this.logger.error(
+        `Could not queue the training load recalculation for athlete ${athleteId}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
+  private async queueTrainingLoadRecalc(athleteId: number): Promise<void> {
     // Two ids, so that requests during a run collapse into one follow-up
     const ids = [
       `training-load-recalc-${athleteId}`,
