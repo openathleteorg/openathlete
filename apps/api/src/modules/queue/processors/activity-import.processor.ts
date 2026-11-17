@@ -1,4 +1,4 @@
-import { Job } from 'bullmq';
+import { DelayedError, Job } from 'bullmq';
 
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
@@ -20,6 +20,7 @@ import {
   ImportResult,
   ImportedActivity,
 } from '../../providers-sync/base/provider-import.interface';
+import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
   CorosProviderService,
   GarminProviderService,
@@ -113,7 +114,7 @@ export class ActivityImportProcessor extends WorkerHost {
     });
   }
 
-  async process(job: Job<ActivityImportJobData>) {
+  async process(job: Job<ActivityImportJobData>, token?: string) {
     const { providerAccountId, activity, bulkImport } = job.data;
 
     try {
@@ -256,6 +257,12 @@ export class ActivityImportProcessor extends WorkerHost {
         eventId: savedActivity.eventId,
       };
     } catch (error) {
+      // Out of quota: wait for it without spending an attempt, or the
+      // activity would be lost after three refusals in a few minutes
+      if (error instanceof ProviderRateLimitError && token) {
+        await job.moveToDelayed(Date.now() + error.retryAfterMs, token);
+        throw new DelayedError();
+      }
       this.logger.error(
         `Job ${job.id} failed: ${error instanceof Error ? error.message : String(error)}`,
         error instanceof Error ? error.stack : undefined,
