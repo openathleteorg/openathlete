@@ -61,8 +61,30 @@ enum EventType {
   COMPETITION
   NOTE
   ACTIVITY
+  QUESTIONNAIRE
 
   @@map("event_type")
+}
+
+enum QuestionType {
+  SHORT_TEXT
+  LONG_TEXT
+  /// Notes on a scale (1-5, 1-10, 1-20...), as a slider or buttons
+  SCALE
+  NUMBER
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  YES_NO
+
+  @@map("question_type")
+}
+
+enum QuestionnaireScore {
+  NONE
+  SUM
+  AVERAGE
+
+  @@map("questionnaire_score")
 }
 
 enum ConnectorProvider {

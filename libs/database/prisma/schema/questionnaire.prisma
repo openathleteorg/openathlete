@@ -1,0 +1,143 @@
+// ============================================================================
+// Questionnaires
+// ============================================================================
+// A coach writes questionnaires (wellness, weekly check-in...) and places
+// them in their athletes' calendars like sessions. The athlete answers from
+// the calendar; the coach follows the answers over time, per athlete and
+// per questionnaire.
+//
+// The answers are the athlete's: they go with the athlete's account, and
+// stay readable by the athlete when the coach deletes theirs.
+// ============================================================================
+
+/// A questionnaire a coach wrote.
+model Questionnaire {
+  // primary key
+  questionnaireId Int @id @default(autoincrement()) @map("questionnaire_id")
+
+  // fields
+  title           String
+  description     String             @default("")
+  /// Score computed from the scale questions counted in it, kept on each
+  /// answered questionnaire so it can be charted
+  scoreKind       QuestionnaireScore @default(NONE) @map("score_kind")
+  /// Metric the score fills on the day of the questionnaire (HOOPER_INDEX)
+  scoreMetricType MetricType?        @map("score_metric_type")
+  /// Archived questionnaires leave the library; their answers stay
+  archivedAt      DateTime?          @map("archived_at")
+
+  // relationships
+  /// Null once the coach deleted their account: the questionnaire then
+  /// survives only for the athletes who answered it
+  coach       User?                   @relation(fields: [coachUserId], references: [userId], onDelete: SetNull)
+  coachUserId Int?                    @map("coach_user_id")
+  questions   QuestionnaireQuestion[]
+  events      EventQuestionnaire[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([coachUserId])
+  @@map("questionnaire")
+}
+
+/// One question of a questionnaire.
+/// Its type and scale never change once answered: changing them archives
+/// the question and creates a new one, so a series never mixes scales.
+model QuestionnaireQuestion {
+  // primary key
+  questionId Int @id @default(autoincrement()) @map("question_id")
+
+  // fields
+  position   Int
+  type       QuestionType
+  label      String
+  help       String       @default("")
+  required   Boolean      @default(true)
+  /// Settings of the type (see questionConfigSchema in libs/shared)
+  config     Json         @default("{}")
+  /// Counted in the questionnaire's score (scale questions only)
+  inScore    Boolean      @default(false) @map("in_score")
+  /// Metric the answer fills on the day of the questionnaire
+  metricType MetricType?  @map("metric_type")
+  archivedAt DateTime?    @map("archived_at")
+
+  // relationships
+  questionnaire   Questionnaire         @relation(fields: [questionnaireId], references: [questionnaireId], onDelete: Cascade)
+  questionnaireId Int                   @map("questionnaire_id")
+  answers         QuestionnaireAnswer[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([questionnaireId, position])
+  @@map("questionnaire_question")
+}
+
+/// A questionnaire placed in an athlete's calendar: one occurrence to
+/// answer, from the event's day until the next occurrence of its series.
+model EventQuestionnaire {
+  // primary key
+  eventQuestionnaireId Int @id @default(autoincrement()) @map("event_questionnaire_id")
+
+  // fields
+  /// Null while unanswered
+  answeredAt DateTime? @map("answered_at")
+  /// Computed when answered, from the questions counted in the score
+  score      Float?
+  /// The athlete was told the questionnaire is waiting (push and email)
+  notifiedAt DateTime? @map("notified_at")
+  /// The athlete was reminded, the day after, that it is still waiting
+  remindedAt DateTime? @map("reminded_at")
+
+  // relationships
+  event           Event                 @relation(fields: [eventId], references: [eventId])
+  eventId         Int                   @unique @map("event_id")
+  questionnaire   Questionnaire         @relation(fields: [questionnaireId], references: [questionnaireId])
+  questionnaireId Int                   @map("questionnaire_id")
+  /// The club the coach placed it for: the club's coaches of the athlete
+  /// read the answers too. Null for a coach's own athletes.
+  club            Club?                 @relation(fields: [clubId], references: [clubId], onDelete: SetNull)
+  clubId          Int?                  @map("club_id")
+  answers         QuestionnaireAnswer[]
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([questionnaireId])
+  @@index([clubId])
+  @@index([notifiedAt, answeredAt])
+  @@map("event_questionnaire")
+}
+
+/// The answer to one question, in the column of its type: numbers stay
+/// numbers so the series and the averages are computed in SQL.
+model QuestionnaireAnswer {
+  // primary key
+  answerId Int @id @default(autoincrement()) @map("answer_id")
+
+  // fields
+  /// Scale, number and yes/no (1 or 0)
+  valueNumber  Float?   @map("value_number")
+  /// Short and long text
+  valueText    String?  @map("value_text")
+  /// Ids of the options chosen
+  valueOptions String[] @default([]) @map("value_options")
+
+  // relationships
+  eventQuestionnaire   EventQuestionnaire    @relation(fields: [eventQuestionnaireId], references: [eventQuestionnaireId], onDelete: Cascade)
+  eventQuestionnaireId Int                   @map("event_questionnaire_id")
+  question             QuestionnaireQuestion @relation(fields: [questionId], references: [questionId])
+  questionId           Int                   @map("question_id")
+
+  // timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([eventQuestionnaireId, questionId])
+  @@index([questionId])
+  @@map("questionnaire_answer")
+}

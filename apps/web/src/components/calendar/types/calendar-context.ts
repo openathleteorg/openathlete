@@ -40,6 +40,8 @@ export type CalendarContextType = {
   setFilter: Dispatch<SetStateAction<(event: Event) => boolean>>;
   athleteId?: number;
   allowCreate: boolean;
+  /** A coach looking at an athlete's calendar: they send questionnaires */
+  canPlaceQuestionnaire: boolean;
   coloredBy: COLORED_BY | null;
   setColoredBy: (coloredBy: COLORED_BY | null) => void;
   weeklyLoadSummary: Record<string, CalendarWeekLoadSummary>;

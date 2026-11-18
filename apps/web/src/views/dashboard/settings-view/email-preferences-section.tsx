@@ -52,6 +52,13 @@ export function EmailPreferencesSection() {
       update: (emailRecap) => ({ emailRecap }),
     },
     {
+      id: 'email-questionnaires',
+      title: m.email_questionnaires(),
+      description: m.email_questionnaires_description(),
+      checked: me?.emailQuestionnaires ?? true,
+      update: (emailQuestionnaires) => ({ emailQuestionnaires }),
+    },
+    {
       id: 'email-news',
       title: m.email_news(),
       description: m.email_news_description(),

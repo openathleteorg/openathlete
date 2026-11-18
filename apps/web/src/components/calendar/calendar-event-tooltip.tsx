@@ -10,6 +10,7 @@ import {
   EVENT_TYPE,
   Event,
   NoteEvent,
+  QuestionnaireEvent,
   SPORT_TYPE,
   TrainingEvent,
   formatDistance,
@@ -253,6 +254,25 @@ function NoteTooltipContent({ event }: { event: NoteEvent }) {
   );
 }
 
+function QuestionnaireTooltipContent({ event }: { event: QuestionnaireEvent }) {
+  const status = event.answeredAt
+    ? m.questionnaire_answered()
+    : new Date(event.startDate) > new Date()
+      ? m.questionnaire_upcoming()
+      : m.questionnaire_unanswered();
+  return (
+    <div className="space-y-1">
+      <div className="font-semibold text-sm">{event.name}</div>
+      <p className="text-xs text-muted-foreground">{status}</p>
+      {event.score !== null && (
+        <p className="text-xs">
+          {m.questionnaire_score_value({ score: event.score })}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function CalendarEventTooltipContent({
   event,
 }: CalendarEventTooltipProps) {
@@ -265,6 +285,8 @@ export function CalendarEventTooltipContent({
       return <CompetitionTooltipContent event={event} />;
     case EVENT_TYPE.NOTE:
       return <NoteTooltipContent event={event} />;
+    case EVENT_TYPE.QUESTIONNAIRE:
+      return <QuestionnaireTooltipContent event={event} />;
     default:
       return null;
   }

@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /** The emails a person can turn off, each with its own setting */
-export const EMAIL_LISTS = ['tips', 'recap', 'news'] as const;
+export const EMAIL_LISTS = ['tips', 'recap', 'news', 'questionnaires'] as const;
 export type EmailList = (typeof EMAIL_LISTS)[number];
 
 function signature(secret: string, payload: string) {

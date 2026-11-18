@@ -79,6 +79,8 @@ model User {
   emailTips           Boolean      @default(true) @map("email_tips")
   /// Monthly email recap of the training
   emailRecap          Boolean      @default(true) @map("email_recap")
+  /// Emails telling an athlete a questionnaire from their coach is waiting
+  emailQuestionnaires Boolean      @default(true) @map("email_questionnaires")
   /// When the user asked for news about the project, Supporter included:
   /// commercial emails need this consent (CNIL), unset by default
   emailNewsConsentAt  DateTime?    @map("email_news_consent_at")
@@ -104,6 +106,7 @@ model User {
   activityChatNotices        ActivityChatNotice[]
   coachNotes                CoachNote[]
   coachNotebook             CoachNotebook?
+  questionnaires            Questionnaire[]
   storedFiles               StoredFile[]
   subscription              Subscription?
   mcpGrants                 McpGrant[]

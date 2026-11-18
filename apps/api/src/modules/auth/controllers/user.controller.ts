@@ -250,6 +250,11 @@ export class UserController {
           type: 'boolean',
           description: 'Monthly recap of the training, by email',
         },
+        emailQuestionnaires: {
+          type: 'boolean',
+          description:
+            'Emails telling the athlete a questionnaire from their coach is waiting',
+        },
         emailNews: {
           type: 'boolean',
           description:

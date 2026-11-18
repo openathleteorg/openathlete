@@ -43,6 +43,15 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     PT_BR: 'Você recebe esta mensagem porque pediu notícias do projeto.',
     DE: 'Du erhältst diese Nachricht, weil du Neuigkeiten zum Projekt angefordert hast.',
   },
+  questionnaires: {
+    FR: 'Vous recevez cet email parce que votre coach vous a envoyé un questionnaire.',
+    EN: 'You get this email because your coach sent you a questionnaire.',
+    IT: 'Ricevi questa email perché il tuo coach ti ha inviato un questionario.',
+    ES: 'Recibes este correo porque tu entrenador te ha enviado un cuestionario.',
+    PT_BR:
+      'Você recebe este e-mail porque seu treinador enviou um questionário.',
+    DE: 'Du erhältst diese E-Mail, weil dir dein Coach einen Fragebogen geschickt hat.',
+  },
 };
 
 /** The website speaks the same languages, under these path prefixes */

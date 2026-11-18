@@ -21,10 +21,18 @@ export function AppSectionTabs() {
     records: m.records(),
     metrics: m.metrics(),
     notes: m.coach_notes(),
+    questionnaires: m.questionnaires(),
     settings: m.settings(),
   };
   const sections = athleteId
-    ? ['summary', 'calendar', ...OWN_SECTIONS, 'notes', 'settings']
+    ? [
+        'summary',
+        'calendar',
+        ...OWN_SECTIONS,
+        'questionnaires',
+        'notes',
+        'settings',
+      ]
     : OWN_SECTIONS;
   if (!athleteId && !OWN_SECTIONS.includes(sectionOf(pathname) ?? '')) {
     return null;

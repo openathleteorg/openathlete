@@ -14,16 +14,25 @@ export function countRepeats(
   everyWeeks: number,
   until: Date,
 ): number {
-  if (everyWeeks < 1) return 0;
+  return countRepeatsEveryDays(start, 7 * everyWeeks, until);
+}
+
+/** The same, for a repetition every `everyDays` days */
+export function countRepeatsEveryDays(
+  start: Date,
+  everyDays: number,
+  until: Date,
+): number {
+  if (everyDays < 1) return 0;
   const last = Math.min(
     until.getTime(),
     addDays(start, REPEAT_MAX_DAYS).getTime(),
   );
   let count = 0;
   for (
-    let next = addDays(start, 7 * everyWeeks);
+    let next = addDays(start, everyDays);
     next.getTime() <= last;
-    next = addDays(next, 7 * everyWeeks)
+    next = addDays(next, everyDays)
   ) {
     count++;
   }

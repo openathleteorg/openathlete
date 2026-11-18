@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 
-import { EVENT_TYPE, Event, SPORT_TYPE } from '@openathlete/shared';
+import { Event, SPORT_TYPE } from '@openathlete/shared';
 
 import { AiSetupDialog } from '../ai-settings';
 import { SportSelect } from '../sport-select/sport-select';
@@ -89,8 +89,7 @@ export function CalendarHeader({ planningDate, onPlanningDateChange }: P) {
       setFilter(() => () => true);
     } else {
       setFilter(
-        () => (event: Event) =>
-          event.type !== EVENT_TYPE.NOTE && event.sport === value,
+        () => (event: Event) => 'sport' in event && event.sport === value,
       );
     }
   };

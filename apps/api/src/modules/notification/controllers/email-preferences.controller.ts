@@ -26,6 +26,8 @@ function preference(list: EmailList, subscribed: boolean) {
       return { emailRecap: subscribed };
     case 'news':
       return { emailNewsConsentAt: subscribed ? new Date() : null };
+    case 'questionnaires':
+      return { emailQuestionnaires: subscribed };
   }
 }
 
