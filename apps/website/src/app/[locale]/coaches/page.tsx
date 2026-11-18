@@ -1,4 +1,7 @@
 import { shots } from '@/assets/screenshots';
+import { questionnaireCardLabels } from '@/components/features/helpers';
+import { ArrowLink, SplitRow } from '@/components/features/kit';
+import { QuestionnaireCard } from '@/components/features/quest-visuals';
 import {
   BreadcrumbListStructuredData,
   FAQPageStructuredData,
@@ -347,6 +350,35 @@ export default async function CoachesPage({ params }: Props) {
               />
             </Reveal>
           </div>
+        </Container>
+      </Section>
+
+      {/* Questionnaires */}
+      <Section>
+        <Container>
+          <SplitRow
+            kicker={m.features_quest_coaches_kicker()}
+            title={m.features_quest_coaches_title()}
+            body={m.features_quest_coaches_body()}
+            points={[
+              m.features_quest_coaches_p1(),
+              m.features_quest_coaches_p2(),
+              m.features_quest_coaches_p3(),
+            ]}
+            visual={
+              <QuestionnaireCard
+                labels={questionnaireCardLabels()}
+                className="mx-auto max-w-[30rem]"
+              />
+            }
+          >
+            <ArrowLink
+              href={localePath(locale, '/features/athlete-questionnaires')}
+              className="mt-7"
+            >
+              {m.features_quest_coaches_link()}
+            </ArrowLink>
+          </SplitRow>
         </Container>
       </Section>
 
