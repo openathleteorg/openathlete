@@ -59,7 +59,7 @@ const ATHLETE_TABS: AppTab[] = [
     label: m.nav_tab_progress,
     icon: TrendingUp,
     path: getPath(['dashboard', 'statistics']),
-    sections: ['statistics', 'records', 'metrics'],
+    sections: ['statistics', 'records', 'metrics', 'my-questionnaires'],
   },
   conversations,
   me,
@@ -124,6 +124,7 @@ export function screenTitle(pathname: string): string {
     summary: m.dashboard,
     notes: m.coach_notes,
     questionnaires: m.questionnaires,
+    'my-questionnaires': m.nav_tab_progress,
   };
   return titles[sectionOf(pathname) ?? '']?.() ?? 'OpenAthlete';
 }

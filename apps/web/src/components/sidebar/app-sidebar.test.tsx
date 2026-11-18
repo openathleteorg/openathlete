@@ -13,6 +13,7 @@ const state = vi.hoisted(() => ({
     athleteId: number;
     user: { firstName: string; lastName: string };
   }[],
+  coaches: [] as { userId: number }[],
 }));
 
 vi.mock('@/contexts/finder', () => ({
@@ -23,6 +24,7 @@ vi.mock('@/components/clubs/use-group-filter', () => ({
 }));
 vi.mock('@/api/athlete', () => ({
   useGetMyCoachedAthletesQuery: () => ({ data: state.athletes }),
+  useGetMyCoachesQuery: () => ({ data: state.coaches }),
 }));
 vi.mock('@/contexts/space', () => ({
   useSpaceContext: () => ({ space: state.space }),
@@ -200,6 +202,21 @@ describe('AppSidebar elsewhere', () => {
     expect(
       document.querySelector('a[href="/dashboard/calendar"]'),
     ).not.toBeNull();
+  });
+
+  it("shows an athlete their coaches' questionnaires", async () => {
+    state.space = 'ATHLETE';
+    state.athletes = [];
+    state.coaches = [];
+    await render();
+    const link = () =>
+      document.querySelector('a[href="/dashboard/my-questionnaires"]');
+    expect(link()).toBeNull();
+    act(() => root?.unmount());
+    state.coaches = [{ userId: 1 }];
+    await render();
+    expect(link()).not.toBeNull();
+    state.coaches = [];
   });
 
   it('keeps the athlete tree in the drawer on phones', async () => {

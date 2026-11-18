@@ -2911,5 +2911,13 @@
   "unsubscribe_list_questionnaires": "the questionnaires from your coach",
   "questionnaire_week_answered": "Answered: {answered} of {due}",
   "questionnaire_answered_warning": "Athletes already answered this questionnaire. Changing the type, scale, unit or options of a question replaces it: its past answers stay with the old one, and charts start again with the new one.",
-  "questionnaire_dashboard_cell": "Questionnaires answered over the period: {answered} of {due}"
+  "questionnaire_dashboard_cell": "Questionnaires answered over the period: {answered} of {due}",
+  "my_questionnaires": "My questionnaires",
+  "questionnaire_my_empty": "No questionnaire from your coaches over this period. Those they send you appear here, with your answers.",
+  "questionnaire_see_my_answers": "See all my answers",
+  "questionnaire_export_csv": "Export CSV",
+  "questionnaire_csv_opened": "Opened",
+  "questionnaire_csv_status": "Status",
+  "questionnaire_csv_answered": "Answered at",
+  "questionnaire_csv_replaced": "{label} (replaced)"
 }

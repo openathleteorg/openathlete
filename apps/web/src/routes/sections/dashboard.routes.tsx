@@ -112,7 +112,8 @@ const questionnairePage = (
     | 'QuestionnaireCreatePage'
     | 'QuestionnaireEditPage'
     | 'QuestionnaireAnswersPage'
-    | 'AthleteQuestionnairesPage',
+    | 'AthleteQuestionnairesPage'
+    | 'MyQuestionnairesPage',
 ) =>
   lazy(() =>
     import('@/pages/dashboard/questionnaires').then((module) => ({
@@ -126,6 +127,7 @@ const QuestionnaireAnswersPage = questionnairePage('QuestionnaireAnswersPage');
 const AthleteQuestionnairesPage = questionnairePage(
   'AthleteQuestionnairesPage',
 );
+const MyQuestionnairesPage = questionnairePage('MyQuestionnairesPage');
 
 const ProfilePage = lazy(() =>
   import('@/pages/dashboard/profile').then((module) => ({
@@ -254,6 +256,10 @@ export const dashboardRoutes: RouteObject[] = [
       {
         path: getPath(['dashboard', 'questionnaires', 'athleteId']),
         element: <AthleteQuestionnairesPage />,
+      },
+      {
+        path: getPath(['dashboard', 'my-questionnaires']),
+        element: <MyQuestionnairesPage />,
       },
       {
         path: getPath(['dashboard', 'settings']),

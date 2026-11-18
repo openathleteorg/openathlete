@@ -2911,5 +2911,13 @@
   "unsubscribe_list_questionnaires": "i questionari del tuo coach",
   "questionnaire_week_answered": "Risposti: {answered} su {due}",
   "questionnaire_answered_warning": "Alcuni atleti hanno già risposto a questo questionario. Cambiare il tipo, la scala, l'unità o le opzioni di una domanda la sostituisce: le risposte passate restano con quella vecchia e i grafici ripartono con la nuova.",
-  "questionnaire_dashboard_cell": "Questionari risposti nel periodo: {answered} su {due}"
+  "questionnaire_dashboard_cell": "Questionari risposti nel periodo: {answered} su {due}",
+  "my_questionnaires": "I miei questionari",
+  "questionnaire_my_empty": "Nessun questionario dai tuoi coach in questo periodo. Quelli che ti inviano compaiono qui, con le tue risposte.",
+  "questionnaire_see_my_answers": "Vedi tutte le mie risposte",
+  "questionnaire_export_csv": "Esporta CSV",
+  "questionnaire_csv_opened": "Apertura",
+  "questionnaire_csv_status": "Stato",
+  "questionnaire_csv_answered": "Risposto il",
+  "questionnaire_csv_replaced": "{label} (sostituita)"
 }

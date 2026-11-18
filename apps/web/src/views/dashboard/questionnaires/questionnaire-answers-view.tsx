@@ -3,6 +3,7 @@ import {
   useQuestionnaireResponsesQuery,
 } from '@/api/questionnaire';
 import { PeriodSelect } from '@/components/questionnaires/analysis/analysis-parts';
+import { ExportAnswersButton } from '@/components/questionnaires/analysis/export-answers-button';
 import { usePeriod } from '@/components/questionnaires/analysis/period';
 import { QuestionnaireAnalysis } from '@/components/questionnaires/analysis/questionnaire-analysis';
 import { responseRate } from '@/components/questionnaires/analysis/series';
@@ -61,8 +62,15 @@ export function QuestionnaireAnswersView({ questionnaireId }: P) {
         <PageTitle desktopOnly>
           {questionnaire?.title ?? m.questionnaire()}
         </PageTitle>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <PeriodSelect value={period.days} onChange={period.setDays} />
+          {data && questionnaire && (
+            <ExportAnswersButton
+              questionnaire={questionnaire}
+              occurrences={data.occurrences}
+              athletes={data.athletes}
+            />
+          )}
           {own && !own.archivedAt && (
             <Button asChild variant="outline">
               <Link to={questionnaireEditPath(questionnaireId)}>

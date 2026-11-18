@@ -1,9 +1,11 @@
+import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useQuestionnaireResponsesQuery } from '@/api/questionnaire';
 import {
   AnswersMatrix,
   PeriodSelect,
   StatusBadge,
 } from '@/components/questionnaires/analysis/analysis-parts';
+import { ExportAnswersButton } from '@/components/questionnaires/analysis/export-answers-button';
 import { usePeriod } from '@/components/questionnaires/analysis/period';
 import { QuestionnaireAnalysis } from '@/components/questionnaires/analysis/questionnaire-analysis';
 import {
@@ -11,6 +13,7 @@ import {
   responseRate,
 } from '@/components/questionnaires/analysis/series';
 import { formatShortDay } from '@/components/questionnaires/answer-format';
+import { PendingQuestionnaires } from '@/components/questionnaires/pending-questionnaires';
 import { QuestionnaireAnswers } from '@/components/questionnaires/questionnaire-answers';
 import { PageTitle } from '@/components/ui/page-title';
 import {
@@ -35,45 +38,61 @@ import {
   type QuestionnaireResponses,
 } from '@openathlete/shared';
 
-interface P {
-  athleteId: number;
-}
+type P =
+  /** A coach reads one of their athletes */
+  | { athleteId: number; self?: never }
+  /** The athlete reads what they answered to their coaches */
+  | { self: true; athleteId?: never };
 
 /**
  * What one athlete answered: week after week, or questionnaire by
  * questionnaire with a chart per question.
  */
-export function AthleteQuestionnairesView({ athleteId }: P) {
-  const { athlete } = useAthleteInfo({ athleteId });
+export function AthleteQuestionnairesView(props: P) {
+  const { data: me } = useGetMyAthleteQuery();
+  const athleteId = props.self ? me?.athleteId : props.athleteId;
+  const { athlete } = useAthleteInfo({ athleteId: props.athleteId });
   const period = usePeriod();
-  const { data, isLoading } = useQuestionnaireResponsesQuery({
-    athleteId,
-    ...period.query,
-  });
+  const { data, isLoading } = useQuestionnaireResponsesQuery(
+    { athleteId, ...period.query },
+    { enabled: athleteId !== undefined },
+  );
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-5 p-4 md:p-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <PageTitle desktopOnly>
-          {m.questionnaires_of({
-            firstName: athlete?.user?.firstName || '',
-            lastName: athlete?.user?.lastName || '',
-          })}
+          {props.self
+            ? m.my_questionnaires()
+            : m.questionnaires_of({
+                firstName: athlete?.user?.firstName || '',
+                lastName: athlete?.user?.lastName || '',
+              })}
         </PageTitle>
         <PeriodSelect value={period.days} onChange={period.setDays} />
       </div>
 
-      {isLoading && <Skeleton className="h-64 w-full" />}
+      {props.self && <PendingQuestionnaires />}
+
+      {(isLoading || athleteId === undefined) && (
+        <Skeleton className="h-64 w-full" />
+      )}
 
       {data && data.occurrences.length === 0 && (
         <div className="space-y-2 rounded-lg border p-6 text-sm">
-          <p>{m.questionnaire_athlete_empty()}</p>
-          <Link
-            to={getPath(['dashboard', 'questionnaires'])}
-            className="font-medium text-primary underline-offset-4 hover:underline"
-          >
-            {m.questionnaire_go_library()}
-          </Link>
+          {props.self ? (
+            <p>{m.questionnaire_my_empty()}</p>
+          ) : (
+            <>
+              <p>{m.questionnaire_athlete_empty()}</p>
+              <Link
+                to={getPath(['dashboard', 'questionnaires'])}
+                className="font-medium text-primary underline-offset-4 hover:underline"
+              >
+                {m.questionnaire_go_library()}
+              </Link>
+            </>
+          )}
         </div>
       )}
 
@@ -162,7 +181,7 @@ function WeekCard({
 
   return (
     <article
-      className="space-y-3 rounded-lg border p-4"
+      className="min-w-0 space-y-3 rounded-lg border p-4"
       data-occurrence={single.eventId}
     >
       <header className="flex flex-wrap items-center justify-between gap-2">
@@ -225,29 +244,37 @@ function ByQuestionnaire({
 
   return (
     <div className="space-y-4">
-      {data.questionnaires.length > 1 && (
-        <Select
-          value={String(questionnaire.questionnaireId)}
-          onValueChange={(value) => setSelected(Number(value))}
-        >
-          <SelectTrigger
-            className="w-full sm:w-72"
-            aria-label={m.questionnaire()}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {data.questionnaires.length > 1 ? (
+          <Select
+            value={String(questionnaire.questionnaireId)}
+            onValueChange={(value) => setSelected(Number(value))}
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {data.questionnaires.map((item) => (
-              <SelectItem
-                key={item.questionnaireId}
-                value={String(item.questionnaireId)}
-              >
-                {item.title}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      )}
+            <SelectTrigger
+              className="w-full sm:w-72"
+              aria-label={m.questionnaire()}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {data.questionnaires.map((item) => (
+                <SelectItem
+                  key={item.questionnaireId}
+                  value={String(item.questionnaireId)}
+                >
+                  {item.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <h2 className="font-medium">{questionnaire.title}</h2>
+        )}
+        <ExportAnswersButton
+          questionnaire={questionnaire}
+          occurrences={occurrences}
+        />
+      </div>
       <QuestionnaireAnalysis
         questionnaire={questionnaire}
         occurrences={occurrences}

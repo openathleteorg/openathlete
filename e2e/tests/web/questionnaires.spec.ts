@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 import { apiHeaders, createCoachWithAthlete } from '../../support/api';
 import { pageAs, signIn } from '../../support/browser';
@@ -80,6 +81,13 @@ test('a coach writes a questionnaire, sends it, and reads the answers', async ({
   await expect(athletePage.locator('[data-pending-questionnaire]')).toHaveCount(
     0,
   );
+
+  // They find it again among their questionnaires
+  await athletePage.goto('/dashboard/my-questionnaires');
+  const mine = athletePage.locator('[data-occurrence]').first();
+  await expect(mine).toContainText('Hooper index');
+  await expect(mine).toContainText('Answered');
+  await expect(mine).toContainText('14');
   expect(athleteProblems).toEqual([]);
   await athletePage.close();
 
@@ -102,6 +110,18 @@ test('a coach writes a questionnaire, sends it, and reads the answers', async ({
   await expect(
     page.getByRole('img', { name: 'Answers to “Fatigue” over time' }),
   ).toBeVisible();
+
+  // and take them to a spreadsheet
+  const download = page.waitForEvent('download');
+  await page.locator('[data-export-answers]').click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe('openathlete-hooper-index.csv');
+  const csv = await readFile(await file.path(), 'utf8');
+  const [header, row] = csv.replace(/^\uFEFF/, '').split('\n');
+  expect(header).toContain('Score');
+  expect(header).toContain('Fatigue (1–7)');
+  expect(row).toContain('Answered');
+  expect(row).toMatch(/,14,3,4,2,5$/);
 
   // A coach cannot delete what the athlete answered
   const placed = await request.get(

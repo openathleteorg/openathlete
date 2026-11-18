@@ -2,7 +2,9 @@ import { useGetMyAthleteQuery } from '@/api/athlete';
 import { useQuestionnaireOfEventQuery } from '@/api/questionnaire';
 import { Skeleton } from '@/components/ui/skeleton';
 import { m } from '@/paraglide/messages';
+import { getPath } from '@/routes/paths';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 
 import {
   QUESTIONNAIRE_STATUS,
@@ -90,6 +92,14 @@ export function QuestionnaireEventDetails({ event }: P) {
             >
               {m.questionnaire_change_answers()}
             </button>
+          )}
+          {isAthlete && (
+            <Link
+              to={getPath(['dashboard', 'my-questionnaires'])}
+              className="block text-sm font-medium text-primary underline-offset-4 hover:underline"
+            >
+              {m.questionnaire_see_my_answers()}
+            </Link>
           )}
         </>
       )}

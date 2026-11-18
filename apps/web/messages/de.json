@@ -2911,5 +2911,13 @@
   "unsubscribe_list_questionnaires": "Fragebögen von deinem Coach",
   "questionnaire_week_answered": "Beantwortet: {answered} von {due}",
   "questionnaire_answered_warning": "Athleten haben diesen Fragebogen schon beantwortet. Änderst du Typ, Skala, Einheit oder Optionen einer Frage, wird sie ersetzt: Ihre bisherigen Antworten bleiben bei der alten, und die Diagramme beginnen mit der neuen von vorn.",
-  "questionnaire_dashboard_cell": "Beantwortete Fragebögen im Zeitraum: {answered} von {due}"
+  "questionnaire_dashboard_cell": "Beantwortete Fragebögen im Zeitraum: {answered} von {due}",
+  "my_questionnaires": "Meine Fragebögen",
+  "questionnaire_my_empty": "Kein Fragebogen von deinen Coaches in diesem Zeitraum. Die Fragebögen, die sie dir senden, erscheinen hier mit deinen Antworten.",
+  "questionnaire_see_my_answers": "Alle meine Antworten ansehen",
+  "questionnaire_export_csv": "Als CSV exportieren",
+  "questionnaire_csv_opened": "Geöffnet",
+  "questionnaire_csv_status": "Status",
+  "questionnaire_csv_answered": "Beantwortet am",
+  "questionnaire_csv_replaced": "{label} (ersetzt)"
 }

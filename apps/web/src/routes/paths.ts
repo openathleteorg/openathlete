@@ -75,6 +75,8 @@ export const paths: Paths = {
       answers: `${ROOTS.DASHBOARD}/questionnaires/q/:questionnaireId`,
       edit: `${ROOTS.DASHBOARD}/questionnaires/q/:questionnaireId/edit`,
     },
+    // What an athlete answered to their coaches' questionnaires
+    'my-questionnaires': `${ROOTS.DASHBOARD}/my-questionnaires`,
     // A coach's private notes: all of them, or one athlete's
     notes: {
       root: `${ROOTS.DASHBOARD}/notes`,

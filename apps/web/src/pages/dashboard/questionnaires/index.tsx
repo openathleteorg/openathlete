@@ -58,3 +58,12 @@ export function AthleteQuestionnairesPage() {
     </>
   );
 }
+
+export function MyQuestionnairesPage() {
+  return (
+    <>
+      <title>{m.my_questionnaires()}</title>
+      <AthleteQuestionnairesView self />
+    </>
+  );
+}

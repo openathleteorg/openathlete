@@ -74,7 +74,9 @@ turned off in **Settings › Profile**, or with the link at their foot; the
 notification still comes.
 
 The questionnaire waits on the **Today** tab of the app, above the calendar on
-a computer, and in the calendar itself. The athlete can answer:
+a computer, and in the calendar itself. **Questionnaires** (in the sidebar, or
+under **Progress** on the app) gathers every questionnaire the athlete got,
+week by week or as charts, with their answers. The athlete can answer:
 
 - from the opening until the next occurrence opens, or for a week when it
   does not repeat;
@@ -90,6 +92,16 @@ a computer, and in the calendar itself. The athlete can answer:
   for each athlete, how many they answered, the last answer and the last
   score, then each question with a line per athlete (their mean past seven
   athletes).
+
+**Export CSV**, on both, saves the answers of the period as a spreadsheet: a
+row per questionnaire sent, a column per question, numbers kept as numbers.
+The export is on the web app, not on the mobile apps.
+
+The AI features read the answers too. When you generate or change a session
+with AI, the last two weeks of answers go with the request, so a tired
+athlete gets an easier session. Agents connected through the
+[MCP server](/docs/guides/ai-agents) read them with
+`get_questionnaire_answers`. Both only read what you could read yourself.
 
 ## Who reads what
 

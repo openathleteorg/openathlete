@@ -14,6 +14,7 @@ import { PrismaService } from 'src/modules/prisma/services/prisma.service';
 import {
   type TrainingEventSchema,
   buildMetricsContext,
+  buildQuestionnaireContext,
   buildWorkoutTargetsInstructions,
   buildZonesContext,
   convertWorkoutPaceTargetsToMinPerKm,
@@ -24,6 +25,7 @@ import {
   formatZonesByType,
   getLatestMetrics,
   normalizeGoalDuration,
+  questionnairePromptSection,
   repsAsPoolLengths,
   validateNoNestedRepeatBlocks,
   validateWorkoutZoneTargets,
@@ -153,6 +155,11 @@ export class EventModificationService {
     const zonesByType = formatZonesByType(zones);
     const zonesContext = buildZonesContext(zonesByType);
     const metricsContext = buildMetricsContext(latestMetrics);
+    const questionnaireContext = await buildQuestionnaireContext(
+      this.prismaService,
+      userId,
+      athleteId,
+    );
 
     const fullPrompt = `
 You are modifying an existing training event. This is a COMPLETE UPDATE - you must return the FULL, COMPLETE event with ALL workout steps.
@@ -164,7 +171,7 @@ ${JSON.stringify(existingEventContext, null, 2)}
 
 ATHLETE CONTEXT:
 ${zonesContext ? `TRAINING ZONES:\n${zonesContext}` : 'No training zones configured'}
-${metricsContext ? `\nLATEST METRICS:\n${metricsContext}` : '\nNo metrics available'}
+${metricsContext ? `\nLATEST METRICS:\n${metricsContext}` : '\nNo metrics available'}${questionnairePromptSection(questionnaireContext)}
 
 CRITICAL REQUIREMENTS FOR THE UPDATE:
 1. Return the COMPLETE, FULL training event - this is an UPDATE operation, not a partial modification
