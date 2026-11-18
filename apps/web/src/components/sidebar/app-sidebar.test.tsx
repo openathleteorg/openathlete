@@ -39,6 +39,9 @@ vi.mock('@/components/sidebar/space-switcher', () => ({
 vi.mock('@/components/sidebar/support-reminder', () => ({
   SupportReminder: () => null,
 }));
+vi.mock('@/components/year-review/entry/year-review-button', () => ({
+  YearReviewButton: () => null,
+}));
 // Every message renders as its key.
 vi.mock('@/paraglide/messages', () => ({
   m: new Proxy({}, { get: (_target, key) => () => String(key) }),

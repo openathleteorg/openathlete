@@ -219,6 +219,7 @@ export const routes = {
     trends: '/statistics/trends',
     load: '/statistics/load',
   },
+  yearReview: '/year-review',
   coach: {
     dashboard: (start?: string, end?: string, compare?: boolean) => {
       const params = new URLSearchParams();

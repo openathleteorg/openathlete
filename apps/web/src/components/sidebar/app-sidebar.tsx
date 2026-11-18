@@ -20,6 +20,7 @@ import {
   SidebarRail,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { YearReviewButton } from '@/components/year-review/entry/year-review-button';
 import { useSpaceContext } from '@/contexts/space';
 import { m } from '@/paraglide/messages';
 import { getPath } from '@/routes/paths';
@@ -245,6 +246,7 @@ export function AppSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         )}
       </SidebarContent>
       <SidebarFooter>
+        <YearReviewButton variant="sidebar" />
         <SupportReminder />
         <NavUser />
       </SidebarFooter>

@@ -26,6 +26,7 @@ import { SportIcon } from '@/components/sport-icon/sport-icon';
 import { SupporterGoal } from '@/components/supporter/supporter-goal';
 import { SectionLabel } from '@/components/ui/section-label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { YearReviewButton } from '@/components/year-review/entry/year-review-button';
 import { useAppBar } from '@/hooks/use-app-bar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { m } from '@/paraglide/messages';
@@ -261,6 +262,7 @@ function TodayScreen() {
       </h2>
 
       <PendingQuestionnaires />
+      <YearReviewButton variant="card" />
 
       <Section title={m.today_session()}>
         {isPending ? (
