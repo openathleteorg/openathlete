@@ -100,6 +100,12 @@ const toExclusion = (
   duration: exclusion.duration,
 });
 
+/** Flat runs the running economy is read from: 3 km or more, 1 % climbing */
+const RUNNING_ECONOMY_MIN_DISTANCE = 3000;
+const RUNNING_ECONOMY_MAX_CLIMB = 0.01;
+/** Enough runs for a median, without decompressing a whole season */
+const RUNNING_ECONOMY_MAX_RUNS = 12;
+
 @Injectable()
 export class RecordService {
   constructor(
@@ -243,8 +249,9 @@ export class RecordService {
 
   /**
    * Joules per metre on the flat runs of the last days (at most 1% climbing,
-   * 3 km or more), the median of the runs: watts per m/s, which turns a power
-   * into a pace. Null without three such runs with power.
+   * 3 km or more, the 12 most recent with power), the median of the runs:
+   * watts per m/s, which turns a power into a pace. Null without three such
+   * runs.
    */
   async getRunningEconomy(
     user: AuthUser,
@@ -256,16 +263,28 @@ export class RecordService {
     from.setUTCHours(0, 0, 0, 0);
     from.setUTCDate(from.getUTCDate() - FTP_MODEL_DAYS);
 
-    const runs = await this.prisma.eventActivity.findMany({
-      where: {
-        sport: { in: [...FTP_MODEL_SPORTS.running] as SportType[] },
-        distance: { gte: 3000 },
-        event: { athleteId: targetAthleteId, startDate: { gte: from } },
-      },
-      select: { distance: true, elevationGain: true, stream: true },
-    });
+    // Flat runs with power, chosen in SQL: only their streams are read and
+    // decompressed, the most recent first
+    const candidates = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT a.event_activity_id AS id
+      FROM event_activity a
+      JOIN event e ON e.event_id = a.event_id
+      WHERE e.athlete_id = ${targetAthleteId}
+        AND e.start_date >= ${from}
+        AND a.sport::text IN (${Prisma.join([...FTP_MODEL_SPORTS.running])})
+        AND a.distance >= ${RUNNING_ECONOMY_MIN_DISTANCE}
+        AND a.elevation_gain <= a.distance * ${RUNNING_ECONOMY_MAX_CLIMB}
+        AND a.average_watts > 0
+        AND a.stream IS NOT NULL
+      ORDER BY e.start_date DESC
+      LIMIT ${RUNNING_ECONOMY_MAX_RUNS}`;
+    const runs = candidates.length
+      ? await this.prisma.eventActivity.findMany({
+          where: { eventActivityId: { in: candidates.map((run) => run.id) } },
+          select: { stream: true },
+        })
+      : [];
     const values = runs
-      .filter((run) => run.elevationGain <= run.distance * 0.01 && run.stream)
       .map((run) =>
         runEnergyPerMetre(
           uncompressActivityStream(run.stream as CompressedActivityStream),

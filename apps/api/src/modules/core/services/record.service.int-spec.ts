@@ -226,7 +226,12 @@ describe('RecordService (PostgreSQL)', () => {
     const addRun = async (
       id: number,
       stream: object,
-      { elevationGain = 20, sport = 'RUNNING', date = '2026-11-01' } = {},
+      {
+        elevationGain = 20,
+        sport = 'RUNNING',
+        date = '2026-11-01',
+        averageWatts = 320 as number | null,
+      } = {},
     ) =>
       prisma.event.create({
         data: {
@@ -244,6 +249,7 @@ describe('RecordService (PostgreSQL)', () => {
               averageSpeed: 4,
               maxSpeed: 5,
               externalId: `economy-${id}`,
+              averageWatts,
               stream,
             },
           },
@@ -256,10 +262,25 @@ describe('RecordService (PostgreSQL)', () => {
       await addRun(3, steadyRun(3.5, 315), { sport: 'TRAIL_RUNNING' }); // 90 J/m
       await addRun(4, steadyRun(4, 400), { elevationGain: 200 }); // hilly
       await addRun(5, steadyRun(4, 400), { date: '2026-07-01' }); // too old
+      // No power recorded: its stream is never read
+      await addRun(6, steadyRun(4, 400), { averageWatts: null });
 
       expect(
         await service.getRunningEconomy(athlete, undefined, now),
       ).toMatchObject({ value: 82, activities: 3, days: 90 });
+    });
+
+    it('reads the most recent flat runs only', async () => {
+      // 14 runs at 80 J/m, then 2 older ones at 100 J/m out of the 12
+      for (let day = 1; day <= 14; day++)
+        await addRun(day, steadyRun(4, 320), {
+          date: `2026-11-${String(day).padStart(2, '0')}`,
+        });
+      await addRun(20, steadyRun(4, 400), { date: '2026-10-01' });
+      await addRun(21, steadyRun(4, 400), { date: '2026-10-02' });
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toMatchObject({ value: 80, activities: 12 });
     });
 
     it('needs three flat runs', async () => {

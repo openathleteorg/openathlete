@@ -513,6 +513,8 @@ export function TrainingZoneBulkEditor({
       <ThresholdZonesPanel
         athleteId={athleteId}
         type={type}
+        sports={active.sports}
+        currentCount={zones.length}
         onApply={(computed) => {
           setError('');
           setPendingMode(null);
