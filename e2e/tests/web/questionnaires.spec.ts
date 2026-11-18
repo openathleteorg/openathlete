@@ -123,9 +123,10 @@ test('a coach writes a questionnaire, sends it, and reads the answers', async ({
   expect(row).toContain('Answered');
   expect(row).toMatch(/,14,3,4,2,5$/);
 
-  // A coach cannot delete what the athlete answered
+  // A coach cannot delete what the athlete answered. It opened yesterday
+  // morning in the browser's time zone: more than a day ago by the afternoon
   const placed = await request.get(
-    `${API_URL}/questionnaires/responses?athleteId=${athleteId}&from=${new Date(Date.now() - 86_400_000).toISOString()}&to=${new Date(Date.now() + 86_400_000).toISOString()}`,
+    `${API_URL}/questionnaires/responses?athleteId=${athleteId}&from=${new Date(Date.now() - 2 * 86_400_000).toISOString()}&to=${new Date(Date.now() + 86_400_000).toISOString()}`,
     { headers: apiHeaders(undefined, coach.accessToken) },
   );
   const { occurrences } = (await placed.json()) as {
