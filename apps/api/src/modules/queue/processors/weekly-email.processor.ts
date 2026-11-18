@@ -33,6 +33,6 @@ export class WeeklyEmailProcessor extends WorkerHost {
   }
 
   async process(job: Job<WeeklyEmailJob>) {
-    return this.weeklyEmail.send(job.data, new Date());
+    return this.weeklyEmail.sendJob(job.data, new Date());
   }
 }

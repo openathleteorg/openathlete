@@ -6,6 +6,7 @@ const EMAIL_LISTS = [
   'news',
   'questionnaires',
   'weekly',
+  'coach_weekly',
 ] as const;
 export type EmailList = (typeof EMAIL_LISTS)[number];
 

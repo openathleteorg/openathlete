@@ -169,7 +169,7 @@ describe('weekly email (PostgreSQL)', () => {
 
   const sendDue = async (now = NOW) => {
     const due = await service.dueRecipients(now);
-    for (const job of due) await service.send(job, now);
+    for (const job of due) await service.sendJob(job, now);
     return due;
   };
 
@@ -189,7 +189,9 @@ describe('weekly email (PostgreSQL)', () => {
     // Monday 0:30 local is Sunday 23:30 UTC: already the coming week
     await addSession(athleteId, at('2026-11-23T00:30:00'), 'Night shakeout');
 
-    expect(await sendDue()).toEqual([{ userId, monday: MONDAY }]);
+    expect(await sendDue()).toEqual([
+      { kind: 'athlete', userId, monday: MONDAY },
+    ]);
     expect(sent).toHaveLength(1);
     const [email] = sent;
     expect(email.subject).toBe('Your week: 1 of 2 planned sessions');
@@ -253,7 +255,7 @@ describe('weekly email (PostgreSQL)', () => {
     await createUser();
 
     expect(await sendDue()).toEqual([
-      { userId: planning.userId, monday: MONDAY },
+      { kind: 'athlete', userId: planning.userId, monday: MONDAY },
     ]);
   });
 
@@ -268,7 +270,7 @@ describe('weekly email (PostgreSQL)', () => {
     // 7:05 in New York
     const later = new Date('2026-11-23T12:05:00Z');
     expect(await sendDue(later)).toEqual([
-      { userId: newYork.userId, monday: MONDAY },
+      { kind: 'athlete', userId: newYork.userId, monday: MONDAY },
     ]);
     // Turned off once queued: the job sends nothing
     expect(
@@ -331,5 +333,124 @@ describe('weekly email (PostgreSQL)', () => {
     await addActivity(athlete!.athleteId, ago(2 * DAY));
     env.EMAIL_SIGNATURE = undefined;
     expect(await sendDue()).toEqual([]);
+  });
+
+  describe('to coaches', () => {
+    const coachOf = async (...athleteIds: number[]) => {
+      const coach = await createUser();
+      await prisma.coachAthlete.createMany({
+        data: athleteIds.map((athleteId) => ({
+          userId: coach.userId,
+          athleteId,
+        })),
+      });
+      return coach;
+    };
+
+    it('lists the athletes to look at: missed, load up, answers', async () => {
+      const busy = await createUser();
+      const quiet = await createUser();
+      const busyId = busy.athlete!.athleteId;
+      // 100 TRIMP a week for four weeks, then 200
+      for (const day of [
+        '2026-10-20',
+        '2026-10-27',
+        '2026-11-03',
+        '2026-11-10',
+      ]) {
+        await addActivity(busyId, at(`${day}T08:00:00`), { trimp: 100 });
+      }
+      await addActivity(busyId, at('2026-11-17T08:00:00'), { trimp: 120 });
+      await addActivity(busyId, at('2026-11-20T08:00:00'), {
+        trimp: 80,
+        provider: 'GARMIN',
+      });
+      await addSession(busyId, at('2026-11-19T08:00:00'), 'Intervals');
+      // The quiet one did what was planned, at the usual load
+      const run = await addActivity(
+        quiet.athlete!.athleteId,
+        at('2026-11-18T08:00:00'),
+        { trimp: 60 },
+      );
+      await addSession(
+        quiet.athlete!.athleteId,
+        at('2026-11-18T08:00:00'),
+        'Easy',
+        run,
+      );
+      const coach = await coachOf(busyId, quiet.athlete!.athleteId);
+      const questionnaire = await prisma.questionnaire.create({
+        data: { title: 'Weekly check-in', coachUserId: coach.userId },
+      });
+      await prisma.event.create({
+        data: {
+          name: 'Weekly check-in',
+          type: 'QUESTIONNAIRE',
+          startDate: at('2026-11-21T08:00:00'),
+          endDate: at('2026-11-21T08:00:00'),
+          athleteId: busyId,
+          questionnaire: {
+            create: {
+              questionnaireId: questionnaire.questionnaireId,
+              answeredAt: at('2026-11-21T19:00:00'),
+            },
+          },
+        },
+      });
+
+      const due = await service.dueCoaches(NOW);
+      expect(due).toEqual([
+        { kind: 'coach', userId: coach.userId, monday: MONDAY },
+      ]);
+      expect(await service.sendJob(due[0], NOW)).toBe(true);
+
+      const email = sent.find(
+        (e) => e.to === `runner${coach.userId}@example.com`,
+      )!;
+      expect(email.subject).toBe('Your athletes: 1 to look at this week');
+      expect(email.text).toContain(
+        'Ana Lopez: 1 missed session · load sharply up: +100% on the average of the 4 weeks before · 1 questionnaire answered.',
+      );
+      expect(email.text).toContain(
+        `Their calendar (https://app.example/dashboard/calendar/${busyId}?utm_source=openathlete&utm_medium=email&utm_campaign=coach_weekly)`,
+      );
+      expect(email.text).toContain(
+        'Insights derived in part from Garmin device-sourced data.',
+      );
+      expect(email.headers!['List-Unsubscribe']).toContain(
+        `token=${coach.userId}.coach_weekly.`,
+      );
+      // Once a week
+      expect(await service.dueCoaches(NOW)).toEqual([]);
+    });
+
+    it('writes nothing after a quiet week, nor to coaches without athletes', async () => {
+      const athlete = await createUser();
+      await addActivity(athlete.athlete!.athleteId, ago(2 * DAY));
+      const coach = await coachOf(athlete.athlete!.athleteId);
+      await createUser();
+
+      const due = await service.dueCoaches(NOW);
+      expect(due).toEqual([
+        { kind: 'coach', userId: coach.userId, monday: MONDAY },
+      ]);
+      expect(await service.sendJob(due[0], NOW)).toBe(false);
+      expect(sent.filter((e) => e.subject.startsWith('Your athletes'))).toEqual(
+        [],
+      );
+      expect(
+        await prisma.lifecycleEmail.count({ where: { kind: 'COACH_WEEKLY' } }),
+      ).toBe(0);
+    });
+
+    it('respects the coach setting', async () => {
+      const athlete = await createUser();
+      const coach = await coachOf(athlete.athlete!.athleteId);
+      await prisma.user.update({
+        where: { userId: coach.userId },
+        data: { emailCoachWeekly: false },
+      });
+      expect(await service.dueCoaches(NOW)).toEqual([]);
+    });
   });
 });

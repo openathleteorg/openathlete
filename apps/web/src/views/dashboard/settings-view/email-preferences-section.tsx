@@ -51,6 +51,18 @@ export function EmailPreferencesSection() {
       checked: me?.emailWeekly ?? true,
       update: (emailWeekly) => ({ emailWeekly }),
     },
+    // Coaches only: the athletes to look at on Mondays
+    ...(me?.roles.includes('COACH')
+      ? [
+          {
+            id: 'email-coach-weekly',
+            title: m.email_coach_weekly(),
+            description: m.email_coach_weekly_description(),
+            checked: me.emailCoachWeekly,
+            update: (emailCoachWeekly: boolean) => ({ emailCoachWeekly }),
+          },
+        ]
+      : []),
     {
       id: 'email-recap',
       title: m.email_recap(),

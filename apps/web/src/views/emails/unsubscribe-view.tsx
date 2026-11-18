@@ -16,6 +16,7 @@ const listLabels: Record<EmailList, () => string> = {
   news: m.unsubscribe_list_news,
   questionnaires: m.unsubscribe_list_questionnaires,
   weekly: m.unsubscribe_list_weekly,
+  coach_weekly: m.unsubscribe_list_coach_weekly,
 };
 
 /**
