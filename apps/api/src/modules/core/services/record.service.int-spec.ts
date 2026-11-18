@@ -227,28 +227,30 @@ describe('RecordService (PostgreSQL)', () => {
       });
     });
 
-    it('names nothing when the long record is no maximal effort', async () => {
+    it('carries the hour on when the long record is no maximal effort', async () => {
       for (const [duration, value] of [
         [120, 346],
         [300, 342],
         [1200, 335],
         [3600, 278],
-        // An easy two-hour run, 69% of the hour
+        // A mountain tour, 69% of the hour
         [7200, 193],
       ])
         await power(3501, duration, value);
 
       const modeled = await service.getModeledMetrics(athlete, undefined, now);
-      expect(modeled.trainingFocusRunning).toBeNull();
-      expect(modeled.trainingFocusRunningMissing).toEqual([
-        'AEROBIC_THRESHOLD',
-      ]);
+      expect(modeled.trainingFocusRunningMissing).toEqual([]);
+      // 278 W carried on to 70 minutes by Riegel's curve: 275 W
+      expect(modeled.trainingFocusRunning).toMatchObject({
+        aerobicThreshold: 275,
+        lactateThreshold: 318,
+      });
     });
 
     it('names nothing without the records around 3 and 70 minutes', async () => {
       await power(3501, 300, 342);
       await power(3501, 1200, 335);
-      await power(3501, 3600, 278);
+      await power(3501, 1800, 300);
       const modeled = await service.getModeledMetrics(athlete, undefined, now);
       expect(modeled.ftpRunning?.value).toBe(318);
       expect(modeled.trainingFocusRunning).toBeNull();

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  aerobicThresholdPower,
   missingTrainingFocusValues,
   modelTrainingFocus,
   powerAt,
@@ -64,6 +65,46 @@ describe('powerAt', () => {
         ],
         180,
       ),
+    ).toBeNull();
+  });
+});
+
+describe('aerobicThresholdPower', () => {
+  it('reads 70 minutes between two maximal efforts', () => {
+    expect(
+      aerobicThresholdPower([
+        { duration: 3600, value: 278 },
+        { duration: 7200, value: 252 },
+      ]),
+    ).toBeCloseTo(272.22, 2);
+  });
+
+  it('carries the hour on by Riegel when the two hours were easy', () => {
+    // A mountain tour: 193 W over two hours after 278 W over the hour
+    const power = aerobicThresholdPower([
+      { duration: 1200, value: 335 },
+      { duration: 3600, value: 278 },
+      { duration: 7200, value: 193 },
+    ]);
+    // 278 × (70/60)^-0.07
+    expect(power).toBeCloseTo(275.02, 2);
+  });
+
+  it('carries the hour on when there is no longer record', () => {
+    expect(
+      aerobicThresholdPower([
+        { duration: 1200, value: 335 },
+        { duration: 3600, value: 278 },
+      ]),
+    ).toBeCloseTo(275.02, 2);
+  });
+
+  it('needs the hour', () => {
+    expect(
+      aerobicThresholdPower([
+        { duration: 1200, value: 335 },
+        { duration: 7200, value: 252 },
+      ]),
     ).toBeNull();
   });
 });

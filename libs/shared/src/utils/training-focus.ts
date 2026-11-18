@@ -70,6 +70,35 @@ export function powerAt(
   return a.value + (b.value - a.value) * position;
 }
 
+/**
+ * How running power falls with duration from the hour on: power ∝ time^-0.07,
+ * Riegel's exponent, which van Dijk and van Megen find fits the running world
+ * records ("Das Geheimnis des Laufens")
+ */
+export const RIEGEL_EXPONENT = 0.07;
+
+/**
+ * Power over the aerobic threshold's 70 minutes. Read between the hour and
+ * the two hours when both are maximal efforts; otherwise, as the two-hour
+ * record is often an easy long run or a mountain tour, carried on from the
+ * hour by Riegel's curve, a few percent at most. Null without an hour.
+ */
+export function aerobicThresholdPower(
+  efforts: Pick<PowerEffort, 'duration' | 'value'>[],
+): number | null {
+  const seconds = TRAINING_FOCUS_DURATIONS.aerobicThreshold;
+  const between = powerAt(efforts, seconds);
+  if (between !== null) return between;
+  const hour = efforts
+    .filter((effort) => effort.duration === 3600 && effort.value > 0)
+    .reduce<number | null>(
+      (best, effort) =>
+        best === null || effort.value > best ? effort.value : best,
+      null,
+    );
+  return hour === null ? null : hour * (seconds / 3600) ** -RIEGEL_EXPONENT;
+}
+
 const round = (share: number) => Math.round(share * 10000) / 10000;
 
 /**
