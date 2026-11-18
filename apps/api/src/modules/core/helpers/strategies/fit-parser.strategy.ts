@@ -26,6 +26,42 @@ type BaseLapSegment = {
   order: number;
 };
 
+// FIT event/type IDs when enum conversion is disabled.
+const TIMER_EVENT = 0;
+const TIMER_START = 0;
+const TIMER_STOP_TYPES = new Set([1, 4, 8, 9]);
+
+function fitTimerPauses(
+  time: number[],
+  events: Record<string, unknown>[],
+  startTimestamp: number,
+): number[] {
+  const transitions = events
+    .flatMap(({ event, eventType, timestamp }) => {
+      if (event !== TIMER_EVENT || typeof eventType !== 'number') return [];
+      const paused = TIMER_STOP_TYPES.has(eventType);
+      if (!paused && eventType !== TIMER_START) return [];
+      const ms = toFitTimestamp(timestamp);
+      return ms !== null && Number.isFinite(ms)
+        ? [{ time: (ms - startTimestamp) / 1000, paused }]
+        : [];
+    })
+    .sort((a, b) => a.time - b.time);
+
+  let paused = false;
+  let next = 0;
+  return time.map((t, i) => {
+    while (transitions[next]?.time <= t) paused = transitions[next++].paused;
+    let overlapsPause = paused;
+    // The chart and time-weighted analysis both use forward intervals.
+    while (transitions[next]?.time < time[i + 1]) {
+      paused = transitions[next++].paused;
+      overlapsPause ||= paused;
+    }
+    return overlapsPause ? 1 : 0;
+  });
+}
+
 export class FitParserStrategy implements ActivityParser {
   private readonly supportedMimeTypes = [
     'application/vnd.garmin.fit',
@@ -112,11 +148,13 @@ export class FitParserStrategy implements ActivityParser {
     const cadence: number[] = [];
     const watts: number[] = [];
     const distance: number[] = [];
+    const speed: (number | null)[] = [];
     const temp: number[] = [];
 
     let previousLat: number | null = null;
     let previousLon: number | null = null;
     let cumulativeDistance = 0;
+    let hasDistance = false;
 
     for (const record of records) {
       const timestamp =
@@ -153,6 +191,15 @@ export class FitParserStrategy implements ActivityParser {
             : null;
       const power = typeof record.power === 'number' ? record.power : null;
       const dist = typeof record.distance === 'number' ? record.distance : null;
+      const enhancedSpeed = toNumber(record.enhancedSpeed);
+      const legacySpeed = toNumber(record.speed);
+      speed.push(
+        enhancedSpeed !== null && enhancedSpeed >= 0
+          ? enhancedSpeed
+          : legacySpeed !== null && legacySpeed >= 0
+            ? legacySpeed
+            : null,
+      );
 
       if (startTimestamp !== null && timestamp !== null) {
         time.push(Math.max(0, (timestamp - startTimestamp) / 1000));
@@ -190,11 +237,12 @@ export class FitParserStrategy implements ActivityParser {
       }
 
       if (dist !== null) {
-        distance.push(dist);
+        // Anchor leading gaps to the first distance, avoiding a false jump.
+        if (!hasDistance) distance.fill(dist);
+        hasDistance = true;
         cumulativeDistance = dist;
-      } else if (distance.length) {
-        distance.push(cumulativeDistance);
       }
+      distance.push(hasDistance ? cumulativeDistance : 0);
 
       if (alt !== null) {
         altitude.push(alt);
@@ -238,8 +286,15 @@ export class FitParserStrategy implements ActivityParser {
     if (watts.length) {
       result.watts = watts;
     }
-    if (distance.length) {
+    if (hasDistance) {
       result.distance = distance;
+    }
+    if (speed.some((value) => value !== null)) {
+      result.speed = speed;
+    }
+    if (startTimestamp !== null && messages.eventMesgs?.length) {
+      const pauses = fitTimerPauses(time, messages.eventMesgs, startTimestamp);
+      if (pauses.includes(1)) result.timerPaused = pauses;
     }
     // Only a complete series: a shorter one could not be aligned with time.
     if (temp.length && temp.length === time.length) {

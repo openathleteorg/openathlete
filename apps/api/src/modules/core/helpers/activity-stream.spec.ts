@@ -11,6 +11,23 @@ import {
 } from './activity-stream';
 import { computeRecords } from './record';
 
+describe('FIT pace streams', () => {
+  test('round-trips consecutive missing speeds and a recorded zero', () => {
+    const stream = { speed: [null, null, null, null, 0, 2.5] };
+    expect(
+      uncompressActivityStream(
+        JSON.parse(JSON.stringify(compressActivityStream(stream))),
+      ),
+    ).toEqual(stream);
+  });
+
+  test('keeps an outgoing timer pause when its sample is skipped', () => {
+    expect(
+      reductActivityStreamToResolution([0, 1, 0, 0, 0, 0], 3, true),
+    ).toEqual([1, 0, 0]);
+  });
+});
+
 describe('GPS gaps in shared provider streams', () => {
   test('round-trips leading, repeated, internal and trailing gaps through JSON compression', () => {
     const stream = {

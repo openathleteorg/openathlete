@@ -60,6 +60,8 @@ function fixture(
     partial?: boolean;
     gps?: boolean;
     missingGps?: number[];
+    samples?: Record<string, unknown>[];
+    timerEvents?: { seconds: number; type: string }[];
     session?: Record<string, unknown>;
   } = {},
 ) {
@@ -83,12 +85,20 @@ function fixture(
         ...(options.gps && !options.missingGps?.includes(i)
           ? { positionLat: 1000000 + i * 100, positionLong: 2000000 + i * 100 }
           : {}),
+        ...options.samples?.[i],
       });
     encoder.onMesg(19, {
       startTime: start,
       timestamp: start + 2,
       totalElapsedTime: 2,
       totalTimerTime: 2,
+    });
+  }
+  for (const { seconds, type } of options.timerEvents ?? []) {
+    encoder.onMesg(21, {
+      timestamp: start + seconds,
+      event: 'timer',
+      eventType: type,
     });
   }
   for (let i = 0; i < (options.sessions ?? 1); i++)
@@ -247,6 +257,32 @@ describe('Manual FIT parsing', () => {
     expect(stream.heartrate).toBeUndefined();
     expect(stream.watts).toEqual([200, 201, 202]);
     expect(result.warnings).toContain('FIT_INCOMPLETE_CHANNELS');
+  });
+  test('stores aligned FIT speed, distance and timer pauses through GPS dropouts', async () => {
+    const { details, warnings } = await parse(
+      fixture({
+        gps: true,
+        missingGps: [1],
+        samples: [
+          { distance: undefined },
+          { enhancedSpeed: 2.5 },
+          { speed: 0 },
+        ],
+        timerEvents: [
+          { seconds: 0, type: 'start' },
+          { seconds: 1, type: 'stopAll' },
+          { seconds: 2, type: 'start' },
+        ],
+      }),
+    );
+    const stream = uncompressActivityStream(
+      JSON.parse(JSON.stringify(details.stream)),
+    );
+    expect(stream.latlng?.[1]).toEqual([]);
+    expect(stream.speed).toEqual([null, 2.5, 0]);
+    expect(stream.distance).toEqual([3, 3, 6]);
+    expect(stream.timerPaused).toEqual([0, 1, 0]);
+    expect(warnings).not.toContain('FIT_INCOMPLETE_CHANNELS');
   });
   test('rejects corrupted files, planned workouts and multisession files', async () => {
     const broken = fixture();
