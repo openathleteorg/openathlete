@@ -162,6 +162,7 @@ export class UserService {
         supportReminderDismissedAt: true,
         supportReminderDismissCount: true,
         supporterNudgeSeenAt: true,
+        yearReviewSeenAt: true,
         emailTips: true,
         emailRecap: true,
         emailQuestionnaires: true,
@@ -465,6 +466,7 @@ export class UserService {
           ? { increment: 1 }
           : undefined,
         supporterNudgeSeenAt: data.supporterNudgeSeen ? new Date() : undefined,
+        yearReviewSeenAt: data.yearReviewSeen ? new Date() : undefined,
         emailTips: data.emailTips,
         emailRecap: data.emailRecap,
         emailQuestionnaires: data.emailQuestionnaires,
@@ -491,6 +493,7 @@ export class UserService {
         supportReminderDismissedAt: true,
         supportReminderDismissCount: true,
         supporterNudgeSeenAt: true,
+        yearReviewSeenAt: true,
         emailTips: true,
         emailRecap: true,
         emailQuestionnaires: true,

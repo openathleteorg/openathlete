@@ -32,6 +32,8 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   supportReminderDismissed: z.literal(true).optional(),
   /** The app just showed a Supporter mention in context: the server dates it */
   supporterNudgeSeen: z.literal(true).optional(),
+  /** The athlete just opened their year review: the server dates it */
+  yearReviewSeen: z.literal(true).optional(),
 });
 
 export type UpdateAccountDto = z.infer<typeof updateAccountDtoSchema>;

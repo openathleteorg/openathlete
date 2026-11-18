@@ -30,6 +30,7 @@ export * from './activity-description-preview.dto';
 export * from './injury.dto';
 export * from './records.dto';
 export * from './statistics.dto';
+export * from './year-review.dto';
 export * from './instance.dto';
 export * from './calendar-display.dto';
 export * from './hidden-activity-tracks.dto';
