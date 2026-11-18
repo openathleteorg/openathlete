@@ -1,0 +1,111 @@
+---
+title: Questionnaires
+description: Write questionnaires for your athletes, send them from the calendar, and follow their answers over time.
+---
+
+A coach writes questionnaires (how the athlete feels, how the week went,
+anything worth asking), sends them to athletes from the calendar, once or
+repeated, and reads the answers week after week or as charts. Questionnaires
+are free for every coach, on openathlete.org and on a self-hosted instance.
+
+## Write a questionnaire
+
+Open **Questionnaires** in the coach sidebar, then **New questionnaire**.
+Start from a template or from a blank page:
+
+| Template | Questions | Source |
+| --- | --- | --- |
+| Hooper index | Fatigue, stress, muscle soreness and sleep quality from 1 to 7. Their sum, from 4 to 28, fills the athlete's Hooper index. | Hooper & Mackinnon, 1995 |
+| Wellness (McLean) | Fatigue, sleep, soreness, stress and mood from 1 to 5, summed. | McLean et al., 2010 |
+| Weekly check-in | How the week felt, perceived load, motivation, pain, and three free answers. | — |
+| Recovery (TQR) | How recovered the athlete feels, from 6 to 20, before a key session. | Kenttä & Hassmén, 1998 |
+
+The wording of the templates is ours, in your language: the published scales
+give the items and their anchors.
+
+Each question has a type:
+
+| Type | The athlete answers with | Read as |
+| --- | --- | --- |
+| Scale | Buttons, or a slider for long scales (1–5, 1–7, 1–10, 0–10, 1–20, 0–100, or your own), with a label for each end | A line over time |
+| Number | A number in a unit (hours, kg…) | A line over time |
+| Yes or no | Two buttons | A strip of yes and no |
+| One choice, several choices | Buttons, one per option | How often each option was chosen |
+| Short text, long text | A field | The answers, dated |
+
+A question can be optional and carry a help line. **Preview** shows the
+questionnaire as the athlete will see it.
+
+**Score.** A questionnaire can add or average the scale questions you tick,
+as one curve to follow. The questions of a score share one scale.
+
+**Metrics.** A scale or number question can fill one of the athlete's metrics
+(weight, sleep duration, resting heart rate, HRV, Hooper index…) on the day
+of the questionnaire. A number asks in the metric's unit. When a device
+already measured that metric that day, its value stays: it was measured, the
+answer is an estimate.
+
+### Editing a questionnaire already answered
+
+Wording changes apply in place. Changing the type, the scale, the unit or
+removing an option of a question already answered replaces it: its past
+answers stay with the old question, and its charts start again with the new
+one. Coming questionnaires take the new title.
+
+**Archive** takes a questionnaire out of the library and removes its coming
+occurrences from the calendars; the answers given stay. A questionnaire no
+one answered can be deleted.
+
+## Send it
+
+In an athlete's calendar, right-click a day (or use its **Plan** menu), then
+**Send a questionnaire**. Choose the questionnaire, when it opens, and
+whether it repeats every day, every week or every two weeks, for up to 90
+days. Sent for today after 8 am, it opens at once. Like a session, an
+occurrence can be moved, copied, or sent to several athletes with
+**Copy to athletes**.
+
+## What the athlete sees
+
+When a questionnaire opens, the athlete gets a notification on the mobile app
+and an email, then one reminder if it is still waiting: a day later, or
+halfway to the next occurrence for daily questionnaires. The emails can be
+turned off in **Settings › Profile**, or with the link at their foot; the
+notification still comes.
+
+The questionnaire waits on the **Today** tab of the app, above the calendar on
+a computer, and in the calendar itself. The athlete can answer:
+
+- from the opening until the next occurrence opens, or for a week when it
+  does not repeat;
+- and change their answers for 24 hours after sending them.
+
+## Read the answers
+
+- **One athlete**: open the athlete, then **Questionnaires**. *Week by week*
+  shows each questionnaire of the week as a table (a column per day) with the
+  text answers underneath. *By questionnaire* draws each question for its
+  type, the score, the answer rate, and a table of every answer.
+- **One questionnaire across athletes**: **Questionnaires › Answers** shows,
+  for each athlete, how many they answered, the last answer and the last
+  score, then each question with a line per athlete (their mean past seven
+  athletes).
+
+## Who reads what
+
+- Only the coach who wrote a questionnaire reads its answers, for the athletes
+  they still coach. Sent for an athlete of a club, it is read by the club's
+  coaches of that athlete too. Another coach of the athlete sees it is in the
+  calendar, not what was answered.
+- The answers belong to the athlete. A coach cannot delete an answered
+  questionnaire; the athlete can. When a coach deletes their account, the
+  questionnaires their athletes answered stay with the athletes.
+- The answers are part of the athlete's data export, and the questionnaires a
+  coach wrote are part of theirs.
+
+## Self-hosting
+
+Nothing to configure. The notifications need Firebase
+(`FIREBASE_SERVICE_ACCOUNT_JSON`) and the emails a way to send them
+(`SMTP_*` or `BREVO_API_KEY`), like the other notifications; without them, questionnaires still wait on the Today tab
+and in the calendar.
