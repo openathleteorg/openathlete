@@ -335,7 +335,7 @@ export default async function FeaturesPage({ params }: Props) {
                   {m.features_hub_mcp_body()}
                 </p>
                 <code className="mt-5 w-fit rounded-lg bg-white/10 px-3 py-1.5 font-mono text-[0.78rem] text-white/80">
-                  plan_sessions · get_training_load · +21
+                  plan_sessions · get_training_load · +23
                 </code>
                 <span className="mt-auto pt-6 font-medium text-white group-hover:text-mint">
                   {m.features_nav_mcp_title()} →

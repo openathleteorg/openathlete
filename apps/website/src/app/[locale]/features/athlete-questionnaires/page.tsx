@@ -1,3 +1,4 @@
+import { shots } from '@/assets/screenshots';
 import {
   faqEntries,
   msg,
@@ -22,6 +23,7 @@ import {
   SectionHeading,
 } from '@/components/site/layout-primitives';
 import { Reveal, RevealGroup, RevealItem } from '@/components/site/reveal';
+import { PhoneShot, Screenshot } from '@/components/site/visuals/screenshot';
 import { initLocale } from '@/i18n/server';
 import { m } from '@/paraglide/messages';
 import { localePath } from '@/utils/locales';
@@ -67,7 +69,7 @@ const TEMPLATES = ['hooper', 'wellness', 'weekly', 'tqr', 'blank'] as const;
 
 export default async function AthleteQuestionnairesPage({ params }: Props) {
   const locale = initLocale((await params).locale);
-  const faqs = faqEntries('features_quest_faq', 5);
+  const faqs = faqEntries('features_quest_faq', 6);
 
   return (
     <>
@@ -126,7 +128,61 @@ export default async function AthleteQuestionnairesPage({ params }: Props) {
         </Container>
       </Section>
 
+      {/* In the app */}
       <Section>
+        <Container>
+          <SectionHeading
+            kicker={m.features_quest_app_kicker()}
+            title={m.features_quest_app_title()}
+            align="center"
+          />
+          <div className="mt-16 grid gap-24">
+            <SplitRow
+              as="h3"
+              title={m.features_quest_app_1_title()}
+              body={m.features_quest_app_1_body()}
+              visual={
+                <div className="relative pr-[18%] pb-10 sm:pr-[14%]">
+                  <Screenshot
+                    src={shots.questionnaireAnswers}
+                    alt={m.features_quest_shot_answers()}
+                    sizes="(min-width: 1024px) 600px, 85vw"
+                  />
+                  <PhoneShot
+                    src={shots.mobileQuestionnaire}
+                    alt={m.features_quest_shot_answer_phone()}
+                    sizes="(min-width: 1024px) 200px, 30vw"
+                    className="absolute right-0 bottom-0 w-[30%] max-w-[12rem]"
+                  />
+                </div>
+              }
+            />
+            <SplitRow
+              as="h3"
+              flip
+              title={m.features_quest_app_2_title()}
+              body={m.features_quest_app_2_body()}
+              visual={
+                <div className="relative pr-[18%] pb-10 sm:pr-[14%]">
+                  <Screenshot
+                    src={shots.questionnaireWeeks}
+                    alt={m.features_quest_shot_weeks()}
+                    sizes="(min-width: 1024px) 600px, 85vw"
+                  />
+                  <PhoneShot
+                    src={shots.mobileMyQuestionnaires}
+                    alt={m.features_quest_shot_mine_phone()}
+                    sizes="(min-width: 1024px) 200px, 30vw"
+                    className="absolute right-0 bottom-0 w-[30%] max-w-[12rem]"
+                  />
+                </div>
+              }
+            />
+          </div>
+        </Container>
+      </Section>
+
+      <Section tone="paper">
         <Container>
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
             <div className="lg:col-span-5">
