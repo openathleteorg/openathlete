@@ -103,7 +103,11 @@ const toExclusion = (
 /** Flat runs the running economy is read from: 3 km or more, 1 % climbing */
 const RUNNING_ECONOMY_MIN_DISTANCE = 3000;
 const RUNNING_ECONOMY_MAX_CLIMB = 0.01;
-/** Enough runs for a median, without decompressing a whole season */
+/**
+ * Enough runs for a median, without decompressing a whole season: the most
+ * recent flat runs are read, and the first 12 with power count
+ */
+const RUNNING_ECONOMY_CANDIDATES = 20;
 const RUNNING_ECONOMY_MAX_RUNS = 12;
 
 @Injectable()
@@ -249,7 +253,8 @@ export class RecordService {
 
   /**
    * Joules per metre on the flat runs of the last days (at most 1% climbing,
-   * 3 km or more, the 12 most recent with power), the median of the runs:
+   * 3 km or more, the 12 most recent with power among the 20 most recent),
+   * the median of the runs:
    * watts per m/s, which turns a power into a pace. Null without three such
    * runs.
    */
@@ -263,8 +268,9 @@ export class RecordService {
     from.setUTCHours(0, 0, 0, 0);
     from.setUTCDate(from.getUTCDate() - FTP_MODEL_DAYS);
 
-    // Flat runs with power, chosen in SQL: only their streams are read and
-    // decompressed, the most recent first
+    // Flat runs chosen in SQL, the most recent first: only their streams are
+    // read and decompressed. Whether a run has power is read from its stream,
+    // as providers often leave average_watts empty (Suunto does)
     const candidates = await this.prisma.$queryRaw<{ id: number }[]>`
       SELECT a.event_activity_id AS id
       FROM event_activity a
@@ -274,15 +280,20 @@ export class RecordService {
         AND a.sport::text IN (${Prisma.join([...FTP_MODEL_SPORTS.running])})
         AND a.distance >= ${RUNNING_ECONOMY_MIN_DISTANCE}
         AND a.elevation_gain <= a.distance * ${RUNNING_ECONOMY_MAX_CLIMB}
-        AND a.average_watts > 0
         AND a.stream IS NOT NULL
       ORDER BY e.start_date DESC
-      LIMIT ${RUNNING_ECONOMY_MAX_RUNS}`;
+      LIMIT ${RUNNING_ECONOMY_CANDIDATES}`;
+    const order = new Map(candidates.map((run, index) => [run.id, index]));
     const runs = candidates.length
-      ? await this.prisma.eventActivity.findMany({
-          where: { eventActivityId: { in: candidates.map((run) => run.id) } },
-          select: { stream: true },
-        })
+      ? (
+          await this.prisma.eventActivity.findMany({
+            where: { eventActivityId: { in: [...order.keys()] } },
+            select: { eventActivityId: true, stream: true },
+          })
+        ).sort(
+          (a, b) =>
+            order.get(a.eventActivityId)! - order.get(b.eventActivityId)!,
+        )
       : [];
     const values = runs
       .map((run) =>
@@ -290,7 +301,8 @@ export class RecordService {
           uncompressActivityStream(run.stream as CompressedActivityStream),
         ),
       )
-      .filter((value): value is number => value !== null);
+      .filter((value): value is number => value !== null)
+      .slice(0, RUNNING_ECONOMY_MAX_RUNS);
     const value = values.length >= 3 ? median(values) : null;
     return value === null
       ? null

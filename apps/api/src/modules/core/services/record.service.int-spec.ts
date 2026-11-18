@@ -262,12 +262,25 @@ describe('RecordService (PostgreSQL)', () => {
       await addRun(3, steadyRun(3.5, 315), { sport: 'TRAIL_RUNNING' }); // 90 J/m
       await addRun(4, steadyRun(4, 400), { elevationGain: 200 }); // hilly
       await addRun(5, steadyRun(4, 400), { date: '2026-07-01' }); // too old
-      // No power recorded: its stream is never read
-      await addRun(6, steadyRun(4, 400), { averageWatts: null });
+      // No power in the stream: left out
+      await addRun(6, {
+        time: [{ s: 0, i: 900 }],
+        distance: steadyRun(4, 0).distance,
+      });
 
       expect(
         await service.getRunningEconomy(athlete, undefined, now),
       ).toMatchObject({ value: 82, activities: 3, days: 90 });
+    });
+
+    it('reads power from the stream when the summary has none', async () => {
+      // Suunto leaves average_watts empty
+      await addRun(1, steadyRun(4, 320), { averageWatts: null });
+      await addRun(2, steadyRun(4, 328), { averageWatts: null });
+      await addRun(3, steadyRun(4, 336), { averageWatts: null });
+      expect(
+        await service.getRunningEconomy(athlete, undefined, now),
+      ).toMatchObject({ value: 82, activities: 3 });
     });
 
     it('reads the most recent flat runs only', async () => {
