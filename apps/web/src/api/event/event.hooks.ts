@@ -404,7 +404,7 @@ export const useDeleteEventMutation = (
       // Return context with previous values for rollback
       return { previousQueries, previousEvent };
     },
-    onError: (_error, variables, context) => {
+    onError: (error, variables, context, mutationContext) => {
       // Rollback on error - restore all previous query states
       if (context?.previousQueries) {
         context.previousQueries.forEach((data, queryKey) => {
@@ -417,7 +417,8 @@ export const useDeleteEventMutation = (
           context.previousEvent,
         );
       }
-      // User's onError will be called via the spread ...opt
+      // This handler replaces the caller's from the spread: call it too
+      opt?.onError?.(error, variables, context, mutationContext);
     },
     onSuccess: (data, variables, onMutateResult, context) => {
       if (opt?.onSuccess)
