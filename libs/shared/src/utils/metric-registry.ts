@@ -91,11 +91,19 @@ export const METRIC_REGISTRY = {
   runEfficiency: {
     verdict: 'estimate',
     formula:
-      '(distance + 9 × climbing) / time ÷ (power + 0.14 × VAM), or ÷ heartbeats',
+      'EF = GAP / HR; power / HR; RE = (m/s) / (W/kg) on the flat; (EF1 - EF2) / EF1',
     sources: [
       {
-        label: 'Rothschild et al. 2025',
-        url: 'https://doi.org/10.1007/s00421-025-05815-0',
+        label: 'Friel, Efficiency Factor and Decoupling',
+        url: 'https://www.trainingpeaks.com/blog/efficiency-factor-and-decoupling/',
+      },
+      {
+        label: 'Palladino, Running Effectiveness (Coggan, WKO)',
+        url: 'https://www.trainingpeaks.com/blog/running-effectiveness-versus-speed-using-wko4/',
+      },
+      {
+        label: 'Minetti et al. 2002',
+        url: 'https://doi.org/10.1152/japplphysiol.01177.2001',
       },
     ],
   },

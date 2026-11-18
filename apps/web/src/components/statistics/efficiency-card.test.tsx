@@ -18,6 +18,8 @@ vi.mock('../ui/chart', () => ({
   ChartTooltipContent: () => null,
 }));
 vi.mock('./metric-info', () => ({ MetricInfo: () => null }));
+// The export button reads Garmin data through React Query
+vi.mock('./export-button', () => ({ ExportButton: () => null }));
 // Every message renders as its key, followed by its parameters
 vi.mock('@/paraglide/messages', () => ({
   m: new Proxy(
@@ -33,14 +35,19 @@ vi.mock('@/paraglide/messages', () => ({
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-const run = (day: number, total: number, factor: number | null = null) => ({
+const run = (
+  day: number,
+  factor: number,
+  decoupling: number | null = null,
+) => ({
   eventId: day,
   name: `Run ${day}`,
   date: new Date(Date.UTC(2026, 9, day)),
-  biomechanical: null,
-  metabolic: null,
-  total,
+  steady: true,
   factor,
+  powerFactor: null,
+  effectiveness: null,
+  decoupling,
 });
 
 describe('EfficiencyCard', () => {
@@ -71,23 +78,33 @@ describe('EfficiencyCard', () => {
     );
 
   it('offers the figures the runs have, and reads the trend', () => {
-    response.data = { runs: [run(1, 1.6, 1.3), run(21, 1.68)] };
+    response.data = { runs: [run(1, 1.6, 3), run(21, 1.68)], hasWeight: true };
     render();
     const tabs = [...container.querySelectorAll('[role="tab"]')].map(
       (tab) => tab.textContent,
     );
-    // No power meter: no metres per joule, no joules per beat
+    // No power meter: no power per beat, no running effectiveness
     expect(tabs).toEqual([
-      'statistics_efficiency_total',
-      'statistics_efficiency',
+      'statistics_efficiency_factor_pace',
+      'statistics_decoupling',
     ]);
+    expect(container.textContent).toContain('statistics_efficiency_read +5%');
     expect(container.textContent).toContain(
-      'statistics_efficiency_read +5.0 % 1.60 1.68 m',
+      'statistics_efficiency_read_limit 28',
     );
   });
 
+  it('asks for a weight where power could give running effectiveness', () => {
+    response.data = {
+      runs: [{ ...run(1, 1.6), powerFactor: 2.1 }],
+      hasWeight: false,
+    };
+    render();
+    expect(container.textContent).toContain('statistics_efficiency_no_weight');
+  });
+
   it('says so when no run has a figure', () => {
-    response.data = { runs: [] };
+    response.data = { runs: [], hasWeight: false };
     render();
     expect(container.textContent).toContain('statistics_efficiency_empty');
   });

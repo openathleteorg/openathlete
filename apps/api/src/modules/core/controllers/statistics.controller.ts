@@ -249,7 +249,7 @@ export class StatisticsController {
   @ApiOperation({
     summary: 'Efficiency of each run',
     description:
-      "Per run of the period, oldest first: metres per joule (biomechanical), joules per heartbeat (metabolic) and metres per heartbeat (total), a metre climbed counting as 9 metres and climbing adding 0.14 W per m/h of vertical speed, with power and heart rate averaged off the descents; and the efficiency factor. Runs only; the first three need the run's power or heart rate.",
+      'Per run of the period, oldest first: the efficiency factor of grade-adjusted pace and of power, and the decoupling (Friel), running effectiveness on the flat stretches with the weight of the day (Coggan), and whether the run was steady and aerobic, the runs these figures compare best on. Runs only; power figures need a running power meter, running effectiveness a weight.',
   })
   @ApiQuery({ name: 'athleteId', type: Number })
   @ApiQuery({ name: 'from', type: String, format: 'date-time' })

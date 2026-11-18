@@ -471,50 +471,86 @@ export class StatisticsService {
       : { unit: 'speed', bins: speed };
   }
 
-  /** How well each run of the period turned power and heartbeats into distance */
+  /**
+   * Efficiency of each run of the period: the efficiency factor of pace and
+   * of power and the decoupling (Friel), and running effectiveness (Coggan),
+   * with the athlete's weight on the day.
+   */
   async getEfficiency(
     user: AuthUser,
     { athleteId, from, to, sport }: GetStatisticsTrendsQueryDto,
   ): Promise<StatisticsEfficiencyDto> {
     await this.assertCanRead(user, athleteId);
-    const runs = await this.prisma.event.findMany({
-      where: {
-        athleteId,
-        type: 'ACTIVITY',
-        startDate: { gte: from, lte: to },
-        activity: {
-          sport: sport as SportType,
-          OR: [
-            { totalEfficiency: { not: null } },
-            { efficiencyFactor: { not: null } },
-          ],
-        },
-      },
-      select: {
-        eventId: true,
-        name: true,
-        startDate: true,
-        activity: {
-          select: {
-            biomechanicalEfficiency: true,
-            metabolicEfficiency: true,
-            totalEfficiency: true,
-            efficiencyFactor: true,
+    const [runs, weights] = await Promise.all([
+      this.prisma.event.findMany({
+        where: {
+          athleteId,
+          type: 'ACTIVITY',
+          startDate: { gte: from, lte: to },
+          activity: {
+            sport: sport as SportType,
+            OR: [
+              { efficiencyFactor: { not: null } },
+              { powerEfficiencyFactor: { not: null } },
+              { flatSpeedPerWatt: { not: null } },
+            ],
           },
         },
-      },
-      orderBy: { startDate: 'asc' },
-    });
+        select: {
+          eventId: true,
+          name: true,
+          startDate: true,
+          activity: {
+            select: {
+              movingTime: true,
+              intensitySeconds: true,
+              efficiencyFactor: true,
+              powerEfficiencyFactor: true,
+              flatSpeedPerWatt: true,
+              decouplingPercent: true,
+            },
+          },
+        },
+        orderBy: { startDate: 'asc' },
+      }),
+      this.prisma.athleteMetric.findMany({
+        where: { athleteId, type: 'WEIGHT', value: { gt: 0 } },
+        select: { date: true, value: true },
+        orderBy: { date: 'asc' },
+      }),
+    ]);
+    // The last weight before the run, or the first one after it
+    const weightOn = (date: Date) => {
+      let found: number | null = weights[0]?.value ?? null;
+      for (const weight of weights) {
+        if (weight.date > date) break;
+        found = weight.value;
+      }
+      return found;
+    };
     return {
-      runs: runs.map(({ eventId, name, startDate, activity }) => ({
-        eventId,
-        name,
-        date: startDate,
-        biomechanical: activity?.biomechanicalEfficiency ?? null,
-        metabolic: activity?.metabolicEfficiency ?? null,
-        total: activity?.totalEfficiency ?? null,
-        factor: activity?.efficiencyFactor ?? null,
-      })),
+      runs: runs.map(({ eventId, name, startDate, activity }) => {
+        const weight = weightOn(startDate);
+        const seconds = activity?.intensitySeconds ?? [];
+        const total = seconds.reduce((sum, value) => sum + value, 0);
+        return {
+          eventId,
+          name,
+          date: startDate,
+          steady:
+            (activity?.movingTime ?? 0) >= STEADY_MIN_SECONDS &&
+            total > 0 &&
+            seconds[0] >= STEADY_LOW_SHARE * total,
+          factor: activity?.efficiencyFactor ?? null,
+          powerFactor: activity?.powerEfficiencyFactor ?? null,
+          effectiveness:
+            activity?.flatSpeedPerWatt != null && weight
+              ? activity.flatSpeedPerWatt * weight
+              : null,
+          decoupling: activity?.decouplingPercent ?? null,
+        };
+      }),
+      hasWeight: weights.length > 0,
     };
   }
 

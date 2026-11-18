@@ -8,56 +8,98 @@ const flat = (seconds = 1800) => ({
   watts: Array.from({ length: seconds }, () => 300),
   heartrate: Array.from({ length: seconds }, () => 150),
 });
-const run = {
-  sport: 'RUNNING',
-  distance: 7200,
-  elevationGain: 0,
-  movingTime: 1800,
-};
+const run = { sport: 'RUNNING' };
+
+/** The samples from `from` on go up or down `grade` */
+function slope(
+  stream: ReturnType<typeof flat>,
+  from: number,
+  grade: number,
+  watts: number,
+  heartrate: number,
+) {
+  for (let i = from; i < stream.time.length; i++) {
+    stream.altitude[i] =
+      500 + (stream.distance[i] - stream.distance[from]) * grade;
+    stream.watts[i] = watts;
+    stream.heartrate[i] = heartrate;
+  }
+  return stream;
+}
 
 describe('activityEfficiency', () => {
-  it('reads metres per joule and per heartbeat on the flat', () => {
+  it('reads metres per joule and watts per beat on the flat', () => {
     const efficiency = activityEfficiency(flat(), run);
-    // 4 m/s for 300 W; 300 W for 2.5 beats a second
-    expect(efficiency.biomechanicalEfficiency).toBeCloseTo(4 / 300, 9);
-    expect(efficiency.metabolicEfficiency).toBeCloseTo(120, 9);
-    expect(efficiency.totalEfficiency).toBeCloseTo(1.6, 9);
+    // 4 m/s for 300 W; 300 W at 150 bpm
+    expect(efficiency.flatSpeedPerWatt).toBeCloseTo(4 / 300, 9);
+    expect(efficiency.powerEfficiencyFactor).toBeCloseTo(2, 9);
   });
 
-  it('counts climbing as distance and as power', () => {
-    // 200 m climbed in 30 minutes: 400 m/h, 1800 m more, 56 W more
-    const efficiency = activityEfficiency(flat(), {
-      ...run,
-      elevationGain: 200,
-    });
-    expect(efficiency.totalEfficiency).toBeCloseTo(9000 / 1800 / 2.5, 9);
-    expect(efficiency.metabolicEfficiency).toBeCloseTo(356 / 2.5, 9);
+  it('adds nothing for climbing: running power already includes it', () => {
+    // The second half climbs 8 % at 380 W and 165 bpm
+    const efficiency = activityEfficiency(
+      slope(flat(3600), 1800, 0.08, 380, 165),
+      run,
+    );
+    // Metres per joule from the flat half only, no VAM term
+    expect(efficiency.flatSpeedPerWatt).toBeCloseTo(4 / 300, 3);
+    // Power and heart rate of both halves, as measured
+    expect(efficiency.powerEfficiencyFactor).toBeCloseTo(340 / 157.5, 2);
   });
 
-  it('leaves the descents out of power and heart rate', () => {
+  it('leaves the descents out of both sides of the ratio', () => {
+    // The second half goes down 5 %, at 100 W and 120 bpm
+    const efficiency = activityEfficiency(
+      slope(flat(3600), 1800, -0.05, 100, 120),
+      run,
+    );
+    expect(efficiency.powerEfficiencyFactor).toBeCloseTo(2, 2);
+    expect(efficiency.flatSpeedPerWatt).toBeCloseTo(4 / 300, 3);
+  });
+
+  it('reads the slope on smoothed altitude, not sample by sample', () => {
+    // A 0.2 m altimeter step every other second: −5 % between raw samples,
+    // flat over the run
     const stream = flat();
-    // The second half goes down 5%, at 100 W and 120 bpm
-    for (let i = 900; i < 1800; i++) {
-      stream.altitude[i] = 500 - (i - 899) * 4 * 0.05;
-      stream.watts[i] = 100;
-      stream.heartrate[i] = 120;
-    }
+    stream.altitude = stream.altitude.map((value, i) =>
+      i % 2 ? value - 0.2 : value,
+    );
     const efficiency = activityEfficiency(stream, run);
-    expect(efficiency.metabolicEfficiency).toBeCloseTo(120, 9);
+    expect(efficiency.flatSpeedPerWatt).toBeCloseTo(4 / 300, 3);
+    expect(efficiency.powerEfficiencyFactor).toBeCloseTo(2, 3);
   });
 
-  it('gives what it can without power, and nothing outside running', () => {
+  it('leaves out stretches where the power drops out', () => {
+    const stream = flat();
+    for (let i = 600; i < 900; i++) stream.watts[i] = 0;
+    // The dropout would otherwise read as metres for free
+    expect(activityEfficiency(stream, run).flatSpeedPerWatt).toBeCloseTo(
+      4 / 300,
+      3,
+    );
+  });
+
+  it('gives nothing without power, too short, or outside running', () => {
     const { watts: _watts, ...noPower } = flat();
     expect(activityEfficiency(noPower, run)).toEqual({
-      biomechanicalEfficiency: null,
-      metabolicEfficiency: null,
-      totalEfficiency: expect.closeTo(1.6, 9),
+      flatSpeedPerWatt: null,
+      powerEfficiencyFactor: null,
     });
-    expect(activityEfficiency(flat(), { ...run, sport: 'CYCLING' })).toEqual({
-      biomechanicalEfficiency: null,
-      metabolicEfficiency: null,
-      totalEfficiency: null,
+    expect(activityEfficiency(flat(300), run)).toEqual({
+      flatSpeedPerWatt: null,
+      powerEfficiencyFactor: null,
     });
-    expect(activityEfficiency(flat(300), run).totalEfficiency).toBeNull();
+    expect(activityEfficiency(flat(), { sport: 'CYCLING' })).toEqual({
+      flatSpeedPerWatt: null,
+      powerEfficiencyFactor: null,
+    });
+  });
+
+  it('takes a run without altitude as flat', () => {
+    const { altitude: _altitude, ...noAltitude } = flat();
+    expect(activityEfficiency(noAltitude, run).flatSpeedPerWatt).toBeCloseTo(
+      4 / 300,
+      9,
+    );
   });
 });

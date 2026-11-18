@@ -51,9 +51,6 @@ export class IntensityProcessor implements ActivityProcessor {
       select: {
         stream: true,
         sport: true,
-        distance: true,
-        elevationGain: true,
-        movingTime: true,
         event: { select: { athleteId: true } },
       },
     });
