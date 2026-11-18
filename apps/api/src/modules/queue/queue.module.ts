@@ -21,8 +21,9 @@ import { StravaDescriptionProcessor } from './processors/strava-description.proc
 import { SuuntoNotificationProcessor } from './processors/suunto-notification.processor';
 import { TrainingLoadEstimationProcessor } from './processors/training-load-estimation.processor';
 import { TrainingLoadRecalcProcessor } from './processors/training-load-recalc.processor';
+import { WebhookFitImportProcessor } from './processors/webhook-fit-import.processor';
 import { WeeklyEmailProcessor } from './processors/weekly-email.processor';
-import { QueueService } from './queue.service';
+import { QueueService, WEBHOOK_FIT_IMPORT_QUEUE } from './queue.service';
 import { GapBackfillService } from './services/gap-backfill.service';
 import { IntensityBackfillService } from './services/intensity-backfill.service';
 import { RecordsBackfillService } from './services/records-backfill.service';
@@ -256,6 +257,15 @@ function parseRedisUrl(redisUrl: string): {
       },
     }),
     BullModule.registerQueue({
+      name: WEBHOOK_FIT_IMPORT_QUEUE,
+      defaultJobOptions: {
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 2000 },
+        removeOnComplete: true,
+        removeOnFail: { age: 24 * 3600, count: 1000 },
+      },
+    }),
+    BullModule.registerQueue({
       name: 'activity-processing',
       defaultJobOptions: {
         attempts: 3,
@@ -438,6 +448,7 @@ function parseRedisUrl(redisUrl: string): {
     ...(process.env.ENABLE_ACTIVITY_IMPORT === 'true'
       ? [
           ActivityImportProcessor,
+          WebhookFitImportProcessor,
           ProviderFullImportProcessor,
           GarminNotificationProcessor,
           SuuntoNotificationProcessor,

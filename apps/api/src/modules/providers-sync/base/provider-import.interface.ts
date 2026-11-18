@@ -1,4 +1,4 @@
-import { EventActivity, ProviderAccount } from '@openathlete/database';
+import { EventActivity, Prisma, ProviderAccount } from '@openathlete/database';
 
 /**
  * Interface for providers that support activity import
@@ -45,3 +45,16 @@ export interface ImportResult {
   /** False when it was already saved, e.g. by an earlier webhook or sync */
   created: boolean;
 }
+
+export type ImportedActivityCopy = Pick<
+  EventActivity,
+  'eventId' | 'eventActivityId'
+>;
+
+/** Recheck for an existing copy in the transaction that saves the activity. */
+export type CheckActivityCopy = (
+  tx: Prisma.TransactionClient,
+) => Promise<ImportedActivityCopy | null>;
+
+export type CheckedImportResult =
+  ImportResult | { duplicate: ImportedActivityCopy };

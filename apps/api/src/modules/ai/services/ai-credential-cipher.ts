@@ -19,18 +19,12 @@ const IV_BYTES = 12;
 export class AiCredentialCipher {
   private readonly key: Buffer;
 
-  constructor(secret: string) {
+  constructor(secret: string, context = 'openathlete/ai-credentials') {
     if (!secret) {
       throw new Error('AiCredentialCipher needs a secret');
     }
     this.key = Buffer.from(
-      hkdfSync(
-        'sha256',
-        secret,
-        Buffer.alloc(0),
-        'openathlete/ai-credentials',
-        32,
-      ),
+      hkdfSync('sha256', secret, Buffer.alloc(0), context, 32),
     );
   }
 

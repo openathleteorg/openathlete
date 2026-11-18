@@ -99,6 +99,7 @@ model User {
 
   // relationships
   athlete                   Athlete?
+  activityUploadWebhook     ActivityUploadWebhook?
   coachAthletes             CoachAthlete[]
   tokens                    Token[]
   templates                 EventTemplate[]
@@ -249,6 +250,16 @@ model ProviderWorkoutExport {
   @@index([status, plannedDate])
   @@index([workoutId])
   @@map("provider_workout_export")
+}
+
+/// Upload-only credential. The HMAC passkey is present for signed uploads.
+model ActivityUploadWebhook {
+  userId           Int     @id @map("user_id")
+  tokenHash        String  @unique @map("token_hash")
+  encryptedPasskey String? @map("encrypted_passkey")
+  user             User    @relation(fields: [userId], references: [userId])
+
+  @@map("activity_upload_webhook")
 }
 
 /// Authentication and invitation tokens.

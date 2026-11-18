@@ -31,6 +31,7 @@ export const accountFixtureSql = [
   `INSERT INTO coach_invitation (email, coach_user_id, athlete_user_id, updated_at) VALUES ('athlete@example.com', 1002, 1001, ${now}), ('coach@example.com', 1001, 1002, ${now})`,
   `INSERT INTO athlete_invitation (email, user_id, updated_at) VALUES ('friend@example.com', 1001, ${now})`,
   `INSERT INTO token (token, user_id, type, updated_at) VALUES ('reset', 1001, 'PASSWORD_RESET', ${now})`,
+  `INSERT INTO activity_upload_webhook (user_id, token_hash, encrypted_passkey) VALUES (1001, 'webhook-hash', 'v1:webhook:tag:ciphertext'), (1002, 'coach-webhook-hash', NULL)`,
   `INSERT INTO subscription (plan, user_id, updated_at) VALUES ('SUPPORTER', 1001, ${now})`,
 
   // Training plan, cycle and week

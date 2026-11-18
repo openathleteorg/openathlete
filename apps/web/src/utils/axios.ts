@@ -38,6 +38,7 @@ export const routes = {
     fit: '/activity-import/fit',
     gpx: '/activity-import/gpx',
     tcx: '/activity-import/tcx',
+    webhookConnection: '/activity-import/webhook/connection',
     removeDuplicates: '/activity-duplicates/removal',
   },
   event: {

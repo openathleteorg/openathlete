@@ -28,6 +28,25 @@ export type ImportTcxActivityFileDto = z.infer<
   typeof importTcxActivityFileDtoSchema
 >;
 
+export const createActivityUploadWebhookSchema = z
+  .object({ runGapSignature: z.boolean() })
+  .strict();
+
+export type CreateActivityUploadWebhookDto = z.infer<
+  typeof createActivityUploadWebhookSchema
+>;
+
+export interface ActivityUploadWebhookStatusDto {
+  enabled: boolean;
+  runGapSignature: boolean;
+}
+
+export interface ActivityUploadWebhookCredentialsDto {
+  url: string;
+  token: string;
+  passkey: string | null;
+}
+
 /** Data a file lacked, or that was left out to keep series aligned. */
 export const ACTIVITY_IMPORT_WARNINGS = [
   'FIT_INCOMPLETE_CHANNELS',

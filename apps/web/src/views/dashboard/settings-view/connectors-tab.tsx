@@ -44,6 +44,7 @@ import {
   isFullImportInProgress,
 } from '@openathlete/shared';
 
+import { ActivityUploadWebhookRow } from './activity-upload-webhook-row';
 import { CalendarFeedSection } from './calendar-feed-section';
 import { DuplicateActivitiesSection } from './duplicate-activities-section';
 import { GarminPersonalSection } from './garmin-personal-section';
@@ -75,6 +76,7 @@ export function ConnectorsTab() {
   const [updatingProvider, setUpdatingProvider] =
     useState<ConnectorProvider | null>(null);
   const roles = useUserRoles();
+  const isAthlete = roles?.includes('ATHLETE');
   const [importingProvider, setImportingProvider] =
     useState<ConnectorProvider | null>(null);
 
@@ -239,7 +241,7 @@ export function ConnectorsTab() {
       {instance?.garminPersonalApi && <GarminPersonalSection />}
       {isLoadingConnected ? (
         <SettingsRowsSkeleton count={SUPPORTED_PROVIDERS.length} />
-      ) : providers.length === 0 ? (
+      ) : providers.length === 0 && !isAthlete ? (
         <ConnectorsUnavailable />
       ) : (
         <SettingsPanel>
@@ -457,6 +459,7 @@ export function ConnectorsTab() {
               </Collapsible>
             );
           })}
+          {isAthlete && <ActivityUploadWebhookRow />}
         </SettingsPanel>
       )}
 

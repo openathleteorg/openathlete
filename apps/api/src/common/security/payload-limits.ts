@@ -1,7 +1,14 @@
 import type { NextFunction, Request, Response } from 'express';
 
+import { MAX_ACTIVITY_FILE_BYTES } from '@openathlete/shared';
+
 /** JSON bodies the app sends: plans, workouts and messages stay far below */
 export const JSON_BODY_LIMIT = '1mb';
+
+// Leave room for RunGap's metadata and multipart framing around the FIT file.
+export const ACTIVITY_WEBHOOK_UPLOAD_PATH = '/activity-import/webhook/upload';
+export const ACTIVITY_WEBHOOK_BODY_LIMIT =
+  MAX_ACTIVITY_FILE_BYTES + 1024 * 1024;
 
 /**
  * Garmin's production review requires accepting notification bodies of at
@@ -84,6 +91,7 @@ export function rejectOversizedArrays(
 ) {
   if (
     !req.path.startsWith(GARMIN_WEBHOOK_PATH) &&
+    !Buffer.isBuffer(req.body) &&
     exceedsArrayLimit(req.body)
   ) {
     res.status(413).json({

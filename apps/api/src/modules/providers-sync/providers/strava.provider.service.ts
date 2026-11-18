@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 
 import {
   ConnectorProvider,
-  EventActivity,
   EventType,
   ProviderAccount,
   SportType,
@@ -36,8 +35,9 @@ import {
   OAuthTokenResponse,
 } from '../base';
 import {
+  CheckActivityCopy,
+  CheckedImportResult,
   ImportOptions,
-  ImportResult,
   ImportedActivity,
   ProviderImportCapability,
 } from '../base/provider-import.interface';
@@ -427,7 +427,8 @@ export class StravaProviderService
   async importActivity(
     account: ProviderAccount,
     activity: ImportedActivity,
-  ): Promise<ImportResult> {
+    checkCopy: CheckActivityCopy,
+  ): Promise<CheckedImportResult> {
     const existing = await this.prisma.eventActivity.findFirst({
       where: {
         externalId: activity.externalId,
@@ -448,26 +449,30 @@ export class StravaProviderService
       throw new Error('Athlete not found');
     }
 
-    // Create event
-    const event = await this.prisma.event.create({
-      data: {
-        athleteId: athlete.athleteId,
-        name: activity.name,
-        type: EventType.ACTIVITY,
-        startDate: activity.startDate,
-        endDate: activity.endDate,
-      },
-    });
-
-    // Fetch full activity data with streams
-    const stravaActivity = activity.raw as StravaSummaryActivity;
-    const savedActivity = await this.fetchStravaActivityData(
+    // Fetch streams before taking the same lock used by FIT imports.
+    const details = await this.fetchStravaActivityData(
       account,
-      event,
-      stravaActivity,
+      activity.raw as StravaSummaryActivity,
     );
-
-    return { activity: savedActivity, created: true };
+    return this.prisma.$transaction(async (tx) => {
+      const duplicate = await checkCopy(tx);
+      if (duplicate) return { duplicate };
+      const saved = await tx.eventActivity.create({
+        data: {
+          ...details,
+          event: {
+            create: {
+              athleteId: athlete.athleteId,
+              name: activity.name,
+              type: EventType.ACTIVITY,
+              startDate: activity.startDate,
+              endDate: activity.endDate,
+            },
+          },
+        },
+      });
+      return { activity: saved, created: true };
+    });
   }
 
   /**
@@ -475,9 +480,8 @@ export class StravaProviderService
    */
   private async fetchStravaActivityData(
     account: ProviderAccount,
-    event: { eventId: number },
     activity: StravaSummaryActivity,
-  ): Promise<EventActivity> {
+  ) {
     const shouldFetchStreams = !activity.manual;
 
     let streams: StravaSteam[] = [];
@@ -535,33 +539,24 @@ export class StravaProviderService
 
     const sport = stravaActivitySport(activity);
 
-    const savedActivity = await this.prisma.eventActivity.create({
-      data: {
-        provider: ConnectorProvider.STRAVA,
-        distance: roundDistance(activity.distance),
-        elevationGain: roundElevation(activity.total_elevation_gain),
-        movingTime: activity.moving_time,
-        averageSpeed: roundSpeed(activity.average_speed) ?? 0,
-        maxSpeed: roundSpeed(activity.max_speed) ?? 0,
-        averageCadence: roundCadence(activity.average_cadence),
-        averageWatts: roundPower(activity.average_watts),
-        maxWatts: roundPower(activity.max_watts),
-        weightedAverageWatts: roundPower(activity.weighted_average_watts),
-        averageHeartrate: roundHeartrate(activity.average_heartrate),
-        maxHeartrate: roundHeartrate(activity.max_heartrate),
-        kilojoules: roundEnergy(activity.kilojoules),
-        sport,
-        stream: compressedActivityStream as object,
-        externalId: activity.id.toString(),
-        event: {
-          connect: {
-            eventId: event.eventId,
-          },
-        },
-      },
-    });
-
-    return savedActivity;
+    return {
+      provider: ConnectorProvider.STRAVA,
+      distance: roundDistance(activity.distance),
+      elevationGain: roundElevation(activity.total_elevation_gain),
+      movingTime: activity.moving_time,
+      averageSpeed: roundSpeed(activity.average_speed) ?? 0,
+      maxSpeed: roundSpeed(activity.max_speed) ?? 0,
+      averageCadence: roundCadence(activity.average_cadence),
+      averageWatts: roundPower(activity.average_watts),
+      maxWatts: roundPower(activity.max_watts),
+      weightedAverageWatts: roundPower(activity.weighted_average_watts),
+      averageHeartrate: roundHeartrate(activity.average_heartrate),
+      maxHeartrate: roundHeartrate(activity.max_heartrate),
+      kilojoules: roundEnergy(activity.kilojoules),
+      sport,
+      stream: compressedActivityStream as object,
+      externalId: activity.id.toString(),
+    };
   }
 
   /**

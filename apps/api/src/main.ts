@@ -1,4 +1,4 @@
-import { json } from 'express';
+import { json, raw } from 'express';
 import helmet from 'helmet';
 
 import { ConfigService } from '@nestjs/config';
@@ -9,6 +9,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ApiEnvSchemaType } from '@openathlete/shared';
 
 import {
+  ACTIVITY_WEBHOOK_BODY_LIMIT,
+  ACTIVITY_WEBHOOK_UPLOAD_PATH,
   GARMIN_WEBHOOK_BODY_LIMIT,
   GARMIN_WEBHOOK_PATH,
   JSON_BODY_LIMIT,
@@ -41,6 +43,14 @@ async function bootstrap() {
   // then skips the body it already read
   app.use(drainGarminActivityDetails);
   app.use(GARMIN_WEBHOOK_PATH, json({ limit: GARMIN_WEBHOOK_BODY_LIMIT }));
+  app.use(
+    ACTIVITY_WEBHOOK_UPLOAD_PATH,
+    raw({
+      type: () => true,
+      limit: ACTIVITY_WEBHOOK_BODY_LIMIT,
+      inflate: false,
+    }),
+  );
   app.useBodyParser('json', { limit: JSON_BODY_LIMIT });
   app.use(rejectOversizedArrays);
 

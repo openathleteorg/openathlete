@@ -149,10 +149,7 @@ export class FitParserStrategy implements ActivityParser {
     });
 
     if (errors && errors.length > 0) {
-      logger.warn(
-        `FIT file decode errors detected: ${errors.length} error(s)`,
-        errors,
-      );
+      logger.warn(`FIT file decode errors detected: ${errors.length} error(s)`);
     }
 
     if (!messages) {

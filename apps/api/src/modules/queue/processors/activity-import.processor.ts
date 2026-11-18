@@ -4,12 +4,18 @@ import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Inject, Logger, Optional, forwardRef } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { ConnectorProvider, EventType } from '@openathlete/database';
+import {
+  ConnectorProvider,
+  EventType,
+  Prisma,
+  ProviderAccount,
+} from '@openathlete/database';
 
 import { AnalyticsService } from 'src/modules/analytics/analytics.service';
 import { reportJobFailure } from 'src/modules/analytics/job-failure';
 
 import { CoachActivityNoticeEvent } from '../../../events/coach-activity-notice.event';
+import { lockActivityImport } from '../../core/helpers/activity-duplicates';
 import {
   activityToTakeOver,
   moveActivityToAthlete,
@@ -21,8 +27,10 @@ import {
   ActivityDescriptionService,
 } from '../../providers-sync/activity-description/activity-description.service';
 import {
-  ImportResult,
+  CheckActivityCopy,
+  CheckedImportResult,
   ImportedActivity,
+  ImportedActivityCopy,
 } from '../../providers-sync/base/provider-import.interface';
 import { ProviderRateLimitError } from '../../providers-sync/errors/provider-rate-limit.error';
 import {
@@ -103,19 +111,56 @@ export class ActivityImportProcessor extends WorkerHost {
   private async savedCopy(
     account: { athleteId: number; provider: ConnectorProvider },
     activity: ImportedActivity,
+    db: PrismaService | Prisma.TransactionClient = this.prisma,
   ) {
-    const known = await this.prisma.eventActivity.findUnique({
+    const known = await db.eventActivity.findUnique({
       where: { externalId: activity.externalId },
       select: { eventActivityId: true },
     });
     if (known) return null;
-    return this.duplicates.findDuplicate(account.athleteId, {
-      source: account.provider,
-      // A queued activity comes back with its dates as strings
-      startDate: new Date(activity.startDate),
-      endDate: new Date(activity.endDate),
-      movingTime: activity.duration ?? null,
-    });
+    return this.duplicates.findDuplicate(
+      account.athleteId,
+      {
+        source: account.provider,
+        // A queued activity comes back with its dates as strings
+        startDate: new Date(activity.startDate),
+        endDate: new Date(activity.endDate),
+        movingTime: activity.duration ?? null,
+      },
+      db,
+    );
+  }
+
+  private async skipDuplicate(
+    account: Pick<ProviderAccount, 'athleteId' | 'provider'>,
+    activity: ImportedActivity,
+    copy: ImportedActivityCopy,
+    bulkImport?: boolean,
+  ) {
+    this.logger.debug(
+      `Skipping ${account.provider} activity ${activity.externalId}: event ${copy.eventId} from another source records the same workout`,
+    );
+    // Describe the Strava activity from the copy already saved.
+    if (
+      account.provider === ConnectorProvider.STRAVA &&
+      !bulkImport &&
+      this.descriptions
+    ) {
+      await this.descriptions
+        .schedule({
+          athleteId: account.athleteId,
+          stravaActivityId: activity.externalId,
+          eventActivityId: copy.eventActivityId,
+          startDate: new Date(activity.startDate),
+          delayMs: AFTER_DUPLICATE_DELAY_MS,
+        })
+        .catch((error: unknown) =>
+          this.logger.warn(
+            `Could not queue the Strava description of ${activity.externalId}: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+    }
+    return { success: true, skipped: 'duplicate', eventId: copy.eventId };
   }
 
   async process(job: Job<ActivityImportJobData>, token?: string) {
@@ -164,46 +209,27 @@ export class ActivityImportProcessor extends WorkerHost {
       // Skipped rather than saved twice: a later sync or webhook of the same
       // activity comes here again and is skipped again
       const copy = await this.savedCopy(account, activity);
-      if (copy) {
-        this.logger.debug(
-          `Skipping ${account.provider} activity ${activity.externalId}: event ${copy.eventId} from another source records the same workout`,
-        );
-        // The athlete records with a watch that also syncs here: the Strava
-        // activity is described from the copy already saved
-        if (
-          account.provider === ConnectorProvider.STRAVA &&
-          !bulkImport &&
-          this.descriptions
-        ) {
-          await this.descriptions
-            .schedule({
-              athleteId: account.athleteId,
-              stravaActivityId: activity.externalId,
-              eventActivityId: copy.eventActivityId,
-              startDate: new Date(activity.startDate),
-              delayMs: AFTER_DUPLICATE_DELAY_MS,
-            })
-            .catch((error: unknown) =>
-              this.logger.warn(
-                `Could not queue the Strava description of ${activity.externalId}: ${error instanceof Error ? error.message : String(error)}`,
-              ),
-            );
-        }
-        return { success: true, skipped: 'duplicate', eventId: copy.eventId };
-      }
+      if (copy) return this.skipDuplicate(account, activity, copy, bulkImport);
 
       await job.updateProgress(30);
 
-      let result: ImportResult;
+      // A FIT upload can finish while a provider is fetching its recording.
+      const checkCopy: CheckActivityCopy = async (tx) => {
+        await lockActivityImport(tx, account.athleteId);
+        return this.savedCopy(account, activity, tx);
+      };
+      let result: CheckedImportResult;
       if (account.provider === ConnectorProvider.STRAVA) {
         result = await this.stravaProviderService.importActivity(
           account,
           activity,
+          checkCopy,
         );
       } else if (account.provider === ConnectorProvider.GARMIN) {
         result = await this.garminProviderService.importActivity(
           account,
           activity,
+          checkCopy,
         );
       } else if (account.provider === ConnectorProvider.POLAR) {
         result = await this.polarProviderService.importActivity(
@@ -226,6 +252,13 @@ export class ActivityImportProcessor extends WorkerHost {
         );
       }
 
+      if ('duplicate' in result)
+        return this.skipDuplicate(
+          account,
+          activity,
+          result.duplicate,
+          bulkImport,
+        );
       const { activity: savedActivity, created } = result;
 
       // Only the import that saved the activity announces it: a webhook

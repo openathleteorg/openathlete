@@ -225,6 +225,7 @@ export class AccountDeletionService {
   }
 
   private async deleteUserData(tx: Tx, userId: number) {
+    await tx.activityUploadWebhook.deleteMany({ where: { userId } });
     await tx.eventTemplateFolder.deleteMany({ where: { userId } });
     await tx.token.deleteMany({ where: { userId } });
     await tx.subscription.deleteMany({ where: { userId } });
