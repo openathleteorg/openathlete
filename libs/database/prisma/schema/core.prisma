@@ -82,6 +82,10 @@ model User {
   emailTips           Boolean      @default(true) @map("email_tips")
   /// Monthly email recap of the training
   emailRecap          Boolean      @default(true) @map("email_recap")
+  /// Monday email: the past week, the form, the week to come
+  emailWeekly         Boolean      @default(true) @map("email_weekly")
+  /// Monday email to coaches: the athletes to look at
+  emailCoachWeekly    Boolean      @default(true) @map("email_coach_weekly")
   /// Emails telling an athlete a questionnaire from their coach is waiting
   emailQuestionnaires Boolean      @default(true) @map("email_questionnaires")
   /// When the user asked for news about the project, Supporter included:
@@ -275,7 +279,8 @@ model LifecycleEmail {
   // fields
   kind   LifecycleEmailKind
   /// What the email was about, when one kind can be sent more than once:
-  /// the month of a recap, the provider account of a lost connection
+  /// the month of a recap, the provider account of a lost connection, the
+  /// Monday of a weekly email
   ref    String             @default("")
   sentAt DateTime           @default(now()) @map("sent_at")
 

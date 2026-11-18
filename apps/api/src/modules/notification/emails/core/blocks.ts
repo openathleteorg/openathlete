@@ -40,6 +40,14 @@ export function heading(text: string): Block {
   };
 }
 
+/** The title of a part of a longer email */
+export function subheading(text: string): Block {
+  return {
+    html: `<h2 style="margin:28px 0 12px 0;font-size:17px;line-height:24px;font-weight:600;color:${brand.ink};">${escapeHtml(text)}</h2>`,
+    text: `${text}\n${'-'.repeat(text.length)}`,
+  };
+}
+
 export function paragraph(...parts: Inline[]): Block {
   return {
     html: `<p style="margin:0 0 16px 0;font-size:15px;line-height:24px;color:${brand.text};">${inlineHtml(parts)}</p>`,
@@ -143,5 +151,34 @@ export function signature(name: string): Block {
   return {
     html: `<p style="margin:24px 0 20px 0;font-size:15px;line-height:24px;color:${brand.text};">${escapeHtml(name)}</p>`,
     text: name,
+  };
+}
+
+/**
+ * How far a count is towards its goal, as a bar: table cells with their own
+ * colours, which mail clients keep, dark mode included.
+ */
+export function progress({
+  value,
+  goal,
+  caption,
+}: {
+  value: number;
+  goal: number;
+  caption: string;
+}): Block {
+  const pct = Math.max(0, Math.min(100, Math.round((value / goal) * 100)));
+  const filled =
+    pct > 0
+      ? `<td width="${pct}%" height="8" bgcolor="${brand.ink}" style="height:8px;line-height:8px;font-size:8px;background:${brand.ink};border-radius:4px;">&nbsp;</td>`
+      : '';
+  const rest =
+    pct < 100
+      ? `<td width="${100 - pct}%" height="8" bgcolor="${brand.border}" style="height:8px;line-height:8px;font-size:8px;background:${brand.border};border-radius:4px;">&nbsp;</td>`
+      : '';
+  return {
+    html: `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin:4px 0 8px 0;"><tr>${filled}${rest}</tr></table>
+<p style="margin:0 0 12px 0;font-size:13px;line-height:20px;color:${brand.muted};">${escapeHtml(caption)}</p>`,
+    text: caption,
   };
 }

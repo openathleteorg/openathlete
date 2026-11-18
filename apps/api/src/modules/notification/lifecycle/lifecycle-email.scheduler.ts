@@ -58,6 +58,7 @@ const userSelect = {
   createdAt: true,
   emailTips: true,
   emailRecap: true,
+  emailWeekly: true,
   emailNewsConsentAt: true,
   athlete: {
     select: {
@@ -216,9 +217,11 @@ export class LifecycleEmailScheduler {
       now,
       localHour: hour,
       localDay: Number(date.slice(8, 10)),
+      localWeekday: new Date(`${date}T00:00:00Z`).getUTCDay(),
       createdAt: user.createdAt,
       emailTips: user.emailTips,
       emailRecap: user.emailRecap,
+      emailWeekly: user.emailWeekly,
       newsConsent: user.emailNewsConsentAt !== null,
       billingEnabled,
       isSupporter,
@@ -465,6 +468,11 @@ export class LifecycleEmailScheduler {
             `${appUrl}/dashboard/settings?tab=subscription`,
           ),
         });
+
+      // Their own schedule, on Mondays (WeeklyEmailService)
+      case LifecycleEmailKind.WEEKLY_RECAP:
+      case LifecycleEmailKind.COACH_WEEKLY:
+        throw new Error(`${next.kind} is not sent from this sequence`);
     }
   }
 

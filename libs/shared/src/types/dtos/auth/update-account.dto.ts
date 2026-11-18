@@ -26,6 +26,10 @@ export const updateAccountDtoSchema = trainingProfileSchema.extend({
   emailRecap: z.boolean().optional(),
   /** Questionnaires from the coach, by email (the push still comes) */
   emailQuestionnaires: z.boolean().optional(),
+  /** Monday email: the past week, the form and the week to come */
+  emailWeekly: z.boolean().optional(),
+  /** Monday email to coaches: the athletes to look at */
+  emailCoachWeekly: z.boolean().optional(),
   /** News about the project, Supporter included: the server dates the consent */
   emailNews: z.boolean().optional(),
   /** The server dates and counts the dismissal: there is no way back from it */

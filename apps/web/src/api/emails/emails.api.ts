@@ -1,6 +1,12 @@
 import client, { routes } from '@/utils/axios';
 
-const EMAIL_LISTS = ['tips', 'recap', 'news', 'questionnaires'] as const;
+const EMAIL_LISTS = [
+  'tips',
+  'recap',
+  'news',
+  'questionnaires',
+  'weekly',
+] as const;
 export type EmailList = (typeof EMAIL_LISTS)[number];
 
 /** The links at the foot of the emails, which carry their own token */

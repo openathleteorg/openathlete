@@ -17,7 +17,7 @@ import {
 
 /**
  * Which of the emails sent on their own the user wants: onboarding tips and
- * alerts, the monthly recap, news. Only on instances that send them.
+ * alerts, the weekly and monthly recaps, news. Only on instances that send them.
  */
 export function EmailPreferencesSection() {
   const queryClient = useQueryClient();
@@ -43,6 +43,13 @@ export function EmailPreferencesSection() {
       description: m.email_tips_description(),
       checked: me?.emailTips ?? true,
       update: (emailTips) => ({ emailTips }),
+    },
+    {
+      id: 'email-weekly',
+      title: m.email_weekly(),
+      description: m.email_weekly_description(),
+      checked: me?.emailWeekly ?? true,
+      update: (emailWeekly) => ({ emailWeekly }),
     },
     {
       id: 'email-recap',

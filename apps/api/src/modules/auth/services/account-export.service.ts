@@ -47,6 +47,8 @@ export class AccountExportService {
         emailTips: true,
         emailRecap: true,
         emailQuestionnaires: true,
+        emailWeekly: true,
+        emailCoachWeekly: true,
         emailNewsConsentAt: true,
         roles: true,
         onboardingCompleted: true,

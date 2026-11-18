@@ -15,6 +15,8 @@ export const LIST_OF_KIND: Record<LifecycleEmailKind, EmailList | null> = {
   SUPPORTER_CANCELLED: null,
   // About the subscription they pay for
   FOUNDER_ANNOUNCEMENT: null,
+  WEEKLY_RECAP: 'weekly',
+  COACH_WEEKLY: 'coach_weekly',
 };
 
 /** Why the person gets the emails of a list, at their foot */
@@ -51,6 +53,23 @@ export const LIST_REASONS: Record<EmailList, Record<EmailLanguage, string>> = {
     PT_BR:
       'Você recebe este e-mail porque seu treinador enviou um questionário.',
     DE: 'Du erhältst diese E-Mail, weil dir dein Coach einen Fragebogen geschickt hat.',
+  },
+  weekly: {
+    FR: 'Tu reçois ce récap le lundi, tant que tu t’entraînes ou que tu planifies.',
+    EN: 'You get this recap on Mondays, as long as you train or plan.',
+    IT: 'Ricevi questo riepilogo il lunedì, finché ti alleni o pianifichi.',
+    ES: 'Recibes este resumen los lunes, mientras entrenes o planifiques.',
+    PT_BR: 'Você recebe este resumo às segundas, enquanto treinar ou planejar.',
+    DE: 'Du erhältst diesen Rückblick montags, solange du trainierst oder planst.',
+  },
+  coach_weekly: {
+    FR: 'Tu reçois ce point le lundi parce que tu coaches des athlètes sur OpenAthlete.',
+    EN: 'You get this on Mondays because you coach athletes on OpenAthlete.',
+    IT: 'Ricevi questo punto il lunedì perché alleni atleti su OpenAthlete.',
+    ES: 'Recibes este resumen los lunes porque entrenas a atletas en OpenAthlete.',
+    PT_BR:
+      'Você recebe este resumo às segundas porque treina atletas no OpenAthlete.',
+    DE: 'Du erhältst diese Übersicht montags, weil du Athleten auf OpenAthlete betreust.',
   },
 };
 

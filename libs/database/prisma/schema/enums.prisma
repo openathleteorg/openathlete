@@ -549,6 +549,10 @@ enum LifecycleEmailKind {
   SUPPORTER_CANCELLED
   /// Once, to founders of the Supporter tiers: nothing changes for them
   FOUNDER_ANNOUNCEMENT
+  /// Monday: the past week, the form and the week to come (ref: the Monday)
+  WEEKLY_RECAP
+  /// Monday, to coaches: the athletes to look at (ref: the Monday)
+  COACH_WEEKLY
 
   @@map("lifecycle_email_kind")
 }

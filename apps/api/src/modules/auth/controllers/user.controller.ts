@@ -255,6 +255,15 @@ export class UserController {
           description:
             'Emails telling the athlete a questionnaire from their coach is waiting',
         },
+        emailWeekly: {
+          type: 'boolean',
+          description:
+            'Monday email: the past week, the form and the week to come',
+        },
+        emailCoachWeekly: {
+          type: 'boolean',
+          description: 'Monday email to coaches: the athletes to look at',
+        },
         emailNews: {
           type: 'boolean',
           description:
