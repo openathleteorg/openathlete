@@ -2684,7 +2684,5 @@
   "garmin_attribution_data": "Enthält Daten von Garmin-Geräten.",
   "garmin_attribution_insights": "Erkenntnisse teilweise aus Daten von Garmin-Geräten abgeleitet.",
   "records_vertical_speed": "Steiggeschwindigkeit",
-  "records_last_days": "Letzte {days} Tage",
-  "records_threshold_vam": "Schwellen-VAM {value} m/h: {percent} % der besten {minutes} min der letzten {days} Tage.",
-  "records_threshold_vam_help": "Wie eine FTP fürs Steigen: das Höhere aus der besten Stunde und 95 % der besten 20 Minuten."
+  "records_last_days": "Letzte {days} Tage"
 }

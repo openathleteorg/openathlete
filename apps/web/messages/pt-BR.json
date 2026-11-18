@@ -2684,7 +2684,5 @@
   "garmin_attribution_data": "Inclui dados fornecidos por dispositivos Garmin.",
   "garmin_attribution_insights": "Análises derivadas em parte de dados de dispositivos Garmin.",
   "records_vertical_speed": "Velocidade de subida",
-  "records_last_days": "Últimos {days} dias",
-  "records_threshold_vam": "VAM de limiar {value} m/h: {percent}% dos melhores {minutes} min dos últimos {days} dias.",
-  "records_threshold_vam_help": "Como um FTP para subir: o maior entre a melhor hora e 95% dos melhores 20 minutos."
+  "records_last_days": "Últimos {days} dias"
 }

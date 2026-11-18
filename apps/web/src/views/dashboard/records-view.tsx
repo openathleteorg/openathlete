@@ -51,10 +51,8 @@ import { toast } from 'sonner';
 
 import {
   CreateRecordExclusionDto,
-  FTP_MODEL_DAYS,
   RECORD_TYPE,
   SPORT_TYPE,
-  modelFtp,
 } from '@openathlete/shared';
 
 interface P {
@@ -106,11 +104,7 @@ export function RecordsView({ athleteId }: P) {
   const [metricType, setMetricType] = useState(RECORD_TYPE.SPEED);
   const [toggledYears, setToggledYears] = useState<number[] | null>(null);
   const [toggledRecent, setToggledRecent] = useState<number[] | null>(null);
-  const [since] = useState(() => ({
-    7: daysAgo(7),
-    30: daysAgo(30),
-    model: daysAgo(FTP_MODEL_DAYS),
-  }));
+  const [since] = useState(() => ({ 7: daysAgo(7), 30: daysAgo(30) }));
   const [selected, setSelected] = useState<{
     metric: RecordMetric;
     position: number;
@@ -161,19 +155,6 @@ export function RecordsView({ athleteId }: P) {
     { sport: sport ?? undefined, athleteId, from: since[30] },
     { enabled: sport !== null && recent.includes(30) },
   );
-  const { data: modelPeriod = [] } = useGetRecordsQuery(
-    { sport: sport ?? undefined, athleteId, from: since.model },
-    { enabled: sport !== null && isClimbing },
-  );
-  const thresholdVam = isClimbing
-    ? modelFtp(
-        modelPeriod.filter(
-          (record) =>
-            record.type === RECORD_TYPE.VERTICAL_SPEED &&
-            record.duration !== null,
-        ) as Parameters<typeof modelFtp>[0],
-      )
-    : null;
   const positions = records
     .filter((record) => record.type === metric?.type)
     .map((record) => recordPosition(record) ?? 0)
@@ -420,20 +401,6 @@ export function RecordsView({ athleteId }: P) {
                 dateFormat={dateFormat}
                 onSelect={(position) => openRecord(metric, position)}
               />
-              {thresholdVam && (
-                <p
-                  className="border-t px-4 py-2 text-sm"
-                  title={m.records_threshold_vam_help()}
-                  data-testid="threshold-vam"
-                >
-                  {m.records_threshold_vam({
-                    value: thresholdVam.value,
-                    percent: Math.round(thresholdVam.factor * 100),
-                    minutes: thresholdVam.duration / 60,
-                    days: FTP_MODEL_DAYS,
-                  })}
-                </p>
-              )}
               <p className="border-t px-4 py-2 text-xs text-muted-foreground">
                 {m.records_legend()}
               </p>

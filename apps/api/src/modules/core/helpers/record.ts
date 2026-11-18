@@ -1,5 +1,11 @@
 import { Record as PrismaRecord, RecordType } from '@openathlete/database';
-import { ActivityStream, isValidGpsPoint } from '@openathlete/shared';
+import {
+  ActivityStream,
+  isValidGpsPoint,
+  smoothAltitude,
+} from '@openathlete/shared';
+
+import { highestVerticalSpeed } from './record-plausibility';
 
 // Target distances for all record types (in meters)
 const TARGET_DISTANCES = [
@@ -21,9 +27,39 @@ const TARGET_DISTANCES = [
 // Durations for power and heart rate records (in seconds)
 const TARGET_DURATIONS = [5, 15, 30, 60, 120, 300, 600, 1200, 1800, 3600, 7200];
 
-// Durations for climbing speed records (VAM), in seconds: shorter ones
-// measure the altimeter's noise more than the climb
-const VERTICAL_SPEED_DURATIONS = [60, 300, 600, 1200, 1800, 2400, 3600, 7200];
+// Durations for climbing speed records (VAM): those of power and heart rate,
+// so the curves line up, from 5 minutes on. Shorter ones measure the
+// altimeter's noise more than the climb
+const VERTICAL_SPEED_DURATIONS = TARGET_DURATIONS.filter(
+  (duration) => duration >= 300,
+);
+
+/**
+ * Sports climbed by the athlete's own strength. Lifts carry alpine skiers
+ * and snowboarders up, motors help e-bikes, and virtual rides simulate
+ * their altitude.
+ */
+const VERTICAL_SPEED_SPORTS = new Set<string>([
+  'RUNNING',
+  'TRAIL_RUNNING',
+  'WALK',
+  'HIKING',
+  'SNOWSHOE',
+  'CYCLING',
+  'MOUNTAIN_BIKE_RIDE',
+  'GRAVEL_RIDE',
+  'BACKCOUNTRY_SKI',
+  'NORDIC_SKI',
+]);
+
+/** Without distance, altitude is smoothed with the median of this window */
+const ALTITUDE_MEDIAN_SECONDS = 30;
+/**
+ * Metres a second between two samples that no climber reaches, about ten
+ * times the fastest: an altimeter step (a recalibration, GPS altitude taking
+ * over) or a lift. No climbing record spans one.
+ */
+const ALTITUDE_JUMP_SPEED = 3;
 
 // A sample stands for the time until the next one, but no longer than this:
 // a longer gap is a pause or a dropout, counted as zero
@@ -190,39 +226,114 @@ function computeDurationRecords(
 }
 
 /**
- * Fastest climbing over each duration, in metres per hour: the altitude
- * gained between the start and the end of the stretch, read between samples
- * at the end. A net gain, so the noise of the altimeter cancels out, and
- * elapsed time, so a pause can only make it slower.
+ * Altitude without its spikes: averaged over 100 m of distance, as the slope
+ * profile reads it, or, without distance (a climb on foot without GPS
+ * distance), the median of the samples within 15 s on either side. A single
+ * altimeter spike then moves no record.
+ */
+function smoothedAltitude(
+  time: number[],
+  altitude: number[],
+  distance: number[] | undefined,
+): number[] {
+  const n = Math.min(time.length, altitude.length);
+  if (distance && distance.length >= n && distance[n - 1] > distance[0]) {
+    return smoothAltitude(altitude.slice(0, n), distance.slice(0, n));
+  }
+  const half = ALTITUDE_MEDIAN_SECONDS / 2;
+  const result: number[] = [];
+  let lo = 0;
+  let hi = 0;
+  for (let i = 0; i < n; i++) {
+    while (hi < n && time[hi] <= time[i] + half) hi++;
+    while (time[lo] < time[i] - half) lo++;
+    const window = altitude
+      .slice(lo, hi)
+      .filter(Number.isFinite)
+      .sort((x, y) => x - y);
+    result.push(
+      window.length ? window[Math.floor(window.length / 2)] : altitude[i],
+    );
+  }
+  return result;
+}
+
+/**
+ * Fastest climbing over each duration, in metres per hour: the smoothed
+ * altitude gained between the start and the end of the stretch, read
+ * between samples at the end. A net gain, so the remaining noise cancels
+ * out, and elapsed time, so a pause can only make it slower. A stretch
+ * across an altitude jump, or faster than a human climbs, spoils its
+ * samples: no window over them counts, and the activity keeps its best
+ * climb elsewhere at that duration instead of losing the record.
  */
 function computeVerticalSpeedRecords(
   timeStream: number[],
-  altitude: number[],
+  rawAltitude: number[],
+  distance?: number[],
 ): ComputedRecord[] {
-  const samples: { t: number; alt: number }[] = [];
+  const altitude = smoothedAltitude(timeStream, rawAltitude, distance);
+  // Jumps of the raw altitude, counted up to each sample
+  const samples: { t: number; alt: number; jumps: number }[] = [];
   const length = Math.min(timeStream.length, altitude.length);
+  let jumps = 0;
+  let previous: { t: number; raw: number } | null = null;
   for (let i = 0; i < length; i++) {
-    if (Number.isFinite(timeStream[i]) && Number.isFinite(altitude[i]))
-      samples.push({ t: timeStream[i], alt: altitude[i] });
+    if (!Number.isFinite(timeStream[i]) || !Number.isFinite(altitude[i]))
+      continue;
+    const raw = rawAltitude[i];
+    if (previous && Number.isFinite(raw)) {
+      const dt = timeStream[i] - previous.t;
+      if (Math.abs(raw - previous.raw) > ALTITUDE_JUMP_SPEED * Math.max(dt, 1))
+        jumps++;
+    }
+    if (Number.isFinite(raw)) previous = { t: timeStream[i], raw };
+    samples.push({ t: timeStream[i], alt: altitude[i], jumps });
   }
   if (samples.length < 2) return [];
   const records: ComputedRecord[] = [];
   for (const duration of VERTICAL_SPEED_DURATIONS) {
-    let best: { value: number; start: number } | null = null;
+    const limit = highestVerticalSpeed(duration);
+    // Every window of this duration, from its first sample to the sample
+    // after its end
+    const windows: { first: number; last: number; value: number }[] = [];
     let last = 0;
     for (let first = 0; first < samples.length; first++) {
       const end = samples[first].t + duration;
       if (end > samples[samples.length - 1].t) break;
       while (last + 1 < samples.length && samples[last + 1].t <= end) last++;
       const a = samples[last];
-      const b = samples[Math.min(last + 1, samples.length - 1)];
+      const next = Math.min(last + 1, samples.length - 1);
+      const b = samples[next];
       const altitudeAtEnd =
         b.t > a.t
           ? a.alt + ((b.alt - a.alt) * (end - a.t)) / (b.t - a.t)
           : a.alt;
       const value = ((altitudeAtEnd - samples[first].alt) / duration) * 3600;
-      if (!best || value > best.value)
-        best = { value, start: samples[first].t };
+      windows.push({ first, last: next, value });
+    }
+    // Samples of a window faster than a human climbs, or across a jump, are
+    // spoilt: a window overlapping them would read the end of the lift
+    const spoilt = new Array<number>(samples.length + 1).fill(0);
+    for (const window of windows) {
+      if (
+        window.value > limit ||
+        samples[window.last].jumps > samples[window.first].jumps
+      ) {
+        spoilt[window.first] += 1;
+        spoilt[window.last + 1] -= 1;
+      }
+    }
+    const spoiltBefore = [0];
+    for (let i = 0, cover = 0; i < samples.length; i++) {
+      cover += spoilt[i];
+      spoiltBefore.push(spoiltBefore[i] + (cover > 0 ? 1 : 0));
+    }
+    let best: { value: number; start: number } | null = null;
+    for (const window of windows) {
+      if (spoiltBefore[window.last + 1] > spoiltBefore[window.first]) continue;
+      if (!best || window.value > best.value)
+        best = { value: window.value, start: samples[window.first].t };
     }
     if (!best || best.value <= 0) continue;
     records.push({
@@ -262,10 +373,14 @@ function computeElevationGainRecords(
 
 /**
  * Records of an activity: pace and climbing by distance (they need the GPS
- * route), power, heart rate and climbing speed by duration.
+ * route), power, heart rate and, in sports climbed by the athlete's own
+ * strength, climbing speed by duration.
  */
-export const computeRecords = (stream: ActivityStream): ComputedRecord[] => {
-  const { time, latlng, altitude, heartrate, watts } = stream;
+export const computeRecords = (
+  stream: ActivityStream,
+  sport?: string,
+): ComputedRecord[] => {
+  const { time, latlng, altitude, heartrate, watts, distance } = stream;
   if (!time || time.length === 0) return [];
 
   const records = [
@@ -274,7 +389,9 @@ export const computeRecords = (stream: ActivityStream): ComputedRecord[] => {
       ? computeDurationRecords('HEARTRATE', time, heartrate)
       : []),
     // Climbing needs the altitude only: a treadmill with an incline has none
-    ...(altitude?.length ? computeVerticalSpeedRecords(time, altitude) : []),
+    ...(altitude?.length && sport && VERTICAL_SPEED_SPORTS.has(sport)
+      ? computeVerticalSpeedRecords(time, altitude, distance)
+      : []),
   ];
 
   // Distance records require a route aligned with time

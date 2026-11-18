@@ -36,6 +36,7 @@ export class ActivityRecordsService {
             uncompressActivityStream(
               activity.stream as CompressedActivityStream,
             ),
+            activity.sport,
           ).filter((record) => isPlausibleRecord(record, activity.sport))
         : [];
 

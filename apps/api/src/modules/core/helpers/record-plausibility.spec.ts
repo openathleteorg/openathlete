@@ -53,6 +53,7 @@ describe('climbing speed records', () => {
       );
     expect(vam(1800, 1500)).toBe(true);
     expect(vam(1800, 2500)).toBe(false);
-    expect(vam(60, 2900)).toBe(true);
+    // No limit for durations without climbing records
+    expect(vam(60, 2900)).toBe(false);
   });
 });

@@ -48,12 +48,10 @@ const HIGHEST_POWER: [number, number][] = [
  * an altimeter jump.
  */
 const HIGHEST_VERTICAL_SPEED: [number, number][] = [
-  [60, 3000],
   [300, 2600],
   [600, 2400],
   [1200, 2300],
   [1800, 2200],
-  [2400, 2100],
   [3600, 2000],
   [7200, 1700],
 ];
@@ -64,6 +62,12 @@ const RUNNING = new Set(['RUNNING', 'TRAIL_RUNNING']);
 const lookup = (table: [number, number][], key: number | null | undefined) =>
   table.find(([at]) => at === key)?.[1];
 
+/** The most metres an hour a human climbs over this many seconds */
+export function highestVerticalSpeed(duration: number): number {
+  // No record is kept at other durations
+  return lookup(HIGHEST_VERTICAL_SPEED, duration) ?? 0;
+}
+
 /** Whether a human could have set this record */
 export function isPlausibleRecord(
   { type, distance, duration, value }: PlausibleRecord,
@@ -71,7 +75,7 @@ export function isPlausibleRecord(
 ): boolean {
   if (type === 'HEARTRATE') return value <= HIGHEST_HEART_RATE;
   if (type === 'VERTICAL_SPEED') {
-    return value <= (lookup(HIGHEST_VERTICAL_SPEED, duration) ?? Infinity);
+    return duration != null && value <= highestVerticalSpeed(duration);
   }
   if (type === 'POWER') {
     return value <= (lookup(HIGHEST_POWER, duration) ?? Infinity);
