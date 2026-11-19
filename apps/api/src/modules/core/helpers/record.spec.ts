@@ -174,15 +174,21 @@ describe('climbing speed records', () => {
     expect(verticalSpeed(stream).get(300)).toBeCloseTo(1200, 6);
   });
 
-  test('smooths the altitude over distance when there is one', () => {
-    const stream = {
-      ...climb(),
-      distance: Array.from({ length: 2401 }, (_, i) => i * 2.5),
-    };
-    // A 30 m jump of one sample
-    stream.altitude[1000] += 30;
-    // The 100 m window spreads it to 30 m / 40 samples: under a metre
-    expect(verticalSpeed(stream).get(300)).toBeLessThan(1220);
+  test('smooths over time, not distance, where the distance stands still', () => {
+    // Walking on the flat, the watch paused for 14 minutes while a lift
+    // takes 145 m: the distance did not move, so 100 m of distance would
+    // average the altitude from before the pause into the first samples
+    // after it, and read the lift as a climb of 2,000 m/h and more
+    const time = [
+      ...Array.from({ length: 600 }, (_, i) => i),
+      ...Array.from({ length: 600 }, (_, i) => 1440 + i),
+    ];
+    const distance = time.map((t, i) => (i < 600 ? t : 600 + (t - 1440)));
+    const altitude = time.map((_, i) => (i < 600 ? 2045 : 2190));
+    // Only the stretches across the pause gain, at its average speed
+    expect(
+      verticalSpeed({ time, altitude, distance }).get(300) ?? 0,
+    ).toBeLessThan(700);
   });
 
   test('keeps the best plausible climb when a faster window spans a jump', () => {
@@ -191,6 +197,42 @@ describe('climbing speed records', () => {
     for (let t = 300; t <= 2400; t++) stream.altitude[t] += 150;
     // Five minutes across the step would read 1800 m/h: skipped
     expect(verticalSpeed(stream).get(300)).toBeCloseTo(1200, 6);
+  });
+
+  test('keeps the climb right before a fast descent on skis', () => {
+    // 20 min skinning up at 1200 m/h, then down at 5 m/s from the top:
+    // a descent faster than any climb, which is no altimeter jump
+    const time = Array.from({ length: 1441 }, (_, i) => i);
+    const altitude = time.map((t) =>
+      t <= 1200 ? 700 + t / 3 : Math.max(1100 - (t - 1200) * 5, 0),
+    );
+    const vam = verticalSpeed({ time, altitude }, 'BACKCOUNTRY_SKI');
+    expect(vam.get(300)).toBeCloseTo(1200, 6);
+    expect(vam.get(600)).toBeCloseTo(1200, 6);
+    // The whole climb: the median rounds its sharp top off by a few metres
+    expect(vam.get(1200)).toBeGreaterThan(1170);
+  });
+
+  test('leaves out only the windows near a jump, not the climb next to it', () => {
+    // 10 minutes climbing at 1200 m/h, a pause of half a minute at the top,
+    // then the altimeter steps 150 m up: every window of ten minutes from
+    // the climb reaches the step
+    const time = Array.from({ length: 1801 }, (_, i) => i);
+    const altitude = time.map((t) =>
+      t < 600 ? 700 : t <= 1200 ? 700 + (t - 600) / 3 : t < 1230 ? 900 : 1050,
+    );
+    // The median rounds the corner at the top off by a metre or two
+    expect(verticalSpeed({ time, altitude }).get(600)).toBeGreaterThan(1190);
+  });
+
+  test('reads no climb from a jump the median moves its neighbours by', () => {
+    // On the flat when the altimeter steps 25 m up, as Suunto watches do
+    // after a pause: the median moves the samples within 15 s of the step,
+    // inside windows that skip it
+    const time = Array.from({ length: 1201 }, (_, i) => i);
+    const distance = time.map((t) => t);
+    const altitude = time.map((t) => (t < 600 ? 1000 : 1025));
+    expect(verticalSpeed({ time, altitude, distance }).size).toBe(0);
   });
 
   test('keeps the best plausible climb when a faster window is too fast', () => {

@@ -1,9 +1,5 @@
 import { Record as PrismaRecord, RecordType } from '@openathlete/database';
-import {
-  ActivityStream,
-  isValidGpsPoint,
-  smoothAltitude,
-} from '@openathlete/shared';
+import { ActivityStream, isValidGpsPoint } from '@openathlete/shared';
 
 import { highestVerticalSpeed } from './record-plausibility';
 
@@ -52,12 +48,14 @@ const VERTICAL_SPEED_SPORTS = new Set<string>([
   'NORDIC_SKI',
 ]);
 
-/** Without distance, altitude is smoothed with the median of this window */
+/** Altitude is smoothed with the median of this window */
 const ALTITUDE_MEDIAN_SECONDS = 30;
 /**
- * Metres a second between two samples that no climber reaches, about ten
- * times the fastest: an altimeter step (a recalibration, GPS altitude taking
- * over) or a lift. No climbing record spans one.
+ * Metres a second gained between two samples that no climber reaches:
+ * 10,800 m/h, about five times the ~2,200 m/h of the fastest vertical
+ * kilometre (see HIGHEST_VERTICAL_SPEED). An altimeter step upwards (a
+ * recalibration, GPS altitude taking over) or a lift. No climbing record
+ * spans one. Only gains count: a fast descent, on skis or a bike, is real.
  */
 const ALTITUDE_JUMP_SPEED = 3;
 
@@ -226,20 +224,15 @@ function computeDurationRecords(
 }
 
 /**
- * Altitude without its spikes: averaged over 100 m of distance, as the slope
- * profile reads it, or, without distance (a climb on foot without GPS
- * distance), the median of the samples within 15 s on either side. A single
- * altimeter spike then moves no record.
+ * Altitude without its spikes: the median of the samples within 15 s on
+ * either side, so a single altimeter spike moves no record. Over time, not
+ * distance: on real recordings, averaging over 100 m of distance mixed in
+ * samples far away in time wherever the distance stood still (a pause, a
+ * lift, GPS lost in a steep gully), and read climbs of up to 2,300 m/h out
+ * of 750 m/h walks.
  */
-function smoothedAltitude(
-  time: number[],
-  altitude: number[],
-  distance: number[] | undefined,
-): number[] {
+function smoothedAltitude(time: number[], altitude: number[]): number[] {
   const n = Math.min(time.length, altitude.length);
-  if (distance && distance.length >= n && distance[n - 1] > distance[0]) {
-    return smoothAltitude(altitude.slice(0, n), distance.slice(0, n));
-  }
   const half = ALTITUDE_MEDIAN_SECONDS / 2;
   const result: number[] = [];
   let lo = 0;
@@ -263,17 +256,21 @@ function smoothedAltitude(
  * altitude gained between the start and the end of the stretch, read
  * between samples at the end. A net gain, so the remaining noise cancels
  * out, and elapsed time, so a pause can only make it slower. A stretch
- * across an altitude jump, or faster than a human climbs, spoils its
- * samples: no window over them counts, and the activity keeps its best
- * climb elsewhere at that duration instead of losing the record.
+ * across an upward altitude jump does not count, nor one whose ends the
+ * smoothing reads the jump into; the climbs on either side of it still do.
+ * A stretch faster than a human climbs spoils its samples: no window over
+ * them counts, as it would read part of the lift, and the activity keeps
+ * its best climb elsewhere at that duration.
  */
 function computeVerticalSpeedRecords(
   timeStream: number[],
   rawAltitude: number[],
-  distance?: number[],
 ): ComputedRecord[] {
-  const altitude = smoothedAltitude(timeStream, rawAltitude, distance);
-  // Jumps of the raw altitude, counted up to each sample
+  const altitude = smoothedAltitude(timeStream, rawAltitude);
+  // The median reads 15 s on either side: a jump that close to either end
+  // of a window still moves its smoothed altitude there
+  const reach = ALTITUDE_MEDIAN_SECONDS / 2;
+  // Upward jumps of the raw altitude, counted up to each sample
   const samples: { t: number; alt: number; jumps: number }[] = [];
   const length = Math.min(timeStream.length, altitude.length);
   let jumps = 0;
@@ -284,8 +281,7 @@ function computeVerticalSpeedRecords(
     const raw = rawAltitude[i];
     if (previous && Number.isFinite(raw)) {
       const dt = timeStream[i] - previous.t;
-      if (Math.abs(raw - previous.raw) > ALTITUDE_JUMP_SPEED * Math.max(dt, 1))
-        jumps++;
+      if (raw - previous.raw > ALTITUDE_JUMP_SPEED * Math.max(dt, 1)) jumps++;
     }
     if (Number.isFinite(raw)) previous = { t: timeStream[i], raw };
     samples.push({ t: timeStream[i], alt: altitude[i], jumps });
@@ -296,8 +292,16 @@ function computeVerticalSpeedRecords(
     const limit = highestVerticalSpeed(duration);
     // Every window of this duration, from its first sample to the sample
     // after its end
-    const windows: { first: number; last: number; value: number }[] = [];
+    const windows: {
+      first: number;
+      last: number;
+      value: number;
+      jump: boolean;
+    }[] = [];
     let last = 0;
+    // The samples the smoothing reads before the window and after it
+    let before = 0;
+    let after = 0;
     for (let first = 0; first < samples.length; first++) {
       const end = samples[first].t + duration;
       if (end > samples[samples.length - 1].t) break;
@@ -310,16 +314,26 @@ function computeVerticalSpeedRecords(
           ? a.alt + ((b.alt - a.alt) * (end - a.t)) / (b.t - a.t)
           : a.alt;
       const value = ((altitudeAtEnd - samples[first].alt) / duration) * 3600;
-      windows.push({ first, last: next, value });
+      while (samples[before].t < samples[first].t - reach) before++;
+      if (after < next) after = next;
+      while (
+        after + 1 < samples.length &&
+        samples[after + 1].t <= samples[next].t + reach
+      )
+        after++;
+      windows.push({
+        first,
+        last: next,
+        value,
+        jump: samples[after].jumps > samples[before].jumps,
+      });
     }
-    // Samples of a window faster than a human climbs, or across a jump, are
-    // spoilt: a window overlapping them would read the end of the lift
+    // Samples of a window faster than a human climbs are spoilt: a window
+    // overlapping them would read the end of the lift. A jump is a single
+    // step, so only the windows across it are left out
     const spoilt = new Array<number>(samples.length + 1).fill(0);
     for (const window of windows) {
-      if (
-        window.value > limit ||
-        samples[window.last].jumps > samples[window.first].jumps
-      ) {
+      if (!window.jump && window.value > limit) {
         spoilt[window.first] += 1;
         spoilt[window.last + 1] -= 1;
       }
@@ -331,6 +345,7 @@ function computeVerticalSpeedRecords(
     }
     let best: { value: number; start: number } | null = null;
     for (const window of windows) {
+      if (window.jump) continue;
       if (spoiltBefore[window.last + 1] > spoiltBefore[window.first]) continue;
       if (!best || window.value > best.value)
         best = { value: window.value, start: samples[window.first].t };
@@ -380,7 +395,7 @@ export const computeRecords = (
   stream: ActivityStream,
   sport?: string,
 ): ComputedRecord[] => {
-  const { time, latlng, altitude, heartrate, watts, distance } = stream;
+  const { time, latlng, altitude, heartrate, watts } = stream;
   if (!time || time.length === 0) return [];
 
   const records = [
@@ -390,7 +405,7 @@ export const computeRecords = (
       : []),
     // Climbing needs the altitude only: a treadmill with an incline has none
     ...(altitude?.length && sport && VERTICAL_SPEED_SPORTS.has(sport)
-      ? computeVerticalSpeedRecords(time, altitude, distance)
+      ? computeVerticalSpeedRecords(time, altitude)
       : []),
   ];
 
