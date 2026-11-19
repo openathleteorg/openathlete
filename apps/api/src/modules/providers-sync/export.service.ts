@@ -62,11 +62,13 @@ export class ProviderExportService {
     date: string,
     normalized: NormalizedWorkout,
   ): string {
-    const json = JSON.stringify({
-      date,
-      normalized,
-      format: EXPORT_FORMAT_VERSION[provider],
-    });
+    // Version 1 stays out of the hash, so a provider whose format never
+    // changed keeps the hashes of its past exports and nothing is resent
+    // (COROS can't delete a workout, so a resend would leave a copy)
+    const format = EXPORT_FORMAT_VERSION[provider];
+    const json = JSON.stringify(
+      format > 1 ? { date, normalized, format } : { date, normalized },
+    );
     return createHash('sha256').update(json).digest('hex');
   }
 

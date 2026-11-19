@@ -37,15 +37,19 @@ function setup(existing: Record<string, unknown> | null) {
       .mockResolvedValue({ externalId: '55', scheduleId: '77' }),
     deletePlannedWorkout: jest.fn(),
   };
+  const suunto = {
+    upsertPlannedWorkout: jest.fn().mockResolvedValue({ externalId: '56' }),
+    deletePlannedWorkout: jest.fn(),
+  };
   const analytics = { captureForAthlete: jest.fn() };
   const service = new ProviderExportService(
     prisma as never,
     garmin as never,
-    {} as never,
+    suunto as never,
     {} as never,
     analytics as never,
   );
-  return { service, prisma, garmin, analytics };
+  return { service, prisma, garmin, suunto, analytics };
 }
 
 const params = {
@@ -100,10 +104,28 @@ describe('ProviderExportService.upsertPlannedExport', () => {
         .digest('hex'),
       externalId: '55',
     });
+    const result = await again.service.upsertPlannedExport({
+      ...params,
+      provider: 'suunto',
+    });
+
+    expect(again.suunto.upsertPlannedWorkout).toHaveBeenCalledTimes(1);
+    expect(result.skipped).toBe(false);
+  });
+
+  it('keeps the hashes of a provider whose format never changed', async () => {
+    // COROS can't delete a workout: resending an unchanged one leaves a copy
+    const again = setup({
+      status: 'success',
+      contentHash: createHash('sha256')
+        .update(JSON.stringify({ date: params.date, normalized }))
+        .digest('hex'),
+      externalId: '55',
+    });
     const result = await again.service.upsertPlannedExport(params);
 
-    expect(again.garmin.upsertPlannedWorkout).toHaveBeenCalledTimes(1);
-    expect(result.skipped).toBe(false);
+    expect(again.garmin.upsertPlannedWorkout).not.toHaveBeenCalled();
+    expect(result).toEqual({ skipped: true, externalId: '55' });
   });
 
   it('skips a session without steps, which is no failure', async () => {
