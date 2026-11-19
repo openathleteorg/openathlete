@@ -13,6 +13,7 @@ export * from './time-in-zones';
 export * from './cycle-colors';
 export * from './provider-import';
 export * from './year-review';
+export * from './units';
 export {
   calculateWorkoutDuration,
   calculateWorkoutDistance,

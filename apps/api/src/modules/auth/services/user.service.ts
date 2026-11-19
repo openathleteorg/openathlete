@@ -175,6 +175,7 @@ export class UserService {
         weeklyTrainingHours: true,
         coachTeamSize: true,
         createdAt: true,
+        unitSystem: true,
       },
     });
   };
@@ -280,6 +281,7 @@ export class UserService {
       clubJoinToken,
       language,
       emailNews,
+      unitSystem,
     }: CreateAccountDto,
     { emailFromProvider = false }: { emailFromProvider?: boolean } = {},
   ) => {
@@ -359,6 +361,7 @@ export class UserService {
           language,
           // Ticked by the person on the form, never by default
           emailNewsConsentAt: emailNews ? new Date() : null,
+          unitSystem,
           roles: [UserRole.ATHLETE, UserRole.COACH],
           athlete: {
             create: {
@@ -491,6 +494,7 @@ export class UserService {
             : data.emailNews
               ? new Date()
               : null,
+        unitSystem: data.unitSystem,
       },
       select: {
         firstName: true,
@@ -515,6 +519,7 @@ export class UserService {
         trainingGoal: true,
         weeklyTrainingHours: true,
         coachTeamSize: true,
+        unitSystem: true,
       },
     });
     if (before?.emailWeekly) {
