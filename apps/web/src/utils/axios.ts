@@ -214,6 +214,7 @@ export const routes = {
     recovery: '/statistics/recovery',
     terrain: '/statistics/terrain',
     cardiacCost: '/statistics/cardiac-cost',
+    efficiency: '/statistics/efficiency',
     durability: '/statistics/durability',
     longRuns: '/statistics/long-runs',
     intensity: '/statistics/intensity',

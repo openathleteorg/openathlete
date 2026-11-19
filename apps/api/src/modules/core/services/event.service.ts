@@ -153,6 +153,8 @@ export class EventService {
             | 'intensitySeconds'
             | 'efficiencyFactor'
             | 'decouplingPercent'
+            | 'flatSpeedPerWatt'
+            | 'powerEfficiencyFactor'
             | 'originalStream'
             | 'originalSummary'
           > & {
@@ -1882,6 +1884,8 @@ export class EventService {
         | 'intensitySeconds'
         | 'efficiencyFactor'
         | 'decouplingPercent'
+        | 'flatSpeedPerWatt'
+        | 'powerEfficiencyFactor'
         | 'originalStream'
         | 'originalSummary'
       > | null;
